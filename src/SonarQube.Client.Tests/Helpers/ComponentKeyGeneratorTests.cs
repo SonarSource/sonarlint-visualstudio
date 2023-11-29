@@ -42,7 +42,7 @@ public class ComponentKeyGeneratorTests
     {
         Action act = () => { ComponentKeyGenerator.GetComponentKey(@"c:\dir\dir\root\dir\file.cs", @".\non\rooted\", "project"); };
 
-        act.Should().ThrowExactly<ArgumentException>().Which.Message.Should().Be("Invalid root path format");
+        act.Should().ThrowExactly<ArgumentException>().WithMessage("Invalid root path format");
     }
     
     [TestMethod]
@@ -50,7 +50,7 @@ public class ComponentKeyGeneratorTests
     {
         Action act = () => { ComponentKeyGenerator.GetComponentKey(@"c:\dir\dir\root\dir\file.cs", @"c:\not\folder", "project"); };
 
-        act.Should().ThrowExactly<ArgumentException>().Which.Message.Should().Be("Invalid root path format");
+        act.Should().ThrowExactly<ArgumentException>().WithMessage("Invalid root path format");
     }
     
     [TestMethod]
@@ -58,6 +58,6 @@ public class ComponentKeyGeneratorTests
     {
         Action act = () => { ComponentKeyGenerator.GetComponentKey(@"c:\dir\dir\root\dir\file.cs", @"c:\not\same\folder\", "project"); };
 
-        act.Should().ThrowExactly<ArgumentException>().Which.Message.Should().Be("Local path is not under this root");
+        act.Should().ThrowExactly<ArgumentException>().WithMessage("Local path is not under this root");
     }
 }
