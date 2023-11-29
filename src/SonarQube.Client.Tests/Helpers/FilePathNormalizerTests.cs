@@ -57,5 +57,36 @@ namespace SonarQube.Client.Tests.Helpers
 
             result.Should().Be(expectedResult);
         }
+        
+        [TestMethod]
+        public void ServerizeWindowsPath_NullPath_EmptyStringReturned()
+        {
+            var result = FilePathNormalizer.ServerizeWindowsPath(null);
+
+            result.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void ServerizeWindowsPath_NothingToNormalize_PathUnchanged()
+        {
+            const string normalizedPath = "test/a/b/c/d";
+
+            using (new AssertIgnoreScope())
+            {
+                var result = FilePathNormalizer.ServerizeWindowsPath(normalizedPath);
+
+                result.Should().Be(normalizedPath);
+            }
+        }
+        
+        [TestMethod]
+        [DataRow("\\a\\b\\c", "a/b/c")]
+        [DataRow("a\\B\\C", "a/B/C")]
+        public void ServerizeWindowsPath_InvalidPath_PathNormalized(string originalPath, string expectedResult)
+        {
+            var result = FilePathNormalizer.ServerizeWindowsPath(originalPath);
+
+            result.Should().Be(expectedResult);
+        }
     }
 }
