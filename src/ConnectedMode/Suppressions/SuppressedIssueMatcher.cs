@@ -21,9 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
-using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Suppressions;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
@@ -33,14 +31,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     }
 
     [Export(typeof(ISuppressedIssueMatcher))]
-    public class SuppressedIssueMatcher : ISuppressedIssueMatcher
+    internal class SuppressedIssueMatcher : ISuppressedIssueMatcher
     {
         private readonly IServerIssuesStore serverIssuesStore;
+        private readonly IIssueMatcher issueMatcher;
 
         [ImportingConstructor]
-        public SuppressedIssueMatcher(IServerIssuesStore serverIssuesStore)
+        public SuppressedIssueMatcher(IServerIssuesStore serverIssuesStore,
+            IIssueMatcher issueMatcher)
         {
             this.serverIssuesStore = serverIssuesStore;
+            this.issueMatcher = issueMatcher;
         }
 
         public bool SuppressionExists(IFilterableIssue issue)
@@ -50,42 +51,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
                 throw new ArgumentNullException(nameof(issue));
             }
 
-            // File-level issues (i.e. line = null) match if:
-            // 1. Same component, same file, same error code.
-
-            // Non-file-level issues match if:
-            // 1. Same component, same file, same error code, same line hash        // tolerant to line number changing
-            // 2. Same component, same file, same error code, same line             // tolerant to code on the line changing e.g. var rename
-
-            // File-level issues never match non-file-level issues.
-
             var serverIssues = serverIssuesStore.Get();
 
-            // Try to find an issue with the same ID and either the same line number or some line hash
-            bool isSuppressed = serverIssues.Any(s => s.IsResolved && IsMatch(issue, s));
-
-            return isSuppressed;
-        }
-
-        private static bool IsMatch(IFilterableIssue issue, SonarQubeIssue serverIssue)
-        {
-            if (!StringComparer.OrdinalIgnoreCase.Equals(issue.RuleId, serverIssue.RuleId))
-            {
-                return false;
-            }
-
-            if (!PathHelper.IsServerFileMatch(issue.FilePath, serverIssue.FilePath))
-            {
-                return false;
-            }
-
-            if (!issue.StartLine.HasValue) // i.e. file-level issue
-            {
-                return serverIssue.TextRange == null;
-            }
-
-            // Non-file level issue
-            return issue.StartLine == serverIssue.TextRange?.StartLine || StringComparer.Ordinal.Equals(issue.LineHash, serverIssue.Hash);
+            // Try to find an issue with the same ID and either the same line number or same line hash
+            return serverIssues.Any(s => s.IsResolved && issueMatcher.IsGoodMatch(issue, s));
         }
     }
 }
