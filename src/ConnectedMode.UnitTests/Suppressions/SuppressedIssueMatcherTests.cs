@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var hasMatch = indexOfServerIssue != -1;
             if (hasMatch)
             {
-                issueMatcherMock.Setup(x => x.IsGoodMatch(issueToMatch, sonarQubeIssues[indexOfServerIssue])).Returns(true);
+                issueMatcherMock.Setup(x => x.IsLikelyMatch(issueToMatch, sonarQubeIssues[indexOfServerIssue])).Returns(true);
             }
 
             ConfigureServerIssues(sonarQubeIssues);
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var issueToMatch = CreateIssueToMatch();
             ConfigureServerIssues(CreateServerIssue(isSuppressed));
             issueMatcherMock
-                .Setup(x => x.IsGoodMatch(It.IsAny<IFilterableIssue>(), It.IsAny<SonarQubeIssue>()))
+                .Setup(x => x.IsLikelyMatch(It.IsAny<IFilterableIssue>(), It.IsAny<SonarQubeIssue>()))
                 .Returns(true);
 
             // Act and assert

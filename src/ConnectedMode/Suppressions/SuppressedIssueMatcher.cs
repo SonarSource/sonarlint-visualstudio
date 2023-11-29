@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             var serverIssues = serverIssuesStore.Get();
 
             // Try to find an issue with the same ID and either the same line number or same line hash
-            return serverIssues.Any(s => s.IsResolved && issueMatcher.IsGoodMatch(issue, s));
+            return serverIssues.Any(s => s.IsResolved && issueMatcher.IsLikelyMatch(issue, s));
         }
     }
 }

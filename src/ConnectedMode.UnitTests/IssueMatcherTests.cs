@@ -55,7 +55,7 @@ public class IssueMatcherTests
         var issueToMatch = CreateIssueToMatch("CorrectRuleId", 1, "CorrectHash");
         var serverIssue = CreateServerIssue(serverRuleId, serverIssueLine, serverHash);
 
-        CreateTestSubject().IsGoodMatch(issueToMatch, serverIssue).Should().Be(expectedResult);
+        CreateTestSubject().IsLikelyMatch(issueToMatch, serverIssue).Should().Be(expectedResult);
     }
 
     [DataTestMethod]
@@ -71,7 +71,7 @@ public class IssueMatcherTests
         var issueToMatch = CreateIssueToMatch("CorrectRuleId", null, null);
         var serverIssue = CreateServerIssue(serverRuleId, serverIssueLine, serverHash);
 
-        CreateTestSubject().IsGoodMatch(issueToMatch, serverIssue);
+        CreateTestSubject().IsLikelyMatch(issueToMatch, serverIssue).Should().Be(expectedResult);
     }
 
     [TestMethod]
@@ -103,7 +103,7 @@ public class IssueMatcherTests
 
         var serverIssue = CreateServerIssue("111", 0, "hash", filePath: serverFilePath);
 
-        CreateTestSubject().IsGoodMatch(issueToMatch, serverIssue).Should().Be(expected);
+        CreateTestSubject().IsLikelyMatch(issueToMatch, serverIssue).Should().Be(expected);
     }
 
     [TestMethod]
@@ -116,7 +116,7 @@ public class IssueMatcherTests
 
         var correctServerIssue = CreateServerIssue(ruleId, startLine, null, serverPath);
 
-        CreateTestSubject().GetFirstMatchFromSameFileOrNull(issueToMatch, new[]
+        CreateTestSubject().GetFirstLikelyMatchFromSameFileOrNull(issueToMatch, new[]
         {
             CreateServerIssue("222", startLine, null, serverPath),
             CreateServerIssue(ruleId, 111, null, serverPath),
@@ -130,7 +130,7 @@ public class IssueMatcherTests
     {
         var issueToMatch = CreateIssueToMatch("1", 1, "1");
 
-        CreateTestSubject().GetFirstMatchFromSameFileOrNull(issueToMatch, Array.Empty<SonarQubeIssue>()).Should().BeNull();
+        CreateTestSubject().GetFirstLikelyMatchFromSameFileOrNull(issueToMatch, Array.Empty<SonarQubeIssue>()).Should().BeNull();
     }
 
     private IssueMatcher CreateTestSubject()

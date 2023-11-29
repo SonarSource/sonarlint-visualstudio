@@ -30,19 +30,15 @@ namespace SonarLint.VisualStudio.ConnectedMode
 {
     internal interface IIssueMatcher
     {
-        bool IsGoodMatch(IFilterableIssue issue, SonarQubeIssue serverIssue);
-
-        SonarQubeIssue GetFirstMatchFromSameFileOrNull(IFilterableIssue issue, IEnumerable<SonarQubeIssue> serverIssuesFromSameFile);
-    }
-
-    [Export(typeof(IIssueMatcher))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class IssueMatcher : IIssueMatcher
-    {
-        public bool IsGoodMatch(IFilterableIssue issue, SonarQubeIssue serverIssue)
-        {
-            return IsMatch(issue, serverIssue, true);
-        }
+        /// <summary>
+        /// This method attempts to match <paramref name="issue"/> with <paramref name="serverIssue"/>.
+        /// There's a possibility of False Positive matches: in case false tail-match of file paths, as the project root is not taken into account,
+        /// or when line number matches but line hash doesn't.
+        /// </summary>
+        /// <param name="issue">Local issue</param>
+        /// <param name="serverIssue">Server issue</param>
+        /// <returns>The best possible match based on rule id, file name (tail matched to the server path), line number and line hash (not checked when line numbers match)</returns>
+        bool IsLikelyMatch(IFilterableIssue issue, SonarQubeIssue serverIssue);
 
         /// <summary>
         /// Returns the first matching issue. Note: for this method to work correctly, all <paramref name="serverIssuesFromSameFile"/> need to be from the same server file
@@ -50,7 +46,19 @@ namespace SonarLint.VisualStudio.ConnectedMode
         /// <param name="issue">Local issue</param>
         /// <param name="serverIssuesFromSameFile">List of server issues from the same file</param>
         /// <returns>A matching server issue, if present in the <paramref name="serverIssuesFromSameFile"/> list, or null</returns>
-        public SonarQubeIssue GetFirstMatchFromSameFileOrNull(IFilterableIssue issue, IEnumerable<SonarQubeIssue> serverIssuesFromSameFile)
+        SonarQubeIssue GetFirstLikelyMatchFromSameFileOrNull(IFilterableIssue issue, IEnumerable<SonarQubeIssue> serverIssuesFromSameFile);
+    }
+
+    [Export(typeof(IIssueMatcher))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class IssueMatcher : IIssueMatcher
+    {
+        public bool IsLikelyMatch(IFilterableIssue issue, SonarQubeIssue serverIssue)
+        {
+            return IsMatch(issue, serverIssue, true);
+        }
+
+        public SonarQubeIssue GetFirstLikelyMatchFromSameFileOrNull(IFilterableIssue issue, IEnumerable<SonarQubeIssue> serverIssuesFromSameFile)
         {
             return serverIssuesFromSameFile?.FirstOrDefault(serverIssue => IsMatch(issue, serverIssue, false));
         }
