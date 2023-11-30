@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
         [TestMethod]
         public async Task Mute_WindowCancel_DontCallService()
         {
-            var muteIssuesWindowService = CreateMuteIssuesWindowService("issueKey", true, SonarQubeIssueTransition.FalsePositive, "some comment");
+            var muteIssuesWindowService = CreateMuteIssuesWindowService("issueKey", false, SonarQubeIssueTransition.FalsePositive, "some comment");
 
             var sonarQubeService = new Mock<ISonarQubeService>();
 
