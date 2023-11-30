@@ -322,6 +322,42 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error.
+        /// </summary>
+        internal static string MuteIssuesService_Error_Caption {
+            get {
+                return ResourceManager.GetString("MuteIssuesService_Error_Caption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Issue is resolved but an error occured while adding the comment, please refer to the logs for more information..
+        /// </summary>
+        internal static string MuteIssuesService_Error_CommentAdditionFailed {
+            get {
+                return ResourceManager.GetString("MuteIssuesService_Error_CommentAdditionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to resolve the issue, please refer to the logs for more information..
+        /// </summary>
+        internal static string MuteIssuesService_Error_FailedToTransition {
+            get {
+                return ResourceManager.GetString("MuteIssuesService_Error_FailedToTransition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Credentials you have provided do not have enough permission to resolve issues..
+        /// </summary>
+        internal static string MuteIssuesService_Error_InsufficientPermissions {
+            get {
+                return ResourceManager.GetString("MuteIssuesService_Error_InsufficientPermissions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Transition]Issue muting is only supported in connected mode.
         /// </summary>
         internal static string MuteWindowService_NotInConnectedMode {
