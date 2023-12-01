@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class MuteIssuesService : IMuteIssuesService
     {
-        private readonly IConfigurationProvider configurationProvider;
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ILogger logger;
         private readonly IMuteIssuesWindowService muteIssuesWindowService;
         private readonly IThreadHandling threadHandling;
@@ -43,18 +43,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
         private readonly IServerIssuesStoreWriter serverIssuesStore;
 
         [ImportingConstructor]
-        public MuteIssuesService(IConfigurationProvider configurationProvider, ILogger logger, IMuteIssuesWindowService muteIssuesWindowService, ISonarQubeService sonarQubeService, IServerIssuesStoreWriter serverIssuesStore)
-            : this(configurationProvider, logger, muteIssuesWindowService, sonarQubeService, serverIssuesStore, ThreadHandling.Instance)
+        public MuteIssuesService(IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger, IMuteIssuesWindowService muteIssuesWindowService, ISonarQubeService sonarQubeService, IServerIssuesStoreWriter serverIssuesStore)
+            : this(activeSolutionBoundTracker, logger, muteIssuesWindowService, sonarQubeService, serverIssuesStore, ThreadHandling.Instance)
         { }
 
-        internal MuteIssuesService(IConfigurationProvider configurationProvider,
+        internal MuteIssuesService(IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger,
             IMuteIssuesWindowService muteIssuesWindowService,
             ISonarQubeService sonarQubeService,
             IServerIssuesStoreWriter serverIssuesStore,
             IThreadHandling threadHandling)
         {
-            this.configurationProvider = configurationProvider;
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.logger = logger;
             this.muteIssuesWindowService = muteIssuesWindowService;
             this.threadHandling = threadHandling;
@@ -64,7 +64,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
 
         public async Task Mute(string issueKey, CancellationToken token)
         {
-            if (!configurationProvider.GetConfiguration().Mode.IsInAConnectedMode())
+            threadHandling.ThrowIfOnUIThread();
+
+            if (!activeSolutionBoundTracker.CurrentConfiguration.Mode.IsInAConnectedMode())
             {
                 logger.LogVerbose(Resources.MuteWindowService_NotInConnectedMode);
                 return;

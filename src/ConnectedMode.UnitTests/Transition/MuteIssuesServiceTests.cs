@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<MuteIssuesService, IMuteIssuesService>(
-                MefTestHelpers.CreateExport<IConfigurationProvider>(),
+                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IMuteIssuesWindowService>(),
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
@@ -57,19 +57,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
         [TestMethod]
         public async Task Mute_NotInConnectedMode_Logs()
         {
-            var configurationProvider = CreateConfigurationProvider(false);
+            var threadHandling = CreateThreadHandling();
+            var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(false);
             var logger = new Mock<ILogger>();
 
-            var testSubject = CreateTestSubject(configurationProvider: configurationProvider, logger: logger.Object);
+            var testSubject = CreateTestSubject(activeSolutionBoundTracker: activeSolutionBoundTracker, logger: logger.Object, threadHandling: threadHandling.Object);
 
             await testSubject.Mute("anyKEy", CancellationToken.None);
 
             logger.Verify(l => l.LogVerbose("[Transition]Issue muting is only supported in connected mode"), Times.Once);
+            threadHandling.Verify(t => t.ThrowIfOnUIThread(), Times.Once());
         }
 
         [TestMethod]
         public async Task Mute_WindowOK_CallService()
         {
+            var threadHandling = CreateThreadHandling();
             var muteIssuesWindowService = CreateMuteIssuesWindowService("issueKey", true, SonarQubeIssueTransition.FalsePositive, "some comment");
 
             var sonarQubeService = new Mock<ISonarQubeService>();
@@ -79,13 +82,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
 
             var serverIssuesStore = new Mock<IServerIssuesStoreWriter>();
 
-            var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, sonarQubeService: sonarQubeService.Object, serverIssuesStore: serverIssuesStore.Object);
+            var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, sonarQubeService: sonarQubeService.Object, serverIssuesStore: serverIssuesStore.Object, threadHandling: threadHandling.Object);
 
             await testSubject.Mute("issueKey", CancellationToken.None);
 
             muteIssuesWindowService.Verify(s => s.Show("issueKey"), Times.Once);
             sonarQubeService.Verify(s => s.TransitionIssueAsync("issueKey", SonarQubeIssueTransition.FalsePositive, "some comment", CancellationToken.None), Times.Once);
             serverIssuesStore.Verify(s => s.UpdateIssues(true, It.Is<IEnumerable<string>>(p => p.SequenceEqual(new[] { "issueKey" }))), Times.Once);
+            threadHandling.Verify(t => t.ThrowIfOnUIThread(), Times.Once());
         }
 
         [TestMethod]
@@ -136,31 +140,32 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
             return threadHandling;
         }
 
-        private IConfigurationProvider CreateConfigurationProvider(bool isConnectedMode = true)
+        private IActiveSolutionBoundTracker CreateActiveSolutionBoundTracker(bool isConnectedMode = true)
         {
-            var configurationProvider = new ConfigurableConfigurationProvider();
-            configurationProvider.ModeToReturn = isConnectedMode ? SonarLintMode.Connected : SonarLintMode.Standalone;
-            configurationProvider.ProjectToReturn = new BoundSonarQubeProject();
-            configurationProvider.FolderPathToReturn = "someFolder";
+            var modeToReturn = isConnectedMode ? SonarLintMode.Connected : SonarLintMode.Standalone;
+            var configuration = new BindingConfiguration(null, modeToReturn, null);
 
-            return configurationProvider;
+            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
+            activeSolutionBoundTracker.SetupGet(x => x.CurrentConfiguration).Returns(configuration);
+
+            return activeSolutionBoundTracker.Object;
         }
 
-        private MuteIssuesService CreateTestSubject(IConfigurationProvider configurationProvider = null,
+        private MuteIssuesService CreateTestSubject(IActiveSolutionBoundTracker activeSolutionBoundTracker = null,
             ILogger logger = null,
             IMuteIssuesWindowService muteIssuesWindowService = null,
             ISonarQubeService sonarQubeService = null,
             IServerIssuesStoreWriter serverIssuesStore = null,
             IThreadHandling threadHandling = null)
         {
-            configurationProvider ??= CreateConfigurationProvider();
+            activeSolutionBoundTracker ??= CreateActiveSolutionBoundTracker();
             logger ??= Mock.Of<ILogger>();
             muteIssuesWindowService ??= Mock.Of<IMuteIssuesWindowService>();
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
             serverIssuesStore ??= Mock.Of<IServerIssuesStoreWriter>();
             threadHandling ??= CreateThreadHandling().Object;
 
-            return new MuteIssuesService(configurationProvider, logger, muteIssuesWindowService, sonarQubeService, serverIssuesStore, threadHandling);
+            return new MuteIssuesService(activeSolutionBoundTracker, logger, muteIssuesWindowService, sonarQubeService, serverIssuesStore, threadHandling);
         }
     }
 }
