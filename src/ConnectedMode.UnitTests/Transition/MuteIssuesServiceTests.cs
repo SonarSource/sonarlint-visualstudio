@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
@@ -107,6 +108,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
             sonarQubeService.VerifyNoOtherCalls();
         }
 
+        [DataRow(SonarQubeIssueTransitionResult.InsufficientPermissions, "Credentials you have provided do not have enough permission to resolve issues. It requires the permission 'Administer Issues'.")]
+        [DataRow(SonarQubeIssueTransitionResult.FailedToTransition, "Unable to resolve the issue, please refer to the logs for more information.")]
+        [DataRow(SonarQubeIssueTransitionResult.CommentAdditionFailed, "Issue is resolved but an error occured while adding the comment, please refer to the logs for more information.")]
+        [TestMethod]
+        public async Task Mute_SQError_ShowsError(SonarQubeIssueTransitionResult result, string errorMessage)
+        {
+            var messageBox = new Mock<IMessageBox>();
+            var muteIssuesWindowService = CreateMuteIssuesWindowService("issueKey", true, SonarQubeIssueTransition.FalsePositive, "some comment");
+
+            var sonarQubeService = new Mock<ISonarQubeService>();
+
+            sonarQubeService.Setup(s => s.TransitionIssueAsync(It.IsAny<string>(), It.IsAny<SonarQubeIssueTransition>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(result);
+
+            var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, sonarQubeService: sonarQubeService.Object, messageBox: messageBox.Object);
+
+            await testSubject.Mute("issueKey", CancellationToken.None);
+
+            messageBox.Verify(mb => mb.Show(errorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
+        }
+
         private Mock<IMuteIssuesWindowService> CreateMuteIssuesWindowService(string issueKey, bool result, SonarQubeIssueTransition transition = default, string comment = default)
         {
             var muteIssuesWindowResponse = CreateMuteIssuesWindowResponse(result, transition, comment);
@@ -156,7 +177,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
             IMuteIssuesWindowService muteIssuesWindowService = null,
             ISonarQubeService sonarQubeService = null,
             IServerIssuesStoreWriter serverIssuesStore = null,
-            IThreadHandling threadHandling = null)
+            IThreadHandling threadHandling = null,
+            IMessageBox messageBox = null)
         {
             activeSolutionBoundTracker ??= CreateActiveSolutionBoundTracker();
             logger ??= Mock.Of<ILogger>();
@@ -164,8 +186,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
             serverIssuesStore ??= Mock.Of<IServerIssuesStoreWriter>();
             threadHandling ??= CreateThreadHandling().Object;
+            messageBox ??= Mock.Of<IMessageBox>();
 
-            return new MuteIssuesService(activeSolutionBoundTracker, logger, muteIssuesWindowService, sonarQubeService, serverIssuesStore, threadHandling);
+            return new MuteIssuesService(activeSolutionBoundTracker, logger, muteIssuesWindowService, sonarQubeService, serverIssuesStore, threadHandling, messageBox);
         }
     }
 }
