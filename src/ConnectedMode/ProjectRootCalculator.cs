@@ -39,20 +39,20 @@ namespace SonarLint.VisualStudio.ConnectedMode
     internal class ProjectRootCalculator : IProjectRootCalculator
     {
         private readonly ISonarQubeService sonarQubeService;
-        private readonly IConfigurationProvider configurationProvider;
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IStatefulServerBranchProvider branchProvider;
 
         [ImportingConstructor]
-        public ProjectRootCalculator(ISonarQubeService sonarQubeService, IConfigurationProvider configurationProvider, IStatefulServerBranchProvider branchProvider)
+        public ProjectRootCalculator(ISonarQubeService sonarQubeService, IActiveSolutionBoundTracker activeSolutionBoundTracker, IStatefulServerBranchProvider branchProvider)
         {
             this.sonarQubeService = sonarQubeService;
-            this.configurationProvider = configurationProvider;
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.branchProvider = branchProvider;
         }
 
         public async Task<string> CalculateBasedOnLocalPathAsync(string localPath, CancellationToken token)
         {
-            var bindingConfiguration = configurationProvider.GetConfiguration();
+            var bindingConfiguration = activeSolutionBoundTracker.CurrentConfiguration;
 
             if (bindingConfiguration.Mode == SonarLintMode.Standalone)
             {
