@@ -349,7 +349,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Credentials you have provided do not have enough permission to resolve issues..
+        ///   Looks up a localized string similar to Credentials you have provided do not have enough permission to resolve issues. It requires the permission &apos;Administer Issues&apos;..
         /// </summary>
         internal static string MuteIssuesService_Error_InsufficientPermissions {
             get {

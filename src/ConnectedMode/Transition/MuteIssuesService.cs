@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
         private readonly ISonarQubeService sonarQubeService;
         private readonly IServerIssuesStoreWriter serverIssuesStore;
         private readonly IMessageBox messageBox;
-        private readonly ResourceManager rm;
+        private readonly ResourceManager resourceManager;
 
         [ImportingConstructor]
         public MuteIssuesService(IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger, IMuteIssuesWindowService muteIssuesWindowService, ISonarQubeService sonarQubeService, IServerIssuesStoreWriter serverIssuesStore)
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
             this.serverIssuesStore = serverIssuesStore;
             this.messageBox = messageBox;
 
-            rm = new ResourceManager(typeof(Resources));
+            resourceManager = new ResourceManager(typeof(Resources));
         }
 
         public async Task Mute(string issueKey, CancellationToken token)
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
                 }
                 else
                 {
-                    messageBox.Show(rm.GetString($"MuteIssuesService_Error_{serviceResult}"), Resources.MuteIssuesService_Error_Caption, MessageBoxButton.OK, MessageBoxImage.Error);
+                    messageBox.Show(resourceManager.GetString($"MuteIssuesService_Error_{serviceResult}"), Resources.MuteIssuesService_Error_Caption, MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }

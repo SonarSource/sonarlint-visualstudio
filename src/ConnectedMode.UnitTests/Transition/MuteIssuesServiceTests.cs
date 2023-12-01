@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
             sonarQubeService.VerifyNoOtherCalls();
         }
 
-        [DataRow(SonarQubeIssueTransitionResult.InsufficientPermissions, "Credentials you have provided do not have enough permission to resolve issues.")]
+        [DataRow(SonarQubeIssueTransitionResult.InsufficientPermissions, "Credentials you have provided do not have enough permission to resolve issues. It requires the permission 'Administer Issues'.")]
         [DataRow(SonarQubeIssueTransitionResult.FailedToTransition, "Unable to resolve the issue, please refer to the logs for more information.")]
         [DataRow(SonarQubeIssueTransitionResult.CommentAdditionFailed, "Issue is resolved but an error occured while adding the comment, please refer to the logs for more information.")]
         [TestMethod]

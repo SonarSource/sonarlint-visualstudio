@@ -299,6 +299,6 @@
     <value>Unable to resolve the issue, please refer to the logs for more information.</value>
   </data>
   <data name="MuteIssuesService_Error_InsufficientPermissions" xml:space="preserve">
-    <value>Credentials you have provided do not have enough permission to resolve issues.</value>
+    <value>Credentials you have provided do not have enough permission to resolve issues. It requires the permission 'Administer Issues'.</value>
   </data>
 </root>
