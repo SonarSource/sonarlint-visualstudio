@@ -21,9 +21,9 @@
 using System;
 using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
