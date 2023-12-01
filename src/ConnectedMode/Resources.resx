@@ -289,4 +289,16 @@
   <data name="MuteWindowService_NotInConnectedMode" xml:space="preserve">
     <value>[Transition]Issue muting is only supported in connected mode</value>
   </data>
+  <data name="MuteIssuesService_Error_Caption" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="MuteIssuesService_Error_CommentAdditionFailed" xml:space="preserve">
+    <value>Issue is resolved but an error occured while adding the comment, please refer to the logs for more information.</value>
+  </data>
+  <data name="MuteIssuesService_Error_FailedToTransition" xml:space="preserve">
+    <value>Unable to resolve the issue, please refer to the logs for more information.</value>
+  </data>
+  <data name="MuteIssuesService_Error_InsufficientPermissions" xml:space="preserve">
+    <value>Credentials you have provided do not have enough permission to resolve issues. It requires the permission 'Administer Issues'.</value>
+  </data>
 </root>
