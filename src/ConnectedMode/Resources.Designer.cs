@@ -322,6 +322,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Transition]Issue muting is only supported in connected mode.
+        /// </summary>
+        internal static string MuteWindowService_NotInConnectedMode {
+            get {
+                return ResourceManager.GetString("MuteWindowService_NotInConnectedMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {null}.
         /// </summary>
         internal static string NullBranchName {

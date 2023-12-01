@@ -286,4 +286,7 @@
   <data name="SharedBindingConfigProvider_SharedFolderNotFound" xml:space="preserve">
     <value>[SharedBindingConfigProvider] SonarLint shared folder was not found</value>
   </data>
+  <data name="MuteWindowService_NotInConnectedMode" xml:space="preserve">
+    <value>[Transition]Issue muting is only supported in connected mode</value>
+  </data>
 </root>

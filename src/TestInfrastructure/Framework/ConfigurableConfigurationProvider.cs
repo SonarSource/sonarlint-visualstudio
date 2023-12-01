@@ -19,7 +19,6 @@
  */
 
 using System;
-using FluentAssertions;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
@@ -37,7 +36,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
                 ? BindingConfiguration.Standalone
                 : BindingConfiguration.CreateBoundConfiguration(ProjectToReturn, ModeToReturn, FolderPathToReturn);
         }
-
 
         #region Test helpers
 
