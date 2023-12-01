@@ -84,7 +84,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
 
             await threadHandling.RunOnUIThreadAsync(() => windowResponse = muteIssuesWindowService.Show(issueKey));
 
-            //TODO: Failure will be handled later
             if (windowResponse.Result)
             {
                 var serviceResult = await sonarQubeService.TransitionIssueAsync(issueKey, windowResponse.IssueTransition, windowResponse.Comment, token);
