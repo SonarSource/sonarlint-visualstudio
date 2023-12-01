@@ -20,12 +20,14 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
+    [ExcludeFromCodeCoverage]
     internal sealed class MuteIssueCommand
     {
         // Command set guid and command id. Must match those in DaemonCommands.vsct
