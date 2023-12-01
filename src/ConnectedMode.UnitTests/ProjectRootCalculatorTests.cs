@@ -35,7 +35,7 @@ public class ProjectRootCalculatorTests
     {
         MefTestHelpers.CheckTypeCanBeImported<ProjectRootCalculator, IProjectRootCalculator>(
             MefTestHelpers.CreateExport<ISonarQubeService>(),
-            MefTestHelpers.CreateExport<IConfigurationProvider>(),
+            MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
             MefTestHelpers.CreateExport<IStatefulServerBranchProvider>());
     }
 
@@ -49,7 +49,7 @@ public class ProjectRootCalculatorTests
     public async Task CalculateBasedOnLocalPathAsync_StandaloneMode_ReturnsNull()
     {
         var testSubject = CreateTestSubject(out _, out var configurationProviderMock, out _);
-        configurationProviderMock.Setup(x => x.GetConfiguration()).Returns(BindingConfiguration.Standalone);
+        configurationProviderMock.SetupGet(x => x.CurrentConfiguration).Returns(BindingConfiguration.Standalone);
 
         var result = await testSubject.CalculateBasedOnLocalPathAsync(@"c:\somepath", CancellationToken.None);
 
@@ -64,7 +64,7 @@ public class ProjectRootCalculatorTests
         
         var testSubject = CreateTestSubject(out var sonarQubeServiceMock, out var configurationProviderMock, out var branchProviderMock);
         configurationProviderMock
-            .Setup(x => x.GetConfiguration())
+            .SetupGet(x => x.CurrentConfiguration)
             .Returns(BindingConfiguration.CreateBoundConfiguration(
                 new BoundSonarQubeProject(){ProjectKey = projectKey},
                 SonarLintMode.Connected,
@@ -82,11 +82,11 @@ public class ProjectRootCalculatorTests
     }
 
     private ProjectRootCalculator CreateTestSubject(out Mock<ISonarQubeService> sonarQubeServiceMock, 
-        out Mock<IConfigurationProvider> configurationProviderMock,
+        out Mock<IActiveSolutionBoundTracker> activeSolutionBoundTracker,
         out Mock<IStatefulServerBranchProvider> statefulServerBranchProviderMock)
     {
         return new ProjectRootCalculator((sonarQubeServiceMock = new Mock<ISonarQubeService>(MockBehavior.Strict)).Object,
-            (configurationProviderMock = new Mock<IConfigurationProvider>(MockBehavior.Strict)).Object,
+            (activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>(MockBehavior.Strict)).Object,
             (statefulServerBranchProviderMock = new Mock<IStatefulServerBranchProvider>(MockBehavior.Strict)).Object);
     }
 }
