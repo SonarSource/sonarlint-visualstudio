@@ -24,7 +24,7 @@
         </Strings>
       </Button>
 
-      <Button guid="guidIssueVizPackageCmdSet" id="IssueVisualizationToolWindowErrorListCommandId" priority="0x0200" type="Button">
+      <Button guid="guidIssueVizPackageCmdSet" id="IssueVisualizationToolWindowErrorListCommandId" priority="0x0100" type="Button">
         <Parent guid="guidDaemonCmdSet" id="grpDaemonErrorList" />
         <Icon guid="guidImages" id="sonarlint" />
         <CommandFlag>DynamicVisibility</CommandFlag>
