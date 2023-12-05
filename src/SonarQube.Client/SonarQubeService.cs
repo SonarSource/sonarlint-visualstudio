@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -361,10 +360,17 @@ namespace SonarQube.Client
                 },
                 token);
 
-        [ExcludeFromCodeCoverage]
-        public Task<IList<string>> SearchFilesByNameAsync(string projectKey, string branch, string fileName, CancellationToken token)
+        public async Task<IList<string>> SearchFilesByNameAsync(string projectKey, string branch, string fileName, CancellationToken token)
         {
-            throw new NotImplementedException();
+            return await InvokeCheckedRequestAsync<ISearchFilesByNameRequest, string[]>(
+                    request =>
+                    {
+                        request.ProjectKey = projectKey;
+                        request.BranchName = branch;
+                        request.FileName = fileName;
+                    },
+                    token
+                 );
         }
 
         public async Task<IList<SonarQubeRule>> GetRulesAsync(bool isActive, string qualityProfileKey, CancellationToken token) =>
@@ -405,7 +411,7 @@ namespace SonarQube.Client
                     request.ProjectKey = projectKey;
                 },
                 token);
-        
+
         public async Task<SonarQubeIssueTransitionResult> TransitionIssueAsync(string issueKey, SonarQubeIssueTransition transition, string optionalComment, CancellationToken token)
         {
             var transitionResult = await InvokeCheckedRequestAsync<ITransitionIssueRequest, SonarQubeIssueTransitionResult>(
@@ -420,7 +426,7 @@ namespace SonarQube.Client
             {
                 return transitionResult;
             }
-            
+
             var commentResult = await InvokeCheckedRequestAsync<ICommentIssueRequest, bool>(
                 request =>
                 {
@@ -428,7 +434,7 @@ namespace SonarQube.Client
                     request.Text = optionalComment;
                 },
                 token);
-            
+
             return commentResult
                 ? SonarQubeIssueTransitionResult.Success
                 : SonarQubeIssueTransitionResult.CommentAdditionFailed;
