@@ -65,7 +65,8 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetRulesRequest, V10_2.GetRulesWithCCTRequest>("10.2")
                 .RegisterRequest<ITransitionIssueRequest, V9_9.TransitionIssueRequestWithWontFix>("9.9")
                 .RegisterRequest<ITransitionIssueRequest, V10_4.TransitionIssueRequestWithAccept>("10.4")
-                .RegisterRequest<ICommentIssueRequest, V9_9.CommentIssueRequest>("9.9");
+                .RegisterRequest<ICommentIssueRequest, V9_9.CommentIssueRequest>("9.9")
+                .RegisterRequest<ISearchFilesByNameRequest, V9_9.SearchFilesByNameRequest>("9.9");
 
             return requestFactory;
         }
@@ -95,7 +96,8 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetExclusionsRequest, V7_20.GetExclusionsRequest>()
                 .RegisterRequest<ISearchHotspotRequest, V9_7.SearchHotspotRequest>()
                 .RegisterRequest<ITransitionIssueRequest, V10_4.TransitionIssueRequestWithAccept>()
-                .RegisterRequest<ICommentIssueRequest, V9_9.CommentIssueRequest>();
+                .RegisterRequest<ICommentIssueRequest, V9_9.CommentIssueRequest>()
+                .RegisterRequest<ISearchFilesByNameRequest, V9_9.SearchFilesByNameRequest>();
 
             return requestFactory;
         }
