@@ -76,7 +76,8 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V10_2.GetRulesWithCCTRequest for 10.2",
                     "Registered SonarQube.Client.Api.V9_9.TransitionIssueRequestWithWontFix for 9.9",
                     "Registered SonarQube.Client.Api.V10_4.TransitionIssueRequestWithAccept for 10.4",
-                    "Registered SonarQube.Client.Api.V9_9.CommentIssueRequest for 9.9"
+                    "Registered SonarQube.Client.Api.V9_9.CommentIssueRequest for 9.9",
+                    "Registered SonarQube.Client.Api.V9_9.SearchFilesByNameRequest for 9.9"
                 };
 
             DefaultConfiguration.ConfigureSonarQube(new RequestFactory(logger));
@@ -116,7 +117,8 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V7_20.GetExclusionsRequest",
                     "Registered SonarQube.Client.Api.V9_7.SearchHotspotRequest",
                     "Registered SonarQube.Client.Api.V10_4.TransitionIssueRequestWithAccept",
-                    "Registered SonarQube.Client.Api.V9_9.CommentIssueRequest"
+                    "Registered SonarQube.Client.Api.V9_9.CommentIssueRequest",
+                    "Registered SonarQube.Client.Api.V9_9.SearchFilesByNameRequest"
                 };
 
             DefaultConfiguration.ConfigureSonarCloud(new UnversionedRequestFactory(logger));
@@ -156,6 +158,7 @@ namespace SonarQube.Client.Tests.Requests
             testSubject.Create<IGetSonarLintEventStream>(serverInfo).Should().NotBeNull();
             testSubject.Create<ITransitionIssueRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<ICommentIssueRequest>(serverInfo).Should().NotBeNull();
+            testSubject.Create<ISearchFilesByNameRequest>(serverInfo).Should().NotBeNull();
         }
 
         [TestMethod]
@@ -186,6 +189,7 @@ namespace SonarQube.Client.Tests.Requests
             testSubject.Create<IGetExclusionsRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<ITransitionIssueRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<ICommentIssueRequest>(serverInfo).Should().NotBeNull();
+            testSubject.Create<ISearchFilesByNameRequest>(serverInfo).Should().NotBeNull();
         }
 
         [TestMethod]
