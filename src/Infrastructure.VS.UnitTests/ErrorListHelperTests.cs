@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
@@ -56,6 +57,69 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             serviceOp.Invocations.Should().BeEmpty();
         }
 
+        [TestMethod]
+        public void TryGetIssueFromSelectedRow_SingleSonarIssue_IssueReturned()
+        {
+            var issueMock = Mock.Of<IAnalysisIssueVisualization>();
+            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, "SonarLint" },
+                { StandardTableKeyNames.ErrorCode, "javascript:S333"},
+                { SonarLintTableControlConstants.IssueVizColumnName, issueMock }
+            });
+            var errorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
+
+            var testSubject = new ErrorListHelper(serviceProvider);
+            bool result = testSubject.TryGetIssueFromSelectedRow(out var issue);
+
+            result.Should().BeTrue();
+            issue.Should().BeSameAs(issueMock);
+        }
+        
+        [TestMethod]
+        public void TryGetIssueFromSelectedRow_SingleItemButNoAnalysisIssue_IssueNotReturned()
+        {
+            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, "SonarLint" },
+                { StandardTableKeyNames.ErrorCode, "javascript:S333"},
+                { SonarLintTableControlConstants.IssueVizColumnName, null }
+            });
+            var errorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
+
+            var testSubject = new ErrorListHelper(serviceProvider);
+            var result = testSubject.TryGetIssueFromSelectedRow(out _);
+
+            result.Should().BeFalse();
+        }
+        
+        [TestMethod]
+        public void TryGetIssueFromSelectedRow_MultipleItemsSelected_IssueNotReturned()
+        {
+            var cppIssueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, "SonarLint" },
+                { StandardTableKeyNames.ErrorCode, "cpp:S222" },
+                { SonarLintTableControlConstants.IssueVizColumnName, Mock.Of<IAnalysisIssueVisualization>() }
+            });
+            var jsIssueHandle = CreateIssueHandle(222, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, "SonarLint.CSharp" },
+                { StandardTableKeyNames.ErrorCode, "csharpsquid:S222" },
+                { SonarLintTableControlConstants.IssueVizColumnName, Mock.Of<IAnalysisIssueVisualization>() }
+            });
+
+            var errorList = CreateErrorList(cppIssueHandle, jsIssueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
+
+            var testSubject = new ErrorListHelper(serviceProvider);
+            var result = testSubject.TryGetIssueFromSelectedRow(out _);
+
+            result.Should().BeFalse();
+        }
+        
         [TestMethod]
         [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp")]
         [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic")]
