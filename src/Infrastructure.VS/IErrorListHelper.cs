@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         /// The method will only return a rule key if the row represents a Sonar analysis issue for
         /// any supported language (including Roslyn languages i.e. C# and VB.NET)
 
-        bool TryGetRuleId(ITableEntryHandle tableEntryHandle, out SonarCompositeRuleId ruleId);
+        bool TryGetRuleId(ITableEntryHandle handle, out SonarCompositeRuleId ruleId);
 
         /// <summary>
         /// Extracts, if present, <see cref="IFilterableIssue"/> from the hidden column <see cref="SonarLintTableControlConstants.IssueVizColumnName"/>

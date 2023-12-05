@@ -137,7 +137,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             value = default;
             return snapshot.TryGetValue(index, columnName, out var objValue) 
                    && (value = objValue as T) != null;
-
         }
     }
 }
