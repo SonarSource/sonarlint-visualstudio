@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Models;
@@ -36,6 +37,15 @@ namespace SonarQube.Client.Api.Common
             return components
                 .Where(c => c.IsFile)
                 .ToLookup(c => c.Key, c => c.Path); // Using a Lookup because it does not throw, unlike the Dictionary
+        }
+
+        internal static IEnumerable<string> GetComponentPathList(this JObject root)
+        {
+            var components = root["components"] == null
+                ? Array.Empty<ServerComponent>()
+                : root["components"].ToObject<ServerComponent[]>();
+
+            return components.Select(c => c.Path);
         }
 
         internal static IssueTextRange ToIssueTextRange(this ServerIssueTextRange serverIssueTextRange)
