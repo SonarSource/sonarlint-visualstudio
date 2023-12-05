@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.IssueVisualization.TableControls
+namespace SonarLint.VisualStudio.Infrastructure.VS
 {
     /// <summary>
     /// Constants for SonarLint-specific table data sources and column names
