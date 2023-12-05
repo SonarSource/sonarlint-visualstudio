@@ -20,6 +20,7 @@
 
 using Microsoft.VisualStudio.Shell.TableControl;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Suppressions;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
 {
@@ -43,5 +44,11 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         /// any supported language (including Roslyn languages i.e. C# and VB.NET)
 
         bool TryGetRuleId(ITableEntryHandle tableEntryHandle, out SonarCompositeRuleId ruleId);
+
+        /// <summary>
+        /// Extracts, if present, <see cref="IFilterableIssue"/> from the hidden column <see cref="SonarLintTableControlConstants.IssueVizColumnName"/>
+        /// </summary>
+        /// <returns>True if issue is present in the selected row, False if not present or multiple rows selected</returns>
+        bool TryGetIssueFromSelectedRow(out IFilterableIssue issue);
     }
 }
