@@ -190,4 +190,13 @@
   <data name="ConfigMonitor_QualityProfilesChanged" xml:space="preserve">
     <value>Quality Profiles have changed. Open documents will be re-analyzed.</value>
   </data>
+  <data name="MuteIssue_HaveMuted" xml:space="preserve">
+    <value>Issue {0} resolved</value>
+  </data>
+  <data name="MuteIssue_ErrorMutingIssue" xml:space="preserve">
+    <value>Error when muting the issue. Error {0}</value>
+  </data>
+  <data name="MuteIssue_ErrorCheckingCommandStatus" xml:space="preserve">
+    <value>Error in MuteIssueCommand.QueryStatus. Error: {0}</value>
+  </data>
 </root>
