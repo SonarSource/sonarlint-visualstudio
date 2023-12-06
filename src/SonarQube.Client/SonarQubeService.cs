@@ -343,6 +343,7 @@ namespace SonarQube.Client
                     request.Branch = branch;
                     request.ComponentKey = componentKey;
                     request.RuleId = ruleId;
+                    request.IncludeTaint = false;
                 },
                 token);
         }

@@ -60,6 +60,9 @@ namespace SonarQube.Client.Api.V5_10
 
         public string ComponentKey { get; set; }
 
+        [JsonIgnore]
+        public bool IncludeTaint { get; set; } = true;
+
         protected async override Task<Result<SonarQubeIssue[]>> ReadResponseAsync(HttpResponseMessage httpResponse)
         {
             if (!httpResponse.IsSuccessStatusCode)

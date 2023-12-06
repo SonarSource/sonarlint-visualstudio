@@ -41,6 +41,8 @@ namespace SonarQube.Client.Api
 
         string ComponentKey { get; set; }
 
+        bool IncludeTaint { get; set; }
+
         // Update <see cref="V7_20.GetIssuesRequestWrapper"/> when adding properties here.
     }
 }

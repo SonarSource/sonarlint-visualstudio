@@ -47,7 +47,7 @@ namespace SonarQube.Client.Tests
         }
 
         [TestMethod]
-        public async Task GetIssuesForComponentAsync_Connected_ReturnsExpexted()
+        public async Task GetIssuesForComponentAsync_Connected_ReturnsExpected()
         {
             await ConnectToSonarQube("9.9.0.0");
 
@@ -58,11 +58,10 @@ namespace SonarQube.Client.Tests
 
             SetupPageOfResponses(projectKey, ruleId, componentKey, branch, 1, 1, "CODE_SMELL");
             SetupPageOfResponses(projectKey, ruleId, componentKey, branch, 1, 1, "BUG");
-            SetupPageOfResponses(projectKey, ruleId, componentKey, branch, 1, 1, "VULNERABILITY");
 
             var result = await service.GetIssuesForComponentAsync(projectKey, branch, componentKey, ruleId, CancellationToken.None);
 
-            result.Should().HaveCount(3);
+            result.Should().HaveCount(2);
         }
 
         [TestMethod]
@@ -77,11 +76,10 @@ namespace SonarQube.Client.Tests
 
             SetupPagesOfResponses(projectKey, ruleId, componentKey, branch, MaxAllowedIssues, "CODE_SMELL");
             SetupPagesOfResponses(projectKey, ruleId, componentKey, branch, MaxAllowedIssues, "BUG");
-            SetupPagesOfResponses(projectKey, ruleId, componentKey, branch, MaxAllowedIssues, "VULNERABILITY");
 
             var result = await service.GetIssuesForComponentAsync(projectKey, branch, componentKey, ruleId, CancellationToken.None);
 
-            result.Should().HaveCount(MaxAllowedIssues * 3);
+            result.Should().HaveCount(MaxAllowedIssues * 2);
 
             DumpWarningsToConsole();
 
@@ -89,7 +87,6 @@ namespace SonarQube.Client.Tests
 
             checkForExpectedWarning(MaxAllowedIssues, "code smells");
             checkForExpectedWarning(MaxAllowedIssues, "bugs");
-            checkForExpectedWarning(MaxAllowedIssues, "vulnerabilities");
         }
     }
 }

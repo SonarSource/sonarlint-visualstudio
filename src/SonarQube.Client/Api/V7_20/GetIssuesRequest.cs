@@ -53,6 +53,9 @@ namespace SonarQube.Client.Api.V7_20
         [JsonProperty("components")]
         public string ComponentKey { get; set; }
 
+        [JsonIgnore]
+        public bool IncludeTaint { get; set; } = true;
+
         // Notes:
         // 1) Branch support is not available in SQ Community edition. SQ will just ignore it.
         // 2) SonarQube has supported the parameter since v6.6. However, the LTS at the point
