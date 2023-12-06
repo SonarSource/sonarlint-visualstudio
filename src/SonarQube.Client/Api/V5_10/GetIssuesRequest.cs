@@ -56,6 +56,10 @@ namespace SonarQube.Client.Api.V5_10
 
         protected override string Path => "batch/issues";
 
+        public string RuleId { get; set; }
+
+        public string ComponentKey { get; set; }
+
         protected async override Task<Result<SonarQubeIssue[]>> ReadResponseAsync(HttpResponseMessage httpResponse)
         {
             if (!httpResponse.IsSuccessStatusCode)

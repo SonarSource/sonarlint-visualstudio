@@ -50,6 +50,9 @@ namespace SonarQube.Client.Api.V7_20
 
         public string[] IssueKeys { get; set; }
 
+        public string RuleId { get; set; }
+
+        public string ComponentKey { get; set; }
         public ILogger Logger { get; set; }
 
         public async Task<SonarQubeIssue[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
@@ -61,6 +64,8 @@ namespace SonarQube.Client.Api.V7_20
             innerRequest.Branch = Branch;
             innerRequest.Logger = Logger;
             innerRequest.IssueKeys = IssueKeys;
+            innerRequest.RuleId = RuleId;
+            innerRequest.ComponentKey = ComponentKey;
 
             if (innerRequest.IssueKeys != null)
             {
@@ -73,7 +78,7 @@ namespace SonarQube.Client.Api.V7_20
             innerRequest.Types = "CODE_SMELL";
             var codeSmells = await innerRequest.InvokeAsync(httpClient, token);
             WarnForApiLimit(codeSmells, innerRequest, "code smells");
-            
+
             ResetInnerRequest();
             innerRequest.Types = "BUG";
             var bugs = await innerRequest.InvokeAsync(httpClient, token);
