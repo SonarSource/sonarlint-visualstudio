@@ -21,8 +21,17 @@
 using System;
 using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Suppressions;
+using SonarLint.VisualStudio.Core.Transition;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
@@ -30,6 +39,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     [ExcludeFromCodeCoverage]
     internal sealed class MuteIssueCommand
     {
+        private readonly IErrorListHelper errorListHelper;
+        private readonly IServerIssueFinder serverIssueFinder;
+        private readonly IMuteIssuesService muteIssuesService;
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly IThreadHandling threadHandling;
+        private readonly ILogger logger;
+
         // Command set guid and command id. Must match those in DaemonCommands.vsct
         public static readonly Guid CommandSet = new Guid("1F83EA11-3B07-45B3-BF39-307FD4F42194");
         public const int CommandId = 0x0400;
@@ -45,15 +61,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             IMenuCommandService commandService = (IMenuCommandService)await package.GetServiceAsync(typeof(IMenuCommandService));
-            Instance = new MuteIssueCommand(commandService);
+            Instance = new MuteIssueCommand(commandService,
+                await package.GetMefServiceAsync<IErrorListHelper>(),
+                await package.GetMefServiceAsync<IServerIssueFinder>(),
+                await package.GetMefServiceAsync<IMuteIssuesService>(),
+                await package.GetMefServiceAsync<IActiveSolutionBoundTracker>(),
+                await package.GetMefServiceAsync<IThreadHandling>(),
+                logger);
         }
         
-        internal MuteIssueCommand(IMenuCommandService menuCommandService)
+        internal MuteIssueCommand(IMenuCommandService menuCommandService, 
+            IErrorListHelper errorListHelper,
+            IServerIssueFinder serverIssueFinder,
+            IMuteIssuesService muteIssuesService, 
+            IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            IThreadHandling threadHandling,
+            ILogger logger)
         {
             if (menuCommandService == null)
             {
                 throw new ArgumentNullException(nameof(menuCommandService));
             }
+
+            this.errorListHelper = errorListHelper ?? throw new ArgumentNullException(nameof(errorListHelper));
+            this.serverIssueFinder = serverIssueFinder ?? throw new ArgumentNullException(nameof(serverIssueFinder));
+            this.muteIssuesService = muteIssuesService ?? throw new ArgumentNullException(nameof(muteIssuesService));
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
+            this.threadHandling = threadHandling ?? throw new ArgumentNullException(nameof(threadHandling));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
@@ -63,13 +98,69 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private void QueryStatus(object sender, EventArgs e)
         {
-            menuItem.Visible = true;
-            menuItem.Enabled = true;
+            try
+            {
+                var isSonarRule = errorListHelper.TryGetRuleIdFromSelectedRow(out var ruleId) && IsSonarRule(ruleId);
+                menuItem.Visible = isSonarRule;
+                menuItem.Enabled = isSonarRule && activeSolutionBoundTracker.CurrentConfiguration.Mode.IsInAConnectedMode();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(AnalysisStrings.MuteIssue_ErrorCheckingCommandStatus, ex.Message);
+            }
         }
 
         private void Execute(object sender, EventArgs e)
         {
-            // will be implemented later
+            try
+            {
+                if (!errorListHelper.TryGetIssueFromSelectedRow(out var issue))
+                {
+                    // todo roslyn
+                    return;
+                }
+
+                threadHandling
+                    .RunOnBackgroundThread(() => MuteIssueAsync(issue))
+                    .Forget();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(AnalysisStrings.MuteIssue_ErrorMutingIssue, ex.Message);
+            }
+            
         }
+
+        private async Task<bool> MuteIssueAsync(IFilterableIssue issue)
+        {
+            var serverIssue = await serverIssueFinder.FindServerIssueAsync(issue, CancellationToken.None);
+            if (serverIssue == null)
+            {
+                // todo show user message
+                return false;
+            }
+
+            await muteIssuesService.Mute(serverIssue.IssueKey, CancellationToken.None);
+            logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted, serverIssue.IssueKey);
+            
+            return true;
+        }
+
+        // Strictly speaking we are allowing rules from known repos to be disabled,
+        // not "all rules for language X".  However, since we are in control of the
+        // rules/repos that are installed in  VSIX, checking the repo key is good
+        // enough.
+        private static readonly string[] SupportedRepos = 
+        {
+            SonarRuleRepoKeys.C,
+            SonarRuleRepoKeys.Cpp,
+            SonarRuleRepoKeys.JavaScript,
+            SonarRuleRepoKeys.TypeScript,
+            SonarRuleRepoKeys.Css,
+            SonarRuleRepoKeys.Secrets
+        };
+
+        private static bool IsSonarRule(SonarCompositeRuleId rule) =>
+            SupportedRepos.Contains(rule.RepoKey, SonarRuleRepoKeys.RepoKeyComparer);
     }
 }
