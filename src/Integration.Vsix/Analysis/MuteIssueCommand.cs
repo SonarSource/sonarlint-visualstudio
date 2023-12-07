@@ -45,15 +45,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
+        private readonly IMessageBox messageBox;
 
         // Command set guid and command id. Must match those in DaemonCommands.vsct
         public static readonly Guid CommandSet = new Guid("1F83EA11-3B07-45B3-BF39-307FD4F42194");
         public const int CommandId = 0x0400;
-        
+
         private readonly OleMenuCommand menuItem;
-        
+
         public static MuteIssueCommand Instance { get; private set; }
-        
+
         public static async Task InitializeAsync(AsyncPackage package, ILogger logger)
         {
             // Switch to the main thread - the call to AddCommand in Command1's constructor requires
@@ -67,15 +68,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 await package.GetMefServiceAsync<IMuteIssuesService>(),
                 await package.GetMefServiceAsync<IActiveSolutionBoundTracker>(),
                 await package.GetMefServiceAsync<IThreadHandling>(),
+                new MessageBox(),
                 logger);
         }
-        
-        internal MuteIssueCommand(IMenuCommandService menuCommandService, 
+
+        internal MuteIssueCommand(IMenuCommandService menuCommandService,
             IErrorListHelper errorListHelper,
             IServerIssueFinder serverIssueFinder,
-            IMuteIssuesService muteIssuesService, 
+            IMuteIssuesService muteIssuesService,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             IThreadHandling threadHandling,
+            IMessageBox messageBox,
             ILogger logger)
         {
             if (menuCommandService == null)
@@ -89,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
             this.threadHandling = threadHandling ?? throw new ArgumentNullException(nameof(threadHandling));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
+            this.messageBox = messageBox ?? throw new ArgumentNullException(nameof(messageBox));
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
             menuItem = new OleMenuCommand(Execute, null, QueryStatus, menuCommandID);
@@ -128,7 +131,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             {
                 logger.WriteLine(AnalysisStrings.MuteIssue_ErrorMutingIssue, ex.Message);
             }
-            
         }
 
         private async Task<bool> MuteIssueAsync(IFilterableIssue issue)
@@ -136,13 +138,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             var serverIssue = await serverIssueFinder.FindServerIssueAsync(issue, CancellationToken.None);
             if (serverIssue == null)
             {
-                // todo show user message
+                messageBox.Show(AnalysisStrings.MuteIssue_IssueNotFoundText, AnalysisStrings.MuteIssue_IssueNotFoundCaption, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Exclamation);
                 return false;
             }
 
             await muteIssuesService.Mute(serverIssue.IssueKey, CancellationToken.None);
             logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted, serverIssue.IssueKey);
-            
+
             return true;
         }
 
@@ -150,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         // not "all rules for language X".  However, since we are in control of the
         // rules/repos that are installed in  VSIX, checking the repo key is good
         // enough.
-        private static readonly string[] SupportedRepos = 
+        private static readonly string[] SupportedRepos =
         {
             SonarRuleRepoKeys.C,
             SonarRuleRepoKeys.Cpp,
