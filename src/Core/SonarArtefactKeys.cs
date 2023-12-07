@@ -76,6 +76,7 @@ namespace SonarLint.VisualStudio.Core
 
         public const string CSharpSecurityRules = "roslyn.sonaranalyzer.security.cs";
         public const string CSharpRules = "csharpsquid";
+        public const string VBNetRules = "vbnet";
 
         public const string JsSecurityRules = "jssecurity";
         public const string TsSecurityRules = "tssecurity";
