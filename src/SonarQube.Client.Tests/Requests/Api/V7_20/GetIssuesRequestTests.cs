@@ -351,7 +351,6 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
 
             _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
 
-
             // Branch is not null/empty => should be passed
             var actualQueryString = GetSingleActualQueryString(handlerMock);
             actualQueryString.Contains($"&branch={requestedBranch}&").Should().BeTrue();
@@ -378,7 +377,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
         [TestMethod]
         public async Task InvokeAsync_IssueKeysAreSpecified_IssueKeysAreIncludedInQueryString()
         {
-            var issueKeys = new[] {"issue1", "issue2"};
+            var issueKeys = new[] { "issue1", "issue2" };
             var testSubject = CreateTestSubject("any", "any", issueKeys: issueKeys);
 
             var handlerMock = new Mock<HttpMessageHandler>();
@@ -394,7 +393,79 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             actualQueryString.Contains("issues=issue1%2Cissue2").Should().BeTrue();
         }
 
-        private static GetIssuesRequest CreateTestSubject(string projectKey, string statusesToRequest, string branch = null, string[] issueKeys = null)
+        [TestMethod]
+        public async Task InvokeAsync_RuleIdNotSpecified_RulesAreNotIncludedInQueryString()
+        {
+            var testSubject = CreateTestSubject("any", "any", ruleId: null);
+
+            var handlerMock = new Mock<HttpMessageHandler>();
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri(ValidBaseAddress)
+            };
+
+            SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
+            _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
+
+            var actualQueryString = GetSingleActualQueryString(handlerMock);
+            actualQueryString.Contains("rules").Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task InvokeAsync_RuleIdSpecified_RulesAreIncludedInQueryString()
+        {
+            var testSubject = CreateTestSubject("any", "any", ruleId: "rule1");
+
+            var handlerMock = new Mock<HttpMessageHandler>();
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri(ValidBaseAddress)
+            };
+
+            SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
+            _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
+
+            var actualQueryString = GetSingleActualQueryString(handlerMock);
+            actualQueryString.Contains("rules=rule1").Should().BeTrue();
+        }
+
+        [TestMethod]
+        public async Task InvokeAsync_ComponentKeyNotSpecified_ComponentsAreNotIncludedInQueryString()
+        {
+            var testSubject = CreateTestSubject("any", "any", componentKey: null);
+
+            var handlerMock = new Mock<HttpMessageHandler>();
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri(ValidBaseAddress)
+            };
+
+            SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
+            _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
+
+            var actualQueryString = GetSingleActualQueryString(handlerMock);
+            actualQueryString.Contains("components").Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task InvokeAsync_ComponentKeySpecified_ComponentsAreIncludedInQueryString()
+        {
+            var testSubject = CreateTestSubject("any", "any", componentKey: "project1");
+
+            var handlerMock = new Mock<HttpMessageHandler>();
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri(ValidBaseAddress)
+            };
+
+            SetupHttpRequest(handlerMock, EmptyGetIssuesResponse);
+            _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
+
+            var actualQueryString = GetSingleActualQueryString(handlerMock);
+            actualQueryString.Contains("components=project1").Should().BeTrue();
+        }
+
+        private static GetIssuesRequest CreateTestSubject(string projectKey, string statusesToRequest, string branch = null, string[] issueKeys = null, string ruleId = null, string componentKey = null)
         {
             var testSubject = new GetIssuesRequest
             {
@@ -402,7 +473,9 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
                 ProjectKey = projectKey,
                 Statuses = statusesToRequest,
                 Branch = branch,
-                IssueKeys = issueKeys
+                IssueKeys = issueKeys,
+                RuleId = ruleId,
+                ComponentKey = componentKey
             };
 
             return testSubject;

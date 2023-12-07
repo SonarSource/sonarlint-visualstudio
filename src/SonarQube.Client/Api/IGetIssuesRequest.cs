@@ -26,7 +26,7 @@ namespace SonarQube.Client.Api
     interface IGetIssuesRequest : IRequest<SonarQubeIssue[]>
     {
         string ProjectKey { get; set; }
-        
+
         string Statuses { get; set; }
 
         /// <summary>
@@ -36,6 +36,12 @@ namespace SonarQube.Client.Api
         string Branch { get; set; }
 
         string[] IssueKeys { get; set; }
+
+        string RuleId { get; set; }
+
+        string ComponentKey { get; set; }
+
+        bool IncludeTaint { get; set; }
 
         // Update <see cref="V7_20.GetIssuesRequestWrapper"/> when adding properties here.
     }

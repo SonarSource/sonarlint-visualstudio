@@ -28,20 +28,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Client.Api;
-using SonarQube.Client.Models;
-using SonarQube.Client.Requests;
-using static SonarQube.Client.Tests.Infra.MocksHelper;
 using Moq;
+using SonarQube.Client.Models;
+using static SonarQube.Client.Tests.Infra.MocksHelper;
 
 namespace SonarQube.Client.Tests
 {
     [TestClass]
-    public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_TestBase
+    public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_GetIssuesBase
     {
-        private const int MaxAllowedIssues = PagedRequestBase<IGetIssuesRequest>.MaximumItemsCount;
-        private const int PageSize = PagedRequestBase<IGetIssuesRequest>.MaximumPageSize;
-
         [TestMethod]
         public async Task GetSuppressedIssuesAsync_Old_ExampleFromSonarQube()
         {
@@ -251,7 +246,7 @@ namespace SonarQube.Client.Tests
 }
 ");
 
-            var result = await service.GetSuppressedIssuesAsync("shared", null, null,CancellationToken.None);
+            var result = await service.GetSuppressedIssuesAsync("shared", null, null, CancellationToken.None);
 
             result.Should().HaveCount(4);
 
@@ -358,13 +353,6 @@ namespace SonarQube.Client.Tests
             checkForExpectedWarning(numCodeSmells, "code smells");
             checkForExpectedWarning(numBugs, "bugs");
             checkForExpectedWarning(numVulnerabilities, "vulnerabilities");
-
-            void checkForExpectedWarning(int itemCount, string partialText)
-            {
-                // Only expect a warning if the number of items is equal or greater than the max allowed
-                var expectedMessageCount = itemCount >= MaxAllowedIssues ? 1 : 0;
-                logger.WarningMessages.Count(x => x.Contains(partialText)).Should().Be(expectedMessageCount);
-            }
         }
 
         [TestMethod]
@@ -421,7 +409,7 @@ namespace SonarQube.Client.Tests
             messageHandler.Reset();
 
             SetupHttpRequest(messageHandler, EmptyGetIssuesResponse);
-            _ = await service.GetSuppressedIssuesAsync("any", null, new[]{"issue1", "issue2"}, CancellationToken.None);
+            _ = await service.GetSuppressedIssuesAsync("any", null, new[] { "issue1", "issue2" }, CancellationToken.None);
 
             // The wrapper is expected to make one call with the given issueKeys
             var actualRequests = messageHandler.GetSendAsyncRequests();
@@ -442,88 +430,6 @@ namespace SonarQube.Client.Tests
                 .Message.Should().Be("This operation expects the service to be connected.");
 
             logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
-        }
-
-        private void SetupPageOfResponses(string projectName, int pageNumber, int numberOfIssues, string issueType)
-        {
-            // Sanity check of the issue types
-            issueType.Should().BeOneOf("CODE_SMELL", "BUG", "VULNERABILITY");
-
-            var startItemNumber = (pageNumber - 1) * PageSize + 1;
-
-            var issuesJson = string.Empty;
-            var componentJson = string.Empty;
-            if (numberOfIssues > 0)
-            {
-                issuesJson = string.Join(",\n", Enumerable.Range(startItemNumber, numberOfIssues).Select(CreateIssueJson));
-                componentJson = CreateComponentJson();
-            }
-
-            SetupRequest($"api/issues/search?projects={projectName}&statuses=RESOLVED&types={issueType}&p={pageNumber}&ps=500", $@"
-{{
-  ""paging"": {{
-    ""pageIndex"": {pageNumber},
-    ""pageSize"": {PageSize},
-    ""total"": 9999
-  }},
-  ""issues"": [
-    {issuesJson}
-  ],
-  ""components"": [
-    {componentJson}
-  ]
-}}");
-        }
-
-        private void SetupPagesOfResponses(string projectName, int numberOfIssues, string issueType)
-        {
-            var pageNumber = 1;
-            var remainingIssues = numberOfIssues;
-            while(remainingIssues > 0)
-            {
-                var issuesOnNewPage = Math.Min(remainingIssues, PageSize);
-                SetupPageOfResponses(projectName, pageNumber, issuesOnNewPage, issueType);
-
-                pageNumber++;
-                remainingIssues -= issuesOnNewPage;
-            }
-        }
-
-        private static string CreateIssueJson(int number) =>
-            "{ " +
-            $"\"key\": \"{number}\", " +
-            "\"rule\": \"csharpsquid:S1075\", " +
-            "\"component\": \"shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082:Program.cs\", " +
-            "\"project\": \"shared\", " +
-            "\"subProject\": \"shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082\", " +
-            "\"line\": 36, " +
-            "\"hash\": \"0dcbf3b077bacc9fdbd898ff3b587085\", " +
-            "\"status\": \"RESOLVED\", " +
-            "\"message\": \"Refactor your code not to use hardcoded absolute paths or URIs.\" " +
-            "}";
-
-        private static string CreateComponentJson() =>
-            // "key" should be the same as the "component" field in the issues from CreateIssueJson()
-            @"
-{
-    ""organization"": ""default-organization"",
-    ""key"": ""shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082:Program.cs"",
-    ""uuid"": ""AWg8adNk_JurIR2zdSvM"",
-    ""enabled"": true,
-    ""qualifier"": ""FIL"",
-    ""name"": ""Program.cs"",
-    ""longName"": ""Program.cs"",
-    ""path"": ""Program.cs""
-}";
-
-        private void DumpWarningsToConsole()
-        {
-            System.Console.WriteLine("Warnings:");
-            foreach (string item in logger.WarningMessages)
-            {
-                System.Console.WriteLine(item);
-            }
-            System.Console.WriteLine("");
         }
     }
 }

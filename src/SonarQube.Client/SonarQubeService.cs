@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -334,11 +333,19 @@ namespace SonarQube.Client
                 },
                 token);
 
-        [ExcludeFromCodeCoverage]
-        public Task<IList<SonarQubeIssue>> GetIssuesForComponentAsync(string projectKey, string branch, string componentKey, string ruleId,
+        public async Task<IList<SonarQubeIssue>> GetIssuesForComponentAsync(string projectKey, string branch, string componentKey, string ruleId,
             CancellationToken token)
         {
-            throw new NotImplementedException();
+            return await InvokeCheckedRequestAsync<IGetIssuesRequest, SonarQubeIssue[]>(
+                request =>
+                {
+                    request.ProjectKey = projectKey;
+                    request.Branch = branch;
+                    request.ComponentKey = componentKey;
+                    request.RuleId = ruleId;
+                    request.IncludeTaint = false;
+                },
+                token);
         }
 
         public async Task<IList<SonarQubeNotification>> GetNotificationEventsAsync(string projectKey, DateTimeOffset eventsSince,
