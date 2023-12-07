@@ -37,7 +37,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
         [TestMethod]
         public async Task InvokeAsync_NoIssueKeys_ExpectedPropertiesArePassedInMultipleRequests()
         {
-            var testSubject = CreateTestSubject("aaaProject", "xStatus", "yBranch", null);
+            var testSubject = CreateTestSubject("aaaProject", "xStatus", "yBranch", null, "rule1", "project1");
 
             var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             var httpClient = new HttpClient(handlerMock.Object)
@@ -51,15 +51,15 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
 
             // The wrapper is expected to make three calls, for code smells, bugs, then vulnerabilities
             handlerMock.Invocations.Count.Should().Be(3);
-            CheckExpectedQueryStringsParameters(handlerMock, 0, "aaaProject", "xStatus", "yBranch", "CODE_SMELL");
-            CheckExpectedQueryStringsParameters(handlerMock, 1, "aaaProject", "xStatus", "yBranch", "BUG");
-            CheckExpectedQueryStringsParameters(handlerMock, 2, "aaaProject", "xStatus", "yBranch", "VULNERABILITY");
+            CheckExpectedQueryStringsParameters(handlerMock, 0, "aaaProject", "xStatus", "yBranch", "CODE_SMELL", "rule1", "project1");
+            CheckExpectedQueryStringsParameters(handlerMock, 1, "aaaProject", "xStatus", "yBranch", "BUG", "rule1", "project1");
+            CheckExpectedQueryStringsParameters(handlerMock, 2, "aaaProject", "xStatus", "yBranch", "VULNERABILITY", "rule1", "project1");
         }
 
         [TestMethod]
         public async Task InvokeAsync_HasIssueKeys_ExpectedPropertiesArePassedInASingleRequest()
         {
-            var testSubject = CreateTestSubject("aaaProject", "xStatus", "yBranch", new[] {"issue1", "issue2"});
+            var testSubject = CreateTestSubject("aaaProject", "xStatus", "yBranch", new[] { "issue1", "issue2" }, "rule1", "project1");
 
             var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             var httpClient = new HttpClient(handlerMock.Object)
@@ -79,10 +79,12 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             actualQueryString.Contains("&statuses=xStatus&").Should().BeTrue();
             actualQueryString.Contains("&branch=yBranch&").Should().BeTrue();
             actualQueryString.Contains("&issues=issue1%2Cissue2&").Should().BeTrue();
+            actualQueryString.Contains("&rules=rule1").Should().BeTrue();
+            actualQueryString.Contains("&components=project1").Should().BeTrue();
             actualQueryString.Contains("types").Should().BeFalse();
         }
 
-        private static GetIssuesRequestWrapper CreateTestSubject(string projectKey, string statusesToRequest, string branch, string[] issueKeys)
+        private static GetIssuesRequestWrapper CreateTestSubject(string projectKey, string statusesToRequest, string branch, string[] issueKeys, string ruleId, string componentKey)
         {
             var testSubject = new GetIssuesRequestWrapper
             {
@@ -90,14 +92,16 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
                 ProjectKey = projectKey,
                 Statuses = statusesToRequest,
                 Branch = branch,
-                IssueKeys = issueKeys
+                IssueKeys = issueKeys,
+                RuleId = ruleId,
+                ComponentKey = componentKey
             };
 
             return testSubject;
         }
 
         private static void CheckExpectedQueryStringsParameters(Mock<HttpMessageHandler> handlerMock, int invocationIndex,
-            string expectedProject, string expectedStatues, string expectedBranch, string expectedTypes)
+            string expectedProject, string expectedStatues, string expectedBranch, string expectedTypes, string expectedRule, string expectedComponent)
         {
             var actualQueryString = GetActualQueryStringForInvocation(handlerMock, invocationIndex);
 
@@ -106,6 +110,8 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             actualQueryString.Contains($"&statuses={expectedStatues}&").Should().BeTrue();
             actualQueryString.Contains($"&branch={expectedBranch}&").Should().BeTrue();
             actualQueryString.Contains($"&types={expectedTypes}&").Should().BeTrue();
+            actualQueryString.Contains($"&rules={expectedRule}&").Should().BeTrue();
+            actualQueryString.Contains($"&components={expectedComponent}&").Should().BeTrue();
         }
 
         private static string GetActualQueryStringForInvocation(Mock<HttpMessageHandler> handlerMock, int invocationIndex)

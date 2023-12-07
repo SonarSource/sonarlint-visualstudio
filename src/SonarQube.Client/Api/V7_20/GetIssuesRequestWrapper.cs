@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -50,7 +51,11 @@ namespace SonarQube.Client.Api.V7_20
 
         public string[] IssueKeys { get; set; }
 
+        public string RuleId { get; set; }
+
+        public string ComponentKey { get; set; }
         public ILogger Logger { get; set; }
+        public bool IncludeTaint { get; set; } = true;
 
         public async Task<SonarQubeIssue[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {
@@ -61,6 +66,8 @@ namespace SonarQube.Client.Api.V7_20
             innerRequest.Branch = Branch;
             innerRequest.Logger = Logger;
             innerRequest.IssueKeys = IssueKeys;
+            innerRequest.RuleId = RuleId;
+            innerRequest.ComponentKey = ComponentKey;
 
             if (innerRequest.IssueKeys != null)
             {
@@ -73,17 +80,20 @@ namespace SonarQube.Client.Api.V7_20
             innerRequest.Types = "CODE_SMELL";
             var codeSmells = await innerRequest.InvokeAsync(httpClient, token);
             WarnForApiLimit(codeSmells, innerRequest, "code smells");
-            
+
             ResetInnerRequest();
             innerRequest.Types = "BUG";
             var bugs = await innerRequest.InvokeAsync(httpClient, token);
             WarnForApiLimit(bugs, innerRequest, "bugs");
 
-            ResetInnerRequest();
-            innerRequest.Types = "VULNERABILITY";
-            var vulnerabilities = await innerRequest.InvokeAsync(httpClient, token);
-            WarnForApiLimit(vulnerabilities, innerRequest, "vulnerabilities");
-
+            var vulnerabilities = Array.Empty<SonarQubeIssue>();
+            if (IncludeTaint)
+            {
+                ResetInnerRequest();
+                innerRequest.Types = "VULNERABILITY";
+                vulnerabilities = await innerRequest.InvokeAsync(httpClient, token);
+                WarnForApiLimit(vulnerabilities, innerRequest, "vulnerabilities");
+            }
             return codeSmells
                 .Concat(bugs)
                 .Concat(vulnerabilities)

@@ -45,6 +45,17 @@ namespace SonarQube.Client.Api.V7_20
         [JsonIgnore]
         public string[] IssueKeys { get; set; }
 
+        //These are normally comma seperated values but we need only one for now. If we need to pass more than 1 value we'll need to change the structure similar to issueKeys
+        //For now it's not needed.
+        [JsonProperty("rules")]
+        public string RuleId { get; set; }
+
+        [JsonProperty("components")]
+        public string ComponentKey { get; set; }
+
+        [JsonIgnore]
+        public bool IncludeTaint { get; set; } = true;
+
         // Notes:
         // 1) Branch support is not available in SQ Community edition. SQ will just ignore it.
         // 2) SonarQube has supported the parameter since v6.6. However, the LTS at the point
