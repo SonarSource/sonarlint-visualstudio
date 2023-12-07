@@ -199,4 +199,10 @@
   <data name="MuteIssue_ErrorCheckingCommandStatus" xml:space="preserve">
     <value>Error in MuteIssueCommand.QueryStatus. Error: {0}</value>
   </data>
+  <data name="MuteIssue_IssueNotFoundCaption" xml:space="preserve">
+    <value>Failure</value>
+  </data>
+  <data name="MuteIssue_IssueNotFoundText" xml:space="preserve">
+    <value>Could not find a matching issue on the server.</value>
+  </data>
 </root>
