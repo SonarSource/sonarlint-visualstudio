@@ -22,6 +22,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Api.Common;
+using SonarQube.Client.Helpers;
 using SonarQube.Client.Requests;
 
 namespace SonarQube.Client.Api.V9_9
@@ -47,7 +48,7 @@ namespace SonarQube.Client.Api.V9_9
         {
             var root = JObject.Parse(response);
 
-            return root.GetComponentPathList().ToArray();
+            return root.GetComponentPathList().Select(FilePathNormalizer.NormalizeSonarQubePath).ToArray();
         }
     }
 }
