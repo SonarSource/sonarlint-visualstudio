@@ -111,7 +111,7 @@ namespace SonarQube.Client.Tests
             var filePaths = await service.SearchFilesByNameAsync(projectKey, branch, fileName, CancellationToken.None);
 
             filePaths.Should().ContainSingle();
-            filePaths.Should().HaveElementAt(0, "src/IssueViz.Security.UnitTests/Hotspots/LocalHotspotStoreTests.cs");
+            filePaths.Should().HaveElementAt(0, @"src\IssueViz.Security.UnitTests\Hotspots\LocalHotspotStoreTests.cs");
         }
 
         [TestMethod]
@@ -173,9 +173,9 @@ namespace SonarQube.Client.Tests
             var filePaths = await service.SearchFilesByNameAsync(projectKey, branch, fileName, CancellationToken.None);
 
             filePaths.Should().HaveCount(3);
-            filePaths.Should().HaveElementAt(0, "path0/LocalHotspotStoreTests.cs");
-            filePaths.Should().HaveElementAt(1, "path1/LocalHotspotStoreTests.cs");
-            filePaths.Should().HaveElementAt(2, "path2/LocalHotspotStoreTests.cs");
+            filePaths.Should().HaveElementAt(0, @"path0\LocalHotspotStoreTests.cs");
+            filePaths.Should().HaveElementAt(1, @"path1\LocalHotspotStoreTests.cs");
+            filePaths.Should().HaveElementAt(2, @"path2\LocalHotspotStoreTests.cs");
         }
     }
 }
