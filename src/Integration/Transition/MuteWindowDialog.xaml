@@ -25,6 +25,8 @@
             <Setter Property="Height" Value="75" />
             <Setter Property="VerticalAlignment" Value="Top" />
             <Setter Property="Width" Value="450" />
+            <Setter Property="Background" Value="Transparent"/>
+            <EventSetter Event="MouseLeftButtonDown" Handler="Border_MouseDown" />
         </Style>
         <Style x:Key="LabelStyle" TargetType="Label">
             <Setter Property="HorizontalAlignment" Value="Left" />
@@ -93,7 +95,7 @@
             </Grid>
         </Border>
 
-        <Border Style="{StaticResource BottomBorderStyle}">
+        <Border Name="BorderFalsePositive" Style="{StaticResource BottomBorderStyle}">
             <Grid>
                 <RadioButton x:Name="rbFalsePositive" Content="{x:Static resx:Strings.MuteWindow_FalsePositiveTitle}" Style="{StaticResource RadioButtonStyle}" Checked="RadioButton_Checked"/>
                 <Label Content="{x:Static resx:Strings.MuteWindow_FalsePositiveContent}" Style="{StaticResource TransitionLabelStyle}" />
