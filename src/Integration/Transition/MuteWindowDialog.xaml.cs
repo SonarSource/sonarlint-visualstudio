@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Transition
     public partial class MuteWindowDialog : DialogWindow
     {
         private readonly Dictionary<RadioButton, SonarQubeIssueTransition> Transitions;
-        private readonly Dictionary<Border, RadioButton> Borders;
+        private readonly Dictionary<Border, RadioButton> BorderRadioButtons;
 
         public MuteWindowDialog(bool showAccept)
         {
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Transition
             SetVisibility(showAccept);
 
             Transitions = InitializeTransitions();
-            Borders = InitializeBorders();
+            BorderRadioButtons = InitializeBorderRadioButtons();
         }
 
         private Dictionary<RadioButton, SonarQubeIssueTransition> InitializeTransitions()
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Transition
             };
         }
 
-        private Dictionary<Border, RadioButton> InitializeBorders()
+        private Dictionary<Border, RadioButton> InitializeBorderRadioButtons()
         {
             return new Dictionary<Border, RadioButton>
             {
