@@ -74,6 +74,37 @@ public class IssueMatcherTests
         CreateTestSubject().IsLikelyMatch(issueToMatch, serverIssue).Should().Be(expectedResult);
     }
 
+    [DataTestMethod]
+    [DataRow("CorrectRuleId", null, null, true)] // exact matches
+    [DataRow("CorrectRuleId", null, "hash", true)] // hash should be ignored for file-level issues
+    [DataRow("WrongRuleId", null, null, false)] // wrong rule
+    [DataRow("CorrectRuleId", 20, "hash", true)] // roslyn issue is not actually a file issue, so it should match
+    [DataRow("CorrectRuleId", 1, null, true)] // roslyn issue is not actually a file issue, so it should match
+    [DataRow("CorrectRuleId", 999, null, false)] // not a file issue - should not match a file issue, even though the hash is the same
+    public void IsMatch_PotentialRoslynFileLevelIssue_ServerIssueVariation(string serverRuleId, int? serverIssueLine,
+        string serverHash, bool expectedResult)
+    {
+        // File issues for roslyn have line and column number equal to 1
+        var issueToMatch = new FilterableRoslynIssue("CorrectRuleId",  null, 1, 1);
+        issueToMatch.SetLineHash("hash"); // hash is always calculated since we don't know if it's a file issue or not
+        var serverIssue = CreateServerIssue(serverRuleId, serverIssueLine, serverHash);
+
+        CreateTestSubject().IsLikelyMatch(issueToMatch, serverIssue).Should().Be(expectedResult);
+    }
+
+    [DataTestMethod]
+    [DataRow("CorrectRuleId", 1, 1, true)] // potential file issue matches server file issue
+    [DataRow("CorrectRuleId", 1, 2, false)] // not a file issue
+    [DataRow("WrongRuleId", 1, 1, false)] // wrong rule
+    public void IsMatch_PotentialRoslynFileLevelIssue_RoslynIssueVariation(string roslynIssueId, int startLine, int startColumn, bool expectedResult)
+    {
+        var issueToMatch = new FilterableRoslynIssue(roslynIssueId, null, startLine, startColumn);
+        issueToMatch.SetLineHash("hash"); // hash is always calculated since we don't know if it's a file issue or not
+        var serverIssue = CreateServerIssue("CorrectRuleId", null, null);
+
+        CreateTestSubject().IsLikelyMatch(issueToMatch, serverIssue).Should().Be(expectedResult);
+    }
+
     [TestMethod]
     // Module-level issues i.e. no file
     [DataRow(null, null, true)]
