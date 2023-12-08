@@ -88,13 +88,20 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 return false;
             }
 
-            if (!issue.StartLine.HasValue) // i.e. file-level issue
+            // file level issue
+            if (serverIssue.TextRange == null)
             {
-                return serverIssue.TextRange == null;
+                return !issue.StartLine.HasValue
+                       || (issue is IFilterableRoslynIssue roslynIssue // We don't know the end of the issue location, so this is our best guess.
+                           && roslynIssue.RoslynStartLine == 1
+                           && roslynIssue.RoslynStartColumn == 1);// This check relies on the fact that a roslyn file-level issue
+                                                                  // always starts at the beginning of the file
+                                                                  // and the fact that the rule can't be both file-level and not.
+                                                                  // See SuppressionChecker.IsSameLine for an example of a solution w/o false-positives
             }
-            
+
             // Non-file level issue
-            
+
             return issue.StartLine == serverIssue.TextRange?.StartLine || CompareHash(issue, serverIssue);
         }
 
