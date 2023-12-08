@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.Transition
 
         private void Border_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            Borders[(Border)sender].IsChecked = true;
+            BorderRadioButtons[(Border)sender].IsChecked = true;
         }
     }
 }
