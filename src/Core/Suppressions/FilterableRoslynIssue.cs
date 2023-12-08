@@ -26,20 +26,25 @@ namespace SonarLint.VisualStudio.Core.Suppressions
     public interface IFilterableRoslynIssue : IFilterableIssue
     {
         void SetLineHash(string lineHash);
+        int RoslynStartLine { get; }
+        int RoslynStartColumn { get; }
     }
 
     public class FilterableRoslynIssue : IFilterableRoslynIssue
     {
-        public FilterableRoslynIssue(string ruleId, string filePath, int? startLine)
+        public FilterableRoslynIssue(string ruleId, string filePath, int startLine, int startColumn)
         {
             RuleId = ruleId;
             FilePath = filePath;
-            StartLine = startLine;
+            RoslynStartLine = startLine;
+            RoslynStartColumn = startColumn;
         }
 
         public string RuleId { get; }
         public string FilePath { get; }
-        public int? StartLine { get; }
+        public int? StartLine => RoslynStartLine;
+        public int RoslynStartLine { get; }
+        public int RoslynStartColumn { get; }
         public string LineHash { get; private set; }
         
         public void SetLineHash(string lineHash)

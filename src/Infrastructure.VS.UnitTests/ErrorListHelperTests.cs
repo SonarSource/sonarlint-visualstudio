@@ -125,13 +125,15 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             var path = "filepath";
             var line = 12;
+            var column = 101;
             var errorCode = "javascript:S333";
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
                 { StandardTableKeyNames.BuildTool, "SonarLint" },
                 { StandardTableKeyNames.ErrorCode, errorCode},
                 { StandardTableKeyNames.DocumentName, path },
-                { StandardTableKeyNames.Line, line }
+                { StandardTableKeyNames.Line, line },
+                { StandardTableKeyNames.Column, column }
             });
             var errorList = CreateErrorList(issueHandle);
             var serviceProvider = CreateServiceOperation(errorList);
@@ -143,21 +145,21 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             issue.RuleId.Should().BeSameAs(errorCode);
             issue.FilePath.Should().BeSameAs(path);
             issue.StartLine.Should().Be(line + 1);
+            issue.RoslynStartLine.Should().Be(line + 1);
+            issue.RoslynStartColumn.Should().Be(column + 1);
             issue.LineHash.Should().BeNull();
         }
         
         [TestMethod]
         public void TryGetRoslynIssueFromSelectedRow_NonSonarIssue_NothingReturned()
         {
-            var path = "filepath";
-            var line = 12;
-            var errorCode = "javascript:S333";
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
                 { StandardTableKeyNames.BuildTool, "Not SonarLint" },
-                { StandardTableKeyNames.ErrorCode, errorCode},
-                { StandardTableKeyNames.DocumentName, path },
-                { StandardTableKeyNames.Line, line }
+                { StandardTableKeyNames.ErrorCode, "javascript:S333"},
+                { StandardTableKeyNames.DocumentName, "filepath" },
+                { StandardTableKeyNames.Line, 1 },
+                { StandardTableKeyNames.Column, 2 }
             });
             var errorList = CreateErrorList(issueHandle);
             var serviceProvider = CreateServiceOperation(errorList);
@@ -171,13 +173,13 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void TryGetRoslynIssueFromSelectedRow_NoFilePath_NothingReturned()
         {
-            var line = 12;
-            var errorCode = "javascript:S333";
+
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
                 { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, errorCode},
-                { StandardTableKeyNames.Line, line }
+                { StandardTableKeyNames.ErrorCode, "javascript:S333"},
+                { StandardTableKeyNames.Line, 1 },
+                { StandardTableKeyNames.Column, 2 }
             });
             var errorList = CreateErrorList(issueHandle);
             var serviceProvider = CreateServiceOperation(errorList);
@@ -191,13 +193,12 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void TryGetRoslynIssueFromSelectedRow_NoStartLine_NothingReturned()
         {
-            var path = "filepath";
-            var errorCode = "javascript:S333";
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
                 { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, errorCode},
-                { StandardTableKeyNames.DocumentName, path },
+                { StandardTableKeyNames.ErrorCode, "javascript:S333"},
+                { StandardTableKeyNames.DocumentName, "filepath" },
+                { StandardTableKeyNames.Column, 2 },
             });
             var errorList = CreateErrorList(issueHandle);
             var serviceProvider = CreateServiceOperation(errorList);
@@ -207,7 +208,26 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             result.Should().BeFalse();
         }
-        
+
+        [TestMethod]
+        public void TryGetRoslynIssueFromSelectedRow_NoStartColumn_NothingReturned()
+        {
+            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, "SonarLint" },
+                { StandardTableKeyNames.ErrorCode, "javascript:S333"},
+                { StandardTableKeyNames.DocumentName, "filepath" },
+                { StandardTableKeyNames.Line, 1 },
+            });
+            var errorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
+
+            var testSubject = new ErrorListHelper(serviceProvider);
+            bool result = testSubject.TryGetRoslynIssueFromSelectedRow(out _);
+
+            result.Should().BeFalse();
+        }
+
         [TestMethod]
         [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp")]
         [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic")]

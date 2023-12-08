@@ -85,10 +85,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
                 if (TryGetSelectedSnapshotAndIndex(errorList, out var snapshot, out var index)
                     && (errorCode = FindErrorCodeForEntry(snapshot, index)) != null 
                     && TryGetValue(snapshot, index, StandardTableKeyNames.DocumentName, out string filePath) 
-                    && TryGetValue(snapshot, index, StandardTableKeyNames.Line, out int line))
+                    && TryGetValue(snapshot, index, StandardTableKeyNames.Line, out int line)
+                    && TryGetValue(snapshot, index, StandardTableKeyNames.Column, out int column))
                 {
-                    // todo support file level issues https://github.com/SonarSource/sonarlint-visualstudio/issues/5094
-                    outIssue = new FilterableRoslynIssue(errorCode, filePath, line + 1 /* error list issues are 0-based and we use 1-based line numbers */);
+                    outIssue = new FilterableRoslynIssue(errorCode, filePath, line + 1, column + 1 /* error list issues are 0-based and we use 1-based line & column numbers */);
                 }
                 
                 return outIssue != null;
