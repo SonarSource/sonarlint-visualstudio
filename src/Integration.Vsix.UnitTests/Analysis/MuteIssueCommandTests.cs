@@ -52,7 +52,7 @@ public class MuteIssueCommandTests
     [TestMethod]
     public void CommandRegistration()
     {
-        var testSubject = CreateTestSubject(out _, out _, out _, out _, out _, out _, out _);
+        var testSubject = CreateTestSubject(out _, out _, out _, out _, out _, out _, out _, out _);
 
         testSubject.CommandID.ID.Should().Be(MuteIssueCommand.CommandId);
         testSubject.CommandID.Guid.Should().Be(MuteIssueCommand.CommandSet);
@@ -61,7 +61,7 @@ public class MuteIssueCommandTests
     [TestMethod]
     public void QueryStatus_NotSonarIssue_Invisible()
     {
-        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out var activeSolutionBoundTrackerMock, out _, out _, out _);
+        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out _, out var activeSolutionBoundTrackerMock, out _, out _, out _);
         var rule = It.IsAny<SonarCompositeRuleId>();
         errorListHelperMock.Setup(x => x.TryGetRuleIdFromSelectedRow(out rule)).Returns(false);
         activeSolutionBoundTrackerMock
@@ -79,8 +79,8 @@ public class MuteIssueCommandTests
     [TestMethod]
     public void QueryStatus_NotSupportedIssue_Invisible()
     {
-        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out var activeSolutionBoundTrackerMock, out _, out _, out _);
-        SonarCompositeRuleId.TryParse("csharpsquid:S333", out SonarCompositeRuleId ruleId);
+        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out _, out var activeSolutionBoundTrackerMock, out _, out _, out _);
+        SonarCompositeRuleId.TryParse("java:S333", out SonarCompositeRuleId ruleId);
         errorListHelperMock.Setup(x => x.TryGetRuleIdFromSelectedRow(out ruleId)).Returns(true);
         activeSolutionBoundTrackerMock
             .SetupGet(x => x.CurrentConfiguration)
@@ -97,7 +97,7 @@ public class MuteIssueCommandTests
     [TestMethod]
     public void QueryStatus_NotInConnectedMode_VisibleButDisabled()
     {
-        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out var activeSolutionBoundTrackerMock, out _, out _, out _);
+        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out _, out var activeSolutionBoundTrackerMock, out _, out _, out _);
         SonarCompositeRuleId.TryParse("javascript:S333", out SonarCompositeRuleId ruleId);
         errorListHelperMock.Setup(x => x.TryGetRuleIdFromSelectedRow(out ruleId)).Returns(true);
         activeSolutionBoundTrackerMock
@@ -119,9 +119,11 @@ public class MuteIssueCommandTests
     [DataRow("typescript:S444")]
     [DataRow("secrets:S555")]
     [DataRow("css:S555")]
+    [DataRow("csharpsquid:S555")]
+    [DataRow("vbnet:S555")]
     public void QueryStatus_ConnectedModeAndSupportedIssue_VisibleAndEnabled(string errorCode)
     {
-        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out var activeSolutionBoundTrackerMock, out _, out _, out _);
+        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out _, out var activeSolutionBoundTrackerMock, out _, out _, out _);
         SonarCompositeRuleId.TryParse(errorCode, out SonarCompositeRuleId ruleId);
         errorListHelperMock.Setup(x => x.TryGetRuleIdFromSelectedRow(out ruleId)).Returns(true);
         activeSolutionBoundTrackerMock
@@ -139,14 +141,16 @@ public class MuteIssueCommandTests
     [TestMethod]
     public void Execute_DoesNothingWhenIssueCannotBeSelected()
     {
-        // todo roslyn issues should be checked in this case, but it's not yet implemented
-        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out _, out _, out _, out _);
-        var issue = Mock.Of<IFilterableIssue>();
+        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out _, out _, out _, out _, out _);
+        var issue = It.IsAny<IFilterableIssue>();
+        var rule = It.IsAny<IFilterableRoslynIssue>();
         errorListHelperMock.Setup(x => x.TryGetIssueFromSelectedRow(out issue)).Returns(false);
+        errorListHelperMock.Setup(x => x.TryGetRoslynIssueFromSelectedRow(out rule)).Returns(false);
 
         testSubject.Invoke();
 
         errorListHelperMock.Verify(x => x.TryGetIssueFromSelectedRow(out issue), Times.Once);
+        errorListHelperMock.Verify(x => x.TryGetRoslynIssueFromSelectedRow(out rule), Times.Once);
     }
 
     [TestMethod]
@@ -154,6 +158,7 @@ public class MuteIssueCommandTests
     {
         var callSequence = new MockSequence();
         var testSubject = CreateTestSubject(out var errorListHelperMock,
+            out _,
             out var serverIssueFinderMock,
             out _,
             out _,
@@ -165,10 +170,7 @@ public class MuteIssueCommandTests
             .InSequence(callSequence)
             .Setup(x => x.TryGetIssueFromSelectedRow(out issue))
             .Returns(true);
-        threadHandlingMock
-            .InSequence(callSequence)
-            .Setup(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()))
-            .Returns((Func<Task<bool>> action) => action());
+        SetupThreadHandler(threadHandlingMock, callSequence);
         serverIssueFinderMock
             .InSequence(callSequence)
             .Setup(x => x.FindServerIssueAsync(issue, It.IsAny<CancellationToken>()))
@@ -186,6 +188,7 @@ public class MuteIssueCommandTests
     {
         var callSequence = new MockSequence();
         var testSubject = CreateTestSubject(out var errorListHelperMock,
+            out _,
             out var serverIssueFinderMock,
             out var muteIssueServiceMock,
             out _,
@@ -198,18 +201,8 @@ public class MuteIssueCommandTests
             .InSequence(callSequence)
             .Setup(x => x.TryGetIssueFromSelectedRow(out issue))
             .Returns(true);
-        threadHandlingMock
-            .InSequence(callSequence)
-            .Setup(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()))
-            .Returns((Func<Task<bool>> action) => action());
-        serverIssueFinderMock
-            .InSequence(callSequence)
-            .Setup(x => x.FindServerIssueAsync(issue, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(sonarQubeIssue);
-        muteIssueServiceMock
-            .InSequence(callSequence)
-            .Setup(x => x.Mute(sonarQubeIssue.IssueKey, It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        SetupThreadHandler(threadHandlingMock, callSequence);
+        SetUpIssueMuting(serverIssueFinderMock, muteIssueServiceMock, callSequence, issue, sonarQubeIssue);
 
         testSubject.Invoke();
 
@@ -220,10 +213,49 @@ public class MuteIssueCommandTests
     }
 
     [TestMethod]
+    public void Execute_RoslynIssue_IsMuted()
+    {
+        var callSequence = new MockSequence();
+        var testSubject = CreateTestSubject(out var errorListHelperMock,
+            out var roslynIssueLineHashCalculatorMock,
+            out var serverIssueFinderMock,
+            out var muteIssueServiceMock,
+            out _,
+            out var threadHandlingMock,
+            out _,
+            out _);
+        var issue = It.IsAny<IFilterableIssue>();
+        var roslynIssue = Mock.Of<IFilterableRoslynIssue>();
+        var sonarQubeIssue = CreateSonarQubeIssue();
+        errorListHelperMock
+            .InSequence(callSequence)
+            .Setup(x => x.TryGetIssueFromSelectedRow(out issue))
+            .Returns(false);
+        errorListHelperMock
+            .InSequence(callSequence)
+            .Setup(x => x.TryGetRoslynIssueFromSelectedRow(out roslynIssue))
+            .Returns(true);
+        SetupThreadHandler(threadHandlingMock, callSequence);
+        roslynIssueLineHashCalculatorMock
+            .InSequence(callSequence)
+            .Setup(x => x.UpdateRoslynIssueWithLineHash(roslynIssue));
+        SetUpIssueMuting(serverIssueFinderMock, muteIssueServiceMock, callSequence, roslynIssue, sonarQubeIssue);
+
+        testSubject.Invoke();
+
+        errorListHelperMock.Verify(x => x.TryGetIssueFromSelectedRow(out issue), Times.Once);
+        errorListHelperMock.Verify(x => x.TryGetRoslynIssueFromSelectedRow(out roslynIssue), Times.Once);
+        threadHandlingMock.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()), Times.Once);
+        roslynIssueLineHashCalculatorMock.Verify(x => x.UpdateRoslynIssueWithLineHash(roslynIssue), Times.Once);
+        serverIssueFinderMock.Verify(x => x.FindServerIssueAsync(roslynIssue, It.IsAny<CancellationToken>()), Times.Once);
+        muteIssueServiceMock.Verify(x => x.Mute(sonarQubeIssue.IssueKey, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [TestMethod]
     public void Execute_ExceptionCaught()
     {
         var callSequence = new MockSequence();
-        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out _, out _, out _, out var logger);
+        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out _, out _, out _, out _, out var logger);
         var issue = Mock.Of<IFilterableIssue>();
         errorListHelperMock
             .InSequence(callSequence)
@@ -240,7 +272,7 @@ public class MuteIssueCommandTests
     public void Execute_CriticalExceptionNotCaught()
     {
         var callSequence = new MockSequence();
-        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out _, out _, out _, out var logger);
+        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out _, out _, out _, out _, out var logger);
         var issue = Mock.Of<IFilterableIssue>();
         errorListHelperMock
             .InSequence(callSequence)
@@ -253,12 +285,35 @@ public class MuteIssueCommandTests
         logger.AssertPartialOutputStringDoesNotExist("exception xxx");
     }
 
+    private static void SetUpIssueMuting(Mock<IServerIssueFinder> serverIssueFinderMock,
+        Mock<IMuteIssuesService> muteIssueServiceMock, MockSequence callSequence, IFilterableIssue issue,
+        SonarQubeIssue sonarQubeIssue)
+    {
+        serverIssueFinderMock
+            .InSequence(callSequence)
+            .Setup(x => x.FindServerIssueAsync(issue, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(sonarQubeIssue);
+        muteIssueServiceMock
+            .InSequence(callSequence)
+            .Setup(x => x.Mute(sonarQubeIssue.IssueKey, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+    }
+    
+    private static void SetupThreadHandler(Mock<IThreadHandling> threadHandlingMock, MockSequence callSequence)
+    {
+        threadHandlingMock
+            .InSequence(callSequence)
+            .Setup(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()))
+            .Returns((Func<Task<bool>> action) => action());
+    }
+    
     private static SonarQubeIssue CreateSonarQubeIssue()
     {
         return new SonarQubeIssue("issueKey", default, default, default, default, default, default, default, default, default, default, default);
     }
 
     private MenuCommand CreateTestSubject(out Mock<IErrorListHelper> errorListHelperMock,
+        out Mock<IRoslynIssueLineHashCalculator> roslynIssueLineHashCalculatorMock,
         out Mock<IServerIssueFinder> serverIssueFinderMock,
         out Mock<IMuteIssuesService> muteIssueServiceMock,
         out Mock<IActiveSolutionBoundTracker> activeSolutionBoundTrackerMock,
@@ -269,6 +324,7 @@ public class MuteIssueCommandTests
         var dummyMenuService = new DummyMenuCommandService();
         new MuteIssueCommand(dummyMenuService,
             (errorListHelperMock = new Mock<IErrorListHelper>(MockBehavior.Strict)).Object,
+            (roslynIssueLineHashCalculatorMock = new Mock<IRoslynIssueLineHashCalculator>(MockBehavior.Strict)).Object,
             (serverIssueFinderMock = new Mock<IServerIssueFinder>(MockBehavior.Strict)).Object,
             (muteIssueServiceMock = new Mock<IMuteIssuesService>(MockBehavior.Strict)).Object,
             (activeSolutionBoundTrackerMock = new Mock<IActiveSolutionBoundTracker>(MockBehavior.Strict)).Object,

@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         {
             this.vSServiceOperation = vSServiceOperation;
         }
-        
+
         public bool TryGetRuleIdFromSelectedRow(out SonarCompositeRuleId ruleId)
         {
             SonarCompositeRuleId ruleIdOut = null;
@@ -53,27 +53,55 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         
         public bool TryGetRuleId(ITableEntryHandle handle, out SonarCompositeRuleId ruleId)
         {
-            var errorCode = FindErrorCodeForEntry(handle);
+            ruleId = null;
+            if (!handle.TryGetSnapshot(out var snapshot, out var index))
+            {
+                return false;
+            }
+            
+            var errorCode = FindErrorCodeForEntry(snapshot, index);
             return SonarCompositeRuleId.TryParse(errorCode, out ruleId);
         }
 
         public bool TryGetIssueFromSelectedRow(out IFilterableIssue issue)
         {
             IFilterableIssue issueOut = null;
-            var result = vSServiceOperation.Execute<SVsErrorList, IErrorList, bool>(errorList =>
-                TryGetSelectedTableEntry(errorList, out var handle) 
-                && handle.TryGetSnapshot(out var snapshot, out var index) 
-                && TryGetValue(snapshot, index, SonarLintTableControlConstants.IssueVizColumnName, out issueOut));
+            var result = vSServiceOperation.Execute<SVsErrorList, IErrorList, bool>(
+                errorList => TryGetSelectedSnapshotAndIndex(errorList, out var snapshot, out var index) 
+                             && TryGetValue(snapshot, index, SonarLintTableControlConstants.IssueVizColumnName, out issueOut));
 
             issue = issueOut;
 
             return result;
         }
 
-        private static string FindErrorCodeForEntry(ITableEntryHandle handle)
+        public bool TryGetRoslynIssueFromSelectedRow(out IFilterableRoslynIssue filterableRoslynIssue)
         {
-            if (handle.TryGetSnapshot(out var snapshot, out var index)
-                && TryGetValue(snapshot, index, StandardTableKeyNames.BuildTool, out string buildTool))
+            IFilterableRoslynIssue outIssue = null;
+            
+            var result = vSServiceOperation.Execute<SVsErrorList, IErrorList, bool>(errorList =>
+            {
+                string errorCode;
+                if (TryGetSelectedSnapshotAndIndex(errorList, out var snapshot, out var index)
+                    && (errorCode = FindErrorCodeForEntry(snapshot, index)) != null 
+                    && TryGetValue(snapshot, index, StandardTableKeyNames.DocumentName, out string filePath) 
+                    && TryGetValue(snapshot, index, StandardTableKeyNames.Line, out int line))
+                {
+                    // todo support file level issues https://github.com/SonarSource/sonarlint-visualstudio/issues/5094
+                    outIssue = new FilterableRoslynIssue(errorCode, filePath, line + 1 /* error list issues are 0-based and we use 1-based line numbers */);
+                }
+                
+                return outIssue != null;
+            });
+
+            filterableRoslynIssue = outIssue;
+            
+            return result;
+        }
+
+        private static string FindErrorCodeForEntry(ITableEntriesSnapshot snapshot, int index)
+        {
+            if (TryGetValue(snapshot, index, StandardTableKeyNames.BuildTool, out string buildTool))
             {
                 var prefixErrorCode = "";
 
@@ -84,12 +112,12 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
                 {
                     case "SonarAnalyzer.CSharp":
                     {
-                        prefixErrorCode = "csharpsquid:";
+                        prefixErrorCode = $"{SonarRuleRepoKeys.CSharpRules}:";
                         break;
                     }
                     case "SonarAnalyzer.VisualBasic":
                     {
-                        prefixErrorCode = "vbnet:";
+                        prefixErrorCode = $"{SonarRuleRepoKeys.VBNetRules}:";
                         break;
                     }
                     case "SonarLint":
@@ -106,6 +134,14 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             }
 
             return null;
+        }
+
+        private static bool TryGetSelectedSnapshotAndIndex(IErrorList errorList, out ITableEntriesSnapshot snapshot, out int index)
+        {
+            snapshot = default;
+            index = default;
+            
+            return TryGetSelectedTableEntry(errorList, out var handle) && handle.TryGetSnapshot(out snapshot, out index);
         }
 
         private static bool TryGetSelectedTableEntry(IErrorList errorList, out ITableEntryHandle handle)
@@ -131,12 +167,17 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
             return true;
         }
-        
-        private static bool TryGetValue<T>(ITableEntriesSnapshot snapshot, int index, string columnName, out T value) where T : class
+
+        private static bool TryGetValue<T>(ITableEntriesSnapshot snapshot, int index, string columnName, out T value)
         {
             value = default;
-            return snapshot.TryGetValue(index, columnName, out var objValue) 
-                   && (value = objValue as T) != null;
+            if (snapshot.TryGetValue(index, columnName, out var objValue) && objValue is T outValue)
+            {
+                value = outValue;
+                return true;
+            }
+            
+            return false;
         }
     }
 }

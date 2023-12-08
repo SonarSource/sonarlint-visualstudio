@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
         private readonly IMessageBox messageBox;
-
+        private readonly IRoslynIssueLineHashCalculator roslynIssueLineHashCalculator;
         // Command set guid and command id. Must match those in DaemonCommands.vsct
         public static readonly Guid CommandSet = new Guid("1F83EA11-3B07-45B3-BF39-307FD4F42194");
         public const int CommandId = 0x0400;
@@ -64,6 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             IMenuCommandService commandService = (IMenuCommandService)await package.GetServiceAsync(typeof(IMenuCommandService));
             Instance = new MuteIssueCommand(commandService,
                 await package.GetMefServiceAsync<IErrorListHelper>(),
+                await package.GetMefServiceAsync<IRoslynIssueLineHashCalculator>(),
                 await package.GetMefServiceAsync<IServerIssueFinder>(),
                 await package.GetMefServiceAsync<IMuteIssuesService>(),
                 await package.GetMefServiceAsync<IActiveSolutionBoundTracker>(),
@@ -74,6 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         internal MuteIssueCommand(IMenuCommandService menuCommandService,
             IErrorListHelper errorListHelper,
+            IRoslynIssueLineHashCalculator roslynIssueLineHashCalculator,
             IServerIssueFinder serverIssueFinder,
             IMuteIssuesService muteIssuesService,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
@@ -88,6 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
             this.errorListHelper = errorListHelper ?? throw new ArgumentNullException(nameof(errorListHelper));
             this.serverIssueFinder = serverIssueFinder ?? throw new ArgumentNullException(nameof(serverIssueFinder));
+            this.roslynIssueLineHashCalculator = roslynIssueLineHashCalculator ?? throw new ArgumentNullException(nameof(roslynIssueLineHashCalculator));
             this.muteIssuesService = muteIssuesService ?? throw new ArgumentNullException(nameof(muteIssuesService));
             this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
             this.threadHandling = threadHandling ?? throw new ArgumentNullException(nameof(threadHandling));
@@ -117,20 +120,44 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             try
             {
-                if (!errorListHelper.TryGetIssueFromSelectedRow(out var issue))
+                if (!TryGetNonRoslynIssue(out var issue) && !TryGetRoslynIssue(out issue))
                 {
-                    // todo roslyn
                     return;
                 }
 
                 threadHandling
-                    .RunOnBackgroundThread(() => MuteIssueAsync(issue))
+                    .RunOnBackgroundThread(() =>
+                    {
+                        if (issue is IFilterableRoslynIssue roslynIssue)
+                        {
+                            roslynIssueLineHashCalculator.UpdateRoslynIssueWithLineHash(roslynIssue);
+                        }
+                        
+                        return MuteIssueAsync(issue);
+                    })
                     .Forget();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(AnalysisStrings.MuteIssue_ErrorMutingIssue, ex.Message);
             }
+        }
+
+        private bool TryGetNonRoslynIssue(out IFilterableIssue issue)
+        {
+            return errorListHelper.TryGetIssueFromSelectedRow(out issue);
+        }
+
+        private bool TryGetRoslynIssue(out IFilterableIssue issue)
+        {
+            issue = null;
+            
+            if (errorListHelper.TryGetRoslynIssueFromSelectedRow(out var roslynIssue))
+            {
+                issue = roslynIssue;
+            }
+
+            return issue != null;
         }
 
         private async Task<bool> MuteIssueAsync(IFilterableIssue issue)
@@ -159,7 +186,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             SonarRuleRepoKeys.JavaScript,
             SonarRuleRepoKeys.TypeScript,
             SonarRuleRepoKeys.Css,
-            SonarRuleRepoKeys.Secrets
+            SonarRuleRepoKeys.Secrets,
+            SonarRuleRepoKeys.CSharpRules,
+            SonarRuleRepoKeys.VBNetRules
         };
 
         private static bool IsSonarRule(SonarCompositeRuleId rule) =>
