@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources"
              xmlns:local="clr-namespace:SonarLint.VisualStudio.Integration.Transition"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d" 
              SizeToContent="WidthAndHeight"
@@ -14,8 +15,9 @@
             <Setter Property="GroupName" Value="Transitions" />
             <Setter Property="VerticalAlignment" Value="Top" />
             <Setter Property="Margin" Value="10,16,-10,0" />
-            <Setter Property="FontWeight" Value="Bold" />            
-        </Style>
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}"/>            
+    </Style>
         <Style x:Key="BorderStyle" TargetType="Border">
             <Setter Property="BorderBrush" Value="Black" />
             <Setter Property="BorderThickness" Value="1" />
@@ -28,6 +30,7 @@
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="VerticalAlignment" Value="Top" />
             <Setter Property="Margin" Value="25,200,0,0" />
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}"/>
         </Style>
         <Style x:Key="TransitionLabelStyle" BasedOn="{StaticResource LabelStyle}" TargetType="Label">
             <Setter Property="Margin" Value="10,36,0,0" />
@@ -61,9 +64,12 @@
             <Setter Property="Margin" Value="0,225,0,0" />
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="Height" Value="60" />
-            <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="VerticalAlignment" Value="Top" />
             <Setter Property="Width" Value="450" />
+            <Setter Property="AcceptsReturn" Value="True"/>
+            <Setter Property="AcceptsTab" Value="True"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
         </Style>
         <Style x:Key="TopBorderStyle" BasedOn="{StaticResource BorderStyle}" TargetType="Border">
             <Setter Property="Margin" Value="25,25,0,0" />
@@ -72,7 +78,7 @@
             <Setter Property="Margin" Value="25,115,0,0" />
         </Style>
     </vsui:DialogWindow.Resources>
-    <Grid Height="350" Width="500">
+    <Grid Height="350" Width="500" Background="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUIBackgroundKey}}">
         <Border Name="BorderWontFix" Style="{StaticResource TopBorderStyle}" Visibility="{Binding WontFixVisibility}">
             <Grid>
                 <RadioButton Name="rbWontFix" Content="{x:Static resx:Strings.MuteWindow_WontFixTitle}" Style="{StaticResource RadioButtonStyle}" Checked="RadioButton_Checked"/>
