@@ -50,5 +50,12 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         /// </summary>
         /// <returns>True if issue is present in the selected row, False if not present or multiple rows selected</returns>
         bool TryGetIssueFromSelectedRow(out IFilterableIssue issue);
+
+        /// <summary>
+        /// Extracts <see cref="IFilterableRoslynIssue"/> from error code, line number and file path. Does not calculate line hash.
+        /// </summary>
+        /// <returns>True if error code is of sonar issue, line number and file path are available. False otherwise or if multiple rows selected</returns>
+        bool TryGetRoslynIssueFromSelectedRow(out IFilterableRoslynIssue filterableRoslynIssue);
+
     }
 }

@@ -121,6 +121,94 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
         
         [TestMethod]
+        public void TryGetRoslynIssueFromSelectedRow_SingleRoslynIssue_IssueReturned()
+        {
+            var path = "filepath";
+            var line = 12;
+            var errorCode = "javascript:S333";
+            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, "SonarLint" },
+                { StandardTableKeyNames.ErrorCode, errorCode},
+                { StandardTableKeyNames.DocumentName, path },
+                { StandardTableKeyNames.Line, line }
+            });
+            var errorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
+
+            var testSubject = new ErrorListHelper(serviceProvider);
+            bool result = testSubject.TryGetRoslynIssueFromSelectedRow(out var issue);
+
+            result.Should().BeTrue();
+            issue.RuleId.Should().BeSameAs(errorCode);
+            issue.FilePath.Should().BeSameAs(path);
+            issue.StartLine.Should().Be(line + 1);
+            issue.LineHash.Should().BeNull();
+        }
+        
+        [TestMethod]
+        public void TryGetRoslynIssueFromSelectedRow_NonSonarIssue_NothingReturned()
+        {
+            var path = "filepath";
+            var line = 12;
+            var errorCode = "javascript:S333";
+            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, "Not SonarLint" },
+                { StandardTableKeyNames.ErrorCode, errorCode},
+                { StandardTableKeyNames.DocumentName, path },
+                { StandardTableKeyNames.Line, line }
+            });
+            var errorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
+
+            var testSubject = new ErrorListHelper(serviceProvider);
+            bool result = testSubject.TryGetRoslynIssueFromSelectedRow(out _);
+
+            result.Should().BeFalse();
+        }
+        
+        [TestMethod]
+        public void TryGetRoslynIssueFromSelectedRow_NoFilePath_NothingReturned()
+        {
+            var line = 12;
+            var errorCode = "javascript:S333";
+            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, "SonarLint" },
+                { StandardTableKeyNames.ErrorCode, errorCode},
+                { StandardTableKeyNames.Line, line }
+            });
+            var errorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
+
+            var testSubject = new ErrorListHelper(serviceProvider);
+            bool result = testSubject.TryGetRoslynIssueFromSelectedRow(out _);
+
+            result.Should().BeFalse();
+        }
+        
+        [TestMethod]
+        public void TryGetRoslynIssueFromSelectedRow_NoStartLine_NothingReturned()
+        {
+            var path = "filepath";
+            var errorCode = "javascript:S333";
+            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, "SonarLint" },
+                { StandardTableKeyNames.ErrorCode, errorCode},
+                { StandardTableKeyNames.DocumentName, path },
+            });
+            var errorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
+
+            var testSubject = new ErrorListHelper(serviceProvider);
+            bool result = testSubject.TryGetRoslynIssueFromSelectedRow(out _);
+
+            result.Should().BeFalse();
+        }
+        
+        [TestMethod]
         [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp")]
         [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic")]
         [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.VisualBasic")]
