@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Markup;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarQube.Client.Models;
@@ -36,6 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Transition
     public partial class MuteWindowDialog : DialogWindow
     {
         private readonly Dictionary<RadioButton, SonarQubeIssueTransition> Transitions;
+        private readonly Dictionary<Border, RadioButton> BorderRadioButtons;
 
         public MuteWindowDialog(bool showAccept)
         {
@@ -44,6 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Transition
             SetVisibility(showAccept);
 
             Transitions = InitializeTransitions();
+            BorderRadioButtons = InitializeBorderRadioButtons();
         }
 
         private Dictionary<RadioButton, SonarQubeIssueTransition> InitializeTransitions()
@@ -53,6 +56,16 @@ namespace SonarLint.VisualStudio.Integration.Transition
                 { rbWontFix, SonarQubeIssueTransition.WontFix },
                 { rbAccept, SonarQubeIssueTransition.Accept },
                 { rbFalsePositive, SonarQubeIssueTransition.FalsePositive }
+            };
+        }
+
+        private Dictionary<Border, RadioButton> InitializeBorderRadioButtons()
+        {
+            return new Dictionary<Border, RadioButton>
+            {
+                {BorderAccept, rbAccept },
+                {BorderWontFix, rbWontFix },
+                {BorderFalsePositive, rbFalsePositive }
             };
         }
 
@@ -79,6 +92,11 @@ namespace SonarLint.VisualStudio.Integration.Transition
         private void RadioButton_Checked(object sender, RoutedEventArgs e)
         {
             SelectedIssueTransition = Transitions[(RadioButton)sender];
+        }
+
+        private void Border_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            BorderRadioButtons[(Border)sender].IsChecked = true;
         }
     }
 }
