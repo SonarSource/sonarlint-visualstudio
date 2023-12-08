@@ -95,7 +95,7 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetTaintVulnerabilitiesRequest, V10_2.GetTaintVulnerabilitiesWithCCTRequest>()
                 .RegisterRequest<IGetExclusionsRequest, V7_20.GetExclusionsRequest>()
                 .RegisterRequest<ISearchHotspotRequest, V9_7.SearchHotspotRequest>()
-                .RegisterRequest<ITransitionIssueRequest, V10_4.TransitionIssueRequestWithAccept>()
+                .RegisterRequest<ITransitionIssueRequest, V9_9.TransitionIssueRequestWithWontFix>()
                 .RegisterRequest<ICommentIssueRequest, V9_9.CommentIssueRequest>()
                 .RegisterRequest<ISearchFilesByNameRequest, V9_9.SearchFilesByNameRequest>();
 
