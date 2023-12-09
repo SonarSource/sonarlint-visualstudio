@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Core.Configuration
         {
             var serverInfo = sonarQubeService.GetServerInfo();
 
-            return serverInfo != null && IsSupportedForVersion(serverInfo, minimalSonarQubeVersionForAccept);
+            return serverInfo != null && (serverInfo.ServerType == ServerType.SonarQube && serverInfo.Version >= minimalSonarQubeVersionForAccept);
         }
     }
 }
