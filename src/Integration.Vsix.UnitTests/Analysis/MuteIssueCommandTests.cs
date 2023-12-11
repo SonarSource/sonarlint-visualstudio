@@ -209,7 +209,7 @@ public class MuteIssueCommandTests
         errorListHelperMock.Verify(x => x.TryGetIssueFromSelectedRow(out issue), Times.Once);
         threadHandlingMock.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()), Times.Once);
         serverIssueFinderMock.Verify(x => x.FindServerIssueAsync(issue, It.IsAny<CancellationToken>()), Times.Once);
-        muteIssueServiceMock.Verify(x => x.Mute(sonarQubeIssue.IssueKey, It.IsAny<CancellationToken>()), Times.Once);
+        muteIssueServiceMock.Verify(x => x.Mute(sonarQubeIssue, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [TestMethod]
@@ -248,7 +248,7 @@ public class MuteIssueCommandTests
         threadHandlingMock.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()), Times.Once);
         roslynIssueLineHashCalculatorMock.Verify(x => x.UpdateRoslynIssueWithLineHash(roslynIssue), Times.Once);
         serverIssueFinderMock.Verify(x => x.FindServerIssueAsync(roslynIssue, It.IsAny<CancellationToken>()), Times.Once);
-        muteIssueServiceMock.Verify(x => x.Mute(sonarQubeIssue.IssueKey, It.IsAny<CancellationToken>()), Times.Once);
+        muteIssueServiceMock.Verify(x => x.Mute(sonarQubeIssue, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [TestMethod]
@@ -295,7 +295,7 @@ public class MuteIssueCommandTests
             .ReturnsAsync(sonarQubeIssue);
         muteIssueServiceMock
             .InSequence(callSequence)
-            .Setup(x => x.Mute(sonarQubeIssue.IssueKey, It.IsAny<CancellationToken>()))
+            .Setup(x => x.Mute(sonarQubeIssue, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
     }
     

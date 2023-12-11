@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
             resourceManager = new ResourceManager(typeof(Resources));
         }
 
-        public async Task Mute(string issueKey, CancellationToken token)
+        public async Task Mute(SonarQubeIssue issue, CancellationToken token)
         {
             threadHandling.ThrowIfOnUIThread();
 
@@ -82,17 +82,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
 
             MuteIssuesWindowResponse windowResponse = default;
 
-            await threadHandling.RunOnUIThreadAsync(() => windowResponse = muteIssuesWindowService.Show(issueKey));
+            await threadHandling.RunOnUIThreadAsync(() => windowResponse = muteIssuesWindowService.Show());
 
             if (windowResponse.Result)
             {
-                var serviceResult = await sonarQubeService.TransitionIssueAsync(issueKey, windowResponse.IssueTransition, windowResponse.Comment, token);
+                var serviceResult = await sonarQubeService.TransitionIssueAsync(issue.IssueKey, windowResponse.IssueTransition, windowResponse.Comment, token);
 
-                if (serviceResult == SonarQubeIssueTransitionResult.Success)
+                if (serviceResult == SonarQubeIssueTransitionResult.Success || serviceResult == SonarQubeIssueTransitionResult.CommentAdditionFailed)
                 {
-                    serverIssuesStore.UpdateIssues(true, new[] { issueKey });
+                    issue.IsResolved = true;
+                    serverIssuesStore.AddIssues(new[] { issue }, false);
                 }
-                else
+
+                if (serviceResult != SonarQubeIssueTransitionResult.Success)
                 {
                     messageBox.Show(resourceManager.GetString($"MuteIssuesService_Error_{serviceResult}"), Resources.MuteIssuesService_Error_Caption, MessageBoxButton.OK, MessageBoxImage.Error);
                 }
