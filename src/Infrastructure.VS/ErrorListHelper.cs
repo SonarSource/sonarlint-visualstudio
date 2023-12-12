@@ -63,6 +63,28 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             return SonarCompositeRuleId.TryParse(errorCode, out ruleId);
         }
 
+        public bool TryGetRuleIdAndSuppressionStateFromSelectedRow(out SonarCompositeRuleId ruleId, out bool isSuppressed)
+        {
+            SonarCompositeRuleId ruleIdOut = null;
+            var isSuppressedOut = false;
+            var result = vSServiceOperation.Execute<SVsErrorList, IErrorList, bool>(errorList =>
+            {
+                if (!TryGetSelectedTableEntry(errorList, out var handle) || !TryGetRuleId(handle, out ruleIdOut))
+                {
+                    return false;
+                }
+
+                isSuppressedOut = IsSuppressed(handle);
+                return true;
+
+            });
+
+            ruleId = ruleIdOut;
+            isSuppressed = isSuppressedOut;
+
+            return result;
+        }
+
         public bool TryGetIssueFromSelectedRow(out IFilterableIssue issue)
         {
             IFilterableIssue issueOut = null;
@@ -97,6 +119,13 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             filterableRoslynIssue = outIssue;
             
             return result;
+        }
+
+        private static bool IsSuppressed(ITableEntryHandle handle)
+        {
+            return handle.TryGetSnapshot(out var snapshot, out var index)
+                   && TryGetValue(snapshot, index, StandardTableKeyNames.SuppressionState, out SuppressionState suppressionState)
+                   && suppressionState == SuppressionState.Suppressed;
         }
 
         private static string FindErrorCodeForEntry(ITableEntriesSnapshot snapshot, int index)

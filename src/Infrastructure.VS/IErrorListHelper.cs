@@ -57,5 +57,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         /// <returns>True if error code is of sonar issue, line number and file path are available. False otherwise or if multiple rows selected</returns>
         bool TryGetRoslynIssueFromSelectedRow(out IFilterableRoslynIssue filterableRoslynIssue);
 
+        /// <summary>
+        /// Similarly to <see cref="TryGetRuleIdFromSelectedRow"/>, this method extracts the rule id, however, it also fetches suppression state from the same row
+        /// </summary>
+        bool TryGetRuleIdAndSuppressionStateFromSelectedRow(out SonarCompositeRuleId ruleId, out bool isSuppressed);
     }
 }

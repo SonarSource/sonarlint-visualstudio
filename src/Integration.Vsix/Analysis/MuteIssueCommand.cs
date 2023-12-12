@@ -24,6 +24,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode;
@@ -32,6 +33,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Core.Transition;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using MessageBox = SonarLint.VisualStudio.Core.MessageBox;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
@@ -106,9 +108,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             try
             {
-                var isSonarRule = errorListHelper.TryGetRuleIdFromSelectedRow(out var ruleId) && IsSonarRule(ruleId);
-                menuItem.Visible = isSonarRule;
-                menuItem.Enabled = isSonarRule && activeSolutionBoundTracker.CurrentConfiguration.Mode.IsInAConnectedMode();
+                var isActiveSonarRule = errorListHelper.TryGetRuleIdAndSuppressionStateFromSelectedRow(out var ruleId, out var isSuppressed) && IsSupportedSonarRule(ruleId) && !isSuppressed;
+                menuItem.Visible = isActiveSonarRule;
+                menuItem.Enabled = isActiveSonarRule && activeSolutionBoundTracker.CurrentConfiguration.Mode.IsInAConnectedMode();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -165,11 +167,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             var serverIssue = await serverIssueFinder.FindServerIssueAsync(issue, CancellationToken.None);
             if (serverIssue == null)
             {
-                messageBox.Show(AnalysisStrings.MuteIssue_IssueNotFoundText, AnalysisStrings.MuteIssue_IssueNotFoundCaption, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Exclamation);
+                messageBox.Show(AnalysisStrings.MuteIssue_IssueNotFoundText, AnalysisStrings.MuteIssue_IssueNotFoundCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 return false;
             }
 
-            await muteIssuesService.Mute(serverIssue, CancellationToken.None);
+            if (serverIssue.IsResolved)
+            {
+                muteIssuesService.CacheOutOfSyncResolvedIssue(serverIssue);
+                messageBox.Show(AnalysisStrings.MuteIssue_IssueAlreadyMutedText, AnalysisStrings.MuteIssue_IssueAlreadyMutedCaption, MessageBoxButton.OK, MessageBoxImage.Information);
+                return false;
+            }
+
+            await muteIssuesService.ResolveIssueWithDialogAsync(serverIssue, CancellationToken.None);
             logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted, serverIssue.IssueKey);
 
             return true;
@@ -191,7 +200,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             SonarRuleRepoKeys.VBNetRules
         };
 
-        private static bool IsSonarRule(SonarCompositeRuleId rule) =>
+        private static bool IsSupportedSonarRule(SonarCompositeRuleId rule) =>
             SupportedRepos.Contains(rule.RepoKey, SonarRuleRepoKeys.RepoKeyComparer);
     }
 }

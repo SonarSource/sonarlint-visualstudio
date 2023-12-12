@@ -40,6 +40,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         /// Returns all issues in the store
         /// </summary>
         IEnumerable<SonarQubeIssue> Get();
+
+        /// <param name="issueKey">Sonar Server issue key</param>
+        /// <param name="issue">Issue associated with the <paramref name="issueKey"/>, if present</param>
+        /// <returns>True if issue with the same key is present, False otherwise</returns>
+        bool TryGetIssue(string issueKey, out SonarQubeIssue issue);
     }
 
     /// <summary>

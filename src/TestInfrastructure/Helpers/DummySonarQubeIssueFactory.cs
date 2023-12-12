@@ -18,16 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
-using System.Threading.Tasks;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Core.Transition
+namespace SonarLint.VisualStudio.Integration.TestInfrastructure.Helpers;
+
+public static class DummySonarQubeIssueFactory
 {
-    public interface IMuteIssuesService
+    public static SonarQubeIssue CreateServerIssue(bool isResolved = false)
     {
-        void CacheOutOfSyncResolvedIssue(SonarQubeIssue issue);
-        
-        Task ResolveIssueWithDialogAsync(SonarQubeIssue issue, CancellationToken token);
+        return new SonarQubeIssue("issueKey", default, default, default, default, default, isResolved, default, default, default, default, default);
     }
 }
