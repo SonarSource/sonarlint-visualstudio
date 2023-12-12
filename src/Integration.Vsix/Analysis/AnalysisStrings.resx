@@ -205,4 +205,10 @@
   <data name="MuteIssue_IssueNotFoundText" xml:space="preserve">
     <value>Could not find a matching issue on the server.</value>
   </data>
+  <data name="MuteIssue_IssueAlreadyMutedCaption" xml:space="preserve">
+    <value>Outdated Analysis Report</value>
+  </data>
+  <data name="MuteIssue_IssueAlreadyMutedText" xml:space="preserve">
+    <value>This issue is already resolved on the server. It will be removed from the Error List after the next SonarLint analysis.</value>
+  </data>
 </root>

@@ -47,6 +47,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
                 MefTestHelpers.CreateExport<ILogger>());
 
         [TestMethod]
+        public void TryGetIssue_HasIssueWithSameKey_ReturnsTrue()
+        {
+            var issue = CreateIssue("1", false);
+
+            var testSubject = CreateTestSubject();
+            testSubject.AddIssues(new []{issue}, false);
+
+            testSubject.TryGetIssue(issue.IssueKey, out var storedIssue).Should().BeTrue();
+            storedIssue.Should().BeSameAs(issue);
+        }
+        
+        [TestMethod]
+        public void TryGetIssue_NoMatchingIssue_ReturnsFalse()
+        {
+            var issue = CreateIssue("1", false);
+
+            var testSubject = CreateTestSubject();
+            testSubject.AddIssues(new []{issue}, false);
+
+            testSubject.TryGetIssue("NOTMATCHINGKEY", out var storedIssue).Should().BeFalse();
+        }
+        
+        [TestMethod]
         [DataRow(false)]
         [DataRow(true)]
         public void AddIssues_EmptyList_ResultContainsNewIssues(bool clearAllExistingIssues)

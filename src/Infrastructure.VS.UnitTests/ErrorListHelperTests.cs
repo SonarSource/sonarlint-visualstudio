@@ -384,6 +384,54 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             errorCode.Should().BeNull();
         }
 
+        [TestMethod]
+        public void TryGetRuleIdAndSuppressionStateFromSelectedRow_NoSuppressionState_ReturnsIsNotSuppressed()
+        {
+            // Arrange
+            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, "SonarLint" },
+                { StandardTableKeyNames.ErrorCode, "cpp:S222" }
+            });
+
+            var errorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
+
+            // Act
+            var testSubject = new ErrorListHelper(serviceProvider);
+            bool result = testSubject.TryGetRuleIdAndSuppressionStateFromSelectedRow(out var ruleId, out var isSuppressed);
+
+            // Assert
+            result.Should().BeTrue();
+            isSuppressed.Should().BeFalse();
+        }
+        
+        [DataTestMethod]
+        [DataRow(SuppressionState.Suppressed, true)]
+        [DataRow(SuppressionState.NotApplicable, false)]
+        [DataRow(SuppressionState.Active, false)]
+        public void TryGetRuleIdAndSuppressionStateFromSelectedRow_NoSuppressionState_ReturnsIsNotSuppressed(SuppressionState suppressionState, bool expectedSuppression)
+        {
+            // Arrange
+            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, "SonarLint" },
+                { StandardTableKeyNames.ErrorCode, "cpp:S222" },
+                { StandardTableKeyNames.SuppressionState, suppressionState },
+            });
+
+            var errorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
+
+            // Act
+            var testSubject = new ErrorListHelper(serviceProvider);
+            bool result = testSubject.TryGetRuleIdAndSuppressionStateFromSelectedRow(out var ruleId, out var isSuppressed);
+
+            // Assert
+            result.Should().BeTrue();
+            isSuppressed.Should().Be(expectedSuppression);
+        }
+        
 
         private IVsUIServiceOperation CreateServiceOperation(IErrorList svcToPassToCallback)
         {

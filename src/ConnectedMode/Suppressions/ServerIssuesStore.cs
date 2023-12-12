@@ -54,6 +54,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             }
         }
 
+        public bool TryGetIssue(string issueKey, out SonarQubeIssue issue)
+        {
+            lock (serverIssuesLock)
+            {
+                return serverIssues.TryGetValue(issueKey, out issue);
+            }
+        }
+
         #endregion IServerIssuesStore implementation
 
         #region IServerIssueStoreWriter implementation

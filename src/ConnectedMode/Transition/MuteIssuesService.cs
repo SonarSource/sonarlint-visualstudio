@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.Resources;
 using System.Threading;
@@ -70,7 +71,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
             resourceManager = new ResourceManager(typeof(Resources));
         }
 
-        public async Task Mute(SonarQubeIssue issue, CancellationToken token)
+        public void CacheOutOfSyncResolvedIssue(SonarQubeIssue issue)
+        {
+            threadHandling.ThrowIfOnUIThread();
+            
+            if (!issue.IsResolved)
+            {
+                throw new ArgumentException("Issue should be resolved.", nameof(issue));
+            }
+            
+            serverIssuesStore.AddIssues(new []{ issue }, false);
+        }
+
+        public async Task ResolveIssueWithDialogAsync(SonarQubeIssue issue, CancellationToken token)
         {
             threadHandling.ThrowIfOnUIThread();
 
@@ -96,6 +109,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
 
                 if (serviceResult != SonarQubeIssueTransitionResult.Success)
                 {
+                    // ideally, message box invocation should be moved to Mute command
                     messageBox.Show(resourceManager.GetString($"MuteIssuesService_Error_{serviceResult}"), Resources.MuteIssuesService_Error_Caption, MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
