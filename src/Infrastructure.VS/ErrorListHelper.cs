@@ -124,8 +124,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         private static bool IsSuppressed(ITableEntryHandle handle)
         {
             return handle.TryGetSnapshot(out var snapshot, out var index)
-                   && TryGetValue(snapshot, index, StandardTableKeyNames.SuppressionState, out SuppressionState suppressionState)
-                   && suppressionState == SuppressionState.Suppressed;
+                   && TryGetValue(snapshot, index, "suppression", out int suppressionState)
+                   && suppressionState == 1;
         }
 
         private static string FindErrorCodeForEntry(ITableEntriesSnapshot snapshot, int index)
