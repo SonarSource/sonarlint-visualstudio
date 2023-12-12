@@ -407,17 +407,17 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
         
         [DataTestMethod]
-        [DataRow(SuppressionState.Suppressed, true)]
-        [DataRow(SuppressionState.NotApplicable, false)]
-        [DataRow(SuppressionState.Active, false)]
-        public void TryGetRuleIdAndSuppressionStateFromSelectedRow_NoSuppressionState_ReturnsIsNotSuppressed(SuppressionState suppressionState, bool expectedSuppression)
+        [DataRow(Infrastructure.VS.SuppressionState.SuppressedEnumValue, true)]
+        [DataRow(Infrastructure.VS.SuppressionState.NotApplicableEnumValue, false)]
+        [DataRow(Infrastructure.VS.SuppressionState.ActiveEnumValue, false)]
+        public void TryGetRuleIdAndSuppressionStateFromSelectedRow_NoSuppressionState_ReturnsIsNotSuppressed(int suppressionState, bool expectedSuppression)
         {
             // Arrange
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
                 { StandardTableKeyNames.BuildTool, "SonarLint" },
                 { StandardTableKeyNames.ErrorCode, "cpp:S222" },
-                { StandardTableKeyNames.SuppressionState, suppressionState },
+                { Infrastructure.VS.SuppressionState.ColumnName, suppressionState },
             });
 
             var errorList = CreateErrorList(issueHandle);
