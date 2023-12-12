@@ -20,6 +20,7 @@
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
 {
+    // This class duplicates SuppressionState enum and StandardTableKeyNames.SuppressionState because it's not available in vs2019 assembly (even though it is available in the ide)
     internal static class SuppressionState
     {
         public const string ColumnName = "suppression";
