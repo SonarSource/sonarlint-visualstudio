@@ -169,7 +169,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 return false;
             }
 
-            await muteIssuesService.Mute(serverIssue.IssueKey, CancellationToken.None);
+            await muteIssuesService.Mute(serverIssue, CancellationToken.None);
             logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted, serverIssue.IssueKey);
 
             return true;

@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
 
             var testSubject = CreateTestSubject(activeSolutionBoundTracker: activeSolutionBoundTracker, logger: logger.Object, threadHandling: threadHandling.Object);
 
-            await testSubject.Mute("anyKEy", CancellationToken.None);
+            await testSubject.Mute(CreateServerIssue(), CancellationToken.None);
 
             logger.Verify(l => l.LogVerbose("[Transition]Issue muting is only supported in connected mode"), Times.Once);
             threadHandling.Verify(t => t.ThrowIfOnUIThread(), Times.Once());
@@ -73,38 +73,42 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
         [TestMethod]
         public async Task Mute_WindowOK_CallService()
         {
+            var sonarQubeIssue = CreateServerIssue();
+            sonarQubeIssue.IsResolved.Should().BeFalse();
+            
             var threadHandling = CreateThreadHandling();
-            var muteIssuesWindowService = CreateMuteIssuesWindowService("issueKey", true, SonarQubeIssueTransition.FalsePositive, "some comment");
+            var muteIssuesWindowService = CreateMuteIssuesWindowService(true, SonarQubeIssueTransition.FalsePositive, "some comment");
 
             var sonarQubeService = new Mock<ISonarQubeService>();
 
             sonarQubeService.Setup(s => s.TransitionIssueAsync(It.IsAny<string>(), It.IsAny<SonarQubeIssueTransition>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(SonarQubeIssueTransitionResult.FailedToTransition);
-            sonarQubeService.Setup(s => s.TransitionIssueAsync("issueKey", SonarQubeIssueTransition.FalsePositive, "some comment", CancellationToken.None)).ReturnsAsync(SonarQubeIssueTransitionResult.Success);
+            sonarQubeService.Setup(s => s.TransitionIssueAsync(sonarQubeIssue.IssueKey, SonarQubeIssueTransition.FalsePositive, "some comment", CancellationToken.None)).ReturnsAsync(SonarQubeIssueTransitionResult.Success);
 
             var serverIssuesStore = new Mock<IServerIssuesStoreWriter>();
 
             var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, sonarQubeService: sonarQubeService.Object, serverIssuesStore: serverIssuesStore.Object, threadHandling: threadHandling.Object);
 
-            await testSubject.Mute("issueKey", CancellationToken.None);
+            await testSubject.Mute(sonarQubeIssue, CancellationToken.None);
 
-            muteIssuesWindowService.Verify(s => s.Show("issueKey"), Times.Once);
-            sonarQubeService.Verify(s => s.TransitionIssueAsync("issueKey", SonarQubeIssueTransition.FalsePositive, "some comment", CancellationToken.None), Times.Once);
-            serverIssuesStore.Verify(s => s.UpdateIssues(true, It.Is<IEnumerable<string>>(p => p.SequenceEqual(new[] { "issueKey" }))), Times.Once);
+            muteIssuesWindowService.Verify(s => s.Show(), Times.Once);
+            sonarQubeService.Verify(s => s.TransitionIssueAsync(sonarQubeIssue.IssueKey, SonarQubeIssueTransition.FalsePositive, "some comment", CancellationToken.None), Times.Once);
+            serverIssuesStore.Verify(s => s.AddIssues(It.Is<IEnumerable<SonarQubeIssue>>(p => p.SequenceEqual(new[] { sonarQubeIssue })), false), Times.Once);
             threadHandling.Verify(t => t.ThrowIfOnUIThread(), Times.Once());
+            sonarQubeIssue.IsResolved.Should().BeTrue();
         }
 
         [TestMethod]
         public async Task Mute_WindowCancel_DontCallService()
         {
-            var muteIssuesWindowService = CreateMuteIssuesWindowService("issueKey", false, SonarQubeIssueTransition.FalsePositive, "some comment");
+            var muteIssuesWindowService = CreateMuteIssuesWindowService(false, SonarQubeIssueTransition.FalsePositive, "some comment");
 
             var sonarQubeService = new Mock<ISonarQubeService>();
 
             var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, sonarQubeService: sonarQubeService.Object);
 
-            await testSubject.Mute("issueKey", CancellationToken.None);
+            await testSubject.Mute(CreateServerIssue(), CancellationToken.None);
 
-            muteIssuesWindowService.Verify(s => s.Show("issueKey"), Times.Once);
+            muteIssuesWindowService.Verify(s => s.Show(), Times.Once);
             sonarQubeService.VerifyNoOtherCalls();
         }
 
@@ -115,7 +119,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
         public async Task Mute_SQError_ShowsError(SonarQubeIssueTransitionResult result, string errorMessage)
         {
             var messageBox = new Mock<IMessageBox>();
-            var muteIssuesWindowService = CreateMuteIssuesWindowService("issueKey", true, SonarQubeIssueTransition.FalsePositive, "some comment");
+            var muteIssuesWindowService = CreateMuteIssuesWindowService(true, SonarQubeIssueTransition.FalsePositive, "some comment");
 
             var sonarQubeService = new Mock<ISonarQubeService>();
 
@@ -123,17 +127,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
 
             var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, sonarQubeService: sonarQubeService.Object, messageBox: messageBox.Object);
 
-            await testSubject.Mute("issueKey", CancellationToken.None);
+            await testSubject.Mute(CreateServerIssue(), CancellationToken.None);
 
             messageBox.Verify(mb => mb.Show(errorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
-        private Mock<IMuteIssuesWindowService> CreateMuteIssuesWindowService(string issueKey, bool result, SonarQubeIssueTransition transition = default, string comment = default)
+        private Mock<IMuteIssuesWindowService> CreateMuteIssuesWindowService(bool result, SonarQubeIssueTransition transition = default, string comment = default)
         {
             var muteIssuesWindowResponse = CreateMuteIssuesWindowResponse(result, transition, comment);
 
             var service = new Mock<IMuteIssuesWindowService>();
-            service.Setup(s => s.Show(issueKey)).Returns(muteIssuesWindowResponse);
+            service.Setup(s => s.Show()).Returns(muteIssuesWindowResponse);
 
             return service;
 
@@ -189,6 +193,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
             messageBox ??= Mock.Of<IMessageBox>();
 
             return new MuteIssuesService(activeSolutionBoundTracker, logger, muteIssuesWindowService, sonarQubeService, serverIssuesStore, threadHandling, messageBox);
+        }
+        
+        private static SonarQubeIssue CreateServerIssue()
+        {
+            return new SonarQubeIssue("testKey", "test", "test", "test", "test", "test", false, SonarQubeIssueSeverity.Info,
+                DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, null);
         }
     }
 }
