@@ -167,10 +167,16 @@ jobs:
 
   - task: VSBuild@1
     displayName: Build solution SonarLint.VisualStudio.Integration.sln
+    env:
+      SM_HOST: $(SM_HOST)
+      SM_API_KEY: $(SM_API_KEY)
+      SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
+      SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
+      SM_CLIENT_CRT_FILE: $(SM_CLIENT_CRT.secureFilePath)
     inputs:
       solution: $(BuildParameters.solution)
       vsVersion: 17.0
-      msbuildArgs: /p:VsTargetVersion=$(vsTargetVersion) /p:DeployExtension=false /p:Sha1=$(Build.SourceVersion) /p:BuildNumber=$(Build.BuildId)  $(AdditionalMSBuildArgs)
+      msbuildArgs: /p:VsTargetVersion=$(vsTargetVersion) /p:SignArtifacts=$(SHOULD_SIGN) /p:DeployExtension=false /p:Sha1=$(Build.SourceVersion) /p:BuildNumber=$(Build.BuildId)  $(AdditionalMSBuildArgs)
       platform: $(BuildPlatform)
       configuration: $(BuildConfiguration)
       maximumCpuCount: true
