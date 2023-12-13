@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -123,8 +124,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
         private static bool IsSuppressed(ITableEntryHandle handle)
         {
-            return handle.TryGetSnapshot(out var snapshot, out var index)
-                   && TryGetValue(snapshot, index, Infrastructure.VS.SuppressionState.ColumnName, out int suppressionState)
+            return handle.TryGetSnapshot(out var snapshot, out var index) 
+                   && TryGetValue(snapshot, index, Infrastructure.VS.SuppressionState.ColumnName, out int suppressionState) 
                    && suppressionState == Infrastructure.VS.SuppressionState.SuppressedEnumValue;
         }
 
@@ -200,13 +201,22 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         private static bool TryGetValue<T>(ITableEntriesSnapshot snapshot, int index, string columnName, out T value)
         {
             value = default;
-            if (snapshot.TryGetValue(index, columnName, out var objValue) && objValue is T outValue)
+
+            try
             {
-                value = outValue;
+                if (!snapshot.TryGetValue(index, columnName, out var objValue) || objValue == null)
+                {
+                    return false;
+                }
+
+                value = (T)objValue;
                 return true;
+
             }
-            
-            return false;
+            catch (InvalidCastException)
+            {
+                return false;
+            }
         }
     }
 }

@@ -29,11 +29,20 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
+using static SonarLint.VisualStudio.Infrastructure.VS.UnitTests.ErrorListHelperTests;
+
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
     [TestClass]
     public class ErrorListHelperTests
     {
+        internal enum TestVsSuppressionState
+        {
+            Active,
+            Suppressed,
+            NotApplicable,
+        }
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -407,9 +416,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
         
         [DataTestMethod]
-        [DataRow(Infrastructure.VS.SuppressionState.SuppressedEnumValue, true)]
-        [DataRow(Infrastructure.VS.SuppressionState.NotApplicableEnumValue, false)]
-        [DataRow(Infrastructure.VS.SuppressionState.ActiveEnumValue, false)]
+        [DataRow(TestVsSuppressionState.Suppressed, true)]
+        [DataRow(TestVsSuppressionState.NotApplicable, false)]
+        [DataRow(TestVsSuppressionState.Active, false)]
         public void TryGetRuleIdAndSuppressionStateFromSelectedRow_NoSuppressionState_ReturnsIsNotSuppressed(int suppressionState, bool expectedSuppression)
         {
             // Arrange
