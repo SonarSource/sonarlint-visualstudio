@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         //    or:
         //    SonarCloud: C: https://sonarcloud.io/organizations/sonarsource/quality_profiles/show?name=Sonar+way&language=c
         //    SonarCloud: C++: https://sonarcloud.io/organizations/sonarsource/quality_profiles/show?name=Sonar+way&language=cpp
+        // note: if you just look at the qp page, then it always shows 6 more inactive rules for c&cpp than available in the ide
         // 3. Filter by Repository = SonarAnalyzer C
         // 4. Filter by Quality Profile = Sonar way C
         // The QP filter has "active/inactive" tabs. The number of rules is shown in the top-right of the screen.
@@ -51,10 +52,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         // Rule data for C-Family plugin v6.49.0.62722
 
         private const int Active_C_Rules = 210;
-        private const int Inactive_C_Rules = 123;
+        private const int Inactive_C_Rules = 124;
 
         private const int Active_CPP_Rules = 436;
-        private const int Inactive_CPP_Rules = 206;
+        private const int Inactive_CPP_Rules = 209;
 
         private readonly CFamilySonarWayRulesConfigProvider rulesMetadataCache = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory);
 
