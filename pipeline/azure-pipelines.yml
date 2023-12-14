@@ -183,7 +183,7 @@ jobs:
     inputs:
       solution: $(BuildParameters.solution)
       vsVersion: 17.0
-      msbuildArgs: /p:VsTargetVersion=$(vsTargetVersion) /p:SignArtifacts=$(SHOULD_SIGN) /p:DeployExtension=false /p:Sha1=$(Build.SourceVersion) /p:BuildNumber=$(Build.BuildId)  $(AdditionalMSBuildArgs)
+      msbuildArgs: /p:VsTargetVersion=$(vsTargetVersion) /p:SignArtifacts=$(SHOULD_SIGN) /p:AssemblyOriginatorKeyFile="$(snk.secureFilePath)" /p:DeployExtension=false /p:Sha1=$(Build.SourceVersion) /p:BuildNumber=$(Build.BuildId)  $(AdditionalMSBuildArgs)
       platform: $(BuildPlatform)
       configuration: $(BuildConfiguration)
       maximumCpuCount: true
