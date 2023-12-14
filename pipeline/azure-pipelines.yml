@@ -104,7 +104,14 @@ jobs:
     inputs:
       secureFile: digicert_authentication_certificate.p12
       retryCount: 5
-  
+
+  - task: DownloadSecureFile@1
+    # This file contains the signing certificate without the private key. The private key will be downloaded later, during the signing process.
+    displayName: 'Download crt file'
+    name: SM_CLIENT_CRT
+    inputs:
+      secureFile: cert_525594307.crt
+
   - task: SSMClientToolsSetup@1
     displayName: Client Tools Setup
     condition: eq(variables['SHOULD_SIGN'], 'true')
