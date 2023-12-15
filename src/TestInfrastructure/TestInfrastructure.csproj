@@ -8,6 +8,7 @@
          We'd prefer to set this the shared SonarLint.VSSpecificAssemblies.props file, but
          the IDE isn't picking up the setting if we do that. -->
     <DefineConstants Condition="$(VSTargetVersion)=='2022'">$(DefineConstants);VS2022</DefineConstants>
+    <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
@@ -29,7 +30,6 @@
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
     <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="9.0.4" />
-    <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
   </ItemGroup>
 
   <ItemGroup>
