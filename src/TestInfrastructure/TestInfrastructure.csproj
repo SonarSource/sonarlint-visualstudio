@@ -8,6 +8,7 @@
          We'd prefer to set this the shared SonarLint.VSSpecificAssemblies.props file, but
          the IDE isn't picking up the setting if we do that. -->
     <DefineConstants Condition="$(VSTargetVersion)=='2022'">$(DefineConstants);VS2022</DefineConstants>
+    <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
