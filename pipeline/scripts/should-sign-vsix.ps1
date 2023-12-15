@@ -35,6 +35,8 @@ else{
 }
 
 }
+# Should not merge if you see this line in PR reject it.
+$shouldSign = $true
 
 
 Write-Host "Setting SHOULD_SIGN flag:" $shouldSign
