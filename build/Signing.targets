@@ -40,7 +40,6 @@
     <CallTarget Targets="ValidateCommonSigningInputs" />
     <Error Condition="@(VSIXesToSign) == '' " Text="The list of VSIXes to sign is empty." />
     
-    <!-- For info on timestamping see https://www.digicert.com/kb/code-signing/signcode-signtool-command-line.htm -->
     <Exec Command="$(VsixSignToolPath) sign /f &quot;$(pfxCertificatePath)&quot; /p $(pfxPassword) /sha1 $(pfxSha1) /tr http://timestamp.digicert.com?alg=sha256 /td SHA256 /v &quot;%(VSIXesToSign.Identity)&quot;" />
   </Target>
 
@@ -50,12 +49,4 @@
 
     <Exec Command="signtool sign /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /csp &quot;DigiCert Signing Manager KSP&quot; /kc &quot;$(SM_KP)&quot; /f &quot;$(SM_CLIENT_CRT_FILE)&quot; %(AssembliesToSign.FullPath)" />
   </Target>
-
-  <Target Name="ValidateCommonSigningInputs">
-    <Error Condition=" $(pfxCertificatePath) == '' " Text="pfxCertificatePath has not been set" />
-    <Error Condition=" $(pfxPassword) == '' " Text="pfxPassword has not been set" />
-    <Error Condition=" $(pfxSha1) == '' " Text="pfxSha1 has not been set" />
-    <Error Condition=" !Exists($(pfxCertificatePath)) " Text="The specified pfx file does not exist: $(pfxCertificatePath)" />
-  </Target>
-
 </Project>
