@@ -19,12 +19,12 @@
 #
 ################################
 
-# Base directory: C:\Code\sonarlint-visualstudio\src\Integration.Vsix\bin\Debug\VS2022\net472
+# Base directory: C:\Code\sonarlint-visualstudio\src\Integration.Vsix\bin\Release\VS2022\net472
 Include patterns:
 - 'Sonar*'
 Exclude patterns:
 - 'SonarLint.Secrets.DotNet*'
-# Number of matches: 21
+# Number of matches: 22
 
 ---
 Assembly: 'SonarAnalyzer.CFG, Version=9.23.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
