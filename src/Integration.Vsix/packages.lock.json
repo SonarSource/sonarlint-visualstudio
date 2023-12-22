@@ -1665,6 +1665,9 @@
           "SonarLint.VisualStudio.Core": "[1.0.0, )"
         }
       },
+      "SonarLint.VisualStudio.SLCore": {
+        "type": "Project"
+      },
       "SonarLint.VisualStudio.TypeScript": {
         "type": "Project",
         "dependencies": {
