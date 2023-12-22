@@ -1554,6 +1554,7 @@
           "SonarLint.VisualStudio.ProgressVS": "[1.0.0, )",
           "SonarLint.VisualStudio.Roslyn.Suppressions": "[1.0.0, )",
           "SonarLint.VisualStudio.Rules": "[1.0.0, )",
+          "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
           "SonarLint.VisualStudio.TypeScript": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )",
           "System.IO.Abstractions": "[9.0.4, )",
@@ -1712,6 +1713,9 @@
         "dependencies": {
           "SonarLint.VisualStudio.Core": "[1.0.0, )"
         }
+      },
+      "SonarLint.VisualStudio.SLCore": {
+        "type": "Project"
       },
       "SonarLint.VisualStudio.TypeScript": {
         "type": "Project",
