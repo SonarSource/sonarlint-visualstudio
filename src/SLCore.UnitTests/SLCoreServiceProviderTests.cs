@@ -31,6 +31,12 @@ public class SLCoreServiceProviderTests
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<SLCoreServiceProvider, ISLCoreServiceProvider>();
+    }   
+    
+    [TestMethod]
+    public void MefCtor_WriterInterface_CheckIsExported()
+    {
+        MefTestHelpers.CheckTypeCanBeImported<SLCoreServiceProvider, ISLCoreServiceProviderWriter>();
     }
     
     [TestMethod]
@@ -116,7 +122,7 @@ public class SLCoreServiceProviderTests
         SetUpConnectionState(rpcMock2, true);
         SetUpServiceCreation(rpcMock2, service2);
 
-        testSubject.Reset(rpcMock2.Object);
+        testSubject.SetCurrentConnection(rpcMock2.Object);
         testSubject.TryGetTransientService(out ITestSLcoreService1 requestedService).Should().BeTrue();
 
         requestedService.Should().BeSameAs(service2);
@@ -125,7 +131,7 @@ public class SLCoreServiceProviderTests
     }
 
     [TestMethod]
-    public void Reset_ClearsAllCachedServices()
+    public void SetCurrentConnection_ClearsAllCachedServices()
     {
         var service1 = Mock.Of<ITestSLcoreService1>();
         var service2 = Mock.Of<ITestSLcoreService2>();
@@ -150,7 +156,7 @@ public class SLCoreServiceProviderTests
         SetUpServiceCreation(rpcMock2, service2New);
         SetUpServiceCreation(rpcMock2, service3New);
         
-        testSubject.Reset(rpcMock2.Object);
+        testSubject.SetCurrentConnection(rpcMock2.Object);
         
         testSubject.TryGetTransientService(out ITestSLcoreService1 requestedService1).Should().BeTrue();
         requestedService1.Should().BeSameAs(service1New).And.NotBeSameAs(service1);
@@ -175,7 +181,7 @@ public class SLCoreServiceProviderTests
         var testSubject = new SLCoreServiceProvider();
         if (jsonRpc != null)
         {
-            testSubject.Reset(jsonRpc);
+            testSubject.SetCurrentConnection(jsonRpc);
         }
         return testSubject;
     }

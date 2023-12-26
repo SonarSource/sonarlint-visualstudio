@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.SLCore.Core
         /// <summary>
         /// Resets the state with a new <see cref="ISLCoreJsonRpc"/> instance and clears the cache
         /// </summary>
-        void Reset(ISLCoreJsonRpc newRpcInstance);
+        void SetCurrentConnection(ISLCoreJsonRpc newRpcInstance);
     }
 
     [Export(typeof(ISLCoreServiceProvider))]
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.SLCore.Core
             }
         }
 
-        public void Reset(ISLCoreJsonRpc newRpcInstance)
+        public void SetCurrentConnection(ISLCoreJsonRpc newRpcInstance)
         {
             lock (cacheLock)
             {
