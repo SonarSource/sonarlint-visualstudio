@@ -18,14 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
 namespace SonarLint.VisualStudio.SLCore.Core
 {
     /// <summary>
     /// A wrapper for JsonRpc connection.
     /// </summary>
-    public interface ISLCoreJsonRpc : IDisposable
+    public interface ISLCoreJsonRpc
     {
         TService CreateService<TService>() where TService : ISLCoreService;
 
