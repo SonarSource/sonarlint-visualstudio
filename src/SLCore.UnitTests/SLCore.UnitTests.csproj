@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SLCore\SLCore.csproj" />
+    <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 
 </Project>

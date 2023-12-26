@@ -8,4 +8,10 @@
     <AssemblyName>SonarLint.VisualStudio.SLCore</AssemblyName>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Reference Include="System.ComponentModel.Composition">
+      <HintPath>..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\System.ComponentModel.Composition.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
