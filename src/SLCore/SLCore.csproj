@@ -7,6 +7,10 @@
     <RootNamespace>SonarLint.VisualStudio.SLCore</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.SLCore</AssemblyName>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="System.ComponentModel.Composition">

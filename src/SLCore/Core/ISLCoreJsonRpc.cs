@@ -28,5 +28,7 @@ namespace SonarLint.VisualStudio.SLCore.Core
         TService CreateService<TService>() where TService : ISLCoreService;
 
         void AttachListener(ISLCoreListener listener);
+
+        bool IsAlive { get; }
     }
 }
