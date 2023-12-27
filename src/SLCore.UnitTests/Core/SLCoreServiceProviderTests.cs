@@ -22,7 +22,7 @@ using System;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Core;
 
 [TestClass]
 public class SLCoreServiceProviderTests
@@ -31,20 +31,20 @@ public class SLCoreServiceProviderTests
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<SLCoreServiceProvider, ISLCoreServiceProvider>();
-    }   
-    
+    }
+
     [TestMethod]
     public void MefCtor_WriterInterface_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<SLCoreServiceProvider, ISLCoreServiceProviderWriter>();
     }
-    
+
     [TestMethod]
     public void Mef_CheckIsSingleton()
     {
         MefTestHelpers.CheckIsSingletonMefComponent<SLCoreServiceProvider>();
     }
-    
+
     [TestMethod]
     public void TryGetTransientService_TypeNotInterface_Throws()
     {
@@ -62,18 +62,18 @@ public class SLCoreServiceProviderTests
 
         testSubject.TryGetTransientService(out ITestSLcoreService1 _).Should().BeFalse();
     }
-    
+
     [TestMethod]
     public void TryGetTransientService_ConnectionDied_ReturnsFalse()
     {
         var rpcMock = new Mock<ISLCoreJsonRpc>();
         SetUpConnectionState(rpcMock, false);
-        
+
         var testSubject = CreateTestSubject(rpcMock.Object);
 
         testSubject.TryGetTransientService(out ITestSLcoreService1 _).Should().BeFalse();
     }
-    
+
     [TestMethod]
     public void TryGetTransientService_ConnectionIsAlive_ReturnsTrueAndCreatesService()
     {
@@ -81,15 +81,15 @@ public class SLCoreServiceProviderTests
         SetUpConnectionState(rpcMock, true);
         var service1 = Mock.Of<ITestSLcoreService1>();
         SetUpServiceCreation(rpcMock, service1);
-        
+
         var testSubject = CreateTestSubject(rpcMock.Object);
 
         testSubject.TryGetTransientService(out ITestSLcoreService1 requestedService).Should().BeTrue();
 
         requestedService.Should().BeSameAs(service1);
         rpcMock.Verify(x => x.CreateService<ITestSLcoreService1>(), Times.Once);
-    }    
-    
+    }
+
     [TestMethod]
     public void TryGetTransientService_ServiceAlreadyCreated_ReturnsTrueAndCachedCopy()
     {
@@ -97,7 +97,7 @@ public class SLCoreServiceProviderTests
         SetUpConnectionState(rpcMock, true);
         var service1 = Mock.Of<ITestSLcoreService1>();
         SetUpServiceCreation(rpcMock, service1);
-        
+
         var testSubject = CreateTestSubject(rpcMock.Object);
         testSubject.TryGetTransientService(out ITestSLcoreService1 _);
 
@@ -106,7 +106,7 @@ public class SLCoreServiceProviderTests
         requestedService.Should().BeSameAs(service1);
         rpcMock.Verify(x => x.CreateService<ITestSLcoreService1>(), Times.Once);
     }
-    
+
     [TestMethod]
     public void TryGetTransientService_ConnectionReset_ReturnsTrueAndCreatesService()
     {
@@ -114,7 +114,7 @@ public class SLCoreServiceProviderTests
         var rpcMock1 = new Mock<ISLCoreJsonRpc>();
         SetUpConnectionState(rpcMock1, true);
         SetUpServiceCreation(rpcMock1, service1);
-        
+
         var testSubject = CreateTestSubject(rpcMock1.Object);
         testSubject.TryGetTransientService(out ITestSLcoreService1 _); //caching
         var service2 = Mock.Of<ITestSLcoreService1>();
@@ -146,7 +146,7 @@ public class SLCoreServiceProviderTests
         testSubject.TryGetTransientService(out ITestSLcoreService1 _).Should().BeTrue();
         testSubject.TryGetTransientService(out ITestSLcoreService2 _).Should().BeTrue();
         testSubject.TryGetTransientService(out ITestSLcoreService3 _).Should().BeTrue();
-        
+
         var service1New = Mock.Of<ITestSLcoreService1>();
         var service2New = Mock.Of<ITestSLcoreService2>();
         var service3New = Mock.Of<ITestSLcoreService3>();
@@ -155,9 +155,9 @@ public class SLCoreServiceProviderTests
         SetUpServiceCreation(rpcMock2, service1New);
         SetUpServiceCreation(rpcMock2, service2New);
         SetUpServiceCreation(rpcMock2, service3New);
-        
+
         testSubject.SetCurrentConnection(rpcMock2.Object);
-        
+
         testSubject.TryGetTransientService(out ITestSLcoreService1 requestedService1).Should().BeTrue();
         requestedService1.Should().BeSameAs(service1New).And.NotBeSameAs(service1);
         testSubject.TryGetTransientService(out ITestSLcoreService2 requestedService2).Should().BeTrue();
@@ -170,12 +170,12 @@ public class SLCoreServiceProviderTests
     {
         rpcMock.Setup(x => x.CreateService<T>()).Returns(service);
     }
-    
+
     private static void SetUpConnectionState(Mock<ISLCoreJsonRpc> rpcMock, bool isAlive)
     {
         rpcMock.SetupGet(x => x.IsAlive).Returns(isAlive);
     }
-    
+
     private SLCoreServiceProvider CreateTestSubject(ISLCoreJsonRpc jsonRpc = null)
     {
         var testSubject = new SLCoreServiceProvider();
@@ -188,21 +188,17 @@ public class SLCoreServiceProviderTests
 
     public class TestSLCoreService : ISLCoreService
     {
-        
     }
 
     public interface ITestSLcoreService1 : ISLCoreService
     {
-        
     }
-    
+
     public interface ITestSLcoreService2 : ISLCoreService
     {
-        
     }
-    
+
     public interface ITestSLcoreService3 : ISLCoreService
     {
-        
     }
 }
