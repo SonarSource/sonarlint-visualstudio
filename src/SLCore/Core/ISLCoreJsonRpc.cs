@@ -18,17 +18,48 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
+using StreamJsonRpc;
+
 namespace SonarLint.VisualStudio.SLCore.Core
 {
     /// <summary>
-    /// A wrapper for JsonRpc connection.
+    /// A friendly wrapper for JsonRpc connection.
     /// </summary>
     public interface ISLCoreJsonRpc
     {
-        TService CreateService<TService>() where TService : ISLCoreService;
+        TService CreateService<TService>() where TService : class, ISLCoreService;
 
         void AttachListener(ISLCoreListener listener);
 
         bool IsAlive { get; }
+    }
+
+    internal class SLCoreJsonRpc : ISLCoreJsonRpc
+    {
+        private readonly IJsonRpc rpc;
+
+        public SLCoreJsonRpc(IJsonRpc jsonRpc)
+        {
+            rpc = jsonRpc;
+        }
+
+        public TService CreateService<TService>() where TService : class, ISLCoreService =>
+            rpc.Attach<TService>(new JsonRpcProxyOptions
+            {
+                MethodNameTransform = CommonMethodNameTransforms.CamelCase
+            }); // todo: https://github.com/SonarSource/sonarlint-visualstudio/issues/5140
+
+        public void AttachListener(ISLCoreListener listener) =>
+            rpc.AddLocalRpcTarget(listener,
+                new JsonRpcTargetOptions
+                {
+                    MethodNameTransform = CommonMethodNameTransforms.CamelCase,
+                    UseSingleObjectParameterDeserialization = true
+                });
+
+        public bool IsAlive => !rpc.Completion.IsCompleted;
     }
 }
