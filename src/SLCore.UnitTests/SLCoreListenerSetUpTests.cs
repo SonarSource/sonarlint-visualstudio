@@ -33,6 +33,12 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests
         }
 
         [TestMethod]
+        public void Mef_CheckIsSingleton()
+        {
+            MefTestHelpers.CheckIsSingletonMefComponent<SLCoreListenerSetUp>();
+        }
+
+        [TestMethod]
         public void Setup_NoListenerRegistered_DoesNotCallRpcWrapper()
         {
             var wrapperMock = new Mock<ISLCoreJsonRpc>();
@@ -51,19 +57,19 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests
         {
             var wrapperMock = new Mock<ISLCoreJsonRpc>();
 
-            var listener0 = new Mock<ISLCoreListener>();
-            var listener1 = new Mock<TestListener1>();
-            var listener2 = new Mock<TestListener2>();
+            var listener0 = Mock.Of<ISLCoreListener>();
+            var listener1 = Mock.Of<TestListener1>();
+            var listener2 = Mock.Of<TestListener2>();
 
-            var listeners = new ISLCoreListener[] { listener0.Object, listener1.Object, listener2.Object };
+            var listeners = new ISLCoreListener[] { listener0, listener1, listener2 };
 
             var testSubject = new SLCoreListenerSetUp(listeners);
 
             testSubject.Setup(wrapperMock.Object);
 
-            wrapperMock.Verify(w => w.AttachListener(listener0.Object), Times.Once);
-            wrapperMock.Verify(w => w.AttachListener(listener1.Object), Times.Once);
-            wrapperMock.Verify(w => w.AttachListener(listener2.Object), Times.Once);
+            wrapperMock.Verify(w => w.AttachListener(listener0), Times.Once);
+            wrapperMock.Verify(w => w.AttachListener(listener1), Times.Once);
+            wrapperMock.Verify(w => w.AttachListener(listener2), Times.Once);
             wrapperMock.VerifyNoOtherCalls();
         }
 

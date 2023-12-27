@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.SLCore.Core
 {
     public interface ISLCoreListenerSetUp
     {
-        void Setup(ISLCoreJsonRpc wrapper);
+        void Setup(ISLCoreJsonRpc slcoreJsonRpc);
     }
 
     [Export(typeof(ISLCoreListenerSetUp))]
@@ -40,11 +40,11 @@ namespace SonarLint.VisualStudio.SLCore.Core
             this.listeners = listeners;
         }
 
-        public void Setup(ISLCoreJsonRpc wrapper)
+        public void Setup(ISLCoreJsonRpc slcoreJsonRpc)
         {
             foreach (var listener in listeners)
             {
-                wrapper.AttachListener(listener);
+                slcoreJsonRpc.AttachListener(listener);
             }
         }
     }
