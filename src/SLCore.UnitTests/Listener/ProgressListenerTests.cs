@@ -19,6 +19,7 @@
  */
 
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -30,7 +31,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ProgressListener, IProgressListener>();
+            MefTestHelpers.CheckTypeCanBeImported<ProgressListener, ISLCoreListener>();
         }
 
         [TestMethod]

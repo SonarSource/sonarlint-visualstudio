@@ -21,28 +21,26 @@
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
-using StreamJsonRpc;
 
 namespace SonarLint.VisualStudio.SLCore.Listener
 {
-    public interface IProgressListener : ISLCoreListener
-    {
-        [JsonRpcMethod(UseSingleObjectParameterDeserialization = true)]
-        Task StartProgress(object parameters);
-
-        [JsonRpcMethod(UseSingleObjectParameterDeserialization = true)]
-        Task ReportProgress(object parameters);
-    }
-
-    [Export(typeof(IProgressListener))]
+    [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ProgressListener : IProgressListener
+    public class ProgressListener : ISLCoreListener
     {
+        /// <summary>
+        /// Stub method for compability with SLCore. We do not support progress
+        /// </summary>
+        /// <param name="parameters">Parameter's here for compability we discard it</param>
         public Task StartProgress(object parameters)
         {
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Stub method for compability with SLCore. We do not support progress
+        /// </summary>
+        /// <param name="parameters">Parameter's here for compability we discard it</param>
         public Task ReportProgress(object parameters)
         {
             return Task.CompletedTask;
