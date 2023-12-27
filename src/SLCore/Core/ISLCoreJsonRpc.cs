@@ -39,64 +39,27 @@ namespace SonarLint.VisualStudio.SLCore.Core
 
     internal class SLCoreJsonRpc : ISLCoreJsonRpc
     {
-        private readonly object lockObject = new object();
         private readonly IJsonRpc rpc;
-        private bool isAlive = true;
 
         public SLCoreJsonRpc(IJsonRpc jsonRpc)
         {
             rpc = jsonRpc;
-            AwaitRpcCompletionAsync().Forget();
         }
 
-        public TService CreateService<TService>() where TService : class, ISLCoreService
-        {
-            lock (lockObject)
+        public TService CreateService<TService>() where TService : class, ISLCoreService =>
+            rpc.Attach<TService>(new JsonRpcProxyOptions
             {
-                return rpc.Attach<TService>(new JsonRpcProxyOptions
-                    { MethodNameTransform = CommonMethodNameTransforms.CamelCase }); // todo: https://github.com/SonarSource/sonarlint-visualstudio/issues/5140
-            }
-        }
+                MethodNameTransform = CommonMethodNameTransforms.CamelCase
+            }); // todo: https://github.com/SonarSource/sonarlint-visualstudio/issues/5140
 
-        public void AttachListener(ISLCoreListener listener)
-        {
-            lock (lockObject)
-            {
-                rpc.AddLocalRpcTarget(listener,
-                    new JsonRpcTargetOptions
-                    {
-                        MethodNameTransform = CommonMethodNameTransforms.CamelCase,
-                        UseSingleObjectParameterDeserialization = true
-                    });
-            }
-        }
-
-        public bool IsAlive
-        {
-            get
-            {
-                lock (lockObject)
+        public void AttachListener(ISLCoreListener listener) =>
+            rpc.AddLocalRpcTarget(listener,
+                new JsonRpcTargetOptions
                 {
-                    return isAlive;
-                }
-            }
-        }
+                    MethodNameTransform = CommonMethodNameTransforms.CamelCase,
+                    UseSingleObjectParameterDeserialization = true
+                });
 
-        private async Task AwaitRpcCompletionAsync()
-        {
-            try
-            {
-                await rpc.Completion;
-            }
-            catch (Exception)
-            {
-                // we want to set isAlive to false on any exception here, including TaskCanceledException
-            }
-            
-            lock (lockObject)
-            {
-                isAlive = false;
-            }
-        }
+        public bool IsAlive => !rpc.Completion.IsCompleted;
     }
 }

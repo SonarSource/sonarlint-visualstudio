@@ -34,7 +34,7 @@ public class SLCoreJsonRpcTests
     [DataRow(false)]
     public void IsAlive_UpdatesOnCompletion(bool triggerCompletion)
     {
-        var testSubject = CreateTestSubject(out _, out var completionSource);
+        var testSubject = CreateTestSubject(out var clientMock, out var completionSource);
 
         testSubject.IsAlive.Should().BeTrue();
 
@@ -47,30 +47,34 @@ public class SLCoreJsonRpcTests
         {
             testSubject.IsAlive.Should().BeTrue();
         }
+        
+        clientMock.VerifyGet(x => x.Completion, Times.Exactly(2));
     }
     
     [TestMethod]
     public void IsAlive_TaskCanceled_NoException()
     {
-        var testSubject = CreateTestSubject(out _, out var completionSource);
+        var testSubject = CreateTestSubject(out var clientMock, out var completionSource);
 
         testSubject.IsAlive.Should().BeTrue();
 
         completionSource.TrySetCanceled();
         
         testSubject.IsAlive.Should().BeFalse();
+        clientMock.VerifyGet(x => x.Completion, Times.Exactly(2));
     }
     
     [TestMethod]
     public void IsAlive_TaskThrows_NoException()
     {
-        var testSubject = CreateTestSubject(out _, out var completionSource);
+        var testSubject = CreateTestSubject(out var clientMock, out var completionSource);
 
         testSubject.IsAlive.Should().BeTrue();
 
         completionSource.TrySetException(new Exception());
         
         testSubject.IsAlive.Should().BeFalse();
+        clientMock.VerifyGet(x => x.Completion, Times.Exactly(2));
     }
     
     [TestMethod]
@@ -83,7 +87,6 @@ public class SLCoreJsonRpcTests
         var createdService = testSubject.CreateService<ITestSLCoreService>();
 
         createdService.Should().BeSameAs(service);
-        clientMock.VerifyGet(x => x.Completion, Times.Once);
         clientMock.Verify(x =>
                 x.Attach<ITestSLCoreService>(It.Is<JsonRpcProxyOptions>(options =>
                     options.MethodNameTransform == CommonMethodNameTransforms.CamelCase)), // todo: https://github.com/SonarSource/sonarlint-visualstudio/issues/5140
@@ -100,7 +103,6 @@ public class SLCoreJsonRpcTests
 
         testSubject.AttachListener(listener);
         
-        clientMock.VerifyGet(x => x.Completion, Times.Once);
         clientMock.Verify(x => x.AddLocalRpcTarget(listener, It.Is<JsonRpcTargetOptions>(options =>
                 options.MethodNameTransform == CommonMethodNameTransforms.CamelCase && options.UseSingleObjectParameterDeserialization)),
             Times.Once);

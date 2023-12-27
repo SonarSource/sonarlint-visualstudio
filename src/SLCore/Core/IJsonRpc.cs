@@ -26,7 +26,7 @@ using StreamJsonRpc;
 namespace SonarLint.VisualStudio.SLCore.Core
 {
     /// <summary>
-    /// A testable wrapper for JsonRpc.
+    /// A testable wrapper for JsonRpc. The implementation is expected to be thread-safe.
     /// </summary>
     internal interface IJsonRpc
     {
