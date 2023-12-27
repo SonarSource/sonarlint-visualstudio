@@ -166,7 +166,7 @@ public class SLCoreServiceProviderTests
         requestedService3.Should().BeSameAs(service3New).And.NotBeSameAs(service3);
     }
 
-    private static void SetUpServiceCreation<T>(Mock<ISLCoreJsonRpc> rpcMock, T service) where T : ISLCoreService
+    private static void SetUpServiceCreation<T>(Mock<ISLCoreJsonRpc> rpcMock, T service) where T : class, ISLCoreService
     {
         rpcMock.Setup(x => x.CreateService<T>()).Returns(service);
     }

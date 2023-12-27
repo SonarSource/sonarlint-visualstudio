@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.SLCore.Core
         /// </summary>
         /// <typeparam name="TService">An interface inherited from <see cref="ISLCoreService"/></typeparam>
         /// <returns>True if the underlying connection is alive, False if the connection is unavailable at the moment</returns>
-        bool TryGetTransientService<TService>(out TService service) where TService : ISLCoreService;
+        bool TryGetTransientService<TService>(out TService service) where TService : class, ISLCoreService;
     }
 
     public interface ISLCoreServiceProviderWriter 
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.SLCore.Core
         private readonly object cacheLock = new object();
         private ISLCoreJsonRpc jsonRpc;
         
-        public bool TryGetTransientService<TService>(out TService service) where TService : ISLCoreService
+        public bool TryGetTransientService<TService>(out TService service) where TService : class, ISLCoreService
         {
             service = default;
             
