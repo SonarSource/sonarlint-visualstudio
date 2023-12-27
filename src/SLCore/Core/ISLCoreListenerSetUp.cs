@@ -25,6 +25,10 @@ namespace SonarLint.VisualStudio.SLCore.Core
 {
     public interface ISLCoreListenerSetUp
     {
+        /// <summary>
+        /// Attach all the listeners to SLCore implementation of JsonRpc.
+        /// </summary>
+        /// <param name="slcoreJsonRpc">SLCore wrapper around JsonRpc</param>
         void Setup(ISLCoreJsonRpc slcoreJsonRpc);
     }
 
