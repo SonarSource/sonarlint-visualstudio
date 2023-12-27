@@ -1726,7 +1726,10 @@
         }
       },
       "SonarLint.VisualStudio.SLCore": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "StreamJsonRpc": "[2.5.46, )"
+        }
       },
       "SonarLint.VisualStudio.TypeScript": {
         "type": "Project",

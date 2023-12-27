@@ -11,5 +11,9 @@
   <ItemGroup>
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="StreamJsonRpc" Version="2.5.46" />
+  </ItemGroup>
 
 </Project>
