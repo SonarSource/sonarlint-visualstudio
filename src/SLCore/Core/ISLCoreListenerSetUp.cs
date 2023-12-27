@@ -25,24 +25,22 @@ namespace SonarLint.VisualStudio.SLCore.Core
 {
     public interface ISLCoreListenerSetUp
     {
-        void Setup();
+        void Setup(ISLCoreJsonRpc wrapper);
     }
 
     [Export(typeof(ISLCoreListenerSetUp))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class SLCoreListenerSetUp : ISLCoreListenerSetUp
     {
-        private readonly ISLCoreJsonRpc wrapper;
         private readonly IEnumerable<ISLCoreListener> listeners;
 
         [ImportingConstructor]
-        public SLCoreListenerSetUp(ISLCoreJsonRpc wrapper, [ImportMany] IEnumerable<ISLCoreListener> listeners)
+        public SLCoreListenerSetUp([ImportMany] IEnumerable<ISLCoreListener> listeners)
         {
-            this.wrapper = wrapper;
             this.listeners = listeners;
         }
 
-        public void Setup()
+        public void Setup(ISLCoreJsonRpc wrapper)
         {
             foreach (var listener in listeners)
             {

@@ -27,10 +27,9 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests
     public class SLCoreListenerSetUpTests
     {
         [TestMethod]
-        [Ignore("Will be enabled when ISLCoreJsonRpc is implemented")]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<SLCoreListenerSetUp, ISLCoreListenerSetUp>(MefTestHelpers.CreateExport<ISLCoreJsonRpc>());
+            MefTestHelpers.CheckTypeCanBeImported<SLCoreListenerSetUp, ISLCoreListenerSetUp>();
         }
 
         [TestMethod]
@@ -40,9 +39,9 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests
 
             var listeners = new ISLCoreListener[] { };
 
-            var testSubject = new SLCoreListenerSetUp(wrapperMock.Object, listeners);
+            var testSubject = new SLCoreListenerSetUp(listeners);
 
-            testSubject.Setup();
+            testSubject.Setup(wrapperMock.Object);
 
             wrapperMock.VerifyNoOtherCalls();
         }
@@ -58,9 +57,9 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests
 
             var listeners = new ISLCoreListener[] { listener0.Object, listener1.Object, listener2.Object };
 
-            var testSubject = new SLCoreListenerSetUp(wrapperMock.Object, listeners);
+            var testSubject = new SLCoreListenerSetUp(listeners);
 
-            testSubject.Setup();
+            testSubject.Setup(wrapperMock.Object);
 
             wrapperMock.Verify(w => w.AttachListener(listener0.Object), Times.Once);
             wrapperMock.Verify(w => w.AttachListener(listener1.Object), Times.Once);
