@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -33,9 +34,9 @@ namespace SonarLint.VisualStudio.SLCore.Listener
         /// </summary>
         /// <param name="parameters">Parameter's here for compability we discard it</param>
         /// <remarks>This will be implemented properly in the future when needed but features we support does not need branch awareness for now</remarks>
-        public async Task<object> MatchSonarProjectBranch(object parameters)
+        public async Task<MatchSonarProjectBranchResponse> MatchSonarProjectBranch(MatchSonarProjectBranchParams parameters)
         {
-            return null;
+            return new MatchSonarProjectBranchResponse { matchedSonarBranch = parameters.mainSonarBranchName };
         }
 
         /// <summary>
@@ -47,5 +48,17 @@ namespace SonarLint.VisualStudio.SLCore.Listener
         {
             return Task.CompletedTask;
         }
+    }
+
+    public class MatchSonarProjectBranchParams
+    {
+        public string configurationScopeId;
+        public string mainSonarBranchName;
+        public List<string> allSonarBranchesNames;
+    }
+
+    public class MatchSonarProjectBranchResponse
+    {
+        public string matchedSonarBranch;
     }
 }

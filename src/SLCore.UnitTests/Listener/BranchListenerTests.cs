@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener;
@@ -41,16 +42,20 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
         }
 
         [TestMethod]
-        [DataRow(null)]
-        [DataRow(5)]
-        [DataRow("something")]
-        public async Task MatchSonarProjectBranch_ReturnsNull(object parameter)
+        public async Task MatchSonarProjectBranch_ReturnsMainBranch()
         {
+            var param = new MatchSonarProjectBranchParams
+            {
+                configurationScopeId = "scopeId",
+                mainSonarBranchName = "mainBranch",
+                allSonarBranchesNames = new List<string> { "branch1", "branch2", "mainBranch" }
+            };
+
             var testSubject = new BranchListener();
 
-            var result = await testSubject.MatchSonarProjectBranch(parameter);
+            var result = await testSubject.MatchSonarProjectBranch(param);
 
-            result.Should().BeNull();
+            result.matchedSonarBranch.Should().Be("mainBranch");
         }
 
         [TestMethod]
