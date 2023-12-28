@@ -25,9 +25,21 @@ using StreamJsonRpc;
 
 namespace SonarLint.VisualStudio.SLCore.Protocol
 {
+    /// <summary>
+    /// Method name transformer for JsonRPC types.
+    /// </summary>
     public interface IRpcMethodNameTransformer
     {
-        Func<string, string> Create<T>();
+        /// <summary>
+        /// Creates method name transformer (<see cref="JsonRpcProxyOptions.MethodNameTransform"/>) for the type.
+        /// </summary>
+        /// <returns>
+        /// <typeparam name="TRpcType">Type of the RPC entity</typeparam>
+        /// If <typeparamref name="TRpcType"/> is marked with <see cref="JsonRpcClassAttribute"/>, returns a composition of
+        /// <see cref="CommonMethodNameTransforms.Prepend"/> with parameter <see cref="JsonRpcClassAttribute.Prefix"/> and <see cref="CommonMethodNameTransforms.CamelCase"/>.
+        /// If not marked, returns <see cref="CommonMethodNameTransforms.CamelCase"/>
+        /// </returns>
+        Func<string, string> Create<TRpcType>();
     }
 
     [Export(typeof(IRpcMethodNameTransformer))]

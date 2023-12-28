@@ -22,6 +22,10 @@ using System;
 
 namespace SonarLint.VisualStudio.SLCore.Protocol
 {
+    /// <summary>
+    /// This attribute is used to tell <see cref="IRpcMethodNameTransformer"/> which prefix to use
+    /// for this type's methods when registering them with the RPC.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class)]
     public class JsonRpcClassAttribute : Attribute
     {
