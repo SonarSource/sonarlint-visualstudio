@@ -26,6 +26,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Protocol;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Process
 {
@@ -69,7 +70,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Process
             jsonRpcWrapper.TraceSource.Switch.Level = enableVerboseLogs? SourceLevels.Verbose : SourceLevels.Warning;
             jsonRpcWrapper.TraceSource.Listeners.Add(logFileStream == null ? new ConsoleTraceListener(): new TextWriterTraceListener(logFileStream));
             
-            Rpc = new SLCoreJsonRpc(jsonRpcWrapper);
+            Rpc = new SLCoreJsonRpc(jsonRpcWrapper, new RpcMethodNameTransformer());
         }
 
         private void ReadErrorLog(string errorLogFilePath)
