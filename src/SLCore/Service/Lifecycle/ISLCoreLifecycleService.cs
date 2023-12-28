@@ -18,35 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Threading.Tasks;
-using StreamJsonRpc;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Core
+namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle
 {
     /// <summary>
-    /// A testable wrapper for JsonRpc. The implementation is expected to be thread-safe.
+    /// Collection of methods relating to SLCore lifecycle management
     /// </summary>
-    internal interface IJsonRpc
+    public interface ISLCoreLifecycleService : ISLCoreService
     {
-        T Attach<T>(JsonRpcProxyOptions options) where T : class;
+        /// <summary>
+        /// Initialize SLCore
+        /// </summary>
+        /// <remarks>Notification</remarks>
+        Task Initialize(InitializeParams parameters);
 
-        void AddLocalRpcTarget(object target, JsonRpcTargetOptions options);
-
-        void StartListening();
-        
-        Task Completion { get; }
-    }
-    
-    /// <summary>
-    /// Wrapper for <see cref="JsonRpc"/> that implements <see cref="IJsonRpc"/>
-    /// </summary>
-    [ExcludeFromCodeCoverage]
-    internal class JsonRpcWrapper : JsonRpc, IJsonRpc
-    {
-        public JsonRpcWrapper(Stream sendingStream, Stream receivingStream) : base(sendingStream, receivingStream)
-        {
-        }
+        /// <summary>
+        /// Shutdown SLCore
+        /// </summary>
+        /// <remarks>Notification</remarks>
+        Task Shutdown();
     }
 }

@@ -50,6 +50,8 @@ namespace SonarLint.VisualStudio.SLCore.Core
             {
                 slcoreJsonRpc.AttachListener(listener);
             }
+            
+            slcoreJsonRpc.StartListening();
         }
     }
 }
