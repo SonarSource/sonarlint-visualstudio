@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.SLCore.Core;
 
-namespace SonarLint.VisualStudio.SLCore.Process
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Process
 {
     [ExcludeFromCodeCoverage]
     public sealed class SLCoreRunner : IDisposable
