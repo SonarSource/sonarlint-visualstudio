@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.SLCore.Protocol;
 using StreamJsonRpc;
 
 namespace SonarLint.VisualStudio.SLCore.Core
@@ -40,17 +38,19 @@ namespace SonarLint.VisualStudio.SLCore.Core
     internal class SLCoreJsonRpc : ISLCoreJsonRpc
     {
         private readonly IJsonRpc rpc;
+        private readonly IRpcMethodNameTransformer methodNameTransformer;
 
-        public SLCoreJsonRpc(IJsonRpc jsonRpc)
+        public SLCoreJsonRpc(IJsonRpc jsonRpc, IRpcMethodNameTransformer methodNameTransformer)
         {
             rpc = jsonRpc;
+            this.methodNameTransformer = methodNameTransformer;
         }
 
         public TService CreateService<TService>() where TService : class, ISLCoreService =>
             rpc.Attach<TService>(new JsonRpcProxyOptions
             {
-                MethodNameTransform = CommonMethodNameTransforms.CamelCase
-            }); // todo: https://github.com/SonarSource/sonarlint-visualstudio/issues/5140
+                MethodNameTransform = methodNameTransformer.Create<TService>()
+            });
 
         public void AttachListener(ISLCoreListener listener) =>
             rpc.AddLocalRpcTarget(listener,
