@@ -18,15 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
 
 namespace SonarLint.VisualStudio.SLCore.Listener
 {
+    [Export(typeof(ISLCoreListener))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class LoggerListener : ISLCoreListener
     {
         private readonly ILogger logger;
 
+        [ImportingConstructor]
         public LoggerListener(ILogger logger)
         {
             this.logger = logger;
@@ -34,7 +38,21 @@ namespace SonarLint.VisualStudio.SLCore.Listener
 
         public void Log(LogParams parameters)
         {
-            logger.WriteLine("[SLCORE]" + parameters.message);
+            var message = "[SLCORE] " + parameters.message;
+
+            switch (parameters.level)
+            {
+                case LogLevel.ERROR:
+                case LogLevel.WARN:
+                    logger.WriteLine(message);
+                    break;
+
+                case LogLevel.INFO:
+                case LogLevel.DEBUG:
+                case LogLevel.TRACE:
+                    logger.LogVerbose(message);
+                    break;
+            }
         }
     }
 
