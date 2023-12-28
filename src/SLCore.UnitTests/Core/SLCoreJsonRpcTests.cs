@@ -21,6 +21,7 @@
 using System;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.UnitTests.Helpers;
 using StreamJsonRpc;
 
@@ -80,7 +81,10 @@ public class SLCoreJsonRpcTests
     [TestMethod]
     public void CreateService_CallsAttachWithCorrectOptions()
     {
-        var testSubject = CreateTestSubject(out var clientMock, out _);
+        var methodNameTransformerMock = new Mock<IRpcMethodNameTransformer>();
+        Func<string, string> transformer = s => s;
+        methodNameTransformerMock.Setup(x => x.Create<ITestSLCoreService>()).Returns(transformer);
+        var testSubject = CreateTestSubject(out var clientMock, out _, methodNameTransformerMock.Object);
         var service = Mock.Of<ITestSLCoreService>();
         clientMock.Setup(x => x.Attach<ITestSLCoreService>(It.IsAny<JsonRpcProxyOptions>())).Returns(service);
 
@@ -89,7 +93,7 @@ public class SLCoreJsonRpcTests
         createdService.Should().BeSameAs(service);
         clientMock.Verify(x =>
                 x.Attach<ITestSLCoreService>(It.Is<JsonRpcProxyOptions>(options =>
-                    options.MethodNameTransform == CommonMethodNameTransforms.CamelCase)), // todo: https://github.com/SonarSource/sonarlint-visualstudio/issues/5140
+                    options.MethodNameTransform == transformer)),
             Times.Once);
         clientMock.VerifyNoOtherCalls();
     }
@@ -109,10 +113,12 @@ public class SLCoreJsonRpcTests
         clientMock.VerifyNoOtherCalls();
     }
     
-    private static SLCoreJsonRpc CreateTestSubject(out Mock<IJsonRpc> clientMock, out TaskCompletionSource<bool> clientCompletionSource)
+    private static SLCoreJsonRpc CreateTestSubject(out Mock<IJsonRpc> clientMock,
+        out TaskCompletionSource<bool> clientCompletionSource,
+        IRpcMethodNameTransformer methodNameTransformer = null)
     {
         (clientMock, clientCompletionSource) = TestJsonRpcFactory.Create();
-        return new SLCoreJsonRpc(clientMock.Object);
+        return new SLCoreJsonRpc(clientMock.Object, methodNameTransformer);
     }
     
     public interface ITestSLCoreService : ISLCoreService {}
