@@ -23,10 +23,10 @@ using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Logging
 {
     [TestClass]
-    public partial class LoggerListenerTests
+    public class LoggerListenerTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()

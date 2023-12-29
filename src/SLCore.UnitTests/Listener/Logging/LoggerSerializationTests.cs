@@ -21,9 +21,9 @@
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Listener;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Logging
 {
-    partial class LoggerListenerTests
+    public class LoggerSerializationTests
     {
         [TestMethod]
         [DataRow(0, LogLevel.ERROR)]
