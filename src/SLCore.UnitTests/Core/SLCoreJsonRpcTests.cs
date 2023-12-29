@@ -113,6 +113,16 @@ public class SLCoreJsonRpcTests
         clientMock.VerifyNoOtherCalls();
     }
     
+    [TestMethod]
+    public void StartListening_CallsJsonrpcStartListening()
+    {
+        var testSubject = CreateTestSubject(out var clientMock, out _);
+        
+        testSubject.StartListening();
+        
+        clientMock.Verify(x => x.StartListening(), Times.Once);
+    }
+    
     private static SLCoreJsonRpc CreateTestSubject(out Mock<IJsonRpc> clientMock,
         out TaskCompletionSource<bool> clientCompletionSource,
         IRpcMethodNameTransformer methodNameTransformer = null)

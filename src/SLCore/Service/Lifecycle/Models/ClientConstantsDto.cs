@@ -18,35 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Threading.Tasks;
-using StreamJsonRpc;
-
-namespace SonarLint.VisualStudio.SLCore.Core
+namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models
 {
-    /// <summary>
-    /// A testable wrapper for JsonRpc. The implementation is expected to be thread-safe.
-    /// </summary>
-    internal interface IJsonRpc
+    public class ClientConstantsDto
     {
-        T Attach<T>(JsonRpcProxyOptions options) where T : class;
+        public string name { get; }
+        public string userAgent { get; }
 
-        void AddLocalRpcTarget(object target, JsonRpcTargetOptions options);
-
-        void StartListening();
-        
-        Task Completion { get; }
-    }
-    
-    /// <summary>
-    /// Wrapper for <see cref="JsonRpc"/> that implements <see cref="IJsonRpc"/>
-    /// </summary>
-    [ExcludeFromCodeCoverage]
-    internal class JsonRpcWrapper : JsonRpc, IJsonRpc
-    {
-        public JsonRpcWrapper(Stream sendingStream, Stream receivingStream) : base(sendingStream, receivingStream)
+        public ClientConstantsDto(string name, string userAgent)
         {
+            this.name = name;
+            this.userAgent = userAgent;
         }
     }
 }
