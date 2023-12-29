@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Core
         }
 
         [TestMethod]
-        public void Setup_NoListenerRegistered_DoesNotCallRpcWrapper()
+        public void Setup_NoListenerRegistered_DoesNotAttachListenerToRpcWrapper()
         {
             var wrapperMock = new Mock<ISLCoreJsonRpc>();
 
@@ -49,12 +49,14 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Core
 
             testSubject.Setup(wrapperMock.Object);
 
+            wrapperMock.Verify(x => x.StartListening());
             wrapperMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         public void Setup_ListenersRegistered_CallRpcWrapper()
         {
+            var mockSequence = new MockSequence();
             var wrapperMock = new Mock<ISLCoreJsonRpc>();
 
             var listener0 = Mock.Of<ISLCoreListener>();
@@ -63,6 +65,11 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Core
 
             var listeners = new ISLCoreListener[] { listener0, listener1, listener2 };
 
+            wrapperMock.InSequence(mockSequence).Setup(x => x.AttachListener(listener0));
+            wrapperMock.InSequence(mockSequence).Setup(x => x.AttachListener(listener1));
+            wrapperMock.InSequence(mockSequence).Setup(x => x.AttachListener(listener2));
+            wrapperMock.InSequence(mockSequence).Setup(x => x.StartListening());
+
             var testSubject = new SLCoreListenerSetUp(listeners);
 
             testSubject.Setup(wrapperMock.Object);
@@ -70,6 +77,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Core
             wrapperMock.Verify(w => w.AttachListener(listener0), Times.Once);
             wrapperMock.Verify(w => w.AttachListener(listener1), Times.Once);
             wrapperMock.Verify(w => w.AttachListener(listener2), Times.Once);
+            wrapperMock.Verify(w => w.StartListening(), Times.Once);
             wrapperMock.VerifyNoOtherCalls();
         }
 
