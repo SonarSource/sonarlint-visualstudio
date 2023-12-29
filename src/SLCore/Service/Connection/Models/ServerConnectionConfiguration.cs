@@ -18,35 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Threading.Tasks;
-using StreamJsonRpc;
-
-namespace SonarLint.VisualStudio.SLCore.Core
+namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models
 {
-    /// <summary>
-    /// A testable wrapper for JsonRpc. The implementation is expected to be thread-safe.
-    /// </summary>
-    internal interface IJsonRpc
+    public class ServerConnectionConfiguration
     {
-        T Attach<T>(JsonRpcProxyOptions options) where T : class;
+        public bool disableNotification { get; }
+        public string connectionId { get; }
 
-        void AddLocalRpcTarget(object target, JsonRpcTargetOptions options);
-
-        void StartListening();
-        
-        Task Completion { get; }
-    }
-    
-    /// <summary>
-    /// Wrapper for <see cref="JsonRpc"/> that implements <see cref="IJsonRpc"/>
-    /// </summary>
-    [ExcludeFromCodeCoverage]
-    internal class JsonRpcWrapper : JsonRpc, IJsonRpc
-    {
-        public JsonRpcWrapper(Stream sendingStream, Stream receivingStream) : base(sendingStream, receivingStream)
+        protected ServerConnectionConfiguration(string connectionId, bool disableNotification)
         {
+            this.connectionId = connectionId;
+            this.disableNotification = disableNotification;
         }
     }
 }

@@ -18,35 +18,51 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Threading.Tasks;
-using StreamJsonRpc;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
-namespace SonarLint.VisualStudio.SLCore.Core
+namespace SonarLint.VisualStudio.SLCore.Common.Models
 {
     /// <summary>
-    /// A testable wrapper for JsonRpc. The implementation is expected to be thread-safe.
+    /// SLCore Language. Taken from org.sonarsource.sonarlint.core.rpc.protocol.common
     /// </summary>
-    internal interface IJsonRpc
+    [JsonConverter(typeof(StringEnumConverter))]
+    public enum Language 
     {
-        T Attach<T>(JsonRpcProxyOptions options) where T : class;
-
-        void AddLocalRpcTarget(object target, JsonRpcTargetOptions options);
-
-        void StartListening();
-        
-        Task Completion { get; }
-    }
-    
-    /// <summary>
-    /// Wrapper for <see cref="JsonRpc"/> that implements <see cref="IJsonRpc"/>
-    /// </summary>
-    [ExcludeFromCodeCoverage]
-    internal class JsonRpcWrapper : JsonRpc, IJsonRpc
-    {
-        public JsonRpcWrapper(Stream sendingStream, Stream receivingStream) : base(sendingStream, receivingStream)
-        {
-        }
+        ABAP,
+        APEX,
+        AZURERESOURCEMANAGER,
+        C,
+        CLOUDFORMATION,
+        COBOL,
+        CPP,
+        CS,
+        CSS,
+        DOCKER,
+        GO,
+        HTML,
+        IPYTHON,
+        JAVA,
+        JS,
+        JSON,
+        JSP,
+        KOTLIN,
+        KUBERNETES,
+        OBJC,
+        PHP,
+        PLI,
+        PLSQL,
+        PYTHON,
+        RPG,
+        RUBY,
+        SCALA,
+        SECRETS,
+        SWIFT,
+        TERRAFORM,
+        TS,
+        TSQL,
+        VBNET,
+        XML,
+        YAML
     }
 }
