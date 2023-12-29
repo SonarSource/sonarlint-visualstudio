@@ -19,6 +19,8 @@
  */
 
 using System.ComponentModel.Composition;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
 
@@ -59,6 +61,8 @@ namespace SonarLint.VisualStudio.SLCore.Listener
     public class LogParams
     {
         public string message;
+
+        [JsonConverter(typeof(StringEnumConverter))]
         public LogLevel level;
     }
 

@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
 {
     [TestClass]
-    public class LoggerListenerTests
+    public partial class LoggerListenerTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
