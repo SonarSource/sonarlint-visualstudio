@@ -32,6 +32,8 @@ namespace SonarLint.VisualStudio.SLCore.Core
 
         void AttachListener(ISLCoreListener listener);
 
+        void StartListening();
+
         bool IsAlive { get; }
     }
 
@@ -59,6 +61,11 @@ namespace SonarLint.VisualStudio.SLCore.Core
                     MethodNameTransform = CommonMethodNameTransforms.CamelCase,
                     UseSingleObjectParameterDeserialization = true
                 });
+
+        public void StartListening()
+        {
+            rpc.StartListening();
+        }
 
         public bool IsAlive => !rpc.Completion.IsCompleted;
     }
