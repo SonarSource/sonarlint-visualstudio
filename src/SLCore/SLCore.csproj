@@ -15,5 +15,9 @@
   <ItemGroup>
     <PackageReference Include="StreamJsonRpc" Version="2.5.46" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
 
 </Project>
