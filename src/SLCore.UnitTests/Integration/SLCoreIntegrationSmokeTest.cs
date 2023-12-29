@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Integration;
 public class SLCoreIntegrationSmokeTest
 {
     [TestMethod]
-    [Ignore]
+    [Ignore("Smoke test. Replace in the future.")]
     public async Task SLCore_InitializeStandaloneAndShutdown()
     {
         const string slcoreBat = @"";
