@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.SLCore.Core
             rpc.AddLocalRpcTarget(listener,
                 new JsonRpcTargetOptions
                 {
-                    MethodNameTransform = CommonMethodNameTransforms.CamelCase,
+                    MethodNameTransform = methodNameTransformer.Create<ISLCoreListener>(),
                     UseSingleObjectParameterDeserialization = true
                 });
 

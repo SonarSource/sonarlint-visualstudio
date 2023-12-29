@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener
         /// </summary>
         /// <param name="parameters">Parameter's here for compability we discard it</param>
         /// <remarks>This will be implemented properly in the future when needed but features we support does not need branch awareness for now</remarks>
-        public async Task<MatchSonarProjectBranchResponse> MatchSonarProjectBranch(MatchSonarProjectBranchParams parameters)
+        public async Task<MatchSonarProjectBranchResponse> MatchSonarProjectBranchAsync(MatchSonarProjectBranchParams parameters)
         {
             return new MatchSonarProjectBranchResponse { matchedSonarBranch = parameters.mainSonarBranchName };
         }
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener
         /// </summary>
         /// <param name="parameters">Parameter's here for compability we discard it</param>
         /// <remarks>This will be implemented properly in the future when needed but features we support does not need branch awareness for now</remarks>
-        public Task DidChangeMatchedSonarProjectBranch(object parameters)
+        public Task DidChangeMatchedSonarProjectBranchAsync(object parameters)
         {
             return Task.CompletedTask;
         }

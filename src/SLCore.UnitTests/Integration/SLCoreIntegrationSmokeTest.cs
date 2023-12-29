@@ -58,7 +58,7 @@ public class SLCoreIntegrationSmokeTest
             .BeTrue();
         
 
-        await slCoreLifecycleService.Initialize(new InitializeParams(
+        await slCoreLifecycleService.InitializeAsync(new InitializeParams(
             new ClientConstantsDto("TEST", "TEST"),
             new FeatureFlagsDto(false, false, false, false, false, false, false),
             storageRoot,
@@ -79,7 +79,7 @@ public class SLCoreIntegrationSmokeTest
             null
         ));
         
-        await slCoreLifecycleService.Shutdown();
+        await slCoreLifecycleService.ShutdownAsync();
         
         slCoreRunner.Dispose();
     }
