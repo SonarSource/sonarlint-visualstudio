@@ -21,30 +21,31 @@
 using System.Collections.Generic;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
+using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models
+namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle
 {
     /// <summary>
     /// SLCore initialization parameters
     /// </summary>
     public class InitializeParams
     {
-        public readonly ClientConstantsDto clientConstantInfo;
-        public readonly FeatureFlagsDto featureFlags;
-        public readonly string storageRoot;
-        public readonly string workDir;
-        public readonly List<string> embeddedPluginPaths;
-        public readonly Dictionary<string, string> connectedModeEmbeddedPluginPathsByKey;
-        public readonly List<Language> enabledLanguagesInStandaloneMode;
-        public readonly List<Language> extraEnabledLanguagesInConnectedMode;
-        public readonly List<SonarQubeConnectionConfigurationDto> sonarQubeConnections;
-        public readonly List<SonarCloudConnectionConfigurationDto> sonarCloudConnections;
-        public readonly string sonarlintUserHome;
-        public readonly Dictionary<string, StandaloneRuleConfigDto> standaloneRuleConfigByKey;
-        public readonly bool isFocusOnNewCode;
-        public readonly TelemetryClientConstantAttributesDto telemetryConstantAttributes;
-        public readonly string clientNodeJsPath;
+        public ClientConstantsDto clientConstantInfo { get; }
+        public FeatureFlagsDto featureFlags { get; }
+        public string storageRoot { get; }
+        public string workDir { get; }
+        public List<string> embeddedPluginPaths { get; }
+        public Dictionary<string, string> connectedModeEmbeddedPluginPathsByKey { get; }
+        public List<Language> enabledLanguagesInStandaloneMode { get; }
+        public List<Language> extraEnabledLanguagesInConnectedMode { get; }
+        public List<SonarQubeConnectionConfigurationDto> sonarQubeConnections { get; }
+        public List<SonarCloudConnectionConfigurationDto> sonarCloudConnections { get; }
+        public string sonarlintUserHome { get; }
+        public Dictionary<string, StandaloneRuleConfigDto> standaloneRuleConfigByKey { get; }
+        public bool isFocusOnNewCode { get; }
+        public TelemetryClientConstantAttributesDto telemetryConstantAttributes { get; }
+        public string clientNodeJsPath { get; }
 
         public InitializeParams(ClientConstantsDto clientConstantInfo,
             FeatureFlagsDto featureFlags,

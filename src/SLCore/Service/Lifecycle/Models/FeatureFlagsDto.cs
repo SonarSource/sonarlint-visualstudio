@@ -22,12 +22,29 @@ namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models
 {
     public class FeatureFlagsDto
     {
-        public bool taintVulnerabilitiesEnabled;
-        public bool shouldSynchronizeProjects;
-        public bool shouldManageLocalServer;
-        public bool enableSecurityHotspots;
-        public bool shouldManageServerSentEvents;
-        public bool enableDataflowBugDetection;
-        public bool shouldManageFullSynchronization;
+        public bool taintVulnerabilitiesEnabled { get; }
+        public bool shouldSynchronizeProjects { get; }
+        public bool shouldManageLocalServer { get; }
+        public bool enableSecurityHotspots { get; }
+        public bool shouldManageServerSentEvents { get; }
+        public bool enableDataflowBugDetection { get; }
+        public bool shouldManageFullSynchronization { get; }
+
+        public FeatureFlagsDto(bool taintVulnerabilitiesEnabled,
+            bool shouldSynchronizeProjects,
+            bool shouldManageLocalServer,
+            bool enableSecurityHotspots,
+            bool shouldManageServerSentEvents,
+            bool enableDataflowBugDetection,
+            bool shouldManageFullSynchronization)
+        {
+            this.taintVulnerabilitiesEnabled = taintVulnerabilitiesEnabled;
+            this.shouldSynchronizeProjects = shouldSynchronizeProjects;
+            this.shouldManageLocalServer = shouldManageLocalServer;
+            this.enableSecurityHotspots = enableSecurityHotspots;
+            this.shouldManageServerSentEvents = shouldManageServerSentEvents;
+            this.enableDataflowBugDetection = enableDataflowBugDetection;
+            this.shouldManageFullSynchronization = shouldManageFullSynchronization;
+        }
     }
 }

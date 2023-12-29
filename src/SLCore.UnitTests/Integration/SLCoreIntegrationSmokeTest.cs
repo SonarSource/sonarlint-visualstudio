@@ -32,7 +32,7 @@ using SonarLint.VisualStudio.SLCore.UnitTests.Process;
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Integration;
 
 [TestClass]
-public class IntegrationSmokeTest
+public class SLCoreIntegrationSmokeTest
 {
     [TestMethod]
     [Ignore]
@@ -59,12 +59,8 @@ public class IntegrationSmokeTest
         
 
         await slCoreLifecycleService.Initialize(new InitializeParams(
-            new ClientConstantsDto
-            {
-                name = "TEST",
-                userAgent = "TEST"
-            },
-            new FeatureFlagsDto(),
+            new ClientConstantsDto("TEST", "TEST"),
+            new FeatureFlagsDto(false, false, false, false, false, false, false),
             storageRoot,
             workDir,
             embeddedPluginPaths,
@@ -76,15 +72,10 @@ public class IntegrationSmokeTest
             userHome,
             new Dictionary<string, StandaloneRuleConfigDto>
             {
-                { "javascript:S1940", new StandaloneRuleConfigDto() }
+                { "javascript:S1940", new StandaloneRuleConfigDto(true, new Dictionary<string, string>()) }
             },
             false,
-            new TelemetryClientConstantAttributesDto
-            {
-                ideVersion = "TEST",
-                productKey = "TEST",
-                productVersion = "TEST"
-            },
+            new TelemetryClientConstantAttributesDto("TEST", "TEST", "TEST", "TEST", new Dictionary<string, object>()),
             null
         ));
         

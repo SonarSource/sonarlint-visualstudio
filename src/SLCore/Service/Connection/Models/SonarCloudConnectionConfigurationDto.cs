@@ -22,6 +22,11 @@ namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models
 {
     public class SonarCloudConnectionConfigurationDto : ServerConnectionConfiguration
     {
-        public string organization;
+        public string organization { get; }
+
+        public SonarCloudConnectionConfigurationDto(string connectionId, bool disableNotification, string organization) : base(connectionId, disableNotification)
+        {
+            this.organization = organization;
+        }
     }
 }

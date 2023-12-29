@@ -20,9 +20,15 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models
 {
-    public abstract class ServerConnectionConfiguration
+    public class ServerConnectionConfiguration
     {
-        public bool disableNotification;
-        public string connectionId;
+        public bool disableNotification { get; }
+        public string connectionId { get; }
+
+        protected ServerConnectionConfiguration(string connectionId, bool disableNotification)
+        {
+            this.connectionId = connectionId;
+            this.disableNotification = disableNotification;
+        }
     }
 }

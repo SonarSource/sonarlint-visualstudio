@@ -18,11 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 namespace SonarLint.VisualStudio.SLCore.Common.Models
 {
     /// <summary>
     /// SLCore Language. Taken from org.sonarsource.sonarlint.core.rpc.protocol.common
     /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum Language 
     {
         ABAP,
