@@ -42,22 +42,33 @@ public class RpcMethodNameTransformerTests
         MefTestHelpers.CheckIsSingletonMefComponent<RpcMethodNameTransformer>();
     }
     
-    [TestMethod]
-    public void Create_NoAttribute_CreatesCamelCaseTransformer()
+    [DataTestMethod]
+    [DataRow("Method", "method")]
+    [DataRow("MyMethod", "myMethod")]
+    [DataRow("MyLovelyMethod", "myLovelyMethod")]
+    [DataRow("MyLovelyMethodAsync", "myLovelyMethod")]
+    [DataRow("myLovelyMethod", "myLovelyMethod")]
+    [DataRow("myLovelyMethodAsync", "myLovelyMethod")]
+    [DataRow("mylovelymethod", "mylovelymethod")]
+    [DataRow("mylovelymethodAsync", "mylovelymethod")]
+    public void Create_NoAttribute_CreatesCamelCaseTransformer(string methodName, string expectedMethodName)
     {
         var testSubject = CreateTestSubject();
 
         var transformer = testSubject.Create<ITestSLCoreServiceNoAttribute>();
 
-        transformer.Should().BeSameAs(CommonMethodNameTransforms.CamelCase);
+        transformer(methodName).Should().Be(expectedMethodName);
     }
     
     [DataTestMethod]
     [DataRow("Method", $"{Prefix}/method")]
     [DataRow("MyMethod", $"{Prefix}/myMethod")]
     [DataRow("MyLovelyMethod", $"{Prefix}/myLovelyMethod")]
+    [DataRow("MyLovelyMethodAsync", $"{Prefix}/myLovelyMethod")]
     [DataRow("myLovelyMethod", $"{Prefix}/myLovelyMethod")]
+    [DataRow("myLovelyMethodAsync", $"{Prefix}/myLovelyMethod")]
     [DataRow("mylovelymethod", $"{Prefix}/mylovelymethod")]
+    [DataRow("mylovelymethodAsync", $"{Prefix}/mylovelymethod")]
     public void Create_NoAttribute_CreatesCompositeTransformer(string methodName, string expectedMethodName)
     {
         var testSubject = CreateTestSubject();
