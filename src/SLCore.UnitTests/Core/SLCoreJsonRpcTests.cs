@@ -81,9 +81,7 @@ public class SLCoreJsonRpcTests
     [TestMethod]
     public void CreateService_CallsAttachWithCorrectOptions()
     {
-        var methodNameTransformerMock = new Mock<IRpcMethodNameTransformer>();
-        Func<string, string> transformer = s => s;
-        methodNameTransformerMock.Setup(x => x.Create<ITestSLCoreService>()).Returns(transformer);
+        var methodNameTransformerMock = CreateMethodNameTransformerMock<ITestSLCoreService>(out var transformer);
         var testSubject = CreateTestSubject(out var clientMock, out _, methodNameTransformerMock.Object);
         var service = Mock.Of<ITestSLCoreService>();
         clientMock.Setup(x => x.Attach<ITestSLCoreService>(It.IsAny<JsonRpcProxyOptions>())).Returns(service);
@@ -97,18 +95,19 @@ public class SLCoreJsonRpcTests
             Times.Once);
         clientMock.VerifyNoOtherCalls();
     }
-    
+
     [TestMethod]
     public void AttachListener_CallsAddLocalRpcTargetWithCorrectOptions()
     {
-        var testSubject = CreateTestSubject(out var clientMock, out _);
+        var methodNameTransformerMock = CreateMethodNameTransformerMock<ISLCoreListener>(out var transformer);
+        var testSubject = CreateTestSubject(out var clientMock, out _, methodNameTransformerMock.Object);
         var listener = new TestSLCoreListener();
         clientMock.Setup(x => x.AddLocalRpcTarget(listener, It.IsAny<JsonRpcTargetOptions>()));
 
         testSubject.AttachListener(listener);
         
         clientMock.Verify(x => x.AddLocalRpcTarget(listener, It.Is<JsonRpcTargetOptions>(options =>
-                options.MethodNameTransform == CommonMethodNameTransforms.CamelCase && options.UseSingleObjectParameterDeserialization)),
+                options.MethodNameTransform == transformer && options.UseSingleObjectParameterDeserialization)),
             Times.Once);
         clientMock.VerifyNoOtherCalls();
     }
@@ -129,6 +128,14 @@ public class SLCoreJsonRpcTests
     {
         (clientMock, clientCompletionSource) = TestJsonRpcFactory.Create();
         return new SLCoreJsonRpc(clientMock.Object, methodNameTransformer);
+    }
+
+    private static Mock<IRpcMethodNameTransformer> CreateMethodNameTransformerMock<T>(out Func<string, string> transformer)
+    {
+        var methodNameTransformerMock = new Mock<IRpcMethodNameTransformer>();
+        transformer = s => s;
+        methodNameTransformerMock.Setup(x => x.Create<T>()).Returns(transformer);
+        return methodNameTransformerMock;
     }
     
     public interface ITestSLCoreService : ISLCoreService {}

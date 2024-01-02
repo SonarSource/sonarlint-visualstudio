@@ -46,16 +46,25 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class RpcMethodNameTransformer : IRpcMethodNameTransformer
     {
+        const string suffix = "Async";
+        
         public Func<string, string> Create<T>()
         {
             if (!(typeof(T).GetCustomAttributes(typeof(JsonRpcClassAttribute), false).FirstOrDefault() is JsonRpcClassAttribute attribute))
             {
-                return CommonMethodNameTransforms.CamelCase;
+                return FormatName;
             }
             
             var prependTransform = CommonMethodNameTransforms.Prepend($"{attribute.Prefix}/");
 
-            return name => prependTransform(CommonMethodNameTransforms.CamelCase(name));
+            return name => prependTransform(FormatName(name));
         }
+
+        private static string FormatName(string name) => CommonMethodNameTransforms.CamelCase(RemoveAsyncSuffix(name));
+
+        private static string RemoveAsyncSuffix(string name) => 
+            name.EndsWith(suffix) 
+                ? name.Substring(0, name.Length - suffix.Length) 
+                : name;
     }
 }
