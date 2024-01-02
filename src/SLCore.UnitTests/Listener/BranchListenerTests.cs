@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
 
             var testSubject = new BranchListener();
 
-            var result = await testSubject.MatchSonarProjectBranch(param);
+            var result = await testSubject.MatchSonarProjectBranchAsync(param);
 
             result.matchedSonarBranch.Should().Be("mainBranch");
         }
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
         {
             var testSubject = new BranchListener();
 
-            var result = testSubject.DidChangeMatchedSonarProjectBranch(parameter);
+            var result = testSubject.DidChangeMatchedSonarProjectBranchAsync(parameter);
 
             result.Should().Be(Task.CompletedTask);
         }
