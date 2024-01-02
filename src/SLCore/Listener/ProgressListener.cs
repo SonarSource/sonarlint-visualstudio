@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener
         /// Stub method for compability with SLCore. We do not support progress
         /// </summary>
         /// <param name="parameters">Parameter's here for compability we discard it</param>
-        public Task StartProgress(object parameters)
+        public Task StartProgressAsync(object parameters)
         {
             return Task.CompletedTask;
         }
@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener
         /// Stub method for compability with SLCore. We do not support progress
         /// </summary>
         /// <param name="parameters">Parameter's here for compability we discard it</param>
-        public Task ReportProgress(object parameters)
+        public Task ReportProgressAsync(object parameters)
         {
             return Task.CompletedTask;
         }
