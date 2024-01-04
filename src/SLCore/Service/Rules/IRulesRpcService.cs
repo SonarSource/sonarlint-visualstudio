@@ -19,10 +19,11 @@
  */
 
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.SLCore.Core;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Rules
 {
-    public interface IRulesRpcService
+    public interface IRulesRpcService : ISLCoreService
     {
         /// <summary>
         /// Gets Rule Meta Data from SLCORE
