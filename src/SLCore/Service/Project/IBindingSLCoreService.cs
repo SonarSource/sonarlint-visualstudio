@@ -26,6 +26,10 @@ namespace SonarLint.VisualStudio.SLCore.Service.Project
 {
     public interface IBindingSLCoreService
     {
+        /// <summary>
+        /// Updates binding configuration on an existing configuration scope
+        /// </summary>
+        /// <param name="params"></param>
         Task DidUpdateBindingAsync(DidUpdateBindingParams @params);
     }
 
