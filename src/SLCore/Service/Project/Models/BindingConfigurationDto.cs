@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace SonarLint.VisualStudio.SLCore.Service.Project.Models
 {
     public class BindingConfigurationDto
@@ -26,6 +28,7 @@ namespace SonarLint.VisualStudio.SLCore.Service.Project.Models
         public string sonarProjectKey { get; }
         public bool bindingSuggestionDisabled { get; }
 
+        [ExcludeFromCodeCoverage]
         public BindingConfigurationDto(string connectionId, string sonarProjectKey, bool bindingSuggestionDisabled = true)
         {
             this.connectionId = connectionId;

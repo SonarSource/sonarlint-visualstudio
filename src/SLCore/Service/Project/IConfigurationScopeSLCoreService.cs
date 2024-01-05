@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Project.Models;
@@ -44,6 +45,7 @@ namespace SonarLint.VisualStudio.SLCore.Service.Project
     {
         public string removeId { get; }
 
+        [ExcludeFromCodeCoverage]
         public DidRemoveConfigurationScopeParams(string removeId)
         {
             this.removeId = removeId;
@@ -54,6 +56,7 @@ namespace SonarLint.VisualStudio.SLCore.Service.Project
     {
         public List<ConfigurationScopeDto> addedScopes { get; }
 
+        [ExcludeFromCodeCoverage]
         public DidAddConfigurationScopesParams(List<ConfigurationScopeDto> addedScopes)
         {
             this.addedScopes = addedScopes;
