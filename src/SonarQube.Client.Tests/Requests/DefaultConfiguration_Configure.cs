@@ -116,7 +116,7 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V10_2.GetTaintVulnerabilitiesWithCCTRequest",
                     "Registered SonarQube.Client.Api.V7_20.GetExclusionsRequest",
                     "Registered SonarQube.Client.Api.V9_7.SearchHotspotRequest",
-                    "Registered SonarQube.Client.Api.V9_9.TransitionIssueRequestWithWontFix",
+                    "Registered SonarQube.Client.Api.V10_4.TransitionIssueRequestWithAccept",
                     "Registered SonarQube.Client.Api.V9_9.CommentIssueRequest",
                     "Registered SonarQube.Client.Api.V9_9.SearchFilesByNameRequest"
                 };
