@@ -49,13 +49,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         // e.g. https://next.sonarqube.com/sonarqube/api/plugins/installed and https://sonarcloud.io/api/plugins/installed
         // Note - you need to be logged in.
 
-        // Rule data for C-Family plugin v6.49.0.62722
+        // Rule data for C-Family plugin v6.52.0.66181
 
         private const int Active_C_Rules = 210;
-        private const int Inactive_C_Rules = 124;
+        private const int Inactive_C_Rules = 129;
 
         private const int Active_CPP_Rules = 436;
-        private const int Inactive_CPP_Rules = 209;
+        private const int Inactive_CPP_Rules = 218;
 
         private readonly CFamilySonarWayRulesConfigProvider rulesMetadataCache = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory);
 
