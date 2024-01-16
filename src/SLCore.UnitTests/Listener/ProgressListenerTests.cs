@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
         {
             var testSubject = new ProgressListener();
 
-            var result = testSubject.StartProgress(parameter);
+            var result = testSubject.StartProgressAsync(parameter);
 
             result.Should().Be(Task.CompletedTask);
         }
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
         {
             var testSubject = new ProgressListener();
 
-            var result = testSubject.ReportProgress(parameter);
+            var result = testSubject.ReportProgressAsync(parameter);
 
             result.Should().Be(Task.CompletedTask);
         }
