@@ -31,7 +31,11 @@ using SonarQube.Client.Requests;
 
 namespace SonarQube.Client.Api.V7_20
 {
-    public class GetIssuesRequest : PagedRequestBase<SonarQubeIssue>, IGetIssuesRequest
+    /// <summary>
+    /// Generic get issues class. It does not support <see cref="IGetIssuesRequest.ComponentKey"/> as it is server-type-specific.
+    /// See <see cref="GetIssuesWithComponentSonarQubeRequest"/> and <see cref="GetIssuesWithComponentSonarCloudRequest"/> for more details.
+    /// </summary>
+    internal class GetIssuesRequest : PagedRequestBase<SonarQubeIssue>
     {
         [JsonProperty("projects")]
         public virtual string ProjectKey { get; set; }
@@ -49,9 +53,6 @@ namespace SonarQube.Client.Api.V7_20
         //For now it's not needed.
         [JsonProperty("rules")]
         public string RuleId { get; set; }
-
-        [JsonProperty("components")]
-        public string ComponentKey { get; set; }
 
         [JsonIgnore]
         public bool IncludeTaint { get; set; } = true;

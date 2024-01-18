@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarQube.Client.Api.V7_20;
 using SonarQube.Client.Requests;
 
 namespace SonarQube.Client.Api
@@ -51,7 +52,7 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetRoslynExportProfileRequest, V6_60.GetRoslynExportProfileRequest>("6.6")
                 .RegisterRequest<IGetProjectBranchesRequest, V6_60.GetProjectBranchesRequest>("6.6")
                 .RegisterRequest<IGetOrganizationsRequest, V7_00.GetOrganizationsRequest>("7.0")
-                .RegisterRequest<IGetIssuesRequest, V7_20.GetIssuesRequestWrapper>("7.2")
+                .RegisterRequest<IGetIssuesRequest, V7_20.GetIssuesRequestWrapper<GetIssuesWithComponentSonarQubeRequest>>("7.2")
                 .RegisterRequest<IGetHotspotRequest, V8_6.GetHotspotRequest>("8.6")
                 .RegisterRequest<IGetTaintVulnerabilitiesRequest, V8_6.GetTaintVulnerabilitiesRequest>("8.6")
                 .RegisterRequest<IGetExclusionsRequest, V7_20.GetExclusionsRequest>("7.2")
@@ -90,7 +91,7 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetRoslynExportProfileRequest, V6_60.GetRoslynExportProfileRequest>()
                 .RegisterRequest<IGetProjectBranchesRequest, V6_60.GetProjectBranchesRequest>()
                 .RegisterRequest<IGetOrganizationsRequest, V7_00.GetOrganizationsRequest>()
-                .RegisterRequest<IGetIssuesRequest, V7_20.GetIssuesRequestWrapper>()
+                .RegisterRequest<IGetIssuesRequest, V7_20.GetIssuesRequestWrapper<GetIssuesWithComponentSonarCloudRequest>>()
                 .RegisterRequest<IGetHotspotRequest, V8_6.GetHotspotRequest>()
                 .RegisterRequest<IGetTaintVulnerabilitiesRequest, V10_2.GetTaintVulnerabilitiesWithCCTRequest>()
                 .RegisterRequest<IGetExclusionsRequest, V7_20.GetExclusionsRequest>()

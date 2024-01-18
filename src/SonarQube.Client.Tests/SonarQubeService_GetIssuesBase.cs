@@ -77,7 +77,7 @@ namespace SonarQube.Client.Tests
                 componentJson = CreateComponentJson();
             }
 
-            SetupRequest($"api/issues/search?projects={projectName}&rules={ruleId}&components={componentKey}&branch={branch}&types={issueType}&p={pageNumber}&ps={PageSize}", $@"
+            SetupRequest($"api/issues/search?components={componentKey}&projects={projectName}&rules={ruleId}&branch={branch}&types={issueType}&p={pageNumber}&ps={PageSize}", $@"
 {{
   ""paging"": {{
     ""pageIndex"": {pageNumber},

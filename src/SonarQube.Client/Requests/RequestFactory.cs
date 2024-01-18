@@ -61,7 +61,7 @@ namespace SonarQube.Client.Requests
             return RegisterRequest<TRequest, TRequestImpl>(version, () => new TRequestImpl());
         }
 
-        private RequestFactory RegisterRequest<TRequest, TRequestImpl>(string version, Func<TRequestImpl> factory)
+        public RequestFactory RegisterRequest<TRequest, TRequestImpl>(string version, Func<TRequestImpl> factory)
             where TRequest : IRequest
             where TRequestImpl : TRequest
         {
@@ -85,7 +85,7 @@ namespace SonarQube.Client.Requests
             }
 
             versionRequestMap[parsedVersion] = () => factory();
-            logger.Debug($"Registered {typeof(TRequestImpl).FullName} for {parsedVersion}");
+            logger.Debug($"Registered {typeof(TRequestImpl)} for {parsedVersion}");
 
             return this;
         }
@@ -117,7 +117,7 @@ namespace SonarQube.Client.Requests
                     var request = (TRequest)factory();
                     request.Logger = logger;
 
-                    logger.Debug($"Created request of type '{request.GetType().FullName}'.");
+                    logger.Debug($"Created request of type '{request.GetType()}'.");
 
                     return request;
                 }

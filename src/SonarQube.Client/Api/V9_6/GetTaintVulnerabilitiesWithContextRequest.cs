@@ -26,7 +26,7 @@ using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Api.V9_6
 {
-    public class GetTaintVulnerabilitiesWithContextRequest : GetTaintVulnerabilitiesRequest
+    internal class GetTaintVulnerabilitiesWithContextRequest : GetTaintVulnerabilitiesRequest
     {
         public override async Task<SonarQubeIssue[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {

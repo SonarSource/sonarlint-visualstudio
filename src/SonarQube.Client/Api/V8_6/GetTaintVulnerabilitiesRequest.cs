@@ -28,7 +28,7 @@ using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Api.V8_6
 {
-    public class GetTaintVulnerabilitiesRequest : IGetTaintVulnerabilitiesRequest
+    internal class GetTaintVulnerabilitiesRequest : IGetTaintVulnerabilitiesRequest
     {
         protected GetIssuesRequest getIssuesRequest = new GetIssuesRequest();
 
