@@ -249,6 +249,9 @@ jobs:
   - task: DotNetCoreCLI@2
     displayName: Install cycloneDX tool
     condition: and(succeeded(), or(eq(variables['ForceSbomGeneration'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/master')))
+    env:
+      ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+      ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
     inputs:
       command: custom
       custom: tool
