@@ -49,7 +49,7 @@ public class GetIssuesWithComponentSonarCloudRequestTests
         _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
 
         var actualQueryString = GetSingleActualQueryString(handlerMock);
-        actualQueryString.Should().Contain("component");
+        actualQueryString.Should().NotContain("component");
     }
 
     [TestMethod]
