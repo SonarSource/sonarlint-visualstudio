@@ -32,7 +32,7 @@ using static SonarQube.Client.Tests.Infra.MocksHelper;
 namespace SonarQube.Client.Tests.Requests.Api.V7_20;
 
 [TestClass]
-public class GetIssuesSonarQubeRequestTests
+public class GetIssuesWithComponentSonarCloudRequestTests
 {
     [TestMethod]
     public async Task InvokeAsync_ComponentKeyNotSpecified_ComponentsAreNotIncludedInQueryString()
@@ -49,7 +49,7 @@ public class GetIssuesSonarQubeRequestTests
         _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
 
         var actualQueryString = GetSingleActualQueryString(handlerMock);
-        actualQueryString.Contains("components").Should().BeFalse();
+        actualQueryString.Should().Contain("component");
     }
 
     [TestMethod]
@@ -67,12 +67,12 @@ public class GetIssuesSonarQubeRequestTests
         _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
 
         var actualQueryString = GetSingleActualQueryString(handlerMock);
-        actualQueryString.Contains("components=project1").Should().BeTrue();
+        actualQueryString.Should().Contain("componentKeys=project1");
     }
 
-    private static GetIssuesWithComponentSonarQubeRequest CreateTestSubject(string projectKey, string statusesToRequest, string componentKey = null)
+    private static GetIssuesWithComponentSonarCloudRequest CreateTestSubject(string projectKey, string statusesToRequest, string componentKey = null)
     {
-        var testSubject = new GetIssuesWithComponentSonarQubeRequest
+        var testSubject = new GetIssuesWithComponentSonarCloudRequest
         {
             Logger = new TestLogger(),
             ProjectKey = projectKey,

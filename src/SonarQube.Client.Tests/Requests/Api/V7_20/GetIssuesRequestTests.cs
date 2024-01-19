@@ -444,7 +444,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
 
             var actualQueryString = GetSingleActualQueryString(handlerMock);
-            actualQueryString.Contains("components").Should().BeFalse();
+            actualQueryString.Should().Contain("component");
         }
 
         [TestMethod]
@@ -462,7 +462,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
 
             var actualQueryString = GetSingleActualQueryString(handlerMock);
-            actualQueryString.Contains("components=project1").Should().BeFalse();
+            actualQueryString.Should().Contain("component");
         }
 
         private static GetIssuesRequest CreateTestSubject(string projectKey, string statusesToRequest, string branch = null, string[] issueKeys = null, string ruleId = null, string componentKey = null)

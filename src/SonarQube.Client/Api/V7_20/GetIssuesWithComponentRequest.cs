@@ -22,14 +22,12 @@ using Newtonsoft.Json;
 
 namespace SonarQube.Client.Api.V7_20
 {
-    internal class GetIssuesWithComponentRequest : GetIssuesRequest
+    // This class should not be used on it's own
+    internal abstract class GetIssuesWithComponentRequest : GetIssuesRequest
     {
-        // this class should not be used on it's own
-        private protected GetIssuesWithComponentRequest(){}
-        
-        public virtual string ComponentKey { get; set; }
+        public abstract string ComponentKey { get; set; }
     }
-    
+
     /// <summary>
     /// This class is used to override the query string property name for <see cref="ComponentKey"/> for <see cref="ServerType.SonarCloud"/>
     /// </summary>

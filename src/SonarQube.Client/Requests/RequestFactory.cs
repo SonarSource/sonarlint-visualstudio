@@ -61,7 +61,7 @@ namespace SonarQube.Client.Requests
             return RegisterRequest<TRequest, TRequestImpl>(version, () => new TRequestImpl());
         }
 
-        public RequestFactory RegisterRequest<TRequest, TRequestImpl>(string version, Func<TRequestImpl> factory)
+        private RequestFactory RegisterRequest<TRequest, TRequestImpl>(string version, Func<TRequestImpl> factory)
             where TRequest : IRequest
             where TRequestImpl : TRequest
         {

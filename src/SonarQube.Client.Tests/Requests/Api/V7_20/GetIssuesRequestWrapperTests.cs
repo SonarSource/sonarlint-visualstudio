@@ -35,15 +35,15 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
     [TestClass]
     public class GetIssuesRequestWrapperTests
     {
-        private const string SonarQubeComponentPropertyName = "components";
-        private const string SonarCloudComponentPropertyName = "componentKeys";
+        private const string ComponentPropertyNameSonarQube = "components";
+        private const string ComponentPropertyNameSonarCloud = "componentKeys";
         
         [DataTestMethod]
-        [DataRow(SonarQubeComponentPropertyName, DisplayName = "SonarQube")]
-        [DataRow(SonarCloudComponentPropertyName, DisplayName = "SonarCloud")]
-        public async Task InvokeAsync_SonarQube_NoIssueKeys_ExpectedPropertiesArePassedInMultipleRequests(string componentPropertyName)
+        [DataRow(ComponentPropertyNameSonarQube, DisplayName = "SonarQube")]
+        [DataRow(ComponentPropertyNameSonarCloud, DisplayName = "SonarCloud")]
+        public async Task InvokeAsync_NoIssueKeys_ExpectedPropertiesArePassedInMultipleRequests(string componentPropertyName)
         {
-            var testSubject = CreateTestSubject(componentPropertyName, "aaaProject", "xStatus", "yBranch", null, "rule1", "project1");
+            var testSubject = CreateTestSubject(componentPropertyName, "aaaProject", "xStatus", "yBranch", null, "rule1", "component1");
 
             var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             var httpClient = new HttpClient(handlerMock.Object)
@@ -57,18 +57,18 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
 
             // The wrapper is expected to make three calls, for code smells, bugs, then vulnerabilities
             handlerMock.Invocations.Count.Should().Be(3);
-            CheckExpectedQueryStringsParameters(componentPropertyName, handlerMock, 0, "aaaProject", "xStatus", "yBranch", "rule1", "project1", expectedTypes: "CODE_SMELL");
-            CheckExpectedQueryStringsParameters(componentPropertyName, handlerMock, 1, "aaaProject", "xStatus", "yBranch", "rule1", "project1", expectedTypes: "BUG");
-            CheckExpectedQueryStringsParameters(componentPropertyName, handlerMock, 2, "aaaProject", "xStatus", "yBranch", "rule1", "project1", expectedTypes: "VULNERABILITY");
+            CheckExpectedQueryStringsParameters(componentPropertyName, handlerMock, 0, expectedTypes: "CODE_SMELL");
+            CheckExpectedQueryStringsParameters(componentPropertyName, handlerMock, 1, expectedTypes: "BUG");
+            CheckExpectedQueryStringsParameters(componentPropertyName, handlerMock, 2, expectedTypes: "VULNERABILITY");
         }
 
         [DataTestMethod]
-        [DataRow(SonarQubeComponentPropertyName, DisplayName = "SonarQube")]
-        [DataRow(SonarCloudComponentPropertyName, DisplayName = "SonarCloud")]
+        [DataRow(ComponentPropertyNameSonarQube, DisplayName = "SonarQube")]
+        [DataRow(ComponentPropertyNameSonarCloud, DisplayName = "SonarCloud")]
         public async Task InvokeAsync_HasIssueKeys_ExpectedPropertiesArePassedInASingleRequest(string componentPropertyName)
         {
             var issueKeys = new[] { "issue1", "issue2" };
-            var testSubject = CreateTestSubject(componentPropertyName,"aaaProject", "xStatus", "yBranch", issueKeys, "rule1", "project1");
+            var testSubject = CreateTestSubject(componentPropertyName,"aaaProject", "xStatus", "yBranch", issueKeys, "rule1", "component1");
 
             var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             var httpClient = new HttpClient(handlerMock.Object)
@@ -83,14 +83,14 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             // The wrapper is expected to make one call with the given issueKeys
             handlerMock.Invocations.Count.Should().Be(1);
 
-            CheckExpectedQueryStringsParameters(componentPropertyName, handlerMock, 0, "aaaProject", "xStatus", "yBranch", "rule1", "project1", expectedKeys: issueKeys);
+            CheckExpectedQueryStringsParameters(componentPropertyName, handlerMock, 0, expectedKeys: issueKeys);
         }
 
         private static IGetIssuesRequest CreateTestSubject(string componentPropertyName, string projectKey, string statusesToRequest, string branch, string[] issueKeys, string ruleId, string componentKey)
         {
             return componentPropertyName switch
             {
-                SonarQubeComponentPropertyName => new GetIssuesRequestWrapper<GetIssuesWithComponentSonarQubeRequest>
+                ComponentPropertyNameSonarQube => new GetIssuesRequestWrapper<GetIssuesWithComponentSonarQubeRequest>
                 {
                     Logger = new TestLogger(),
                     ProjectKey = projectKey,
@@ -100,7 +100,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
                     RuleId = ruleId,
                     ComponentKey = componentKey
                 },
-                SonarCloudComponentPropertyName => new GetIssuesRequestWrapper<GetIssuesWithComponentSonarCloudRequest>
+                ComponentPropertyNameSonarCloud => new GetIssuesRequestWrapper<GetIssuesWithComponentSonarCloudRequest>
                 {
                     Logger = new TestLogger(),
                     ProjectKey = projectKey,
@@ -117,22 +117,17 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
         private static void CheckExpectedQueryStringsParameters(string componentKeyName,
             Mock<HttpMessageHandler> handlerMock,
             int invocationIndex,
-            string expectedProject,
-            string expectedStatues,
-            string expectedBranch,
-            string expectedRule,
-            string expectedComponent,
             string expectedTypes = null,
             string[] expectedKeys = null)
         {
             var actualQueryString = GetActualQueryStringForInvocation(handlerMock, invocationIndex);
 
             Console.WriteLine($"Invocation [{invocationIndex}]: {actualQueryString}");
-            actualQueryString.Contains($"?{componentKeyName}={expectedComponent}").Should().BeTrue();
-            actualQueryString.Contains($"&projects={expectedProject}").Should().BeTrue();
-            actualQueryString.Contains($"&statuses={expectedStatues}").Should().BeTrue();
-            actualQueryString.Contains($"&branch={expectedBranch}").Should().BeTrue();
-            actualQueryString.Contains($"&rules={expectedRule}").Should().BeTrue();
+            actualQueryString.Contains($"?{componentKeyName}=component1").Should().BeTrue();
+            actualQueryString.Contains("&projects=aaaProject").Should().BeTrue();
+            actualQueryString.Contains("&statuses=xStatus").Should().BeTrue();
+            actualQueryString.Contains("&branch=yBranch").Should().BeTrue();
+            actualQueryString.Contains("&rules=rule1").Should().BeTrue();
             
             if (expectedTypes != null)
             {

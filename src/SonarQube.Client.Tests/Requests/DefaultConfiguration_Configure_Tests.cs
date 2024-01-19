@@ -20,7 +20,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Api;
