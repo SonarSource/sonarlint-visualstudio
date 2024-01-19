@@ -39,9 +39,10 @@ namespace SonarQube.Client.Api.V7_20
     ///
     /// This class should be removed if/when SonarQube removes the 10k API result limitation.
     /// </summary>
-    public class GetIssuesRequestWrapper : IGetIssuesRequest
+    internal class GetIssuesRequestWrapper<T> : IGetIssuesRequest
+        where T : GetIssuesWithComponentRequest, new()
     {
-        private readonly GetIssuesRequest innerRequest = new GetIssuesRequest();
+        private readonly T innerRequest = new T();
 
         public string ProjectKey { get; set; }
 

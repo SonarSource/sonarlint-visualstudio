@@ -444,11 +444,11 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
 
             var actualQueryString = GetSingleActualQueryString(handlerMock);
-            actualQueryString.Contains("components").Should().BeFalse();
+            actualQueryString.Should().NotContain("component");
         }
 
         [TestMethod]
-        public async Task InvokeAsync_ComponentKeySpecified_ComponentsAreIncludedInQueryString()
+        public async Task InvokeAsync_ComponentKeySpecified_ComponentsAreNotIncludedInQueryString()
         {
             var testSubject = CreateTestSubject("any", "any", componentKey: "project1");
 
@@ -462,7 +462,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             _ = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
 
             var actualQueryString = GetSingleActualQueryString(handlerMock);
-            actualQueryString.Contains("components=project1").Should().BeTrue();
+            actualQueryString.Should().NotContain("component");
         }
 
         private static GetIssuesRequest CreateTestSubject(string projectKey, string statusesToRequest, string branch = null, string[] issueKeys = null, string ruleId = null, string componentKey = null)
@@ -475,7 +475,6 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
                 Branch = branch,
                 IssueKeys = issueKeys,
                 RuleId = ruleId,
-                ComponentKey = componentKey
             };
 
             return testSubject;

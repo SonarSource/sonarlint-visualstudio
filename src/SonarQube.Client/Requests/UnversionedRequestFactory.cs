@@ -58,7 +58,7 @@ namespace SonarQube.Client.Requests
             }
 
             requestToFactoryMap[typeof(TRequest)] = () => new TRequestImpl();
-            logger.Debug($"Registered {typeof(TRequestImpl).FullName}");
+            logger.Debug($"Registered {typeof(TRequestImpl)}");
 
             return this;
         }
@@ -72,7 +72,7 @@ namespace SonarQube.Client.Requests
                     var request = (TRequest)factory();
                     request.Logger = logger;
 
-                    logger.Debug($"Created request of type '{request.GetType().FullName}'.");
+                    logger.Debug($"Created request of type '{request.GetType()}'.");
 
                     return request;
             }

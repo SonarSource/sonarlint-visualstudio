@@ -56,8 +56,10 @@ namespace SonarQube.Client.Api.V5_10
 
         protected override string Path => "batch/issues";
 
+        [JsonIgnore] // We decided not to support it for API calls older than v7.20
         public string RuleId { get; set; }
 
+        [JsonIgnore] // We decided not to support it for API calls older than v7.20
         public string ComponentKey { get; set; }
 
         [JsonIgnore]

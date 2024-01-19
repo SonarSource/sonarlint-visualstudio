@@ -23,7 +23,10 @@ using SonarQube.Client.Api.V7_20;
 
 namespace SonarQube.Client.Api.V9_6
 {
-    public class GetIssuesWithContextRequest : GetIssuesRequest
+    /// <remarks>
+    /// This class does not support component-based search. See <see cref="GetIssuesRequest"/> for more information
+    /// </remarks>
+    internal class GetIssuesWithContextRequest : GetIssuesRequest
     {
         [JsonProperty("additionalFields")]
         public string AdditionalFields => "ruleDescriptionContextKey";

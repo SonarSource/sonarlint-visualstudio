@@ -22,13 +22,17 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Api.Common;
+using SonarQube.Client.Api.V7_20;
 using SonarQube.Client.Api.V9_6;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Api.V10_2
 {
-    public class GetIssuesWithCCTRequest : GetIssuesWithContextRequest
+    /// <remarks>
+    /// This class does not support component-based search. See <see cref="GetIssuesRequest"/> for more information
+    /// </remarks>
+    internal class GetIssuesWithCCTRequest : GetIssuesWithContextRequest
     {
         protected override SonarQubeIssue[] ParseResponse(string response)
         {
