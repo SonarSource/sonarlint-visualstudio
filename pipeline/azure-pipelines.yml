@@ -1,6 +1,7 @@
 variables:
 - group: sonarsource-build-variables
 - group: digicert-keylocker
+- group: artifactory_access
 - name: BuildParameters.solution
   value: SonarLint.VisualStudio.Integration.sln
 
@@ -48,6 +49,9 @@ jobs:
   - task: NuGetCommand@2
     displayName: NuGet restore with LockedMode check (VS2022 only)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+    env:
+      ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+      ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
     inputs:
       command: custom
       solution: $(BuildParameters.solution)
@@ -59,6 +63,9 @@ jobs:
   - task: NuGetCommand@2
     displayName: NuGet restore without LockedMode check (VS2019)
     condition: and(succeeded(), ne(variables['vsTargetVersion'], '2022'))
+    env:
+      ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+      ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
     inputs:
       solution: $(BuildParameters.solution)
       selectOrConfig: config
