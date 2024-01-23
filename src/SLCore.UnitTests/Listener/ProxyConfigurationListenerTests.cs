@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -31,13 +31,13 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<HttpConfigurationListener, ISLCoreListener>();
+            MefTestHelpers.CheckTypeCanBeImported<ProxyConfigurationListener, ISLCoreListener>();
         }
 
         [TestMethod]
         public void Mef_CheckIsSingleton()
         {
-            MefTestHelpers.CheckIsSingletonMefComponent<HttpConfigurationListener>();
+            MefTestHelpers.CheckIsSingletonMefComponent<ProxyConfigurationListener>();
         }
 
         [TestMethod]
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
         [DataRow("something")]
         public async Task SelectProxiesAsync_ReturnsEmptyList(object parameter)
         {
-            var testSubject = new HttpConfigurationListener();
+            var testSubject = new ProxyConfigurationListener();
 
             var result = await testSubject.SelectProxiesAsync(parameter);
 

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener
 
     [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class HttpConfigurationListener : ISLCoreListener
+    public class ProxyConfigurationListener : ISLCoreListener
     {
         public async Task<SelectProxiesResponse> SelectProxiesAsync(object parameters)
         {
