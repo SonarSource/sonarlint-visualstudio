@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -39,9 +39,10 @@ namespace SonarQube.Client.Api.V7_20
     ///
     /// This class should be removed if/when SonarQube removes the 10k API result limitation.
     /// </summary>
-    public class GetIssuesRequestWrapper : IGetIssuesRequest
+    internal class GetIssuesRequestWrapper<T> : IGetIssuesRequest
+        where T : GetIssuesWithComponentRequest, new()
     {
-        private readonly GetIssuesRequest innerRequest = new GetIssuesRequest();
+        private readonly T innerRequest = new T();
 
         public string ProjectKey { get; set; }
 

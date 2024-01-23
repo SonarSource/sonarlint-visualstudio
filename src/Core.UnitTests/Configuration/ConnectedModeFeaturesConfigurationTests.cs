@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -52,11 +52,11 @@ public class ConnectedModeFeaturesConfigurationTests
     [DataRow(9, 6, 9)]
     [DataRow(0, 0, 0)]
     [DataTestMethod]
-    public void IsAcceptTransitionAvailable_AnySonarCloudVersion_ReturnsFalse(int major, int minor, int build)
+    public void IsAcceptTransitionAvailable_AnySonarCloudVersion_ReturnsTrue(int major, int minor, int build)
     {
         var testSubject = CreateTestSubject(new ServerInfo(new Version(major, minor, build), ServerType.SonarCloud));
 
-        testSubject.IsAcceptTransitionAvailable().Should().BeFalse();
+        testSubject.IsAcceptTransitionAvailable().Should().BeTrue();
     }
 
     [DataRow(0, 0, 0, false)]

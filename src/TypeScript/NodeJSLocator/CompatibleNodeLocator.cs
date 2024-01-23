@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -65,8 +65,8 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
 
         internal static bool IsCompatibleVersion(Version nodeVersion)
         {
-            // Minimum supported version 14.17.0
-            return (nodeVersion.Major == 14 && nodeVersion.Minor >= 17) || nodeVersion.Major > 14;
+            // Minimum supported version 16.0.0
+            return nodeVersion.Major >= 16;
         }
     }
 }
