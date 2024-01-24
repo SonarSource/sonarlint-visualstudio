@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -23,14 +23,18 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
     /// <summary>
     /// Represents an option class where only one of the properties <see cref="Left"/> or <see cref="Right"/> is not null
     /// </summary>
-    public class Either<TLeft, TRight>
+    public sealed class Either<TLeft, TRight>
         where TLeft : class
         where TRight : class
     {
+        private Either()
+        {
+        }
+
         public TLeft Left { get; private set; }
         public TRight Right { get; private set; }
 
-        public static Either<TLeft, TRight> CreateLeft(TLeft left) => new Either<TLeft, TRight>() { Left = left };
-        public static Either<TLeft, TRight> CreateRight(TRight right) => new Either<TLeft, TRight>() { Right = right };
+        public static Either<TLeft, TRight> CreateLeft(TLeft left) => new Either<TLeft, TRight> { Left = left };
+        public static Either<TLeft, TRight> CreateRight(TRight right) => new Either<TLeft, TRight> { Right = right };
     }
 }

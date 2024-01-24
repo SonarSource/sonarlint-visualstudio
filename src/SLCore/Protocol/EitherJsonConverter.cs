@@ -1,6 +1,6 @@
 /*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -31,8 +31,14 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
     ///     <see cref="JsonConverter" /> for <see cref="Either{TLeft,TRight}" /> type.
     ///     Left and Right are serialized to and deserialize from the same json property.
     /// </summary>
-    /// <typeparam name="TLeft">A class that converts to json object. Primitive types (int, string, etc.) are not supported</typeparam>
-    /// <typeparam name="TRight">A class that converts to json object. Primitive types (int, string, etc.) are not supported</typeparam>
+    /// <typeparam name="TLeft">A class that converts to json object. Primitive types and Arrays are not supported</typeparam>
+    /// <typeparam name="TRight">A class that converts to json object. Primitive types and Arrays are not supported</typeparam>
+    /// <remarks>
+    /// <list type="bullet">
+    /// <item><a href="https://www.newtonsoft.com/json/help/html/serializationguide.htm#PrimitiveTypes">Primitive types</a></item>
+    /// <item><a href="https://www.newtonsoft.com/json/help/html/serializationguide.htm#ComplexTypes">Arrays (IList, IEnumerable, IList&lt;T&gt;, Array)</a></item>
+    /// </list>
+    /// </remarks>
     public class EitherJsonConverter<TLeft, TRight> : JsonConverter
         where TLeft : class
         where TRight : class
@@ -42,14 +48,19 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
 
         public EitherJsonConverter()
         {
-            // todo check primitive types?
             leftProperties = GetAllPropertyAndFieldNames(typeof(TLeft));
             rightProperties = GetAllPropertyAndFieldNames(typeof(TRight));
             var intersection = leftProperties.Intersect(rightProperties).ToArray();
             leftProperties.ExceptWith(intersection);
             rightProperties.ExceptWith(intersection);
-        }
 
+            if (!rightProperties.Any() && !leftProperties.Any())
+            {
+                throw new ArgumentException(
+                    $"Types {typeof(TLeft)} and {typeof(TRight)} have equivalent sets of properties and fields");
+            }
+        }
+        
         private static HashSet<string> GetAllPropertyAndFieldNames(Type type)
         {
             const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Public;
@@ -60,8 +71,8 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var either = value as Either<TLeft, TRight>;
-
+            var either = (Either<TLeft, TRight>)value;
+            
             if (either.Left != null)
             {
                 serializer.Serialize(writer, either.Left);
@@ -83,8 +94,7 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
 
             if (jToken.Type != JTokenType.Object)
             {
-                // ??    
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"Expected {JTokenType.Object}, found {jToken.Type}");
             }
 
             foreach (var jsonProperty in jToken.Children().Select(x => x.Path))
@@ -100,7 +110,7 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
                 }
             }
 
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("Unable to make a definitive choice between Either options");
         }
     }
 }
