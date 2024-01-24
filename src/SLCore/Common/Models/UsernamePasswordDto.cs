@@ -20,13 +20,15 @@
 
 namespace SonarLint.VisualStudio.SLCore.Common.Models
 {
-    public class TokenDto
+    public class UsernamePasswordDto
     {
-        public TokenDto(string token)
+        public UsernamePasswordDto(string username, string password)
         {
-            this.token = token;
+            this.username = username;
+            this.password = password;
         }
 
-        public string token { get; }
+        public string username { get; }
+        public string password { get; }
     }
 }
