@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,23 +18,33 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Protocol;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Rules
 {
+    [JsonRpcClassAttribute("rule")]
     public interface IRulesRpcService : ISLCoreService
     {
         /// <summary>
         /// Gets Rule Meta Data from SLCORE
         /// </summary>
-        /// <param name="params"></param>
-        Task<object> GetEffectiveRuleDetailsAsync(GetEffectiveRuleDetailsParams @params);
+        /// <param name="parameters"></param>
+        Task<object> GetEffectiveRuleDetailsAsync(GetEffectiveRuleDetailsParams parameters);
     }
 
+    [ExcludeFromCodeCoverage]
     public class GetEffectiveRuleDetailsParams
     {
-        public string configurationScopeId;
-        public string ruleKey;
+        public string configurationScopeId { get; }
+        public string ruleKey { get; }
+
+        public GetEffectiveRuleDetailsParams(string configurationScopeId, string ruleKey)
+        {
+            this.configurationScopeId = configurationScopeId;
+            this.ruleKey = ruleKey;
+        }
     }
 }

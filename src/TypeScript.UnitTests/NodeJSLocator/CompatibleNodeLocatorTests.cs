@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -58,7 +58,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
             var versions = new List<NodeVersionInfo>
             {
                 new("bad version", new Version(9, 0)),
-                new("bad version", new Version(11, 0))
+                new("bad version", new Version(11, 0)),
+                new("bad version", new Version(14, 16)),
+                new("bad version", new Version(14, 17)),
+                new("bad version", new Version(14, 18)),
+                new("bad version", new Version(15, 9))
             };
 
             var testSubject = CreateTestSubject(versions);
@@ -70,19 +74,22 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         [TestMethod]
         public void Locate_ReturnsFirstCompatiblePath()
         {
+            var firstCompatibleVersion = new NodeVersionInfo("compatible version1", new Version(16, 0));
             var versions = new List<NodeVersionInfo>
             {
                 new("bad version", new Version(11, 0)),
                 new("bad version2", new Version(14, 16)),
-                new("compatible2", new Version(14, 17)),
-                new("compatible3", new Version(14, 18)),
-                new("compatible4", new Version(15, 0)),
+                new("bad version3", new Version(14, 17)),
+                new("bad version4", new Version(14, 18)),
+                new("bad version5", new Version(15, 0)),
+                firstCompatibleVersion,
+                new("compatible version2", new Version(17, 1)),
             };
 
             var testSubject = CreateTestSubject(versions);
 
             var result = testSubject.Locate();
-            result.Should().Be(versions[2]);
+            result.Should().Be(firstCompatibleVersion);
         }
 
         [TestMethod]
@@ -106,7 +113,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         {
             var versions = new List<NodeVersionInfo>
             {
-                new("good version", new Version(15, 0))
+                new("good version", new Version(16, 0))
             };
 
             var notificationService = new Mock<IUnsupportedNodeVersionNotificationService>();
@@ -124,9 +131,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         [DataRow(13, 0, false)]
         [DataRow(14, 0, false)]
         [DataRow(14, 16, false)]
-        [DataRow(14, 17, true)]
-        [DataRow(14, 18, true)]
-        [DataRow(15, 00, true)]
+        [DataRow(14, 17, false)]
+        [DataRow(14, 18, false)]
+        [DataRow(15, 0, false)]
+        [DataRow(16, 0, true)]
+        [DataRow(16, 1, true)]
+        [DataRow(17, 0, true)]
+        [DataRow(20, 0, true)]
         public void IsCompatibleVersion_ReturnsTrueFalse(int majorVersion,int minorVersion, bool expectedResult)
         {
             var version = new Version(majorVersion, minorVersion);

@@ -45,7 +45,7 @@
                    <TextBlock Text="www.sonarsource.com"/>
                  </Hyperlink>
         </TextBlock>
-            <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource TextBlockStyle}" Text="Copyright © 2016-2023 SonarSource SA" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Gray" FontSize="11" Margin="30,30,0,0"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource TextBlockStyle}" Text="Copyright © 2016-2024 SonarSource SA" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Gray" FontSize="11" Margin="30,30,0,0"/>
             <platformUi:DialogButton Grid.Row="1" Grid.Column="1" Content="Close" IsCancel="True" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontSize="11" Margin="0,0,0,0"/>
         </Grid>
     </StackPanel>
