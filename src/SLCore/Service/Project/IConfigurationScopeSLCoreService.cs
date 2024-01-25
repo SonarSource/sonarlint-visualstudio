@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -22,23 +22,25 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Project
 {
+    [JsonRpcClassAttribute("configuration")]
     public interface IConfigurationScopeSLCoreService : ISLCoreService
     {
         /// <summary>
         /// Add configuration scope to SLCORE
         /// </summary>
-        /// <param name="params"></param>
-        Task DidAddConfigurationScopesAsync(DidAddConfigurationScopesParams @params);
+        /// <param name="parameters"></param>
+        Task DidAddConfigurationScopesAsync(DidAddConfigurationScopesParams parameters);
 
         /// <summary>
         /// Removes configuration scope from SLCORE
         /// </summary>
-        /// <param name="params"></param>
-        Task DidRemoveConfigurationScopeAsync(DidRemoveConfigurationScopeParams @params);
+        /// <param name="parameters"></param>
+        Task DidRemoveConfigurationScopeAsync(DidRemoveConfigurationScopeParams parameters);
     }
 
     public class DidRemoveConfigurationScopeParams

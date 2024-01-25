@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Core.Configuration
         {
             var serverInfo = sonarQubeService.GetServerInfo();
 
-            return serverInfo != null && (serverInfo.ServerType == ServerType.SonarQube && serverInfo.Version >= minimalSonarQubeVersionForAccept);
+            return serverInfo != null && IsSupportedForVersion(serverInfo, minimalSonarQubeVersionForAccept);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@ using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Api.V9_6
 {
-    public class GetTaintVulnerabilitiesWithContextRequest : GetTaintVulnerabilitiesRequest
+    internal class GetTaintVulnerabilitiesWithContextRequest : GetTaintVulnerabilitiesRequest
     {
         public override async Task<SonarQubeIssue[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {

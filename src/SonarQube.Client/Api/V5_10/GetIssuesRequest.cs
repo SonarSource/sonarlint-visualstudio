@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -56,8 +56,10 @@ namespace SonarQube.Client.Api.V5_10
 
         protected override string Path => "batch/issues";
 
+        [JsonIgnore] // We decided not to support it for API calls older than v7.20
         public string RuleId { get; set; }
 
+        [JsonIgnore] // We decided not to support it for API calls older than v7.20
         public string ComponentKey { get; set; }
 
         [JsonIgnore]

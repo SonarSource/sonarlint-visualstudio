@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -20,17 +20,19 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Project
 {
+    [JsonRpcClassAttribute("configuration")]
     public interface IBindingSLCoreService
     {
         /// <summary>
         /// Updates binding configuration on an existing configuration scope
         /// </summary>
-        /// <param name="params"></param>
-        Task DidUpdateBindingAsync(DidUpdateBindingParams @params);
+        /// <param name="parameters"></param>
+        Task DidUpdateBindingAsync(DidUpdateBindingParams parameters);
     }
 
     public class DidUpdateBindingParams

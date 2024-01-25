@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -77,7 +77,7 @@ namespace SonarQube.Client.Tests
                 componentJson = CreateComponentJson();
             }
 
-            SetupRequest($"api/issues/search?projects={projectName}&rules={ruleId}&components={componentKey}&branch={branch}&types={issueType}&p={pageNumber}&ps={PageSize}", $@"
+            SetupRequest($"api/issues/search?components={componentKey}&projects={projectName}&rules={ruleId}&branch={branch}&types={issueType}&p={pageNumber}&ps={PageSize}", $@"
 {{
   ""paging"": {{
     ""pageIndex"": {pageNumber},
