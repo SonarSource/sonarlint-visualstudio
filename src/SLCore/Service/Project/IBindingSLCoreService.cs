@@ -18,50 +18,33 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Project
 {
     [JsonRpcClassAttribute("configuration")]
-    public interface IConfigurationScopeSLCoreService : ISLCoreService
+    public interface IBindingSLCoreService
     {
         /// <summary>
-        /// Add configuration scope to SLCORE
+        /// Updates binding configuration on an existing configuration scope
         /// </summary>
         /// <param name="parameters"></param>
-        Task DidAddConfigurationScopesAsync(DidAddConfigurationScopesParams parameters);
-
-        /// <summary>
-        /// Removes configuration scope from SLCORE
-        /// </summary>
-        /// <param name="parameters"></param>
-        Task DidRemoveConfigurationScopeAsync(DidRemoveConfigurationScopeParams parameters);
+        Task DidUpdateBindingAsync(DidUpdateBindingParams parameters);
     }
 
-    public class DidRemoveConfigurationScopeParams
+    public class DidUpdateBindingParams
     {
-        public string removeId { get; }
+        public string configScopeId { get; }
+        public BindingConfigurationDto updatedBinding { get; }
 
         [ExcludeFromCodeCoverage]
-        public DidRemoveConfigurationScopeParams(string removeId)
+        public DidUpdateBindingParams(string configScopeId, BindingConfigurationDto updatedBinding)
         {
-            this.removeId = removeId;
-        }
-    }
-
-    public class DidAddConfigurationScopesParams
-    {
-        public List<ConfigurationScopeDto> addedScopes { get; }
-
-        [ExcludeFromCodeCoverage]
-        public DidAddConfigurationScopesParams(List<ConfigurationScopeDto> addedScopes)
-        {
-            this.addedScopes = addedScopes;
+            this.configScopeId = configScopeId;
+            this.updatedBinding = updatedBinding;
         }
     }
 }
