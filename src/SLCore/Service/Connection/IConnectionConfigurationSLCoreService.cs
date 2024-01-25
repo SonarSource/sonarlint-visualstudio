@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -21,23 +21,25 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Connection
 {
+    [JsonRpcClassAttribute("connection")]
     public interface IConnectionConfigurationSLCoreService
     {
         /// <summary>
         /// Changes Connection Configuration
         /// </summary>
-        /// <param name="params"></param>
-        Task DidUpdateConnectionsAsync(DidUpdateConnectionsParams @params);
+        /// <param name="parameters"></param>
+        Task DidUpdateConnectionsAsync(DidUpdateConnectionsParams parameters);
 
         /// <summary>
         /// Connection credentials have been changed
         /// </summary>
-        /// <param name="connectionId"></param>
-        Task DidChangeCredentialsAsync(string connectionId);
+        /// <param name="parameters"></param>
+        Task DidChangeCredentialsAsync(DidChangeCredentialsParams parameters);
     }
 
     public class DidUpdateConnectionsParams
@@ -50,6 +52,17 @@ namespace SonarLint.VisualStudio.SLCore.Service.Connection
         {
             this.sonarQubeConnections = sonarQubeConnections;
             this.sonarCloudConnections = sonarCloudConnections;
+        }
+    }
+
+    public class DidChangeCredentialsParams
+    {
+        public string connectionId { get; }
+
+        [ExcludeFromCodeCoverage]
+        public DidChangeCredentialsParams(string connectionId)
+        {
+            this.connectionId = connectionId;
         }
     }
 }
