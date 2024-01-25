@@ -18,19 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
-namespace SonarLint.VisualStudio.SLCore.Common.Models
+namespace SonarLint.VisualStudio.SLCore.Listener.Credentials
 {
-    public class UsernamePasswordDto
+    internal class GetCredentialsParams
     {
-        public UsernamePasswordDto(string username, string password)
+        public GetCredentialsParams(string connectionId)
         {
-            this.username = username ?? throw new ArgumentNullException(nameof(username));
-            this.password = password ?? throw new ArgumentNullException(nameof(password));
+            this.connectionId = connectionId;
         }
 
-        public string username { get; }
-        public string password { get; }
+        public string connectionId { get; }
     }
 }

@@ -19,18 +19,32 @@
  */
 
 using System;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Common.Models
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Common;
+
+[TestClass]
+public class UserAndPasswordDtoTests
 {
-    public class UsernamePasswordDto
+    [TestMethod]
+    public void Ctor_SetsPropertiesCorrectly()
     {
-        public UsernamePasswordDto(string username, string password)
-        {
-            this.username = username ?? throw new ArgumentNullException(nameof(username));
-            this.password = password ?? throw new ArgumentNullException(nameof(password));
-        }
+        var username = "user123";
+        var password = "password123";
 
-        public string username { get; }
-        public string password { get; }
+        var testSubject = new UsernamePasswordDto(username, password);
+
+        testSubject.username.Should().BeSameAs(username);
+        testSubject.password.Should().BeSameAs(password);
+    }
+    
+    [TestMethod]
+    public void Ctor_NullParameter_Throws()
+    {
+        Action actUsr = () => new UsernamePasswordDto(null, "password123");
+        Action actPwd = () => new UsernamePasswordDto("user123", null);
+
+        actUsr.Should().ThrowExactly<ArgumentNullException>();
+        actPwd.Should().ThrowExactly<ArgumentNullException>();
     }
 }

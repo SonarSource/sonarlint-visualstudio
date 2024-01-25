@@ -18,13 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+
 namespace SonarLint.VisualStudio.SLCore.Common.Models
 {
     public class TokenDto
     {
         public TokenDto(string token)
         {
-            this.token = token;
+            this.token = token ?? throw new ArgumentNullException(nameof(token));
         }
 
         public string token { get; }

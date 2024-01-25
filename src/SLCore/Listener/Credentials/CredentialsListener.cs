@@ -20,10 +20,7 @@
 
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Credentials
 {
@@ -39,36 +36,5 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Credentials
             // stub implementation
             return Task.FromResult(GetCredentialsResponse.NoCredentials);
         }
-    }
-
-    internal class GetCredentialsParams
-    {
-        public GetCredentialsParams(string connectionId)
-        {
-            this.connectionId = connectionId;
-        }
-
-        public string connectionId { get; }
-    }
-
-    internal class GetCredentialsResponse
-    {
-        // credentials property is nullable on the SLCore side
-        public static GetCredentialsResponse NoCredentials = new GetCredentialsResponse();
-        
-        private GetCredentialsResponse(){}
-        
-        public GetCredentialsResponse(TokenDto token)
-        {
-            this.credentials = Either<TokenDto, UsernamePasswordDto>.CreateLeft(token);
-        }      
-        
-        public GetCredentialsResponse(UsernamePasswordDto usernamePassword)
-        {
-            this.credentials = Either<TokenDto, UsernamePasswordDto>.CreateRight(usernamePassword);
-        }
-
-        [JsonConverter(typeof(Either<TokenDto, UsernamePasswordDto>))]
-        public Either<TokenDto, UsernamePasswordDto> credentials { get; }
     }
 }

@@ -18,19 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Listener.Credentials;
 
-namespace SonarLint.VisualStudio.SLCore.Common.Models
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Credentials;
+
+[TestClass]
+public class GetCredentialsParamsTests
 {
-    public class UsernamePasswordDto
+    [TestMethod]
+    public void DeserializeObject_DeserializesCorrectly()
     {
-        public UsernamePasswordDto(string username, string password)
-        {
-            this.username = username ?? throw new ArgumentNullException(nameof(username));
-            this.password = password ?? throw new ArgumentNullException(nameof(password));
-        }
+        var str = """{"connectionId":"id123"}""";
 
-        public string username { get; }
-        public string password { get; }
+        var result = JsonConvert.DeserializeObject<GetCredentialsParams>(str);
+
+        result.connectionId.Should().Be("id123");
     }
 }

@@ -19,18 +19,28 @@
  */
 
 using System;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Common.Models
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Common;
+
+[TestClass]
+public class TokenDtoTests
 {
-    public class UsernamePasswordDto
+    [TestMethod]
+    public void Ctor_SetsPropertiesCorrectly()
     {
-        public UsernamePasswordDto(string username, string password)
-        {
-            this.username = username ?? throw new ArgumentNullException(nameof(username));
-            this.password = password ?? throw new ArgumentNullException(nameof(password));
-        }
+        var token = "token123";
 
-        public string username { get; }
-        public string password { get; }
+        var testSubject = new TokenDto(token);
+
+        testSubject.token.Should().BeSameAs(token);
+    }
+    
+    [TestMethod]
+    public void Ctor_NullParameter_Throws()
+    {
+        Action act = () => new TokenDto(null);
+
+        act.Should().ThrowExactly<ArgumentNullException>();
     }
 }
