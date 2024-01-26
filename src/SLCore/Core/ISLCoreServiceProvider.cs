@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.SLCore.Core
 {
@@ -35,7 +36,7 @@ namespace SonarLint.VisualStudio.SLCore.Core
         bool TryGetTransientService<TService>(out TService service) where TService : class, ISLCoreService;
     }
 
-    public interface ISLCoreServiceProviderWriter 
+    public interface ISLCoreServiceProviderWriter
     {
         /// <summary>
         /// Resets the state with a new <see cref="ISLCoreJsonRpc"/> instance and clears the cache
@@ -51,17 +52,24 @@ namespace SonarLint.VisualStudio.SLCore.Core
         private readonly Dictionary<Type, object> cache = new Dictionary<Type, object>();
         private readonly object cacheLock = new object();
         private ISLCoreJsonRpc jsonRpc;
-        
+        private readonly ILogger logger;
+
+        [ImportingConstructor]
+        public SLCoreServiceProvider(ILogger logger)
+        {
+            this.logger = logger;
+        }
+
         public bool TryGetTransientService<TService>(out TService service) where TService : class, ISLCoreService
         {
             service = default;
-            
+
             var serviceType = typeof(TService);
             if (!serviceType.IsInterface)
             {
                 throw new ArgumentException($"The type argument {serviceType.FullName} is not an interface");
             }
-            
+
             lock (cacheLock)
             {
                 if (jsonRpc == null || !jsonRpc.IsAlive)
@@ -71,7 +79,15 @@ namespace SonarLint.VisualStudio.SLCore.Core
 
                 if (!cache.TryGetValue(serviceType, out var cachedService))
                 {
-                    cachedService = jsonRpc.CreateService<TService>();
+                    try
+                    {
+                        cachedService = jsonRpc.CreateService<TService>();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.WriteLine(Strings.SLCoreServiceProvider_CreateServiceError, ex.Message);
+                        return false;
+                    }
                     cache.Add(serviceType, cachedService);
                 }
 
