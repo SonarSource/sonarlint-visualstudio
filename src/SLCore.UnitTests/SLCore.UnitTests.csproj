@@ -13,4 +13,8 @@
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Update="FluentAssertions" Version="6.12.0" />
+  </ItemGroup>
+
 </Project>
