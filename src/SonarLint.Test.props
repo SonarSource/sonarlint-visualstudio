@@ -21,7 +21,7 @@
     <!-- WARNING! Check before updating to a new version of Moq - any privacy issues? See https://github.com/moq/moq/issues/1372 -->
     <PackageReference Include="Moq" Version="4.18.2" />
     
-    <PackageReference Include="FluentAssertions" Version="5.9.0" />
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="FluentAssertions.Analyzers" Version="0.11.4" />
   </ItemGroup>
   

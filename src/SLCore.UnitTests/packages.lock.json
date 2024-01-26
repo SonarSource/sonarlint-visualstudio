@@ -1569,7 +1569,7 @@
       "SonarLint.VisualStudio.Integration.TestInfrastructure": {
         "type": "Project",
         "dependencies": {
-          "FluentAssertions": "[5.9.0, )",
+          "FluentAssertions": "[6.12.0, )",
           "FluentAssertions.Analyzers": "[0.11.4, )",
           "MSTest.TestAdapter": "[1.4.0, )",
           "MSTest.TestFramework": "[1.4.0, )",
