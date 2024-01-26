@@ -78,7 +78,7 @@ public class SLCoreServiceProviderTests
     }
 
     [TestMethod]
-    public void TryGetTransientService_Rpcthrows_LoggedAndReturnsFalse()
+    public void TryGetTransientService_RpcThrows_LoggedAndReturnsFalse()
     {
         var rpcMock = new Mock<ISLCoreJsonRpc>();
         SetUpConnectionState(rpcMock, true);
