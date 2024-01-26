@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -48,17 +48,17 @@ public class SLCoreIntegrationSmokeTest
         {
             @""
         };
-        
-        var slCoreRunner = new SLCoreRunner(slcoreBat, enableVerboseLogs: true);
 
-        var slCoreServiceProvider = new SLCoreServiceProvider();
+        var slCoreRunner = new SLCoreRunner(slcoreBat, enableVerboseLogs: true);
+        var logger = new TestLogger();
+
+        var slCoreServiceProvider = new SLCoreServiceProvider(logger);
         slCoreServiceProvider.SetCurrentConnection(slCoreRunner.Rpc);
-        var slCoreListenerSetUp = new SLCoreListenerSetUp(new []{new LoggerListener(new TestLogger(logToConsole:true))});
+        var slCoreListenerSetUp = new SLCoreListenerSetUp(new[] { new LoggerListener(new TestLogger(logToConsole: true)) });
         slCoreListenerSetUp.Setup(slCoreRunner.Rpc);
 
         slCoreServiceProvider.TryGetTransientService(out ISLCoreLifecycleService slCoreLifecycleService).Should()
             .BeTrue();
-        
 
         await slCoreLifecycleService.InitializeAsync(new InitializeParams(
             new ClientConstantsDto("TEST", "TEST"),
@@ -80,9 +80,9 @@ public class SLCoreIntegrationSmokeTest
             new TelemetryClientConstantAttributesDto("TEST", "TEST", "TEST", "TEST", new Dictionary<string, object>()),
             null
         ));
-        
+
         await slCoreLifecycleService.ShutdownAsync();
-        
+
         slCoreRunner.Dispose();
     }
 }
