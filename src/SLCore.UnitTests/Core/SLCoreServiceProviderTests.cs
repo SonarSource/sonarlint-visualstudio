@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,6 +19,7 @@
  */
 
 using System;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -30,13 +31,15 @@ public class SLCoreServiceProviderTests
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<SLCoreServiceProvider, ISLCoreServiceProvider>();
+        MefTestHelpers.CheckTypeCanBeImported<SLCoreServiceProvider, ISLCoreServiceProvider>(
+            MefTestHelpers.CreateExport<ILogger>());
     }
 
     [TestMethod]
     public void MefCtor_WriterInterface_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<SLCoreServiceProvider, ISLCoreServiceProviderWriter>();
+        MefTestHelpers.CheckTypeCanBeImported<SLCoreServiceProvider, ISLCoreServiceProviderWriter>(
+            MefTestHelpers.CreateExport<ILogger>());
     }
 
     [TestMethod]
@@ -72,6 +75,23 @@ public class SLCoreServiceProviderTests
         var testSubject = CreateTestSubject(rpcMock.Object);
 
         testSubject.TryGetTransientService(out ITestSLcoreService1 _).Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void TryGetTransientService_RpcThrows_LoggedAndReturnsFalse()
+    {
+        var rpcMock = new Mock<ISLCoreJsonRpc>();
+        SetUpConnectionState(rpcMock, true);
+        rpcMock.Setup(r => r.CreateService<ISLCoreService>()).Throws(new Exception("Service is not Created"));
+
+        var logger = new TestLogger();
+
+        var testSubject = CreateTestSubject(rpcMock.Object, logger);
+
+        var result = testSubject.TryGetTransientService(out ISLCoreService service);
+
+        result.Should().BeFalse();
+        logger.AssertPartialOutputStringExists("Service is not Created");
     }
 
     [TestMethod]
@@ -176,9 +196,10 @@ public class SLCoreServiceProviderTests
         rpcMock.SetupGet(x => x.IsAlive).Returns(isAlive);
     }
 
-    private SLCoreServiceProvider CreateTestSubject(ISLCoreJsonRpc jsonRpc = null)
+    private SLCoreServiceProvider CreateTestSubject(ISLCoreJsonRpc jsonRpc = null, ILogger logger = null)
     {
-        var testSubject = new SLCoreServiceProvider();
+        logger ??= new TestLogger();
+        var testSubject = new SLCoreServiceProvider(logger);
         if (jsonRpc != null)
         {
             testSubject.SetCurrentConnection(jsonRpc);
