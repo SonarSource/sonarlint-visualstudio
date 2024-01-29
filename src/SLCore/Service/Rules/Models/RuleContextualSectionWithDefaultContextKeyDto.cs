@@ -19,9 +19,11 @@
  */
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models
 {
+    [ExcludeFromCodeCoverage] // https://github.com/SonarSource/sonarlint-visualstudio/issues/5199
     public class RuleContextualSectionWithDefaultContextKeyDto
     {
         public RuleContextualSectionWithDefaultContextKeyDto(string defaultContextKey, List<RuleContextualSectionDto> contextualSections)
