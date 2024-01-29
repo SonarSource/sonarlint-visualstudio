@@ -18,18 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using System.Diagnostics.CodeAnalysis;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Rules
+namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models
 {
-    [JsonRpcClassAttribute("rule")]
-    public interface IRulesRpcService : ISLCoreService
+    [ExcludeFromCodeCoverage] // https://github.com/SonarSource/sonarlint-visualstudio/issues/5199
+    public class RuleMonolithicDescriptionDto
     {
-        /// <summary>
-        /// Gets Rule Meta Data from SLCORE
-        /// </summary>
-        Task<GetEffectiveRuleDetailsResponse> GetEffectiveRuleDetailsAsync(GetEffectiveRuleDetailsParams parameters);
+        public RuleMonolithicDescriptionDto(string htmlContent)
+        {
+            this.htmlContent = htmlContent;
+        }
+
+        public string htmlContent { get; }
     }
 }

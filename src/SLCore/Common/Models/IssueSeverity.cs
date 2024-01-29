@@ -18,18 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
-
-namespace SonarLint.VisualStudio.SLCore.Service.Rules
+namespace SonarLint.VisualStudio.SLCore.Common.Models
 {
-    [JsonRpcClassAttribute("rule")]
-    public interface IRulesRpcService : ISLCoreService
+    public enum IssueSeverity
     {
-        /// <summary>
-        /// Gets Rule Meta Data from SLCORE
-        /// </summary>
-        Task<GetEffectiveRuleDetailsResponse> GetEffectiveRuleDetailsAsync(GetEffectiveRuleDetailsParams parameters);
+        INFO,
+        MINOR,
+        MAJOR,
+        CRITICAL,
+        BLOCKER
     }
 }
