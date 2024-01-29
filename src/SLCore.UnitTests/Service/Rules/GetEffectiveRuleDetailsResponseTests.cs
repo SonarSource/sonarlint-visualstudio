@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using FluentAssertions.Equivalency;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Protocol;
@@ -108,7 +109,6 @@ public class GetEffectiveRuleDetailsResponseTests
                 options => options
                     .WithStrictOrdering()
                     .RespectingDeclaredTypes()
-                    .For(x => x.details.description.Right.tabs)
-                        .Exclude(x => x.content.Left.htmlContent));
+                    .Excluding((IMemberInfo info) => info.RuntimeType == typeof(string) && info.SelectedMemberPath.EndsWith(".content.Left.htmlContent")));
     }
 }
