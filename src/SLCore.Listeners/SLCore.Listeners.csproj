@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\SonarLint.Product.props" />
+
+  <PropertyGroup>
+    <RootNamespace>SonarLint.VisualStudio.SLCore.Listeners</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.SLCore.Listeners</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ConnectedMode\ConnectedMode.csproj" />
+    <ProjectReference Include="..\SLCore\SLCore.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\SonarLint.Test.props" />
+
+  <PropertyGroup>
+    <RootNamespace>SonarLint.VisualStudio.SLCore.Listeners.UnitTests</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.SLCore.Listeners.UnitTests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SLCore\SLCore.csproj" />
+    <ProjectReference Include="..\SLCor.Listeners\SLCore.Listeners.csproj" />
+    <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
