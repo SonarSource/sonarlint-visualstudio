@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,23 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.Threading.Tasks;
-using SonarLint.VisualStudio.SLCore.Core;
-
-namespace SonarLint.VisualStudio.SLCore.Listener.Credentials
+namespace SonarLint.VisualStudio.SLCore.Common
 {
-    /// <summary>
-    /// Credentials provider for SLCore
-    /// </summary>
-    [Export(typeof(ISLCoreListener))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class CredentialsListener : ISLCoreListener
+    internal static class ConnectionIdPrefix
     {
-        public Task<GetCredentialsResponse> GetCredentialsAsync(GetCredentialsParams parameters)
-        {
-            // stub implementation
-            return Task.FromResult(GetCredentialsResponse.NoCredentials);
-        }
+        public const string SonarCloudPrefix = "sc|";
+        public const string SonarQubePrefix = "sq|";
     }
 }
