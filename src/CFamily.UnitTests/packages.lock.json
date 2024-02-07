@@ -1555,6 +1555,7 @@
           "SonarLint.VisualStudio.Roslyn.Suppressions": "[1.0.0, )",
           "SonarLint.VisualStudio.Rules": "[1.0.0, )",
           "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
+          "SonarLint.VisualStudio.SLCore.Listeners": "[1.0.0, )",
           "SonarLint.VisualStudio.TypeScript": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )",
           "System.IO.Abstractions": "[9.0.4, )",
@@ -1719,6 +1720,13 @@
         "dependencies": {
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "StreamJsonRpc": "[2.5.46, )"
+        }
+      },
+      "SonarLint.VisualStudio.SLCore.Listeners": {
+        "type": "Project",
+        "dependencies": {
+          "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
+          "SonarLint.VisualStudio.SLCore": "[1.0.0, )"
         }
       },
       "SonarLint.VisualStudio.TypeScript": {
