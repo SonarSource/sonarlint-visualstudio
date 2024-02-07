@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SLCore\SLCore.csproj" />
-    <ProjectReference Include="..\SLCor.Listeners\SLCore.Listeners.csproj" />
+    <ProjectReference Include="..\SLCore.Listeners\SLCore.Listeners.csproj" />
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 
