@@ -30,6 +30,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     internal interface IUnintrusiveBindingPathProvider
     {
         string Get();
+
+        string SLVSRootBindingFolder { get; }
     }
 
     [Export(typeof(IUnintrusiveBindingPathProvider))]
@@ -37,7 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     {
         private readonly ISolutionInfoProvider solutionInfoProvider;
 
-        private readonly string SLVSRootBindingFolder;
+        public string SLVSRootBindingFolder { get; }
 
         [ImportingConstructor]
         public UnintrusiveBindingPathProvider(ISolutionInfoProvider solutionInfoProvider)
