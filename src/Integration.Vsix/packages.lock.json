@@ -1672,6 +1672,13 @@
           "StreamJsonRpc": "[2.5.46, )"
         }
       },
+      "SonarLint.VisualStudio.SLCore.Listeners": {
+        "type": "Project",
+        "dependencies": {
+          "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
+          "SonarLint.VisualStudio.SLCore": "[1.0.0, )"
+        }
+      },
       "SonarLint.VisualStudio.TypeScript": {
         "type": "Project",
         "dependencies": {
