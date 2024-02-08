@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
@@ -33,24 +32,23 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         public string Organization { get; set; }
 
         public string ProjectKey { get; set; }
-    }
 
-    internal class BindingInfoComparer : IEqualityComparer<BindingInfo>
-    {
-        public bool Equals(BindingInfo x, BindingInfo y)
+        public override bool Equals(object obj)
         {
-            if (x == null || y == null)
-                return true;
+            var item = obj as BindingInfo;
 
-            return x.ServerUri == y.ServerUri;
+            if (this == null && item == null)
+            { return true; }
+
+            if (this == null ^ item == null)
+            { return false; }
+
+            return this.ServerUri == item.ServerUri;
         }
 
-        public int GetHashCode(BindingInfo obj)
+        public override int GetHashCode()
         {
-            if (obj == null || obj.ServerUri == null)
-                return 0;
-
-            return obj.ServerUri.GetHashCode();
+            return this.ServerUri.GetHashCode();
         }
     }
 }

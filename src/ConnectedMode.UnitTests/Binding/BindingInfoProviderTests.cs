@@ -124,6 +124,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             result.Should().HaveCount(1);
         }
 
+        [TestMethod]
+        public void GetExistingBindings_SameBindingMultipleTime_ReturnsDistinct()
+        {
+            var fileSytem = new MockFileSystem();
+            fileSytem.AddDirectory("C:\\Bindings");
+            fileSytem.AddDirectory("C:\\Bindings\\Binding1");
+            fileSytem.AddDirectory("C:\\Bindings\\Binding2");
+
+            var solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
+
+            var binding1 = CreateBoundSonarQubeProject("https://sonarqube.somedomain.com", null, "projectKey1");
+            var binding2 = CreateBoundSonarQubeProject("https://sonarqube.somedomain.com", null, "projectKey2");
+
+            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding1\\binding.config")).Returns(binding1);
+            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding2\\binding.config")).Returns(binding2);
+
+            var testSubject = CreateTestSubject(fileSytem, solutionBindingFileLoader: solutionBindingFileLoader.Object);
+
+            var result = testSubject.GetExistingBindings();
+
+            result.Should().HaveCount(1);
+        }
+
         private static IUnintrusiveBindingPathProvider CreateUnintrusiveBindingPathProvider()
         {
             var unintrusiveBindingPathProvider = new Mock<IUnintrusiveBindingPathProvider>();
