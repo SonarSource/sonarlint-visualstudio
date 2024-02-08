@@ -37,10 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         {
             var item = obj as BindingInfo;
 
-            if (this == null && item == null)
-            { return true; }
-
-            if (this == null ^ item == null)
+            if (item == null)
             { return false; }
 
             return this.ServerUri == item.ServerUri;
