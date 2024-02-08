@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
+
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     /// <summary>
@@ -25,10 +28,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     /// </summary>
     public class BindingInfo
     {
-        public string ServerUri { get; set; }
+        public Uri ServerUri { get; set; }
 
         public string Organization { get; set; }
 
         public string ProjectKey { get; set; }
+    }
+
+    internal class BindingInfoComparer : IEqualityComparer<BindingInfo>
+    {
+        public bool Equals(BindingInfo x, BindingInfo y)
+        {
+            if (x == null || y == null)
+                return true;
+
+            return x.ServerUri == y.ServerUri;
+        }
+
+        public int GetHashCode(BindingInfo obj)
+        {
+            if (obj == null || obj.ServerUri == null)
+                return 0;
+
+            return obj.ServerUri.GetHashCode();
+        }
     }
 }

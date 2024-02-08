@@ -22,7 +22,11 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
-using Newtonsoft.Json.Linq;
+using System.Linq;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
@@ -31,21 +35,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     internal class BindingInfoProvider : IBindingInfoProvider
     {
         private readonly IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider;
+        private readonly ISolutionBindingFileLoader solutionBindingFileLoader;
         private readonly IFileSystem fileSystem;
+        private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
-        public BindingInfoProvider(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider) : this(unintrusiveBindingPathProvider, new FileSystem())
+        public BindingInfoProvider(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ISolutionBindingFileLoader solutionBindingFileLoader)
+            : this(unintrusiveBindingPathProvider, solutionBindingFileLoader, new FileSystem(), ThreadHandling.Instance)
         {
         }
 
-        internal BindingInfoProvider(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, IFileSystem fileSystem)
+        internal BindingInfoProvider(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ISolutionBindingFileLoader solutionBindingFileLoader, IFileSystem fileSystem, IThreadHandling threadHandling)
         {
             this.unintrusiveBindingPathProvider = unintrusiveBindingPathProvider;
+            this.solutionBindingFileLoader = solutionBindingFileLoader;
             this.fileSystem = fileSystem;
+            this.threadHandling = threadHandling;
         }
 
-        public IList<BindingInfo> GetExistingBindings()
+        public IEnumerable<BindingInfo> GetExistingBindings()
         {
+            threadHandling.ThrowIfOnUIThread();
+
             var result = new List<BindingInfo>();
 
             if (fileSystem.Directory.Exists(unintrusiveBindingPathProvider.SLVSRootBindingFolder))
@@ -56,34 +67,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                 {
                     var configFilePath = Path.Combine(binding, "binding.config");
 
-                    if (!fileSystem.File.Exists(configFilePath)) { continue; }
+                    var boundSonarQubeProject = solutionBindingFileLoader.Load(configFilePath);
 
-                    var fileContent = fileSystem.File.ReadAllText(configFilePath);
+                    if (boundSonarQubeProject == null) { continue; }
 
-                    BindingInfo bindingInfo = CreateBindingInfo(fileContent);
-
-                    result.Add(bindingInfo);
+                    result.Add(ConvertToBindingInfo(boundSonarQubeProject));
                 }
             }
-            return result;
+            return result.Distinct();
         }
 
-        private static BindingInfo CreateBindingInfo(string fileContent)
-        {
-            var bindingObject = JObject.Parse(fileContent);
-
-            var organisation = bindingObject["Organization"]["Key"];
-
-            var serverUri = bindingObject["ServerUri"].ToString();
-            var projectKey = bindingObject["ProjectKey"].ToString();
-
-            var bindingInfo = new BindingInfo { ServerUri = serverUri, ProjectKey = projectKey };
-            if (organisation.HasValues)
+        private BindingInfo ConvertToBindingInfo(BoundSonarQubeProject boundSonarQubeProject)
+            => new BindingInfo
             {
-                bindingInfo.Organization = organisation.ToString();
-            }
-
-            return bindingInfo;
-        }
+                Organization = boundSonarQubeProject.Organization?.Key,
+                ProjectKey = boundSonarQubeProject.ProjectKey,
+                ServerUri = boundSonarQubeProject.ServerUri
+            };
     }
 }

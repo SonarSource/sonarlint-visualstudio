@@ -27,6 +27,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         /// <summary>
         /// Lists all bindings that have been saved locally
         /// </summary>
-        IList<BindingInfo> GetExistingBindings();
+        IEnumerable<BindingInfo> GetExistingBindings();
     }
 }

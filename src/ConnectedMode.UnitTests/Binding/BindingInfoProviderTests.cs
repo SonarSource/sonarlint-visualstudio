@@ -18,8 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
+using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.TestInfrastructure;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 {
@@ -52,6 +60,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         }
 
         [TestMethod]
+        public void GetExistingBindings_MakeSureCallInBackground()
+        {
+            var threadHandling = new Mock<IThreadHandling>();
+
+            var testSubject = CreateTestSubject(threadHandling: threadHandling.Object);
+
+            _ = testSubject.GetExistingBindings();
+
+            threadHandling.Verify(t => t.ThrowIfOnUIThread(), Times.Once());
+            threadHandling.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public void GetExistingBindings_HaveBindings_ReturnsBinding()
         {
             var fileSytem = new MockFileSystem();
@@ -59,22 +80,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             fileSytem.AddDirectory("C:\\Bindings\\Binding1");
             fileSytem.AddDirectory("C:\\Bindings\\Binding2");
 
-            var file1 = CreateFileData("https://sonarqube.somedomain.com", null, "projectKey1");
-            var file2 = CreateFileData("https://sonarcloud.io", "organisation2", "projectKey2");
+            var solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
 
-            fileSytem.AddFile("C:\\Bindings\\Binding1\\binding.config", file1);
-            fileSytem.AddFile("C:\\Bindings\\Binding2\\binding.config", file2);
+            var binding1 = CreateBoundSonarQubeProject("https://sonarqube.somedomain.com", null, "projectKey1");
+            var binding2 = CreateBoundSonarQubeProject("https://sonarcloud.io", "organisation", "projectKey2");
 
-            var testSubject = CreateTestSubject(fileSytem);
+            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding1\\binding.config")).Returns(binding1);
+            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding2\\binding.config")).Returns(binding2);
 
-            var result = testSubject.GetExistingBindings();
+            var testSubject = CreateTestSubject(fileSytem, solutionBindingFileLoader: solutionBindingFileLoader.Object);
+
+            var result = testSubject.GetExistingBindings().ToList();
 
             result.Should().HaveCount(2);
-            result[0].ServerUri.Should().Be("https://sonarqube.somedomain.com");
+            result[0].ServerUri.ToString().Should().Be("https://sonarqube.somedomain.com/");
             result[0].Organization.Should().BeNull();
             result[0].ProjectKey.Should().Be("projectKey1");
-            result[1].ServerUri.Should().Be("https://sonarcloud.io");
-            result[1].Organization.Should().BeNull("organisation2");
+            result[1].ServerUri.ToString().Should().Be("https://sonarcloud.io/");
+            result[1].Organization.Should().Be("organisation");
             result[1].ProjectKey.Should().Be("projectKey2");
         }
 
@@ -86,11 +109,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             fileSytem.AddDirectory("C:\\Bindings\\Binding1");
             fileSytem.AddDirectory("C:\\Bindings\\Binding2");
 
-            var file = CreateFileData("https://sonarcloud.io", "organisation", "projectKey");
+            var solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
 
-            fileSytem.AddFile("C:\\Bindings\\Binding2\\binding.config", file);
+            var binding1 = CreateBoundSonarQubeProject("https://sonarqube.somedomain.com", null, "projectKey1");
+            var binding2 = CreateBoundSonarQubeProject("https://sonarcloud.io", "organisation", "projectKey2");
 
-            var testSubject = CreateTestSubject(fileSytem);
+            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding1\\binding.config")).Returns(binding1);
+            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding2\\binding.config")).Returns((BoundSonarQubeProject)null);
+
+            var testSubject = CreateTestSubject(fileSytem, solutionBindingFileLoader: solutionBindingFileLoader.Object);
 
             var result = testSubject.GetExistingBindings();
 
@@ -104,21 +131,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             return unintrusiveBindingPathProvider.Object;
         }
 
-        private static BindingInfoProvider CreateTestSubject(MockFileSystem fileSytem)
+        private static BindingInfoProvider CreateTestSubject(IFileSystem fileSytem = null, ISolutionBindingFileLoader solutionBindingFileLoader = null, IThreadHandling threadHandling = null)
         {
             var unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider();
 
-            var testSubject = new BindingInfoProvider(unintrusiveBindingPathProvider, fileSytem);
+            fileSytem ??= new MockFileSystem();
+            solutionBindingFileLoader ??= Mock.Of<ISolutionBindingFileLoader>();
+            threadHandling ??= new NoOpThreadHandler();
+
+            var testSubject = new BindingInfoProvider(unintrusiveBindingPathProvider, solutionBindingFileLoader, fileSytem, threadHandling);
             return testSubject;
         }
 
-        private static MockFileData CreateFileData(string serverUri, string organization, string projectKey)
+        private static BoundSonarQubeProject CreateBoundSonarQubeProject(string uri, string organizationKey, string projectKey)
         {
-            var content = organization != null
-                ? $"{{\"ServerUri\":\"{serverUri}\",\"Organization\":{{\"Key\":\"{organization}\",\"Name\":\"\"}},\"ProjectKey\":\"{projectKey}\",\"ProjectName\":\"\"}}"
-                : $"{{\"ServerUri\":\"{serverUri}\",\"Organization\":{{\"Key\":null,\"Name\":\"\"}},\"ProjectKey\":\"{projectKey}\",\"ProjectName\":\"\"}}";
+            var organization = CreateOrganization(organizationKey);
 
-            return new MockFileData(content);
+            var serverUri = new Uri(uri);
+
+            return new BoundSonarQubeProject(serverUri, projectKey, null, organization: organization);
         }
+
+        private static SonarQubeOrganization CreateOrganization(string organizationKey) => organizationKey == null ? null : new SonarQubeOrganization(organizationKey, null);
     }
 }
