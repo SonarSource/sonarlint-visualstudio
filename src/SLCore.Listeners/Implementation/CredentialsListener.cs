@@ -18,11 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.SLCore.Common;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Credentials;
@@ -36,24 +35,30 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class CredentialsListener : ICredentialsListener
     {
-        private static readonly Uri SonarCloudUri = new Uri("https://sonarcloud.io");
         private readonly ICredentialStoreService credentialStore;
+        private readonly IConnectionIdHelper connectionIdHelper;
 
         [ImportingConstructor]
-        public CredentialsListener(ICredentialStoreService credentialStore)
+        public CredentialsListener(ICredentialStoreService credentialStore) 
+            : this(credentialStore, new ConnectionIdHelper())
+        {
+        }
+
+        public CredentialsListener(ICredentialStoreService credentialStore, IConnectionIdHelper connectionIdHelper)
         {
             this.credentialStore = credentialStore;
+            this.connectionIdHelper = connectionIdHelper;
         }
 
         public Task<GetCredentialsResponse> GetCredentialsAsync(GetCredentialsParams parameters)
         {
-            var serverUri = GetServerUriFromConnectionId(parameters?.connectionId);
+            var serverUri = connectionIdHelper.GetUriFromConnectionId(parameters?.connectionId);
 
             if (serverUri == null)
             {
                 return Task.FromResult(GetCredentialsResponse.NoCredentials);
             }
-            
+
             var credentials = credentialStore.ReadCredentials(serverUri);
 
             if (credentials == null)
@@ -64,29 +69,6 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
             return Task.FromResult(string.IsNullOrEmpty(credentials.Password)
                 ? new GetCredentialsResponse(new TokenDto(credentials.Username))
                 : new GetCredentialsResponse(new UsernamePasswordDto(credentials.Username, credentials.Password)));
-        }
-
-        private static Uri GetServerUriFromConnectionId(string connectionId)
-        {
-            if (connectionId == null)
-            {
-                return null;
-            }
-            
-            if (connectionId.StartsWith(ConnectionIdPrefix.SonarCloudPrefix))
-            {
-                return SonarCloudUri;
-            }
-
-            if (connectionId.StartsWith(ConnectionIdPrefix.SonarQubePrefix))
-            {
-                return Uri.TryCreate(connectionId.Substring(ConnectionIdPrefix.SonarQubePrefix.Length), UriKind.Absolute,
-                    out var uri)
-                    ? uri
-                    : null;
-            }
-
-            return null;
         }
     }
 }

@@ -25,7 +25,7 @@ using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.SLCore.Common;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Credentials;
@@ -37,10 +37,8 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests;
 [TestClass]
 public class CredentialsListenerTests
 {
-    private static readonly Uri SonarQubeUri = new("https://next.sonarqube.com");
-    private static readonly Uri SonarCloudUri = new("https://sonarcloud.io");
-    private static readonly string SonarQubeConnectionId = ConnectionIdPrefix.SonarQubePrefix + SonarQubeUri;
-    private const string SonarCloudConnectionId = ConnectionIdPrefix.SonarCloudPrefix + "myorganization";
+    private const string ConnectionId = "connectionId123";
+    private static readonly Uri Uri = new("http://myfavouriteuri.nonexistingdomain");
     
     [TestMethod]
     public void MefCtor_CheckIsExported()
@@ -58,8 +56,9 @@ public class CredentialsListenerTests
     [TestMethod]
     public async Task GetCredentialsAsync_NullConnectionId_ReturnsNoCredentials()
     {
-        var testSubject = CreateTestSubject(out _);
-
+        var testSubject = CreateTestSubject(out _, out var connectionIdHelperMock);
+        connectionIdHelperMock.Setup(x => x.GetUriFromConnectionId(null)).Returns((Uri)null);
+        
         var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(null));
 
         response.Should().BeSameAs(GetCredentialsResponse.NoCredentials);
@@ -68,7 +67,8 @@ public class CredentialsListenerTests
     [TestMethod]
     public async Task GetCredentialsAsync_NullParams_ReturnsNoCredentials()
     {
-        var testSubject = CreateTestSubject(out _);
+        var testSubject = CreateTestSubject(out _, out var connectionIdHelperMock);
+        connectionIdHelperMock.Setup(x => x.GetUriFromConnectionId(null)).Returns((Uri)null);
 
         var response = await testSubject.GetCredentialsAsync(null);
 
@@ -76,37 +76,29 @@ public class CredentialsListenerTests
     }
 
     [TestMethod]
-    public async Task GetCredentialsAsync_SonarQubeCredentialsNotFound_ReturnsNoCredentials()
+    public async Task GetCredentialsAsync_CredentialsNotFound_ReturnsNoCredentials()
     {
-        var testSubject = CreateTestSubject(out var credentialStoreMock);
-        credentialStoreMock.Setup(x => x.ReadCredentials(It.Is((TargetUri uri) => UriEquals(uri, SonarQubeUri)))).Returns((Credential)null);
+        var testSubject = CreateTestSubject(out var credentialStoreMock, out var connectionIdHelperMock);
+        SetUpConnectionIdHelper(connectionIdHelperMock);
+        credentialStoreMock.Setup(x => x.ReadCredentials(It.Is((TargetUri targetUri) => UriEquals(targetUri, Uri)))).Returns((Credential)null);
 
-        var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(SonarQubeConnectionId));
+        var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(ConnectionId));
 
         response.Should().BeSameAs(GetCredentialsResponse.NoCredentials);
     }
-    
-    [TestMethod]
-    public async Task GetCredentialsAsync_SonarCloudCredentialsNotFound_ReturnsNoCredentials()
-    {
-        var testSubject = CreateTestSubject(out var credentialStoreMock);
-        credentialStoreMock.Setup(x => x.ReadCredentials(It.Is((TargetUri uri) => UriEquals(uri, SonarCloudUri)))).Returns((Credential)null);
 
-        var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(SonarQubeConnectionId));
 
-        response.Should().BeSameAs(GetCredentialsResponse.NoCredentials);
-    }
-    
     [TestMethod]
     public async Task GetCredentialsAsync_SonarQubeUsernameAndPasswordFound_ReturnsUsernameAndPassword()
     {
         const string username = "user1";
         const string password = "password123";
         
-        var testSubject = CreateTestSubject(out var credentialStoreMock);
-        credentialStoreMock.Setup(x => x.ReadCredentials(It.Is((TargetUri uri) => UriEquals(uri, SonarQubeUri)))).Returns(new Credential(username, password));
+        var testSubject = CreateTestSubject(out var credentialStoreMock, out var connectionIdHelperMock);
+        SetUpConnectionIdHelper(connectionIdHelperMock);
+        credentialStoreMock.Setup(x => x.ReadCredentials(It.Is((TargetUri targetUri) => UriEquals(targetUri, Uri)))).Returns(new Credential(username, password));
 
-        var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(SonarQubeConnectionId));
+        var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(ConnectionId));
 
         response.Should().BeEquivalentTo(new GetCredentialsResponse(new UsernamePasswordDto(username, password)));
     }
@@ -116,47 +108,30 @@ public class CredentialsListenerTests
     {
         const string token = "token123";
         
-        var testSubject = CreateTestSubject(out var credentialStoreMock);
-        credentialStoreMock.Setup(x => x.ReadCredentials(It.Is((TargetUri uri) => UriEquals(uri, SonarQubeUri)))).Returns(new Credential(token));
+        var testSubject = CreateTestSubject(out var credentialStoreMock, out var connectionIdHelperMock);
+        SetUpConnectionIdHelper(connectionIdHelperMock);
+        credentialStoreMock.Setup(x => x.ReadCredentials(It.Is((TargetUri targetUri) => UriEquals(targetUri, Uri)))).Returns(new Credential(token));
 
-        var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(SonarQubeConnectionId));
-
-        response.Should().BeEquivalentTo(new GetCredentialsResponse(new TokenDto(token)));
-    }
-    
-    [TestMethod]
-    public async Task GetCredentialsAsync_SonarCloudUsernameAndPasswordFound_ReturnsUsernameAndPassword()
-    {
-        const string username = "user1";
-        const string password = "password123";
-        
-        var testSubject = CreateTestSubject(out var credentialStoreMock);
-        credentialStoreMock.Setup(x => x.ReadCredentials(It.Is((TargetUri uri) => UriEquals(uri, SonarCloudUri)))).Returns(new Credential(username, password));
-
-        var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(SonarCloudConnectionId));
-
-        response.Should().BeEquivalentTo(new GetCredentialsResponse(new UsernamePasswordDto(username, password)));
-    }
-    
-    [TestMethod]
-    public async Task GetCredentialsAsync_SonarCloudTokenFound_ReturnsToken()
-    {
-        const string token = "token123";
-        
-        var testSubject = CreateTestSubject(out var credentialStoreMock);
-        credentialStoreMock.Setup(x => x.ReadCredentials(It.Is((TargetUri uri) => UriEquals(uri, SonarCloudUri)))).Returns(new Credential(token));
-
-        var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(SonarCloudConnectionId));
+        var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(ConnectionId));
 
         response.Should().BeEquivalentTo(new GetCredentialsResponse(new TokenDto(token)));
     }
 
-    private CredentialsListener CreateTestSubject(out Mock<ICredentialStoreService> credentialStoreMock)
+    private CredentialsListener CreateTestSubject(out Mock<ICredentialStoreService> credentialStoreMock, out Mock<IConnectionIdHelper> connectionIdHelperMock)
     {
         credentialStoreMock = new Mock<ICredentialStoreService>();
+        connectionIdHelperMock = new Mock<IConnectionIdHelper>();
         
-        return new CredentialsListener(credentialStoreMock.Object);
+        return new CredentialsListener(credentialStoreMock.Object, connectionIdHelperMock.Object);
     }
-
-    private bool UriEquals(TargetUri uri, Uri serverUri) => serverUri.Equals((Uri)uri);
+    
+    private static void SetUpConnectionIdHelper(Mock<IConnectionIdHelper> connectionIdHelperMock)
+    {
+        connectionIdHelperMock.Setup(x => x.GetUriFromConnectionId(ConnectionId)).Returns(Uri);
+    }
+    
+    private static bool UriEquals(TargetUri uri, Uri serverUri)
+    {
+        return serverUri.Equals((Uri)uri);
+    }
 }
