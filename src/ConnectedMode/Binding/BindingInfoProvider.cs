@@ -41,15 +41,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         [ImportingConstructor]
         public BindingInfoProvider(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ISolutionBindingFileLoader solutionBindingFileLoader)
-            : this(unintrusiveBindingPathProvider, solutionBindingFileLoader, new FileSystem(), ThreadHandling.Instance)
+            : this(unintrusiveBindingPathProvider, solutionBindingFileLoader, ThreadHandling.Instance)
         {
         }
 
-        internal BindingInfoProvider(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ISolutionBindingFileLoader solutionBindingFileLoader, IFileSystem fileSystem, IThreadHandling threadHandling)
+        internal BindingInfoProvider(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ISolutionBindingFileLoader solutionBindingFileLoader, IThreadHandling threadHandling)
         {
             this.unintrusiveBindingPathProvider = unintrusiveBindingPathProvider;
             this.solutionBindingFileLoader = solutionBindingFileLoader;
-            this.fileSystem = fileSystem;
             this.threadHandling = threadHandling;
         }
 
@@ -59,21 +58,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
             var result = new List<BindingInfo>();
 
-            if (fileSystem.Directory.Exists(unintrusiveBindingPathProvider.SLVSRootBindingFolder))
+            var bindings = unintrusiveBindingPathProvider.GetBindingFolders();
+
+            foreach (var binding in bindings)
             {
-                var bindings = fileSystem.Directory.GetDirectories(unintrusiveBindingPathProvider.SLVSRootBindingFolder);
+                var configFilePath = Path.Combine(binding, "binding.config");
 
-                foreach (var binding in bindings)
-                {
-                    var configFilePath = Path.Combine(binding, "binding.config");
+                var boundSonarQubeProject = solutionBindingFileLoader.Load(configFilePath);
 
-                    var boundSonarQubeProject = solutionBindingFileLoader.Load(configFilePath);
+                if (boundSonarQubeProject == null) { continue; }
 
-                    if (boundSonarQubeProject == null) { continue; }
-
-                    result.Add(ConvertToBindingInfo(boundSonarQubeProject));
-                }
+                result.Add(ConvertToBindingInfo(boundSonarQubeProject));
             }
+
             return result.Distinct();
         }
 

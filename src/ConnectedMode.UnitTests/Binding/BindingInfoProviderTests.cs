@@ -19,8 +19,6 @@
  */
 
 using System;
-using System.IO.Abstractions;
-using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
@@ -35,24 +33,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
     public class BindingInfoProviderTests
     {
         [TestMethod]
-        public void GetExistingBindings_BindingFolderDoNotExist_ReturnsEmpty()
-        {
-            var fileSytem = new MockFileSystem();
-
-            var testSubject = CreateTestSubject(fileSytem);
-
-            var result = testSubject.GetExistingBindings();
-
-            result.Should().BeEmpty();
-        }
-
-        [TestMethod]
         public void GetExistingBindings_NoBindings_ReturnsEmpty()
         {
-            var fileSytem = new MockFileSystem();
-            fileSytem.AddDirectory("C:\\Bindings");
-
-            var testSubject = CreateTestSubject(fileSytem);
+            var testSubject = CreateTestSubject();
 
             var result = testSubject.GetExistingBindings();
 
@@ -75,10 +58,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         [TestMethod]
         public void GetExistingBindings_HaveBindings_ReturnsBinding()
         {
-            var fileSytem = new MockFileSystem();
-            fileSytem.AddDirectory("C:\\Bindings");
-            fileSytem.AddDirectory("C:\\Bindings\\Binding1");
-            fileSytem.AddDirectory("C:\\Bindings\\Binding2");
+            var unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider("C:\\Bindings\\Binding1", "C:\\Bindings\\Binding2");
 
             var solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
 
@@ -88,7 +68,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding1\\binding.config")).Returns(binding1);
             solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding2\\binding.config")).Returns(binding2);
 
-            var testSubject = CreateTestSubject(fileSytem, solutionBindingFileLoader: solutionBindingFileLoader.Object);
+            var testSubject = CreateTestSubject(unintrusiveBindingPathProvider: unintrusiveBindingPathProvider, solutionBindingFileLoader: solutionBindingFileLoader.Object);
 
             var result = testSubject.GetExistingBindings().ToList();
 
@@ -104,10 +84,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         [TestMethod]
         public void GetExistingBindings_BindingConfigMissing_SkipFile()
         {
-            var fileSytem = new MockFileSystem();
-            fileSytem.AddDirectory("C:\\Bindings");
-            fileSytem.AddDirectory("C:\\Bindings\\Binding1");
-            fileSytem.AddDirectory("C:\\Bindings\\Binding2");
+            var unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider("C:\\Bindings\\Binding1", "C:\\Bindings\\Binding2");
 
             var solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
 
@@ -117,7 +94,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding1\\binding.config")).Returns(binding1);
             solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding2\\binding.config")).Returns((BoundSonarQubeProject)null);
 
-            var testSubject = CreateTestSubject(fileSytem, solutionBindingFileLoader: solutionBindingFileLoader.Object);
+            var testSubject = CreateTestSubject(unintrusiveBindingPathProvider: unintrusiveBindingPathProvider, solutionBindingFileLoader: solutionBindingFileLoader.Object);
 
             var result = testSubject.GetExistingBindings();
 
@@ -127,10 +104,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         [TestMethod]
         public void GetExistingBindings_SameBindingMultipleTime_ReturnsDistinct()
         {
-            var fileSytem = new MockFileSystem();
-            fileSytem.AddDirectory("C:\\Bindings");
-            fileSytem.AddDirectory("C:\\Bindings\\Binding1");
-            fileSytem.AddDirectory("C:\\Bindings\\Binding2");
+            var unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider("C:\\Bindings\\Binding1", "C:\\Bindings\\Binding2");
 
             var solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
 
@@ -140,29 +114,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding1\\binding.config")).Returns(binding1);
             solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding2\\binding.config")).Returns(binding2);
 
-            var testSubject = CreateTestSubject(fileSytem, solutionBindingFileLoader: solutionBindingFileLoader.Object);
+            var testSubject = CreateTestSubject(unintrusiveBindingPathProvider: unintrusiveBindingPathProvider, solutionBindingFileLoader: solutionBindingFileLoader.Object);
 
             var result = testSubject.GetExistingBindings();
 
             result.Should().HaveCount(1);
         }
 
-        private static IUnintrusiveBindingPathProvider CreateUnintrusiveBindingPathProvider()
+        private static IUnintrusiveBindingPathProvider CreateUnintrusiveBindingPathProvider(params string[] bindigFolders)
         {
             var unintrusiveBindingPathProvider = new Mock<IUnintrusiveBindingPathProvider>();
-            unintrusiveBindingPathProvider.SetupGet(u => u.SLVSRootBindingFolder).Returns("C:\\Bindings");
+            unintrusiveBindingPathProvider.Setup(u => u.GetBindingFolders()).Returns(bindigFolders);
             return unintrusiveBindingPathProvider.Object;
         }
 
-        private static BindingInfoProvider CreateTestSubject(IFileSystem fileSytem = null, ISolutionBindingFileLoader solutionBindingFileLoader = null, IThreadHandling threadHandling = null)
+        private static BindingInfoProvider CreateTestSubject(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider = null, ISolutionBindingFileLoader solutionBindingFileLoader = null, IThreadHandling threadHandling = null)
         {
-            var unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider();
+            unintrusiveBindingPathProvider ??= CreateUnintrusiveBindingPathProvider();
 
-            fileSytem ??= new MockFileSystem();
             solutionBindingFileLoader ??= Mock.Of<ISolutionBindingFileLoader>();
             threadHandling ??= new NoOpThreadHandler();
 
-            var testSubject = new BindingInfoProvider(unintrusiveBindingPathProvider, solutionBindingFileLoader, fileSytem, threadHandling);
+            var testSubject = new BindingInfoProvider(unintrusiveBindingPathProvider, solutionBindingFileLoader, threadHandling);
             return testSubject;
         }
 

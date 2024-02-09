@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
@@ -31,7 +33,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     {
         string Get();
 
-        string SLVSRootBindingFolder { get; }
+        string[] GetBindingFolders();
     }
 
     [Export(typeof(IUnintrusiveBindingPathProvider))]
@@ -39,19 +41,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     {
         private readonly ISolutionInfoProvider solutionInfoProvider;
 
-        public string SLVSRootBindingFolder { get; }
+        private readonly string SLVSRootBindingFolder;
+        private readonly IFileSystem fileSystem;
 
         [ImportingConstructor]
         public UnintrusiveBindingPathProvider(ISolutionInfoProvider solutionInfoProvider)
-            : this(solutionInfoProvider, EnvironmentVariableProvider.Instance)
+            : this(solutionInfoProvider, EnvironmentVariableProvider.Instance, new FileSystem())
         {
         }
 
         internal /* for testing */ UnintrusiveBindingPathProvider(ISolutionInfoProvider solutionInfoProvider,
-            IEnvironmentVariableProvider environmentVariables)
+            IEnvironmentVariableProvider environmentVariables, IFileSystem fileSystem)
         {
             SLVSRootBindingFolder = Path.Combine(environmentVariables.GetSLVSAppDataRootPath(), "Bindings");
             this.solutionInfoProvider = solutionInfoProvider;
+            this.fileSystem = fileSystem;
         }
 
         public string Get()
@@ -61,6 +65,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             //   $(APPDATA)\SonarLint for Visual Studio\\Bindings\\$(SolutionName)\binding.config
             var solutionName = solutionInfoProvider.GetSolutionName();
             return solutionName != null ? Path.Combine(SLVSRootBindingFolder, $"{solutionName}", "binding.config") : null;
+        }
+
+        public string[] GetBindingFolders()
+        {
+            if (fileSystem.Directory.Exists(SLVSRootBindingFolder))
+            {
+                return fileSystem.Directory.GetDirectories(SLVSRootBindingFolder);
+            }
+
+            return Array.Empty<string>();
         }
     }
 }

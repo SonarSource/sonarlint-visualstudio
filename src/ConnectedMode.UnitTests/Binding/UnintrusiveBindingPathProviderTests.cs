@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -74,14 +76,73 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             actual.Should().Be($@"{rootFolderName}SonarLint for Visual Studio\Bindings\{solutionName}\binding.config");
         }
 
-        private static UnintrusiveBindingPathProvider CreateTestSubject(ISolutionInfoProvider solutionInfoProvider,
-            IEnvironmentVariableProvider envVars = null)
+        [TestMethod]
+        public void GetBindingFolders_NoBindingFolder_ReturnsEmpy()
         {
-            envVars ??= CreateEnvVars("any");
-            return new UnintrusiveBindingPathProvider(solutionInfoProvider, envVars);
+            const string solutionName = "mysolutionName";
+            const string rootFolderName = @"x:\users\foo\";
+
+            var solutionInfoProvider = CreateSolutionInfoProvider(solutionName);
+            var envVars = CreateEnvVars(rootFolderName);
+
+            var testSubject = CreateTestSubject(solutionInfoProvider.Object, envVars);
+
+            var actual = testSubject.GetBindingFolders();
+
+            actual.Should().NotBeNull();
+            actual.Should().BeEmpty();
         }
 
-        private Mock<ISolutionInfoProvider> CreateSolutionInfoProvider(string solutionName = null)
+        [TestMethod]
+        public void GetBindingFolders_NoBindings_ReturnsEmpty()
+        {
+            const string rootFolderName = @"x:\users\foo\";
+
+            var envVars = CreateEnvVars(rootFolderName);
+
+            var fileSystem = new MockFileSystem();
+            fileSystem.AddDirectory($@"{rootFolderName}SonarLint for Visual Studio\Bindings\");
+
+            var testSubject = CreateTestSubject(envVars: envVars, fileSystem: fileSystem);
+
+            var actual = testSubject.GetBindingFolders();
+
+            actual.Should().NotBeNull();
+            actual.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void GetBindingFolders_ReturnsBindings()
+        {
+            const string rootFolderName = @"x:\users\foo\";
+
+            var envVars = CreateEnvVars(rootFolderName);
+
+            var fileSystem = new MockFileSystem();
+            fileSystem.AddDirectory($@"{rootFolderName}SonarLint for Visual Studio\Bindings\");
+            fileSystem.AddDirectory($@"{rootFolderName}SonarLint for Visual Studio\Bindings\Binding1");
+            fileSystem.AddDirectory($@"{rootFolderName}SonarLint for Visual Studio\Bindings\Binding2");
+
+            var bindingFolders = new string[] { $@"{rootFolderName}SonarLint for Visual Studio\Bindings\Binding1", $@"{rootFolderName}SonarLint for Visual Studio\Bindings\Binding2" };
+
+            var testSubject = CreateTestSubject(envVars: envVars, fileSystem: fileSystem);
+
+            var actual = testSubject.GetBindingFolders();
+
+            actual.Should().HaveCount(2);
+            actual.Should().BeEquivalentTo(bindingFolders);
+        }
+
+        private static UnintrusiveBindingPathProvider CreateTestSubject(ISolutionInfoProvider solutionInfoProvider = null,
+            IEnvironmentVariableProvider envVars = null, IFileSystem fileSystem = null)
+        {
+            solutionInfoProvider ??= CreateSolutionInfoProvider(null).Object;
+            fileSystem ??= new MockFileSystem();
+            envVars ??= CreateEnvVars("any");
+            return new UnintrusiveBindingPathProvider(solutionInfoProvider, envVars, fileSystem);
+        }
+
+        private static Mock<ISolutionInfoProvider> CreateSolutionInfoProvider(string solutionName = null)
         {
             var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
             solutionInfoProvider.Setup(x => x.GetSolutionName()).Returns(solutionName);
