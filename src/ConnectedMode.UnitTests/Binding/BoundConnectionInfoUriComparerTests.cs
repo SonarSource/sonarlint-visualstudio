@@ -24,15 +24,23 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 {
     [TestClass]
-    public class BindingInfoTests
+    public class BoundConnectionInfoUriComparerTests
     {
+        BoundConnectionInfoUriComparer comparer;
+
+        [TestInitialize]
+        public void Init()
+        {
+            comparer = new BoundConnectionInfoUriComparer();
+        }
+
         [TestMethod]
         public void Equals_BothNull_ReturnsTrue()
         {
             BoundConnectionInfo bindingInfo1 = null;
             BoundConnectionInfo bindingInfo2 = null;
 
-            Equals(bindingInfo1, bindingInfo2).Should().BeTrue();
+            comparer.Equals(bindingInfo1, bindingInfo2).Should().BeTrue();
         }
 
         [TestMethod]
@@ -41,7 +49,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             BoundConnectionInfo bindingInfo1 = new BoundConnectionInfo();
             BoundConnectionInfo bindingInfo2 = null;
 
-            bindingInfo1.Equals(bindingInfo2).Should().BeFalse();
+            comparer.Equals(bindingInfo1, bindingInfo2).Should().BeFalse();
         }
 
         [TestMethod]
@@ -50,7 +58,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             BoundConnectionInfo bindingInfo1 = new BoundConnectionInfo { ServerUri = new Uri("https://www.google.com") };
             BoundConnectionInfo bindingInfo2 = new BoundConnectionInfo { ServerUri = new Uri("https://www.google.com") };
 
-            bindingInfo1.Equals(bindingInfo2).Should().BeTrue();
+            comparer.Equals(bindingInfo1, bindingInfo2).Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void GetHashCode_SameAsUri()
+        {
+            BoundConnectionInfo bindingInfo = new BoundConnectionInfo { ServerUri = new Uri("https://www.google.com") };
+
+            comparer.GetHashCode(bindingInfo).Should().Be(bindingInfo.ServerUri.GetHashCode());
         }
     }
 }
