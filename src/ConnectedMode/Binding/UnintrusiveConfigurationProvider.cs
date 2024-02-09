@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         public BindingConfiguration GetConfiguration()
         {
-            var bindingConfiguration = TryGetBindingConfiguration(pathProvider.Get());
+            var bindingConfiguration = TryGetBindingConfiguration(pathProvider.GetCurrentBindingPath());
 
             return bindingConfiguration ?? BindingConfiguration.Standalone;
         }
