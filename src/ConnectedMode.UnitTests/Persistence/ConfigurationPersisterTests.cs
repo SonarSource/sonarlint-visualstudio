@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         public void Persist_SaveNewConfig()
         {
             var projectToWrite = new BoundSonarQubeProject();
-            configFilePathProvider.Setup(x => x.Get()).Returns("c:\\new.txt");
+            configFilePathProvider.Setup(x => x.GetCurrentBindingPath()).Returns("c:\\new.txt");
 
             solutionBindingDataWriter
                 .Setup(x => x.Write("c:\\new.txt", projectToWrite))
