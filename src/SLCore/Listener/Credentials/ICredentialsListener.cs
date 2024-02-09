@@ -18,23 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Credentials
 {
-    /// <summary>
-    /// Credentials provider for SLCore
-    /// </summary>
-    [Export(typeof(ISLCoreListener))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class CredentialsListener : ISLCoreListener
+    internal interface ICredentialsListener : ISLCoreListener
     {
-        public Task<GetCredentialsResponse> GetCredentialsAsync(GetCredentialsParams parameters)
-        {
-            // stub implementation
-            return Task.FromResult(GetCredentialsResponse.NoCredentials);
-        }
+        Task<GetCredentialsResponse> GetCredentialsAsync(GetCredentialsParams parameters);
     }
 }
