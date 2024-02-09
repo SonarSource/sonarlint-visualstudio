@@ -28,9 +28,9 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
     internal class RuleSplitDescription : IVisualNodeProducer
     {
         private readonly string introductionHtml;
-        private readonly List<RuleDescriptionTab> tabs;
+        private readonly List<IRuleDescriptionTab> tabs;
 
-        public RuleSplitDescription(string introductionHtml, List<RuleDescriptionTab> tabs)
+        public RuleSplitDescription(string introductionHtml, List<IRuleDescriptionTab> tabs)
         {
             this.introductionHtml = introductionHtml;
             this.tabs = tabs;
@@ -41,48 +41,47 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
             throw new System.NotImplementedException();
         }
     }
-
-    [ExcludeFromCodeCoverage]
-    internal abstract class RuleDescriptionTab : IVisualNodeProducer
+    
+    internal interface IRuleDescriptionTab : IVisualNodeProducer
     {
-        protected RuleDescriptionTab(string title)
-        {
-            Title = title;
-        }
-
-        public string Title { get; }
-        public abstract IAbstractVisualizationTreeNode ProduceVisualNode(VisualizationParameters parameters);
+        string Title { get; }
     }
     
     [ExcludeFromCodeCoverage]
-    internal class NonContextualRuleDescriptionTab : RuleDescriptionTab
+    internal class NonContextualRuleDescriptionTab : IRuleDescriptionTab
     {
         private readonly string htmlContent;
 
-        public NonContextualRuleDescriptionTab(string title, string htmlContent) : base(title)
+        public NonContextualRuleDescriptionTab(string title, string htmlContent)
         {
+            Title = title;
             this.htmlContent = htmlContent;
         }
+        
+        public string Title { get; }
 
-        public override IAbstractVisualizationTreeNode ProduceVisualNode(VisualizationParameters parameters)
+        public IAbstractVisualizationTreeNode ProduceVisualNode(VisualizationParameters parameters)
         {
             throw new System.NotImplementedException();
         }
     }
     
     [ExcludeFromCodeCoverage]
-    internal class ContextualRuleDescriptionTab : RuleDescriptionTab
+    internal class ContextualRuleDescriptionTab : IRuleDescriptionTab
     {
         private readonly List<ContextContentTab> contexts;
         private readonly string defaultContext;
         
-        public ContextualRuleDescriptionTab(string title, string defaultContext, List<ContextContentTab> contexts) : base(title)
+        public ContextualRuleDescriptionTab(string title, string defaultContext, List<ContextContentTab> contexts)
         {
+            Title = title;
             this.contexts = contexts;
             this.defaultContext = defaultContext;
         }
         
-        public override IAbstractVisualizationTreeNode ProduceVisualNode(VisualizationParameters parameters)
+        public string Title { get; set; }
+        
+        public IAbstractVisualizationTreeNode ProduceVisualNode(VisualizationParameters parameters)
         {
             throw new System.NotImplementedException();
         }
