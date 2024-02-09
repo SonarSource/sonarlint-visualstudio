@@ -20,8 +20,6 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
-using System.IO.Abstractions;
 using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
@@ -32,53 +30,49 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     [Export(typeof(IBindingInfoProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class BindingInfoProvider : IBindingInfoProvider
+    internal class BoundConnectionInfoProvider : IBindingInfoProvider
     {
         private readonly IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider;
         private readonly ISolutionBindingFileLoader solutionBindingFileLoader;
-        private readonly IFileSystem fileSystem;
         private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
-        public BindingInfoProvider(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ISolutionBindingFileLoader solutionBindingFileLoader)
+        public BoundConnectionInfoProvider(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ISolutionBindingFileLoader solutionBindingFileLoader)
             : this(unintrusiveBindingPathProvider, solutionBindingFileLoader, ThreadHandling.Instance)
         {
         }
 
-        internal BindingInfoProvider(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ISolutionBindingFileLoader solutionBindingFileLoader, IThreadHandling threadHandling)
+        internal BoundConnectionInfoProvider(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ISolutionBindingFileLoader solutionBindingFileLoader, IThreadHandling threadHandling)
         {
             this.unintrusiveBindingPathProvider = unintrusiveBindingPathProvider;
             this.solutionBindingFileLoader = solutionBindingFileLoader;
             this.threadHandling = threadHandling;
         }
 
-        public IEnumerable<BindingInfo> GetExistingBindings()
+        public IEnumerable<BoundConnectionInfo> GetExistingBindings()
         {
             threadHandling.ThrowIfOnUIThread();
 
-            var result = new List<BindingInfo>();
+            var result = new List<BoundConnectionInfo>();
 
-            var bindings = unintrusiveBindingPathProvider.GetBindingFolders();
+            var bindings = unintrusiveBindingPathProvider.GetBindingPaths();
 
             foreach (var binding in bindings)
             {
-                var configFilePath = Path.Combine(binding, "binding.config");
-
-                var boundSonarQubeProject = solutionBindingFileLoader.Load(configFilePath);
+                var boundSonarQubeProject = solutionBindingFileLoader.Load(binding);
 
                 if (boundSonarQubeProject == null) { continue; }
 
                 result.Add(ConvertToBindingInfo(boundSonarQubeProject));
             }
 
-            return result.Distinct();
+            return result.Distinct(new BoundConnectionInfoUriComparer());
         }
 
-        private BindingInfo ConvertToBindingInfo(BoundSonarQubeProject boundSonarQubeProject)
-            => new BindingInfo
+        private BoundConnectionInfo ConvertToBindingInfo(BoundSonarQubeProject boundSonarQubeProject)
+            => new BoundConnectionInfo
             {
                 Organization = boundSonarQubeProject.Organization?.Key,
-                ProjectKey = boundSonarQubeProject.ProjectKey,
                 ServerUri = boundSonarQubeProject.ServerUri
             };
     }

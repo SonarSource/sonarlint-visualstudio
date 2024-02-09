@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             var serviceProvider = CreateSolutionInfoProvider(null);
             var testSubject = CreateTestSubject(serviceProvider.Object);
 
-            var actual = testSubject.Get();
+            var actual = testSubject.GetCurrentBindingPath();
             actual.Should().BeNull();
         }
 
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 
             var testSubject = CreateTestSubject(solutionInfoProvider.Object, envVars);
 
-            var actual = testSubject.Get();
+            var actual = testSubject.GetCurrentBindingPath();
 
             actual.Should().Be($@"{rootFolderName}SonarLint for Visual Studio\Bindings\{solutionName}\binding.config");
         }
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 
             var testSubject = CreateTestSubject(solutionInfoProvider.Object, envVars);
 
-            var actual = testSubject.GetBindingFolders();
+            var actual = testSubject.GetBindingPaths();
 
             actual.Should().NotBeNull();
             actual.Should().BeEmpty();
@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 
             var testSubject = CreateTestSubject(envVars: envVars, fileSystem: fileSystem);
 
-            var actual = testSubject.GetBindingFolders();
+            var actual = testSubject.GetBindingPaths();
 
             actual.Should().NotBeNull();
             actual.Should().BeEmpty();
@@ -123,11 +123,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             fileSystem.AddDirectory($@"{rootFolderName}SonarLint for Visual Studio\Bindings\Binding1");
             fileSystem.AddDirectory($@"{rootFolderName}SonarLint for Visual Studio\Bindings\Binding2");
 
-            var bindingFolders = new string[] { $@"{rootFolderName}SonarLint for Visual Studio\Bindings\Binding1", $@"{rootFolderName}SonarLint for Visual Studio\Bindings\Binding2" };
+            var bindingFolders = new string[] { $@"{rootFolderName}SonarLint for Visual Studio\Bindings\Binding1\binding.config", $@"{rootFolderName}SonarLint for Visual Studio\Bindings\Binding2\binding.config" };
 
             var testSubject = CreateTestSubject(envVars: envVars, fileSystem: fileSystem);
 
-            var actual = testSubject.GetBindingFolders();
+            var actual = testSubject.GetBindingPaths();
 
             actual.Should().HaveCount(2);
             actual.Should().BeEquivalentTo(bindingFolders);

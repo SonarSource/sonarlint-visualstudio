@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         [TestMethod]
         public void GetExistingBindings_HaveBindings_ReturnsBinding()
         {
-            var unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider("C:\\Bindings\\Binding1", "C:\\Bindings\\Binding2");
+            var unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider("C:\\Bindings\\Binding1\\binding.config", "C:\\Bindings\\Binding2\\binding.config");
 
             var solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
 
@@ -75,16 +75,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             result.Should().HaveCount(2);
             result[0].ServerUri.ToString().Should().Be("https://sonarqube.somedomain.com/");
             result[0].Organization.Should().BeNull();
-            result[0].ProjectKey.Should().Be("projectKey1");
             result[1].ServerUri.ToString().Should().Be("https://sonarcloud.io/");
             result[1].Organization.Should().Be("organisation");
-            result[1].ProjectKey.Should().Be("projectKey2");
         }
 
         [TestMethod]
         public void GetExistingBindings_BindingConfigMissing_SkipFile()
         {
-            var unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider("C:\\Bindings\\Binding1", "C:\\Bindings\\Binding2");
+            var unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider("C:\\Bindings\\Binding1\\binding.config", "C:\\Bindings\\Binding2\\binding.config");
 
             var solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
 
@@ -104,7 +102,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         [TestMethod]
         public void GetExistingBindings_SameBindingMultipleTime_ReturnsDistinct()
         {
-            var unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider("C:\\Bindings\\Binding1", "C:\\Bindings\\Binding2");
+            var unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider("C:\\Bindings\\Binding1\\binding.config", "C:\\Bindings\\Binding2\\binding.config");
 
             var solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
 
@@ -124,18 +122,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         private static IUnintrusiveBindingPathProvider CreateUnintrusiveBindingPathProvider(params string[] bindigFolders)
         {
             var unintrusiveBindingPathProvider = new Mock<IUnintrusiveBindingPathProvider>();
-            unintrusiveBindingPathProvider.Setup(u => u.GetBindingFolders()).Returns(bindigFolders);
+            unintrusiveBindingPathProvider.Setup(u => u.GetBindingPaths()).Returns(bindigFolders);
             return unintrusiveBindingPathProvider.Object;
         }
 
-        private static BindingInfoProvider CreateTestSubject(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider = null, ISolutionBindingFileLoader solutionBindingFileLoader = null, IThreadHandling threadHandling = null)
+        private static BoundConnectionInfoProvider CreateTestSubject(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider = null, ISolutionBindingFileLoader solutionBindingFileLoader = null, IThreadHandling threadHandling = null)
         {
             unintrusiveBindingPathProvider ??= CreateUnintrusiveBindingPathProvider();
 
             solutionBindingFileLoader ??= Mock.Of<ISolutionBindingFileLoader>();
             threadHandling ??= new NoOpThreadHandler();
 
-            var testSubject = new BindingInfoProvider(unintrusiveBindingPathProvider, solutionBindingFileLoader, threadHandling);
+            var testSubject = new BoundConnectionInfoProvider(unintrusiveBindingPathProvider, solutionBindingFileLoader, threadHandling);
             return testSubject;
         }
 

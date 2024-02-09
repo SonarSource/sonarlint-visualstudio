@@ -29,8 +29,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         [TestMethod]
         public void Equals_BothNull_ReturnsTrue()
         {
-            BindingInfo bindingInfo1 = null;
-            BindingInfo bindingInfo2 = null;
+            BoundConnectionInfo bindingInfo1 = null;
+            BoundConnectionInfo bindingInfo2 = null;
 
             Equals(bindingInfo1, bindingInfo2).Should().BeTrue();
         }
@@ -38,8 +38,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         [TestMethod]
         public void Equals_OneNull_ReturnsFalse()
         {
-            BindingInfo bindingInfo1 = new BindingInfo();
-            BindingInfo bindingInfo2 = null;
+            BoundConnectionInfo bindingInfo1 = new BoundConnectionInfo();
+            BoundConnectionInfo bindingInfo2 = null;
 
             bindingInfo1.Equals(bindingInfo2).Should().BeFalse();
         }
@@ -47,8 +47,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         [TestMethod]
         public void Equals_SameUri_ReturnsTrue()
         {
-            BindingInfo bindingInfo1 = new BindingInfo { ServerUri = new Uri("https://www.google.com") };
-            BindingInfo bindingInfo2 = new BindingInfo { ServerUri = new Uri("https://www.google.com") };
+            BoundConnectionInfo bindingInfo1 = new BoundConnectionInfo { ServerUri = new Uri("https://www.google.com") };
+            BoundConnectionInfo bindingInfo2 = new BoundConnectionInfo { ServerUri = new Uri("https://www.google.com") };
 
             bindingInfo1.Equals(bindingInfo2).Should().BeTrue();
         }

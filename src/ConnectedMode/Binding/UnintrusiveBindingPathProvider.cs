@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
@@ -31,14 +31,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     /// </summary>
     internal interface IUnintrusiveBindingPathProvider
     {
-        string Get();
+        string GetCurrentBindingPath();
 
-        string[] GetBindingFolders();
+        IEnumerable<string> GetBindingPaths();
     }
 
     [Export(typeof(IUnintrusiveBindingPathProvider))]
     internal class UnintrusiveBindingPathProvider : IUnintrusiveBindingPathProvider
     {
+        private const string configFile = "binding.config";
+
         private readonly ISolutionInfoProvider solutionInfoProvider;
 
         private readonly string SLVSRootBindingFolder;
@@ -58,23 +60,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             this.fileSystem = fileSystem;
         }
 
-        public string Get()
+        public string GetCurrentBindingPath()
         {
             // The path must match the one in the SonarLintTargets.xml file that is dropped in
             // the MSBuild ImportBefore folder i.e.
             //   $(APPDATA)\SonarLint for Visual Studio\\Bindings\\$(SolutionName)\binding.config
             var solutionName = solutionInfoProvider.GetSolutionName();
-            return solutionName != null ? Path.Combine(SLVSRootBindingFolder, $"{solutionName}", "binding.config") : null;
+            return solutionName != null ? Path.Combine(SLVSRootBindingFolder, $"{solutionName}", configFile) : null;
         }
 
-        public string[] GetBindingFolders()
+        public IEnumerable<string> GetBindingPaths()
         {
             if (fileSystem.Directory.Exists(SLVSRootBindingFolder))
             {
-                return fileSystem.Directory.GetDirectories(SLVSRootBindingFolder);
+                foreach (var dirPath in fileSystem.Directory.GetDirectories(SLVSRootBindingFolder))
+                {
+                    yield return Path.Combine(dirPath, configFile);
+                }
             }
-
-            return Array.Empty<string>();
         }
     }
 }

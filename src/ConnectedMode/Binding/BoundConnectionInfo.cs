@@ -19,33 +19,42 @@
  */
 
 using System;
+using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     /// <summary>
     /// Data Class containing information about a binding
     /// </summary>
-    public class BindingInfo
+    public class BoundConnectionInfo
     {
         public Uri ServerUri { get; set; }
 
         public string Organization { get; set; }
+    }
 
-        public string ProjectKey { get; set; }
-
-        public override bool Equals(object obj)
+    internal class BoundConnectionInfoUriComparer : IEqualityComparer<BoundConnectionInfo>
+    {
+        public bool Equals(BoundConnectionInfo x, BoundConnectionInfo y)
         {
-            var item = obj as BindingInfo;
+            if (ReferenceEquals(x, y))
+            {
+                return true;
+            }
 
-            if (item == null)
-            { return false; }
+            if (x == null && y == null) { return true; }
 
-            return this.ServerUri == item.ServerUri;
+            if (x == null ^ y == null)
+            {
+                return false;
+            }
+
+            return x.ServerUri == y.ServerUri;
         }
 
-        public override int GetHashCode()
+        public int GetHashCode(BoundConnectionInfo obj)
         {
-            return this.ServerUri.GetHashCode();
+            return obj.ServerUri.GetHashCode();
         }
     }
 }

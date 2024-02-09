@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                 throw new ArgumentNullException(nameof(project));
             }
 
-            var configFilePath = configFilePathProvider.Get();
+            var configFilePath = configFilePathProvider.GetCurrentBindingPath();
 
             var success = configFilePath != null &&
                           solutionBindingDataWriter.Write(configFilePath, project);

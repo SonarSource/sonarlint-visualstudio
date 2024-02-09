@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private static IUnintrusiveBindingPathProvider CreatePathProvider(string pathToReturn)
         {
             var pathProvider = new Mock<IUnintrusiveBindingPathProvider>();
-            pathProvider.Setup(x => x.Get()).Returns(() => pathToReturn);
+            pathProvider.Setup(x => x.GetCurrentBindingPath()).Returns(() => pathToReturn);
             return pathProvider.Object;
         }
 
