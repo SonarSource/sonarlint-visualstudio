@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Visual.Tabs
         : ITabItem
     {
         internal /* for testing */ readonly IAbstractVisualizationTreeNode content;
-        private readonly string displayName;
+        internal /* for testing */ readonly string displayName;
 
         public TabItem(string displayName, IAbstractVisualizationTreeNode content)
         {
