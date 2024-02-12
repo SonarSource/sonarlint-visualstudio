@@ -109,33 +109,5 @@ namespace SonarLint.VisualStudio.Rules.UnitTests
 
             actualResult.Should().Be(expectedResult);
         }
-
-        [TestMethod]
-        public void ToDescriptionSection_HasContext_Converts()
-        {
-            var testSubject = new SonarQubeDescriptionSection("Key", "htmlContent", new SonarQubeContext("DisplayName", "ContextKey"));
-
-            var result = testSubject.ToDescriptionSection();
-
-            result.Key.Should().Be("Key");
-            result.HtmlContent.Should().Be("htmlContent");
-
-            result.Context.Should().NotBeNull();
-            result.Context.Key.Should().Be("ContextKey");
-            result.Context.DisplayName.Should().Be("DisplayName");
-        }
-
-        [TestMethod]
-        public void ToDescriptionSection_HasNotContext_ConvertsWithNullContext()
-        {
-            var testSubject = new SonarQubeDescriptionSection("Key", "htmlContent", null);
-
-            var result = testSubject.ToDescriptionSection();
-
-            result.Key.Should().Be("Key");
-            result.HtmlContent.Should().Be("htmlContent");
-
-            result.Context.Should().BeNull();
-        }
     }
 }

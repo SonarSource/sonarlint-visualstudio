@@ -69,21 +69,12 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
-    <Compile Update="XamlGenerator\StaticHtmlSnippets.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>StaticHtmlSnippets.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
   
   <ItemGroup>
     <EmbeddedResource Update="Resources.resx">
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <Generator>ResXFileCodeGenerator</Generator>
-    </EmbeddedResource>
-    <EmbeddedResource Update="XamlGenerator\StaticHtmlSnippets.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>StaticHtmlSnippets.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

@@ -224,11 +224,10 @@ Referenced assemblies:
 - 'SonarLint.VisualStudio.Rules, Version=8.0.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-- 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Web, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-# Number of references: 19
+# Number of references: 18
 
 ---
 Assembly: 'SonarLint.VisualStudio.Infrastructure.VS, Version=8.0.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
@@ -433,8 +432,35 @@ Relative path: 'SonarLint.VisualStudio.Rules.dll'
 Referenced assemblies:
 - 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed'
-- 'SonarLint.VisualStudio.Core, Version=8.0.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
-- 'SonarQube.Client, Version=8.0.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
+- 'SonarLint.VisualStudio.Core, Version=7.8.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
+- 'SonarQube.Client, Version=7.8.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
+- 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+- 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+- 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+# Number of references: 7
+
+---
+Assembly: 'SonarLint.VisualStudio.SLCore, Version=7.6.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
+Relative path: 'SonarLint.VisualStudio.SLCore.dll'
+
+Referenced assemblies:
+- 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+- 'Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed'
+- 'SonarLint.VisualStudio.Core, Version=7.6.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
+- 'StreamJsonRpc, Version=2.5.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
+- 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+- 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+# Number of references: 6
+
+---
+Assembly: 'SonarLint.VisualStudio.SLCore, Version=7.7.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
+Relative path: 'SonarLint.VisualStudio.SLCore.dll'
+
+Referenced assemblies:
+- 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+- 'Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed'
+- 'SonarLint.VisualStudio.Core, Version=7.7.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
+- 'StreamJsonRpc, Version=2.5.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
