@@ -27,6 +27,12 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
     [ExcludeFromCodeCoverage]
     internal class VisualizationParameters
     {
+        public VisualizationParameters(IRuleHelpXamlTranslator htmlToXamlTranslator, string relevantContext)
+        {
+            HtmlToXamlTranslator = htmlToXamlTranslator;
+            RelevantContext = relevantContext;
+        }
+
         public IRuleHelpXamlTranslator HtmlToXamlTranslator { get; }
         public string RelevantContext { get; }
     }
