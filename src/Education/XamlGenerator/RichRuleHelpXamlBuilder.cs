@@ -49,14 +49,12 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     internal class RichRuleHelpXamlBuilder : IRichRuleHelpXamlBuilder
     {
         private readonly IXamlGeneratorHelperFactory xamlGeneratorHelperFactory;
-        private readonly IStaticXamlStorage staticXamlStorage;
         private readonly IXamlWriterFactory xamlWriterFactory;
 
         [ImportingConstructor]
-        public RichRuleHelpXamlBuilder(IXamlGeneratorHelperFactory xamlGeneratorHelperFactory, IStaticXamlStorage staticXamlStorage, IXamlWriterFactory xamlWriterFactory)
+        public RichRuleHelpXamlBuilder(IXamlGeneratorHelperFactory xamlGeneratorHelperFactory, IXamlWriterFactory xamlWriterFactory)
         {
             this.xamlGeneratorHelperFactory = xamlGeneratorHelperFactory;
-            this.staticXamlStorage = staticXamlStorage;
             this.xamlWriterFactory = xamlWriterFactory;
         }
 
