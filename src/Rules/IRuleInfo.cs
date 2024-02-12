@@ -47,54 +47,7 @@ namespace SonarLint.VisualStudio.Rules
         Hotspot,        // SonarQube serialization = SECURITY_HOTSPOT
         Unknown
     }
-
-    public interface IContext
-    {
-        string Key { get; }
-        string DisplayName { get; }
-    }
-
-    public class Context : IContext
-    {
-        public Context(string key, string displayName)
-        {
-            Key = key;
-            DisplayName = displayName;
-        }
-
-        public string Key { get; }
-        public string DisplayName { get; }
-    }
-
-    public interface IDescriptionSection
-    {
-        string Key { get; }
-        string HtmlContent { get; }
-        IContext Context { get; }
-    }
-
-    public class DescriptionSection : IDescriptionSection
-    {
-        public DescriptionSection(string key, string htmlContent, IContext context = null)
-        {
-            Key = key;
-            HtmlContent = htmlContent;
-            Context = context;
-        }
-
-        public string Key { get; }
-        public string HtmlContent { get; }
-
-        /// <summary>
-        /// Different contexes for Description Sections
-        /// </summary>
-        /// <remarks>
-        /// These are subtabs for any given tab such as different languages
-        /// The field is optional
-        /// </remarks>
-        public IContext Context { get; }
-    }
-
+    
     /// <summary>
     /// Help data about a single rule, extracted using the Java plugin API
     /// </summary>
@@ -127,11 +80,6 @@ namespace SonarLint.VisualStudio.Rules
         IReadOnlyList<string> Tags { get; }
 
         /// <summary>
-        /// Tabs for new educational format. Can be empty. Will not be null.
-        /// </summary>
-        IReadOnlyList<IDescriptionSection> DescriptionSections { get; }
-
-        /// <summary>
         /// Education principles for the new educational format. Can be empty. Will not be null.
         /// </summary>
         IReadOnlyList<string> EducationPrinciples { get; }
@@ -142,8 +90,6 @@ namespace SonarLint.VisualStudio.Rules
 
         Dictionary<SoftwareQuality, SoftwareQualitySeverity> DefaultImpacts { get; }
 
-        IRuleInfo WithServerOverride(RuleIssueSeverity newSeverity, string newHtmlNote);
-
         IRuleInfo WithCleanCodeTaxonomyDisabled();
     }
 
@@ -151,7 +97,7 @@ namespace SonarLint.VisualStudio.Rules
     {
         public RuleInfo(string languageKey, string fullRuleKey, string description, string name,
             RuleIssueSeverity severity, RuleIssueType issueType, bool isActiveByDefault,
-            IReadOnlyList<string> tags, IReadOnlyList<IDescriptionSection> descriptionSections, IReadOnlyList<string> educationPrinciples, string htmlNote,
+            IReadOnlyList<string> tags, IReadOnlyList<string> educationPrinciples, string htmlNote,
             CleanCodeAttribute? cleanCodeAttribute, Dictionary<SoftwareQuality, SoftwareQualitySeverity> defaultImpacts)
         {
             LanguageKey = languageKey;
@@ -162,7 +108,6 @@ namespace SonarLint.VisualStudio.Rules
             IssueType = issueType;
             IsActiveByDefault = isActiveByDefault;
             Tags = tags ?? Array.Empty<string>();
-            DescriptionSections = descriptionSections ?? Array.Empty<IDescriptionSection>();
             EducationPrinciples = educationPrinciples ?? Array.Empty<string>();
             HtmlNote = htmlNote;
             CleanCodeAttribute = cleanCodeAttribute;
@@ -185,8 +130,6 @@ namespace SonarLint.VisualStudio.Rules
 
         public IReadOnlyList<string> Tags { get; private set; }
 
-        public IReadOnlyList<IDescriptionSection> DescriptionSections { get; }
-
         public IReadOnlyList<string> EducationPrinciples { get; }
 
         public string HtmlNote { get; }
@@ -194,21 +137,6 @@ namespace SonarLint.VisualStudio.Rules
         public CleanCodeAttribute? CleanCodeAttribute { get; }
 
         public Dictionary<SoftwareQuality, SoftwareQualitySeverity> DefaultImpacts { get; }
-
-        public IRuleInfo WithServerOverride(RuleIssueSeverity newSeverity, string newHtmlNote) =>
-            new RuleInfo(LanguageKey,
-                FullRuleKey,
-                Description,
-                Name,
-                newSeverity,
-                IssueType,
-                IsActiveByDefault,
-                Tags,
-                DescriptionSections,
-                EducationPrinciples,
-                newHtmlNote,
-                CleanCodeAttribute,
-                DefaultImpacts);
 
         public IRuleInfo WithCleanCodeTaxonomyDisabled() =>
             new RuleInfo(LanguageKey,
@@ -219,7 +147,6 @@ namespace SonarLint.VisualStudio.Rules
                 IssueType,
                 IsActiveByDefault,
                 Tags,
-                DescriptionSections,
                 EducationPrinciples,
                 HtmlNote,
                 null,
