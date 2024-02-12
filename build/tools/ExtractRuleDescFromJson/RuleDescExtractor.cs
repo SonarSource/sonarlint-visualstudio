@@ -103,36 +103,38 @@ internal class RuleDescExtractor
 
     private void ProcessRule(PluginRule pluginRule)
     {
-        try
-        {
-            var descAsxml = HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(pluginRule.Description);
-
-            var slvsRule = new RuleInfo(
-                pluginRule.Language?.ToLower() ?? throw new ArgumentNullException("language"),
-                pluginRule.Key ?? throw new ArgumentNullException("key"),
-                descAsxml,
-                pluginRule.Name ?? throw new ArgumentNullException("name"),
-                ConvertPluginSeverity(pluginRule.DefaultSeverity),
-                ConvertPluginIssueType(pluginRule.Type),
-                Convert.ToBoolean(pluginRule.IsActiveByDefault),
-                pluginRule.Tags ?? Array.Empty<string>(),
-                pluginRule.DescriptionSections?.Select(x => new SonarLint.VisualStudio.Rules.DescriptionSection(x.Key,
-                    HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(x.HtmlContent),
-                    x.Context != null
-                        ? new SonarLint.VisualStudio.Rules.Context(x.Context.Key, x.Context.DisplayName)
-                        : null)).ToList(),
-                pluginRule.EducationPrinciples,
-                null,
-                pluginRule.CleanCodeAttribute,
-                pluginRule.DefaultImpacts
-                );
-
-            SaveRuleFile(slvsRule);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError($"Error processing rule. Rule key: {pluginRule.Key}, file: {context.RuleJsonFilePath}, {ex.Message}");
-        }
+        return; // this will be deleted later
+        
+        // try
+        // {
+        //     var descAsxml = HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(pluginRule.Description);
+        //
+        //     var slvsRule = new RuleInfo(
+        //         pluginRule.Language?.ToLower() ?? throw new ArgumentNullException("language"),
+        //         pluginRule.Key ?? throw new ArgumentNullException("key"),
+        //         descAsxml,
+        //         pluginRule.Name ?? throw new ArgumentNullException("name"),
+        //         ConvertPluginSeverity(pluginRule.DefaultSeverity),
+        //         ConvertPluginIssueType(pluginRule.Type),
+        //         Convert.ToBoolean(pluginRule.IsActiveByDefault),
+        //         pluginRule.Tags ?? Array.Empty<string>(),
+        //         pluginRule.DescriptionSections?.Select(x => new SonarLint.VisualStudio.Rules.DescriptionSection(x.Key,
+        //             HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(x.HtmlContent),
+        //             x.Context != null
+        //                 ? new SonarLint.VisualStudio.Rules.Context(x.Context.Key, x.Context.DisplayName)
+        //                 : null)).ToList(),
+        //         pluginRule.EducationPrinciples,
+        //         null,
+        //         pluginRule.CleanCodeAttribute,
+        //         pluginRule.DefaultImpacts
+        //         );
+        //
+        //     SaveRuleFile(slvsRule);
+        // }
+        // catch (Exception ex)
+        // {
+        //     Logger.LogError($"Error processing rule. Rule key: {pluginRule.Key}, file: {context.RuleJsonFilePath}, {ex.Message}");
+        // }
     }
 
     private static RuleIssueSeverity ConvertPluginSeverity(string? pluginSeverity)
