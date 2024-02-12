@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Education.XamlGenerator;
-using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
 {
