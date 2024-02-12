@@ -9,6 +9,7 @@
 
   <PropertyGroup>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <RootNamespace>SonarLint.VisualStudio.Education</RootNamespace>

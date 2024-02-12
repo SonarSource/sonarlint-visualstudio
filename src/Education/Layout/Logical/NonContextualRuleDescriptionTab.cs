@@ -18,29 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
 using SonarLint.VisualStudio.Education.Layout.Visual;
-using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
 
 namespace SonarLint.VisualStudio.Education.Layout.Logical
 {
-    internal class RuleSplitDescription : IVisualNodeProducer
+    internal class NonContextualRuleDescriptionTab : IRuleDescriptionTab
     {
-        private readonly string introductionHtml;
-        private readonly List<IRuleDescriptionTab> tabs;
+        private readonly string htmlContent;
 
-        public RuleSplitDescription(string introductionHtml, List<IRuleDescriptionTab> tabs)
+        public NonContextualRuleDescriptionTab(string title, string htmlContent)
         {
-            this.introductionHtml = introductionHtml;
-            this.tabs = tabs;
+            Title = title;
+            this.htmlContent = htmlContent;
         }
+        
+        public string Title { get; }
 
         public IAbstractVisualizationTreeNode ProduceVisualNode(VisualizationParameters parameters)
         {
-            return new MultiBlockSection(
-                new ContentSection(parameters.HtmlToXamlTranslator.TranslateHtmlToXaml(introductionHtml)),
-                new TabGroup(tabs.Select(x => new TabItem(x.Title, x.ProduceVisualNode(parameters))).Cast<ITabItem>().ToList(), 0));
+            return new ContentSection(parameters.HtmlToXamlTranslator.TranslateHtmlToXaml(htmlContent));
         }
     }
 }
