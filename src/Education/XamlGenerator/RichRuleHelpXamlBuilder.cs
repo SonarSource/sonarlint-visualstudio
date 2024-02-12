@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
@@ -47,39 +48,37 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class RichRuleHelpXamlBuilder : IRichRuleHelpXamlBuilder
     {
-        private readonly IRuleInfoTranslator ruleInfoTranslator;
         private readonly IXamlGeneratorHelperFactory xamlGeneratorHelperFactory;
-        private readonly IStaticXamlStorage staticXamlStorage;
         private readonly IXamlWriterFactory xamlWriterFactory;
 
         [ImportingConstructor]
-        public RichRuleHelpXamlBuilder(IRuleInfoTranslator ruleInfoTranslator, IXamlGeneratorHelperFactory xamlGeneratorHelperFactory, IStaticXamlStorage staticXamlStorage, IXamlWriterFactory xamlWriterFactory)
+        public RichRuleHelpXamlBuilder(IXamlGeneratorHelperFactory xamlGeneratorHelperFactory, IXamlWriterFactory xamlWriterFactory)
         {
-            this.ruleInfoTranslator = ruleInfoTranslator;
             this.xamlGeneratorHelperFactory = xamlGeneratorHelperFactory;
-            this.staticXamlStorage = staticXamlStorage;
             this.xamlWriterFactory = xamlWriterFactory;
         }
 
         public FlowDocument Create(IRuleInfo ruleInfo, string issueContext)
         {
-            var richRuleDescriptionSections = ruleInfoTranslator.GetRuleDescriptionSections(ruleInfo, issueContext).ToList();
-            var mainTabGroup = new TabGroup(richRuleDescriptionSections
-                .Select(richRuleDescriptionSection =>
-                    new TabItem(richRuleDescriptionSection.Title,
-                        richRuleDescriptionSection.GetVisualizationTreeNode(staticXamlStorage)))
-                .ToList<ITabItem>(),
-                0);
-
-            var sb = new StringBuilder();
-            var writer = xamlWriterFactory.Create(sb);
-            var helper = xamlGeneratorHelperFactory.Create(writer);
-
-            helper.WriteDocumentHeader(ruleInfo);
-            mainTabGroup.ProduceXaml(writer);
-            helper.EndDocument();
-
-            return (FlowDocument)XamlReader.Parse(sb.ToString());
+            throw new NotImplementedException(); // will be re-implemented later
+            
+            // var richRuleDescriptionSections = ruleInfoTranslator.GetRuleDescriptionSections(ruleInfo, issueContext).ToList();
+            // var mainTabGroup = new TabGroup(richRuleDescriptionSections
+            //     .Select(richRuleDescriptionSection =>
+            //         new TabItem(richRuleDescriptionSection.Title,
+            //             richRuleDescriptionSection.GetVisualizationTreeNode(staticXamlStorage)))
+            //     .ToList<ITabItem>(),
+            //     0);
+            //
+            // var sb = new StringBuilder();
+            // var writer = xamlWriterFactory.Create(sb);
+            // var helper = xamlGeneratorHelperFactory.Create(writer);
+            //
+            // helper.WriteDocumentHeader(ruleInfo);
+            // mainTabGroup.ProduceXaml(writer);
+            // helper.EndDocument();
+            //
+            // return (FlowDocument)XamlReader.Parse(sb.ToString());
         }
     }
 }

@@ -35,8 +35,6 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
     [TestClass]
     public class SimpleRuleHelpXamlBuilderTests
     {
-        private static readonly Assembly ResourceAssembly = typeof(LocalRuleMetadataProvider).Assembly;
-
         [TestMethod]
         public void MefCtor_CheckExports()
         {

@@ -30,7 +30,8 @@ namespace SonarLint.VisualStudio.Rules
     {
         public static bool IsRichRuleDescription(this IRuleInfo ruleInfo)
         {
-            return ruleInfo.DescriptionSections != null && ruleInfo.DescriptionSections.Count > 1;
+            throw new NotImplementedException(); // will be re-implemented later
+            // return ruleInfo.DescriptionSections != null && ruleInfo.DescriptionSections.Count > 1;
         }
 
         internal static string GetCompositeKey(this SonarQubeRule sonarQubeRule) => $"{sonarQubeRule.RepositoryKey}:{sonarQubeRule.Key}";
@@ -156,16 +157,6 @@ namespace SonarLint.VisualStudio.Rules
                 default:
                     return RuleIssueType.Unknown;
             }
-        }
-
-        internal static IDescriptionSection ToDescriptionSection(this SonarQubeDescriptionSection sonarQubeDescriptionSection)
-        {
-            return new DescriptionSection(sonarQubeDescriptionSection.Key, HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(sonarQubeDescriptionSection.HtmlContent), sonarQubeDescriptionSection.Context?.ToContext());
-        }
-
-        private static IContext ToContext(this SonarQubeContext sonarQubeContext)
-        {
-            return new Context(sonarQubeContext.Key, sonarQubeContext.DisplayName);
         }
     }
 }
