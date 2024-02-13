@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Xml;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Rules;
+using SonarLint.VisualStudio.Education.Rule;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {

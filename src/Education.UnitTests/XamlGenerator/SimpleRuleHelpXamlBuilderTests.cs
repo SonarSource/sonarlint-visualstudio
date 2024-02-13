@@ -19,15 +19,14 @@
  */
 
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Windows.Documents;
 using System.Xml;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Education.Rule;
 using SonarLint.VisualStudio.Education.XamlGenerator;
-using SonarLint.VisualStudio.Rules;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator

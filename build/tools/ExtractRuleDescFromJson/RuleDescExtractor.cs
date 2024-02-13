@@ -20,7 +20,7 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using SonarLint.VisualStudio.Rules;
+// using SonarLint.VisualStudio.Rules;
 
 namespace ExtractRuleDescFromJson;
 
@@ -137,53 +137,53 @@ internal class RuleDescExtractor
         // }
     }
 
-    private static RuleIssueSeverity ConvertPluginSeverity(string? pluginSeverity)
-        => pluginSeverity switch
-        {
-            "MINOR" => RuleIssueSeverity.Minor,
-            "MAJOR" => RuleIssueSeverity.Major,
-            "INFO" => RuleIssueSeverity.Info,
-            "BLOCKER" => RuleIssueSeverity.Blocker,
-            "CRITICAL" => RuleIssueSeverity.Critical,
-            _ => throw new ArgumentException("Invalid enum value for pluginSeverity" + pluginSeverity, nameof(pluginSeverity)),
-        };
-
-    private RuleIssueType ConvertPluginIssueType(string? pluginIssueType)
-        => pluginIssueType switch
-        {
-            "SECURITY_HOTSPOT" => RuleIssueType.Hotspot,
-            "VULNERABILITY" => RuleIssueType.Vulnerability,
-            "BUG" => RuleIssueType.Bug,
-            "CODE_SMELL" => RuleIssueType.CodeSmell,
-            _ => throw new ArgumentException("Invalid enum value for pluginIssueType" + pluginIssueType, nameof(pluginIssueType)),
-        };
-
-    private void SaveRuleFile(RuleInfo slvsRuleInfo)
-    {
-        var fullPath = CalculateRuleFileName(slvsRuleInfo);
-        Logger.LogPartialMessage($" {Path.GetFileName(fullPath)}");
-
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            WriteIndented = true
-        };
-
-        var data = JsonSerializer.Serialize(slvsRuleInfo, options);
-        File.WriteAllText(fullPath, data);
-    }
-
-    private string CalculateRuleFileName(RuleInfo slvsRule)
-    {
-        // e.g. "S123.desc"
-        var colonPos = slvsRule.FullRuleKey.IndexOf(':');
-        if (colonPos == -1)
-        {
-            throw new InvalidOperationException("Invalid rule key: " + slvsRule.FullRuleKey);
-        }
-
-        var ruleKeyWithoutRepoKey = slvsRule.FullRuleKey.Substring(colonPos + 1);
-        var fileName = ruleKeyWithoutRepoKey + ".json";
-        return Path.Combine(context.DestinationDirectory, fileName);
-    }
+    // private static RuleIssueSeverity ConvertPluginSeverity(string? pluginSeverity)
+    //     => pluginSeverity switch
+    //     {
+    //         "MINOR" => RuleIssueSeverity.Minor,
+    //         "MAJOR" => RuleIssueSeverity.Major,
+    //         "INFO" => RuleIssueSeverity.Info,
+    //         "BLOCKER" => RuleIssueSeverity.Blocker,
+    //         "CRITICAL" => RuleIssueSeverity.Critical,
+    //         _ => throw new ArgumentException("Invalid enum value for pluginSeverity" + pluginSeverity, nameof(pluginSeverity)),
+    //     };
+    //
+    // private RuleIssueType ConvertPluginIssueType(string? pluginIssueType)
+    //     => pluginIssueType switch
+    //     {
+    //         "SECURITY_HOTSPOT" => RuleIssueType.Hotspot,
+    //         "VULNERABILITY" => RuleIssueType.Vulnerability,
+    //         "BUG" => RuleIssueType.Bug,
+    //         "CODE_SMELL" => RuleIssueType.CodeSmell,
+    //         _ => throw new ArgumentException("Invalid enum value for pluginIssueType" + pluginIssueType, nameof(pluginIssueType)),
+    //     };
+    //
+    // private void SaveRuleFile(RuleInfo slvsRuleInfo)
+    // {
+    //     var fullPath = CalculateRuleFileName(slvsRuleInfo);
+    //     Logger.LogPartialMessage($" {Path.GetFileName(fullPath)}");
+    //
+    //     var options = new JsonSerializerOptions
+    //     {
+    //         PropertyNameCaseInsensitive = true,
+    //         WriteIndented = true
+    //     };
+    //
+    //     var data = JsonSerializer.Serialize(slvsRuleInfo, options);
+    //     File.WriteAllText(fullPath, data);
+    // }
+    //
+    // private string CalculateRuleFileName(RuleInfo slvsRule)
+    // {
+    //     // e.g. "S123.desc"
+    //     var colonPos = slvsRule.FullRuleKey.IndexOf(':');
+    //     if (colonPos == -1)
+    //     {
+    //         throw new InvalidOperationException("Invalid rule key: " + slvsRule.FullRuleKey);
+    //     }
+    //
+    //     var ruleKeyWithoutRepoKey = slvsRule.FullRuleKey.Substring(colonPos + 1);
+    //     var fileName = ruleKeyWithoutRepoKey + ".json";
+    //     return Path.Combine(context.DestinationDirectory, fileName);
+    // }
 }
