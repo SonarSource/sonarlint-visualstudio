@@ -1564,7 +1564,6 @@
           "SonarLint.VisualStudio.Progress": "[1.0.0, )",
           "SonarLint.VisualStudio.ProgressVS": "[1.0.0, )",
           "SonarLint.VisualStudio.Roslyn.Suppressions": "[1.0.0, )",
-          "SonarLint.VisualStudio.Rules": "[1.0.0, )",
           "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
           "SonarLint.VisualStudio.SLCore.Listeners": "[1.0.0, )",
           "SonarLint.VisualStudio.TypeScript": "[1.0.0, )",
@@ -1618,8 +1617,7 @@
           "DiffPlex": "[1.7.1, )",
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
-          "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
-          "SonarLint.VisualStudio.Rules": "[1.0.0, )"
+          "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )"
         }
       },
       "SonarLint.VisualStudio.Infrastructure.VS": {
@@ -1718,12 +1716,6 @@
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )",
           "System.IO.Abstractions": "[9.0.4, )"
-        }
-      },
-      "SonarLint.VisualStudio.Rules": {
-        "type": "Project",
-        "dependencies": {
-          "SonarLint.VisualStudio.Core": "[1.0.0, )"
         }
       },
       "SonarLint.VisualStudio.SLCore": {

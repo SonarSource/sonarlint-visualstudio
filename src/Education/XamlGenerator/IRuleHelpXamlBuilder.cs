@@ -19,7 +19,7 @@
  */
 
 using System.Windows.Documents;
-using SonarLint.VisualStudio.Rules;
+using SonarLint.VisualStudio.Education.Rule;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {

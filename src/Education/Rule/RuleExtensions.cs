@@ -18,21 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.Configuration;
+using System;
 
-namespace SonarLint.VisualStudio.Rules
+namespace SonarLint.VisualStudio.Education.Rule
 {
-    public interface IRuleMetaDataProvider
+    public static class RuleExtensions
     {
-        /// <summary>
-        /// Returns rule information for the specified rule ID, or null if a rule description
-        /// could not be found.
-        /// </summary>
-        Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, CancellationToken token);
+        public static bool IsRichRuleDescription(this IRuleInfo ruleInfo)
+        {
+            throw new NotImplementedException(); // will be re-implemented later
+            // return ruleInfo.DescriptionSections != null && ruleInfo.DescriptionSections.Count > 1;
+        }
     }
 }

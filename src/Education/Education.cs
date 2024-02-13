@@ -25,9 +25,9 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.Commands;
+using SonarLint.VisualStudio.Education.Rule;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Rules;
 
 namespace SonarLint.VisualStudio.Education
 {
