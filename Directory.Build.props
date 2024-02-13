@@ -1,7 +1,7 @@
 <Project>
 
   <!-- SonarLint connected mode settings i.e. ruleset and additional files.
-  
+
        Applies to every project in the repo, including the utility projects under "build" directory. -->
 
   <Import Condition=" $(VsTargetVersionPropsImported) != 'true'" Project="SonarLint.VsTargetVersion.props" />
@@ -12,7 +12,8 @@
     <DefineConstants>$(DefineConstants);SignAssembly</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Label="Package locking">
+  <PropertyGroup Label="Global properties">
+    <LangVersion>latest</LangVersion>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
 
@@ -27,13 +28,13 @@
 
          Also, VS2019 ships with NewtonSoft v12.x i.e. we are using a newer version. This
          should not cause a problem since VS can load both versions.
-         
+
          Finally, NewtonSoft.Json v12 has vulnerabilities reported against it which Mend
          will complain about. By referencing v13.x we avoid those warnings.
-         
+
          See #3098 for more info.
    -->
-  
+
   <!-- ******************************************************************************* -->
   <!-- Additional external NuGet packages used by multiple projects. -->
   <!-- They are defined here to make sure we reference the same version everywhere. -->
@@ -42,7 +43,7 @@
     <PackageReference Include="Newtonsoft.Json" Condition=" $(RequiresNewtonsoft)=='true'" Version="13.0.3" />
     <PackageReference Include="System.IO.Abstractions" Condition=" $(RequiresSystemIOAbstractions)=='true'" Version="9.0.4" />
     <PackageReference Include="System.Threading.Channels" Condition=" $(RequiresChannels)=='true'" Version="7.0.0" />
-    <PackageReference Include="LibGit2Sharp" Version="0.26.2" Condition="$(RequiresLibGit)=='true'" GeneratePathProperty="true" PrivateAssets="all" />  
+    <PackageReference Include="LibGit2Sharp" Version="0.26.2" Condition="$(RequiresLibGit)=='true'" GeneratePathProperty="true" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>
