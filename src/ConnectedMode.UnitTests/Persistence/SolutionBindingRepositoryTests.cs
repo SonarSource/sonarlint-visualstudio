@@ -19,22 +19,26 @@
  */
 
 using System;
+using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 {
     [TestClass]
-    public class SolutionBindingDataWriterTests
+    public class SolutionBindingRepositoryTests
     {
+        private Mock<IUnintrusiveBindingPathProvider> unintrusiveBindingPathProvider;
         private Mock<ISolutionBindingCredentialsLoader> credentialsLoader;
         private Mock<ISolutionBindingFileLoader> solutionBindingFileLoader;
+
         private BoundSonarQubeProject boundSonarQubeProject;
-        private SolutionBindingDataWriter testSubject;
+        private ISolutionBindingRepository testSubject;
 
         private BasicAuthCredentials mockCredentials;
         private const string MockFilePath = "test file path";
@@ -42,11 +46,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestInitialize]
         public void TestInitialize()
         {
+            unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider("C:\\Bindings\\Binding1\\binding.config", "C:\\Bindings\\Binding2\\binding.config");
+
             credentialsLoader = new Mock<ISolutionBindingCredentialsLoader>();
             solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
 
-            testSubject = new SolutionBindingDataWriter(solutionBindingFileLoader.Object,
-                credentialsLoader.Object);
+            testSubject = new SolutionBindingRepository(unintrusiveBindingPathProvider.Object, solutionBindingFileLoader.Object, credentialsLoader.Object);
 
             mockCredentials = new BasicAuthCredentials("user", "pwd".ToSecureString());
 
@@ -60,9 +65,48 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<SolutionBindingDataWriter, ISolutionBindingDataWriter>(
+            MefTestHelpers.CheckTypeCanBeImported<SolutionBindingRepository, ISolutionBindingRepository>(
+                MefTestHelpers.CreateExport<IUnintrusiveBindingPathProvider>(),
                 MefTestHelpers.CreateExport<ICredentialStoreService>(),
                 MefTestHelpers.CreateExport<ILogger>());
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+        {
+            MefTestHelpers.CheckIsSingletonMefComponent<SolutionBindingRepository>();
+        }
+
+        [TestMethod]
+        public void Read_ProjectIsNull_Null()
+        {
+            solutionBindingFileLoader.Setup(x => x.Load(MockFilePath)).Returns(null as BoundSonarQubeProject);
+
+            var actual = testSubject.Read(MockFilePath);
+            actual.Should().Be(null);
+        }
+
+        [TestMethod]
+        public void Read_ProjectIsNull_CredentialsNotRead()
+        {
+            solutionBindingFileLoader.Setup(x => x.Load(MockFilePath)).Returns(null as BoundSonarQubeProject);
+
+            testSubject.Read(MockFilePath);
+
+            credentialsLoader.Verify(x => x.Load(It.IsAny<Uri>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void Read_ProjectIsNotNull_ReturnsProjectWithCredentials()
+        {
+            boundSonarQubeProject.ServerUri = new Uri("http://sonarsource.com");
+            boundSonarQubeProject.Credentials = null;
+
+            solutionBindingFileLoader.Setup(x => x.Load(MockFilePath)).Returns(boundSonarQubeProject);
+            credentialsLoader.Setup(x => x.Load(boundSonarQubeProject.ServerUri)).Returns(mockCredentials);
+
+            var actual = testSubject.Read(MockFilePath);
+            actual.Credentials.Should().Be(mockCredentials);
         }
 
         [DataTestMethod]
@@ -98,7 +142,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Write_ProjectIsNull_Exception()
         {
-            Assert.ThrowsException<ArgumentNullException>(() =>  testSubject.Write(MockFilePath, null));
+            Assert.ThrowsException<ArgumentNullException>(() => testSubject.Write(MockFilePath, null));
         }
 
         [TestMethod]
@@ -146,5 +190,58 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             Action act = () => testSubject.Write(MockFilePath, boundSonarQubeProject);
             act.Should().NotThrow();
         }
+
+        [TestMethod]
+        public void List_FilesExist_Returns()
+        {
+            var binding1 = CreateBoundSonarQubeProject("https://sonarqube.somedomain.com", null, "projectKey1");
+            var binding2 = CreateBoundSonarQubeProject("https://sonarcloud.io", "organisation", "projectKey2");
+
+            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding1\\binding.config")).Returns(binding1);
+            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding2\\binding.config")).Returns(binding2);
+
+            var expected = new[] { binding1, binding2 };
+
+            var testSubject = new SolutionBindingRepository(unintrusiveBindingPathProvider.Object, solutionBindingFileLoader.Object, credentialsLoader.Object);
+
+            var result = testSubject.List();
+
+            result.Should().HaveCount(2);
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [TestMethod]
+        public void List_FilesMissing_Skips()
+        {
+            var binding = CreateBoundSonarQubeProject("https://sonarqube.somedomain.com", null, "projectKey1");
+
+            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding1\\binding.config")).Returns(binding);
+            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding2\\binding.config")).Returns((BoundSonarQubeProject)null);
+
+            var testSubject = new SolutionBindingRepository(unintrusiveBindingPathProvider.Object, solutionBindingFileLoader.Object, credentialsLoader.Object);
+
+            var result = testSubject.List();
+
+            result.Should().HaveCount(1);
+            result.ElementAt(0).Should().BeEquivalentTo(binding);
+        }
+
+        private static Mock<IUnintrusiveBindingPathProvider> CreateUnintrusiveBindingPathProvider(params string[] bindigFolders)
+        {
+            var unintrusiveBindingPathProvider = new Mock<IUnintrusiveBindingPathProvider>();
+            unintrusiveBindingPathProvider.Setup(u => u.GetBindingPaths()).Returns(bindigFolders);
+            return unintrusiveBindingPathProvider;
+        }
+
+        private static BoundSonarQubeProject CreateBoundSonarQubeProject(string uri, string organizationKey, string projectKey)
+        {
+            var organization = CreateOrganization(organizationKey);
+
+            var serverUri = new Uri(uri);
+
+            return new BoundSonarQubeProject(serverUri, projectKey, null, organization: organization);
+        }
+
+        private static SonarQubeOrganization CreateOrganization(string organizationKey) => organizationKey == null ? null : new SonarQubeOrganization(organizationKey, null);
     }
 }

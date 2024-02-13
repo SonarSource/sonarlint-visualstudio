@@ -22,7 +22,7 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
-    public interface IBindingInfoProvider
+    public interface IBoundConnectionInfoProvider
     {
         /// <summary>
         /// Lists all bindings that have been saved locally
