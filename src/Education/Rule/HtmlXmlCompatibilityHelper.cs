@@ -20,7 +20,7 @@
 
 using System.Text.RegularExpressions;
 
-namespace SonarLint.VisualStudio.Rules
+namespace SonarLint.VisualStudio.Education.Rule
 {
     internal static class HtmlXmlCompatibilityHelper
     {
