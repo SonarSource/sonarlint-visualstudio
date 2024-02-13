@@ -20,8 +20,9 @@
 
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Education.Rule;
 
-namespace SonarLint.VisualStudio.Rules.UnitTests
+namespace SonarLint.VisualStudio.Education.UnitTests.Rule
 {
     [TestClass]
     public class HtmlXmlCompatibilityHelperTests

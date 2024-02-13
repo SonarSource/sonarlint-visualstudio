@@ -22,7 +22,7 @@ using System.ComponentModel.Composition;
 using System.Text;
 using System.Windows.Documents;
 using System.Windows.Markup;
-using SonarLint.VisualStudio.Rules;
+using SonarLint.VisualStudio.Education.Rule;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {

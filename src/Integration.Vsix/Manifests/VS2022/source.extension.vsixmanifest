@@ -52,7 +52,6 @@
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Core" Path="|Core|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Education" Path="|Education|" />
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="Education" Path="|Education;PkgdefProjectOutputGroup|" />
-        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Rules" Path="|Rules|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="SLCore" Path="|SLCore|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="SLCore.Listeners" Path="|SLCore.Listeners|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="secrets\SonarLint.Secrets.DotNet.dll" />

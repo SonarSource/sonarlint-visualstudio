@@ -34,7 +34,6 @@
     <ProjectReference Include="..\Education\Education.csproj" />
     <!-- Referencing Rules project so tests can access the embedded rule descriptions 
          resources (to check they can all be transformed to XAML) -->
-    <ProjectReference Include="..\Rules\Rules.csproj" />
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 

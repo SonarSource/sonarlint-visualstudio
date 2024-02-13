@@ -26,7 +26,7 @@ using System.Windows.Documents;
 using System.Windows.Markup;
 using SonarLint.VisualStudio.Education.Layout.Logical;
 using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
-using SonarLint.VisualStudio.Rules;
+using SonarLint.VisualStudio.Education.Rule;
 
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
