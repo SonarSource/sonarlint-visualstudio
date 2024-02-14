@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.Education.Rule;
@@ -39,26 +39,24 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
     internal class RichRuleDescriptionProvider : IRichRuleDescriptionProvider
     {
         public IRichRuleDescription GetRichRuleDescriptionModel(IRuleInfo ruleInfo) =>
-            new RichRuleDescription(
-                ruleInfo.RichRuleDescriptionDto.introductionHtmlContent,
-                ruleInfo.RichRuleDescriptionDto.tabs
-                    .Select<RuleDescriptionTabDto, IRuleDescriptionTab>(
-                        tab =>
-                        {
-                            if (tab.content.Left != null)
-                            {
-                                return new NonContextualRuleDescriptionTab(tab.title, tab.content.Left.htmlContent);
-                            }
+            new RichRuleDescription(ruleInfo.RichRuleDescriptionDto.introductionHtmlContent, CreateMainTabs(ruleInfo));
 
-                            return new ContextualRuleDescriptionTab(tab.title,
-                                tab.content.Right.defaultContextKey,
-                                tab.content.Right.contextualSections
-                                    .Select(context =>
-                                        new ContextualRuleDescriptionTab.ContextContentTab(context.displayName,
-                                            context.contextKey,
-                                            context.htmlContent))
-                                    .ToList());
-                        })
+        private static List<IRuleDescriptionTab> CreateMainTabs(IRuleInfo ruleInfo) =>
+            ruleInfo.RichRuleDescriptionDto.tabs
+                .Select(tab => tab.content.Left is not null ? CreateNonContextualTab(tab) : CreateContextualTab(tab))
+                .ToList();
+
+        private static IRuleDescriptionTab CreateNonContextualTab(RuleDescriptionTabDto tab) => 
+            new NonContextualRuleDescriptionTab(tab.title, tab.content.Left.htmlContent);
+
+        private static IRuleDescriptionTab CreateContextualTab(RuleDescriptionTabDto tab) =>
+            new ContextualRuleDescriptionTab(tab.title,
+                tab.content.Right.defaultContextKey,
+                tab.content.Right.contextualSections
+                    .Select(context =>
+                        new ContextualRuleDescriptionTab.ContextContentTab(context.displayName,
+                            context.contextKey,
+                            context.htmlContent))
                     .ToList());
     }
 }
