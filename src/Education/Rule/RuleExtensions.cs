@@ -24,10 +24,7 @@ namespace SonarLint.VisualStudio.Education.Rule
 {
     public static class RuleExtensions
     {
-        public static bool IsRichRuleDescription(this IRuleInfo ruleInfo)
-        {
-            throw new NotImplementedException(); // will be re-implemented later
-            // return ruleInfo.DescriptionSections != null && ruleInfo.DescriptionSections.Count > 1;
-        }
+        public static bool IsRichRuleDescription(this IRuleInfo ruleInfo) =>
+            ruleInfo.RichRuleDescriptionDto != null;
     }
 }

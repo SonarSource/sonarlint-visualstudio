@@ -33,6 +33,14 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical;
 public class RichRuleDescriptionTests
 {
     [TestMethod]
+    public void Ctor_EnsuresHtmlIsXml()
+    {
+        var testSubject = new RichRuleDescription( "<col>", new List<IRuleDescriptionTab>());
+
+        testSubject.introductionHtml.Should().BeEquivalentTo("<col/>");
+    }
+    
+    [TestMethod]
     public void ProduceVisualNode_ProducesMultiBlockSectionWithIntroAndTabs()
     {
         const string introHtml = "introhtml";
