@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             var xmlWriter = new XamlWriterFactory().Create(sb);
             var ruleInfo = new RuleInfo("cs", "cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
                 RuleIssueType.Vulnerability, true, new List<string>(),
-                new List<string>(), "<p>fix this pls</p>", null, null);
+                new List<string>(), "<p>fix this pls</p>", null,null, null);
 
             var testSubject = CreateTestSubject(xmlWriter);
 
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             var xmlWriter = new XamlWriterFactory().Create(sb);
             var ruleInfo = new RuleInfo("cs", "cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
                 RuleIssueType.Vulnerability, true, new List<string>(),
-                new List<string>(), null, null, null);
+                new List<string>(), null, null, null, null);
             IXamlGeneratorHelper testSubject = CreateTestSubject(xmlWriter);
 
             testSubject.WriteDocumentHeader(ruleInfo);
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             var xmlWriter = new XamlWriterFactory().Create(sb);
             var ruleInfo = new RuleInfo("cs", "cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
                 RuleIssueType.Vulnerability, true, new List<string>(),
-                new List<string>(), null, CleanCodeAttribute.Formatted, new Dictionary<SoftwareQuality, SoftwareQualitySeverity>
+                new List<string>(), null, null, CleanCodeAttribute.Formatted, new Dictionary<SoftwareQuality, SoftwareQualitySeverity>
                 {
                     { SoftwareQuality.Maintainability, SoftwareQualitySeverity.High},
                     { SoftwareQuality.Security, SoftwareQualitySeverity.Low},

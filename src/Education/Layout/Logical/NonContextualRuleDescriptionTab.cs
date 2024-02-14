@@ -19,17 +19,18 @@
  */
 
 using SonarLint.VisualStudio.Education.Layout.Visual;
+using SonarLint.VisualStudio.Education.Rule;
 
 namespace SonarLint.VisualStudio.Education.Layout.Logical
 {
     internal class NonContextualRuleDescriptionTab : IRuleDescriptionTab
     {
-        private readonly string htmlContent;
+        internal /* for testing */ readonly string htmlContent;
 
         public NonContextualRuleDescriptionTab(string title, string htmlContent)
         {
             Title = title;
-            this.htmlContent = htmlContent;
+            this.htmlContent = HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(htmlContent);
         }
         
         public string Title { get; }

@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+
 namespace SonarLint.VisualStudio.SLCore.Protocol
 {
     /// <summary>
@@ -34,7 +36,7 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
         public TLeft Left { get; private set; }
         public TRight Right { get; private set; }
 
-        public static Either<TLeft, TRight> CreateLeft(TLeft left) => new Either<TLeft, TRight> { Left = left };
-        public static Either<TLeft, TRight> CreateRight(TRight right) => new Either<TLeft, TRight> { Right = right };
+        public static Either<TLeft, TRight> CreateLeft(TLeft left) => new() { Left = left ?? throw new ArgumentNullException(nameof(left))};
+        public static Either<TLeft, TRight> CreateRight(TRight right) => new() { Right = right ?? throw new ArgumentNullException(nameof(right))};
     }
 }

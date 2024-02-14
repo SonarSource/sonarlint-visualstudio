@@ -31,6 +31,14 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical;
 public class NonContextualRuleDescriptionTabTests
 {
     [TestMethod]
+    public void Ctor_EnsuresHtmlIsXml()
+    {
+        var testSubject = new NonContextualRuleDescriptionTab("title", "<col>");
+
+        testSubject.htmlContent.Should().BeEquivalentTo("<col/>");
+    }
+    
+    [TestMethod]
     public void ProduceVisualNode_ReturnsSingleContentSection()
     {
         const string contentHtml = "contenthtml";
