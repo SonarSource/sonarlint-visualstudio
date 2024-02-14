@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         {
             MefTestHelpers.CheckTypeCanBeImported<UnintrusiveConfigurationProvider, IConfigurationProvider>(
                 MefTestHelpers.CreateExport<IUnintrusiveBindingPathProvider>(),
-                MefTestHelpers.CreateExport<ISolutionBindingDataReader>());
+                MefTestHelpers.CreateExport<ISolutionBindingRepository>());
         }
 
         [TestMethod]
@@ -40,8 +40,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         {
             // Arrange
             var pathProvider = CreatePathProvider(null);
-            var configReader = new Mock<ISolutionBindingDataReader>();
-            var testSubject = CreateTestSubject(pathProvider, configReader.Object);
+            var configRepository = new Mock<ISolutionBindingRepository>();
+            var testSubject = CreateTestSubject(pathProvider, configRepository.Object);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             actual.Should().NotBeNull();
             actual.Project.Should().BeNull();
             actual.Mode.Should().Be(SonarLintMode.Standalone);
-            configReader.Invocations.Should().BeEmpty();
+            configRepository.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             var expectedProject = new BoundSonarQubeProject();
 
             var pathProvider = CreatePathProvider("c:\\users\\foo\\bindings\\xxx.config");
-            var configReader = CreateReader(expectedProject);
+            var configReader = CreateRepo(expectedProject);
             var testSubject = CreateTestSubject(pathProvider, configReader.Object);
 
             // Act
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         {
             // Arrange
             var pathProvider = CreatePathProvider("c:\\users\\foo\\bindings\\xxx.config");
-            var configReader = CreateReader(null);
+            var configReader = CreateRepo(null);
             var testSubject = CreateTestSubject(pathProvider, configReader.Object);
 
             // Act
@@ -91,10 +91,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         }
 
         private static UnintrusiveConfigurationProvider CreateTestSubject(IUnintrusiveBindingPathProvider pathProvider,
-            ISolutionBindingDataReader configReader = null)
+            ISolutionBindingRepository configRepo = null)
         {
-            configReader ??= Mock.Of<ISolutionBindingDataReader>();
-            return new UnintrusiveConfigurationProvider(pathProvider, configReader);
+            configRepo ??= Mock.Of<ISolutionBindingRepository>();
+            return new UnintrusiveConfigurationProvider(pathProvider, configRepo);
         }
 
         private static IUnintrusiveBindingPathProvider CreatePathProvider(string pathToReturn)
@@ -104,14 +104,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return pathProvider.Object;
         }
 
-        private static Mock<ISolutionBindingDataReader> CreateReader(BoundSonarQubeProject projectToReturn)
+        private static Mock<ISolutionBindingRepository> CreateRepo(BoundSonarQubeProject projectToReturn)
         {
-            var reader = new Mock<ISolutionBindingDataReader>();
-            reader.Setup(x => x.Read(It.IsAny<string>())).Returns(projectToReturn);
-            return reader;
+            var repo = new Mock<ISolutionBindingRepository>();
+            repo.Setup(x => x.Read(It.IsAny<string>())).Returns(projectToReturn);
+            return repo;
         }
 
-        private static void CheckExpectedFileRead(Mock<ISolutionBindingDataReader> configReader, string expectedFilePath)
+        private static void CheckExpectedFileRead(Mock<ISolutionBindingRepository> configReader, string expectedFilePath)
             => configReader.Verify(x => x.Read(expectedFilePath), Times.Once);
     }
 }

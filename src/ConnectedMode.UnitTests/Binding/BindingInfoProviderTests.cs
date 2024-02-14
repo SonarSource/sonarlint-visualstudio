@@ -33,6 +33,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
     public class BindingInfoProviderTests
     {
         [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<BoundConnectionInfoProvider, IBoundConnectionInfoProvider>(
+                MefTestHelpers.CreateExport<ISolutionBindingRepository>());
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+        {
+            MefTestHelpers.CheckIsSingletonMefComponent<BoundConnectionInfoProvider>();
+        }
+
+        [TestMethod]
         public void GetExistingBindings_NoBindings_ReturnsEmpty()
         {
             var testSubject = CreateTestSubject();
@@ -58,17 +71,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         [TestMethod]
         public void GetExistingBindings_HaveBindings_ReturnsBinding()
         {
-            var unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider("C:\\Bindings\\Binding1\\binding.config", "C:\\Bindings\\Binding2\\binding.config");
-
-            var solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
+            var solutionBindingRepository = new Mock<ISolutionBindingRepository>();
 
             var binding1 = CreateBoundSonarQubeProject("https://sonarqube.somedomain.com", null, "projectKey1");
             var binding2 = CreateBoundSonarQubeProject("https://sonarcloud.io", "organisation", "projectKey2");
 
-            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding1\\binding.config")).Returns(binding1);
-            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding2\\binding.config")).Returns(binding2);
+            var bindings = new[] { binding1, binding2 };
 
-            var testSubject = CreateTestSubject(unintrusiveBindingPathProvider: unintrusiveBindingPathProvider, solutionBindingFileLoader: solutionBindingFileLoader.Object);
+            solutionBindingRepository.Setup(sbr => sbr.List()).Returns(bindings);
+
+            var testSubject = CreateTestSubject(solutionBindingRepository: solutionBindingRepository.Object);
 
             var result = testSubject.GetExistingBindings().ToList();
 
@@ -80,60 +92,30 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         }
 
         [TestMethod]
-        public void GetExistingBindings_BindingConfigMissing_SkipFile()
-        {
-            var unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider("C:\\Bindings\\Binding1\\binding.config", "C:\\Bindings\\Binding2\\binding.config");
-
-            var solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
-
-            var binding1 = CreateBoundSonarQubeProject("https://sonarqube.somedomain.com", null, "projectKey1");
-            var binding2 = CreateBoundSonarQubeProject("https://sonarcloud.io", "organisation", "projectKey2");
-
-            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding1\\binding.config")).Returns(binding1);
-            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding2\\binding.config")).Returns((BoundSonarQubeProject)null);
-
-            var testSubject = CreateTestSubject(unintrusiveBindingPathProvider: unintrusiveBindingPathProvider, solutionBindingFileLoader: solutionBindingFileLoader.Object);
-
-            var result = testSubject.GetExistingBindings();
-
-            result.Should().HaveCount(1);
-        }
-
-        [TestMethod]
         public void GetExistingBindings_SameBindingMultipleTime_ReturnsDistinct()
         {
-            var unintrusiveBindingPathProvider = CreateUnintrusiveBindingPathProvider("C:\\Bindings\\Binding1\\binding.config", "C:\\Bindings\\Binding2\\binding.config");
-
-            var solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
+            var solutionBindingRepository = new Mock<ISolutionBindingRepository>();
 
             var binding1 = CreateBoundSonarQubeProject("https://sonarqube.somedomain.com", null, "projectKey1");
             var binding2 = CreateBoundSonarQubeProject("https://sonarqube.somedomain.com", null, "projectKey2");
 
-            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding1\\binding.config")).Returns(binding1);
-            solutionBindingFileLoader.Setup(sbf => sbf.Load("C:\\Bindings\\Binding2\\binding.config")).Returns(binding2);
+            var bindings = new[] { binding1, binding2 };
 
-            var testSubject = CreateTestSubject(unintrusiveBindingPathProvider: unintrusiveBindingPathProvider, solutionBindingFileLoader: solutionBindingFileLoader.Object);
+            solutionBindingRepository.Setup(sbr => sbr.List()).Returns(bindings);
+
+            var testSubject = CreateTestSubject(solutionBindingRepository: solutionBindingRepository.Object);
 
             var result = testSubject.GetExistingBindings();
 
             result.Should().HaveCount(1);
         }
 
-        private static IUnintrusiveBindingPathProvider CreateUnintrusiveBindingPathProvider(params string[] bindigFolders)
+        private static BoundConnectionInfoProvider CreateTestSubject(ISolutionBindingRepository solutionBindingRepository = null, IThreadHandling threadHandling = null)
         {
-            var unintrusiveBindingPathProvider = new Mock<IUnintrusiveBindingPathProvider>();
-            unintrusiveBindingPathProvider.Setup(u => u.GetBindingPaths()).Returns(bindigFolders);
-            return unintrusiveBindingPathProvider.Object;
-        }
-
-        private static BoundConnectionInfoProvider CreateTestSubject(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider = null, ISolutionBindingFileLoader solutionBindingFileLoader = null, IThreadHandling threadHandling = null)
-        {
-            unintrusiveBindingPathProvider ??= CreateUnintrusiveBindingPathProvider();
-
-            solutionBindingFileLoader ??= Mock.Of<ISolutionBindingFileLoader>();
+            solutionBindingRepository ??= Mock.Of<ISolutionBindingRepository>();
             threadHandling ??= new NoOpThreadHandler();
 
-            var testSubject = new BoundConnectionInfoProvider(unintrusiveBindingPathProvider, solutionBindingFileLoader, threadHandling);
+            var testSubject = new BoundConnectionInfoProvider(solutionBindingRepository, threadHandling);
             return testSubject;
         }
 

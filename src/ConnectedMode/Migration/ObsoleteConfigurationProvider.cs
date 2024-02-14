@@ -33,26 +33,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     {
         private readonly ISolutionBindingPathProvider legacyPathProvider;
         private readonly ISolutionBindingPathProvider connectedModePathProvider;
-        private readonly ISolutionBindingDataReader solutionBindingDataReader;
+        private readonly ISolutionBindingRepository solutionBindingRepository;
 
         [ImportingConstructor]
         public ObsoleteConfigurationProvider(
             ISolutionInfoProvider solutionInfoProvider,
-            ISolutionBindingDataReader solutionBindingDataReader)
+            ISolutionBindingRepository solutionBindingRepository)
             : this(
                 new LegacySolutionBindingPathProvider(solutionInfoProvider),
                 new ObsoleteConnectedModeSolutionBindingPathProvider(solutionInfoProvider),
-                solutionBindingDataReader)
+                solutionBindingRepository)
         {
         }
 
         internal /* for testing */ ObsoleteConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
             ISolutionBindingPathProvider connectedModePathProvider,
-            ISolutionBindingDataReader solutionBindingDataReader)
+            ISolutionBindingRepository solutionBindingRepository)
         {
             this.legacyPathProvider = legacyPathProvider ?? throw new ArgumentNullException(nameof(legacyPathProvider));
             this.connectedModePathProvider = connectedModePathProvider ?? throw new ArgumentNullException(nameof(connectedModePathProvider));
-            this.solutionBindingDataReader = solutionBindingDataReader ?? throw new ArgumentNullException(nameof(solutionBindingDataReader));
+            this.solutionBindingRepository = solutionBindingRepository ?? throw new ArgumentNullException(nameof(solutionBindingRepository));
         }
 
         public BindingConfiguration GetConfiguration()
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 return null;
             }
 
-            var boundProject = solutionBindingDataReader.Read(bindingPath);
+            var boundProject = solutionBindingRepository.Read(bindingPath);
 
             if (boundProject == null)
             {
