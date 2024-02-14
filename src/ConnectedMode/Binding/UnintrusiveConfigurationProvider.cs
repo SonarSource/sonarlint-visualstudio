@@ -30,15 +30,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     internal class UnintrusiveConfigurationProvider : IConfigurationProvider
     {
         private readonly IUnintrusiveBindingPathProvider pathProvider;
-        private readonly ISolutionBindingDataReader solutionBindingDataReader;
+        private readonly ISolutionBindingRepository solutionBindingRepository;
 
         [ImportingConstructor]
         public UnintrusiveConfigurationProvider(
             IUnintrusiveBindingPathProvider pathProvider,
-            ISolutionBindingDataReader solutionBindingDataReader)
+            ISolutionBindingRepository solutionBindingRepository)
         {
             this.pathProvider = pathProvider;
-            this.solutionBindingDataReader = solutionBindingDataReader;
+            this.solutionBindingRepository = solutionBindingRepository;
         }
 
         public BindingConfiguration GetConfiguration()
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                 return null;
             }
 
-            var boundProject = solutionBindingDataReader.Read(bindingPath);
+            var boundProject = solutionBindingRepository.Read(bindingPath);
 
             if (boundProject == null)
             {
@@ -67,5 +67,4 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return BindingConfiguration.CreateBoundConfiguration(boundProject, SonarLintMode.Connected, bindingConfigDirectory);
         }
     }
-
 }

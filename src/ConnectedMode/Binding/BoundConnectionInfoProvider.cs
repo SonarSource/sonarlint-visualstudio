@@ -28,24 +28,22 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
-    [Export(typeof(IBindingInfoProvider))]
+    [Export(typeof(IBoundConnectionInfoProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class BoundConnectionInfoProvider : IBindingInfoProvider
+    internal class BoundConnectionInfoProvider : IBoundConnectionInfoProvider
     {
-        private readonly IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider;
-        private readonly ISolutionBindingFileLoader solutionBindingFileLoader;
+        private readonly ISolutionBindingRepository solutionBindingRepository;
         private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
-        public BoundConnectionInfoProvider(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ISolutionBindingFileLoader solutionBindingFileLoader)
-            : this(unintrusiveBindingPathProvider, solutionBindingFileLoader, ThreadHandling.Instance)
+        public BoundConnectionInfoProvider(ISolutionBindingRepository solutionBindingRepository)
+            : this(solutionBindingRepository, ThreadHandling.Instance)
         {
         }
 
-        internal BoundConnectionInfoProvider(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ISolutionBindingFileLoader solutionBindingFileLoader, IThreadHandling threadHandling)
+        internal BoundConnectionInfoProvider(ISolutionBindingRepository solutionBindingRepository, IThreadHandling threadHandling)
         {
-            this.unintrusiveBindingPathProvider = unintrusiveBindingPathProvider;
-            this.solutionBindingFileLoader = solutionBindingFileLoader;
+            this.solutionBindingRepository = solutionBindingRepository;
             this.threadHandling = threadHandling;
         }
 
@@ -55,15 +53,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
             var result = new List<BoundConnectionInfo>();
 
-            var bindings = unintrusiveBindingPathProvider.GetBindingPaths();
+            var bindings = solutionBindingRepository.List();
 
             foreach (var binding in bindings)
             {
-                var boundSonarQubeProject = solutionBindingFileLoader.Load(binding);
-
-                if (boundSonarQubeProject == null) { continue; }
-
-                result.Add(ConvertToBindingInfo(boundSonarQubeProject));
+                result.Add(ConvertToBindingInfo(binding));
             }
 
             return result.Distinct(new BoundConnectionInfoUriComparer());

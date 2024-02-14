@@ -36,16 +36,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     internal class ConfigurationPersister : IConfigurationPersister
     {
         private readonly IUnintrusiveBindingPathProvider configFilePathProvider;
-        private readonly ISolutionBindingDataWriter solutionBindingDataWriter;
+        private readonly ISolutionBindingRepository solutionBindingRepository;
 
         [ImportingConstructor]
         public ConfigurationPersister(
             IUnintrusiveBindingPathProvider configFilePathProvider,
-            ISolutionBindingDataWriter solutionBindingDataWriter)
+            ISolutionBindingRepository solutionBindingRepository)
         {
             this.configFilePathProvider = configFilePathProvider;
 
-            this.solutionBindingDataWriter = solutionBindingDataWriter;
+            this.solutionBindingRepository = solutionBindingRepository;
         }
 
         public BindingConfiguration Persist(BoundSonarQubeProject project)
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             var configFilePath = configFilePathProvider.GetCurrentBindingPath();
 
             var success = configFilePath != null &&
-                          solutionBindingDataWriter.Write(configFilePath, project);
+                          solutionBindingRepository.Write(configFilePath, project);
 
             // The binding directory is the folder containing the binding config file
             var bindingConfigDirectory = Path.GetDirectoryName(configFilePath);
