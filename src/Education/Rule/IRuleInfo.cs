@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
 namespace SonarLint.VisualStudio.Education.Rule
 {
@@ -85,6 +86,8 @@ namespace SonarLint.VisualStudio.Education.Rule
         IReadOnlyList<string> EducationPrinciples { get; }
 
         string HtmlNote { get; }
+        
+        RuleSplitDescriptionDto RichRuleDescriptionDto { get; }
 
         CleanCodeAttribute? CleanCodeAttribute { get; }
 
@@ -97,7 +100,7 @@ namespace SonarLint.VisualStudio.Education.Rule
     {
         public RuleInfo(string languageKey, string fullRuleKey, string description, string name,
             RuleIssueSeverity severity, RuleIssueType issueType, bool isActiveByDefault,
-            IReadOnlyList<string> tags, IReadOnlyList<string> educationPrinciples, string htmlNote,
+            IReadOnlyList<string> tags, IReadOnlyList<string> educationPrinciples, string htmlNote, RuleSplitDescriptionDto richRuleDescriptionDto,
             CleanCodeAttribute? cleanCodeAttribute, Dictionary<SoftwareQuality, SoftwareQualitySeverity> defaultImpacts)
         {
             LanguageKey = languageKey;
@@ -110,6 +113,7 @@ namespace SonarLint.VisualStudio.Education.Rule
             Tags = tags ?? Array.Empty<string>();
             EducationPrinciples = educationPrinciples ?? Array.Empty<string>();
             HtmlNote = htmlNote;
+            RichRuleDescriptionDto = richRuleDescriptionDto;
             CleanCodeAttribute = cleanCodeAttribute;
             DefaultImpacts = defaultImpacts ?? new Dictionary<SoftwareQuality, SoftwareQualitySeverity>();
         }
@@ -133,6 +137,7 @@ namespace SonarLint.VisualStudio.Education.Rule
         public IReadOnlyList<string> EducationPrinciples { get; }
 
         public string HtmlNote { get; }
+        public RuleSplitDescriptionDto RichRuleDescriptionDto { get; set; }
 
         public CleanCodeAttribute? CleanCodeAttribute { get; }
 
@@ -149,6 +154,7 @@ namespace SonarLint.VisualStudio.Education.Rule
                 Tags,
                 EducationPrinciples,
                 HtmlNote,
+                RichRuleDescriptionDto,
                 null,
                 null);
     }
