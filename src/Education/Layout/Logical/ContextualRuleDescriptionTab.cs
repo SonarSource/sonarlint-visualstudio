@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SonarLint.VisualStudio.Education.Layout.Visual;
 using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
+using SonarLint.VisualStudio.Education.Rule;
 
 namespace SonarLint.VisualStudio.Education.Layout.Logical
 {
@@ -78,7 +79,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
             {
                 Title = title;
                 ContextKey = contextKey;
-                HtmlContent = htmlContent;
+                HtmlContent = HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(htmlContent);
             }
 
             public string Title { get; }
