@@ -18,16 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Text;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using SonarLint.VisualStudio.Education.Layout.Logical;
-using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
 using SonarLint.VisualStudio.Education.Rule;
-
 namespace SonarLint.VisualStudio.Education.XamlGenerator
 {
     internal interface IRichRuleHelpXamlBuilder
@@ -48,37 +44,37 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class RichRuleHelpXamlBuilder : IRichRuleHelpXamlBuilder
     {
+        private readonly IRichRuleDescriptionProvider richRuleDescriptionProvider;
+        private readonly IRuleHelpXamlTranslatorFactory xamlTranslatorFactory;
         private readonly IXamlGeneratorHelperFactory xamlGeneratorHelperFactory;
         private readonly IXamlWriterFactory xamlWriterFactory;
 
         [ImportingConstructor]
-        public RichRuleHelpXamlBuilder(IXamlGeneratorHelperFactory xamlGeneratorHelperFactory, IXamlWriterFactory xamlWriterFactory)
+        public RichRuleHelpXamlBuilder(IRichRuleDescriptionProvider richRuleDescriptionProvider,
+            IRuleHelpXamlTranslatorFactory xamlTranslatorFactory,
+            IXamlGeneratorHelperFactory xamlGeneratorHelperFactory,
+            IXamlWriterFactory xamlWriterFactory)
         {
+            this.richRuleDescriptionProvider = richRuleDescriptionProvider;
+            this.xamlTranslatorFactory = xamlTranslatorFactory;
             this.xamlGeneratorHelperFactory = xamlGeneratorHelperFactory;
             this.xamlWriterFactory = xamlWriterFactory;
         }
 
         public FlowDocument Create(IRuleInfo ruleInfo, string issueContext)
         {
-            throw new NotImplementedException(); // will be re-implemented later
-            
-            // var richRuleDescriptionSections = ruleInfoTranslator.GetRuleDescriptionSections(ruleInfo, issueContext).ToList();
-            // var mainTabGroup = new TabGroup(richRuleDescriptionSections
-            //     .Select(richRuleDescriptionSection =>
-            //         new TabItem(richRuleDescriptionSection.Title,
-            //             richRuleDescriptionSection.GetVisualizationTreeNode(staticXamlStorage)))
-            //     .ToList<ITabItem>(),
-            //     0);
-            //
-            // var sb = new StringBuilder();
-            // var writer = xamlWriterFactory.Create(sb);
-            // var helper = xamlGeneratorHelperFactory.Create(writer);
-            //
-            // helper.WriteDocumentHeader(ruleInfo);
-            // mainTabGroup.ProduceXaml(writer);
-            // helper.EndDocument();
-            //
-            // return (FlowDocument)XamlReader.Parse(sb.ToString());
+            var sb = new StringBuilder();
+            var writer = xamlWriterFactory.Create(sb);
+            var helper = xamlGeneratorHelperFactory.Create(writer);
+
+            helper.WriteDocumentHeader(ruleInfo);
+            richRuleDescriptionProvider
+                .GetRichRuleDescriptionModel(ruleInfo)
+                .ProduceVisualNode(new VisualizationParameters(xamlTranslatorFactory.Create(), issueContext))
+                .ProduceXaml(writer);
+            helper.EndDocument();
+
+            return (FlowDocument)XamlReader.Parse(sb.ToString());
         }
     }
 }
