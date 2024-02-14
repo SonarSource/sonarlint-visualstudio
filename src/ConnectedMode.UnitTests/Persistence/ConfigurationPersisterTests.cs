@@ -30,18 +30,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
     public class ConfigurationPersisterTests
     {
         private Mock<IUnintrusiveBindingPathProvider> configFilePathProvider;
-        private Mock<ISolutionBindingDataWriter> solutionBindingDataWriter;
+        private Mock<ISolutionBindingRepository> solutionBindingRepository;
         private ConfigurationPersister testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
             configFilePathProvider = new Mock<IUnintrusiveBindingPathProvider>();
-            solutionBindingDataWriter = new Mock<ISolutionBindingDataWriter>();
+            solutionBindingRepository = new Mock<ISolutionBindingRepository>();
 
             testSubject = new ConfigurationPersister(
                 configFilePathProvider.Object,
-                solutionBindingDataWriter.Object);
+                solutionBindingRepository.Object);
         }
 
         [TestMethod]
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             MefTestHelpers.CheckTypeCanBeImported<ConfigurationPersister, IConfigurationPersister>(
                 MefTestHelpers.CreateExport<IUnintrusiveBindingPathProvider>(),
-                MefTestHelpers.CreateExport<ISolutionBindingDataWriter>());
+                MefTestHelpers.CreateExport<ISolutionBindingRepository>());
         }
 
         [TestMethod]
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             var projectToWrite = new BoundSonarQubeProject();
             configFilePathProvider.Setup(x => x.GetCurrentBindingPath()).Returns("c:\\new.txt");
 
-            solutionBindingDataWriter
+            solutionBindingRepository
                 .Setup(x => x.Write("c:\\new.txt", projectToWrite))
                 .Returns(true);
 
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             // Assert
             actual.Should().NotBe(null);
 
-            solutionBindingDataWriter.Verify(x =>
+            solutionBindingRepository.Verify(x =>
                     x.Write("c:\\new.txt", projectToWrite),
                 Times.Once);
         }
