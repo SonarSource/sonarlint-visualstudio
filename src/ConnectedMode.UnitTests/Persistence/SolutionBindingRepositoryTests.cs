@@ -206,6 +206,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 
             var result = testSubject.List();
 
+            credentialsLoader.VerifyNoOtherCalls();
+
             result.Should().HaveCount(2);
             result.Should().BeEquivalentTo(expected);
         }

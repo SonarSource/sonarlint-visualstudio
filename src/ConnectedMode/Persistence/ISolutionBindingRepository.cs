@@ -72,19 +72,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 
         public BoundSonarQubeProject Read(string configFilePath)
         {
-            var bound = solutionBindingFileLoader.Load(configFilePath);
-
-            if (bound is null)
-            {
-                return null;
-            }
-
-            bound.Credentials = credentialsLoader.Load(bound.ServerUri);
-
-            Debug.Assert(!bound.Profiles?.ContainsKey(Core.Language.Unknown) ?? true,
-                "Not expecting the deserialized binding config to contain the profile for an unknown language");
-
-            return bound;
+            return Read(configFilePath, true);
         }
 
         public bool Write(string configFilePath, BoundSonarQubeProject binding)
@@ -108,20 +96,36 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 
         public IEnumerable<BoundSonarQubeProject> List()
         {
-            var result = new List<BoundSonarQubeProject>();
-
             var bindingConfigPaths = unintrusiveBindingPathProvider.GetBindingPaths();
 
             foreach (var bindingConfigPath in bindingConfigPaths)
             {
-                var boundSonarQubeProject = Read(bindingConfigPath);
+                var boundSonarQubeProject = Read(bindingConfigPath, false);
 
                 if (boundSonarQubeProject == null) { continue; }
 
-                result.Add(boundSonarQubeProject);
+                yield return boundSonarQubeProject;
+            }
+        }
+
+        private BoundSonarQubeProject Read(string configFilePath, bool loadCredentials)
+        {
+            var bound = solutionBindingFileLoader.Load(configFilePath);
+
+            if (bound is null)
+            {
+                return null;
             }
 
-            return result;
+            if (loadCredentials)
+            {
+                bound.Credentials = credentialsLoader.Load(bound.ServerUri);
+            }
+
+            Debug.Assert(!bound.Profiles?.ContainsKey(Core.Language.Unknown) ?? true,
+                "Not expecting the deserialized binding config to contain the profile for an unknown language");
+
+            return bound;
         }
     }
 }
