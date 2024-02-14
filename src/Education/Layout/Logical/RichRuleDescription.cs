@@ -22,17 +22,22 @@ using System.Collections.Generic;
 using System.Linq;
 using SonarLint.VisualStudio.Education.Layout.Visual;
 using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
+using SonarLint.VisualStudio.Education.Rule;
 
 namespace SonarLint.VisualStudio.Education.Layout.Logical
 {
-    internal class RuleSplitDescription : IVisualNodeProducer
+    internal interface IRichRuleDescription : IVisualNodeProducer
     {
-        private readonly string introductionHtml;
+    }
+
+    internal class RichRuleDescription : IRichRuleDescription
+    {
+        internal /* for testing */ readonly string introductionHtml;
         private readonly List<IRuleDescriptionTab> tabs;
 
-        public RuleSplitDescription(string introductionHtml, List<IRuleDescriptionTab> tabs)
+        public RichRuleDescription(string introductionHtml, List<IRuleDescriptionTab> tabs)
         {
-            this.introductionHtml = introductionHtml;
+            this.introductionHtml = HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(introductionHtml);
             this.tabs = tabs;
         }
 

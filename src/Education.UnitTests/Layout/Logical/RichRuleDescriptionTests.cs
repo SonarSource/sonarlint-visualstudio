@@ -30,8 +30,16 @@ using SonarLint.VisualStudio.Education.XamlGenerator;
 namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Logical;
 
 [TestClass]
-public class RuleSplitDescriptionTests
+public class RichRuleDescriptionTests
 {
+    [TestMethod]
+    public void Ctor_EnsuresHtmlIsXml()
+    {
+        var testSubject = new RichRuleDescription( "<col>", new List<IRuleDescriptionTab>());
+
+        testSubject.introductionHtml.Should().BeEquivalentTo("<col/>");
+    }
+    
     [TestMethod]
     public void ProduceVisualNode_ProducesMultiBlockSectionWithIntroAndTabs()
     {
@@ -46,7 +54,7 @@ public class RuleSplitDescriptionTests
         var tabVisualNodeMock = new Mock<IAbstractVisualizationTreeNode>();
         tabMock.Setup(x => x.ProduceVisualNode(parameters)).Returns(tabVisualNodeMock.Object);
         
-        var testSubject = new RuleSplitDescription(introHtml, new List<IRuleDescriptionTab> { tabMock.Object });
+        var testSubject = new RichRuleDescription(introHtml, new List<IRuleDescriptionTab> { tabMock.Object });
 
 
         var visualNode = testSubject.ProduceVisualNode(parameters);

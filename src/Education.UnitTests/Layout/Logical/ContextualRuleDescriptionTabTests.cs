@@ -46,6 +46,14 @@ public class ContextualRuleDescriptionTabTests
     private const string ContextTabXamlContent2 = "xamlcontent2";
     
     [TestMethod]
+    public void Ctor_ContextContentTab_EnsuresHtmlIsXml()
+    {
+        var testSubject = new ContextualRuleDescriptionTab.ContextContentTab("title", "context", "<col>");
+
+        testSubject.HtmlContent.Should().BeEquivalentTo("<col/>");
+    }
+    
+    [TestMethod]
     public void Title_ReturnsCorrectTitle()
     {
         const string title = "title";
