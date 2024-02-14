@@ -9,9 +9,6 @@
 
   <PropertyGroup>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
-    <LangVersion>8</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup>
     <RootNamespace>SonarLint.VisualStudio.Education</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Education</AssemblyName>
 
@@ -21,7 +18,7 @@
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <CreateVsixContainer>false</CreateVsixContainer>
     <CopyVsixManifestToOutput>false</CopyVsixManifestToOutput>
-    
+
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Controls\RuleHelpUserControl.xaml" />
@@ -49,20 +46,18 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Presentation" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <VSCTCompile Include="Commands\EducationPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
-    
+
     <ProjectReference Include="..\Core\Core.csproj" />
-    
+
     <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj" />
-    
-    <ProjectReference Include="..\Rules\Rules.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">
       <DependentUpon>Resources.resx</DependentUpon>
@@ -70,7 +65,7 @@
       <AutoGen>True</AutoGen>
     </Compile>
   </ItemGroup>
-  
+
   <ItemGroup>
     <EmbeddedResource Update="Resources.resx">
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
