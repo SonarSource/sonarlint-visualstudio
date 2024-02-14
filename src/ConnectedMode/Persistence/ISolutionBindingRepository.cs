@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
         {
             var bound = solutionBindingFileLoader.Load(configFilePath);
 
-            if (bound == null)
+            if (bound is null)
             {
                 return null;
             }
@@ -89,10 +89,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 
         public bool Write(string configFilePath, BoundSonarQubeProject binding)
         {
-            if (binding == null)
-            {
-                throw new ArgumentNullException(nameof(binding));
-            }
+            _ = binding ?? throw new ArgumentNullException(nameof(binding));
 
             if (string.IsNullOrEmpty(configFilePath))
             {
