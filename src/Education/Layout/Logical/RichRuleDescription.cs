@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SonarLint.VisualStudio.Education.Layout.Visual;
 using SonarLint.VisualStudio.Education.Layout.Visual.Tabs;
+using SonarLint.VisualStudio.Education.Rule;
 
 namespace SonarLint.VisualStudio.Education.Layout.Logical
 {
@@ -31,12 +32,12 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
 
     internal class RichRuleDescription : IRichRuleDescription
     {
-        private readonly string introductionHtml;
+        internal /* for testing */ readonly string introductionHtml;
         private readonly List<IRuleDescriptionTab> tabs;
 
         public RichRuleDescription(string introductionHtml, List<IRuleDescriptionTab> tabs)
         {
-            this.introductionHtml = introductionHtml;
+            this.introductionHtml = HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(introductionHtml);
             this.tabs = tabs;
         }
 
