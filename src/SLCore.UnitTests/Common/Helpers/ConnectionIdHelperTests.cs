@@ -74,4 +74,30 @@ public class ConnectionIdHelperTests
 
         actualConnectionId.Should().BeNull();
     }
+
+    [TestMethod]
+    [DataRow("http://someuri.com")]
+    [DataRow("https://sonarcloud.io")]
+    public void MethodsBackToBack_ShouldCreateSameUri(string uriString)
+    {
+        var uri = new Uri(uriString);
+
+        var testSubject = new ConnectionIdHelper();
+
+        var resultUri = testSubject.GetUriFromConnectionId(testSubject.GetConnectionIdFromUri(uri, "something"));
+
+        resultUri.Should().Be(uri);
+    }
+
+    [TestMethod]
+    [DataRow("sq|http://someuri.com/")]
+    [DataRow("sc|something")]
+    public void MethodsBackToBack_ShouldCreateSameConnectionId(string connectionId)
+    {
+        var testSubject = new ConnectionIdHelper();
+
+        var resultConnectionId = testSubject.GetConnectionIdFromUri(testSubject.GetUriFromConnectionId(connectionId), "something");
+
+        resultConnectionId.Should().Be(connectionId);
+    }
 }
