@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
 namespace SonarLint.VisualStudio.SLCore.State;
 
-internal interface IActiveConfigScopeTracker
+internal interface IActiveConfigScopeTracker : IDisposable
 {
     ConfigurationScope Current { get; }
     Task SetCurrentConfigScopeAsync(string id, string connectionId = null, string sonarProjectKey = null);
@@ -54,7 +54,7 @@ public class ConfigurationScope
 
 [Export(typeof(IActiveConfigScopeTracker))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class ActiveConfigScopeTracker : IActiveConfigScopeTracker
+internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 {
     private readonly IAsyncLock asyncLock;
 
@@ -130,5 +130,10 @@ internal class ActiveConfigScopeTracker : IActiveConfigScopeTracker
                 new DidRemoveConfigurationScopeParams(currentConfigScope.id));
             currentConfigScope = null;
         }
+    }
+
+    public void Dispose()
+    {
+        asyncLock?.Dispose();
     }
 }

@@ -161,6 +161,18 @@ public class ActiveConfigScopeTrackerTests
         VerifyThreadHandling(threadHandling);
         VerifyLockTakenSynchronouslyAndReleased(asyncLock, lockRelease);
     }
+    
+    [TestMethod]
+    public void Dispose_DisposesLock()
+    {
+        ConfigureServiceProvider(out var serviceProvider, out _);
+        ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out _);
+        
+        var testSubject = CreateTestSubject(serviceProvider.Object, lockFactory.Object, Mock.Of<IThreadHandling>());
+        
+        testSubject.Dispose();
+        asyncLock.Verify(x => x.Dispose());
+    }
 
     private static void VerifyThreadHandling(Mock<IThreadHandling> threadHandling)
     {
