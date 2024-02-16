@@ -37,17 +37,23 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
 
         public string GetConnectionIdFromUri(Uri uri, string organisation)
         {
-            if (uri is not null)
+            if (uri is null)
             {
-                if (uri == SonarCloudUri)
+                return null;
+            }
+
+            if (uri == SonarCloudUri)
+            {
+                if (!string.IsNullOrWhiteSpace(organisation))
                 {
-                    if (!string.IsNullOrWhiteSpace(organisation)) { return SonarCloudPrefix + organisation; }
-                }
-                else
-                {
-                    return SonarQubePrefix + uri.ToString();
+                    return SonarCloudPrefix + organisation;
                 }
             }
+            else
+            {
+                return SonarQubePrefix + uri.ToString();
+            }
+
             return null;
         }
 
