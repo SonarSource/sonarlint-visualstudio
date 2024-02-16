@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
     {
         Uri GetUriFromConnectionId(string connectionId);
 
-        string GetConnectionIdFromUri(string uriString, string organisation);
+        string GetConnectionIdFromUri(Uri uri, string organisation);
     }
 
     internal class ConnectionIdHelper : IConnectionIdHelper
@@ -35,9 +35,9 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
         private const string SonarQubePrefix = "sq|";
         private static readonly Uri SonarCloudUri = new Uri("https://sonarcloud.io");
 
-        public string GetConnectionIdFromUri(string uriString, string organisation)
+        public string GetConnectionIdFromUri(Uri uri, string organisation)
         {
-            if (!string.IsNullOrWhiteSpace(uriString) && Uri.TryCreate(uriString, UriKind.Absolute, out var uri))
+            if (uri is not null)
             {
                 if (uri == SonarCloudUri)
                 {
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
                 }
                 else
                 {
-                    return SonarQubePrefix + uriString;
+                    return SonarQubePrefix + uri.ToString();
                 }
             }
             return null;

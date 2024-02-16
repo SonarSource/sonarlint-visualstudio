@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers;
@@ -48,20 +49,29 @@ public class ConnectionIdHelperTests
     }
 
     [TestMethod]
-    [DataRow(null, null, null)]
-    [DataRow("", "something", null)]
-    [DataRow("not a uri", "something", null)]
-    [DataRow("http://someuri.com", null, "sq|http://someuri.com")]
-    [DataRow("http://someuri.com", "something", "sq|http://someuri.com")]
+    [DataRow("http://someuri.com", null, "sq|http://someuri.com/")]
+    [DataRow("http://someuri.com", "something", "sq|http://someuri.com/")]
     [DataRow("https://sonarcloud.io", "something", "sc|something")]
     [DataRow("https://sonarcloud.io", "", null)]
     [DataRow("https://sonarcloud.io", null, null)]
     public void GetConnectionIdFromUri_PassUri_ReturnsAsExpected(string uriString, string organisation, string expectedConnectionId)
     {
+        var uri = new Uri(uriString);
+
         var testSubject = new ConnectionIdHelper();
 
-        var actualConnectionId = testSubject.GetConnectionIdFromUri(uriString, organisation);
+        var actualConnectionId = testSubject.GetConnectionIdFromUri(uri, organisation);
 
         actualConnectionId.Should().Be(expectedConnectionId);
+    }
+
+    [TestMethod]
+    public void GetConnectionIdFromUri_UriIsNull_ReturnsNull()
+    {
+        var testSubject = new ConnectionIdHelper();
+
+        var actualConnectionId = testSubject.GetConnectionIdFromUri(null, "something");
+
+        actualConnectionId.Should().BeNull();
     }
 }
