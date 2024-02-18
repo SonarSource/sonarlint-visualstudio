@@ -47,6 +47,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\IssueViz\IssueViz.csproj" />
+    <ProjectReference Include="..\SLCore\SLCore.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="Framework references">

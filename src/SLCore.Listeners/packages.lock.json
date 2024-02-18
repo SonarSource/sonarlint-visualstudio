@@ -1432,6 +1432,7 @@
           "Newtonsoft.Json": "[13.0.3, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )",
+          "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
           "StrongNamer": "[0.0.8, )"
         }
       },
