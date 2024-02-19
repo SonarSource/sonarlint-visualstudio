@@ -60,59 +60,34 @@ namespace SonarLint.VisualStudio.Education.Rule
         string FullRuleKey { get; }
 
         string Name { get; }
-
-        [JsonProperty("DefaultSeverity")]
+        
         RuleIssueSeverity Severity { get; }
 
         RuleIssueType IssueType { get; }
-
-        bool IsActiveByDefault { get; }
-
-        string LanguageKey { get; }
 
         /// <summary>
         /// The HTML description, tweaked so it can be parsed as XML
         /// </summary>
         string Description { get; }
-
-        /// <summary>
-        /// List of tags. Can be empty. Will not be null.
-        /// </summary>
-        IReadOnlyList<string> Tags { get; }
-
-        /// <summary>
-        /// Education principles for the new educational format. Can be empty. Will not be null.
-        /// </summary>
-        IReadOnlyList<string> EducationPrinciples { get; }
-
-        string HtmlNote { get; }
         
         RuleSplitDescriptionDto RichRuleDescriptionDto { get; }
 
         CleanCodeAttribute? CleanCodeAttribute { get; }
 
         Dictionary<SoftwareQuality, SoftwareQualitySeverity> DefaultImpacts { get; }
-
-        IRuleInfo WithCleanCodeTaxonomyDisabled();
     }
 
     public class RuleInfo : IRuleInfo
     {
-        public RuleInfo(string languageKey, string fullRuleKey, string description, string name,
-            RuleIssueSeverity severity, RuleIssueType issueType, bool isActiveByDefault,
-            IReadOnlyList<string> tags, IReadOnlyList<string> educationPrinciples, string htmlNote, RuleSplitDescriptionDto richRuleDescriptionDto,
+        public RuleInfo(string fullRuleKey, string description, string name,
+            RuleIssueSeverity severity, RuleIssueType issueType, RuleSplitDescriptionDto richRuleDescriptionDto,
             CleanCodeAttribute? cleanCodeAttribute, Dictionary<SoftwareQuality, SoftwareQualitySeverity> defaultImpacts)
         {
-            LanguageKey = languageKey;
             FullRuleKey = fullRuleKey;
             Description = description;
             Name = name;
             Severity = severity;
             IssueType = issueType;
-            IsActiveByDefault = isActiveByDefault;
-            Tags = tags ?? Array.Empty<string>();
-            EducationPrinciples = educationPrinciples ?? Array.Empty<string>();
-            HtmlNote = htmlNote;
             RichRuleDescriptionDto = richRuleDescriptionDto;
             CleanCodeAttribute = cleanCodeAttribute;
             DefaultImpacts = defaultImpacts ?? new Dictionary<SoftwareQuality, SoftwareQualitySeverity>();
@@ -126,36 +101,12 @@ namespace SonarLint.VisualStudio.Education.Rule
 
         public RuleIssueType IssueType { get; private set; }
 
-        public bool IsActiveByDefault { get; private set; }
-
-        public string LanguageKey { get; private set; }
-
         public string Description { get; private set; }
 
-        public IReadOnlyList<string> Tags { get; private set; }
-
-        public IReadOnlyList<string> EducationPrinciples { get; }
-
-        public string HtmlNote { get; }
         public RuleSplitDescriptionDto RichRuleDescriptionDto { get; set; }
 
         public CleanCodeAttribute? CleanCodeAttribute { get; }
 
         public Dictionary<SoftwareQuality, SoftwareQualitySeverity> DefaultImpacts { get; }
-
-        public IRuleInfo WithCleanCodeTaxonomyDisabled() =>
-            new RuleInfo(LanguageKey,
-                FullRuleKey,
-                Description,
-                Name,
-                Severity,
-                IssueType,
-                IsActiveByDefault,
-                Tags,
-                EducationPrinciples,
-                HtmlNote,
-                RichRuleDescriptionDto,
-                null,
-                null);
     }
 }

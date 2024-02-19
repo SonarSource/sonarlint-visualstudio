@@ -70,14 +70,14 @@ namespace SonarLint.VisualStudio.Education
 
         public void ShowRuleHelp(SonarCompositeRuleId ruleId, string issueContext)
         {
-            ShowRuleHelpAsync(ruleId, issueContext, CancellationToken.None).Forget();
+            ShowRuleHelpAsync(ruleId, issueContext).Forget();
         }
 
-        private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, string issueContext, CancellationToken token)
+        private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, string issueContext)
         {
             await threadHandling.SwitchToBackgroundThread();
 
-            var ruleInfo = await ruleMetadataProvider.GetRuleInfoAsync(ruleId, token);
+            var ruleInfo = await ruleMetadataProvider.GetRuleInfoAsync(ruleId);
 
             await threadHandling.RunOnUIThreadAsync(() =>
             {

@@ -30,6 +30,6 @@ namespace SonarLint.VisualStudio.Education.Rule
         /// Returns rule information for the specified rule ID, or null if a rule description
         /// could not be found.
         /// </summary>
-        Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, CancellationToken token);
+        Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId);
     }
 }

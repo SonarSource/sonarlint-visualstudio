@@ -84,7 +84,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 WriteTitle(ruleInfo.Name);
                 WriteSubTitle(ruleInfo);
-                WriteExtendedDescriptionIfPresent(ruleInfo);
             }
 
             public void EndDocument()
@@ -99,16 +98,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 writer.ApplyStyleToElement(StyleResourceNames.Title_Paragraph);
                 writer.WriteString(text);
                 writer.WriteEndElement();
-            }
-
-            private void WriteExtendedDescriptionIfPresent(IRuleInfo ruleInfo)
-            {
-                if (string.IsNullOrWhiteSpace(ruleInfo.HtmlNote))
-                {
-                    return;
-                }
-
-                writer.WriteRaw(ruleHelpXamlTranslator.TranslateHtmlToXaml(ruleInfo.HtmlNote));
             }
 
             private void WriteSubTitle(IRuleInfo ruleInfo)
@@ -130,7 +119,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 }
 
                 WriteSubTitleElement_RuleKey(ruleInfo);
-                WriteSubTitleElement_Tags(ruleInfo);
 
                 writer.WriteEndElement();
             }
@@ -256,17 +244,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 writer.WriteAttributeString("Source", $"{{DynamicResource {imageId}}}");
                 writer.WriteEndElement(); // Image
                 writer.WriteEndElement(); // InlineUIContainer
-            }
-
-            private void WriteSubTitleElement_Tags(IRuleInfo ruleInfo)
-            {
-                if (ruleInfo.Tags.Count == 0)
-                {
-                    return;
-                }
-
-                // TODO: icon
-                WriteSubTitleElement("Tags: " + string.Join(" ", ruleInfo.Tags));
             }
 
             private void WriteSubTitleElement_RuleKey(IRuleInfo ruleInfo)
