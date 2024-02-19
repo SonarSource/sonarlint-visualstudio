@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Project
 {
-    [JsonRpcClassAttribute("configuration")]
+    [JsonRpcClass("configuration")]
     public interface IConfigurationScopeSLCoreService : ISLCoreService
     {
         /// <summary>
