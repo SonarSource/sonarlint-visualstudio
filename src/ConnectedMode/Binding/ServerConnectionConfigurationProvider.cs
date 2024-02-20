@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
@@ -30,7 +31,7 @@ using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
-    [Export(typeof(IBoundConnectionInfoProvider))]
+    [Export(typeof(IServerConnectionConfigurationProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ServerConnectionConfigurationProvider : IServerConnectionConfigurationProvider
     {
@@ -41,6 +42,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private List<ServerConnectionConfiguration> bindingList = null;
 
         [ImportingConstructor]
+        [ExcludeFromCodeCoverage]
         public ServerConnectionConfigurationProvider(ISolutionBindingRepository solutionBindingRepository)
             : this(solutionBindingRepository, ThreadHandling.Instance, new ConnectionIdHelper())
         {
@@ -57,7 +59,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         {
             if (bindingList == null) { InitBindingList(); }
 
-            return bindingList.Where(bl => bl is T).Select(bl => (T)bl);
+            return bindingList.OfType<T>().Select(bl => (T)bl);
         }
 
         private void InitBindingList()
@@ -83,7 +85,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             }
         }
 
-        private class BoundSonarQubeProjectUriComparer : IEqualityComparer<BoundSonarQubeProject>
+        private sealed class BoundSonarQubeProjectUriComparer : IEqualityComparer<BoundSonarQubeProject>
         {
             public bool Equals(BoundSonarQubeProject x, BoundSonarQubeProject y)
             {
