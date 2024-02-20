@@ -76,16 +76,16 @@ public class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
 
     private static RuleInfo Convert(EffectiveRuleDetailsDto effectiveRuleDetailsAsync) =>
         new(effectiveRuleDetailsAsync.key,
-            HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(effectiveRuleDetailsAsync.description.Left?.htmlContent),
+            HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(effectiveRuleDetailsAsync.description?.Left?.htmlContent),
             effectiveRuleDetailsAsync.name,
             Convert(effectiveRuleDetailsAsync.severity),
             Convert(effectiveRuleDetailsAsync.type),
-            effectiveRuleDetailsAsync.description.Right,
+            effectiveRuleDetailsAsync.description?.Right,
             Convert(effectiveRuleDetailsAsync.cleanCodeAttribute),
             Convert(effectiveRuleDetailsAsync.defaultImpacts));
 
     private static Dictionary<SoftwareQuality, SoftwareQualitySeverity> Convert(List<ImpactDto> cleanCodeAttribute) => 
-        cleanCodeAttribute.ToDictionary(x => Convert(x.softwareQuality), x => Convert(x.impactSeverity));
+        cleanCodeAttribute?.ToDictionary(x => Convert(x.softwareQuality), x => Convert(x.impactSeverity));
 
 
     private static RuleIssueSeverity Convert(IssueSeverity issueSeverity) =>

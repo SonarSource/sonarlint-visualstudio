@@ -38,6 +38,9 @@ using CleanCodeAttribute = SonarLint.VisualStudio.SLCore.Common.Models.CleanCode
 using IssueSeverity = SonarLint.VisualStudio.SLCore.Common.Models.IssueSeverity;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 using SoftwareQuality = SonarLint.VisualStudio.SLCore.Common.Models.SoftwareQuality;
+using RuleCleanCodeAttribute = SonarLint.VisualStudio.Core.Analysis.CleanCodeAttribute;
+using RuleSoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
+using RuleSoftwareQualitySeverity = SonarLint.VisualStudio.Core.Analysis.SoftwareQualitySeverity;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.Rule;
 
@@ -58,8 +61,152 @@ public class SLCoreRuleMetaDataProviderTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<SLCoreRuleMetaDataProvider>();
     }
+    
+    [DataTestMethod]
+    [DataRow(IssueSeverity.INFO, RuleIssueSeverity.Info)]
+    [DataRow(IssueSeverity.MAJOR, RuleIssueSeverity.Major)]
+    [DataRow(IssueSeverity.BLOCKER, RuleIssueSeverity.Blocker)]
+    [DataRow(IssueSeverity.CRITICAL, RuleIssueSeverity.Critical)]
+    [DataRow(IssueSeverity.MINOR, RuleIssueSeverity.Minor)]
+    public async Task GetRuleInfoAsync_CorrectlyConvertsSeverity(IssueSeverity slCore, RuleIssueSeverity expected)
+    {
+        const string rulekey = "rule:key1";
+        const string configScopeId = "configscope";
 
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpServiceProvider(serviceProviderMock, out var rulesServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope(configScopeId));
+        SetupRulesService(rulesServiceMock, rulekey, configScopeId, new EffectiveRuleDetailsDto(
+            default,
+            default,
+            slCore,
+            default,
+            default,
+            default,
+            default,
+            default,
+            default,
+            default,
+            default));
 
+        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+
+        ruleInfo.Severity.Should().Be(expected);
+    }
+    
+    [DataTestMethod]
+    [DataRow(RuleType.CODE_SMELL, RuleIssueType.CodeSmell)]
+    [DataRow(RuleType.VULNERABILITY, RuleIssueType.Vulnerability)]
+    [DataRow(RuleType.BUG, RuleIssueType.Bug)]
+    [DataRow(RuleType.SECURITY_HOTSPOT, RuleIssueType.Hotspot)]
+    public async Task GetRuleInfoAsync_CorrectlyConvertsType(RuleType slCore, RuleIssueType expected)
+    {
+        const string rulekey = "rule:key1";
+        const string configScopeId = "configscope";
+
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpServiceProvider(serviceProviderMock, out var rulesServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope(configScopeId));
+        SetupRulesService(rulesServiceMock, rulekey, configScopeId, new EffectiveRuleDetailsDto(
+            default,
+            default,
+            default,
+            slCore,
+            default,
+            default,
+            default,
+            default,
+            default,
+            default,
+            default));
+
+        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+
+        ruleInfo.IssueType.Should().Be(expected);
+    }
+
+    [DataTestMethod]
+    [DataRow(CleanCodeAttribute.CONVENTIONAL, RuleCleanCodeAttribute.Conventional)]
+    [DataRow(CleanCodeAttribute.FORMATTED, RuleCleanCodeAttribute.Formatted)]
+    [DataRow(CleanCodeAttribute.IDENTIFIABLE, RuleCleanCodeAttribute.Identifiable)]
+    [DataRow(CleanCodeAttribute.CLEAR, RuleCleanCodeAttribute.Clear)]
+    [DataRow(CleanCodeAttribute.COMPLETE, RuleCleanCodeAttribute.Complete)]
+    [DataRow(CleanCodeAttribute.EFFICIENT, RuleCleanCodeAttribute.Efficient)]
+    [DataRow(CleanCodeAttribute.LOGICAL, RuleCleanCodeAttribute.Logical)]
+    [DataRow(CleanCodeAttribute.DISTINCT, RuleCleanCodeAttribute.Distinct)]
+    [DataRow(CleanCodeAttribute.FOCUSED, RuleCleanCodeAttribute.Focused)]
+    [DataRow(CleanCodeAttribute.MODULAR, RuleCleanCodeAttribute.Modular)]
+    [DataRow(CleanCodeAttribute.TESTED, RuleCleanCodeAttribute.Tested)]
+    [DataRow(CleanCodeAttribute.LAWFUL, RuleCleanCodeAttribute.Lawful)]
+    [DataRow(CleanCodeAttribute.RESPECTFUL, RuleCleanCodeAttribute.Respectful)]
+    [DataRow(CleanCodeAttribute.TRUSTWORTHY, RuleCleanCodeAttribute.Trustworthy)]
+    public async Task GetRuleInfoAsync_CorrectlyConvertsCleanCodeAttribute(CleanCodeAttribute slCore, RuleCleanCodeAttribute expected)
+    {
+        const string rulekey = "rule:key1";
+        const string configScopeId = "configscope";
+
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpServiceProvider(serviceProviderMock, out var rulesServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope(configScopeId));
+        SetupRulesService(rulesServiceMock, rulekey, configScopeId, new EffectiveRuleDetailsDto(
+            default,
+            default,
+            default,
+            default,
+            slCore,
+            default,
+            default,
+            default,
+            default,
+            default,
+            default));
+
+        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+
+        ruleInfo.CleanCodeAttribute.Should().Be(expected);
+    }
+    
+    [TestMethod]
+    public async Task GetRuleInfoAsync_CorrectlyConvertsImpacts()
+    {
+        const string rulekey = "rule:key1";
+        const string configScopeId = "configscope";
+
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpServiceProvider(serviceProviderMock, out var rulesServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope(configScopeId));
+        SetupRulesService(rulesServiceMock, rulekey, configScopeId, new EffectiveRuleDetailsDto(
+            default,
+            default,
+            default,
+            default,
+            default,
+            default,
+            new List<ImpactDto>
+            {
+                new(SoftwareQuality.SECURITY, ImpactSeverity.HIGH),
+                new(SoftwareQuality.RELIABILITY, ImpactSeverity.LOW),
+                new(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.MEDIUM),
+            },
+            default,
+            default,
+            default,
+            default));
+
+        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+
+        ruleInfo.DefaultImpacts.Should().BeEquivalentTo(new Dictionary<RuleSoftwareQuality, RuleSoftwareQualitySeverity>
+        {
+            { RuleSoftwareQuality.Security , SoftwareQualitySeverity.High},
+            { RuleSoftwareQuality.Reliability , SoftwareQualitySeverity.Low},
+            { RuleSoftwareQuality.Maintainability , SoftwareQualitySeverity.Medium},
+        });
+    }
+    
     [TestMethod]
     public async Task GetRuleInfoAsync_SimpleRuleDescription()
     {
