@@ -39,8 +39,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private readonly IThreadHandling threadHandling;
         private readonly IConnectionIdHelper connectionIdHelper;
 
-        private List<ServerConnectionConfiguration> bindingList = null;
-
         [ImportingConstructor]
         [ExcludeFromCodeCoverage]
         public ServerConnectionConfigurationProvider(ISolutionBindingRepository solutionBindingRepository)
@@ -57,16 +55,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         public IEnumerable<T> GetServerConnectionConfiguration<T>() where T : ServerConnectionConfiguration
         {
-            if (bindingList == null) { InitBindingList(); }
-
-            return bindingList.OfType<T>();
-        }
-
-        private void InitBindingList()
-        {
             threadHandling.ThrowIfOnUIThread();
 
-            bindingList = new List<ServerConnectionConfiguration>();
+            var bindingList = new List<ServerConnectionConfiguration>();
 
             var bindings = solutionBindingRepository.List().Distinct(new BoundSonarQubeProjectUriComparer());
 
@@ -83,6 +74,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                     bindingList.Add(new SonarQubeConnectionConfigurationDto(connectionID, true, binding.ServerUri.ToString()));
                 }
             }
+
+            return bindingList.OfType<T>();
         }
 
         private sealed class BoundSonarQubeProjectUriComparer : IEqualityComparer<BoundSonarQubeProject>

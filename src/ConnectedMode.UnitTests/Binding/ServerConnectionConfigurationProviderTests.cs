@@ -107,20 +107,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         }
 
         [TestMethod]
-        public void GetServerConnectionConfiguration_CallsRepoOnce()
-        {
-            var solutionBindingRepository = CreateRepository();
-
-            var testSubject = CreateTestSubject(solutionBindingRepository.Object);
-
-            _ = testSubject.GetServerConnectionConfiguration<SonarQubeConnectionConfigurationDto>();
-            _ = testSubject.GetServerConnectionConfiguration<SonarQubeConnectionConfigurationDto>();
-
-            solutionBindingRepository.Verify(sbr => sbr.List(), Times.Once());
-            solutionBindingRepository.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
         public void GetServerConnectionConfiguration_ThrowsOnUIThread()
         {
             var threadHandling = new Mock<IThreadHandling>();
