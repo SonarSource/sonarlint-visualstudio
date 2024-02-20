@@ -324,7 +324,7 @@ public class SLCoreRuleMetaDataProviderTests
     }
 
     [TestMethod]
-    public async Task GetRuleInfoAsync_ServiceThrows_ReturnsNullAndLogs()
+    public void GetRuleInfoAsync_ServiceThrows_ReturnsNullAndLogs()
     {
         var testSubject =
             CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out var logger);

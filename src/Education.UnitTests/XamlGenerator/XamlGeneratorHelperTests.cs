@@ -36,13 +36,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         [TestMethod]
         public void Factory_Create_ReturnsNonNull()
         {
-            var ruleHelpXamlTranslatorFactoryMock = new Mock<IRuleHelpXamlTranslatorFactory>();
-            var testSubject = new XamlGeneratorHelperFactory(ruleHelpXamlTranslatorFactoryMock.Object);
+            var testSubject = new XamlGeneratorHelperFactory();
 
             var xamlGeneratorHelper = testSubject.Create(Mock.Of<XmlWriter>());
 
             xamlGeneratorHelper.Should().NotBeNull();
-            ruleHelpXamlTranslatorFactoryMock.Verify(x => x.Create());
         }
 
         [TestMethod]
@@ -147,7 +145,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
 
         private static IXamlGeneratorHelper CreateTestSubject(XmlWriter xmlWriter)
         {
-            return (new XamlGeneratorHelperFactory(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory(), new DiffTranslator(new XamlWriterFactory())))).Create(xmlWriter);
+            return new XamlGeneratorHelperFactory().Create(xmlWriter);
         }
     }
 }

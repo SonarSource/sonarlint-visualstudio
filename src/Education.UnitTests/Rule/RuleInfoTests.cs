@@ -44,6 +44,8 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Rule
                 richRuleDescriptionDto: null,
                 cleanCodeAttribute: null,
                 defaultImpacts: null);
+
+            testSubject.DefaultImpacts.Should().NotBeNull();
         }
         
         

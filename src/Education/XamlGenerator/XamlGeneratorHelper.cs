@@ -43,24 +43,16 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class XamlGeneratorHelperFactory : IXamlGeneratorHelperFactory
     {
-        private readonly IRuleHelpXamlTranslatorFactory ruleHelpXamlTranslatorFactory;
-
-        [ImportingConstructor]
-        public XamlGeneratorHelperFactory(IRuleHelpXamlTranslatorFactory ruleHelpXamlTranslatorFactory)
-        {
-            this.ruleHelpXamlTranslatorFactory = ruleHelpXamlTranslatorFactory;
-        }
-
         public IXamlGeneratorHelper Create(XmlWriter writer)
         {
-            return new XamlGeneratorHelper(writer, ruleHelpXamlTranslatorFactory.Create());
+            return new XamlGeneratorHelper(writer);
         }
 
         private sealed class XamlGeneratorHelper : IXamlGeneratorHelper
         {
             private static readonly Dictionary<SoftwareQualitySeverity, StyleResourceNames>
                 SoftwareQualityBubblesStyles =
-                    new Dictionary<SoftwareQualitySeverity, StyleResourceNames>
+                    new()
                     {
                         { SoftwareQualitySeverity.High, StyleResourceNames.HighSoftwareQualitySeverityBubble },
                         { SoftwareQualitySeverity.Medium, StyleResourceNames.MediumSoftwareQualitySeverityBubble },
@@ -69,12 +61,10 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
             private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
             private readonly XmlWriter writer;
-            private readonly IRuleHelpXamlTranslator ruleHelpXamlTranslator;
 
-            public XamlGeneratorHelper(XmlWriter writer, IRuleHelpXamlTranslator ruleHelpXamlTranslator)
+            public XamlGeneratorHelper(XmlWriter writer)
             {
                 this.writer = writer;
-                this.ruleHelpXamlTranslator = ruleHelpXamlTranslator;
             }
 
             public void WriteDocumentHeader(IRuleInfo ruleInfo)
