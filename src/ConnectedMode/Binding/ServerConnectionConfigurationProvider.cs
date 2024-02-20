@@ -87,9 +87,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                     return true;
                 }
 
-                if (x == null && y == null) { return true; }
-
-                if (x == null ^ y == null)
+                //XOR: it's true only when one of them is true
+                if (x is null ^ y is null)
                 {
                     return false;
                 }
