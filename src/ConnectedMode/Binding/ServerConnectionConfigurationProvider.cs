@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                     return false;
                 }
 
-                return x.ServerUri == y.ServerUri;
+                return x.ServerUri.Equals(y.ServerUri);
             }
 
             public int GetHashCode(BoundSonarQubeProject obj)
