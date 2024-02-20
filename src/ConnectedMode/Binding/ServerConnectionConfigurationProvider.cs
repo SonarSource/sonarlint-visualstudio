@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         {
             if (bindingList == null) { InitBindingList(); }
 
-            return bindingList.OfType<T>().Select(bl => (T)bl);
+            return bindingList.OfType<T>();
         }
 
         private void InitBindingList()
