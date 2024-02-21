@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
@@ -33,6 +34,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
     [TestClass]
     public class ServerConnectionConfigurationProviderTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<ServerConnectionConfigurationProvider, IServerConnectionConfigurationProvider>(
+                MefTestHelpers.CreateExport<ISolutionBindingRepository>());
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton()
+        {
+            MefTestHelpers.CheckIsSingletonMefComponent<ServerConnectionConfigurationProvider>();
+        }
+
         [TestMethod]
         public void GetServerConnectionConfiguration_ConvertsSQBindindCorrectly()
         {
