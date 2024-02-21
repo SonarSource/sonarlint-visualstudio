@@ -43,24 +43,16 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class XamlGeneratorHelperFactory : IXamlGeneratorHelperFactory
     {
-        private readonly IRuleHelpXamlTranslatorFactory ruleHelpXamlTranslatorFactory;
-
-        [ImportingConstructor]
-        public XamlGeneratorHelperFactory(IRuleHelpXamlTranslatorFactory ruleHelpXamlTranslatorFactory)
-        {
-            this.ruleHelpXamlTranslatorFactory = ruleHelpXamlTranslatorFactory;
-        }
-
         public IXamlGeneratorHelper Create(XmlWriter writer)
         {
-            return new XamlGeneratorHelper(writer, ruleHelpXamlTranslatorFactory.Create());
+            return new XamlGeneratorHelper(writer);
         }
 
         private sealed class XamlGeneratorHelper : IXamlGeneratorHelper
         {
             private static readonly Dictionary<SoftwareQualitySeverity, StyleResourceNames>
                 SoftwareQualityBubblesStyles =
-                    new Dictionary<SoftwareQualitySeverity, StyleResourceNames>
+                    new()
                     {
                         { SoftwareQualitySeverity.High, StyleResourceNames.HighSoftwareQualitySeverityBubble },
                         { SoftwareQualitySeverity.Medium, StyleResourceNames.MediumSoftwareQualitySeverityBubble },
@@ -69,12 +61,10 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
             private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
             private readonly XmlWriter writer;
-            private readonly IRuleHelpXamlTranslator ruleHelpXamlTranslator;
 
-            public XamlGeneratorHelper(XmlWriter writer, IRuleHelpXamlTranslator ruleHelpXamlTranslator)
+            public XamlGeneratorHelper(XmlWriter writer)
             {
                 this.writer = writer;
-                this.ruleHelpXamlTranslator = ruleHelpXamlTranslator;
             }
 
             public void WriteDocumentHeader(IRuleInfo ruleInfo)
@@ -84,7 +74,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
                 WriteTitle(ruleInfo.Name);
                 WriteSubTitle(ruleInfo);
-                WriteExtendedDescriptionIfPresent(ruleInfo);
             }
 
             public void EndDocument()
@@ -99,16 +88,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 writer.ApplyStyleToElement(StyleResourceNames.Title_Paragraph);
                 writer.WriteString(text);
                 writer.WriteEndElement();
-            }
-
-            private void WriteExtendedDescriptionIfPresent(IRuleInfo ruleInfo)
-            {
-                if (string.IsNullOrWhiteSpace(ruleInfo.HtmlNote))
-                {
-                    return;
-                }
-
-                writer.WriteRaw(ruleHelpXamlTranslator.TranslateHtmlToXaml(ruleInfo.HtmlNote));
             }
 
             private void WriteSubTitle(IRuleInfo ruleInfo)
@@ -130,7 +109,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 }
 
                 WriteSubTitleElement_RuleKey(ruleInfo);
-                WriteSubTitleElement_Tags(ruleInfo);
 
                 writer.WriteEndElement();
             }
@@ -256,17 +234,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 writer.WriteAttributeString("Source", $"{{DynamicResource {imageId}}}");
                 writer.WriteEndElement(); // Image
                 writer.WriteEndElement(); // InlineUIContainer
-            }
-
-            private void WriteSubTitleElement_Tags(IRuleInfo ruleInfo)
-            {
-                if (ruleInfo.Tags.Count == 0)
-                {
-                    return;
-                }
-
-                // TODO: icon
-                WriteSubTitleElement("Tags: " + string.Join(" ", ruleInfo.Tags));
             }
 
             private void WriteSubTitleElement_RuleKey(IRuleInfo ruleInfo)
