@@ -22,18 +22,18 @@ using System;
 
 namespace SonarLint.VisualStudio.SLCore.Common.Helpers
 {
-    internal interface IConnectionIdHelper
+    public interface IConnectionIdHelper
     {
         Uri GetUriFromConnectionId(string connectionId);
 
         string GetConnectionIdFromUri(Uri uri, string organisation);
     }
 
-    internal class ConnectionIdHelper : IConnectionIdHelper
+    public class ConnectionIdHelper : IConnectionIdHelper
     {
         private const string SonarCloudPrefix = "sc|";
         private const string SonarQubePrefix = "sq|";
-        private static readonly Uri SonarCloudUri = new Uri("https://sonarcloud.io");
+        public static readonly Uri SonarCloudUri = new Uri("https://sonarcloud.io");
 
         public string GetConnectionIdFromUri(Uri uri, string organisation)
         {
