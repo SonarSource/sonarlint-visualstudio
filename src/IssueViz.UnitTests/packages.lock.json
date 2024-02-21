@@ -1525,6 +1525,7 @@
           "Newtonsoft.Json": "[13.0.3, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.IssueVisualization": "[1.0.0, )",
+          "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
           "StrongNamer": "[0.0.8, )"
         }
       },
@@ -1601,6 +1602,13 @@
         "dependencies": {
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "SonarLint.VisualStudio.Progress": "[1.0.0, )"
+        }
+      },
+      "SonarLint.VisualStudio.SLCore": {
+        "type": "Project",
+        "dependencies": {
+          "SonarLint.VisualStudio.Core": "[1.0.0, )",
+          "StreamJsonRpc": "[2.5.46, )"
         }
       },
       "sonarqube.client": {

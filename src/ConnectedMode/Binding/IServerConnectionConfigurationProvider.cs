@@ -19,14 +19,12 @@
  */
 
 using System.Collections.Generic;
+using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
-    public interface IBoundConnectionInfoProvider
+    public interface IServerConnectionConfigurationProvider
     {
-        /// <summary>
-        /// Lists all bindings that have been saved locally
-        /// </summary>
-        IEnumerable<BoundConnectionInfo> GetExistingBindings();
+        IEnumerable<ServerConnectionConfiguration> GetServerConnectionConfiguration();
     }
 }
