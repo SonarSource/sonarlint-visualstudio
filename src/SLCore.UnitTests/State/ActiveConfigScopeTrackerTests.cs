@@ -40,8 +40,7 @@ public class ActiveConfigScopeTrackerTests
     {
         MefTestHelpers.CheckTypeCanBeImported<ActiveConfigScopeTracker, IActiveConfigScopeTracker>(
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
-            MefTestHelpers.CreateExport<IAsyncLockFactory>(),
-            MefTestHelpers.CreateExport<IThreadHandling>());
+            MefTestHelpers.CreateExport<IAsyncLockFactory>());
     }
 
     [TestMethod]
@@ -80,6 +79,26 @@ public class ActiveConfigScopeTrackerTests
 
         testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScopeDto(configScopeId, configScopeId, true, new BindingConfigurationDto(connectionId, sonarProjectKey)));
         VerifyServiceAddCall(configScopeService, testSubject);
+        VerifyLockTakenAndReleased(asyncLock, lockRelease);
+    }
+    
+    [TestMethod]
+    public async Task SetCurrentConfigScope_CurrentScopeExists_UpdatesBoundScope()
+    {
+        const string configScopeId = "myid";
+        const string connectionId = "myconid";
+        const string sonarProjectKey = "projectkey";
+        ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
+        ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
+        var testSubject = CreateTestSubject(serviceProvider.Object, lockFactory.Object);
+        var existingConfigScope = new ConfigurationScopeDto(configScopeId, configScopeId, true, null);
+        testSubject.currentConfigScope = existingConfigScope;
+
+        await testSubject.SetCurrentConfigScopeAsync(configScopeId, connectionId, sonarProjectKey);
+
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScopeDto(configScopeId, configScopeId, true, new BindingConfigurationDto(connectionId, sonarProjectKey)));
+        testSubject.currentConfigScope.Should().NotBeSameAs(existingConfigScope);
+        VerifyServiceUpdateCall(configScopeService, testSubject);
         VerifyLockTakenAndReleased(asyncLock, lockRelease);
     }
 
@@ -172,6 +191,16 @@ public class ActiveConfigScopeTrackerTests
                     x.DidAddConfigurationScopesAsync(It.Is<DidAddConfigurationScopesParams>(p =>
                         p.addedScopes.SequenceEqual(new[] { testSubject.currentConfigScope }))),
                 Times.Once);
+        configScopeService.VerifyNoOtherCalls();
+    }
+
+    private static void VerifyServiceUpdateCall(Mock<IConfigurationScopeSLCoreService> configScopeService,
+        ActiveConfigScopeTracker testSubject)
+    {
+        configScopeService
+            .Verify(x => x.DidUpdateBindingAsync(It.Is<DidUpdateBindingParams>(p =>
+                p.configScopeId == testSubject.currentConfigScope.id && p.updatedBinding == testSubject.currentConfigScope.binding)), Times.Once);
+        configScopeService.VerifyNoOtherCalls();
     }
 
     private static void VerifyLockTakenSynchronouslyAndReleased(Mock<IAsyncLock> asyncLock, Mock<IReleaseAsyncLock> lockRelease)

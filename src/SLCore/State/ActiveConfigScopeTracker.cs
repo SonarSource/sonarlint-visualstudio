@@ -98,7 +98,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 
         using (await asyncLock.AcquireAsync())
         {
-            if (currentConfigScope.id == id)
+            if (currentConfigScope != null && currentConfigScope.id == id)
             {
                 await configurationScopeService.DidUpdateBindingAsync(new DidUpdateBindingParams(id, configurationScopeDto.binding));
             }
