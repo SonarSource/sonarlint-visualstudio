@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Project;
 using SonarLint.VisualStudio.SLCore.Service.Project.Models;
+using SonarLint.VisualStudio.SLCore.Service.Project.Params;
 
 namespace SonarLint.VisualStudio.SLCore.State;
 
@@ -85,8 +86,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
     
     public async Task SetCurrentConfigScopeAsync(string id, string connectionId = null, string sonarProjectKey = null)
     {
-        if (!serviceProvider.TryGetTransientService(out IConfigurationScopeSLCoreService configurationScopeService)
-            || !serviceProvider.TryGetTransientService(out IBindingSLCoreService bindingSlCoreService))
+        if (!serviceProvider.TryGetTransientService(out IConfigurationScopeSLCoreService configurationScopeService))
         {
             throw new InvalidOperationException(Strings.ServiceProviderNotInitialized);
         }
@@ -100,7 +100,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         {
             if (currentConfigScope.id == id)
             {
-                await bindingSlCoreService.DidUpdateBindingAsync(new DidUpdateBindingParams(id, configurationScopeDto.binding));
+                await configurationScopeService.DidUpdateBindingAsync(new DidUpdateBindingParams(id, configurationScopeDto.binding));
             }
             else
             {

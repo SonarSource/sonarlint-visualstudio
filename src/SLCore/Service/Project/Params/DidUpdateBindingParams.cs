@@ -19,33 +19,19 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Project
+namespace SonarLint.VisualStudio.SLCore.Service.Project.Params;
+
+public class DidUpdateBindingParams
 {
-    [JsonRpcClassAttribute("configuration")]
-    public interface IBindingSLCoreService : ISLCoreService
-    {
-        /// <summary>
-        /// Updates binding configuration on an existing configuration scope
-        /// </summary>
-        /// <param name="parameters"></param>
-        Task DidUpdateBindingAsync(DidUpdateBindingParams parameters);
-    }
+    public string configScopeId { get; }
+    public BindingConfigurationDto updatedBinding { get; }
 
-    public class DidUpdateBindingParams
+    [ExcludeFromCodeCoverage]
+    public DidUpdateBindingParams(string configScopeId, BindingConfigurationDto updatedBinding)
     {
-        public string configScopeId { get; }
-        public BindingConfigurationDto updatedBinding { get; }
-
-        [ExcludeFromCodeCoverage]
-        public DidUpdateBindingParams(string configScopeId, BindingConfigurationDto updatedBinding)
-        {
-            this.configScopeId = configScopeId;
-            this.updatedBinding = updatedBinding;
-        }
+        this.configScopeId = configScopeId;
+        this.updatedBinding = updatedBinding;
     }
 }

@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Project;
 using SonarLint.VisualStudio.SLCore.Service.Project.Models;
+using SonarLint.VisualStudio.SLCore.Service.Project.Params;
 using SonarLint.VisualStudio.SLCore.State;
 using SonarLint.VisualStudio.TestInfrastructure;
 
