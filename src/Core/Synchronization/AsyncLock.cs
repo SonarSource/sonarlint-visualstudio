@@ -18,18 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
+using System;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Education.Rule
+namespace SonarLint.VisualStudio.Core.Synchronization;
+
+public interface IAsyncLockFactory
 {
-    public interface IRuleMetaDataProvider
-    {
-        /// <summary>
-        /// Returns rule information for the specified rule ID, or null if a rule description
-        /// could not be found.
-        /// </summary>
-        Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, CancellationToken token);
-    }
+    IAsyncLock Create();
 }
+
+public interface IAsyncLock : IDisposable
+{
+    IReleaseAsyncLock Acquire();
+    Task<IReleaseAsyncLock> AcquireAsync();
+}
+
+public interface IReleaseAsyncLock : IDisposable
+{
+    // marker interface
+}
+

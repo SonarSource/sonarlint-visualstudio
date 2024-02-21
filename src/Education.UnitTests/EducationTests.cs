@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var ruleId = new SonarCompositeRuleId("repoKey", "ruleKey");
 
             var ruleInfo = Mock.Of<IRuleInfo>();
-            ruleMetaDataProvider.Setup(x => x.GetRuleInfoAsync(It.IsAny<SonarCompositeRuleId>(), It.IsAny<CancellationToken>())).ReturnsAsync(ruleInfo);
+            ruleMetaDataProvider.Setup(x => x.GetRuleInfoAsync(It.IsAny<SonarCompositeRuleId>())).ReturnsAsync(ruleInfo);
 
             var flowDocument = Mock.Of<FlowDocument>();
             var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             // Act
             testSubject.ShowRuleHelp(ruleId, null);
 
-            ruleMetaDataProvider.Verify(x => x.GetRuleInfoAsync(ruleId, CancellationToken.None), Times.Once);
+            ruleMetaDataProvider.Verify(x => x.GetRuleInfoAsync(ruleId), Times.Once);
             ruleHelpXamlBuilder.Verify(x => x.Create(ruleInfo, /* todo */ null), Times.Once);
             ruleDescriptionToolWindow.Verify(x => x.UpdateContent(flowDocument), Times.Once);
             toolWindowService.Verify(x => x.Show(RuleHelpToolWindow.ToolWindowId), Times.Once);
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var ruleId = new SonarCompositeRuleId("repoKey", "ruleKey");
 
             var ruleInfo = Mock.Of<IRuleInfo>();
-            ruleMetadataProvider.Setup(x => x.GetRuleInfoAsync(It.IsAny<SonarCompositeRuleId>(), It.IsAny<CancellationToken>())).ReturnsAsync(ruleInfo);
+            ruleMetadataProvider.Setup(x => x.GetRuleInfoAsync(It.IsAny<SonarCompositeRuleId>())).ReturnsAsync(ruleInfo);
 
             ruleHelpXamlBuilder.Setup(x => x.Create(ruleInfo, /* todo */ null)).Throws(new Exception("some layout error"));
 
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
             testSubject.ShowRuleHelp(ruleId, /* todo */ null);
 
-            ruleMetadataProvider.Verify(x => x.GetRuleInfoAsync(ruleId, CancellationToken.None), Times.Once);
+            ruleMetadataProvider.Verify(x => x.GetRuleInfoAsync(ruleId), Times.Once);
             showRuleInBrowser.Verify(x => x.ShowRuleDescription(ruleId), Times.Once);
 
             // should have attempted to build the rule, but failed
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var showRuleInBrowser = new Mock<IShowRuleInBrowser>();
 
             var unknownRule = new SonarCompositeRuleId("known", "xxx");
-            ruleMetadataProvider.Setup(x => x.GetRuleInfoAsync(unknownRule, It.IsAny<CancellationToken>())).ReturnsAsync((IRuleInfo)null);
+            ruleMetadataProvider.Setup(x => x.GetRuleInfoAsync(unknownRule)).ReturnsAsync((IRuleInfo)null);
 
             var testSubject = CreateEducation(
                 toolWindowService.Object,
@@ -138,7 +138,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
             testSubject.ShowRuleHelp(unknownRule, /* todo */ null);
 
-            ruleMetadataProvider.Verify(x => x.GetRuleInfoAsync(unknownRule, CancellationToken.None), Times.Once);
+            ruleMetadataProvider.Verify(x => x.GetRuleInfoAsync(unknownRule), Times.Once);
             showRuleInBrowser.Verify(x => x.ShowRuleDescription(unknownRule), Times.Once);
 
             // Should not have attempted to build the rule
