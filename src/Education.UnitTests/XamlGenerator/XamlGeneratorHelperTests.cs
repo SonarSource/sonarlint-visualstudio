@@ -36,45 +36,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         [TestMethod]
         public void Factory_Create_ReturnsNonNull()
         {
-            var ruleHelpXamlTranslatorFactoryMock = new Mock<IRuleHelpXamlTranslatorFactory>();
-            var testSubject = new XamlGeneratorHelperFactory(ruleHelpXamlTranslatorFactoryMock.Object);
+            var testSubject = new XamlGeneratorHelperFactory();
 
             var xamlGeneratorHelper = testSubject.Create(Mock.Of<XmlWriter>());
 
             xamlGeneratorHelper.Should().NotBeNull();
-            ruleHelpXamlTranslatorFactoryMock.Verify(x => x.Create());
-        }
-
-        [TestMethod]
-        public void WriteDocumentHeaderAndEndDocument_ExtendedDescription_ProduceCorrectStructure()
-        {
-            var sb = new StringBuilder();
-            var xmlWriter = new XamlWriterFactory().Create(sb);
-            var ruleInfo = new RuleInfo("cs", "cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
-                RuleIssueType.Vulnerability, true, new List<string>(),
-                new List<string>(), "<p>fix this pls</p>", null,null, null);
-
-            var testSubject = CreateTestSubject(xmlWriter);
-
-            testSubject.WriteDocumentHeader(ruleInfo);
-            xmlWriter.WriteStartElement("LineBreak");
-            xmlWriter.WriteEndElement();
-            testSubject.EndDocument();
-
-            sb.ToString().Should().BeEquivalentTo(
-@"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
-  <Paragraph Style=""{DynamicResource Title_Paragraph}"">Hi</Paragraph>
-  <Paragraph Style=""{DynamicResource Subtitle_Paragraph}"">
-    <Span Style=""{DynamicResource SubtitleElement_Span}"">
-      <InlineUIContainer>
-        <Image Style=""{DynamicResource SubtitleElement_Image}"" Source=""{DynamicResource vulnerabilityDrawingImage}"" />
-      </InlineUIContainer>Vulnerability</Span>
-    <Span Style=""{DynamicResource SubtitleElement_Span}"">
-      <InlineUIContainer>
-        <Image Style=""{DynamicResource SubtitleElement_Image}"" Source=""{DynamicResource criticalDrawingImage}"" />
-      </InlineUIContainer>Critical</Span>
-    <Span Style=""{DynamicResource SubtitleElement_Span}"">cs:123</Span>
-  </Paragraph><Paragraph>fix this pls</Paragraph><LineBreak /></FlowDocument>".Replace("\r\n", "\n").Replace("\n", "\r\n"));
         }
 
         [TestMethod]
@@ -82,9 +48,8 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         {
             var sb = new StringBuilder();
             var xmlWriter = new XamlWriterFactory().Create(sb);
-            var ruleInfo = new RuleInfo("cs", "cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
-                RuleIssueType.Vulnerability, true, new List<string>(),
-                new List<string>(), null, null, null, null);
+            var ruleInfo = new RuleInfo("cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
+                RuleIssueType.Vulnerability,  null, null, null);
             IXamlGeneratorHelper testSubject = CreateTestSubject(xmlWriter);
 
             testSubject.WriteDocumentHeader(ruleInfo);
@@ -115,9 +80,8 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         {
             var sb = new StringBuilder();
             var xmlWriter = new XamlWriterFactory().Create(sb);
-            var ruleInfo = new RuleInfo("cs", "cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
-                RuleIssueType.Vulnerability, true, new List<string>(),
-                new List<string>(), null, null, CleanCodeAttribute.Formatted, new Dictionary<SoftwareQuality, SoftwareQualitySeverity>
+            var ruleInfo = new RuleInfo("cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
+                RuleIssueType.Vulnerability, null, CleanCodeAttribute.Formatted, new Dictionary<SoftwareQuality, SoftwareQualitySeverity>
                 {
                     { SoftwareQuality.Maintainability, SoftwareQualitySeverity.High},
                     { SoftwareQuality.Security, SoftwareQualitySeverity.Low},
@@ -181,7 +145,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
 
         private static IXamlGeneratorHelper CreateTestSubject(XmlWriter xmlWriter)
         {
-            return (new XamlGeneratorHelperFactory(new RuleHelpXamlTranslatorFactory(new XamlWriterFactory(), new DiffTranslator(new XamlWriterFactory())))).Create(xmlWriter);
+            return new XamlGeneratorHelperFactory().Create(xmlWriter);
         }
     }
 }
