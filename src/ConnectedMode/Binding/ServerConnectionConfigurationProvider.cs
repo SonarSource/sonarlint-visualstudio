@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             this.connectionIdHelper = connectionIdHelper;
         }
 
-        public IEnumerable<T> GetServerConnectionConfiguration<T>() where T : ServerConnectionConfiguration
+        public IEnumerable<ServerConnectionConfiguration> GetServerConnectionConfiguration()
         {
             threadHandling.ThrowIfOnUIThread();
 
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                 }
             }
 
-            return bindingList.OfType<T>();
+            return bindingList;
         }
 
         private sealed class BoundSonarQubeProjectUriComparer : IEqualityComparer<BoundSonarQubeProject>

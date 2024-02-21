@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             var testSubject = CreateTestSubject(solutionBindingRepository.Object);
 
-            var bindings = testSubject.GetServerConnectionConfiguration<SonarQubeConnectionConfigurationDto>().ToList();
+            var bindings = testSubject.GetServerConnectionConfiguration().OfType<SonarQubeConnectionConfigurationDto>().ToList();
 
             bindings.Should().HaveCount(1);
             bindings[0].connectionId.Should().Be("sq|http://someuri.com/");
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             var testSubject = CreateTestSubject(solutionBindingRepository.Object);
 
-            var bindings = testSubject.GetServerConnectionConfiguration<SonarCloudConnectionConfigurationDto>().ToList();
+            var bindings = testSubject.GetServerConnectionConfiguration().OfType<SonarCloudConnectionConfigurationDto>().ToList();
 
             bindings.Should().HaveCount(1);
             bindings[0].connectionId.Should().Be("sc|org");
@@ -93,8 +93,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             var testSubject = CreateTestSubject(solutionBindingRepository.Object);
 
-            var sqBindings = testSubject.GetServerConnectionConfiguration<SonarQubeConnectionConfigurationDto>();
-            var scBindings = testSubject.GetServerConnectionConfiguration<SonarCloudConnectionConfigurationDto>();
+            var sqBindings = testSubject.GetServerConnectionConfiguration().OfType<SonarQubeConnectionConfigurationDto>();
+            var scBindings = testSubject.GetServerConnectionConfiguration().OfType<SonarCloudConnectionConfigurationDto>();
 
             sqBindings.Should().HaveCount(3);
             scBindings.Should().HaveCount(1);
@@ -113,8 +113,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             var testSubject = CreateTestSubject(solutionBindingRepository.Object);
 
-            var sqBindings = testSubject.GetServerConnectionConfiguration<SonarQubeConnectionConfigurationDto>();
-            var scBindings = testSubject.GetServerConnectionConfiguration<SonarCloudConnectionConfigurationDto>();
+            var sqBindings = testSubject.GetServerConnectionConfiguration().OfType<SonarQubeConnectionConfigurationDto>();
+            var scBindings = testSubject.GetServerConnectionConfiguration().OfType<SonarCloudConnectionConfigurationDto>();
 
             sqBindings.Should().HaveCount(2);
             scBindings.Should().HaveCount(1);
@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             var testSubject = CreateTestSubject(threadHandling: threadHandling.Object);
 
-            _ = testSubject.GetServerConnectionConfiguration<SonarQubeConnectionConfigurationDto>();
+            _ = testSubject.GetServerConnectionConfiguration();
 
             threadHandling.Verify(th => th.ThrowIfOnUIThread(), Times.Once);
             threadHandling.VerifyNoOtherCalls();

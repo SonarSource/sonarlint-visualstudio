@@ -25,6 +25,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     public interface IServerConnectionConfigurationProvider
     {
-        IEnumerable<T> GetServerConnectionConfiguration<T>() where T : ServerConnectionConfiguration;
+        IEnumerable<ServerConnectionConfiguration> GetServerConnectionConfiguration();
     }
 }
