@@ -20,13 +20,14 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Project
 {
     [JsonRpcClassAttribute("configuration")]
-    public interface IBindingSLCoreService
+    public interface IBindingSLCoreService : ISLCoreService
     {
         /// <summary>
         /// Updates binding configuration on an existing configuration scope
