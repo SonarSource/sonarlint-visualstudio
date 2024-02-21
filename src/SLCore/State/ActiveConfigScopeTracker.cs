@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
 namespace SonarLint.VisualStudio.SLCore.State;
 
-internal interface IActiveConfigScopeTracker : IDisposable
+public interface IActiveConfigScopeTracker : IDisposable
 {
     ConfigurationScope Current { get; }
     Task SetCurrentConfigScopeAsync(string id, string connectionId = null, string sonarProjectKey = null);
