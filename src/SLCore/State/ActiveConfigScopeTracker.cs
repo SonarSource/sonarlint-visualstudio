@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Project;
 using SonarLint.VisualStudio.SLCore.Service.Project.Models;
+using SonarLint.VisualStudio.SLCore.Service.Project.Params;
 
 namespace SonarLint.VisualStudio.SLCore.State;
 
@@ -56,10 +57,9 @@ public class ConfigurationScope
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 {
-    private readonly IAsyncLock asyncLock;
-
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IThreadHandling threadHandling;
+    private readonly IAsyncLock asyncLock;
 
     internal /* for testing */ ConfigurationScopeDto currentConfigScope;
 
@@ -91,7 +91,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
     public async Task SetCurrentConfigScopeAsync(string id, string connectionId = null, string sonarProjectKey = null)
     {
         threadHandling.ThrowIfOnUIThread();
-
+        
         if (!serviceProvider.TryGetTransientService(out IConfigurationScopeSLCoreService configurationScopeService))
         {
             throw new InvalidOperationException(Strings.ServiceProviderNotInitialized);
@@ -104,10 +104,17 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 
         using (await asyncLock.AcquireAsync())
         {
-            Debug.Assert(currentConfigScope == null);
-
-            await configurationScopeService.DidAddConfigurationScopesAsync(
-                new DidAddConfigurationScopesParams(new List<ConfigurationScopeDto> { configurationScopeDto }));
+            Debug.Assert(currentConfigScope == null || currentConfigScope.id == id);
+            
+            if (currentConfigScope?.id == id)
+            {
+                await configurationScopeService.DidUpdateBindingAsync(new DidUpdateBindingParams(id, configurationScopeDto.binding));
+            }
+            else
+            {
+                await configurationScopeService.DidAddConfigurationScopesAsync(
+                    new DidAddConfigurationScopesParams(new List<ConfigurationScopeDto> { configurationScopeDto }));
+            }
             currentConfigScope = configurationScopeDto;
         }
     }
@@ -116,7 +123,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
     public async Task RemoveCurrentConfigScopeAsync()
     {
         threadHandling.ThrowIfOnUIThread();
-
+        
         if (!serviceProvider.TryGetTransientService(out IConfigurationScopeSLCoreService configurationScopeService))
         {
             throw new InvalidOperationException(Strings.ServiceProviderNotInitialized);
