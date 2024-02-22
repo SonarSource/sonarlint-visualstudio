@@ -156,14 +156,53 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ActiveSolutionBoundTracker_Changes()
+        public void ActiveSolutionBoundTracker_BoundProject_PassedToConfigScopeUpdater()
         {
             var boundProject = new BoundSonarQubeProject(new Uri("http://localhost:9000"), "key", "projectName");
+
+            var configScopeUpdaterMock = new Mock<IConfigScopeUpdater>();
 
             ConfigureService(isConnected: false);
             ConfigureSolutionBinding(boundProject);
 
-            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider,
+                       loggerMock.Object, configScopeUpdater: configScopeUpdaterMock.Object))
+            {
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                
+                configScopeUpdaterMock.Verify(x => x.UpdateConfigScopeForCurrentSolution(boundProject));
+                configScopeUpdaterMock.VerifyNoOtherCalls();
+            }
+        }
+        
+        [TestMethod]
+        public void ActiveSolutionBoundTracker_UnBoundProject_NullPassedToConfigScopeUpdater()
+        {
+            var configScopeUpdaterMock = new Mock<IConfigScopeUpdater>();
+
+            ConfigureService(isConnected: false);
+
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider,
+                       loggerMock.Object, configScopeUpdater: configScopeUpdaterMock.Object))
+            {
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                
+                configScopeUpdaterMock.Verify(x => x.UpdateConfigScopeForCurrentSolution(null));
+                configScopeUpdaterMock.VerifyNoOtherCalls();
+            }
+        }
+
+        [TestMethod]
+        public void ActiveSolutionBoundTracker_Changes()
+        {
+            var boundProject = new BoundSonarQubeProject(new Uri("http://localhost:9000"), "key", "projectName");
+
+            var configScopeUpdaterMock = new Mock<IConfigScopeUpdater>();
+
+            ConfigureService(isConnected: false);
+            ConfigureSolutionBinding(boundProject);
+
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object, configScopeUpdater: configScopeUpdaterMock.Object))
             {
                 var eventCounter = new EventCounter(testSubject);
 
@@ -187,6 +226,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.SolutionBindingChangedCount.Should().Be(1, "Unbind should trigger reanalysis");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Unbind should not trigger change");
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0, "Unbind should not trigger change");
+                configScopeUpdaterMock.Verify(x => x.UpdateConfigScopeForCurrentSolution(It.IsAny<BoundSonarQubeProject>()), Times.Exactly(1));
                 VerifyAndResetBoundSolutionUIContextMock(isActive: false);
 
                 VerifyServiceDisconnect(Times.Never());
@@ -203,6 +243,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.SolutionBindingChangedCount.Should().Be(2, "Bind should trigger reanalysis");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Bind should not trigger update event");
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0, "Bind should not trigger update event");
+                configScopeUpdaterMock.Verify(x => x.UpdateConfigScopeForCurrentSolution(It.IsAny<BoundSonarQubeProject>()), Times.Exactly(2));
                 VerifyAndResetBoundSolutionUIContextMock(isActive: true);
 
                 // Notifications from the Team Explorer should not trigger connect/disconnect
@@ -220,6 +261,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.SolutionBindingChangedCount.Should().Be(3, "Solution change should trigger reanalysis");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Solution change should not trigger update event");
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0, "Solution change should not trigger update event");
+                configScopeUpdaterMock.Verify(x => x.UpdateConfigScopeForCurrentSolution(It.IsAny<BoundSonarQubeProject>()), Times.Exactly(3));
                 VerifyAndResetBoundSolutionUIContextMock(isActive: false);
 
                 // Closing an unbound solution should not call disconnect/connect
@@ -237,6 +279,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.SolutionBindingChangedCount.Should().Be(4, "Solution change should trigger reanalysis");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Bind should not trigger update event");
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0, "Bind should not trigger update event");
+                configScopeUpdaterMock.Verify(x => x.UpdateConfigScopeForCurrentSolution(It.IsAny<BoundSonarQubeProject>()), Times.Exactly(4));
                 VerifyAndResetBoundSolutionUIContextMock(isActive: true);
 
                 // Loading a bound solution should call connect
@@ -253,6 +296,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.SolutionBindingChangedCount.Should().Be(5, "Solution change should trigger reanalysis");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Solution change should not trigger update event");
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0, "Solution change should not trigger update event");
+                configScopeUpdaterMock.Verify(x => x.UpdateConfigScopeForCurrentSolution(It.IsAny<BoundSonarQubeProject>()), Times.Exactly(5));
                 VerifyAndResetBoundSolutionUIContextMock(isActive: false);
 
                 // SonarQubeService.Disconnect should be called since the WPF DisconnectCommand is not available
@@ -268,6 +312,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Assert
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(5, "Once disposed should stop raising the event");
                 eventCounter.SolutionBindingChangedCount.Should().Be(5, "Once disposed should stop raising the event");
+                configScopeUpdaterMock.Verify(x => x.UpdateConfigScopeForCurrentSolution(It.IsAny<BoundSonarQubeProject>()), Times.Exactly(5));
                 // SonarQubeService.Disconnect should be called since the WPF DisconnectCommand is not available
                 VerifyServiceDisconnect(Times.Once());
                 VerifyServiceConnect(Times.Once());
