@@ -106,13 +106,12 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         {
             Debug.Assert(currentConfigScope == null || currentConfigScope.id == id);
             
-            if (currentConfigScope != null && currentConfigScope.id == id)
+            if (currentConfigScope?.id == id)
             {
                 await configurationScopeService.DidUpdateBindingAsync(new DidUpdateBindingParams(id, configurationScopeDto.binding));
             }
             else
             {
-                
                 await configurationScopeService.DidAddConfigurationScopesAsync(
                     new DidAddConfigurationScopesParams(new List<ConfigurationScopeDto> { configurationScopeDto }));
             }
