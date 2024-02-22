@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Project;
 using SonarLint.VisualStudio.SLCore.Service.Project.Models;
+using SonarLint.VisualStudio.SLCore.Service.Project.Params;
 using SonarLint.VisualStudio.SLCore.State;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -57,7 +58,7 @@ public class ActiveConfigScopeTrackerTests
         var threadHandling = new Mock<IThreadHandling>();
         ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
         ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
-        var testSubject = CreateTestSubject(serviceProvider.Object, lockFactory.Object, threadHandling.Object);
+        var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
 
         await testSubject.SetCurrentConfigScopeAsync(configScopeId);
 
@@ -76,7 +77,7 @@ public class ActiveConfigScopeTrackerTests
         var threadHandling = new Mock<IThreadHandling>();
         ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
         ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
-        var testSubject = CreateTestSubject(serviceProvider.Object, lockFactory.Object, threadHandling.Object);
+        var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
 
         await testSubject.SetCurrentConfigScopeAsync(configScopeId, connectionId, sonarProjectKey);
 
@@ -85,16 +86,40 @@ public class ActiveConfigScopeTrackerTests
         VerifyServiceAddCall(configScopeService, testSubject);
         VerifyLockTakenAndReleased(asyncLock, lockRelease);
     }
+    
+    [TestMethod]
+    public async Task SetCurrentConfigScope_CurrentScopeExists_UpdatesBoundScope()
+    {
+        const string configScopeId = "myid";
+        const string connectionId = "myconid";
+        const string sonarProjectKey = "projectkey";
+        var threadHandling = new Mock<IThreadHandling>();
+        ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
+        ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
+        var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
+        var existingConfigScope = new ConfigurationScopeDto(configScopeId, configScopeId, true, null);
+        testSubject.currentConfigScope = existingConfigScope;
+
+        await testSubject.SetCurrentConfigScopeAsync(configScopeId, connectionId, sonarProjectKey);
+
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScopeDto(configScopeId, configScopeId, true, new BindingConfigurationDto(connectionId, sonarProjectKey)));
+        testSubject.currentConfigScope.Should().NotBeSameAs(existingConfigScope);
+        VerifyThreadHandling(threadHandling);
+        VerifyServiceUpdateCall(configScopeService, testSubject);
+        VerifyLockTakenAndReleased(asyncLock, lockRelease);
+    }
 
     [TestMethod]
     public async Task SetCurrentConfigScope_ServiceUnavailable_Throws()
     {
+        var threadHandling = new Mock<IThreadHandling>();
         ConfigureAsyncLockFactory(out var lockFactory, out _, out _);
-        var testSubject = CreateTestSubject(Mock.Of<ISLCoreServiceProvider>(), lockFactory.Object, Mock.Of<IThreadHandling>());
+        var testSubject = CreateTestSubject(Mock.Of<ISLCoreServiceProvider>(), threadHandling.Object, lockFactory.Object);
 
         var act = () => testSubject.SetCurrentConfigScopeAsync("id");
 
         await act.Should().ThrowExactlyAsync<InvalidOperationException>().WithMessage(Strings.ServiceProviderNotInitialized);
+        VerifyThreadHandling(threadHandling);
     }
 
     [TestMethod]
@@ -104,26 +129,28 @@ public class ActiveConfigScopeTrackerTests
         var threadHandling = new Mock<IThreadHandling>();
         ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
         ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
-        var testSubject = CreateTestSubject(serviceProvider.Object, lockFactory.Object, threadHandling.Object);
+        var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
         testSubject.currentConfigScope = new ConfigurationScopeDto(configScopeId, configScopeId, true, null);
         
         await testSubject.RemoveCurrentConfigScopeAsync();
         
-        VerifyThreadHandling(threadHandling);
         configScopeService.Verify(x => x.DidRemoveConfigurationScopeAsync(It.Is<DidRemoveConfigurationScopeParams>(p => p.removeId == configScopeId)));
+        VerifyThreadHandling(threadHandling);
         VerifyLockTakenAndReleased(asyncLock, lockRelease);
     }
     
     [TestMethod]
     public async Task RemoveCurrentConfigScope_ServiceUnavailable_Throws()
     {
+        var threadHandling = new Mock<IThreadHandling>();
         ConfigureAsyncLockFactory(out var lockFactory, out _, out _);
-        var testSubject = CreateTestSubject(Mock.Of<ISLCoreServiceProvider>(), lockFactory.Object, Mock.Of<IThreadHandling>());
+        var testSubject = CreateTestSubject(Mock.Of<ISLCoreServiceProvider>(), threadHandling.Object, lockFactory.Object);
         testSubject.currentConfigScope = new ConfigurationScopeDto(default, default, default, default);
 
         var act = () => testSubject.RemoveCurrentConfigScopeAsync();
 
         await act.Should().ThrowExactlyAsync<InvalidOperationException>().WithMessage(Strings.ServiceProviderNotInitialized);
+        VerifyThreadHandling(threadHandling);
     }
     
     [TestMethod]
@@ -133,7 +160,7 @@ public class ActiveConfigScopeTrackerTests
         var threadHandling = new Mock<IThreadHandling>();
         ConfigureServiceProvider(out var serviceProvider, out _);
         ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
-        var testSubject = CreateTestSubject(serviceProvider.Object, lockFactory.Object, threadHandling.Object);
+        var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
         testSubject.currentConfigScope = new ConfigurationScopeDto(configScopeId, configScopeId, true, null);
 
         var currentScope = testSubject.Current;
@@ -152,7 +179,7 @@ public class ActiveConfigScopeTrackerTests
         var threadHandling = new Mock<IThreadHandling>();
         ConfigureServiceProvider(out var serviceProvider, out _);
         ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
-        var testSubject = CreateTestSubject(serviceProvider.Object, lockFactory.Object, threadHandling.Object);
+        var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
         testSubject.currentConfigScope = new ConfigurationScopeDto(configScopeId, configScopeId, true, new BindingConfigurationDto(connectionId, sonarProjectKey));
 
         var currentScope = testSubject.Current;
@@ -168,15 +195,16 @@ public class ActiveConfigScopeTrackerTests
         ConfigureServiceProvider(out var serviceProvider, out _);
         ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out _);
         
-        var testSubject = CreateTestSubject(serviceProvider.Object, lockFactory.Object, Mock.Of<IThreadHandling>());
+        var testSubject = CreateTestSubject(serviceProvider.Object, Mock.Of<IThreadHandling>(), lockFactory.Object);
         
         testSubject.Dispose();
         asyncLock.Verify(x => x.Dispose());
     }
-
+    
     private static void VerifyThreadHandling(Mock<IThreadHandling> threadHandling)
     {
         threadHandling.Verify(x => x.ThrowIfOnUIThread());
+        threadHandling.VerifyNoOtherCalls();
     }
 
     private static void VerifyServiceAddCall(Mock<IConfigurationScopeSLCoreService> configScopeService, ActiveConfigScopeTracker testSubject)
@@ -186,6 +214,16 @@ public class ActiveConfigScopeTrackerTests
                     x.DidAddConfigurationScopesAsync(It.Is<DidAddConfigurationScopesParams>(p =>
                         p.addedScopes.SequenceEqual(new[] { testSubject.currentConfigScope }))),
                 Times.Once);
+        configScopeService.VerifyNoOtherCalls();
+    }
+
+    private static void VerifyServiceUpdateCall(Mock<IConfigurationScopeSLCoreService> configScopeService,
+        ActiveConfigScopeTracker testSubject)
+    {
+        configScopeService
+            .Verify(x => x.DidUpdateBindingAsync(It.Is<DidUpdateBindingParams>(p =>
+                p.configScopeId == testSubject.currentConfigScope.id && p.updatedBinding == testSubject.currentConfigScope.binding)), Times.Once);
+        configScopeService.VerifyNoOtherCalls();
     }
 
     private static void VerifyLockTakenSynchronouslyAndReleased(Mock<IAsyncLock> asyncLock, Mock<IReleaseAsyncLock> lockRelease)
@@ -221,8 +259,8 @@ public class ActiveConfigScopeTrackerTests
     }
 
     private static ActiveConfigScopeTracker CreateTestSubject(ISLCoreServiceProvider slCoreServiceProvider,
-        IAsyncLockFactory asyncLockFactory,
-        IThreadHandling threadHandling)
+        IThreadHandling threadHandling,
+        IAsyncLockFactory asyncLockFactory)
     {
         return new ActiveConfigScopeTracker(slCoreServiceProvider, asyncLockFactory, threadHandling);
     }
