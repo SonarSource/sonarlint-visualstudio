@@ -110,6 +110,8 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             }
             else
             {
+                Debug.Assert(currentConfigScope == null);
+                
                 await configurationScopeService.DidAddConfigurationScopesAsync(
                     new DidAddConfigurationScopesParams(new List<ConfigurationScopeDto> { configurationScopeDto }));
             }
