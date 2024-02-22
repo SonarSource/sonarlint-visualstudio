@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
-using SonarLint.VisualStudio.SLCore.Service.Project.Models;
+using SonarLint.VisualStudio.SLCore.Service.Project.Params;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Project
 {
@@ -41,27 +39,11 @@ namespace SonarLint.VisualStudio.SLCore.Service.Project
         /// </summary>
         /// <param name="parameters"></param>
         Task DidRemoveConfigurationScopeAsync(DidRemoveConfigurationScopeParams parameters);
-    }
-
-    public class DidRemoveConfigurationScopeParams
-    {
-        public string removeId { get; }
-
-        [ExcludeFromCodeCoverage]
-        public DidRemoveConfigurationScopeParams(string removeId)
-        {
-            this.removeId = removeId;
-        }
-    }
-
-    public class DidAddConfigurationScopesParams
-    {
-        public List<ConfigurationScopeDto> addedScopes { get; }
-
-        [ExcludeFromCodeCoverage]
-        public DidAddConfigurationScopesParams(List<ConfigurationScopeDto> addedScopes)
-        {
-            this.addedScopes = addedScopes;
-        }
+        
+        /// <summary>
+        /// Updates binding configuration on an existing configuration scope
+        /// </summary>
+        /// <param name="parameters"></param>
+        Task DidUpdateBindingAsync(DidUpdateBindingParams parameters);
     }
 }
