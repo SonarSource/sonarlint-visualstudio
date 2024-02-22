@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener;
@@ -52,7 +53,7 @@ public class SLCoreIntegrationSmokeTest
         var slCoreRunner = new SLCoreRunner(slcoreBat, enableVerboseLogs: true);
         var logger = new TestLogger();
 
-        var slCoreServiceProvider = new SLCoreServiceProvider(logger);
+        var slCoreServiceProvider = new SLCoreServiceProvider(new NoOpThreadHandler(), logger);
         slCoreServiceProvider.SetCurrentConnection(slCoreRunner.Rpc);
         var slCoreListenerSetUp = new SLCoreListenerSetUp(new[] { new LoggerListener(new TestLogger(logToConsole: true)) });
         slCoreListenerSetUp.Setup(slCoreRunner.Rpc);
