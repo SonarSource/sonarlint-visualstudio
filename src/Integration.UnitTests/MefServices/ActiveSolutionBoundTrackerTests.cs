@@ -570,12 +570,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IConfigurationProvider configurationProvider,
             ILogger logger = null,
             IBoundSolutionGitMonitor gitEvents = null,
-            IServiceProvider serviceProvider = null)
+            IServiceProvider serviceProvider = null,
+            IConfigScopeUpdater configScopeUpdater = null)
         {
+            configScopeUpdater ??= Mock.Of<IConfigScopeUpdater>();
             logger ??= new TestLogger(logToConsole: true);
             gitEvents ??= Mock.Of<IBoundSolutionGitMonitor>();
             serviceProvider ??= this.serviceProvider;
-            return new ActiveSolutionBoundTracker(serviceProvider, host, solutionTracker, logger, gitEvents, configurationProvider);
+            return new ActiveSolutionBoundTracker(serviceProvider, host, solutionTracker, configScopeUpdater, logger, gitEvents, configurationProvider);
         }
 
         private void ConfigureService(bool isConnected)

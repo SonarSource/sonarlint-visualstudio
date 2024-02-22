@@ -62,10 +62,10 @@ namespace SonarLint.VisualStudio.Integration
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
-        public ActiveSolutionBoundTracker(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        public ActiveSolutionBoundTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IHost host,
             IActiveSolutionTracker activeSolutionTracker,
+            IConfigScopeUpdater configScopeUpdater,
             ILogger logger,
             IBoundSolutionGitMonitor gitEventsMonitor,
             IConfigurationProvider configurationProvider)
@@ -81,6 +81,7 @@ namespace SonarLint.VisualStudio.Integration
             vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
 
             this.configurationProvider = configurationProvider;
+            this.configScopeUpdater = configScopeUpdater;
 
             // The user changed the binding through the Team Explorer
             extensionHost.VisualStateManager.BindingStateChanged += OnBindingStateChanged;
