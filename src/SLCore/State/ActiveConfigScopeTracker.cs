@@ -57,17 +57,19 @@ public class ConfigurationScope
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 {
-    private readonly IAsyncLock asyncLock;
-
     private readonly ISLCoreServiceProvider serviceProvider;
+    private readonly IThreadHandling threadHandling;
+    private readonly IAsyncLock asyncLock;
 
     internal /* for testing */ ConfigurationScopeDto currentConfigScope;
 
     [ImportingConstructor]
     public ActiveConfigScopeTracker(ISLCoreServiceProvider serviceProvider,
-        IAsyncLockFactory asyncLockFactory)
+        IAsyncLockFactory asyncLockFactory,
+        IThreadHandling threadHandling)
     {
         this.serviceProvider = serviceProvider;
+        this.threadHandling = threadHandling;
         asyncLock = asyncLockFactory.Create();
     }
 
@@ -75,6 +77,8 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
     {
         get
         {
+            threadHandling.ThrowIfOnUIThread();
+            
             using (asyncLock.Acquire())
                 return currentConfigScope is not null
                     ? new ConfigurationScope(currentConfigScope.id,
@@ -86,6 +90,8 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
     
     public async Task SetCurrentConfigScopeAsync(string id, string connectionId = null, string sonarProjectKey = null)
     {
+        threadHandling.ThrowIfOnUIThread();
+        
         if (!serviceProvider.TryGetTransientService(out IConfigurationScopeSLCoreService configurationScopeService))
         {
             throw new InvalidOperationException(Strings.ServiceProviderNotInitialized);
@@ -114,6 +120,8 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 
     public async Task RemoveCurrentConfigScopeAsync()
     {
+        threadHandling.ThrowIfOnUIThread();
+        
         if (!serviceProvider.TryGetTransientService(out IConfigurationScopeSLCoreService configurationScopeService))
         {
             throw new InvalidOperationException(Strings.ServiceProviderNotInitialized);
