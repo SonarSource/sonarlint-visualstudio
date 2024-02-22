@@ -32,6 +32,7 @@ public class SLCoreServiceProviderTests
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<SLCoreServiceProvider, ISLCoreServiceProvider>(
+            MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ILogger>());
     }
 
@@ -39,6 +40,7 @@ public class SLCoreServiceProviderTests
     public void MefCtor_WriterInterface_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<SLCoreServiceProvider, ISLCoreServiceProviderWriter>(
+            MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ILogger>());
     }
 
@@ -56,6 +58,17 @@ public class SLCoreServiceProviderTests
         Action act = () => testSubject.TryGetTransientService(out TestSLCoreService _);
 
         act.Should().Throw<ArgumentException>().WithMessage($"The type argument {typeof(TestSLCoreService).FullName} is not an interface");
+    }
+    
+    [TestMethod]
+    public void TryGetTransientService_NotUIThread_Checked()
+    {
+        var threadHandling = new Mock<IThreadHandling>();
+        var testSubject = CreateTestSubject(threadHandling:threadHandling.Object);
+
+        testSubject.TryGetTransientService(out ITestSLcoreService1 _);
+        
+        threadHandling.Verify(x => x.ThrowIfOnUIThread());
     }
 
     [TestMethod]
@@ -86,7 +99,7 @@ public class SLCoreServiceProviderTests
 
         var logger = new TestLogger();
 
-        var testSubject = CreateTestSubject(rpcMock.Object, logger);
+        var testSubject = CreateTestSubject(rpcMock.Object, logger:logger);
 
         var result = testSubject.TryGetTransientService(out ISLCoreService service);
 
@@ -196,10 +209,11 @@ public class SLCoreServiceProviderTests
         rpcMock.SetupGet(x => x.IsAlive).Returns(isAlive);
     }
 
-    private SLCoreServiceProvider CreateTestSubject(ISLCoreJsonRpc jsonRpc = null, ILogger logger = null)
+    private SLCoreServiceProvider CreateTestSubject(ISLCoreJsonRpc jsonRpc = null, IThreadHandling threadHandling = null, ILogger logger = null)
     {
+        threadHandling ??= new NoOpThreadHandler();
         logger ??= new TestLogger();
-        var testSubject = new SLCoreServiceProvider(logger);
+        var testSubject = new SLCoreServiceProvider(threadHandling, logger);
         if (jsonRpc != null)
         {
             testSubject.SetCurrentConnection(jsonRpc);
