@@ -33,7 +33,7 @@ internal interface IConfigScopeUpdater
     void UpdateConfigScopeForCurrentSolution(BoundSonarQubeProject currentBinding);
 }
 
-[System.Composition.Export(typeof(IConfigScopeUpdater))]
+[Export(typeof(IConfigScopeUpdater))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class ConfigScopeUpdater : IConfigScopeUpdater
 {
