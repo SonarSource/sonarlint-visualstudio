@@ -18,32 +18,39 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.SLCore.Listener
+namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
 {
-    [Export(typeof(ISLCoreListener))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ProgressListener : ISLCoreListener
+    [TestClass]
+    public class ConnectionConfigurationListenerTests
     {
-        /// <summary>
-        /// Stub method for compability with SLCore. We do not support progress
-        /// </summary>
-        /// <param name="parameters">Parameter's here for compability we discard it</param>
-        public Task StartProgressAsync(object parameters)
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
         {
-            return Task.CompletedTask;
+            MefTestHelpers.CheckTypeCanBeImported<ConnectionConfigurationListener, ISLCoreListener>();
         }
 
-        /// <summary>
-        /// Stub method for compability with SLCore. We do not support progress
-        /// </summary>
-        /// <param name="parameters">Parameter's here for compability we discard it</param>
-        public Task ReportProgressAsync(object parameters)
+        [TestMethod]
+        public void Mef_CheckIsSingleton()
         {
-            return Task.CompletedTask;
+            MefTestHelpers.CheckIsSingletonMefComponent<ConnectionConfigurationListener>();
+        }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow(5)]
+        [DataRow("something")]
+        public void DidSynchronizeConfigurationScopesAsync_ReturnsTaskCompleted(object parameter)
+        {
+            var testSubject = new ConnectionConfigurationListener();
+
+            var result = testSubject.DidSynchronizeConfigurationScopesAsync(parameter);
+
+            result.Should().Be(Task.CompletedTask);
         }
     }
 }
