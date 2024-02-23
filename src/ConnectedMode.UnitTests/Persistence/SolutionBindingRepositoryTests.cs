@@ -170,6 +170,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 
             credentialsLoader.Verify(x => x.Save(It.IsAny<ICredentials>(), It.IsAny<Uri>()), Times.Never);
         }
+        
+        [TestMethod]
+        public void Write_FileNotWritten_EventNotTriggered()
+        {
+            var eventTriggered = false;
+            testSubject.BindingUpdated += (_, _) => eventTriggered = true;
+            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(false);
+
+            testSubject.Write(MockFilePath, boundSonarQubeProject);
+
+            eventTriggered.Should().BeFalse();
+        }
 
         [TestMethod]
         public void Write_FileWritten_CredentialsWritten()
@@ -180,6 +192,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 
             credentialsLoader.Verify(x => x.Save(boundSonarQubeProject.Credentials, boundSonarQubeProject.ServerUri),
                 Times.Once);
+        }
+        
+        [TestMethod]
+        public void Write_FileWritten_EventTriggered()
+        {
+            var eventTriggered = false;
+            testSubject.BindingUpdated += (_, _) => eventTriggered = true;
+            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(true);
+
+            testSubject.Write(MockFilePath, boundSonarQubeProject);
+
+            eventTriggered.Should().BeTrue();
         }
 
         [TestMethod]
