@@ -70,9 +70,10 @@ internal class ConfigScopeUpdater : IConfigScopeUpdater
         if (solutionName is null)
         {
             await activeConfigScopeTracker.RemoveCurrentConfigScopeAsync();
-            return;
         }
-
-        await activeConfigScopeTracker.SetCurrentConfigScopeAsync(solutionName, connectionId, projectKey);
+        else
+        {
+            await activeConfigScopeTracker.SetCurrentConfigScopeAsync(solutionName, connectionId, projectKey);
+        }
     }
 }
