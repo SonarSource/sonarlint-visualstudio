@@ -18,50 +18,55 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener;
+using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
+namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
 {
     [TestClass]
-    public class ProgressListenerTests
+    public class BranchListenerTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ProgressListener, ISLCoreListener>();
+            MefTestHelpers.CheckTypeCanBeImported<BranchListener, ISLCoreListener>();
         }
 
         [TestMethod]
         public void Mef_CheckIsSingleton()
         {
-            MefTestHelpers.CheckIsSingletonMefComponent<ProgressListener>();
+            MefTestHelpers.CheckIsSingletonMefComponent<BranchListener>();
+        }
+
+        [TestMethod]
+        public async Task MatchSonarProjectBranch_ReturnsMainBranch()
+        {
+            var param = new MatchSonarProjectBranchParams
+            {
+                configurationScopeId = "scopeId",
+                mainSonarBranchName = "mainBranch",
+                allSonarBranchesNames = new List<string> { "branch1", "branch2", "mainBranch" }
+            };
+
+            var testSubject = new BranchListener();
+
+            var result = await testSubject.MatchSonarProjectBranchAsync(param);
+
+            result.matchedSonarBranch.Should().Be("mainBranch");
         }
 
         [TestMethod]
         [DataRow(null)]
         [DataRow(5)]
         [DataRow("something")]
-        public void StartProgress_ReturnsCompletedTaskAlways(object parameter)
+        public void DidChangeMatchedSonarProjectBranch_ReturnsTaskCompleted(object parameter)
         {
-            var testSubject = new ProgressListener();
+            var testSubject = new BranchListener();
 
-            var result = testSubject.StartProgressAsync(parameter);
-
-            result.Should().Be(Task.CompletedTask);
-        }
-
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow(5)]
-        [DataRow("something")]
-        public void ReportProgress_ReturnsCompletedTaskAlways(object parameter)
-        {
-            var testSubject = new ProgressListener();
-
-            var result = testSubject.ReportProgressAsync(parameter);
+            var result = testSubject.DidChangeMatchedSonarProjectBranchAsync(parameter);
 
             result.Should().Be(Task.CompletedTask);
         }

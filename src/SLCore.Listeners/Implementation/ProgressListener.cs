@@ -18,33 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
+using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.SLCore.Protocol;
-using SonarLint.VisualStudio.SLCore.Service.Project.Models;
+using SonarLint.VisualStudio.SLCore.Core;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Project
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
-    [JsonRpcClassAttribute("configuration")]
-    public interface IBindingSLCoreService
+    [Export(typeof(ISLCoreListener))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    public class ProgressListener : ISLCoreListener
     {
         /// <summary>
-        /// Updates binding configuration on an existing configuration scope
+        /// Stub method for compability with SLCore. We do not support progress
         /// </summary>
-        /// <param name="parameters"></param>
-        Task DidUpdateBindingAsync(DidUpdateBindingParams parameters);
-    }
-
-    public class DidUpdateBindingParams
-    {
-        public string configScopeId { get; }
-        public BindingConfigurationDto updatedBinding { get; }
-
-        [ExcludeFromCodeCoverage]
-        public DidUpdateBindingParams(string configScopeId, BindingConfigurationDto updatedBinding)
+        /// <param name="parameters">Parameter's here for compability we discard it</param>
+        public Task StartProgressAsync(object parameters)
         {
-            this.configScopeId = configScopeId;
-            this.updatedBinding = updatedBinding;
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Stub method for compability with SLCore. We do not support progress
+        /// </summary>
+        /// <param name="parameters">Parameter's here for compability we discard it</param>
+        public Task ReportProgressAsync(object parameters)
+        {
+            return Task.CompletedTask;
         }
     }
 }

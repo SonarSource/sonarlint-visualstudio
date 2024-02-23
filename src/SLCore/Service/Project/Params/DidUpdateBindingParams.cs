@@ -18,19 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.Threading.Tasks;
-using SonarLint.VisualStudio.SLCore.Core;
+using System.Diagnostics.CodeAnalysis;
+using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Listener
+namespace SonarLint.VisualStudio.SLCore.Service.Project.Params;
+
+public class DidUpdateBindingParams
 {
-    [Export(typeof(ISLCoreListener))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ConnectionConfigurationListener : ISLCoreListener
+    public string configScopeId { get; }
+    public BindingConfigurationDto updatedBinding { get; }
+
+    [ExcludeFromCodeCoverage]
+    public DidUpdateBindingParams(string configScopeId, BindingConfigurationDto updatedBinding)
     {
-        public Task DidSynchronizeConfigurationScopesAsync(object parameters)
-        {
-            return Task.CompletedTask;
-        }
+        this.configScopeId = configScopeId;
+        this.updatedBinding = updatedBinding;
     }
 }

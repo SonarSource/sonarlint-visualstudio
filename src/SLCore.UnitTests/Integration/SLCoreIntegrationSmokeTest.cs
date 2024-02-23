@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
@@ -52,10 +50,10 @@ public class SLCoreIntegrationSmokeTest
         var slCoreRunner = new SLCoreRunner(slcoreBat, enableVerboseLogs: true);
         var logger = new TestLogger();
 
-        var slCoreServiceProvider = new SLCoreServiceProvider(logger);
+        var slCoreServiceProvider = new SLCoreServiceProvider(new NoOpThreadHandler(), logger);
         slCoreServiceProvider.SetCurrentConnection(slCoreRunner.Rpc);
-        var slCoreListenerSetUp = new SLCoreListenerSetUp(new[] { new LoggerListener(new TestLogger(logToConsole: true)) });
-        slCoreListenerSetUp.Setup(slCoreRunner.Rpc);
+        //var slCoreListenerSetUp = new SLCoreListenerSetUp(new[] { new LoggerListener(new TestLogger(logToConsole: true)) });
+        //slCoreListenerSetUp.Setup(slCoreRunner.Rpc);
 
         slCoreServiceProvider.TryGetTransientService(out ISLCoreLifecycleService slCoreLifecycleService).Should()
             .BeTrue();

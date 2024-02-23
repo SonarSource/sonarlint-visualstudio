@@ -49,19 +49,24 @@ namespace SonarLint.VisualStudio.SLCore.Core
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class SLCoreServiceProvider : ISLCoreServiceProvider, ISLCoreServiceProviderWriter
     {
+
         private readonly Dictionary<Type, object> cache = new Dictionary<Type, object>();
         private readonly object cacheLock = new object();
         private ISLCoreJsonRpc jsonRpc;
+        private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public SLCoreServiceProvider(ILogger logger)
+        public SLCoreServiceProvider(IThreadHandling threadHandling, ILogger logger)
         {
+            this.threadHandling = threadHandling;
             this.logger = logger;
         }
 
         public bool TryGetTransientService<TService>(out TService service) where TService : class, ISLCoreService
         {
+            threadHandling.ThrowIfOnUIThread();
+
             service = default;
 
             var serviceType = typeof(TService);

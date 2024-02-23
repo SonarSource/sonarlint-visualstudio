@@ -18,25 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Threading.Tasks;
-using SonarLint.VisualStudio.SLCore.Core;
+using System.Diagnostics.CodeAnalysis;
 
-namespace SonarLint.VisualStudio.SLCore.Listener
+namespace SonarLint.VisualStudio.SLCore.Service.Project.Params;
+
+public class DidRemoveConfigurationScopeParams
 {
-    public class SelectProxiesResponse
-    {
-        public List<object> proxies = new List<object>();
-    }
+    public string removeId { get; }
 
-    [Export(typeof(ISLCoreListener))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ProxyConfigurationListener : ISLCoreListener
+    [ExcludeFromCodeCoverage]
+    public DidRemoveConfigurationScopeParams(string removeId)
     {
-        public async Task<SelectProxiesResponse> SelectProxiesAsync(object parameters)
-        {
-            return new SelectProxiesResponse();
-        }
+        this.removeId = removeId;
     }
 }
