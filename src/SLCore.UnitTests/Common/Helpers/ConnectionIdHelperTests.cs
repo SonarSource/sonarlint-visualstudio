@@ -20,12 +20,26 @@
 
 using System;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers;
 
 [TestClass]
 public class ConnectionIdHelperTests
 {
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
+    {
+        MefTestHelpers.CheckTypeCanBeImported<ConnectionIdHelper, IConnectionIdHelper>();
+    }
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton()
+    {
+        MefTestHelpers.CheckIsSingletonMefComponent<ConnectionIdHelper>();
+    }
+
+    
     [DataTestMethod]
     [DataRow(null, null)]
     [DataRow("", null)]

@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 
 namespace SonarLint.VisualStudio.SLCore.Common.Helpers
 {
@@ -29,6 +30,8 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
         string GetConnectionIdFromUri(Uri uri, string organisation);
     }
 
+    [Export(typeof(IConnectionIdHelper))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class ConnectionIdHelper : IConnectionIdHelper
     {
         private const string SonarCloudPrefix = "sc|";
