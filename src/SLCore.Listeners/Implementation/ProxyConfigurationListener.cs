@@ -18,39 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener;
-using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
-    [TestClass]
-    public class HttpConfigurationListenerTests
+    public class SelectProxiesResponse
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
+        public List<object> proxies = new List<object>();
+    }
+
+    [Export(typeof(ISLCoreListener))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    public class ProxyConfigurationListener : ISLCoreListener
+    {
+        public async Task<SelectProxiesResponse> SelectProxiesAsync(object parameters)
         {
-            MefTestHelpers.CheckTypeCanBeImported<ProxyConfigurationListener, ISLCoreListener>();
-        }
-
-        [TestMethod]
-        public void Mef_CheckIsSingleton()
-        {
-            MefTestHelpers.CheckIsSingletonMefComponent<ProxyConfigurationListener>();
-        }
-
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow(5)]
-        [DataRow("something")]
-        public async Task SelectProxiesAsync_ReturnsEmptyList(object parameter)
-        {
-            var testSubject = new ProxyConfigurationListener();
-
-            var result = await testSubject.SelectProxiesAsync(parameter);
-
-            result.proxies.Should().BeEmpty();
+            return new SelectProxiesResponse();
         }
     }
 }

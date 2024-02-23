@@ -19,9 +19,9 @@
  */
 
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.SLCore.Listener;
+using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Logging
+namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Logging
 {
     public class LoggerSerializationTests
     {
