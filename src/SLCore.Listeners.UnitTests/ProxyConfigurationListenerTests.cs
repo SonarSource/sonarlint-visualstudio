@@ -18,57 +18,39 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener;
+using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
+namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
 {
     [TestClass]
-    public class BranchListenerTests
+    public class HttpConfigurationListenerTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<BranchListener, ISLCoreListener>();
+            MefTestHelpers.CheckTypeCanBeImported<ProxyConfigurationListener, ISLCoreListener>();
         }
 
         [TestMethod]
         public void Mef_CheckIsSingleton()
         {
-            MefTestHelpers.CheckIsSingletonMefComponent<BranchListener>();
-        }
-
-        [TestMethod]
-        public async Task MatchSonarProjectBranch_ReturnsMainBranch()
-        {
-            var param = new MatchSonarProjectBranchParams
-            {
-                configurationScopeId = "scopeId",
-                mainSonarBranchName = "mainBranch",
-                allSonarBranchesNames = new List<string> { "branch1", "branch2", "mainBranch" }
-            };
-
-            var testSubject = new BranchListener();
-
-            var result = await testSubject.MatchSonarProjectBranchAsync(param);
-
-            result.matchedSonarBranch.Should().Be("mainBranch");
+            MefTestHelpers.CheckIsSingletonMefComponent<ProxyConfigurationListener>();
         }
 
         [TestMethod]
         [DataRow(null)]
         [DataRow(5)]
         [DataRow("something")]
-        public void DidChangeMatchedSonarProjectBranch_ReturnsTaskCompleted(object parameter)
+        public async Task SelectProxiesAsync_ReturnsEmptyList(object parameter)
         {
-            var testSubject = new BranchListener();
+            var testSubject = new ProxyConfigurationListener();
 
-            var result = testSubject.DidChangeMatchedSonarProjectBranchAsync(parameter);
+            var result = await testSubject.SelectProxiesAsync(parameter);
 
-            result.Should().Be(Task.CompletedTask);
+            result.proxies.Should().BeEmpty();
         }
     }
 }
