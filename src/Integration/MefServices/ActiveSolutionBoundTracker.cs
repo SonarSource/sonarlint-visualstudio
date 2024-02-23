@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.State;
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarQube.Client;
 using Task = System.Threading.Tasks.Task;
 
@@ -49,6 +50,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IConfigurationProvider configurationProvider;
         private readonly IVsMonitorSelection vsMonitorSelection;
         private readonly IBoundSolutionGitMonitor gitEventsMonitor;
+        private readonly IConfigScopeUpdater configScopeUpdater;
         private readonly ILogger logger;
         private readonly uint boundSolutionContextCookie;
 
@@ -60,10 +62,10 @@ namespace SonarLint.VisualStudio.Integration
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
-        public ActiveSolutionBoundTracker(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        public ActiveSolutionBoundTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IHost host,
             IActiveSolutionTracker activeSolutionTracker,
+            IConfigScopeUpdater configScopeUpdater,
             ILogger logger,
             IBoundSolutionGitMonitor gitEventsMonitor,
             IConfigurationProvider configurationProvider)
@@ -79,6 +81,7 @@ namespace SonarLint.VisualStudio.Integration
             vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
 
             this.configurationProvider = configurationProvider;
+            this.configScopeUpdater = configScopeUpdater;
 
             // The user changed the binding through the Team Explorer
             extensionHost.VisualStateManager.BindingStateChanged += OnBindingStateChanged;
@@ -109,11 +112,13 @@ namespace SonarLint.VisualStudio.Integration
             // An exception here will crash VS
             try
             {
-                await UpdateConnectionAsync();
+                var newBindingConfiguration = configurationProvider.GetConfiguration();
+                
+                await UpdateConnectionAsync(newBindingConfiguration);
 
                 gitEventsMonitor.Refresh();
 
-                this.RaiseAnalyzersChangedIfBindingChanged();
+                this.RaiseAnalyzersChangedIfBindingChanged(newBindingConfiguration);
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
@@ -121,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private async Task UpdateConnectionAsync()
+        private async Task UpdateConnectionAsync(BindingConfiguration bindingConfiguration)
         {
             ISonarQubeService sonarQubeService = this.extensionHost.SonarQubeService;
 
@@ -140,7 +145,7 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(!sonarQubeService.IsConnected,
                 "SonarQube service should always be disconnected at this point");
 
-            var boundProject = this.configurationProvider.GetConfiguration().Project;
+            var boundProject = bindingConfiguration.Project;
 
             if (boundProject != null)
             {
@@ -152,13 +157,13 @@ namespace SonarLint.VisualStudio.Integration
 
         private void OnBindingStateChanged(object sender, BindingStateEventArgs e)
         {
-            this.RaiseAnalyzersChangedIfBindingChanged(e.IsBindingCleared);
+            this.RaiseAnalyzersChangedIfBindingChanged(configurationProvider.GetConfiguration(), e.IsBindingCleared);
         }
 
-        private void RaiseAnalyzersChangedIfBindingChanged(bool? isBindingCleared = null)
+        private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration, bool? isBindingCleared = null)
         {
-            var newBindingConfiguration = configurationProvider.GetConfiguration();
-
+            configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project);
+            
             if (!CurrentConfiguration.Equals(newBindingConfiguration))
             {
                 CurrentConfiguration = newBindingConfiguration;
@@ -186,7 +191,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public async void OnImportsSatisfied()
         {
-            await UpdateConnectionAsync();
+            await UpdateConnectionAsync(configurationProvider.GetConfiguration());
         }
 
         #endregion
