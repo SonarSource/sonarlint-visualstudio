@@ -20,10 +20,10 @@
 
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener;
+using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Logging
+namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Logging
 {
     [TestClass]
     public class LoggerListenerTests

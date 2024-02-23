@@ -23,7 +23,7 @@ using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 
-namespace SonarLint.VisualStudio.SLCore.Listener
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
     [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
