@@ -20,35 +20,48 @@
 
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener;
+using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener
+namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
 {
     [TestClass]
-    public class ConnectionConfigurationListenerTests
+    public class ProgressListenerTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ConnectionConfigurationListener, ISLCoreListener>();
+            MefTestHelpers.CheckTypeCanBeImported<ProgressListener, ISLCoreListener>();
         }
 
         [TestMethod]
         public void Mef_CheckIsSingleton()
         {
-            MefTestHelpers.CheckIsSingletonMefComponent<ConnectionConfigurationListener>();
+            MefTestHelpers.CheckIsSingletonMefComponent<ProgressListener>();
         }
 
         [TestMethod]
         [DataRow(null)]
         [DataRow(5)]
         [DataRow("something")]
-        public void DidSynchronizeConfigurationScopesAsync_ReturnsTaskCompleted(object parameter)
+        public void StartProgress_ReturnsCompletedTaskAlways(object parameter)
         {
-            var testSubject = new ConnectionConfigurationListener();
+            var testSubject = new ProgressListener();
 
-            var result = testSubject.DidSynchronizeConfigurationScopesAsync(parameter);
+            var result = testSubject.StartProgressAsync(parameter);
+
+            result.Should().Be(Task.CompletedTask);
+        }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow(5)]
+        [DataRow("something")]
+        public void ReportProgress_ReturnsCompletedTaskAlways(object parameter)
+        {
+            var testSubject = new ProgressListener();
+
+            var result = testSubject.ReportProgressAsync(parameter);
 
             result.Should().Be(Task.CompletedTask);
         }
