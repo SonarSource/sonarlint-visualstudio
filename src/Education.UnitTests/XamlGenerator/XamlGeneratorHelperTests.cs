@@ -168,7 +168,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         </TextBlock>
       </Border>
       <TextBlock>
-        <Hyperlink NavigateUri=""https://docs.sonarsource.com/sonarlint/visual-studio/concepts/clean-code"">Learn more about Clean Code</Hyperlink>
+        <Hyperlink NavigateUri=""https://docs.sonarsource.com/sonarlint/visual-studio/concepts/clean-code/introduction"">Learn more about Clean Code</Hyperlink>
       </TextBlock>
     </WrapPanel>
   </BlockUIContainer>
