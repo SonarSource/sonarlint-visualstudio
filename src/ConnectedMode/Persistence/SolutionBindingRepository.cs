@@ -28,27 +28,6 @@ using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
-    public interface ISolutionBindingRepository
-    {
-        /// <summary>
-        /// Retrieves solution binding information
-        /// </summary>
-        /// <returns>Can be null if not bound</returns>
-        BoundSonarQubeProject Read(string configFilePath);
-
-        /// <summary>
-        /// Writes the binding information
-        /// </summary>
-        /// <returns>Has file been saved</returns>
-        bool Write(string configFilePath, BoundSonarQubeProject binding);
-
-        /// <summary>
-        /// Lists all the binding information
-        /// </summary>
-        /// <returns></returns>
-        IEnumerable<BoundSonarQubeProject> List();
-    }
-
     [Export(typeof(ISolutionBindingRepository))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class SolutionBindingRepository : ISolutionBindingRepository
@@ -91,8 +70,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 
             credentialsLoader.Save(binding.Credentials, binding.ServerUri);
 
+            BindingUpdated?.Invoke(this, EventArgs.Empty);
+            
             return true;
         }
+
+        public event EventHandler BindingUpdated;
 
         public IEnumerable<BoundSonarQubeProject> List()
         {
