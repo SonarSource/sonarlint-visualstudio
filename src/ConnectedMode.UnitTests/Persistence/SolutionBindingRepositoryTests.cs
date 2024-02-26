@@ -171,7 +171,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             credentialsLoader.Verify(x => x.Save(It.IsAny<ICredentials>(), It.IsAny<Uri>()), Times.Never);
         }
         
-        [TestMethod]
+        [DataTestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
         public void Write_EventTriggered_DependingOnFileWriteStatus(bool triggered)
         {
             var eventTriggered = false;
