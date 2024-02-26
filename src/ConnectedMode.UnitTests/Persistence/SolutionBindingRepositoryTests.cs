@@ -170,6 +170,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 
             credentialsLoader.Verify(x => x.Save(It.IsAny<ICredentials>(), It.IsAny<Uri>()), Times.Never);
         }
+        
+        [DataTestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void Write_EventTriggered_DependingOnFileWriteStatus(bool triggered)
+        {
+            var eventTriggered = false;
+            testSubject.BindingUpdated += (_, _) => eventTriggered = true;
+            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(triggered);
+
+            testSubject.Write(MockFilePath, boundSonarQubeProject);
+
+            eventTriggered.Should().Be(triggered);
+        }
 
         [TestMethod]
         public void Write_FileWritten_CredentialsWritten()
