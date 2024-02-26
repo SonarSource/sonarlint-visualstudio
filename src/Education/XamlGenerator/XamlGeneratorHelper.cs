@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Xml;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Rules;
 
@@ -153,7 +154,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             private void WriteCleanCodeHeader_Url()
             {
                 writer.WriteStartElement("TextBlock");
-                WriteHyperLink("https://docs.sonarsource.com/sonarlint/visual-studio/concepts/clean-code", Resources.CleanCodeHyperLink);
+                WriteHyperLink(DocumentationLinks.CleanCode, Resources.CleanCodeHyperLink);
                 writer.WriteEndElement();
             }
 
