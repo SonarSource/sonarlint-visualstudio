@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
 namespace SonarLint.VisualStudio.Core.Binding
 {
     public enum SonarLintMode
@@ -31,14 +29,6 @@ namespace SonarLint.VisualStudio.Core.Binding
 
     public static class SonarLintModeExtensions
     {
-        public static void ThrowIfNotConnected(this SonarLintMode bindingMode)
-        {
-            if (!bindingMode.IsInAConnectedMode())
-            {
-                throw new ArgumentOutOfRangeException(nameof(bindingMode));
-            }
-        }
-
         public static bool IsInAConnectedMode(this SonarLintMode bindingMode)
         {
             return (bindingMode == SonarLintMode.Connected || bindingMode == SonarLintMode.LegacyConnected);
