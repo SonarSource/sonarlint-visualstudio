@@ -21,13 +21,14 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Connection
 {
-    [JsonRpcClassAttribute("connection")]
-    public interface IConnectionConfigurationSLCoreService
+    [JsonRpcClass("connection")]
+    public interface IConnectionConfigurationSLCoreService : ISLCoreService
     {
         /// <summary>
         /// Changes Connection Configuration
