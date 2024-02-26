@@ -61,8 +61,7 @@ public class AliveConnectionTrackerTests
         ConfigureConnectionIdHelper(out var connectionIdHelperMock);
         ConfigureAsyncLockFactory(out var asyncLockFactoryMock, out _, out _);
 
-        CreateTestSubject(serviceProviderMock.Object, bindingRepositoryMock.Object, connectionIdHelperMock.Object,
-            asyncLockFactoryMock.Object);
+        CreateTestSubject(serviceProviderMock.Object, bindingRepositoryMock.Object, connectionIdHelperMock.Object, asyncLockFactoryMock.Object);
 
         bindingRepositoryMock.VerifyAdd(x => x.BindingUpdated += It.IsAny<EventHandler>());
         asyncLockFactoryMock.Verify(x => x.Create());
@@ -130,8 +129,7 @@ public class AliveConnectionTrackerTests
         var project2 = new BoundSonarQubeProject(new Uri("http://localhost/"), "projectccc", default);
         var project2duplicate = new BoundSonarQubeProject(new Uri("http://localhost/"), "projectddd", default);
         ConfigureServiceProvider(out var serviceProviderMock, out var connectionServiceMock);
-        ConfigureBindingRepository(out var bindingRepositoryMock, project1, project2, project1duplicate,
-            project2duplicate);
+        ConfigureBindingRepository(out var bindingRepositoryMock, project1, project2, project1duplicate, project2duplicate);
         ConfigureConnectionIdHelper(out var connectionIdHelperMock);
         ConfigureAsyncLockFactory(out var asyncLockFactoryMock, out var asyncLockMock, out var asyncLockReleaseMock);
         var testSubject = CreateTestSubject(serviceProviderMock.Object, bindingRepositoryMock.Object,

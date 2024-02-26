@@ -35,7 +35,7 @@ using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 namespace SonarLint.VisualStudio.SLCore.State;
 
 /// <summary>
-/// 
+/// Handles connection list refreshing integration with SLCore
 /// </summary>
 public interface IAliveConnectionTracker : IDisposable
 {
@@ -114,14 +114,9 @@ internal sealed class AliveConnectionTracker : IAliveConnectionTracker
             var organization = binding.Organization?.Key;
             var connectionId = connectionIdHelper.GetConnectionIdFromUri(serverUri, organization);
 
-            if (serverUri == ConnectionIdHelper.SonarCloudUri)
-            {
-                connections[connectionId] = new SonarCloudConnectionConfigurationDto(connectionId, true, organization);
-            }
-            else
-            {
-                connections[connectionId] = new SonarQubeConnectionConfigurationDto(connectionId, true, serverUri.ToString());
-            }
+            connections[connectionId] = serverUri == ConnectionIdHelper.SonarCloudUri
+                ? new SonarCloudConnectionConfigurationDto(connectionId, true, organization)
+                : new SonarQubeConnectionConfigurationDto(connectionId, true, serverUri.ToString());
         }
 
         return connections;

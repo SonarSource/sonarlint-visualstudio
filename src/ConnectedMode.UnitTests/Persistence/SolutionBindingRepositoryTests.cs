@@ -172,15 +172,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         }
         
         [TestMethod]
-        public void Write_FileNotWritten_EventNotTriggered()
+        public void Write_EventTriggered_DependingOnFileWriteStatus(bool triggered)
         {
             var eventTriggered = false;
             testSubject.BindingUpdated += (_, _) => eventTriggered = true;
-            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(false);
+            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(triggered);
 
             testSubject.Write(MockFilePath, boundSonarQubeProject);
 
-            eventTriggered.Should().BeFalse();
+            eventTriggered.Should().Be(triggered);
         }
 
         [TestMethod]
@@ -192,18 +192,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 
             credentialsLoader.Verify(x => x.Save(boundSonarQubeProject.Credentials, boundSonarQubeProject.ServerUri),
                 Times.Once);
-        }
-        
-        [TestMethod]
-        public void Write_FileWritten_EventTriggered()
-        {
-            var eventTriggered = false;
-            testSubject.BindingUpdated += (_, _) => eventTriggered = true;
-            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(true);
-
-            testSubject.Write(MockFilePath, boundSonarQubeProject);
-
-            eventTriggered.Should().BeTrue();
         }
 
         [TestMethod]

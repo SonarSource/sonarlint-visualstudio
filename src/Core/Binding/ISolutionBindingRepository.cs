@@ -38,7 +38,7 @@ public interface ISolutionBindingRepository
     bool Write(string configFilePath, BoundSonarQubeProject binding);
 
     /// <summary>
-    /// 
+    /// Raises when <see cref="Write"/> operation completes successfully
     /// </summary>
     event EventHandler BindingUpdated;
 
