@@ -1601,6 +1601,7 @@
           "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
           "Moq": "[4.18.2, )",
           "NSubstitute": "[5.1.0, )",
+          "NSubstitute.Analyzers.CSharp": "[1.0.17, )",
           "NuGet.Core": "[2.12.0, )",
           "NuGet.VisualStudio": "[3.3.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
