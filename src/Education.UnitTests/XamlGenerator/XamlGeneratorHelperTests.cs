@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             var sb = new StringBuilder();
             var xmlWriter = new XamlWriterFactory().Create(sb);
             var ruleInfo = new RuleInfo("cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
-                RuleIssueType.Vulnerability,  null, null, null);
+                RuleIssueType.Vulnerability, null, null, null);
             IXamlGeneratorHelper testSubject = CreateTestSubject(xmlWriter);
 
             testSubject.WriteDocumentHeader(ruleInfo);
@@ -132,7 +132,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         </TextBlock>
       </Border>
       <TextBlock>
-        <Hyperlink NavigateUri=""https://docs.sonarsource.com/sonarlint/visual-studio/concepts/clean-code"">Learn more about Clean Code</Hyperlink>
+        <Hyperlink NavigateUri=""https://docs.sonarsource.com/sonarlint/visual-studio/concepts/clean-code/introduction"">Learn more about Clean Code</Hyperlink>
       </TextBlock>
     </WrapPanel>
   </BlockUIContainer>
