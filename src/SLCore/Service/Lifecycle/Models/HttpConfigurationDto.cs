@@ -18,14 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models
-{
-    public record FeatureFlagsDto(
-        bool taintVulnerabilitiesEnabled,
-        bool shouldSynchronizeProjects,
-        bool shouldManageLocalServer,
-        bool enableSecurityHotspots,
-        bool shouldManageServerSentEvents,
-        bool enableDataflowBugDetection,
-        bool shouldManageFullSynchronization);
-}
+namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle;
+
+public record HttpConfigurationDto(SslConfigurationDto sslConfiguration);
+    
+// the following fields are left as defaults:
+
+// private final Duration connectTimeout;
+// private final Duration socketTimeout;
+// private final Duration connectionRequestTimeout;
+// private final Duration responseTimeout;
+
+public record SslConfigurationDto;
+
+// the following fields are left as defaults:
+
+// private final Path trustStorePath;
+// private final String trustStorePassword;
+// private final String trustStoreType;
+// private final Path keyStorePath;
+// private final String keyStorePassword;
+// private final String keyStoreType;

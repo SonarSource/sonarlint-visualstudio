@@ -20,13 +20,6 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models
 {
-    public class SonarQubeConnectionConfigurationDto : ServerConnectionConfiguration
-    {
-        public string serverUrl { get; }
-
-        public SonarQubeConnectionConfigurationDto(string connectionId, bool disableNotification, string serverUrl) : base(connectionId, disableNotification)
-        {
-            this.serverUrl = serverUrl;
-        }
-    }
+    public record SonarQubeConnectionConfigurationDto(string connectionId, bool disableNotification, string serverUrl)
+        : ServerConnectionConfiguration(connectionId, disableNotification);
 }

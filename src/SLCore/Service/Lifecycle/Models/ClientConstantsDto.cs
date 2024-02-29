@@ -20,15 +20,5 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models
 {
-    public class ClientConstantsDto
-    {
-        public string name { get; }
-        public string userAgent { get; }
-
-        public ClientConstantsDto(string name, string userAgent)
-        {
-            this.name = name;
-            this.userAgent = userAgent;
-        }
-    }
+    public record ClientConstantsDto(string name, string userAgent);
 }
