@@ -22,15 +22,5 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models
 {
-    public class StandaloneRuleConfigDto
-    {
-        public bool isActive { get; }
-        public Dictionary<string, string> paramValueByKey { get; }
-
-        public StandaloneRuleConfigDto(bool isActive, Dictionary<string, string> paramValueByKey)
-        {
-            this.isActive = isActive;
-            this.paramValueByKey = paramValueByKey;
-        }
-    }
+    public record StandaloneRuleConfigDto(bool isActive, Dictionary<string, string> paramValueByKey);
 }

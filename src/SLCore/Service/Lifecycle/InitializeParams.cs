@@ -29,55 +29,21 @@ namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle
     /// <summary>
     /// SLCore initialization parameters
     /// </summary>
-    public class InitializeParams
-    {
-        public ClientConstantsDto clientConstantInfo { get; }
-        public FeatureFlagsDto featureFlags { get; }
-        public string storageRoot { get; }
-        public string workDir { get; }
-        public List<string> embeddedPluginPaths { get; }
-        public Dictionary<string, string> connectedModeEmbeddedPluginPathsByKey { get; }
-        public List<Language> enabledLanguagesInStandaloneMode { get; }
-        public List<Language> extraEnabledLanguagesInConnectedMode { get; }
-        public List<SonarQubeConnectionConfigurationDto> sonarQubeConnections { get; }
-        public List<SonarCloudConnectionConfigurationDto> sonarCloudConnections { get; }
-        public string sonarlintUserHome { get; }
-        public Dictionary<string, StandaloneRuleConfigDto> standaloneRuleConfigByKey { get; }
-        public bool isFocusOnNewCode { get; }
-        public TelemetryClientConstantAttributesDto telemetryConstantAttributes { get; }
-        public string clientNodeJsPath { get; }
-
-        public InitializeParams(ClientConstantsDto clientConstantInfo,
-            FeatureFlagsDto featureFlags,
-            string storageRoot,
-            string workDir,
-            List<string> embeddedPluginPaths,
-            Dictionary<string, string> connectedModeEmbeddedPluginPathsByKey,
-            List<Language> enabledLanguagesInStandaloneMode,
-            List<Language> extraEnabledLanguagesInConnectedMode,
-            List<SonarQubeConnectionConfigurationDto> sonarQubeConnections,
-            List<SonarCloudConnectionConfigurationDto> sonarCloudConnections,
-            string sonarlintUserHome,
-            Dictionary<string, StandaloneRuleConfigDto> standaloneRuleConfigByKey,
-            bool isFocusOnNewCode,
-            TelemetryClientConstantAttributesDto telemetryConstantAttributes,
-            string clientNodeJsPath)
-        {
-            this.clientConstantInfo = clientConstantInfo;
-            this.featureFlags = featureFlags;
-            this.storageRoot = storageRoot;
-            this.workDir = workDir;
-            this.embeddedPluginPaths = embeddedPluginPaths;
-            this.connectedModeEmbeddedPluginPathsByKey = connectedModeEmbeddedPluginPathsByKey;
-            this.enabledLanguagesInStandaloneMode = enabledLanguagesInStandaloneMode;
-            this.extraEnabledLanguagesInConnectedMode = extraEnabledLanguagesInConnectedMode;
-            this.sonarQubeConnections = sonarQubeConnections;
-            this.sonarCloudConnections = sonarCloudConnections;
-            this.sonarlintUserHome = sonarlintUserHome;
-            this.standaloneRuleConfigByKey = standaloneRuleConfigByKey;
-            this.isFocusOnNewCode = isFocusOnNewCode;
-            this.telemetryConstantAttributes = telemetryConstantAttributes;
-            this.clientNodeJsPath = clientNodeJsPath;
-        }
-    }
+    public record InitializeParams(
+        ClientConstantsDto clientConstantInfo,
+        HttpConfigurationDto httpConfiguration,
+        FeatureFlagsDto featureFlags,
+        string storageRoot,
+        string workDir,
+        List<string> embeddedPluginPaths,
+        Dictionary<string, string> connectedModeEmbeddedPluginPathsByKey,
+        List<Language> enabledLanguagesInStandaloneMode,
+        List<Language> extraEnabledLanguagesInConnectedMode,
+        List<SonarQubeConnectionConfigurationDto> sonarQubeConnections,
+        List<SonarCloudConnectionConfigurationDto> sonarCloudConnections,
+        string sonarlintUserHome,
+        Dictionary<string, StandaloneRuleConfigDto> standaloneRuleConfigByKey,
+        bool isFocusOnNewCode,
+        TelemetryClientConstantAttributesDto telemetryConstantAttributes,
+        string clientNodeJsPath);
 }

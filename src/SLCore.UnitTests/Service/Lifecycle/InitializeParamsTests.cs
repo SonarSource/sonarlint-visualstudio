@@ -36,6 +36,7 @@ public class InitializeParamsTests
     {
         var testSubject = new InitializeParams(
             new ClientConstantsDto("TESTname", "TESTagent"),
+            new HttpConfigurationDto(new SslConfigurationDto()),
             new FeatureFlagsDto(false, true, false, true, false, true, false),
             "storageRoot",
             "workDir",
@@ -61,6 +62,9 @@ public class InitializeParamsTests
                                   "clientConstantInfo": {
                                     "name": "TESTname",
                                     "userAgent": "TESTagent"
+                                  },
+                                  "httpConfiguration": {
+                                    "sslConfiguration": {}
                                   },
                                   "featureFlags": {
                                     "taintVulnerabilitiesEnabled": false,
@@ -89,15 +93,15 @@ public class InitializeParamsTests
                                   "sonarQubeConnections": [
                                     {
                                       "serverUrl": "localhost",
-                                      "disableNotification": true,
-                                      "connectionId": "con1"
+                                      "connectionId": "con1",
+                                      "disableNotification": true
                                     }
                                   ],
                                   "sonarCloudConnections": [
                                     {
                                       "organization": "organization1",
-                                      "disableNotification": false,
-                                      "connectionId": "con2"
+                                      "connectionId": "con2",
+                                      "disableNotification": false
                                     }
                                   ],
                                   "sonarlintUserHome": "userHome",
