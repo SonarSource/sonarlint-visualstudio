@@ -60,6 +60,7 @@ public class SLCoreIntegrationSmokeTest
 
         await slCoreLifecycleService.InitializeAsync(new InitializeParams(
             new ClientConstantsDto("TEST", "TEST"),
+            new HttpConfigurationDto(new SslConfigurationDto()),
             new FeatureFlagsDto(false, false, false, false, false, false, false),
             storageRoot,
             workDir,
