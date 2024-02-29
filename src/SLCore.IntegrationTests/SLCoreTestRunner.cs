@@ -19,12 +19,14 @@
  */
 
 using System.IO;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
+using SonarLint.VisualStudio.SLCore.Service.Telemetry;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
@@ -60,7 +62,7 @@ public sealed class SLCoreTestRunner : IDisposable
         listenersToSetUp.Add(listener);
     }
 
-    public void Start()
+    public async Task Start()
     {
         var (storageRoot, workDir, userHome) = SetUpLocalFolders();
         
@@ -72,12 +74,12 @@ public sealed class SLCoreTestRunner : IDisposable
         SlCoreServiceProvider.SetCurrentConnection(processRunner.Rpc);
         slCoreListenerSetUp.Setup(processRunner.Rpc);
 
-        if (!SlCoreServiceProvider.TryGetTransientService(out ISLCoreLifecycleService slCoreLifecycleService))
+        if (!SlCoreServiceProvider.TryGetTransientService(out ISLCoreLifecycleService slCoreLifecycleService) || !SlCoreServiceProvider.TryGetTransientService(out ITelemetryRpcService telemetryRpcService))
         {
             throw new InvalidOperationException("Can't start SLOOP");
         }
 
-        slCoreLifecycleService.InitializeAsync(
+        await slCoreLifecycleService.InitializeAsync(
             new InitializeParams(
                 defaultClientConstants,
                 new FeatureFlagsDto(true, true, false, true, false, false, true),
@@ -94,6 +96,8 @@ public sealed class SLCoreTestRunner : IDisposable
                 false,
                 defaultTelemetryAttributes,
                 null));
+        
+        await telemetryRpcService.DisableTelemetryAsync();
     }
 
     public void Dispose()

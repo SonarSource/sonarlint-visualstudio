@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -26,16 +27,16 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 [TestClass]
 public class StartStopTest
 {
-    [Ignore] // todo remove after todos in SLCoreTestRunner have been solved
+    // [Ignore] // todo remove after todos in SLCoreTestRunner have been solved
     [TestMethod]
-    public void StartStopSloop()
+    public async Task StartStopSloop()
     {
         var testLogger = new TestLogger();
         var slCoreTestRunner = new SLCoreTestRunner(testLogger);
         
         slCoreTestRunner.AddListener(new LoggerListener(testLogger));
         
-        slCoreTestRunner.Start();
+        await slCoreTestRunner.Start();
         
         slCoreTestRunner.Dispose();
     }
