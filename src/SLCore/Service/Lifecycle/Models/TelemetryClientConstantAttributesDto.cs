@@ -22,25 +22,10 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models
 {
-    public class TelemetryClientConstantAttributesDto
-    {
-        public string productKey { get; }
-        public string productName { get; }
-        public string productVersion { get; }
-        public string ideVersion { get; }
-        public Dictionary<string, object> additionalAttributes { get; }
-
-        public TelemetryClientConstantAttributesDto(string productKey,
-            string productName,
-            string productVersion,
-            string ideVersion,
-            Dictionary<string, object> additionalAttributes)
-        {
-            this.productKey = productKey;
-            this.productName = productName;
-            this.productVersion = productVersion;
-            this.ideVersion = ideVersion;
-            this.additionalAttributes = additionalAttributes;
-        }
-    }
+    public record TelemetryClientConstantAttributesDto(
+        string productKey,
+        string productName,
+        string productVersion,
+        string ideVersion,
+        Dictionary<string, object> additionalAttributes);
 }
