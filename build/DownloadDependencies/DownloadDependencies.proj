@@ -30,16 +30,16 @@
     <None Include="JarProcessing.targets" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\tools\ExtractRuleDescFromJson\ExtractRuleDescFromJson.csproj">
-      <Project>{e47e649e-5044-485b-a077-8fb282094a7d}</Project>
-      <Name>ExtractRuleDescFromJson</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
       <Visible>False</Visible>
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\tools\ExtractRuleDescFromJson\ExtractRuleDescFromJson.csproj">
+      <Project>{e47e649e-5044-485b-a077-8fb282094a7d}</Project>
+      <Name>ExtractRuleDescFromJson</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>

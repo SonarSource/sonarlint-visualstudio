@@ -1,0 +1,781 @@
+[
+  {
+    "key": "css:S4670",
+    "name": "Selectors should be known",
+    "defaultSeverity": "CRITICAL",
+    "type": "BUG",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "RELIABILITY": "HIGH"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eHTML, SVG, and MathML define the selectors which can be used in a CSS. A selector that is not part of them is likely to be a typo or a\nmisunderstanding of the CSS syntax.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\nfield {}\n\nul list {}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\ninput {}\n\nul li {}\n\u003c/pre\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eHTML, SVG, and MathML define the selectors which can be used in a CSS. A selector that is not part of them is likely to be a typo or a\nmisunderstanding of the CSS syntax.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\nfield {}\n\nul list {}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\ninput {}\n\nul li {}\n\u003c/pre\u003e"
+      }
+    ],
+    "params": {
+      "ignore": {
+        "key": "ignore",
+        "name": "ignore",
+        "description": "Comma-separated list of ignored elements. The possible values are:\n\"custom-elements\": Allow custom elements (e.g \"x-foo\").\n\"default-namespace\": Allow unknown type selectors if they belong to the default namespace.",
+        "defaultValue": "custom-elements",
+        "type": "STRING",
+        "multiple": false,
+        "possibleValues": []
+      },
+      "ignoreTypes": {
+        "key": "ignoreTypes",
+        "name": "ignoreTypes",
+        "description": "Comma-separated list of regular expressions for selector types to consider as valid.",
+        "defaultValue": "/^(mat|md|fa)-/",
+        "type": "STRING",
+        "multiple": false,
+        "possibleValues": []
+      }
+    },
+    "defaultParams": {
+      "ignore": "custom-elements",
+      "ignoreTypes": "/^(mat|md|fa)-/"
+    },
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S5362",
+    "name": "Expressions within \"calc\" should be valid",
+    "defaultSeverity": "CRITICAL",
+    "type": "BUG",
+    "cleanCodeAttribute": "CONVENTIONAL",
+    "defaultImpacts": {
+      "RELIABILITY": "HIGH"
+    },
+    "description": "\u003cp\u003eThis rule is deprecated, and will eventually be removed.\u003c/p\u003e\n\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eTo perform calculations when specifying a CSS property \u003ccode\u003ecalc()\u003c/code\u003e function can be used. This function takes single expression as\nparameter. When writing this expression some rules must be respected:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e no empty \u003ccode\u003ecalc()\u003c/code\u003e \u003c/li\u003e\n  \u003cli\u003e there should be an operator between the arguments \u003c/li\u003e\n  \u003cli\u003e there should not be any division by zero \u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eOtherwise \u003ccode\u003ecalc()\u003c/code\u003e function will be invalid and the entire rule using it will be ignored.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n.btn {\n  border: solid black 1px;\n  width: calc(100% 80px);  /* Noncompliant */\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\n.btn {\n  border: solid black 1px;\n  width: calc(100% - 80px);\n}\n\u003c/pre\u003e",
+    "descriptionSections": [
+      {
+        "key": "introduction",
+        "htmlContent": "\u003cp\u003eThis rule is deprecated, and will eventually be removed.\u003c/p\u003e"
+      },
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eTo perform calculations when specifying a CSS property \u003ccode\u003ecalc()\u003c/code\u003e function can be used. This function takes single expression as\nparameter. When writing this expression some rules must be respected:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e no empty \u003ccode\u003ecalc()\u003c/code\u003e \u003c/li\u003e\n  \u003cli\u003e there should be an operator between the arguments \u003c/li\u003e\n  \u003cli\u003e there should not be any division by zero \u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003eOtherwise \u003ccode\u003ecalc()\u003c/code\u003e function will be invalid and the entire rule using it will be ignored.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n.btn {\n  border: solid black 1px;\n  width: calc(100% 80px);  /* Noncompliant */\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\n.btn {\n  border: solid black 1px;\n  width: calc(100% - 80px);\n}\n\u003c/pre\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": false,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S1128",
+    "name": "Duplicate imports should be removed",
+    "defaultSeverity": "MINOR",
+    "type": "CODE_SMELL",
+    "cleanCodeAttribute": "CLEAR",
+    "defaultImpacts": {
+      "MAINTAINABILITY": "LOW"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eHaving the import of the same file twice, makes one of them useless. Leaving them in reduces the code’s readability, since their presence can be\nconfusing.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n@import \u0027a.css\u0027;\n@import \u0027a.css\u0027; // Noncompliant\n\n@import url(\"a.css\");\n@import url(\"a.css\"); // Noncompliant\n\u003c/pre\u003e\n\u003ch3\u003eExceptions\u003c/h3\u003e\n\u003cp\u003eThis rule ignores \u003ccode\u003e@import\u003c/code\u003e in \u003ccode\u003eless\u003c/code\u003e files.\u003c/p\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eHaving the import of the same file twice, makes one of them useless. Leaving them in reduces the code’s readability, since their presence can be\nconfusing.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n@import \u0027a.css\u0027;\n@import \u0027a.css\u0027; // Noncompliant\n\n@import url(\"a.css\");\n@import url(\"a.css\"); // Noncompliant\n\u003c/pre\u003e\n\u003ch3\u003eExceptions\u003c/h3\u003e\n\u003cp\u003eThis rule ignores \u003ccode\u003e@import\u003c/code\u003e in \u003ccode\u003eless\u003c/code\u003e files.\u003c/p\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [
+      "unused"
+    ],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4658",
+    "name": "Empty blocks should be removed",
+    "defaultSeverity": "MAJOR",
+    "type": "CODE_SMELL",
+    "cleanCodeAttribute": "CLEAR",
+    "defaultImpacts": {
+      "MAINTAINABILITY": "MEDIUM"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eLeftover empty blocks are usually introduced by mistake. They are useless and prevent readability of the code. They should be removed or completed\nwith real code.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na { }\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na { color: pink; }\n\u003c/pre\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eLeftover empty blocks are usually introduced by mistake. They are useless and prevent readability of the code. They should be removed or completed\nwith real code.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na { }\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na { color: pink; }\n\u003c/pre\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4659",
+    "name": "Pseudo-class selectors should be valid",
+    "defaultSeverity": "MAJOR",
+    "type": "BUG",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "RELIABILITY": "MEDIUM"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eThe W3C specifications define the valid pseudo-class selectors. Only the official and browser-specific pseudo-class selectors should be used to get\nthe expected impact in the final rendering.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na:hoverr { /* Noncompliant; there is a typo on the word \"hover\" */\n...\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na:hover {\n...\n}\n\u003c/pre\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eThe W3C specifications define the valid pseudo-class selectors. Only the official and browser-specific pseudo-class selectors should be used to get\nthe expected impact in the final rendering.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na:hoverr { /* Noncompliant; there is a typo on the word \"hover\" */\n...\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na:hover {\n...\n}\n\u003c/pre\u003e"
+      }
+    ],
+    "params": {
+      "ignorePseudoClasses": {
+        "key": "ignorePseudoClasses",
+        "name": "ignorePseudoClasses",
+        "description": "Comma-separated list of strings and/or regular expressions for pseudo classes to consider as valid.",
+        "defaultValue": "local,global,export,import,deep",
+        "type": "STRING",
+        "multiple": false,
+        "possibleValues": []
+      }
+    },
+    "defaultParams": {
+      "ignorePseudoClasses": "local,global,export,import,deep"
+    },
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4652",
+    "name": "Strings should not contain new lines",
+    "defaultSeverity": "MAJOR",
+    "type": "CODE_SMELL",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "MAINTAINABILITY": "MEDIUM"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eAccording to the W3C specifications:\u003c/p\u003e\n\u003cblockquote\u003e\n  \u003cp\u003eA string cannot directly contain a newline. To include a newline in a string, use an escape representing the line feed character in ISO-10646\n  (U+000A), such as \"\\A\" or \"\\00000a\".\u003c/p\u003e\n  \u003cp\u003e[…​]\u003c/p\u003e\n  \u003cp\u003eIt is possible to break strings over several lines, for aesthetic or other reasons, but in such a case the newline itself has to be escaped with\n  a backslash (\\).\u003c/p\u003e\n\u003c/blockquote\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na {\n  content: \"first\n    second\";\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n  content: \"first\\Asecond\";\n}\n\u003c/pre\u003e\n\u003ch2\u003eResources\u003c/h2\u003e\n\u003cul\u003e\n  \u003cli\u003e \u003ca href\u003d\"https://www.w3.org/TR/CSS2/syndata.html#strings\"\u003eCSS Specification\u003c/a\u003e - Strings \u003c/li\u003e\n\u003c/ul\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eAccording to the W3C specifications:\u003c/p\u003e\n\u003cblockquote\u003e\n  \u003cp\u003eA string cannot directly contain a newline. To include a newline in a string, use an escape representing the line feed character in ISO-10646\n  (U+000A), such as \"\\A\" or \"\\00000a\".\u003c/p\u003e\n  \u003cp\u003e[…​]\u003c/p\u003e\n  \u003cp\u003eIt is possible to break strings over several lines, for aesthetic or other reasons, but in such a case the newline itself has to be escaped with\n  a backslash (\\).\u003c/p\u003e\n\u003c/blockquote\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na {\n  content: \"first\n    second\";\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n  content: \"first\\Asecond\";\n}\n\u003c/pre\u003e"
+      },
+      {
+        "key": "resources",
+        "htmlContent": "\u003cul\u003e\n  \u003cli\u003e \u003ca href\u003d\"https://www.w3.org/TR/CSS2/syndata.html#strings\"\u003eCSS Specification\u003c/a\u003e - Strings \u003c/li\u003e\n\u003c/ul\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4653",
+    "name": "Units should be valid",
+    "defaultSeverity": "BLOCKER",
+    "type": "BUG",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "RELIABILITY": "HIGH"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eThe W3C specifications define the \u003ccode\u003eunits\u003c/code\u003e that can be used with lengths. A unit that is not part of the list of supported ones is likely\nto be a typo and will be seen as a UI bug by the user.\u003c/p\u003e\n\u003cp\u003eThis rule raises an issue each time a unit is not officially supported.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na {\n  width: 10pixels; /* Noncompliant; \"pixels\" is not a valid unit */\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n  width: 10px;\n}\n\u003c/pre\u003e\n\u003ch2\u003eResources\u003c/h2\u003e\n\u003cul\u003e\n  \u003cli\u003e \u003ca href\u003d\"https://www.w3.org/TR/css3-values/#lengths\"\u003eCSS Specification\u003c/a\u003e - Distance units \u003c/li\u003e\n\u003c/ul\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eThe W3C specifications define the \u003ccode\u003eunits\u003c/code\u003e that can be used with lengths. A unit that is not part of the list of supported ones is likely\nto be a typo and will be seen as a UI bug by the user.\u003c/p\u003e\n\u003cp\u003eThis rule raises an issue each time a unit is not officially supported.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na {\n  width: 10pixels; /* Noncompliant; \"pixels\" is not a valid unit */\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n  width: 10px;\n}\n\u003c/pre\u003e"
+      },
+      {
+        "key": "resources",
+        "htmlContent": "\u003cul\u003e\n  \u003cli\u003e \u003ca href\u003d\"https://www.w3.org/TR/css3-values/#lengths\"\u003eCSS Specification\u003c/a\u003e - Distance units \u003c/li\u003e\n\u003c/ul\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4650",
+    "name": "\"calc\" operands should be correctly spaced",
+    "defaultSeverity": "BLOCKER",
+    "type": "BUG",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "RELIABILITY": "HIGH"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003ecalc\u003c/code\u003e is a CSS3 function that provides the possibility to do simple math in CSS (add, subtract, divide, multiply). Without spaces\naround operators, \u003ccode\u003ecalc\u003c/code\u003e will have no effect.\u003c/p\u003e\n\u003cp\u003eMore precisely, before an operator, there must be a single whitespace or a newline plus indentation. After an operator, there must be a single\nwhitespace or a newline.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n#div1 {\n    position: absolute;\n    width: calc(100%- 100px); /* Noncompliant; no space after the % sign */\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\n#div1 {\n    position: absolute;\n    width: calc(100% - 100px);\n}\n\u003c/pre\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003e\u003ccode\u003ecalc\u003c/code\u003e is a CSS3 function that provides the possibility to do simple math in CSS (add, subtract, divide, multiply). Without spaces\naround operators, \u003ccode\u003ecalc\u003c/code\u003e will have no effect.\u003c/p\u003e\n\u003cp\u003eMore precisely, before an operator, there must be a single whitespace or a newline plus indentation. After an operator, there must be a single\nwhitespace or a newline.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n#div1 {\n    position: absolute;\n    width: calc(100%- 100px); /* Noncompliant; no space after the % sign */\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\n#div1 {\n    position: absolute;\n    width: calc(100% - 100px);\n}\n\u003c/pre\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4651",
+    "name": "\"linear-gradient\" directions should be valid",
+    "defaultSeverity": "CRITICAL",
+    "type": "BUG",
+    "cleanCodeAttribute": "CONVENTIONAL",
+    "defaultImpacts": {
+      "RELIABILITY": "HIGH"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003elinear-gradient\u003c/code\u003e was standardized with CSS3. Before that, it was possible to use different non-standard values to define the gradient’s\ndirection. Because these values are not standard, they are not supported in all browsers and therefore they should no longer be used in order to get\nthe expected gradient in the latest browser versions that support CSS3.\u003c/p\u003e\n\u003cp\u003eThis rule raises an issue when the first parameter of a \u003ccode\u003elinear-gradient\u003c/code\u003e is not a valid \u003ccode\u003e\u0026lt;side-or-corner\u0026gt;\u003c/code\u003e or\n\u003ccode\u003eangle\u003c/code\u003e.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n.foo {\n  background: -webkit-linear-gradient(to top, #fff, #000);\n  background: linear-gradient(top, #fff, #000);\n}\n\n.bar {\n  background: linear-gradient(45, #fff, #000);\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\n.foo {\n  background: -webkit-linear-gradient(top, #fff, #000);\n  background: linear-gradient(to top, #fff, #000);\n}\n\n.bar {\n  background: linear-gradient(45deg, #fff, #000);\n}\n\u003c/pre\u003e\n\u003ch2\u003eResources\u003c/h2\u003e\n\u003cul\u003e\n  \u003cli\u003e \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Web/CSS/linear-gradient\"\u003eMozilla Web Technology for Developers\u003c/a\u003e -\n  \u003ccode\u003elinear-gradient\u003c/code\u003e \u003c/li\u003e\n\u003c/ul\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003e\u003ccode\u003elinear-gradient\u003c/code\u003e was standardized with CSS3. Before that, it was possible to use different non-standard values to define the gradient’s\ndirection. Because these values are not standard, they are not supported in all browsers and therefore they should no longer be used in order to get\nthe expected gradient in the latest browser versions that support CSS3.\u003c/p\u003e\n\u003cp\u003eThis rule raises an issue when the first parameter of a \u003ccode\u003elinear-gradient\u003c/code\u003e is not a valid \u003ccode\u003e\u0026lt;side-or-corner\u0026gt;\u003c/code\u003e or\n\u003ccode\u003eangle\u003c/code\u003e.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n.foo {\n  background: -webkit-linear-gradient(to top, #fff, #000);\n  background: linear-gradient(top, #fff, #000);\n}\n\n.bar {\n  background: linear-gradient(45, #fff, #000);\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\n.foo {\n  background: -webkit-linear-gradient(top, #fff, #000);\n  background: linear-gradient(to top, #fff, #000);\n}\n\n.bar {\n  background: linear-gradient(45deg, #fff, #000);\n}\n\u003c/pre\u003e"
+      },
+      {
+        "key": "resources",
+        "htmlContent": "\u003cul\u003e\n  \u003cli\u003e \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Web/CSS/linear-gradient\"\u003eMozilla Web Technology for Developers\u003c/a\u003e -\n  \u003ccode\u003elinear-gradient\u003c/code\u003e \u003c/li\u003e\n\u003c/ul\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4656",
+    "name": "Properties should not be duplicated",
+    "defaultSeverity": "MAJOR",
+    "type": "BUG",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "RELIABILITY": "MEDIUM"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eCSS allows duplicate property names but only the last instance of a duplicated name determines the actual value that will be used for it.\nTherefore, changing values of other occurrences of a duplicated name will have no effect and may cause misunderstandings and bugs.\u003c/p\u003e\n\u003cp\u003eThis rule ignores \u003ccode\u003e$sass\u003c/code\u003e, \u003ccode\u003e@less\u003c/code\u003e, and \u003ccode\u003evar(--custom-property)\u003c/code\u003e variable syntaxes.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na {\n  color: pink;\n  background: orange;\n  color: orange\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n  color: pink;\n  background: orange\n}\n\u003c/pre\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eCSS allows duplicate property names but only the last instance of a duplicated name determines the actual value that will be used for it.\nTherefore, changing values of other occurrences of a duplicated name will have no effect and may cause misunderstandings and bugs.\u003c/p\u003e\n\u003cp\u003eThis rule ignores \u003ccode\u003e$sass\u003c/code\u003e, \u003ccode\u003e@less\u003c/code\u003e, and \u003ccode\u003evar(--custom-property)\u003c/code\u003e variable syntaxes.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na {\n  color: pink;\n  background: orange;\n  color: orange\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n  color: pink;\n  background: orange\n}\n\u003c/pre\u003e"
+      }
+    ],
+    "params": {
+      "ignoreFallbacks": {
+        "key": "ignoreFallbacks",
+        "name": "ignoreFallbacks",
+        "description": "Ignore consecutive duplicated properties with different values.",
+        "defaultValue": "true",
+        "type": "BOOLEAN",
+        "multiple": false,
+        "possibleValues": []
+      }
+    },
+    "defaultParams": {
+      "ignoreFallbacks": "true"
+    },
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4657",
+    "name": "Shorthand properties that override related longhand properties should be avoided",
+    "defaultSeverity": "CRITICAL",
+    "type": "BUG",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "RELIABILITY": "HIGH"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eA shorthand property defined after a longhand property will completely override the value defined in the longhand property making the longhand one\nuseless. The code should be refactored to consider the longhand property or to remove it completely.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na {\n  padding-left: 10px;\n  padding: 20px; /* Noncompliant; padding is overriding padding-left making it useless */\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n  padding: 10px; /* Compliant; padding is defining a general behaviour and padding-left, just after, is precising the left case */\n  padding-left: 20px;\n}\n\u003c/pre\u003e\n\u003ch2\u003eResources\u003c/h2\u003e\n\u003cul\u003e\n  \u003cli\u003e \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Web/CSS/Shorthand_properties\"\u003eMozilla Web Technology for Developers\u003c/a\u003e - Shorthand\n  properties \u003c/li\u003e\n\u003c/ul\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eA shorthand property defined after a longhand property will completely override the value defined in the longhand property making the longhand one\nuseless. The code should be refactored to consider the longhand property or to remove it completely.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na {\n  padding-left: 10px;\n  padding: 20px; /* Noncompliant; padding is overriding padding-left making it useless */\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n  padding: 10px; /* Compliant; padding is defining a general behaviour and padding-left, just after, is precising the left case */\n  padding-left: 20px;\n}\n\u003c/pre\u003e"
+      },
+      {
+        "key": "resources",
+        "htmlContent": "\u003cul\u003e\n  \u003cli\u003e \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Web/CSS/Shorthand_properties\"\u003eMozilla Web Technology for Developers\u003c/a\u003e - Shorthand\n  properties \u003c/li\u003e\n\u003c/ul\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4654",
+    "name": "CSS properties should be valid",
+    "defaultSeverity": "BLOCKER",
+    "type": "BUG",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "RELIABILITY": "HIGH"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eThe W3C specifications define the valid CSS properties. Only the official and browser-specific properties should be used to get the expected impact\nin the final rendering.\u003c/p\u003e\n\u003cp\u003eThis rule ignores:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e \u003ccode\u003e$sass\u003c/code\u003e, \u003ccode\u003e@less\u003c/code\u003e, and \u003ccode\u003evar(--custom-property)\u003c/code\u003e variable syntaxes. \u003c/li\u003e\n  \u003cli\u003e vendor-prefixed properties (e.g., \u003ccode\u003e-moz-align-self\u003c/code\u003e, \u003ccode\u003e-webkit-align-self\u003c/code\u003e). \u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na {\n  colour: blue; /* Noncompliant; colour is not part of the specifications */\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n  color: blue;\n}\n\u003c/pre\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eThe W3C specifications define the valid CSS properties. Only the official and browser-specific properties should be used to get the expected impact\nin the final rendering.\u003c/p\u003e\n\u003cp\u003eThis rule ignores:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e \u003ccode\u003e$sass\u003c/code\u003e, \u003ccode\u003e@less\u003c/code\u003e, and \u003ccode\u003evar(--custom-property)\u003c/code\u003e variable syntaxes. \u003c/li\u003e\n  \u003cli\u003e vendor-prefixed properties (e.g., \u003ccode\u003e-moz-align-self\u003c/code\u003e, \u003ccode\u003e-webkit-align-self\u003c/code\u003e). \u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na {\n  colour: blue; /* Noncompliant; colour is not part of the specifications */\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n  color: blue;\n}\n\u003c/pre\u003e"
+      }
+    ],
+    "params": {
+      "ignoreSelectors": {
+        "key": "ignoreSelectors",
+        "name": "ignoreSelectors",
+        "description": "Comma-separated list of strings and/or regular expressions for selectors to consider as valid.",
+        "defaultValue": "/^:export.*/, /^:import.*/",
+        "type": "STRING",
+        "multiple": false,
+        "possibleValues": []
+      },
+      "ignoreTypes": {
+        "key": "ignoreTypes",
+        "name": "ignoreTypes",
+        "description": "Comma-separated list of strings and/or regular expressions for properties to consider as valid.",
+        "defaultValue": "composes, /^mso-/",
+        "type": "STRING",
+        "multiple": false,
+        "possibleValues": []
+      }
+    },
+    "defaultParams": {
+      "ignoreSelectors": "/^:export.*/, /^:import.*/",
+      "ignoreTypes": "composes, /^mso-/"
+    },
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4655",
+    "name": "\"!important\" should not be used on \"keyframes\"",
+    "defaultSeverity": "MAJOR",
+    "type": "BUG",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "RELIABILITY": "MEDIUM"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003e\u003ccode\u003e!important\u003c/code\u003e within keyframes declarations is completely ignored in some browsers and therefore it should not be used to be consistent\namong all browsers.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n@keyframes kf {\n  from { margin-top: 50px; }\n  50%  { margin-top: 150px !important; } /* Noncompliant; ignored */\n  to   { margin-top: 100px; }\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\n@keyframes kf {\n  from { margin-top: 50px; }\n  50%  { margin-top: 150px; }\n  to   { margin-top: 100px; }\n}\n\u003c/pre\u003e\n\u003ch2\u003eResources\u003c/h2\u003e\n\u003cul\u003e\n  \u003cli\u003e \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Web/CSS/@keyframes#!important_in_a_keyframe\"\u003eMozilla Web Technology for Developers\u003c/a\u003e -\n  \u003ccode\u003e!important\u003c/code\u003e in a keyframe \u003c/li\u003e\n\u003c/ul\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003e\u003ccode\u003e!important\u003c/code\u003e within keyframes declarations is completely ignored in some browsers and therefore it should not be used to be consistent\namong all browsers.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n@keyframes kf {\n  from { margin-top: 50px; }\n  50%  { margin-top: 150px !important; } /* Noncompliant; ignored */\n  to   { margin-top: 100px; }\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\n@keyframes kf {\n  from { margin-top: 50px; }\n  50%  { margin-top: 150px; }\n  to   { margin-top: 100px; }\n}\n\u003c/pre\u003e"
+      },
+      {
+        "key": "resources",
+        "htmlContent": "\u003cul\u003e\n  \u003cli\u003e \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Web/CSS/@keyframes#!important_in_a_keyframe\"\u003eMozilla Web Technology for Developers\u003c/a\u003e -\n  \u003ccode\u003e!important\u003c/code\u003e in a keyframe \u003c/li\u003e\n\u003c/ul\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4660",
+    "name": "Pseudo-element selectors should be valid",
+    "defaultSeverity": "MAJOR",
+    "type": "BUG",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "RELIABILITY": "MEDIUM"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eThe W3C specifications define the valid pseudo-element selectors. Only the official and browser-specific pseudo-element selectors should be used to\nget the expected impact in the final rendering.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na::beforre { /* Noncompliant; there is a typo on the word \"before\" */\n...\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na::before {\n...\n}\n\u003c/pre\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eThe W3C specifications define the valid pseudo-element selectors. Only the official and browser-specific pseudo-element selectors should be used to\nget the expected impact in the final rendering.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na::beforre { /* Noncompliant; there is a typo on the word \"before\" */\n...\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na::before {\n...\n}\n\u003c/pre\u003e"
+      }
+    ],
+    "params": {
+      "ignorePseudoElements": {
+        "key": "ignorePseudoElements",
+        "name": "ignorePseudoElements",
+        "description": "Comma-separated list of regular expressions or strings to ignore (e.g. /^custom-/).",
+        "defaultValue": "ng-deep,v-deep,deep",
+        "type": "STRING",
+        "multiple": false,
+        "possibleValues": []
+      }
+    },
+    "defaultParams": {
+      "ignorePseudoElements": "ng-deep,v-deep,deep"
+    },
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S125",
+    "name": "Sections of code should not be commented out",
+    "defaultSeverity": "MAJOR",
+    "type": "CODE_SMELL",
+    "cleanCodeAttribute": "CLEAR",
+    "defaultImpacts": {
+      "MAINTAINABILITY": "MEDIUM"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eCommented-out code distracts the focus from the actual executed code. It creates a noise that increases maintenance code. And because it is never\nexecuted, it quickly becomes out of date and invalid.\u003c/p\u003e\n\u003cp\u003eCommented-out code should be deleted and can be retrieved from source control history if required.\u003c/p\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eCommented-out code distracts the focus from the actual executed code. It creates a noise that increases maintenance code. And because it is never\nexecuted, it quickly becomes out of date and invalid.\u003c/p\u003e\n\u003cp\u003eCommented-out code should be deleted and can be retrieved from source control history if required.\u003c/p\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [
+      "unused"
+    ],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4649",
+    "name": "Font declarations should contain at least one generic font family",
+    "defaultSeverity": "MAJOR",
+    "type": "BUG",
+    "cleanCodeAttribute": "COMPLETE",
+    "defaultImpacts": {
+      "RELIABILITY": "MEDIUM"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eThe \u003ccode\u003efont-family\u003c/code\u003e (and the shorthand \u003ccode\u003efont\u003c/code\u003e) CSS property specifies a prioritized list of one or more font family names\nand/or generic family names for the selected element.\u003c/p\u003e\n\u003cp\u003eIf none of the font names defined in a \u003ccode\u003efont\u003c/code\u003e or \u003ccode\u003efont-family\u003c/code\u003e declaration are available on the browser of the user, the\nbrowser will display the text using its default font. It’s recommended to always define a generic font family for each declaration of\n\u003ccode\u003efont\u003c/code\u003e or \u003ccode\u003efont-family\u003c/code\u003e to get a less degraded situation than relying on the default browser font. This lets the browser select\nan acceptable fallback font when necessary.\u003c/p\u003e\n\u003cp\u003eThe list of generic font families is as follows:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e \u003ccode\u003eserif\u003c/code\u003e: Glyphs have finishing strokes, flared or tapering ends, or actual serifed endings. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003esans-serif\u003c/code\u003e: Glyphs have plain stroke endings. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003ecursive\u003c/code\u003e: Glyphs in cursive fonts generally have either joining strokes or other cursive characteristics beyond those of italic\n  typefaces. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003efantasy\u003c/code\u003e: Fantasy fonts are primarily decorative fonts that contain playful representations of characters. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003emonospace\u003c/code\u003e: All glyphs have the same fixed width. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003esystem-ui\u003c/code\u003e: Glyphs are taken from the default user interface font on a given platform. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003eui-serif\u003c/code\u003e: The default user interface serif font. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003eui-sans-serif\u003c/code\u003e: The default user interface sans-serif font. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003eui-monospace\u003c/code\u003e: The default user interface monospace font. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003eui-rounded\u003c/code\u003e: The default user interface font that has rounded features. \u003c/li\u003e\n\u003c/ul\u003e\n\u003ch2\u003eHow to fix it\u003c/h2\u003e\n\u003cp\u003eYou should always include at least one generic family name in a \u003ccode\u003efont-family\u003c/code\u003e list, since there’s no guarantee that any given font is\navailable.\u003c/p\u003e\n\u003ch3\u003eCode examples\u003c/h3\u003e\n\u003ch4\u003eNoncompliant code example\u003c/h4\u003e\n\u003cpre data-diff-id\u003d\"1\" data-diff-type\u003d\"noncompliant\"\u003e\na {\n  font-family: Helvetica, Arial, Verdana, Tahoma; /* Noncompliant; there is no generic font family in the list */\n}\n\u003c/pre\u003e\n\u003ch4\u003eCompliant solution\u003c/h4\u003e\n\u003cpre data-diff-id\u003d\"1\" data-diff-type\u003d\"compliant\"\u003e\na {\n  font-family: Helvetica, Arial, Verdana, Tahoma, sans-serif;\n}\n\u003c/pre\u003e\n\u003ch2\u003eResources\u003c/h2\u003e\n\u003ch3\u003eDocumentation\u003c/h3\u003e\n\u003cul\u003e\n  \u003cli\u003e CSS Specification - \u003ca href\u003d\"https://www.w3.org/TR/CSS2/fonts.html#generic-font-families\"\u003eGeneric font families\u003c/a\u003e \u003c/li\u003e\n  \u003cli\u003e MDN - \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Web/CSS/font-family\"\u003e\u003ccode\u003efont-family\u003c/code\u003e\u003c/a\u003e \u003c/li\u003e\n  \u003cli\u003e MDN - \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Web/CSS/font\"\u003e\u003ccode\u003efont\u003c/code\u003e\u003c/a\u003e \u003c/li\u003e\n\u003c/ul\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eThe \u003ccode\u003efont-family\u003c/code\u003e (and the shorthand \u003ccode\u003efont\u003c/code\u003e) CSS property specifies a prioritized list of one or more font family names\nand/or generic family names for the selected element.\u003c/p\u003e\n\u003cp\u003eIf none of the font names defined in a \u003ccode\u003efont\u003c/code\u003e or \u003ccode\u003efont-family\u003c/code\u003e declaration are available on the browser of the user, the\nbrowser will display the text using its default font. It’s recommended to always define a generic font family for each declaration of\n\u003ccode\u003efont\u003c/code\u003e or \u003ccode\u003efont-family\u003c/code\u003e to get a less degraded situation than relying on the default browser font. This lets the browser select\nan acceptable fallback font when necessary.\u003c/p\u003e\n\u003cp\u003eThe list of generic font families is as follows:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e \u003ccode\u003eserif\u003c/code\u003e: Glyphs have finishing strokes, flared or tapering ends, or actual serifed endings. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003esans-serif\u003c/code\u003e: Glyphs have plain stroke endings. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003ecursive\u003c/code\u003e: Glyphs in cursive fonts generally have either joining strokes or other cursive characteristics beyond those of italic\n  typefaces. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003efantasy\u003c/code\u003e: Fantasy fonts are primarily decorative fonts that contain playful representations of characters. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003emonospace\u003c/code\u003e: All glyphs have the same fixed width. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003esystem-ui\u003c/code\u003e: Glyphs are taken from the default user interface font on a given platform. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003eui-serif\u003c/code\u003e: The default user interface serif font. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003eui-sans-serif\u003c/code\u003e: The default user interface sans-serif font. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003eui-monospace\u003c/code\u003e: The default user interface monospace font. \u003c/li\u003e\n  \u003cli\u003e \u003ccode\u003eui-rounded\u003c/code\u003e: The default user interface font that has rounded features. \u003c/li\u003e\n\u003c/ul\u003e"
+      },
+      {
+        "key": "how_to_fix",
+        "htmlContent": "\u003cp\u003eYou should always include at least one generic family name in a \u003ccode\u003efont-family\u003c/code\u003e list, since there’s no guarantee that any given font is\navailable.\u003c/p\u003e\n\n\u003ch4\u003eNoncompliant code example\u003c/h4\u003e\n\u003cpre data-diff-id\u003d\"1\" data-diff-type\u003d\"noncompliant\"\u003e\na {\n  font-family: Helvetica, Arial, Verdana, Tahoma; /* Noncompliant; there is no generic font family in the list */\n}\n\u003c/pre\u003e\n\u003ch4\u003eCompliant solution\u003c/h4\u003e\n\u003cpre data-diff-id\u003d\"1\" data-diff-type\u003d\"compliant\"\u003e\na {\n  font-family: Helvetica, Arial, Verdana, Tahoma, sans-serif;\n}\n\u003c/pre\u003e"
+      },
+      {
+        "key": "resources",
+        "htmlContent": "\u003ch3\u003eDocumentation\u003c/h3\u003e\n\u003cul\u003e\n  \u003cli\u003e CSS Specification - \u003ca href\u003d\"https://www.w3.org/TR/CSS2/fonts.html#generic-font-families\"\u003eGeneric font families\u003c/a\u003e \u003c/li\u003e\n  \u003cli\u003e MDN - \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Web/CSS/font-family\"\u003e\u003ccode\u003efont-family\u003c/code\u003e\u003c/a\u003e \u003c/li\u003e\n  \u003cli\u003e MDN - \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Web/CSS/font\"\u003e\u003ccode\u003efont\u003c/code\u003e\u003c/a\u003e \u003c/li\u003e\n\u003c/ul\u003e"
+      }
+    ],
+    "params": {
+      "ignoreFontFamilies": {
+        "key": "ignoreFontFamilies",
+        "name": "ignoreFontFamilies",
+        "description": "Comma-separated list of font families exempt from this rule (regular expressions supported).",
+        "type": "STRING",
+        "multiple": false,
+        "possibleValues": []
+      }
+    },
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S1116",
+    "name": "Extra semicolons should be removed",
+    "defaultSeverity": "MINOR",
+    "type": "CODE_SMELL",
+    "cleanCodeAttribute": "CLEAR",
+    "defaultImpacts": {
+      "MAINTAINABILITY": "LOW"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eExtra semicolons are usually introduced by mistake, for example because:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e It was meant to be replaced by one more property declaration, but this was forgotten. \u003c/li\u003e\n  \u003cli\u003e There was a typo which lead the semicolon to be doubled, i.e. \u003ccode\u003e;;\u003c/code\u003e. \u003c/li\u003e\n\u003c/ul\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eExtra semicolons are usually introduced by mistake, for example because:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e It was meant to be replaced by one more property declaration, but this was forgotten. \u003c/li\u003e\n  \u003cli\u003e There was a typo which lead the semicolon to be doubled, i.e. \u003ccode\u003e;;\u003c/code\u003e. \u003c/li\u003e\n\u003c/ul\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [
+      "unused"
+    ],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4647",
+    "name": "Color definitions should be valid",
+    "defaultSeverity": "BLOCKER",
+    "type": "BUG",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "RELIABILITY": "HIGH"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eAn invalid color definition will by default be interpreted as black, which is likely to have unintended impacts on the expected look and feel of\nthe website.\u003c/p\u003e\n\u003cp\u003eThis rule raises an issue when a color definition (\u003ccode\u003ecolor\u003c/code\u003e, \u003ccode\u003ebackground-color\u003c/code\u003e) is not valid. The color definition is\nconsidered valid when it is made of hexadecimal characters:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e longhand: 6 or 8 characters (when alpha is defined) \u003c/li\u003e\n  \u003cli\u003e shorthand variant: 3 or 4 characters (when alpha is defined) \u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na {\n color: #3c; /* Noncompliant; shorthand should be made of 3 characters */\n}\ndiv {\n  background-color: #3cb371a; /* Noncompliant; alpha should have 2 characters */\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n color: #3cc;\n}\ndiv {\n  background-color: #3cb371ac;\n}\n\u003c/pre\u003e\n\u003ch2\u003eResources\u003c/h2\u003e\n\u003cul\u003e\n  \u003cli\u003e \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Web/CSS/color_value\"\u003eMozilla Web Technology for Developers\u003c/a\u003e - CSS Color \u003c/li\u003e\n\u003c/ul\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eAn invalid color definition will by default be interpreted as black, which is likely to have unintended impacts on the expected look and feel of\nthe website.\u003c/p\u003e\n\u003cp\u003eThis rule raises an issue when a color definition (\u003ccode\u003ecolor\u003c/code\u003e, \u003ccode\u003ebackground-color\u003c/code\u003e) is not valid. The color definition is\nconsidered valid when it is made of hexadecimal characters:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e longhand: 6 or 8 characters (when alpha is defined) \u003c/li\u003e\n  \u003cli\u003e shorthand variant: 3 or 4 characters (when alpha is defined) \u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na {\n color: #3c; /* Noncompliant; shorthand should be made of 3 characters */\n}\ndiv {\n  background-color: #3cb371a; /* Noncompliant; alpha should have 2 characters */\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n color: #3cc;\n}\ndiv {\n  background-color: #3cb371ac;\n}\n\u003c/pre\u003e"
+      },
+      {
+        "key": "resources",
+        "htmlContent": "\u003cul\u003e\n  \u003cli\u003e \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Web/CSS/color_value\"\u003eMozilla Web Technology for Developers\u003c/a\u003e - CSS Color \u003c/li\u003e\n\u003c/ul\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4648",
+    "name": "Duplicated font names should be removed",
+    "defaultSeverity": "MAJOR",
+    "type": "CODE_SMELL",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "MAINTAINABILITY": "MEDIUM"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eHaving duplicated font names doesn’t help to read the font declaration and may be an indicator the author of the line was not sure how to configure\nit. This rule raises an issue when \u003ccode\u003efont\u003c/code\u003e or \u003ccode\u003efont-family\u003c/code\u003e properties contain a duplicated font name. This rule ignores\n\u003ccode\u003e$sass\u003c/code\u003e, \u003ccode\u003e@less\u003c/code\u003e, and \u003ccode\u003evar(--custom-property)\u003c/code\u003e variable syntaxes.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na {\n  font-family: \u0027Georgia\u0027, Georgia, serif; /* Noncompliant; \u0027Georgia\u0027 is duplicated */\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n  font-family: Georgia, serif;\n}\n\u003c/pre\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eHaving duplicated font names doesn’t help to read the font declaration and may be an indicator the author of the line was not sure how to configure\nit. This rule raises an issue when \u003ccode\u003efont\u003c/code\u003e or \u003ccode\u003efont-family\u003c/code\u003e properties contain a duplicated font name. This rule ignores\n\u003ccode\u003e$sass\u003c/code\u003e, \u003ccode\u003e@less\u003c/code\u003e, and \u003ccode\u003evar(--custom-property)\u003c/code\u003e variable syntaxes.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\na {\n  font-family: \u0027Georgia\u0027, Georgia, serif; /* Noncompliant; \u0027Georgia\u0027 is duplicated */\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n  font-family: Georgia, serif;\n}\n\u003c/pre\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4663",
+    "name": "Multi-line comments should not be empty",
+    "defaultSeverity": "MINOR",
+    "type": "CODE_SMELL",
+    "cleanCodeAttribute": "CLEAR",
+    "defaultImpacts": {
+      "MAINTAINABILITY": "LOW"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eEmpty comments, as shown in the example, hurt readability and might indicate an oversight.\u003c/p\u003e\n\u003cpre\u003e\n/*  */\n\n/*\n\n */\n\u003c/pre\u003e\n\u003cp\u003eSome meaningful text should be added to the comment, or the comment markers should be removed.\u003c/p\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eEmpty comments, as shown in the example, hurt readability and might indicate an oversight.\u003c/p\u003e\n\u003cpre\u003e\n/*  */\n\n/*\n\n */\n\u003c/pre\u003e\n\u003cp\u003eSome meaningful text should be added to the comment, or the comment markers should be removed.\u003c/p\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4664",
+    "name": "Selectors of lower specificity should come before overriding selectors of higher specificity",
+    "defaultSeverity": "CRITICAL",
+    "type": "CODE_SMELL",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "MAINTAINABILITY": "HIGH"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eOrder of instructions in CSS is important: instructions with equal specificity that occur later in the file take the priority. But when a selector\nwith a higher specificity (e.g. \u003ccode\u003ep a { color: green;}\u003c/code\u003e) comes before the selector it overrides (e.g.: \u003ccode\u003ea { color: green;}\u003c/code\u003e), the\npriority is given to the first one. Even if it works properly, this is harder to anticipate the behaviour of the stylesheet while reading as it goes\nagainst the principle that the last instruction takes the priority.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\np a {\n  color: green;\n}\n\na {\n  color: blue;\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n  color: blue;\n}\n\np a {\n  color: green;\n}\n\u003c/pre\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eOrder of instructions in CSS is important: instructions with equal specificity that occur later in the file take the priority. But when a selector\nwith a higher specificity (e.g. \u003ccode\u003ep a { color: green;}\u003c/code\u003e) comes before the selector it overrides (e.g.: \u003ccode\u003ea { color: green;}\u003c/code\u003e), the\npriority is given to the first one. Even if it works properly, this is harder to anticipate the behaviour of the stylesheet while reading as it goes\nagainst the principle that the last instruction takes the priority.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\np a {\n  color: green;\n}\n\na {\n  color: blue;\n}\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\na {\n  color: blue;\n}\n\np a {\n  color: green;\n}\n\u003c/pre\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": false,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4661",
+    "name": "Media features should be valid",
+    "defaultSeverity": "MAJOR",
+    "type": "BUG",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "RELIABILITY": "MEDIUM"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eThe W3C specifications define the valid media features. Only the official and browser-specific media features should be used to get the expected\nimpact in the final rendering.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n@media screen and (unknown: 1000px) { .. }\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\n@media screen and (width: 1000px) { .. }\n\u003c/pre\u003e\n\u003ch2\u003eResources\u003c/h2\u003e\n\u003cul\u003e\n  \u003cli\u003e \u003ca href\u003d\"https://www.w3schools.com/cssref/css3_pr_mediaquery.asp\"\u003eCSS Specification\u003c/a\u003e - \u003ccode\u003e@media\u003c/code\u003e rule \u003c/li\u003e\n\u003c/ul\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eThe W3C specifications define the valid media features. Only the official and browser-specific media features should be used to get the expected\nimpact in the final rendering.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n@media screen and (unknown: 1000px) { .. }\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\n@media screen and (width: 1000px) { .. }\n\u003c/pre\u003e"
+      },
+      {
+        "key": "resources",
+        "htmlContent": "\u003cul\u003e\n  \u003cli\u003e \u003ca href\u003d\"https://www.w3schools.com/cssref/css3_pr_mediaquery.asp\"\u003eCSS Specification\u003c/a\u003e - \u003ccode\u003e@media\u003c/code\u003e rule \u003c/li\u003e\n\u003c/ul\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4662",
+    "name": "\"at-rules\" should be valid",
+    "defaultSeverity": "MAJOR",
+    "type": "BUG",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "RELIABILITY": "MEDIUM"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eThe W3C specifications define the valid \u003ccode\u003eat-rules\u003c/code\u003e. Only the official and browser-specific \u003ccode\u003eat-rules\u003c/code\u003e should be used to get\nthe expected impact in the final rendering.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n@encoding \"utf-8\";\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\n@charset \"utf-8\";\n\u003c/pre\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eThe W3C specifications define the valid \u003ccode\u003eat-rules\u003c/code\u003e. Only the official and browser-specific \u003ccode\u003eat-rules\u003c/code\u003e should be used to get\nthe expected impact in the final rendering.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n@encoding \"utf-8\";\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\n@charset \"utf-8\";\n\u003c/pre\u003e"
+      }
+    ],
+    "params": {
+      "ignoreAtRules": {
+        "key": "ignoreAtRules",
+        "name": "ignoreAtRules",
+        "description": "Comma-separated list of \"at-rules\" to consider as valid.",
+        "defaultValue": "value,at-root,content,debug,each,else,error,for,function,if,include,mixin,return,warn,while,extend,use,forward,tailwind,apply,layer,container,/^@.*/",
+        "type": "STRING",
+        "multiple": false,
+        "possibleValues": []
+      }
+    },
+    "defaultParams": {
+      "ignoreAtRules": "value,at-root,content,debug,each,else,error,for,function,if,include,mixin,return,warn,while,extend,use,forward,tailwind,apply,layer,container,/^@.*/"
+    },
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4667",
+    "name": "CSS files should not be empty",
+    "defaultSeverity": "MAJOR",
+    "type": "CODE_SMELL",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "MAINTAINABILITY": "MEDIUM"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eThis rule raises an issue when a CSS file is empty (ie: containing only spaces).\u003c/p\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eThis rule raises an issue when a CSS file is empty (ie: containing only spaces).\u003c/p\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4668",
+    "name": "Single line comment syntax should not be used",
+    "defaultSeverity": "BLOCKER",
+    "type": "BUG",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "RELIABILITY": "HIGH"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eThe W3C specifications say comments should be defined using \u003ccode\u003e/* ... */\u003c/code\u003e. The use of \u003ccode\u003e//\u003c/code\u003e is not supported on all browsers and\ncan lead to unexpected results.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n// some comment\na { color: pink; }\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\n/* some comment */\na { color: pink; }\n\u003c/pre\u003e\n\u003ch3\u003eExceptions\u003c/h3\u003e\n\u003cp\u003eThis rule ignores single line comments in \u003ccode\u003eless\u003c/code\u003e and \u003ccode\u003escss\u003c/code\u003e files.\u003c/p\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eThe W3C specifications say comments should be defined using \u003ccode\u003e/* ... */\u003c/code\u003e. The use of \u003ccode\u003e//\u003c/code\u003e is not supported on all browsers and\ncan lead to unexpected results.\u003c/p\u003e\n\u003ch3\u003eNoncompliant code example\u003c/h3\u003e\n\u003cpre\u003e\n// some comment\na { color: pink; }\n\u003c/pre\u003e\n\u003ch3\u003eCompliant solution\u003c/h3\u003e\n\u003cpre\u003e\n/* some comment */\na { color: pink; }\n\u003c/pre\u003e\n\u003ch3\u003eExceptions\u003c/h3\u003e\n\u003cp\u003eThis rule ignores single line comments in \u003ccode\u003eless\u003c/code\u003e and \u003ccode\u003escss\u003c/code\u003e files.\u003c/p\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  },
+  {
+    "key": "css:S4666",
+    "name": "Selectors should not be duplicated",
+    "defaultSeverity": "MAJOR",
+    "type": "CODE_SMELL",
+    "cleanCodeAttribute": "LOGICAL",
+    "defaultImpacts": {
+      "MAINTAINABILITY": "MEDIUM"
+    },
+    "description": "\u003ch2\u003eWhy is this an issue?\u003c/h2\u003e\n\u003cp\u003eIn CSS, when selectors are duplicated, the browser applies them in cascade. This means that if two selectors are identical, the second one takes\nprecedence. However, if the declarations within the selectors are not conflicting, they will be combined.\u003c/p\u003e\n\u003cp\u003eThis behavior can lead to unexpected results and make debugging more difficult, especially in larger stylesheets. Therefore, it’s generally\nrecommended to avoid duplicating selectors.\u003c/p\u003e\n\u003cp\u003eThe rule detects the following kinds of duplications:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e within a list of selectors in a single rule set, \u003c/li\u003e\n  \u003cli\u003e for duplicated selectors in different rule sets within a single stylesheet. \u003c/li\u003e\n\u003c/ul\u003e\n\u003ch2\u003eHow to fix it\u003c/h2\u003e\n\u003cp\u003eTo fix your code, either remove the duplicated selector or merge all declarations.\u003c/p\u003e\n\u003ch3\u003eCode examples\u003c/h3\u003e\n\u003ch4\u003eNoncompliant code example\u003c/h4\u003e\n\u003cpre data-diff-id\u003d\"1\" data-diff-type\u003d\"noncompliant\"\u003e\np {\n  color: blue;\n  font-size: 16px;\n}\n\np { /* Noncompliant: duplicated selector \u0027p\u0027, overwrites property \u0027color\u0027 */\n  color: red;\n}\n\u003c/pre\u003e\n\u003ch4\u003eCompliant solution\u003c/h4\u003e\n\u003cpre data-diff-id\u003d\"1\" data-diff-type\u003d\"compliant\"\u003e\np {\n  color: red;\n  font-size: 16px;\n}\n\u003c/pre\u003e\n\u003ch2\u003eResources\u003c/h2\u003e\n\u003ch3\u003eDocumentation\u003c/h3\u003e\n\u003cul\u003e\n  \u003cli\u003e MDN - \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors\"\u003eCSS selectors\u003c/a\u003e \u003c/li\u003e\n  \u003cli\u003e MDN - \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Cascade_and_inheritance\"\u003eCascade, specificity, and\n  inheritance\u003c/a\u003e \u003c/li\u003e\n\u003c/ul\u003e",
+    "descriptionSections": [
+      {
+        "key": "root_cause",
+        "htmlContent": "\u003cp\u003eIn CSS, when selectors are duplicated, the browser applies them in cascade. This means that if two selectors are identical, the second one takes\nprecedence. However, if the declarations within the selectors are not conflicting, they will be combined.\u003c/p\u003e\n\u003cp\u003eThis behavior can lead to unexpected results and make debugging more difficult, especially in larger stylesheets. Therefore, it’s generally\nrecommended to avoid duplicating selectors.\u003c/p\u003e\n\u003cp\u003eThe rule detects the following kinds of duplications:\u003c/p\u003e\n\u003cul\u003e\n  \u003cli\u003e within a list of selectors in a single rule set, \u003c/li\u003e\n  \u003cli\u003e for duplicated selectors in different rule sets within a single stylesheet. \u003c/li\u003e\n\u003c/ul\u003e"
+      },
+      {
+        "key": "how_to_fix",
+        "htmlContent": "\u003cp\u003eTo fix your code, either remove the duplicated selector or merge all declarations.\u003c/p\u003e\n\n\u003ch4\u003eNoncompliant code example\u003c/h4\u003e\n\u003cpre data-diff-id\u003d\"1\" data-diff-type\u003d\"noncompliant\"\u003e\np {\n  color: blue;\n  font-size: 16px;\n}\n\np { /* Noncompliant: duplicated selector \u0027p\u0027, overwrites property \u0027color\u0027 */\n  color: red;\n}\n\u003c/pre\u003e\n\u003ch4\u003eCompliant solution\u003c/h4\u003e\n\u003cpre data-diff-id\u003d\"1\" data-diff-type\u003d\"compliant\"\u003e\np {\n  color: red;\n  font-size: 16px;\n}\n\u003c/pre\u003e"
+      },
+      {
+        "key": "resources",
+        "htmlContent": "\u003ch3\u003eDocumentation\u003c/h3\u003e\n\u003cul\u003e\n  \u003cli\u003e MDN - \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors\"\u003eCSS selectors\u003c/a\u003e \u003c/li\u003e\n  \u003cli\u003e MDN - \u003ca href\u003d\"https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Cascade_and_inheritance\"\u003eCascade, specificity, and\n  inheritance\u003c/a\u003e \u003c/li\u003e\n\u003c/ul\u003e"
+      }
+    ],
+    "params": {},
+    "defaultParams": {},
+    "isActiveByDefault": true,
+    "language": "CSS",
+    "tags": [],
+    "deprecatedKeys": [],
+    "educationPrincipleKeys": []
+  }
+]
