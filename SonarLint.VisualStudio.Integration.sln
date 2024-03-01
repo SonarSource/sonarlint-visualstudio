@@ -141,9 +141,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Education", "src\Education\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Education.UnitTests", "src\Education.UnitTests\Education.UnitTests.csproj", "{A28896EF-67DD-43E1-9AD3-B47270D9DDC5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ProcessJarFiles", "ProcessJarFiles", "{5DFD3BF7-AA23-4038-AFC6-064E235E37E4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DownloadDependencies", "DownloadDependencies", "{5DFD3BF7-AA23-4038-AFC6-064E235E37E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessJarFiles", "build\ProcessJarFiles\ProcessJarFiles.proj", "{3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DownloadDependencies", "build\ProcessJarFiles\DownloadDependencies.proj", "{3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E47E649E-5044-485B-A077-8FB282094A7D} = {E47E649E-5044-485B-A077-8FB282094A7D}
 	EndProjectSection
@@ -171,6 +171,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SLCore.Listeners", "src\SLCore.Listeners\SLCore.Listeners.csproj", "{8523D19D-1760-4608-9A4F-3A9353279A16}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SLCore.Listeners.UnitTests", "src\SLCore.Listeners.UnitTests\SLCore.Listeners.UnitTests.csproj", "{23321F44-DE37-4801-96BB-BC8E3CCFC7F1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SLCore.IntegrationTests", "src\SLCore.IntegrationTests\SLCore.IntegrationTests.csproj", "{1625398B-2343-481E-9B90-57B38EBEE8C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
