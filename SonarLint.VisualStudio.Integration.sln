@@ -172,6 +172,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SLCore.Listeners", "src\SLC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SLCore.Listeners.UnitTests", "src\SLCore.Listeners.UnitTests\SLCore.Listeners.UnitTests.csproj", "{23321F44-DE37-4801-96BB-BC8E3CCFC7F1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SLCore.IntegrationTests", "src\SLCore.IntegrationTests\SLCore.IntegrationTests.csproj", "{1625398B-2343-481E-9B90-57B38EBEE8C5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
