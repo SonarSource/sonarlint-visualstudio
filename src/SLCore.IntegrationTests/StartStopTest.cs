@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 [TestClass]
 public class StartStopTest
 {
-    // [Ignore] // todo remove after todos in SLCoreTestRunner have been solved
+    [Ignore] // todo remove after todos in SLCoreTestRunner have been solved
     [TestMethod]
     public async Task StartStopSloop()
     {

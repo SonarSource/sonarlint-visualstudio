@@ -36,14 +36,15 @@ public sealed class SLCoreTestProcessRunner : IDisposable
     private readonly Process process;
     private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
     private readonly JsonRpcWrapper jsonRpcWrapper;
+    private StreamWriter logFileStream;
+    private StreamWriter errorFileStream;
 
-    public SLCoreTestProcessRunner(string pathToBat, string logFilePath = null, string errorLogFilePath = null, bool enableVerboseLogs = false)
+    public SLCoreTestProcessRunner(string pathToBat, 
+        string logFilePath = null, 
+        string errorLogFilePath = null, 
+        bool enableVerboseLogs = false,
+        bool enableAutoFlush = false)
     {
-        FileStream logFileStream = null;
-        if (!string.IsNullOrEmpty(logFilePath))
-        {
-            logFileStream = File.OpenWrite(logFilePath);
-        }
         
         var processStartInfo = new ProcessStartInfo("cmd.exe", $@"/c {pathToBat}")
         {
@@ -56,10 +57,10 @@ public sealed class SLCoreTestProcessRunner : IDisposable
 
         process = new Process { StartInfo = processStartInfo };
 
+        SetUpLogging(logFilePath, errorLogFilePath, enableAutoFlush);
+
         process.Start();
-
-        Task.Run(() => ReadErrorLog(errorLogFilePath)).Forget();
-
+        
         jsonRpcWrapper = new JsonRpcWrapper(process.StandardInput.BaseStream, process.StandardOutput.BaseStream);
         jsonRpcWrapper.TraceSource.Switch.Level = enableVerboseLogs ? SourceLevels.Verbose : SourceLevels.Warning;
         jsonRpcWrapper.TraceSource.Listeners.Add(logFileStream == null ? new ConsoleTraceListener() : new TextWriterTraceListener(logFileStream));
@@ -67,12 +68,23 @@ public sealed class SLCoreTestProcessRunner : IDisposable
         Rpc = new SLCoreJsonRpc(jsonRpcWrapper, new RpcMethodNameTransformer());
     }
 
-    private void ReadErrorLog(string errorLogFilePath)
+    private void SetUpLogging(string logFilePath, string errorLogFilePath, bool enableAutoFlush)
+    {
+        if (!string.IsNullOrEmpty(logFilePath))
+        {
+            logFileStream = new StreamWriter(File.OpenWrite(logFilePath));
+            logFileStream.AutoFlush = enableAutoFlush;
+        }
+
+        Task.Run(() => ReadErrorLog(errorLogFilePath, enableAutoFlush)).Forget();
+    }
+
+    private void ReadErrorLog(string errorLogFilePath, bool enableAutoFlush)
     {
         var token = cancellationTokenSource.Token;
         var fileLoggingEnabled = errorLogFilePath != null;
         var prefix = fileLoggingEnabled ? string.Empty : "ERR: ";
-        StreamWriter fileStream = fileLoggingEnabled ? new StreamWriter(File.OpenWrite(errorLogFilePath)) : null;
+        errorFileStream = fileLoggingEnabled ? new StreamWriter(File.OpenWrite(errorLogFilePath)){AutoFlush = enableAutoFlush} : null;
 
 
         while (!token.IsCancellationRequested)
@@ -85,7 +97,7 @@ public sealed class SLCoreTestProcessRunner : IDisposable
 
             if (fileLoggingEnabled)
             {
-                fileStream.WriteLine(line);
+                errorFileStream.WriteLine(line);
             }
             else
             {
@@ -100,5 +112,7 @@ public sealed class SLCoreTestProcessRunner : IDisposable
         cancellationTokenSource?.Dispose();
         jsonRpcWrapper?.Dispose();
         process?.Dispose();
+        logFileStream?.Dispose();
+        errorFileStream?.Dispose();
     }
 }

@@ -67,7 +67,7 @@ public sealed class SLCoreTestRunner : IDisposable
         var (storageRoot, workDir, userHome) = SetUpLocalFolders();
         
         // todo replace path after the download problem is solved
-        processRunner = new SLCoreTestProcessRunner(@"C:\Users\georgii.borovinskikh\Desktop\SLCORE\bin\sonarlint-backend.bat");
+        processRunner = new SLCoreTestProcessRunner(@"C:\Users\georgii.borovinskikh\Desktop\SLCORE\bin\sonarlint-backend.bat", logFilePath: @"C:\Users\georgii.borovinskikh\Desktop\tmp\l", errorLogFilePath: @"C:\Users\georgii.borovinskikh\Desktop\tmp\e", true);
 
         SlCoreServiceProvider = new SLCoreServiceProvider(new NoOpThreadHandler(), logger);
         var slCoreListenerSetUp = new SLCoreListenerSetUp(listenersToSetUp);
@@ -82,6 +82,7 @@ public sealed class SLCoreTestRunner : IDisposable
         await slCoreLifecycleService.InitializeAsync(
             new InitializeParams(
                 defaultClientConstants,
+                new HttpConfigurationDto(new SslConfigurationDto()),
                 new FeatureFlagsDto(true, true, false, true, false, false, true),
                 storageRoot,
                 workDir,
