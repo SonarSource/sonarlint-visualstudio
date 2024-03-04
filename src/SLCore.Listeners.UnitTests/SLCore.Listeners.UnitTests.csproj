@@ -13,4 +13,10 @@
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="StreamJsonRpc" Version="2.6.121">
+      <NoWarn>NU1605</NoWarn>
+    </PackageReference>
+  </ItemGroup>
+
 </Project>
