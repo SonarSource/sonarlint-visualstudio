@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.SLCore.State;
 /// </summary>
 public interface IAliveConnectionTracker : IDisposable
 {
-    Task RefreshConnectionListAsync();
+    void RefreshConnectionList();
 }
 
 [Export(typeof(IAliveConnectionTracker))]
@@ -68,7 +68,7 @@ internal sealed class AliveConnectionTracker : IAliveConnectionTracker
         solutionBindingRepository.BindingUpdated += BindingUpdateHandler;
     }
 
-    public async Task RefreshConnectionListAsync()
+    public void RefreshConnectionList()
     {
         threadHandling.ThrowIfOnUIThread();
 
@@ -77,18 +77,18 @@ internal sealed class AliveConnectionTracker : IAliveConnectionTracker
             throw new InvalidOperationException(Strings.ServiceProviderNotInitialized);
         }
 
-        using (await asyncLock.AcquireAsync())
+        using (asyncLock.Acquire())
         {
             var serverConnections = GetUniqueConnections(solutionBindingRepository.List());
 
-            await connectionConfigurationService.DidUpdateConnectionsAsync(new DidUpdateConnectionsParams(
+            connectionConfigurationService.DidUpdateConnections(new DidUpdateConnectionsParams(
                 serverConnections.Values.OfType<SonarQubeConnectionConfigurationDto>().ToList(),
                 serverConnections.Values.OfType<SonarCloudConnectionConfigurationDto>().ToList()));
 
             foreach (var connectionId in serverConnections.Keys)
             {
                 // we don't manage connections as separate entities and we don't know when credentials actually change
-                await connectionConfigurationService.DidChangeCredentialsAsync(
+                connectionConfigurationService.DidChangeCredentials(
                     new DidChangeCredentialsParams(connectionId));
             }
         }
@@ -96,11 +96,11 @@ internal sealed class AliveConnectionTracker : IAliveConnectionTracker
 
     private void BindingUpdateHandler(object sender, EventArgs arg)
     {
-        threadHandling.RunOnBackgroundThread(async () =>
+        threadHandling.RunOnBackgroundThread(() =>
         {
-            await RefreshConnectionListAsync();
+            RefreshConnectionList();
 
-            return 0;
+            return Task.FromResult(0);
         }).Forget();
     }
 
