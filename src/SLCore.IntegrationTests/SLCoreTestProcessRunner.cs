@@ -57,9 +57,9 @@ public sealed class SLCoreTestProcessRunner : IDisposable
 
         process = new Process { StartInfo = processStartInfo };
 
-        SetUpLogging(logFilePath, errorLogFilePath, enableAutoFlush);
 
         process.Start();
+        SetUpLogging(logFilePath, errorLogFilePath, enableAutoFlush);
         
         jsonRpcWrapper = new JsonRpcWrapper(process.StandardInput.BaseStream, process.StandardOutput.BaseStream);
         jsonRpcWrapper.TraceSource.Switch.Level = enableVerboseLogs ? SourceLevels.Verbose : SourceLevels.Warning;
