@@ -163,7 +163,7 @@ jobs:
   - task: VSBuild@1
     displayName: Pre-process jar files
     inputs:
-      solution: build\ProcessJarFiles\ProcessJarFiles.proj
+      solution: build\DownloadDependencies\DownloadDependencies.proj
       vsVersion: 17.0
 
   # End of hack
