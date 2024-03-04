@@ -226,7 +226,7 @@ public class AliveConnectionTrackerTests
 
     private static void VerifyLockTakenAndReleased(Mock<IAsyncLock> asyncLock, Mock<IReleaseAsyncLock> lockRelease)
     {
-        asyncLock.Verify(x => x.AcquireAsync(), Times.Once);
+        asyncLock.Verify(x => x.Acquire(), Times.Once);
         lockRelease.Verify(x => x.Dispose(), Times.Once);
     }
 
