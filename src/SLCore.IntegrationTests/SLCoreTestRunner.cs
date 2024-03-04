@@ -64,12 +64,12 @@ public sealed class SLCoreTestRunner : IDisposable
 
     public async Task Start()
     {
-        var (storageRoot, workDir, userHome) = SetUpLocalFolders();
+        var (privateFolder, storageRoot, workDir, userHome) = SetUpLocalFolders();
         
         // todo replace path after the download problem is solved
         processRunner = new SLCoreTestProcessRunner(@"C:\Users\georgii.borovinskikh\Desktop\SLCORE\bin\sonarlint-backend.bat",
-            logFilePath: @"C:\Users\georgii.borovinskikh\Desktop\tmp\logrpc.txt",
-            errorLogFilePath: @"C:\Users\georgii.borovinskikh\Desktop\tmp\logsloop.txt", 
+            logFilePath: Path.Combine(privateFolder, "logrpc.txt"),
+            errorLogFilePath: Path.Combine(privateFolder, "logstderr.txt"), 
             true,
             true);
 
@@ -102,7 +102,7 @@ public sealed class SLCoreTestRunner : IDisposable
                 defaultTelemetryAttributes,
                 null));
         
-        await telemetryRpcService.DisableTelemetryAsync();
+        telemetryRpcService.DisableTelemetry();
     }
 
     public void Dispose()
@@ -115,7 +115,7 @@ public sealed class SLCoreTestRunner : IDisposable
         processRunner?.Dispose();
     }
     
-    private static (string storageRoot, string workDir, string userHome) SetUpLocalFolders()
+    private static (string privateFolder, string storageRoot, string workDir, string userHome) SetUpLocalFolders()
     {
         var privateFolderBase = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "slcore");
         var storageRoot = Path.Combine(privateFolderBase, "storageRoot");
@@ -132,7 +132,7 @@ public sealed class SLCoreTestRunner : IDisposable
         Directory.CreateDirectory(workDir);
         Directory.CreateDirectory(userHome);
 
-        return (storageRoot, workDir, userHome);
+        return (privateFolderBase, storageRoot, workDir, userHome);
     }
 
     private static List<string> LoadAvailablePlugins()

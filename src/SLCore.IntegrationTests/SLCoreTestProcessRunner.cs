@@ -56,8 +56,7 @@ public sealed class SLCoreTestProcessRunner : IDisposable
         };
 
         process = new Process { StartInfo = processStartInfo };
-
-
+        
         process.Start();
         SetUpLogging(logFilePath, errorLogFilePath, enableAutoFlush);
         
