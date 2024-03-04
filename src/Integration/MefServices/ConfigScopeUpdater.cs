@@ -55,25 +55,25 @@ internal class ConfigScopeUpdater : IConfigScopeUpdater
     {
         var solutionName = solutionInfoProvider.GetSolutionName();
 
-        threadHandling.RunOnBackgroundThread(async () =>
+        threadHandling.RunOnBackgroundThread(() =>
             {
-                await HandleConfigScopeUpdateInternalAsync(solutionName,
+                HandleConfigScopeUpdateInternal(solutionName,
                     connectionIdHelper.GetConnectionIdFromUri(currentBinding?.ServerUri,
                         currentBinding?.Organization?.Key),
                     currentBinding?.ProjectKey);
-                return 0;
+                return Task.FromResult(0);
             }).Forget();
     }
 
-    private async Task HandleConfigScopeUpdateInternalAsync(string solutionName, string connectionId, string projectKey)
+    private void HandleConfigScopeUpdateInternal(string solutionName, string connectionId, string projectKey)
     {
         if (solutionName is null)
         {
-            await activeConfigScopeTracker.RemoveCurrentConfigScopeAsync();
+            activeConfigScopeTracker.RemoveCurrentConfigScope();
         }
         else
         {
-            await activeConfigScopeTracker.SetCurrentConfigScopeAsync(solutionName, connectionId, projectKey);
+            activeConfigScopeTracker.SetCurrentConfigScope(solutionName, connectionId, projectKey);
         }
     }
 }
