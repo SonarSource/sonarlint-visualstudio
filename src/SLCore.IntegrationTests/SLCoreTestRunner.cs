@@ -50,11 +50,25 @@ public sealed class SLCoreTestRunner : IDisposable
         Language.CSS,
         Language.SECRETS,
     };
+
+    private string privateFolder;
+    private string storageRoot;
+    private string workDir;
+    private string userHome;
     public SLCoreServiceProvider SlCoreServiceProvider { get; private set; }
 
     public SLCoreTestRunner(ILogger logger)
     {
         this.logger = logger;
+        
+        SetUpLocalFolders();
+        
+        // todo replace path after the download problem is solved
+        processRunner = new SLCoreTestProcessRunner(@"C:\Users\georgii.borovinskikh\Desktop\SLCORE\bin\sonarlint-backend.bat",
+            logFilePath: Path.Combine(privateFolder, "logrpc.txt"),
+            errorLogFilePath: Path.Combine(privateFolder, "logstderr.txt"), 
+            true,
+            true);
     }
 
     public void AddListener(ISLCoreListener listener)
@@ -64,18 +78,11 @@ public sealed class SLCoreTestRunner : IDisposable
 
     public async Task Start()
     {
-        var (privateFolder, storageRoot, workDir, userHome) = SetUpLocalFolders();
+        processRunner.Start();
         
-        // todo replace path after the download problem is solved
-        processRunner = new SLCoreTestProcessRunner(@"C:\Users\georgii.borovinskikh\Desktop\SLCORE\bin\sonarlint-backend.bat",
-            logFilePath: Path.Combine(privateFolder, "logrpc.txt"),
-            errorLogFilePath: Path.Combine(privateFolder, "logstderr.txt"), 
-            true,
-            true);
-
         SlCoreServiceProvider = new SLCoreServiceProvider(new NoOpThreadHandler(), logger);
-        var slCoreListenerSetUp = new SLCoreListenerSetUp(listenersToSetUp);
         SlCoreServiceProvider.SetCurrentConnection(processRunner.Rpc);
+        var slCoreListenerSetUp = new SLCoreListenerSetUp(listenersToSetUp);
         slCoreListenerSetUp.Setup(processRunner.Rpc);
 
         if (!SlCoreServiceProvider.TryGetTransientService(out ISLCoreLifecycleService slCoreLifecycleService) || !SlCoreServiceProvider.TryGetTransientService(out ITelemetryRpcService telemetryRpcService))
@@ -115,24 +122,22 @@ public sealed class SLCoreTestRunner : IDisposable
         processRunner?.Dispose();
     }
     
-    private static (string privateFolder, string storageRoot, string workDir, string userHome) SetUpLocalFolders()
+    private void SetUpLocalFolders()
     {
-        var privateFolderBase = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "slcore");
-        var storageRoot = Path.Combine(privateFolderBase, "storageRoot");
-        var workDir = Path.Combine(privateFolderBase, "workDir");
-        var userHome = Path.Combine(privateFolderBase, "userHome");
+        privateFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "slcore"); // add unique identifier to prevent override between tests?
+        storageRoot = Path.Combine(privateFolder, "storageRoot");
+        workDir = Path.Combine(privateFolder, "workDir");
+        userHome = Path.Combine(privateFolder, "userHome");
 
-        if (Directory.Exists(privateFolderBase))
+        if (Directory.Exists(privateFolder))
         {
-            Directory.Delete(privateFolderBase, true);
+            Directory.Delete(privateFolder, true);
         }
 
-        Directory.CreateDirectory(privateFolderBase);
+        Directory.CreateDirectory(privateFolder);
         Directory.CreateDirectory(storageRoot);
         Directory.CreateDirectory(workDir);
         Directory.CreateDirectory(userHome);
-
-        return (privateFolderBase, storageRoot, workDir, userHome);
     }
 
     private static List<string> LoadAvailablePlugins()

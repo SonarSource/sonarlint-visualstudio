@@ -32,12 +32,19 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 [ExcludeFromCodeCoverage]
 public sealed class SLCoreTestProcessRunner : IDisposable
 {
-    public ISLCoreJsonRpc Rpc { get; }
-    private readonly Process process;
-    private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-    private readonly JsonRpcWrapper jsonRpcWrapper;
+    private readonly string pathToBat;
+    private readonly string logFilePath;
+    private readonly string errorLogFilePath;
+    private readonly bool enableVerboseLogs;
+    private readonly bool enableAutoFlush;
+    private Process process;
+    private readonly CancellationTokenSource cancellationTokenSource = new();
+    private JsonRpcWrapper jsonRpcWrapper;
     private StreamWriter logFileStream;
     private StreamWriter errorFileStream;
+    
+    public ISLCoreJsonRpc Rpc { get; private set; }
+
 
     public SLCoreTestProcessRunner(string pathToBat, 
         string logFilePath = null, 
@@ -45,7 +52,15 @@ public sealed class SLCoreTestProcessRunner : IDisposable
         bool enableVerboseLogs = false,
         bool enableAutoFlush = false)
     {
-        
+        this.pathToBat = pathToBat;
+        this.logFilePath = logFilePath;
+        this.errorLogFilePath = errorLogFilePath;
+        this.enableVerboseLogs = enableVerboseLogs;
+        this.enableAutoFlush = enableAutoFlush;
+    }
+
+    public void Start()
+    {
         var processStartInfo = new ProcessStartInfo("cmd.exe", $@"/c {pathToBat}")
         {
             CreateNoWindow = true,
@@ -58,7 +73,7 @@ public sealed class SLCoreTestProcessRunner : IDisposable
         process = new Process { StartInfo = processStartInfo };
         
         process.Start();
-        SetUpLogging(logFilePath, errorLogFilePath, enableAutoFlush);
+        SetUpLogging();
         
         jsonRpcWrapper = new JsonRpcWrapper(process.StandardInput.BaseStream, process.StandardOutput.BaseStream);
         jsonRpcWrapper.TraceSource.Switch.Level = enableVerboseLogs ? SourceLevels.Verbose : SourceLevels.Warning;
@@ -67,7 +82,7 @@ public sealed class SLCoreTestProcessRunner : IDisposable
         Rpc = new SLCoreJsonRpc(jsonRpcWrapper, new RpcMethodNameTransformer());
     }
 
-    private void SetUpLogging(string logFilePath, string errorLogFilePath, bool enableAutoFlush)
+    private void SetUpLogging()
     {
         if (!string.IsNullOrEmpty(logFilePath))
         {
@@ -75,10 +90,10 @@ public sealed class SLCoreTestProcessRunner : IDisposable
             logFileStream.AutoFlush = enableAutoFlush;
         }
 
-        Task.Run(() => ReadErrorLog(errorLogFilePath, enableAutoFlush)).Forget();
+        Task.Run(ReadErrorLog).Forget();
     }
 
-    private void ReadErrorLog(string errorLogFilePath, bool enableAutoFlush)
+    private void ReadErrorLog()
     {
         var token = cancellationTokenSource.Token;
         var fileLoggingEnabled = errorLogFilePath != null;
@@ -89,7 +104,7 @@ public sealed class SLCoreTestProcessRunner : IDisposable
         while (!token.IsCancellationRequested)
         {
             var line = process.StandardError.ReadLine();
-            if (string.IsNullOrEmpty(line))
+            if (string.IsNullOrEmpty(line)) // potential problem here if it returns too often?
             {
                 continue;
             }
