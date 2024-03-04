@@ -1742,7 +1742,7 @@
         "type": "Project",
         "dependencies": {
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
-          "StreamJsonRpc": "[2.5.46, )"
+          "StreamJsonRpc": "[2.6.121, )"
         }
       },
       "SonarLint.VisualStudio.SLCore.Listeners": {
