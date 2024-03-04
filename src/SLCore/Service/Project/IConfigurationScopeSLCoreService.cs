@@ -32,18 +32,18 @@ namespace SonarLint.VisualStudio.SLCore.Service.Project
         /// Add configuration scope to SLCORE
         /// </summary>
         /// <param name="parameters"></param>
-        Task DidAddConfigurationScopesAsync(DidAddConfigurationScopesParams parameters);
+        void DidAddConfigurationScopes(DidAddConfigurationScopesParams parameters);
 
         /// <summary>
         /// Removes configuration scope from SLCORE
         /// </summary>
         /// <param name="parameters"></param>
-        Task DidRemoveConfigurationScopeAsync(DidRemoveConfigurationScopeParams parameters);
+        void DidRemoveConfigurationScope(DidRemoveConfigurationScopeParams parameters);
         
         /// <summary>
         /// Updates binding configuration on an existing configuration scope
         /// </summary>
         /// <param name="parameters"></param>
-        Task DidUpdateBindingAsync(DidUpdateBindingParams parameters);
+        void DidUpdateBinding(DidUpdateBindingParams parameters);
     }
 }

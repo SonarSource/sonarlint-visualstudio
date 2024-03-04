@@ -34,13 +34,13 @@ namespace SonarLint.VisualStudio.SLCore.Service.Connection
         /// Changes Connection Configuration
         /// </summary>
         /// <param name="parameters"></param>
-        Task DidUpdateConnectionsAsync(DidUpdateConnectionsParams parameters);
+        void DidUpdateConnections(DidUpdateConnectionsParams parameters);
 
         /// <summary>
         /// Connection credentials have been changed
         /// </summary>
         /// <param name="parameters"></param>
-        Task DidChangeCredentialsAsync(DidChangeCredentialsParams parameters);
+        void DidChangeCredentials(DidChangeCredentialsParams parameters);
     }
 
     public class DidUpdateConnectionsParams

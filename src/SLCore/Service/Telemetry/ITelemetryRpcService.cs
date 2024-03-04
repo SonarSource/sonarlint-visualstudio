@@ -27,5 +27,5 @@ namespace SonarLint.VisualStudio.SLCore.Service.Telemetry;
 [JsonRpcClass("telemetry")]
 public interface ITelemetryRpcService : ISLCoreService
 {
-    Task DisableTelemetryAsync();
+    void DisableTelemetry();
 }

@@ -68,7 +68,7 @@ public class AliveConnectionTrackerTests
     }
 
     [TestMethod]
-    public async Task Refresh_SonarQubeConnection_CorrectlyUpdated()
+    public void Refresh_SonarQubeConnection_CorrectlyUpdated()
     {
         const string idToReturn = "connectionid";
         var boundSonarQubeProject = new BoundSonarQubeProject(new Uri("http://localhost/"), "project", default);
@@ -79,21 +79,21 @@ public class AliveConnectionTrackerTests
         var testSubject = CreateTestSubject(serviceProviderMock.Object, bindingRepositoryMock.Object,
             connectionIdHelperMock.Object, asyncLockFactoryMock.Object);
 
-        await testSubject.RefreshConnectionListAsync();
+        testSubject.RefreshConnectionList();
 
-        connectionServiceMock.Verify(x => x.DidUpdateConnectionsAsync(It.Is<DidUpdateConnectionsParams>(p =>
+        connectionServiceMock.Verify(x => x.DidUpdateConnections(It.Is<DidUpdateConnectionsParams>(p =>
             p.sonarCloudConnections.Count == 0
             && p.sonarQubeConnections.Count == 1
             && p.sonarQubeConnections.First().connectionId == idToReturn
             && p.sonarQubeConnections.First().serverUrl == "http://localhost/")));
-        connectionServiceMock.Verify(x => x.DidChangeCredentialsAsync(It.Is<DidChangeCredentialsParams>(p =>
+        connectionServiceMock.Verify(x => x.DidChangeCredentials(It.Is<DidChangeCredentialsParams>(p =>
             p.connectionId == idToReturn)));
         connectionIdHelperMock.Verify(x => x.GetConnectionIdFromUri(boundSonarQubeProject.ServerUri, null));
         VerifyLockTakenAndReleased(asyncLockMock, asyncLockReleaseMock);
     }
 
     [TestMethod]
-    public async Task Refresh_SonarCloudConnection_CorrectlyUpdated()
+    public void Refresh_SonarCloudConnection_CorrectlyUpdated()
     {
         const string idToReturn = "connectionid";
         var boundSonarCloudProject = new BoundSonarQubeProject(new Uri("https://sonarcloud.io/"), "project", default,
@@ -105,14 +105,14 @@ public class AliveConnectionTrackerTests
         var testSubject = CreateTestSubject(serviceProviderMock.Object, bindingRepositoryMock.Object,
             connectionIdHelperMock.Object, asyncLockFactoryMock.Object);
 
-        await testSubject.RefreshConnectionListAsync();
+        testSubject.RefreshConnectionList();
 
-        connectionServiceMock.Verify(x => x.DidUpdateConnectionsAsync(It.Is<DidUpdateConnectionsParams>(p =>
+        connectionServiceMock.Verify(x => x.DidUpdateConnections(It.Is<DidUpdateConnectionsParams>(p =>
             p.sonarCloudConnections.Count == 1
             && p.sonarQubeConnections.Count == 0
             && p.sonarCloudConnections.First().connectionId == idToReturn
             && p.sonarCloudConnections.First().organization == boundSonarCloudProject.Organization.Key)));
-        connectionServiceMock.Verify(x => x.DidChangeCredentialsAsync(It.Is<DidChangeCredentialsParams>(p =>
+        connectionServiceMock.Verify(x => x.DidChangeCredentials(It.Is<DidChangeCredentialsParams>(p =>
             p.connectionId == idToReturn)));
         connectionIdHelperMock.Verify(x =>
             x.GetConnectionIdFromUri(boundSonarCloudProject.ServerUri, boundSonarCloudProject.Organization.Key));
@@ -120,7 +120,7 @@ public class AliveConnectionTrackerTests
     }
 
     [TestMethod]
-    public async Task Refresh_DuplicateConnectionIds_Aggregates()
+    public void Refresh_DuplicateConnectionIds_Aggregates()
     {
         var project1 = new BoundSonarQubeProject(new Uri("https://sonarcloud.io/"), "projectaaaa", default,
             organization: new SonarQubeOrganization("org", default));
@@ -135,18 +135,18 @@ public class AliveConnectionTrackerTests
         var testSubject = CreateTestSubject(serviceProviderMock.Object, bindingRepositoryMock.Object,
             connectionIdHelperMock.Object, asyncLockFactoryMock.Object);
 
-        await testSubject.RefreshConnectionListAsync();
+        testSubject.RefreshConnectionList();
 
-        connectionServiceMock.Verify(x => x.DidUpdateConnectionsAsync(It.Is<DidUpdateConnectionsParams>(p =>
+        connectionServiceMock.Verify(x => x.DidUpdateConnections(It.Is<DidUpdateConnectionsParams>(p =>
             p.sonarCloudConnections.Count == 1
             && p.sonarQubeConnections.Count == 1)));
-        connectionServiceMock.Verify(x => x.DidChangeCredentialsAsync(It.IsAny<DidChangeCredentialsParams>()),
+        connectionServiceMock.Verify(x => x.DidChangeCredentials(It.IsAny<DidChangeCredentialsParams>()),
             Times.Exactly(2));
         VerifyLockTakenAndReleased(asyncLockMock, asyncLockReleaseMock);
     }
 
     [TestMethod]
-    public async Task Refresh_ChecksThread()
+    public void Refresh_ChecksThread()
     {
         ConfigureServiceProvider(out var serviceProviderMock, out _);
         ConfigureBindingRepository(out var bindingRepositoryMock);
@@ -156,21 +156,21 @@ public class AliveConnectionTrackerTests
         var testSubject = CreateTestSubject(serviceProviderMock.Object, bindingRepositoryMock.Object,
             connectionIdHelperMock.Object, asyncLockFactoryMock.Object, threadHandlingMock.Object);
 
-        await testSubject.RefreshConnectionListAsync();
+        testSubject.RefreshConnectionList();
 
         threadHandlingMock.Verify(x => x.ThrowIfOnUIThread());
     }
 
     [TestMethod]
-    public async Task Refresh_ServiceUnavailable_Throws()
+    public void Refresh_ServiceUnavailable_Throws()
     {
         var serviceProviderMock = new Mock<ISLCoreServiceProvider>();
         var testSubject = CreateTestSubject(serviceProviderMock.Object, Mock.Of<ISolutionBindingRepository>(),
             Mock.Of<IConnectionIdHelper>(), Mock.Of<IAsyncLockFactory>());
 
-        var act = async () => await testSubject.RefreshConnectionListAsync();
+        var act = () => testSubject.RefreshConnectionList();
 
-        await act.Should().ThrowExactlyAsync<InvalidOperationException>()
+        act.Should().ThrowExactly<InvalidOperationException>()
             .WithMessage(Strings.ServiceProviderNotInitialized);
     }
 
@@ -189,10 +189,10 @@ public class AliveConnectionTrackerTests
 
         bindingRepositoryMock.Raise(x => x.BindingUpdated += It.IsAny<EventHandler>(), EventArgs.Empty);
 
-        connectionServiceMock.Verify(x => x.DidUpdateConnectionsAsync(It.Is<DidUpdateConnectionsParams>(p =>
+        connectionServiceMock.Verify(x => x.DidUpdateConnections(It.Is<DidUpdateConnectionsParams>(p =>
             p.sonarCloudConnections.Count == 1
             && p.sonarQubeConnections.Count == 1)));
-        connectionServiceMock.Verify(x => x.DidChangeCredentialsAsync(It.IsAny<DidChangeCredentialsParams>()),
+        connectionServiceMock.Verify(x => x.DidChangeCredentials(It.IsAny<DidChangeCredentialsParams>()),
             Times.Exactly(2));
         VerifyLockTakenAndReleased(asyncLockMock, asyncLockReleaseMock);
     }
@@ -226,7 +226,7 @@ public class AliveConnectionTrackerTests
 
     private static void VerifyLockTakenAndReleased(Mock<IAsyncLock> asyncLock, Mock<IReleaseAsyncLock> lockRelease)
     {
-        asyncLock.Verify(x => x.AcquireAsync(), Times.Once);
+        asyncLock.Verify(x => x.Acquire(), Times.Once);
         lockRelease.Verify(x => x.Dispose(), Times.Once);
     }
 
@@ -262,7 +262,7 @@ public class AliveConnectionTrackerTests
     {
         asyncLockRelease = new();
         asyncLock = new();
-        asyncLock.Setup(x => x.AcquireAsync()).ReturnsAsync(asyncLockRelease.Object);
+        asyncLock.Setup(x => x.Acquire()).Returns(asyncLockRelease.Object);
         asyncLockFactory = new();
         asyncLockFactory.Setup(x => x.Create()).Returns(asyncLock.Object);
     }

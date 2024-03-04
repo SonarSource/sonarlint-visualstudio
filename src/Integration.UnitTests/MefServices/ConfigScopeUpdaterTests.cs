@@ -63,7 +63,7 @@ public class ConfigScopeUpdaterTests
         solutionInfoProviderMock.InSequence(mockSequence).Setup(x => x.GetSolutionName()).Returns("sln");
         var activeConfigScopeTrackerMock = new Mock<IActiveConfigScopeTracker>();
         activeConfigScopeTrackerMock.Setup(x =>
-            x.SetCurrentConfigScopeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
+            x.SetCurrentConfigScope(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
         var testSubject = CreateTestSubject(activeConfigScopeTrackerMock.Object, solutionInfoProviderMock.Object, threadHandling: threadHandlingMock.Object);
         
         testSubject.UpdateConfigScopeForCurrentSolution(null);
@@ -83,7 +83,7 @@ public class ConfigScopeUpdaterTests
         
         testSubject.UpdateConfigScopeForCurrentSolution(null);
         
-        activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScopeAsync("sln", null, null));
+        activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScope("sln", null, null));
         activeConfigScopeTrackerMock.VerifyNoOtherCalls();
     }
     
@@ -100,7 +100,7 @@ public class ConfigScopeUpdaterTests
         
         testSubject.UpdateConfigScopeForCurrentSolution(binding);
         
-        activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScopeAsync("sln", "conid", binding.ProjectKey));
+        activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScope("sln", "conid", binding.ProjectKey));
         activeConfigScopeTrackerMock.VerifyNoOtherCalls();
     }
     
@@ -117,7 +117,7 @@ public class ConfigScopeUpdaterTests
         
         testSubject.UpdateConfigScopeForCurrentSolution(binding);
         
-        activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScopeAsync("sln", "conid", binding.ProjectKey));
+        activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScope("sln", "conid", binding.ProjectKey));
         activeConfigScopeTrackerMock.VerifyNoOtherCalls();
     }
     
@@ -129,7 +129,7 @@ public class ConfigScopeUpdaterTests
         
         testSubject.UpdateConfigScopeForCurrentSolution(null);
         
-        activeConfigScopeTrackerMock.Verify(x => x.RemoveCurrentConfigScopeAsync());
+        activeConfigScopeTrackerMock.Verify(x => x.RemoveCurrentConfigScope());
         activeConfigScopeTrackerMock.VerifyNoOtherCalls();
     }
 
