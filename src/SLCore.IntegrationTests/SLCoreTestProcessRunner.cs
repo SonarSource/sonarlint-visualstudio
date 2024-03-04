@@ -33,8 +33,8 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 public sealed class SLCoreTestProcessRunner : IDisposable
 {
     private readonly string pathToBat;
-    private readonly string logFilePath;
-    private readonly string errorLogFilePath;
+    private readonly string rpcLogFilePath;
+    private readonly string stdErrLogFilePath;
     private readonly bool enableVerboseLogs;
     private readonly bool enableAutoFlush;
     private Process process;
@@ -47,14 +47,14 @@ public sealed class SLCoreTestProcessRunner : IDisposable
 
 
     public SLCoreTestProcessRunner(string pathToBat, 
-        string logFilePath = null, 
-        string errorLogFilePath = null, 
+        string rpcLogFilePath = null, 
+        string stdErrLogFilePath = null, 
         bool enableVerboseLogs = false,
         bool enableAutoFlush = false)
     {
         this.pathToBat = pathToBat;
-        this.logFilePath = logFilePath;
-        this.errorLogFilePath = errorLogFilePath;
+        this.rpcLogFilePath = rpcLogFilePath;
+        this.stdErrLogFilePath = stdErrLogFilePath;
         this.enableVerboseLogs = enableVerboseLogs;
         this.enableAutoFlush = enableAutoFlush;
     }
@@ -84,9 +84,9 @@ public sealed class SLCoreTestProcessRunner : IDisposable
 
     private void SetUpLogging()
     {
-        if (!string.IsNullOrEmpty(logFilePath))
+        if (!string.IsNullOrEmpty(rpcLogFilePath))
         {
-            logFileStream = new StreamWriter(File.OpenWrite(logFilePath));
+            logFileStream = new StreamWriter(File.OpenWrite(rpcLogFilePath));
             logFileStream.AutoFlush = enableAutoFlush;
         }
 
@@ -96,9 +96,9 @@ public sealed class SLCoreTestProcessRunner : IDisposable
     private void ReadErrorLog()
     {
         var token = cancellationTokenSource.Token;
-        var fileLoggingEnabled = errorLogFilePath != null;
+        var fileLoggingEnabled = stdErrLogFilePath != null;
         var prefix = fileLoggingEnabled ? string.Empty : "ERR: ";
-        errorFileStream = fileLoggingEnabled ? new StreamWriter(File.OpenWrite(errorLogFilePath)){AutoFlush = enableAutoFlush} : null;
+        errorFileStream = fileLoggingEnabled ? new StreamWriter(File.OpenWrite(stdErrLogFilePath)){AutoFlush = enableAutoFlush} : null;
 
 
         while (!token.IsCancellationRequested)
