@@ -32,12 +32,10 @@ public class StartStopTest
     public async Task StartStopSloop()
     {
         var testLogger = new TestLogger();
-        var slCoreTestRunner = new SLCoreTestRunner(testLogger);
-        
-        slCoreTestRunner.AddListener(new LoggerListener(testLogger));
-        
-        await slCoreTestRunner.Start();
-        
-        slCoreTestRunner.Dispose();
+        using (var slCoreTestRunner = new SLCoreTestRunner(testLogger))
+        {
+            slCoreTestRunner.AddListener(new LoggerListener(testLogger));
+            await slCoreTestRunner.Start();
+        }
     }
 }
