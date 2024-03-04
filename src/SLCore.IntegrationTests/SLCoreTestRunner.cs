@@ -97,7 +97,7 @@ public sealed class SLCoreTestRunner : IDisposable
                 new FeatureFlagsDto(true, true, false, true, false, false, true),
                 storageRoot,
                 workDir,
-                LoadAvailablePlugins(),
+                PluginInformationLoader.EnsurePluginsAreAvailable(),
                 new Dictionary<string, string>(),
                 defaultEnabledLanguages,
                 new List<Language>(),
@@ -140,12 +140,5 @@ public sealed class SLCoreTestRunner : IDisposable
         Directory.CreateDirectory(userHome);
     }
 
-    private static List<string> LoadAvailablePlugins()
-    {
-        return new List<string>
-        {
-            // todo replace with proper implementation
-            @"C:\Users\georgii.borovinskikh\AppData\Local\SLVS_Build_DownloadedJars\sonar-javascript-plugin-10.12.0.25537.jar"
-        };
-    }
+    
 }
