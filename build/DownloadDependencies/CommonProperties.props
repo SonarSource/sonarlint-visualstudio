@@ -38,8 +38,6 @@
     <SloopExtractDir>$(SloopBinaryDownloadDir)\$(SloopBinaryFileNameWithoutExtension)</SloopExtractDir>
     <SloopBinaryDownloadPath>$(SloopBinaryDownloadDir)\$(SloopBinaryFileName)</SloopBinaryDownloadPath>
     <SloopBinaryRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/sonarlint/core/sonarlint-backend-cli/$(EmbeddedSloopVersion)/$(SloopBinaryFileName)</SloopBinaryRemoteUrl>
-    <ARTIFACTORY_USER Condition="$(ARTIFACTORY_USER) == ''">$(ARTIFACTORY_PRIVATE_READER_USERNAME)</ARTIFACTORY_USER>
-    <ARTIFACTORY_PASSWORD Condition="$(ARTIFACTORY_PASSWORD) == ''">$(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)</ARTIFACTORY_PASSWORD>
   </PropertyGroup>
 
   <!-- ************************************************************** -->
