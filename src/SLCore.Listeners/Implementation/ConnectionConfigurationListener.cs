@@ -21,12 +21,13 @@
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Connection;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
     [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ConnectionConfigurationListener : ISLCoreListener
+    public class ConnectionConfigurationListener : IConnectionConfigurationListener
     {
         public Task DidSynchronizeConfigurationScopesAsync(object parameters)
         {

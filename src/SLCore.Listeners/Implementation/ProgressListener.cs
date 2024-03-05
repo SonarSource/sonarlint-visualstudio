@@ -21,12 +21,13 @@
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Progress;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
     [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ProgressListener : ISLCoreListener
+    public class ProgressListener : IProgressListener
     {
         /// <summary>
         /// Stub method for compability with SLCore. We do not support progress
