@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Branch;
 using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -44,12 +45,9 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
         [TestMethod]
         public async Task MatchSonarProjectBranch_ReturnsMainBranch()
         {
-            var param = new MatchSonarProjectBranchParams
-            {
-                configurationScopeId = "scopeId",
-                mainSonarBranchName = "mainBranch",
-                allSonarBranchesNames = new List<string> { "branch1", "branch2", "mainBranch" }
-            };
+            var param = new MatchSonarProjectBranchParams("scopeId",
+                "mainBranch",
+                new List<string> { "branch1", "branch2", "mainBranch" });
 
             var testSubject = new BranchListener();
 
