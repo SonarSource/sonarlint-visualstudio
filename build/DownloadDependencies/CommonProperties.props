@@ -32,8 +32,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <SloopBinaryFileName>sonarlint-backend-cli-$(EmbeddedSloopVersion)-windows_x64.zip</SloopBinaryFileName>
+    <SloopBinaryFileNameWithoutExtension>sonarlint-backend-cli-$(EmbeddedSloopVersion)-windows_x64</SloopBinaryFileNameWithoutExtension>
+    <SloopBinaryFileName>$(SloopBinaryFileNameWithoutExtension).zip</SloopBinaryFileName>
     <SloopBinaryDownloadDir>$(LOCALAPPDATA)\SLVS_Build_Sloop</SloopBinaryDownloadDir>
+    <SloopExtractDir>$(SloopBinaryDownloadDir)\$(SloopBinaryFileNameWithoutExtension)</SloopExtractDir>
     <SloopBinaryDownloadPath>$(SloopBinaryDownloadDir)\$(SloopBinaryFileName)</SloopBinaryDownloadPath>
     <SloopBinaryRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/sonarlint/core/sonarlint-backend-cli/$(EmbeddedSloopVersion)/$(SloopBinaryFileName)</SloopBinaryRemoteUrl>
   </PropertyGroup>
