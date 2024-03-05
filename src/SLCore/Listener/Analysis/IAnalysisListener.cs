@@ -19,10 +19,11 @@
  */
 
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.SLCore.Core;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
-internal interface IAnalysisListener
+internal interface IAnalysisListener : ISLCoreListener
 {
     Task DidChangeAnalysisReadinessAsync(DidChangeAnalysisReadinessParams parameters);
 }

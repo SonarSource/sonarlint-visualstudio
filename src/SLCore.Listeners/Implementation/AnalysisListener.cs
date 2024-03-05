@@ -21,11 +21,12 @@
 
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
-[Export(typeof(IAnalysisListener))]
+[Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class AnalysisListener : IAnalysisListener
 {
