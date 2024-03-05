@@ -13,6 +13,8 @@
 	  -->
     <EmbeddedSonarSecretsNuGetVersion>1.0.4</EmbeddedSonarSecretsNuGetVersion>
     <EmbeddedSonarSecretsJarVersion>2.3.0.1632</EmbeddedSonarSecretsJarVersion>
+    <!-- SLOOP: Soon this will replace all the analyzers -->
+    <EmbeddedSLOOPVersion>10.0.0.77129</EmbeddedSLOOPVersion>
   </PropertyGroup>
 
 </Project>

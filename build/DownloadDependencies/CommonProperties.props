@@ -31,6 +31,13 @@
     <BaseRuleDescFileTargetDirectory>$(MSBuildThisFileDirectory)..\..\src\Rules\Embedded\</BaseRuleDescFileTargetDirectory>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <SloopBinaryFileName>sonarlint-backend-cli-$(EmbeddedSLOOPVersion)-windows_x64.zip</SloopBinaryFileName>
+    <SloopBinaryDownladDir>$(LOCALAPPDATA)\SLVS_Build_SLOOP</SloopBinaryDownladDir>
+    <SloopBinaryDownlaoadPath>$(SloopBinaryDownladDir)\$(SloopBinaryFileName)</SloopBinaryDownlaoadPath>
+    <SloopBinaryRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/sonarlint/core/sonarlint-backend-cli/$(EmbeddedSLOOPVersion)/$(SloopBinaryFileName)</SloopBinaryRemoteUrl>
+  </PropertyGroup>
+
   <!-- ************************************************************** -->
   <!-- Information about the individual language plugins we need to download -->
   <!-- ************************************************************** -->
