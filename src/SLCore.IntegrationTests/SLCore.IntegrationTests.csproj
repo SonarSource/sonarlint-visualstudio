@@ -13,4 +13,11 @@
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\EmbeddedSonarAnalyzer.props">
+      <Link>EmbeddedSonarAnalyzer.props</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
