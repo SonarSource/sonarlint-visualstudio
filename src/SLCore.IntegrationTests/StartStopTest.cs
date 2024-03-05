@@ -18,6 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-global using System;
-global using System.Collections.Generic;
-global using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Threading.Tasks;
+using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+using SonarLint.VisualStudio.TestInfrastructure;
+
+namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
+
+[TestClass]
+public class StartStopTest
+{
+    public TestContext TestContext { get; set; }
+
+    [Ignore] // todo remove after todos in SLCoreTestRunner have been solved
+    [TestMethod]
+    public async Task StartStopSloop()
+    {
+        var testLogger = new TestLogger();
+        using (var slCoreTestRunner = new SLCoreTestRunner(testLogger, TestContext.TestName))
+        {
+            slCoreTestRunner.AddListener(new LoggerListener(testLogger));
+            await slCoreTestRunner.Start();
+        }
+    }
+}
