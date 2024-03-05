@@ -13,7 +13,7 @@
 	  -->
     <EmbeddedSonarSecretsNuGetVersion>1.0.4</EmbeddedSonarSecretsNuGetVersion>
     <EmbeddedSonarSecretsJarVersion>2.3.0.1632</EmbeddedSonarSecretsJarVersion>
-    <!-- SLOOP: Soon this will replace all the analyzers -->
+    <!-- SLOOP: Binaries for SonarLint Out Of Process -->
     <EmbeddedSLOOPVersion>10.0.0.77129</EmbeddedSLOOPVersion>
   </PropertyGroup>
 

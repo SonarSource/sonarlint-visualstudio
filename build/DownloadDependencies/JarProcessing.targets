@@ -50,7 +50,7 @@
   </Target>
 
   <Target Name ="DownloadSloop">
-    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(SloopBinaryDownlaoadPath) --url $(SloopBinaryRemoteUrl)" />
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(SLOOPBinaryDownloadPath) --url $(SLOOPBinaryRemoteUrl)" />
   </Target>
 
   <Target Name="ExtractJsonFromJars">
