@@ -33,8 +33,8 @@
 
   <PropertyGroup>
     <SLOOPBinaryFileName>sonarlint-backend-cli-$(EmbeddedSLOOPVersion)-windows_x64.zip</SLOOPBinaryFileName>
-    <SLOOPBinaryDownladDir>$(LOCALAPPDATA)\SLVS_Build_SLOOP</SLOOPBinaryDownladDir>
-    <SLOOPBinaryDownloadPath>$(SLOOPBinaryDownladDir)\$(SLOOPBinaryFileName)</SLOOPBinaryDownloadPath>
+    <SLOOPBinaryDownloadDir>$(LOCALAPPDATA)\SLVS_Build_SLOOP</SLOOPBinaryDownloadDir>
+    <SLOOPBinaryDownloadPath>$(SLOOPBinaryDownloadDir)\$(SLOOPBinaryFileName)</SLOOPBinaryDownloadPath>
     <SLOOPBinaryRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/sonarlint/core/sonarlint-backend-cli/$(EmbeddedSLOOPVersion)/$(SLOOPBinaryFileName)</SLOOPBinaryRemoteUrl>
   </PropertyGroup>
 
