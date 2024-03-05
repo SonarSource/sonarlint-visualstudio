@@ -22,8 +22,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Branch;
-using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
 {
