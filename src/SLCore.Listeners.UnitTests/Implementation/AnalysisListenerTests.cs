@@ -18,37 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
+namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
+
+[TestClass]
+public class AnalysisListenerTests
 {
-    [TestClass]
-    public class HttpConfigurationListenerTests
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<ProxyConfigurationListener, ISLCoreListener>();
-        }
+        MefTestHelpers.CheckTypeCanBeImported<AnalysisListener, IAnalysisListener>();
+    }
 
-        [TestMethod]
-        public void Mef_CheckIsSingleton()
-        {
-            MefTestHelpers.CheckIsSingletonMefComponent<ProxyConfigurationListener>();
-        }
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton()
+    {
+        MefTestHelpers.CheckIsSingletonMefComponent<AnalysisListener>();
+    }
+    
+    [TestMethod]
+    public void DidChangeAnalysisReadiness_DoesNothing()
+    {
+        var result = new AnalysisListener().DidChangeAnalysisReadinessAsync(new DidChangeAnalysisReadinessParams(new List<string> { "id" }, true));
 
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow(5)]
-        [DataRow("something")]
-        public async Task SelectProxiesAsync_ReturnsEmptyList(object parameter)
-        {
-            var testSubject = new ProxyConfigurationListener();
-
-            var result = await testSubject.SelectProxiesAsync(parameter);
-
-            result.proxies.Should().BeEmpty();
-        }
+        result.Status.Should().Be(TaskStatus.RanToCompletion);
     }
 }

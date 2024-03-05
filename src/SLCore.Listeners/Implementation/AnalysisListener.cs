@@ -18,37 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+
+using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+
+[Export(typeof(IAnalysisListener))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal class AnalysisListener : IAnalysisListener
 {
-    [TestClass]
-    public class HttpConfigurationListenerTests
+    public Task DidChangeAnalysisReadinessAsync(DidChangeAnalysisReadinessParams parameters)
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<ProxyConfigurationListener, ISLCoreListener>();
-        }
-
-        [TestMethod]
-        public void Mef_CheckIsSingleton()
-        {
-            MefTestHelpers.CheckIsSingletonMefComponent<ProxyConfigurationListener>();
-        }
-
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow(5)]
-        [DataRow("something")]
-        public async Task SelectProxiesAsync_ReturnsEmptyList(object parameter)
-        {
-            var testSubject = new ProxyConfigurationListener();
-
-            var result = await testSubject.SelectProxiesAsync(parameter);
-
-            result.proxies.Should().BeEmpty();
-        }
+        return Task.CompletedTask;
     }
 }
