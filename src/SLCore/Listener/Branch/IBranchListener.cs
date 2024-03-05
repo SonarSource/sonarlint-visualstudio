@@ -18,19 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener.Proxy;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+namespace SonarLint.VisualStudio.SLCore.Listener.Branch;
 
-[Export(typeof(ISLCoreListener))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-public class ProxyConfigurationListener : IProxyConfigurationListener
+public interface IBranchListener : ISLCoreListener
 {
-    public Task<SelectProxiesResponse> SelectProxiesAsync(object parameters)
-    {
-        return Task.FromResult(new SelectProxiesResponse());
-    }
+    /// <summary>
+    /// Stub method for compability with SLCore.
+    /// </summary>
+    /// <param name="parameters">Parameter's here for compability we discard it</param>
+    /// <remarks>This will be implemented properly in the future when needed but features we support does not need branch awareness for now</remarks>
+    Task<MatchSonarProjectBranchResponse> MatchSonarProjectBranchAsync(MatchSonarProjectBranchParams parameters);
+
+    /// <summary>
+    /// Stub method for compability with SLCore.
+    /// </summary>
+    /// <param name="parameters">Parameter's here for compability we discard it</param>
+    /// <remarks>This will be implemented properly in the future when needed but features we support does not need branch awareness for now</remarks>
+    Task DidChangeMatchedSonarProjectBranchAsync(object parameters);
 }

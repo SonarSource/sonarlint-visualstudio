@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Logger;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Logging
 {

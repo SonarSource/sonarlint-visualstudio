@@ -18,19 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener.Proxy;
+using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
-[Export(typeof(ISLCoreListener))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-public class ProxyConfigurationListener : IProxyConfigurationListener
+[TestClass]
+public class StartStopTest
 {
-    public Task<SelectProxiesResponse> SelectProxiesAsync(object parameters)
+    public TestContext TestContext { get; set; }
+
+    [Ignore] // todo remove after todos in SLCoreTestRunner have been solved
+    [TestMethod]
+    public async Task StartStopSloop()
     {
-        return Task.FromResult(new SelectProxiesResponse());
+        var testLogger = new TestLogger();
+        using (var slCoreTestRunner = new SLCoreTestRunner(testLogger, TestContext.TestName))
+        {
+            slCoreTestRunner.AddListener(new LoggerListener(testLogger));
+            await slCoreTestRunner.Start();
+        }
     }
 }

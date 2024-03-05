@@ -18,4 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+global using System;
+global using System.Collections.Generic;
 global using Microsoft.VisualStudio.TestTools.UnitTesting;
