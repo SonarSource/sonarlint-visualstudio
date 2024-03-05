@@ -18,20 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener.Connection;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
+namespace SonarLint.VisualStudio.SLCore.Listener.Connection;
+
+public interface IConnectionConfigurationListener : ISLCoreListener
 {
-    [Export(typeof(ISLCoreListener))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ConnectionConfigurationListener : IConnectionConfigurationListener
-    {
-        public Task DidSynchronizeConfigurationScopesAsync(object parameters)
-        {
-            return Task.CompletedTask;
-        }
-    }
+    Task DidSynchronizeConfigurationScopesAsync(object parameters);
 }
