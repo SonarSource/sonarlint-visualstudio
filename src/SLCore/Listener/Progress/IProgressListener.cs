@@ -18,19 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener.Proxy;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+namespace SonarLint.VisualStudio.SLCore.Listener.Progress;
 
-[Export(typeof(ISLCoreListener))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-public class ProxyConfigurationListener : IProxyConfigurationListener
+public interface IProgressListener : ISLCoreListener
 {
-    public Task<SelectProxiesResponse> SelectProxiesAsync(object parameters)
-    {
-        return Task.FromResult(new SelectProxiesResponse());
-    }
+    /// <summary>
+    /// Stub method for compability with SLCore. We do not support progress
+    /// </summary>
+    /// <param name="parameters">Parameter's here for compability we discard it</param>
+    Task StartProgressAsync(object parameters);
+
+    /// <summary>
+    /// Stub method for compability with SLCore. We do not support progress
+    /// </summary>
+    /// <param name="parameters">Parameter's here for compability we discard it</param>
+    Task ReportProgressAsync(object parameters);
 }

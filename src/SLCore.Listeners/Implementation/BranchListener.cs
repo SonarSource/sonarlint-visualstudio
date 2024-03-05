@@ -22,21 +22,22 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Branch;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
     [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class BranchListener : ISLCoreListener
+    public class BranchListener : IBranchListener
     {
         /// <summary>
         /// Stub method for compability with SLCore.
         /// </summary>
         /// <param name="parameters">Parameter's here for compability we discard it</param>
         /// <remarks>This will be implemented properly in the future when needed but features we support does not need branch awareness for now</remarks>
-        public async Task<MatchSonarProjectBranchResponse> MatchSonarProjectBranchAsync(MatchSonarProjectBranchParams parameters)
+        public Task<MatchSonarProjectBranchResponse> MatchSonarProjectBranchAsync(MatchSonarProjectBranchParams parameters)
         {
-            return new MatchSonarProjectBranchResponse { matchedSonarBranch = parameters.mainSonarBranchName };
+            return Task.FromResult(new MatchSonarProjectBranchResponse(parameters.mainSonarBranchName));
         }
 
         /// <summary>
@@ -48,17 +49,5 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
         {
             return Task.CompletedTask;
         }
-    }
-
-    public class MatchSonarProjectBranchParams
-    {
-        public string configurationScopeId;
-        public string mainSonarBranchName;
-        public List<string> allSonarBranchesNames;
-    }
-
-    public class MatchSonarProjectBranchResponse
-    {
-        public string matchedSonarBranch;
     }
 }

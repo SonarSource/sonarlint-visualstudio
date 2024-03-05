@@ -18,19 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.Threading.Tasks;
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener.Proxy;
+using System.Collections.Generic;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+namespace SonarLint.VisualStudio.SLCore.Listener.Proxy;
 
-[Export(typeof(ISLCoreListener))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-public class ProxyConfigurationListener : IProxyConfigurationListener
+public class SelectProxiesResponse
 {
-    public Task<SelectProxiesResponse> SelectProxiesAsync(object parameters)
-    {
-        return Task.FromResult(new SelectProxiesResponse());
-    }
+    public List<object> proxies = new();
 }
