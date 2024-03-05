@@ -28,6 +28,7 @@
     <CallTarget Targets="DownloadIndividualJars" />
     <CallTarget Targets="ExtractJsonFromJars" />
     <CallTarget Targets="ExtractRuleDescFromJson" />
+    <CallTarget Targets="DownloadSloop" />
     <CallTarget Targets="WriteOutputFile" />
   </Target>
 
@@ -46,6 +47,10 @@
 
   <Target Name="DownloadIndividualJars">
     <DownloadFile SourceUrl="%(PluginJars.URL)" DestinationFolder="$(JarDownloadDir)" SkipUnchangedFiles="true" Retries="3" />
+  </Target>
+
+  <Target Name ="DownloadSloop">
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(SloopBinaryDownloadPath) --url $(SloopBinaryRemoteUrl)" />
   </Target>
 
   <Target Name="ExtractJsonFromJars">
