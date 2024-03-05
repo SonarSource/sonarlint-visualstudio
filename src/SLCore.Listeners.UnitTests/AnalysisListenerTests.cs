@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
+namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests;
 
 [TestClass]
 public class AnalysisListenerTests
