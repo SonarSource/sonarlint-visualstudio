@@ -19,55 +19,40 @@
  */
 
 using System.ComponentModel.Composition;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Logger;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+
+[Export(typeof(ISLCoreListener))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+public class LoggerListener : ILoggerListener
 {
-    [Export(typeof(ISLCoreListener))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class LoggerListener : ISLCoreListener
+    private readonly ILogger logger;
+
+    [ImportingConstructor]
+    public LoggerListener(ILogger logger)
     {
-        private readonly ILogger logger;
-
-        [ImportingConstructor]
-        public LoggerListener(ILogger logger)
-        {
-            this.logger = logger;
-        }
-
-        public void Log(LogParams parameters)
-        {
-            var message = "[SLCORE] " + parameters.message;
-
-            switch (parameters.level)
-            {
-                case LogLevel.ERROR:
-                case LogLevel.WARN:
-                    logger.WriteLine(message);
-                    break;
-
-                case LogLevel.INFO:
-                case LogLevel.DEBUG:
-                case LogLevel.TRACE:
-                    logger.LogVerbose(message);
-                    break;
-            }
-        }
+        this.logger = logger;
     }
 
-    public class LogParams
+    public void Log(LogParams parameters)
     {
-        public string message;
+        var message = "[SLCORE] " + parameters.message;
 
-        [JsonConverter(typeof(StringEnumConverter))]
-        public LogLevel level;
-    }
+        switch (parameters.level)
+        {
+            case LogLevel.ERROR:
+            case LogLevel.WARN:
+                logger.WriteLine(message);
+                break;
 
-    public enum LogLevel
-    {
-        ERROR, WARN, INFO, DEBUG, TRACE
+            case LogLevel.INFO:
+            case LogLevel.DEBUG:
+            case LogLevel.TRACE:
+                logger.LogVerbose(message);
+                break;
+        }
     }
 }
