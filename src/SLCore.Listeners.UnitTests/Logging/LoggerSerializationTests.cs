@@ -20,7 +20,6 @@
 
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Listener.Logger;
-using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Logging
 {
