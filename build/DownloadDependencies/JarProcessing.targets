@@ -29,6 +29,7 @@
     <CallTarget Targets="ExtractJsonFromJars" />
     <CallTarget Targets="ExtractRuleDescFromJson" />
     <CallTarget Targets="DownloadSloop" />
+    <CallTarget Targets="UnzipSloop" />
     <CallTarget Targets="WriteOutputFile" />
   </Target>
 
@@ -51,6 +52,10 @@
 
   <Target Name ="DownloadSloop">
     <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(SloopBinaryDownloadPath) --url $(SloopBinaryRemoteUrl)" />
+  </Target>
+
+  <Target Name="UnzipSloop">
+    <Unzip SourceFiles="$(SloopBinaryDownloadPath)" DestinationFolder="$(SloopExtractDir)" OverwriteReadOnlyFiles="true" />
   </Target>
 
   <Target Name="ExtractJsonFromJars">

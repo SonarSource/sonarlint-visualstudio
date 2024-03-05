@@ -162,6 +162,9 @@ jobs:
 
   - task: VSBuild@1
     displayName: Pre-process jar files
+    env:
+      ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+      ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
     inputs:
       solution: build\DownloadDependencies\DownloadDependencies.proj
       vsVersion: 17.0
