@@ -16,7 +16,7 @@
   <ItemGroup>
     <Content Include="..\EmbeddedSonarAnalyzer.props">
       <Link>EmbeddedSonarAnalyzer.props</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 

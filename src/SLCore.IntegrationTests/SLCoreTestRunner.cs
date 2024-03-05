@@ -57,11 +57,11 @@ public sealed class SLCoreTestRunner : IDisposable
     private string userHome;
     public SLCoreServiceProvider SlCoreServiceProvider { get; private set; }
 
-    public SLCoreTestRunner(ILogger logger)
+    public SLCoreTestRunner(ILogger logger, string testName)
     {
         this.logger = logger;
         
-        SetUpLocalFolders();
+        SetUpLocalFolders(testName);
         
         // todo replace path after the download problem is solved
         processRunner = new SLCoreTestProcessRunner(@"C:\Users\georgii.borovinskikh\Desktop\SLCORE\bin\sonarlint-backend.bat",
@@ -122,9 +122,9 @@ public sealed class SLCoreTestRunner : IDisposable
         processRunner?.Dispose();
     }
     
-    private void SetUpLocalFolders()
+    private void SetUpLocalFolders(string testName)
     {
-        privateFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "slcore"); // add unique identifier to prevent override between tests?
+        privateFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "slcore", testName); // add unique identifier to prevent override between tests?
         storageRoot = Path.Combine(privateFolder, "storageRoot");
         workDir = Path.Combine(privateFolder, "workDir");
         userHome = Path.Combine(privateFolder, "userHome");
