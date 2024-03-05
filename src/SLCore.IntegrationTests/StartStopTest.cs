@@ -29,7 +29,7 @@ public class StartStopTest
 {
     public TestContext TestContext { get; set; }
 
-    // [Ignore] // todo remove after todos in SLCoreTestRunner have been solved
+    [Ignore] // todo remove after todos in SLCoreTestRunner have been solved
     [TestMethod]
     public async Task StartStopSloop()
     {
