@@ -11,24 +11,6 @@
     <!-- The default download directory can be overridden by specifying the %SONARLINT_INTERNAL_PLUGIN_CACHE_DIR% environment property -->
     <JarDownloadDir>$(SONARLINT_INTERNAL_PLUGIN_CACHE_DIR)</JarDownloadDir>
     <JarDownloadDir Condition="$(JarDownloadDir) == ''">$(LOCALAPPDATA)\SLVS_Build_DownloadedJars</JarDownloadDir>
-
-    <!-- Temporary working folder for extracted files -->
-    <_WorkingDirectory >$(MSBuildThisFileDirectory)tmp</_WorkingDirectory>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <!-- Jar used to extract rule metadata from a plugin file, created for us by the SL Java folk.
-         For simplicity, the file is checked in under build\tools\binaries. -->
-    <!-- Obtained from https://repox.jfrog.io/ui/native/sonarsource/org/sonarsource/sonarlint/core/sonarlint-rule-extractor-cli/8.13.0.60370/ -->
-    <RuleJsonExtractorJar>$(MSBuildThisFileDirectory)..\tools\binaries\sonarlint-rule-extractor-cli-9.2.0.74440-jar-with-dependencies.jar</RuleJsonExtractorJar>
-
-    <!-- .net6 exe used to extract rule descriptions from the json file.
-          The exe is not checked in; it is built from source.
-    -->
-    <RuleDescExtractorExe>$(MSBuildThisFileDirectory)..\tools\ExtractRuleDescFromJson\bin\net6.0\ExtractRuleDescFromJson.exe</RuleDescExtractorExe>
-
-    <!-- Base location to which the rule desc files should be written -->
-    <BaseRuleDescFileTargetDirectory>$(MSBuildThisFileDirectory)..\..\src\Rules\Embedded\</BaseRuleDescFileTargetDirectory>
   </PropertyGroup>
 
   <PropertyGroup>
