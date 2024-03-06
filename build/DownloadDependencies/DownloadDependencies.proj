@@ -8,6 +8,7 @@
   <Import Project="$(MSBuildThisFileDirectory)CommonProperties.props" />
   <Import Project="$(MSBuildThisFileDirectory)JarProcessing.targets" />
   <ItemGroup>
+    <None Include="CommonMSBuild.targets" />
     <None Include="CommonProperties.props" />
     <None Include="JarProcessing.targets" />
   </ItemGroup>
