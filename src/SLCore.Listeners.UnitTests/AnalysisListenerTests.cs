@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests;
@@ -30,7 +31,7 @@ public class AnalysisListenerTests
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<AnalysisListener, IAnalysisListener>();
+        MefTestHelpers.CheckTypeCanBeImported<AnalysisListener, ISLCoreListener>();
     }
 
     [TestMethod]
