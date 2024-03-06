@@ -63,8 +63,7 @@ public sealed class SLCoreTestRunner : IDisposable
         
         SetUpLocalFolders(testName);
         
-        // todo replace path after the download problem is solved
-        processRunner = new SLCoreTestProcessRunner(@"C:\Users\georgii.borovinskikh\Desktop\SLCORE\bin\sonarlint-backend.bat",
+        processRunner = new SLCoreTestProcessRunner(DependencyLocator.Sloop,
             Path.Combine(privateFolder, "logrpc.txt"),
             Path.Combine(privateFolder, "logstderr.txt"), 
             true,
@@ -97,7 +96,7 @@ public sealed class SLCoreTestRunner : IDisposable
                 new FeatureFlagsDto(true, true, false, true, false, false, true),
                 storageRoot,
                 workDir,
-                PluginInformationLoader.EnsurePluginsAreAvailable(),
+                DependencyLocator.AnalyzerPlugins,
                 new Dictionary<string, string>(),
                 defaultEnabledLanguages,
                 new List<Language>(),
