@@ -21,39 +21,15 @@
 using System.Collections.Generic;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models
-{
-    public abstract class AbstractRuleDto
-    {
-        protected AbstractRuleDto(string key,
-            string name,
-            IssueSeverity severity,
-            RuleType type,
-            CleanCodeAttribute? cleanCodeAttribute,
-            CleanCodeAttributeCategory? cleanCodeAttributeCategory,
-            List<ImpactDto> defaultImpacts,
-            Language language,
-            VulnerabilityProbability? vulnerabilityProbability)
-        {
-            this.key = key;
-            this.name = name;
-            this.severity = severity;
-            this.type = type;
-            this.cleanCodeAttribute = cleanCodeAttribute;
-            this.cleanCodeAttributeCategory = cleanCodeAttributeCategory;
-            this.defaultImpacts = defaultImpacts;
-            this.language = language;
-            this.vulnerabilityProbability = vulnerabilityProbability;
-        }
+namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-        public string key { get; }
-        public string name { get; }
-        public IssueSeverity severity { get; }
-        public RuleType type { get; }
-        public CleanCodeAttribute? cleanCodeAttribute { get; }
-        public CleanCodeAttributeCategory? cleanCodeAttributeCategory { get; }
-        public List<ImpactDto> defaultImpacts { get; }
-        public Language language { get; }
-        public VulnerabilityProbability? vulnerabilityProbability { get; }
-    }
-}
+public abstract record AbstractRuleDto(
+    string key,
+    string name,
+    IssueSeverity severity,
+    RuleType type,
+    CleanCodeAttribute? cleanCodeAttribute,
+    CleanCodeAttributeCategory? cleanCodeAttributeCategory,
+    List<ImpactDto> defaultImpacts,
+    Language language,
+    VulnerabilityProbability? vulnerabilityProbability);

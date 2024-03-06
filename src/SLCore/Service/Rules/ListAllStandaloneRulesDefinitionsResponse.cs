@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
+using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
+
 namespace SonarLint.VisualStudio.SLCore.Service.Rules;
 
-public record GetEffectiveRuleDetailsParams(string configurationScopeId, string ruleKey);
+public record ListAllStandaloneRulesDefinitionsResponse(Dictionary<string, RuleDefinitionDto> rulesByKey);
