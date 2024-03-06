@@ -68,21 +68,28 @@ public class DependencyLocator // this might be reused in the product code in th
             "sonarlint-backend.bat");
         if (!File.Exists(sloopPath))
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException($"Can't locate SLOOP {sloopVersion}");
         }
 
         Sloop = sloopPath;
     }
 
-    private static string GetAnalyzerPath(string analyzerFileName, string analyzerVersion, string[] analyzerJars) => 
-        analyzerJars.First(x => Path.GetFileName(x) == $"{analyzerFileName}-{analyzerVersion}.jar");
+    private static string GetAnalyzerPath(string analyzerFileName, string analyzerVersion, string[] analyzerJars)
+    {
+        var analyzerPath = analyzerJars.FirstOrDefault(x => Path.GetFileName(x) == $"{analyzerFileName}-{analyzerVersion}.jar");
+        if (analyzerPath == default)
+        {
+            throw new InvalidOperationException($"Can't locate {analyzerFileName} {analyzerVersion}");
+        }
+        return analyzerPath;
+    }
 
     private static string GetDependencyVersion(string tagName, XmlDocument dependencyProps)
     {
         var elementsByTagName = dependencyProps.GetElementsByTagName(tagName);
         if (elementsByTagName.Count != 1)
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException($"No version found for {tagName}");
         }
 
         return elementsByTagName[0].InnerText;
