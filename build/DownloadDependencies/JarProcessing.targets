@@ -19,18 +19,14 @@
     -->
   <ItemGroup>
     <InputFile Include="..\..\src\EmbeddedSonarAnalyzer.props" Visible="false" />
-    <OutputFile Include="$(_WorkingDirectory)\lastrun.txt" Visible="false" />
   </ItemGroup>
 
-  <Target Name="Build" Inputs="@(InputFile)" Outputs="@(OutputFile)">
+  <Target Name="Build">
     <Message Importance="high" Text="Processing analyzer jar files..." />
     <CallTarget Targets="PrepareDirectories" />
     <CallTarget Targets="DownloadIndividualJars" />
-    <CallTarget Targets="ExtractJsonFromJars" />
-    <CallTarget Targets="ExtractRuleDescFromJson" />
     <CallTarget Targets="DownloadSloop" />
     <CallTarget Targets="UnzipSloop" />
-    <CallTarget Targets="WriteOutputFile" />
   </Target>
 
   <!-- ************************************************************** -->
@@ -40,10 +36,6 @@
     <Message Importance="high" Text="[ProcessJarFiles] Ensuring download directory exists ..." />
     <MakeDir Directories="$(JarDownloadDir)" />
     <Message Importance="high" Text="[ProcessJarFiles] Download directory: $(JarDownloadDir)" />
-
-    <Message Importance="high" Text="[ProcessJarFiles] Ensuring tmp directory exists ..." />
-    <MakeDir Directories="$(_WorkingDirectory)" />
-    <Message Importance="high" Text="[ProcessJarFiles] Temporary directory: $(_WorkingDirectory)" />
   </Target>
 
   <Target Name="DownloadIndividualJars">
@@ -56,39 +48,5 @@
 
   <Target Name="UnzipSloop">
     <Unzip SourceFiles="$(SloopBinaryDownloadPath)" DestinationFolder="$(SloopExtractDir)" OverwriteReadOnlyFiles="true" />
-  </Target>
-
-  <Target Name="ExtractJsonFromJars">
-    <Message Importance="high" Text="[ProcessJarFiles] Removing existing json files ..." />
-    <ItemGroup>
-      <TempJsonFilesToClean Include="$(_WorkingDirectory)\*.json" />
-    </ItemGroup>
-    <Delete Files="@(TempJsonFilesToClean)" />
-
-    <Message Importance="high" Text="[ProcessJarFiles] Extracting json files to $(_WorkingDirectory) ..." />
-    <Exec Command="java -jar $(RuleJsonExtractorJar) --include-hotspots --plugins $(JarDownloadDir)\%(PluginJars.JarName) --languages=%(PluginJars.LanguageKey) --output=$(_WorkingDirectory)\%(PluginJars.RepoKey)-rules.json" />
-  </Target>
-
-  <Target Name="ExtractRuleDescFromJson">
-    <Message Importance="high" Text="[ProcessJarFiles] Checking for existence of rule extractor exe: $(RuleDescExtractorExe) ..." />
-    <Error Condition="!Exists($(RuleDescExtractorExe))" Text="Rule description extractor exe does not exist: $(RuleDescExtractorExe)" />
-    <Message Importance="high" Text="[ProcessJarFiles]    ... exe exists." />
-
-    <!-- Parameters: [full path to rule json] [full path to destination directory] -->
-    <Exec Command="$(RuleDescExtractorExe) $(_WorkingDirectory)\%(PluginJars.RepoKey)-rules.json $(BaseRuleDescFileTargetDirectory)%(PluginJars.RepoKey)" />
-
-    <Exec Command="dir $(BaseRuleDescFileTargetDirectory)%(PluginJars.RepoKey)" />
-  </Target>
-
-  <Target Name="WriteOutputFile">
-    <!-- The timestamp on the output file is used by MSBuild to decide whether to build this project or not.
-         If the timestamp on the EmbeddedSonarAnalyzer.props file is later than that of the output file then
-         MSBuild will rebuild the project.
-
-         We use a copy of the EmbeddedSonarAnalyzer.props file as the output file so we easily see which
-         plugins were processed last.
-         -->
-    <Message Importance="high" Text="[ProcessJarFiles] Completed successfully. Writing timestamp file: @(OutputFile)" />
-    <Copy SourceFiles="@(InputFile)" DestinationFiles="@(OutputFile)" />
   </Target>
 </Project>
