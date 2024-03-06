@@ -28,6 +28,7 @@
     <CallTarget Targets="DownloadIndividualJars" />
     <CallTarget Targets="DownloadSloop" />
     <CallTarget Targets="UnzipSloop" />
+    <CallTarget Targets="WriteOutputFile" />
   </Target>
 
   <!-- ************************************************************** -->
