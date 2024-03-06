@@ -56,6 +56,7 @@
     <!-- The timestamp on the output file is used by MSBuild to decide whether to build this project or not.
          If the timestamp on the EmbeddedSonarAnalyzer.props file is later than that of the output file then
          MSBuild will rebuild the project.
+         
          We use a copy of the EmbeddedSonarAnalyzer.props file as the output file so we easily see which
          plugins were processed last.
          -->
