@@ -19,15 +19,13 @@
     -->
   <ItemGroup>
     <InputFile Include="..\..\src\EmbeddedSonarAnalyzer.props" Visible="false" />
-    <OutputFile Include="$(_WorkingDirectory)\lastrun.txt" Visible="false" />
+    <OutputFile Include="$(SloopBinaryDownloadDir)\lastrun.txt" Visible="false" />
   </ItemGroup>
 
   <Target Name="Build" Inputs="@(InputFile)" Outputs="@(OutputFile)">
     <Message Importance="high" Text="Processing analyzer jar files..." />
     <CallTarget Targets="PrepareDirectories" />
     <CallTarget Targets="DownloadIndividualJars" />
-    <CallTarget Targets="ExtractJsonFromJars" />
-    <CallTarget Targets="ExtractRuleDescFromJson" />
     <CallTarget Targets="DownloadSloop" />
     <CallTarget Targets="UnzipSloop" />
     <CallTarget Targets="WriteOutputFile" />
@@ -40,10 +38,6 @@
     <Message Importance="high" Text="[ProcessJarFiles] Ensuring download directory exists ..." />
     <MakeDir Directories="$(JarDownloadDir)" />
     <Message Importance="high" Text="[ProcessJarFiles] Download directory: $(JarDownloadDir)" />
-
-    <Message Importance="high" Text="[ProcessJarFiles] Ensuring tmp directory exists ..." />
-    <MakeDir Directories="$(_WorkingDirectory)" />
-    <Message Importance="high" Text="[ProcessJarFiles] Temporary directory: $(_WorkingDirectory)" />
   </Target>
 
   <Target Name="DownloadIndividualJars">
@@ -56,28 +50,6 @@
 
   <Target Name="UnzipSloop">
     <Unzip SourceFiles="$(SloopBinaryDownloadPath)" DestinationFolder="$(SloopExtractDir)" OverwriteReadOnlyFiles="true" />
-  </Target>
-
-  <Target Name="ExtractJsonFromJars">
-    <Message Importance="high" Text="[ProcessJarFiles] Removing existing json files ..." />
-    <ItemGroup>
-      <TempJsonFilesToClean Include="$(_WorkingDirectory)\*.json" />
-    </ItemGroup>
-    <Delete Files="@(TempJsonFilesToClean)" />
-
-    <Message Importance="high" Text="[ProcessJarFiles] Extracting json files to $(_WorkingDirectory) ..." />
-    <Exec Command="java -jar $(RuleJsonExtractorJar) --include-hotspots --plugins $(JarDownloadDir)\%(PluginJars.JarName) --languages=%(PluginJars.LanguageKey) --output=$(_WorkingDirectory)\%(PluginJars.RepoKey)-rules.json" />
-  </Target>
-
-  <Target Name="ExtractRuleDescFromJson">
-    <Message Importance="high" Text="[ProcessJarFiles] Checking for existence of rule extractor exe: $(RuleDescExtractorExe) ..." />
-    <Error Condition="!Exists($(RuleDescExtractorExe))" Text="Rule description extractor exe does not exist: $(RuleDescExtractorExe)" />
-    <Message Importance="high" Text="[ProcessJarFiles]    ... exe exists." />
-
-    <!-- Parameters: [full path to rule json] [full path to destination directory] -->
-    <Exec Command="$(RuleDescExtractorExe) $(_WorkingDirectory)\%(PluginJars.RepoKey)-rules.json $(BaseRuleDescFileTargetDirectory)%(PluginJars.RepoKey)" />
-
-    <Exec Command="dir $(BaseRuleDescFileTargetDirectory)%(PluginJars.RepoKey)" />
   </Target>
 
   <Target Name="WriteOutputFile">

@@ -148,29 +148,14 @@ jobs:
       jdkArchitectureOption: 'x64'
       jdkSourceOption: PreInstalled
 
-  #*********************************************************
-  # HACK - explicitly build the projects that download and process the jar files
-  #
-  # Building the VS2019 version from the command line does not work correctly (CI or locally).
-  # For some reason, the Rules.csproj build does not embed any files.
-  # See #3584 - https://github.com/SonarSource/sonarlint-visualstudio/issues/3584
   - task: VSBuild@1
-    displayName: Build rule description extractor
-    inputs:
-      solution: build\tools\ExtractRuleDescFromJson\ExtractRuleDescFromJson.csproj
-      vsVersion: 17.0
-
-  - task: VSBuild@1
-    displayName: Pre-process jar files
+    displayName: Download Project Dependencies
     env:
       ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
       ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
     inputs:
       solution: build\DownloadDependencies\DownloadDependencies.proj
       vsVersion: 17.0
-
-  # End of hack
-  #*********************************************************
   
   - task: SonarCloudPrepare@1
     displayName: Prepare analysis on SonarCloud (VS2022 only)
