@@ -19,10 +19,12 @@
  */
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
+[ExcludeFromCodeCoverage]
 public record RuleDefinitionDto(
     string key,
     string name,

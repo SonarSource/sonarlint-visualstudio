@@ -19,8 +19,10 @@
  */
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Rules;
 
+[ExcludeFromCodeCoverage]
 public record ListAllStandaloneRulesDefinitionsResponse(Dictionary<string, RuleDefinitionDto> rulesByKey);
