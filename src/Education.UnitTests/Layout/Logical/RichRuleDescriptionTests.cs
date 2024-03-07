@@ -41,6 +41,29 @@ public class RichRuleDescriptionTests
     }
     
     [TestMethod]
+    public void ProduceVisualNode_NullIntro_ProducesTabsGroup()
+    {
+        const string introHtml = null;
+        const string tabTitle = "tabTitle";
+        var translatorMock = new Mock<IRuleHelpXamlTranslator>();
+        var parameters = new VisualizationParameters(translatorMock.Object, "context");
+        var tabMock = new Mock<IRuleDescriptionTab>();
+        tabMock.SetupGet(x => x.Title).Returns(tabTitle);
+        var tabVisualNodeMock = new Mock<IAbstractVisualizationTreeNode>();
+        tabMock.Setup(x => x.ProduceVisualNode(parameters)).Returns(tabVisualNodeMock.Object);
+        
+        var testSubject = new RichRuleDescription(introHtml, new List<IRuleDescriptionTab> { tabMock.Object });
+
+
+        var visualNode = testSubject.ProduceVisualNode(parameters);
+        
+        
+        visualNode.Should().BeEquivalentTo(new TabGroup(new List<ITabItem>{new TabItem(tabTitle, tabVisualNodeMock.Object)}, 0));
+        translatorMock.Verify(x => x.TranslateHtmlToXaml(introHtml), Times.Never);
+        translatorMock.VerifyNoOtherCalls();
+    }
+    
+    [TestMethod]
     public void ProduceVisualNode_ProducesMultiBlockSectionWithIntroAndTabs()
     {
         const string introHtml = "introhtml";

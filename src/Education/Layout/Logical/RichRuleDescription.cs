@@ -43,9 +43,16 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
 
         public IAbstractVisualizationTreeNode ProduceVisualNode(VisualizationParameters parameters)
         {
+            var tabGroup = new TabGroup(tabs.Select(x => new TabItem(x.Title, x.ProduceVisualNode(parameters))).Cast<ITabItem>().ToList(), 0);
+            
+            if (introductionHtml is null)
+            {
+                return tabGroup;
+            }
+
             return new MultiBlockSection(
                 new ContentSection(parameters.HtmlToXamlTranslator.TranslateHtmlToXaml(introductionHtml)),
-                new TabGroup(tabs.Select(x => new TabItem(x.Title, x.ProduceVisualNode(parameters))).Cast<ITabItem>().ToList(), 0));
+                tabGroup);
         }
     }
 }
