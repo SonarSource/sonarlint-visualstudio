@@ -107,6 +107,8 @@ public class GetEffectiveRuleDetailsResponseTests
             .Should()
             .BeEquivalentTo(expectedRuleDetails,
                 options => options
+                    .ComparingByMembers<GetEffectiveRuleDetailsResponse>()
+                    .ComparingByMembers<EffectiveRuleDetailsDto>()
                     .WithStrictOrdering()
                     .RespectingDeclaredTypes()
                     .Excluding((IMemberInfo info) => info.RuntimeType == typeof(string) && info.SelectedMemberPath.EndsWith(".content.Left.htmlContent")));

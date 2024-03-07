@@ -20,15 +20,6 @@
 
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Rules
-{
-    public class GetEffectiveRuleDetailsResponse
-    {
-        public GetEffectiveRuleDetailsResponse(EffectiveRuleDetailsDto details)
-        {
-            this.details = details;
-        }
+namespace SonarLint.VisualStudio.SLCore.Service.Rules;
 
-        public EffectiveRuleDetailsDto details { get; }
-    }
-}
+public record GetEffectiveRuleDetailsResponse(EffectiveRuleDetailsDto details);
