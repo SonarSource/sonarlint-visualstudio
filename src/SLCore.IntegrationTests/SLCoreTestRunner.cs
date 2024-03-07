@@ -19,7 +19,6 @@
  */
 
 using System.IO;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
@@ -27,7 +26,6 @@ using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry;
-using SonarLint.VisualStudio.TestInfrastructure;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
@@ -68,6 +66,8 @@ public sealed class SLCoreTestRunner : IDisposable
             Path.Combine(privateFolder, "logstderr.txt"), 
             true,
             true);
+        
+        SlCoreServiceProvider = new SLCoreServiceProvider(new NoOpThreadHandler(), logger);
     }
 
     public void AddListener(ISLCoreListener listener)
@@ -79,7 +79,6 @@ public sealed class SLCoreTestRunner : IDisposable
     {
         processRunner.Start();
         
-        SlCoreServiceProvider = new SLCoreServiceProvider(new NoOpThreadHandler(), logger);
         SlCoreServiceProvider.SetCurrentConnection(processRunner.Rpc);
         var slCoreListenerSetUp = new SLCoreListenerSetUp(listenersToSetUp);
         slCoreListenerSetUp.Setup(processRunner.Rpc);

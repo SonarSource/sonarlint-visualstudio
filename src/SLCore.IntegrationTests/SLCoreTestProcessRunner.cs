@@ -22,7 +22,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
