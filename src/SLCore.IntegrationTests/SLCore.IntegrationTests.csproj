@@ -8,9 +8,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Education\Education.csproj" />
     <ProjectReference Include="..\SLCore\SLCore.csproj" />
     <ProjectReference Include="..\SLCore.Listeners\SLCore.Listeners.csproj" />
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Framework references">
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Presentation" />
   </ItemGroup>
 
   <ItemGroup>
