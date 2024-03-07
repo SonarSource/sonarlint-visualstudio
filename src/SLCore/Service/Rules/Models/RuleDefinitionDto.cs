@@ -19,11 +19,13 @@
  */
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-public abstract record AbstractRuleDto(
+[ExcludeFromCodeCoverage]
+public record RuleDefinitionDto(
     string key,
     string name,
     IssueSeverity severity,
@@ -32,4 +34,15 @@ public abstract record AbstractRuleDto(
     CleanCodeAttributeCategory? cleanCodeAttributeCategory,
     List<ImpactDto> defaultImpacts,
     Language language,
-    VulnerabilityProbability? vulnerabilityProbability);
+    VulnerabilityProbability? vulnerabilityProbability,
+    Dictionary<string, object> paramsByKey, // object because we ignore rule parameters at the moment
+    bool isActiveByDefault)
+    : AbstractRuleDto(key,
+        name,
+        severity,
+        type,
+        cleanCodeAttribute,
+        cleanCodeAttributeCategory,
+        defaultImpacts,
+        language,
+        vulnerabilityProbability);

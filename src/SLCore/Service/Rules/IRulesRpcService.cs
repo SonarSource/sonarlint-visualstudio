@@ -22,14 +22,18 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Rules
+namespace SonarLint.VisualStudio.SLCore.Service.Rules;
+
+[JsonRpcClass("rule")]
+public interface IRulesRpcService : ISLCoreService
 {
-    [JsonRpcClassAttribute("rule")]
-    public interface IRulesRpcService : ISLCoreService
-    {
-        /// <summary>
-        /// Gets Rule Meta Data from SLCORE
-        /// </summary>
-        Task<GetEffectiveRuleDetailsResponse> GetEffectiveRuleDetailsAsync(GetEffectiveRuleDetailsParams parameters);
-    }
+    /// <summary>
+    /// Gets Rule Meta Data from SLCORE
+    /// </summary>
+    Task<GetEffectiveRuleDetailsResponse> GetEffectiveRuleDetailsAsync(GetEffectiveRuleDetailsParams parameters);
+
+    /// <summary>
+    /// Lists all available standalone rule definitions
+    /// </summary>
+    Task<ListAllStandaloneRulesDefinitionsResponse> ListAllStandaloneRulesDefinitionsAsync();
 }
