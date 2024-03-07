@@ -23,37 +23,27 @@ using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Protocol;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models
-{
-    public class EffectiveRuleDetailsDto : AbstractRuleDto
-    {
-        public EffectiveRuleDetailsDto(string key,
-            string name,
-            IssueSeverity severity,
-            RuleType type,
-            CleanCodeAttribute? cleanCodeAttribute,
-            CleanCodeAttributeCategory? cleanCodeAttributeCategory,
-            List<ImpactDto> defaultImpacts,
-            Language language,
-            VulnerabilityProbability? vulnerabilityProbability,
-            Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description,
-            List<EffectiveRuleParamDto> @params)
-            : base(key,
-                name,
-                severity,
-                type,
-                cleanCodeAttribute,
-                cleanCodeAttributeCategory,
-                defaultImpacts,
-                language,
-                vulnerabilityProbability)
-        {
-            this.description = description;
-            this.@params = @params;
-        }
+namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-        [JsonConverter(typeof(EitherJsonConverter<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>))]
-        public Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description { get; }
-        public List<EffectiveRuleParamDto> @params { get; }
-    }
-}
+public record EffectiveRuleDetailsDto(
+    string key,
+    string name,
+    IssueSeverity severity,
+    RuleType type,
+    CleanCodeAttribute? cleanCodeAttribute,
+    CleanCodeAttributeCategory? cleanCodeAttributeCategory,
+    List<ImpactDto> defaultImpacts,
+    Language language,
+    VulnerabilityProbability? vulnerabilityProbability,
+    [property: JsonConverter(typeof(EitherJsonConverter<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>))]
+    Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description,
+    List<EffectiveRuleParamDto> @params)
+    : AbstractRuleDto(key,
+        name,
+        severity,
+        type,
+        cleanCodeAttribute,
+        cleanCodeAttributeCategory,
+        defaultImpacts,
+        language,
+        vulnerabilityProbability);
