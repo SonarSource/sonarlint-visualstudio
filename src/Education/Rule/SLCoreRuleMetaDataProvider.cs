@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -39,7 +38,7 @@ namespace SonarLint.VisualStudio.Education.Rule;
 
 [Export(typeof(IRuleMetaDataProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
+internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
 {
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly ILogger logger;
