@@ -346,7 +346,7 @@ public class SLCoreRuleMetaDataProviderTests
         configScopeTrackerMock.SetupGet(x => x.Current).Returns(scope);
     }
 
-    private static void SetupRulesService(Mock<IRulesRpcService> rulesServiceMock, string rulekey, string configScopeId,
+    private static void SetupRulesService(Mock<IRulesSLCoreService> rulesServiceMock, string rulekey, string configScopeId,
         EffectiveRuleDetailsDto response)
     {
         rulesServiceMock
@@ -356,9 +356,9 @@ public class SLCoreRuleMetaDataProviderTests
     }
 
     private static void SetUpServiceProvider(Mock<ISLCoreServiceProvider> serviceProviderMock,
-        out Mock<IRulesRpcService> rulesServiceMock)
+        out Mock<IRulesSLCoreService> rulesServiceMock)
     {
-        rulesServiceMock = new Mock<IRulesRpcService>();
+        rulesServiceMock = new Mock<IRulesSLCoreService>();
         var rulesService = rulesServiceMock.Object;
         serviceProviderMock.Setup(x => x.TryGetTransientService(out rulesService)).Returns(true);
     }

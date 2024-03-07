@@ -56,7 +56,7 @@ internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
     public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId)
     {
         if (activeConfigScopeTracker.Current is { Id: var configurationScopeId }
-            && slCoreServiceProvider.TryGetTransientService(out IRulesRpcService rulesRpcService))
+            && slCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesRpcService))
         {
             try
             {

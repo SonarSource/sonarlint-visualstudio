@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.SLCore.Protocol;
 namespace SonarLint.VisualStudio.SLCore.Service.Telemetry;
 
 [JsonRpcClass("telemetry")]
-public interface ITelemetryRpcService : ISLCoreService
+public interface ITelemetrySLCoreService : ISLCoreService
 {
     void DisableTelemetry();
 }
