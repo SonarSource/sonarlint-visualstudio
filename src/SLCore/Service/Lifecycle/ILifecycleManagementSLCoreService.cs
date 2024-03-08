@@ -20,20 +20,24 @@
 
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Rules;
-
-[JsonRpcClass("rule")]
-public interface IRulesRpcService : ISLCoreService
+namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle
 {
     /// <summary>
-    /// Gets Rule Meta Data from SLCORE
+    /// Collection of methods relating to SLCore lifecycle management
     /// </summary>
-    Task<GetEffectiveRuleDetailsResponse> GetEffectiveRuleDetailsAsync(GetEffectiveRuleDetailsParams parameters);
+    public interface ILifecycleManagementSLCoreService : ISLCoreService
+    {
+        /// <summary>
+        /// Initialize SLCore
+        /// </summary>
+        /// <remarks>Notification</remarks>
+        Task InitializeAsync(InitializeParams parameters);
 
-    /// <summary>
-    /// Lists all available standalone rule definitions
-    /// </summary>
-    Task<ListAllStandaloneRulesDefinitionsResponse> ListAllStandaloneRulesDefinitionsAsync();
+        /// <summary>
+        /// Shutdown SLCore
+        /// </summary>
+        /// <remarks>Notification</remarks>
+        Task ShutdownAsync();
+    }
 }
