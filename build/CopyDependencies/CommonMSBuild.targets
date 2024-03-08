@@ -1,0 +1,19 @@
+﻿<Project>
+  <!-- ************************************************************** -->
+  <!-- Common MSBuild targets -->
+  <!-- ************************************************************** -->
+  <!-- We aren't importing any of the standard MS targets/SDKs, so we need to define these targets
+       so we can clean and rebuild from the command line as normal. -->
+  <Target Name="Clean" />
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build" />
+
+  <!-- No-op. Called by MSBuild when building other projects that reference this one.
+         The empty targets don't seem to be needed when building inside VS, but command
+         line builds fail if they are not defined (even though there are no explicit
+         <ProjectReferences> to this project. -->
+  <Target Name="BuiltProjectOutputGroup" />
+  <Target Name="BuiltProjectOutputGroupDependencies" />
+  <Target Name="GetCopyToOutputDirectoryItems" />
+  <Target Name="SatelliteDllsProjectOutputGroup" />
+  <Target Name="DebugSymbolsProjectOutputGroup" />
+</Project>

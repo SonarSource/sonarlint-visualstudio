@@ -152,6 +152,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Project references">
+    <ProjectReference Include="..\..\build\CopyDependencies\CopyDependencies.csproj" />
     <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj">
       <Name>SonarQube.Client.2015</Name>
     </ProjectReference>
@@ -281,6 +282,14 @@
       <Link>THIRD-PARTY-NOTICES</Link>
     </Content>
 
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Content Include="DownloadedJars\*.jar">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <IncludeInVSIX>True</IncludeInVSIX>
+      <Visible>false</Visible>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -565,5 +574,5 @@
 
     <WriteLinesToFile File="$(BaselineWithStrongNames)" Overwrite="true" WriteOnlyWhenDifferent="true" Encoding="UTF-8" Lines="$(NewSignedBaseLineText)" />
   </Target>
-
+  
 </Project>
