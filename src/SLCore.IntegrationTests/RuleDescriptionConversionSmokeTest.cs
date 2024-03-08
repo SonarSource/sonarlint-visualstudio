@@ -50,9 +50,9 @@ public class RuleDescriptionConversionSmokeTest
 
         await slCoreTestRunner.Start();
         activeConfigScopeTracker.SetCurrentConfigScope(configScope);
-        slCoreTestRunner.SlCoreServiceProvider.TryGetTransientService(out IRulesRpcService rulesRpcService).Should().BeTrue();
+        slCoreTestRunner.SlCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesSlCoreService).Should().BeTrue();
 
-        var ruleDescriptions = await GetAllRuleDescriptions(await rulesRpcService.ListAllStandaloneRulesDefinitionsAsync(), slCoreRuleMetaDataProvider);
+        var ruleDescriptions = await GetAllRuleDescriptions(await rulesSlCoreService.ListAllStandaloneRulesDefinitionsAsync(), slCoreRuleMetaDataProvider);
         CheckRuleDescriptionsOnSTAThread(ruleDescriptions, ruleHelpXamlBuilder, failedRuleDescriptions);
 
         failedRuleDescriptions.Should().BeEquivalentTo(

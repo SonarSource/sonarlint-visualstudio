@@ -83,12 +83,12 @@ public sealed class SLCoreTestRunner : IDisposable
         var slCoreListenerSetUp = new SLCoreListenerSetUp(listenersToSetUp);
         slCoreListenerSetUp.Setup(processRunner.Rpc);
 
-        if (!SlCoreServiceProvider.TryGetTransientService(out ISLCoreLifecycleService slCoreLifecycleService) || !SlCoreServiceProvider.TryGetTransientService(out ITelemetryRpcService telemetryRpcService))
+        if (!SlCoreServiceProvider.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService) || !SlCoreServiceProvider.TryGetTransientService(out ITelemetrySLCoreService telemetrySlCoreService))
         {
             throw new InvalidOperationException("Can't start SLOOP");
         }
 
-        await slCoreLifecycleService.InitializeAsync(
+        await lifecycleManagementSlCoreService.InitializeAsync(
             new InitializeParams(
                 defaultClientConstants,
                 new HttpConfigurationDto(new SslConfigurationDto()),
@@ -107,14 +107,14 @@ public sealed class SLCoreTestRunner : IDisposable
                 defaultTelemetryAttributes,
                 null));
         
-        telemetryRpcService.DisableTelemetry();
+        telemetrySlCoreService.DisableTelemetry();
     }
 
     public void Dispose()
     {
-        if (SlCoreServiceProvider?.TryGetTransientService(out ISLCoreLifecycleService slCoreLifecycleService) ?? false)
+        if (SlCoreServiceProvider?.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService) ?? false)
         {
-            slCoreLifecycleService.ShutdownAsync().GetAwaiter().GetResult();
+            lifecycleManagementSlCoreService.ShutdownAsync().GetAwaiter().GetResult();
         }
         
         processRunner?.Dispose();
