@@ -50,27 +50,16 @@ public class RuleDescriptionConversionSmokeTest
 
         await slCoreTestRunner.Start();
         activeConfigScopeTracker.SetCurrentConfigScope(configScope);
-        slCoreTestRunner.SlCoreServiceProvider.TryGetTransientService(out IRulesRpcService rulesRpcService).Should().BeTrue();
+        slCoreTestRunner.SlCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesSlCoreService).Should().BeTrue();
 
-        var ruleDescriptions = await GetAllRuleDescriptions(await rulesRpcService.ListAllStandaloneRulesDefinitionsAsync(), slCoreRuleMetaDataProvider);
+        // no hotspots are returned from ListAllStandaloneRulesDefinitionsAsync
+        var ruleDescriptions = await GetAllRuleDescriptions(await rulesSlCoreService.ListAllStandaloneRulesDefinitionsAsync(), slCoreRuleMetaDataProvider);
         CheckRuleDescriptionsOnSTAThread(ruleDescriptions, ruleHelpXamlBuilder, failedRuleDescriptions);
 
         failedRuleDescriptions.Should().BeEquivalentTo(
             new List<string>
             {
-                // most of these rules fail because of unclosed paragraph
-                "c:S2755", "csharpsquid:S4423", "csharpsquid:S4426", "javascript:S4830", "csharpsquid:S2699", "csharpsquid:S4830", "javascript:S4423",
-                "javascript:S4426", "typescript:S6811", "typescript:S6819", "typescript:S6821", "typescript:S6827", "typescript:S6824",
-                "typescript:S6822", "typescript:S6823", "typescript:S5527", "typescript:S5542", "typescript:S5547", "cpp:S1232", "csharpsquid:S2187",
-                "csharpsquid:S5659", "csharpsquid:S2115", "javascript:S2755", "vbnet:S4423", "javascript:S6775", "c:S4423", "javascript:S6767",
-                "javascript:S1082", "c:S4426", "javascript:S5876", "typescript:S6807", "csharpsquid:S2970", "cpp:S5542", "cpp:S5547",
-                "typescript:S5876", "typescript:S6767", "typescript:S1082", "typescript:S6775", "typescript:S6793", "typescript:S6317", "vbnet:S4830",
-                "csharpsquid:S2053", "javascript:S6811", "javascript:S6819", "javascript:S6807", "csharpsquid:S5542", "vbnet:S5659",
-                "csharpsquid:S5547", "cpp:S2755", "csharpsquid:S3329", "javascript:S5542", "typescript:S2755", "javascript:S5547", "javascript:S5527",
-                "javascript:S6822", "javascript:S6823", "javascript:S6824", "javascript:S6827", "javascript:S6821", "typescript:S4423",
-                "typescript:S4426", "javascript:S6317", "javascript:S6793", "vbnet:S5547", "vbnet:S5542", "vbnet:S2053", "vbnet:S3329",
-                "javascript:S5659", "typescript:S4830", "csharpsquid:S2755", "javascript:S2598", "typescript:S2598", "cpp:S4426", "typescript:S5659",
-                "c:S5547", "c:S5542", "cpp:S4423"
+                "cpp:S1232" // unsupported <caption> tag
             });
     }
 
@@ -78,6 +67,8 @@ public class RuleDescriptionConversionSmokeTest
     private static async Task<List<IRuleInfo>> GetAllRuleDescriptions(ListAllStandaloneRulesDefinitionsResponse ruleDefinitions,
         IRuleMetaDataProvider slCoreRuleMetaDataProvider)
     {
+        ruleDefinitions.rulesByKey.Count.Should().BeGreaterThan(1500);
+        
         var ruleDescriptions = new List<IRuleInfo>();
         foreach (var ruleKey in ruleDefinitions.rulesByKey.Keys)
         {
