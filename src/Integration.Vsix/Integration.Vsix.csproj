@@ -407,7 +407,7 @@
     <!-- Hook the target that fetches the CFamily files into to the build process. 
          This needs to be set after the SDK targets have been imported.
     -->
-    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetCFamilyFiles</PrepareForBuildDependsOn>
+    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetCFamilyFiles;Sloop</PrepareForBuildDependsOn>
   </PropertyGroup>
 
   <Target Name="GetCFamilyFiles" Condition=" $(DesignTimeBuild) != 'true' ">
