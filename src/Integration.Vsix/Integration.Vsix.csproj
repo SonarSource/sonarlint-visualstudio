@@ -285,10 +285,14 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)DownloadedJars\*.*">
+    <Content Include="$(MSBuildThisFileDirectory)DownloadedJars\*.jar">
       <IncludeInVSIX>True</IncludeInVSIX>
     </Content>
   </ItemGroup>
+
+  <Target Name="Testing" BeforeTargets="Build">
+    <Message Importance="high" Text="$(MSBuildThisFileDirectory)DownloadedJars\*.jar" />
+  </Target>
 
   <ItemGroup>
     <None Remove="Commands\HelpMenu\AboutDialog.xaml" />
