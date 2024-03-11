@@ -285,7 +285,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Content Include="DownloadedJars\*.*">
+    <Content Include="$(MSBuildThisFileDirectory)DownloadedJars\*.*">
       <IncludeInVSIX>True</IncludeInVSIX>
     </Content>
   </ItemGroup>
