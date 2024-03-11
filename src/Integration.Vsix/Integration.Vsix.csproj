@@ -286,7 +286,7 @@
   
   <ItemGroup>
     <Content Include="DownloadedJars\*.jar">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>True</IncludeInVSIX>
       <Visible>false</Visible>
     </Content>
