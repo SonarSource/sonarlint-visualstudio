@@ -285,7 +285,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Content Include="DownloadedJars\*.jar">
+    <Content Include="DownloadedJars\*.*">
       <IncludeInVSIX>True</IncludeInVSIX>
     </Content>
   </ItemGroup>
