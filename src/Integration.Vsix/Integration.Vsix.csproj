@@ -283,7 +283,7 @@
     </Content>
 
   </ItemGroup>
-  <Target Name ="Sloop" Condition=" $(DesignTimeBuild) != 'true' ">
+  <Target Name ="Sloop">
   <ItemGroup>
     <Content Include="$(MSBuildThisFileDirectory)DownloadedJars\*.jar">
       <IncludeInVSIX>True</IncludeInVSIX>
