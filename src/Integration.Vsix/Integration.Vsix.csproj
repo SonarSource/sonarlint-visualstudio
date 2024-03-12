@@ -280,7 +280,13 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <Link>THIRD-PARTY-NOTICES</Link>
     </Content>
+  </ItemGroup>
 
+  <ItemGroup Label="Sloop Dependencies">
+    <Content Include="$(MSBuildThisFileDirectory)$(JarsFolderName)\*.jar">
+      <IncludeInVSIX>True</IncludeInVSIX>
+      <VSIXSubPath>$(JarsFolderName)</VSIXSubPath>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -388,6 +394,7 @@
     <PluginUrl>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar</PluginUrl>
 
     <CFamilyFolderName>lib</CFamilyFolderName>
+    <JarsFolderName>DownloadedJars</JarsFolderName>
 
     <!-- Folder the embedded files should be copied to. This folder should be excluded from source code control. -->
     <CFamilyTargetDirectory>$(MSBuildThisFileDirectory)$(CFamilyFolderName)</CFamilyTargetDirectory>
@@ -565,5 +572,5 @@
 
     <WriteLinesToFile File="$(BaselineWithStrongNames)" Overwrite="true" WriteOnlyWhenDifferent="true" Encoding="UTF-8" Lines="$(NewSignedBaseLineText)" />
   </Target>
-
+  
 </Project>
