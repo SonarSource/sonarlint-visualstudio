@@ -285,7 +285,7 @@
   </ItemGroup>
   <Target Name ="Sloop">
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)DownloadedJars\sonar-cfamily-plugin-6.53.0.67215.jar">
+    <Content Include="$(MSBuildThisFileDirectory)DownloadedJars\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>True</IncludeInVSIX>
       <VSIXSubPath>DownloadedJars</VSIXSubPath>
