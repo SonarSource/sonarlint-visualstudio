@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.Vsix", "src\Integration.Vsix\Integration.Vsix.csproj", "{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0E50D9A0-693D-4B4E-81E2-8B8028231CFA} = {0E50D9A0-693D-4B4E-81E2-8B8028231CFA}
+		{2BB16C6F-BF06-4225-99A0-F1CFE70CBE44} = {2BB16C6F-BF06-4225-99A0-F1CFE70CBE44}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration", "src\Integration\Integration.csproj", "{03278C1A-EE78-4FA7-A5B0-1AB0A81EA76F}"
@@ -172,6 +173,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CopyDependencies", "CopyDependencies", "{421D8026-2CBF-4444-A886-67428C1813E9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyDependencies", "build\CopyDependencies\CopyDependencies.csproj", "{2BB16C6F-BF06-4225-99A0-F1CFE70CBE44}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB} = {3ECCAF9D-3B23-4980-83E2-8ACEE0FC6BEB}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

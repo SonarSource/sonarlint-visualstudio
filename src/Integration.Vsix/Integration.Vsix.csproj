@@ -152,7 +152,6 @@
   </ItemGroup>
 
   <ItemGroup Label="Project references">
-    <ProjectReference Include="..\..\build\CopyDependencies\CopyDependencies.csproj" />
     <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj">
       <Name>SonarQube.Client.2015</Name>
     </ProjectReference>
@@ -283,7 +282,7 @@
     </Content>
 
   </ItemGroup>
-  <Target Name ="Sloop">
+  <Target Name="Sloop">
   <ItemGroup>
     <Content Include="$(MSBuildThisFileDirectory)DownloadedJars\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
