@@ -280,21 +280,14 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <Link>THIRD-PARTY-NOTICES</Link>
     </Content>
-
   </ItemGroup>
-  <Target Name="Sloop">
-  <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)DownloadedJars\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+
+  <ItemGroup Label="Sloop Dependencies">
+    <Content Include="$(MSBuildThisFileDirectory)$(JarsFolderName)\*.jar">
       <IncludeInVSIX>True</IncludeInVSIX>
-      <VSIXSubPath>DownloadedJars</VSIXSubPath>
+      <VSIXSubPath>$(JarsFolderName)</VSIXSubPath>
     </Content>
   </ItemGroup>
-  </Target>
-
-  <Target Name="Testing" BeforeTargets="Build">
-    <Message Importance="high" Text="$(MSBuildThisFileDirectory)DownloadedJars\sonar-cfamily-plugin-6.53.0.67215.jar" />
-  </Target>
 
   <ItemGroup>
     <None Remove="Commands\HelpMenu\AboutDialog.xaml" />
@@ -401,6 +394,7 @@
     <PluginUrl>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar</PluginUrl>
 
     <CFamilyFolderName>lib</CFamilyFolderName>
+    <JarsFolderName>DownloadedJars</JarsFolderName>
 
     <!-- Folder the embedded files should be copied to. This folder should be excluded from source code control. -->
     <CFamilyTargetDirectory>$(MSBuildThisFileDirectory)$(CFamilyFolderName)</CFamilyTargetDirectory>
@@ -408,7 +402,7 @@
     <!-- Hook the target that fetches the CFamily files into to the build process. 
          This needs to be set after the SDK targets have been imported.
     -->
-    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetCFamilyFiles;Sloop</PrepareForBuildDependsOn>
+    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetCFamilyFiles</PrepareForBuildDependsOn>
   </PropertyGroup>
 
   <Target Name="GetCFamilyFiles" Condition=" $(DesignTimeBuild) != 'true' ">
