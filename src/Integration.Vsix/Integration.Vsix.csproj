@@ -286,6 +286,7 @@
   <Target Name ="Sloop">
   <ItemGroup>
     <Content Include="$(MSBuildThisFileDirectory)DownloadedJars\*.jar">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>True</IncludeInVSIX>
       <VSIXSubPath>DownloadedJars</VSIXSubPath>
     </Content>
