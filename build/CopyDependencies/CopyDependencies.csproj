@@ -1,0 +1,11 @@
+﻿<Project DefaultTargets="Build" ToolsVersion="Current">
+  <PropertyGroup>
+    <ProjectGuid>{2BB16C6F-BF06-4225-99A0-F1CFE70CBE44}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)CommonMSBuild.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)CopyDependencies.targets" />
+  <ItemGroup>
+    <None Include="CommonMSBuild.targets" />
+    <None Include="CopyDependencies.targets" />
+  </ItemGroup>
+</Project>

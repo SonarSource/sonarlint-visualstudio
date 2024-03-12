@@ -1,0 +1,29 @@
+﻿<Project>
+  <Import Project="..\..\src\EmbeddedSonarAnalyzer.props" />
+
+  <Target Name="Build">
+    <CallTarget Targets="ClearDirs" />
+    <CallTarget Targets="CopyJars" />
+  </Target>
+
+  <PropertyGroup>
+    <JarDownloadDir>$(LOCALAPPDATA)\SLVS_Build_DownloadedJars</JarDownloadDir>
+    <EmbeddedJarDir>..\..\src\Integration.Vsix\DownloadedJars</EmbeddedJarDir>
+  </PropertyGroup>
+  
+  
+  <Target Name="ClearDirs">
+    <RemoveDir Directories="$(EmbeddedJarDir)" />
+  </Target>
+
+  <Target Name="CopyJars">
+    <ItemGroup>
+      <SourceJars Include="$(JarDownloadDir)\sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar" />
+      <SourceJars Include="$(JarDownloadDir)\sonar-csharp-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
+      <SourceJars Include="$(JarDownloadDir)\sonar-vbnet-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
+      <SourceJars Include="$(JarDownloadDir)\sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar" />
+      <SourceJars Include="$(JarDownloadDir)\sonar-text-plugin-$(EmbeddedSonarSecretsJarVersion).jar" />
+    </ItemGroup>
+    <Copy SourceFiles ="@(SourceJars)" DestinationFolder="$(EmbeddedJarDir)" />
+  </Target>
+</Project>
