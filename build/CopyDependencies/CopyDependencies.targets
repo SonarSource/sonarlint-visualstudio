@@ -2,7 +2,7 @@
   <Import Project="..\..\src\EmbeddedSonarAnalyzer.props" />
 
   <Target Name="Build">
-    <!--<CallTarget Targets="ClearDirs" />-->
+    <CallTarget Targets="ClearDirs" />
     <CallTarget Targets="CopyJars" />
   </Target>
 
