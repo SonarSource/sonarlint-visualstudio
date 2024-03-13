@@ -25,7 +25,7 @@ using System.IO;
 namespace SonarLint.VisualStudio.SLCore.Core.Process;
 
 [ExcludeFromCodeCoverage]
-internal class SLCoreProcess : ISLCoreProcess
+internal sealed class SLCoreProcess : ISLCoreProcess
 {
     private System.Diagnostics.Process Process { get; }
 
