@@ -50,7 +50,7 @@ internal sealed class AliveConnectionTracker : IAliveConnectionTracker
     private readonly IThreadHandling threadHandling;
     private readonly IAsyncLock asyncLock;
     private readonly IServerConnectionsProvider serverConnectionsProvider;
-    private ISolutionBindingRepository solutionBindingRepository;
+    private readonly ISolutionBindingRepository solutionBindingRepository;
 
     [ImportingConstructor]
     public AliveConnectionTracker(ISLCoreServiceProvider serviceProvider,
