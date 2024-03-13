@@ -171,3 +171,4 @@ $RECYCLE.BIN/
 /**/launchSettings.json
 /src/Rules/Embedded
 /src/Integration.Vsix/DownloadedJars
+/src/Integration.Vsix/Sloop
