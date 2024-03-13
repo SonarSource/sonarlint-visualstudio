@@ -24,6 +24,7 @@ using System.IO;
 using System.Threading;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Core.Process;
 using SonarLint.VisualStudio.SLCore.Protocol;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
@@ -31,12 +32,13 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 [ExcludeFromCodeCoverage]
 public sealed class SLCoreTestProcessRunner : IDisposable
 {
-    private readonly string pathToBat;
     private readonly string rpcLogFilePath;
     private readonly string stdErrLogFilePath;
     private readonly bool enableVerboseLogs;
     private readonly bool enableAutoFlush;
-    private Process process;
+    private readonly ISLCoreProcessFactory slCoreProcessFactory = new SLCoreProcessFactory();
+    private readonly SLCoreLaunchParameters launchParameters;
+    private ISLCoreProcess process;
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private JsonRpcWrapper jsonRpcWrapper;
     private StreamWriter logFileStream;
@@ -51,7 +53,7 @@ public sealed class SLCoreTestProcessRunner : IDisposable
         bool enableVerboseLogs = false,
         bool enableAutoFlush = false)
     {
-        this.pathToBat = pathToBat;
+        launchParameters = new SLCoreLaunchParameters("cmd.exe", $"/c {pathToBat}");
         this.rpcLogFilePath = rpcLogFilePath;
         this.stdErrLogFilePath = stdErrLogFilePath;
         this.enableVerboseLogs = enableVerboseLogs;
@@ -60,21 +62,11 @@ public sealed class SLCoreTestProcessRunner : IDisposable
 
     public void Start()
     {
-        var processStartInfo = new ProcessStartInfo("cmd.exe", $@"/c {pathToBat}")
-        {
-            CreateNoWindow = true,
-            UseShellExecute = false,
-            RedirectStandardInput = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
-
-        process = new Process { StartInfo = processStartInfo };
+        process = slCoreProcessFactory.StartNewProcess(launchParameters);
+        jsonRpcWrapper = (JsonRpcWrapper)process.AttachJsonRpc();
         
-        process.Start();
         SetUpLogging();
         
-        jsonRpcWrapper = new JsonRpcWrapper(process.StandardInput.BaseStream, process.StandardOutput.BaseStream);
         jsonRpcWrapper.TraceSource.Switch.Level = enableVerboseLogs ? SourceLevels.Verbose : SourceLevels.Warning;
         jsonRpcWrapper.TraceSource.Listeners.Add(logFileStream == null ? new ConsoleTraceListener() : new TextWriterTraceListener(logFileStream));
 
@@ -102,7 +94,7 @@ public sealed class SLCoreTestProcessRunner : IDisposable
 
         while (!token.IsCancellationRequested)
         {
-            var line = process.StandardError.ReadLine();
+            var line = process.ErrorStreamReader.ReadLine();
             if (string.IsNullOrEmpty(line)) // potential problem here if it returns too often?
             {
                 continue;
