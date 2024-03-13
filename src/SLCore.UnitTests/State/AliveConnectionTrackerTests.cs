@@ -41,6 +41,7 @@ public class AliveConnectionTrackerTests
     {
         MefTestHelpers.CheckTypeCanBeImported<AliveConnectionTracker, IAliveConnectionTracker>(
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
+            MefTestHelpers.CreateExport<IServerConnectionsProvider>(),
             MefTestHelpers.CreateExport<ISolutionBindingRepository>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<IAsyncLockFactory>());
