@@ -47,25 +47,24 @@ public interface IAliveConnectionTracker : IDisposable
 internal sealed class AliveConnectionTracker : IAliveConnectionTracker
 {
     private readonly ISLCoreServiceProvider serviceProvider;
-    private readonly ISolutionBindingRepository solutionBindingRepository;
-    private readonly IConnectionIdHelper connectionIdHelper;
     private readonly IThreadHandling threadHandling;
     private readonly IAsyncLock asyncLock;
-    
+    private readonly IServerConnectionsProvider serverConnectionsProvider;
+    private ISolutionBindingRepository solutionBindingRepository;
+
     [ImportingConstructor]
     public AliveConnectionTracker(ISLCoreServiceProvider serviceProvider,
+        IServerConnectionsProvider serverConnectionsProvider,
         ISolutionBindingRepository solutionBindingRepository,
-        IConnectionIdHelper connectionIdHelper,
         IAsyncLockFactory asyncLockFactory,
         IThreadHandling threadHandling)
     {
         this.serviceProvider = serviceProvider;
-        this.solutionBindingRepository = solutionBindingRepository;
+        this.serverConnectionsProvider = serverConnectionsProvider;
         this.threadHandling = threadHandling;
+        this.solutionBindingRepository = solutionBindingRepository;
+        this.solutionBindingRepository.BindingUpdated += BindingUpdateHandler;
         asyncLock = asyncLockFactory.Create();
-        this.connectionIdHelper = connectionIdHelper;
-
-        solutionBindingRepository.BindingUpdated += BindingUpdateHandler;
     }
 
     public void RefreshConnectionList()
@@ -79,7 +78,7 @@ internal sealed class AliveConnectionTracker : IAliveConnectionTracker
 
         using (asyncLock.Acquire())
         {
-            var serverConnections = GetUniqueConnections(solutionBindingRepository.List());
+            var serverConnections = serverConnectionsProvider.GetServerConnections();
 
             connectionConfigurationService.DidUpdateConnections(new DidUpdateConnectionsParams(
                 serverConnections.Values.OfType<SonarQubeConnectionConfigurationDto>().ToList(),
@@ -104,24 +103,6 @@ internal sealed class AliveConnectionTracker : IAliveConnectionTracker
         }).Forget();
     }
 
-    private Dictionary<string, ServerConnectionConfiguration> GetUniqueConnections(IEnumerable<BoundSonarQubeProject> bindings)
-    {
-        var connections = new Dictionary<string, ServerConnectionConfiguration>();
-
-        foreach (var binding in bindings)
-        {
-            var serverUri = binding.ServerUri;
-            var organization = binding.Organization?.Key;
-            var connectionId = connectionIdHelper.GetConnectionIdFromUri(serverUri, organization);
-
-            connections[connectionId] = serverUri == ConnectionIdHelper.SonarCloudUri
-                ? new SonarCloudConnectionConfigurationDto(connectionId, true, organization)
-                : new SonarQubeConnectionConfigurationDto(connectionId, true, serverUri.ToString());
-        }
-
-        return connections;
-    }
-    
     public void Dispose()
     {
         solutionBindingRepository.BindingUpdated -= BindingUpdateHandler;
