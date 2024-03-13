@@ -44,7 +44,7 @@ public sealed class SLCoreTestProcessRunner : IDisposable
     private StreamWriter logFileStream;
     private StreamWriter errorFileStream;
     
-    public ISLCoreJsonRpc Rpc { get; private set; }
+    internal ISLCoreJsonRpc Rpc { get; private set; }
 
 
     public SLCoreTestProcessRunner(string pathToBat, 

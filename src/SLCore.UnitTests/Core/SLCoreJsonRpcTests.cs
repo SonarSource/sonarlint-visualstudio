@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
-using SonarLint.VisualStudio.SLCore.UnitTests.Helpers;
 using StreamJsonRpc;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Core;
@@ -122,12 +120,12 @@ public class SLCoreJsonRpcTests
         clientMock.Verify(x => x.StartListening(), Times.Once);
     }
     
-    private static SLCoreJsonRpc CreateTestSubject(out Mock<IJsonRpc> clientMock,
+    private static ISLCoreJsonRpc CreateTestSubject(out Mock<IJsonRpc> clientMock,
         out TaskCompletionSource<bool> clientCompletionSource,
         IRpcMethodNameTransformer methodNameTransformer = null)
     {
-        (clientMock, clientCompletionSource) = TestJsonRpcFactory.Create();
-        return new SLCoreJsonRpc(clientMock.Object, methodNameTransformer);
+        (clientMock, clientCompletionSource) = CreateJsonRpc();
+        return new SLCoreJsonRpcFactory(methodNameTransformer).CreateSLCoreJsonRpc(clientMock.Object);
     }
 
     private static Mock<IRpcMethodNameTransformer> CreateMethodNameTransformerMock<T>(out Func<string, string> transformer)
@@ -136,6 +134,14 @@ public class SLCoreJsonRpcTests
         transformer = s => s;
         methodNameTransformerMock.Setup(x => x.Create<T>()).Returns(transformer);
         return methodNameTransformerMock;
+    }
+    
+    private static (Mock<IJsonRpc> clientMock, TaskCompletionSource<bool> clientCompletionSource) CreateJsonRpc()
+    {
+        var mock = new Mock<IJsonRpc>();
+        var tcs = new TaskCompletionSource<bool>();
+        mock.SetupGet(x => x.Completion).Returns(tcs.Task);
+        return (mock, tcs);
     }
     
     public interface ITestSLCoreService : ISLCoreService {}
