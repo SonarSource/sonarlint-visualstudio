@@ -18,28 +18,5 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Common.Models;
-
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Common;
-
-[TestClass]
-public class TokenDtoTests
-{
-    [TestMethod]
-    public void Ctor_SetsPropertiesCorrectly()
-    {
-        var token = "token123";
-
-        var testSubject = new TokenDto(token);
-
-        testSubject.token.Should().BeSameAs(token);
-    }
-    
-    [TestMethod]
-    public void Ctor_NullParameter_Throws()
-    {
-        Action act = () => new TokenDto(null);
-
-        act.Should().ThrowExactly<ArgumentNullException>();
-    }
-}
+global using System;
+global using SonarLint.VisualStudio.TestInfrastructure;

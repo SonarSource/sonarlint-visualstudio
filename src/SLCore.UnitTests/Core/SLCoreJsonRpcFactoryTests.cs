@@ -18,18 +18,35 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
+using NSubstitute;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Protocol;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Helpers;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Core;
 
-internal static class TestJsonRpcFactory
+[TestClass]
+public class SLCoreJsonRpcFactoryTests
 {
-    public static (Mock<IJsonRpc> clientMock, TaskCompletionSource<bool> clientCompletionSource) Create()
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
     {
-        var mock = new Mock<IJsonRpc>();
-        var tcs = new TaskCompletionSource<bool>();
-        mock.SetupGet(x => x.Completion).Returns(tcs.Task);
-        return (mock, tcs);
+        MefTestHelpers.CheckTypeCanBeImported<SLCoreJsonRpcFactory, ISLCoreJsonRpcFactory>(
+            MefTestHelpers.CreateExport<IRpcMethodNameTransformer>());
+    }
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton()
+    {
+        MefTestHelpers.CheckIsSingletonMefComponent<SLCoreJsonRpcFactory>();
+    }
+
+    
+    [TestMethod]
+    public void CreateSLCoreJsonRpc_ReturnsNewInstance()
+    {
+        var testSubject = new SLCoreJsonRpcFactory(Substitute.For<IRpcMethodNameTransformer>());
+        var jsonRpc = Substitute.For<IJsonRpc>();
+
+        testSubject.CreateSLCoreJsonRpc(jsonRpc).Should().NotBeSameAs(testSubject.CreateSLCoreJsonRpc(jsonRpc));
     }
 }

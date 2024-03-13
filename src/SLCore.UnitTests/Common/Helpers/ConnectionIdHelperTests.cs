@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers;
 

@@ -23,7 +23,7 @@ using System.ComponentModel.Composition;
 
 namespace SonarLint.VisualStudio.SLCore.Core
 {
-    public interface ISLCoreListenerSetUp
+    internal interface ISLCoreListenerSetUp
     {
         /// <summary>
         /// Attach all the listeners to SLCore implementation of JsonRpc.

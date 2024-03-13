@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.SLCore.Core
     /// <summary>
     /// A friendly wrapper for JsonRpc connection.
     /// </summary>
-    public interface ISLCoreJsonRpc
+    internal interface ISLCoreJsonRpc
     {
         TService CreateService<TService>() where TService : class, ISLCoreService;
 

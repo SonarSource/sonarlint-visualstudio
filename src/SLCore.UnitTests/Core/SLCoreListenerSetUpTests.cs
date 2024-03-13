@@ -19,7 +19,6 @@
  */
 
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Core
 {

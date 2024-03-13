@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
@@ -29,7 +28,6 @@ using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Connection;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.State;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.State;
 
