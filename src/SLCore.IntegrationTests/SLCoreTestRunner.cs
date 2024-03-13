@@ -53,7 +53,7 @@ public sealed class SLCoreTestRunner : IDisposable
     private string storageRoot;
     private string workDir;
     private string userHome;
-    public SLCoreServiceProvider SlCoreServiceProvider { get; private set; }
+    internal SLCoreServiceProvider SlCoreServiceProvider { get; private set; }
 
     public SLCoreTestRunner(ILogger logger, string testName)
     {

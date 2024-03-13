@@ -20,8 +20,6 @@
 
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
-using SonarLint.VisualStudio.TestInfrastructure;
-using StreamJsonRpc;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Protocol;
 

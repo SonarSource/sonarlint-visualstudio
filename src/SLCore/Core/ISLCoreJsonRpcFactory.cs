@@ -18,28 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Common.Models;
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.SLCore.Protocol;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Common;
+namespace SonarLint.VisualStudio.SLCore.Core;
 
-[TestClass]
-public class TokenDtoTests
+internal interface ISLCoreJsonRpcFactory
 {
-    [TestMethod]
-    public void Ctor_SetsPropertiesCorrectly()
+    ISLCoreJsonRpc CreateSLCoreJsonRpc(IJsonRpc jsonRpc);
+}
+
+[Export(typeof(ISLCoreJsonRpcFactory))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal class SLCoreJsonRpcFactory : ISLCoreJsonRpcFactory
+{
+    private readonly IRpcMethodNameTransformer rpcMethodNameTransformer;
+
+    [ImportingConstructor]
+    public SLCoreJsonRpcFactory(IRpcMethodNameTransformer rpcMethodNameTransformer)
     {
-        var token = "token123";
-
-        var testSubject = new TokenDto(token);
-
-        testSubject.token.Should().BeSameAs(token);
+        this.rpcMethodNameTransformer = rpcMethodNameTransformer;
     }
-    
-    [TestMethod]
-    public void Ctor_NullParameter_Throws()
-    {
-        Action act = () => new TokenDto(null);
 
-        act.Should().ThrowExactly<ArgumentNullException>();
-    }
+    public ISLCoreJsonRpc CreateSLCoreJsonRpc(IJsonRpc jsonRpc) =>
+        new SLCoreJsonRpc(jsonRpc, rpcMethodNameTransformer);
 }
