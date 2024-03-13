@@ -18,6 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Core.Process;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Vsix.SLCore;
 
-public record SLCoreLaunchParameters(string PathToExecutable, string LaunchArguments);
+namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore;
+
+[TestClass]
+public class SLCoreServiceTests
+{
+    
+}

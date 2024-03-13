@@ -18,6 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Core.Process;
+namespace SonarLint.VisualStudio.Integration.Vsix.SLCore.Configuration;
 
-public record SLCoreLaunchParameters(string PathToExecutable, string LaunchArguments);
+internal record SLCoreFolders(string StorageRoot, string WorkDir, string SonarlintUserHome);
+
+internal interface ISLCoreFoldersProvider
+{
+    SLCoreFolders GetWorkFolders();
+}

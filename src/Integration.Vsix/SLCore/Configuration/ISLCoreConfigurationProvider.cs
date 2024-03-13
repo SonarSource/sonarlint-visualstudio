@@ -18,6 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Core.Process;
+using SonarLint.VisualStudio.SLCore.Core.Process;
 
-public record SLCoreLaunchParameters(string PathToExecutable, string LaunchArguments);
+namespace SonarLint.VisualStudio.Integration.Vsix.SLCore.Configuration;
+
+internal interface ISLCoreConfigurationProvider : ISLCoreLocator,
+    ISLCoreConstantsProvider,
+    ISLCoreFoldersProvider,
+    ISLCoreEmbeddedPluginJarLocator
+{
+    // placeholder for implementation
+}

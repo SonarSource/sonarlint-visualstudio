@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.SLCore.Core.Process;
 
-internal interface ISLCoreLocator
+public interface ISLCoreLocator
 {
     SLCoreLaunchParameters LocateExecutable();
 }

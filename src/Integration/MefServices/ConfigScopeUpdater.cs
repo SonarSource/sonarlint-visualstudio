@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.Integration;
 
-internal interface IConfigScopeUpdater
+public interface IConfigScopeUpdater
 {
     void UpdateConfigScopeForCurrentSolution(BoundSonarQubeProject currentBinding);
 }
