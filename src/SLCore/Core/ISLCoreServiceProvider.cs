@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 
@@ -36,7 +35,7 @@ namespace SonarLint.VisualStudio.SLCore.Core
         bool TryGetTransientService<TService>(out TService service) where TService : class, ISLCoreService;
     }
 
-    public interface ISLCoreServiceProviderWriter
+    internal interface ISLCoreServiceProviderWriter : ISLCoreServiceProvider
     {
         /// <summary>
         /// Resets the state with a new <see cref="ISLCoreJsonRpc"/> instance and clears the cache
@@ -47,7 +46,7 @@ namespace SonarLint.VisualStudio.SLCore.Core
     [Export(typeof(ISLCoreServiceProvider))]
     [Export(typeof(ISLCoreServiceProviderWriter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class SLCoreServiceProvider : ISLCoreServiceProvider, ISLCoreServiceProviderWriter
+    internal class SLCoreServiceProvider : ISLCoreServiceProviderWriter
     {
 
         private readonly Dictionary<Type, object> cache = new Dictionary<Type, object>();
