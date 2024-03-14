@@ -283,9 +283,11 @@
   </ItemGroup>
 
   <ItemGroup Label="Sloop Dependencies">
-    <Content Include="$(MSBuildThisFileDirectory)$(JarsFolderName)\*.jar">
+    <Content Include="$(JarsFolderName)\*.jar">
       <IncludeInVSIX>True</IncludeInVSIX>
-      <VSIXSubPath>$(JarsFolderName)</VSIXSubPath>
+    </Content>
+    <Content Include="$(SloopFolderName)\**\*">
+      <IncludeInVSIX>True</IncludeInVSIX>
     </Content>
   </ItemGroup>
 
@@ -395,6 +397,7 @@
 
     <CFamilyFolderName>lib</CFamilyFolderName>
     <JarsFolderName>DownloadedJars</JarsFolderName>
+    <SloopFolderName>Sloop</SloopFolderName>
 
     <!-- Folder the embedded files should be copied to. This folder should be excluded from source code control. -->
     <CFamilyTargetDirectory>$(MSBuildThisFileDirectory)$(CFamilyFolderName)</CFamilyTargetDirectory>
