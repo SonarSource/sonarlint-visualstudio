@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ClearExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Vsix.SLCore;
@@ -92,7 +93,8 @@ public class SLCoreHandleTests
             jarLocator,
             activeSolutionBoundTracker,
             out var lifecycleManagement,
-            out var telemetryService);
+            out var telemetryService,
+            out _);
 
         await testSubject.InitializeAsync();
 
@@ -131,6 +133,93 @@ public class SLCoreHandleTests
         });
     }
 
+    [TestMethod]
+    public async Task Dispose_Initialized_ShutsDownAndDisposesRpc()
+    {
+        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
+            out var constantsProvider,
+            out var foldersProvider,
+            out var connectionsProvider,
+            out var jarLocator,
+            out var activeSolutionBoundTracker,
+            out _,
+            out var threadHandling);
+
+        SetUpSuccessfulInitialization(slCoreRpcFactory,
+            constantsProvider,
+            foldersProvider,
+            connectionsProvider,
+            jarLocator,
+            activeSolutionBoundTracker,
+            out var lifecycleManagement,
+            out _,
+            out var rpc);
+        await testSubject.InitializeAsync();
+
+        var serviceProvider = rpc.ServiceProvider;
+        serviceProvider.ClearReceivedCalls();
+        testSubject.Dispose();
+        
+        
+        serviceProvider.Received().TryGetTransientService(out Arg.Any<ILifecycleManagementSLCoreService>());
+        threadHandling.ReceivedWithAnyArgs().Run(() => Task.FromResult(0));
+        lifecycleManagement.Received().ShutdownAsync();
+        rpc.Received().Dispose();
+    }
+    
+    [TestMethod]
+    public async Task Dispose_ConnectionDied_DisposesRpc()
+    {
+        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
+            out var constantsProvider,
+            out var foldersProvider,
+            out var connectionsProvider,
+            out var jarLocator,
+            out var activeSolutionBoundTracker,
+            out _,
+            out var threadHandling);
+
+        SetUpSuccessfulInitialization(slCoreRpcFactory,
+            constantsProvider,
+            foldersProvider,
+            connectionsProvider,
+            jarLocator,
+            activeSolutionBoundTracker,
+            out var lifecycleManagement,
+            out _,
+            out var rpc);
+        await testSubject.InitializeAsync();
+
+        var slCoreServiceProvider = rpc.ServiceProvider;
+        slCoreServiceProvider.ClearSubstitute();
+        slCoreServiceProvider.ClearReceivedCalls();
+        slCoreServiceProvider.TryGetTransientService(out Arg.Any<AnySLCoreService>()).Returns(false);
+        testSubject.Dispose();
+        
+        slCoreServiceProvider.ReceivedWithAnyArgs().TryGetTransientService(out Arg.Any<ILifecycleManagementSLCoreService>());
+        rpc.Received().Dispose();
+        threadHandling.DidNotReceiveWithAnyArgs().Run(() => Task.FromResult(0));
+        lifecycleManagement.DidNotReceive().ShutdownAsync();
+    }
+    
+    [TestMethod]
+    public void Dispose_NotInitialized_DoesNothing()
+    {
+        var testSubject = CreateTestSubject(out _,
+            out _,
+            out _,
+            out _,
+            out _,
+            out _,
+            out _,
+            out var threadHandling);
+        
+        var act = () => testSubject.Dispose();
+
+        act.Should().NotThrow();
+        threadHandling.DidNotReceiveWithAnyArgs().Run(() => Task.FromResult(0));
+    }
+
     private void SetUpSuccessfulInitialization(ISLCoreRpcFactory slCoreRpcFactory,
         ISLCoreConstantsProvider constantsProvider,
         ISLCoreFoldersProvider foldersProvider,
@@ -138,9 +227,10 @@ public class SLCoreHandleTests
         ISLCoreEmbeddedPluginJarLocator jarLocator,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         out ILifecycleManagementSLCoreService lifecycleManagement,
-        out ITelemetrySLCoreService telemetry)
+        out ITelemetrySLCoreService telemetry,
+        out ISLCoreRpc rpc)
     {
-        SetUpSLCoreRpcFactory(slCoreRpcFactory, out var rpc);
+        SetUpSLCoreRpcFactory(slCoreRpcFactory, out rpc);
         SetUpSLCoreRpc(rpc, out var serviceProvider);
         SetUpSLCoreServiceProvider(serviceProvider, out lifecycleManagement, out telemetry);
         constantsProvider.ClientConstants.Returns(ClientConstants);
