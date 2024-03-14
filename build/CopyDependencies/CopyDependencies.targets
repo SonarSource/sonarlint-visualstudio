@@ -4,16 +4,21 @@
   <Target Name="Build">
     <CallTarget Targets="ClearDirs" />
     <CallTarget Targets="CopyJars" />
+    <CallTarget Targets="CopySloop" />
   </Target>
 
   <PropertyGroup>
+    <VsixDir>..\..\src\Integration.Vsix</VsixDir>
     <JarDownloadDir>$(LOCALAPPDATA)\SLVS_Build_DownloadedJars</JarDownloadDir>
-    <EmbeddedJarDir>..\..\src\Integration.Vsix\DownloadedJars</EmbeddedJarDir>
+    <EmbeddedJarDir>$(VsixDir)\DownloadedJars</EmbeddedJarDir>
+    <SloopDowloadDir>$(LOCALAPPDATA)\SLVS_Build_SLOOP\sonarlint-backend-cli-$(EmbeddedSloopVersion)-windows_x64</SloopDowloadDir>
+    <EmbeddedSloopDir>$(VsixDir)\Sloop</EmbeddedSloopDir>
   </PropertyGroup>
   
   
   <Target Name="ClearDirs">
     <RemoveDir Directories="$(EmbeddedJarDir)" />
+    <RemoveDir Directories="$(EmbeddedSloopDir)" />
   </Target>
 
   <Target Name="CopyJars">
@@ -25,5 +30,13 @@
       <SourceJars Include="$(JarDownloadDir)\sonar-text-plugin-$(EmbeddedSonarSecretsJarVersion).jar" />
     </ItemGroup>
     <Copy SourceFiles ="@(SourceJars)" DestinationFolder="$(EmbeddedJarDir)" />
+  </Target>
+
+  <Target Name="CopySloop">
+    <ItemGroup>
+      <SloopSource Include="$(SloopDowloadDir)\**\*.*"/>
+    </ItemGroup>
+    <Message Text="$(SloopDowloadDir)\**\*" Importance="high" />
+    <Copy SourceFiles="@(SloopSource)" DestinationFolder="$(EmbeddedSloopDir)\%(RecursiveDir)" />
   </Target>
 </Project>
