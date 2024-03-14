@@ -35,7 +35,7 @@ using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SLCore;
 
-internal class SLCoreService : IDisposable
+internal sealed class SLCoreHandle : IDisposable
 {
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly ISLCoreRpcFactory slCoreRpcFactory;
@@ -48,23 +48,21 @@ internal class SLCoreService : IDisposable
     private ISLCoreRpc slCoreRpc;
 
 
-    public SLCoreService(ISLCoreRpcFactory slCoreRpcFactory, ISLCoreConstantsProvider constantsProvider, ISLCoreFoldersProvider slCoreFoldersProvider,
+    public SLCoreHandle(ISLCoreRpcFactory slCoreRpcFactory, ISLCoreConstantsProvider constantsProvider, ISLCoreFoldersProvider slCoreFoldersProvider,
         IServerConnectionsProvider serverConnectionConfigurationProvider, ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
         IActiveSolutionBoundTracker activeSolutionBoundTracker, IConfigScopeUpdater configScopeUpdater, IThreadHandling threadHandling)
     {
-        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.slCoreRpcFactory = slCoreRpcFactory;
-        this.serverConnectionConfigurationProvider = serverConnectionConfigurationProvider;
-        this.configScopeUpdater = configScopeUpdater;
         this.constantsProvider = constantsProvider;
         this.slCoreFoldersProvider = slCoreFoldersProvider;
+        this.serverConnectionConfigurationProvider = serverConnectionConfigurationProvider;
         this.slCoreEmbeddedPluginJarProvider = slCoreEmbeddedPluginJarProvider;
+        this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+        this.configScopeUpdater = configScopeUpdater;
         this.threadHandling = threadHandling;
     }
 
-    public Task ShutdownTask => slCoreRpc.ShutdownTask;
-
-    public async Task Initialize()
+    public async Task InitializeAsync()
     {
         threadHandling.ThrowIfOnUIThread();
         
@@ -73,7 +71,7 @@ internal class SLCoreService : IDisposable
         if (!slCoreRpc.ServiceProvider.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService) ||
             !slCoreRpc.ServiceProvider.TryGetTransientService(out ITelemetrySLCoreService telemetrySlCoreService))
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized);
         }
 
         var serverConnectionConfigurations = serverConnectionConfigurationProvider.GetServerConnections();

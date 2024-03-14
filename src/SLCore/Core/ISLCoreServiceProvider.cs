@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.SLCore.Core
                     }
                     catch (Exception ex)
                     {
-                        logger.WriteLine(Strings.SLCoreServiceProvider_CreateServiceError, ex.Message);
+                        logger.WriteLine(SLCoreStrings.SLCoreServiceProvider_CreateServiceError, ex.Message);
                         return false;
                     }
                     cache.Add(serviceType, cachedService);
