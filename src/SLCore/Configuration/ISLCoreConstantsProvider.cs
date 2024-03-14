@@ -20,7 +20,7 @@
 
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.SLCore.Configuration;
+namespace SonarLint.VisualStudio.SLCore.Configuration;
 
 internal interface ISLCoreConstantsProvider
 {

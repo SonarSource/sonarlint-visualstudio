@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
+namespace SonarLint.VisualStudio.SLCore.Configuration;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.SLCore.Configuration;
-
-internal interface ISLCoreEmbeddedPluginJarLocator
-{
-    List<string> ListJarFiles();
-}
+public record SLCoreLaunchParameters(string PathToExecutable, string LaunchArguments);

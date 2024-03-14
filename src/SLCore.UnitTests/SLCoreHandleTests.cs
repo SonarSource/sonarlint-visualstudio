@@ -18,29 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ClearExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Vsix.SLCore;
-using SonarLint.VisualStudio.Integration.Vsix.SLCore.Configuration;
-using SonarLint.VisualStudio.SLCore;
+using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry;
 using SonarLint.VisualStudio.SLCore.State;
-using SonarLint.VisualStudio.TestInfrastructure;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore;
+namespace SonarLint.VisualStudio.SLCore.UnitTests;
 
 [TestClass]
 public class SLCoreHandleTests

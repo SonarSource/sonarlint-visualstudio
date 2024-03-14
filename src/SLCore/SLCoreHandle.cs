@@ -24,8 +24,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Vsix.SLCore.Configuration;
-using SonarLint.VisualStudio.SLCore;
+using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
@@ -33,7 +32,7 @@ using SonarLint.VisualStudio.SLCore.Service.Telemetry;
 using SonarLint.VisualStudio.SLCore.State;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.SLCore;
+namespace SonarLint.VisualStudio.SLCore;
 
 internal sealed class SLCoreHandle : IDisposable
 {

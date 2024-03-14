@@ -24,14 +24,8 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
-using SonarLint.VisualStudio.SLCore.State;
 
-namespace SonarLint.VisualStudio.Integration;
-
-public interface IConfigScopeUpdater
-{
-    void UpdateConfigScopeForCurrentSolution(BoundSonarQubeProject currentBinding);
-}
+namespace SonarLint.VisualStudio.SLCore.State;
 
 [Export(typeof(IConfigScopeUpdater))]
 [PartCreationPolicy(CreationPolicy.Shared)]
@@ -56,13 +50,13 @@ internal class ConfigScopeUpdater : IConfigScopeUpdater
         var solutionName = solutionInfoProvider.GetSolutionName();
 
         threadHandling.RunOnBackgroundThread(() =>
-            {
-                HandleConfigScopeUpdateInternal(solutionName,
-                    connectionIdHelper.GetConnectionIdFromUri(currentBinding?.ServerUri,
-                        currentBinding?.Organization?.Key),
-                    currentBinding?.ProjectKey);
-                return Task.FromResult(0);
-            }).Forget();
+        {
+            HandleConfigScopeUpdateInternal(solutionName,
+                connectionIdHelper.GetConnectionIdFromUri(currentBinding?.ServerUri,
+                    currentBinding?.Organization?.Key),
+                currentBinding?.ProjectKey);
+            return Task.FromResult(0);
+        }).Forget();
     }
 
     private void HandleConfigScopeUpdateInternal(string solutionName, string connectionId, string projectKey)

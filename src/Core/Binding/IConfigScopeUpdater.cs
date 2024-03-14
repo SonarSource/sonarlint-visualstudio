@@ -18,6 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Core.Process;
+namespace SonarLint.VisualStudio.Core.Binding;
 
-public record SLCoreLaunchParameters(string PathToExecutable, string LaunchArguments);
+/// <summary>
+/// Updates current active configuration scope of SLCore
+/// </summary>
+public interface IConfigScopeUpdater
+{
+    void UpdateConfigScopeForCurrentSolution(BoundSonarQubeProject currentBinding);
+}
