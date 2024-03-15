@@ -73,7 +73,7 @@ internal sealed class AliveConnectionTracker : IAliveConnectionTracker
 
         if (!serviceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService connectionConfigurationService))
         {
-            throw new InvalidOperationException(Strings.ServiceProviderNotInitialized);
+            throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized);
         }
 
         using (asyncLock.Acquire())

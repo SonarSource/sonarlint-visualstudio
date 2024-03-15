@@ -116,7 +116,7 @@ public class ActiveConfigScopeTrackerTests
 
         var act = () => testSubject.SetCurrentConfigScope("id");
 
-        act.Should().ThrowExactly<InvalidOperationException>().WithMessage(Strings.ServiceProviderNotInitialized);
+        act.Should().ThrowExactly<InvalidOperationException>().WithMessage(SLCoreStrings.ServiceProviderNotInitialized);
         VerifyThreadHandling(threadHandling);
     }
 
@@ -147,7 +147,7 @@ public class ActiveConfigScopeTrackerTests
 
         var act = () => testSubject.RemoveCurrentConfigScope();
 
-        act.Should().ThrowExactly<InvalidOperationException>().WithMessage(Strings.ServiceProviderNotInitialized);
+        act.Should().ThrowExactly<InvalidOperationException>().WithMessage(SLCoreStrings.ServiceProviderNotInitialized);
         VerifyThreadHandling(threadHandling);
     }
     
