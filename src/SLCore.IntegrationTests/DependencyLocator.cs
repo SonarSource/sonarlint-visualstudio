@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 public class DependencyLocator // this might be reused in the product code in the future
 {
     public static List<string> AnalyzerPlugins { get; private set; }
-    public static string Sloop { get; private set; }
+    public static string SloopBatPath { get; private set; }
 
     static DependencyLocator()
     {
@@ -71,7 +71,7 @@ public class DependencyLocator // this might be reused in the product code in th
             throw new InvalidOperationException($"Can't locate SLOOP {sloopVersion}");
         }
 
-        Sloop = sloopPath;
+        SloopBatPath = sloopPath;
     }
 
     private static string GetAnalyzerPath(string analyzerFileName, string analyzerVersion, string[] analyzerJars)

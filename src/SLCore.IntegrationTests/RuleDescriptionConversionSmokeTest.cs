@@ -44,13 +44,13 @@ public class RuleDescriptionConversionSmokeTest
         var testLogger = new TestLogger();
         using var slCoreTestRunner = new SLCoreTestRunner(testLogger, TestContext.TestName);
         slCoreTestRunner.AddListener(new LoggerListener(testLogger));
+        await slCoreTestRunner.Start();
+
+        var ruleHelpXamlBuilder = CreateRuleHelpXamlBuilder();
         var activeConfigScopeTracker = CreateActiveConfigScopeTracker(slCoreTestRunner);
         var slCoreRuleMetaDataProvider = CreateSlCoreRuleMetaDataProvider(slCoreTestRunner, activeConfigScopeTracker, testLogger);
-        var ruleHelpXamlBuilder = CreateRuleHelpXamlBuilder();
-
-        await slCoreTestRunner.Start();
         activeConfigScopeTracker.SetCurrentConfigScope(configScope);
-        slCoreTestRunner.SlCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesSlCoreService).Should().BeTrue();
+        slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesSlCoreService).Should().BeTrue();
 
         // no hotspots are returned from ListAllStandaloneRulesDefinitionsAsync
         var ruleDescriptions = await GetAllRuleDescriptions(await rulesSlCoreService.ListAllStandaloneRulesDefinitionsAsync(), slCoreRuleMetaDataProvider);
@@ -125,12 +125,12 @@ public class RuleDescriptionConversionSmokeTest
 
     private static SLCoreRuleMetaDataProvider CreateSlCoreRuleMetaDataProvider(SLCoreTestRunner slCoreTestRunner,
         IActiveConfigScopeTracker activeConfigScopeTracker, ILogger testLogger) =>
-        new(slCoreTestRunner.SlCoreServiceProvider,
+        new(slCoreTestRunner.SLCoreServiceProvider,
             activeConfigScopeTracker,
             testLogger);
 
     private static ActiveConfigScopeTracker CreateActiveConfigScopeTracker(SLCoreTestRunner slCoreTestRunner) =>
-        new(slCoreTestRunner.SlCoreServiceProvider,
+        new(slCoreTestRunner.SLCoreServiceProvider,
             new AsyncLockFactory(),
             new NoOpThreadHandler());
 

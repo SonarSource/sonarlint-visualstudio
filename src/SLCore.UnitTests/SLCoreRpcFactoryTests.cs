@@ -72,7 +72,6 @@ public class SLCoreRpcFactoryTests
             slCoreJsonRpcFactory.CreateSLCoreJsonRpc(jsonRpc);
             slCoreServiceProviderWriter.SetCurrentConnection(slCoreJsonRpc);
             slCoreListenerSetUp.Setup(slCoreJsonRpc);
-            slCoreJsonRpc.StartListening();
         });
     }
 

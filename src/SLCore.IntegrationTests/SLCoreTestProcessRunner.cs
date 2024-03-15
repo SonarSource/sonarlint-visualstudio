@@ -19,88 +19,104 @@
  */
 
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Core.Process;
-using SonarLint.VisualStudio.SLCore.Protocol;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
-[ExcludeFromCodeCoverage]
-public sealed class SLCoreTestProcessRunner : IDisposable
+class SLCoreTestProcessFactory : ISLCoreProcessFactory
 {
-    private readonly string rpcLogFilePath;
-    private readonly string stdErrLogFilePath;
+    private readonly string stdErrLogPath;
+    private readonly string rpcLogPath;
     private readonly bool enableVerboseLogs;
-    private readonly bool enableAutoFlush;
-    private readonly ISLCoreProcessFactory slCoreProcessFactory = new SLCoreProcessFactory();
-    private readonly SLCoreLaunchParameters launchParameters;
-    private ISLCoreProcess process;
-    private readonly CancellationTokenSource cancellationTokenSource = new();
-    private JsonRpcWrapper jsonRpcWrapper;
-    private StreamWriter logFileStream;
-    private StreamWriter errorFileStream;
-    
-    internal ISLCoreJsonRpc Rpc { get; private set; }
+    private readonly ISLCoreProcessFactory slCoreProcessFactory;
 
-
-    public SLCoreTestProcessRunner(string pathToBat, 
-        string rpcLogFilePath = null, 
-        string stdErrLogFilePath = null, 
-        bool enableVerboseLogs = false,
-        bool enableAutoFlush = false)
+    public SLCoreTestProcessFactory(ISLCoreProcessFactory slCoreProcessFactory, string stdErrLogPath = null, string rpcLogPath = null, bool enableVerboseLogs = false)
     {
-        launchParameters = new SLCoreLaunchParameters("cmd.exe", $"/c {pathToBat}");
-        this.rpcLogFilePath = rpcLogFilePath;
-        this.stdErrLogFilePath = stdErrLogFilePath;
+        this.slCoreProcessFactory = slCoreProcessFactory;
+        this.stdErrLogPath = stdErrLogPath;
+        this.rpcLogPath = rpcLogPath;
         this.enableVerboseLogs = enableVerboseLogs;
-        this.enableAutoFlush = enableAutoFlush;
+        
+    }
+    
+    public ISLCoreProcess StartNewProcess(SLCoreLaunchParameters slCoreLaunchParameters)
+    {
+        var slCoreTestProcess = new SLCoreTestProcess(slCoreProcessFactory.StartNewProcess(slCoreLaunchParameters), stdErrLogPath, rpcLogPath, enableVerboseLogs);
+        return slCoreTestProcess;
+    }
+}
+
+class SLCoreTestProcess : ISLCoreProcess
+{
+    private readonly string stdErrLogPath;
+    private readonly bool enableVerboseLogs;
+    private readonly ISLCoreProcess slCoreProcess;
+    private readonly StreamWriter logFileStream;
+    private readonly CancellationTokenSource errorLogReaderCancellation = new CancellationTokenSource();
+    private StreamWriter errorFileStream;
+
+    public SLCoreTestProcess(ISLCoreProcess slCoreProcess, 
+        string stdErrLogPath = null,
+        string rpcLogFilePath = null,
+        bool enableVerboseLogs = false)
+    {
+        this.slCoreProcess = slCoreProcess;
+        this.stdErrLogPath = stdErrLogPath;
+        this.enableVerboseLogs = enableVerboseLogs;
+
+        
+        if (!string.IsNullOrEmpty(rpcLogFilePath))
+        {
+            logFileStream = new StreamWriter(File.OpenWrite(rpcLogFilePath));
+            logFileStream.AutoFlush = true;
+        }
+
+        Task.Run(ReadErrorLog);
+    }
+    
+    public void Dispose()
+    {
+        slCoreProcess.Dispose();
+        errorLogReaderCancellation.Cancel();
+        errorLogReaderCancellation.Dispose();
+        errorFileStream.Dispose();
     }
 
-    public void Start()
+    public StreamReader ErrorStreamReader => slCoreProcess?.ErrorStreamReader;
+    
+    public IJsonRpc AttachJsonRpc()
     {
-        process = slCoreProcessFactory.StartNewProcess(launchParameters);
-        jsonRpcWrapper = (JsonRpcWrapper)process.AttachJsonRpc();
-        
-        SetUpLogging();
+        var jsonRpc = slCoreProcess.AttachJsonRpc();
+
+        var jsonRpcWrapper = jsonRpc as JsonRpcWrapper;
         
         jsonRpcWrapper.TraceSource.Switch.Level = enableVerboseLogs ? SourceLevels.Verbose : SourceLevels.Warning;
         jsonRpcWrapper.TraceSource.Listeners.Add(logFileStream == null ? new ConsoleTraceListener() : new TextWriterTraceListener(logFileStream));
 
-        Rpc = new SLCoreJsonRpc(jsonRpcWrapper, new RpcMethodNameTransformer());
+        return jsonRpc;
     }
-
-    private void SetUpLogging()
-    {
-        if (!string.IsNullOrEmpty(rpcLogFilePath))
-        {
-            logFileStream = new StreamWriter(File.OpenWrite(rpcLogFilePath));
-            logFileStream.AutoFlush = enableAutoFlush;
-        }
-
-        Task.Run(ReadErrorLog).Forget();
-    }
-
+    
     private void ReadErrorLog()
     {
-        var token = cancellationTokenSource.Token;
-        var fileLoggingEnabled = stdErrLogFilePath != null;
+        var token = errorLogReaderCancellation.Token;
+        var fileLoggingEnabled = stdErrLogPath != null;
         var prefix = fileLoggingEnabled ? string.Empty : "ERR: ";
-        errorFileStream = fileLoggingEnabled ? new StreamWriter(File.OpenWrite(stdErrLogFilePath)){AutoFlush = enableAutoFlush} : null;
-
-
+        errorFileStream = fileLoggingEnabled ? new StreamWriter(File.OpenWrite(stdErrLogPath)){AutoFlush = true} : null;
+    
+    
         while (!token.IsCancellationRequested)
         {
-            var line = process.ErrorStreamReader.ReadLine();
+            var line = ErrorStreamReader.ReadLine();
             if (string.IsNullOrEmpty(line)) // potential problem here if it returns too often?
             {
                 continue;
             }
-
+    
             if (fileLoggingEnabled)
             {
                 errorFileStream.WriteLine(line);
@@ -110,15 +126,5 @@ public sealed class SLCoreTestProcessRunner : IDisposable
                 Console.WriteLine(prefix + line);
             }
         }
-    }
-
-    public void Dispose()
-    {
-        cancellationTokenSource?.Cancel();
-        cancellationTokenSource?.Dispose();
-        jsonRpcWrapper?.Dispose();
-        process?.Dispose();
-        logFileStream?.Dispose();
-        errorFileStream?.Dispose();
     }
 }
