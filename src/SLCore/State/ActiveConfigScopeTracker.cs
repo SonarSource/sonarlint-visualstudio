@@ -94,7 +94,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         
         if (!serviceProvider.TryGetTransientService(out IConfigurationScopeSLCoreService configurationScopeService))
         {
-            throw new InvalidOperationException(Strings.ServiceProviderNotInitialized);
+            throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized);
         }
 
         var configurationScopeDto = new ConfigurationScopeDto(id,
@@ -126,7 +126,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         
         if (!serviceProvider.TryGetTransientService(out IConfigurationScopeSLCoreService configurationScopeService))
         {
-            throw new InvalidOperationException(Strings.ServiceProviderNotInitialized);
+            throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized);
         }
 
         using (asyncLock.Acquire())

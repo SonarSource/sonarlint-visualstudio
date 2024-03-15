@@ -18,19 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-using SonarLint.VisualStudio.SLCore.Configuration;
+using System.Collections.Generic;
 
-namespace SonarLint.VisualStudio.SLCore.Core.Process;
+namespace SonarLint.VisualStudio.SLCore.Configuration;
 
-[Export(typeof(ISLCoreProcessFactory))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-internal class SLCoreProcessFactory : ISLCoreProcessFactory
+internal interface ISLCoreEmbeddedPluginJarLocator
 {
-    [ExcludeFromCodeCoverage]   
-    public ISLCoreProcess StartNewProcess(SLCoreLaunchParameters slCoreLaunchParameters)
-    {
-        return new SLCoreProcess(slCoreLaunchParameters);
-    }
+    List<string> ListJarFiles();
 }

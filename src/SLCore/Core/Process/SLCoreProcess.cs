@@ -21,6 +21,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using SonarLint.VisualStudio.SLCore.Configuration;
 
 namespace SonarLint.VisualStudio.SLCore.Core.Process;
 
