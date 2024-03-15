@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
@@ -34,7 +35,12 @@ using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.SLCore;
 
-internal sealed class SLCoreHandle : IDisposable
+public interface ISLCoreHandle : IDisposable
+{
+    Task InitializeAsync();
+}
+
+internal sealed class SLCoreHandle : ISLCoreHandle
 {
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly ISLCoreRpcFactory slCoreRpcFactory;
@@ -44,10 +50,10 @@ internal sealed class SLCoreHandle : IDisposable
     private readonly ISLCoreFoldersProvider slCoreFoldersProvider;
     private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
     private readonly IThreadHandling threadHandling;
-    private ISLCoreRpc slCoreRpc;
+    public ISLCoreRpc SLCoreRpc { get; private set; }
 
 
-    public SLCoreHandle(ISLCoreRpcFactory slCoreRpcFactory, ISLCoreConstantsProvider constantsProvider, ISLCoreFoldersProvider slCoreFoldersProvider,
+    internal SLCoreHandle(ISLCoreRpcFactory slCoreRpcFactory, ISLCoreConstantsProvider constantsProvider, ISLCoreFoldersProvider slCoreFoldersProvider,
         IServerConnectionsProvider serverConnectionConfigurationProvider, ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
         IActiveSolutionBoundTracker activeSolutionBoundTracker, IConfigScopeUpdater configScopeUpdater, IThreadHandling threadHandling)
     {
@@ -65,10 +71,10 @@ internal sealed class SLCoreHandle : IDisposable
     {
         threadHandling.ThrowIfOnUIThread();
         
-        slCoreRpc = slCoreRpcFactory.StartNewRpcInstance();
+        SLCoreRpc = slCoreRpcFactory.StartNewRpcInstance();
 
-        if (!slCoreRpc.ServiceProvider.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService) ||
-            !slCoreRpc.ServiceProvider.TryGetTransientService(out ITelemetrySLCoreService telemetrySlCoreService))
+        if (!SLCoreRpc.ServiceProvider.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService) ||
+            !SLCoreRpc.ServiceProvider.TryGetTransientService(out ITelemetrySLCoreService telemetrySlCoreService))
         {
             throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized);
         }
@@ -111,7 +117,7 @@ internal sealed class SLCoreHandle : IDisposable
 
     public void Dispose()
     {
-        if (slCoreRpc?.ServiceProvider?.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService) ?? false)
+        if (SLCoreRpc?.ServiceProvider?.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService) ?? false)
         {
             threadHandling.Run(async () =>
             {
@@ -120,6 +126,6 @@ internal sealed class SLCoreHandle : IDisposable
             });
         }
 
-        slCoreRpc?.Dispose();
+        SLCoreRpc?.Dispose();
     }
 }
