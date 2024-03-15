@@ -24,11 +24,3 @@ public interface ISLCoreLocator
 {
     SLCoreLaunchParameters LocateExecutable();
 }
-
-internal class SLCoreLocator : ISLCoreLocator
-{
-    public SLCoreLaunchParameters LocateExecutable()
-    {
-        throw new System.NotImplementedException();
-    }
-}

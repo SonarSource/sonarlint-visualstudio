@@ -18,39 +18,33 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using System.IO.Abstractions;
-using NSubstitute;
-using SonarLint.VisualStudio.SLCore.Configuration;
+using SonarLint.VisualStudio.Integration.Vsix.SLCore;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Configuration
+namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
 {
-    [TestClass]
-    public class VsixRootLocatorTests
+    public interface IVsixRootLocator
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
+        string GetVsixRoot();
+    }
+
+    [Export(typeof(IVsixRootLocator))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class VsixRootLocator : IVsixRootLocator
+    {
+        private readonly IFileSystem fileSystem;
+
+        [ImportingConstructor]
+        public VsixRootLocator() : this(new FileSystem())
         {
-            MefTestHelpers.CheckTypeCanBeImported<VsixRootLocator, IVsixRootLocator>();
         }
 
-        [TestMethod]
-        public void MefCtor_CheckIsSingleton()
+        internal /*For Testing*/ VsixRootLocator(IFileSystem fileSystem)
         {
-            MefTestHelpers.CheckIsSingletonMefComponent<VsixRootLocator>();
+            this.fileSystem = fileSystem;
         }
 
-        [TestMethod]
-        public void GetVsixRoot_ReturnsCorrectPath()
-        {
-            var path = Substitute.For<IPath>();
-            path.GetDirectoryName(Arg.Any<string>()).Returns("C:\\SomePath");
-
-            var fileSystem = Substitute.For<IFileSystem>();
-            fileSystem.Path.Returns(path);
-
-            var testSubject = new VsixRootLocator(fileSystem);
-
-            testSubject.GetVsixRoot().Should().Be("C:\\SomePath");
-        }
+        public string GetVsixRoot() => fileSystem.Path.GetDirectoryName(typeof(SLCoreLocator).Assembly.Location);
     }
 }

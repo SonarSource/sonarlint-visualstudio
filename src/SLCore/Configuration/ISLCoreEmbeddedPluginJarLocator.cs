@@ -22,7 +22,7 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.SLCore.Configuration;
 
-internal interface ISLCoreEmbeddedPluginJarLocator
+public interface ISLCoreEmbeddedPluginJarLocator
 {
     List<string> ListJarFiles();
 }
