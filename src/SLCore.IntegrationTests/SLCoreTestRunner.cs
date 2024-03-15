@@ -19,110 +19,100 @@
  */
 
 using System.IO;
+using NSubstitute;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Core.Process;
+using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
-using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
-using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
-using SonarLint.VisualStudio.SLCore.Service.Telemetry;
-using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
+using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 public sealed class SLCoreTestRunner : IDisposable
 {
-    private SLCoreTestProcessRunner processRunner;
-    private ILogger logger;
-    private List<ISLCoreListener> listenersToSetUp = new();
-    private readonly ClientConstantsDto defaultClientConstants = new("TEST", "TEST");
-    private readonly TelemetryClientConstantAttributesDto defaultTelemetryAttributes = new("TEST", "TEST", "TEST", "TEST", new Dictionary<string, object>());
-    private readonly List<Language> defaultEnabledLanguages = new()
-    {
-        Language.C,
-        Language.CPP,
-        Language.CS,
-        Language.VBNET,
-        Language.JS,
-        Language.TS,
-        Language.CSS,
-        Language.SECRETS,
-    };
-
+    private readonly ILogger logger;
+    private readonly List<ISLCoreListener> listenersToSetUp = new();
     private string privateFolder;
     private string storageRoot;
     private string workDir;
     private string userHome;
-    internal SLCoreServiceProvider SlCoreServiceProvider { get; private set; }
+    private readonly SLCoreTestProcessFactory slCoreTestProcessFactory;
+    private SLCoreHandle slCoreHandle;
+    internal ISLCoreServiceProvider SLCoreServiceProvider => slCoreHandle?.SLCoreRpc?.ServiceProvider;
 
     public SLCoreTestRunner(ILogger logger, string testName)
     {
         this.logger = logger;
-        
+
         SetUpLocalFolders(testName);
-        
-        processRunner = new SLCoreTestProcessRunner(DependencyLocator.Sloop,
-            Path.Combine(privateFolder, "logrpc.txt"),
-            Path.Combine(privateFolder, "logstderr.txt"), 
-            true,
-            true);
-        
-        SlCoreServiceProvider = new SLCoreServiceProvider(new NoOpThreadHandler(), logger);
+
+        slCoreTestProcessFactory = new SLCoreTestProcessFactory(new SLCoreProcessFactory(),
+            Path.Combine(privateFolder, "logstderr.txt"),
+            Path.Combine(privateFolder, "logrpc.txt"));
     }
 
     public void AddListener(ISLCoreListener listener)
     {
+        if (slCoreHandle is not null)
+        {
+            throw new InvalidOperationException("Listening already started");
+        }
         listenersToSetUp.Add(listener);
     }
 
     public async Task Start()
     {
-        processRunner.Start();
-        
-        SlCoreServiceProvider.SetCurrentConnection(processRunner.Rpc);
-        var slCoreListenerSetUp = new SLCoreListenerSetUp(listenersToSetUp);
-        slCoreListenerSetUp.Setup(processRunner.Rpc);
+        var slCoreLocator = Substitute.For<ISLCoreLocator>();
+        slCoreLocator.LocateExecutable().Returns(new SLCoreLaunchParameters("cmd.exe", $"/c {DependencyLocator.SloopBatPath}"));
 
-        if (!SlCoreServiceProvider.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService) || !SlCoreServiceProvider.TryGetTransientService(out ITelemetrySLCoreService telemetrySlCoreService))
-        {
-            throw new InvalidOperationException("Can't start SLOOP");
-        }
+        var constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
+        constantsProvider.ClientConstants.Returns(new ClientConstantsDto("SLVS_Integration_Tests",
+            $"SLVS_Integration_Tests/{VersionHelper.SonarLintVersion}"));
+        constantsProvider.FeatureFlags.Returns(new FeatureFlagsDto(true, true, false, true, false, false, true));
+        constantsProvider.TelemetryConstants.Returns(new TelemetryClientConstantAttributesDto("slvs_integration_tests", "SLVS Integration Tests",
+            VersionHelper.SonarLintVersion, "16.0", new()));
 
-        await lifecycleManagementSlCoreService.InitializeAsync(
-            new InitializeParams(
-                defaultClientConstants,
-                new HttpConfigurationDto(new SslConfigurationDto()),
-                new FeatureFlagsDto(true, true, false, true, false, false, true),
-                storageRoot,
-                workDir,
-                DependencyLocator.AnalyzerPlugins,
-                new Dictionary<string, string>(),
-                defaultEnabledLanguages,
-                new List<Language>(),
-                new List<SonarQubeConnectionConfigurationDto>(),
-                new List<SonarCloudConnectionConfigurationDto>(),
-                userHome,
-                new Dictionary<string, StandaloneRuleConfigDto>(),
-                false,
-                defaultTelemetryAttributes,
-                null));
-        
-        telemetrySlCoreService.DisableTelemetry();
+        var foldersProvider = Substitute.For<ISLCoreFoldersProvider>();
+        foldersProvider.GetWorkFolders().Returns(new SLCoreFolders(storageRoot, workDir, userHome));
+
+        var connectionProvider = Substitute.For<IServerConnectionsProvider>();
+        connectionProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfiguration>());
+
+        var jarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
+        jarProvider.ListJarFiles().Returns(DependencyLocator.AnalyzerPlugins);
+
+        var noOpActiveSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+        noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
+        var noOpConfigScopeUpdater = Substitute.For<IConfigScopeUpdater>();
+
+        slCoreHandle = new SLCoreHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
+                new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
+                new SLCoreServiceProvider(new NoOpThreadHandler(), logger),
+                new SLCoreListenerSetUp(listenersToSetUp)),
+            constantsProvider,
+            foldersProvider,
+            connectionProvider,
+            jarProvider,
+            noOpActiveSolutionBoundTracker,
+            noOpConfigScopeUpdater,
+            new NoOpThreadHandler());
+        await slCoreHandle.InitializeAsync();
     }
 
     public void Dispose()
     {
-        if (SlCoreServiceProvider?.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService) ?? false)
-        {
-            lifecycleManagementSlCoreService.ShutdownAsync().GetAwaiter().GetResult();
-        }
-        
-        processRunner?.Dispose();
+        slCoreHandle.Dispose();
     }
-    
+
     private void SetUpLocalFolders(string testName)
     {
-        privateFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "slcore", testName); // add unique identifier to prevent override between tests?
+        privateFolder =
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "slcore", testName); // add unique identifier to prevent override between tests?
         storageRoot = Path.Combine(privateFolder, "storageRoot");
         workDir = Path.Combine(privateFolder, "workDir");
         userHome = Path.Combine(privateFolder, "userHome");
@@ -137,6 +127,4 @@ public sealed class SLCoreTestRunner : IDisposable
         Directory.CreateDirectory(workDir);
         Directory.CreateDirectory(userHome);
     }
-
-    
 }

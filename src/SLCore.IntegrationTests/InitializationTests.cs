@@ -62,7 +62,7 @@ public class InitializationTests
             slCoreTestRunner.AddListener(analysisListener);
             await slCoreTestRunner.Start();
 
-            var activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SlCoreServiceProvider,
+            var activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
                 new AsyncLockFactory(),
                 new NoOpThreadHandler());
 
