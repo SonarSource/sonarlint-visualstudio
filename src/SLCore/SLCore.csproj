@@ -21,17 +21,17 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Compile Update="Strings.Designer.cs">
+    <Compile Update="SLCoreStrings.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>Strings.resx</DependentUpon>
+      <DependentUpon>SLCoreStrings.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   
   <ItemGroup>
-    <EmbeddedResource Update="Strings.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    <EmbeddedResource Update="SLCoreStrings.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>SLCoreStrings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

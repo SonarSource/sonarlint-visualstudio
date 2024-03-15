@@ -21,12 +21,13 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Core.Process;
 
 namespace SonarLint.VisualStudio.SLCore;
 
-public interface ISLCoreRpcFactory
+internal interface ISLCoreRpcFactory
 {
     ISLCoreRpc StartNewRpcInstance();
 }

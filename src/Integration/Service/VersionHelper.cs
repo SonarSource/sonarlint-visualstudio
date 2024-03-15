@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Service
 {
-    internal static class VersionHelper
+    public static class VersionHelper
     {
         private const char PrereleaseSeparator = '-';
 

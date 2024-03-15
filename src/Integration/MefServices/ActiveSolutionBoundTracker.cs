@@ -27,7 +27,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.State;
-using SonarLint.VisualStudio.SLCore.Core;
 using SonarQube.Client;
 using Task = System.Threading.Tasks.Task;
 

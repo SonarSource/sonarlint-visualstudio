@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
 namespace SonarLint.VisualStudio.SLCore.State;
 
-internal interface IServerConnectionsProvider
+public interface IServerConnectionsProvider
 {
     Dictionary<string, ServerConnectionConfiguration> GetServerConnections();
 }

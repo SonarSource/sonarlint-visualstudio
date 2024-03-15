@@ -18,13 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
+using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Binding
+namespace SonarLint.VisualStudio.SLCore.Configuration;
+
+internal interface ISLCoreConstantsProvider
 {
-    public interface IServerConnectionConfigurationProvider
-    {
-        IEnumerable<ServerConnectionConfiguration> GetServerConnectionConfiguration();
-    }
+    ClientConstantsDto ClientConstants { get; }
+    FeatureFlagsDto FeatureFlags { get; }
+    TelemetryClientConstantAttributesDto TelemetryConstants { get; }
 }

@@ -140,7 +140,7 @@ public class AliveConnectionTrackerTests
 
         var act = () => testSubject.RefreshConnectionList();
 
-        act.Should().ThrowExactly<InvalidOperationException>().WithMessage(Strings.ServiceProviderNotInitialized);
+        act.Should().ThrowExactly<InvalidOperationException>().WithMessage(SLCoreStrings.ServiceProviderNotInitialized);
     }
 
     [TestMethod]
