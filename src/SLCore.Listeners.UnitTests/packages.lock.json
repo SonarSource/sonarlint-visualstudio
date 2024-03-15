@@ -1565,7 +1565,6 @@
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
           "SonarLint.VisualStudio.Progress": "[1.0.0, )",
           "SonarLint.VisualStudio.ProgressVS": "[1.0.0, )",
-          "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )",
           "StrongNamer": "[0.0.8, )",
           "System.IO.Abstractions": "[9.0.4, )"
