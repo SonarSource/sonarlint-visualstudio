@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
@@ -34,7 +35,12 @@ using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.SLCore;
 
-internal sealed class SLCoreHandle : IDisposable
+public interface ISLCoreHandle : IDisposable
+{
+    Task InitializeAsync();
+}
+
+internal sealed class SLCoreHandle : ISLCoreHandle
 {
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly ISLCoreRpcFactory slCoreRpcFactory;
@@ -47,7 +53,7 @@ internal sealed class SLCoreHandle : IDisposable
     public ISLCoreRpc SLCoreRpc { get; private set; }
 
 
-    public SLCoreHandle(ISLCoreRpcFactory slCoreRpcFactory, ISLCoreConstantsProvider constantsProvider, ISLCoreFoldersProvider slCoreFoldersProvider,
+    internal SLCoreHandle(ISLCoreRpcFactory slCoreRpcFactory, ISLCoreConstantsProvider constantsProvider, ISLCoreFoldersProvider slCoreFoldersProvider,
         IServerConnectionsProvider serverConnectionConfigurationProvider, ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
         IActiveSolutionBoundTracker activeSolutionBoundTracker, IConfigScopeUpdater configScopeUpdater, IThreadHandling threadHandling)
     {
