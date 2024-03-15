@@ -18,17 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Configuration;
+using System.ComponentModel.Composition;
+using System.IO.Abstractions;
 
-public interface ISLCoreLocator
+namespace SonarLint.VisualStudio.SLCore.Configuration
 {
-    SLCoreLaunchParameters LocateExecutable();
-}
-
-internal class SLCoreLocator : ISLCoreLocator
-{
-    public SLCoreLaunchParameters LocateExecutable()
+    public interface IVsixRootLocator
     {
-        throw new System.NotImplementedException();
+        string GetVsixRoot();
+    }
+
+    [Export(typeof(IVsixRootLocator))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class VsixRootLocator : IVsixRootLocator
+    {
+        private readonly IFileSystem fileSystem;
+
+        [ImportingConstructor]
+        public VsixRootLocator() : this(new FileSystem())
+        {
+        }
+
+        internal /*For Testing*/ VsixRootLocator(IFileSystem fileSystem)
+        {
+            this.fileSystem = fileSystem;
+        }
+
+        public string GetVsixRoot() => fileSystem.Path.GetDirectoryName(typeof(SLCoreLocator).Assembly.Location);
     }
 }
