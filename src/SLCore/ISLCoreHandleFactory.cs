@@ -32,7 +32,8 @@ public interface ISLCoreHandleFactory
     ISLCoreHandle CreateInstance();
 }
 
-[Export]
+[Export(typeof(ISLCoreHandleFactory))]
+[PartCreationPolicy(CreationPolicy.Shared)]
 internal class SLCoreHandleFactory : ISLCoreHandleFactory
 {
     private readonly ISLCoreRpcFactory slCoreRpcFactory;
