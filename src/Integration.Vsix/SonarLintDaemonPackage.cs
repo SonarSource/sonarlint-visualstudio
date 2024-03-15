@@ -24,10 +24,11 @@ using System.Threading;
 using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Core;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.CFamily.PreCompiledHeaders;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
-
+using SonarLint.VisualStudio.SLCore;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -61,6 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private ILogger logger;
         private IPreCompiledHeadersEventListener cFamilyPreCompiledHeadersEventListener;
+        private ISLCoreHandle slCoreHandle;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -95,6 +97,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 cFamilyPreCompiledHeadersEventListener = await this.GetMefServiceAsync<IPreCompiledHeadersEventListener>();
 
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
+
+                var slCoreHandleFactory = await this.GetMefServiceAsync<ISLCoreHandleFactory>();
+                var threadHandling = await this.GetMefServiceAsync<IThreadHandling>();
+                slCoreHandle = slCoreHandleFactory.CreateInstance();
+
+                threadHandling.RunOnBackgroundThread(async () =>
+                    {
+                        await slCoreHandle.InitializeAsync();
+                        return 0;
+                    })
+                    .Forget();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -111,6 +124,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 cFamilyPreCompiledHeadersEventListener?.Dispose();
                 cFamilyPreCompiledHeadersEventListener = null;
+                slCoreHandle?.Dispose();
+                slCoreHandle = null;
             }
         }
 
