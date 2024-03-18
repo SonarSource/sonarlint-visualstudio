@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-
-namespace SonarLint.VisualStudio.SLCore.Configuration;
-
-public interface ISLCoreEmbeddedPluginJarLocator
-{
-    List<string> ListJarFiles();
-}
+global using FluentAssertions;
+global using Microsoft.VisualStudio.TestTools.UnitTesting;
+global using Moq;
+global using NSubstitute;
+global using SonarLint.VisualStudio.TestInfrastructure;
