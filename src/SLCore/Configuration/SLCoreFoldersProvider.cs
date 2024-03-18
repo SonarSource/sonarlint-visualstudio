@@ -18,12 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Configuration;
+using System;
+using System.ComponentModel.Composition;
+using System.IO;
 
-internal interface ISLCoreConfigurationProvider : ISLCoreLocator,
-    ISLCoreConstantsProvider,
-    ISLCoreFoldersProvider,
-    ISLCoreEmbeddedPluginJarLocator
+namespace SonarLint.VisualStudio.SLCore.Configuration
 {
-    // placeholder for implementation
+    [Export(typeof(ISLCoreFoldersProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class SLCoreFoldersProvider : ISLCoreFoldersProvider
+    {
+        private const string storageRoot = "storageRoot";
+        private const string workDir = "workDir";
+
+        public SLCoreFolders GetWorkFolders()
+        {
+            //Other ide's pass userHome as null so we comply this behaviour
+            return new SLCoreFolders(CombinePath(storageRoot), CombinePath(workDir), null);
+        }
+
+        private string CombinePath(string path)
+        {
+            return Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), "SLVS_SLOOP", path);
+        }
+    }
 }

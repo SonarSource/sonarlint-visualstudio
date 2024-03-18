@@ -18,13 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Configuration;
-
-public interface ISLCoreConstantsProvider
+namespace SonarLint.VisualStudio.SLCore.Configuration
 {
-    ClientConstantsDto ClientConstants { get; }
-    FeatureFlagsDto FeatureFlags { get; }
-    TelemetryClientConstantAttributesDto TelemetryConstants { get; }
+    [Export(typeof(ISLCoreConstantsProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    public class SLCoreConstantsProvider : ISLCoreConstantsProvider
+    {
+        public ClientConstantsDto ClientConstants => new ClientConstantsDto("SonarLint for Visual Studio", $"Visual Studio - {VisualStudioHelpers.VisualStudioVersion}");
+
+        public FeatureFlagsDto FeatureFlags => new FeatureFlagsDto(true, true, false, true, false, false, true);
+
+        //We do not support telemetry now
+        public TelemetryClientConstantAttributesDto TelemetryConstants => new TelemetryClientConstantAttributesDto(default, default, default, default, default);
+    }
 }
