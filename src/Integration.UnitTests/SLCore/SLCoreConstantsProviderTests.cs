@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
         [TestMethod]
         public void TelemetryConstants_ShouldBeExpected()
         {
-            var expectedTelemetryConstants = new TelemetryClientConstantAttributesDto("SLVS", "SonarLint For Visual Studio", default, default, default);
+            var expectedTelemetryConstants = new TelemetryClientConstantAttributesDto("SLVS_SHOULD_NOT_SEND_TELEMETRY", default, default, default, default);
             var result = testSubject.TelemetryConstants;
 
             result.Should().BeEquivalentTo(expectedTelemetryConstants);

@@ -33,6 +33,6 @@ namespace SonarLint.VisualStudio.SLCore.Configuration
         public FeatureFlagsDto FeatureFlags => new FeatureFlagsDto(true, true, false, true, false, false, true);
 
         //We do not support telemetry now
-        public TelemetryClientConstantAttributesDto TelemetryConstants => new TelemetryClientConstantAttributesDto("SLVS", "SonarLint For Visual Studio", default, default, default);
+        public TelemetryClientConstantAttributesDto TelemetryConstants => new TelemetryClientConstantAttributesDto("SLVS_SHOULD_NOT_SEND_TELEMETRY", default, default, default, default);
     }
 }
