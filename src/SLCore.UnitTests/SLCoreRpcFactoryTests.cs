@@ -35,6 +35,7 @@ public class SLCoreRpcFactoryTests
             MefTestHelpers.CreateExport<ISLCoreProcessFactory>(),
             MefTestHelpers.CreateExport<ISLCoreLocator>(),
             MefTestHelpers.CreateExport<ISLCoreJsonRpcFactory>(),
+            MefTestHelpers.CreateExport<IRpcDebugger>(),
             MefTestHelpers.CreateExport<ISLCoreServiceProviderWriter>(),
             MefTestHelpers.CreateExport<ISLCoreListenerSetUp>());
     }
