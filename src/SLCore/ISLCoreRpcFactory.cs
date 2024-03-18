@@ -39,6 +39,7 @@ internal class SLCoreRpcFactory : ISLCoreRpcFactory
     private readonly ISLCoreProcessFactory slCoreProcessFactory;
     private readonly ISLCoreLocator slCoreLocator;
     private readonly ISLCoreJsonRpcFactory slCoreJsonRpcFactory;
+    private readonly IRpcDebugger rpcDebugger;
     private readonly ISLCoreServiceProviderWriter slCoreServiceProvider;
     private readonly ISLCoreListenerSetUp slCoreListenerSetUp;
 
@@ -46,12 +47,14 @@ internal class SLCoreRpcFactory : ISLCoreRpcFactory
     public SLCoreRpcFactory(ISLCoreProcessFactory slCoreProcessFactory,
         ISLCoreLocator slCoreLocator,
         ISLCoreJsonRpcFactory slCoreJsonRpcFactory,
+        IRpcDebugger rpcDebugger,
         ISLCoreServiceProviderWriter slCoreServiceProvider,
         ISLCoreListenerSetUp slCoreListenerSetUp)
     {
         this.slCoreProcessFactory = slCoreProcessFactory;
         this.slCoreLocator = slCoreLocator;
         this.slCoreJsonRpcFactory = slCoreJsonRpcFactory;
+        this.rpcDebugger = rpcDebugger;
         this.slCoreServiceProvider = slCoreServiceProvider;
         this.slCoreListenerSetUp = slCoreListenerSetUp;
     }
@@ -59,6 +62,7 @@ internal class SLCoreRpcFactory : ISLCoreRpcFactory
     public ISLCoreRpc StartNewRpcInstance() =>
         new SlCoreRpc(slCoreProcessFactory.StartNewProcess(slCoreLocator.LocateExecutable()),
             slCoreJsonRpcFactory,
+            rpcDebugger,
             slCoreServiceProvider,
             slCoreListenerSetUp);
 }
@@ -79,11 +83,12 @@ internal sealed class SlCoreRpc : ISLCoreRpc
 
     public SlCoreRpc(ISLCoreProcess slCoreProcess,
         ISLCoreJsonRpcFactory slCoreJsonRpcFactory,
+        IRpcDebugger rpcDebugger,
         ISLCoreServiceProviderWriter slCoreServiceProvider,
         ISLCoreListenerSetUp listenerSetUp)
     {
         this.slCoreProcess = slCoreProcess;
-        var jsonRpc = this.slCoreProcess.AttachJsonRpc();
+        var jsonRpc = this.slCoreProcess.AttachJsonRpc(rpcDebugger);
         var slCoreJsonRpc = slCoreJsonRpcFactory.CreateSLCoreJsonRpc(jsonRpc);
         slCoreServiceProvider.SetCurrentConnection(slCoreJsonRpc);
         listenerSetUp.Setup(slCoreJsonRpc);

@@ -51,12 +51,14 @@ public class SLCoreRpcFactoryTests
         var testSubject = CreateTestSubject(out var slCoreProcessFactory, 
             out var slCoreLocator,
             out var slCoreJsonRpcFactory,
+            out var rpcDebugger,
             out var slCoreServiceProviderWriter,
             out var slCoreListenerSetUp);
 
         SetUpDependencies(slCoreLocator,
             slCoreProcessFactory,
             slCoreJsonRpcFactory,
+            rpcDebugger,
             out var slCoreLaunchParameters,
             out var slCoreProcess,
             out var jsonRpc,
@@ -68,7 +70,7 @@ public class SLCoreRpcFactoryTests
         {
             slCoreLocator.LocateExecutable();
             slCoreProcessFactory.StartNewProcess(slCoreLaunchParameters);
-            slCoreProcess.AttachJsonRpc();
+            slCoreProcess.AttachJsonRpc(rpcDebugger);
             slCoreJsonRpcFactory.CreateSLCoreJsonRpc(jsonRpc);
             slCoreServiceProviderWriter.SetCurrentConnection(slCoreJsonRpc);
             slCoreListenerSetUp.Setup(slCoreJsonRpc);
@@ -81,12 +83,14 @@ public class SLCoreRpcFactoryTests
         var testSubject = CreateTestSubject(out var slCoreProcessFactory, 
             out var slCoreLocator,
             out var slCoreJsonRpcFactory,
+            out var rpcDebugger,
             out _,
             out _);
 
         SetUpDependencies(slCoreLocator,
             slCoreProcessFactory,
             slCoreJsonRpcFactory,
+            rpcDebugger,
             out _,
             out var slCoreProcess,
             out _,
@@ -100,8 +104,9 @@ public class SLCoreRpcFactoryTests
 
     private static void SetUpDependencies(ISLCoreLocator slCoreLocator,
         ISLCoreProcessFactory slCoreProcessFactory,
-        ISLCoreJsonRpcFactory slCoreJsonRpcFactory, 
-        out SLCoreLaunchParameters slCoreLaunchParameters, 
+        ISLCoreJsonRpcFactory slCoreJsonRpcFactory,
+        IRpcDebugger rpcDebugger,
+        out SLCoreLaunchParameters slCoreLaunchParameters,
         out ISLCoreProcess slCoreProcess,
         out IJsonRpc jsonRpc,
         out ISLCoreJsonRpc slCoreJsonRpc)
@@ -111,7 +116,7 @@ public class SLCoreRpcFactoryTests
         slCoreProcess = Substitute.For<ISLCoreProcess>();
         slCoreProcessFactory.StartNewProcess(slCoreLaunchParameters).Returns(slCoreProcess);
         jsonRpc = Substitute.For<IJsonRpc>();
-        slCoreProcess.AttachJsonRpc().Returns(jsonRpc);
+        slCoreProcess.AttachJsonRpc(rpcDebugger).Returns(jsonRpc);
         slCoreJsonRpc = Substitute.For<ISLCoreJsonRpc>();
         slCoreJsonRpcFactory.CreateSLCoreJsonRpc(jsonRpc).Returns(slCoreJsonRpc);
     }
@@ -119,14 +124,16 @@ public class SLCoreRpcFactoryTests
     private static SLCoreRpcFactory CreateTestSubject(out ISLCoreProcessFactory slCoreProcessFactory, 
         out ISLCoreLocator slCoreLocator,
         out ISLCoreJsonRpcFactory slCoreJsonRpcFactory,
+        out IRpcDebugger rpcDebugger,
         out ISLCoreServiceProviderWriter slCoreServiceProviderWriter,
         out ISLCoreListenerSetUp slCoreListenerSetUp)
     {
         slCoreProcessFactory = Substitute.For<ISLCoreProcessFactory>();
         slCoreLocator = Substitute.For<ISLCoreLocator>();
         slCoreJsonRpcFactory = Substitute.For<ISLCoreJsonRpcFactory>();
+        rpcDebugger = Substitute.For<IRpcDebugger>();
         slCoreServiceProviderWriter = Substitute.For<ISLCoreServiceProviderWriter>();
         slCoreListenerSetUp = Substitute.For<ISLCoreListenerSetUp>();
-        return new SLCoreRpcFactory(slCoreProcessFactory, slCoreLocator, slCoreJsonRpcFactory, slCoreServiceProviderWriter, slCoreListenerSetUp);
+        return new SLCoreRpcFactory(slCoreProcessFactory, slCoreLocator, slCoreJsonRpcFactory, rpcDebugger, slCoreServiceProviderWriter, slCoreListenerSetUp);
     }
 }

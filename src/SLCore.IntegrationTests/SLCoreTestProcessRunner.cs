@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Core.Process;
@@ -31,22 +29,18 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 class SLCoreTestProcessFactory : ISLCoreProcessFactory
 {
     private readonly string stdErrLogPath;
-    private readonly string rpcLogPath;
-    private readonly bool enableVerboseLogs;
     private readonly ISLCoreProcessFactory slCoreProcessFactory;
 
-    public SLCoreTestProcessFactory(ISLCoreProcessFactory slCoreProcessFactory, string stdErrLogPath = null, string rpcLogPath = null, bool enableVerboseLogs = false)
+    public SLCoreTestProcessFactory(ISLCoreProcessFactory slCoreProcessFactory, string stdErrLogPath = null)
     {
         this.slCoreProcessFactory = slCoreProcessFactory;
         this.stdErrLogPath = stdErrLogPath;
-        this.rpcLogPath = rpcLogPath;
-        this.enableVerboseLogs = enableVerboseLogs;
         
     }
     
     public ISLCoreProcess StartNewProcess(SLCoreLaunchParameters slCoreLaunchParameters)
     {
-        var slCoreTestProcess = new SLCoreTestProcess(slCoreProcessFactory.StartNewProcess(slCoreLaunchParameters), stdErrLogPath, rpcLogPath, enableVerboseLogs);
+        var slCoreTestProcess = new SLCoreTestProcess(slCoreProcessFactory.StartNewProcess(slCoreLaunchParameters), stdErrLogPath);
         return slCoreTestProcess;
     }
 }
@@ -54,27 +48,17 @@ class SLCoreTestProcessFactory : ISLCoreProcessFactory
 class SLCoreTestProcess : ISLCoreProcess
 {
     private readonly string stdErrLogPath;
-    private readonly bool enableVerboseLogs;
     private readonly ISLCoreProcess slCoreProcess;
     private readonly StreamWriter logFileStream;
     private readonly CancellationTokenSource errorLogReaderCancellation = new CancellationTokenSource();
     private StreamWriter errorFileStream;
 
     public SLCoreTestProcess(ISLCoreProcess slCoreProcess, 
-        string stdErrLogPath = null,
-        string rpcLogFilePath = null,
-        bool enableVerboseLogs = false)
+        string stdErrLogPath = null)
     {
         this.slCoreProcess = slCoreProcess;
         this.stdErrLogPath = stdErrLogPath;
-        this.enableVerboseLogs = enableVerboseLogs;
-
         
-        if (!string.IsNullOrEmpty(rpcLogFilePath))
-        {
-            logFileStream = new StreamWriter(File.OpenWrite(rpcLogFilePath));
-            logFileStream.AutoFlush = true;
-        }
 
         Task.Run(ReadErrorLog);
     }
@@ -88,17 +72,9 @@ class SLCoreTestProcess : ISLCoreProcess
     }
 
     public StreamReader ErrorStreamReader => slCoreProcess?.ErrorStreamReader;
-    
-    public IJsonRpc AttachJsonRpc()
+    public IJsonRpc AttachJsonRpc(IRpcDebugger rpcDebugger)
     {
-        var jsonRpc = slCoreProcess.AttachJsonRpc();
-
-        var jsonRpcWrapper = jsonRpc as JsonRpcWrapper;
-        
-        jsonRpcWrapper.TraceSource.Switch.Level = enableVerboseLogs ? SourceLevels.Verbose : SourceLevels.Warning;
-        jsonRpcWrapper.TraceSource.Listeners.Add(logFileStream == null ? new ConsoleTraceListener() : new TextWriterTraceListener(logFileStream));
-
-        return jsonRpc;
+        return slCoreProcess.AttachJsonRpc(rpcDebugger);
     }
     
     private void ReadErrorLog()

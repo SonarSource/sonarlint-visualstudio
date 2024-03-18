@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
@@ -37,6 +38,8 @@ namespace SonarLint.VisualStudio.SLCore.Core
         void StartListening();
         
         Task Completion { get; }
+        
+        TraceSource TraceSource { get; }
     }
     
     /// <summary>
@@ -47,6 +50,7 @@ namespace SonarLint.VisualStudio.SLCore.Core
     {
         public JsonRpcWrapper(Stream sendingStream, Stream receivingStream) : base(sendingStream, receivingStream)
         {
+            TraceSource.Listeners.Clear(); // we don't want tracing unless IRpcDebugger is enabled
         }
     }
 }
