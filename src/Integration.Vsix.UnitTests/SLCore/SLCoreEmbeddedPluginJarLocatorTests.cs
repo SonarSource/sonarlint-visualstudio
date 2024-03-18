@@ -77,10 +77,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             var result = testSubject.ListJarFiles();
 
             result.Should().HaveCount(4);
-            result[0].Should().Be("File1");
-            result[1].Should().Be("File2");
-            result[2].Should().Be("File3");
-            result[3].Should().Be("File4");
+            result.Should().HaveElementAt(0, "File1");
+            result.Should().HaveElementAt(1, "File2");
+            result.Should().HaveElementAt(2, "File3");
+            result.Should().HaveElementAt(3, "File4");
         }
 
         private IFileSystem CreateFileSystem(bool exists, params string[] files)
