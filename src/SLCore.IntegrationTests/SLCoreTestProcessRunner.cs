@@ -49,7 +49,6 @@ class SLCoreTestProcess : ISLCoreProcess
 {
     private readonly string stdErrLogPath;
     private readonly ISLCoreProcess slCoreProcess;
-    private readonly StreamWriter logFileStream;
     private readonly CancellationTokenSource errorLogReaderCancellation = new CancellationTokenSource();
     private StreamWriter errorFileStream;
 
