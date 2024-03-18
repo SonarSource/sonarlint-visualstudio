@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
             string pathToBat = Path.Combine(vsixRootLocator.GetVsixRoot(), BatSubPath);
 
             //This will be changed later to jre call
-            return new SLCoreLaunchParameters("cmd.exe", $"/c {pathToBat}");
+            return new SLCoreLaunchParameters("cmd.exe", $"/c \"{pathToBat}\"");
         }
     }
 }

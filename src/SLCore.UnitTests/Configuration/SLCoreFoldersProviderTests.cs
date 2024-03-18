@@ -18,40 +18,39 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Integration.Vsix.Helpers;
-using SonarLint.VisualStudio.Integration.Vsix.SLCore;
+using System.IO;
 using SonarLint.VisualStudio.SLCore.Configuration;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Configuration
 {
     [TestClass]
-    public class SLCoreLocatorTests
+    public class SLCoreFoldersProviderTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<SLCoreLocator, ISLCoreLocator>(MefTestHelpers.CreateExport<IVsixRootLocator>());
+            MefTestHelpers.CheckTypeCanBeImported<SLCoreFoldersProvider, ISLCoreFoldersProvider>();
         }
 
         [TestMethod]
         public void MefCtor_CheckIsSingleton()
         {
-            MefTestHelpers.CheckIsSingletonMefComponent<SLCoreLocator>();
+            MefTestHelpers.CheckIsSingletonMefComponent<SLCoreFoldersProvider>();
         }
 
         [TestMethod]
-        public void LocateExecutable_ReturnsLaunchParameters()
+        public void GetWorkFolders_ShouldReturnFolders()
         {
-            var vsixRootLocator = Substitute.For<IVsixRootLocator>();
-            vsixRootLocator.GetVsixRoot().Returns("C:\\SomePath");
+            var expectedWorkDir = Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), "SLVS_SLOOP\\workDir");
+            var expectedStorageRoot = Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), "SLVS_SLOOP\\storageRoot");
 
-            var testSubject = new SLCoreLocator(vsixRootLocator);
+            var testSubject = new SLCoreFoldersProvider();
 
-            var result = testSubject.LocateExecutable();
+            var result = testSubject.GetWorkFolders();
 
-            result.Should().NotBeNull();
-            result.PathToExecutable.Should().Be("cmd.exe");
-            result.LaunchArguments.Should().Be("/c \"C:\\SomePath\\Sloop\\bin\\sonarlint-backend.bat\"");
+            result.WorkDir.Should().Be(expectedWorkDir);
+            result.StorageRoot.Should().Be(expectedStorageRoot);
+            result.SonarlintUserHome.Should().BeNull();
         }
     }
 }
