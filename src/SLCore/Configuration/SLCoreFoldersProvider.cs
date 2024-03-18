@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.SLCore.Configuration
 
         private string CombinePath(string path)
         {
-            return Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), "SLVS_SLOOP", path);
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SLVS_SLOOP", path);
         }
     }
 }

@@ -19,7 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Configuration
@@ -28,11 +28,11 @@ namespace SonarLint.VisualStudio.SLCore.Configuration
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class SLCoreConstantsProvider : ISLCoreConstantsProvider
     {
-        public ClientConstantsDto ClientConstants => new ClientConstantsDto("SonarLint for Visual Studio", $"Visual Studio - {VisualStudioHelpers.VisualStudioVersion}");
+        public ClientConstantsDto ClientConstants => new ClientConstantsDto("SonarLint for Visual Studio", $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}");
 
         public FeatureFlagsDto FeatureFlags => new FeatureFlagsDto(true, true, false, true, false, false, true);
 
         //We do not support telemetry now
-        public TelemetryClientConstantAttributesDto TelemetryConstants => new TelemetryClientConstantAttributesDto(default, default, default, default, default);
+        public TelemetryClientConstantAttributesDto TelemetryConstants => new TelemetryClientConstantAttributesDto("SLVS", "SonarLint For Visual Studio", default, default, default);
     }
 }

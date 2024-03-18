@@ -20,6 +20,7 @@
 
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -52,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
         [TestMethod]
         public void ClientConstants_ShouldBeExpected()
         {
-            var expectedClientConstants = new ClientConstantsDto("SonarLint for Visual Studio", $"Visual Studio - {VisualStudioHelpers.VisualStudioVersion}");
+            var expectedClientConstants = new ClientConstantsDto("SonarLint for Visual Studio", $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}");
             var result = testSubject.ClientConstants;
 
             result.Should().BeEquivalentTo(expectedClientConstants);
@@ -70,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
         [TestMethod]
         public void TelemetryConstants_ShouldBeExpected()
         {
-            var expectedTelemetryConstants = new TelemetryClientConstantAttributesDto(default, default, default, default, default);
+            var expectedTelemetryConstants = new TelemetryClientConstantAttributesDto("SLVS", "SonarLint For Visual Studio", default, default, default);
             var result = testSubject.TelemetryConstants;
 
             result.Should().BeEquivalentTo(expectedTelemetryConstants);
