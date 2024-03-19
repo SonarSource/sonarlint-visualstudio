@@ -40,6 +40,7 @@ internal class SLCoreRpcFactory : ISLCoreRpcFactory
     private readonly ISLCoreLocator slCoreLocator;
     private readonly ISLCoreJsonRpcFactory slCoreJsonRpcFactory;
     private readonly IRpcDebugger rpcDebugger;
+    private readonly ISLCoreErrorLogger slCoreErrorLogger;
     private readonly ISLCoreServiceProviderWriter slCoreServiceProvider;
     private readonly ISLCoreListenerSetUp slCoreListenerSetUp;
 
@@ -77,7 +78,6 @@ public interface ISLCoreRpc : IDisposable
 internal sealed class SlCoreRpc : ISLCoreRpc
 {
     private readonly ISLCoreProcess slCoreProcess;
-    
     public ISLCoreServiceProvider ServiceProvider { get; set; }
     public Task ShutdownTask { get; set; }
 
@@ -101,4 +101,4 @@ internal sealed class SlCoreRpc : ISLCoreRpc
     {
         slCoreProcess.Dispose();
     }
-} 
+}
