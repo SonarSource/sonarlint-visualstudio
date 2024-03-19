@@ -54,9 +54,12 @@ internal sealed class SLCoreProcess : ISLCoreProcess
         Process.Dispose();
     }
     
-    public IJsonRpc AttachJsonRpc()
+    public IJsonRpc AttachJsonRpc(IRpcDebugger rpcDebugger)
     {
         var jsonRpcWrapper = new JsonRpcWrapper(Process.StandardInput.BaseStream, Process.StandardOutput.BaseStream);
+
+        rpcDebugger.SetUpDebugger(jsonRpcWrapper);
+        
         return jsonRpcWrapper;
     }
 }
