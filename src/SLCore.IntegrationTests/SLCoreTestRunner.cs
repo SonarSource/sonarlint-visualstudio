@@ -51,9 +51,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
         SetUpLocalFolders(testName);
 
-        slCoreTestProcessFactory = new SLCoreTestProcessFactory(new SLCoreProcessFactory(),
-            Path.Combine(privateFolder, "logstderr.txt"),
-            Path.Combine(privateFolder, "logrpc.txt"));
+        slCoreTestProcessFactory = new SLCoreTestProcessFactory(new SLCoreProcessFactory(), Path.Combine(privateFolder, "logstderr.txt"));
     }
 
     public void AddListener(ISLCoreListener listener)
@@ -92,6 +90,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
         slCoreHandle = new SLCoreHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
                 new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
+                new RpcDebugger { LogFilePath = Path.Combine(privateFolder, "logrpc.txt") },
                 new SLCoreServiceProvider(new NoOpThreadHandler(), logger),
                 new SLCoreListenerSetUp(listenersToSetUp)),
             constantsProvider,
@@ -111,8 +110,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
     private void SetUpLocalFolders(string testName)
     {
-        privateFolder =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "slcore", testName); // add unique identifier to prevent override between tests?
+        privateFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "slcore", testName);
         storageRoot = Path.Combine(privateFolder, "storageRoot");
         workDir = Path.Combine(privateFolder, "workDir");
         userHome = Path.Combine(privateFolder, "userHome");
