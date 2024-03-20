@@ -138,6 +138,21 @@ public class ActiveConfigScopeTrackerTests
     }
     
     [TestMethod]
+    public void RemoveCurrentConfigScope_NoCurrentScope_DoesNothing()
+    {
+        var threadHandling = new Mock<IThreadHandling>();
+        ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
+        ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
+        var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
+        
+        testSubject.RemoveCurrentConfigScope();
+        
+        configScopeService.VerifyNoOtherCalls();
+        VerifyThreadHandling(threadHandling);
+        VerifyLockTakenSynchronouslyAndReleased(asyncLock, lockRelease);
+    }
+    
+    [TestMethod]
     public void RemoveCurrentConfigScope_ServiceUnavailable_Throws()
     {
         var threadHandling = new Mock<IThreadHandling>();
