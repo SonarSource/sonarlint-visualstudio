@@ -36,7 +36,7 @@ public interface IRpcDebugger
 internal class RpcDebugger : IRpcDebugger
 {
     private readonly IFileSystem fileSystem;
-    private string logFilePath;
+    private readonly string logFilePath;
 
     [ImportingConstructor]
     public RpcDebugger() : this(new FileSystem(), DateTime.Now)
