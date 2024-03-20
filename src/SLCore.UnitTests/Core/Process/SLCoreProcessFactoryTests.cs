@@ -28,7 +28,8 @@ public class SLCoreProcessFactoryTests
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<SLCoreProcessFactory, ISLCoreProcessFactory>();
+        MefTestHelpers.CheckTypeCanBeImported<SLCoreProcessFactory, ISLCoreProcessFactory>(
+            MefTestHelpers.CreateExport<ISLCoreErrorLoggerFactory>());
     }
 
     [TestMethod]
@@ -36,5 +37,4 @@ public class SLCoreProcessFactoryTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<SLCoreProcessFactory>();
     }
-
 }

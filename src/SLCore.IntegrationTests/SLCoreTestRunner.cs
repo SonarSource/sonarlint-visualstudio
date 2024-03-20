@@ -47,15 +47,13 @@ public sealed class SLCoreTestRunner : IDisposable
     private SLCoreHandle slCoreHandle;
     internal ISLCoreServiceProvider SLCoreServiceProvider => slCoreHandle?.SLCoreRpc?.ServiceProvider;
 
-    public SLCoreTestRunner(ILogger logger, string testName) : this(logger, logger, testName){ }
-    
     public SLCoreTestRunner(ILogger logger, ILogger slCoreErrorLogger, string testName)
     {
         this.logger = logger;
 
         SetUpLocalFolders(testName);
 
-        slCoreTestProcessFactory = new SLCoreProcessFactory(new ISlCoreErrorLoggerFactory(slCoreErrorLogger, new NoOpThreadHandler()));
+        slCoreTestProcessFactory = new SLCoreProcessFactory(new SLCoreErrorLoggerFactory(slCoreErrorLogger, new NoOpThreadHandler()));
     }
 
     public void AddListener(ISLCoreListener listener)

@@ -26,7 +26,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.SLCore;
+namespace SonarLint.VisualStudio.SLCore.Core.Process;
 
 internal interface ISLCoreErrorLoggerFactory
 {
@@ -39,12 +39,13 @@ internal interface ISLCoreErrorLogger : IDisposable
 
 [Export(typeof(ISLCoreErrorLoggerFactory))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class ISlCoreErrorLoggerFactory : ISLCoreErrorLoggerFactory
+internal class SLCoreErrorLoggerFactory : ISLCoreErrorLoggerFactory
 {
     private readonly ILogger logger;
     private readonly IThreadHandling threadHandling;
 
-    public ISlCoreErrorLoggerFactory(ILogger logger, IThreadHandling threadHandling)
+    [ImportingConstructor]
+    public SLCoreErrorLoggerFactory(ILogger logger, IThreadHandling threadHandling)
     {
         this.logger = logger;
         this.threadHandling = threadHandling;
@@ -52,20 +53,20 @@ internal class ISlCoreErrorLoggerFactory : ISLCoreErrorLoggerFactory
 
     public ISLCoreErrorLogger Create(StreamReader errorStream)
     {
-        return new ErrorLogger(logger, threadHandling, errorStream);
+        return new ErrorLogger(logger, threadHandling, errorStream, new CancellationTokenSource());
     }
 
-    private class ErrorLogger : ISLCoreErrorLogger
+    internal /* for testing */  class ErrorLogger : ISLCoreErrorLogger
     {
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
         private readonly CancellationTokenSource cancellationTokenSource;
 
-        public ErrorLogger(ILogger logger, IThreadHandling threadHandling, StreamReader streamReader)
+        public ErrorLogger(ILogger logger, IThreadHandling threadHandling, StreamReader streamReader, CancellationTokenSource cancellationTokenSource)
         {
             this.logger = logger;
             this.threadHandling = threadHandling;
-            cancellationTokenSource = new CancellationTokenSource();
+            this.cancellationTokenSource = cancellationTokenSource;
             ReadErrorStreamInBackground(streamReader);
         }
 
@@ -78,7 +79,7 @@ internal class ISlCoreErrorLoggerFactory : ISLCoreErrorLoggerFactory
             }).Forget();
         }
 
-        private async Task ReadAsync(TextReader errorStream)
+        private async Task ReadAsync(StreamReader errorStream)
         {
             while (!cancellationTokenSource.IsCancellationRequested)
             {
@@ -88,7 +89,7 @@ internal class ISlCoreErrorLoggerFactory : ISLCoreErrorLoggerFactory
                     continue;
                 }
 
-                logger.LogVerbose("[SLCORE-ERR]" + line);
+                logger.WriteLine("[SLCORE-ERR] " + line);
             }
         }
 
