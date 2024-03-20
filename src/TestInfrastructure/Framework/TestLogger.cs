@@ -19,7 +19,7 @@
  */
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using FluentAssertions;
 using SonarLint.VisualStudio.Core;
@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 {
     public class TestLogger : ILogger
     {
-        public IList<string> OutputStrings { get; } = new List<string>();
+        public BlockingCollection<string> OutputStrings { get; private set; } = new();
 
         private readonly bool logToConsole;
         private readonly bool logThreadId;
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public void Reset()
         {
-            OutputStrings.Clear();
+            OutputStrings = new BlockingCollection<string>();
         }
 
         #region ILogger methods

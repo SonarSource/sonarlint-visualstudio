@@ -35,14 +35,16 @@ public class InitializationTests
     public async Task Sloop_StartedAndStoppedWithoutErrors()
     {
         var testLogger = new TestLogger();
+        var slCoreErrorLogger = new TestLogger();
         var slCoreLogger = new TestLogger();
-        using (var slCoreTestRunner = new SLCoreTestRunner(testLogger, TestContext.TestName))
+        using (var slCoreTestRunner = new SLCoreTestRunner(testLogger, slCoreErrorLogger, TestContext.TestName))
         {
             slCoreTestRunner.AddListener(new LoggerListener(slCoreLogger));
             await slCoreTestRunner.Start();
         }
 
         VerifyNoErrorsInLogs(testLogger);
+        VerifyNoErrorsInLogs(slCoreErrorLogger);
         VerifyLogMessagesReceived(slCoreLogger);
     }
     
@@ -52,10 +54,11 @@ public class InitializationTests
         const string configScopeId = "ConfigScope1";
         var testLogger = new TestLogger();
         var slCoreLogger = new TestLogger();
+        var slCoreErrorLogger = new TestLogger();
         var analysisReadyCompletionSource = new TaskCompletionSource<DidChangeAnalysisReadinessParams>();
         var analysisListener = SetUpAnalysisListenerToUnblockOnAnalysisReady(configScopeId, analysisReadyCompletionSource);
 
-        using (var slCoreTestRunner = new SLCoreTestRunner(testLogger, TestContext.TestName))
+        using (var slCoreTestRunner = new SLCoreTestRunner(testLogger, slCoreErrorLogger, TestContext.TestName))
         {
             slCoreTestRunner.AddListener(new LoggerListener(slCoreLogger));
             slCoreTestRunner.AddListener(new ProgressListener());
