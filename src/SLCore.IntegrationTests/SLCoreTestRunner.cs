@@ -90,7 +90,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
         slCoreHandle = new SLCoreHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
                 new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
-                new RpcDebugger { LogFilePath = Path.Combine(privateFolder, "logrpc.txt") },
+                new RpcDebugger(),
                 new SLCoreServiceProvider(new NoOpThreadHandler(), logger),
                 new SLCoreListenerSetUp(listenersToSetUp)),
             constantsProvider,

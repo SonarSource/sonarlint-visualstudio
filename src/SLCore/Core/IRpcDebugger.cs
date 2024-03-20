@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
@@ -27,7 +28,6 @@ namespace SonarLint.VisualStudio.SLCore.Core;
 
 public interface IRpcDebugger
 {
-    string LogFilePath { get; set; }
     internal void SetUpDebugger(IJsonRpc jsonRpc);
 }
 
@@ -36,31 +36,29 @@ public interface IRpcDebugger
 internal class RpcDebugger : IRpcDebugger
 {
     private readonly IFileSystem fileSystem;
-    public string LogFilePath { get; set; } = null;
+    private string logFilePath;
 
     [ImportingConstructor]
-    public RpcDebugger() : this(new FileSystem())
+    public RpcDebugger() : this(new FileSystem(), DateTime.Now)
     {
     }
 
-    internal /* for testing */ RpcDebugger(IFileSystem fileSystem)
+    internal /* for testing */ RpcDebugger(IFileSystem fileSystem, DateTime dateTime)
     {
         this.fileSystem = fileSystem;
+
+        logFilePath = $"{dateTime.ToString("yyyy-MM-dd_HHmmssffff")}.txt";
     }
-    
+
     public void SetUpDebugger(IJsonRpc jsonRpc)
     {
-        if (LogFilePath is null)
+        /* IMPORTANT!!!
+         * Enable this environment variable only if you want to collect rpc debug logs
+         * If you ask customer to enable this their SQ/SC user and token info will be leaked and inform them to clear sensitive data */
+        if (Environment.GetEnvironmentVariable("SONARLINT_LOG_RPC") == "true")
         {
-            return;
+            jsonRpc.TraceSource.Switch.Level = SourceLevels.Verbose;
+            jsonRpc.TraceSource.Listeners.Add(new TextWriterTraceListener(new StreamWriter(fileSystem.FileStream.Create(logFilePath, FileMode.Create)) { AutoFlush = true }));
         }
-
-        SetUpTracer(jsonRpc);
-    }
-    
-    private void SetUpTracer(IJsonRpc jsonRpc)
-    {
-        jsonRpc.TraceSource.Switch.Level = SourceLevels.Verbose;
-        jsonRpc.TraceSource.Listeners.Add(new TextWriterTraceListener(new StreamWriter(fileSystem.FileStream.Create(LogFilePath, FileMode.Create)){AutoFlush = true}));
     }
 }

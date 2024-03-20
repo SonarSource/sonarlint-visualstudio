@@ -40,11 +40,10 @@ public class RpcDebuggerTests
         MefTestHelpers.CheckIsSingletonMefComponent<RpcDebugger>();
     }
 
-
     [TestMethod]
-    public void CreateDebugOutput_NoFileSet_DoesNothing()
+    public void CreateDebugOutput_EnvVarNotSetTrue_DoesNothing()
     {
-        var testSubject = CreateTestSubject(out var fileSystem);
+        var testSubject = CreateTestSubject(DateTime.Now, out var fileSystem);
         var jsonRpc = Substitute.For<IJsonRpc>();
 
         testSubject.SetUpDebugger(jsonRpc);
@@ -52,34 +51,43 @@ public class RpcDebuggerTests
         fileSystem.ReceivedCalls().Should().BeEmpty();
         jsonRpc.ReceivedCalls().Should().BeEmpty();
     }
-    
+
     [TestMethod]
-    public void CreateDebugOutput_FilePathSet_EnablesTracing()
+    public void CreateDebugOutput_EnvVarSetTrue_EnablesTracing()
     {
-        const string filePath = "file/path";
-        var fileStreamFactory = Substitute.For<IFileStreamFactory>();
-        var stream = Substitute.For<Stream>();
-        var jsonRpc = Substitute.For<IJsonRpc>();
-        var traceSource = Substitute.ForPartsOf<TraceSource>("test");
-        var testSubject = CreateTestSubject(out var fileSystem);
-        fileSystem.FileStream.Returns(fileStreamFactory);
-        fileStreamFactory.Create(filePath, FileMode.Create).Returns(stream);
-        stream.CanWrite.Returns(true);
-        traceSource.Listeners.Clear();
-        jsonRpc.TraceSource.Returns(traceSource);
+        try
+        {
+            Environment.SetEnvironmentVariable("SONARLINT_LOG_RPC", "true", EnvironmentVariableTarget.Process);
 
-        testSubject.LogFilePath = filePath;
-        testSubject.SetUpDebugger(jsonRpc);
+            var fileStreamFactory = Substitute.For<IFileStreamFactory>();
+            var stream = Substitute.For<Stream>();
+            var jsonRpc = Substitute.For<IJsonRpc>();
+            var traceSource = Substitute.ForPartsOf<TraceSource>("test");
+            var dateTime = new DateTime(2024, 3, 1, 11, 22, 33);
 
-        fileStreamFactory.Received(1).Create(filePath, FileMode.Create);
-        _ = jsonRpc.Received().TraceSource;
-        traceSource.Listeners.Should().HaveCount(1);
-        traceSource.Switch.Level.Should().Be(SourceLevels.Verbose);
+            var testSubject = CreateTestSubject(dateTime, out var fileSystem);
+            fileSystem.FileStream.Returns(fileStreamFactory);
+            fileStreamFactory.Create("2024-03-01_1122330000.txt", FileMode.Create).Returns(stream);
+            stream.CanWrite.Returns(true);
+            traceSource.Listeners.Clear();
+            jsonRpc.TraceSource.Returns(traceSource);
+
+            testSubject.SetUpDebugger(jsonRpc);
+
+            fileStreamFactory.Received(1).Create("2024-03-01_1122330000.txt", FileMode.Create);
+            _ = jsonRpc.Received().TraceSource;
+            traceSource.Listeners.Should().HaveCount(1);
+            traceSource.Switch.Level.Should().Be(SourceLevels.Verbose);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("SONARLINT_LOG_RPC", null, EnvironmentVariableTarget.Process);
+        }
     }
 
-    private IRpcDebugger CreateTestSubject(out IFileSystem fileSystem)
+    private IRpcDebugger CreateTestSubject(DateTime datetime, out IFileSystem fileSystem)
     {
         fileSystem = Substitute.For<IFileSystem>();
-        return new RpcDebugger(fileSystem);
+        return new RpcDebugger(fileSystem, datetime);
     }
 }
