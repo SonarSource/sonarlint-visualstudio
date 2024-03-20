@@ -28,8 +28,6 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Core;
 [TestClass]
 public class RpcDebuggerTests
 {
-    private readonly string logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SonarLint for Visual Studio", "Rpc Logs");
-
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
@@ -60,6 +58,7 @@ public class RpcDebuggerTests
         try
         {
             Environment.SetEnvironmentVariable("SONARLINT_LOG_RPC", "true", EnvironmentVariableTarget.Process);
+            var logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SonarLint for Visual Studio", "Rpc Logs");
 
             var fileStreamFactory = Substitute.For<IFileStreamFactory>();
             var stream = Substitute.For<Stream>();
@@ -97,19 +96,19 @@ public class RpcDebuggerTests
 
             var fileStreamFactory = Substitute.For<IFileStreamFactory>();
             var jsonRpc = Substitute.For<IJsonRpc>();
-            var filePath = Path.Combine(logsFolder, "test.log");
             var traceSource = Substitute.ForPartsOf<TraceSource>("test");
             var stream = Substitute.For<Stream>();
+            IFileSystem fileSystem = CreateFileSystem();
 
-            var testSubject = CreateTestSubject(DateTime.Now, out var fileSystem, "test.log");
+            var testSubject = new RpcDebugger(fileSystem, "C:\\test.log");
             fileSystem.FileStream.Returns(fileStreamFactory);
             jsonRpc.TraceSource.Returns(traceSource);
-            fileStreamFactory.Create(filePath, FileMode.Create).Returns(stream);
+            fileStreamFactory.Create("C:\\test.log", FileMode.Create).Returns(stream);
             stream.CanWrite.Returns(true);
 
             testSubject.SetUpDebugger(jsonRpc);
 
-            fileStreamFactory.Received(1).Create(filePath, FileMode.Create);
+            fileStreamFactory.Received(1).Create("C:\\test.log", FileMode.Create);
         }
         finally
         {
@@ -117,11 +116,17 @@ public class RpcDebuggerTests
         }
     }
 
-    private IRpcDebugger CreateTestSubject(DateTime datetime, out IFileSystem fileSystem, string fileOverride = null)
+    private static IFileSystem CreateFileSystem()
     {
-        fileSystem = Substitute.For<IFileSystem>();
+        var fileSystem = Substitute.For<IFileSystem>();
         var directory = Substitute.For<IDirectory>();
         fileSystem.Directory.Returns(directory);
-        return new RpcDebugger(fileSystem, datetime, fileOverride);
+        return fileSystem;
+    }
+
+    private IRpcDebugger CreateTestSubject(DateTime datetime, out IFileSystem fileSystem)
+    {
+        fileSystem = CreateFileSystem();
+        return new RpcDebugger(fileSystem, datetime);
     }
 }

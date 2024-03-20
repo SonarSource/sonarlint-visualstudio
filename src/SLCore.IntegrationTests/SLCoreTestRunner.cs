@@ -19,7 +19,7 @@
  */
 
 using System.IO;
-using System.Threading;
+using System.IO.Abstractions;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -98,7 +98,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
             slCoreHandle = new SLCoreHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
                     new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
-                    new RpcDebugger($"{testName}.log"),
+                    new RpcDebugger(new FileSystem(), Path.Combine(privateFolder, "logrpc.log")),
                     new SLCoreServiceProvider(new NoOpThreadHandler(), logger),
                     new SLCoreListenerSetUp(listenersToSetUp)),
                 constantsProvider,

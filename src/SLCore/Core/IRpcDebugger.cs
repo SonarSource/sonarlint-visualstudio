@@ -43,17 +43,15 @@ internal class RpcDebugger : IRpcDebugger
     {
     }
 
-    internal /* for testing */ RpcDebugger(string fileNameOverride) : this(new FileSystem(), DateTime.Now, fileNameOverride)
+    internal /* for testing */ RpcDebugger(IFileSystem fileSystem, DateTime fileDate) :
+        this(fileSystem, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SonarLint for Visual Studio", "Rpc Logs", $"{fileDate.ToString("yyyy-MM-dd_HHmmssffff")}.log"))
     {
     }
 
-    internal /* for testing */ RpcDebugger(IFileSystem fileSystem, DateTime dateTime, string fileNameOverride = null)
+    internal /* for testing */ RpcDebugger(IFileSystem fileSystem, string logFilePath)
     {
         this.fileSystem = fileSystem;
-
-        var fileName = fileNameOverride ?? $"{dateTime.ToString("yyyy-MM-dd_HHmmssffff")}.log";
-
-        logFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SonarLint for Visual Studio", "Rpc Logs", fileName);
+        this.logFilePath = logFilePath;
     }
 
     public void SetUpDebugger(IJsonRpc jsonRpc)
