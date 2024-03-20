@@ -19,7 +19,7 @@
  */
 
 using System.IO;
-using NSubstitute;
+using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Service;
@@ -65,42 +65,51 @@ public sealed class SLCoreTestRunner : IDisposable
 
     public async Task Start()
     {
-        var slCoreLocator = Substitute.For<ISLCoreLocator>();
-        slCoreLocator.LocateExecutable().Returns(new SLCoreLaunchParameters("cmd.exe", $"/c {DependencyLocator.SloopBatPath}"));
+        try
+        {
+            Environment.SetEnvironmentVariable("SONARLINT_LOG_RPC", "true", EnvironmentVariableTarget.Process);
 
-        var constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
-        constantsProvider.ClientConstants.Returns(new ClientConstantsDto("SLVS_Integration_Tests",
-            $"SLVS_Integration_Tests/{VersionHelper.SonarLintVersion}"));
-        constantsProvider.FeatureFlags.Returns(new FeatureFlagsDto(true, true, false, true, false, false, true));
-        constantsProvider.TelemetryConstants.Returns(new TelemetryClientConstantAttributesDto("slvs_integration_tests", "SLVS Integration Tests",
-            VersionHelper.SonarLintVersion, "16.0", new()));
+            var slCoreLocator = Substitute.For<ISLCoreLocator>();
+            slCoreLocator.LocateExecutable().Returns(new SLCoreLaunchParameters("cmd.exe", $"/c {DependencyLocator.SloopBatPath}"));
 
-        var foldersProvider = Substitute.For<ISLCoreFoldersProvider>();
-        foldersProvider.GetWorkFolders().Returns(new SLCoreFolders(storageRoot, workDir, userHome));
+            var constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
+            constantsProvider.ClientConstants.Returns(new ClientConstantsDto("SLVS_Integration_Tests",
+                $"SLVS_Integration_Tests/{VersionHelper.SonarLintVersion}"));
+            constantsProvider.FeatureFlags.Returns(new FeatureFlagsDto(true, true, false, true, false, false, true));
+            constantsProvider.TelemetryConstants.Returns(new TelemetryClientConstantAttributesDto("slvs_integration_tests", "SLVS Integration Tests",
+                VersionHelper.SonarLintVersion, "16.0", new()));
 
-        var connectionProvider = Substitute.For<IServerConnectionsProvider>();
-        connectionProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfiguration>());
+            var foldersProvider = Substitute.For<ISLCoreFoldersProvider>();
+            foldersProvider.GetWorkFolders().Returns(new SLCoreFolders(storageRoot, workDir, userHome));
 
-        var jarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
-        jarProvider.ListJarFiles().Returns(DependencyLocator.AnalyzerPlugins);
+            var connectionProvider = Substitute.For<IServerConnectionsProvider>();
+            connectionProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfiguration>());
 
-        var noOpActiveSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
-        noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
-        var noOpConfigScopeUpdater = Substitute.For<IConfigScopeUpdater>();
+            var jarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
+            jarProvider.ListJarFiles().Returns(DependencyLocator.AnalyzerPlugins);
 
-        slCoreHandle = new SLCoreHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
-                new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
-                new RpcDebugger(),
-                new SLCoreServiceProvider(new NoOpThreadHandler(), logger),
-                new SLCoreListenerSetUp(listenersToSetUp)),
-            constantsProvider,
-            foldersProvider,
-            connectionProvider,
-            jarProvider,
-            noOpActiveSolutionBoundTracker,
-            noOpConfigScopeUpdater,
-            new NoOpThreadHandler());
-        await slCoreHandle.InitializeAsync();
+            var noOpActiveSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+            noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
+            var noOpConfigScopeUpdater = Substitute.For<IConfigScopeUpdater>();
+
+            slCoreHandle = new SLCoreHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
+                    new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
+                    new RpcDebugger(new FileSystem(), new DateTime(0)), //we pass datetime so we do not create extra file for each run
+                    new SLCoreServiceProvider(new NoOpThreadHandler(), logger),
+                    new SLCoreListenerSetUp(listenersToSetUp)),
+                constantsProvider,
+                foldersProvider,
+                connectionProvider,
+                jarProvider,
+                noOpActiveSolutionBoundTracker,
+                noOpConfigScopeUpdater,
+                new NoOpThreadHandler());
+            await slCoreHandle.InitializeAsync();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("SONARLINT_LOG_RPC", null, EnvironmentVariableTarget.Process);
+        }
     }
 
     public void Dispose()
