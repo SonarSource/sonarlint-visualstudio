@@ -28,6 +28,8 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Core;
 [TestClass]
 public class RpcDebuggerTests
 {
+    private readonly string logsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SonarLint for Visual Studio", "Rpc Logs");
+
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
@@ -64,17 +66,18 @@ public class RpcDebuggerTests
             var jsonRpc = Substitute.For<IJsonRpc>();
             var traceSource = Substitute.ForPartsOf<TraceSource>("test");
             var dateTime = new DateTime(2024, 3, 1, 11, 22, 33);
+            var filePath = Path.Combine(logsFolder, "2024-03-01_1122330000.log");
 
             var testSubject = CreateTestSubject(dateTime, out var fileSystem);
             fileSystem.FileStream.Returns(fileStreamFactory);
-            fileStreamFactory.Create("2024-03-01_1122330000.txt", FileMode.Create).Returns(stream);
+            fileStreamFactory.Create(filePath, FileMode.Create).Returns(stream);
             stream.CanWrite.Returns(true);
             traceSource.Listeners.Clear();
             jsonRpc.TraceSource.Returns(traceSource);
 
             testSubject.SetUpDebugger(jsonRpc);
 
-            fileStreamFactory.Received(1).Create("2024-03-01_1122330000.txt", FileMode.Create);
+            fileStreamFactory.Received(1).Create(filePath, FileMode.Create);
             _ = jsonRpc.Received().TraceSource;
             traceSource.Listeners.Should().HaveCount(1);
             traceSource.Switch.Level.Should().Be(SourceLevels.Verbose);
@@ -85,9 +88,40 @@ public class RpcDebuggerTests
         }
     }
 
-    private IRpcDebugger CreateTestSubject(DateTime datetime, out IFileSystem fileSystem)
+    [TestMethod]
+    public void CreateDebugOutput_FileOverrideSet_UsesOverridenPath()
+    {
+        try
+        {
+            Environment.SetEnvironmentVariable("SONARLINT_LOG_RPC", "true", EnvironmentVariableTarget.Process);
+
+            var fileStreamFactory = Substitute.For<IFileStreamFactory>();
+            var jsonRpc = Substitute.For<IJsonRpc>();
+            var filePath = Path.Combine(logsFolder, "test.log");
+            var traceSource = Substitute.ForPartsOf<TraceSource>("test");
+            var stream = Substitute.For<Stream>();
+
+            var testSubject = CreateTestSubject(DateTime.Now, out var fileSystem, "test.log");
+            fileSystem.FileStream.Returns(fileStreamFactory);
+            jsonRpc.TraceSource.Returns(traceSource);
+            fileStreamFactory.Create(filePath, FileMode.Create).Returns(stream);
+            stream.CanWrite.Returns(true);
+
+            testSubject.SetUpDebugger(jsonRpc);
+
+            fileStreamFactory.Received(1).Create(filePath, FileMode.Create);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("SONARLINT_LOG_RPC", null, EnvironmentVariableTarget.Process);
+        }
+    }
+
+    private IRpcDebugger CreateTestSubject(DateTime datetime, out IFileSystem fileSystem, string fileOverride = null)
     {
         fileSystem = Substitute.For<IFileSystem>();
-        return new RpcDebugger(fileSystem, datetime);
+        var directory = Substitute.For<IDirectory>();
+        fileSystem.Directory.Returns(directory);
+        return new RpcDebugger(fileSystem, datetime, fileOverride);
     }
 }

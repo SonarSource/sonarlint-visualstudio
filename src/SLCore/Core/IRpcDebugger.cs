@@ -43,11 +43,17 @@ internal class RpcDebugger : IRpcDebugger
     {
     }
 
-    internal /* for testing */ RpcDebugger(IFileSystem fileSystem, DateTime dateTime)
+    internal /* for testing */ RpcDebugger(string fileNameOverride) : this(new FileSystem(), DateTime.Now, fileNameOverride)
+    {
+    }
+
+    internal /* for testing */ RpcDebugger(IFileSystem fileSystem, DateTime dateTime, string fileNameOverride = null)
     {
         this.fileSystem = fileSystem;
 
-        logFilePath = $"{dateTime.ToString("yyyy-MM-dd_HHmmssffff")}.txt";
+        var fileName = fileNameOverride ?? $"{dateTime.ToString("yyyy-MM-dd_HHmmssffff")}.log";
+
+        logFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SonarLint for Visual Studio", "Rpc Logs", fileName);
     }
 
     public void SetUpDebugger(IJsonRpc jsonRpc)
@@ -58,6 +64,7 @@ internal class RpcDebugger : IRpcDebugger
         if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SONARLINT_LOG_RPC")))
         {
             jsonRpc.TraceSource.Switch.Level = SourceLevels.Verbose;
+            fileSystem.Directory.CreateDirectory(Path.GetDirectoryName(logFilePath));
             jsonRpc.TraceSource.Listeners.Add(new TextWriterTraceListener(new StreamWriter(fileSystem.FileStream.Create(logFilePath, FileMode.Create)) { AutoFlush = true }));
         }
     }

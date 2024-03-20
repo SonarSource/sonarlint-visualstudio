@@ -19,7 +19,6 @@
  */
 
 using System.IO;
-using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Service;
@@ -44,12 +43,15 @@ public sealed class SLCoreTestRunner : IDisposable
     private readonly SLCoreTestProcessFactory slCoreTestProcessFactory;
     private SLCoreHandle slCoreHandle;
     internal ISLCoreServiceProvider SLCoreServiceProvider => slCoreHandle?.SLCoreRpc?.ServiceProvider;
+    private readonly string testName;
 
     public SLCoreTestRunner(ILogger logger, string testName)
     {
         this.logger = logger;
 
-        SetUpLocalFolders(testName);
+        this.testName = testName;
+
+        SetUpLocalFolders();
 
         slCoreTestProcessFactory = new SLCoreTestProcessFactory(new SLCoreProcessFactory(), Path.Combine(privateFolder, "logstderr.txt"));
     }
@@ -94,7 +96,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
             slCoreHandle = new SLCoreHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
                     new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
-                    new RpcDebugger(new FileSystem(), new DateTime(0)), //we pass datetime so we do not create extra file for each run
+                    new RpcDebugger($"{testName}.log"),
                     new SLCoreServiceProvider(new NoOpThreadHandler(), logger),
                     new SLCoreListenerSetUp(listenersToSetUp)),
                 constantsProvider,
@@ -117,7 +119,7 @@ public sealed class SLCoreTestRunner : IDisposable
         slCoreHandle.Dispose();
     }
 
-    private void SetUpLocalFolders(string testName)
+    private void SetUpLocalFolders()
     {
         privateFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "slcore", testName);
         storageRoot = Path.Combine(privateFolder, "storageRoot");
