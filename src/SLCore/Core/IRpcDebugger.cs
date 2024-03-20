@@ -55,7 +55,9 @@ internal class RpcDebugger : IRpcDebugger
         /* IMPORTANT!!!
          * Enable this environment variable only if you want to collect rpc debug logs
          * If you ask customer to enable this their SQ/SC user and token info will be leaked and inform them to clear sensitive data */
-        if (Environment.GetEnvironmentVariable("SONARLINT_LOG_RPC") == "true")
+ 
+ 
+ if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SONARLINT_LOG_RPC")))
         {
             jsonRpc.TraceSource.Switch.Level = SourceLevels.Verbose;
             jsonRpc.TraceSource.Listeners.Add(new TextWriterTraceListener(new StreamWriter(fileSystem.FileStream.Create(logFilePath, FileMode.Create)) { AutoFlush = true }));
