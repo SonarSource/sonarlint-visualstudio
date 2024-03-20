@@ -58,7 +58,7 @@ internal class SLCoreRpcFactory : ISLCoreRpcFactory
         this.slCoreServiceProvider = slCoreServiceProvider;
         this.slCoreListenerSetUp = slCoreListenerSetUp;
     }
-    
+
     public ISLCoreRpc StartNewRpcInstance() =>
         new SlCoreRpc(slCoreProcessFactory.StartNewProcess(slCoreLocator.LocateExecutable()),
             slCoreJsonRpcFactory,
@@ -70,7 +70,7 @@ internal class SLCoreRpcFactory : ISLCoreRpcFactory
 public interface ISLCoreRpc : IDisposable
 {
     ISLCoreServiceProvider ServiceProvider { get; }
-    
+
     public Task ShutdownTask { get; }
 }
 
@@ -91,11 +91,11 @@ internal sealed class SlCoreRpc : ISLCoreRpc
         var slCoreJsonRpc = slCoreJsonRpcFactory.CreateSLCoreJsonRpc(jsonRpc);
         slCoreServiceProvider.SetCurrentConnection(slCoreJsonRpc);
         listenerSetUp.Setup(slCoreJsonRpc);
-        
+
         ShutdownTask = jsonRpc.Completion;
         ServiceProvider = slCoreServiceProvider;
     }
-    
+
     public void Dispose()
     {
         slCoreProcess.Dispose();
