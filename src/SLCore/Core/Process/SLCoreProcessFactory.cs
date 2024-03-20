@@ -28,9 +28,17 @@ namespace SonarLint.VisualStudio.SLCore.Core.Process;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class SLCoreProcessFactory : ISLCoreProcessFactory
 {
+    private readonly ISLCoreErrorLoggerFactory slCoreErrorLoggerFactory;
+
+    [ImportingConstructor]
+    public SLCoreProcessFactory(ISLCoreErrorLoggerFactory slCoreErrorLoggerFactory)
+    {
+        this.slCoreErrorLoggerFactory = slCoreErrorLoggerFactory;
+    }
+    
     [ExcludeFromCodeCoverage]   
     public ISLCoreProcess StartNewProcess(SLCoreLaunchParameters slCoreLaunchParameters)
     {
-        return new SLCoreProcess(slCoreLaunchParameters);
+        return new SLCoreProcess(slCoreLaunchParameters, slCoreErrorLoggerFactory);
     }
 }

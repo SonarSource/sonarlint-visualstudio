@@ -20,7 +20,6 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using SonarLint.VisualStudio.SLCore.Configuration;
 
 namespace SonarLint.VisualStudio.SLCore.Core.Process;
@@ -28,11 +27,10 @@ namespace SonarLint.VisualStudio.SLCore.Core.Process;
 [ExcludeFromCodeCoverage]
 internal sealed class SLCoreProcess : ISLCoreProcess
 {
-    private System.Diagnostics.Process Process { get; }
-
-    public StreamReader ErrorStreamReader => Process.StandardError;
+    private readonly ISLCoreErrorLogger errorLogger;
+    private readonly System.Diagnostics.Process process;
     
-    public SLCoreProcess(SLCoreLaunchParameters launchParameters)
+    public SLCoreProcess(SLCoreLaunchParameters launchParameters, ISLCoreErrorLoggerFactory slCoreErrorLoggerFactory)
     {
         var processStartInfo = new ProcessStartInfo(launchParameters.PathToExecutable, launchParameters.LaunchArguments)
         {
@@ -43,20 +41,22 @@ internal sealed class SLCoreProcess : ISLCoreProcess
             RedirectStandardError = true
         };
 
-        Process = new System.Diagnostics.Process { StartInfo = processStartInfo };
+        process = new System.Diagnostics.Process { StartInfo = processStartInfo };
+        process.Start();
         
-        Process.Start();
+        errorLogger = slCoreErrorLoggerFactory.Create(process.StandardError);
     }
     
     public void Dispose()
     {
-        Process.Close();
-        Process.Dispose();
+        process.Close();
+        process.Dispose();
+        errorLogger.Dispose();
     }
     
     public IJsonRpc AttachJsonRpc(IRpcDebugger rpcDebugger)
     {
-        var jsonRpcWrapper = new JsonRpcWrapper(Process.StandardInput.BaseStream, Process.StandardOutput.BaseStream);
+        var jsonRpcWrapper = new JsonRpcWrapper(process.StandardInput.BaseStream, process.StandardOutput.BaseStream);
 
         rpcDebugger.SetUpDebugger(jsonRpcWrapper);
         

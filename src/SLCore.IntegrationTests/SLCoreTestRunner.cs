@@ -19,6 +19,8 @@
  */
 
 using System.IO;
+using System.Threading;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Service;
@@ -40,12 +42,12 @@ public sealed class SLCoreTestRunner : IDisposable
     private string storageRoot;
     private string workDir;
     private string userHome;
-    private readonly SLCoreTestProcessFactory slCoreTestProcessFactory;
+    private readonly ISLCoreProcessFactory slCoreTestProcessFactory;
     private SLCoreHandle slCoreHandle;
     internal ISLCoreServiceProvider SLCoreServiceProvider => slCoreHandle?.SLCoreRpc?.ServiceProvider;
     private readonly string testName;
 
-    public SLCoreTestRunner(ILogger logger, string testName)
+    public SLCoreTestRunner(ILogger logger, ILogger slCoreErrorLogger, string testName)
     {
         this.logger = logger;
 
@@ -53,7 +55,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
         SetUpLocalFolders();
 
-        slCoreTestProcessFactory = new SLCoreTestProcessFactory(new SLCoreProcessFactory(), Path.Combine(privateFolder, "logstderr.txt"));
+        slCoreTestProcessFactory = new SLCoreProcessFactory(new SLCoreErrorLoggerFactory(slCoreErrorLogger, new NoOpThreadHandler()));
     }
 
     public void AddListener(ISLCoreListener listener)
