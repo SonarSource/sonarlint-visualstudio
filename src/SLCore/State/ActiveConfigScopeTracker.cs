@@ -104,7 +104,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 
         using (asyncLock.Acquire())
         {
-            Debug.Assert(currentConfigScope == null || currentConfigScope.id == id);
+            Debug.Assert(currentConfigScope == null || currentConfigScope.id == id, "Config scope conflict");
             
             if (currentConfigScope?.id == id)
             {
@@ -131,7 +131,10 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 
         using (asyncLock.Acquire())
         {
-            Debug.Assert(currentConfigScope != null);
+            if (currentConfigScope is null)
+            {
+                return;
+            }
 
             configurationScopeService.DidRemoveConfigurationScope(
                 new DidRemoveConfigurationScopeParams(currentConfigScope.id));
