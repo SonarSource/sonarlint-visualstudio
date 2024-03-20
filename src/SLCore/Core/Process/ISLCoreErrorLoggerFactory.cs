@@ -56,7 +56,7 @@ internal class SLCoreErrorLoggerFactory : ISLCoreErrorLoggerFactory
         return new ErrorLogger(logger, threadHandling, errorStream, new CancellationTokenSource());
     }
 
-    internal /* for testing */  class ErrorLogger : ISLCoreErrorLogger
+    private sealed class ErrorLogger : ISLCoreErrorLogger
     {
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;

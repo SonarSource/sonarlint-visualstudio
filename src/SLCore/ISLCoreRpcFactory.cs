@@ -40,7 +40,6 @@ internal class SLCoreRpcFactory : ISLCoreRpcFactory
     private readonly ISLCoreLocator slCoreLocator;
     private readonly ISLCoreJsonRpcFactory slCoreJsonRpcFactory;
     private readonly IRpcDebugger rpcDebugger;
-    private readonly ISLCoreErrorLogger slCoreErrorLogger;
     private readonly ISLCoreServiceProviderWriter slCoreServiceProvider;
     private readonly ISLCoreListenerSetUp slCoreListenerSetUp;
 
