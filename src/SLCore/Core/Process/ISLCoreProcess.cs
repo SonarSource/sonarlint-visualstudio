@@ -20,12 +20,10 @@
 
 
 using System;
-using System.IO;
 
 namespace SonarLint.VisualStudio.SLCore.Core.Process;
 
 internal interface ISLCoreProcess : IDisposable
 {
-    StreamReader ErrorStreamReader { get; }
     IJsonRpc AttachJsonRpc(IRpcDebugger rpcDebugger);
 }
