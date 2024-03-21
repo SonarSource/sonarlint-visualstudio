@@ -24,6 +24,8 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.Vsix.Helpers;
+using SonarLint.VisualStudio.Integration.Vsix.SLCore;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Core.Process;
@@ -73,9 +75,10 @@ public sealed class SLCoreTestRunner : IDisposable
         {
             Environment.SetEnvironmentVariable("SONARLINT_LOG_RPC", "true", EnvironmentVariableTarget.Process);
 
-            var slCoreLocator = Substitute.For<ISLCoreLocator>();
-            slCoreLocator.LocateExecutable().Returns(new SLCoreLaunchParameters("cmd.exe", $"/c {DependencyLocator.SloopBatPath}"));
-
+            var rootLocator = Substitute.For<IVsixRootLocator>();
+            rootLocator.GetVsixRoot().Returns(DependencyLocator.SloopBasePath);
+            var slCoreLocator = new SLCoreLocator(rootLocator, string.Empty);
+            
             var constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
             constantsProvider.ClientConstants.Returns(new ClientConstantsDto("SLVS_Integration_Tests",
                 $"SLVS_Integration_Tests/{VersionHelper.SonarLintVersion}"));
@@ -118,7 +121,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
     public void Dispose()
     {
-        slCoreHandle.Dispose();
+        slCoreHandle?.Dispose();
     }
 
     private void SetUpLocalFolders()
