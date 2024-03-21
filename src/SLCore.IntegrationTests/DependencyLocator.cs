@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 public class DependencyLocator // this might be reused in the product code in the future
 {
     public static List<string> AnalyzerPlugins { get; private set; }
-    public static string SloopBatPath { get; private set; }
+    public static string SloopBasePath { get; private set; }
 
     static DependencyLocator()
     {
@@ -63,15 +63,13 @@ public class DependencyLocator // this might be reused in the product code in th
         var sloopVersion = GetDependencyVersion("EmbeddedSloopVersion", dependencyProps);
         var sloopPath = Path.Combine(localAppData,
             "SLVS_Build_Sloop",
-            $"sonarlint-backend-cli-{sloopVersion}-windows_x64",
-            "bin",
-            "sonarlint-backend.bat");
-        if (!File.Exists(sloopPath))
+            $"sonarlint-backend-cli-{sloopVersion}-windows_x64");
+        if (!Directory.Exists(sloopPath))
         {
             throw new InvalidOperationException($"Can't locate SLOOP {sloopVersion}");
         }
 
-        SloopBatPath = sloopPath;
+        SloopBasePath = sloopPath;
     }
 
     private static string GetAnalyzerPath(string analyzerFileName, string analyzerVersion, string[] analyzerJars)
