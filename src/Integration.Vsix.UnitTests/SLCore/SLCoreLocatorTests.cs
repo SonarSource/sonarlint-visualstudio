@@ -50,8 +50,38 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             var result = testSubject.LocateExecutable();
 
             result.Should().NotBeNull();
-            result.PathToExecutable.Should().Be("cmd.exe");
-            result.LaunchArguments.Should().Be("/c \"C:\\SomePath\\Sloop\\bin\\sonarlint-backend.bat\"");
+            result.PathToExecutable.Should().Be("""C:\SomePath\Sloop\jre\bin\java.exe""");
+            result.LaunchArguments.Should().Be("""-classpath "C:\SomePath\Sloop\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+        }
+        
+        [TestMethod]
+        public void LocateExecutable_CustomVsixFoler_IsIncludedInPath()
+        {
+            var vsixRootLocator = Substitute.For<IVsixRootLocator>();
+            vsixRootLocator.GetVsixRoot().Returns("C:\\SomePath");
+
+            var testSubject = new SLCoreLocator(vsixRootLocator, "Custom\\VsixSubpath\\");
+
+            var result = testSubject.LocateExecutable();
+
+            result.Should().NotBeNull();
+            result.PathToExecutable.Should().Be("""C:\SomePath\Custom\VsixSubpath\jre\bin\java.exe""");
+            result.LaunchArguments.Should().Be("""-classpath "C:\SomePath\Custom\VsixSubpath\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+        }
+        
+        [TestMethod]
+        public void LocateExecutable_EmptyVsixSubPath_UsesVsixRootDirectly()
+        {
+            var vsixRootLocator = Substitute.For<IVsixRootLocator>();
+            vsixRootLocator.GetVsixRoot().Returns("C:\\SomePath");
+
+            var testSubject = new SLCoreLocator(vsixRootLocator, string.Empty);
+
+            var result = testSubject.LocateExecutable();
+
+            result.Should().NotBeNull();
+            result.PathToExecutable.Should().Be("""C:\SomePath\jre\bin\java.exe""");
+            result.LaunchArguments.Should().Be("""-classpath "C:\SomePath\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
         }
     }
 }

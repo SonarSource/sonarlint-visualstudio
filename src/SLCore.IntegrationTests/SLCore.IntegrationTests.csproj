@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Education\Education.csproj" />
+    <ProjectReference Include="..\Integration.Vsix\Integration.Vsix.csproj" />
     <ProjectReference Include="..\SLCore\SLCore.csproj" />
     <ProjectReference Include="..\SLCore.Listeners\SLCore.Listeners.csproj" />
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
