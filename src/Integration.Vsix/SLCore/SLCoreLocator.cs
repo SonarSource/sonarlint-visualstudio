@@ -29,21 +29,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class SLCoreLocator : ISLCoreLocator
     {
-        private const string BatSubPath = "Sloop\\bin\\sonarlint-backend.bat";
+        private const string DefaultPathInsideVsix = "Sloop\\";
+        private readonly string basePathInsideVsix;
+        private const string JreSubPath = "jre\\bin\\java.exe";
+        private const string LibSubPath = "lib\\*";
         private readonly IVsixRootLocator vsixRootLocator;
 
         [ImportingConstructor]
-        public SLCoreLocator(IVsixRootLocator vsixRootLocator)
+        public SLCoreLocator(IVsixRootLocator vsixRootLocator) : this(vsixRootLocator, DefaultPathInsideVsix)
+        {
+        }
+
+        internal /* for testing */ SLCoreLocator(IVsixRootLocator vsixRootLocator, string basePathInsideVsix)
         {
             this.vsixRootLocator = vsixRootLocator;
+            this.basePathInsideVsix = basePathInsideVsix;
         }
 
         public SLCoreLaunchParameters LocateExecutable()
         {
-            string pathToBat = Path.Combine(vsixRootLocator.GetVsixRoot(), BatSubPath);
+            var vsixRoot = vsixRootLocator.GetVsixRoot();
 
             //This will be changed later to jre call
-            return new SLCoreLaunchParameters("cmd.exe", $"/c \"{pathToBat}\"");
+            return new (Path.Combine(vsixRoot, basePathInsideVsix, JreSubPath), 
+                $"-classpath \"{Path.Combine(vsixRoot, basePathInsideVsix, LibSubPath)}\" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli");
         }
     }
 }
