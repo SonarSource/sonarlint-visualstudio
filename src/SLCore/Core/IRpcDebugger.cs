@@ -64,15 +64,8 @@ internal class RpcDebugger : IRpcDebugger
         
         if (streamWriter is not null)
         {
-            try
-            {
-                jsonRpc.TraceSource.Switch.Level = SourceLevels.Verbose;
-                jsonRpc.TraceSource.Listeners.Add(new TextWriterTraceListener(streamWriter));
-            }
-            catch (Exception e)
-            {
-
-            }
+            jsonRpc.TraceSource.Switch.Level = SourceLevels.Verbose;
+            jsonRpc.TraceSource.Listeners.Add(new TextWriterTraceListener(streamWriter));
         }
     }
 }
