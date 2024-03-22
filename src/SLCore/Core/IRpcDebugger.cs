@@ -55,7 +55,7 @@ internal class RpcDebugger : IRpcDebugger
         if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SONARLINT_LOG_RPC")))
         {
             fileSystem.Directory.CreateDirectory(Path.GetDirectoryName(logFilePath));
-            streamWriter = new StreamWriter(fileSystem.FileStream.Create(logFilePath, FileMode.Append)) { AutoFlush = true };
+            streamWriter = new StreamWriter(fileSystem.FileStream.Create(logFilePath, FileMode.Create)) { AutoFlush = true };
         }
     }
 
