@@ -63,9 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private ILogger logger;
         private IPreCompiledHeadersEventListener cFamilyPreCompiledHeadersEventListener;
-        private ISLCoreHandle slCoreHandle;
-        private IAliveConnectionTracker connectionTracker;
-        private IActiveConfigScopeTracker configScopeTracker;
+        private ISLCoreHandler slCoreHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -101,18 +99,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
 
-                var slCoreHandleFactory = await this.GetMefServiceAsync<ISLCoreHandleFactory>();
-                connectionTracker = await this.GetMefServiceAsync<IAliveConnectionTracker>();
-                configScopeTracker = await this.GetMefServiceAsync<IActiveConfigScopeTracker>();
+                slCoreHandler = await this.GetMefServiceAsync<ISLCoreHandler>();
                 var threadHandling = await this.GetMefServiceAsync<IThreadHandling>();
-                slCoreHandle = slCoreHandleFactory.CreateInstance();
-
                 threadHandling.RunOnBackgroundThread(async () =>
-                    {
-                        await slCoreHandle.InitializeAsync();
-                        return 0;
-                    })
-                    .Forget();
+                {
+                    await slCoreHandler.StartInstanceAsync();
+                    return 0;
+                }).Forget();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -129,10 +122,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 cFamilyPreCompiledHeadersEventListener?.Dispose();
                 cFamilyPreCompiledHeadersEventListener = null;
-                connectionTracker?.Dispose();
-                configScopeTracker?.Dispose();
-                slCoreHandle?.Dispose();
-                slCoreHandle = null;
+                slCoreHandler?.Dispose();
+                slCoreHandler = null;
             }
         }
 
