@@ -100,12 +100,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
 
                 slCoreHandler = await this.GetMefServiceAsync<ISLCoreHandler>();
-                var threadHandling = await this.GetMefServiceAsync<IThreadHandling>();
-                threadHandling.RunOnBackgroundThread(async () =>
-                {
-                    await slCoreHandler.StartInstanceAsync();
-                    return 0;
-                }).Forget();
+                slCoreHandler.EnableSloop();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {

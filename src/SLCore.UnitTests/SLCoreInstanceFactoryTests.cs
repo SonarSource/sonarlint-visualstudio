@@ -27,12 +27,12 @@ using SonarLint.VisualStudio.SLCore.State;
 namespace SonarLint.VisualStudio.SLCore.UnitTests;
 
 [TestClass]
-public class SLCoreHandleFactoryTests
+public class SLCoreInstanceFactoryTests
 {
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<SLCoreHandleFactory, ISLCoreHandleFactory>(
+        MefTestHelpers.CheckTypeCanBeImported<SLCoreInstanceFactory, ISLCoreInstanceFactory>(
             MefTestHelpers.CreateExport<ISLCoreRpcFactory>(),
             MefTestHelpers.CreateExport<ISLCoreConstantsProvider>(),
             MefTestHelpers.CreateExport<ISLCoreFoldersProvider>(),
@@ -46,7 +46,7 @@ public class SLCoreHandleFactoryTests
     [TestMethod]
     public void MefCtor_CheckIsSingleton()
     {
-        MefTestHelpers.CheckIsSingletonMefComponent<SLCoreHandleFactory>();
+        MefTestHelpers.CheckIsSingletonMefComponent<SLCoreInstanceFactory>();
     }
 
     
@@ -61,7 +61,7 @@ public class SLCoreHandleFactoryTests
         var activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         var configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
         var threadHandling = Substitute.For<IThreadHandling>();
-        var testSubject = new SLCoreHandleFactory(islCoreRpcFactory, islCoreConstantsProvider, islCoreFoldersProvider, serverConnectionsProvider, islCoreEmbeddedPluginJarLocator, activeSolutionBoundTracker, configScopeUpdater, threadHandling);
+        var testSubject = new SLCoreInstanceFactory(islCoreRpcFactory, islCoreConstantsProvider, islCoreFoldersProvider, serverConnectionsProvider, islCoreEmbeddedPluginJarLocator, activeSolutionBoundTracker, configScopeUpdater, threadHandling);
 
         testSubject.CreateInstance().Should().NotBeNull();
     }

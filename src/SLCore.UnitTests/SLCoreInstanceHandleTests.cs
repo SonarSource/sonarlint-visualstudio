@@ -37,7 +37,7 @@ using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 namespace SonarLint.VisualStudio.SLCore.UnitTests;
 
 [TestClass]
-public class SLCoreHandleTests
+public class SLCoreInstanceHandleTests
 {
     private const string StorageRoot = "storageRootSl";
     private const string WorkDir = "workDirSl";
@@ -276,7 +276,7 @@ public class SLCoreHandleTests
 
     #endregion
 
-    private SLCoreHandle CreateTestSubject(out ISLCoreRpcFactory slCoreRpcFactory,
+    private SLCoreInstanceHandle CreateTestSubject(out ISLCoreRpcFactory slCoreRpcFactory,
         out ISLCoreConstantsProvider constantsProvider,
         out ISLCoreFoldersProvider slCoreFoldersProvider,
         out IServerConnectionsProvider serverConnectionConfigurationProvider,
@@ -294,7 +294,7 @@ public class SLCoreHandleTests
         configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
         threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
-        return new SLCoreHandle(slCoreRpcFactory,
+        return new SLCoreInstanceHandle(slCoreRpcFactory,
             constantsProvider,
             slCoreFoldersProvider,
             serverConnectionConfigurationProvider,
