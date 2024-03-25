@@ -130,5 +130,23 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("SLCoreServiceProvider_CreateServiceError", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint background service failed to start.
+        /// </summary>
+        public static string SloopRestartFailedNotificationService_GoldBarMessage {
+            get {
+                return ResourceManager.GetString("SloopRestartFailedNotificationService_GoldBarMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restart SonarLint.
+        /// </summary>
+        public static string SloopRestartFailedNotificationService_Restart {
+            get {
+                return ResourceManager.GetString("SloopRestartFailedNotificationService_Restart", resourceCulture);
+            }
+        }
     }
 }

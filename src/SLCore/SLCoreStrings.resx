@@ -140,5 +140,10 @@
   </data>  
   <data name="SLCoreHandler_InstanceDied" xml:space="preserve">
     <value>[SLCoreHandler] SLCore instance exited</value>
+  <data name="SloopRestartFailedNotificationService_GoldBarMessage" xml:space="preserve">
+    <value>SonarLint background service failed to start</value>
+  </data>
+  <data name="SloopRestartFailedNotificationService_Restart" xml:space="preserve">
+    <value>Restart SonarLint</value>
   </data>
 </root>
