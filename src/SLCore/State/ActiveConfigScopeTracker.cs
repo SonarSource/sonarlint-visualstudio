@@ -36,6 +36,7 @@ public interface IActiveConfigScopeTracker : IDisposable
 {
     ConfigurationScope Current { get; }
     void SetCurrentConfigScope(string id, string connectionId = null, string sonarProjectKey = null);
+    void Reset();
     void RemoveCurrentConfigScope();
 }
 
@@ -119,9 +120,19 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         }
     }
 
+    public void Reset()
+    {
+        threadHandling.ThrowIfOnUIThread();
+
+        using (asyncLock.Acquire())
+        {
+            currentConfigScope = null;
+        }
+    }
+
 
     public void RemoveCurrentConfigScope()
-    {
+    { 
         threadHandling.ThrowIfOnUIThread();
         
         if (!serviceProvider.TryGetTransientService(out IConfigurationScopeSLCoreService configurationScopeService))

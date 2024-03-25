@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
@@ -38,6 +37,8 @@ namespace SonarLint.VisualStudio.SLCore;
 public interface ISLCoreHandle : IDisposable
 {
     Task InitializeAsync();
+
+    Task ShutdownTask { get; }
 }
 
 internal sealed class SLCoreHandle : ISLCoreHandle
@@ -50,10 +51,12 @@ internal sealed class SLCoreHandle : ISLCoreHandle
     private readonly ISLCoreFoldersProvider slCoreFoldersProvider;
     private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
     private readonly IThreadHandling threadHandling;
-    public ISLCoreRpc SLCoreRpc { get; private set; }
+    public Task ShutdownTask => SLCoreRpc.ShutdownTask;
+    internal ISLCoreRpc SLCoreRpc { get; private set; }
 
 
-    internal SLCoreHandle(ISLCoreRpcFactory slCoreRpcFactory, ISLCoreConstantsProvider constantsProvider, ISLCoreFoldersProvider slCoreFoldersProvider,
+    internal SLCoreHandle(ISLCoreRpcFactory slCoreRpcFactory, ISLCoreConstantsProvider constantsProvider,
+        ISLCoreFoldersProvider slCoreFoldersProvider,
         IServerConnectionsProvider serverConnectionConfigurationProvider, ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
         IActiveSolutionBoundTracker activeSolutionBoundTracker, IConfigScopeUpdater configScopeUpdater, IThreadHandling threadHandling)
     {
@@ -70,7 +73,7 @@ internal sealed class SLCoreHandle : ISLCoreHandle
     public async Task InitializeAsync()
     {
         threadHandling.ThrowIfOnUIThread();
-        
+
         SLCoreRpc = slCoreRpcFactory.StartNewRpcInstance();
 
         if (!SLCoreRpc.ServiceProvider.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService) ||
@@ -109,11 +112,12 @@ internal sealed class SLCoreHandle : ISLCoreHandle
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
             null));
-        
+
         telemetrySlCoreService.DisableTelemetry();
-        
+
         configScopeUpdater.UpdateConfigScopeForCurrentSolution(activeSolutionBoundTracker.CurrentConfiguration.Project);
     }
+
 
     public void Dispose()
     {
@@ -121,11 +125,20 @@ internal sealed class SLCoreHandle : ISLCoreHandle
         {
             threadHandling.Run(async () =>
             {
-                await lifecycleManagementSlCoreService.ShutdownAsync();
+                try
+                {
+                    await lifecycleManagementSlCoreService.ShutdownAsync();
+                }
+                catch (Exception)
+                {
+                    // suppressed
+                }
+                
                 return 0;
             });
         }
 
         SLCoreRpc?.Dispose();
+        SLCoreRpc = null;
     }
 }
