@@ -203,6 +203,26 @@ public class ActiveConfigScopeTrackerTests
     }
     
     [TestMethod]
+    public void Reset_SetsCurrentScopeToNull()
+    {
+        const string configScopeId = "myid";
+        const string connectionId = "myconid";
+        const string sonarProjectKey = "projectkey";
+        var threadHandling = new Mock<IThreadHandling>();
+        ConfigureServiceProvider(out var serviceProvider, out _);
+        ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
+        var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
+        testSubject.currentConfigScope = new ConfigurationScopeDto(configScopeId, configScopeId, true, new BindingConfigurationDto(connectionId, sonarProjectKey));
+
+        testSubject.Reset();
+
+        testSubject.currentConfigScope.Should().BeNull();
+        serviceProvider.VerifyNoOtherCalls();
+        VerifyThreadHandling(threadHandling);
+        VerifyLockTakenSynchronouslyAndReleased(asyncLock, lockRelease);
+    }
+    
+    [TestMethod]
     public void Dispose_DisposesLock()
     {
         ConfigureServiceProvider(out var serviceProvider, out _);
