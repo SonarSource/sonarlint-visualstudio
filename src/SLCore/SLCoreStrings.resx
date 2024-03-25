@@ -118,9 +118,27 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="SLCoreServiceProvider_CreateServiceError" xml:space="preserve">
-    <value>"[SLCoreServiceProvider]Cannot Create Service. Error: {0}"</value>
+    <value>[SLCoreServiceProvider]Cannot Create Service. Error: {0}</value>
   </data>
   <data name="ServiceProviderNotInitialized" xml:space="preserve">
     <value>Service Provider is unavailable</value>
+  </data>
+  <data name="SLCoreHandler_InstanceAlreadyRunning" xml:space="preserve">
+    <value>Current instance is alive</value>
+  </data>
+  <data name="SLCoreHandler_CreatingInstance" xml:space="preserve">
+    <value>[SLCoreHandler] Creating SLCore instance</value>
+  </data>
+  <data name="SLCoreHandler_CreatingInstanceError" xml:space="preserve">
+    <value>[SLCoreHandler] Error creating SLCore instance</value>
+  </data>
+  <data name="SLCoreHandler_StartingInstance" xml:space="preserve">
+    <value>[SLCoreHandler] Starting SLCore instance</value>
+  </data>
+  <data name="SLCoreHandler_StartingInstanceError" xml:space="preserve">
+    <value>[SLCoreHandler] Error starting SLCore instance</value>
+  </data>  
+  <data name="SLCoreHandler_InstanceDied" xml:space="preserve">
+    <value>[SLCoreHandler] SLCore instance exited</value>
   </data>
 </root>
