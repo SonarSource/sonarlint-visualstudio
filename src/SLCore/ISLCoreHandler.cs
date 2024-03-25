@@ -34,7 +34,7 @@ public interface ISLCoreHandler : IDisposable
 
 [Export(typeof(ISLCoreHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class SLCoreHandler : ISLCoreHandler
+internal sealed class SLCoreHandler : ISLCoreHandler
 {
     private IAliveConnectionTracker aliveConnectionTracker;
     private IActiveConfigScopeTracker activeConfigScopeTracker;
