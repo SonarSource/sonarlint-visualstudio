@@ -180,8 +180,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
         private void AddListOptions(IVCRulePropertyStorage ivcRulePropertyStorage, string vsOption, string compileOption, string[] separator, bool addQuote = true)
         {
-            var additionalIncludeDirectories = ivcRulePropertyStorage.GetEvaluatedPropertyValue(vsOption);
-            string[] opts = additionalIncludeDirectories.Split(separator, StringSplitOptions.RemoveEmptyEntries);
+            var listOptions = ivcRulePropertyStorage.GetEvaluatedPropertyValue(vsOption);
+            string[] opts = listOptions.Split(separator, StringSplitOptions.RemoveEmptyEntries);
             foreach (string opt in opts)
             {
                 AddCmdOpt(addQuote ? compileOption + AddQuote(opt) : compileOption + opt);
@@ -190,8 +190,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
         private void AddPathListOptions(IVCRulePropertyStorage ivcRulePropertyStorage, string vsOption, string compileOption, string[] separator)
         {
-            var additionalIncludeDirectories = ivcRulePropertyStorage.GetEvaluatedPropertyValue(vsOption);
-            string[] opts = additionalIncludeDirectories.Split(separator, StringSplitOptions.RemoveEmptyEntries);
+            var pathListOptions = ivcRulePropertyStorage.GetEvaluatedPropertyValue(vsOption);
+            string[] opts = pathListOptions.Split(separator, StringSplitOptions.RemoveEmptyEntries);
             foreach (string opt in opts)
             {
                 AddCmdOpt(compileOption + AdjustPath(opt));
