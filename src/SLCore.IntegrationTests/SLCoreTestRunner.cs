@@ -45,8 +45,8 @@ public sealed class SLCoreTestRunner : IDisposable
     private string workDir;
     private string userHome;
     private readonly ISLCoreProcessFactory slCoreTestProcessFactory;
-    private SLCoreHandle slCoreHandle;
-    internal ISLCoreServiceProvider SLCoreServiceProvider => slCoreHandle?.SLCoreRpc?.ServiceProvider;
+    private SLCoreInstanceHandle slCoreInstanceHandle;
+    internal ISLCoreServiceProvider SLCoreServiceProvider => slCoreInstanceHandle?.SLCoreRpc?.ServiceProvider;
     private readonly string testName;
 
     public SLCoreTestRunner(ILogger logger, ILogger slCoreErrorLogger, string testName)
@@ -62,7 +62,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
     public void AddListener(ISLCoreListener listener)
     {
-        if (slCoreHandle is not null)
+        if (slCoreInstanceHandle is not null)
         {
             throw new InvalidOperationException("Listening already started");
         }
@@ -99,7 +99,7 @@ public sealed class SLCoreTestRunner : IDisposable
             noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
             var noOpConfigScopeUpdater = Substitute.For<IConfigScopeUpdater>();
 
-            slCoreHandle = new SLCoreHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
+            slCoreInstanceHandle = new SLCoreInstanceHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
                     new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
                     new RpcDebugger(new FileSystem(), Path.Combine(privateFolder, "logrpc.log")),
                     new SLCoreServiceProvider(new NoOpThreadHandler(), logger),
@@ -111,7 +111,7 @@ public sealed class SLCoreTestRunner : IDisposable
                 noOpActiveSolutionBoundTracker,
                 noOpConfigScopeUpdater,
                 new NoOpThreadHandler());
-            await slCoreHandle.InitializeAsync();
+            await slCoreInstanceHandle.InitializeAsync();
         }
         finally
         {
@@ -121,7 +121,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
     public void Dispose()
     {
-        slCoreHandle?.Dispose();
+        slCoreInstanceHandle?.Dispose();
     }
 
     private void SetUpLocalFolders()

@@ -20,9 +20,10 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Configuration
+namespace SonarLint.VisualStudio.Integration.SLCore
 {
     [Export(typeof(ISLCoreConstantsProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]

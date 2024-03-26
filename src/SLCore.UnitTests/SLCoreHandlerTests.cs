@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Linq;
 using System.Threading.Tasks;
-using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.SLCore.State;
+using SonarLint.VisualStudio.SLCore.Notification;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests;
 
@@ -32,11 +32,9 @@ public class SLCoreHandlerTests
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<SLCoreHandler, ISLCoreHandler>(
-            MefTestHelpers.CreateExport<ISLCoreHandleFactory>(),
-            MefTestHelpers.CreateExport<IAliveConnectionTracker>(),
-            MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
-            MefTestHelpers.CreateExport<IThreadHandling>(),
-            MefTestHelpers.CreateExport<ILogger>());
+            MefTestHelpers.CreateExport<ISLCoreInstanceHandler>(),
+            MefTestHelpers.CreateExport<ISloopRestartFailedNotificationService>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());
     }
 
     [TestMethod]
@@ -44,176 +42,141 @@ public class SLCoreHandlerTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<SLCoreHandler>();
     }
-    
+
+
     [TestMethod]
-    public void StartInstance_UpdatesCounterAndInitializesOnABackgroundThread()
+    public void EnableSloop_LaunchesSloopInTheBackgroundAndWaits()
     {
-        var slCoreHandler = CreateTestSubject(out var factory, out var threadHandling, out var logger, out _, out _);
-        SetUpHandleFactory(factory, out var handle, out _);
-
-        var task = slCoreHandler.StartInstanceAsync();
-
-        slCoreHandler.CurrentStartNumber.Should().Be(1);
-        slCoreHandler.currentHandle.Should().BeSameAs(handle);
-        logger.AssertOutputStrings(SLCoreStrings.SLCoreHandler_CreatingInstance, SLCoreStrings.SLCoreHandler_StartingInstance);
+        var neverCompletedTaskSource = new TaskCompletionSource<bool>();
+        var testSubject = CreateTestSubject(out var instanceHandler, out var notificationService, out var threadHandling);
+        instanceHandler.StartInstanceAsync().Returns(neverCompletedTaskSource.Task);
+        
+        testSubject.EnableSloop();
+        
         Received.InOrder(() =>
         {
-            threadHandling.ThrowIfOnUIThread();
-            factory.CreateInstance();
-            handle.InitializeAsync();
-            _ = handle.ShutdownTask;
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            instanceHandler.StartInstanceAsync();
+        });
+        notificationService.DidNotReceiveWithAnyArgs().Show(default);
+    }
+    
+    [TestMethod]
+    public void EnableSloop_DisposedMidLifecycle_ExitsAndDoesNothing()
+    {
+        var lifeCycleTaskSource = new TaskCompletionSource<bool>();
+        var testSubject = CreateTestSubject(out var instanceHandler, out var notificationService, out _);
+        instanceHandler.StartInstanceAsync().Returns(lifeCycleTaskSource.Task);
+        instanceHandler.When(x => x.Dispose()).Do(_ => lifeCycleTaskSource.SetResult(true));
+        
+        testSubject.EnableSloop();
+        testSubject.Dispose();
+        
+        instanceHandler.Received(1).StartInstanceAsync();
+        notificationService.DidNotReceiveWithAnyArgs().Show(default);
+    }
+    
+    [TestMethod]
+    public void EnableSloop_Disposed_Throws()
+    {
+        var testSubject = CreateTestSubject(out var instanceHandler, out var notificationService, out var threadHandling);
+        testSubject.Dispose();
+        
+        var act = () => testSubject.EnableSloop();
+
+        act.Should().ThrowExactly<ObjectDisposedException>();
+        instanceHandler.DidNotReceiveWithAnyArgs().StartInstanceAsync();
+        threadHandling.DidNotReceiveWithAnyArgs().RunOnBackgroundThread(default(Func<Task<int>>));
+        notificationService.DidNotReceiveWithAnyArgs().Show(default);
+    }
+    
+    [DataTestMethod]
+    [DataRow(1)]
+    [DataRow(3)]
+    [DataRow(10)]
+    public void EnableSloop_AutoRestartsUpToLimit(int maxStartsBeforeManual)
+    {
+        var testSubject = CreateTestSubject(out var instanceHandler, out var notificationService, out var threadHandling, maxStartsBeforeManual);
+        SetUpInstanceHandler(instanceHandler);
+
+        testSubject.EnableSloop();
+        
+        Received.InOrder(() =>
+        {
+            threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+            for (int i = 0; i < maxStartsBeforeManual; i++)
+            {
+                instanceHandler.StartInstanceAsync();
+            }
+            notificationService.Show(Arg.Is<Action>(a => a != null));
         });
     }
     
     [TestMethod]
-    public void StartInstance_AlreadyStarted_Throws()
+    public void Dispose_DisposesInstanceHandler()
     {
-        var slCoreHandler = CreateTestSubject(out _, out _, out _, out _, out _);
-        slCoreHandler.currentHandle = Substitute.For<ISLCoreHandle>();
-        var act = () => slCoreHandler.StartInstanceAsync();
+        var testSubject = CreateTestSubject(out var instanceHandler, out _, out _);
+        
+        testSubject.Dispose();
 
-        act.Should().Throw<InvalidOperationException>().WithMessage(SLCoreStrings.SLCoreHandler_InstanceAlreadyRunning);
-
-        slCoreHandler.CurrentStartNumber.Should().Be(0);
+        instanceHandler.Received().Dispose();
     }
-    
-    [TestMethod]
-    public void StartInstance_InstanceCreationFailed_LogsAndExits()
+
+    [DataTestMethod]
+    [DataRow(1)]
+    [DataRow(3)]
+    [DataRow(10)]
+    public void EnableSloop_MultipleUserInitiatedRestarts_KeepsAutoRestartingUpToTheLimit(int maxStartsBeforeManual)
     {
-        var slCoreHandler = CreateTestSubject(out var factory, out _, out var logger, out _, out _);
-        factory.CreateInstance().Throws(new Exception());
+        const int manualRestartsCount = 5; 
+        var testSubject = CreateTestSubject(out var instanceHandler, out var notificationService, out var threadHandling, maxStartsBeforeManual);
+        SetUpInstanceHandler(instanceHandler);
 
-        var task = slCoreHandler.StartInstanceAsync();
-
-        slCoreHandler.CurrentStartNumber.Should().Be(1);
-        slCoreHandler.currentHandle.Should().BeNull();
-        logger.AssertOutputStrings(SLCoreStrings.SLCoreHandler_CreatingInstance, SLCoreStrings.SLCoreHandler_CreatingInstanceError);
-    }
-    
-    [TestMethod]
-    public async Task StartInstance_InstanceDies_RaisesEventAndResets()
-    {
-        var slCoreHandler = CreateTestSubject(out var factory, out var threadHandling, out var logger, out var activeConfigScopeTracker, out _);
-        SetUpHandleFactory(factory, out var handle, out var handleLifetimeTaskSource);
-
-        var task = slCoreHandler.StartInstanceAsync();
-        handleLifetimeTaskSource.SetResult(true);
-        await task;
-
-        slCoreHandler.CurrentStartNumber.Should().Be(1);
-        slCoreHandler.currentHandle.Should().BeNull();
-        logger.AssertOutputStrings(SLCoreStrings.SLCoreHandler_CreatingInstance, SLCoreStrings.SLCoreHandler_StartingInstance, SLCoreStrings.SLCoreHandler_InstanceDied);
+        testSubject.EnableSloop();
+        for (int i = 0; i < manualRestartsCount; i++)
+        {
+            var resetActon = (Action)notificationService.ReceivedCalls().Last().GetArguments().First();
+            resetActon();
+        }
+        
         Received.InOrder(() =>
         {
-            threadHandling.ThrowIfOnUIThread();
-            factory.CreateInstance();
-            handle.InitializeAsync();
-            _ = handle.ShutdownTask;
-            handle.Dispose();
-            activeConfigScopeTracker.Reset();
+            for (int i = 0; i < manualRestartsCount + 1; i++)
+            {
+                threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
+                for (int j = 0; j < maxStartsBeforeManual; j++)
+                {
+                    instanceHandler.StartInstanceAsync();
+                }
+                notificationService.Show(Arg.Is<Action>(a => a != null));
+            }
         });
     }
     
-    [TestMethod]
-    public async Task StartInstance_PreviousInstanceIsDead_AllowsToStartAgain()
+    private static void SetUpInstanceHandler(ISLCoreInstanceHandler instanceHandler)
     {
-        var slCoreHandler = CreateTestSubject(out var factory, out _, out var logger, out _, out _);
-        SetUpHandleFactory(factory, out _, out var handleLifetimeTaskSource);
-
-        var task1 = slCoreHandler.StartInstanceAsync();
-        handleLifetimeTaskSource.SetResult(true);
-        await task1;
-        SetUpHandleFactory(factory, out var newHandle, out _);
-        var task2 = slCoreHandler.StartInstanceAsync();
-
-        slCoreHandler.CurrentStartNumber.Should().Be(2);
-        slCoreHandler.currentHandle.Should().BeSameAs(newHandle);
-        logger.AssertOutputStrings(SLCoreStrings.SLCoreHandler_CreatingInstance,
-            SLCoreStrings.SLCoreHandler_StartingInstance,
-            SLCoreStrings.SLCoreHandler_InstanceDied,
-            SLCoreStrings.SLCoreHandler_CreatingInstance,
-            SLCoreStrings.SLCoreHandler_StartingInstance);
-    }
-    
-    [TestMethod]
-    public void StartInstance_InstanceInitializationThrows_RaisesEventAndResets()
-    {
-        var slCoreHandler = CreateTestSubject(out var factory, out var threadHandling, out var logger, out var activeConfigScopeTracker, out _);
-        SetUpHandleFactory(factory, out var handle, out _);
-        handle.InitializeAsync().Returns(Task.FromException(new Exception()));
-
-        var task = slCoreHandler.StartInstanceAsync();
-
-        slCoreHandler.CurrentStartNumber.Should().Be(1);
-        slCoreHandler.currentHandle.Should().BeNull();
-        logger.AssertOutputStrings(SLCoreStrings.SLCoreHandler_CreatingInstance,
-            SLCoreStrings.SLCoreHandler_StartingInstance,
-            SLCoreStrings.SLCoreHandler_StartingInstanceError,
-            SLCoreStrings.SLCoreHandler_InstanceDied);
-        Received.InOrder(() =>
+        var currentRun = 0;
+        instanceHandler.CurrentStartNumber.Returns(_ => currentRun);
+        instanceHandler.StartInstanceAsync().Returns(_ =>
         {
-            threadHandling.ThrowIfOnUIThread();
-            factory.CreateInstance();
-            handle.InitializeAsync();
-            handle.Dispose();
-            activeConfigScopeTracker.Reset();
+            currentRun++;
+            return Task.CompletedTask;
         });
     }
     
-    [TestMethod]
-    public async Task Dispose_DisposesLatestHandle()
-    {
-        var slCoreHandler = CreateTestSubject(out var factory, out _, out var logger, out var scopeTracker, out var connectionTracker);
-        SetUpHandleFactory(factory, out var handle, out var handleLifetimeTaskSource);
-        handle.When(slCoreHandle => slCoreHandle.Dispose()).Do(_ => handleLifetimeTaskSource.SetResult(true));
-        var task = slCoreHandler.StartInstanceAsync();
-
-        slCoreHandler.Dispose();
-        await task;
-
-        logger.AssertOutputStrings(SLCoreStrings.SLCoreHandler_CreatingInstance, SLCoreStrings.SLCoreHandler_StartingInstance, SLCoreStrings.SLCoreHandler_InstanceDied);
-        Received.InOrder(() =>
-        {
-            handle.Dispose();
-            connectionTracker.Dispose();
-            scopeTracker.Dispose();
-        });
-    }
-    
-    [TestMethod]
-    public async Task Dispose_PreventsStartingNewInstance()
-    {
-        var slCoreHandler = CreateTestSubject(out _, out _, out _, out _, out _);
-
-        slCoreHandler.Dispose();
-        var act = async () => await slCoreHandler.StartInstanceAsync();
-
-        await act.Should().ThrowAsync<ObjectDisposedException>();
-    }
-
-    private void SetUpHandleFactory(ISLCoreHandleFactory handleFactory, out ISLCoreHandle handle, out TaskCompletionSource<bool> handleLifetimeTaskSource)
-    {
-        handleLifetimeTaskSource = new TaskCompletionSource<bool>();
-        handle = Substitute.For<ISLCoreHandle>();
-        handle.ShutdownTask.Returns(handleLifetimeTaskSource.Task);
-        handleFactory.CreateInstance().Returns(handle);
-    }
-
-    private SLCoreHandler CreateTestSubject(out ISLCoreHandleFactory slCoreHandleFactory, 
+    private SLCoreHandler CreateTestSubject(
+        out ISLCoreInstanceHandler instanceHandler,
+        out ISloopRestartFailedNotificationService notificationService,
         out IThreadHandling threadHandling,
-        out TestLogger logger,
-        out IActiveConfigScopeTracker activeConfigScopeTracker,
-        out IAliveConnectionTracker aliveConnectionTracker)
+        int? maxStartsBeforeManual = null)
     {
-        slCoreHandleFactory = Substitute.For<ISLCoreHandleFactory>();
-        aliveConnectionTracker = Substitute.For<IAliveConnectionTracker>();
-        activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        instanceHandler = Substitute.For<ISLCoreInstanceHandler>();
+        notificationService = Substitute.For<ISloopRestartFailedNotificationService>();
         threadHandling = Substitute.For<IThreadHandling>();
-        logger = new TestLogger();
-        return new SLCoreHandler(slCoreHandleFactory,
-            aliveConnectionTracker,
-            activeConfigScopeTracker,
-            threadHandling,
-            logger);
+        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(info => info.Arg<Func<Task<int>>>()());
+        
+        return maxStartsBeforeManual.HasValue
+            ? new SLCoreHandler(instanceHandler, notificationService, maxStartsBeforeManual.Value, threadHandling)
+            : new SLCoreHandler(instanceHandler, notificationService, threadHandling);
     }
 }
