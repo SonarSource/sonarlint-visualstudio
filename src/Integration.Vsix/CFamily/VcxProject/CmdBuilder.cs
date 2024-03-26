@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             {
                 path = path.Substring(0, path.Length - 1);
             }
-            return AddQuote(path);
+            return AddQuote(path.Trim());
         }
 
         internal void AddOptFromProperties(IVCRulePropertyStorage properties)
