@@ -20,116 +20,86 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.SLCore.State;
+using SonarLint.VisualStudio.SLCore.Notification;
 
 namespace SonarLint.VisualStudio.SLCore;
 
 public interface ISLCoreHandler : IDisposable
 {
-    int CurrentStartNumber { get; }
-    Task StartInstanceAsync();
+    void EnableSloop();
 }
 
 [Export(typeof(ISLCoreHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class SLCoreHandler : ISLCoreHandler
 {
-    private IAliveConnectionTracker aliveConnectionTracker;
-    private IActiveConfigScopeTracker activeConfigScopeTracker;
-    private ISLCoreHandleFactory slCoreHandleFactory;
+    private readonly ISloopRestartFailedNotificationService notificationService;
+    private readonly ISLCoreInstanceHandler slCoreInstanceHandler;
     private readonly IThreadHandling threadHandling;
-    private readonly ILogger logger;
-    internal /* for testing */ ISLCoreHandle currentHandle = null;
+    private readonly int maxStartsBeforeUserNotification;
+    private int initiatedStartAtCount = 0;
     private bool disposed;
-    public int CurrentStartNumber { get; private set; }
 
     [ImportingConstructor]
-    public SLCoreHandler(ISLCoreHandleFactory slCoreHandleFactory,
-        IAliveConnectionTracker aliveConnectionTracker,
-        IActiveConfigScopeTracker activeConfigScopeTracker,
-        IThreadHandling threadHandling,
-        ILogger logger)
+    public SLCoreHandler(ISLCoreInstanceHandler slCoreInstanceHandler,
+        ISloopRestartFailedNotificationService notificationService,
+        IThreadHandling threadHandling)
+        : this(slCoreInstanceHandler, notificationService, 2, threadHandling)
     {
-        this.aliveConnectionTracker = aliveConnectionTracker;
-        this.activeConfigScopeTracker = activeConfigScopeTracker;
-        this.slCoreHandleFactory = slCoreHandleFactory;
-        this.threadHandling = threadHandling;
-        this.logger = logger;
     }
 
-    public async Task StartInstanceAsync()
+    internal /* for testing */ SLCoreHandler(ISLCoreInstanceHandler slCoreInstanceHandler,
+        ISloopRestartFailedNotificationService notificationService,
+        int maxStartsBeforeUserNotification,
+        IThreadHandling threadHandling)
     {
-        threadHandling.ThrowIfOnUIThread();
+        if (maxStartsBeforeUserNotification <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxStartsBeforeUserNotification));
+        }
 
+        this.notificationService = notificationService;
+        this.slCoreInstanceHandler = slCoreInstanceHandler;
+        this.threadHandling = threadHandling;
+        this.maxStartsBeforeUserNotification = maxStartsBeforeUserNotification;
+    }
+
+    public void EnableSloop()
+    {
         if (disposed)
         {
             throw new ObjectDisposedException(nameof(SLCoreHandler));
         }
-
-        if (currentHandle is not null)
-        {
-            throw new InvalidOperationException(SLCoreStrings.SLCoreHandler_InstanceAlreadyRunning);
-        }
         
-        if (!TryCreateInstance())
+        threadHandling.RunOnBackgroundThread(async () =>
         {
-            return;
-        }
+            while (!disposed && !ShouldNotifyUser())
+            {
+                await slCoreInstanceHandler.StartInstanceAsync();
+            }
 
-        await LaunchInstanceAsync();
+            if (!disposed)
+            {
+                notificationService.Show(InitiateStart);
+            }
+            
+            return 0;
+        }).Forget();
     }
 
-    private bool TryCreateInstance()
+    private bool ShouldNotifyUser()
     {
-        CurrentStartNumber++;
-        try
-        {
-            logger.WriteLine(SLCoreStrings.SLCoreHandler_CreatingInstance);
-            currentHandle = slCoreHandleFactory.CreateInstance();
-        }
-        catch (Exception e)
-        {
-            logger.WriteLine(SLCoreStrings.SLCoreHandler_CreatingInstanceError);
-            logger.LogVerbose(e.ToString());
-            return false;
-        }
-
-        return true;
+        return slCoreInstanceHandler.CurrentStartNumber - initiatedStartAtCount >= maxStartsBeforeUserNotification;
     }
 
-    private async Task LaunchInstanceAsync()
+    private void InitiateStart()
     {
-        try
-        {
-            logger.WriteLine(SLCoreStrings.SLCoreHandler_StartingInstance);
-            await currentHandle.InitializeAsync();
-            await currentHandle.ShutdownTask;
-        }
-        catch (Exception e)
-        {
-            logger.WriteLine(SLCoreStrings.SLCoreHandler_StartingInstanceError);
-            logger.LogVerbose(e.ToString());
-        }
-        finally
-        {
-            logger.WriteLine(SLCoreStrings.SLCoreHandler_InstanceDied);
-            HandleInstanceDeath();
-        }
+        initiatedStartAtCount = slCoreInstanceHandler.CurrentStartNumber;
+        EnableSloop();
     }
-
-    private void HandleInstanceDeath()
-    {
-        if (disposed)
-        {
-            return;
-        }
-        currentHandle?.Dispose();
-        currentHandle = null;
-        activeConfigScopeTracker?.Reset();
-    }
-
+    
     public void Dispose()
     {
         if (disposed)
@@ -138,13 +108,6 @@ internal sealed class SLCoreHandler : ISLCoreHandler
         }
 
         disposed = true;
-        currentHandle?.Dispose();
-        slCoreHandleFactory = null;
-        aliveConnectionTracker?.Dispose();
-        aliveConnectionTracker = null;
-        activeConfigScopeTracker?.Dispose();
-        activeConfigScopeTracker = null;
+        slCoreInstanceHandler.Dispose();
     }
 }
-
-
