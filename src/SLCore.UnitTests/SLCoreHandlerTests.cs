@@ -21,6 +21,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore.Notification;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests;
 

@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore;
 
-public interface ISLCoreInstanceHandler : IDisposable
+internal interface ISLCoreInstanceHandler : IDisposable
 {
     int CurrentStartNumber { get; }
     Task StartInstanceAsync();

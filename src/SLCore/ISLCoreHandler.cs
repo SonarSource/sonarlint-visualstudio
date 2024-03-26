@@ -22,14 +22,9 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore.Notification;
 
 namespace SonarLint.VisualStudio.SLCore;
-
-public interface ISloopRestartFailedNotificationService
-{
-    // remove this interface after the other PR is done
-    void Show(Action act);
-}
 
 public interface ISLCoreHandler : IDisposable
 {

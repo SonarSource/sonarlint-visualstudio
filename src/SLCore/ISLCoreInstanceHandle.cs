@@ -34,7 +34,7 @@ using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.SLCore;
 
-public interface ISLCoreInstanceHandle : IDisposable
+internal interface ISLCoreInstanceHandle : IDisposable
 {
     Task InitializeAsync();
 

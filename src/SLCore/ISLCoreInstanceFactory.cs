@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore;
 
-public interface ISLCoreInstanceFactory
+internal interface ISLCoreInstanceFactory
 {
     ISLCoreInstanceHandle CreateInstance();
 }
