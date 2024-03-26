@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         internal /* for testing */ static string AdjustPath(string path)
         {
             // path cannot be empty
-            path = path.Replace("/", @"\");
+            path = path.Trim().Replace("/", @"\");
 
             path = DoubleSeparatorRegEx.Replace(path, @"\");
 
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             {
                 path = path.Substring(0, path.Length - 1);
             }
-            return AddQuote(path.Trim());
+            return AddQuote(path);
         }
 
         internal void AddOptFromProperties(IVCRulePropertyStorage properties)
