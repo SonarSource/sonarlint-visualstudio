@@ -122,17 +122,6 @@ public class SLCoreHandlerTests
         instanceHandler.Received().Dispose();
     }
 
-    private static void SetUpInstanceHandler(ISLCoreInstanceHandler instanceHandler)
-    {
-        var currentRun = 0;
-        instanceHandler.CurrentStartNumber.Returns(_ => currentRun);
-        instanceHandler.StartInstanceAsync().Returns(_ =>
-        {
-            currentRun++;
-            return Task.CompletedTask;
-        });
-    }
-
     [DataTestMethod]
     [DataRow(1)]
     [DataRow(3)]
@@ -161,6 +150,17 @@ public class SLCoreHandlerTests
                 }
                 notificationService.Show(Arg.Is<Action>(a => a != null));
             }
+        });
+    }
+    
+    private static void SetUpInstanceHandler(ISLCoreInstanceHandler instanceHandler)
+    {
+        var currentRun = 0;
+        instanceHandler.CurrentStartNumber.Returns(_ => currentRun);
+        instanceHandler.StartInstanceAsync().Returns(_ =>
+        {
+            currentRun++;
+            return Task.CompletedTask;
         });
     }
     
