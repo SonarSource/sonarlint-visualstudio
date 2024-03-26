@@ -57,9 +57,9 @@ namespace SonarLint.VisualStudio.Core.Notifications
         internal /* for testing */ bool HasActiveNotification => activeNotification != null;
 
         [ImportingConstructor]
-        public NotificationService(IInfoBarManager infoBarManager, 
+        public NotificationService(IInfoBarManager infoBarManager,
             IDisabledNotificationsStorage notificationsStorage,
-            IThreadHandling threadHandling, 
+            IThreadHandling threadHandling,
             ILogger logger)
         {
             this.infoBarManager = infoBarManager;
@@ -104,8 +104,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 var matchingAction = notification.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
 
                 matchingAction?.Action(notification);
-                
-                if(matchingAction?.ShouldDismissAfterAction == true)
+
+                if (matchingAction?.ShouldDismissAfterAction == true)
                 {
                     RemoveExistingInfoBar();
                 }
@@ -157,8 +157,10 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
                 activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
                 activeNotification.Item1.Closed += CurrentInfoBar_Closed;
-
-                oncePerSessionNotifications.Add(notification.Id);
+                if (notification.ShowOncePerSession)
+                {
+                    oncePerSessionNotifications.Add(notification.Id);
+                }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {

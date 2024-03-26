@@ -28,19 +28,23 @@ namespace SonarLint.VisualStudio.Core.Notifications
         string Id { get; }
         string Message { get; }
         IEnumerable<INotificationAction> Actions { get; }
+
+        bool ShowOncePerSession { get; }
     }
 
     public class Notification : INotification
     {
-        public Notification(string id, string message, IEnumerable<INotificationAction> actions)
+        public Notification(string id, string message, IEnumerable<INotificationAction> actions, bool showOncePerSession = true)
         {
             Id = id ?? throw new ArgumentNullException(nameof(id));
             Message = message ?? throw new ArgumentNullException(nameof(message));
             Actions = actions ?? throw new ArgumentNullException(nameof(actions));
+            ShowOncePerSession = showOncePerSession;
         }
 
         public string Id { get; }
         public string Message { get; }
         public IEnumerable<INotificationAction> Actions { get; }
+        public bool ShowOncePerSession { get; }
     }
 }

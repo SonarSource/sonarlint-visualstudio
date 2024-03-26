@@ -51,7 +51,8 @@ namespace SonarLint.VisualStudio.SLCore.Notification
                 actions: new[]
                 {
                     new NotificationAction(SLCoreStrings.SloopRestartFailedNotificationService_Restart, _ => act(), true)
-                }
+                },
+                showOncePerSession: false
             );
 
             notificationService.ShowNotification(notification);
