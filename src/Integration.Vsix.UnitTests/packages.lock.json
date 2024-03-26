@@ -74,7 +74,7 @@
       },
       "SonarAnalyzer.CSharp": {
         "type": "Direct",
-        "requested": "[9.23.0.88079, )",
+        "requested": "[9.22.0.87781, )",
         "resolved": "9.23.0.88079",
         "contentHash": "/dwzO34zmW3xDv1i3QfhoyaKZ2aCBPWoRBwRw5Vnextq7nD2sWB+/6yjxn/Fa+Z3xhdsYoVbzIIvN5RvJ81dRw=="
       },
