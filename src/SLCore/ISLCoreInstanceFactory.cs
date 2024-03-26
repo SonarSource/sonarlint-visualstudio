@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Configuration;
@@ -27,14 +26,14 @@ using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore;
 
-public interface ISLCoreHandleFactory
+internal interface ISLCoreInstanceFactory
 {
-    ISLCoreHandle CreateInstance();
+    ISLCoreInstanceHandle CreateInstance();
 }
 
-[Export(typeof(ISLCoreHandleFactory))]
+[Export(typeof(ISLCoreInstanceFactory))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class SLCoreHandleFactory : ISLCoreHandleFactory
+internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
 {
     private readonly ISLCoreRpcFactory slCoreRpcFactory;
     private readonly ISLCoreConstantsProvider constantsProvider;
@@ -46,7 +45,7 @@ internal class SLCoreHandleFactory : ISLCoreHandleFactory
     private readonly IThreadHandling threadHandling;
 
     [ImportingConstructor]
-    public SLCoreHandleFactory(ISLCoreRpcFactory slCoreRpcFactory,
+    public SLCoreInstanceFactory(ISLCoreRpcFactory slCoreRpcFactory,
         ISLCoreConstantsProvider constantsProvider,
         ISLCoreFoldersProvider slCoreFoldersProvider,
         IServerConnectionsProvider serverConnectionConfigurationProvider,
@@ -65,8 +64,8 @@ internal class SLCoreHandleFactory : ISLCoreHandleFactory
         this.threadHandling = threadHandling;
     }
     
-    public ISLCoreHandle CreateInstance() =>
-        new SLCoreHandle(slCoreRpcFactory,
+    public ISLCoreInstanceHandle CreateInstance() =>
+        new SLCoreInstanceHandle(slCoreRpcFactory,
             constantsProvider,
             slCoreFoldersProvider,
             serverConnectionConfigurationProvider,

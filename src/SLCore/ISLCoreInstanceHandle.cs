@@ -34,14 +34,14 @@ using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.SLCore;
 
-public interface ISLCoreHandle : IDisposable
+internal interface ISLCoreInstanceHandle : IDisposable
 {
     Task InitializeAsync();
 
     Task ShutdownTask { get; }
 }
 
-internal sealed class SLCoreHandle : ISLCoreHandle
+internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
 {
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly ISLCoreRpcFactory slCoreRpcFactory;
@@ -55,7 +55,7 @@ internal sealed class SLCoreHandle : ISLCoreHandle
     internal ISLCoreRpc SLCoreRpc { get; private set; }
 
 
-    internal SLCoreHandle(ISLCoreRpcFactory slCoreRpcFactory, ISLCoreConstantsProvider constantsProvider,
+    internal SLCoreInstanceHandle(ISLCoreRpcFactory slCoreRpcFactory, ISLCoreConstantsProvider constantsProvider,
         ISLCoreFoldersProvider slCoreFoldersProvider,
         IServerConnectionsProvider serverConnectionConfigurationProvider, ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
         IActiveSolutionBoundTracker activeSolutionBoundTracker, IConfigScopeUpdater configScopeUpdater, IThreadHandling threadHandling)
