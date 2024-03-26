@@ -38,7 +38,7 @@ internal class SLCoreHandler : ISLCoreHandler
     private readonly ISloopRestartFailedNotificationService notificationService;
     private readonly ISLCoreInstanceHandler slCoreInstanceHandler;
     private readonly IThreadHandling threadHandling;
-    private readonly int maxAutoStartsBeforeManual;
+    private readonly int maxStartsBeforeUserNotification;
     private int initiatedStartAtCount = 0;
     private bool disposed;
 
@@ -46,24 +46,24 @@ internal class SLCoreHandler : ISLCoreHandler
     public SLCoreHandler(ISLCoreInstanceHandler slCoreInstanceHandler,
         ISloopRestartFailedNotificationService notificationService,
         IThreadHandling threadHandling)
-        : this(slCoreInstanceHandler, notificationService, 3, threadHandling)
+        : this(slCoreInstanceHandler, notificationService, 2, threadHandling)
     {
     }
 
     internal /* for testing */ SLCoreHandler(ISLCoreInstanceHandler slCoreInstanceHandler,
         ISloopRestartFailedNotificationService notificationService,
-        int maxAutoStartsBeforeManual,
+        int maxStartsBeforeUserNotification,
         IThreadHandling threadHandling)
     {
-        if (maxAutoStartsBeforeManual <= 0)
+        if (maxStartsBeforeUserNotification <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(maxAutoStartsBeforeManual));
+            throw new ArgumentOutOfRangeException(nameof(maxStartsBeforeUserNotification));
         }
 
         this.notificationService = notificationService;
         this.slCoreInstanceHandler = slCoreInstanceHandler;
         this.threadHandling = threadHandling;
-        this.maxAutoStartsBeforeManual = maxAutoStartsBeforeManual;
+        this.maxStartsBeforeUserNotification = maxStartsBeforeUserNotification;
     }
 
     public void EnableSloop()
@@ -75,21 +75,26 @@ internal class SLCoreHandler : ISLCoreHandler
         
         threadHandling.RunOnBackgroundThread(async () =>
         {
-            while (!disposed && slCoreInstanceHandler.CurrentStartNumber - initiatedStartAtCount < maxAutoStartsBeforeManual)
+            while (!disposed && !ShouldNotifyUser())
             {
                 await slCoreInstanceHandler.StartInstanceAsync();
             }
 
             if (!disposed)
             {
-                notificationService.Show(InitiateRestart);
+                notificationService.Show(InitiateStart);
             }
             
             return 0;
         }).Forget();
     }
 
-    private void InitiateRestart()
+    private bool ShouldNotifyUser()
+    {
+        return slCoreInstanceHandler.CurrentStartNumber - initiatedStartAtCount >= maxStartsBeforeUserNotification;
+    }
+
+    private void InitiateStart()
     {
         initiatedStartAtCount = slCoreInstanceHandler.CurrentStartNumber;
         EnableSloop();
