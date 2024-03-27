@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
     {
         public ClientConstantsDto ClientConstants => new ClientConstantsDto("SonarLint for Visual Studio", $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}");
 
-        public FeatureFlagsDto FeatureFlags => new FeatureFlagsDto(true, true, false, true, false, false, true);
+        public FeatureFlagsDto FeatureFlags => new FeatureFlagsDto(true, true, false, true, false, false, true, false);
 
         //We do not support telemetry now
         public TelemetryClientConstantAttributesDto TelemetryConstants => new TelemetryClientConstantAttributesDto("SLVS_SHOULD_NOT_SEND_TELEMETRY", default, default, default, default);
