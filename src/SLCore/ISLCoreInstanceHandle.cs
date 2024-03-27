@@ -76,8 +76,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
 
         SLCoreRpc = slCoreRpcFactory.StartNewRpcInstance();
 
-        if (!SLCoreRpc.ServiceProvider.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService) ||
-            !SLCoreRpc.ServiceProvider.TryGetTransientService(out ITelemetrySLCoreService telemetrySlCoreService))
+        if (!SLCoreRpc.ServiceProvider.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService))
         {
             throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized);
         }
@@ -112,8 +111,6 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
             null));
-
-        telemetrySlCoreService.DisableTelemetry();
 
         configScopeUpdater.UpdateConfigScopeForCurrentSolution(activeSolutionBoundTracker.CurrentConfiguration.Project);
     }

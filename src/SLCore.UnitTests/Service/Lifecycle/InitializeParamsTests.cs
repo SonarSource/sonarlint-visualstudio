@@ -37,7 +37,7 @@ public class InitializeParamsTests
         var testSubject = new InitializeParams(
             new ClientConstantsDto("TESTname", "TESTagent"),
             new HttpConfigurationDto(new SslConfigurationDto()),
-            new FeatureFlagsDto(false, true, false, true, false, true, false),
+            new FeatureFlagsDto(false, true, false, true, false, true, false, false),
             "storageRoot",
             "workDir",
             new List<string> { "myplugin1", "myplugin2" },
@@ -73,7 +73,8 @@ public class InitializeParamsTests
                                     "enableSecurityHotspots": true,
                                     "shouldManageServerSentEvents": false,
                                     "enableDataflowBugDetection": true,
-                                    "shouldManageFullSynchronization": false
+                                    "shouldManageFullSynchronization": false,
+                                    "enableTelemetry": false
                                   },
                                   "storageRoot": "storageRoot",
                                   "workDir": "workDir",

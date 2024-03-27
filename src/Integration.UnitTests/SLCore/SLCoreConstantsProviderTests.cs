@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
         [TestMethod]
         public void FeatureFlags_ShouldBeExpected()
         {
-            var expectedFeatureFlags = new FeatureFlagsDto(true, true, false, true, false, false, true);
+            var expectedFeatureFlags = new FeatureFlagsDto(true, true, false, true, false, false, true, false);
             var result = testSubject.FeatureFlags;
 
             result.Should().BeEquivalentTo(expectedFeatureFlags);

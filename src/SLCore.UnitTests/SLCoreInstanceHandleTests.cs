@@ -21,7 +21,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NSubstitute;
 using NSubstitute.ClearExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -30,7 +29,6 @@ using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
-using SonarLint.VisualStudio.SLCore.Service.Telemetry;
 using SonarLint.VisualStudio.SLCore.State;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
@@ -44,7 +42,7 @@ public class SLCoreInstanceHandleTests
     private const string UserHome = "userHomeSl";
     
     private static readonly ClientConstantsDto ClientConstants = new(default, default);
-    private static readonly FeatureFlagsDto FeatureFlags = new(default, default, default, default, default, default, default);
+    private static readonly FeatureFlagsDto FeatureFlags = new(default, default, default, default, default, default, default, default);
     private static readonly TelemetryClientConstantAttributesDto TelemetryConstants = new(default, default, default, default, default);
 
     private static readonly SonarQubeConnectionConfigurationDto SonarQubeConnection1 = new("sq1", true, "http://localhost/");
@@ -87,7 +85,6 @@ public class SLCoreInstanceHandleTests
             jarLocator,
             activeSolutionBoundTracker,
             out var lifecycleManagement,
-            out var telemetryService,
             out _);
 
         await testSubject.InitializeAsync();
@@ -122,7 +119,6 @@ public class SLCoreInstanceHandleTests
                 && !parameters.isFocusOnNewCode
                 && parameters.telemetryConstantAttributes == TelemetryConstants
                 && parameters.clientNodeJsPath == null));
-            telemetryService.DisableTelemetry();
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(Binding);
         });
     }
@@ -146,7 +142,6 @@ public class SLCoreInstanceHandleTests
             jarLocator,
             activeSolutionBoundTracker,
             out var lifecycleManagement,
-            out _,
             out var rpc);
         await testSubject.InitializeAsync();
 
@@ -180,7 +175,6 @@ public class SLCoreInstanceHandleTests
             jarLocator,
             activeSolutionBoundTracker,
             out var lifecycleManagement,
-            out _,
             out var rpc);
         await testSubject.InitializeAsync();
 
@@ -221,12 +215,11 @@ public class SLCoreInstanceHandleTests
         ISLCoreEmbeddedPluginJarLocator jarLocator,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         out ILifecycleManagementSLCoreService lifecycleManagement,
-        out ITelemetrySLCoreService telemetry,
         out ISLCoreRpc rpc)
     {
         SetUpSLCoreRpcFactory(slCoreRpcFactory, out rpc);
         SetUpSLCoreRpc(rpc, out var serviceProvider);
-        SetUpSLCoreServiceProvider(serviceProvider, out lifecycleManagement, out telemetry);
+        SetUpSLCoreServiceProvider(serviceProvider, out lifecycleManagement);
         constantsProvider.ClientConstants.Returns(ClientConstants);
         constantsProvider.FeatureFlags.Returns(FeatureFlags);
         constantsProvider.TelemetryConstants.Returns(TelemetryConstants);
@@ -256,20 +249,13 @@ public class SLCoreInstanceHandleTests
     }
 
     private void SetUpSLCoreServiceProvider(ISLCoreServiceProvider slCoreServiceProvider,
-        out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService, out ITelemetrySLCoreService telemetrySlCoreService)
+        out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService)
     {
         var managementService = Substitute.For<ILifecycleManagementSLCoreService>();
         lifecycleManagementSlCoreService = managementService;
-        var telemetryService = Substitute.For<ITelemetrySLCoreService>();
-        telemetrySlCoreService = telemetryService;
         slCoreServiceProvider.TryGetTransientService(out Arg.Any<ILifecycleManagementSLCoreService>()).Returns(x =>
         {
             x[0] = managementService;
-            return true;
-        });
-        slCoreServiceProvider.TryGetTransientService(out Arg.Any<ITelemetrySLCoreService>()).Returns(x =>
-        {
-            x[0] = telemetryService;
             return true;
         });
     }
