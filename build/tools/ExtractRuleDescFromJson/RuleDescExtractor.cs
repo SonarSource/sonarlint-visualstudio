@@ -97,6 +97,7 @@ internal class RuleDescExtractor
         };
 
         var json = File.ReadAllText(file);
+        Logger.LogMessage(json);
         return JsonSerializer.Deserialize<PluginRule[]>(json, options)
             ?? Array.Empty<PluginRule>();
     }
