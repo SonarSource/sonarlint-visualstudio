@@ -144,7 +144,7 @@ jobs:
   # See https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/java-tool-installer-v0?view=azure-pipelines
   - task: JavaToolInstaller@0
     inputs:
-      versionSpec: '11'
+      versionSpec: '17'
       jdkArchitectureOption: 'x64'
       jdkSourceOption: PreInstalled
 
