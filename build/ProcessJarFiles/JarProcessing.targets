@@ -56,7 +56,7 @@
     <Delete Files="@(TempJsonFilesToClean)" />
 
     <Message Importance="high" Text="[ProcessJarFiles] Extracting json files to $(_WorkingDirectory) ..." />
-    <Exec Command="java -jar $(RuleJsonExtractorJar) --include-hotspots --plugins $(JarDownloadDir)\%(PluginJars.JarName) --languages=%(PluginJars.LanguageKey) --output=$(_WorkingDirectory)\%(PluginJars.RepoKey)-rules.json" />
+    <Exec Command="java -jar $(RuleJsonExtractorJar) --verbose --include-hotspots --plugins $(JarDownloadDir)\%(PluginJars.JarName) --languages=%(PluginJars.LanguageKey) --output=$(_WorkingDirectory)\%(PluginJars.RepoKey)-rules.json" />
   </Target>
 
   <Target Name="ExtractRuleDescFromJson">
