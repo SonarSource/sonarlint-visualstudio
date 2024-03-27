@@ -43,7 +43,7 @@ namespace SonarQube.Client.Tests
     {
       ""name"": ""feature/foo"",
       ""isMain"": false,
-      ""type"": ""BRANCH"",
+      ""type"": ""SHORT"",
       ""status"": {
         ""qualityGateStatus"": ""OK""
       },
@@ -53,7 +53,7 @@ namespace SonarQube.Client.Tests
     {
       ""name"": ""master"",
       ""isMain"": true,
-      ""type"": ""BRANCH"",
+      ""type"": ""LONG"",
       ""status"": {
         ""qualityGateStatus"": ""ERROR""
       },
@@ -72,10 +72,12 @@ namespace SonarQube.Client.Tests
             result.Should().HaveCount(2);
             result[0].Name.Should().Be("feature/foo");
             result[0].IsMain.Should().Be(false);
+            result[0].Type.Should().Be("SHORT");
             result[0].LastAnalysisTimestamp.Should().Be(new DateTimeOffset(2017, 4, 3, 13, 37, 0, TimeSpan.FromHours(1)));
 
             result[1].Name.Should().Be("master");
             result[1].IsMain.Should().Be(true);
+            result[0].Type.Should().Be("LONG");
             result[1].LastAnalysisTimestamp.Should().Be(new DateTimeOffset(2018, 12, 1, 1, 15, 42, TimeSpan.FromHours(-4)));
         }
 
