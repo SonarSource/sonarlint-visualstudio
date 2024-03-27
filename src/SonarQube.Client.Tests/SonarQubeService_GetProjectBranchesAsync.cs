@@ -77,7 +77,7 @@ namespace SonarQube.Client.Tests
 
             result[1].Name.Should().Be("master");
             result[1].IsMain.Should().Be(true);
-            result[0].Type.Should().Be("LONG");
+            result[1].Type.Should().Be("LONG");
             result[1].LastAnalysisTimestamp.Should().Be(new DateTimeOffset(2018, 12, 1, 1, 15, 42, TimeSpan.FromHours(-4)));
         }
 
