@@ -421,6 +421,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
         [TestMethod]
         [DataRow("a/b/c/", "\"a\\b\\c\"")]
+        [DataRow("   a/b/c/", "\"a\\b\\c\"")]
+        [DataRow("a/b/c/  ", "\"a\\b\\c\"")]
+        [DataRow("  a/b/c/  ", "\"a\\b\\c\"")]
         [DataRow("a\\b\\c\\", "\"a\\b\\c\"")]
         [DataRow("a\\b/c\\\\", "\"a\\b\\c\"")]
         [DataRow("\"a\\\\b/c\"", "\"a\\b\\c\"")]
