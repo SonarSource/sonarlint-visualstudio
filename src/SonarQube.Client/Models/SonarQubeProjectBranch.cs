@@ -27,12 +27,14 @@ namespace SonarQube.Client.Models
         public string Name { get; }
         public bool IsMain { get; }
         public DateTimeOffset LastAnalysisTimestamp { get; }
+        public string Type { get; set; }
 
-        public SonarQubeProjectBranch(string name,  bool isMain, DateTimeOffset analysisDate)
+        public SonarQubeProjectBranch(string name, bool isMain, DateTimeOffset analysisDate, string type)
         {
             Name = name;
             IsMain = isMain;
             LastAnalysisTimestamp = analysisDate;
+            Type = type;
         }
     }
 }
