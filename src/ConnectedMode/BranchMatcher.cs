@@ -51,6 +51,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class BranchMatcher : IBranchMatcher
     {
+        private const string shortBranchType = "SHORT";
+
         private readonly ISonarQubeService sonarQubeService;
         private readonly ILogger logger;
 
@@ -93,7 +95,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 return null;
             }
 
-            var remoteBranches = await sonarQubeService.GetProjectBranchesAsync(projectKey, token);
+            var remoteBranches = (await sonarQubeService.GetProjectBranchesAsync(projectKey, token)).Where(b => b.Type != shortBranchType);
 
             if (remoteBranches.Any(rb => string.Equals(rb.Name, head.FriendlyName, StringComparison.InvariantCultureIgnoreCase)))
             {
@@ -109,7 +111,6 @@ namespace SonarLint.VisualStudio.ConnectedMode
             logger.LogVerbose(Resources.BranchMapper_CheckingSonarBranches);
             foreach (var remoteBranch in remoteBranches)
             {
-
                 var localBranch = gitRepo.Branches.FirstOrDefault(r => string.Equals(r.FriendlyName, remoteBranch.Name, StringComparison.InvariantCultureIgnoreCase));
 
                 if (localBranch == null) { continue; }

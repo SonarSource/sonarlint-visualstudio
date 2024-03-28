@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
                 logger: logger);
 
             var actual = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
-            
+
             actual.Should().BeNull();
 
             configProvider.VerifyAll();
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             var actual = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
 
             actual.Should().Be("main branch name");
-            
+
             configProvider.VerifyAll();
             gitWorkspace.Verify(x => x.GetRepoRoot(), Times.Once);
             gitWorkspace.Invocations.Should().HaveCount(1);
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         {
             var configProvider = CreateConfigProvider(CreateBindingConfig(mode, "my project key"));
             var gitWorkspace = CreateGitWorkspace("c:\\aaa\\reporoot");
-            
+
             var branchMatcher = CreateBranchMatcher(branchToReturn: "my matching branch");
             var logger = new TestLogger(logToConsole: true);
 
@@ -154,8 +154,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
                 gitWorkspace.Object,
                 branchMatcher: branchMatcher.Object,
                 sonarQubeService: sonarQubeService.Object,
-                logger:logger,
-                createRepoOp:createRepoOp.Object);
+                logger: logger,
+                createRepoOp: createRepoOp.Object);
 
             var actual = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
 
@@ -223,9 +223,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             var serverBranches = new[]
             {
-                new SonarQubeProjectBranch(Guid.NewGuid().ToString(), false, default),
-                new SonarQubeProjectBranch(mainBranchName, true, default),
-                new SonarQubeProjectBranch(Guid.NewGuid().ToString(), false, default)
+                new SonarQubeProjectBranch(Guid.NewGuid().ToString(), false, default, "BRANCH"),
+                new SonarQubeProjectBranch(mainBranchName, true, default, "BRANCH"),
+                new SonarQubeProjectBranch(Guid.NewGuid().ToString(), false, default, "BRANCH")
             };
 
             sonarQubeService

@@ -41,12 +41,15 @@ namespace SonarQube.Client.Api.V6_60
                 .ToArray();
 
         private SonarQubeProjectBranch ToProjectBranch(ServerProjectBranch serverBranch) =>
-            new SonarQubeProjectBranch(serverBranch.Name, serverBranch.IsMain, serverBranch.AnalysisDate);
+            new SonarQubeProjectBranch(serverBranch.Name, serverBranch.IsMain, serverBranch.AnalysisDate, serverBranch.Type);
 
         private sealed class ServerProjectBranch
         {
             [JsonProperty("name")]
             public string Name { get; set; }
+
+            [JsonProperty("type")]
+            public string Type { get; set; }
 
             [JsonProperty("isMain")]
             public bool IsMain { get; set; }
