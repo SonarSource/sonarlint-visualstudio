@@ -74,16 +74,20 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         [TestMethod]
         public void Locate_ReturnsFirstCompatiblePath()
         {
-            var firstCompatibleVersion = new NodeVersionInfo("compatible version1", new Version(16, 0));
+            var firstCompatibleVersion = new NodeVersionInfo("compatible version1", new Version(18, 17, 1));
             var versions = new List<NodeVersionInfo>
             {
                 new("bad version", new Version(11, 0)),
                 new("bad version2", new Version(14, 16)),
                 new("bad version3", new Version(14, 17)),
                 new("bad version4", new Version(14, 18)),
-                new("bad version5", new Version(15, 0)),
+                new("bad version6", new Version(15, 0)),
+                new("bad version7", new Version(16, 0)),
+                new("bad version8", new Version(17, 0)),
+                new("bad version9", new Version(18, 0)),
+                new("bad version10", new Version(18, 17)),
                 firstCompatibleVersion,
-                new("compatible version2", new Version(17, 1)),
+                new("compatible version2", new Version(20, 0)),
             };
 
             var testSubject = CreateTestSubject(versions);
@@ -113,7 +117,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         {
             var versions = new List<NodeVersionInfo>
             {
-                new("good version", new Version(16, 0))
+                new("good version", new Version(18, 17, 1))
             };
 
             var notificationService = new Mock<IUnsupportedNodeVersionNotificationService>();
@@ -124,23 +128,21 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         }
 
         [TestMethod]
-        [DataRow(9, 0, false)]
-        [DataRow(10, 0, false)]
-        [DataRow(11, 0, false)]
-        [DataRow(12, 0, false)]
-        [DataRow(13, 0, false)]
-        [DataRow(14, 0, false)]
-        [DataRow(14, 16, false)]
-        [DataRow(14, 17, false)]
-        [DataRow(14, 18, false)]
-        [DataRow(15, 0, false)]
-        [DataRow(16, 0, true)]
-        [DataRow(16, 1, true)]
-        [DataRow(17, 0, true)]
-        [DataRow(20, 0, true)]
-        public void IsCompatibleVersion_ReturnsTrueFalse(int majorVersion,int minorVersion, bool expectedResult)
+        [DataRow(9, 0, 0, false)]
+        [DataRow(15, 0, 0, false)]
+        [DataRow(16, 0, 0, false)]
+        [DataRow(16, 1, 0, false)]
+        [DataRow(17, 0, 0, false)]
+        [DataRow(18, 0, 0, false)]
+        [DataRow(18, 16, 0, false)]
+        [DataRow(18, 17, 0, false)]
+        [DataRow(18, 17, 1, true)]
+        [DataRow(18, 18, 0, true)]
+        [DataRow(19, 0, 0, true)]
+        [DataRow(20, 0, 0, true)]
+        public void IsCompatibleVersion_ReturnsTrueFalse(int majorVersion, int minorVersion, int buildVersion, bool expectedResult)
         {
-            var version = new Version(majorVersion, minorVersion);
+            var version = new Version(majorVersion, minorVersion, buildVersion);
             var result = CompatibleNodeLocator.IsCompatibleVersion(version);
 
             result.Should().Be(expectedResult);
