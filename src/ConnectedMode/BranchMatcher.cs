@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         public async Task<string> GetMatchingBranch(string projectKey, IRepository gitRepo, CancellationToken token)
         {
             Debug.Assert(sonarQubeService.IsConnected,
-                "Not expecting GetMatchedBranch to be called unless we are in Connected Mode");
+                "Not expecting GetMatchingBranch to be called unless we are in Connected Mode");
 
             logger.LogVerbose(Resources.BranchMapper_CalculatingServerBranch_Started);
 
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         {
             var head = gitRepo.Head;
 
-            if (head == null)
+            if (head is null)
             {
                 logger.LogVerbose(Resources.BranchMapper_NoHead);
                 return null;
@@ -113,11 +113,11 @@ namespace SonarLint.VisualStudio.ConnectedMode
             {
                 var localBranch = gitRepo.Branches.FirstOrDefault(r => string.Equals(r.FriendlyName, remoteBranch.Name, StringComparison.InvariantCultureIgnoreCase));
 
-                if (localBranch == null) { continue; }
+                if (localBranch is null) { continue; }
 
                 var distance = GetDistance(headCommits.Value, localBranch, closestDistance);
 
-                if (distance < closestDistance)
+                if (distance < closestDistance || (distance < int.MaxValue && distance == closestDistance && remoteBranch.IsMain))
                 {
                     closestBranch = localBranch.FriendlyName;
                     closestDistance = distance;
@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 }
             }
 
-            if (closestBranch == null)
+            if (closestBranch is null)
             {
                 logger.LogVerbose(Resources.BranchMapper_NoMatchingBranchFound);
                 closestBranch = remoteBranches.First(rb => rb.IsMain).Name;
@@ -142,7 +142,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
                 CodeMarkers.Instance.GetDistanceStart(branch.FriendlyName);
                 for (int i = 0; i < headCommits.Length; i++)
                 {
-                    if (i >= closestDistance) { break; }
+                    if (i > closestDistance) { break; }
 
                     var commitID = headCommits[i].Id;
                     var branchCommitIndex = GetIndexOfCommit(branch.Commits, commitID, closestDistance - i);
@@ -167,7 +167,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             {
                 if (commit.Id == commitId) { return i; }
                 i++;
-                if (i >= remainingStepsToClosestDistance) { break; }
+                if (i > remainingStepsToClosestDistance) { break; }
             }
             return -1;
         }
