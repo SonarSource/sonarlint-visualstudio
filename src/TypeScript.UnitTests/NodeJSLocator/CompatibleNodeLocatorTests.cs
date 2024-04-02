@@ -126,18 +126,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
 
         [TestMethod]
         [DataRow(9, 0, false)]
-        [DataRow(10, 0, false)]
-        [DataRow(11, 0, false)]
-        [DataRow(12, 0, false)]
-        [DataRow(13, 0, false)]
-        [DataRow(14, 0, false)]
-        [DataRow(14, 16, false)]
-        [DataRow(14, 17, false)]
-        [DataRow(14, 18, false)]
         [DataRow(15, 0, false)]
         [DataRow(16, 0, false)]
         [DataRow(16, 1, false)]
-        [DataRow(17, 0, true)]
+        [DataRow(17, 0, false)]
+        [DataRow(18, 0, false)]
+        [DataRow(18, 16, false)]
+        [DataRow(18, 17, true)]
+        [DataRow(19, 0, true)]
         [DataRow(20, 0, true)]
         public void IsCompatibleVersion_ReturnsTrueFalse(int majorVersion, int minorVersion, bool expectedResult)
         {
