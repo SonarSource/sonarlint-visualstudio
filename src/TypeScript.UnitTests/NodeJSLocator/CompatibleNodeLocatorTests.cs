@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         {
             var versions = new List<NodeVersionInfo>
             {
-                new("good version", new Version(16, 0))
+                new("good version", new Version(18, 17, 1))
             };
 
             var notificationService = new Mock<IUnsupportedNodeVersionNotificationService>();
