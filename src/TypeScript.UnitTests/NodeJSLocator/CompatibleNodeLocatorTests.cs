@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         [TestMethod]
         public void Locate_ReturnsFirstCompatiblePath()
         {
-            var firstCompatibleVersion = new NodeVersionInfo("compatible version1", new Version(16, 0));
+            var firstCompatibleVersion = new NodeVersionInfo("compatible version1", new Version(17, 0));
             var versions = new List<NodeVersionInfo>
             {
                 new("bad version", new Version(11, 0)),
@@ -82,6 +82,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
                 new("bad version3", new Version(14, 17)),
                 new("bad version4", new Version(14, 18)),
                 new("bad version5", new Version(15, 0)),
+                new("bad version5", new Version(16, 0)),
                 firstCompatibleVersion,
                 new("compatible version2", new Version(17, 1)),
             };
@@ -134,11 +135,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         [DataRow(14, 17, false)]
         [DataRow(14, 18, false)]
         [DataRow(15, 0, false)]
-        [DataRow(16, 0, true)]
-        [DataRow(16, 1, true)]
+        [DataRow(16, 0, false)]
+        [DataRow(16, 1, false)]
         [DataRow(17, 0, true)]
         [DataRow(20, 0, true)]
-        public void IsCompatibleVersion_ReturnsTrueFalse(int majorVersion,int minorVersion, bool expectedResult)
+        public void IsCompatibleVersion_ReturnsTrueFalse(int majorVersion, int minorVersion, bool expectedResult)
         {
             var version = new Version(majorVersion, minorVersion);
             var result = CompatibleNodeLocator.IsCompatibleVersion(version);
