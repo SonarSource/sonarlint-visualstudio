@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         [TestMethod]
         public void Locate_ReturnsFirstCompatiblePath()
         {
-            var firstCompatibleVersion = new NodeVersionInfo("compatible version1", new Version(17, 0));
+            var firstCompatibleVersion = new NodeVersionInfo("compatible version1", new Version(18, 17));
             var versions = new List<NodeVersionInfo>
             {
                 new("bad version", new Version(11, 0)),
@@ -83,8 +83,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
                 new("bad version4", new Version(14, 18)),
                 new("bad version5", new Version(15, 0)),
                 new("bad version5", new Version(16, 0)),
+                new("bad version5", new Version(17, 0)),
+                new("bad version5", new Version(18, 0)),
                 firstCompatibleVersion,
-                new("compatible version2", new Version(17, 1)),
+                new("compatible version2", new Version(20, 0)),
             };
 
             var testSubject = CreateTestSubject(versions);
