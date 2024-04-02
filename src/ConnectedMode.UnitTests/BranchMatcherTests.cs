@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         [DataRow("branch")]
         [DataRow("Branch")]
         [TestMethod]
-        public async Task GetMatchedBranch_ChooseBranchWithSameName(string serverBranchName)
+        public async Task GetMatchingBranch_ChooseBranchWithSameName(string serverBranchName)
         {
             var service = CreateSonarQubeService("master", serverBranchName).Object;
 
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
-        public async Task GetMatchedBranch_NoBranchWithSameName_ChooseClosestMatch()
+        public async Task GetMatchingBranch_NoBranchWithSameName_ChooseClosestMatch()
         {
             var service = CreateSonarQubeService("master", "dev").Object;
 
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
-        public async Task GetMatchedBranch_ShorterPathFoundBefore_EarlyOut()
+        public async Task GetMatchingBranch_ShorterPathFoundBefore_EarlyOut()
         {
             var service = CreateSonarQubeService("master", "serverbranch").Object;
 
@@ -114,10 +114,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
 
             // Compares local commits to server branch and can't match so loops server branch twice
             // ServerBranchCommit3 matches the first one on serverbranch
-            // * 6 = localbranchCommit2 -> serverBranchCommit3, serverBranchCommit2, serverBranchCommit1, masterCommit3, masterCommit2, masterCommit1, masterCommit0
-            // * 6 = localbranchCommit1 -> serverBranchCommit3, serverBranchCommit2, serverBranchCommit1, masterCommit3, masterCommit2, masterCommit1, masterCommit0
+            // * 7 = localbranchCommit2 -> serverBranchCommit3, serverBranchCommit2, serverBranchCommit1, masterCommit3, masterCommit2, masterCommit1, masterCommit0
+            // * 7 = localbranchCommit1 -> serverBranchCommit3, serverBranchCommit2, serverBranchCommit1, masterCommit3, masterCommit2, masterCommit1, masterCommit0
             // * 1 = serverBranchCommit3 -> serverBranchCommit3
-            // Total = 6 + 6 + 1 = 13, and closestMatch = 2
+            // Total = 7 + 7 + 1 = 13, and closestMatch = 2
             ((CommitLogWrapperWithEnumerationCount)serverBranch.Commits).EnumerateCount.Should().Be(15);
 
             // ClosestDistance is now 2 so any tries passes those should fail
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
-        public async Task GetMatchedBranch_ClosestBranchNotOnTheServer_IgnoreClosest()
+        public async Task GetMatchingBranch_ClosestBranchNotOnTheServer_IgnoreClosest()
         {
             var service = CreateSonarQubeService("master", "dev").Object;
 
@@ -185,7 +185,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
          */
 
         [TestMethod]
-        public async Task GetMatchedBranch_MultipleCandidate_ChooseClosestMatch()
+        public async Task GetMatchingBranch_MultipleCandidate_ChooseClosestMatch()
         {
             var service = CreateSonarQubeService("master", "Branch1", "Branch2").Object;
 
@@ -215,7 +215,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
-        public async Task GetMatchedBranch_NoMatchingBranch_ChooseMain()
+        public async Task GetMatchingBranch_NoMatchingBranch_ChooseMain()
         {
             var service = CreateSonarQubeService("premier", "branch1", "branch2").Object;
 
@@ -239,7 +239,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
-        public async Task GetMatchedBranch_MultipleMatchingBranchesWithMain_ChooseMain()
+        public async Task GetMatchingBranch_MultipleMatchingBranchesWithMain_ChooseMain()
         {
             var service = CreateSonarQubeService("master", "branch1", "branch2").Object;
 
@@ -264,7 +264,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
-        public async Task GetMatchedBranch_HasShortLivedBranches_IgnoreShortLivedBranch()
+        public async Task GetMatchingBranch_HasShortLivedBranches_IgnoreShortLivedBranch()
         {
             var service = CreateSonarQubeServiceWithTypes("master", ("branch1", "LONG"), ("branch2", "SHORT")).Object;
 
@@ -288,7 +288,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
-        public async Task GetMatchedBranch_RepoHasNoHead_ReturnsNull()
+        public async Task GetMatchingBranch_RepoHasNoHead_ReturnsNull()
         {
             var testSubject = CreateTestSubject(CreateSonarQubeService("any").Object);
 
@@ -298,7 +298,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         [TestMethod]
-        public async Task GetMatchedBranch_CancellationToken_IsPropagatedToWebClient()
+        public async Task GetMatchingBranch_CancellationToken_IsPropagatedToWebClient()
         {
             var service = CreateSonarQubeService("any");
 

@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         public async Task<string> GetMatchingBranch(string projectKey, IRepository gitRepo, CancellationToken token)
         {
             Debug.Assert(sonarQubeService.IsConnected,
-                "Not expecting GetMatchedBranch to be called unless we are in Connected Mode");
+                "Not expecting GetMatchingBranch to be called unless we are in Connected Mode");
 
             logger.LogVerbose(Resources.BranchMapper_CalculatingServerBranch_Started);
 
