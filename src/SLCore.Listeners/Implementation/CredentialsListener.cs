@@ -39,11 +39,6 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
         private readonly IConnectionIdHelper connectionIdHelper;
 
         [ImportingConstructor]
-        public CredentialsListener(ICredentialStoreService credentialStore) 
-            : this(credentialStore, new ConnectionIdHelper())
-        {
-        }
-
         public CredentialsListener(ICredentialStoreService credentialStore, IConnectionIdHelper connectionIdHelper)
         {
             this.credentialStore = credentialStore;

@@ -42,7 +42,8 @@ public class CredentialsListenerTests
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<CredentialsListener, ISLCoreListener>(
-            MefTestHelpers.CreateExport<ICredentialStoreService>());
+            MefTestHelpers.CreateExport<ICredentialStoreService>(),
+            MefTestHelpers.CreateExport<IConnectionIdHelper>());
     }
     
     [TestMethod]
