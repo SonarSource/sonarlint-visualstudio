@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         private static Mock<IVsShell> SetupIdeName(object name)
         {
             var shell = new Mock<IVsShell>();
-            shell.Setup(x => x.GetProperty((int)__VSSPROPID5.VSSPROPID_AppShortBrandName, out name));
+            shell.Setup(x => x.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out name));
 
             return shell;
         }

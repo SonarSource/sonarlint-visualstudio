@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             await vSServiceOperation.ExecuteAsync<SVsShell, IVsShell, string>(
                 shell =>
                 {
-                    shell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppShortBrandName, out var ideName);
+                    shell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out var ideName);
                     return ideName as string ?? "Microsoft Visual Studio";
                 });
 
