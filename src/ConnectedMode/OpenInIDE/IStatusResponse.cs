@@ -18,22 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
-
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
+namespace SonarLint.VisualStudio.ConnectedMode.OpenInIDE.Contract
 {
-    /// <summary>
-    /// Component that handles a low-level OWIN HTTP request to a specific relative path
-    /// </summary>
-    internal interface IOwinPathRequestHandler
+    public interface IStatusResponse
     {
         /// <summary>
-        /// Relative path under the base URL address of http://{host}:{port}/sonarlint/api/
-        /// e.g. "/status"
-        /// Note: the path must start with "/"
-        /// </summary>
-        string ApiPath { get; }
+        /// Short user-friendly name for the current IDE flavour.
+        /// </summary
+        /// <remarks>
+        /// This string should be the same for all instances of the current IDE flavour.
+        /// Will be displayed by the server in the UI e.g. in a menu caption / tooltip
+        /// </remarks>
+        string IdeName { get; }
 
-        Task ProcessRequest(Microsoft.Owin.IOwinContext context);
+        /// <summary>
+        /// Longer user-friendly name containing information to disambiguate this IDE instance
+        /// from other running instances.
+        /// </summary
+        /// <remarks>
+        /// This string should be unique to the current VS instance
+        /// Will be displayed by the server in the UI e.g. in a menu caption / tooltip
+        /// </remarks>
+        string Description { get; }
     }
 }

@@ -20,9 +20,9 @@
 
 using System.Threading.Tasks;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract
+namespace SonarLint.VisualStudio.ConnectedMode.OpenInIDE.Contract
 {
-    internal interface IStatusRequestHandler
+    public interface IIdeStatusProvider
     {
         Task<IStatusResponse> GetStatusAsync();
     }

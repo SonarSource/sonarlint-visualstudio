@@ -20,7 +20,7 @@
 
 using System;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
+using SonarLint.VisualStudio.ConnectedMode.OpenInIDE.Contract;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {

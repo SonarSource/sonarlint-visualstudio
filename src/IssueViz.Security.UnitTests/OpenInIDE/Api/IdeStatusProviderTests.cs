@@ -19,28 +19,25 @@
  */
 
 using System;
-using System.Globalization;
-using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.ConnectedMode.OpenInIDE.Contract;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE.Api
 {
     [TestClass]
-    public class StatusRequestHandlerTests
+    public class IdeStatusProviderTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<StatusRequestHandler, IStatusRequestHandler>(
+            MefTestHelpers.CheckTypeCanBeImported<IdeStatusProvider, IIdeStatusProvider>(
                 MefTestHelpers.CreateExport<IVsUIServiceOperation>());
         }
 
@@ -49,7 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         {
             var serviceOp = new Mock<IVsUIServiceOperation>();
 
-            _ = new StatusRequestHandler(serviceOp.Object);
+            _ = new IdeStatusProvider(serviceOp.Object);
 
             // The MEF constructor should be free-threaded, which it will be if
             // it doesn't make any external calls.
@@ -104,7 +101,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             result.Description.Should().Be("some solution");
         }
 
-        private static IStatusRequestHandler CreateTestSubject(Mock<IVsSolution> solution, Mock<IVsShell> shell)
+        private static IIdeStatusProvider CreateTestSubject(Mock<IVsSolution> solution, Mock<IVsShell> shell)
         {
             var serviceOp = new Mock<IVsUIServiceOperation>();
 
@@ -115,7 +112,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             serviceOp.Setup(x => x.ExecuteAsync<SVsSolution, IVsSolution, string>(It.IsAny<Func<IVsSolution, string>>()))
                 .Returns<Func<IVsSolution, string>>(op => Task.FromResult(op(solution.Object)));
 
-            return new StatusRequestHandler(serviceOp.Object);
+            return new IdeStatusProvider(serviceOp.Object);
         }
 
         private static Mock<IVsSolution> SetupSolutionName(object name)
@@ -128,7 +125,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         private static Mock<IVsShell> SetupIdeName(object name)
         {
             var shell = new Mock<IVsShell>();
-            shell.Setup(x => x.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out name));
+            shell.Setup(x => x.GetProperty((int)__VSSPROPID5.VSSPROPID_AppShortBrandName, out name));
 
             return shell;
         }

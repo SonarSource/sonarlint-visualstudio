@@ -21,23 +21,23 @@
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.ConnectedMode.OpenInIDE.Contract;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
-    [Export(typeof(IStatusRequestHandler))]
-    internal class StatusRequestHandler : IStatusRequestHandler
+    [Export(typeof(IIdeStatusProvider))]
+    internal class IdeStatusProvider : IIdeStatusProvider
     {
         private readonly IVsUIServiceOperation vSServiceOperation;
 
         [ImportingConstructor]
-        public StatusRequestHandler(IVsUIServiceOperation vSServiceOperation)
+        public IdeStatusProvider(IVsUIServiceOperation vSServiceOperation)
         {
             this.vSServiceOperation = vSServiceOperation;
         }
 
-        async Task<IStatusResponse> IStatusRequestHandler.GetStatusAsync()
+        async Task<IStatusResponse> IIdeStatusProvider.GetStatusAsync()
         {
             var ideName = await GetIdeNameAsync();
             var ideInstance = await GetIdeInstanceAsync();
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             await vSServiceOperation.ExecuteAsync<SVsShell, IVsShell, string>(
                 shell =>
                 {
-                    shell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out var ideName);
+                    shell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppShortBrandName, out var ideName);
                     return ideName as string ?? "Microsoft Visual Studio";
                 });
 
