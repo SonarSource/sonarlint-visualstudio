@@ -18,145 +18,70 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
-using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
-using SonarQube.Client;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
-    [Export(typeof(IOpenInIDERequestHandler))]
-    internal class OpenInIDERequestHandler : IOpenInIDERequestHandler
+    internal class OpenInIDERequestHandler
     {
         private readonly IIDEWindowService ideWindowService;
         private readonly IToolWindowService toolWindowService;
-        private readonly IOpenInIDEStateValidator ideStateValidator;
-        private readonly ISonarQubeService sonarQubeService;
-        private readonly IHotspotToIssueVisualizationConverter converter;
         private readonly ILocationNavigator navigator;
         private readonly IOpenInIDEHotspotsStore hotspotsStore;
         private readonly IOpenInIDEFailureInfoBar failureInfoBar;
         private readonly IIssueSelectionService issueSelectionService;
-        private readonly ITelemetryManager telemetryManager;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public OpenInIDERequestHandler(
             IIDEWindowService ideWindowService,
             IToolWindowService toolWindowService,
-            IOpenInIDEStateValidator ideStateValidator,
-            ISonarQubeService sonarQubeService,
-            IHotspotToIssueVisualizationConverter converter,
             ILocationNavigator navigator,
             IOpenInIDEHotspotsStore hotspotsStore,
             IOpenInIDEFailureInfoBar failureInfoBar,
             IIssueSelectionService issueSelectionService,
-            ITelemetryManager telemetryManager,
             ILogger logger)
         {
-            // MEF-created so the arguments should never be null
             this.ideWindowService = ideWindowService;
             this.toolWindowService = toolWindowService;
-            this.ideStateValidator = ideStateValidator;
-            this.sonarQubeService = sonarQubeService;
-            this.converter = converter;
             this.navigator = navigator;
             this.hotspotsStore = hotspotsStore;
             this.failureInfoBar = failureInfoBar;
             this.issueSelectionService = issueSelectionService;
-            this.telemetryManager = telemetryManager;
             this.logger = logger;
         }
 
-        Task IOpenInIDERequestHandler.ShowHotspotAsync(IShowHotspotRequest request)
-        {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
 
-            return ShowHotspotAsync(request);
-        }
-
-        private async Task ShowHotspotAsync(IShowHotspotRequest request)
-        {
-            logger.WriteLine(OpenInIDEResources.ApiHandler_ProcessingRequest, request.ServerUrl, request.ProjectKey,
-                request.OrganizationKey ?? OpenInIDEResources.ApiHandler_NullOrganization, request.HotspotKey);
-
-            // Always show the Hotspots tool window. If we can't successfully process the
-            // request we'll show a gold bar in the window
-            telemetryManager.ShowHotspotRequested();
-            ideWindowService.BringToFront();
-            toolWindowService.Show(OpenInIDEHotspotsToolWindow.ToolWindowId);
-            await failureInfoBar.ClearAsync();
-
-            if (!ideStateValidator.CanHandleOpenInIDERequest(request.ServerUrl, request.ProjectKey, request.OrganizationKey))
-            {
-                // We're assuming the validator will have output an explanantion of why the IDE
-                // isn't in the correct state
-                await failureInfoBar.ShowAsync(OpenInIDEHotspotsToolWindow.ToolWindowId);
-                return;
-            }
-
-            var hotspot = await TryGetHotspotData(request.HotspotKey);
-            if (hotspot == null)
-            {
-                await failureInfoBar.ShowAsync(OpenInIDEHotspotsToolWindow.ToolWindowId);
-                return;
-            }
-
-            var hotspotViz = TryCreateIssueViz(hotspot);
-            if (hotspotViz == null)
-            {
-                await failureInfoBar.ShowAsync(OpenInIDEHotspotsToolWindow.ToolWindowId);
-                return;
-            }
-
-            if (!navigator.TryNavigate(hotspotViz))
-            {
-                logger.WriteLine(OpenInIDEResources.ApiHandler_FailedToNavigateToHotspot, hotspotViz.FilePath, hotspotViz.StartLine);
-            }
-
-            // Add to store and select regardless of whether navigation succeeded
-            var addedHotspot = hotspotsStore.GetOrAdd(hotspotViz);
-            issueSelectionService.SelectedIssue = addedHotspot;
-        }
-
-        private async Task<SonarQubeHotspot> TryGetHotspotData(string hotspotKey)
-        {
-            // We're calling an external system so exceptions might occur e.g. network errors
-            try
-            {
-                return await sonarQubeService.GetHotspotAsync(hotspotKey, CancellationToken.None);
-            }
-            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(OpenInIDEResources.ApiHandler_FailedToFetchHotspot, ex.Message);
-            }
-            return null;
-        }
-
-        private IAnalysisIssueVisualization TryCreateIssueViz(SonarQubeHotspot hotspot)
-        {
-            try
-            {
-                return converter.Convert(hotspot);
-            }
-            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(OpenInIDEResources.ApiHandler_UnableToConvertHotspotData, ex.Message);
-            }
-            return null;
-        }
+    // todo: https://github.com/SonarSource/sonarlint-visualstudio/issues/5348
+        
+    //     private async Task ShowHotspotAsync()
+    //     {
+    //         // Always show the Hotspots tool window. If we can't successfully process the
+    //         // request we'll show a gold bar in the window
+    //         ideWindowService.BringToFront();
+    //         toolWindowService.Show(OpenInIDEHotspotsToolWindow.ToolWindowId);
+    //         await failureInfoBar.ClearAsync();
+    //
+    //         if (!ideStateValidator.CanHandleOpenInIDERequest())
+    //         {
+    //             // We're assuming the validator will have output an explanantion of why the IDE
+    //             // isn't in the correct state
+    //             await failureInfoBar.ShowAsync(OpenInIDEHotspotsToolWindow.ToolWindowId);
+    //             return;
+    //         }
+    //         
+    //         if (!navigator.TryNavigate(hotspotViz))
+    //         {
+    //             logger.WriteLine(OpenInIDEResources.ApiHandler_FailedToNavigateToHotspot, hotspotViz.FilePath, hotspotViz.StartLine);
+    //         }
+    //
+    //         // Add to store and select regardless of whether navigation succeeded
+    //         var addedHotspot = hotspotsStore.GetOrAdd(hotspotViz);
+    //         issueSelectionService.SelectedIssue = addedHotspot;
+    //     }
     }
 }
