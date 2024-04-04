@@ -18,8 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.SLCore;
 using SonarLint.VisualStudio.SLCore.Configuration;
@@ -32,17 +36,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
     public class SLCoreConstantsProviderTests
     {
         SLCoreConstantsProvider testSubject;
-
+        private IVsShell vsShell;
+        
         [TestInitialize]
         public void Setup()
         {
-            testSubject = new SLCoreConstantsProvider();
+            vsShell = Substitute.For<IVsShell>();
+            var vsServiceOperation = Substitute.For<IVsUIServiceOperation>();
+            vsServiceOperation.Execute<SVsShell, IVsShell, string>(Arg.Any<Func<IVsShell, string>>()).Returns(info =>
+            {
+                var func = info.Arg<Func<IVsShell, string>>();
+                return func(vsShell);
+            });
+            testSubject = new SLCoreConstantsProvider(vsServiceOperation);
         }
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<SLCoreConstantsProvider, ISLCoreConstantsProvider>();
+            MefTestHelpers.CheckTypeCanBeImported<SLCoreConstantsProvider, ISLCoreConstantsProvider>(
+                MefTestHelpers.CreateExport<IVsUIServiceOperation>());
         }
 
         [TestMethod]
@@ -54,10 +67,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
         [TestMethod]
         public void ClientConstants_ShouldBeExpected()
         {
-            var expectedClientConstants = new ClientConstantsDto("SonarLint for Visual Studio", $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}");
+            const string ideName = "MyIde";
+            SetupIdeName(ideName);
+            
+            var expectedClientConstants = new ClientConstantsDto(ideName, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}");
             var result = testSubject.ClientConstants;
 
             result.Should().BeEquivalentTo(expectedClientConstants);
+        }
+        
+        [TestMethod]
+        public void ClientConstants_VsOperationCalledOnlyOnce()
+        {
+            SetupIdeName("somename");
+            
+            _ = testSubject.ClientConstants;
+            _ = testSubject.ClientConstants;
+            _ = testSubject.ClientConstants;
+            _ = testSubject.ClientConstants;
+
+            vsShell.ReceivedWithAnyArgs(1).GetProperty(default, out _);
         }
 
         [TestMethod]
@@ -76,6 +105,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
             var result = testSubject.TelemetryConstants;
 
             result.Should().BeEquivalentTo(expectedTelemetryConstants);
+        }        
+        
+        private void SetupIdeName(object name)
+        {
+            vsShell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out Arg.Any<object>()).Returns(info =>
+            {
+                info[1] = name;
+                return 0;
+            });
         }
     }
 }
