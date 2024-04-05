@@ -18,12 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Files;
 
-public record ListFilesResponse(IList<ClientFileDto> files);
+public record ListFilesResponse(IEnumerable<ClientFileDto> files);

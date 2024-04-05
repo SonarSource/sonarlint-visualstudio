@@ -24,6 +24,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Files;
+namespace SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 
-public record ClientFileDto(Uri uri, string ideRelativePath, string configScopeId, bool? isTest, string charset, string fsPath, string content);
+public record ClientFileDto(Uri uri, string ideRelativePath, string configScopeId, bool? isTest, string charset, string fsPath, string content = null);
