@@ -18,15 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using System.IO;
+using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
@@ -43,7 +37,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void FindRootDirectory_OpenAsFolderProject_ProblemRetrievingSolutionDirectory_Null()
         {
-            var testSubject = CreateTestSubject(isOpenAsFolder: true, solutionDirectory: null);
+            var solutionInfoProvider = CreateSolutionInfoProvider(isOpenAsFolder: true, solutionDirectory: null);
+
+            var testSubject = CreateTestSubject(solutionInfoProvider);
 
             var result = testSubject.FindRootDirectory();
 
@@ -53,7 +49,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void FindRootDirectory_OpenAsFolderProject_SucceededRetrievingSolutionDirectory_SolutionDirectory()
         {
-            var testSubject = CreateTestSubject(isOpenAsFolder: true, solutionDirectory: "some directory");
+            var solutionInfoProvider = CreateSolutionInfoProvider(isOpenAsFolder: true, solutionDirectory: "some directory");
+
+            var testSubject = CreateTestSubject(solutionInfoProvider);
 
             var result = testSubject.FindRootDirectory();
 
@@ -65,20 +63,65 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [DataRow(false)]
         public void IsFolderWorkspace_GetsResultFromSolutionInfoProvider(bool isOpenAsFolder)
         {
-            var testSubject = CreateTestSubject(isOpenAsFolder, solutionDirectory: "some directory");
+            var solutionInfoProvider = CreateSolutionInfoProvider(isOpenAsFolder, "some directory");
+
+            var testSubject = CreateTestSubject(solutionInfoProvider);
 
             var result = testSubject.IsFolderWorkspace();
 
             result.Should().Be(isOpenAsFolder);
         }
 
-        private FolderWorkspaceService CreateTestSubject(bool isOpenAsFolder, string solutionDirectory)
+        [TestMethod]
+        public void ListFiles_FolderWorkPlace_ListFilesFilteringNodeModules()
         {
-            var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
-            solutionInfoProvider.Setup(x => x.GetSolutionDirectory()).Returns(solutionDirectory);
-            solutionInfoProvider.Setup(x => x.IsFolderWorkspace()).Returns(isOpenAsFolder);
+            var rootFolder = "C:\\root";
+            var fileSystem = CreateFileSystem(rootFolder, "C:\\root\\File1.cs", "C:\\root\\File2.cs", "C:\\Folder\\File3.cs", "C:\\node_modules\\Module1\\ModuleFile.js");
+            var solutionInfoProvider = CreateSolutionInfoProvider(true, rootFolder);
 
-            return new FolderWorkspaceService(solutionInfoProvider.Object);
+            var testSubject = CreateTestSubject(solutionInfoProvider, fileSystem);
+
+            var result = testSubject.ListFiles();
+
+            result.Should().BeEquivalentTo(["C:\\root\\File1.cs", "C:\\root\\File2.cs", "C:\\Folder\\File3.cs"]);
+        }
+
+        [TestMethod]
+        public void ListFiles_NoWorkSpaceFolder_ShouldReturnEmpty()
+        {
+            var fileSystem = CreateFileSystem("some root");
+            var solutionInfoProvider = CreateSolutionInfoProvider(false, "some root");
+
+            var testSubject = CreateTestSubject(solutionInfoProvider, fileSystem);
+
+            var result = testSubject.ListFiles();
+
+            result.Should().BeEmpty();
+            fileSystem.Directory.ReceivedWithAnyArgs(0).EnumerateFiles(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<SearchOption>());
+        }
+
+        private static IFileSystem CreateFileSystem(string rootFolder, params string[] returnFolders)
+        {
+            var directory = Substitute.For<IDirectory>();
+            directory.EnumerateFiles(rootFolder, "*", SearchOption.AllDirectories).Returns(returnFolders);
+            var fileSystem = Substitute.For<IFileSystem>();
+            fileSystem.Directory.Returns(directory);
+            return fileSystem;
+        }
+
+        private FolderWorkspaceService CreateTestSubject(ISolutionInfoProvider solutionInfoProvider, IFileSystem fileSystem = null)
+        {
+            fileSystem ??= Substitute.For<IFileSystem>();
+
+            return new FolderWorkspaceService(solutionInfoProvider, fileSystem);
+        }
+
+        private static ISolutionInfoProvider CreateSolutionInfoProvider(bool isOpenAsFolder, string solutionDirectory)
+        {
+            var solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
+            solutionInfoProvider.GetSolutionDirectory().Returns(solutionDirectory);
+            solutionInfoProvider.IsFolderWorkspace().Returns(isOpenAsFolder);
+            return solutionInfoProvider;
         }
     }
 }
