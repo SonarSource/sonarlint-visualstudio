@@ -52,6 +52,7 @@ public class ConfigurationScope
     public string Id { get; }
     public string ConnectionId { get; }
     public string SonarProjectId { get; }
+    public string RootPath { get; } // implementation will be added later
 }
 
 [Export(typeof(IActiveConfigScopeTracker))]
