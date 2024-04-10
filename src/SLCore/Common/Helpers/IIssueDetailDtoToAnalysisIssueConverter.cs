@@ -25,7 +25,5 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
 
 public interface IIssueDetailDtoToAnalysisIssueConverter
 {
-    IAnalysisIssueBase Convert(IssueDetailDto issueDetailDto);
+    IAnalysisIssueBase Convert(IssueDetailDto issueDetailDto, string rootPath);
 }
-
-

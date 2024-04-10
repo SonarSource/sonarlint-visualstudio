@@ -1,24 +1,23 @@
-﻿// /*
-//  * SonarLint for Visual Studio
-//  * Copyright (C) 2016-2024 SonarSource SA
-//  * mailto:info AT sonarsource DOT com
-//  *
-//  * This program is free software; you can redistribute it and/or
-//  * modify it under the terms of the GNU Lesser General Public
-//  * License as published by the Free Software Foundation; either
-//  * version 3 of the License, or (at your option) any later version.
-//  *
-//  * This program is distributed in the hope that it will be useful,
-//  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  * Lesser General Public License for more details.
-//  *
-//  * You should have received a copy of the GNU Lesser General Public License
-//  * along with this program; if not, write to the Free Software Foundation,
-//  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-//  */
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2024 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -26,7 +25,6 @@ using System.Linq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
-using SonarLint.VisualStudio.SLCore.State;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.OpenInIDE;
@@ -36,28 +34,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIDE;
 internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysisIssueConverter
 {
     private readonly IChecksumCalculator checksumCalculator;
-    private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
 
     [ImportingConstructor]
-    public IssueDetailDtoToAnalysisIssueConverter(IChecksumCalculator checksumCalculator, IActiveConfigScopeTracker activeConfigScopeTracker)
+    public IssueDetailDtoToAnalysisIssueConverter(IChecksumCalculator checksumCalculator)
     {
         this.checksumCalculator = checksumCalculator;
-        this.activeConfigScopeTracker = activeConfigScopeTracker;
     }
 
-    public IAnalysisIssueBase Convert(IssueDetailDto issueDetailDto)
+    public IAnalysisIssueBase Convert(IssueDetailDto issueDetailDto, string rootPath)
     {
-        var rootPath = activeConfigScopeTracker.Current.RootPath;
-        if (rootPath is null)
-        {
-            throw new NotImplementedException();
-        }
-
-        if (issueDetailDto.isTaint)
-        {
-            throw new NotImplementedException();
-        }
-
         return new ServerIssue(
             issueDetailDto.ruleKey,
             new AnalysisIssueLocation(issueDetailDto.message,
@@ -69,7 +54,7 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
                     checksumCalculator.Calculate(issueDetailDto.codeSnippet))),
             null,
             issueDetailDto.flows
-                .Select(flowDto =>
+                ?.Select(flowDto =>
                     new AnalysisIssueFlow(flowDto.locations
                         .Select(locationDto =>
                             new AnalysisIssueLocation(locationDto.message,
