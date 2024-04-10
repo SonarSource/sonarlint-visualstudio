@@ -20,13 +20,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -236,7 +233,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             predicate.Setup(x => x.IsTargetLanguage(AnalysisLanguage.Javascript, "jsx")).Returns(true);
 
             var result = testSubject.HasTargetLanguage(project, predicate.Object);
-            
+
             result.Should().BeTrue();
             predicate.Invocations.Should().HaveCount(3);
             sonarLanguageRecognizer.Invocations.Should().HaveCount(3);
@@ -245,19 +242,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void HasTargetLanguage_OpenAsFolder_EnumeratesCorrectly()
         {
-            var folderWorkspaceService = CreateFolderWorkSpaceService(true);
-            var directory = CreateDirectory("Class.cs", "Settings.json", "script.jsx", "style.css", "script2.js", "some_cpp_file.cpp");
+            var folderWorkspaceService = CreateFolderWorkSpaceService(true, "Class.cs", "Settings.json", "script.jsx", "style.css", "script2.js", "some_cpp_file.cpp");
             var sonarLanguageRecognizer = CreateSonarLanguageRecognizer();
             var predicate = new Mock<ITargetLanguagePredicate>();
             predicate.Setup(x => x.IsTargetLanguage(It.IsAny<AnalysisLanguage>(), It.IsAny<string>())).Returns(false);
 
-            var testSubject = CreateTestSubject(folderWorkspaceService.Object, directory.Object, sonarLanguageRecognizer.Object);
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object, sonarLanguageRecognizer.Object);
 
             var actualResult = testSubject.HasTargetLanguage(null, predicate.Object);
 
             folderWorkspaceService.Verify(f => f.IsFolderWorkspace(), Times.Once);
-            folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Once);
-            directory.Verify(d => d.EnumerateFiles("Root", "*", SearchOption.AllDirectories), Times.Once);
+            folderWorkspaceService.Verify(d => d.ListFiles(), Times.Once);
             sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(6));
             predicate
                 .Invocations
@@ -278,22 +273,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void HasTargetLanguage_OpenAsFolder_IsLazy()
         {
-            var folderWorkspaceService = CreateFolderWorkSpaceService(true);
-            var directory = CreateDirectory("Class.cs", "Settings.json", "script.jsx", "style.css", "script2.js", "some_cpp_file.cpp");
+            var folderWorkspaceService = CreateFolderWorkSpaceService(true, "Class.cs", "Settings.json", "script.jsx", "style.css", "script2.js", "some_cpp_file.cpp");
             var sonarLanguageRecognizer = CreateSonarLanguageRecognizer();
             var predicate = new Mock<ITargetLanguagePredicate>();
             predicate.Setup(x => x.IsTargetLanguage(AnalysisLanguage.CascadingStyleSheets, "css")).Returns(true);
 
-            var testSubject = CreateTestSubject(folderWorkspaceService.Object, directory.Object, sonarLanguageRecognizer.Object);
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object, sonarLanguageRecognizer.Object);
 
             var actualResult = testSubject.HasTargetLanguage(null, predicate.Object);
 
             folderWorkspaceService.Verify(f => f.IsFolderWorkspace(), Times.Once);
-            folderWorkspaceService.Verify(f => f.FindRootDirectory(), Times.Once);
-            directory.Verify(d => d.EnumerateFiles("Root", "*", SearchOption.AllDirectories), Times.Once);
+            folderWorkspaceService.Verify(f => f.ListFiles(), Times.Once);
             sonarLanguageRecognizer.Verify(s => s.GetAnalysisLanguageFromExtension(It.IsAny<string>()), Times.Exactly(4));
             predicate.Invocations.Should().HaveCount(3);
-            
+
             actualResult.Should().Be(true);
         }
 
@@ -305,10 +298,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var sonarLanguageRecognizer = CreateSonarLanguageRecognizer();
             var predicate = new Mock<ITargetLanguagePredicate>();
             predicate.Setup(x => x.IsTargetLanguage(It.IsAny<AnalysisLanguage>(), It.IsAny<string>())).Returns(predicateResult);
-            var folderWorkspaceService = CreateFolderWorkSpaceService(true);
-            var directory = CreateDirectory("script.js");
+            var folderWorkspaceService = CreateFolderWorkSpaceService(true, "script.js");
 
-            var testSubject = CreateTestSubject(folderWorkspaceService.Object, directory.Object, sonarLanguageRecognizer: sonarLanguageRecognizer.Object);
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object, sonarLanguageRecognizer: sonarLanguageRecognizer.Object);
 
             var result = testSubject.HasTargetLanguage(null, predicate.Object);
 
@@ -325,11 +317,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var sonarLanguageRecognizer = CreateSonarLanguageRecognizer();
             var predicate = new Mock<ITargetLanguagePredicate>();
             predicate.Setup(x => x.IsTargetLanguage(It.IsAny<AnalysisLanguage>(), It.IsAny<string>())).Returns(true);
-            var folderWorkspaceService = CreateFolderWorkSpaceService(true);
-            var directory = CreateDirectory(fileName);
+            var folderWorkspaceService = CreateFolderWorkSpaceService(true, fileName);
 
-            var testSubject = CreateTestSubject(folderWorkspaceService.Object, directory.Object, sonarLanguageRecognizer: sonarLanguageRecognizer.Object);
-
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object, sonarLanguageRecognizer: sonarLanguageRecognizer.Object);
 
             var result = testSubject.HasTargetLanguage(null, predicate.Object);
 
@@ -344,11 +334,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var sonarLanguageRecognizer = CreateSonarLanguageRecognizer();
             var predicate = new Mock<ITargetLanguagePredicate>();
             predicate.Setup(x => x.IsTargetLanguage(It.IsAny<AnalysisLanguage>(), It.IsAny<string>())).Returns(true);
-            var folderWorkspaceService = CreateFolderWorkSpaceService(true);
-            var directory = CreateDirectory("noextensionfileorfolder");
+            var folderWorkspaceService = CreateFolderWorkSpaceService(true, "noextensionfileorfolder");
 
-            var testSubject = CreateTestSubject(folderWorkspaceService.Object, directory.Object, sonarLanguageRecognizer: sonarLanguageRecognizer.Object);
-
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object, sonarLanguageRecognizer: sonarLanguageRecognizer.Object);
 
             var result = testSubject.HasTargetLanguage(null, predicate.Object);
 
@@ -357,52 +345,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             predicate.Verify(x => x.IsTargetLanguage(It.IsAny<AnalysisLanguage>(), It.IsAny<string>()), Times.Never);
         }
 
-        private static Mock<IFolderWorkspaceService> CreateFolderWorkSpaceService(bool isFolderWorkspace = false)
+        private static Mock<IFolderWorkspaceService> CreateFolderWorkSpaceService(bool isFolderWorkspace = false, params string[] files)
         {
             var folderWorkspaceService = new Mock<IFolderWorkspaceService>();
             folderWorkspaceService.Setup(f => f.IsFolderWorkspace()).Returns(isFolderWorkspace);
-            folderWorkspaceService.Setup(f => f.FindRootDirectory()).Returns("Root");
-
+            folderWorkspaceService.Setup(f => f.ListFiles()).Returns(files);
 
             return folderWorkspaceService;
         }
 
-        private static Mock<IDirectory> CreateDirectory(params string[] files)
-        {
-            var directory = new Mock<IDirectory>();
-            directory.Setup(d => d.EnumerateFiles(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SearchOption>())).Returns(new List<string>());
-
-            if (files.Length > 0)
-            {
-                directory.Setup(d => d.EnumerateFiles("Root", "*", SearchOption.AllDirectories)).Returns(files.ToList());
-            }
-
-            return directory;
-        }
-
-        private IFileSystem CreateFileSystem(IDirectory directory = null)
-        {
-            directory ??= Mock.Of<IDirectory>();
-
-            var fileSystem = new Mock<IFileSystem>();
-            fileSystem.SetupGet(fs => fs.Directory).Returns(directory);
-
-            return fileSystem.Object;
-        }
-
         private IProjectLanguageIndicator CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null,
-            IDirectory directory = null,
             ISonarLanguageRecognizer sonarLanguageRecognizer = null,
             ILogger logger = null)
         {
-
             folderWorkspaceService ??= Mock.Of<IFolderWorkspaceService>();
             sonarLanguageRecognizer ??= CreateSonarLanguageRecognizer().Object;
             logger ??= Mock.Of<ILogger>();
 
-            var fileSystem = CreateFileSystem(directory); 
-
-            return new ProjectLanguageIndicator(sonarLanguageRecognizer, folderWorkspaceService, logger, fileSystem);
+            return new ProjectLanguageIndicator(sonarLanguageRecognizer, folderWorkspaceService, logger);
         }
 
         private ProjectItem CreateItem(string itemName, params ProjectItem[] childItems)

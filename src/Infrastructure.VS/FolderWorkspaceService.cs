@@ -19,11 +19,11 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
+using System.IO;
+using System.IO.Abstractions;
+using System.Linq;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
@@ -33,11 +33,17 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
     internal class FolderWorkspaceService : IFolderWorkspaceService
     {
         private readonly ISolutionInfoProvider solutionInfoProvider;
+        private readonly IFileSystem fileSystem;
 
         [ImportingConstructor]
-        public FolderWorkspaceService(ISolutionInfoProvider solutionInfoProvider)
+        public FolderWorkspaceService(ISolutionInfoProvider solutionInfoProvider) : this(solutionInfoProvider, new FileSystem())
+        {
+        }
+
+        public FolderWorkspaceService(ISolutionInfoProvider solutionInfoProvider, IFileSystem fileSystem)
         {
             this.solutionInfoProvider = solutionInfoProvider;
+            this.fileSystem = fileSystem;
         }
 
         public bool IsFolderWorkspace()
@@ -55,6 +61,15 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             // For projects that are opened as folder, the root IVsHierarchy is the "Miscellaneous Files" folder.
             // This folder doesn't have a directory path so we need to take the directory path from IVsSolution.
             return solutionInfoProvider.GetSolutionDirectory();
+        }
+
+        public IEnumerable<string> ListFiles()
+        {
+            var root = FindRootDirectory();
+
+            return root is not null ?
+                fileSystem.Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Where(x => !x.Contains("\\node_modules\\")) :
+                Array.Empty<string>();
         }
     }
 }
