@@ -18,28 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-
-namespace SonarLint.VisualStudio.Core
-{
-    public interface IFolderWorkspaceService
-    {
-        /// <summary>
-        /// Returns true/false if the workspace is in Open-As-Folder mode
-        /// </summary>
-        /// <remarks>Will always return false in VS2015 as that mode is not supported in 2015.</remarks>
-        bool IsFolderWorkspace();
-
-        /// <summary>
-        /// Returns the root directory for Open-As-Folder projects.
-        /// Will return null if the root directory could not be retrieved,
-        /// or if the workspace is not in Open-As-Folder mode.
-        /// </summary>
-        string FindRootDirectory();
-
-        /// <summary>
-        /// Returns the list of files in a folder view
-        /// </summary>
-        IEnumerable<string> ListFiles();
-    }
-}
+global using FluentAssertions;
+global using Microsoft.VisualStudio.TestTools.UnitTesting;
+global using NSubstitute;
+global using SonarLint.VisualStudio.TestInfrastructure;
