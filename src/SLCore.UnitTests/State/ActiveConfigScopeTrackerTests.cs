@@ -198,6 +198,7 @@ public class ActiveConfigScopeTrackerTests
         var currentScope = testSubject.Current;
 
         currentScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey));
+        currentScope.RootPath.Should().Be(null); // not implemented
         VerifyThreadHandling(threadHandling);
         VerifyLockTakenSynchronouslyAndReleased(asyncLock, lockRelease);
     }
