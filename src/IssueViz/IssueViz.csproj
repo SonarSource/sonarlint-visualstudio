@@ -37,6 +37,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Project references">
+    <ProjectReference Include="..\SLCore\SLCore.csproj" />
     <ProjectReference Include="..\SonarQube.Client\SonarQube.Client.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj" />
