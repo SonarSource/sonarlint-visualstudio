@@ -80,6 +80,11 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
             throw new NotImplementedException();
         }
 
+        if (configScope.SonarProjectId == null)
+        {
+            throw new NotImplementedException();
+        }
+
         if (configScope.RootPath == null)
         {
             throw new NotImplementedException();
