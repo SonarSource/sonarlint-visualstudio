@@ -338,6 +338,7 @@ Referenced assemblies:
 - 'PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'SonarLint.VisualStudio.Core, Version=8.0.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarLint.VisualStudio.Infrastructure.VS, Version=8.0.0.0, Culture=neutral, PublicKeyToken=null'
+- 'SonarLint.VisualStudio.SLCore, Version=8.0.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarQube.Client, Version=8.0.0.0, Culture=neutral, PublicKeyToken=null'
 - 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
@@ -346,7 +347,7 @@ Referenced assemblies:
 - 'System.IO.Abstractions, Version=9.0.0.0, Culture=neutral, PublicKeyToken=96bf224d23c43e59'
 - 'System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
-# Number of references: 29
+# Number of references: 30
 
 ---
 Assembly: 'SonarLint.VisualStudio.IssueVisualization.Security, Version=8.0.0.0, Culture=neutral, PublicKeyToken=null'
