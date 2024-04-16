@@ -38,8 +38,7 @@ public class IssueDetailDtoToAnalysisIssueConverterTests
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<IssueDetailDtoToAnalysisIssueConverter, IIssueDetailDtoToAnalysisIssueConverter>(
-            MefTestHelpers.CreateExport<IChecksumCalculator>());
+        MefTestHelpers.CheckTypeCanBeImported<IssueDetailDtoToAnalysisIssueConverter, IIssueDetailDtoToAnalysisIssueConverter>();
     }
 
     [TestMethod]

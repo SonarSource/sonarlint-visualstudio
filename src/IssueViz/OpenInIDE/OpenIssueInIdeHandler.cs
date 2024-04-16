@@ -41,35 +41,45 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
 {
     private readonly IIDEWindowService ideWindowService;
     private readonly ILocationNavigator navigator;
+    private readonly IEducation education;
     private readonly IIssueSelectionService issueSelectionService;
     private readonly IIssueDetailDtoToAnalysisIssueConverter dtoToIssueConverter;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IAnalysisIssueVisualizationConverter issueToVisualizationConverter;
     private readonly ILogger logger;
-    
+    private readonly IThreadHandling thereHandling;
+
+    [ImportingConstructor]
     public OpenIssueInIdeHandler(IIDEWindowService ideWindowService,
         ILocationNavigator navigator,
+        IEducation education,
         IIssueSelectionService issueSelectionService,
         IIssueDetailDtoToAnalysisIssueConverter dtoToIssueConverter,
         IActiveConfigScopeTracker activeConfigScopeTracker,
         IAnalysisIssueVisualizationConverter issueToVisualizationConverter,
-        ILogger logger)
+        ILogger logger,
+        IThreadHandling thereHandling)
     {
         this.ideWindowService = ideWindowService;
         this.navigator = navigator;
+        this.education = education;
         this.issueSelectionService = issueSelectionService;
         this.dtoToIssueConverter = dtoToIssueConverter;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.issueToVisualizationConverter = issueToVisualizationConverter;
         this.logger = logger;
+        this.thereHandling = thereHandling;
     }
 
     public void ShowIssue(IssueDetailDto issueDetails, string configurationScope)
     {
+        thereHandling.ThrowIfOnUIThread();
+
         ideWindowService.BringToFront();
-        
+
         if (issueDetails.isTaint)
         {
+            // taints are not supported yet
             throw new NotImplementedException();
         }
 
@@ -77,26 +87,39 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
 
         if (configScope.Id != configurationScope)
         {
+            // config scope changed
             throw new NotImplementedException();
         }
 
         if (configScope.SonarProjectId == null)
         {
+            // not in connected mode
             throw new NotImplementedException();
         }
 
         if (configScope.RootPath == null)
         {
+            // no root
             throw new NotImplementedException();
         }
 
-        var visualization = issueToVisualizationConverter.Convert(dtoToIssueConverter.Convert(issueDetails, configScope.RootPath));
-        
+        var analysisIssueBase = dtoToIssueConverter.Convert(issueDetails, configScope.RootPath);
+        var visualization = issueToVisualizationConverter.Convert(analysisIssueBase);
+
+        if (!SonarCompositeRuleId.TryParse(analysisIssueBase.RuleKey, out var ruleId))
+        {
+            // invalid rule id
+            throw new NotImplementedException();
+        }
+
         if (!navigator.TryNavigate(visualization))
         {
+            // location unavailable
             throw new NotImplementedException();
         }
 
         issueSelectionService.SelectedIssue = visualization;
+
+        education.ShowRuleHelp(ruleId, analysisIssueBase.RuleDescriptionContextKey);
     }
 }
