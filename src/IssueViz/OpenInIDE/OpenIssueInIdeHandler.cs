@@ -20,6 +20,8 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -73,8 +75,15 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
 
     public void ShowIssue(IssueDetailDto issueDetails, string configurationScope)
     {
-        thereHandling.ThrowIfOnUIThread();
+        thereHandling.RunOnBackgroundThread(() =>
+        {
+            ShowIssueInternal(issueDetails, configurationScope);
+            return Task.FromResult(0);
+        }).Forget();
+    }
 
+    private void ShowIssueInternal(IssueDetailDto issueDetails, string configurationScope)
+    {
         ideWindowService.BringToFront();
 
         if (issueDetails.isTaint)
