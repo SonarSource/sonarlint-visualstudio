@@ -21,16 +21,13 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
-using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
-using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.IssueVisualization.OpenInIDE;
 
@@ -41,18 +38,15 @@ public interface IOpenIssueInIdeHandler
 
 [Export(typeof(IOpenIssueInIdeHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
+internal class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
 {
-    private static readonly Guid ErrorListToolWindowId = new Guid(ToolWindowGuids80.ErrorList);
-
     private readonly IIDEWindowService ideWindowService;
     private readonly ILocationNavigator navigator;
     private readonly IEducation education;
     private readonly IOpenInIDEFailureInfoBar infoBarManager;
     private readonly IIssueSelectionService issueSelectionService;
-    private readonly IIssueDetailDtoToAnalysisIssueConverter dtoToIssueConverter;
-    private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
-    private readonly IAnalysisIssueVisualizationConverter issueToVisualizationConverter;
+    private readonly IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
+    private readonly IOpenInIdeConverter openInIdeConverter;
     private readonly ILogger logger;
     private readonly IThreadHandling thereHandling;
 
@@ -62,9 +56,8 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
         IEducation education,
         IOpenInIDEFailureInfoBar infoBarManager,
         IIssueSelectionService issueSelectionService,
-        IIssueDetailDtoToAnalysisIssueConverter dtoToIssueConverter,
-        IActiveConfigScopeTracker activeConfigScopeTracker,
-        IAnalysisIssueVisualizationConverter issueToVisualizationConverter,
+        IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
+        IOpenInIdeConverter openInIdeConverter,
         ILogger logger,
         IThreadHandling thereHandling)
     {
@@ -73,9 +66,8 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
         this.education = education;
         this.infoBarManager = infoBarManager;
         this.issueSelectionService = issueSelectionService;
-        this.dtoToIssueConverter = dtoToIssueConverter;
-        this.activeConfigScopeTracker = activeConfigScopeTracker;
-        this.issueToVisualizationConverter = issueToVisualizationConverter;
+        this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
+        this.openInIdeConverter = openInIdeConverter;
         this.logger = logger;
         this.thereHandling = thereHandling;
     }
@@ -95,23 +87,12 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
         
         ideWindowService.BringToFront();
 
-        if (issueDetails.isTaint)
+        if (!openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out var configurationScopeRoot)
+            || !openInIdeConverter.TryConvertIssue(issueDetails, configurationScopeRoot, out var visualization)
+            || !TryShowIssue(visualization))
         {
-            logger.WriteLine(OpenInIDEResources.ApiHandler_TaintIssuesNotSupported);
+            await ShowInfoBarAsync(issueDetails.isTaint ? IssueListIds.TaintId : IssueListIds.ErrorListId);
             return;
-        }
-
-        var configurationScopeRoot = ValidateConfigurationScope(issueConfigurationScope);
-        
-        if (configurationScopeRoot == null || !ConvertIssue(issueDetails, configurationScopeRoot, out var visualization))
-        {
-            await ShowInfoBarAsync();
-            return;
-        }
-
-        if (!navigator.TryNavigate(visualization))
-        {
-            logger.WriteLine("todo");
         }
 
         issueSelectionService.SelectedIssue = visualization;
@@ -123,52 +104,19 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
         }
     }
 
-    private string ValidateConfigurationScope(string issueConfigurationScope)
+    private bool TryShowIssue(IAnalysisIssueVisualization visualization)
     {
-        var configScope = activeConfigScopeTracker.Current;
-
-        if (configScope is null || configScope.Id != issueConfigurationScope)
+        if (navigator.TryNavigate(visualization))
         {
-            logger.WriteLine(OpenInIDEResources.ApiHandler_ConfigurationScopeMismatch, configScope, issueConfigurationScope);
-            return null;
-        }
-
-        if (configScope?.SonarProjectId == null)
-        {
-            logger.WriteLine("todo");
-            return null;
-        }
-
-        if (string.IsNullOrEmpty(configScope?.RootPath))
-        {
-            logger.WriteLine("todo");
-            return null;
-        }
-
-        return configScope.RootPath;
-    }
-
-    private bool ConvertIssue(IssueDetailDto issueDetails, string rootPath,
-        out IAnalysisIssueVisualization visualization)
-    {
-        visualization = null;
-
-        try
-        {
-            var analysisIssueBase = dtoToIssueConverter.Convert(issueDetails, rootPath);
-            visualization = issueToVisualizationConverter.Convert(analysisIssueBase);
             return true;
         }
-        catch (Exception e) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(e))
-        {
-            logger.WriteLine(OpenInIDEResources.ApiHandler_UnableToConvertIssueData, e.Message);
-            return false;
-        }
+
+        logger.WriteLine("todo");
+        return false;
     }
 
-
-    private async Task ShowInfoBarAsync()
+    private async Task ShowInfoBarAsync(Guid issueListToolWindowId)
     {
-        await infoBarManager.ShowAsync(ErrorListToolWindowId);
+        await infoBarManager.ShowAsync(issueListToolWindowId);
     }
 }

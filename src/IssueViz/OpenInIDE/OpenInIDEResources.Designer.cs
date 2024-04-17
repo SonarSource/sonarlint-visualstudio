@@ -115,15 +115,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIDE {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Taint issues are not supported.
-        /// </summary>
-        internal static string ApiHandler_TaintIssuesNotSupported {
-            get {
-                return ResourceManager.GetString("ApiHandler_TaintIssuesNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to [Open in IDE] Unable to convert hotspot data: {0}.
         /// </summary>
         internal static string ApiHandler_UnableToConvertHotspotData {

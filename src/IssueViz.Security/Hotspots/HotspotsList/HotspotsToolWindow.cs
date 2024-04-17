@@ -26,16 +26,16 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
+using SonarLint.VisualStudio.IssueVisualization.OpenInIDE;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList
 {
-    [Guid(ToolWindowIdAsString)]
+    [Guid(IssueListIds.HotspotsIdAsString)]
     public class HotspotsToolWindow : ToolWindowPane
     {
-        private const string ToolWindowIdAsString = "4BCD4392-DBCF-4AA2-9852-01129D229CD8";
-        public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
+        public static readonly Guid ToolWindowId = IssueListIds.HotspotsId;
 
         public HotspotsToolWindow(IServiceProvider serviceProvider)
         {
