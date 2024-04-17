@@ -91,7 +91,7 @@ internal class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
             || !openInIdeConverter.TryConvertIssue(issueDetails, configurationScopeRoot, out var visualization)
             || !TryShowIssue(visualization))
         {
-            await ShowInfoBarAsync(issueDetails.isTaint ? IssueListIds.TaintId : IssueListIds.ErrorListId);
+            await ShowInfoBarAsync(issueDetails.isTaint);
             return;
         }
 
@@ -115,8 +115,8 @@ internal class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
         return false;
     }
 
-    private async Task ShowInfoBarAsync(Guid issueListToolWindowId)
+    private async Task ShowInfoBarAsync(bool isTaint)
     {
-        await infoBarManager.ShowAsync(issueListToolWindowId);
+        await infoBarManager.ShowAsync(isTaint ? IssueListIds.TaintId : IssueListIds.ErrorListId);
     }
 }
