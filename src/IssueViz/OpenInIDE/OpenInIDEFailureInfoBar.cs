@@ -22,9 +22,11 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Core.Synchronization;
+using SonarLint.VisualStudio.IssueVisualization.OpenInIDE;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
@@ -90,6 +92,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
         private void ShowOutputWindow(object sender, EventArgs e)
         {
             outputWindowService.Show();
+            ClearAsync().Forget();
         }
 
         private void RemoveExistingInfoBar()

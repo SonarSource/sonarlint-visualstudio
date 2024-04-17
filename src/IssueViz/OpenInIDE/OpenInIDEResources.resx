@@ -201,7 +201,7 @@
     <value>[Open in IDE] Processing request. Server: {0}, project: {1}, organization: {2}, hotspot: {3}</value>
   </data>
   <data name="ApiHandler_ProcessingIssueRequest" xml:space="preserve">
-    <value>[Open in IDE] Processing request. Configuration scope: {0}, issue: {2}</value>
+    <value>[Open in IDE] Processing request. Configuration scope: {0}, issue: {1}</value>
   </data>
   <data name="ApiHandler_UnableToConvertHotspotData" xml:space="preserve">
     <value>[Open in IDE] Unable to convert hotspot data: {0}</value>

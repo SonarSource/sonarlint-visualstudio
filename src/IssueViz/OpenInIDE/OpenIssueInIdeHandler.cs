@@ -21,15 +21,11 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
@@ -105,11 +101,12 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
             return;
         }
 
-        var configurationScopeRoot = await ValidateConfigurationScopeAsync(issueConfigurationScope);
-
-        if (!ConvertIssue(issueDetails, configurationScopeRoot, out var visualization))
+        var configurationScopeRoot = ValidateConfigurationScope(issueConfigurationScope);
+        
+        if (configurationScopeRoot == null || !ConvertIssue(issueDetails, configurationScopeRoot, out var visualization))
         {
-            await infoBarManager.ShowAsync(ErrorListToolWindowId);
+            await ShowInfoBarAsync();
+            return;
         }
 
         if (!navigator.TryNavigate(visualization))
@@ -118,6 +115,7 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
         }
 
         issueSelectionService.SelectedIssue = visualization;
+        await infoBarManager.ClearAsync();
 
         if (SonarCompositeRuleId.TryParse(visualization.Issue.RuleKey, out var ruleId))
         {
@@ -125,28 +123,26 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
         }
     }
 
-    private async Task<string> ValidateConfigurationScopeAsync(string issueConfigurationScope)
+    private string ValidateConfigurationScope(string issueConfigurationScope)
     {
         var configScope = activeConfigScopeTracker.Current;
 
         if (configScope is null || configScope.Id != issueConfigurationScope)
         {
             logger.WriteLine(OpenInIDEResources.ApiHandler_ConfigurationScopeMismatch, configScope, issueConfigurationScope);
-            await infoBarManager.ShowAsync(ErrorListToolWindowId);
             return null;
         }
 
         if (configScope?.SonarProjectId == null)
         {
             logger.WriteLine("todo");
-            await infoBarManager.ShowAsync(ErrorListToolWindowId);
             return null;
         }
 
         if (string.IsNullOrEmpty(configScope?.RootPath))
         {
             logger.WriteLine("todo");
-            await infoBarManager.ShowAsync(ErrorListToolWindowId);
+            return null;
         }
 
         return configScope.RootPath;
@@ -165,8 +161,14 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
         }
         catch (Exception e) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(e))
         {
-            logger.WriteLine(OpenInIDEResources.ApiHandler_UnableToConvertHotspotData, e.Message);
+            logger.WriteLine(OpenInIDEResources.ApiHandler_UnableToConvertIssueData, e.Message);
             return false;
         }
+    }
+
+
+    private async Task ShowInfoBarAsync()
+    {
+        await infoBarManager.ShowAsync(ErrorListToolWindowId);
     }
 }
