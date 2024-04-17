@@ -200,7 +200,19 @@
   <data name="ApiHandler_ProcessingRequest" xml:space="preserve">
     <value>[Open in IDE] Processing request. Server: {0}, project: {1}, organization: {2}, hotspot: {3}</value>
   </data>
+  <data name="ApiHandler_ProcessingIssueRequest" xml:space="preserve">
+    <value>[Open in IDE] Processing request. Configuration scope: {0}, issue: {2}</value>
+  </data>
   <data name="ApiHandler_UnableToConvertHotspotData" xml:space="preserve">
     <value>[Open in IDE] Unable to convert hotspot data: {0}</value>
+  </data>
+  <data name="ApiHandler_UnableToConvertIssueData" xml:space="preserve">
+    <value>[Open in IDE] Unable to convert issue data: {0}</value>
+  </data>
+  <data name="ApiHandler_TaintIssuesNotSupported" xml:space="preserve">
+    <value>[Open in IDE] Taint issues are not supported</value>
+  </data>
+  <data name="ApiHandler_ConfigurationScopeMismatch" xml:space="preserve">
+    <value>[Open in IDE] Configuration scope mismatch: Active scope {0} is different from received {1}</value>
   </data>
 </root>

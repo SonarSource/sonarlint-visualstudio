@@ -24,10 +24,11 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
+using SonarLint.VisualStudio.Core.Synchronization;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
-    internal interface IOpenInIDEFailureInfoBar
+    public interface IOpenInIDEFailureInfoBar
     {
         Task ShowAsync(Guid toolWindowId);
 
@@ -38,6 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class OpenInIDEFailureInfoBar : IOpenInIDEFailureInfoBar, IDisposable
     {
+        private readonly IAsyncLock asyncLock;
         private readonly IInfoBarManager infoBarManager;
         private readonly IOutputWindowService outputWindowService;
         private readonly IThreadHandling threadHandling;
@@ -46,33 +48,39 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
         [ImportingConstructor]
         public OpenInIDEFailureInfoBar(IInfoBarManager infoBarManager,
             IOutputWindowService outputWindowService,
+            IAsyncLockFactory asyncLockFactory,
             IThreadHandling threadHandling)
         {
             this.infoBarManager = infoBarManager;
             this.outputWindowService = outputWindowService;
+            asyncLock = asyncLockFactory.Create();
             this.threadHandling = threadHandling;
         }
 
         public async Task ShowAsync(Guid toolWindowId)
         {
-            await threadHandling.RunOnUIThreadAsync(() =>
+            using (await asyncLock.AcquireAsync())
             {
-                RemoveExistingInfoBar();
-                AddInfoBar(toolWindowId);
-            });
+                await threadHandling.RunOnUIThreadAsync(() =>
+                {
+                    RemoveExistingInfoBar();
+                    AddInfoBar(toolWindowId);
+                });
+            }
         }
 
         public async Task ClearAsync()
         {
-            await threadHandling.RunOnUIThreadAsync(() =>
+            using (await asyncLock.AcquireAsync())
             {
-                RemoveExistingInfoBar();
-            });
+                await threadHandling.RunOnUIThreadAsync(() => { RemoveExistingInfoBar(); });
+            }
         }
 
         private void AddInfoBar(Guid toolWindowId)
         {
-            currentInfoBar = infoBarManager.AttachInfoBarWithButton(toolWindowId, OpenInIDEResources.RequestValidator_InfoBarMessage, "Show Output Window", default);
+            currentInfoBar = infoBarManager.AttachInfoBarWithButton(toolWindowId,
+                OpenInIDEResources.RequestValidator_InfoBarMessage, "Show Output Window", default);
             Debug.Assert(currentInfoBar != null, "currentInfoBar != null");
 
             currentInfoBar.ButtonClick += ShowOutputWindow;

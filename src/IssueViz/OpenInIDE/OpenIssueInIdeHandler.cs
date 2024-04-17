@@ -21,10 +21,16 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
@@ -41,9 +47,12 @@ public interface IOpenIssueInIdeHandler
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
 {
+    private static readonly Guid ErrorListToolWindowId = new Guid(ToolWindowGuids80.ErrorList);
+
     private readonly IIDEWindowService ideWindowService;
     private readonly ILocationNavigator navigator;
     private readonly IEducation education;
+    private readonly IOpenInIDEFailureInfoBar infoBarManager;
     private readonly IIssueSelectionService issueSelectionService;
     private readonly IIssueDetailDtoToAnalysisIssueConverter dtoToIssueConverter;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
@@ -55,6 +64,7 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
     public OpenIssueInIdeHandler(IIDEWindowService ideWindowService,
         ILocationNavigator navigator,
         IEducation education,
+        IOpenInIDEFailureInfoBar infoBarManager,
         IIssueSelectionService issueSelectionService,
         IIssueDetailDtoToAnalysisIssueConverter dtoToIssueConverter,
         IActiveConfigScopeTracker activeConfigScopeTracker,
@@ -65,6 +75,7 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
         this.ideWindowService = ideWindowService;
         this.navigator = navigator;
         this.education = education;
+        this.infoBarManager = infoBarManager;
         this.issueSelectionService = issueSelectionService;
         this.dtoToIssueConverter = dtoToIssueConverter;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
@@ -75,60 +86,87 @@ public class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
 
     public void ShowIssue(IssueDetailDto issueDetails, string configurationScope)
     {
-        thereHandling.RunOnBackgroundThread(() =>
+        thereHandling.RunOnBackgroundThread(async () =>
         {
-            ShowIssueInternal(issueDetails, configurationScope);
-            return Task.FromResult(0);
+            await ShowIssueInternalAsync(issueDetails, configurationScope);
+            return 0;
         }).Forget();
     }
 
-    private void ShowIssueInternal(IssueDetailDto issueDetails, string configurationScope)
+    private async Task ShowIssueInternalAsync(IssueDetailDto issueDetails, string issueConfigurationScope)
     {
+        logger.WriteLine(OpenInIDEResources.ApiHandler_ProcessingIssueRequest, issueConfigurationScope, issueDetails.issueKey);
+        
         ideWindowService.BringToFront();
 
         if (issueDetails.isTaint)
         {
-            // taints are not supported yet
-            throw new NotImplementedException();
+            logger.WriteLine(OpenInIDEResources.ApiHandler_TaintIssuesNotSupported);
+            return;
         }
 
-        var configScope = activeConfigScopeTracker.Current;
+        var configurationScopeRoot = await ValidateConfigurationScopeAsync(issueConfigurationScope);
 
-        if (configScope.Id != configurationScope)
+        if (!ConvertIssue(issueDetails, configurationScopeRoot, out var visualization))
         {
-            // config scope changed
-            throw new NotImplementedException();
-        }
-
-        if (configScope.SonarProjectId == null)
-        {
-            // not in connected mode
-            throw new NotImplementedException();
-        }
-
-        if (configScope.RootPath == null)
-        {
-            // no root
-            throw new NotImplementedException();
-        }
-
-        var analysisIssueBase = dtoToIssueConverter.Convert(issueDetails, configScope.RootPath);
-        var visualization = issueToVisualizationConverter.Convert(analysisIssueBase);
-
-        if (!SonarCompositeRuleId.TryParse(analysisIssueBase.RuleKey, out var ruleId))
-        {
-            // invalid rule id
-            throw new NotImplementedException();
+            await infoBarManager.ShowAsync(ErrorListToolWindowId);
         }
 
         if (!navigator.TryNavigate(visualization))
         {
-            // location unavailable
-            throw new NotImplementedException();
+            logger.WriteLine("todo");
         }
 
         issueSelectionService.SelectedIssue = visualization;
 
-        education.ShowRuleHelp(ruleId, analysisIssueBase.RuleDescriptionContextKey);
+        if (SonarCompositeRuleId.TryParse(visualization.Issue.RuleKey, out var ruleId))
+        {
+            education.ShowRuleHelp(ruleId, visualization.Issue.RuleDescriptionContextKey);
+        }
+    }
+
+    private async Task<string> ValidateConfigurationScopeAsync(string issueConfigurationScope)
+    {
+        var configScope = activeConfigScopeTracker.Current;
+
+        if (configScope is null || configScope.Id != issueConfigurationScope)
+        {
+            logger.WriteLine(OpenInIDEResources.ApiHandler_ConfigurationScopeMismatch, configScope, issueConfigurationScope);
+            await infoBarManager.ShowAsync(ErrorListToolWindowId);
+            return null;
+        }
+
+        if (configScope?.SonarProjectId == null)
+        {
+            logger.WriteLine("todo");
+            await infoBarManager.ShowAsync(ErrorListToolWindowId);
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(configScope?.RootPath))
+        {
+            logger.WriteLine("todo");
+            await infoBarManager.ShowAsync(ErrorListToolWindowId);
+        }
+
+        return configScope.RootPath;
+    }
+
+    private bool ConvertIssue(IssueDetailDto issueDetails, string rootPath,
+        out IAnalysisIssueVisualization visualization)
+    {
+        visualization = null;
+
+        try
+        {
+            var analysisIssueBase = dtoToIssueConverter.Convert(issueDetails, rootPath);
+            visualization = issueToVisualizationConverter.Convert(analysisIssueBase);
+            return true;
+        }
+        catch (Exception e) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(e))
+        {
+            logger.WriteLine(OpenInIDEResources.ApiHandler_UnableToConvertHotspotData, e.Message);
+            return false;
+        }
     }
 }

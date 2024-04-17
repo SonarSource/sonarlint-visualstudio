@@ -40,18 +40,9 @@ public interface IActiveConfigScopeTracker : IDisposable
     void RemoveCurrentConfigScope();
 }
 
-public class ConfigurationScope
+public record ConfigurationScope(string Id, string ConnectionId = null, string SonarProjectId = null)
 {
-    public ConfigurationScope(string id, string connectionId = null, string sonarProjectId = null)
-    {
-        Id = id ?? throw new ArgumentNullException(nameof(id));
-        ConnectionId = connectionId;
-        SonarProjectId = sonarProjectId;
-    }
-
-    public string Id { get; }
-    public string ConnectionId { get; }
-    public string SonarProjectId { get; }
+    public string Id { get; } = Id ?? throw new ArgumentNullException(nameof(Id));
     public string RootPath { get; } // implementation will be added later
 }
 
