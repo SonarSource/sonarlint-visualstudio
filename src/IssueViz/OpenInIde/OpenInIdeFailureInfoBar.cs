@@ -27,16 +27,16 @@ using SonarLint.VisualStudio.Core.InfoBar;
 
 namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
-public interface IOpenInIDEFailureInfoBar
+public interface IOpenInIdeFailureInfoBar
 {
     Task ShowAsync(Guid toolWindowId);
 
     Task ClearAsync();
 }
 
-[Export(typeof(IOpenInIDEFailureInfoBar))]
+[Export(typeof(IOpenInIdeFailureInfoBar))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class OpenInIDEFailureInfoBar : IOpenInIDEFailureInfoBar, IDisposable
+internal sealed class OpenInIdeFailureInfoBar : IOpenInIdeFailureInfoBar, IDisposable
 {
     private readonly IInfoBarManager infoBarManager;
     private readonly IOutputWindowService outputWindowService;
@@ -44,7 +44,7 @@ internal sealed class OpenInIDEFailureInfoBar : IOpenInIDEFailureInfoBar, IDispo
     private IInfoBar currentInfoBar;
 
     [ImportingConstructor]
-    public OpenInIDEFailureInfoBar(IInfoBarManager infoBarManager,
+    public OpenInIdeFailureInfoBar(IInfoBarManager infoBarManager,
         IOutputWindowService outputWindowService,
         IThreadHandling threadHandling)
     {

@@ -76,15 +76,15 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
 
-    <EmbeddedResource Update="OpenInIDE\OpenInIDEResources.resx">
+    <EmbeddedResource Update="OpenInIde\OpenInIdeResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>OpenInIDEResources.Designer.cs</LastGenOutput>
+      <LastGenOutput>OpenInIdeResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
 
-    <Compile Update="OpenInIDE\OpenInIDEResources.Designer.cs">
+    <Compile Update="OpenInIde\OpenInIdeResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>OpenInIDEResources.resx</DependentUpon>
+      <DependentUpon>OpenInIdeResources.resx</DependentUpon>
     </Compile>
 
   </ItemGroup>
