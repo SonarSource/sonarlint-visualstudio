@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\SonarLint.Product.props" />
+
+  <PropertyGroup>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
   
   <PropertyGroup Label="Specify which external/VS-specific refs are required">
     <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
@@ -15,5 +19,7 @@
     <ProjectReference Include="..\ConnectedMode\ConnectedMode.csproj" />
     <ProjectReference Include="..\SLCore\SLCore.csproj" />
   </ItemGroup>
+
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
 
 </Project>
