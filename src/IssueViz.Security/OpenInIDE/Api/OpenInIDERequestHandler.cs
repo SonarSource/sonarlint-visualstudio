@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 

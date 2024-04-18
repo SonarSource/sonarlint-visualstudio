@@ -25,8 +25,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
+using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE.Api
 {

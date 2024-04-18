@@ -69,11 +69,6 @@
       <Generator>XamlIntelliSenseFileGenerator</Generator>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Page>
-    <Compile Update="OpenInIDE\OpenInIDEResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>OpenInIDEResources.resx</DependentUpon>
-    </Compile>
 
     <Compile Update="Resources.Designer.cs">
       <DependentUpon>Resources.resx</DependentUpon>
@@ -86,11 +81,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>TaintResources.resx</DependentUpon>
     </Compile>
-
-    <EmbeddedResource Update="OpenInIDE\OpenInIDEResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>OpenInIDEResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
 
     <EmbeddedResource Update="Resources.resx">
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

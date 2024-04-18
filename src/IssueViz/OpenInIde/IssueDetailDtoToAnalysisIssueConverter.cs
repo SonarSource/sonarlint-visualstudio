@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 using SonarQube.Client;
 
-namespace SonarLint.VisualStudio.IssueVisualization.OpenInIDE;
+namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
 [Export(typeof(IIssueDetailDtoToAnalysisIssueConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]

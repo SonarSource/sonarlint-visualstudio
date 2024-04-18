@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -40,19 +39,13 @@ public interface IActiveConfigScopeTracker : IDisposable
     void RemoveCurrentConfigScope();
 }
 
-public class ConfigurationScope
+public record ConfigurationScope(
+    string Id,
+    string ConnectionId = null,
+    string SonarProjectId = null,
+    string RootPath = null)
 {
-    public ConfigurationScope(string id, string connectionId = null, string sonarProjectId = null)
-    {
-        Id = id ?? throw new ArgumentNullException(nameof(id));
-        ConnectionId = connectionId;
-        SonarProjectId = sonarProjectId;
-    }
-
-    public string Id { get; }
-    public string ConnectionId { get; }
-    public string SonarProjectId { get; }
-    public string RootPath { get; } // implementation will be added later
+    public string Id { get; } = Id ?? throw new ArgumentNullException(nameof(Id));
 }
 
 [Export(typeof(IActiveConfigScopeTracker))]
