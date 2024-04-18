@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+  <Import Project="..\SonarLint.Product.props" />
+  
   <PropertyGroup Label="Specify which external/VS-specific refs are required">
     <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
   </PropertyGroup>
-  <Import Project="..\SonarLint.Product.props" />
+  <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <PropertyGroup>
     <RootNamespace>SonarLint.VisualStudio.SLCore.Listeners</RootNamespace>

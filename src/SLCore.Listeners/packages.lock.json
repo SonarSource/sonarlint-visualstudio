@@ -2,6 +2,21 @@
   "version": 1,
   "dependencies": {
     ".NETFramework,Version=v4.7.2": {
+      "Microsoft.Alm.Authentication": {
+        "type": "Direct",
+        "requested": "[4.0.0.1, )",
+        "resolved": "4.0.0.1",
+        "contentHash": "G+EwnnZeoee3McrWZQ0TOtQShJyCzFwhJdEXIbz5t+G2e67KICipAHfflDSYwokB43YK+y5J7ArnRHDLYtNliA==",
+        "dependencies": {
+          "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.13.8"
+        }
+      },
+      "StrongNamer": {
+        "type": "Direct",
+        "requested": "[0.0.8, )",
+        "resolved": "0.0.8",
+        "contentHash": "7GAMIhQSKabPrXVtEpDQoLRWVZUn1IGzeHvfDSvs5lPhU4KPFMQVpI/lDFikhMXr8FmdFBOBGaHEhQ9azMK3TA=="
+      },
       "BouncyCastle": {
         "type": "Transitive",
         "resolved": "1.8.9",
@@ -76,14 +91,6 @@
         "type": "Transitive",
         "resolved": "2.2.85",
         "contentHash": "YptRsDCQK35K5FhmZ0LojW4t8I6DpetLfK5KG8PVY2f6h7/gdyr8f4++xdSEK/xS6XX7/GPvEpqszKVPksCsiQ=="
-      },
-      "Microsoft.Alm.Authentication": {
-        "type": "Transitive",
-        "resolved": "4.0.0.1",
-        "contentHash": "G+EwnnZeoee3McrWZQ0TOtQShJyCzFwhJdEXIbz5t+G2e67KICipAHfflDSYwokB43YK+y5J7ArnRHDLYtNliA==",
-        "dependencies": {
-          "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.13.8"
-        }
       },
       "Microsoft.Bcl.AsyncInterfaces": {
         "type": "Transitive",
@@ -970,11 +977,6 @@
           "System.Threading.Tasks.Dataflow": "5.0.0",
           "System.Threading.Tasks.Extensions": "4.5.4"
         }
-      },
-      "StrongNamer": {
-        "type": "Transitive",
-        "resolved": "0.0.8",
-        "contentHash": "7GAMIhQSKabPrXVtEpDQoLRWVZUn1IGzeHvfDSvs5lPhU4KPFMQVpI/lDFikhMXr8FmdFBOBGaHEhQ9azMK3TA=="
       },
       "System.AppContext": {
         "type": "Transitive",

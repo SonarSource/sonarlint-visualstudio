@@ -1748,8 +1748,10 @@
       "SonarLint.VisualStudio.SLCore.Listeners": {
         "type": "Project",
         "dependencies": {
+          "Microsoft.Alm.Authentication": "[4.0.0.1, )",
           "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
-          "SonarLint.VisualStudio.SLCore": "[1.0.0, )"
+          "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
+          "StrongNamer": "[0.0.8, )"
         }
       },
       "SonarLint.VisualStudio.TypeScript": {
