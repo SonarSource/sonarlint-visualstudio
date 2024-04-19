@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -32,7 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
         private readonly IToolWindowService toolWindowService;
         private readonly ILocationNavigator navigator;
         private readonly IOpenInIDEHotspotsStore hotspotsStore;
-        private readonly IOpenInIDEFailureInfoBar failureInfoBar;
+        private readonly IOpenInIdeFailureInfoBar failureInfoBar;
         private readonly IIssueSelectionService issueSelectionService;
         private readonly ILogger logger;
 
@@ -42,7 +43,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             IToolWindowService toolWindowService,
             ILocationNavigator navigator,
             IOpenInIDEHotspotsStore hotspotsStore,
-            IOpenInIDEFailureInfoBar failureInfoBar,
+            IOpenInIdeFailureInfoBar failureInfoBar,
             IIssueSelectionService issueSelectionService,
             ILogger logger)
         {

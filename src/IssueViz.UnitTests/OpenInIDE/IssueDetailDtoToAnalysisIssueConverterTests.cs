@@ -23,7 +23,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.IssueVisualization.OpenInIDE;
+using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
