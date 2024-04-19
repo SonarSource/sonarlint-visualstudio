@@ -20,10 +20,7 @@
 
 using System;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.Alm.Authentication;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using NSubstitute;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
@@ -42,7 +39,7 @@ public class CredentialsListenerTests
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<CredentialsListener, ISLCoreListener>(
-            MefTestHelpers.CreateExport<ICredentialStoreService>(),
+            MefTestHelpers.CreateExport<ICredentialProvider>(),
             MefTestHelpers.CreateExport<IConnectionIdHelper>());
     }
     
@@ -56,7 +53,7 @@ public class CredentialsListenerTests
     public async Task GetCredentialsAsync_NullConnectionId_ReturnsNoCredentials()
     {
         var testSubject = CreateTestSubject(out _, out var connectionIdHelperMock);
-        connectionIdHelperMock.Setup(x => x.GetUriFromConnectionId(null)).Returns((Uri)null);
+        connectionIdHelperMock.GetUriFromConnectionId(null).Returns((Uri)null);
         
         var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(null));
 
@@ -67,7 +64,7 @@ public class CredentialsListenerTests
     public async Task GetCredentialsAsync_NullParams_ReturnsNoCredentials()
     {
         var testSubject = CreateTestSubject(out _, out var connectionIdHelperMock);
-        connectionIdHelperMock.Setup(x => x.GetUriFromConnectionId(null)).Returns((Uri)null);
+        connectionIdHelperMock.GetUriFromConnectionId(null).Returns((Uri)null);
 
         var response = await testSubject.GetCredentialsAsync(null);
 
@@ -79,7 +76,7 @@ public class CredentialsListenerTests
     {
         var testSubject = CreateTestSubject(out var credentialStoreMock, out var connectionIdHelperMock);
         SetUpConnectionIdHelper(connectionIdHelperMock);
-        credentialStoreMock.Setup(x => x.ReadCredentials(It.Is((TargetUri targetUri) => UriEquals(targetUri, Uri)))).Returns((Credential)null);
+        credentialStoreMock.GetCredentials(Arg.Is<Uri>(x => UriEquals(x, Uri))).Returns((ConnectionCredentials)null);
 
         var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(ConnectionId));
 
@@ -95,7 +92,7 @@ public class CredentialsListenerTests
         
         var testSubject = CreateTestSubject(out var credentialStoreMock, out var connectionIdHelperMock);
         SetUpConnectionIdHelper(connectionIdHelperMock);
-        credentialStoreMock.Setup(x => x.ReadCredentials(It.Is((TargetUri targetUri) => UriEquals(targetUri, Uri)))).Returns(new Credential(username, password));
+        credentialStoreMock.GetCredentials(Arg.Is<Uri>(x => UriEquals(x, Uri))).Returns(new ConnectionCredentials(username, password));
 
         var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(ConnectionId));
 
@@ -109,28 +106,28 @@ public class CredentialsListenerTests
         
         var testSubject = CreateTestSubject(out var credentialStoreMock, out var connectionIdHelperMock);
         SetUpConnectionIdHelper(connectionIdHelperMock);
-        credentialStoreMock.Setup(x => x.ReadCredentials(It.Is((TargetUri targetUri) => UriEquals(targetUri, Uri)))).Returns(new Credential(token));
+        credentialStoreMock.GetCredentials(Arg.Is<Uri>(x => UriEquals(x, Uri))).Returns(new ConnectionCredentials(token));
 
         var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(ConnectionId));
 
         response.Should().BeEquivalentTo(new GetCredentialsResponse(new TokenDto(token)));
     }
 
-    private CredentialsListener CreateTestSubject(out Mock<ICredentialStoreService> credentialStoreMock, out Mock<IConnectionIdHelper> connectionIdHelperMock)
+    private CredentialsListener CreateTestSubject(out ICredentialProvider credentialStoreMock, out IConnectionIdHelper connectionIdHelperMock)
     {
-        credentialStoreMock = new Mock<ICredentialStoreService>();
-        connectionIdHelperMock = new Mock<IConnectionIdHelper>();
+        credentialStoreMock = Substitute.For<ICredentialProvider>();
+        connectionIdHelperMock = Substitute.For<IConnectionIdHelper>();
         
-        return new CredentialsListener(credentialStoreMock.Object, connectionIdHelperMock.Object);
+        return new CredentialsListener(credentialStoreMock, connectionIdHelperMock);
     }
     
-    private static void SetUpConnectionIdHelper(Mock<IConnectionIdHelper> connectionIdHelperMock)
+    private static void SetUpConnectionIdHelper(IConnectionIdHelper connectionIdHelperMock)
     {
-        connectionIdHelperMock.Setup(x => x.GetUriFromConnectionId(ConnectionId)).Returns(Uri);
+        connectionIdHelperMock.GetUriFromConnectionId(ConnectionId).Returns(Uri);
     }
-    
-    private static bool UriEquals(TargetUri uri, Uri serverUri)
+
+    private static bool UriEquals(Uri uri, Uri serverUri)
     {
-        return serverUri.Equals((Uri)uri);
+        return serverUri.ToString() == uri.ToString();
     }
 }
