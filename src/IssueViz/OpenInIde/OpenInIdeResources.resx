@@ -203,4 +203,16 @@
   <data name="ApiHandler_UnableToConvertHotspotData" xml:space="preserve">
     <value>[Open in IDE] Unable to convert hotspot data: {0}</value>
   </data>
+  <data name="ApiHandler_UnableToConvertIssueData" xml:space="preserve">
+    <value>[Open in IDE] Unable to convert issue data: {0}</value>
+  </data>
+  <data name="ApiHandler_ConfigurationScopeMismatch" xml:space="preserve">
+    <value>[Open in IDE] Configuration scope mismatch: Active scope {0} is different from received {1}</value>
+  </data>
+  <data name="ApiHandler_ConfigurationScopeNotBound" xml:space="preserve">
+    <value>[Open in IDE] Configuration scope is not bound</value>
+  </data>
+  <data name="ApiHandler_ConfigurationScopeRootNotSet" xml:space="preserve">
+    <value>[Open in IDE] Configuration scope root path is not available</value>
+  </data>
 </root>

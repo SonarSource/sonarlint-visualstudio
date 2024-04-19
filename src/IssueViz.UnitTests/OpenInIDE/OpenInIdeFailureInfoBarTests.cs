@@ -25,20 +25,20 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
+using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE.Api
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.OpenInIDE
 {
     [TestClass]
-    public class OpenInIDEFailureInfoBarTests
+    public class OpenInIdeFailureInfoBarTests
     {
         private static readonly Guid ValidToolWindowId = Guid.NewGuid();
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<OpenInIDEFailureInfoBar, IOpenInIDEFailureInfoBar>(
+            MefTestHelpers.CheckTypeCanBeImported<OpenInIdeFailureInfoBar, IOpenInIdeFailureInfoBar>(
                 MefTestHelpers.CreateExport<IInfoBarManager>(),
                 MefTestHelpers.CreateExport<IOutputWindowService>(),
                 MefTestHelpers.CreateExport<IThreadHandling>());
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         public async Task Clear_NoPreviousInfoBar_NoException()
         {
             var infoBarManager = new Mock<IInfoBarManager>();
-            var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>(), new NoOpThreadHandler());
+            var testSubject = new OpenInIdeFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>(), new NoOpThreadHandler());
 
             // Act
             await testSubject.ClearAsync();
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 .Setup(x => x.AttachInfoBarWithButton(ValidToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default))
                 .Returns(infoBar.Object);
 
-            var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>(), new NoOpThreadHandler());
+            var testSubject = new OpenInIdeFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>(), new NoOpThreadHandler());
 
             // Act
             await testSubject.ShowAsync(ValidToolWindowId);
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 .Returns(firstInfoBar.Object)
                 .Returns(secondInfoBar.Object);
 
-            var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>(), new NoOpThreadHandler());
+            var testSubject = new OpenInIdeFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>(), new NoOpThreadHandler());
 
             // Act
             await testSubject.ShowAsync(ValidToolWindowId); // show first bar
@@ -145,7 +145,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         public void Dispose_NoPreviousInfoBar_NoException()
         {
             var infoBarManager = new Mock<IInfoBarManager>();
-            var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>(), new NoOpThreadHandler());
+            var testSubject = new OpenInIdeFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>(), new NoOpThreadHandler());
 
             testSubject.Dispose();
 
@@ -201,7 +201,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                     => x.AttachInfoBarWithButton(ValidToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default), Times.Once);
             });
 
-            var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>(), threadHandling.Object);
+            var testSubject = new OpenInIdeFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>(), threadHandling.Object);
 
             await testSubject.ShowAsync(ValidToolWindowId);
             threadHandling.Verify(x => x.RunOnUIThreadAsync(It.IsAny<Action>()), Times.Once);
@@ -212,14 +212,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         {
             var threadHandling = new Mock<IThreadHandling>();
 
-            var testSubject = new OpenInIDEFailureInfoBar(Mock.Of<IInfoBarManager>(), Mock.Of<IOutputWindowService>(), threadHandling.Object);
+            var testSubject = new OpenInIdeFailureInfoBar(Mock.Of<IInfoBarManager>(), Mock.Of<IOutputWindowService>(), threadHandling.Object);
 
             await testSubject.ClearAsync();
 
             threadHandling.Verify(x => x.RunOnUIThreadAsync(It.IsAny<Action>()), Times.Once);
         }
 
-        private async static Task<OpenInIDEFailureInfoBar> CreateTestSubjectWithPreviousInfoBar(
+        private async static Task<OpenInIdeFailureInfoBar> CreateTestSubjectWithPreviousInfoBar(
             Mock<IInfoBarManager> infoBarManager = null,
             Mock<IInfoBar> infoBar = null,
             Mock<IOutputWindowService> outputWindow = null)
@@ -234,7 +234,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             outputWindow ??= new Mock<IOutputWindowService>();
 
-            var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, outputWindow.Object, new NoOpThreadHandler());
+            var testSubject = new OpenInIdeFailureInfoBar(infoBarManager.Object, outputWindow.Object, new NoOpThreadHandler());
 
             // Call "Show" to create an infobar and check it was added
             await testSubject.ShowAsync(ValidToolWindowId);

@@ -76,6 +76,17 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
 
+    <EmbeddedResource Update="OpenInIde\OpenInIdeResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>OpenInIdeResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+
+    <Compile Update="OpenInIde\OpenInIdeResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OpenInIdeResources.resx</DependentUpon>
+    </Compile>
+
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
