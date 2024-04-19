@@ -47,10 +47,10 @@ internal class OpenInIdeConfigScopeValidator : IOpenInIdeConfigScopeValidator
 
     public bool TryGetConfigurationScopeRoot(string issueConfigurationScope, out string configurationScopeRoot)
     {
+        configurationScopeRoot = default;
         threadHandling.ThrowIfOnUIThread();
 
         var configScope = activeConfigScopeTracker.Current;
-        configurationScopeRoot = configScope?.RootPath;
 
         if (configScope is null || configScope.Id != issueConfigurationScope)
         {
@@ -70,6 +70,7 @@ internal class OpenInIdeConfigScopeValidator : IOpenInIdeConfigScopeValidator
             return false;
         }
 
+        configurationScopeRoot = configScope.RootPath;
         return true;
     }
 }
