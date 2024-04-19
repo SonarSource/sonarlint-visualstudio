@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.Alm.Authentication;
+using System;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding;
 
@@ -26,5 +26,5 @@ public record ConnectionCredentials(string Username, string Password = null);
 
 public interface ICredentialProvider
 {
-    ConnectionCredentials GetCredentials(TargetUri uri);
+    ConnectionCredentials GetCredentials(Uri uri);
 }

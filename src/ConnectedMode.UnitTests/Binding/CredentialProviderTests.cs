@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using Microsoft.Alm.Authentication;
 using NSubstitute;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
@@ -45,29 +46,29 @@ public class CredentialProviderTests
     public void GetCredentials_ProxiesToICredentialStoreService()
     {
         var testSubject = CreateTestSubject(out var credentialStoreService);
-        var uri = new TargetUri("http://localhost");
+        var uri = new Uri("http://localhost/");
         const string username = "username123";
         const string password = "password123";
-        credentialStoreService.ReadCredentials(uri).Returns(new Credential(username, password));
+        credentialStoreService.ReadCredentials(Arg.Is<TargetUri>(targetUri => targetUri.ToString() == uri.ToString())).Returns(new Credential(username, password));
 
         var connectionCredentials = testSubject.GetCredentials(uri);
 
         connectionCredentials.Username.Should().BeSameAs(username);
         connectionCredentials.Password.Should().BeSameAs(password);
-        credentialStoreService.Received(1).ReadCredentials(uri);
+        credentialStoreService.ReceivedWithAnyArgs(1).ReadCredentials(default);
     }
     
     [TestMethod]
     public void GetCredentials_NoCredentials_ReturnsNull()
     {
         var testSubject = CreateTestSubject(out var credentialStoreService);
-        var uri = new TargetUri("http://localhost");
-        credentialStoreService.ReadCredentials(uri).Returns((Credential)null);
+        var uri = new Uri("http://localhost");
+        credentialStoreService.ReadCredentials(Arg.Is<TargetUri>(targetUri => targetUri.ToString() == uri.ToString())).Returns((Credential)null);
 
         var connectionCredentials = testSubject.GetCredentials(uri);
 
         connectionCredentials.Should().BeNull();
-        credentialStoreService.Received(1).ReadCredentials(uri);
+        credentialStoreService.ReceivedWithAnyArgs(1).ReadCredentials(default);
     }
 
     private CredentialProvider CreateTestSubject(out ICredentialStoreService credentialStoreService)
