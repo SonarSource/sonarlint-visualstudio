@@ -30,7 +30,7 @@ using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 
-namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.OpenInIDE;
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.OpenInIde;
 
 [TestClass]
 public class IssueDetailDtoToAnalysisIssueConverterTests
@@ -38,8 +38,7 @@ public class IssueDetailDtoToAnalysisIssueConverterTests
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<IssueDetailDtoToAnalysisIssueConverter, IIssueDetailDtoToAnalysisIssueConverter>(
-            MefTestHelpers.CreateExport<IChecksumCalculator>());
+        MefTestHelpers.CheckTypeCanBeImported<IssueDetailDtoToAnalysisIssueConverter, IIssueDetailDtoToAnalysisIssueConverter>();
     }
 
     [TestMethod]

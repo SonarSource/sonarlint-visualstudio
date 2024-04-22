@@ -36,6 +36,10 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
     private readonly IChecksumCalculator checksumCalculator;
 
     [ImportingConstructor]
+    public IssueDetailDtoToAnalysisIssueConverter() : this(new ChecksumCalculator())
+    {
+    }
+    
     public IssueDetailDtoToAnalysisIssueConverter(IChecksumCalculator checksumCalculator)
     {
         this.checksumCalculator = checksumCalculator;
