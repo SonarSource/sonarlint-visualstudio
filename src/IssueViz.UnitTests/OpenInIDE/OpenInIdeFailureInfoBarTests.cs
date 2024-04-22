@@ -171,15 +171,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.OpenInIDE
         [TestMethod]
         public async Task InfoBarButtonClicked_OutputWindowIsShown()
         {
+            var infoBarManager = new Mock<IInfoBarManager>();
             var infoBar = new Mock<IInfoBar>();
             var outputWindowService = new Mock<IOutputWindowService>();
-            var testSubject = await CreateTestSubjectWithPreviousInfoBar(infoBar: infoBar, outputWindow: outputWindowService);
+            var testSubject = await CreateTestSubjectWithPreviousInfoBar(infoBarManager, infoBar, outputWindow: outputWindowService);
 
             outputWindowService.VerifyNoOtherCalls();
 
             // Act
             infoBar.Raise(x => x.ButtonClick += null, new InfoBarButtonClickedEventArgs("some button"));
 
+            CheckInfoBarWithEventsRemoved(infoBarManager, infoBar);
             outputWindowService.Verify(x => x.Show(), Times.Once);
             outputWindowService.VerifyNoOtherCalls();
         }

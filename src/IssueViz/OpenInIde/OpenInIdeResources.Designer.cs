@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.IssueVisualization.OpenInIde.OpenInIdeResources", typeof(OpenInIdeResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.IssueVisualization.OpenInIDE.OpenInIdeResources", typeof(OpenInIdeResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -105,11 +105,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Could not find the issue at File: {0}, Start Line: {1}, Start Position: {2}.
+        /// </summary>
+        internal static string ApiHandler_IssueLocationNotFound {
+            get {
+                return ResourceManager.GetString("ApiHandler_IssueLocationNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {none}.
         /// </summary>
         internal static string ApiHandler_NullOrganization {
             get {
                 return ResourceManager.GetString("ApiHandler_NullOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Processing request. Configuration scope: {0}, issue: {1}.
+        /// </summary>
+        internal static string ApiHandler_ProcessingIssueRequest {
+            get {
+                return ResourceManager.GetString("ApiHandler_ProcessingIssueRequest", resourceCulture);
             }
         }
         
