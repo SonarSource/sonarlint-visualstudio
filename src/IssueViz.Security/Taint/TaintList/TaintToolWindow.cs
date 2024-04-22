@@ -29,17 +29,17 @@ using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
+using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
 {
-    [Guid(ToolWindowIdAsString)]
+    [Guid(IssueListIds.TaintIdAsString)]
     public class TaintToolWindow : ToolWindowPane
     {
-        private const string ToolWindowIdAsString = "537833A5-E0F1-4405-821D-D83D89370B78";
-        public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
+        public static readonly Guid ToolWindowId = IssueListIds.TaintId;
 
         private TaintIssuesControl control;
 
