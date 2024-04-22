@@ -22,8 +22,10 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
+using SonarLint.VisualStudio.Core.Synchronization;
 
 namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
@@ -41,6 +43,7 @@ internal sealed class OpenInIdeFailureInfoBar : IOpenInIdeFailureInfoBar, IDispo
     private readonly IInfoBarManager infoBarManager;
     private readonly IOutputWindowService outputWindowService;
     private readonly IThreadHandling threadHandling;
+    private readonly object lockObject = new();
     private IInfoBar currentInfoBar;
 
     [ImportingConstructor]
@@ -57,8 +60,11 @@ internal sealed class OpenInIdeFailureInfoBar : IOpenInIdeFailureInfoBar, IDispo
     {
         await threadHandling.RunOnUIThreadAsync(() =>
         {
-            RemoveExistingInfoBar();
-            AddInfoBar(toolWindowId);
+            lock (lockObject)
+            {
+                RemoveExistingInfoBar();
+                AddInfoBar(toolWindowId);
+            }
         });
     }
 
@@ -66,13 +72,17 @@ internal sealed class OpenInIdeFailureInfoBar : IOpenInIdeFailureInfoBar, IDispo
     {
         await threadHandling.RunOnUIThreadAsync(() =>
         {
-            RemoveExistingInfoBar();
+            lock (lockObject)
+            {
+                RemoveExistingInfoBar();
+            }
         });
     }
 
     private void AddInfoBar(Guid toolWindowId)
     {
-        currentInfoBar = infoBarManager.AttachInfoBarWithButton(toolWindowId, OpenInIdeResources.RequestValidator_InfoBarMessage, "Show Output Window", default);
+        currentInfoBar = infoBarManager.AttachInfoBarWithButton(toolWindowId,
+            OpenInIdeResources.RequestValidator_InfoBarMessage, "Show Output Window", default);
         Debug.Assert(currentInfoBar != null, "currentInfoBar != null");
 
         currentInfoBar.ButtonClick += ShowOutputWindow;
@@ -82,6 +92,7 @@ internal sealed class OpenInIdeFailureInfoBar : IOpenInIdeFailureInfoBar, IDispo
     private void ShowOutputWindow(object sender, EventArgs e)
     {
         outputWindowService.Show();
+        ClearAsync().Forget();
     }
 
     private void RemoveExistingInfoBar()
@@ -97,11 +108,17 @@ internal sealed class OpenInIdeFailureInfoBar : IOpenInIdeFailureInfoBar, IDispo
 
     private void CurrentInfoBar_Closed(object sender, EventArgs e)
     {
-        RemoveExistingInfoBar();
+        lock (lockObject)
+        {
+            RemoveExistingInfoBar();
+        }
     }
 
     public void Dispose()
     {
-        RemoveExistingInfoBar();
+        lock (lockObject)
+        {
+            RemoveExistingInfoBar();
+        }
     }
 }
