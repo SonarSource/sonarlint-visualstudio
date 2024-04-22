@@ -24,16 +24,16 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
+using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList
 {
-    [Guid(ToolWindowIdAsString)]
+    [Guid(IssueListIds.HotspotsIdAsString)]
     public class OpenInIDEHotspotsToolWindow : ToolWindowPane
     {
-        private const string ToolWindowIdAsString = "D71842F7-4DB3-4AC1-A91A-D16D1A514242";
-        public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
+        public static readonly Guid ToolWindowId = IssueListIds.HotspotsId;
 
         public OpenInIDEHotspotsToolWindow(IServiceProvider serviceProvider)
         {
