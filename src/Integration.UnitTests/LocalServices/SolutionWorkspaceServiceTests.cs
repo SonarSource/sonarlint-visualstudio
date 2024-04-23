@@ -19,12 +19,12 @@
  */
 
 using System;
-using NSubstitute;
+using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
-using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 {
