@@ -18,14 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Visualization;
+namespace SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
-public interface IShowInIdeListener : ISLCoreListener
-{
-    void ShowIssue(ShowIssueParams parameters);
-
-    void ShowHotspot(ShowHotspotParams parameters);
-}
-
+public record HotspotDetailsDto(
+    string key,
+    string message,
+    string ideFilePath,
+    TextRangeDto textRange,
+    string author,
+    string status,
+    string resolution,
+    HotspotRuleDto rule,
+    string codeSnippet);
