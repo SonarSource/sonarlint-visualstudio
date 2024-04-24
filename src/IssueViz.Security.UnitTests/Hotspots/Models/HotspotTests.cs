@@ -41,8 +41,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
                 "server-path",
                 primaryLocation: null,
                 ValidRule,
-                DateTimeOffset.MinValue,
-                DateTimeOffset.MinValue,
                 null);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("primaryLocation");
@@ -51,9 +49,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         [TestMethod]
         public void Ctor_PropertiesSet()
         {
-            var creationDate = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromHours(123));
-            var lastUpdated = DateTimeOffset.UtcNow;
-
             var hotspot = new Hotspot(
                 "hotspot key",
                 "server-path",
@@ -67,8 +62,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
                         4,
                         "hash")),
                 ValidRule,
-                creationDate,
-                lastUpdated,
                 null,
                 "contextKey");
 
@@ -76,8 +69,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             hotspot.ServerFilePath.Should().Be("server-path");
             hotspot.RuleKey.Should().Be(ValidRule.RuleKey);
             hotspot.Rule.Should().BeSameAs(ValidRule);
-            hotspot.CreationTimestamp.Should().Be(creationDate);
-            hotspot.LastUpdateTimestamp.Should().Be(lastUpdated);
             hotspot.RuleDescriptionContextKey.Should().Be("contextKey");
 
             hotspot.PrimaryLocation.FilePath.Should().Be("local-path.cpp");
@@ -105,8 +96,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
                         4,
                         "hash")),
                 ValidRule,
-                DateTimeOffset.MinValue,
-                DateTimeOffset.MinValue,
                 flows);
 
             hotspot.Flows.Should().BeEmpty();
@@ -128,8 +117,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
                         4,
                         "hash")),
                 ValidRule,
-                DateTimeOffset.MinValue,
-                DateTimeOffset.MinValue,
                 flows);
 
             hotspot.Flows.Should().BeEquivalentTo(flows);
