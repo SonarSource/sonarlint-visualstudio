@@ -25,7 +25,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -163,67 +162,6 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             return VSConstants.VSITEMID.Nil;
-        }
-
-        /// <summary>
-        /// Transforms a relative path to an absolute one based on a specified base folder.
-        /// </summary>
-        [ExcludeFromCodeCoverage]
-        private string AbsolutePathFromRelative(string relativePath, string baseFolderForDerelativization)
-        {
-            if (relativePath == null)
-            {
-                throw new ArgumentNullException(nameof(relativePath));
-            }
-            if (baseFolderForDerelativization == null)
-            {
-                throw new ArgumentNullException(nameof(baseFolderForDerelativization));
-            }
-            if (Path.IsPathRooted(relativePath))
-            {
-                throw new ArgumentException("", nameof(relativePath));
-            }
-            if (!Path.IsPathRooted(baseFolderForDerelativization))
-            {
-                throw new ArgumentException("", nameof(baseFolderForDerelativization));
-            }
-            StringBuilder result = new StringBuilder(baseFolderForDerelativization);
-            if (result[result.Length - 1] != Path.DirectorySeparatorChar)
-            {
-                result.Append(Path.DirectorySeparatorChar);
-            }
-            int spanStart = 0;
-            while (spanStart < relativePath.Length)
-            {
-                int spanStop = relativePath.IndexOf(Path.DirectorySeparatorChar, spanStart);
-                if (spanStop == -1)
-                {
-                    spanStop = relativePath.Length;
-                }
-                string span = relativePath.Substring(spanStart, spanStop - spanStart);
-                if (span == "..")
-                {
-                    // The result string should end with a directory separator at this point.  We
-                    // want to search for the one previous to that, which is why we subtract 2.
-                    int previousSeparator;
-                    if (result.Length < 2 || (previousSeparator = result.ToString().LastIndexOf(Path.DirectorySeparatorChar, result.Length - 2)) == -1)
-                    {
-                        throw new ArgumentException("");
-                    }
-                    result.Remove(previousSeparator + 1, result.Length - previousSeparator - 1);
-                }
-                else if (span != ".")
-                {
-                    // Ignore "." because it means the current direcotry
-                    result.Append(span);
-                    if (spanStop < relativePath.Length)
-                    {
-                        result.Append(Path.DirectorySeparatorChar);
-                    }
-                }
-                spanStart = spanStop + 1;
-            }
-            return result.ToString();
         }
     }
 }
