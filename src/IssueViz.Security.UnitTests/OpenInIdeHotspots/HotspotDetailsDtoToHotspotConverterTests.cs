@@ -24,13 +24,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIde;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIde;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIdeHotspots;
 
 [TestClass]
 public class HotspotDetailsDtoToHotspotConverterTests

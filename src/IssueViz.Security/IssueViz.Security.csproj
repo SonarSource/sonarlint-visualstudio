@@ -58,7 +58,7 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
-    <Page Include="OpenInIDE_Hotspots\HotspotsList\OpenInIDEHotspotsControl.xaml">
+    <Page Include="OpenInIdeHotspots_List\HotspotsList\OpenInIDEHotspotsControl.xaml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
@@ -96,6 +96,17 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
+
+    <EmbeddedResource Update="OpenInIdeHotspots\OpenInIdeHotspotResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>OpenInIdeHotspotResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+
+    <Compile Update="OpenInIdeHotspots\OpenInIdeHotspotResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OpenInIdeHotspotResources.resx</DependentUpon>
+    </Compile>
   
   </ItemGroup>
 

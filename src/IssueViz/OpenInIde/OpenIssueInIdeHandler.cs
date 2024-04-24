@@ -19,105 +19,31 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.IssueVisualization.Editor;
-using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
-
-public interface IOpenIssueInIdeHandler
-{
-    void ShowIssue(IssueDetailDto issueDetails, string configurationScope);
-}
 
 [Export(typeof(IOpenIssueInIdeHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
 {
-    private readonly IEducation education;
-    private readonly IIDEWindowService ideWindowService;
-    private readonly IOpenInIdeFailureInfoBar infoBarManager;
-    private readonly IIssueSelectionService issueSelectionService;
-    private readonly ILogger logger;
-    private readonly ILocationNavigator navigator;
-    private readonly IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
-    private readonly IOpenInIdeConverter openInIdeConverter;
-    private readonly IThreadHandling thereHandling;
+    private readonly IOpenInIdeHandler handler;
+    private readonly IIssueOpenInIdeConverter converter;
 
     [ImportingConstructor]
-    public OpenIssueInIdeHandler(IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
-        IOpenInIdeConverter openInIdeConverter,
-        IOpenInIdeFailureInfoBar infoBarManager,
-        IIDEWindowService ideWindowService,
-        ILocationNavigator navigator,
-        IIssueSelectionService issueSelectionService,
-        IEducation education,
-        ILogger logger,
-        IThreadHandling thereHandling)
+    public OpenIssueInIdeHandler(IOpenInIdeHandler handler, IIssueOpenInIdeConverter converter)
     {
-        this.ideWindowService = ideWindowService;
-        this.navigator = navigator;
-        this.education = education;
-        this.infoBarManager = infoBarManager;
-        this.issueSelectionService = issueSelectionService;
-        this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
-        this.openInIdeConverter = openInIdeConverter;
-        this.logger = logger;
-        this.thereHandling = thereHandling;
+        this.handler = handler;
+        this.converter = converter;
     }
 
-    public void ShowIssue(IssueDetailDto issueDetails, string configurationScope)
+    public void Show(IssueDetailDto issueDetailDto, string configurationScope)
     {
-        thereHandling.RunOnBackgroundThread(async () =>
-        {
-            await ShowIssueInternalAsync(issueDetails, configurationScope);
-            return 0;
-        }).Forget();
-    }
-
-    private async Task ShowIssueInternalAsync(IssueDetailDto issueDetails, string issueConfigurationScope)
-    {
-        logger.WriteLine(OpenInIdeResources.ApiHandler_ProcessingIssueRequest, issueConfigurationScope,
-            issueDetails.issueKey);
-
-        ideWindowService.BringToFront();
-
-        if (!openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out var configurationScopeRoot)
-            || !openInIdeConverter.TryConvertIssue(issueDetails, configurationScopeRoot, out var visualization)
-            || !TryShowIssue(visualization))
-        {
-            await ShowInfoBarAsync(issueDetails.isTaint);
-            return;
-        }
-
-        issueSelectionService.SelectedIssue = visualization;
-        
-        await infoBarManager.ClearAsync();
-
-        if (SonarCompositeRuleId.TryParse(visualization.Issue.RuleKey, out var ruleId))
-        {
-            education.ShowRuleHelp(ruleId, visualization.Issue.RuleDescriptionContextKey);
-        }
-    }
-
-    private bool TryShowIssue(IAnalysisIssueVisualization visualization)
-    {
-        if (navigator.TryNavigate(visualization))
-        {
-            return true;
-        }
-
-        logger.WriteLine(OpenInIdeResources.ApiHandler_IssueLocationNotFound, visualization.Location.FilePath,
-            visualization.Location?.TextRange?.StartLine, visualization.Location?.TextRange?.StartLineOffset);
-        return false;
-    }
-
-    private async Task ShowInfoBarAsync(bool isTaint)
-    {
-        await infoBarManager.ShowAsync(isTaint ? IssueListIds.TaintId : IssueListIds.ErrorListId);
+        handler.ShowIssue(issueDetailDto,
+            configurationScope,
+            converter,
+            issueDetailDto.isTaint
+                ? IssueListIds.TaintId
+                : IssueListIds.ErrorListId);
     }
 }

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,25 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="DefaultInfoBarMessage" xml:space="preserve">
-    <value>Could not handle Open in IDE request. See the Output Window for more information.</value>
-  </data>
-  <data name="ProcessingRequest" xml:space="preserve">
-    <value>[Open in IDE] Processing request. Configuration scope: {0}, Key: {1}, Type: {2}</value>
-  </data>
-  <data name="Converter_UnableToConvertIssueData" xml:space="preserve">
-    <value>[Open in IDE] Unable to convert issue data: {0}</value>
-  </data>
-  <data name="Validation_ConfigurationScopeMismatch" xml:space="preserve">
-    <value>[Open in IDE] Configuration scope mismatch: Active scope {0} is different from received {1}</value>
-  </data>
-  <data name="Validation_ConfigurationScopeNotBound" xml:space="preserve">
-    <value>[Open in IDE] Configuration scope is not bound</value>
-  </data>
-  <data name="Validation_ConfigurationScopeRootNotSet" xml:space="preserve">
-    <value>[Open in IDE] Configuration scope root path is not available</value>
-  </data>
-  <data name="IssueLocationNotFound" xml:space="preserve">
-    <value>[Open in IDE] Could not find the location at File: {0}, Start Line: {1}, Start Position: {2}</value>
+  <data name="ApiHandler_UnableToConvertHotspotData" xml:space="preserve">
+    <value>[Open in IDE] Unable to convert hotspot data: {0}</value>
   </data>
 </root>

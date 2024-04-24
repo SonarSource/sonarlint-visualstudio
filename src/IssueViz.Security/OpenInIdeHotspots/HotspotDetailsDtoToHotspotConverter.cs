@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 using SonarQube.Client;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIde;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots;
 
 internal interface IHotspotDetailsDtoToHotspotConverter
 {

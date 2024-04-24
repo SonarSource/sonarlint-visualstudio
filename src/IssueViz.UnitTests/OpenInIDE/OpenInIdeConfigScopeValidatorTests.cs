@@ -91,7 +91,7 @@ public class OpenInIdeConfigScopeValidatorTests
         
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out _).Should().BeFalse();
         
-        logger.AssertPartialOutputStringExists(OpenInIdeResources.ApiHandler_ConfigurationScopeNotBound);
+        logger.AssertPartialOutputStringExists(OpenInIdeResources.Validation_ConfigurationScopeNotBound);
     }
     
     [TestMethod]
@@ -103,7 +103,7 @@ public class OpenInIdeConfigScopeValidatorTests
         
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out _).Should().BeFalse();
         
-        logger.AssertPartialOutputStringExists(OpenInIdeResources.ApiHandler_ConfigurationScopeRootNotSet);
+        logger.AssertPartialOutputStringExists(OpenInIdeResources.Validation_ConfigurationScopeRootNotSet);
     }
     
     [TestMethod]

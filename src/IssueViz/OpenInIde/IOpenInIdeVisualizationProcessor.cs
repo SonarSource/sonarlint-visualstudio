@@ -18,25 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using Newtonsoft.Json;
-using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
+namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
-public record IssueDetailDto(
-    string issueKey,
-    string ruleKey,
-    string ideFilePath,
-    string branch,
-    string pullRequest,
-    string message,
-    string creationDate,
-    string codeSnippet,
-    bool isTaint,
-    List<FlowDto> flows,
-    TextRangeDto textRange) : IIssueDetail
+public interface IOpenInIdeVisualizationProcessor
 {
-    [JsonIgnore] public string Key => issueKey;
-    [JsonIgnore] public string Type => isTaint ? "Taint" : "Issue";
+    void HandleConvertedIssue(IAnalysisIssueVisualization visualization);
 }

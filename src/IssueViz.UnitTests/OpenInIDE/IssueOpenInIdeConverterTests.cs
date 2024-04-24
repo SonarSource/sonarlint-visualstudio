@@ -34,12 +34,12 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.OpenInIDE;
 
 [TestClass]
-public class OpenInIdeConverterTests
+public class IssueOpenInIdeConverterTests
 {
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<OpenInIdeConverter, IOpenInIdeConverter>(
+        MefTestHelpers.CheckTypeCanBeImported<IssueOpenInIdeConverter, IIssueOpenInIdeConverter>(
             MefTestHelpers.CreateExport<IIssueDetailDtoToAnalysisIssueConverter>(),
             MefTestHelpers.CreateExport<IAnalysisIssueVisualizationConverter>(),
             MefTestHelpers.CreateExport<ILogger>());
@@ -48,7 +48,7 @@ public class OpenInIdeConverterTests
     [TestMethod]
     public void MefCtor_CheckIsSingleton()
     {
-        MefTestHelpers.CheckIsSingletonMefComponent<OpenInIdeConverter>();
+        MefTestHelpers.CheckIsSingletonMefComponent<IssueOpenInIdeConverter>();
     }
     
     [DataTestMethod]
@@ -61,7 +61,7 @@ public class OpenInIdeConverterTests
         var testSubject = CreateTestSubject(out var dtoToIssueConverter, out _, out var logger);
         dtoToIssueConverter.Convert(default, default).ThrowsForAnyArgs(exception);
 
-        Func<bool> act = () => testSubject.TryConvertIssue(default, default, out _);
+        Func<bool> act = () => testSubject.TryConvert(default, default, out _);
 
         if (isCriticalException)
         {
@@ -86,7 +86,7 @@ public class OpenInIdeConverterTests
         var (rootPath, dto, analysisIssueBase) = SetUpDtoConverter(dtoToIssueConverter);
         visualizationConverter.Convert(analysisIssueBase).Throws(exception);
 
-        Func<bool> act = () => testSubject.TryConvertIssue(dto, rootPath, out _);
+        Func<bool> act = () => testSubject.TryConvert(dto, rootPath, out _);
 
         if (isCriticalException)
         {
@@ -108,7 +108,7 @@ public class OpenInIdeConverterTests
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
         visualizationConverter.Convert(analysisIssueBase).Returns(analysisIssueVisualization);
 
-        testSubject.TryConvertIssue(dto, rootPath, out var visualization).Should().BeTrue();
+        testSubject.TryConvert(dto, rootPath, out var visualization).Should().BeTrue();
         
         visualization.Should().BeSameAs(analysisIssueVisualization);
     }
@@ -123,7 +123,7 @@ public class OpenInIdeConverterTests
         return (rootPath, dto, analysisIssueBase);
     }
 
-    private OpenInIdeConverter CreateTestSubject(out IIssueDetailDtoToAnalysisIssueConverter dtoToIssueConverter, out IAnalysisIssueVisualizationConverter issueToVisualizationConverter, out TestLogger logger)
+    private IssueOpenInIdeConverter CreateTestSubject(out IIssueDetailDtoToAnalysisIssueConverter dtoToIssueConverter, out IAnalysisIssueVisualizationConverter issueToVisualizationConverter, out TestLogger logger)
     {
         dtoToIssueConverter = Substitute.For<IIssueDetailDtoToAnalysisIssueConverter>();
         issueToVisualizationConverter = Substitute.For<IAnalysisIssueVisualizationConverter>();

@@ -25,10 +25,10 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList
+namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List.HotspotsList
 {
     [Guid(IssueListIds.HotspotsIdAsString)]
     public class OpenInIDEHotspotsToolWindow : ToolWindowPane
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.
             var navigateToRuleDescriptionCommand = componentModel.GetService<INavigateToRuleDescriptionCommand>();
 
             var viewModel = new OpenInIDEHotspotsControlViewModel(store, locationNavigator, selectionService, navigateToRuleDescriptionCommand);
-            var hotspotsControl = new OpenInIDEHotspotsControl(viewModel);
+            var hotspotsControl = new OpenInIdeHotspots_List.HotspotsList.OpenInIDEHotspotsControl(viewModel);
 
             Content = hotspotsControl;
         }

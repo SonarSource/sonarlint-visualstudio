@@ -22,44 +22,46 @@ using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.SLCore.Common.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
+namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots;
 
-internal interface IIssueOpenInIdeConverter : IOpenInIdeConverter<IssueDetailDto>;
+public interface IHotspotOpenInIdeConverter : IOpenInIdeConverter<HotspotDetailsDto>;
 
-[Export(typeof(IIssueOpenInIdeConverter))]
+[Export(typeof(IHotspotOpenInIdeConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class IssueOpenInIdeConverter : IIssueOpenInIdeConverter
+internal class HotspotOpenInIdeConverter : IHotspotOpenInIdeConverter
 {
-    private readonly IIssueDetailDtoToAnalysisIssueConverter dtoToIssueConverter;
+    private readonly IHotspotDetailsDtoToHotspotConverter dtoToHotspotConverter;
     private readonly IAnalysisIssueVisualizationConverter issueToVisualizationConverter;
     private readonly ILogger logger;
 
     [ImportingConstructor]
-    public IssueOpenInIdeConverter(IIssueDetailDtoToAnalysisIssueConverter dtoToIssueConverter, IAnalysisIssueVisualizationConverter issueToVisualizationConverter, ILogger logger)
+    public HotspotOpenInIdeConverter(IHotspotDetailsDtoToHotspotConverter dtoToHotspotConverter,
+        IAnalysisIssueVisualizationConverter issueToVisualizationConverter, ILogger logger)
     {
-        this.dtoToIssueConverter = dtoToIssueConverter;
+        this.dtoToHotspotConverter = dtoToHotspotConverter;
         this.issueToVisualizationConverter = issueToVisualizationConverter;
         this.logger = logger;
     }
 
-    public bool TryConvert(IssueDetailDto hotspotDetails, string rootPath, out IAnalysisIssueVisualization visualization)
+    public bool TryConvert(HotspotDetailsDto hotspotDetails, string rootPath, out IAnalysisIssueVisualization visualization)
     {
         visualization = null;
 
         try
         {
-            logger.LogVerbose("Issue: {0}, Root: {1}", hotspotDetails, rootPath);
-            var analysisIssueBase = dtoToIssueConverter.Convert(hotspotDetails, rootPath);
-            visualization = issueToVisualizationConverter.Convert(analysisIssueBase);
+            logger.LogVerbose("Hotspot: {0}, Root: {1}", hotspotDetails, rootPath);
+            var hotspot = dtoToHotspotConverter.Convert(hotspotDetails, rootPath);
+            visualization = issueToVisualizationConverter.Convert(hotspot);
             return true;
         }
         catch (Exception e) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(e))
         {
-            logger.WriteLine(OpenInIdeResources.Converter_UnableToConvertIssueData, e.Message);
+            logger.WriteLine(OpenInIdeHotspotResources.ApiHandler_UnableToConvertHotspotData, e.Message);
             return false;
         }
     }
+    
 }
