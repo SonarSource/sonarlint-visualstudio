@@ -21,6 +21,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -33,8 +34,8 @@ public class OpenIssueInIdeHandlerTests
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<OpenIssueInIdeHandler, IOpenIssueInIdeHandler>(
-            MefTestHelpers.CreateExport<IOpenInIdeHandler>(),
-            MefTestHelpers.CreateExport<IIssueOpenInIdeConverter>());
+            MefTestHelpers.CreateExport<IOpenInIdeHandlerImplementation>(),
+            MefTestHelpers.CreateExport<IIssueDetailDtoToAnalysisIssueConverter>());
     }
 
     [TestMethod]
@@ -58,12 +59,12 @@ public class OpenIssueInIdeHandlerTests
         handler.Received().ShowIssue(issue, configScope, converter, isTaint ? IssueListIds.TaintId : IssueListIds.ErrorListId, null);
     }
 
-    private OpenIssueInIdeHandler CreateTestSubject(out IOpenInIdeHandler openInIdeHandler,
-        out IIssueOpenInIdeConverter issueOpenInIdeConverter)
+    private OpenIssueInIdeHandler CreateTestSubject(out IOpenInIdeHandlerImplementation openInIdeHandlerImplementation,
+        out IIssueDetailDtoToAnalysisIssueConverter issueOpenInIdeConverter)
     {
-        openInIdeHandler = Substitute.For<IOpenInIdeHandler>();
-        issueOpenInIdeConverter = Substitute.For<IIssueOpenInIdeConverter>();
-        return new OpenIssueInIdeHandler(openInIdeHandler,
+        openInIdeHandlerImplementation = Substitute.For<IOpenInIdeHandlerImplementation>();
+        issueOpenInIdeConverter = Substitute.For<IIssueDetailDtoToAnalysisIssueConverter>();
+        return new OpenIssueInIdeHandler(openInIdeHandlerImplementation,
             issueOpenInIdeConverter);
     } 
 }

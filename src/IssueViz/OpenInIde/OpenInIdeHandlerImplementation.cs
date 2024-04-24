@@ -26,22 +26,23 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
-public interface IOpenInIdeHandler
+public interface IOpenInIdeHandlerImplementation
 {
     void ShowIssue<T>(T issueDetails,
         string configurationScope,
-        IOpenInIdeConverter<T> converter,
+        IOpenInIdeIssueToAnalysisIssueConverter<T> converter,
         Guid toolWindowId,
-        IOpenInIdeVisualizationProcessor visualizationProcessor = null) where T : IIssueDetail;
+        IOpenInIdeVisualizationProcessor visualizationProcessor = null) where T : IOpenInIdeIssue;
 }
 
-[Export(typeof(IOpenInIdeHandler))]
+[Export(typeof(IOpenInIdeHandlerImplementation))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class OpenInIdeHandler : IOpenInIdeHandler
+internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
 {
     private readonly IEducation education;
     private readonly IIDEWindowService ideWindowService;
@@ -50,10 +51,12 @@ internal class OpenInIdeHandler : IOpenInIdeHandler
     private readonly ILogger logger;
     private readonly ILocationNavigator navigator;
     private readonly IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
+    private readonly IOpenInIdeConverterImplementation converterImplementation;
     private readonly IThreadHandling thereHandling;
 
     [ImportingConstructor]
-    public OpenInIdeHandler(IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
+    public OpenInIdeHandlerImplementation(IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
+        IOpenInIdeConverterImplementation converterImplementation,
         IOpenInIdeFailureInfoBar infoBarManager,
         IIDEWindowService ideWindowService,
         ILocationNavigator navigator,
@@ -68,15 +71,16 @@ internal class OpenInIdeHandler : IOpenInIdeHandler
         this.infoBarManager = infoBarManager;
         this.issueSelectionService = issueSelectionService;
         this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
+        this.converterImplementation = converterImplementation;
         this.logger = logger;
         this.thereHandling = thereHandling;
     }
 
     public void ShowIssue<T>(T issueDetails,
         string configurationScope,
-        IOpenInIdeConverter<T> converter,
+        IOpenInIdeIssueToAnalysisIssueConverter<T> converter,
         Guid toolWindowId,
-        IOpenInIdeVisualizationProcessor visualizationProcessor = null) where T : IIssueDetail
+        IOpenInIdeVisualizationProcessor visualizationProcessor = null) where T : IOpenInIdeIssue
     {
         thereHandling.RunOnBackgroundThread(async () =>
         {
@@ -85,7 +89,7 @@ internal class OpenInIdeHandler : IOpenInIdeHandler
         }).Forget();
     }
 
-    private async Task ShowIssueInternalAsync<T>(T issueDetails, string issueConfigurationScope, IOpenInIdeConverter<T> converter, Guid toolWindowId, IOpenInIdeVisualizationProcessor visualizationProcessor) where T : IIssueDetail
+    private async Task ShowIssueInternalAsync<T>(T issueDetails, string issueConfigurationScope, IOpenInIdeIssueToAnalysisIssueConverter<T> converter, Guid toolWindowId, IOpenInIdeVisualizationProcessor visualizationProcessor) where T : IOpenInIdeIssue
     {
         logger.WriteLine(OpenInIdeResources.ProcessingRequest, issueConfigurationScope,
             issueDetails.Key, issueDetails.Type);
@@ -93,7 +97,7 @@ internal class OpenInIdeHandler : IOpenInIdeHandler
         ideWindowService.BringToFront();
 
         if (!openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out var configurationScopeRoot)
-            || !converter.TryConvert(issueDetails, configurationScopeRoot, out var visualization))
+            || !converterImplementation.TryConvert(issueDetails, configurationScopeRoot, converter, out var visualization))
         {
             await infoBarManager.ShowAsync(toolWindowId);
             return;

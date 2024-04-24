@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
+using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
-public interface IIssueDetail
-{
-    string Key { get; }
-    
-    string Type { get; }
-}
+namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
+
+public interface IHotspotDetailsDtoToHotspotConverter : IOpenInIdeIssueToAnalysisIssueConverter<HotspotDetailsDto>;

@@ -4,6 +4,7 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -16,8 +17,8 @@ public class OpenIssueInIdeHandlerTests
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<OpenHotspotInIdeHandler, IOpenHotspotInIdeHandler>(
-            MefTestHelpers.CreateExport<IOpenInIdeHandler>(),
-            MefTestHelpers.CreateExport<IHotspotOpenInIdeConverter>(),
+            MefTestHelpers.CreateExport<IOpenInIdeHandlerImplementation>(),
+            MefTestHelpers.CreateExport<IHotspotDetailsDtoToHotspotConverter>(),
             MefTestHelpers.CreateExport<IOpenInIDEHotspotsStore>());
     }
 
@@ -51,13 +52,13 @@ public class OpenIssueInIdeHandlerTests
         hotspotsStore.Received().GetOrAdd(analysisIssueVisualization);
     }
 
-    private OpenHotspotInIdeHandler CreateTestSubject(out IOpenInIdeHandler openInIdeHandler,
-        out IHotspotOpenInIdeConverter hotspotOpenInIdeConverter, 
+    private OpenHotspotInIdeHandler CreateTestSubject(out IOpenInIdeHandlerImplementation openInIdeHandlerImplementation,
+        out IHotspotDetailsDtoToHotspotConverter hotspotOpenInIdeConverter, 
         out IOpenInIDEHotspotsStore openInIdeHotspotsStore)
     {
-        openInIdeHandler = Substitute.For<IOpenInIdeHandler>();
-        hotspotOpenInIdeConverter = Substitute.For<IHotspotOpenInIdeConverter>();
+        openInIdeHandlerImplementation = Substitute.For<IOpenInIdeHandlerImplementation>();
+        hotspotOpenInIdeConverter = Substitute.For<IHotspotDetailsDtoToHotspotConverter>();
         openInIdeHotspotsStore = Substitute.For<IOpenInIDEHotspotsStore>();
-        return new OpenHotspotInIdeHandler(openInIdeHandler, hotspotOpenInIdeConverter, openInIdeHotspotsStore);
+        return new OpenHotspotInIdeHandler(openInIdeHandlerImplementation, hotspotOpenInIdeConverter, openInIdeHotspotsStore);
     } 
 }

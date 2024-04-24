@@ -32,7 +32,7 @@ public record HotspotDetailsDto(
     string status,
     string resolution,
     HotspotRuleDto rule,
-    string codeSnippet) : IIssueDetail
+    string codeSnippet) : IOpenInIdeIssue
 {
     [JsonIgnore] public string Key => key;
     [JsonIgnore] public string Type => "Hotspot";

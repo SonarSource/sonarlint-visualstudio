@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
@@ -27,19 +28,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class OpenIssueInIdeHandler : IOpenIssueInIdeHandler
 {
-    private readonly IOpenInIdeHandler handler;
-    private readonly IIssueOpenInIdeConverter converter;
+    private readonly IOpenInIdeHandlerImplementation handlerImplementation;
+    private readonly IIssueDetailDtoToAnalysisIssueConverter converter;
 
     [ImportingConstructor]
-    public OpenIssueInIdeHandler(IOpenInIdeHandler handler, IIssueOpenInIdeConverter converter)
+    public OpenIssueInIdeHandler(IOpenInIdeHandlerImplementation handlerImplementation, IIssueDetailDtoToAnalysisIssueConverter converter)
     {
-        this.handler = handler;
+        this.handlerImplementation = handlerImplementation;
         this.converter = converter;
     }
 
     public void Show(IssueDetailDto issueDetailDto, string configurationScope)
     {
-        handler.ShowIssue(issueDetailDto,
+        handlerImplementation.ShowIssue(issueDetailDto,
             configurationScope,
             converter,
             issueDetailDto.isTaint

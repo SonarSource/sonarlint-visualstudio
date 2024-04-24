@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots;
@@ -30,21 +31,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class OpenHotspotInIdeHandler : IOpenHotspotInIdeHandler, IOpenInIdeVisualizationProcessor
 {
-    private readonly IOpenInIdeHandler openInIdeHandler;
-    private readonly IHotspotOpenInIdeConverter converter;
+    private readonly IOpenInIdeHandlerImplementation openInIdeHandlerImplementation;
+    private readonly IHotspotDetailsDtoToHotspotConverter converter;
     private readonly IOpenInIDEHotspotsStore hotspotsStore;
 
     [ImportingConstructor]
-    public OpenHotspotInIdeHandler(IOpenInIdeHandler openInIdeHandler, IHotspotOpenInIdeConverter converter, IOpenInIDEHotspotsStore hotspotsStore)
+    public OpenHotspotInIdeHandler(IOpenInIdeHandlerImplementation openInIdeHandlerImplementation, IHotspotDetailsDtoToHotspotConverter converter, IOpenInIDEHotspotsStore hotspotsStore)
     {
-        this.openInIdeHandler = openInIdeHandler;
+        this.openInIdeHandlerImplementation = openInIdeHandlerImplementation;
         this.converter = converter;
         this.hotspotsStore = hotspotsStore;
     }
 
     public void Show(HotspotDetailsDto hotspotDetailsDto, string configurationScope)
     {
-        openInIdeHandler.ShowIssue(hotspotDetailsDto, configurationScope, converter, IssueListIds.HotspotsId, this);
+        openInIdeHandlerImplementation.ShowIssue(hotspotDetailsDto, configurationScope, converter, IssueListIds.HotspotsId, this);
     }
 
     public void HandleConvertedIssue(IAnalysisIssueVisualization visualization)
