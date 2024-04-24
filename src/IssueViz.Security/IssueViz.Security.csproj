@@ -96,17 +96,6 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
-
-    <EmbeddedResource Update="OpenInIdeHotspots\OpenInIdeHotspotResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>OpenInIdeHotspotResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-
-    <Compile Update="OpenInIdeHotspots\OpenInIdeHotspotResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>OpenInIdeHotspotResources.resx</DependentUpon>
-    </Compile>
   
   </ItemGroup>
 
