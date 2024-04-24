@@ -39,7 +39,7 @@ public class HotspotDetailsDtoToHotspotConverterTests
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<HotspotDetailsDtoToHotspotConverter, HotspotDetailsDtoToHotspotConverter>();
+        MefTestHelpers.CheckTypeCanBeImported<HotspotDetailsDtoToHotspotConverter, IHotspotDetailsDtoToHotspotConverter>();
     }
 
     [TestMethod]
