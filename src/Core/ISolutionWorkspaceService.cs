@@ -22,23 +22,17 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Core
 {
-    public interface IFolderWorkspaceService
+    public interface ISolutionWorkspaceService
     {
         /// <summary>
-        /// Returns true/false if the workspace is in Open-As-Folder mode
+        /// Returns true if the workspace is in open a Project/Solution mode
         /// </summary>
-        bool IsFolderWorkspace();
+        bool IsSolutionWorkSpace();
 
         /// <summary>
-        /// Returns the root directory for Open-As-Folder projects.
-        /// Will return null if the root directory could not be retrieved,
-        /// or if the workspace is not in Open-As-Folder mode.
+        /// List Files in a solution
         /// </summary>
-        string FindRootDirectory();
-
-        /// <summary>
-        /// Returns the list of files in a folder view
-        /// </summary>
+        /// <returns>Returns empty if it's not in solution Mode</returns>
         IEnumerable<string> ListFiles();
     }
 }
