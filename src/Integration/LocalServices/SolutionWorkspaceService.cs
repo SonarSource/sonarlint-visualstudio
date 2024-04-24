@@ -70,8 +70,7 @@ namespace SonarLint.VisualStudio.Integration
                 .Where(x => x.Contains("\\"))
                 .Where(x => !x.EndsWith("\\"))
                 .Where(x => !x.Contains("\\.nuget\\"))
-                .Where(x => !x.Contains("\\node_modules\\")) // move filtering closer to path extraction to avoid processing unnecessary items
-                .Distinct(); // might not be needed
+                .Where(x => !x.Contains("\\node_modules\\")); // move filtering closer to path extraction to avoid processing unnecessary items
         }
 
         [ExcludeFromCodeCoverage]
@@ -109,12 +108,11 @@ namespace SonarLint.VisualStudio.Integration
                                 return null;
                             }
                             if (name != null && name.Length > 0 && !Path.IsPathRooted(name))
-                            { // might not be needed at all
-                                name = AbsolutePathFromRelative(name, projectDir);
+                            {
+                                name = Path.Combine(projectDir, name);
                             }
                             return name;
                         });
-            // .Where(File.Exists); // too slow, no false positives
         }
 
         [ExcludeFromCodeCoverage]
@@ -130,14 +128,14 @@ namespace SonarLint.VisualStudio.Integration
         [ExcludeFromCodeCoverage]
         private IEnumerable<VSConstants.VSITEMID> ChildrenOf(IVsHierarchy hierarchy, VSConstants.VSITEMID rootID)
         {
-            var result = new List<VSConstants.VSITEMID>(); // this list is not needed
+            var result = new List<VSConstants.VSITEMID>();
 
             for (var itemID = FirstChild(hierarchy, rootID);
                  itemID != VSConstants.VSITEMID.Nil;
                  itemID = NextSibling(hierarchy, itemID))
             {
                 result.Add(itemID);
-                result.AddRange(ChildrenOf(hierarchy, itemID)); // TODO get rid of recursion
+                result.AddRange(ChildrenOf(hierarchy, itemID));
             }
 
             return result;
