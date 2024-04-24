@@ -59,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration
             return GetAllFilesInSolution(solution);
         }
 
+        [ExcludeFromCodeCoverage]
         private IEnumerable<string> GetAllFilesInSolution(IVsSolution solution)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -73,6 +74,7 @@ namespace SonarLint.VisualStudio.Integration
                 .Distinct(); // might not be needed
         }
 
+        [ExcludeFromCodeCoverage]
         private IEnumerable<IVsProject> GetLoadedProjects(IVsSolution solution)
         {
             var guid = Guid.Empty;
@@ -85,11 +87,12 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
+        [ExcludeFromCodeCoverage]
         private IEnumerable<string> AllItemsInProject(IVsProject project)
         {
-            if (project == null)
+            if (project is null)
             {
-                throw new ArgumentNullException("project");
+                throw new ArgumentNullException(nameof(project));
             }
 
             var projectDir = Path.GetDirectoryName(GetProjectFilePath(project));
@@ -114,6 +117,7 @@ namespace SonarLint.VisualStudio.Integration
             // .Where(File.Exists); // too slow, no false positives
         }
 
+        [ExcludeFromCodeCoverage]
         private string GetProjectFilePath(IVsProject project)
         {
             var path = string.Empty;
@@ -123,6 +127,7 @@ namespace SonarLint.VisualStudio.Integration
             return path;
         }
 
+        [ExcludeFromCodeCoverage]
         private IEnumerable<VSConstants.VSITEMID> ChildrenOf(IVsHierarchy hierarchy, VSConstants.VSITEMID rootID)
         {
             var result = new List<VSConstants.VSITEMID>(); // this list is not needed
@@ -138,6 +143,7 @@ namespace SonarLint.VisualStudio.Integration
             return result;
         }
 
+        [ExcludeFromCodeCoverage]
         private static VSConstants.VSITEMID FirstChild(IVsHierarchy hierarchy, VSConstants.VSITEMID rootID)
         {
             hierarchy.GetProperty((uint)rootID, (int)__VSHPROPID.VSHPROPID_FirstChild, out var childIDObj);
@@ -149,6 +155,7 @@ namespace SonarLint.VisualStudio.Integration
             return VSConstants.VSITEMID.Nil;
         }
 
+        [ExcludeFromCodeCoverage]
         private static VSConstants.VSITEMID NextSibling(IVsHierarchy hierarchy, VSConstants.VSITEMID firstID)
         {
             hierarchy.GetProperty((uint)firstID, (int)__VSHPROPID.VSHPROPID_NextSibling, out var siblingIDObj);
@@ -163,23 +170,24 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// Transforms a relative path to an absolute one based on a specified base folder.
         /// </summary>
+        [ExcludeFromCodeCoverage]
         private string AbsolutePathFromRelative(string relativePath, string baseFolderForDerelativization)
         {
             if (relativePath == null)
             {
-                throw new ArgumentNullException("relativePath");
+                throw new ArgumentNullException(nameof(relativePath));
             }
             if (baseFolderForDerelativization == null)
             {
-                throw new ArgumentNullException("baseFolderForDerelativization");
+                throw new ArgumentNullException(nameof(baseFolderForDerelativization));
             }
             if (Path.IsPathRooted(relativePath))
             {
-                throw new ArgumentException("", "relativePath");
+                throw new ArgumentException("", nameof(relativePath));
             }
             if (!Path.IsPathRooted(baseFolderForDerelativization))
             {
-                throw new ArgumentException("", "baseFolderForDerelativization");
+                throw new ArgumentException("", nameof(baseFolderForDerelativization));
             }
             StringBuilder result = new StringBuilder(baseFolderForDerelativization);
             if (result[result.Length - 1] != Path.DirectorySeparatorChar)
