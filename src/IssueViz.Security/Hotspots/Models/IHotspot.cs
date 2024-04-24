@@ -34,10 +34,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
         /// File path as received from SQ server
         /// </summary>
         string ServerFilePath { get; }
-
-        DateTimeOffset CreationTimestamp { get; }
-
-        DateTimeOffset LastUpdateTimestamp { get; }
     }
 
     internal class Hotspot : IHotspot
@@ -48,8 +44,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
             string serverFilePath,
             IAnalysisIssueLocation primaryLocation,
             IHotspotRule rule,
-            DateTimeOffset createTimestamp,
-            DateTimeOffset lastUpdateTimestamp,
             IReadOnlyList<IAnalysisIssueFlow> flows,
             string context = null)
         {
@@ -57,8 +51,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
             ServerFilePath = serverFilePath;
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Rule = rule;
-            CreationTimestamp = createTimestamp;
-            LastUpdateTimestamp = lastUpdateTimestamp;
             Flows = flows ?? EmptyFlows;
             RuleDescriptionContextKey = context;
         }
@@ -69,8 +61,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
         public IAnalysisIssueLocation PrimaryLocation { get; }
         public string ServerFilePath { get; }
-        public DateTimeOffset CreationTimestamp { get; }
-        public DateTimeOffset LastUpdateTimestamp { get; }
         public string RuleDescriptionContextKey { get; }
     }
 }
