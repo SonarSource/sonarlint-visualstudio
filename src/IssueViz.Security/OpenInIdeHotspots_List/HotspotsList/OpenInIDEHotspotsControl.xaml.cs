@@ -18,25 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using Newtonsoft.Json;
-using SonarLint.VisualStudio.SLCore.Common.Models;
+using System.Windows.Controls;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List.HotspotsList.ViewModels;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
-
-public record IssueDetailDto(
-    string issueKey,
-    string ruleKey,
-    string ideFilePath,
-    string branch,
-    string pullRequest,
-    string message,
-    string creationDate,
-    string codeSnippet,
-    bool isTaint,
-    List<FlowDto> flows,
-    TextRangeDto textRange) : IOpenInIdeIssue
+namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List.HotspotsList
 {
-    [JsonIgnore] public string Key => issueKey;
-    [JsonIgnore] public string Type => isTaint ? "Taint" : "Issue";
+    internal sealed partial class OpenInIDEHotspotsControl : UserControl
+    {
+        public IOpenInIDEHotspotsControlViewModel ViewModel { get; }
+
+        public OpenInIDEHotspotsControl(IOpenInIDEHotspotsControlViewModel viewModel)
+        {
+            ViewModel = viewModel;
+
+            InitializeComponent();
+        }
+    }
 }

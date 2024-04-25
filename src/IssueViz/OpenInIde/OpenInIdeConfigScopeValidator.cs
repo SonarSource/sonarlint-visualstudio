@@ -54,19 +54,19 @@ internal class OpenInIdeConfigScopeValidator : IOpenInIdeConfigScopeValidator
 
         if (configScope is null || configScope.Id != issueConfigurationScope)
         {
-            logger.WriteLine(OpenInIdeResources.ApiHandler_ConfigurationScopeMismatch, configScope, issueConfigurationScope);
+            logger.WriteLine(OpenInIdeResources.Validation_ConfigurationScopeMismatch, configScope, issueConfigurationScope);
             return false;
         }
 
         if (configScope.SonarProjectId == null)
         {
-            logger.WriteLine(OpenInIdeResources.ApiHandler_ConfigurationScopeNotBound);
+            logger.WriteLine(OpenInIdeResources.Validation_ConfigurationScopeNotBound);
             return false;
         }
 
         if (configScope.RootPath == null)
         {
-            logger.WriteLine(OpenInIdeResources.ApiHandler_ConfigurationScopeRootNotSet);
+            logger.WriteLine(OpenInIdeResources.Validation_ConfigurationScopeRootNotSet);
             return false;
         }
 

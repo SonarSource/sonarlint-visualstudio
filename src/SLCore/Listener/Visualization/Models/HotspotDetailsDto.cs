@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
@@ -31,4 +32,8 @@ public record HotspotDetailsDto(
     string status,
     string resolution,
     HotspotRuleDto rule,
-    string codeSnippet);
+    string codeSnippet) : IOpenInIdeIssue
+{
+    [JsonIgnore] public string Key => key;
+    [JsonIgnore] public string Type => "Hotspot";
+}

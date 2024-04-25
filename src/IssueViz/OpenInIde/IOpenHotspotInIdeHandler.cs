@@ -18,20 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Controls;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList.ViewModels;
+using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList
+namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
+
+public interface IOpenHotspotInIdeHandler
 {
-    internal sealed partial class OpenInIDEHotspotsControl : UserControl
-    {
-        public IOpenInIDEHotspotsControlViewModel ViewModel { get; }
-
-        public OpenInIDEHotspotsControl(IOpenInIDEHotspotsControlViewModel viewModel)
-        {
-            ViewModel = viewModel;
-
-            InitializeComponent();
-        }
-    }
+    void Show(HotspotDetailsDto hotspotDetailsDto, string configurationScope);
 }

@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SharedProvider = SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList.ViewModels
+namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List.HotspotsList.ViewModels
 {
     internal interface IOpenInIDEHotspotViewModel : INotifyPropertyChanged, IDisposable
     {
