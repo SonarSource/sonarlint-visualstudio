@@ -33,7 +33,8 @@ public class ShowInIdeListenerTests
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<ShowInIdeListener, ISLCoreListener>(
-            MefTestHelpers.CreateExport<IOpenIssueInIdeHandler>());
+            MefTestHelpers.CreateExport<IOpenIssueInIdeHandler>(),
+            MefTestHelpers.CreateExport<IOpenHotspotInIdeHandler>());
     }
 
     [TestMethod]
@@ -50,10 +51,24 @@ public class ShowInIdeListenerTests
             default, default, default);
         const string configScopeId = "configscope";
         var openIssueInIdeHandler = Substitute.For<IOpenIssueInIdeHandler>();
-        var testSubject = new ShowInIdeListener(openIssueInIdeHandler);
+        var testSubject = new ShowInIdeListener(openIssueInIdeHandler, Substitute.For<IOpenHotspotInIdeHandler>());
         
         testSubject.ShowIssue(new ShowIssueParams(configScopeId, dummyIssue));
         
-        openIssueInIdeHandler.Received().ShowIssue(dummyIssue, configScopeId);
+        openIssueInIdeHandler.Received().Show(dummyIssue, configScopeId);
+    }
+    
+    [TestMethod]
+    public void ShowHotspot_ForwardsToHandler()
+    {
+        var dummyIssue = new HotspotDetailsDto(default, default, default, default,
+            default, default, default, default, default);
+        const string configScopeId = "configscope";
+        var openHotspotInIdeHandler = Substitute.For<IOpenHotspotInIdeHandler>();
+        var testSubject = new ShowInIdeListener(Substitute.For<IOpenIssueInIdeHandler>(), openHotspotInIdeHandler);
+        
+        testSubject.ShowHotspot(new ShowHotspotParams(configScopeId, dummyIssue));
+        
+        openHotspotInIdeHandler.Received().Show(dummyIssue, configScopeId);
     }
 }

@@ -29,7 +29,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List.HotspotsList;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using Task = System.Threading.Tasks.Task;

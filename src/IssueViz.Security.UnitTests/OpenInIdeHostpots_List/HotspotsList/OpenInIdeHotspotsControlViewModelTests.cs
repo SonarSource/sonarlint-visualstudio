@@ -25,15 +25,15 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
-using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList.ViewModels;
-using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List.HotspotsList.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE_Hotspots.HotspotsList
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIdeHostpots_List.HotspotsList
 {
     [TestClass]
     public class OpenInIDEHotspotsControlViewModelTests

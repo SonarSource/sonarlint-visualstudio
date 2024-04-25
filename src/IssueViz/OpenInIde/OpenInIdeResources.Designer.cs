@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.IssueVisualization.OpenInIDE.OpenInIdeResources", typeof(OpenInIdeResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.IssueVisualization.OpenInIde.OpenInIdeResources", typeof(OpenInIdeResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -60,286 +60,65 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Configuration scope mismatch: Active scope {0} is different from received {1}.
-        /// </summary>
-        internal static string ApiHandler_ConfigurationScopeMismatch {
-            get {
-                return ResourceManager.GetString("ApiHandler_ConfigurationScopeMismatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Configuration scope is not bound.
-        /// </summary>
-        internal static string ApiHandler_ConfigurationScopeNotBound {
-            get {
-                return ResourceManager.GetString("ApiHandler_ConfigurationScopeNotBound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Configuration scope root path is not available.
-        /// </summary>
-        internal static string ApiHandler_ConfigurationScopeRootNotSet {
-            get {
-                return ResourceManager.GetString("ApiHandler_ConfigurationScopeRootNotSet", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Failed to fetch hotspot data from server: {0}.
-        /// </summary>
-        internal static string ApiHandler_FailedToFetchHotspot {
-            get {
-                return ResourceManager.GetString("ApiHandler_FailedToFetchHotspot", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Failed to navigate to the requested issue. Requested file: {0}, line {1}.
-        /// </summary>
-        internal static string ApiHandler_FailedToNavigateToHotspot {
-            get {
-                return ResourceManager.GetString("ApiHandler_FailedToNavigateToHotspot", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Could not find the issue at File: {0}, Start Line: {1}, Start Position: {2}.
-        /// </summary>
-        internal static string ApiHandler_IssueLocationNotFound {
-            get {
-                return ResourceManager.GetString("ApiHandler_IssueLocationNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {none}.
-        /// </summary>
-        internal static string ApiHandler_NullOrganization {
-            get {
-                return ResourceManager.GetString("ApiHandler_NullOrganization", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Processing request. Configuration scope: {0}, issue: {1}.
-        /// </summary>
-        internal static string ApiHandler_ProcessingIssueRequest {
-            get {
-                return ResourceManager.GetString("ApiHandler_ProcessingIssueRequest", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Processing request. Server: {0}, project: {1}, organization: {2}, hotspot: {3}.
-        /// </summary>
-        internal static string ApiHandler_ProcessingRequest {
-            get {
-                return ResourceManager.GetString("ApiHandler_ProcessingRequest", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Unable to convert hotspot data: {0}.
-        /// </summary>
-        internal static string ApiHandler_UnableToConvertHotspotData {
-            get {
-                return ResourceManager.GetString("ApiHandler_UnableToConvertHotspotData", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to [Open in IDE] Unable to convert issue data: {0}.
         /// </summary>
-        internal static string ApiHandler_UnableToConvertIssueData {
+        internal static string Converter_UnableToConvertIssueData {
             get {
-                return ResourceManager.GetString("ApiHandler_UnableToConvertIssueData", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Checking availability of port {0}.
-        /// </summary>
-        internal static string Factory_CheckingPort {
-            get {
-                return ResourceManager.GetString("Factory_CheckingPort", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Creating request listener....
-        /// </summary>
-        internal static string Factory_CreatingListener {
-            get {
-                return ResourceManager.GetString("Factory_CreatingListener", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Failed to create a request listener - no available ports. The Open In IDE server feature will not be able to connect to this instance of Visual Studio..
-        /// </summary>
-        internal static string Factory_Failed_NoAvailablePorts {
-            get {
-                return ResourceManager.GetString("Factory_Failed_NoAvailablePorts", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Port {0} is unavailable.
-        /// </summary>
-        internal static string Factory_PortIsUnavailable {
-            get {
-                return ResourceManager.GetString("Factory_PortIsUnavailable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Request listener created successfully. Listening on port {0}..
-        /// </summary>
-        internal static string Factory_Succeeded {
-            get {
-                return ResourceManager.GetString("Factory_Succeeded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Invalid server parameter: {0}.
-        /// </summary>
-        internal static string OpenHotspot_InvalidServerParameter {
-            get {
-                return ResourceManager.GetString("OpenHotspot_InvalidServerParameter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Missing request parameter: {0}.
-        /// </summary>
-        internal static string OpenHotspot_MissingParameter {
-            get {
-                return ResourceManager.GetString("OpenHotspot_MissingParameter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Handing request: {0}.
-        /// </summary>
-        internal static string Pipeline_HandlingRequest {
-            get {
-                return ResourceManager.GetString("Pipeline_HandlingRequest", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Error handling request: {0}.
-        /// </summary>
-        internal static string Pipeline_UnhandledError {
-            get {
-                return ResourceManager.GetString("Pipeline_UnhandledError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Detailed error: {0}.
-        /// </summary>
-        internal static string Pipeline_UnhandledError_Detailed {
-            get {
-                return ResourceManager.GetString("Pipeline_UnhandledError_Detailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Unrecognized request received: {0}.
-        /// </summary>
-        internal static string Pipeline_UnrecognizedRequest {
-            get {
-                return ResourceManager.GetString("Pipeline_UnrecognizedRequest", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Solution configuration:
-        ///    server: {0}
-        ///    organization: {1}
-        ///    project: {2}.
-        /// </summary>
-        internal static string RequestValidator_CurrentState_SonarCloud {
-            get {
-                return ResourceManager.GetString("RequestValidator_CurrentState_SonarCloud", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Solution configuration:
-        ///    server: {0}
-        ///    project: {1}.
-        /// </summary>
-        internal static string RequestValidator_CurrentState_SonarQube {
-            get {
-                return ResourceManager.GetString("RequestValidator_CurrentState_SonarQube", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Visit {0} to find out more about this and other SonarLint features.
-        ///.
-        /// </summary>
-        internal static string RequestValidator_DocumentationLink {
-            get {
-                return ResourceManager.GetString("RequestValidator_DocumentationLink", resourceCulture);
+                return ResourceManager.GetString("Converter_UnableToConvertIssueData", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Could not handle Open in IDE request. See the Output Window for more information..
         /// </summary>
-        internal static string RequestValidator_InfoBarMessage {
+        internal static string DefaultInfoBarMessage {
             get {
-                return ResourceManager.GetString("RequestValidator_InfoBarMessage", resourceCulture);
+                return ResourceManager.GetString("DefaultInfoBarMessage", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Requested Sonar project configuration:
-        ///    server: {0}
-        ///    organization: {1}
-        ///    project: {2}.
+        ///   Looks up a localized string similar to [Open in IDE] Could not find the location at File: {0}, Start Line: {1}, Start Position: {2}.
         /// </summary>
-        internal static string RequestValidator_Instructions_SonarCloud {
+        internal static string IssueLocationNotFound {
             get {
-                return ResourceManager.GetString("RequestValidator_Instructions_SonarCloud", resourceCulture);
+                return ResourceManager.GetString("IssueLocationNotFound", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Requested Sonar project configuration:
-        ///    server: {0}
-        ///    project: {1}.
+        ///   Looks up a localized string similar to [Open in IDE] Processing request. Configuration scope: {0}, Key: {1}, Type: {2}.
         /// </summary>
-        internal static string RequestValidator_Instructions_SonarQube {
+        internal static string ProcessingRequest {
             get {
-                return ResourceManager.GetString("RequestValidator_Instructions_SonarQube", resourceCulture);
+                return ResourceManager.GetString("ProcessingRequest", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Could not handle Open in IDE request: you must be in Connected Mode. Bind/open a solution with the correct configuration.
-        ///{0}.
+        ///   Looks up a localized string similar to [Open in IDE] Configuration scope mismatch: Active scope {0} is different from received {1}.
         /// </summary>
-        internal static string RequestValidator_InvalidState_NotInConnectedMode {
+        internal static string Validation_ConfigurationScopeMismatch {
             get {
-                return ResourceManager.GetString("RequestValidator_InvalidState_NotInConnectedMode", resourceCulture);
+                return ResourceManager.GetString("Validation_ConfigurationScopeMismatch", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Could not handle Open in IDE request: the current solution is not bound to the requested Sonar project. Open a solution with the correct configuration.
-        ///{0}
-        ///{1}.
+        ///   Looks up a localized string similar to [Open in IDE] Configuration scope is not bound.
         /// </summary>
-        internal static string RequestValidator_InvalidState_WrongConnection {
+        internal static string Validation_ConfigurationScopeNotBound {
             get {
-                return ResourceManager.GetString("RequestValidator_InvalidState_WrongConnection", resourceCulture);
+                return ResourceManager.GetString("Validation_ConfigurationScopeNotBound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Configuration scope root path is not available.
+        /// </summary>
+        internal static string Validation_ConfigurationScopeRootNotSet {
+            get {
+                return ResourceManager.GetString("Validation_ConfigurationScopeRootNotSet", resourceCulture);
             }
         }
     }

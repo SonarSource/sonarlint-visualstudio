@@ -33,7 +33,7 @@ using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewMo
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList.ViewModels
+namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List.HotspotsList.ViewModels
 {
     internal interface IOpenInIDEHotspotsControlViewModel : IDisposable
     {

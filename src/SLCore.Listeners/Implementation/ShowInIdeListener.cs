@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization;
@@ -32,22 +30,22 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 public class ShowInIdeListener : IShowInIdeListener
 {
     private readonly IOpenIssueInIdeHandler openIssueInIdeHandler;
+    private readonly IOpenHotspotInIdeHandler openHotspotInIdeHandler;
 
     [ImportingConstructor]
-    public ShowInIdeListener(IOpenIssueInIdeHandler openIssueInIdeHandler)
+    public ShowInIdeListener(IOpenIssueInIdeHandler openIssueInIdeHandler, IOpenHotspotInIdeHandler openHotspotInIdeHandler)
     {
         this.openIssueInIdeHandler = openIssueInIdeHandler;
+        this.openHotspotInIdeHandler = openHotspotInIdeHandler;
     }
 
     public void ShowIssue(ShowIssueParams parameters)
     {
-        openIssueInIdeHandler.ShowIssue(parameters.issueDetails, parameters.configurationScopeId);
+        openIssueInIdeHandler.Show(parameters.issueDetails, parameters.configurationScopeId);
     }
-
-    [ExcludeFromCodeCoverage]
+    
     public void ShowHotspot(ShowHotspotParams parameters)
     {
-        // todo https://github.com/SonarSource/sonarlint-visualstudio/issues/5377
-        throw new NotImplementedException();
+        openHotspotInIdeHandler.Show(parameters.issueDetails, parameters.configurationScopeId);
     }
 }
