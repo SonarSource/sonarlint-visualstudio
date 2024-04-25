@@ -113,6 +113,7 @@ public class OpenInIdeConverterImplementationTests
         testSubject.TryConvert(dto, rootPath, dtoToIssueConverter, out var visualization).Should().BeTrue();
         
         visualization.Should().BeSameAs(analysisIssueVisualization);
+        logger.AssertNoOutputMessages();
     }
 
     private static (string rootPath, IOpenInIdeIssue issueDetail, IAnalysisIssueBase analysisIssueBase) SetUpDtoConverter(IOpenInIdeIssueToAnalysisIssueConverter<IOpenInIdeIssue> converter)

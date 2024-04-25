@@ -275,7 +275,32 @@ public class HotspotDetailsDtoToHotspotConverterTests
 
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
-    
+
+    [TestMethod]
+    public void Convert_PriorityNull_Throws()
+    {
+        var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
+
+        var act = () => testSubject.Convert(new HotspotDetailsDto("key",
+                "msg",
+                "ide\\path",
+                new TextRangeDto(1, 2, 3, 4),
+                "author",
+                "status",
+                "resolution",
+                new HotspotRuleDto("rule:key",
+                    "ruleName",
+                    "security category",
+                    null,
+                    "riskDescription",
+                    "vulnerability description",
+                    "fix recomendations"),
+                "code snippet"),
+            "some\\path");
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+
     [TestMethod]
     public void Convert_FlowsAndRuleDescriptionContextSetToDefault()
     {

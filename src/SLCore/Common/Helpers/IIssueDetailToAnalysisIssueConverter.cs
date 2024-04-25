@@ -23,7 +23,7 @@ using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
 
-public interface IOpenInIdeIssueToAnalysisIssueConverter<T> where T : IOpenInIdeIssue
+public interface IOpenInIdeIssueToAnalysisIssueConverter<in T> where T : IOpenInIdeIssue
 {
     IAnalysisIssueBase Convert(T issueDetailDto, string rootPath);
 }
