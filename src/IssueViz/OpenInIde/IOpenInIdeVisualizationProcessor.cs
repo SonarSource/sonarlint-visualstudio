@@ -24,5 +24,5 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
 public interface IOpenInIdeVisualizationProcessor
 {
-    void HandleConvertedIssue(IAnalysisIssueVisualization visualization);
+    IAnalysisIssueVisualization HandleConvertedIssue(IAnalysisIssueVisualization visualization);
 }

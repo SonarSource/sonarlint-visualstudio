@@ -48,8 +48,8 @@ internal class OpenHotspotInIdeHandler : IOpenHotspotInIdeHandler, IOpenInIdeVis
         openInIdeHandlerImplementation.ShowIssue(hotspotDetailsDto, configurationScope, converter, IssueListIds.HotspotsId, this);
     }
 
-    public void HandleConvertedIssue(IAnalysisIssueVisualization visualization)
+    public IAnalysisIssueVisualization HandleConvertedIssue(IAnalysisIssueVisualization visualization)
     {
-        hotspotsStore.GetOrAdd(visualization);
+        return hotspotsStore.GetOrAdd(visualization);
     }
 }

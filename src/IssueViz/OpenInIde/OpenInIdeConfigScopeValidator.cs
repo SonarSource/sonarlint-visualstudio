@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
 internal interface IOpenInIdeConfigScopeValidator
 {
-    bool TryGetConfigurationScopeRoot(string issueConfigurationScope, out string configurationScopeRoot);
+    bool TryGetConfigurationScopeRoot(string issueConfigurationScope, out string configurationScopeRoot, out string failureReason);
 }
 
 [Export(typeof(IOpenInIdeConfigScopeValidator))]
@@ -45,9 +45,10 @@ internal class OpenInIdeConfigScopeValidator : IOpenInIdeConfigScopeValidator
         this.threadHandling = threadHandling;
     }
 
-    public bool TryGetConfigurationScopeRoot(string issueConfigurationScope, out string configurationScopeRoot)
+    public bool TryGetConfigurationScopeRoot(string issueConfigurationScope, out string configurationScopeRoot, out string failureReason)
     {
         configurationScopeRoot = default;
+        failureReason = default;
         threadHandling.ThrowIfOnUIThread();
 
         var configScope = activeConfigScopeTracker.Current;
@@ -55,18 +56,21 @@ internal class OpenInIdeConfigScopeValidator : IOpenInIdeConfigScopeValidator
         if (configScope is null || configScope.Id != issueConfigurationScope)
         {
             logger.WriteLine(OpenInIdeResources.Validation_ConfigurationScopeMismatch, configScope, issueConfigurationScope);
+            failureReason = "Internal configuration failure";
             return false;
         }
 
         if (configScope.SonarProjectId == null)
         {
             logger.WriteLine(OpenInIdeResources.Validation_ConfigurationScopeNotBound);
+            failureReason = "Connected Mode has not been set up";
             return false;
         }
 
         if (configScope.RootPath == null)
         {
             logger.WriteLine(OpenInIdeResources.Validation_ConfigurationScopeRootNotSet);
+            failureReason = "Internal configuration failure";
             return false;
         }
 

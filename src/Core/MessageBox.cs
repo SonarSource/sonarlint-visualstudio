@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 
@@ -28,9 +29,14 @@ namespace SonarLint.VisualStudio.Core
         MessageBoxResult Show(string messageBoxText, string caption, MessageBoxButton button, MessageBoxImage icon);
     }
 
+    [Export(typeof(IMessageBox))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     [ExcludeFromCodeCoverage]
     public class MessageBox : IMessageBox
     {
+        [ImportingConstructor]
+        public MessageBox() { }
+        
         public MessageBoxResult Show(string messageBoxText, string caption, MessageBoxButton button, MessageBoxImage icon)
         {
             return System.Windows.MessageBox.Show(messageBoxText, caption, button, icon);

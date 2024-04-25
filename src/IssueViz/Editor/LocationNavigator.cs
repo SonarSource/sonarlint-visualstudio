@@ -27,8 +27,16 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
+    public enum NavigationResult
+    {
+        Failed,
+        OpenedFile,
+        OpenedIssue
+    }
+    
     public interface ILocationNavigator
     {
+        NavigationResult TryNavigatePartial(IAnalysisIssueLocationVisualization locationVisualization);
         bool TryNavigate(IAnalysisIssueLocationVisualization locationVisualization);
     }
 
@@ -48,32 +56,66 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             this.logger = logger;
         }
 
-        public bool TryNavigate(IAnalysisIssueLocationVisualization locationVisualization)
+        public NavigationResult TryNavigatePartial(IAnalysisIssueLocationVisualization locationVisualization)
         {
             if (locationVisualization == null)
             {
                 throw new ArgumentNullException(nameof(locationVisualization));
             }
 
+            if (!TryOpenFile(locationVisualization, out var textView))
+            {
+                return NavigationResult.Failed;
+            }
+
+            var locationSpan = GetOrCalculateLocationSpan(locationVisualization, textView);
+
+            if (locationSpan.IsEmpty || !TryNavigateIssueLocation(locationVisualization, textView, locationSpan))
+            {
+                return NavigationResult.OpenedFile;
+            }
+
+            return NavigationResult.OpenedIssue;
+
+        }
+
+        private bool TryNavigateIssueLocation(IAnalysisIssueLocationVisualization locationVisualization,
+            ITextView textView, SnapshotSpan locationSpan)
+        {
             try
             {
-                var textView = documentNavigator.Open(locationVisualization.CurrentFilePath);
-                var locationSpan = GetOrCalculateLocationSpan(locationVisualization, textView);
-
-                if (!locationSpan.IsEmpty)
-                {
-                    documentNavigator.Navigate(textView, locationSpan);
-
-                    return true;
-                }
+                documentNavigator.Navigate(textView, locationSpan);
+                return true;
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(Resources.ERR_OpenDocumentException, locationVisualization.CurrentFilePath, ex.Message);
                 locationVisualization.InvalidateSpan();
+                return false;
+            }
+        }
+
+        private bool TryOpenFile(IAnalysisIssueLocationVisualization locationVisualization, out ITextView textView)
+        {
+            textView = default;
+            
+            try
+            {
+                textView = documentNavigator.Open(locationVisualization.CurrentFilePath);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(Resources.ERR_OpenDocumentException, locationVisualization.CurrentFilePath, ex.Message);
+                locationVisualization.InvalidateSpan();
+                return false;
             }
 
-            return false;
+            return true;
+        }
+
+        public bool TryNavigate(IAnalysisIssueLocationVisualization locationVisualization)
+        {
+            return TryNavigatePartial(locationVisualization) == NavigationResult.OpenedIssue;
         }
 
         private SnapshotSpan GetOrCalculateLocationSpan(IAnalysisIssueLocationVisualization locationVisualization, ITextView textView)
