@@ -27,40 +27,47 @@ using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
-internal interface IOpenInIdeConverter
+public interface IOpenInIdeConverterImplementation
 {
-    bool TryConvertIssue(IssueDetailDto issueDetails, string rootPath, out IAnalysisIssueVisualization visualization);
+    bool TryConvert<T>(T issueDetails,
+        string rootPath,
+        IOpenInIdeIssueToAnalysisIssueConverter<T> dtoConverter,
+        out IAnalysisIssueVisualization visualization)
+        where T : IOpenInIdeIssue;
 }
 
-[Export(typeof(IOpenInIdeConverter))]
+[Export(typeof(IOpenInIdeConverterImplementation))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class OpenInIdeConverter : IOpenInIdeConverter
+internal class OpenInIdeConverterImplementation : IOpenInIdeConverterImplementation
 {
-    private readonly IIssueDetailDtoToAnalysisIssueConverter dtoToIssueConverter;
     private readonly IAnalysisIssueVisualizationConverter issueToVisualizationConverter;
     private readonly ILogger logger;
 
     [ImportingConstructor]
-    public OpenInIdeConverter(IIssueDetailDtoToAnalysisIssueConverter dtoToIssueConverter, IAnalysisIssueVisualizationConverter issueToVisualizationConverter, ILogger logger)
+    public OpenInIdeConverterImplementation(IAnalysisIssueVisualizationConverter issueToVisualizationConverter, ILogger logger)
     {
-        this.dtoToIssueConverter = dtoToIssueConverter;
         this.issueToVisualizationConverter = issueToVisualizationConverter;
         this.logger = logger;
     }
 
-    public bool TryConvertIssue(IssueDetailDto issueDetails, string rootPath, out IAnalysisIssueVisualization visualization)
+    public bool TryConvert<T>(T issueDetails, 
+        string rootPath,
+        IOpenInIdeIssueToAnalysisIssueConverter<T> dtoConverter,
+        out IAnalysisIssueVisualization visualization)
+        where T : IOpenInIdeIssue
     {
         visualization = null;
 
         try
         {
-            var analysisIssueBase = dtoToIssueConverter.Convert(issueDetails, rootPath);
-            visualization = issueToVisualizationConverter.Convert(analysisIssueBase);
+            logger.LogVerbose("Issue: {0}, Root: {1}", issueDetails, rootPath);
+            var hotspot = dtoConverter.Convert(issueDetails, rootPath);
+            visualization = issueToVisualizationConverter.Convert(hotspot);
             return true;
         }
         catch (Exception e) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(e))
         {
-            logger.WriteLine(OpenInIdeResources.ApiHandler_UnableToConvertIssueData, e.Message);
+            logger.WriteLine(OpenInIdeResources.Converter_UnableToConvertIssueData, e.Message);
             return false;
         }
     }

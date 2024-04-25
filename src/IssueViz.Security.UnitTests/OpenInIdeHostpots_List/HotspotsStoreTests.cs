@@ -24,13 +24,13 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE_Hotspots
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIdeHostpots_List
 {
     [TestClass]
     public class OpenInIDEHotspotsStoreTests

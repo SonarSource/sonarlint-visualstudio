@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots
+namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List
 {
     internal interface IOpenInIDEHotspotsStore : IIssuesStore
     {

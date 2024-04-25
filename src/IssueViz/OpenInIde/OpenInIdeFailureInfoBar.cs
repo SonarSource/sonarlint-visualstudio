@@ -82,7 +82,7 @@ internal sealed class OpenInIdeFailureInfoBar : IOpenInIdeFailureInfoBar, IDispo
     private void AddInfoBar(Guid toolWindowId)
     {
         currentInfoBar = infoBarManager.AttachInfoBarWithButton(toolWindowId,
-            OpenInIdeResources.RequestValidator_InfoBarMessage, "Show Output Window", default);
+            OpenInIdeResources.DefaultInfoBarMessage, "Show Output Window", default);
         Debug.Assert(currentInfoBar != null, "currentInfoBar != null");
 
         currentInfoBar.ButtonClick += ShowOutputWindow;

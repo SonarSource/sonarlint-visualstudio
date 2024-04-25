@@ -18,12 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
 
-public interface IIssueDetailDtoToAnalysisIssueConverter
-{
-    IAnalysisIssueBase Convert(IssueDetailDto issueDetailDto, string rootPath);
-}
+public interface IIssueDetailDtoToAnalysisIssueConverter : IOpenInIdeIssueToAnalysisIssueConverter<IssueDetailDto>;

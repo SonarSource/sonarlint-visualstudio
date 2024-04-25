@@ -117,108 +117,25 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ApiHandler_FailedToFetchHotspot" xml:space="preserve">
-    <value>[Open in IDE] Failed to fetch hotspot data from server: {0}</value>
-  </data>
-  <data name="ApiHandler_FailedToNavigateToHotspot" xml:space="preserve">
-    <value>[Open in IDE] Failed to navigate to the requested issue. Requested file: {0}, line {1}</value>
-  </data>
-  <data name="Factory_CheckingPort" xml:space="preserve">
-    <value>[Open in IDE] Checking availability of port {0}</value>
-  </data>
-  <data name="Factory_CreatingListener" xml:space="preserve">
-    <value>[Open in IDE] Creating request listener...</value>
-  </data>
-  <data name="Factory_Failed_NoAvailablePorts" xml:space="preserve">
-    <value>[Open in IDE] Failed to create a request listener - no available ports. The Open In IDE server feature will not be able to connect to this instance of Visual Studio.</value>
-  </data>
-  <data name="Factory_PortIsUnavailable" xml:space="preserve">
-    <value>[Open in IDE] Port {0} is unavailable</value>
-  </data>
-  <data name="Factory_Succeeded" xml:space="preserve">
-    <value>[Open in IDE] Request listener created successfully. Listening on port {0}.</value>
-  </data>
-  <data name="RequestValidator_InvalidState_NotInConnectedMode" xml:space="preserve">
-    <value>[Open in IDE] Could not handle Open in IDE request: you must be in Connected Mode. Bind/open a solution with the correct configuration.
-{0}</value>
-  </data>
-  <data name="RequestValidator_InvalidState_WrongConnection" xml:space="preserve">
-    <value>[Open in IDE] Could not handle Open in IDE request: the current solution is not bound to the requested Sonar project. Open a solution with the correct configuration.
-{0}
-{1}</value>
-  </data>
-  <data name="RequestValidator_Instructions_SonarCloud" xml:space="preserve">
-    <value>Requested Sonar project configuration:
-    server: {0}
-    organization: {1}
-    project: {2}</value>
-  </data>
-  <data name="RequestValidator_CurrentState_SonarCloud" xml:space="preserve">
-    <value>Solution configuration:
-    server: {0}
-    organization: {1}
-    project: {2}</value>
-  </data>
-  <data name="RequestValidator_CurrentState_SonarQube" xml:space="preserve">
-    <value>Solution configuration:
-    server: {0}
-    project: {1}</value>
-  </data>
-  <data name="RequestValidator_Instructions_SonarQube" xml:space="preserve">
-    <value>Requested Sonar project configuration:
-    server: {0}
-    project: {1}</value>
-  </data>
-  <data name="RequestValidator_DocumentationLink" xml:space="preserve">
-    <value>Visit {0} to find out more about this and other SonarLint features.
-</value>
-  </data>
-  <data name="OpenHotspot_InvalidServerParameter" xml:space="preserve">
-    <value>[Open in IDE] Invalid server parameter: {0}</value>
-  </data>
-  <data name="OpenHotspot_MissingParameter" xml:space="preserve">
-    <value>[Open in IDE] Missing request parameter: {0}</value>
-  </data>
-  <data name="Pipeline_HandlingRequest" xml:space="preserve">
-    <value>[Open in IDE] Handing request: {0}</value>
-  </data>
-  <data name="Pipeline_UnhandledError" xml:space="preserve">
-    <value>[Open in IDE] Error handling request: {0}</value>
-  </data>
-  <data name="Pipeline_UnhandledError_Detailed" xml:space="preserve">
-    <value>[Open in IDE] Detailed error: {0}</value>
-  </data>
-  <data name="Pipeline_UnrecognizedRequest" xml:space="preserve">
-    <value>[Open in IDE] Unrecognized request received: {0}</value>
-  </data>
-  <data name="RequestValidator_InfoBarMessage" xml:space="preserve">
+  <data name="DefaultInfoBarMessage" xml:space="preserve">
     <value>Could not handle Open in IDE request. See the Output Window for more information.</value>
   </data>
-  <data name="ApiHandler_NullOrganization" xml:space="preserve">
-    <value>{none}</value>
+  <data name="ProcessingRequest" xml:space="preserve">
+    <value>[Open in IDE] Processing request. Configuration scope: {0}, Key: {1}, Type: {2}</value>
   </data>
-  <data name="ApiHandler_ProcessingRequest" xml:space="preserve">
-    <value>[Open in IDE] Processing request. Server: {0}, project: {1}, organization: {2}, hotspot: {3}</value>
-  </data>
-  <data name="ApiHandler_ProcessingIssueRequest" xml:space="preserve">
-    <value>[Open in IDE] Processing request. Configuration scope: {0}, issue: {1}</value>
-  </data>
-  <data name="ApiHandler_UnableToConvertHotspotData" xml:space="preserve">
-    <value>[Open in IDE] Unable to convert hotspot data: {0}</value>
-  </data>
-  <data name="ApiHandler_UnableToConvertIssueData" xml:space="preserve">
+  <data name="Converter_UnableToConvertIssueData" xml:space="preserve">
     <value>[Open in IDE] Unable to convert issue data: {0}</value>
   </data>
-  <data name="ApiHandler_ConfigurationScopeMismatch" xml:space="preserve">
+  <data name="Validation_ConfigurationScopeMismatch" xml:space="preserve">
     <value>[Open in IDE] Configuration scope mismatch: Active scope {0} is different from received {1}</value>
   </data>
-  <data name="ApiHandler_ConfigurationScopeNotBound" xml:space="preserve">
+  <data name="Validation_ConfigurationScopeNotBound" xml:space="preserve">
     <value>[Open in IDE] Configuration scope is not bound</value>
   </data>
-  <data name="ApiHandler_ConfigurationScopeRootNotSet" xml:space="preserve">
+  <data name="Validation_ConfigurationScopeRootNotSet" xml:space="preserve">
     <value>[Open in IDE] Configuration scope root path is not available</value>
   </data>
-  <data name="ApiHandler_IssueLocationNotFound" xml:space="preserve">
-    <value>[Open in IDE] Could not find the issue at File: {0}, Start Line: {1}, Start Position: {2}</value>
+  <data name="IssueLocationNotFound" xml:space="preserve">
+    <value>[Open in IDE] Could not find the location at File: {0}, Start Line: {1}, Start Position: {2}</value>
   </data>
 </root>

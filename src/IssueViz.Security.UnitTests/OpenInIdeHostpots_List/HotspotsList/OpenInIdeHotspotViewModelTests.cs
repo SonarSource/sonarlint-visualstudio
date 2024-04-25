@@ -24,10 +24,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE_Hotspots.HotspotsList.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots_List.HotspotsList.ViewModels;
 using SharedProvider = SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE_Hotspots.HotspotsList
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIdeHostpots_List.HotspotsList
 {
     [TestClass]
     public class OpenInIDEHotspotViewModelTests
