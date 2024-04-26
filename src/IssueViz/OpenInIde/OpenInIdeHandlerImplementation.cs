@@ -153,7 +153,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         switch (navigationResult)
         {
             case NavigationResult.Failed:
-                messageBox.UnableToOpenFile(visualization.CurrentFilePath);;
+                messageBox.UnableToOpenFile(visualization.CurrentFilePath);
                 return;
             case NavigationResult.OpenedFile:
                 toolWindowService.Show(toolWindowId);

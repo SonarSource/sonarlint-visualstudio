@@ -36,7 +36,7 @@ internal interface IOpenInIdeMessageBox
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class OpenInIdeMessageBox : IOpenInIdeMessageBox
 {
-    private IMessageBox messageBox;
+    private readonly IMessageBox messageBox;
 
     [ImportingConstructor]
     public OpenInIdeMessageBox(IMessageBox messageBox)
