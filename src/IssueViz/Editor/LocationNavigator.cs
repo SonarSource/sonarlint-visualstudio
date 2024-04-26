@@ -55,6 +55,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             this.spanCalculator = spanCalculator;
             this.logger = logger;
         }
+        
+        public bool TryNavigate(IAnalysisIssueLocationVisualization locationVisualization)
+        {
+            return TryNavigatePartial(locationVisualization) == NavigationResult.OpenedIssue;
+        }
 
         public NavigationResult TryNavigatePartial(IAnalysisIssueLocationVisualization locationVisualization)
         {
@@ -68,31 +73,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
                 return NavigationResult.Failed;
             }
 
-            var locationSpan = GetOrCalculateLocationSpan(locationVisualization, textView);
-
-            if (locationSpan.IsEmpty || !TryNavigateIssueLocation(locationVisualization, textView, locationSpan))
-            {
-                return NavigationResult.OpenedFile;
-            }
-
-            return NavigationResult.OpenedIssue;
-
+            return TryNavigateIssueLocation(locationVisualization, textView) 
+                ? NavigationResult.OpenedIssue 
+                : NavigationResult.OpenedFile;
         }
 
-        private bool TryNavigateIssueLocation(IAnalysisIssueLocationVisualization locationVisualization,
-            ITextView textView, SnapshotSpan locationSpan)
+        private bool TryNavigateIssueLocation(IAnalysisIssueLocationVisualization locationVisualization, ITextView textView)
         {
             try
             {
-                documentNavigator.Navigate(textView, locationSpan);
-                return true;
+                var locationSpan = GetOrCalculateLocationSpan(locationVisualization, textView);
+                if (!locationSpan.IsEmpty)
+                {
+                    documentNavigator.Navigate(textView, locationSpan);
+                    return true;
+                }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(Resources.ERR_OpenDocumentException, locationVisualization.CurrentFilePath, ex.Message);
                 locationVisualization.InvalidateSpan();
-                return false;
             }
+            
+            return false;
         }
 
         private bool TryOpenFile(IAnalysisIssueLocationVisualization locationVisualization, out ITextView textView)
@@ -111,11 +114,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             }
 
             return true;
-        }
-
-        public bool TryNavigate(IAnalysisIssueLocationVisualization locationVisualization)
-        {
-            return TryNavigatePartial(locationVisualization) == NavigationResult.OpenedIssue;
         }
 
         private SnapshotSpan GetOrCalculateLocationSpan(IAnalysisIssueLocationVisualization locationVisualization, ITextView textView)
