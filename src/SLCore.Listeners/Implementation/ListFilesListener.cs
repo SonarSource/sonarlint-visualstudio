@@ -58,9 +58,10 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
                 if (fullFilePathList.Any())
                 {
                     var root = GetRoot(fullFilePathList.First());
-                    activeConfigScopeTracker.UpdateRootOnCurrentConfigScope(root);
-
-                    clientFileDtos.AddRange(fullFilePathList.Select(fp => new ClientFileDto(new Uri(fp), GetRelativePath(root, fp), parameters.configScopeId, null, Encoding.UTF8.WebName, fp)));
+                    if (activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, root))
+                    {
+                        clientFileDtos.AddRange(fullFilePathList.Select(fp => new ClientFileDto(new Uri(fp), GetRelativePath(root, fp), parameters.configScopeId, null, Encoding.UTF8.WebName, fp)));
+                    }
                 }
             }
             return Task.FromResult(new ListFilesResponse(clientFileDtos));

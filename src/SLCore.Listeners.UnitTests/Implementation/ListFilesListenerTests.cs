@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             files[2].content.Should().BeNull();
 
             solutionWorkspaceService.DidNotReceive().ListFiles();
-            activeConfigScopeTracker.Received(1).UpdateRootOnCurrentConfigScope("C:\\Code\\Project");
+            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\Code\\Project");
         }
 
         [TestMethod]
@@ -144,7 +144,23 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             files[2].content.Should().BeNull();
 
             folderWorkspaceService.DidNotReceive().ListFiles();
-            activeConfigScopeTracker.Received(1).UpdateRootOnCurrentConfigScope("C:");
+            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:");
+        }
+
+        [TestMethod]
+        public async Task ListFilesAsync_ConfigScopeChanged_ReturnsEmpty()
+        {
+            var folderWorkspaceService = CreateFolderWorkSpaceService(false, null);
+            var solutionWorkspaceService = CreateSolutionWorkspaceService("C:\\Code\\Project\\File1.js", "C:\\Code\\Project\\File2.js", "C:\\Code\\Project\\Folder1\\File3.js");
+            var activeConfigScopeTracker = CreateActiveConfigScopeTracker("changedId");
+
+            var testSubject = CreateTestSubject(folderWorkspaceService: folderWorkspaceService, solutionWorkspaceService: solutionWorkspaceService, activeConfigScopeTracker: activeConfigScopeTracker);
+
+            var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
+
+            var files = result.files.ToList();
+
+            files.Should().BeEmpty();
         }
 
         private IFolderWorkspaceService CreateFolderWorkSpaceService(bool isFolderWorkspace, string root, params string[] files)
@@ -165,10 +181,14 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             return solutionWorkspaceService;
         }
 
-        private IActiveConfigScopeTracker CreateActiveConfigScopeTracker()
+        private IActiveConfigScopeTracker CreateActiveConfigScopeTracker(string changedActiveConfigScopeId = null)
         {
+            changedActiveConfigScopeId ??= ConfigScopeId;
+
             var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
             activeConfigScopeTracker.Current.Returns(new ConfigurationScope(ConfigScopeId));
+            activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(Arg.Any<string>(), Arg.Any<string>()).Returns(false);
+            activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(changedActiveConfigScopeId, Arg.Any<string>()).Returns(true);
 
             return activeConfigScopeTracker;
         }

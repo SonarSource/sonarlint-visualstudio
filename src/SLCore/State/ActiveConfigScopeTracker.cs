@@ -41,7 +41,7 @@ public interface IActiveConfigScopeTracker : IDisposable
 
     void RemoveCurrentConfigScope();
 
-    void UpdateRootOnCurrentConfigScope(string root);
+    bool TryUpdateRootOnCurrentConfigScope(string id, string root);
 }
 
 public record ConfigurationScope(
@@ -156,7 +156,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         asyncLock?.Dispose();
     }
 
-    public void UpdateRootOnCurrentConfigScope(string root)
+    public bool TryUpdateRootOnCurrentConfigScope(string id, string root)
     {
         //will be implemented in seperate PR
         throw new NotImplementedException();
