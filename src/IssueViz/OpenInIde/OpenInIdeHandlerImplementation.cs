@@ -21,7 +21,6 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using System.Windows;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -29,7 +28,6 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
-using MessageBox = SonarLint.VisualStudio.Core.MessageBox;
 
 namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
@@ -49,7 +47,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
     private readonly IEducation education;
     private readonly IIDEWindowService ideWindowService;
     private readonly IToolWindowService toolWindowService;
-    private readonly IMessageBox messageBox;
+    private readonly IOpenInIdeMessageBox messageBox;
     private readonly IIssueSelectionService issueSelectionService;
     private readonly ILogger logger;
     private readonly ILocationNavigator navigator;
@@ -61,6 +59,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
     public OpenInIdeHandlerImplementation(IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
         IOpenInIdeConverterImplementation converterImplementation,
         IToolWindowService toolWindowService,
+        IOpenInIdeMessageBox messageBox,
         IIDEWindowService ideWindowService,
         ILocationNavigator navigator,
         IIssueSelectionService issueSelectionService,
@@ -72,6 +71,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         this.navigator = navigator;
         this.education = education;
         this.toolWindowService = toolWindowService;
+        this.messageBox = messageBox;
         this.issueSelectionService = issueSelectionService;
         this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
         this.converterImplementation = converterImplementation;
@@ -101,14 +101,13 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
 
         if (!openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out var configurationScopeRoot, out var failureReason))
         {
-            var messageBoxText = $"Unable to process Open in IDE request. Reason: {failureReason}";
-            ShowMessage(messageBoxText);
+            messageBox.InvalidConfiguration(failureReason);
             return;
         }
 
         if (!converterImplementation.TryConvert(issueDetails, configurationScopeRoot, converter, out var visualization))
         {
-            ShowMessage("Unable to process Open in IDE request. Reason: Invalid request");
+            messageBox.UnableToConvertIssue();
             return;
         }
 
@@ -116,45 +115,52 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         {
             visualization = visualizationProcessor.HandleConvertedIssue(visualization) ;
         }
-        
-        var tryNavigatePartial = navigator.TryNavigatePartial(visualization);
-
-        if (tryNavigatePartial == NavigationResult.Failed)
-        {
-            ShowMessage("can't open file");
-            return;
-        }
-        
-        if (tryNavigatePartial == NavigationResult.OpenedFile)
-        {
-            toolWindowService.Show(toolWindowId);
-            ShowMessage("can't find issue");
-            return;
-        }
-
-        toolWindowService.Show(toolWindowId);
         issueSelectionService.SelectedIssue = visualization;
+        
+        var navigationResult = navigator.TryNavigatePartial(visualization);
+        HandleNavigationResult(toolWindowId, navigationResult, visualization);
+    }
 
+    private void HandleNavigationResult(Guid toolWindowId, NavigationResult navigationResult,
+        IAnalysisIssueVisualization visualization)
+    {
+        if (navigationResult == NavigationResult.OpenedIssue)
+        {
+            HandleSuccessfulNavigation(toolWindowId, visualization);
+        }
+        else
+        {
+            HandleIncompleteNavigation(toolWindowId, visualization, navigationResult);
+        }
+    }
+
+    private void HandleSuccessfulNavigation(Guid toolWindowId, IAnalysisIssueVisualization visualization)
+    {
+        toolWindowService.Show(toolWindowId);
+        
         if (SonarCompositeRuleId.TryParse(visualization.Issue.RuleKey, out var ruleId))
         {
             education.ShowRuleHelp(ruleId, visualization.Issue.RuleDescriptionContextKey);
         }
     }
 
-    private void ShowMessage(string messageBoxText)
+    private void HandleIncompleteNavigation(Guid toolWindowId, IAnalysisIssueVisualization visualization,
+        NavigationResult navigationResult)
     {
-        messageBox.Show(messageBoxText, "Open in IDE", MessageBoxButton.OK, MessageBoxImage.Warning);
-    }
-
-    private bool TryShowIssue(IAnalysisIssueVisualization visualization)
-    {
-        if (navigator.TryNavigate(visualization))
-        {
-            return true;
-        }
-
-        logger.WriteLine(OpenInIdeResources.IssueLocationNotFound, visualization.Location.FilePath,
+        logger.WriteLine(OpenInIdeResources.IssueLocationNotFound, visualization.CurrentFilePath,
             visualization.Location?.TextRange?.StartLine, visualization.Location?.TextRange?.StartLineOffset);
-        return false;
+        
+        switch (navigationResult)
+        {
+            case NavigationResult.Failed:
+                messageBox.UnableToOpenFile(visualization.CurrentFilePath);;
+                return;
+            case NavigationResult.OpenedFile:
+                toolWindowService.Show(toolWindowId);
+                messageBox.UnableToLocateIssue(visualization.CurrentFilePath);
+                return;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(navigationResult), "Invalid navigation result");
+        }
     }
 }

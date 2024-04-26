@@ -18,28 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Windows;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Core.UnitTests;
+
+[TestClass]
+public class MessageBoxTests
 {
-    public interface IMessageBox
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
     {
-        MessageBoxResult Show(string messageBoxText, string caption, MessageBoxButton button, MessageBoxImage icon);
+        MefTestHelpers.CheckTypeCanBeImported<MessageBox, IMessageBox>();
     }
 
-    [Export(typeof(IMessageBox))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class MessageBox : IMessageBox
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton()
     {
-        [ImportingConstructor]
-        public MessageBox() { }
-        
-        [ExcludeFromCodeCoverage]
-        public MessageBoxResult Show(string messageBoxText, string caption, MessageBoxButton button, MessageBoxImage icon)
-        {
-            return System.Windows.MessageBox.Show(messageBoxText, caption, button, icon);
-        }
+        MefTestHelpers.CheckIsSingletonMefComponent<MessageBox>();
     }
 }

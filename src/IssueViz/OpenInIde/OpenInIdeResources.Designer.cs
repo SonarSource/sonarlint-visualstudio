@@ -87,6 +87,51 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarLint Open in IDE.
+        /// </summary>
+        internal static string MessageBox_Caption {
+            get {
+                return ResourceManager.GetString("MessageBox_Caption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to process Open in IDE request. Reason: {0}.
+        /// </summary>
+        internal static string MessageBox_InvalidConfiguration {
+            get {
+                return ResourceManager.GetString("MessageBox_InvalidConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to process Open in IDE request. Reason: Invalid request.
+        /// </summary>
+        internal static string MessageBox_UnableToConvertIssue {
+            get {
+                return ResourceManager.GetString("MessageBox_UnableToConvertIssue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not locate issue. Ensure the file ({0}) has not been modified.
+        /// </summary>
+        internal static string MessageBox_UnableToLocateIssue {
+            get {
+                return ResourceManager.GetString("MessageBox_UnableToLocateIssue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not open File: {0}.
+        /// </summary>
+        internal static string MessageBox_UnableToOpenFile {
+            get {
+                return ResourceManager.GetString("MessageBox_UnableToOpenFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Open in IDE] Processing request. Configuration scope: {0}, Key: {1}, Type: {2}.
         /// </summary>
         internal static string ProcessingRequest {

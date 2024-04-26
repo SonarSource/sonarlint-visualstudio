@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Resources.ERR_OpenDocumentException, locationVisualization.CurrentFilePath, ex.Message);
+                logger.WriteLine(Resources.ERR_NavigationException, ex.Message);
                 locationVisualization.InvalidateSpan();
             }
             
@@ -105,6 +105,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             try
             {
                 textView = documentNavigator.Open(locationVisualization.CurrentFilePath);
+                return true;
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -112,8 +113,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
                 locationVisualization.InvalidateSpan();
                 return false;
             }
-
-            return true;
         }
 
         private SnapshotSpan GetOrCalculateLocationSpan(IAnalysisIssueLocationVisualization locationVisualization, ITextView textView)

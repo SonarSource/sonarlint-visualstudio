@@ -77,6 +77,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             documentOpenerMock.VerifyNoOtherCalls();
             spanCalculatorMock.VerifyNoOtherCalls();
         }
+        
+        [TestMethod]
+        public void TryNavigatePartial_LocationIsNull_ArgumentNullException()
+        {
+            Action act = () => testSubject.TryNavigatePartial(null);
+
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("locationVisualization");
+
+            documentOpenerMock.VerifyNoOtherCalls();
+            spanCalculatorMock.VerifyNoOtherCalls();
+        }
 
         [TestMethod]
         public void TryNavigate_ErrorOpeningDocument_NoException()
@@ -89,16 +100,39 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             VerifyExceptionCaughtAndLogged(openDocumentException, location);
             VerifyNoNavigation();
         }
+        
+        [TestMethod]
+        public void TryNavigatePartial_ErrorOpeningDocument_NoException()
+        {
+            var location = CreateLocation("c:\\test.cpp");
+
+            var openDocumentException = new NotImplementedException("this is a test");
+            documentOpenerMock.Setup(x => x.Open("c:\\test.cpp")).Throws(openDocumentException);
+
+            VerifyExceptionCaughtAndLoggedPartial(openDocumentException, location, NavigationResult.Failed);
+            VerifyNoNavigation();
+        }
 
         [TestMethod]
         public void TryNavigate_ErrorOpeningDocument_CriticalException_NotCaught()
         {
             var location = CreateLocation("c:\\test.cpp");
 
-            documentOpenerMock.Setup(x => x.Open("c:\\test.cpp")).Throws<StackOverflowException>();
+            documentOpenerMock.Setup(x => x.Open("c:\\test.cpp")).Throws<DivideByZeroException>();
 
             Action act = () => testSubject.TryNavigate(location);
-            act.Should().ThrowExactly<StackOverflowException>();
+            act.Should().ThrowExactly<DivideByZeroException>();
+        }
+        
+        [TestMethod]
+        public void TryNavigatePartial_ErrorOpeningDocument_CriticalException_NotCaught()
+        {
+            var location = CreateLocation("c:\\test.cpp");
+
+            documentOpenerMock.Setup(x => x.Open("c:\\test.cpp")).Throws<DivideByZeroException>();
+
+            Action act = () => testSubject.TryNavigatePartial(location);
+            act.Should().ThrowExactly<DivideByZeroException>();
         }
 
         [TestMethod]
@@ -110,6 +144,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             documentOpenerMock.Setup(x => x.Open("c:\\test.cpp")).Throws<NotImplementedException>();
 
             testSubject.TryNavigate(location);
+
+            location.Span.Value.IsEmpty.Should().BeTrue();
+        }
+        
+        [TestMethod]
+        public void TryNavigatePartial_ErrorOpeningDocument_LocationSpanIsInvalidated()
+        {
+            var previousSpan = CreateNonEmptySpan();
+            var location = CreateLocation("c:\\test.cpp", previousSpan);
+
+            documentOpenerMock.Setup(x => x.Open("c:\\test.cpp")).Throws<NotImplementedException>();
+
+            testSubject.TryNavigatePartial(location);
 
             location.Span.Value.IsEmpty.Should().BeTrue();
         }
@@ -126,6 +173,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             VerifyExceptionCaughtAndLogged(calculateSpanException, location);
             VerifyNoNavigation();
         }
+        
+        [TestMethod]
+        public void TryNavigatePartial_ErrorCalculatingSpan_NoException()
+        {
+            var location = CreateLocation("c:\\test.cpp");
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            var calculateSpanException = new NotImplementedException("this is a test");
+            spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location.TextRange, textViewCurrentSnapshotMock)).Throws(calculateSpanException);
+
+            VerifyExceptionCaughtAndLoggedPartial(calculateSpanException, location, NavigationResult.OpenedFile);
+            VerifyNoNavigation();
+        }
 
         [TestMethod]
         public void TryNavigate_ErrorCalculatingSpan_CriticalException_NotCaught()
@@ -133,10 +193,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var location = CreateLocation("c:\\test.cpp");
             SetupDocumentCanBeOpened("c:\\test.cpp");
 
-            spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location.TextRange, textViewCurrentSnapshotMock)).Throws<StackOverflowException>();
+            spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location.TextRange, textViewCurrentSnapshotMock)).Throws<DivideByZeroException>();
 
             Action act = () => testSubject.TryNavigate(location);
-            act.Should().ThrowExactly<StackOverflowException>();
+            act.Should().ThrowExactly<DivideByZeroException>();
+        }
+        
+        [TestMethod]
+        public void TryNavigatePartial_ErrorCalculatingSpan_CriticalException_NotCaught()
+        {
+            var location = CreateLocation("c:\\test.cpp");
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location.TextRange, textViewCurrentSnapshotMock)).Throws<DivideByZeroException>();
+
+            Action act = () => testSubject.TryNavigatePartial(location);
+            act.Should().ThrowExactly<DivideByZeroException>();
         }
 
         [TestMethod]
@@ -148,6 +220,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location.TextRange, textViewCurrentSnapshotMock)).Throws<NotImplementedException>();
 
             testSubject.TryNavigate(location);
+
+            location.Span.Value.IsEmpty.Should().BeTrue();
+        }
+        
+        [TestMethod]
+        public void TryNavigatePartial_ErrorCalculatingSpan_LocationSpanIsInvalidated()
+        {
+            var location = CreateLocation("c:\\test.cpp");
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location.TextRange, textViewCurrentSnapshotMock)).Throws<NotImplementedException>();
+
+            testSubject.TryNavigatePartial(location);
 
             location.Span.Value.IsEmpty.Should().BeTrue();
         }
@@ -164,6 +249,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             VerifyExceptionCaughtAndLogged(navigateException, location);
         }
+        
+        [TestMethod]
+        public void TryNavigatePartial_ErrorNavigating_NoException()
+        {
+            var nonEmptySpan = CreateNonEmptySpan();
+            var location = CreateLocation("c:\\test.cpp", nonEmptySpan);
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            var navigateException = new NotImplementedException("this is a test");
+            documentOpenerMock.Setup(x => x.Navigate(textViewMock.Object, nonEmptySpan)).Throws(navigateException);
+
+            VerifyExceptionCaughtAndLoggedPartial(navigateException, location, NavigationResult.OpenedFile);
+        }
 
         [TestMethod]
         public void TryNavigate_ErrorNavigating_CriticalException_NotCaught()
@@ -172,10 +270,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var location = CreateLocation("c:\\test.cpp", nonEmptySpan);
             SetupDocumentCanBeOpened("c:\\test.cpp");
 
-            documentOpenerMock.Setup(x => x.Navigate(textViewMock.Object, nonEmptySpan)).Throws<StackOverflowException>();
+            documentOpenerMock.Setup(x => x.Navigate(textViewMock.Object, nonEmptySpan)).Throws<DivideByZeroException>();
 
             Action act = () => testSubject.TryNavigate(location);
-            act.Should().ThrowExactly<StackOverflowException>();
+            act.Should().ThrowExactly<DivideByZeroException>();
+        }
+        
+        [TestMethod]
+        public void TryNavigatePartial_ErrorNavigating_CriticalException_NotCaught()
+        {
+            var nonEmptySpan = CreateNonEmptySpan();
+            var location = CreateLocation("c:\\test.cpp", nonEmptySpan);
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            documentOpenerMock.Setup(x => x.Navigate(textViewMock.Object, nonEmptySpan)).Throws<DivideByZeroException>();
+
+            Action act = () => testSubject.TryNavigatePartial(location);
+            act.Should().ThrowExactly<DivideByZeroException>();
         }
 
         [TestMethod]
@@ -193,6 +304,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         [TestMethod]
+        public void TryNavigatePartial_ErrorNavigating_LocationSpanIsInvalidated()
+        {
+            var previousSpan = CreateNonEmptySpan();
+            var location = CreateLocation("c:\\test.cpp", previousSpan);
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            documentOpenerMock.Setup(x => x.Navigate(textViewMock.Object, previousSpan)).Throws<NotImplementedException>();
+
+            testSubject.TryNavigatePartial(location);
+
+            location.Span.Value.IsEmpty.Should().BeTrue();
+        }
+        
+        [TestMethod]
         public void TryNavigate_LocationHasValidSpan_NavigateToExistingSpan()
         {
             var nonEmptySpan = CreateNonEmptySpan();
@@ -202,6 +327,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             var result = testSubject.TryNavigate(location);
             result.Should().BeTrue();
+
+            spanCalculatorMock.VerifyNoOtherCalls();
+            VerifyNavigation(nonEmptySpan);
+        }
+        
+        [TestMethod]
+        public void TryNavigatePartial_LocationHasValidSpan_NavigateToExistingSpan()
+        {
+            var nonEmptySpan = CreateNonEmptySpan();
+            var location = CreateLocation("c:\\test.cpp", nonEmptySpan);
+
+            SetupDocumentCanBeOpened(location.CurrentFilePath);
+
+            var result = testSubject.TryNavigatePartial(location);
+            result.Should().Be(NavigationResult.OpenedIssue);
 
             spanCalculatorMock.VerifyNoOtherCalls();
             VerifyNavigation(nonEmptySpan);
@@ -221,6 +361,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             spanCalculatorMock.VerifyNoOtherCalls();
             VerifyNoNavigation();
         }
+        
+        [TestMethod]
+        public void TryNavigatePartial_LocationHasEmptySpan_NoNavigation()
+        {
+            var emptySpan = new SnapshotSpan();
+            var location = CreateLocation("c:\\test.cpp", emptySpan);
+
+            SetupDocumentCanBeOpened(location.CurrentFilePath);
+
+            var result = testSubject.TryNavigatePartial(location);
+            result.Should().Be(NavigationResult.OpenedFile);
+
+            spanCalculatorMock.VerifyNoOtherCalls();
+            VerifyNoNavigation();
+        }
 
         [TestMethod]
         public void TryNavigate_LocationHasNoSpan_CalculatedSpanIsEmpty_NoNavigation()
@@ -232,6 +387,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             var result = testSubject.TryNavigate(location);
             result.Should().BeFalse();
+
+            spanCalculatorMock.VerifyAll();
+            VerifyNoNavigation();
+        }
+        
+        [TestMethod]
+        public void TryNavigatePartial_LocationHasNoSpan_CalculatedSpanIsEmpty_NoNavigation()
+        {
+            var location = CreateLocation("c:\\test.cpp");
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            SetupCalculatedSpan(location.Location, new SnapshotSpan());
+
+            var result = testSubject.TryNavigatePartial(location);
+            result.Should().Be(NavigationResult.OpenedFile);
 
             spanCalculatorMock.VerifyAll();
             VerifyNoNavigation();
@@ -252,6 +422,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             spanCalculatorMock.VerifyAll();
             VerifyNavigation(nonEmptySpan);
         }
+        
+        [TestMethod]
+        public void TryNavigatePartial_LocationHasNoSpan_CalculatedSpanIsNotEmpty_NavigateToCalculatedSpan()
+        {
+            var location = CreateLocation("c:\\test.cpp");
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            var nonEmptySpan = CreateNonEmptySpan();
+            SetupCalculatedSpan(location.Location, nonEmptySpan);
+
+            var result = testSubject.TryNavigatePartial(location);
+            result.Should().Be(NavigationResult.OpenedIssue);
+
+            spanCalculatorMock.VerifyAll();
+            VerifyNavigation(nonEmptySpan);
+        }
 
         [TestMethod]
         [DataRow(true)]
@@ -265,6 +451,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             SetupCalculatedSpan(location.Location, calculatedSpan);
 
             testSubject.TryNavigate(location);
+
+            location.Span.Should().Be(calculatedSpan);
+        }
+        
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void TryNavigatePartial_LocationHasNoSpan_LocationSpanIsUpdatedToCalculatedSpan(bool newSpanIsEmpty)
+        {
+            var location = CreateLocation("c:\\test.cpp");
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            var calculatedSpan = newSpanIsEmpty ? new SnapshotSpan() : CreateNonEmptySpan(); 
+            SetupCalculatedSpan(location.Location, calculatedSpan);
+
+            testSubject.TryNavigatePartial(location);
 
             location.Span.Should().Be(calculatedSpan);
         }
@@ -305,6 +507,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             act.Should().NotThrow();
 
             result.Should().BeFalse();
+
+            logger.AssertPartialOutputStringExists(setupException.Message);
+        }
+        
+        private void VerifyExceptionCaughtAndLoggedPartial(Exception setupException, IAnalysisIssueLocationVisualization location, NavigationResult expectedResult)
+        {
+            NavigationResult result = default;
+            Action act = () => result = testSubject.TryNavigatePartial(location);
+            act.Should().NotThrow();
+
+            result.Should().Be(expectedResult);
 
             logger.AssertPartialOutputStringExists(setupException.Message);
         }
