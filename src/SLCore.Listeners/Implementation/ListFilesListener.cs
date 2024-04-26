@@ -39,6 +39,8 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
         private readonly ISolutionWorkspaceService solutionWorkspaceService;
         private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
 
+        private const int DiskRootSize = 2;
+
         [ImportingConstructor]
         public ListFilesListener(IFolderWorkspaceService folderWorkspaceService, ISolutionWorkspaceService solutionWorkspaceService, IActiveConfigScopeTracker activeConfigScopeTracker)
         {
@@ -53,16 +55,29 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
             if (activeConfigScopeTracker.Current.Id == parameters.configScopeId)
             {
                 var fullFilePathList = folderWorkspaceService.IsFolderWorkspace() ? folderWorkspaceService.ListFiles() : solutionWorkspaceService.ListFiles();
-                clientFileDtos.AddRange(fullFilePathList.Select(fp => new ClientFileDto(new Uri(fp), GetRelativePath(fp), parameters.configScopeId, null, Encoding.UTF8.WebName, fp)));
+                if (fullFilePathList.Any())
+                {
+                    var root = GetRoot(fullFilePathList.First());
+                    activeConfigScopeTracker.UpdateRootOnCurrentConfigScope(root);
+
+                    clientFileDtos.AddRange(fullFilePathList.Select(fp => new ClientFileDto(new Uri(fp), GetRelativePath(root, fp), parameters.configScopeId, null, Encoding.UTF8.WebName, fp)));
+                }
             }
             return Task.FromResult(new ListFilesResponse(clientFileDtos));
         }
 
-        private string GetRelativePath(string fullPath)
+        private string GetRelativePath(string root, string fullPath)
+        {
+            return fullPath.Substring(root.Length);
+        }
+
+        private string GetRoot(string filePath)
         {
             var root = folderWorkspaceService.FindRootDirectory();
 
-            return fullPath.Substring(root is not null ? root.Length : 2);
+            root ??= filePath.Substring(0, DiskRootSize);
+
+            return root;
         }
     }
 }

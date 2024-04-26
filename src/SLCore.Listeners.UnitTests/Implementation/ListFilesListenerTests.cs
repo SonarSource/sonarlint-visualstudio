@@ -66,8 +66,9 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         {
             var folderWorkspaceService = CreateFolderWorkSpaceService(true, "C:\\Code\\Project", "C:\\Code\\Project\\File1.js", "C:\\Code\\Project\\File2.js", "C:\\Code\\Project\\Folder1\\File3.js");
             var solutionWorkspaceService = CreateSolutionWorkspaceService();
+            var activeConfigScopeTracker = CreateActiveConfigScopeTracker();
 
-            var testSubject = CreateTestSubject(folderWorkspaceService: folderWorkspaceService, solutionWorkspaceService: solutionWorkspaceService);
+            var testSubject = CreateTestSubject(folderWorkspaceService: folderWorkspaceService, solutionWorkspaceService: solutionWorkspaceService, activeConfigScopeTracker: activeConfigScopeTracker);
 
             var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
 
@@ -100,6 +101,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             files[2].content.Should().BeNull();
 
             solutionWorkspaceService.DidNotReceive().ListFiles();
+            activeConfigScopeTracker.Received(1).UpdateRootOnCurrentConfigScope("C:\\Code\\Project");
         }
 
         [TestMethod]
@@ -107,8 +109,9 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
         {
             var folderWorkspaceService = CreateFolderWorkSpaceService(false, null);
             var solutionWorkspaceService = CreateSolutionWorkspaceService("C:\\Code\\Project\\File1.js", "C:\\Code\\Project\\File2.js", "C:\\Code\\Project\\Folder1\\File3.js");
+            var activeConfigScopeTracker = CreateActiveConfigScopeTracker();
 
-            var testSubject = CreateTestSubject(folderWorkspaceService: folderWorkspaceService, solutionWorkspaceService: solutionWorkspaceService);
+            var testSubject = CreateTestSubject(folderWorkspaceService: folderWorkspaceService, solutionWorkspaceService: solutionWorkspaceService, activeConfigScopeTracker: activeConfigScopeTracker);
 
             var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
 
@@ -141,6 +144,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             files[2].content.Should().BeNull();
 
             folderWorkspaceService.DidNotReceive().ListFiles();
+            activeConfigScopeTracker.Received(1).UpdateRootOnCurrentConfigScope("C:");
         }
 
         private IFolderWorkspaceService CreateFolderWorkSpaceService(bool isFolderWorkspace, string root, params string[] files)
@@ -161,15 +165,19 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             return solutionWorkspaceService;
         }
 
+        private IActiveConfigScopeTracker CreateActiveConfigScopeTracker()
+        {
+            var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+            activeConfigScopeTracker.Current.Returns(new ConfigurationScope(ConfigScopeId));
+
+            return activeConfigScopeTracker;
+        }
+
         private ListFilesListener CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null, ISolutionWorkspaceService solutionWorkspaceService = null, IActiveConfigScopeTracker activeConfigScopeTracker = null)
         {
             folderWorkspaceService ??= Substitute.For<IFolderWorkspaceService>();
             solutionWorkspaceService ??= Substitute.For<ISolutionWorkspaceService>();
-            if (activeConfigScopeTracker is null)
-            {
-                activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
-                activeConfigScopeTracker.Current.Returns(new ConfigurationScope(ConfigScopeId));
-            }
+            activeConfigScopeTracker ??= CreateActiveConfigScopeTracker();
 
             var testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, activeConfigScopeTracker);
             return testSubject;
