@@ -34,9 +34,14 @@ namespace SonarLint.VisualStudio.SLCore.State;
 public interface IActiveConfigScopeTracker : IDisposable
 {
     ConfigurationScope Current { get; }
+
     void SetCurrentConfigScope(string id, string connectionId = null, string sonarProjectKey = null);
+
     void Reset();
+
     void RemoveCurrentConfigScope();
+
+    bool TryUpdateRootOnCurrentConfigScope(string id, string root);
 }
 
 public record ConfigurationScope(
@@ -73,7 +78,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         get
         {
             threadHandling.ThrowIfOnUIThread();
-            
+
             using (asyncLock.Acquire())
                 return currentConfigScope is not null
                     ? new ConfigurationScope(currentConfigScope.id,
@@ -82,11 +87,11 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
                     : null;
         }
     }
-    
+
     public void SetCurrentConfigScope(string id, string connectionId = null, string sonarProjectKey = null)
     {
         threadHandling.ThrowIfOnUIThread();
-        
+
         if (!serviceProvider.TryGetTransientService(out IConfigurationScopeSLCoreService configurationScopeService))
         {
             throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized);
@@ -100,7 +105,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         using (asyncLock.Acquire())
         {
             Debug.Assert(currentConfigScope == null || currentConfigScope.id == id, "Config scope conflict");
-            
+
             if (currentConfigScope?.id == id)
             {
                 configurationScopeService.DidUpdateBinding(new DidUpdateBindingParams(id, configurationScopeDto.binding));
@@ -124,11 +129,10 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         }
     }
 
-
     public void RemoveCurrentConfigScope()
-    { 
+    {
         threadHandling.ThrowIfOnUIThread();
-        
+
         if (!serviceProvider.TryGetTransientService(out IConfigurationScopeSLCoreService configurationScopeService))
         {
             throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized);
@@ -150,5 +154,11 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
     public void Dispose()
     {
         asyncLock?.Dispose();
+    }
+
+    public bool TryUpdateRootOnCurrentConfigScope(string id, string root)
+    {
+        //will be implemented in seperate PR
+        throw new NotImplementedException();
     }
 }
