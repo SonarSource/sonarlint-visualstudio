@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
@@ -45,9 +46,11 @@ public class OpenIssueInIdeHandlerTests
     public void HandleConvertedIssue_AddsToHotspotStore()
     {
         var analysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
+        var storeAnalysisIssueVisualization = Substitute.For<IAnalysisIssueVisualization>();
         var testSubject = CreateTestSubject(out _, out _, out var hotspotsStore);
+        hotspotsStore.GetOrAdd(analysisIssueVisualization).Returns(storeAnalysisIssueVisualization);
 
-        testSubject.HandleConvertedIssue(analysisIssueVisualization);
+        testSubject.HandleConvertedIssue(analysisIssueVisualization).Should().BeSameAs(storeAnalysisIssueVisualization);
 
         hotspotsStore.Received().GetOrAdd(analysisIssueVisualization);
     }
