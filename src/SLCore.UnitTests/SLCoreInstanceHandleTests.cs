@@ -118,7 +118,7 @@ public class SLCoreInstanceHandleTests
                 && parameters.standaloneRuleConfigByKey.Count == 0
                 && !parameters.isFocusOnNewCode
                 && parameters.telemetryConstantAttributes == TelemetryConstants
-                && parameters.clientNodeJsPath == null));
+                && parameters.languageSpecificRequirements.clientNodeJsPath == null));
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(Binding);
         });
     }

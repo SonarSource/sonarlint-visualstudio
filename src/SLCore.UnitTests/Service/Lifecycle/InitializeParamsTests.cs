@@ -54,7 +54,7 @@ public class InitializeParamsTests
             },
             false,
             new TelemetryClientConstantAttributesDto("TESTkey", "TESTname", "TESTversion", "TESTde", new Dictionary<string, object>{{"telemetryObj", new {field = 10}}}),
-            "node"
+            new LanguageSpecificRequirements("node")
         );
 
         const string expectedString = """
@@ -131,7 +131,9 @@ public class InitializeParamsTests
                                       }
                                     }
                                   },
-                                  "clientNodeJsPath": "node"
+                                  "languageSpecificRequirements": {
+                                    "clientNodeJsPath": "node"
+                                  }
                                 }
                                 """;
 

@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
+using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry;
 using SonarLint.VisualStudio.SLCore.State;
@@ -110,7 +111,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             standaloneRuleConfigByKey: new Dictionary<string, StandaloneRuleConfigDto>(),
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
-            null));
+            new LanguageSpecificRequirements(null)));
 
         configScopeUpdater.UpdateConfigScopeForCurrentSolution(activeSolutionBoundTracker.CurrentConfiguration.Project);
     }
