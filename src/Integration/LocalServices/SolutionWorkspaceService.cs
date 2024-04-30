@@ -29,6 +29,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -38,12 +39,17 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly ISolutionInfoProvider solutionInfoProvider;
         private readonly IServiceProvider serviceProvider;
+        private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
         public SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+            : this(solutionInfoProvider, serviceProvider, ThreadHandling.Instance) { }
+
+        internal SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider, IServiceProvider serviceProvider, IThreadHandling threadHandling)
         {
             this.solutionInfoProvider = solutionInfoProvider;
             this.serviceProvider = serviceProvider;
+            this.threadHandling = threadHandling;
         }
 
         public bool IsSolutionWorkSpace() => !solutionInfoProvider.IsFolderWorkspace();
@@ -61,15 +67,16 @@ namespace SonarLint.VisualStudio.Integration
         [ExcludeFromCodeCoverage]
         private IEnumerable<string> GetAllFilesInSolution(IVsSolution solution)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            return GetLoadedProjects(solution)
+            IEnumerable<string> result = null;
+            threadHandling.RunOnUIThread(() => result = GetLoadedProjects(solution)
                 .SelectMany(AllItemsInProject)
                 .Where(x => x != null)
                 .Where(x => x.Contains("\\"))
                 .Where(x => !x.EndsWith("\\"))
                 .Where(x => !x.Contains("\\.nuget\\"))
-                .Where(x => !x.Contains("\\node_modules\\")); // move filtering closer to path extraction to avoid processing unnecessary items
+                .Where(x => !x.Contains("\\node_modules\\"))); // move filtering closer to path extraction to avoid processing unnecessary items)
+
+            return result;
         }
 
         [ExcludeFromCodeCoverage]
