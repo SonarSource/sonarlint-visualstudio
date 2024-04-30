@@ -776,7 +776,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             testSubject.CurrentLocationListItem = new LocationListItem(locationViz);
 
-            locationNavigatorMock.Verify(x => x.TryNavigate(locationViz), Times.Once);
+            locationNavigatorMock.Verify(x => x.TryNavigatePartial(locationViz), Times.Once);
         }
 
         [TestMethod]
@@ -789,7 +789,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Flow, null, selectedFlow.Object, locationViz);
 
-            locationNavigatorMock.Verify(x => x.TryNavigate(It.IsAny<IAnalysisIssueLocationVisualization>()), Times.Never);
+            locationNavigatorMock.Verify(x => x.TryNavigatePartial(It.IsAny<IAnalysisIssueLocationVisualization>()), Times.Never);
         }
 
         #endregion

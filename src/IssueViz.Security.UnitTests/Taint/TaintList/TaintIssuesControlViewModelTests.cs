@@ -377,7 +377,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var testSubject = CreateTestSubject(locationNavigator: locationNavigator.Object);
             testSubject.NavigateCommand.Execute(viewModel.Object);
 
-            locationNavigator.Verify(x => x.TryNavigate(issueViz), Times.Once);
+            locationNavigator.Verify(x => x.TryNavigatePartial(issueViz), Times.Once);
             locationNavigator.VerifyNoOtherCalls();
         }
 
