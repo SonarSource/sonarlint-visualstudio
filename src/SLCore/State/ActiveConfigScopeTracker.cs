@@ -156,12 +156,13 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
     {
         using (asyncLock.Acquire())
         {
-            if (currentConfigScope?.Id == id)
+            if (id is null || currentConfigScope?.Id != id)
             {
-                currentConfigScope = currentConfigScope with { RootPath = root };
-                return true;
+                return false;
             }
-            return false;
+
+            currentConfigScope = currentConfigScope with { RootPath = root };
+            return true;
         }
     }
 }
