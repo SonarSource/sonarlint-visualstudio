@@ -56,21 +56,21 @@ internal class OpenInIdeConfigScopeValidator : IOpenInIdeConfigScopeValidator
         if (configScope is null || configScope.Id != issueConfigurationScope)
         {
             logger.WriteLine(OpenInIdeResources.Validation_ConfigurationScopeMismatch, configScope, issueConfigurationScope);
-            failureReason = "Internal configuration failure";
+            failureReason = OpenInIdeResources.ValidationReason_ConfigurationMismatch;
             return false;
         }
 
         if (configScope.SonarProjectId == null)
         {
             logger.WriteLine(OpenInIdeResources.Validation_ConfigurationScopeNotBound);
-            failureReason = "Connected Mode has not been set up";
+            failureReason = OpenInIdeResources.ValidationReason_StandaloneMode;
             return false;
         }
 
         if (configScope.RootPath == null)
         {
             logger.WriteLine(OpenInIdeResources.Validation_ConfigurationScopeRootNotSet);
-            failureReason = "Internal configuration failure";
+            failureReason = OpenInIdeResources.ValidationReason_FilePathRootNotSet;
             return false;
         }
 

@@ -166,5 +166,32 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
                 return ResourceManager.GetString("Validation_ConfigurationScopeRootNotSet", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Internal configuration mismatch.
+        /// </summary>
+        internal static string ValidationReason_ConfigurationMismatch {
+            get {
+                return ResourceManager.GetString("ValidationReason_ConfigurationMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Internal filesystem configuration failure.
+        /// </summary>
+        internal static string ValidationReason_FilePathRootNotSet {
+            get {
+                return ResourceManager.GetString("ValidationReason_FilePathRootNotSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connected Mode has not been set up.
+        /// </summary>
+        internal static string ValidationReason_StandaloneMode {
+            get {
+                return ResourceManager.GetString("ValidationReason_StandaloneMode", resourceCulture);
+            }
+        }
     }
 }

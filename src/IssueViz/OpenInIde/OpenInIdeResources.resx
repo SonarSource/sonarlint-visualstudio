@@ -153,4 +153,13 @@
   <data name="MessageBox_Caption" xml:space="preserve">
     <value>SonarLint Open in IDE</value>
   </data>
+  <data name="ValidationReason_ConfigurationMismatch" xml:space="preserve">
+    <value>Internal configuration mismatch</value>
+  </data>
+  <data name="ValidationReason_StandaloneMode" xml:space="preserve">
+    <value>Connected Mode has not been set up</value>
+  </data>
+  <data name="ValidationReason_FilePathRootNotSet" xml:space="preserve">
+    <value>Internal filesystem configuration failure</value>
+  </data>
 </root>
