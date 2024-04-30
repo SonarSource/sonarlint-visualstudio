@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Diagnostics;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Service;
@@ -54,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
         [TestMethod]
         public void ClientConstants_ShouldBeExpected()
         {
-            var expectedClientConstants = new ClientConstantsDto("SonarLint for Visual Studio", $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}");
+            var expectedClientConstants = new ClientConstantsDto("SonarLint for Visual Studio", $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
             var result = testSubject.ClientConstants;
 
             result.Should().BeEquivalentTo(expectedClientConstants);
