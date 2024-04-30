@@ -96,15 +96,10 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
 
         ideWindowService.BringToFront();
 
-        if (!openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out var configurationScopeRoot, out var failureReason))
+        if (!ValidateConfiguration(issueConfigurationScope, out var configurationScopeRoot, out var failureReason)
+            || !ValidateOpenInIdeIssue(issueDetails, converter, configurationScopeRoot, out var visualization, out failureReason))
         {
-            messageBox.InvalidConfiguration(failureReason);
-            return;
-        }
-
-        if (!converterImplementation.TryConvert(issueDetails, configurationScopeRoot, converter, out var visualization))
-        {
-            messageBox.UnableToConvertIssue();
+            messageBox.InvalidRequest(failureReason);
             return;
         }
 
@@ -116,6 +111,29 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         
         var navigationResult = navigator.TryNavigatePartial(visualization);
         HandleNavigationResult(navigationResult, toolWindowId, visualization);
+    }
+
+    private bool ValidateConfiguration(string issueConfigurationScope, out string configurationScopeRoot, out string failureReason)
+    {
+        return openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out configurationScopeRoot, out failureReason);
+    }
+
+    private bool ValidateOpenInIdeIssue<T>(T issueDetails,
+        IOpenInIdeIssueToAnalysisIssueConverter<T> converter,
+        string configurationScopeRoot,
+        out IAnalysisIssueVisualization visualization,
+        out string failureReason) where T : IOpenInIdeIssue
+    {
+        failureReason = default;
+
+        if (converterImplementation.TryConvert(issueDetails, configurationScopeRoot, converter, out visualization))
+        {
+            return true;
+        }
+
+        failureReason = OpenInIdeResources.ValidationReason_UnableToConvertIssue;
+        return false;
+
     }
 
     private void HandleNavigationResult(NavigationResult navigationResult,

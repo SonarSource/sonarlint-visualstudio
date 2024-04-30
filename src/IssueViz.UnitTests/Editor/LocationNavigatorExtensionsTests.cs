@@ -33,7 +33,7 @@ public class LocationNavigatorExtensionsTests
     [DataRow(NavigationResult.Failed, false)]
     [DataRow(NavigationResult.OpenedFile, false)]
     [DataRow(NavigationResult.OpenedLocation, true)]
-    public void TryNavigate_IsTrue_OnlyWhenPartialFullySucceeds(NavigationResult navigationResult, bool expectedResult)
+    public void TryNavigate_ReturnsValueFromNavigator(NavigationResult navigationResult, bool expectedResult)
     {
         var location = Substitute.For<IAnalysisIssueLocationVisualization>();
         var locationNavigator = Substitute.For<ILocationNavigator>();

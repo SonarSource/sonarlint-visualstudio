@@ -68,18 +68,9 @@ public class OpenInIdeMessageBoxTests
     {
         var messageBox = Substitute.For<IMessageBox>();
         var reason = "reason";
-        new OpenInIdeMessageBox(messageBox).InvalidConfiguration(reason);
+        new OpenInIdeMessageBox(messageBox).InvalidRequest(reason);
         
         VerifyMessageBox(messageBox, string.Format(OpenInIdeResources.MessageBox_InvalidConfiguration, reason));
-    }
-    
-    [TestMethod]
-    public void UnableToConvertIssue_ShowsMessageBox()
-    {
-        var messageBox = Substitute.For<IMessageBox>();
-        new OpenInIdeMessageBox(messageBox).UnableToConvertIssue();
-        
-        VerifyMessageBox(messageBox, string.Format(OpenInIdeResources.MessageBox_UnableToConvertIssue));
     }
 
     private void VerifyMessageBox(IMessageBox messageBox, string message) =>

@@ -144,8 +144,8 @@
   <data name="MessageBox_UnableToOpenFile" xml:space="preserve">
     <value>Could not open File: {0}</value>
   </data>
-  <data name="MessageBox_UnableToConvertIssue" xml:space="preserve">
-    <value>Unable to process Open in IDE request. Reason: Invalid request</value>
+  <data name="ValidationReason_UnableToConvertIssue" xml:space="preserve">
+    <value>Invalid issue format</value>
   </data>
   <data name="MessageBox_InvalidConfiguration" xml:space="preserve">
     <value>Unable to process Open in IDE request. Reason: {0}</value>

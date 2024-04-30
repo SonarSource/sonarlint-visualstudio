@@ -114,15 +114,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to process Open in IDE request. Reason: Invalid request.
-        /// </summary>
-        internal static string MessageBox_UnableToConvertIssue {
-            get {
-                return ResourceManager.GetString("MessageBox_UnableToConvertIssue", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Could not locate issue. Ensure the file ({0}) has not been modified.
         /// </summary>
         internal static string MessageBox_UnableToLocateIssue {
@@ -200,6 +191,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         internal static string ValidationReason_StandaloneMode {
             get {
                 return ResourceManager.GetString("ValidationReason_StandaloneMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid issue format.
+        /// </summary>
+        internal static string ValidationReason_UnableToConvertIssue {
+            get {
+                return ResourceManager.GetString("ValidationReason_UnableToConvertIssue", resourceCulture);
             }
         }
     }

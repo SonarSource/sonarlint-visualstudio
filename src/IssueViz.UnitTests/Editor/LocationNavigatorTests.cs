@@ -305,14 +305,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         private void VerifyExceptionCaughtAndLogged(Exception setupException,
-            IAnalysisIssueLocationVisualization location, NavigationResult expectedResult)
-        {
-            NavigationResult result = default;
-            Action act = () => result = testSubject.TryNavigatePartial(location);
-            act.Should().NotThrow();
-
-            result.Should().Be(expectedResult);
-
+            IAnalysisIssueLocationVisualization location, 
+            NavigationResult expectedResult)
+        { 
+            testSubject.TryNavigatePartial(location).Should().Be(expectedResult);
             logger.AssertPartialOutputStringExists(setupException.Message);
         }
 

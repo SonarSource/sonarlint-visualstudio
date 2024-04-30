@@ -28,8 +28,7 @@ internal interface IOpenInIdeMessageBox
 {
     void UnableToLocateIssue(string filePath);
     void UnableToOpenFile(string filePath);
-    void UnableToConvertIssue();
-    void InvalidConfiguration(string reason);
+    void InvalidRequest(string reason);
 }
 
 [Export(typeof(IOpenInIdeMessageBox))]
@@ -49,11 +48,8 @@ internal class OpenInIdeMessageBox : IOpenInIdeMessageBox
 
     public void UnableToOpenFile(string filePath) => 
         Show(string.Format(OpenInIdeResources.MessageBox_UnableToOpenFile, filePath));
-
-    public void UnableToConvertIssue() => 
-        Show(OpenInIdeResources.MessageBox_UnableToConvertIssue);
     
-    public void InvalidConfiguration(string reason) => 
+    public void InvalidRequest(string reason) => 
         Show(string.Format(OpenInIdeResources.MessageBox_InvalidConfiguration, reason));
 
     private void Show(string message) =>

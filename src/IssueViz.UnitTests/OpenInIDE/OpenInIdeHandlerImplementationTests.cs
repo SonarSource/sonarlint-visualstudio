@@ -60,7 +60,7 @@ public class OpenInIdeHandlerImplementationTests
     }
     
     [TestMethod]
-    public void ShowIssue_()
+    public void ShowIssue_BringsIdeToFrontAndRunsOnBackgroundThread()
     {
         var issue = CreateDummyIssue();
         const string configurationScope = "scope";
@@ -96,7 +96,7 @@ public class OpenInIdeHandlerImplementationTests
         
         configScopeValidator.Received().TryGetConfigurationScopeRoot(configurationScope, out _, out _);
         converter.DidNotReceiveWithAnyArgs().TryConvert<IOpenInIdeIssue>(default, default, default, out _);
-        messageBox.Received().InvalidConfiguration(failureReason);
+        messageBox.Received().InvalidRequest(failureReason);
         toolWindowService.DidNotReceiveWithAnyArgs().Show(default);
         visualizationProcessor.DidNotReceiveWithAnyArgs().HandleConvertedIssue(default);
         issueSelectionService.DidNotReceiveWithAnyArgs().SelectedIssue = default;
@@ -119,7 +119,7 @@ public class OpenInIdeHandlerImplementationTests
         testSubject.ShowIssue(issue, configurationScope, dtoConverter, default, visualizationProcessor);
         
         converter.Received().TryConvert(issue, configurationScopeRoot, dtoConverter, out Arg.Any<IAnalysisIssueVisualization>());
-        messageBox.Received().UnableToConvertIssue();
+        messageBox.Received().InvalidRequest(OpenInIdeResources.ValidationReason_UnableToConvertIssue);
         toolWindowService.DidNotReceiveWithAnyArgs().Show(default);
         visualizationProcessor.DidNotReceiveWithAnyArgs().HandleConvertedIssue(default);
         issueSelectionService.DidNotReceiveWithAnyArgs().SelectedIssue = default;
