@@ -18,9 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
 public record LanguageSpecificRequirements(string clientNodeJsPath)
 {
+    [ExcludeFromCodeCoverage]
     private object omnisharpRequirements => null; // org.sonarsource.sonarlint.core.rpc.protocol.backend.initialize.OmnisharpRequirementsDto
 }
