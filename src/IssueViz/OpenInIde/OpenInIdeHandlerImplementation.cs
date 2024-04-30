@@ -148,7 +148,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
                 messageBox.UnableToLocateIssue(visualization.CurrentFilePath);
                 return;
             default:
-                throw new ArgumentOutOfRangeException(nameof(navigationResult), "Invalid navigation result");
+                throw new ArgumentOutOfRangeException(nameof(navigationResult), OpenInIdeResources.Exception_InvalidNavigationResult);
         }
     }
 }

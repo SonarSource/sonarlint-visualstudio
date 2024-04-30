@@ -162,4 +162,7 @@
   <data name="ValidationReason_FilePathRootNotSet" xml:space="preserve">
     <value>Internal filesystem configuration failure</value>
   </data>
+  <data name="Exception_InvalidNavigationResult" xml:space="preserve">
+    <value>Invalid navigation result</value>
+  </data>
 </root>

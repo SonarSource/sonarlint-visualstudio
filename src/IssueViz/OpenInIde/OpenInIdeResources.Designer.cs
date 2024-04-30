@@ -78,6 +78,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid navigation result.
+        /// </summary>
+        internal static string Exception_InvalidNavigationResult {
+            get {
+                return ResourceManager.GetString("Exception_InvalidNavigationResult", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Open in IDE] Could not find the location at File: {0}, Start Line: {1}, Start Position: {2}.
         /// </summary>
         internal static string IssueLocationNotFound {
