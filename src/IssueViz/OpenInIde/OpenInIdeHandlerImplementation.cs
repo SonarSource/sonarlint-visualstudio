@@ -44,7 +44,6 @@ public interface IOpenInIdeHandlerImplementation
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
 {
-    private readonly IEducation education;
     private readonly IIDEWindowService ideWindowService;
     private readonly IToolWindowService toolWindowService;
     private readonly IOpenInIdeMessageBox messageBox;
@@ -63,13 +62,11 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         IIDEWindowService ideWindowService,
         ILocationNavigator navigator,
         IIssueSelectionService issueSelectionService,
-        IEducation education,
         ILogger logger,
         IThreadHandling thereHandling)
     {
         this.ideWindowService = ideWindowService;
         this.navigator = navigator;
-        this.education = education;
         this.toolWindowService = toolWindowService;
         this.messageBox = messageBox;
         this.issueSelectionService = issueSelectionService;
@@ -127,21 +124,11 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
     {
         if (navigationResult == NavigationResult.OpenedLocation)
         {
-            HandleSuccessfulNavigation(toolWindowId, visualization);
+            toolWindowService.Show(toolWindowId);
         }
         else
         {
             HandleIncompleteNavigation(toolWindowId, visualization, navigationResult);
-        }
-    }
-
-    private void HandleSuccessfulNavigation(Guid toolWindowId, IAnalysisIssueVisualization visualization)
-    {
-        toolWindowService.Show(toolWindowId);
-        
-        if (SonarCompositeRuleId.TryParse(visualization.Issue.RuleKey, out var ruleId))
-        {
-            education.ShowRuleHelp(ruleId, visualization.Issue.RuleDescriptionContextKey);
         }
     }
 
