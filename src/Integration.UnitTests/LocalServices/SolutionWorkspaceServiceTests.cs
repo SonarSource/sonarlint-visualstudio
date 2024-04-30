@@ -55,7 +55,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             var serviceProvider = Substitute.For<IServiceProvider>();
 
-            var testSubject = new SolutionWorkspaceService(solutionInfoProvider, serviceProvider);
+            var threadHandler = new NoOpThreadHandler();
+
+            var testSubject = new SolutionWorkspaceService(solutionInfoProvider, serviceProvider, threadHandler);
 
             var result = testSubject.IsSolutionWorkSpace();
 
