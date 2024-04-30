@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -48,7 +48,6 @@ public class ActiveConfigScopeTrackerTests
         MefTestHelpers.CheckIsSingletonMefComponent<ActiveConfigScopeTracker>();
     }
 
-
     [TestMethod]
     public void SetCurrentConfigScope_SetsUnboundScope()
     {
@@ -60,12 +59,48 @@ public class ActiveConfigScopeTrackerTests
 
         testSubject.SetCurrentConfigScope(configScopeId);
 
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScopeDto(configScopeId, configScopeId, true, null));
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId));
         VerifyThreadHandling(threadHandling);
         VerifyServiceAddCall(configScopeService, testSubject);
         VerifyLockTakenSynchronouslyAndReleased(asyncLock, lockRelease);
     }
-    
+
+    [TestMethod]
+    public void TryUpdateRootOnCurrentConfigScope_ConfigScopeSame_Updates()
+    {
+        const string configScopeId = "myid";
+        var threadHandling = new Mock<IThreadHandling>();
+        ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
+        ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
+        var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
+
+        testSubject.SetCurrentConfigScope(configScopeId);
+
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId));
+
+        var result = testSubject.TryUpdateRootOnCurrentConfigScope(configScopeId, "Some Root");
+        result.Should().BeTrue();
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, RootPath: "Some Root"));
+    }
+
+    [TestMethod]
+    public void TryUpdateRootOnCurrentConfigScope_ConfigScopeDifferent_DoesNotUpdate()
+    {
+        const string configScopeId = "myid";
+        var threadHandling = new Mock<IThreadHandling>();
+        ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
+        ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
+        var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
+
+        testSubject.SetCurrentConfigScope(configScopeId);
+
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId));
+
+        var result = testSubject.TryUpdateRootOnCurrentConfigScope("some other Id", "Some Root");
+        result.Should().BeFalse();
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId));
+    }
+
     [TestMethod]
     public void SetCurrentConfigScope_SetsBoundScope()
     {
@@ -79,12 +114,12 @@ public class ActiveConfigScopeTrackerTests
 
         testSubject.SetCurrentConfigScope(configScopeId, connectionId, sonarProjectKey);
 
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScopeDto(configScopeId, configScopeId, true, new BindingConfigurationDto(connectionId, sonarProjectKey)));
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey));
         VerifyThreadHandling(threadHandling);
         VerifyServiceAddCall(configScopeService, testSubject);
         VerifyLockTakenSynchronouslyAndReleased(asyncLock, lockRelease);
     }
-    
+
     [TestMethod]
     public void SetCurrentConfigScope_CurrentScopeExists_UpdatesBoundScope()
     {
@@ -95,12 +130,12 @@ public class ActiveConfigScopeTrackerTests
         ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
         ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
         var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
-        var existingConfigScope = new ConfigurationScopeDto(configScopeId, configScopeId, true, null);
+        var existingConfigScope = new ConfigurationScope(configScopeId);
         testSubject.currentConfigScope = existingConfigScope;
 
         testSubject.SetCurrentConfigScope(configScopeId, connectionId, sonarProjectKey);
 
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScopeDto(configScopeId, configScopeId, true, new BindingConfigurationDto(connectionId, sonarProjectKey)));
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey));
         testSubject.currentConfigScope.Should().NotBeSameAs(existingConfigScope);
         VerifyThreadHandling(threadHandling);
         VerifyServiceUpdateCall(configScopeService, testSubject);
@@ -128,15 +163,15 @@ public class ActiveConfigScopeTrackerTests
         ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
         ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
         var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
-        testSubject.currentConfigScope = new ConfigurationScopeDto(configScopeId, configScopeId, true, null);
-        
+        testSubject.currentConfigScope = new ConfigurationScope(configScopeId);
+
         testSubject.RemoveCurrentConfigScope();
-        
+
         configScopeService.Verify(x => x.DidRemoveConfigurationScope(It.Is<DidRemoveConfigurationScopeParams>(p => p.removeId == configScopeId)));
         VerifyThreadHandling(threadHandling);
         VerifyLockTakenSynchronouslyAndReleased(asyncLock, lockRelease);
     }
-    
+
     [TestMethod]
     public void RemoveCurrentConfigScope_NoCurrentScope_DoesNothing()
     {
@@ -144,28 +179,28 @@ public class ActiveConfigScopeTrackerTests
         ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
         ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
         var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
-        
+
         testSubject.RemoveCurrentConfigScope();
-        
+
         configScopeService.VerifyNoOtherCalls();
         VerifyThreadHandling(threadHandling);
         VerifyLockTakenSynchronouslyAndReleased(asyncLock, lockRelease);
     }
-    
+
     [TestMethod]
     public void RemoveCurrentConfigScope_ServiceUnavailable_Throws()
     {
         var threadHandling = new Mock<IThreadHandling>();
         ConfigureAsyncLockFactory(out var lockFactory, out _, out _);
         var testSubject = CreateTestSubject(Mock.Of<ISLCoreServiceProvider>(), threadHandling.Object, lockFactory.Object);
-        testSubject.currentConfigScope = new ConfigurationScopeDto(default, default, default, default);
+        testSubject.currentConfigScope = new ConfigurationScope("some Id", default, default, default);
 
         var act = () => testSubject.RemoveCurrentConfigScope();
 
         act.Should().ThrowExactly<InvalidOperationException>().WithMessage(SLCoreStrings.ServiceProviderNotInitialized);
         VerifyThreadHandling(threadHandling);
     }
-    
+
     [TestMethod]
     public void GetCurrent_ReturnsUnboundScope()
     {
@@ -174,7 +209,7 @@ public class ActiveConfigScopeTrackerTests
         ConfigureServiceProvider(out var serviceProvider, out _);
         ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
         var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
-        testSubject.currentConfigScope = new ConfigurationScopeDto(configScopeId, configScopeId, true, null);
+        testSubject.currentConfigScope = new ConfigurationScope(configScopeId);
 
         var currentScope = testSubject.Current;
 
@@ -182,7 +217,7 @@ public class ActiveConfigScopeTrackerTests
         VerifyThreadHandling(threadHandling);
         VerifyLockTakenSynchronouslyAndReleased(asyncLock, lockRelease);
     }
-    
+
     [TestMethod]
     public void GetCurrent_ReturnsBoundScope()
     {
@@ -193,7 +228,7 @@ public class ActiveConfigScopeTrackerTests
         ConfigureServiceProvider(out var serviceProvider, out _);
         ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
         var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
-        testSubject.currentConfigScope = new ConfigurationScopeDto(configScopeId, configScopeId, true, new BindingConfigurationDto(connectionId, sonarProjectKey));
+        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey);
 
         var currentScope = testSubject.Current;
 
@@ -202,7 +237,7 @@ public class ActiveConfigScopeTrackerTests
         VerifyThreadHandling(threadHandling);
         VerifyLockTakenSynchronouslyAndReleased(asyncLock, lockRelease);
     }
-    
+
     [TestMethod]
     public void Reset_SetsCurrentScopeToNull()
     {
@@ -213,7 +248,7 @@ public class ActiveConfigScopeTrackerTests
         ConfigureServiceProvider(out var serviceProvider, out _);
         ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
         var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
-        testSubject.currentConfigScope = new ConfigurationScopeDto(configScopeId, configScopeId, true, new BindingConfigurationDto(connectionId, sonarProjectKey));
+        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, configScopeId, connectionId, sonarProjectKey);
 
         testSubject.Reset();
 
@@ -222,19 +257,19 @@ public class ActiveConfigScopeTrackerTests
         VerifyThreadHandling(threadHandling);
         VerifyLockTakenSynchronouslyAndReleased(asyncLock, lockRelease);
     }
-    
+
     [TestMethod]
     public void Dispose_DisposesLock()
     {
         ConfigureServiceProvider(out var serviceProvider, out _);
         ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out _);
-        
+
         var testSubject = CreateTestSubject(serviceProvider.Object, Mock.Of<IThreadHandling>(), lockFactory.Object);
-        
+
         testSubject.Dispose();
         asyncLock.Verify(x => x.Dispose());
     }
-    
+
     private static void VerifyThreadHandling(Mock<IThreadHandling> threadHandling)
     {
         threadHandling.Verify(x => x.ThrowIfOnUIThread());
@@ -243,10 +278,14 @@ public class ActiveConfigScopeTrackerTests
 
     private static void VerifyServiceAddCall(Mock<IConfigurationScopeSLCoreService> configScopeService, ActiveConfigScopeTracker testSubject)
     {
+        var currentConfigScopeDto = new ConfigurationScopeDto(testSubject.currentConfigScope.Id,
+            testSubject.currentConfigScope.Id,
+            true,
+            testSubject.currentConfigScope.ConnectionId is not null ? new BindingConfigurationDto(testSubject.currentConfigScope.ConnectionId, testSubject.currentConfigScope.SonarProjectId) : null);
         configScopeService
             .Verify(x =>
                     x.DidAddConfigurationScopes(It.Is<DidAddConfigurationScopesParams>(p =>
-                        p.addedScopes.SequenceEqual(new[] { testSubject.currentConfigScope }))),
+                        p.addedScopes.SequenceEqual(new[] { currentConfigScopeDto }, new ConfigurationScopeDtoComparer()))),
                 Times.Once);
         configScopeService.VerifyNoOtherCalls();
     }
@@ -256,7 +295,7 @@ public class ActiveConfigScopeTrackerTests
     {
         configScopeService
             .Verify(x => x.DidUpdateBinding(It.Is<DidUpdateBindingParams>(p =>
-                p.configScopeId == testSubject.currentConfigScope.id && p.updatedBinding == testSubject.currentConfigScope.binding)), Times.Once);
+                p.configScopeId == testSubject.currentConfigScope.Id && new BindingConfigurationDtoComparer().Equals(p.updatedBinding, new BindingConfigurationDto(testSubject.currentConfigScope.ConnectionId, testSubject.currentConfigScope.SonarProjectId, true)))), Times.Once);
         configScopeService.VerifyNoOtherCalls();
     }
 
@@ -264,7 +303,7 @@ public class ActiveConfigScopeTrackerTests
     {
         asyncLock.Verify(x => x.Acquire(), Times.Once);
         lockRelease.Verify(x => x.Dispose(), Times.Once);
-    }    
+    }
 
     private static void ConfigureAsyncLockFactory(out Mock<IAsyncLockFactory> asyncLockFactory,
         out Mock<IAsyncLock> asyncLock, out Mock<IReleaseAsyncLock> asyncLockRelease)
@@ -291,5 +330,37 @@ public class ActiveConfigScopeTrackerTests
         IAsyncLockFactory asyncLockFactory)
     {
         return new ActiveConfigScopeTracker(slCoreServiceProvider, asyncLockFactory, threadHandling);
+    }
+
+    private class ConfigurationScopeDtoComparer : IEqualityComparer<ConfigurationScopeDto>
+    {
+        public bool Equals(ConfigurationScopeDto x, ConfigurationScopeDto y)
+        {
+            if (x is null && y is null) { return true; }
+            if (x is null || y is null) { return false; }
+
+            return x.id == y.id && x.name == y.name && x.bindable == y.bindable && new BindingConfigurationDtoComparer().Equals(x.binding, y.binding);
+        }
+
+        public int GetHashCode(ConfigurationScopeDto obj)
+        {
+            return 0;
+        }
+    }
+
+    private class BindingConfigurationDtoComparer : IEqualityComparer<BindingConfigurationDto>
+    {
+        public bool Equals(BindingConfigurationDto x, BindingConfigurationDto y)
+        {
+            if (x is null && y is null) { return true; }
+            if (x is null || y is null) { return false; }
+
+            return x.connectionId == y.connectionId && x.sonarProjectKey == y.sonarProjectKey && x.bindingSuggestionDisabled == y.bindingSuggestionDisabled;
+        }
+
+        public int GetHashCode(BindingConfigurationDto obj)
+        {
+            return 0;
+        }
     }
 }
