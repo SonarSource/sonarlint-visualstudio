@@ -41,7 +41,7 @@ public class SLCoreInstanceHandleTests
     private const string WorkDir = "workDirSl";
     private const string UserHome = "userHomeSl";
     
-    private static readonly ClientConstantsDto ClientConstants = new(default, default);
+    private static readonly ClientConstantsDto ClientConstants = new(default, default, default);
     private static readonly FeatureFlagsDto FeatureFlags = new(default, default, default, default, default, default, default, default);
     private static readonly TelemetryClientConstantAttributesDto TelemetryConstants = new(default, default, default, default, default);
 
@@ -118,7 +118,7 @@ public class SLCoreInstanceHandleTests
                 && parameters.standaloneRuleConfigByKey.Count == 0
                 && !parameters.isFocusOnNewCode
                 && parameters.telemetryConstantAttributes == TelemetryConstants
-                && parameters.clientNodeJsPath == null));
+                && parameters.languageSpecificRequirements.clientNodeJsPath == null));
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(Binding);
         });
     }

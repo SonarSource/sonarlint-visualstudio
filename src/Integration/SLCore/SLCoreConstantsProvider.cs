@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
@@ -49,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
             );
         }
 
-        public ClientConstantsDto ClientConstants => new ClientConstantsDto(ideName.Value, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}");
+        public ClientConstantsDto ClientConstants => new ClientConstantsDto(ideName.Value, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
 
         public FeatureFlagsDto FeatureFlags => new FeatureFlagsDto(true, true, false, true, false, false, true, false);
 
