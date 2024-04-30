@@ -35,7 +35,7 @@ public class InitializeParamsTests
     public void Serialize_AsExpected()
     {
         var testSubject = new InitializeParams(
-            new ClientConstantsDto("TESTname", "TESTagent"),
+            new ClientConstantsDto("TESTname", "TESTagent", 11223344),
             new HttpConfigurationDto(new SslConfigurationDto()),
             new FeatureFlagsDto(false, true, false, true, false, true, false, false),
             "storageRoot",
@@ -61,7 +61,8 @@ public class InitializeParamsTests
                                 {
                                   "clientConstantInfo": {
                                     "name": "TESTname",
-                                    "userAgent": "TESTagent"
+                                    "userAgent": "TESTagent",
+                                    "pid": 11223344
                                   },
                                   "httpConfiguration": {
                                     "sslConfiguration": {}

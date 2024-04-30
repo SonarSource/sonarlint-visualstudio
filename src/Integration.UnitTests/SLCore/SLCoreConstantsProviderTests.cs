@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -70,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
             const string ideName = "MyIde";
             SetupIdeName(ideName);
             
-            var expectedClientConstants = new ClientConstantsDto(ideName, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}");
+            var expectedClientConstants = new ClientConstantsDto(ideName, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
             var result = testSubject.ClientConstants;
 
             result.Should().BeEquivalentTo(expectedClientConstants);
