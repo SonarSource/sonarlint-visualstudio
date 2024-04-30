@@ -61,7 +61,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
     private readonly IThreadHandling threadHandling;
     private readonly IAsyncLock asyncLock;
 
-    internal /* for testing */ ConfigurationScopeDto currentConfigScope;
+    internal /* for testing */ ConfigurationScope currentConfigScope;
 
     [ImportingConstructor]
     public ActiveConfigScopeTracker(ISLCoreServiceProvider serviceProvider,
@@ -80,11 +80,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             threadHandling.ThrowIfOnUIThread();
 
             using (asyncLock.Acquire())
-                return currentConfigScope is not null
-                    ? new ConfigurationScope(currentConfigScope.id,
-                        currentConfigScope.binding?.connectionId,
-                        currentConfigScope.binding?.sonarProjectKey)
-                    : null;
+                return currentConfigScope;
         }
     }
 
@@ -104,9 +100,9 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 
         using (asyncLock.Acquire())
         {
-            Debug.Assert(currentConfigScope == null || currentConfigScope.id == id, "Config scope conflict");
+            Debug.Assert(currentConfigScope == null || currentConfigScope.Id == id, "Config scope conflict");
 
-            if (currentConfigScope?.id == id)
+            if (currentConfigScope?.Id == id)
             {
                 configurationScopeService.DidUpdateBinding(new DidUpdateBindingParams(id, configurationScopeDto.binding));
             }
@@ -115,7 +111,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
                 configurationScopeService.DidAddConfigurationScopes(
                     new DidAddConfigurationScopesParams(new List<ConfigurationScopeDto> { configurationScopeDto }));
             }
-            currentConfigScope = configurationScopeDto;
+            currentConfigScope = new ConfigurationScope(configurationScopeDto.id, configurationScopeDto.binding?.connectionId, configurationScopeDto.binding?.sonarProjectKey);
         }
     }
 
@@ -146,7 +142,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             }
 
             configurationScopeService.DidRemoveConfigurationScope(
-                new DidRemoveConfigurationScopeParams(currentConfigScope.id));
+                new DidRemoveConfigurationScopeParams(currentConfigScope.Id));
             currentConfigScope = null;
         }
     }
@@ -158,7 +154,15 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 
     public bool TryUpdateRootOnCurrentConfigScope(string id, string root)
     {
-        //will be implemented in seperate PR
-        throw new NotImplementedException();
+        using (asyncLock.Acquire())
+        {
+            if (id is null || currentConfigScope?.Id != id)
+            {
+                return false;
+            }
+
+            currentConfigScope = currentConfigScope with { RootPath = root };
+            return true;
+        }
     }
 }
