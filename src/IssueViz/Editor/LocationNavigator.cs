@@ -31,13 +31,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
     {
         Failed,
         OpenedFile,
-        OpenedIssue
+        OpenedLocation
     }
     
     public interface ILocationNavigator
     {
         NavigationResult TryNavigatePartial(IAnalysisIssueLocationVisualization locationVisualization);
-        bool TryNavigate(IAnalysisIssueLocationVisualization locationVisualization);
     }
 
     [Export(typeof(ILocationNavigator))]
@@ -55,11 +54,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             this.spanCalculator = spanCalculator;
             this.logger = logger;
         }
-        
-        public bool TryNavigate(IAnalysisIssueLocationVisualization locationVisualization)
-        {
-            return TryNavigatePartial(locationVisualization) == NavigationResult.OpenedIssue;
-        }
 
         public NavigationResult TryNavigatePartial(IAnalysisIssueLocationVisualization locationVisualization)
         {
@@ -74,7 +68,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             }
 
             return TryNavigateIssueLocation(locationVisualization, textView) 
-                ? NavigationResult.OpenedIssue 
+                ? NavigationResult.OpenedLocation 
                 : NavigationResult.OpenedFile;
         }
 

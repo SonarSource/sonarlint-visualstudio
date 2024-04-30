@@ -291,7 +291,7 @@ public class OpenInIdeHandlerImplementationTests
     private static void SetUpNavigableIssue(ILocationNavigator navigator,
         IAnalysisIssueVisualization analysisIssueVisualization)
     {
-        navigator.TryNavigatePartial(analysisIssueVisualization).Returns(NavigationResult.OpenedIssue);
+        navigator.TryNavigatePartial(analysisIssueVisualization).Returns(NavigationResult.OpenedLocation);
     }
 
     private static void SetUpIssueRuleInfo(IAnalysisIssueVisualization analysisIssueVisualization, string ruleKey, string ruleContext)

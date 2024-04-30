@@ -118,13 +118,14 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         issueSelectionService.SelectedIssue = visualization;
         
         var navigationResult = navigator.TryNavigatePartial(visualization);
-        HandleNavigationResult(toolWindowId, navigationResult, visualization);
+        HandleNavigationResult(navigationResult, toolWindowId, visualization);
     }
 
-    private void HandleNavigationResult(Guid toolWindowId, NavigationResult navigationResult,
+    private void HandleNavigationResult(NavigationResult navigationResult,
+        Guid toolWindowId,
         IAnalysisIssueVisualization visualization)
     {
-        if (navigationResult == NavigationResult.OpenedIssue)
+        if (navigationResult == NavigationResult.OpenedLocation)
         {
             HandleSuccessfulNavigation(toolWindowId, visualization);
         }
