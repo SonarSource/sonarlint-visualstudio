@@ -68,9 +68,9 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
             return Task.FromResult(new ListFilesResponse(clientFileDtos));
         }
 
-        private static Uri CreateUri(string fp)
+        private static string CreateUri(string fp)
         {
-            return new Uri("file://" + Convert.ToBase64String(Encoding.UTF8.GetBytes(fp)));
+            return "file://" + Convert.ToBase64String(Encoding.UTF8.GetBytes(fp));
         }
 
         private string GetRelativePath(string root, string fullPath)
