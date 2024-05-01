@@ -50,7 +50,7 @@ public class OpenInIdeMessageBoxTests
         var filePath = "file/path";
         new OpenInIdeMessageBox(messageBox).UnableToLocateIssue(filePath);
         
-        VerifyMessageBox(messageBox, string.Format(OpenInIdeResources.MessageBox_UnableToLocateIssue, filePath));
+        VerifyMessageBox(messageBox, $"Could not locate issue. Ensure the file ({filePath}) has not been modified");
     }
     
     [TestMethod]
@@ -60,17 +60,18 @@ public class OpenInIdeMessageBoxTests
         var filePath = "file/path";
         new OpenInIdeMessageBox(messageBox).UnableToOpenFile(filePath);
         
-        VerifyMessageBox(messageBox, string.Format(OpenInIdeResources.MessageBox_UnableToOpenFile, filePath));
+        VerifyMessageBox(messageBox, $"Could not open File: {filePath}");
     }
     
     [TestMethod]
     public void InvalidConfiguration_ShowsMessageBox()
     {
         var messageBox = Substitute.For<IMessageBox>();
-        var reason = "reason";
+        var reason = "reason 123";
         new OpenInIdeMessageBox(messageBox).InvalidRequest(reason);
         
         VerifyMessageBox(messageBox, string.Format(OpenInIdeResources.MessageBox_InvalidConfiguration, reason));
+        VerifyMessageBox(messageBox, $"Unable to process Open in IDE request. Reason: {reason}");
     }
 
     private void VerifyMessageBox(IMessageBox messageBox, string message) =>
