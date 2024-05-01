@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration
         public bool IsSolutionWorkSpace() => !solutionInfoProvider.IsFolderWorkspace();
 
         [ExcludeFromCodeCoverage]
-        public IEnumerable<string> ListFiles()
+        public ICollection<string> ListFiles()
         {
             if (!IsSolutionWorkSpace()) { return Array.Empty<string>(); }
 
@@ -65,17 +65,18 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         [ExcludeFromCodeCoverage]
-        private IEnumerable<string> GetAllFilesInSolution(IVsSolution solution)
+        private ICollection<string> GetAllFilesInSolution(IVsSolution solution)
         {
-            IEnumerable<string> result = null;
+            ICollection<string> result = null;
             threadHandling.RunOnUIThread(() => result = GetLoadedProjects(solution)
                 .SelectMany(AllItemsInProject)
                 .Where(x => x != null)
                 .Where(x => x.Contains("\\"))
                 .Where(x => !x.EndsWith("\\"))
                 .Where(x => !x.Contains("\\.nuget\\"))
-                .Where(x => !x.Contains("\\node_modules\\"))); // move filtering closer to path extraction to avoid processing unnecessary items)
-
+                .Where(x => !x.Contains("\\node_modules\\"))
+                .ToHashSet(StringComparer.InvariantCultureIgnoreCase)); // move filtering closer to path extraction to avoid processing unnecessary items)
+            
             return result;
         }
 

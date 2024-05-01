@@ -50,7 +50,7 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
         return new ServerIssue(
             issueDetailDto.ruleKey,
             new AnalysisIssueLocation(issueDetailDto.message,
-                Path.Combine(rootPath, issueDetailDto.ideFilePath),
+                Path.Combine(rootPath, issueDetailDto.ideFilePath),  //todo path combine with disk root does not provide correct filepath + ideFilePath we get from the server is wrong
                 new TextRange(issueDetailDto.textRange.startLine,
                     issueDetailDto.textRange.endLine,
                     issueDetailDto.textRange.startLineOffset,

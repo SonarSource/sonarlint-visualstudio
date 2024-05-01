@@ -25,13 +25,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Files;
 using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
-    [Export(typeof(IListFilesListener))]
+    [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class ListFilesListener : IListFilesListener
     {
@@ -60,11 +61,16 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
                     var root = GetRoot(fullFilePathList.First());
                     if (activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, root))
                     {
-                        clientFileDtos.AddRange(fullFilePathList.Select(fp => new ClientFileDto(new Uri(fp), GetRelativePath(root, fp), parameters.configScopeId, null, Encoding.UTF8.WebName, fp)));
+                        clientFileDtos.AddRange(fullFilePathList.Select(fp => new ClientFileDto(CreateUri(fp), GetRelativePath(root, fp), parameters.configScopeId, null, Encoding.UTF8.WebName, fp)));
                     }
                 }
             }
             return Task.FromResult(new ListFilesResponse(clientFileDtos));
+        }
+
+        private static Uri CreateUri(string fp)
+        {
+            return new Uri("file://" + Convert.ToBase64String(Encoding.UTF8.GetBytes(fp)));
         }
 
         private string GetRelativePath(string root, string fullPath)

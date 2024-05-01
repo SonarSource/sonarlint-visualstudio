@@ -92,12 +92,13 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
     private void ShowIssueInternal<T>(T issueDetails, string issueConfigurationScope, IOpenInIdeIssueToAnalysisIssueConverter<T> converter, Guid toolWindowId, IOpenInIdeVisualizationProcessor visualizationProcessor) where T : IOpenInIdeIssue
     {
         logger.WriteLine(OpenInIdeResources.ProcessingRequest, issueConfigurationScope,
-            issueDetails.Key, issueDetails.Type);
+            issueDetails?.Key, issueDetails?.Type);
 
         ideWindowService.BringToFront();
 
-        if (!ValidateConfiguration(issueConfigurationScope, out var configurationScopeRoot, out var failureReason)
-            || !ValidateOpenInIdeIssue(issueDetails, converter, configurationScopeRoot, out var visualization, out failureReason))
+        if (!ValidateIssueNotNull(issueDetails, out var failureReason)
+            || !ValidateConfiguration(issueConfigurationScope, out var configurationScopeRoot, out failureReason)
+            || !ValidateIssueIsConvertible(issueDetails, converter, configurationScopeRoot, out var visualization, out failureReason))
         {
             messageBox.InvalidRequest(failureReason);
             return;
@@ -108,9 +109,30 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
             visualization = visualizationProcessor.HandleConvertedIssue(visualization) ;
         }
         issueSelectionService.SelectedIssue = visualization;
-        
+
         var navigationResult = navigator.TryNavigatePartial(visualization);
-        HandleNavigationResult(navigationResult, toolWindowId, visualization);
+        if (navigationResult != NavigationResult.OpenedLocation)
+        {
+            HandleIncompleteNavigation(toolWindowId, visualization, navigationResult);
+        }
+        else
+        {
+            logger.WriteLine(string.Format(OpenInIdeResources.DoneProcessingRequest, issueDetails?.Key));
+        }
+    }
+
+    private bool ValidateIssueNotNull<T>(T issueDetails, out string failureReason) where T : IOpenInIdeIssue
+    {
+        failureReason = default;
+
+        if (issueDetails is { Key: not null })
+        {
+            return true;
+        }
+
+        failureReason = OpenInIdeResources.ValidationReason_MalformedRequest;
+        return false;
+
     }
 
     private bool ValidateConfiguration(string issueConfigurationScope, out string configurationScopeRoot, out string failureReason)
@@ -118,7 +140,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         return openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out configurationScopeRoot, out failureReason);
     }
 
-    private bool ValidateOpenInIdeIssue<T>(T issueDetails,
+    private bool ValidateIssueIsConvertible<T>(T issueDetails,
         IOpenInIdeIssueToAnalysisIssueConverter<T> converter,
         string configurationScopeRoot,
         out IAnalysisIssueVisualization visualization,
@@ -133,21 +155,6 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
 
         failureReason = OpenInIdeResources.ValidationReason_UnableToConvertIssue;
         return false;
-
-    }
-
-    private void HandleNavigationResult(NavigationResult navigationResult,
-        Guid toolWindowId,
-        IAnalysisIssueVisualization visualization)
-    {
-        if (navigationResult == NavigationResult.OpenedLocation)
-        {
-            toolWindowService.Show(toolWindowId);
-        }
-        else
-        {
-            HandleIncompleteNavigation(toolWindowId, visualization, navigationResult);
-        }
     }
 
     private void HandleIncompleteNavigation(Guid toolWindowId, IAnalysisIssueVisualization visualization,
