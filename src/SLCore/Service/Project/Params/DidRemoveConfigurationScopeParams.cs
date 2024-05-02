@@ -24,11 +24,11 @@ namespace SonarLint.VisualStudio.SLCore.Service.Project.Params;
 
 public class DidRemoveConfigurationScopeParams
 {
-    public string removeId { get; }
+    public string removedId { get; }
 
     [ExcludeFromCodeCoverage]
-    public DidRemoveConfigurationScopeParams(string removeId)
+    public DidRemoveConfigurationScopeParams(string removedId)
     {
-        this.removeId = removeId;
+        this.removedId = removedId;
     }
 }
