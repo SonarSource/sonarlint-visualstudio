@@ -18,11 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.IssueVisualization.Models;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
+namespace SonarLint.VisualStudio.Core.UnitTests;
 
-public interface IOpenInIdeVisualizationProcessor
+[TestClass]
+public class MessageBoxTests
 {
-    IAnalysisIssueVisualization HandleConvertedIssue(IAnalysisIssueVisualization visualization);
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
+    {
+        MefTestHelpers.CheckTypeCanBeImported<MessageBox, IMessageBox>();
+    }
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton()
+    {
+        MefTestHelpers.CheckIsSingletonMefComponent<MessageBox>();
+    }
 }

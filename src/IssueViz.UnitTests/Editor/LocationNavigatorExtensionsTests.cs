@@ -18,11 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor;
 
-public interface IOpenInIdeVisualizationProcessor
+[TestClass]
+public class LocationNavigatorExtensionsTests
 {
-    IAnalysisIssueVisualization HandleConvertedIssue(IAnalysisIssueVisualization visualization);
+    [DataTestMethod]
+    [DataRow(NavigationResult.Failed, false)]
+    [DataRow(NavigationResult.OpenedFile, false)]
+    [DataRow(NavigationResult.OpenedLocation, true)]
+    public void TryNavigate_ReturnsValueFromNavigator(NavigationResult navigationResult, bool expectedResult)
+    {
+        var location = Substitute.For<IAnalysisIssueLocationVisualization>();
+        var locationNavigator = Substitute.For<ILocationNavigator>();
+        locationNavigator.TryNavigatePartial(location).Returns(navigationResult);
+
+        LocationNavigatorExtensions.TryNavigate(locationNavigator, location).Should().Be(expectedResult);
+    }
 }

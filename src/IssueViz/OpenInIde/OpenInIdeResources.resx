@@ -138,4 +138,31 @@
   <data name="IssueLocationNotFound" xml:space="preserve">
     <value>[Open in IDE] Could not find the location at File: {0}, Start Line: {1}, Start Position: {2}</value>
   </data>
+  <data name="MessageBox_UnableToLocateIssue" xml:space="preserve">
+    <value>Could not locate issue. Ensure the file ({0}) has not been modified</value>
+  </data>
+  <data name="MessageBox_UnableToOpenFile" xml:space="preserve">
+    <value>Could not open File: {0}</value>
+  </data>
+  <data name="ValidationReason_UnableToConvertIssue" xml:space="preserve">
+    <value>Invalid issue format</value>
+  </data>
+  <data name="MessageBox_InvalidConfiguration" xml:space="preserve">
+    <value>Unable to process Open in IDE request. Reason: {0}</value>
+  </data>
+  <data name="MessageBox_Caption" xml:space="preserve">
+    <value>SonarLint Open in IDE</value>
+  </data>
+  <data name="ValidationReason_ConfigurationMismatch" xml:space="preserve">
+    <value>Internal configuration mismatch</value>
+  </data>
+  <data name="ValidationReason_StandaloneMode" xml:space="preserve">
+    <value>Connected Mode has not been set up</value>
+  </data>
+  <data name="ValidationReason_FilePathRootNotSet" xml:space="preserve">
+    <value>Internal filesystem configuration failure</value>
+  </data>
+  <data name="Exception_InvalidNavigationResult" xml:space="preserve">
+    <value>Invalid navigation result</value>
+  </data>
 </root>

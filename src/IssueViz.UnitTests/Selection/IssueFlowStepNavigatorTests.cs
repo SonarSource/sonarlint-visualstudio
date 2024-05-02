@@ -275,7 +275,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
                 locationViz.Setup(x => x.Span).Returns(new SnapshotSpan());
             }
 
-            locationNavigatorMock.Setup(x => x.TryNavigate(locationViz.Object)).Returns(isTrulyNavigable);
+            locationNavigatorMock.Setup(x => x.TryNavigatePartial(locationViz.Object)).Returns(isTrulyNavigable ? NavigationResult.OpenedLocation : NavigationResult.Failed);
 
             return locationViz.Object;
         }

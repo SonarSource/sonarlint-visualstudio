@@ -44,9 +44,9 @@ public interface IOpenInIdeHandlerImplementation
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
 {
-    private readonly IEducation education;
     private readonly IIDEWindowService ideWindowService;
-    private readonly IOpenInIdeFailureInfoBar infoBarManager;
+    private readonly IToolWindowService toolWindowService;
+    private readonly IOpenInIdeMessageBox messageBox;
     private readonly IIssueSelectionService issueSelectionService;
     private readonly ILogger logger;
     private readonly ILocationNavigator navigator;
@@ -57,18 +57,18 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
     [ImportingConstructor]
     public OpenInIdeHandlerImplementation(IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
         IOpenInIdeConverterImplementation converterImplementation,
-        IOpenInIdeFailureInfoBar infoBarManager,
+        IToolWindowService toolWindowService,
+        IOpenInIdeMessageBox messageBox,
         IIDEWindowService ideWindowService,
         ILocationNavigator navigator,
         IIssueSelectionService issueSelectionService,
-        IEducation education,
         ILogger logger,
         IThreadHandling thereHandling)
     {
         this.ideWindowService = ideWindowService;
         this.navigator = navigator;
-        this.education = education;
-        this.infoBarManager = infoBarManager;
+        this.toolWindowService = toolWindowService;
+        this.messageBox = messageBox;
         this.issueSelectionService = issueSelectionService;
         this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
         this.converterImplementation = converterImplementation;
@@ -82,54 +82,91 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         Guid toolWindowId,
         IOpenInIdeVisualizationProcessor visualizationProcessor = null) where T : IOpenInIdeIssue
     {
-        thereHandling.RunOnBackgroundThread(async () =>
+        thereHandling.RunOnBackgroundThread(() =>
         {
-            await ShowIssueInternalAsync(issueDetails, configurationScope, converter, toolWindowId, visualizationProcessor);
-            return 0;
+            ShowIssueInternal(issueDetails, configurationScope, converter, toolWindowId, visualizationProcessor);
+            return Task.FromResult(0);
         }).Forget();
     }
 
-    private async Task ShowIssueInternalAsync<T>(T issueDetails, string issueConfigurationScope, IOpenInIdeIssueToAnalysisIssueConverter<T> converter, Guid toolWindowId, IOpenInIdeVisualizationProcessor visualizationProcessor) where T : IOpenInIdeIssue
+    private void ShowIssueInternal<T>(T issueDetails, string issueConfigurationScope, IOpenInIdeIssueToAnalysisIssueConverter<T> converter, Guid toolWindowId, IOpenInIdeVisualizationProcessor visualizationProcessor) where T : IOpenInIdeIssue
     {
         logger.WriteLine(OpenInIdeResources.ProcessingRequest, issueConfigurationScope,
             issueDetails.Key, issueDetails.Type);
 
         ideWindowService.BringToFront();
 
-        if (!openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out var configurationScopeRoot)
-            || !converterImplementation.TryConvert(issueDetails, configurationScopeRoot, converter, out var visualization))
+        if (!ValidateConfiguration(issueConfigurationScope, out var configurationScopeRoot, out var failureReason)
+            || !ValidateOpenInIdeIssue(issueDetails, converter, configurationScopeRoot, out var visualization, out failureReason))
         {
-            await infoBarManager.ShowAsync(toolWindowId);
+            messageBox.InvalidRequest(failureReason);
             return;
         }
 
-        visualizationProcessor?.HandleConvertedIssue(visualization);
-
-        if (!TryShowIssue(visualization))
+        if (visualizationProcessor is not null)
         {
-            await infoBarManager.ShowAsync(toolWindowId);
-            return;
+            visualization = visualizationProcessor.HandleConvertedIssue(visualization) ;
         }
-
         issueSelectionService.SelectedIssue = visualization;
         
-        await infoBarManager.ClearAsync();
-
-        if (SonarCompositeRuleId.TryParse(visualization.Issue.RuleKey, out var ruleId))
-        {
-            education.ShowRuleHelp(ruleId, visualization.Issue.RuleDescriptionContextKey);
-        }
+        var navigationResult = navigator.TryNavigatePartial(visualization);
+        HandleNavigationResult(navigationResult, toolWindowId, visualization);
     }
 
-    private bool TryShowIssue(IAnalysisIssueVisualization visualization)
+    private bool ValidateConfiguration(string issueConfigurationScope, out string configurationScopeRoot, out string failureReason)
     {
-        if (navigator.TryNavigate(visualization))
+        return openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out configurationScopeRoot, out failureReason);
+    }
+
+    private bool ValidateOpenInIdeIssue<T>(T issueDetails,
+        IOpenInIdeIssueToAnalysisIssueConverter<T> converter,
+        string configurationScopeRoot,
+        out IAnalysisIssueVisualization visualization,
+        out string failureReason) where T : IOpenInIdeIssue
+    {
+        failureReason = default;
+
+        if (converterImplementation.TryConvert(issueDetails, configurationScopeRoot, converter, out visualization))
         {
             return true;
         }
 
-        logger.WriteLine(OpenInIdeResources.IssueLocationNotFound, visualization.Location.FilePath,
-            visualization.Location?.TextRange?.StartLine, visualization.Location?.TextRange?.StartLineOffset);
+        failureReason = OpenInIdeResources.ValidationReason_UnableToConvertIssue;
         return false;
+
+    }
+
+    private void HandleNavigationResult(NavigationResult navigationResult,
+        Guid toolWindowId,
+        IAnalysisIssueVisualization visualization)
+    {
+        if (navigationResult == NavigationResult.OpenedLocation)
+        {
+            toolWindowService.Show(toolWindowId);
+        }
+        else
+        {
+            HandleIncompleteNavigation(toolWindowId, visualization, navigationResult);
+        }
+    }
+
+    private void HandleIncompleteNavigation(Guid toolWindowId, IAnalysisIssueVisualization visualization,
+        NavigationResult navigationResult)
+    {
+        logger.WriteLine(OpenInIdeResources.IssueLocationNotFound, visualization.CurrentFilePath,
+            visualization.Location?.TextRange?.StartLine, visualization.Location?.TextRange?.StartLineOffset);
+        
+        switch (navigationResult)
+        {
+            case NavigationResult.Failed:
+                messageBox.UnableToOpenFile(visualization.CurrentFilePath);
+                return;
+            case NavigationResult.OpenedFile:
+                toolWindowService.Show(toolWindowId);
+                messageBox.UnableToLocateIssue(visualization.CurrentFilePath);
+                return;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(navigationResult), OpenInIdeResources.Exception_InvalidNavigationResult);
+        }
     }
 }
