@@ -78,11 +78,56 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid navigation result.
+        /// </summary>
+        internal static string Exception_InvalidNavigationResult {
+            get {
+                return ResourceManager.GetString("Exception_InvalidNavigationResult", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Open in IDE] Could not find the location at File: {0}, Start Line: {1}, Start Position: {2}.
         /// </summary>
         internal static string IssueLocationNotFound {
             get {
                 return ResourceManager.GetString("IssueLocationNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint Open in IDE.
+        /// </summary>
+        internal static string MessageBox_Caption {
+            get {
+                return ResourceManager.GetString("MessageBox_Caption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to process Open in IDE request. Reason: {0}.
+        /// </summary>
+        internal static string MessageBox_InvalidConfiguration {
+            get {
+                return ResourceManager.GetString("MessageBox_InvalidConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not locate issue. Ensure the file ({0}) has not been modified.
+        /// </summary>
+        internal static string MessageBox_UnableToLocateIssue {
+            get {
+                return ResourceManager.GetString("MessageBox_UnableToLocateIssue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not open File: {0}.
+        /// </summary>
+        internal static string MessageBox_UnableToOpenFile {
+            get {
+                return ResourceManager.GetString("MessageBox_UnableToOpenFile", resourceCulture);
             }
         }
         
@@ -119,6 +164,42 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         internal static string Validation_ConfigurationScopeRootNotSet {
             get {
                 return ResourceManager.GetString("Validation_ConfigurationScopeRootNotSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Internal configuration mismatch.
+        /// </summary>
+        internal static string ValidationReason_ConfigurationMismatch {
+            get {
+                return ResourceManager.GetString("ValidationReason_ConfigurationMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Internal filesystem configuration failure.
+        /// </summary>
+        internal static string ValidationReason_FilePathRootNotSet {
+            get {
+                return ResourceManager.GetString("ValidationReason_FilePathRootNotSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connected Mode has not been set up.
+        /// </summary>
+        internal static string ValidationReason_StandaloneMode {
+            get {
+                return ResourceManager.GetString("ValidationReason_StandaloneMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid issue format.
+        /// </summary>
+        internal static string ValidationReason_UnableToConvertIssue {
+            get {
+                return ResourceManager.GetString("ValidationReason_UnableToConvertIssue", resourceCulture);
             }
         }
     }

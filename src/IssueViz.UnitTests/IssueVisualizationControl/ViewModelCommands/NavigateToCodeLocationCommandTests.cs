@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             var testSubject = CreateTestSubject(locationNavigator.Object);
             testSubject.Execute(locationViz);
 
-            locationNavigator.Verify(x => x.TryNavigate(locationViz), Times.Once);
+            locationNavigator.Verify(x => x.TryNavigatePartial(locationViz), Times.Once);
             locationNavigator.VerifyNoOtherCalls();
         }
 
