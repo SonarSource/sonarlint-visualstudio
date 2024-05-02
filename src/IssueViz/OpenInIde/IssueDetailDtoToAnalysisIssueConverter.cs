@@ -62,12 +62,12 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
                     new AnalysisIssueFlow(flowDto.locations
                         .Select(locationDto =>
                             new AnalysisIssueLocation(locationDto.message,
-                                Path.Combine(rootPath, locationDto.filePath),
+                                Path.Combine(rootPath, locationDto.ideFilePath),
                                 new TextRange(locationDto.textRange.startLine,
                                     locationDto.textRange.endLine,
                                     locationDto.textRange.startLineOffset,
                                     locationDto.textRange.endLineOffset,
-                                    locationDto.textRange.hash)))
+                                    checksumCalculator.Calculate(locationDto.codeSnippet))))
                         .ToList()))
                 .ToList());
     }

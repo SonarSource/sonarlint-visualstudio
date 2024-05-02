@@ -110,6 +110,8 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         }
         issueSelectionService.SelectedIssue = visualization;
 
+        toolWindowService.Show(toolWindowId);
+
         var navigationResult = navigator.TryNavigatePartial(visualization);
         if (navigationResult != NavigationResult.OpenedLocation)
         {
@@ -169,7 +171,6 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
                 messageBox.UnableToOpenFile(visualization.CurrentFilePath);
                 return;
             case NavigationResult.OpenedFile:
-                toolWindowService.Show(toolWindowId);
                 messageBox.UnableToLocateIssue(visualization.CurrentFilePath);
                 return;
             default:
