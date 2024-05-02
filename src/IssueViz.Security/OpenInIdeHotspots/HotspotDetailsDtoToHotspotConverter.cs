@@ -50,7 +50,7 @@ internal class HotspotDetailsDtoToHotspotConverter : IHotspotDetailsDtoToHotspot
         return new Hotspot(hotspotDetailsDto.key,
             hotspotDetailsDto.ideFilePath,
             new AnalysisIssueLocation(hotspotDetailsDto.message,
-                Path.Combine(rootPath, hotspotDetailsDto.ideFilePath),//todo path combine with disk root does not provide correct filepath + ideFilePath we get from the server is wrong
+                Path.Combine(rootPath, hotspotDetailsDto.ideFilePath), //todo path combine with disk root does not provide correct filepath + ideFilePath we get from the server is wrong https://sonarsource.atlassian.net/browse/SLCORE-783
                 GetTextRange(hotspotDetailsDto)),
             GetHotspotRule(hotspotDetailsDto),
             null);
