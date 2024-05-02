@@ -51,7 +51,7 @@ public class OpenInIdeConfigScopeValidatorTests
     {
         var openInIdeConfigScopeValidator = CreateTestSubject(out var configScopeTracker, out _, out var threadHandling);
 
-        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(null, out _);
+        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(null, out _, out _);
         
         Received.InOrder(() =>
         {
@@ -66,8 +66,9 @@ public class OpenInIdeConfigScopeValidatorTests
         var openInIdeConfigScopeValidator = CreateTestSubject(out var configScopeTracker, out var logger, out _);
         configScopeTracker.Current.Returns((ConfigurationScope)null);
         
-        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot("some scope", out _).Should().BeFalse();
-        
+        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot("some scope", out _, out var failureReason).Should().BeFalse();
+
+        failureReason.Should().BeSameAs(OpenInIdeResources.ValidationReason_ConfigurationMismatch);
         logger.AssertPartialOutputStringExists("[Open in IDE] Configuration scope mismatch:");
     }
     
@@ -77,8 +78,9 @@ public class OpenInIdeConfigScopeValidatorTests
         var openInIdeConfigScopeValidator = CreateTestSubject(out var configScopeTracker, out var logger, out _);
         configScopeTracker.Current.Returns(new ConfigurationScope("scope", "connection", "project", "root"));
         
-        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot("some other scope", out _).Should().BeFalse();
+        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot("some other scope", out _, out var failureReason).Should().BeFalse();
         
+        failureReason.Should().BeSameAs(OpenInIdeResources.ValidationReason_ConfigurationMismatch);
         logger.AssertPartialOutputStringExists("[Open in IDE] Configuration scope mismatch:");
     }
     
@@ -89,8 +91,9 @@ public class OpenInIdeConfigScopeValidatorTests
         const string issueConfigurationScope = "scope";
         configScopeTracker.Current.Returns(new ConfigurationScope(issueConfigurationScope));
         
-        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out _).Should().BeFalse();
+        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out _, out var failureReason).Should().BeFalse();
         
+        failureReason.Should().BeSameAs(OpenInIdeResources.ValidationReason_StandaloneMode);
         logger.AssertPartialOutputStringExists(OpenInIdeResources.Validation_ConfigurationScopeNotBound);
     }
     
@@ -101,8 +104,9 @@ public class OpenInIdeConfigScopeValidatorTests
         const string issueConfigurationScope = "scope";
         configScopeTracker.Current.Returns(new ConfigurationScope(issueConfigurationScope, "connection", "project"));
         
-        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out _).Should().BeFalse();
+        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out _, out var failureReason).Should().BeFalse();
         
+        failureReason.Should().BeSameAs(OpenInIdeResources.ValidationReason_FilePathRootNotSet);
         logger.AssertPartialOutputStringExists(OpenInIdeResources.Validation_ConfigurationScopeRootNotSet);
     }
     
@@ -114,9 +118,10 @@ public class OpenInIdeConfigScopeValidatorTests
         const string rootPath = "root";
         configScopeTracker.Current.Returns(new ConfigurationScope(issueConfigurationScope, "connection", "project", rootPath));
         
-        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out var actualRoot).Should().BeTrue();
+        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out var actualRoot, out var failureReason).Should().BeTrue();
 
         actualRoot.Should().BeSameAs(rootPath);
+        failureReason.Should().BeNullOrEmpty();
         logger.AssertNoOutputMessages();
     }
 

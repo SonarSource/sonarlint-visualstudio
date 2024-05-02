@@ -20,9 +20,13 @@
 
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
+namespace SonarLint.VisualStudio.IssueVisualization.Editor;
 
-public interface IOpenInIdeVisualizationProcessor
+public static class LocationNavigatorExtensions
 {
-    IAnalysisIssueVisualization HandleConvertedIssue(IAnalysisIssueVisualization visualization);
+    public static bool TryNavigate(this ILocationNavigator navigator,
+        IAnalysisIssueLocationVisualization locationVisualization)
+    {
+        return navigator.TryNavigatePartial(locationVisualization) == NavigationResult.OpenedLocation;
+    }
 }

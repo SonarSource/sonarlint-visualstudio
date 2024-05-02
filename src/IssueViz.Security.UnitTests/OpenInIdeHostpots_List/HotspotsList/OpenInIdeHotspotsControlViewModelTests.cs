@@ -279,7 +279,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIde
             var testSubject = CreateTestSubject(locationNavigator: locationNavigator.Object);
             testSubject.NavigateCommand.Execute(viewModel.Object);
 
-            locationNavigator.Verify(x => x.TryNavigate(hotspot), Times.Once);
+            locationNavigator.Verify(x => x.TryNavigatePartial(hotspot), Times.Once);
             locationNavigator.VerifyNoOtherCalls();
         }
 
