@@ -115,7 +115,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         var navigationResult = navigator.TryNavigatePartial(visualization);
         if (navigationResult != NavigationResult.OpenedLocation)
         {
-            HandleIncompleteNavigation(toolWindowId, visualization, navigationResult);
+            HandleIncompleteNavigation(visualization, navigationResult);
         }
         else
         {
@@ -159,8 +159,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         return false;
     }
 
-    private void HandleIncompleteNavigation(Guid toolWindowId, IAnalysisIssueVisualization visualization,
-        NavigationResult navigationResult)
+    private void HandleIncompleteNavigation(IAnalysisIssueVisualization visualization, NavigationResult navigationResult)
     {
         logger.WriteLine(OpenInIdeResources.IssueLocationNotFound, visualization.CurrentFilePath,
             visualization.Location?.TextRange?.StartLine, visualization.Location?.TextRange?.StartLineOffset);
