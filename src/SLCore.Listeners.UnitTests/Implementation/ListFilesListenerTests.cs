@@ -61,10 +61,12 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             result.files.Should().BeEmpty();
         }
 
-        [TestMethod]
-        public async Task ListFilesAsync_FolderWorkSpace_UsesFolderWorkspaceService()
+        [DataTestMethod]
+        [DataRow("C:\\Code\\Project")]
+        [DataRow("C:\\Code\\Project\\")]
+        public async Task ListFilesAsync_FolderWorkSpace_UsesFolderWorkspaceService(string root)
         {
-            var folderWorkspaceService = CreateFolderWorkSpaceService(true, "C:\\Code\\Project", "C:\\Code\\Project\\File1.js", "C:\\Code\\Project\\File2.js", "C:\\Code\\Project\\Folder1\\File3.js");
+            var folderWorkspaceService = CreateFolderWorkSpaceService(true, root, "C:\\Code\\Project\\File1.js", "C:\\Code\\Project\\File2.js", "C:\\Code\\Project\\Folder1\\File3.js");
             var solutionWorkspaceService = CreateSolutionWorkspaceService();
             var activeConfigScopeTracker = CreateActiveConfigScopeTracker();
 
@@ -101,7 +103,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             files[2].content.Should().BeNull();
 
             solutionWorkspaceService.DidNotReceive().ListFiles();
-            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\Code\\Project");
+            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\Code\\Project\\");
         }
 
         [TestMethod]
@@ -144,7 +146,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             files[2].content.Should().BeNull();
 
             folderWorkspaceService.DidNotReceive().ListFiles();
-            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:");
+            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\");
         }
 
         [TestMethod]

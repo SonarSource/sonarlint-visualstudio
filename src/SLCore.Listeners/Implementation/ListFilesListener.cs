@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -75,7 +76,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 
         private string GetRelativePath(string root, string fullPath)
         {
-            return fullPath.Substring(root.Length);
+            return fullPath.Substring(root.Length - 1 );
         }
 
         private string GetRoot(string filePath)
@@ -83,6 +84,11 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
             var root = folderWorkspaceService.FindRootDirectory();
 
             root ??= filePath.Substring(0, DiskRootSize);
+
+            if (root[root.Length - 1] != Path.DirectorySeparatorChar)
+            {
+                root += Path.DirectorySeparatorChar;
+            }
 
             return root;
         }
