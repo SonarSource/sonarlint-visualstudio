@@ -43,7 +43,7 @@ internal class OpenInIdeMessageBox : IOpenInIdeMessageBox
     public OpenInIdeMessageBox(IMessageBox messageBox, IThreadHandling threadHandling)
     {
         this.messageBox = messageBox;
-        this.threadHandling = threadHandling ?? new ThreadHandling();
+        this.threadHandling = threadHandling;
     }
 
     public void UnableToLocateIssue(string filePath) => 
