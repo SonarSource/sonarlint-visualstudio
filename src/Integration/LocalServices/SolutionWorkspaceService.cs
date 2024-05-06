@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration
         public bool IsSolutionWorkSpace() => !solutionInfoProvider.IsFolderWorkspace();
 
         [ExcludeFromCodeCoverage]
-        public ICollection<string> ListFiles()
+        public IReadOnlyCollection<string> ListFiles()
         {
             if (!IsSolutionWorkSpace()) { return Array.Empty<string>(); }
 
@@ -65,9 +65,9 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         [ExcludeFromCodeCoverage]
-        private ICollection<string> GetAllFilesInSolution(IVsSolution solution)
+        private IReadOnlyCollection<string> GetAllFilesInSolution(IVsSolution solution)
         {
-            ICollection<string> result = null;
+            IReadOnlyCollection<string> result = null;
             threadHandling.RunOnUIThread(() => result = GetLoadedProjects(solution)
                 .SelectMany(AllItemsInProject)
                 .Where(x => x != null)

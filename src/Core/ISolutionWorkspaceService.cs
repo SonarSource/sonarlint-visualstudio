@@ -33,6 +33,6 @@ namespace SonarLint.VisualStudio.Core
         /// List Files in a solution
         /// </summary>
         /// <returns>Returns empty if it's not in solution Mode</returns>
-        ICollection<string> ListFiles();
+        IReadOnlyCollection<string> ListFiles();
     }
 }

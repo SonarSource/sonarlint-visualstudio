@@ -63,13 +63,13 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             return solutionInfoProvider.GetSolutionDirectory();
         }
 
-        public ICollection<string> ListFiles()
+        public IReadOnlyCollection<string> ListFiles()
         {
             var root = FindRootDirectory();
 
             return root is not null ?
                 fileSystem.Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Where(x => !x.Contains("\\node_modules\\")).ToList() :
-                Array.Empty<string>();
+                [];
         }
     }
 }

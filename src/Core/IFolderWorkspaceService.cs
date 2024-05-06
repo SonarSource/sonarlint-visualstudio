@@ -39,6 +39,6 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Returns the list of files in a folder view
         /// </summary>
-        ICollection<string> ListFiles();
+        IReadOnlyCollection<string> ListFiles();
     }
 }
