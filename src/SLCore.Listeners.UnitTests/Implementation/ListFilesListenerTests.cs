@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
 
             var files = result.files.ToList();
 
-            files.Should().HaveCount(1);
+            files.Should().ContainSingle();
 
             files[0].uri.Should().Be("file://C%3A%5C%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82%5Cproject%5Cfile1.js");
             files[0].fsPath.Should().Be("C:\\привет\\project\\file1.js");
@@ -254,7 +254,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
 
             var files = result.files.ToList();
 
-            files.Should().HaveCount(1);
+            files.Should().ContainSingle();
 
             files[0].uri.Should().Be("file://%5C%5Cservername%5Cwork%5Cproject%5Cfile1.js");
             files[0].fsPath.Should().Be("\\\\servername\\work\\project\\file1.js");
@@ -276,7 +276,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
 
             var files = result.files.ToList();
 
-            files.Should().HaveCount(1);
+            files.Should().ContainSingle();
 
             files[0].uri.Should().Be("file://C%3A%5C%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82%5Cproject%5Cfile1.js");
             files[0].fsPath.Should().Be("C:\\привет\\project\\file1.js");
