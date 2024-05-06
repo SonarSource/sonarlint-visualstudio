@@ -67,9 +67,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         {
             var root = FindRootDirectory();
 
-            return root is not null ?
-                fileSystem.Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Where(x => !x.Contains("\\node_modules\\")).ToList() :
-                [];
+            return root is not null 
+                ? fileSystem.Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories).Where(x => !x.Contains("\\node_modules\\")).ToList() 
+                : [];
         }
     }
 }
