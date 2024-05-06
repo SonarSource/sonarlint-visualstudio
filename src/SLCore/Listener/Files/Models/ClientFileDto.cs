@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
 namespace SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 
 public record ClientFileDto(string uri, string ideRelativePath, string configScopeId, bool? isTest, string charset, string fsPath, string content = null);

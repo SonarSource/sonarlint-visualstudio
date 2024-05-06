@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -41,8 +42,6 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
         private readonly ISolutionWorkspaceService solutionWorkspaceService;
         private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
 
-        private const int DiskRootSize = 2;
-
         [ImportingConstructor]
         public ListFilesListener(IFolderWorkspaceService folderWorkspaceService, ISolutionWorkspaceService solutionWorkspaceService, IActiveConfigScopeTracker activeConfigScopeTracker)
         {
@@ -62,7 +61,12 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
                     var root = GetRoot(fullFilePathList.First());
                     if (activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, root))
                     {
-                        clientFileDtos.AddRange(fullFilePathList.Select(fp => new ClientFileDto(CreateUri(fp), GetRelativePath(root, fp), parameters.configScopeId, null, Encoding.UTF8.WebName, fp)));
+                        clientFileDtos.AddRange(fullFilePathList.Select(fp =>
+                        {
+                            var ideRelativePath = GetRelativePath(root, fp);
+                            return new ClientFileDto(CreateUri(fp), ideRelativePath, parameters.configScopeId, null,
+                                Encoding.UTF8.WebName, fp);
+                        }));
                     }
                 }
             }
@@ -71,7 +75,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 
         private static string CreateUri(string fp)
         {
-            return "file://" + Convert.ToBase64String(Encoding.UTF8.GetBytes(fp));
+            return Uri.UriSchemeFile + Uri.SchemeDelimiter + Uri.EscapeDataString(fp);
         }
 
         private string GetRelativePath(string root, string fullPath)
@@ -82,8 +86,10 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
         private string GetRoot(string filePath)
         {
             var root = folderWorkspaceService.FindRootDirectory();
+            
+            root ??= Path.GetPathRoot(filePath);
 
-            root ??= filePath.Substring(0, DiskRootSize);
+            Debug.Assert(root != string.Empty);
 
             if (root[root.Length - 1] != Path.DirectorySeparatorChar)
             {

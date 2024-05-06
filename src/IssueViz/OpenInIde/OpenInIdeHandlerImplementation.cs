@@ -113,22 +113,21 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         toolWindowService.Show(toolWindowId);
 
         var navigationResult = navigator.TryNavigatePartial(visualization);
-        if (navigationResult != NavigationResult.OpenedLocation)
+        if (navigationResult == NavigationResult.OpenedLocation)
         {
-            HandleIncompleteNavigation(visualization, navigationResult);
+            logger.WriteLine(string.Format(OpenInIdeResources.DoneProcessingRequest, issueDetails?.Key));
         }
         else
         {
-            logger.WriteLine(string.Format(OpenInIdeResources.DoneProcessingRequest, issueDetails?.Key));
+            HandleIncompleteNavigation(visualization, navigationResult);
         }
     }
 
     private bool ValidateIssueNotNull<T>(T issueDetails, out string failureReason) where T : IOpenInIdeIssue
     {
-        failureReason = default;
-
         if (issueDetails is { Key: not null })
         {
+            failureReason = default;
             return true;
         }
 
@@ -148,10 +147,9 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         out IAnalysisIssueVisualization visualization,
         out string failureReason) where T : IOpenInIdeIssue
     {
-        failureReason = default;
-
         if (converterImplementation.TryConvert(issueDetails, configurationScopeRoot, converter, out visualization))
         {
+            failureReason = default;
             return true;
         }
 
