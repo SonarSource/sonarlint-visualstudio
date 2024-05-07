@@ -167,7 +167,7 @@ public class ActiveConfigScopeTrackerTests
 
         testSubject.RemoveCurrentConfigScope();
 
-        configScopeService.Verify(x => x.DidRemoveConfigurationScope(It.Is<DidRemoveConfigurationScopeParams>(p => p.removeId == configScopeId)));
+        configScopeService.Verify(x => x.DidRemoveConfigurationScope(It.Is<DidRemoveConfigurationScopeParams>(p => p.removedId == configScopeId)));
         VerifyThreadHandling(threadHandling);
         VerifyLockTakenSynchronouslyAndReleased(asyncLock, lockRelease);
     }

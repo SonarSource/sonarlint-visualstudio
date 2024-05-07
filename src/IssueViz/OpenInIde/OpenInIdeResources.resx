@@ -123,6 +123,9 @@
   <data name="ProcessingRequest" xml:space="preserve">
     <value>[Open in IDE] Processing request. Configuration scope: {0}, Key: {1}, Type: {2}</value>
   </data>
+  <data name="DoneProcessingRequest" xml:space="preserve">
+    <value>[Open in IDE] Done processing request for issue Key: {0}</value>
+  </data>
   <data name="Converter_UnableToConvertIssueData" xml:space="preserve">
     <value>[Open in IDE] Unable to convert issue data: {0}</value>
   </data>
@@ -146,6 +149,9 @@
   </data>
   <data name="ValidationReason_UnableToConvertIssue" xml:space="preserve">
     <value>Invalid issue format</value>
+  </data>
+  <data name="ValidationReason_MalformedRequest" xml:space="preserve">
+    <value>Malformed request</value>
   </data>
   <data name="MessageBox_InvalidConfiguration" xml:space="preserve">
     <value>Unable to process Open in IDE request. Reason: {0}</value>

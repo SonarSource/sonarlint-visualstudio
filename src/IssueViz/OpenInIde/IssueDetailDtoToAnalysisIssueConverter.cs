@@ -50,7 +50,7 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
         return new ServerIssue(
             issueDetailDto.ruleKey,
             new AnalysisIssueLocation(issueDetailDto.message,
-                Path.Combine(rootPath, issueDetailDto.ideFilePath),
+                Path.Combine(rootPath, issueDetailDto.ideFilePath),  //todo ideFilePath we get from the server is wrong https://sonarsource.atlassian.net/browse/SLCORE-783
                 new TextRange(issueDetailDto.textRange.startLine,
                     issueDetailDto.textRange.endLine,
                     issueDetailDto.textRange.startLineOffset,
@@ -62,12 +62,12 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
                     new AnalysisIssueFlow(flowDto.locations
                         .Select(locationDto =>
                             new AnalysisIssueLocation(locationDto.message,
-                                Path.Combine(rootPath, locationDto.filePath),
+                                Path.Combine(rootPath, locationDto.ideFilePath),
                                 new TextRange(locationDto.textRange.startLine,
                                     locationDto.textRange.endLine,
                                     locationDto.textRange.startLineOffset,
                                     locationDto.textRange.endLineOffset,
-                                    locationDto.textRange.hash)))
+                                    checksumCalculator.Calculate(locationDto.codeSnippet))))
                         .ToList()))
                 .ToList());
     }

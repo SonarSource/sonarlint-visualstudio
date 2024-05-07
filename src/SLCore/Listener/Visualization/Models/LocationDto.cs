@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.SLCore.Common.Models;
+
 namespace SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
-public record LocationDto(TextRangeWithHashDto textRange, string message, string filePath);
+public record LocationDto(TextRangeDto textRange, string message, string ideFilePath, string codeSnippet);
