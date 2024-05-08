@@ -18,13 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Telemetry.Payload;
@@ -144,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 IsAnonymousDataShared = true,
                 InstallationDate = DateTimeOffset.Now,
                 LastUploadDate = DateTimeOffset.Now.AddDays(-1),
-                Analyses = new System.Collections.Generic.List<Analysis>()
+                Analyses = new List<Analysis>()
                 {
                     new Analysis {Language = "csharp"}
                 },

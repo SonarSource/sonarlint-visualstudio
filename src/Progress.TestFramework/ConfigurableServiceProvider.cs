@@ -18,10 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using FluentAssertions;
+using FluentAssertions.Execution;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -209,7 +208,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
             if (!found && this.AssertOnUnexpectedServiceRequest)
             {
-                FluentAssertions.Execution.Execute.Assertion.FailWith("Unexpected GetService for type: " + serviceType.FullName);
+                Execute.Assertion.FailWith("Unexpected GetService for type: " + serviceType.FullName);
             }
 
             return serviceInstance;

@@ -20,8 +20,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Helpers;
 

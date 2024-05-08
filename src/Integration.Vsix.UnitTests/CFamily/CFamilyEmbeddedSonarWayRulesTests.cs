@@ -18,10 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Linq;
-using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.CFamily;
 using SonarLint.VisualStudio.CFamily.Rules;
 using SonarLint.VisualStudio.Core;
@@ -85,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // The choice of rule ID here is arbitrary - any rule that has parameters will do.
             rulesMetadataCache.GetRulesConfiguration("cpp").RulesParameters.TryGetValue("S100", out var parameters);
             parameters.Should()
-                .Contain(new System.Collections.Generic.KeyValuePair<string, string>("format", "^[a-z][a-zA-Z0-9]*$"));
+                .Contain(new KeyValuePair<string, string>("format", "^[a-z][a-zA-Z0-9]*$"));
         }
 
         [TestMethod]

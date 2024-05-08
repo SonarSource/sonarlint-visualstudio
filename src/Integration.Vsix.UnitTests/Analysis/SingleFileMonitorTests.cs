@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Threading;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.TestInfrastructure;
-using SonarLint.VisualStudio.TestInfrastructure.Extensions;
+using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 {
@@ -196,7 +192,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             // shouldn't cause an error.
 
             // Arrange
-            var timeout = System.Diagnostics.Debugger.IsAttached ? 1000 * 60 * 5 : 1000;
+            var timeout = Debugger.IsAttached ? 1000 * 60 * 5 : 1000;
             var testLogger = new TestLogger();
 
             var fileSystemMock  = CreateFileSystemMock();
@@ -224,7 +220,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
 
             // Stage 2: raise the file system event then block until we are in the event handler
-            var eventHandlerMethodTask = System.Threading.Tasks.Task.Run(() =>
+            var eventHandlerMethodTask = Task.Run(() =>
                 watcherMock.Raise(x => x.Created += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", "")));
 
             eventHandlerStartedEvent.WaitOne(timeout).Should().BeTrue();
@@ -376,7 +372,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
                 // 1. Create the other file
                 File.WriteAllText(otherFileInDir, "initial other text");
-                System.Threading.Thread.Sleep(1000);
+                Thread.Sleep(1000);
                 waitableFileMonitor.EventCount.Should().Be(0);
             }
         }
@@ -477,7 +473,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             public void WaitForEventAndThrowIfMissing()
             {
-                var timeout = System.Diagnostics.Debugger.IsAttached ? 1000 * 60 * 5 : 1000;
+                var timeout = Debugger.IsAttached ? 1000 * 60 * 5 : 1000;
                 var signaled = signal.WaitOne(timeout);
                 signaled.Should().Be(true); // throw if we timed out
             }

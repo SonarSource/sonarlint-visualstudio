@@ -19,8 +19,6 @@
  */
 
 using System.Xml;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Education.Layout.Visual;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual

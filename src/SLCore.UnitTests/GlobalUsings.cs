@@ -18,9 +18,5 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-global using System;
-global using FluentAssertions;
-global using Microsoft.VisualStudio.TestTools.UnitTesting;
 global using Moq;
-global using NSubstitute;
 global using SonarLint.VisualStudio.TestInfrastructure;

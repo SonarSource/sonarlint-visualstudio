@@ -20,8 +20,6 @@
 
 using System.Linq;
 using System.Security;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarQube.Client.Helpers;
 

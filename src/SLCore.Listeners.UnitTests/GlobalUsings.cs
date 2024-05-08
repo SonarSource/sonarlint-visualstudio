@@ -18,5 +18,5 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-global using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+global using System.Threading.Tasks;
 global using SonarLint.VisualStudio.TestInfrastructure;

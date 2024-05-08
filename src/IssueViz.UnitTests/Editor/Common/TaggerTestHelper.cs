@@ -18,16 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Linq;
 using System.Windows.Media;
 using System.Windows.Media.TextFormatting;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
-using Moq;
-using SonarLint.VisualStudio.TestInfrastructure;
+using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
@@ -66,7 +63,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
             snapshotMock.Setup(x => x.TextBuffer).Returns(bufferMock.Object);
             snapshotMock.Setup(x => x.Length).Returns(length);
 
-            var properties = new Microsoft.VisualStudio.Utilities.PropertyCollection();
+            var properties = new PropertyCollection();
             bufferMock.Setup(x => x.Properties).Returns(properties);
 
             var docMock = new Mock<ITextDocument>();

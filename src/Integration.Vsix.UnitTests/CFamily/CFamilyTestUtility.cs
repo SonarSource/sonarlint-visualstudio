@@ -21,8 +21,6 @@
 using System.Collections.Generic;
 using EnvDTE;
 using Microsoft.VisualStudio.VCProjectEngine;
-using Moq;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 {

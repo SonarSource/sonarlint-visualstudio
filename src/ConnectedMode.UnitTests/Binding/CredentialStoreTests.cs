@@ -18,14 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using Microsoft.Alm.Authentication;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 {
@@ -63,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             // Assert
             mockCredentialStore.Verify(x => x.DeleteCredentials(
-                It.Is<TargetUri>(uri => object.ReferenceEquals(uri, wellKnownTargetUri))), Times.Once);
+                It.Is<TargetUri>(uri => ReferenceEquals(uri, wellKnownTargetUri))), Times.Once);
         }
 
         [TestMethod]
@@ -77,7 +74,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             // Assert
             mockCredentialStore.Verify(x => x.WriteCredentials(
-                It.Is<TargetUri>(uri => object.ReferenceEquals(uri, wellKnownTargetUri)),
+                It.Is<TargetUri>(uri => ReferenceEquals(uri, wellKnownTargetUri)),
                 It.Is<Credential>(cred => cred.Username == "user name" && cred.Password == "password")), Times.Once);
         }
 
@@ -128,7 +125,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             // Assert
             mockCredentialStore.Verify(x => x.WriteCredentials(
-                It.Is<TargetUri>(uri => object.ReferenceEquals(uri, wellKnownTargetUri)),
+                It.Is<TargetUri>(uri => ReferenceEquals(uri, wellKnownTargetUri)),
                 It.Is<Credential>(cred => cred.Username == CredentialStore.UserNameForTokenCredential  && cred.Password == "token1")), Times.Once);
         }
 
@@ -169,7 +166,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             // 2. Save -> should be in new format
             testSubject.WriteCredentials(wellKnownTargetUri, loadedCreds1);
             mockCredentialStore.Verify(x => x.WriteCredentials(
-                It.Is<TargetUri>(uri => object.ReferenceEquals(uri, wellKnownTargetUri)),
+                It.Is<TargetUri>(uri => ReferenceEquals(uri, wellKnownTargetUri)),
                 It.Is<Credential>(cred => cred.Username == CredentialStore.UserNameForTokenCredential && cred.Password == "old token")), Times.Once);
         }
 

@@ -20,9 +20,8 @@
 
 using System.IO;
 using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using SonarLint.VisualStudio.ConnectedMode.Migration.FileProviders;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
 {
@@ -143,7 +142,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
             IFileSystem fileSystem = null,
             ILogger logger = null)
         {
-            fileSystem ??= new System.IO.Abstractions.TestingHelpers.MockFileSystem();
+            fileSystem ??= new MockFileSystem();
             logger ??= new TestLogger(logToConsole: true);
 
             return new XmlFileProvider.FileFinder(logger, fileSystem);

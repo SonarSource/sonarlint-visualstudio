@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
 using SonarLint.VisualStudio.Integration.Progress;
 
 namespace SonarLint.VisualStudio.TestInfrastructure

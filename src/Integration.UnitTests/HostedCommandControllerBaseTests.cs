@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
 using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.TestInfrastructure;
+using IServiceProvider = System.IServiceProvider;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -84,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         internal class TestHostedController : HostedCommandControllerBase
         {
-            public TestHostedController(System.IServiceProvider serviceProvider)
+            public TestHostedController(IServiceProvider serviceProvider)
                 : base(serviceProvider)
             {
             }

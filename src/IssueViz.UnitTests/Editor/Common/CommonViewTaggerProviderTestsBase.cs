@@ -18,13 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Moq;
+using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
@@ -147,7 +143,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
         private static ITextView CreateValidTextView(ITextBuffer buffer = null)
         {
             var viewMock = new Mock<ITextView>();
-            var properties = new Microsoft.VisualStudio.Utilities.PropertyCollection();
+            var properties = new PropertyCollection();
             viewMock.Setup(x => x.Properties).Returns(properties);
             viewMock.Setup(x => x.TextBuffer).Returns(buffer);
 

@@ -20,7 +20,6 @@
 
 using System.IO;
 using System.IO.Abstractions;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Service;

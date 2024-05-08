@@ -20,7 +20,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
 using SonarLint.VisualStudio.Progress.Controller;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests

@@ -18,23 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Media.Animation;
-using FluentAssertions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.TestInfrastructure;
+using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 using IVsMonitorSelection = Microsoft.VisualStudio.Shell.Interop.IVsMonitorSelection;
@@ -454,7 +448,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 int commandCallCount = 0;
                 int commandCanExecuteCallCount = 0;
                 var teSection = ConfigurableSectionController.CreateDefault();
-                teSection.DisconnectCommand = new Integration.WPF.RelayCommand(
+                teSection.DisconnectCommand = new RelayCommand(
                     () => commandCallCount++,
                     () => { commandCanExecuteCallCount++; return false; });
                 host.SetActiveSection(teSection);
@@ -484,7 +478,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 int commandCallCount = 0;
                 int commandCanExecuteCallCount = 0;
                 var teSection = ConfigurableSectionController.CreateDefault();
-                teSection.DisconnectCommand = new Integration.WPF.RelayCommand(
+                teSection.DisconnectCommand = new RelayCommand(
                     () => { commandCallCount++; isMockServiceConnected = false; },
                     () => { commandCanExecuteCallCount++; return true; });
                 host.SetActiveSection(teSection);

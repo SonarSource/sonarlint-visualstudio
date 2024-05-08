@@ -18,14 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
+using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
@@ -100,12 +99,12 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         #region IVsUIHierarchy
 
-        int IVsHierarchy.SetSite(Microsoft.VisualStudio.OLE.Interop.IServiceProvider psp)
+        int IVsHierarchy.SetSite(IServiceProvider psp)
         {
             throw new NotImplementedException();
         }
 
-        int IVsHierarchy.GetSite(out Microsoft.VisualStudio.OLE.Interop.IServiceProvider ppSP)
+        int IVsHierarchy.GetSite(out IServiceProvider ppSP)
         {
             throw new NotImplementedException();
         }
@@ -205,12 +204,12 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             throw new NotImplementedException();
         }
 
-        int IVsUIHierarchy.SetSite(Microsoft.VisualStudio.OLE.Interop.IServiceProvider psp)
+        int IVsUIHierarchy.SetSite(IServiceProvider psp)
         {
             throw new NotImplementedException();
         }
 
-        int IVsUIHierarchy.GetSite(out Microsoft.VisualStudio.OLE.Interop.IServiceProvider ppSP)
+        int IVsUIHierarchy.GetSite(out IServiceProvider ppSP)
         {
             throw new NotImplementedException();
         }

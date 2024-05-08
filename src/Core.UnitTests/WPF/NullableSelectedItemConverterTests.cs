@@ -19,8 +19,6 @@
  */
 
 using System.Windows;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.WPF

@@ -18,12 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Client.Requests;
 using SonarQube.Client.Logging;
-using SonarQube.Client.Tests.Infra;
+using SonarQube.Client.Requests;
 
 namespace SonarQube.Client.Tests.Requests
 {
@@ -86,7 +82,7 @@ namespace SonarQube.Client.Tests.Requests
             logger.DebugMessages.Should().ContainInOrder(
                 new[]
                 {
-                    $"Looking up implementation of 'ITestRequest' for version '1.0.0' on thread '{System.Threading.Thread.CurrentThread.ManagedThreadId}'",
+                    $"Looking up implementation of 'ITestRequest' for version '1.0.0' on thread '{Thread.CurrentThread.ManagedThreadId}'",
                     $"Created request of type '{typeof(TestRequest1).FullName}'.",
                 });
         }

@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
-using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -46,7 +44,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         }
 
         public static void RunVerificationTest<M, T>(M vm, string propertyName, T value1, T value2)
-          where M : System.ComponentModel.INotifyPropertyChanged, new()
+          where M : INotifyPropertyChanged, new()
         {
             value2.Should().NotBe(value1, "Test error: cannot run test with two equal values");
 

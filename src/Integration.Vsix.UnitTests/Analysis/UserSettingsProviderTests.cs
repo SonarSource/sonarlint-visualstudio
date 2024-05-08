@@ -18,15 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Threading;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 {
@@ -99,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             // Arrange
             var fileSystemMock = new Mock<IFileSystem>();
             fileSystemMock.Setup(x => x.File.Exists("settings.file")).Returns(true);
-            fileSystemMock.Setup(x => x.File.ReadAllText("settings.file")).Throws(new System.InvalidOperationException("custom error message"));
+            fileSystemMock.Setup(x => x.File.ReadAllText("settings.file")).Throws(new InvalidOperationException("custom error message"));
 
             var logger = new TestLogger(logToConsole: true);
 
@@ -244,7 +241,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             var initialSettings = new RulesSettings
             {
-                Rules = new System.Collections.Generic.Dictionary<string, RuleConfig>
+                Rules = new Dictionary<string, RuleConfig>
                 {
                     { "javascript:S111", new RuleConfig { Level = RuleLevel.On } },
                     { "cpp:S111", new RuleConfig { Level = RuleLevel.On } },
@@ -276,7 +273,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [TestMethod]
         public void SettingsChangeNotificationIsRaised()
         {
-            int pause = System.Diagnostics.Debugger.IsAttached ? 20000 : 300;
+            int pause = Debugger.IsAttached ? 20000 : 300;
 
             const string fileName = "mySettings.xxx";
 
@@ -312,7 +309,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             // Timing - unfortunately, we can't reliably test for the absence of an event. We
             // can only wait for a certain amount of time and check no events arrive in that period.
-            System.Threading.Thread.Sleep(pause);
+            Thread.Sleep(pause);
             eventCount.Should().Be(0);
 
             // 2. Now simulate a file-change event

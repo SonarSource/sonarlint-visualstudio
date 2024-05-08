@@ -18,23 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using Moq.Protected;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Requests;
-using SonarQube.Client.Tests.Infra;
 
 namespace SonarQube.Client.Tests
 {

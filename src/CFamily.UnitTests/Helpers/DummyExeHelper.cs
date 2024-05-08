@@ -18,12 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.CodeDom.Compiler;
 using System.IO;
-using FluentAssertions;
 using Microsoft.CSharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 // Note: copied from the S4MSB
 // https://github.com/SonarSource/sonar-scanner-msbuild/blob/5c23a7da9171e90a1970a31507dce3da3e8ee094/Tests/TestUtilities/DummyExeHelper.cs#L34

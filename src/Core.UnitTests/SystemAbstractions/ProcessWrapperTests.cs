@@ -19,13 +19,11 @@
  */
 
 
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.TestInfrastructure.Helpers;
 
@@ -107,7 +105,7 @@ exit -2
             testSubject.BeginOutputReadLine();
             await testSubject.WaitForExitAsync(2000);
             // Give any async messages the opportunity to arrive
-            System.Threading.Thread.Sleep(1000);
+            Thread.Sleep(1000);
 
             // Assert
             testSubject.HasExited.Should().BeTrue();
@@ -141,7 +139,7 @@ exit -999
             testSubject.Kill();
             testSubject.HasExited.Should().Be(true);
             testSubject.ExitCode.Should().Be(-1);
-            System.Threading.Thread.Sleep(500);
+            Thread.Sleep(500);
             CheckProcessIsNotRunning(testSubject.Id);
         }
 

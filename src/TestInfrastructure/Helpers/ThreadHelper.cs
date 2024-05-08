@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
+using System.Reflection;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
     {
         public static void SetCurrentThreadAsUIThread()
         {
-            var methodInfo = typeof(Microsoft.VisualStudio.Shell.ThreadHelper).GetMethod("SetUIThread", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            var methodInfo = typeof(Microsoft.VisualStudio.Shell.ThreadHelper).GetMethod("SetUIThread", BindingFlags.Static | BindingFlags.NonPublic);
             methodInfo.Should().NotBeNull("Could not find ThreadHelper.SetUIThread");
             methodInfo.Invoke(null, null);
         }

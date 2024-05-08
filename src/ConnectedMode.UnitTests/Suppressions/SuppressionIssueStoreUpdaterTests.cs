@@ -18,16 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
@@ -258,7 +256,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             void Log(string message)
             {
-                Console.WriteLine($"[Thread {System.Threading.Thread.CurrentThread.ManagedThreadId}] {message}");
+                Console.WriteLine($"[Thread {Thread.CurrentThread.ManagedThreadId}] {message}");
             }
         }
 
@@ -446,7 +444,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         private static TimeSpan GetThreadedTestTimout()
             // This test uses a number of manual signals to control the order of execution.
             // We want a longer timeout when debugging.
-            => System.Diagnostics.Debugger.IsAttached ?
+            => Debugger.IsAttached ?
                 TimeSpan.FromMinutes(2) : TimeSpan.FromMilliseconds(200);
 
         private static Mock<IServerIssuesStoreWriter> CreateIssuesStore(params SonarQubeIssue[] issuesInStore)

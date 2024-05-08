@@ -18,18 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO.Abstractions;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Exclusions;
 using SonarQube.Client.Models;
-using SonarLint.VisualStudio.TestInfrastructure;
-using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
 {

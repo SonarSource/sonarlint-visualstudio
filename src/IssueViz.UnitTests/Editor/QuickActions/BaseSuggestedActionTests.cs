@@ -20,9 +20,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickActions

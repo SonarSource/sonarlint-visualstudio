@@ -18,14 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.IO;
-using FluentAssertions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
 using SonarQube.Client;
 using static SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.TestHelper;
@@ -226,7 +223,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         {
             const string text = "000\n111\n222\n";
             var selectedSpan = new TextSpan(roslynStartPosition, length);
-            var syntaxTree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(text, path: MatchingWellKnownLocalPath);
+            var syntaxTree = CSharpSyntaxTree.ParseText(text, path: MatchingWellKnownLocalPath);
             var location = Location.Create(syntaxTree, selectedSpan);
             var diagnostic = CreateDiagnostic("id", location);
 
@@ -242,7 +239,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         {
             const string text = "000\n111\n222\n";
             var selectedSpan = new TextSpan(0, 0);
-            var syntaxTree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(text, path: MatchingWellKnownLocalPath);
+            var syntaxTree = CSharpSyntaxTree.ParseText(text, path: MatchingWellKnownLocalPath);
             var location = Location.Create(syntaxTree, selectedSpan);
             var diagnostic = CreateDiagnostic("id", location);
 
@@ -363,7 +360,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             // contents of the fake file are not valid C# - the parser will still produce a valid
             // document.
 
-            var syntaxTree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(fileText, path: filePath);
+            var syntaxTree = CSharpSyntaxTree.ParseText(fileText, path: filePath);
             var selectedSpan = CreateSpan(fileText, selectedText);
             var location = Location.Create(syntaxTree, selectedSpan);
 

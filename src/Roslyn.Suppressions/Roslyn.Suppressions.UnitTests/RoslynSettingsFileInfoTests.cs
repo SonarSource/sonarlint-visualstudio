@@ -18,12 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Globalization;
 using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.TestInfrastructure.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
+using SonarLint.VisualStudio.TestInfrastructure.Helpers;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 {

@@ -19,10 +19,6 @@
  */
 
 using System.IO;
-using System.Threading;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarQube.Client.Logging;
 using SonarQube.Client.Models.ServerSentEvents;
 

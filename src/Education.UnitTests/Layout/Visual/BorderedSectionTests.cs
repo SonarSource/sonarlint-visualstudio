@@ -20,9 +20,6 @@
 
 using System.Text;
 using System.Xml;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Education.Layout.Visual;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 

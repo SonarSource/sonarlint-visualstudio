@@ -19,14 +19,11 @@
  */
 
 
-using System;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
 {

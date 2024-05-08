@@ -19,9 +19,7 @@
  */
 
 using System.Reflection;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.TestInfrastructure;
+using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -32,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void MicrosoftVisualStudioVCProjectEngine_EnsureCorrectVersion()
         {
             var codeAnalysisAssemblyVersion = AssemblyHelper.GetVersionOfReferencedAssembly(
-                typeof(SonarLint.VisualStudio.Integration.Vsix.AccumulatingIssueConsumer), // any type in the VSIX assembly will do
+                typeof(AccumulatingIssueConsumer), // any type in the VSIX assembly will do
                 "Microsoft.VisualStudio.VCProjectEngine");
 
             AssertIsCorrectMajorVersion(codeAnalysisAssemblyVersion.Major);

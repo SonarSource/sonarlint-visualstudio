@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,7 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.LibGit2SharpWrappers
             EnumerateCount = 0;
         }
 
-        public CommitSortStrategies SortedBy => throw new System.NotImplementedException();
+        public CommitSortStrategies SortedBy => throw new NotImplementedException();
 
         public IEnumerator<Commit> GetEnumerator()
         {

@@ -18,10 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.OLE.Interop;
+using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -60,12 +59,12 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             throw new NotImplementedException();
         }
 
-        int IVsUIShell.CreateDocumentWindow(uint grfCDW, string pszMkDocument, IVsUIHierarchy uih, uint itemid, IntPtr punkDocView, IntPtr punkDocData, ref Guid rguidEditorType, string pszPhysicalView, ref Guid rguidCmdUI, Microsoft.VisualStudio.OLE.Interop.IServiceProvider psp, string pszOwnerCaption, string pszEditorCaption, int[] defaultPosition, out IVsWindowFrame windowFrame)
+        int IVsUIShell.CreateDocumentWindow(uint grfCDW, string pszMkDocument, IVsUIHierarchy uih, uint itemid, IntPtr punkDocView, IntPtr punkDocData, ref Guid rguidEditorType, string pszPhysicalView, ref Guid rguidCmdUI, IServiceProvider psp, string pszOwnerCaption, string pszEditorCaption, int[] defaultPosition, out IVsWindowFrame windowFrame)
         {
             throw new NotImplementedException();
         }
 
-        int IVsUIShell.CreateToolWindow(uint grfCTW, uint toolWindowId, object punkTool, ref Guid rclsidTool, ref Guid rguidPersistenceSlot, ref Guid rguidAutoActivate, Microsoft.VisualStudio.OLE.Interop.IServiceProvider psp, string pszCaption, int[] defaultPosition, out IVsWindowFrame windowFrame)
+        int IVsUIShell.CreateToolWindow(uint grfCTW, uint toolWindowId, object punkTool, ref Guid rclsidTool, ref Guid rguidPersistenceSlot, ref Guid rguidAutoActivate, IServiceProvider psp, string pszCaption, int[] defaultPosition, out IVsWindowFrame windowFrame)
         {
             throw new NotImplementedException();
         }
@@ -231,7 +230,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             throw new NotImplementedException();
         }
 
-        int IVsUIShell.ShowContextMenu(uint dcompRole, ref Guid rclsidActive, int menuId, POINTS[] pos, Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget cmdTrgtActive)
+        int IVsUIShell.ShowContextMenu(uint dcompRole, ref Guid rclsidActive, int menuId, POINTS[] pos, IOleCommandTarget cmdTrgtActive)
         {
             throw new NotImplementedException();
         }
@@ -248,7 +247,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             return VSConstants.S_OK;
         }
 
-        int IVsUIShell.TranslateAcceleratorAsACmd(Microsoft.VisualStudio.OLE.Interop.MSG[] msg)
+        int IVsUIShell.TranslateAcceleratorAsACmd(MSG[] msg)
         {
             throw new NotImplementedException();
         }

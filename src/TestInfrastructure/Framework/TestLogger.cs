@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Linq;
-using FluentAssertions;
+using System.Threading;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public void WriteLine(string messageFormat, params object[] args)
         {
-            WriteLine(string.Format(System.Globalization.CultureInfo.CurrentCulture, messageFormat, args));
+            WriteLine(string.Format(CultureInfo.CurrentCulture, messageFormat, args));
         }
 
         public void LogVerbose(string message, params object[] args)
@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             // that is produced.
             if (logToConsole)
             {
-                var messageToLog = GetFormattedMessage(string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args));
+                var messageToLog = GetFormattedMessage(string.Format(CultureInfo.CurrentCulture, message, args));
                 Console.WriteLine("[Verbose] " + messageToLog);
             }
         }
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             var messageToLog = message + Environment.NewLine;
             if (logThreadId)
             {
-                messageToLog = $"[Thread {System.Threading.Thread.CurrentThread.ManagedThreadId}] {messageToLog}";
+                messageToLog = $"[Thread {Thread.CurrentThread.ManagedThreadId}] {messageToLog}";
             }
             return messageToLog;
         }

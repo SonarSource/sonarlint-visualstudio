@@ -18,14 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Moq;
-using SonarLint.VisualStudio.TestInfrastructure;
+using Microsoft.VisualStudio.Utilities;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
@@ -150,7 +146,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             var newTextBufferMock = new Mock<ITextBuffer>();
 
-            var bufferProps = new Microsoft.VisualStudio.Utilities.PropertyCollection();
+            var bufferProps = new PropertyCollection();
             bufferProps.AddProperty(typeof(ITextDocument), textDocument);
             newTextBufferMock.Setup(x => x.Properties).Returns(bufferProps);
 

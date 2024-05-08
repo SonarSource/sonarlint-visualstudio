@@ -18,12 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
 {
@@ -67,7 +64,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
 
             // Act
             await WebServiceHelper.SafeServiceCallAsync<bool>(() => 
-                throw new HttpRequestException("outer message", new System.Net.WebException("inner message")),
+                throw new HttpRequestException("outer message", new WebException("inner message")),
                 testLogger);
 
             // Assert

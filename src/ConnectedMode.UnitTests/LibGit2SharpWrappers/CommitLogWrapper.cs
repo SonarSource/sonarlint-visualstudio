@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.LibGit2SharpWrappers
             this.commits = commits;
         }
 
-        public CommitSortStrategies SortedBy => throw new System.NotImplementedException();
+        public CommitSortStrategies SortedBy => throw new NotImplementedException();
 
         public IEnumerator<Commit> GetEnumerator()
         {

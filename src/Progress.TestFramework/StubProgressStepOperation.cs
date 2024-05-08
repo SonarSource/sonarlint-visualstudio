@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Progress.Controller;
 
@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             get { throw new NotImplementedException(); }
         }
 
-        public Task<StepExecutionState> RunAsync(System.Threading.CancellationToken cancellationToken, IProgressStepExecutionEvents executionNotify)
+        public Task<StepExecutionState> RunAsync(CancellationToken cancellationToken, IProgressStepExecutionEvents executionNotify)
         {
             throw new NotImplementedException();
         }

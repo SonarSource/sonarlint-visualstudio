@@ -18,15 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Net.Http;
 using System.Security;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Models;
-using SonarQube.Client.Tests.Infra;
 
 // Dummy tests. These exist to make it easy to make real SonarQube/SonarCloud
 // calls during development

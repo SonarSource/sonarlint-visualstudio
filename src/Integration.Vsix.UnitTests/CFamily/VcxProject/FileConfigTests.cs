@@ -20,12 +20,8 @@
 
 using System.Collections.Generic;
 using EnvDTE;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.VCProjectEngine;
-using Moq;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
-using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject

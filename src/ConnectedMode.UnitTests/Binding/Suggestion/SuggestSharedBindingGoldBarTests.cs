@@ -21,9 +21,7 @@
 using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding.Suggestion;

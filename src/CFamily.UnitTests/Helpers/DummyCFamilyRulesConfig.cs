@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.Linq;
 using SonarLint.VisualStudio.CFamily.Rules;
-using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.CFamily.Helpers.UnitTests
 {

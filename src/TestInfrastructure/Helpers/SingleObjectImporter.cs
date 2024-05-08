@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using FluentAssertions;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {

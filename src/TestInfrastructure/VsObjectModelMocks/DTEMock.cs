@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using EnvDTE;
 using EnvDTE80;
+using Windows = EnvDTE.Windows;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
@@ -348,7 +348,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             }
         }
 
-        EnvDTE.Windows DTE.Windows
+        Windows DTE.Windows
         {
             get
             {
@@ -887,7 +887,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             }
         }
 
-        EnvDTE.Windows DTE2.Windows
+        Windows DTE2.Windows
         {
             get
             {

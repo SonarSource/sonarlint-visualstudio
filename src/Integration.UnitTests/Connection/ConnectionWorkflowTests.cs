@@ -18,17 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -38,7 +35,6 @@ using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
@@ -484,7 +480,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
         private static void AssertIfCalled()
         {
-            FluentAssertions.Execution.Execute.Assertion.FailWith("Command not expected to be called");
+            Execute.Assertion.FailWith("Command not expected to be called");
         }
 
         public void AssertServiceDisconnectCalled()

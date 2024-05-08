@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
+using FluentAssertions.Execution;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         {
             if (this.properties.Any(p => p.Name == name))
             {
-                FluentAssertions.Execution.Execute.Assertion.FailWith($"Already has property: {name}");
+                Execute.Assertion.FailWith($"Already has property: {name}");
             }
 
             PropertyMock prop = new PropertyMock(name, this);

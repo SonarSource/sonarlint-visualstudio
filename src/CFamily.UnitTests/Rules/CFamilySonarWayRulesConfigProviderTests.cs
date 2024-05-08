@@ -19,10 +19,7 @@
  */
 
 using System.IO;
-using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
 {
@@ -77,7 +74,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
         {
             sonarWayProvider.GetRulesConfiguration("cpp").RulesParameters.TryGetValue("All_ActiveWithParams_1", out var parameters);
             parameters.Should()
-                .Contain(new System.Collections.Generic.KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
+                .Contain(new KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
         }
 
         [TestMethod]

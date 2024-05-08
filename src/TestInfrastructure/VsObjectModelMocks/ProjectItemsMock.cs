@@ -18,13 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
-using FluentAssertions;
-using SonarLint.VisualStudio.Integration;
+using Constants = SonarLint.VisualStudio.Integration.Constants;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
@@ -160,8 +158,8 @@ namespace SonarLint.VisualStudio.TestInfrastructure
                 this.Parent = parent;
                 this.Name = file;
                 this.PropertiesMock = new PropertiesMock(this);
-                this.PropertiesMock.RegisterKnownProperty(Integration.Constants.ItemTypePropertyKey);
-                this.PropertiesMock.RegisterKnownProperty(Integration.Constants.FullPathPropertyKey);
+                this.PropertiesMock.RegisterKnownProperty(Constants.ItemTypePropertyKey);
+                this.PropertiesMock.RegisterKnownProperty(Constants.FullPathPropertyKey);
             }
 
             public ProjectItemsMock Parent

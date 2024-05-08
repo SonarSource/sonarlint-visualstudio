@@ -19,9 +19,6 @@
  */
 
 using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Highlight;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 

@@ -18,22 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 using EventHandler = System.EventHandler;
 using static SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.TestHelper;
-using System.Linq;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
 {

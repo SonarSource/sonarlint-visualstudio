@@ -18,16 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Abstractions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.VsAwareFileSystemTestSpecificExtensions;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
@@ -305,7 +303,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 => fileSystem.Setup(x => x.File.ReadAllText(fileName)).Returns(contents ?? "{empty}");
 
             public static void SetupGetFilesInDir(this Mock<IFileSystem> fileSystem, string dirName, params string[] files)
-                => fileSystem.Setup(x => x.Directory.GetFiles(dirName, "*.*", System.IO.SearchOption.AllDirectories))
+                => fileSystem.Setup(x => x.Directory.GetFiles(dirName, "*.*", SearchOption.AllDirectories))
                 .Returns(files);
 
             public static void SetupQueryEditResponse(this Mock<IVsQueryEditQuerySave2> queryEditSave,

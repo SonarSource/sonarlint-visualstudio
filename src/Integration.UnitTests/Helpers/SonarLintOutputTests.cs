@@ -18,13 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Threading;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 {
@@ -83,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             // Assert
             if (logLevel == DaemonLogLevel.Verbose)
             {
-                var currentThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                var currentThreadId = Thread.CurrentThread.ManagedThreadId;
 
                 outputPane.AssertOutputStrings(
                     $"[ThreadId {currentThreadId}] [DEBUG] 123 param 1 2",
@@ -123,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             string expectedPrefix;
             if (logLevel == DaemonLogLevel.Verbose)
             {
-                var currentThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                var currentThreadId = Thread.CurrentThread.ManagedThreadId;
                 expectedPrefix = $"[ThreadId {currentThreadId}] ";
             }
             else

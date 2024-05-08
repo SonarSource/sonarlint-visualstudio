@@ -18,12 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.State
@@ -57,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         {
             // Arrange
             var testSubject = new TransferableVisualState();
-            var server = new ServerViewModel(new ConnectionInformation(new System.Uri("http://server")));
+            var server = new ServerViewModel(new ConnectionInformation(new Uri("http://server")));
             var project1 = new ProjectViewModel(server, new SonarQubeProject("", ""));
             var project2 = new ProjectViewModel(server, new SonarQubeProject("", ""));
 

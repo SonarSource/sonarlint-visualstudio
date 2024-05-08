@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.Progress.Threading;
 
@@ -68,7 +66,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             onFinished = (s, e) =>
             {
                 // Need to register on the UI thread
-                VsThreadingHelper.RunTaskAsync(controller, Microsoft.VisualStudio.Shell.VsTaskRunContext.UIThreadNormalPriority, () =>
+                VsThreadingHelper.RunTaskAsync(controller, VsTaskRunContext.UIThreadNormalPriority, () =>
                 {
                     controller.Finished -= onFinished;
                 }).Wait();
@@ -84,7 +82,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             };
 
             // Need to register on the UI thread
-            VsThreadingHelper.RunTaskAsync(controller, Microsoft.VisualStudio.Shell.VsTaskRunContext.UIThreadNormalPriority, () =>
+            VsThreadingHelper.RunTaskAsync(controller, VsTaskRunContext.UIThreadNormalPriority, () =>
             {
                 controller.Finished += onFinished;
             }).Wait();

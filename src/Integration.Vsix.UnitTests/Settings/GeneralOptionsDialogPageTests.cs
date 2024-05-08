@@ -18,17 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel;
 using System.Windows;
-using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.Integration.Vsix;
-
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 {
@@ -88,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             page.Control.DaemonVerbosity.SelectedItem = DaemonLogLevel.Minimal;
 
             // Act
-            page.ApplyAccessor(Microsoft.VisualStudio.Shell.DialogPage.ApplyKind.Cancel);
+            page.ApplyAccessor(DialogPage.ApplyKind.Cancel);
 
             // Assert
             settings.DaemonLogLevel.Should().Be(DaemonLogLevel.Verbose);
@@ -110,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             page.Control.DaemonVerbosity.SelectedItem = DaemonLogLevel.Minimal;
 
             // Act
-            page.ApplyAccessor(Microsoft.VisualStudio.Shell.DialogPage.ApplyKind.Apply);
+            page.ApplyAccessor(DialogPage.ApplyKind.Apply);
 
             // Assert
             settings.DaemonLogLevel.Should().Be(DaemonLogLevel.Minimal);

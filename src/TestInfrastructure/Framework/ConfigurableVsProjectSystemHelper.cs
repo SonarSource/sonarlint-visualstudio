@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
+using FluentAssertions.Execution;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration;
 
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             var projMock = dteProject as ProjectMock;
             if (projMock == null)
             {
-                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
+                Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
             }
 
             return projMock.GetBuildProperty(propertyName, configuration);
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             var projMock = dteProject as ProjectMock;
             if (projMock == null)
             {
-                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
+                Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
             }
 
             projMock.SetBuildProperty(propertyName, value, configurationName);
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             var projMock = dteProject as ProjectMock;
             if (projMock == null)
             {
-                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
+                Execute.Assertion.FailWith($"Only expecting {nameof(ProjectMock)}");
             }
 
             projMock.ClearBuildProperty(propertyName);
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             LegacyProjectMock dteProject = hierarchy as LegacyProjectMock;
             if (dteProject == null)
             {
-                FluentAssertions.Execution.Execute.Assertion.FailWith($"Only expecting {nameof(LegacyProjectMock)} type");
+                Execute.Assertion.FailWith($"Only expecting {nameof(LegacyProjectMock)} type");
             }
 
             return dteProject.GetAggregateProjectTypeGuids();

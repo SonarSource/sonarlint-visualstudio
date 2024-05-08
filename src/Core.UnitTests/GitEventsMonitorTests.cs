@@ -18,13 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO.Abstractions;
-using System.Threading.Tasks;
 using System.Windows.Threading;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 
 namespace SonarLint.VisualStudio.Core.UnitTests
 {

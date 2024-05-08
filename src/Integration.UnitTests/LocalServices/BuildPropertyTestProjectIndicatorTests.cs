@@ -18,14 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using EnvDTE;
-using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 {
@@ -50,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             serviceProvider.Setup(x => x.GetService(typeof(SComponentModel))).Returns(mefModel);
 
             projectSystemHelper
-                .Setup(x => x.GetIVsHierarchy(It.IsAny<EnvDTE.Project>()))
+                .Setup(x => x.GetIVsHierarchy(It.IsAny<Project>()))
                 .Returns(new ProjectMock(""));
 
             testSubject = new BuildPropertyTestProjectIndicator(serviceProvider.Object);

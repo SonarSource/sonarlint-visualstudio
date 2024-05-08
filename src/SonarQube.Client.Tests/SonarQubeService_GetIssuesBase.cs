@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Linq;
-using FluentAssertions;
 using SonarQube.Client.Api;
 using SonarQube.Client.Requests;
 
@@ -157,12 +155,12 @@ namespace SonarQube.Client.Tests
 
         protected void DumpWarningsToConsole()
         {
-            System.Console.WriteLine("Warnings:");
+            Console.WriteLine("Warnings:");
             foreach (string item in logger.WarningMessages)
             {
-                System.Console.WriteLine(item);
+                Console.WriteLine(item);
             }
-            System.Console.WriteLine("");
+            Console.WriteLine("");
         }
     }
 }

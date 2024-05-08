@@ -19,7 +19,6 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.QualityProfile;
 

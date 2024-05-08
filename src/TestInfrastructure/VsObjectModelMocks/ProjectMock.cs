@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,6 +25,8 @@ using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration;
+using Constants = SonarLint.VisualStudio.Integration.Constants;
+using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
@@ -279,7 +280,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             throw new NotImplementedException();
         }
 
-        int IVsProject.GetItemContext(uint itemid, out Microsoft.VisualStudio.OLE.Interop.IServiceProvider ppSP)
+        int IVsProject.GetItemContext(uint itemid, out IServiceProvider ppSP)
         {
             throw new NotImplementedException();
         }
@@ -406,9 +407,9 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public void AddProjectItem(string filePath, string itemType)
         {
-            ((EnvDTE.ProjectItems) ProjectItemsMock).AddFromFile(filePath);
-            ProjectItemsMock[filePath].PropertiesMock[Integration.Constants.ItemTypePropertyKey].Value = itemType;
-            ProjectItemsMock[filePath].PropertiesMock[Integration.Constants.FullPathPropertyKey].Value = Path.IsPathRooted(filePath) ? filePath : Path.Combine(Path.GetDirectoryName(FilePath), filePath);
+            ((ProjectItems) ProjectItemsMock).AddFromFile(filePath);
+            ProjectItemsMock[filePath].PropertiesMock[Constants.ItemTypePropertyKey].Value = itemType;
+            ProjectItemsMock[filePath].PropertiesMock[Constants.FullPathPropertyKey].Value = Path.IsPathRooted(filePath) ? filePath : Path.Combine(Path.GetDirectoryName(FilePath), filePath);
         }
     }
 }

@@ -19,20 +19,17 @@
  */
 
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
+using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
 using SonarQube.Client;
 using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents;
 

@@ -20,15 +20,12 @@
 
 #pragma warning disable VSSDK005 // suppress VSSDK analyzer errors since this is a test project
 
-using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
-using Moq;
-using SonarLint.VisualStudio.TestInfrastructure;
+using ThreadHelper = SonarLint.VisualStudio.TestInfrastructure.ThreadHelper;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
@@ -156,7 +153,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             private Mock<IVsTaskSchedulerService2> schedulerMock;
             private bool disposedValue;
 
-            private readonly System.Reflection.FieldInfo cachedServiceInstanceField;
+            private readonly FieldInfo cachedServiceInstanceField;
             private object originalCachedValue;
 
             public HackedVSThreadingScope()
@@ -165,8 +162,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                 // safe for each thread to explicitly set what is considered as the UI thread.
                 ThreadHelper.SetCurrentThreadAsUIThread();
 
-                cachedServiceInstanceField = typeof(Microsoft.VisualStudio.Shell.VsTaskLibraryHelper)
-                    .GetField("cachedServiceInstance", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                cachedServiceInstanceField = typeof(VsTaskLibraryHelper)
+                    .GetField("cachedServiceInstance", BindingFlags.NonPublic | BindingFlags.Static);
                 if (cachedServiceInstanceField == null)
                 {
                     Assert.Inconclusive("Test setup error: failed to locate internal VS field via Reflection. Have the VS internals changed?");

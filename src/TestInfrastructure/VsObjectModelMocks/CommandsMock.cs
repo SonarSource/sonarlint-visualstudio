@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections;
 using EnvDTE;
 
@@ -99,7 +98,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             CustomIn = null;
             CustomOut = null;
 
-            var commandGroup = new System.Guid(Guid);
+            var commandGroup = new Guid(Guid);
             this.RaiseAction?.Invoke(commandGroup, ID);
         }
 

@@ -18,14 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Linq;
-using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -34,9 +30,9 @@ using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
+using IServiceProvider = System.IServiceProvider;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -112,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             Action act = () => new BindingController(null, Mock.Of<IHost>());
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
 
-            act = () => new BindingController(Mock.Of<System.IServiceProvider>(), null);
+            act = () => new BindingController(Mock.Of<IServiceProvider>(), null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
         }
 

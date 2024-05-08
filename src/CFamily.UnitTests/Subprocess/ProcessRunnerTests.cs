@@ -18,17 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.CFamily.SubProcess.UnitTests
 {
@@ -471,7 +466,7 @@ xxx yyy
             {
                 Environment.SetEnvironmentVariable(key, value, target);
             }
-            catch (System.Security.SecurityException)
+            catch (SecurityException)
             {
                 logger.WriteLine("TEST SETUP ERROR: user running the test doesn't have the permissions to set the environment variable. Key: {0}, value: {1}, target: {2}",
                     key, value, target);

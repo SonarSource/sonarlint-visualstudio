@@ -18,18 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using FluentAssertions;
+using FluentAssertions.Execution;
+using Microsoft.VisualStudio;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
     /// <summary>
     /// Configurable service provider used for testing
     /// </summary>
-    public class ConfigurableServiceProvider : System.IServiceProvider, Microsoft.VisualStudio.OLE.Interop.IServiceProvider
+    public class ConfigurableServiceProvider : IServiceProvider, Microsoft.VisualStudio.OLE.Interop.IServiceProvider
     {
         private readonly Dictionary<Type, object> serviceInstances = new Dictionary<Type, object>(new TypeComparer());
         private readonly Dictionary<Type, Func<object>> serviceConstructors = new Dictionary<Type, Func<object>>(new TypeComparer());
@@ -204,7 +204,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
             if (!found && this.AssertOnUnexpectedServiceRequest)
             {
-                FluentAssertions.Execution.Execute.Assertion.FailWith("Unexpected GetService for type: " + serviceType.FullName);
+                Execute.Assertion.FailWith("Unexpected GetService for type: " + serviceType.FullName);
             }
 
             return serviceInstance;
@@ -227,7 +227,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             }
 
             ppvObject = IntPtr.Zero;
-            return Microsoft.VisualStudio.VSConstants.E_FAIL;
+            return VSConstants.E_FAIL;
         }
 
         #endregion OLE IServiceProvider

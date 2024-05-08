@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Reflection;
 using System.Runtime.InteropServices;
-using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.TestInfrastructure;
 using IOLEServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using VsServiceProvider = Microsoft.VisualStudio.Shell.ServiceProvider;
 
@@ -68,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             var vsServiceProvider = new VsServiceProvider(oleServiceProvider);
 
             // 2. Update the static field in the VS ServiceProvider to make the new VSServiceProvider the global provider.
-            var globalProviderField = typeof(VsServiceProvider).GetField("globalProvider", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            var globalProviderField = typeof(VsServiceProvider).GetField("globalProvider", BindingFlags.NonPublic | BindingFlags.Static);
             globalProviderField.SetValue(null, vsServiceProvider);
         }
 

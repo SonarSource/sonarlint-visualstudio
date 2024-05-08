@@ -52,8 +52,8 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
                 ruleId,
                 false, // isResolved
                 SonarQubeIssueSeverity.Info,
-                System.DateTimeOffset.UtcNow,
-                System.DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow,
                 line.HasValue ? new IssueTextRange(line.Value, line.Value, 1, 999) : null,
                 null
                 );

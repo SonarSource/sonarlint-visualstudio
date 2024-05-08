@@ -19,7 +19,6 @@
  */
 
 using System.Windows.Input;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Progress.MVVM;
 using SonarLint.VisualStudio.Progress.Observation.ViewModels;
 

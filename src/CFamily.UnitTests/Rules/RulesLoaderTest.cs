@@ -18,13 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
-using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core;
 using static SonarLint.VisualStudio.CFamily.Rules.RulesLoader;
 
 namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
@@ -52,7 +48,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests
         {
             var rulesLoader = CreateTestSubject();
             rulesLoader.ReadRuleParams("ClassComplexity").Should()
-                .Contain(new System.Collections.Generic.KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
+                .Contain(new KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
 
             rulesLoader.ReadRuleParams("Missing").Should().BeEmpty();
 

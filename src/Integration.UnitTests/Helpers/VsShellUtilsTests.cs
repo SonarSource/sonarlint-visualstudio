@@ -19,13 +19,10 @@
  */
 
 using System.Linq;
-using EnvDTE;
-using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -125,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sonarLintPane = pane as ConfigurableVsOutputWindowPane;
             if (sonarLintPane == null)
             {
-                FluentAssertions.Execution.Execute.Assertion.FailWith($"Expected returned pane to be of type {nameof(ConfigurableVsOutputWindowPane)}");
+                Execute.Assertion.FailWith($"Expected returned pane to be of type {nameof(ConfigurableVsOutputWindowPane)}");
             }
 
             sonarLintPane.IsActivated.Should().BeTrue("Expected pane to be activated");

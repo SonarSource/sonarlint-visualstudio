@@ -19,10 +19,8 @@
  */
 
 
-using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Integration.Tests
 {
@@ -65,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Arrange
             var delayMilliseconds = 5;
             var delay = TimeSpan.FromMilliseconds(delayMilliseconds);
-            var timeWatch = new System.Diagnostics.Stopwatch();
+            var timeWatch = new Stopwatch();
 
             // Act
             timeWatch.Start();
@@ -105,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Arrange
             var delayMilliseconds = 5;
             var delay = TimeSpan.FromMilliseconds(delayMilliseconds);
-            var timeWatch = new System.Diagnostics.Stopwatch();
+            var timeWatch = new Stopwatch();
 
             // Act
             timeWatch.Start();

@@ -18,21 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Linq;
 using System.Threading;
-using FluentAssertions;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 using Task = System.Threading.Tasks.Task;
@@ -465,7 +458,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             ILogger logger = null,
             ISonarQubeService sonarService = null,
             IStatefulServerBranchProvider serverBranchProvider = null,
-            IVsMonitorSelection vsMonitor = null,
+            VSShellInterop.IVsMonitorSelection vsMonitor = null,
             IToolWindowService toolWindowService = null)
         {
             taintStore ??= Mock.Of<ITaintStore>();
@@ -490,15 +483,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                 toolWindowService, serverBranchProvider, serviceOperation, logger);
         }
 
-        private static IVsUIServiceOperation CreateServiceOperation(IVsMonitorSelection svcToPassToCallback)
+        private static IVsUIServiceOperation CreateServiceOperation(VSShellInterop.IVsMonitorSelection svcToPassToCallback)
         {
-            svcToPassToCallback ??= Mock.Of<IVsMonitorSelection>();
+            svcToPassToCallback ??= Mock.Of<VSShellInterop.IVsMonitorSelection>();
 
             var serviceOp = new Mock<IVsUIServiceOperation>();
 
             // Set up the mock to invoke the operation with the supplied VS service
-            serviceOp.Setup(x => x.Execute<VSShellInterop.SVsShellMonitorSelection, VSShellInterop.IVsMonitorSelection>(It.IsAny<Action<IVsMonitorSelection>>()))
-                .Callback<Action<IVsMonitorSelection>>(op => op(svcToPassToCallback));
+            serviceOp.Setup(x => x.Execute<VSShellInterop.SVsShellMonitorSelection, VSShellInterop.IVsMonitorSelection>(It.IsAny<Action<VSShellInterop.IVsMonitorSelection>>()))
+                .Callback<Action<VSShellInterop.IVsMonitorSelection>>(op => op(svcToPassToCallback));
 
             return serviceOp.Object;
         }
@@ -522,22 +515,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             return sonarQubeService;
         }
 
-        private static Mock<IVsMonitorSelection> CreateMonitorSelectionMock(uint cookie)
+        private static Mock<VSShellInterop.IVsMonitorSelection> CreateMonitorSelectionMock(uint cookie)
         {
-            var monitor = new Mock<IVsMonitorSelection>();
+            var monitor = new Mock<VSShellInterop.IVsMonitorSelection>();
             var localGuid = TaintIssuesExistUIContext.Guid;
             monitor.Setup(x => x.GetCmdUIContextCookie(ref localGuid, out cookie));
 
             return monitor;
         }
 
-        private static void CheckUIContextIsCleared(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie) =>
+        private static void CheckUIContextIsCleared(Mock<VSShellInterop.IVsMonitorSelection> monitorMock, uint expectedCookie) =>
             CheckUIContextUpdated(monitorMock, expectedCookie, 0);
 
-        private static void CheckUIContextIsSet(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie) =>
+        private static void CheckUIContextIsSet(Mock<VSShellInterop.IVsMonitorSelection> monitorMock, uint expectedCookie) =>
             CheckUIContextUpdated(monitorMock, expectedCookie, 1);
 
-        private static void CheckUIContextUpdated(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie, int expectedState) =>
+        private static void CheckUIContextUpdated(Mock<VSShellInterop.IVsMonitorSelection> monitorMock, uint expectedCookie, int expectedState) =>
             monitorMock.Verify(x => x.SetCmdUIContext(expectedCookie, expectedState), Times.Once);
 
         private static void CheckConnectedStatusIsChecked(Mock<ISonarQubeService> serviceMock) =>

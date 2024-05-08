@@ -18,17 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Design;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
-using SonarLint.VisualStudio.Education.Commands;
-
-using ThreadHelper = SonarLint.VisualStudio.TestInfrastructure.ThreadHelper;
 using SonarLint.VisualStudio.Education;
+using SonarLint.VisualStudio.Education.Commands;
+using ThreadHelper = SonarLint.VisualStudio.TestInfrastructure.ThreadHelper;
 
 namespace Education.UnitTests.Commands
 {

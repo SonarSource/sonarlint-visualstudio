@@ -18,16 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Design;
-using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Commands;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
 using Constants = SonarLint.VisualStudio.IssueVisualization.Commands.Constants;
@@ -184,7 +179,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
 
         private void SetupSelectionService(Mock<IVsMonitorSelection> monitorSelection, uint uiContextCookie)
         {
-            var uiContext = new Guid(IssueVisualization.Commands.Constants.UIContextGuid);
+            var uiContext = new Guid(Constants.UIContextGuid);
             monitorSelection.Setup(x => x.GetCmdUIContextCookie(ref uiContext, out uiContextCookie)).Returns(VSConstants.S_OK);
         }
     }

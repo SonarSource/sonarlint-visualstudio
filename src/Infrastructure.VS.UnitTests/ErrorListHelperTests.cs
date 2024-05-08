@@ -18,18 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
-using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.TestInfrastructure;
-using static SonarLint.VisualStudio.Infrastructure.VS.UnitTests.ErrorListHelperTests;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
@@ -426,7 +419,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             {
                 { StandardTableKeyNames.BuildTool, "SonarLint" },
                 { StandardTableKeyNames.ErrorCode, "cpp:S222" },
-                { Infrastructure.VS.SuppressionState.ColumnName, suppressionState },
+                { SuppressionState.ColumnName, suppressionState },
             });
 
             var errorList = CreateErrorList(issueHandle);

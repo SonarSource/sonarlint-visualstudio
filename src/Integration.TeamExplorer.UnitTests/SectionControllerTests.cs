@@ -18,17 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Design;
-using FluentAssertions;
-using Microsoft.TeamFoundation.Controls;
+using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 using TF_IOleCommandTarget = Microsoft.TeamFoundation.Client.CommandTarget.IOleCommandTarget;
@@ -238,15 +233,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void SectionController_IOleCommandTargetQueryStatus_OLE_Constants_SanityCheck()
         {
             // Sanity check that the TF and VS OLE constants are the same
-            Microsoft.TeamFoundation.Client.CommandTarget.OleConstants.OLECMDERR_E_UNKNOWNGROUP.
-                Should().Be((int)Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_UNKNOWNGROUP);
+            OleConstants.OLECMDERR_E_UNKNOWNGROUP.
+                Should().Be((int)VS_OLEConstants.OLECMDERR_E_UNKNOWNGROUP);
 
-            Microsoft.TeamFoundation.Client.CommandTarget.OleConstants.OLECMDERR_E_DISABLED.
-                Should().Be((int)Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_DISABLED);
+            OleConstants.OLECMDERR_E_DISABLED.
+                Should().Be((int)VS_OLEConstants.OLECMDERR_E_DISABLED);
 
 
-            Microsoft.TeamFoundation.Client.CommandTarget.OleConstants.OLECMDERR_E_CANCELED.
-                Should().Be((int)Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_CANCELED);
+            OleConstants.OLECMDERR_E_CANCELED.
+                Should().Be((int)VS_OLEConstants.OLECMDERR_E_CANCELED);
         }
 
         [TestMethod]
@@ -433,7 +428,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             host.ClearActiveSection();
             host.VisualStateManager.ManagedState.ConnectedServers.Clear();
-            controller.Initialize(null, new Microsoft.TeamFoundation.Controls.SectionInitializeEventArgs(new ServiceContainer(), null));
+            controller.Initialize(null, new SectionInitializeEventArgs(new ServiceContainer(), null));
             bool refreshCalled = false;
             controller.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refreshCalled = true);
             controller.Refresh();

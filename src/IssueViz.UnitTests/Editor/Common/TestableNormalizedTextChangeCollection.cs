@@ -20,7 +20,6 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.Text;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
 {

@@ -18,14 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Core.UnitTests
 {
@@ -266,7 +261,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             // Arrange
             var fileSystemMock = new Mock<IFileSystem>();
             fileSystemMock.Setup(x => x.File.Exists("settings.file")).Returns(true);
-            fileSystemMock.Setup(x => x.File.ReadAllText("settings.file")).Throws(new System.InvalidOperationException("custom error message"));
+            fileSystemMock.Setup(x => x.File.ReadAllText("settings.file")).Throws(new InvalidOperationException("custom error message"));
 
             var logger = new TestLogger(logToConsole: true);
             var testSubject = new RulesSettingsSerializer(fileSystemMock.Object, logger);
@@ -285,7 +280,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             // Arrange
             var fileSystemMock = new Mock<IFileSystem>();
             fileSystemMock.Setup(x => x.File.Exists("settings.file")).Returns(true);
-            fileSystemMock.Setup(x => x.File.ReadAllText("settings.file")).Throws(new System.StackOverflowException("critical custom error message"));
+            fileSystemMock.Setup(x => x.File.ReadAllText("settings.file")).Throws(new StackOverflowException("critical custom error message"));
 
             var logger = new TestLogger(logToConsole: true);
             var testSubject = new RulesSettingsSerializer(fileSystemMock.Object, logger);
@@ -303,7 +298,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         {
             // Arrange
             var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.File.WriteAllText("settings.file", It.IsAny<string>())).Throws(new System.InvalidOperationException("custom error message"));
+            fileSystemMock.Setup(x => x.File.WriteAllText("settings.file", It.IsAny<string>())).Throws(new InvalidOperationException("custom error message"));
 
             var logger = new TestLogger(logToConsole: true);
             var testSubject = new RulesSettingsSerializer(fileSystemMock.Object, logger);
@@ -320,7 +315,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         {
             // Arrange
             var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.File.WriteAllText("settings.file", It.IsAny<string>())).Throws(new System.StackOverflowException("critical custom error message"));
+            fileSystemMock.Setup(x => x.File.WriteAllText("settings.file", It.IsAny<string>())).Throws(new StackOverflowException("critical custom error message"));
 
             var logger = new TestLogger(logToConsole: true);
             var testSubject = new RulesSettingsSerializer(fileSystemMock.Object, logger);

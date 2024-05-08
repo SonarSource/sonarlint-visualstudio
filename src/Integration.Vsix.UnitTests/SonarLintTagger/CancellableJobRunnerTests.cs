@@ -18,14 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {
@@ -197,7 +194,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
         private static void WaitForRunnerToFinish(CancellableJobRunner runner, ILogger logger)
         {
-            int timeout = System.Diagnostics.Debugger.IsAttached ? 20000 : 3000;
+            int timeout = Debugger.IsAttached ? 20000 : 3000;
             bool signalled = false;
 
             try

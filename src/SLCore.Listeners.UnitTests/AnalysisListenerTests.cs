@@ -19,9 +19,9 @@
  */
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
+using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests;
 

@@ -18,16 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using Moq.Protected;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.Tests
 {
@@ -52,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public async Task OptOut_WhenSuccess_ReturnsTrue()
         {
             // Arrange
-            var response = new HttpResponseMessage(System.Net.HttpStatusCode.Created);
+            var response = new HttpResponseMessage(HttpStatusCode.Created);
             var httpHandler = new FakeHttpMessageHandler(_ => response);
             var client = new TelemetryClient(httpHandler);
 
@@ -67,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public async Task SendPayload_CheckUrl()
         {
             // Arrange
-            var response = new HttpResponseMessage(System.Net.HttpStatusCode.Created);
+            var response = new HttpResponseMessage(HttpStatusCode.Created);
             string uriCalled = null;
             var httpHandler = new FakeHttpMessageHandler(request => { uriCalled = request.RequestUri.AbsoluteUri; return response; });
             var client = new TelemetryClient(httpHandler);
@@ -97,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public async Task SendPayload_WhenSuccess_ReturnsTrue()
         {
             // Arrange
-            var response = new HttpResponseMessage(System.Net.HttpStatusCode.Created);
+            var response = new HttpResponseMessage(HttpStatusCode.Created);
             var httpHandler = new FakeHttpMessageHandler(_ => response);
             var client = new TelemetryClient(httpHandler);
 

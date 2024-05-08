@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Diagnostics;
-using FluentAssertions;
+using System.Diagnostics.CodeAnalysis;
+using FluentAssertions.Execution;
 
 namespace SonarLint.VisualStudio.Progress.UnitTests
 {
@@ -36,8 +36,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         /// <typeparam name="TException">Expected exception</typeparam>
         /// <param name="action">Action to run</param>
         /// <returns>The exception</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "Using inference is ok here as we've constrained the type to be an Exception.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Necessary to turn it into a Test.Assert.")]
+        [SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "Using inference is ok here as we've constrained the type to be an Exception.")]
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Necessary to turn it into a Test.Assert.")]
         [DebuggerStepThroughAttribute]
         public static TException Expect<TException>(Action action) where TException : Exception
         {
@@ -53,8 +53,8 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         /// <param name="expectedMessage">The expected error message. Can be null.</param>
         /// <param name="action">Action to run</param>
         /// <returns>The exception</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "Using inference is ok here as we've constrained the type to be an Exception.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Necessary to turn it into a Test.Assert.")]
+        [SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "Using inference is ok here as we've constrained the type to be an Exception.")]
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Necessary to turn it into a Test.Assert.")]
         [DebuggerStepThroughAttribute]
         public static TException Expect<TException>(string expectedMessage, Action action) where TException : Exception
         {
@@ -73,9 +73,9 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
         /// <param name="action">Action to run</param>
         /// <param name="checkDerived">Whether to check exception is derived from the expected one (default false)</param>
         /// <returns>The exception</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "Using inference is ok here as we've constrained the type to be an Exception.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Necessary to turn it into a Test.Assert.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed", Justification = "Convenience")]
+        [SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "Using inference is ok here as we've constrained the type to be an Exception.")]
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Necessary to turn it into a Test.Assert.")]
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed", Justification = "Convenience")]
         [DebuggerStepThroughAttribute]
         public static TException Expect<TException>(Action<TException> additionalChecks, Action action, bool checkDerived = false) where TException : Exception
         {
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
 
                 if (!checkDerived && (ex.GetType() != typeof(TException)))
                 {
-                    FluentAssertions.Execution.Execute.Assertion.FailWith("Expected exception " + typeof(TException).FullName + " but got " + ex.GetType().FullName + "\n" + ex.ToString());
+                    Execute.Assertion.FailWith("Expected exception " + typeof(TException).FullName + " but got " + ex.GetType().FullName + "\n" + ex.ToString());
                 }
 
                 // Perform any additional checks that were supplied.
@@ -108,11 +108,11 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
             }
             catch (Exception ex2)
             {
-                FluentAssertions.Execution.Execute.Assertion.FailWith("Expected exception " + typeof(TException).FullName + " but got " + ex2.GetType().FullName + "\n" + ex2.ToString());
+                Execute.Assertion.FailWith("Expected exception " + typeof(TException).FullName + " but got " + ex2.GetType().FullName + "\n" + ex2.ToString());
             }
 
             // No exception
-            FluentAssertions.Execution.Execute.Assertion.FailWith("Expected exception " + typeof(TException).FullName);
+            Execute.Assertion.FailWith("Expected exception " + typeof(TException).FullName);
 
             return null; // We'll never hit this, but it's required to stop the compiler complaining that not all code paths return a value.
         }
