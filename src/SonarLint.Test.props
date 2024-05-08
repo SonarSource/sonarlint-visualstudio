@@ -26,5 +26,12 @@
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
     <PackageReference Include="FluentAssertions.Analyzers" Version="0.11.4" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="FluentAssertions" />
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+    <Using Include="NSubstitute" />
+  </ItemGroup>
 
 </Project>
