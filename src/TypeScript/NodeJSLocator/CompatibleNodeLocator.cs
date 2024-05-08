@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
 
         internal static bool IsCompatibleVersion(Version nodeVersion)
         {
-            return MinSupportedVersion.CompareTo(nodeVersion) <= 0;
+            return nodeVersion >= MinSupportedVersion;
         }
     }
 }
