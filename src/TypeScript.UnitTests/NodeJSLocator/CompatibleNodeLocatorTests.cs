@@ -104,12 +104,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
                 new("bad version", new Version(9, 0))
             };
 
+            var logger = new TestLogger();
             var notificationService = new Mock<IUnsupportedNodeVersionNotificationService>();
-            var testSubject = CreateTestSubject(versions, notificationService.Object);
+            var testSubject = CreateTestSubject(versions, notificationService.Object, logger);
 
             _ = testSubject.Locate();
             notificationService.Verify(x => x.Show(), Times.Once);
             notificationService.VerifyNoOtherCalls();
+            logger.AssertOutputStringExists("[NodeJsLocator] Could not find a compatible Node.js version. Supported versions are v18.17.1+.");
         }
 
         [TestMethod]
@@ -149,7 +151,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         }
 
         private CompatibleNodeLocator CreateTestSubject(IReadOnlyCollection<NodeVersionInfo> candidateLocations = null,
-            IUnsupportedNodeVersionNotificationService unsupportedNodeNotificationService = null)
+            IUnsupportedNodeVersionNotificationService unsupportedNodeNotificationService = null, 
+            ILogger logger = null)
         {
             candidateLocations ??= Array.Empty<NodeVersionInfo>();
             var versionInfoProvider = new Mock<INodeVersionInfoProvider>();
@@ -157,7 +160,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
 
             unsupportedNodeNotificationService ??= Mock.Of<IUnsupportedNodeVersionNotificationService>();
 
-            var logger = Mock.Of<ILogger>();
+            logger ??= new TestLogger();
 
             return new CompatibleNodeLocator(versionInfoProvider.Object, unsupportedNodeNotificationService, logger);
         }

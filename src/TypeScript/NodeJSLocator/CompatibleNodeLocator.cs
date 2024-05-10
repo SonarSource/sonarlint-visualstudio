@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
         private readonly INodeVersionInfoProvider nodeVersionInfoProvider;
         private readonly IUnsupportedNodeVersionNotificationService unsupportedNodeNotificationService;
         private readonly ILogger logger;
+        private static readonly Version MinSupportedVersion = new(18, 17, 1);
 
         [ImportingConstructor]
         public CompatibleNodeLocator(INodeVersionInfoProvider nodeVersionInfoProvider,
@@ -58,17 +59,14 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
                 return nodeVersionInfo;
             }
 
-            logger.WriteLine(Resources.ERR_NoCompatibleVersion);
+            logger.WriteLine(Resources.ERR_NoCompatibleVersion, MinSupportedVersion);
             unsupportedNodeNotificationService.Show();
             return null;
         }
 
         internal static bool IsCompatibleVersion(Version nodeVersion)
         {
-            // Minimum supported version 18.17.0
-            return (nodeVersion.Major == 18 && nodeVersion.Minor == 17 && nodeVersion.Build >= 1)
-                || (nodeVersion.Major == 18 && nodeVersion.Minor > 17)
-                || nodeVersion.Major > 18;
+            return nodeVersion >= MinSupportedVersion;
         }
     }
 }

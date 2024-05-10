@@ -121,7 +121,7 @@
     <value>[NodeJsLocator] Found incompatible Node.js version: {0}. Path: {1}</value>
   </data>
   <data name="ERR_NoCompatibleVersion" xml:space="preserve">
-    <value>[NodeJsLocator] Could not find a compatible Node.js version. Supported versions are v14.17+.</value>
+    <value>[NodeJsLocator] Could not find a compatible Node.js version. Supported versions are v{0}+.</value>
   </data>
   <data name="INFO_FoundCompatibleVersion" xml:space="preserve">
     <value>[NodeJsLocator] Found compatible Node.js version: {0}. Path: {1}</value>
