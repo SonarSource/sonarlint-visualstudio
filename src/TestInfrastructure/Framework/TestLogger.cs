@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public void LogVerbose(string message, params object[] args)
         {
-            var logText = "[Verbose] " + GetFormattedMessage(string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args));
+            var logText = "[Verbose] " + string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args);
             WriteLine(logText);
 
             if (logToConsole)

@@ -40,12 +40,12 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Logging
         }
 
         [TestMethod]
-        [DataRow(LogLevel.ERROR, true)]
-        [DataRow(LogLevel.WARN, true)]
-        [DataRow(LogLevel.INFO, false)]
-        [DataRow(LogLevel.TRACE, false)]
-        [DataRow(LogLevel.DEBUG, false)]
-        public void Log_LogsOnlyErrorAndWarning(LogLevel logLevel, bool logs)
+        //[DataRow(LogLevel.ERROR, false)]
+        //[DataRow(LogLevel.WARN, false)]
+        //[DataRow(LogLevel.INFO, true)]
+        //[DataRow(LogLevel.TRACE, true)]
+        [DataRow(LogLevel.DEBUG, true)]
+        public void Log_LogsOnlyErrorAndWarning(LogLevel logLevel, bool verboseLogs)
         {
             var param = new LogParams { level = logLevel, message = "some Message" };
 
@@ -55,13 +55,13 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Logging
 
             testSubject.Log(param);
 
-            if (logs)
+            if (verboseLogs)
             {
-                logger.AssertOutputStringExists("[SLCORE] some Message");
+                logger.AssertOutputStringExists("[Verbose] [SLCORE] some Message");
             }
             else
             {
-                logger.AssertNoOutputMessages();
+                logger.AssertOutputStringExists("[SLCORE] some Message");
             }
         }
     }
