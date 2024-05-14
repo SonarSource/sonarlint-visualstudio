@@ -45,5 +45,5 @@ namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle
         Dictionary<string, StandaloneRuleConfigDto> standaloneRuleConfigByKey,
         bool isFocusOnNewCode,
         TelemetryClientConstantAttributesDto telemetryConstantAttributes,
-        string clientNodeJsPath);
+        LanguageSpecificRequirements languageSpecificRequirements);
 }
