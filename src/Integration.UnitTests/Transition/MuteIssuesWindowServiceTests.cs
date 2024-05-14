@@ -19,6 +19,8 @@
  */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.Core.Transition;
 using SonarLint.VisualStudio.Integration.Transition;
@@ -33,7 +35,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Transition
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<MuteIssuesWindowService, IMuteIssuesWindowService>(
-                MefTestHelpers.CreateExport<IConnectedModeFeaturesConfiguration>());
+                MefTestHelpers.CreateExport<IConnectedModeFeaturesConfiguration>(),
+                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
+                MefTestHelpers.CreateExport<IBrowserService>());
         }
 
         [TestMethod]
