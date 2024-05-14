@@ -21,6 +21,8 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.Core.Transition;
 
@@ -31,17 +33,21 @@ namespace SonarLint.VisualStudio.Integration.Transition
     internal class MuteIssuesWindowService : IMuteIssuesWindowService
     {
         private readonly IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration;
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly IBrowserService browserService;
 
         [ImportingConstructor]
-        public MuteIssuesWindowService(IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration)
+        public MuteIssuesWindowService(IConnectedModeFeaturesConfiguration connectedModeFeaturesConfiguration, IActiveSolutionBoundTracker activeSolutionBoundTracker, IBrowserService browserService)
         {
             this.connectedModeFeaturesConfiguration = connectedModeFeaturesConfiguration;
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.browserService = browserService;
         }
 
         [ExcludeFromCodeCoverage]
         public MuteIssuesWindowResponse Show()
         {
-            var dialog = new MuteWindowDialog(connectedModeFeaturesConfiguration.IsAcceptTransitionAvailable());
+            var dialog = new MuteWindowDialog(activeSolutionBoundTracker, browserService, connectedModeFeaturesConfiguration.IsAcceptTransitionAvailable());
             dialog.Owner = Application.Current.MainWindow;
             var dialogResult = dialog.ShowDialog();
 

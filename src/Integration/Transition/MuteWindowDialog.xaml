@@ -16,8 +16,8 @@
             <Setter Property="VerticalAlignment" Value="Top" />
             <Setter Property="Margin" Value="10,16,-10,0" />
             <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}"/>            
-    </Style>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}"/>
+        </Style>
         <Style x:Key="BorderStyle" TargetType="Border">
             <Setter Property="BorderBrush" Value="Black" />
             <Setter Property="BorderThickness" Value="1" />
@@ -43,10 +43,10 @@
             <Setter Property="VerticalAlignment" Value="Top"/>
         </Style>
         <Style x:Key="CancelButtonStyle" BasedOn="{StaticResource ButtonStyle}" TargetType="Button">
-            <Setter Property="Margin" Value="300,300,0,0"/>
+            <Setter Property="Margin" Value="324,320,0,0"/>
         </Style>
         <Style x:Key="SubmitButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonStyle}">
-            <Setter Property="Margin" Value="360,300,0,0" />
+            <Setter Property="Margin" Value="384,320,0,0" />
             <Setter Property="IsEnabled" Value="False"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Path=IsChecked, ElementName=rbWontFix}" Value="True">
@@ -79,6 +79,14 @@
         <Style x:Key="BottomBorderStyle" BasedOn="{StaticResource BorderStyle}" TargetType="Border">
             <Setter Property="Margin" Value="25,115,0,0" />
         </Style>
+        <Style x:Key="FormattingHelpBlock" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.CaptionTextKey}}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="LineStackingStrategy" Value="MaxHeight" />
+            <Setter Property="Margin" Value="0,290,0,0" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Width" Value="450" />
+        </Style>
     </vsui:DialogWindow.Resources>
     <Grid Height="350" Width="500" Background="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUIBackgroundKey}}">
         <Border Name="BorderWontFix" Style="{StaticResource TopBorderStyle}" Visibility="{Binding WontFixVisibility}">
@@ -103,6 +111,12 @@
         </Border>
         <Label Content="{x:Static resx:Strings.MuteWindow_CommentLabel}" Style="{StaticResource LabelStyle}" />
         <TextBox Name="txtComment" Style="{StaticResource TextStyle}"/>
+        <TextBlock Style="{StaticResource FormattingHelpBlock}">           
+            <Hyperlink Name="FormattingHelpHyperlink" NavigateUri="" RequestNavigate="FormattingHelpHyperlink_RequestNavigate">
+                Formatting Help
+            </Hyperlink>
+            <Run>: *Bold*, ``Code``, * Bullet point</Run>
+        </TextBlock>
         <Button Name="Cancel" Content="{x:Static resx:Strings.MuteWindow_CancelButton}" Style="{StaticResource CancelButtonStyle}" Click="Cancel_Click"/>
         <Button Name="Submit" Content="{x:Static resx:Strings.MuteWindow_SubmitButton}" Style="{StaticResource SubmitButtonStyle}" Click="Submit_Click"/>
     </Grid>
