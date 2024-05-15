@@ -44,7 +44,7 @@ public class SLCoreInstanceHandlerTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<SLCoreInstanceHandler>();
     }
-    
+
     [TestMethod]
     public void StartInstance_UpdatesCounterAndInitializesOnABackgroundThread()
     {
@@ -64,7 +64,7 @@ public class SLCoreInstanceHandlerTests
             _ = handle.ShutdownTask;
         });
     }
-    
+
     [TestMethod]
     public void StartInstance_AlreadyStarted_Throws()
     {
@@ -76,7 +76,7 @@ public class SLCoreInstanceHandlerTests
 
         slCoreHandler.CurrentStartNumber.Should().Be(0);
     }
-    
+
     [TestMethod]
     public void StartInstance_InstanceCreationFailed_LogsAndExits()
     {
@@ -87,9 +87,11 @@ public class SLCoreInstanceHandlerTests
 
         slCoreHandler.CurrentStartNumber.Should().Be(1);
         slCoreHandler.currentInstanceHandle.Should().BeNull();
-        logger.AssertOutputStrings(SLCoreStrings.SLCoreHandler_CreatingInstance, SLCoreStrings.SLCoreHandler_CreatingInstanceError);
+        logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_CreatingInstance);
+        logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_CreatingInstanceError);
+        logger.AssertPartialOutputStringExists("[Verbose] System.Exception");
     }
-    
+
     [TestMethod]
     public async Task StartInstance_InstanceDies_RaisesEventAndResets()
     {
@@ -113,7 +115,7 @@ public class SLCoreInstanceHandlerTests
             activeConfigScopeTracker.Reset();
         });
     }
-    
+
     [TestMethod]
     public async Task StartInstance_PreviousInstanceIsDead_AllowsToStartAgain()
     {
@@ -134,7 +136,7 @@ public class SLCoreInstanceHandlerTests
             SLCoreStrings.SLCoreHandler_CreatingInstance,
             SLCoreStrings.SLCoreHandler_StartingInstance);
     }
-    
+
     [TestMethod]
     public void StartInstance_InstanceInitializationThrows_RaisesEventAndResets()
     {
@@ -146,10 +148,11 @@ public class SLCoreInstanceHandlerTests
 
         slCoreHandler.CurrentStartNumber.Should().Be(1);
         slCoreHandler.currentInstanceHandle.Should().BeNull();
-        logger.AssertOutputStrings(SLCoreStrings.SLCoreHandler_CreatingInstance,
-            SLCoreStrings.SLCoreHandler_StartingInstance,
-            SLCoreStrings.SLCoreHandler_StartingInstanceError,
-            SLCoreStrings.SLCoreHandler_InstanceDied);
+        logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_CreatingInstance);
+        logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_StartingInstance);
+        logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_StartingInstanceError);
+        logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_InstanceDied);
+        logger.AssertPartialOutputStringExists("[Verbose] System.Exception");
         Received.InOrder(() =>
         {
             threadHandling.ThrowIfOnUIThread();
@@ -159,7 +162,7 @@ public class SLCoreInstanceHandlerTests
             activeConfigScopeTracker.Reset();
         });
     }
-    
+
     [TestMethod]
     public async Task Dispose_DisposesLatestHandle()
     {
@@ -179,7 +182,7 @@ public class SLCoreInstanceHandlerTests
             scopeTracker.Dispose();
         });
     }
-    
+
     [TestMethod]
     public async Task Dispose_PreventsStartingNewInstance()
     {
@@ -199,7 +202,7 @@ public class SLCoreInstanceHandlerTests
         instanceFactory.CreateInstance().Returns(instanceHandle);
     }
 
-    private SLCoreInstanceHandler CreateTestSubject(out ISLCoreInstanceFactory slCoreInstanceFactory, 
+    private SLCoreInstanceHandler CreateTestSubject(out ISLCoreInstanceFactory slCoreInstanceFactory,
         out IThreadHandling threadHandling,
         out TestLogger logger,
         out IActiveConfigScopeTracker activeConfigScopeTracker,
