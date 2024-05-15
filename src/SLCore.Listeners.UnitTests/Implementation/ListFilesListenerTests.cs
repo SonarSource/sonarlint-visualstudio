@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             files.Should().HaveCount(3);
 
             files[0].uri.Should().Be("file://C%3A%5CCode%5CProject%5CFile1.js");
-            files[0].ideRelativePath.Should().Be("\\File1.js");
+            files[0].ideRelativePath.Should().Be("File1.js");
             files[0].configScopeId.Should().Be(ConfigScopeId);
             files[0].isTest.Should().BeNull();
             files[0].charset.Should().Be("utf-8");
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             ValidateUriPath(files[0]);
 
             files[1].uri.Should().Be("file://C%3A%5CCode%5CProject%5CFile2.js");
-            files[1].ideRelativePath.Should().Be("\\File2.js");
+            files[1].ideRelativePath.Should().Be("File2.js");
             files[1].configScopeId.Should().Be(ConfigScopeId);
             files[1].isTest.Should().BeNull();
             files[1].charset.Should().Be("utf-8");
@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             ValidateUriPath(files[1]);
 
             files[2].uri.Should().Be("file://C%3A%5CCode%5CProject%5CFolder1%5CFile3.js");
-            files[2].ideRelativePath.Should().Be("\\Folder1\\File3.js");
+            files[2].ideRelativePath.Should().Be("Folder1\\File3.js");
             files[2].configScopeId.Should().Be(ConfigScopeId);
             files[2].isTest.Should().BeNull();
             files[2].charset.Should().Be("utf-8");
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             solutionWorkspaceService.DidNotReceive().ListFiles();
             activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\Code\\Project\\");
         }
-        
+
         [TestMethod]
         public async Task ListFilesAsync_FolderWorkSpace_SupportsPathsWithWhitespaces()
         {
@@ -128,20 +128,20 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
 
             files[0].uri.Should().Be("file://C%3A%5CCode%5CMy%20Project%5CFile1.js");
             files[0].fsPath.Should().Be("C:\\Code\\My Project\\File1.js");
-            files[0].ideRelativePath.Should().Be("\\My Project\\File1.js");
+            files[0].ideRelativePath.Should().Be("My Project\\File1.js");
             ValidateUriPath(files[0]);
-            
+
             files[1].uri.Should().Be("file://C%3A%5CCode%5CMy%20Project%5CMy%20Favorite%20File2.js");
             files[1].fsPath.Should().Be("C:\\Code\\My Project\\My Favorite File2.js");
-            files[1].ideRelativePath.Should().Be("\\My Project\\My Favorite File2.js");
+            files[1].ideRelativePath.Should().Be("My Project\\My Favorite File2.js");
             ValidateUriPath(files[1]);
-                
+
             files[2].uri.Should().Be("file://C%3A%5CCode%5CProject%5CFolder1%5CFile3.js");
             files[2].fsPath.Should().Be("C:\\Code\\Project\\Folder1\\File3.js");
-            files[2].ideRelativePath.Should().Be("\\Project\\Folder1\\File3.js");
+            files[2].ideRelativePath.Should().Be("Project\\Folder1\\File3.js");
             ValidateUriPath(files[2]);
         }
-        
+
         [TestMethod]
         public async Task ListFilesAsync_FolderWorkSpace_SupportsLocalized()
         {
@@ -159,7 +159,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
 
             files[0].uri.Should().Be("file://C%3A%5C%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82%5Cproject%5Cfile1.js");
             files[0].fsPath.Should().Be("C:\\привет\\project\\file1.js");
-            files[0].ideRelativePath.Should().Be("\\project\\file1.js");
+            files[0].ideRelativePath.Should().Be("project\\file1.js");
             ValidateUriPath(files[0]);
             activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\привет\\");
         }
@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             files.Should().HaveCount(3);
 
             files[0].uri.Should().Be("file://C%3A%5CCode%5CProject%5CFile1.js");
-            files[0].ideRelativePath.Should().Be("\\Code\\Project\\File1.js");
+            files[0].ideRelativePath.Should().Be("Code\\Project\\File1.js");
             files[0].configScopeId.Should().Be(ConfigScopeId);
             files[0].isTest.Should().BeNull();
             files[0].charset.Should().Be("utf-8");
@@ -189,7 +189,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             ValidateUriPath(files[0]);
 
             files[1].uri.Should().Be("file://C%3A%5CCode%5CProject%5CFile2.js");
-            files[1].ideRelativePath.Should().Be("\\Code\\Project\\File2.js");
+            files[1].ideRelativePath.Should().Be("Code\\Project\\File2.js");
             files[1].configScopeId.Should().Be(ConfigScopeId);
             files[1].isTest.Should().BeNull();
             files[1].charset.Should().Be("utf-8");
@@ -198,7 +198,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             ValidateUriPath(files[1]);
 
             files[2].uri.Should().Be("file://C%3A%5CCode%5CProject%5CFolder1%5CFile3.js");
-            files[2].ideRelativePath.Should().Be("\\Code\\Project\\Folder1\\File3.js");
+            files[2].ideRelativePath.Should().Be("Code\\Project\\Folder1\\File3.js");
             files[2].configScopeId.Should().Be(ConfigScopeId);
             files[2].isTest.Should().BeNull();
             files[2].charset.Should().Be("utf-8");
@@ -227,20 +227,20 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
 
             files[0].uri.Should().Be("file://C%3A%5CCode%5CMy%20Project%5CFile1.js");
             files[0].fsPath.Should().Be("C:\\Code\\My Project\\File1.js");
-            files[0].ideRelativePath.Should().Be("\\Code\\My Project\\File1.js");
+            files[0].ideRelativePath.Should().Be("Code\\My Project\\File1.js");
             ValidateUriPath(files[0]);
-            
+
             files[1].uri.Should().Be("file://C%3A%5CCode%5CMy%20Project%5CMy%20Favorite%20File2.js");
             files[1].fsPath.Should().Be("C:\\Code\\My Project\\My Favorite File2.js");
-            files[1].ideRelativePath.Should().Be("\\Code\\My Project\\My Favorite File2.js");
+            files[1].ideRelativePath.Should().Be("Code\\My Project\\My Favorite File2.js");
             ValidateUriPath(files[1]);
-                
+
             files[2].uri.Should().Be("file://C%3A%5CCode%5CProject%5CFolder1%5CFile3.js");
             files[2].fsPath.Should().Be("C:\\Code\\Project\\Folder1\\File3.js");
-            files[2].ideRelativePath.Should().Be("\\Code\\Project\\Folder1\\File3.js");
+            files[2].ideRelativePath.Should().Be("Code\\Project\\Folder1\\File3.js");
             ValidateUriPath(files[2]);
         }
-        
+
         [TestMethod]
         public async Task ListFilesAsync_SolutionWorkSpace_SupportsUNCpaths()
         {
@@ -258,11 +258,11 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
 
             files[0].uri.Should().Be("file://%5C%5Cservername%5Cwork%5Cproject%5Cfile1.js");
             files[0].fsPath.Should().Be("\\\\servername\\work\\project\\file1.js");
-            files[0].ideRelativePath.Should().Be("\\project\\file1.js");
+            files[0].ideRelativePath.Should().Be("project\\file1.js");
             ValidateUriPath(files[0]);
             activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "\\\\servername\\work\\");
         }
-        
+
         [TestMethod]
         public async Task ListFilesAsync_SolutionWorkSpace_SupportsLocalized()
         {
@@ -280,7 +280,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
 
             files[0].uri.Should().Be("file://C%3A%5C%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82%5Cproject%5Cfile1.js");
             files[0].fsPath.Should().Be("C:\\привет\\project\\file1.js");
-            files[0].ideRelativePath.Should().Be("\\привет\\project\\file1.js");
+            files[0].ideRelativePath.Should().Be("привет\\project\\file1.js");
             ValidateUriPath(files[0]);
             activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\");
         }

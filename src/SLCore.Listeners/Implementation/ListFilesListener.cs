@@ -80,13 +80,13 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 
         private string GetRelativePath(string root, string fullPath)
         {
-            return fullPath.Substring(root.Length - 1 );
+            return fullPath.Substring(root.Length);
         }
 
         private string GetRoot(string filePath)
         {
             var root = folderWorkspaceService.FindRootDirectory();
-            
+
             root ??= Path.GetPathRoot(filePath);
 
             Debug.Assert(root != string.Empty);
