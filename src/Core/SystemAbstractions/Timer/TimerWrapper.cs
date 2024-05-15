@@ -18,21 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Timers;
 
 namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
     [ExcludeFromCodeCoverage] // Wrapper around System
     public sealed class TimerWrapper : ITimer
     {
-        private readonly Timer timerInstance;
+        private readonly System.Timers.Timer timerInstance;
         private bool isDisposed;
 
         public TimerWrapper()
         {
-            this.timerInstance = new Timer();
+            this.timerInstance = new System.Timers.Timer();
             this.timerInstance.Elapsed += (s, e) =>
                 this.Elapsed?.Invoke(this, new TimerEventArgs(e.SignalTime));
         }
