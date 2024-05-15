@@ -24,7 +24,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
+using System.Windows.Navigation;
 using Microsoft.VisualStudio.PlatformUI;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Transition
@@ -36,15 +39,21 @@ namespace SonarLint.VisualStudio.Integration.Transition
     [ExcludeFromCodeCoverage]
     public partial class MuteWindowDialog : DialogWindow
     {
+        private const string SonarcloudHost = "sonarcloud.io";
+
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly IBrowserService browserService;
         private readonly Dictionary<RadioButton, SonarQubeIssueTransition> Transitions;
         private readonly Dictionary<Border, RadioButton> BorderRadioButtons;
 
-        public MuteWindowDialog(bool showAccept)
+        public MuteWindowDialog(IActiveSolutionBoundTracker activeSolutionBoundTracker, IBrowserService browserService, bool showAccept)
         {
             InitializeComponent();
 
             SetVisibility(showAccept);
 
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.browserService = browserService;
             Transitions = InitializeTransitions();
             BorderRadioButtons = InitializeBorderRadioButtons();
         }
@@ -97,6 +106,15 @@ namespace SonarLint.VisualStudio.Integration.Transition
         private void Border_MouseDown(object sender, MouseButtonEventArgs e)
         {
             BorderRadioButtons[(Border)sender].IsChecked = true;
+        }
+
+        private void FormattingHelpHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            var serverUri = activeSolutionBoundTracker.CurrentConfiguration.Project.ServerUri.ToString();
+            var isSonarCloud = serverUri.Contains(SonarcloudHost);
+
+            browserService.Navigate(isSonarCloud ? $"{serverUri}markdown/help" : $"{serverUri}formatting/help");
+            e.Handled = true;
         }
     }
 }

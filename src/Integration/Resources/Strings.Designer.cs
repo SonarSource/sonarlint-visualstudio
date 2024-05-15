@@ -550,6 +550,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to : *Bold*, ``Code``, * Bullet point.
+        /// </summary>
+        public static string MuteWindow_FormattingHelpExamples {
+            get {
+                return ResourceManager.GetString("MuteWindow_FormattingHelpExamples", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Formatting Help.
+        /// </summary>
+        public static string MuteWindow_FormattingHelpLink {
+            get {
+                return ResourceManager.GetString("MuteWindow_FormattingHelpLink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Mark Issue as....
         /// </summary>
         public static string MuteWindow_SubmitButton {

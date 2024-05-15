@@ -583,6 +583,12 @@ This is the general format to use when writing errors to output window or when t
   <data name="MuteWindow_CancelButton" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="MuteWindow_FormattingHelpLink" xml:space="preserve">
+    <value>Formatting Help</value>
+  </data>
+  <data name="MuteWindow_FormattingHelpExamples" xml:space="preserve">
+    <value>: *Bold*, ``Code``, * Bullet point</value>
+  </data>
   <data name="MuteWindow_CommentLabel" xml:space="preserve">
     <value>Add a comment (optional):</value>
   </data>
