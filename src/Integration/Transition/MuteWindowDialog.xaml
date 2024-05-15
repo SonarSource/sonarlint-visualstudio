@@ -113,9 +113,9 @@
         <TextBox Name="txtComment" Style="{StaticResource TextStyle}"/>
         <TextBlock Style="{StaticResource FormattingHelpBlock}">           
             <Hyperlink Name="FormattingHelpHyperlink" NavigateUri="" RequestNavigate="FormattingHelpHyperlink_RequestNavigate">
-                Formatting Help
+                <Run Text="{x:Static resx:Strings.MuteWindow_FormattingHelpLink}" />
             </Hyperlink>
-            <Run>: *Bold*, ``Code``, * Bullet point</Run>
+            <Run Text="{x:Static resx:Strings.MuteWindow_FormattingHelpExamples}" />
         </TextBlock>
         <Button Name="Cancel" Content="{x:Static resx:Strings.MuteWindow_CancelButton}" Style="{StaticResource CancelButtonStyle}" Click="Cancel_Click"/>
         <Button Name="Submit" Content="{x:Static resx:Strings.MuteWindow_SubmitButton}" Style="{StaticResource SubmitButtonStyle}" Click="Submit_Click"/>
