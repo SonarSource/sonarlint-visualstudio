@@ -108,8 +108,10 @@ namespace SonarLint.VisualStudio.Integration.Transition
 
         private void FormattingHelpHyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {
+            const string sonarcloudHost = "sonarcloud.io";
             var serverUri = activeSolutionBoundTracker.CurrentConfiguration.Project.ServerUri.ToString();
-            var isSonarCloud = serverUri.Contains("sonarcloud.io");
+            var isSonarCloud = serverUri.Contains(sonarcloudHost);
+
             browserService.Navigate(isSonarCloud ? $"{serverUri}markdown/help" : $"{serverUri}formatting/help");
             e.Handled = true;
         }
