@@ -113,14 +113,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public void LogVerbose(string message, params object[] args)
         {
-            // Note: verbose messages are not stored so we can't write tests against them.
-            // However, they can be logged to test output window to help with checking the output
-            // that is produced.
-            if (logToConsole)
-            {
-                var messageToLog = GetFormattedMessage(string.Format(System.Globalization.CultureInfo.CurrentCulture, message, args));
-                Console.WriteLine("[Verbose] " + messageToLog);
-            }
+            WriteLine($"[Verbose] {message}", args);
         }
 
         private string GetFormattedMessage(string message)

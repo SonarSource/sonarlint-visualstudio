@@ -533,8 +533,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
 
             result.Should().HaveCount(0);
-            testLogger.OutputStrings.Should().HaveCount(1);
-            testLogger.OutputStrings.First().Should().Contain("Failed to analyze CSS in some path");
+            testLogger.AssertOutputStrings(2);
+            testLogger.AssertOutputStringExists("[CssAnalyzer] Failed to analyze CSS in some path");
+            testLogger.AssertOutputStringExists("[Verbose] Reason for failed css analysis: errorrr");
         }
 
         private static JsTsAnalysisResponse CreateLinterNotInitializedResponse() =>
