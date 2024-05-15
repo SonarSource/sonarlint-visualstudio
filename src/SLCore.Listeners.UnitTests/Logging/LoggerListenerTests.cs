@@ -40,12 +40,12 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Logging
         }
 
         [TestMethod]
-        //[DataRow(LogLevel.ERROR, false)]
-        //[DataRow(LogLevel.WARN, false)]
-        //[DataRow(LogLevel.INFO, true)]
-        //[DataRow(LogLevel.TRACE, true)]
+        [DataRow(LogLevel.ERROR, false)]
+        [DataRow(LogLevel.WARN, false)]
+        [DataRow(LogLevel.INFO, true)]
+        [DataRow(LogLevel.TRACE, true)]
         [DataRow(LogLevel.DEBUG, true)]
-        public void Log_LogsOnlyErrorAndWarning(LogLevel logLevel, bool verboseLogs)
+        public void Log_LogInfoTraceAndDebugAsVerbose(LogLevel logLevel, bool verboseLogs)
         {
             var param = new LogParams { level = logLevel, message = "some Message" };
 
