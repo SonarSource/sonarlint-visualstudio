@@ -152,6 +152,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             SonarRuleRepoKeys.Cpp,
             SonarRuleRepoKeys.JavaScript,
             SonarRuleRepoKeys.TypeScript,
+            SonarRuleRepoKeys.Css,
             SonarRuleRepoKeys.Secrets
         };
 
