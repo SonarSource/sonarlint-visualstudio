@@ -18,9 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Timers;
+using Timer = System.Timers.Timer;
 
 namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
