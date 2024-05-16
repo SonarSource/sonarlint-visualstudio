@@ -19,18 +19,19 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
+using Timer = System.Timers.Timer;
 
 namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
     [ExcludeFromCodeCoverage] // Wrapper around System
     public sealed class TimerWrapper : ITimer
     {
-        private readonly System.Timers.Timer timerInstance;
+        private readonly Timer timerInstance;
         private bool isDisposed;
 
         public TimerWrapper()
         {
-            this.timerInstance = new System.Timers.Timer();
+            this.timerInstance = new Timer();
             this.timerInstance.Elapsed += (s, e) =>
                 this.Elapsed?.Invoke(this, new TimerEventArgs(e.SignalTime));
         }
