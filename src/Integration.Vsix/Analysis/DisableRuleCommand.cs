@@ -17,10 +17,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-using System;
+
 using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -152,6 +150,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             SonarRuleRepoKeys.Cpp,
             SonarRuleRepoKeys.JavaScript,
             SonarRuleRepoKeys.TypeScript,
+            SonarRuleRepoKeys.Css,
             SonarRuleRepoKeys.Secrets
         };
 
