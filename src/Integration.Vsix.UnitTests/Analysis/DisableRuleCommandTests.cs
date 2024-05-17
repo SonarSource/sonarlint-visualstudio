@@ -18,18 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Design;
-using FluentAssertions;
 using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Secrets;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using ThreadHelper = SonarLint.VisualStudio.TestInfrastructure.ThreadHelper;
 
@@ -92,6 +86,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [DataRow("c:S222")]
         [DataRow("javascript:S333")]
         [DataRow("typescript:S444")]
+        [DataRow("css:S777")]
         [DataRow("secrets:S555")]
         public void CheckStatusAndExecute_SingleIssue_SupportedRepo_StandaloneMode_VisibleAndEnabled(string errorCode)
         {
@@ -126,6 +121,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [DataRow("javascript:S111", SonarLintMode.LegacyConnected, false)]
         [DataRow("typescript:S111", SonarLintMode.Connected, false)]
         [DataRow("typescript:S111", SonarLintMode.LegacyConnected, false)]
+        [DataRow("css:S111", SonarLintMode.Connected, false)]
+        [DataRow("css:S111", SonarLintMode.LegacyConnected, false)]
         public void CheckStatus_SingleIssue_SupportedRepo_ConnectedMode_HasExpectedEnabledStatus(string errorCode, SonarLintMode bindingMode,
             bool expectedEnabled)
         {
