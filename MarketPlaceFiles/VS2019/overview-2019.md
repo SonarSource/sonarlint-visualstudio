@@ -1,3 +1,9 @@
+**Deprecation announcement:**
+
+As of April 2, 2024, SonarLint for Visual Studio 2019 is deprecated. This means that there will not be any new feature updates to this version and critical bugs will be fixed for 6 months only. We encourage users to take advantage of the latest enhancements by updating to [SonarLint for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2022). 
+
+For more info: https://community.sonarsource.com/t/deprecation-of-sonarlint-with-visual-studio-2019/112828
+
 #### Please note: requires Visual Studio 2019.7 or greater
 
 ## **SonarLint: Your first line of defense for quality and secure code**
