@@ -49,14 +49,16 @@ internal class RpcDebugger : IRpcDebugger
 
     internal /* for testing */ RpcDebugger(IFileSystem fileSystem, string logFilePath)
     {
+#if DEBUG
         /* IMPORTANT!!!
-         * Enable this environment variable only if you want to collect rpc debug logs
-         * If you ask customer to enable this their SQ/SC user and token info will be leaked and inform them to clear sensitive data */
+         * Enable this environment variable only if you want to collect rpc debug logs.
+         * Debug logs contain sensitive data, like customer SQ/SC user and token info which potentially can be leaked. */
         if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SONARLINT_LOG_RPC")))
         {
             fileSystem.Directory.CreateDirectory(Path.GetDirectoryName(logFilePath));
             streamWriter = new StreamWriter(fileSystem.FileStream.Create(logFilePath, FileMode.Create)) { AutoFlush = true };
         }
+#endif
     }
 
     public void SetUpDebugger(IJsonRpc jsonRpc)
