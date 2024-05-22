@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -56,6 +55,7 @@ public class RpcDebuggerTests
         jsonRpc.ReceivedCalls().Should().BeEmpty();
     }
 
+#if DEBUG
     [TestMethod]
     public void CreateDebugOutput_EnvVarSetTrue_EnablesTracing()
     {
@@ -112,7 +112,7 @@ public class RpcDebuggerTests
 
         fileStreamFactory.Received(1).Create("C:\\test.log", FileMode.Create);
     }
-    
+
     private static void SetUpJsonRpc(out IJsonRpc jsonRpc, out TraceSource traceSource)
     {
         jsonRpc = Substitute.For<IJsonRpc>();
@@ -134,6 +134,21 @@ public class RpcDebuggerTests
         fileSystem.FileStream.Returns(fileStreamFactory);
         fileStreamFactory.Create(filePath, FileMode.Create).Returns(stream);
     }
+#else
+    [TestMethod]
+    public void CreateDebugOutput_EnvVarSetTrue_DoesNothing()
+    {
+        using var environment = new EnvironmentVariableHelper(SONARLINT_LOG_RPC, "true", EnvironmentVariableTarget.Process);
+        var fileSystem = CreateFileSystem();
+        var jsonRpc = Substitute.For<IJsonRpc>();
+
+        var testSubject = new RpcDebugger(fileSystem, DateTime.Now);
+        testSubject.SetUpDebugger(jsonRpc);
+
+        fileSystem.ReceivedCalls().Should().BeEmpty();
+        jsonRpc.ReceivedCalls().Should().BeEmpty();
+    }
+#endif
 
     private static IFileSystem CreateFileSystem()
     {
