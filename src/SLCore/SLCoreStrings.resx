@@ -147,4 +147,7 @@
   <data name="SloopRestartFailedNotificationService_Restart" xml:space="preserve">
     <value>Restart SonarLint</value>
   </data>
+  <data name="ConfigScopeConflict" xml:space="preserve">
+    <value>Configuration scope conflict</value>
+  </data>
 </root>
