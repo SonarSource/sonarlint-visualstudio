@@ -170,6 +170,8 @@ jobs:
   - task: VSBuild@1
     displayName: Build solution SonarLint.VisualStudio.Integration.sln
     env:
+      ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+      ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
       SM_HOST: $(SM_HOST)
       SM_API_KEY: $(SM_API_KEY)
       SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
