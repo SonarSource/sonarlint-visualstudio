@@ -12,7 +12,7 @@ SonarLint is free, open source, and available in the Visual Studio Marketplace:
 * [SonarLint for Visual Studio 2019](https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2019)
 * [SonarLint for Visual Studio 2017](https://marketplace.visualstudio.com/items?itemName=SonarSource.SonarLintforVisualStudio2017)
 
-Note: SonarLint for Visual Studio 2017 and 2019 has been deprecated. New versions of SonarLint for Visual Studio 2017 will not be shipped after March 1, 2022 and 
+Note: SonarLint for Visual Studio 2017 and 2019 has been deprecated. New versions of SonarLint for Visual Studio 2017 and 2019 will not be shipped after March 1, 2022 and April 2, 2024 respectively. 
 
 
 ## Features
