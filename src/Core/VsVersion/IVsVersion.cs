@@ -23,7 +23,7 @@ namespace SonarLint.VisualStudio.Core.VsVersion
     public interface IVsVersion
     {
         /// <summary>
-        /// VS full product name, including edition. Example: "Visual Studio Enterprise 2019"
+        /// VS full product name, including edition. Example: "Visual Studio Enterprise 2022"
         /// </summary>
         string DisplayName { get; }
 

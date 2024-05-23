@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Core
         Task RunOnUIThreadAsync(Action op);
 
         /// <summary>
-        /// Executes the operation asynchronously on the main thread. While synchronously blocking 
+        /// Executes the operation asynchronously on the main thread. While synchronously blocking
         /// synchronously the calling thread.
         /// If the caller is on the main thread already then the operation is executed directly.
         /// If the caller is not on the main thread then the method will switch to the main thread,
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Core
         /// </summary>
         /// <remarks>Wrapper that calls <see cref="TaskScheduler.Default"/></remarks>
         IAwaitableWrapper SwitchToBackgroundThread();
-        
+
         /// <summary>
         /// Switches to the main thread
         /// </summary>
@@ -114,16 +114,10 @@ namespace SonarLint.VisualStudio.Core
         IAwaiterWrapper GetAwaiter();
     }
 
-    public interface IAwaiterWrapper :
-#if VS2022
-        // Earlier versions of VS don't implement ICriticalNotifyCompletion
-        ICriticalNotifyCompletion
-#else
-        INotifyCompletion
-#endif
+    public interface IAwaiterWrapper : ICriticalNotifyCompletion
     {
         bool IsCompleted { get; }
-        void GetResult();
 
+        void GetResult();
     }
 }

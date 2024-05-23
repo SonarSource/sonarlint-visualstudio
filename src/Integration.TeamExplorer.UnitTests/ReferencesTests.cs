@@ -36,8 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var expectedDllVersions = new Dictionary<string, int>
             {
-                { "VS2019", 16 },
-                { "VS2022", 16 } // 2022's dll is still 16 and not 17
+               { "VS2022", 16 } // 2022's dll is still 16 and not 17
             };
 
             var tfClientAssemblyVersion = AssemblyHelper.GetVersionOfReferencedAssembly(
@@ -51,7 +50,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var expectedDllVersions = new Dictionary<string, int>
             {
-                { "VS2019", 16 },
                 { "VS2022", 17 }
             };
 

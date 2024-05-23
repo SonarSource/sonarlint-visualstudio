@@ -20,8 +20,6 @@ jobs:
   strategy:
     maxParallel: 2
     matrix:
-      2019:
-        vsTargetVersion: 2019
       2022:
         vsTargetVersion: 2022
   displayName: "Build:"
@@ -60,15 +58,15 @@ jobs:
       nugetConfigPath: nuget.config
       arguments: restore -LockedMode -Verbosity detailed
 
-  - task: NuGetCommand@2
-    displayName: NuGet restore without LockedMode check (VS2019)
-    condition: and(succeeded(), ne(variables['vsTargetVersion'], '2022'))
-    env:
-      ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-      ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-    inputs:
-      solution: $(BuildParameters.solution)
-      selectOrConfig: config
+  # - task: NuGetCommand@2
+  #   displayName: NuGet restore without LockedMode check (VS2019)
+  #   condition: and(succeeded(), ne(variables['vsTargetVersion'], '2022'))
+  #   env:
+  #     ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+  #     ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+  #   inputs:
+  #     solution: $(BuildParameters.solution)
+  #     selectOrConfig: config
 
   - task: PowerShell@2
     displayName: 'Read Sonar project version from the versions.props file '
@@ -297,12 +295,12 @@ jobs:
       SourceFolder: $(Build.SourcesDirectory)\MarketPlaceFiles\VS2022
       TargetFolder: $(Build.ArtifactStagingDirectory)
 
-  - task: CopyFiles@2
-    displayName: 'Copy marketplace files to:  $(Build.ArtifactStagingDirectory) (VS2019 only)'
-    condition: and(succeeded(), eq(variables['vsTargetVersion'], '2019'))
-    inputs:
-      SourceFolder: $(Build.SourcesDirectory)\MarketPlaceFiles\VS2019
-      TargetFolder: $(Build.ArtifactStagingDirectory)
+  # - task: CopyFiles@2
+  #   displayName: 'Copy marketplace files to:  $(Build.ArtifactStagingDirectory) (VS2019 only)'
+  #   condition: and(succeeded(), eq(variables['vsTargetVersion'], '2019'))
+  #   inputs:
+  #     SourceFolder: $(Build.SourcesDirectory)\MarketPlaceFiles\VS2019
+  #     TargetFolder: $(Build.ArtifactStagingDirectory)
 
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: vsix'

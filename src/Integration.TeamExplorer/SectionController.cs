@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         [ImportingConstructor]
         public SectionController(
-            [Import(typeof(SVsServiceProvider))]IServiceProvider serviceProvider,
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IHost host,
             IWebBrowser webBrowser,
             IAutoBindTrigger autoBindTrigger)
@@ -80,6 +80,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         }
 
         #region IConnectSection
+
         IProgressControlHost ISectionController.ProgressHost
         {
             get { return (IProgressControlHost)this.View; }
@@ -104,25 +105,10 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             get { return (IUserNotification)this.ViewModel; }
         }
+
         #endregion
 
         #region TeamExplorerSectionBase overrides
-
-#if VS2019
-
-        protected override void InitializeViewModel(SectionInitializeEventArgs e)
-        {
-            base.InitializeViewModel(e);
-
-            // Warning - cargo cult code!
-            // This property isn't documented. However, without it the Team Explorer will add a scroll bar to the section during
-            // binding if the section height is not large enough to display the user control (so there can be two scrollbars, the
-            // section scrollbar and the project tree view scrollbar).
-            // With it, the control is correctly sized to the available height with just the project tree view scrollbar when required.
-            // This property is was added in VS2019.
-            ITeamExplorerSectionExtensions.SetProperty(this, SectionProperties.FillVerticalSpace, 600d);
-        }
-#endif
 
         protected override object CreateView(SectionInitializeEventArgs e)
         {
@@ -170,11 +156,11 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
                 this.RefreshCommand.Execute(null);
             }
         }
-        
+
         /// <summary>
         /// Delegate QueryStatus to commands
         /// </summary>
-        protected override int IOleCommandTargetQueryStatus(ref Guid pguidCmdGroup, uint cCmds,  
+        protected override int IOleCommandTargetQueryStatus(ref Guid pguidCmdGroup, uint cCmds,
             TF_OLECMD[] prgCmds, IntPtr pCmdText)
         {
             var result = CommandNotHandled;
@@ -199,9 +185,11 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             ((ISectionController)this).ViewModel.IsBusy = isBusy;
         }
+
         #endregion
 
         #region Commands
+
         public ICommand<ConnectConfiguration> ConnectCommand
         {
             get;
@@ -225,6 +213,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             get;
             private set;
         }
+
         public ICommand ReconnectCommand { get; private set; }
 
         public ICommand<ConnectionInformation> RefreshCommand

@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
     {
 #pragma warning disable S4277
         public static readonly IThreadHandling Instance = new ThreadHandling();
-#pragma warning restore S4277   
+#pragma warning restore S4277
 
         public bool CheckAccess() => ThreadHelper.CheckAccess();
 
@@ -134,16 +134,12 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
             public void GetResult() => wrapped.GetResult();
 
-#if VS2022
-            // The awaiters in earlier versions of VS do not implement ICriticalNotifyCompletion
             public void UnsafeOnCompleted(Action continuation)
             {
                 wrapped.UnsafeOnCompleted(continuation);
             }
-#endif
-
         }
 
-#endregion
+        #endregion
     }
 }

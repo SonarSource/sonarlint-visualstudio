@@ -44,8 +44,8 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders
 
         public IReadOnlyCollection<string> Get()
         {
-            // e.g. C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\
-            var hr = vsShell.GetProperty((int) __VSSPROPID2.VSSPROPID_InstallRootDir, out var installDir);
+            // e.g. C:\Program Files (x86)\Microsoft Visual Studio\2022\Preview\
+            var hr = vsShell.GetProperty((int)__VSSPROPID2.VSSPROPID_InstallRootDir, out var installDir);
 
             if (ErrorHandler.Failed(hr))
             {
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders
             var msbuildNodeExePath = Path.Combine((string)installDir, MsBuildPath);
             var bundledNodeExePath = Path.Combine((string)installDir, VsBundledPath);
 
-            return new[] {msbuildNodeExePath, bundledNodeExePath};
+            return new[] { msbuildNodeExePath, bundledNodeExePath };
         }
     }
 }

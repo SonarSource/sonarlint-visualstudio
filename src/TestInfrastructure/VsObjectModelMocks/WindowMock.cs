@@ -108,7 +108,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             }
         }
 
-#if VS2022
         IntPtr Window.HWnd
         {
             get
@@ -116,15 +115,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
                 throw new NotImplementedException();
             }
         }
-#else
-        int Window.HWnd
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-#endif
 
         bool Window.IsFloating
         {
@@ -294,17 +284,10 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             this.Active = true;
         }
 
-#if VS2022
         void Window.Attach(IntPtr lWindowHandle)
         {
             throw new NotImplementedException();
         }
-#else
-        void Window.Attach(int lWindowHandle)
-        {
-            throw new NotImplementedException();
-        }
-#endif
 
         void Window.Close(vsSaveChanges SaveChanges)
         {

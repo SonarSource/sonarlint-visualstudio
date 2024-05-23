@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
             return result;
         }
-        
+
         public bool TryGetRuleId(ITableEntryHandle handle, out SonarCompositeRuleId ruleId)
         {
             ruleId = null;
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             {
                 return false;
             }
-            
+
             var errorCode = FindErrorCodeForEntry(snapshot, index);
             return SonarCompositeRuleId.TryParse(errorCode, out ruleId);
         }
@@ -77,7 +77,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
                 isSuppressedOut = IsSuppressed(handle);
                 return true;
-
             });
 
             ruleId = ruleIdOut;
@@ -90,7 +89,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         {
             IFilterableIssue issueOut = null;
             var result = vSServiceOperation.Execute<SVsErrorList, IErrorList, bool>(
-                errorList => TryGetSelectedSnapshotAndIndex(errorList, out var snapshot, out var index) 
+                errorList => TryGetSelectedSnapshotAndIndex(errorList, out var snapshot, out var index)
                              && TryGetValue(snapshot, index, SonarLintTableControlConstants.IssueVizColumnName, out issueOut));
 
             issue = issueOut;
@@ -101,32 +100,32 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         public bool TryGetRoslynIssueFromSelectedRow(out IFilterableRoslynIssue filterableRoslynIssue)
         {
             IFilterableRoslynIssue outIssue = null;
-            
+
             var result = vSServiceOperation.Execute<SVsErrorList, IErrorList, bool>(errorList =>
             {
                 string errorCode;
                 if (TryGetSelectedSnapshotAndIndex(errorList, out var snapshot, out var index)
-                    && (errorCode = FindErrorCodeForEntry(snapshot, index)) != null 
-                    && TryGetValue(snapshot, index, StandardTableKeyNames.DocumentName, out string filePath) 
+                    && (errorCode = FindErrorCodeForEntry(snapshot, index)) != null
+                    && TryGetValue(snapshot, index, StandardTableKeyNames.DocumentName, out string filePath)
                     && TryGetValue(snapshot, index, StandardTableKeyNames.Line, out int line)
                     && TryGetValue(snapshot, index, StandardTableKeyNames.Column, out int column))
                 {
                     outIssue = new FilterableRoslynIssue(errorCode, filePath, line + 1, column + 1 /* error list issues are 0-based and we use 1-based line & column numbers */);
                 }
-                
+
                 return outIssue != null;
             });
 
             filterableRoslynIssue = outIssue;
-            
+
             return result;
         }
 
         private static bool IsSuppressed(ITableEntryHandle handle)
         {
-            return handle.TryGetSnapshot(out var snapshot, out var index) 
-                   && TryGetValue(snapshot, index, Infrastructure.VS.SuppressionState.ColumnName, out int suppressionState) 
-                   && suppressionState == Infrastructure.VS.SuppressionState.SuppressedEnumValue;
+            return handle.TryGetSnapshot(out var snapshot, out var index)
+                   && TryGetValue(snapshot, index, StandardTableKeyNames.SuppressionState, out SuppressionState suppressionState)
+                   && suppressionState == SuppressionState.Suppressed;
         }
 
         private static string FindErrorCodeForEntry(ITableEntriesSnapshot snapshot, int index)
@@ -135,21 +134,21 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             {
                 var prefixErrorCode = "";
 
-                // For CSharp and VisualBasic the buildTool returns the name of the analyzer package. 
+                // For CSharp and VisualBasic the buildTool returns the name of the analyzer package.
                 // The prefix is required for roslyn languages as the error code is in style "S111" meaning
                 // unlike other languages it has no repository prefix.
                 switch (buildTool)
                 {
                     case "SonarAnalyzer.CSharp":
-                    {
-                        prefixErrorCode = $"{SonarRuleRepoKeys.CSharpRules}:";
-                        break;
-                    }
+                        {
+                            prefixErrorCode = $"{SonarRuleRepoKeys.CSharpRules}:";
+                            break;
+                        }
                     case "SonarAnalyzer.VisualBasic":
-                    {
-                        prefixErrorCode = $"{SonarRuleRepoKeys.VBNetRules}:";
-                        break;
-                    }
+                        {
+                            prefixErrorCode = $"{SonarRuleRepoKeys.VBNetRules}:";
+                            break;
+                        }
                     case "SonarLint":
                         break;
 
@@ -170,21 +169,21 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         {
             snapshot = default;
             index = default;
-            
+
             return TryGetSelectedTableEntry(errorList, out var handle) && handle.TryGetSnapshot(out snapshot, out index);
         }
 
         private static bool TryGetSelectedTableEntry(IErrorList errorList, out ITableEntryHandle handle)
         {
             handle = null;
-            
+
             var selectedItems = errorList?.TableControl?.SelectedEntries;
 
             if (selectedItems == null)
             {
                 return false;
             }
-            
+
             foreach (var tableEntryHandle in selectedItems)
             {
                 if (handle != null)
@@ -211,7 +210,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
                 value = (T)objValue;
                 return true;
-
             }
             catch (InvalidCastException)
             {

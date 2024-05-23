@@ -43,8 +43,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private DummyAnalysisIssue issue;
         private IAnalysisIssueVisualization issueViz;
         private Guid projectGuid;
-        
-
 
         [TestInitialize]
         public void SetUp()
@@ -66,8 +64,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             issueViz = CreateIssueViz(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)));
             snapshot = CreateIssueSnapshot("MyProject", projectGuid, path, new List<IAnalysisIssueVisualization> { issueViz });
         }
-
-        
 
         [TestMethod]
         [DataRow(0)]
@@ -139,9 +135,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_BaseIssueIsNotAnalysisIssue_InvalidCastException()
         {
-            
             var issue = new Mock<IAnalysisIssueBase>();
-            issue.Setup(i=> i.PrimaryLocation).Returns(() => {
+            issue.Setup(i => i.PrimaryLocation).Returns(() =>
+            {
                 return new DummyAnalysisIssueLocation
                 {
                     TextRange = new DummyTextRange()
@@ -151,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.SetupGet(x => x.Issue).Returns(issue.Object);
 
-            Action act = () => new IssuesSnapshot("test", projectGuid, "test.cpp", new[] {issueViz.Object});
+            Action act = () => new IssuesSnapshot("test", projectGuid, "test.cpp", new[] { issueViz.Object });
             act.Should().Throw<InvalidCastException>();
         }
 
@@ -257,9 +253,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void GetValue_SuppressionState_Is_SuppressionState()
         {
             issueViz.IsSuppressed = true;
-            GetValue(SuppressionsColumnHelper.SuppressionStateColumnName).Should().BeSameAs(SuppressionsColumnHelper.SuppressionState_Suppressed);
+            GetValue(StandardTableKeyNames.SuppressionState).Should().BeSameAs(Boxes.SuppressionState.Suppressed);
             issueViz.IsSuppressed = false;
-            GetValue(SuppressionsColumnHelper.SuppressionStateColumnName).Should().BeSameAs(SuppressionsColumnHelper.SuppressionState_Active);
+            GetValue(StandardTableKeyNames.SuppressionState).Should().BeSameAs(Boxes.SuppressionState.Active);
         }
 
         private object GetValue(string columnName)

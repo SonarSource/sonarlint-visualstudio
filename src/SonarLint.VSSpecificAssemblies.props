@@ -23,7 +23,7 @@
   
   <PropertyGroup>
     <!-- VsTargetVersion should be set when building from the command line to specify the version.
-         Expected values: 2019, 2022 -->
+         Expected values: 2022 -->
     <VersionSpecificSuffix>$(VsTargetVersion)</VersionSpecificSuffix>
 
     <!-- We're referencing VS-specific assemblies so we'll build to a VS-specific output folder -->
@@ -42,7 +42,6 @@
     <ThirdPartyPath>$(MSBuildThisFileDirectory)\..\third-parties\VS$(VersionSpecificSuffix)</ThirdPartyPath>
 
     <VsTargetMajorMinorVersion>Unknown VS target version - should never happen because of the validation target above</VsTargetMajorMinorVersion>
-    <VsTargetMajorMinorVersion Condition="$(VersionSpecificSuffix) == '2019' ">16.0</VsTargetMajorMinorVersion>
     <VsTargetMajorMinorVersion Condition="$(VersionSpecificSuffix) == '2022' ">17.0</VsTargetMajorMinorVersion>
   </PropertyGroup>
 
