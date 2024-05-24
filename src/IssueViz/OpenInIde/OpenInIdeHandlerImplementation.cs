@@ -46,7 +46,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
 {
     private readonly IIDEWindowService ideWindowService;
     private readonly IToolWindowService toolWindowService;
-    private readonly IOpenInIdeMessageBox messageBox;
+    private readonly IOpenInIdeNotification notification;
     private readonly IIssueSelectionService issueSelectionService;
     private readonly ILogger logger;
     private readonly ILocationNavigator navigator;
@@ -58,7 +58,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
     public OpenInIdeHandlerImplementation(IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
         IOpenInIdeConverterImplementation converterImplementation,
         IToolWindowService toolWindowService,
-        IOpenInIdeMessageBox messageBox,
+        IOpenInIdeNotification notification,
         IIDEWindowService ideWindowService,
         ILocationNavigator navigator,
         IIssueSelectionService issueSelectionService,
@@ -68,7 +68,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         this.ideWindowService = ideWindowService;
         this.navigator = navigator;
         this.toolWindowService = toolWindowService;
-        this.messageBox = messageBox;
+        this.notification = notification;
         this.issueSelectionService = issueSelectionService;
         this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
         this.converterImplementation = converterImplementation;
@@ -94,13 +94,14 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         logger.WriteLine(OpenInIdeResources.ProcessingRequest, issueConfigurationScope,
             issueDetails?.Key, issueDetails?.Type);
 
+        notification.Clear();
         ideWindowService.BringToFront();
 
         if (!ValidateIssueNotNull(issueDetails, out var failureReason)
             || !ValidateConfiguration(issueConfigurationScope, out var configurationScopeRoot, out failureReason)
             || !ValidateIssueIsConvertible(issueDetails, converter, configurationScopeRoot, out var visualization, out failureReason))
         {
-            messageBox.InvalidRequest(failureReason);
+            notification.InvalidRequest(failureReason, toolWindowId);
             return;
         }
 
@@ -119,7 +120,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         }
         else
         {
-            HandleIncompleteNavigation(visualization, navigationResult);
+            HandleIncompleteNavigation(visualization, navigationResult, toolWindowId);
         }
     }
 
@@ -157,7 +158,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         return false;
     }
 
-    private void HandleIncompleteNavigation(IAnalysisIssueVisualization visualization, NavigationResult navigationResult)
+    private void HandleIncompleteNavigation(IAnalysisIssueVisualization visualization, NavigationResult navigationResult, Guid toolWindowId)
     {
         logger.WriteLine(OpenInIdeResources.IssueLocationNotFound, visualization.CurrentFilePath,
             visualization.Location?.TextRange?.StartLine, visualization.Location?.TextRange?.StartLineOffset);
@@ -165,10 +166,10 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         switch (navigationResult)
         {
             case NavigationResult.Failed:
-                messageBox.UnableToOpenFile(visualization.CurrentFilePath);
+                notification.UnableToOpenFile(visualization.CurrentFilePath, toolWindowId);
                 return;
             case NavigationResult.OpenedFile:
-                messageBox.UnableToLocateIssue(visualization.CurrentFilePath);
+                notification.UnableToLocateIssue(visualization.CurrentFilePath, toolWindowId);
                 return;
             default:
                 throw new ArgumentOutOfRangeException(nameof(navigationResult), OpenInIdeResources.Exception_InvalidNavigationResult);

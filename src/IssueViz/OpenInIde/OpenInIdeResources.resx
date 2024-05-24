@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="DefaultInfoBarMessage" xml:space="preserve">
-    <value>Could not handle Open in IDE request. See the Output Window for more information.</value>
+    <value>Could not handle Open in IDE request. See the Logs for more information.</value>
   </data>
   <data name="ProcessingRequest" xml:space="preserve">
     <value>[Open in IDE] Processing request. Configuration scope: {0}, Key: {1}, Type: {2}</value>
@@ -141,11 +141,11 @@
   <data name="IssueLocationNotFound" xml:space="preserve">
     <value>[Open in IDE] Could not find the location at File: {0}, Start Line: {1}, Start Position: {2}</value>
   </data>
-  <data name="MessageBox_UnableToLocateIssue" xml:space="preserve">
-    <value>Could not locate issue. Ensure the file ({0}) has not been modified</value>
+  <data name="Notification_UnableToLocateIssue" xml:space="preserve">
+    <value>Open in IDE. Could not locate issue. Ensure the file ({0}) has not been modified</value>
   </data>
-  <data name="MessageBox_UnableToOpenFile" xml:space="preserve">
-    <value>Could not open File: {0}</value>
+  <data name="Notification_UnableToOpenFile" xml:space="preserve">
+    <value>Open in IDE. Could not open File: {0}</value>
   </data>
   <data name="ValidationReason_UnableToConvertIssue" xml:space="preserve">
     <value>Invalid issue format</value>
@@ -153,11 +153,8 @@
   <data name="ValidationReason_MalformedRequest" xml:space="preserve">
     <value>Malformed request</value>
   </data>
-  <data name="MessageBox_InvalidConfiguration" xml:space="preserve">
+  <data name="Notification_InvalidConfiguration" xml:space="preserve">
     <value>Unable to process Open in IDE request. Reason: {0}</value>
-  </data>
-  <data name="MessageBox_Caption" xml:space="preserve">
-    <value>SonarLint Open in IDE</value>
   </data>
   <data name="ValidationReason_ConfigurationMismatch" xml:space="preserve">
     <value>Internal configuration mismatch</value>

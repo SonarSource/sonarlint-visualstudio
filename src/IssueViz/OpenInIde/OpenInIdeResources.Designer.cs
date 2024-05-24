@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not handle Open in IDE request. See the Output Window for more information..
+        ///   Looks up a localized string similar to Could not handle Open in IDE request. See the Logs for more information..
         /// </summary>
         internal static string DefaultInfoBarMessage {
             get {
@@ -105,38 +105,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint Open in IDE.
-        /// </summary>
-        internal static string MessageBox_Caption {
-            get {
-                return ResourceManager.GetString("MessageBox_Caption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Unable to process Open in IDE request. Reason: {0}.
         /// </summary>
-        internal static string MessageBox_InvalidConfiguration {
+        internal static string Notification_InvalidConfiguration {
             get {
-                return ResourceManager.GetString("MessageBox_InvalidConfiguration", resourceCulture);
+                return ResourceManager.GetString("Notification_InvalidConfiguration", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not locate issue. Ensure the file ({0}) has not been modified.
+        ///   Looks up a localized string similar to Open in IDE. Could not locate issue. Ensure the file ({0}) has not been modified.
         /// </summary>
-        internal static string MessageBox_UnableToLocateIssue {
+        internal static string Notification_UnableToLocateIssue {
             get {
-                return ResourceManager.GetString("MessageBox_UnableToLocateIssue", resourceCulture);
+                return ResourceManager.GetString("Notification_UnableToLocateIssue", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not open File: {0}.
+        ///   Looks up a localized string similar to Open in IDE. Could not open File: {0}.
         /// </summary>
-        internal static string MessageBox_UnableToOpenFile {
+        internal static string Notification_UnableToOpenFile {
             get {
-                return ResourceManager.GetString("MessageBox_UnableToOpenFile", resourceCulture);
+                return ResourceManager.GetString("Notification_UnableToOpenFile", resourceCulture);
             }
         }
         

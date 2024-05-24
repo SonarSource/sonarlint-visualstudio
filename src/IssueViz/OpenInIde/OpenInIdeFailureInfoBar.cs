@@ -25,13 +25,12 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
-using SonarLint.VisualStudio.Core.Synchronization;
 
 namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
 public interface IOpenInIdeFailureInfoBar
 {
-    Task ShowAsync(Guid toolWindowId);
+    Task ShowAsync(Guid toolWindowId, string text);
 
     Task ClearAsync();
 }
@@ -56,14 +55,14 @@ internal sealed class OpenInIdeFailureInfoBar : IOpenInIdeFailureInfoBar, IDispo
         this.threadHandling = threadHandling;
     }
 
-    public async Task ShowAsync(Guid toolWindowId)
+    public async Task ShowAsync(Guid toolWindowId, string text)
     {
         await threadHandling.RunOnUIThreadAsync(() =>
         {
             lock (lockObject)
             {
                 RemoveExistingInfoBar();
-                AddInfoBar(toolWindowId);
+                AddInfoBar(toolWindowId, text);
             }
         });
     }
@@ -79,10 +78,10 @@ internal sealed class OpenInIdeFailureInfoBar : IOpenInIdeFailureInfoBar, IDispo
         });
     }
 
-    private void AddInfoBar(Guid toolWindowId)
+    private void AddInfoBar(Guid toolWindowId, string text)
     {
         currentInfoBar = infoBarManager.AttachInfoBarWithButton(toolWindowId,
-            OpenInIdeResources.DefaultInfoBarMessage, "Show Output Window", default);
+            text ?? OpenInIdeResources.DefaultInfoBarMessage, "Show Logs", default);
         Debug.Assert(currentInfoBar != null, "currentInfoBar != null");
 
         currentInfoBar.ButtonClick += ShowOutputWindow;
