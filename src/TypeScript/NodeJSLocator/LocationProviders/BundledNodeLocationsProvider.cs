@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders
 
         public IReadOnlyCollection<string> Get()
         {
-            // e.g. C:\Program Files (x86)\Microsoft Visual Studio\2022\Preview\
+            // e.g. C:\Program Files\Microsoft Visual Studio\2022\Preview\
             var hr = vsShell.GetProperty((int)__VSSPROPID2.VSSPROPID_InstallRootDir, out var installDir);
 
             if (ErrorHandler.Failed(hr))
