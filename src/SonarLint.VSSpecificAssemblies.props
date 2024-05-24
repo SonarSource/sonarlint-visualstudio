@@ -23,7 +23,7 @@
   
   <PropertyGroup>
     <!-- VsTargetVersion should be set when building from the command line to specify the version.
-         Expected values: 2022 -->
+         Expected values: 2022 (Used to support other versions e.g. 2019)-->
     <VersionSpecificSuffix>$(VsTargetVersion)</VersionSpecificSuffix>
 
     <!-- We're referencing VS-specific assemblies so we'll build to a VS-specific output folder -->
