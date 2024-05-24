@@ -68,11 +68,6 @@
   <!-- ***************************************************************** -->
 
   <ItemGroup Label="VSSDK Build Tools">
-    <PackageReference Condition=" $(VsTargetVersion) != '2022' " Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038" GeneratePathProperty="true">
-      <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-
     <PackageReference Condition=" $(VsTargetVersion) == '2022' " Include="Microsoft.VSSDK.BuildTools" Version="17.0.5232" GeneratePathProperty="true">
       <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -88,7 +83,6 @@
   <!-- Select the manifest to use -->
   <!-- VS2022+ are 64bit. Earlier versions are 32bit. -->
   <PropertyGroup>
-    <ManifestFolder>Manifests\PreVS2022\</ManifestFolder>
     <ManifestFolder Condition=" $(VSTargetVersion) == '2022' ">Manifests\VS2022\</ManifestFolder>
   </PropertyGroup>
   <ItemGroup>

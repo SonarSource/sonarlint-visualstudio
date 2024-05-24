@@ -31,8 +31,6 @@ jobs:
   strategy:
     maxParallel: 2
     matrix:
-      2019:
-        vsTargetVersion: 2019
       2022:
         vsTargetVersion: 2022
   displayName: "Build:"
