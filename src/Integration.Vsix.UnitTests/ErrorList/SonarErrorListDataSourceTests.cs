@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             act = () => new SonarErrorListDataSource(mockTableManagerProvider.Object, null, Mock.Of<IIssueSelectionService>());
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileRenamesEventSource");
 
-            act = () => new SonarErrorListDataSource(mockTableManagerProvider.Object,  Mock.Of<IFileRenamesEventSource>(), null);
+            act = () => new SonarErrorListDataSource(mockTableManagerProvider.Object, Mock.Of<IFileRenamesEventSource>(), null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueSelectionService");
         }
 
@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
                                                    StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
                                                    StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
                                                    StandardTableColumnDefinitions.ProjectName,
-                                                   SuppressionsColumnHelper.SuppressionStateColumnName};
+                                                   StandardTableKeyNames.SuppressionState};
             var testSubject = CreateTestSubject();
 
             mockTableManager.Verify(x => x.AddSource(testSubject, tableColumnDefinitions), Times.Once);

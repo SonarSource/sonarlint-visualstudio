@@ -26,9 +26,6 @@
          in devenv.exe.config that can change the version is loaded at runtime. However, this
          should not cause a problem as we will end up with a compatible version.
 
-         Also, VS2019 ships with NewtonSoft v12.x i.e. we are using a newer version. This
-         should not cause a problem since VS can load both versions.
-
          Finally, NewtonSoft.Json v12 has vulnerabilities reported against it which Mend
          will complain about. By referencing v13.x we avoid those warnings.
 

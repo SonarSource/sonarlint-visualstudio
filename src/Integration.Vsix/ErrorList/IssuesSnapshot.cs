@@ -103,6 +103,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         // long as it increments (if two snapshots have the same number or lower, the ErrorList
         // will assume the data hasn't changed and won't update the rows).
         private static int nextVersionNumber = 0;
+
         private static int GetNextVersionNumber() => ++nextVersionNumber;
 
         #region Construction methods
@@ -188,14 +189,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     else
                     {
                         content = issueViz.Span.Value.Start.GetContainingLine().LineNumber;
-                    }                    
+                    }
                     return true;
 
                 case StandardTableKeyNames.Column:
                     // Use the span, not the issue. See comment immediately above.
                     if (issueViz.IsFileLevel())
                     {
-                        content = null;                       
+                        content = null;
                     }
                     else
                     {
@@ -246,15 +247,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     content = projectGuid;
                     return true;
 
-                case SuppressionsColumnHelper.SuppressionStateColumnName:
-                    // HACK: see https://github.com/SonarSource/sonarlint-visualstudio/issues/3797
-                    content = issueViz.IsSuppressed ? SuppressionsColumnHelper.SuppressionState_Suppressed : SuppressionsColumnHelper.SuppressionState_Active;
+                case StandardTableKeyNames.SuppressionState:
+                    content = issueViz.IsSuppressed ? Boxes.SuppressionState.Suppressed : Boxes.SuppressionState.Active;
                     return true;
 
                 // Not a visible field - returns the issue object
                 case SonarLintTableControlConstants.IssueVizColumnName:
                     content = issueViz;
                     return true;
+
                 default:
                     content = null;
                     return false;
@@ -359,7 +360,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             var onlyNavigableIssues = issues.Where(x => !ShouldHideIssue(x));
-            
+
             return new IssuesSnapshot(AnalysisRunId, projectName, projectGuid, AnalyzedFilePath, onlyNavigableIssues);
         }
 

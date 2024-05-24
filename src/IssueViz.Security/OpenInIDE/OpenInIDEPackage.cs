@@ -33,7 +33,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid("5C38BF5B-F6D1-4232-A5B5-5664B6A19A91")]
     // We want to start listening as soon as the IDE starts.
-    // Note: in VS2019, this will be when the new modal start page appears.
     [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
     internal sealed class OpenInIDEPackage : AsyncPackage
     {
@@ -54,7 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
 
         protected override void Dispose(bool disposing)
         {
-            if(disposing)
+            if (disposing)
             {
                 listener?.Dispose();
             }

@@ -15,12 +15,6 @@
     <AssemblyName>SonarLint.VisualStudio.Integration.Vsix.UnitTests</AssemblyName>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
-
-    <!-- Conditional compilation constant for VS2022-specific code.
-         We'd prefer to set this the shared SonarLint.VSSpecificAssemblies.props file, but
-         the IDE isn't picking up the setting if we do that. -->
-    <DefineConstants Condition="$(VSTargetVersion)=='2022'">$(DefineConstants);VS2022</DefineConstants>
-
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">

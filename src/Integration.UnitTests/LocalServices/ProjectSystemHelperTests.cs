@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             ProjectMock otherProject = this.solutionMock.AddOrGetProject("other");
             otherProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, otherProject);
-            otherProject.ProjectKind ="other";
+            otherProject.ProjectKind = "other";
             projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(otherProject)).Returns(false);
 
             ProjectMock erronousProject = this.solutionMock.AddOrGetProject("err");
@@ -346,7 +346,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var result = testSubject.GetVsHierarchyForFile("some file");
 
             result.Should().BeNull();
-            dte.Verify(x=> x.Solution, Times.Once);
+            dte.Verify(x => x.Solution, Times.Once);
         }
 
         [TestMethod]
@@ -359,7 +359,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var result = testSubject.GetVsHierarchyForFile("some file");
 
             result.Should().BeNull();
-            solution.Verify(x=> x.FindProjectItem("some file"), Times.Once);
+            solution.Verify(x => x.FindProjectItem("some file"), Times.Once);
         }
 
         [TestMethod]
@@ -373,7 +373,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var result = testSubject.GetVsHierarchyForFile("some file");
 
             result.Should().BeNull();
-            projectItem.Verify(x=> x.ContainingProject, Times.Once);
+            projectItem.Verify(x => x.ContainingProject, Times.Once);
         }
 
         [TestMethod]
@@ -482,17 +482,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 throw new NotImplementedException();
             }
 
-#if VS2022
             int IVsShell.LoadUILibrary(ref Guid guidPackage, uint dwExFlags, out IntPtr phinstOut)
             {
                 throw new NotImplementedException();
             }
-#else
-            int IVsShell.LoadUILibrary(ref Guid guidPackage, uint dwExFlags, out uint phinstOut)
-            {
-                throw new NotImplementedException();
-            }
-#endif
 
             int IVsShell.SetProperty(int propid, object var)
             {

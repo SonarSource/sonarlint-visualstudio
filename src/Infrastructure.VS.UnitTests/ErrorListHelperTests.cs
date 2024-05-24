@@ -18,18 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
-using static SonarLint.VisualStudio.Infrastructure.VS.UnitTests.ErrorListHelperTests;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
@@ -85,7 +80,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             result.Should().BeTrue();
             issue.Should().BeSameAs(issueMock);
         }
-        
+
         [TestMethod]
         public void TryGetIssueFromSelectedRow_SingleItemButNoAnalysisIssue_IssueNotReturned()
         {
@@ -103,7 +98,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             result.Should().BeFalse();
         }
-        
+
         [TestMethod]
         public void TryGetIssueFromSelectedRow_MultipleItemsSelected_IssueNotReturned()
         {
@@ -128,7 +123,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             result.Should().BeFalse();
         }
-        
+
         [TestMethod]
         public void TryGetRoslynIssueFromSelectedRow_SingleRoslynIssue_IssueReturned()
         {
@@ -158,7 +153,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             issue.RoslynStartColumn.Should().Be(column + 1);
             issue.LineHash.Should().BeNull();
         }
-        
+
         [TestMethod]
         public void TryGetRoslynIssueFromSelectedRow_NonSonarIssue_NothingReturned()
         {
@@ -178,11 +173,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             result.Should().BeFalse();
         }
-        
+
         [TestMethod]
         public void TryGetRoslynIssueFromSelectedRow_NoFilePath_NothingReturned()
         {
-
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
                 { StandardTableKeyNames.BuildTool, "SonarLint" },
@@ -198,7 +192,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             result.Should().BeFalse();
         }
-        
+
         [TestMethod]
         public void TryGetRoslynIssueFromSelectedRow_NoStartLine_NothingReturned()
         {
@@ -414,19 +408,19 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             result.Should().BeTrue();
             isSuppressed.Should().BeFalse();
         }
-        
+
         [DataTestMethod]
-        [DataRow(TestVsSuppressionState.Suppressed, true)]
-        [DataRow(TestVsSuppressionState.NotApplicable, false)]
-        [DataRow(TestVsSuppressionState.Active, false)]
-        public void TryGetRuleIdAndSuppressionStateFromSelectedRow_NoSuppressionState_ReturnsIsNotSuppressed(int suppressionState, bool expectedSuppression)
+        [DataRow(SuppressionState.Suppressed, true)]
+        [DataRow(SuppressionState.NotApplicable, false)]
+        [DataRow(SuppressionState.Active, false)]
+        public void TryGetRuleIdAndSuppressionStateFromSelectedRow_NoSuppressionState_ReturnsIsNotSuppressed(SuppressionState suppressionState, bool expectedSuppression)
         {
             // Arrange
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
                 { StandardTableKeyNames.BuildTool, "SonarLint" },
                 { StandardTableKeyNames.ErrorCode, "cpp:S222" },
-                { Infrastructure.VS.SuppressionState.ColumnName, suppressionState },
+                { StandardTableKeyNames.SuppressionState, suppressionState },
             });
 
             var errorList = CreateErrorList(issueHandle);
@@ -440,7 +434,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             result.Should().BeTrue();
             isSuppressed.Should().Be(expectedSuppression);
         }
-        
 
         private IVsUIServiceOperation CreateServiceOperation(IErrorList svcToPassToCallback)
         {
@@ -449,7 +442,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             // Set up the mock to invoke the operation with the supplied VS service
             serviceOp.Setup(x => x.Execute<SVsErrorList, IErrorList, bool>(It.IsAny<Func<IErrorList, bool>>()))
                 .Returns<Func<IErrorList, bool>>(op => op(svcToPassToCallback));
-
 
             return serviceOp.Object;
         }

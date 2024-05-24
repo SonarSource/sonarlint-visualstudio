@@ -59,13 +59,6 @@
          used to build the project/solution.
   -->
 
-  <PropertyGroup>
-    <!-- Conditional compilation constant for VS2019-specific code.
-         We'd prefer to set this the shared SonarLint.VSSpecificAssemblies.props file, but
-         the IDE isn't picking up the setting if we do that. -->
-    <DefineConstants Condition="($(VisualStudioVersion)=='17.0' AND $(BuildingInsideVisualStudio)=='true') OR $(VSTargetVersion)=='2022'">$(DefineConstants);VS2022</DefineConstants>
-  </PropertyGroup>
-
   <Import Project="..\..\build\version.props" />
 
   <PropertyGroup>
@@ -133,11 +126,6 @@
   </ItemGroup>
 
   <ItemGroup Label="VSSDK Build Tools">
-    <PackageReference Condition=" $(VsTargetVersion) != '2022' " Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038" GeneratePathProperty="true">
-      <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-
     <PackageReference Condition=" $(VsTargetVersion) == '2022' " Include="Microsoft.VSSDK.BuildTools" Version="17.0.5232" GeneratePathProperty="true">
       <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
