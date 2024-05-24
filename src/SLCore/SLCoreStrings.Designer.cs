@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Configuration scope conflict.
+        /// </summary>
+        public static string ConfigScopeConflict {
+            get {
+                return ResourceManager.GetString("ConfigScopeConflict", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Service Provider is unavailable.
         /// </summary>
         public static string ServiceProviderNotInitialized {

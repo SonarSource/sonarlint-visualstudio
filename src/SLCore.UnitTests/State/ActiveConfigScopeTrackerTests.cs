@@ -126,16 +126,17 @@ public class ActiveConfigScopeTrackerTests
         const string configScopeId = "myid";
         const string connectionId = "myconid";
         const string sonarProjectKey = "projectkey";
+        const string rootPath = "somepath";
         var threadHandling = new Mock<IThreadHandling>();
         ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
         ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
         var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
-        var existingConfigScope = new ConfigurationScope(configScopeId);
+        var existingConfigScope = new ConfigurationScope(configScopeId, RootPath: rootPath);
         testSubject.currentConfigScope = existingConfigScope;
 
         testSubject.SetCurrentConfigScope(configScopeId, connectionId, sonarProjectKey);
 
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey));
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, rootPath));
         testSubject.currentConfigScope.Should().NotBeSameAs(existingConfigScope);
         VerifyThreadHandling(threadHandling);
         VerifyServiceUpdateCall(configScopeService, testSubject);
@@ -152,6 +153,24 @@ public class ActiveConfigScopeTrackerTests
         var act = () => testSubject.SetCurrentConfigScope("id");
 
         act.Should().ThrowExactly<InvalidOperationException>().WithMessage(SLCoreStrings.ServiceProviderNotInitialized);
+        VerifyThreadHandling(threadHandling);
+    }
+
+    [TestMethod]
+    public void SetCurrentConfigScope_UpdateConfigScopeWithDifferentId_Throws()
+    {
+        const string configScopeId = "myid";
+        const string anotherConfigScopeId = "anotherid";
+        var threadHandling = new Mock<IThreadHandling>();
+        ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
+        ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
+        var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
+        var existingConfigScope = new ConfigurationScope(configScopeId);
+        testSubject.currentConfigScope = existingConfigScope;
+
+        var act = () => testSubject.SetCurrentConfigScope(anotherConfigScopeId);
+
+        act.Should().ThrowExactly<InvalidOperationException>().WithMessage(SLCoreStrings.ConfigScopeConflict);
         VerifyThreadHandling(threadHandling);
     }
 
