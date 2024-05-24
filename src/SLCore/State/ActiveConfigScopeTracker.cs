@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using SonarLint.VisualStudio.Core;
@@ -93,25 +92,24 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized);
         }
 
-        var configurationScopeDto = new ConfigurationScopeDto(id,
-            id,
-            true,
-            connectionId is not null ? new BindingConfigurationDto(connectionId, sonarProjectKey) : null);
-
         using (asyncLock.Acquire())
         {
-            Debug.Assert(currentConfigScope == null || currentConfigScope.Id == id, "Config scope conflict");
+            if (currentConfigScope != null && currentConfigScope.Id != id)
+            {
+                Debug.Assert(true, "Config scope conflict");
+                throw new InvalidOperationException(SLCoreStrings.ConfigScopeConflict);
+            }
 
-            if (currentConfigScope?.Id == id)
+            if (currentConfigScope != null)
             {
-                configurationScopeService.DidUpdateBinding(new DidUpdateBindingParams(id, configurationScopeDto.binding));
+                configurationScopeService.DidUpdateBinding(new DidUpdateBindingParams(id, GetBinding(connectionId, sonarProjectKey)));
+                currentConfigScope = currentConfigScope with { ConnectionId = connectionId, SonarProjectId = sonarProjectKey };
+                return;
             }
-            else
-            {
-                configurationScopeService.DidAddConfigurationScopes(
-                    new DidAddConfigurationScopesParams(new List<ConfigurationScopeDto> { configurationScopeDto }));
-            }
-            currentConfigScope = new ConfigurationScope(configurationScopeDto.id, configurationScopeDto.binding?.connectionId, configurationScopeDto.binding?.sonarProjectKey);
+
+            configurationScopeService.DidAddConfigurationScopes(new DidAddConfigurationScopesParams([
+                new ConfigurationScopeDto(id, id, true, GetBinding(connectionId, sonarProjectKey))]));
+            currentConfigScope = new ConfigurationScope(id, connectionId, sonarProjectKey);
         }
     }
 
@@ -147,11 +145,6 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         }
     }
 
-    public void Dispose()
-    {
-        asyncLock?.Dispose();
-    }
-
     public bool TryUpdateRootOnCurrentConfigScope(string id, string root)
     {
         using (asyncLock.Acquire())
@@ -165,4 +158,13 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             return true;
         }
     }
+
+    public void Dispose()
+    {
+        asyncLock?.Dispose();
+    }
+
+    private BindingConfigurationDto GetBinding(string connectionId, string sonarProjectKey) => connectionId is not null
+        ? new BindingConfigurationDto(connectionId, sonarProjectKey)
+        : null;
 }
