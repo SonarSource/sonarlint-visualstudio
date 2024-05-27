@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
         {
             const string ideName = "MyIde";
             SetupIdeName(ideName);
-
+            
             var expectedClientConstants = new ClientConstantsDto(ideName, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
             var result = testSubject.ClientConstants;
 
