@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -32,7 +33,24 @@ namespace SonarLint.VisualStudio.Integration.SLCore
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class SLCoreConstantsProvider : ISLCoreConstantsProvider
     {
-        public ClientConstantsDto ClientConstants => new ClientConstantsDto("SonarLint for Visual Studio", $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
+        private readonly Lazy<string> ideName;
+
+        [ImportingConstructor]
+        public SLCoreConstantsProvider(IVsUIServiceOperation vsUiServiceOperation)
+        {
+            // lazy is used to keep the mef-constructor free threaded and to avoid calling this multiple times
+            ideName = new Lazy<string>(() =>
+                {
+                    return vsUiServiceOperation.Execute<SVsShell, IVsShell, string>(shell =>
+                    {
+                        shell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out var name);
+                        return name as string ?? "Microsoft Visual Studio";
+                    });
+                }
+            );
+        }
+
+        public ClientConstantsDto ClientConstants => new ClientConstantsDto(ideName.Value, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
 
         public FeatureFlagsDto FeatureFlags => new FeatureFlagsDto(true, true, false, true, false, false, true, false);
 
