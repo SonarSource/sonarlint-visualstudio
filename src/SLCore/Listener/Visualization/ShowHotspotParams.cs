@@ -22,4 +22,4 @@ using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Visualization;
 
-public record ShowHotspotParams(string configurationScopeId, HotspotDetailsDto issueDetails);
+public record ShowHotspotParams(string configurationScopeId, HotspotDetailsDto hotspotDetails);

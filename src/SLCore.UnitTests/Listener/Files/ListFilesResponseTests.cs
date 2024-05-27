@@ -30,14 +30,37 @@ public class ListFilesResponseTests
     [TestMethod]
     public void SerializeCorrectly()
     {
-        var file1 = new ClientFileDto(new Uri("file:///C:/Code/Solution/Project/file1.cs"), "Project\\file1.cs", "configScope", false, "UTF-8", "C:\\Code\\Solution\\Project\\file1.cs", "some content");
-        var file2 = new ClientFileDto(new Uri("file:///C:/Code/Solution/Project/file2.cs"), "Project\\file2.cs", "configScope", false, "UTF-8", "C:\\Code\\Solution\\Project\\file2.cs", null);
+        var file1 = new ClientFileDto("file://uri1", "Project\\file1.cs", "configScope", false, "UTF-8", "C:\\Code\\Solution\\Project\\file1.cs", "some content");
+        var file2 = new ClientFileDto("file://uri2", "Project\\file2.cs", "configScope", false, "UTF-8", "C:\\Code\\Solution\\Project\\file2.cs", null);
 
         var response = new ListFilesResponse(new[] { file1, file2 });
 
-        var responseString = JsonConvert.SerializeObject(response);
+        var responseString = JsonConvert.SerializeObject(response, Formatting.Indented);
 
-        var expectedString = "{\"files\":[{\"uri\":\"file:///C:/Code/Solution/Project/file1.cs\",\"ideRelativePath\":\"Project\\\\file1.cs\",\"configScopeId\":\"configScope\",\"isTest\":false,\"charset\":\"UTF-8\",\"fsPath\":\"C:\\\\Code\\\\Solution\\\\Project\\\\file1.cs\",\"content\":\"some content\"},{\"uri\":\"file:///C:/Code/Solution/Project/file2.cs\",\"ideRelativePath\":\"Project\\\\file2.cs\",\"configScopeId\":\"configScope\",\"isTest\":false,\"charset\":\"UTF-8\",\"fsPath\":\"C:\\\\Code\\\\Solution\\\\Project\\\\file2.cs\",\"content\":null}]}";
+        var expectedString = """
+                             {
+                               "files": [
+                                 {
+                                   "uri": "file://uri1",
+                                   "ideRelativePath": "Project\\file1.cs",
+                                   "configScopeId": "configScope",
+                                   "isTest": false,
+                                   "charset": "UTF-8",
+                                   "fsPath": "C:\\Code\\Solution\\Project\\file1.cs",
+                                   "content": "some content"
+                                 },
+                                 {
+                                   "uri": "file://uri2",
+                                   "ideRelativePath": "Project\\file2.cs",
+                                   "configScopeId": "configScope",
+                                   "isTest": false,
+                                   "charset": "UTF-8",
+                                   "fsPath": "C:\\Code\\Solution\\Project\\file2.cs",
+                                   "content": null
+                                 }
+                               ]
+                             }
+                             """;
 
         responseString.Should().Be(expectedString);
     }

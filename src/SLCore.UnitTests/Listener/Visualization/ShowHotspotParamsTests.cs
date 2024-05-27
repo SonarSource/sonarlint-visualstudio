@@ -51,7 +51,7 @@ public class ShowHotspotParamsTests
         var serialized = """
                          {
                            "configurationScopeId": "configscopeid123",
-                           "issueDetails": {
+                           "hotspotDetails": {
                              "key": "hotspotkey123",
                              "message": "this is a hotspot message",
                              "ideFilePath": "\\some\\path\\inside\\project",

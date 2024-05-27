@@ -22,13 +22,5 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Project.Params;
 
-public class DidRemoveConfigurationScopeParams
-{
-    public string removeId { get; }
-
-    [ExcludeFromCodeCoverage]
-    public DidRemoveConfigurationScopeParams(string removeId)
-    {
-        this.removeId = removeId;
-    }
-}
+[method: ExcludeFromCodeCoverage]
+public record DidRemoveConfigurationScopeParams(string removedId);

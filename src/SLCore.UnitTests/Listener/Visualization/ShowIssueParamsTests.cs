@@ -47,10 +47,12 @@ public class ShowIssueParamsTests
                 {
                     new FlowDto(new List<LocationDto>
                     {
-                        new LocationDto(new TextRangeWithHashDto(1, 11, 2, 20, "hashabc"), "additional location", "some other file")
+                        new LocationDto(new TextRangeDto(1, 11, 2, 20), "additional location", "some other file", "flow code snippet")
                     })
                 },
                 new TextRangeDto(3, 30, 4, 44)));
+
+        var serializeObject = JsonConvert.SerializeObject(expected, Formatting.Indented);
 
         var serialized = """
                          {
@@ -70,14 +72,14 @@ public class ShowIssueParamsTests
                                  "locations": [
                                    {
                                      "textRange": {
-                                       "hash": "hashabc",
                                        "startLine": 1,
                                        "startLineOffset": 11,
                                        "endLine": 2,
                                        "endLineOffset": 20
                                      },
                                      "message": "additional location",
-                                     "filePath": "some other file"
+                                     "ideFilePath": "some other file",
+                                     "codeSnippet": "flow code snippet"
                                    }
                                  ]
                                }
