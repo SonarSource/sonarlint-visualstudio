@@ -43,7 +43,9 @@ internal class RpcDebugger : IRpcDebugger
     }
 
     internal /* for testing */ RpcDebugger(IFileSystem fileSystem, DateTime fileDate) :
-        this(fileSystem, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SonarLint for Visual Studio", "Rpc Logs", $"{fileDate.ToString("yyyy-MM-dd_HHmmssffff")}.log"))
+        this(fileSystem,
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "SonarLint for Visual Studio", "Rpc Logs", $"{fileDate.ToString("yyyy-MM-dd_HHmmssffff")}.log"))
     {
     }
 
@@ -56,18 +58,21 @@ internal class RpcDebugger : IRpcDebugger
         if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SONARLINT_LOG_RPC")))
         {
             fileSystem.Directory.CreateDirectory(Path.GetDirectoryName(logFilePath));
-            streamWriter = new StreamWriter(fileSystem.FileStream.Create(logFilePath, FileMode.Create)) { AutoFlush = true };
+            streamWriter = new StreamWriter(fileSystem.FileStream.Create(logFilePath, FileMode.Create))
+                { AutoFlush = true };
         }
 #endif
     }
 
     public void SetUpDebugger(IJsonRpc jsonRpc)
     {
-        
         if (streamWriter is not null)
         {
             jsonRpc.TraceSource.Switch.Level = SourceLevels.Verbose;
-            jsonRpc.TraceSource.Listeners.Add(new TextWriterTraceListener(streamWriter));
+            var textWriterTraceListener = new TextWriterTraceListener(streamWriter);
+            textWriterTraceListener.TraceOutputOptions |= TraceOptions.DateTime;
+            textWriterTraceListener.TraceOutputOptions |= TraceOptions.ThreadId;
+            jsonRpc.TraceSource.Listeners.Add(textWriterTraceListener);
         }
     }
 }

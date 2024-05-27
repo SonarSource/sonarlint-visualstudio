@@ -182,7 +182,7 @@ public class OpenInIdeHandlerImplementationTests
         analysisIssueVisualization.CurrentFilePath.Returns(issueFilePath);
         var dtoConverter = Substitute.For<IOpenInIdeIssueToAnalysisIssueConverter<IOpenInIdeIssue>>();
         var testSubject = CreateTestSubject(out var logger, out _, out var configScopeValidator, out var converter,
-            out var messageBox, out var toolWindowService, out _, out var navigator, out var issueSelectionService);
+            out var messageBox, out _, out _, out var navigator, out var issueSelectionService);
         var visualizationProcessor = SetUpProcessor(analysisIssueVisualization);
         SetUpValidConfigScope(configScopeValidator, configurationScope, configurationScopeRoot);
         SetUpIssueConversion(converter, issue, configurationScopeRoot, dtoConverter, analysisIssueVisualization);
@@ -193,7 +193,6 @@ public class OpenInIdeHandlerImplementationTests
         navigator.Received().TryNavigatePartial(analysisIssueVisualization);
         messageBox.Received().UnableToOpenFile(issueFilePath);
         logger.AssertPartialOutputStringExists("[Open in IDE] Could not find the location at");
-        toolWindowService.DidNotReceiveWithAnyArgs().Show(default);
         visualizationProcessor.Received().HandleConvertedIssue(analysisIssueVisualization);
         issueSelectionService.Received().SelectedIssue = analysisIssueVisualization;
     }

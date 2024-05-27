@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Windows;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -34,7 +35,8 @@ public class OpenInIdeMessageBoxTests
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<OpenInIdeMessageBox, IOpenInIdeMessageBox>(
-            MefTestHelpers.CreateExport<IMessageBox>());
+            MefTestHelpers.CreateExport<IMessageBox>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());
     }
 
     [TestMethod]
@@ -48,9 +50,11 @@ public class OpenInIdeMessageBoxTests
     {
         var messageBox = Substitute.For<IMessageBox>();
         var filePath = "file/path/123";
-        new OpenInIdeMessageBox(messageBox).UnableToLocateIssue(filePath);
+        var threadHandling = SetUpThreadHandling();
+        new OpenInIdeMessageBox(messageBox, threadHandling).UnableToLocateIssue(filePath);
         
         VerifyMessageBox(messageBox, $"Could not locate issue. Ensure the file (file/path/123) has not been modified");
+        VerifyRanOnUIThread(threadHandling);
     }
     
     [TestMethod]
@@ -58,9 +62,11 @@ public class OpenInIdeMessageBoxTests
     {
         var messageBox = Substitute.For<IMessageBox>();
         var filePath = "file/path/123";
-        new OpenInIdeMessageBox(messageBox).UnableToOpenFile(filePath);
+        var threadHandling = SetUpThreadHandling();
+        new OpenInIdeMessageBox(messageBox, threadHandling).UnableToOpenFile(filePath);
         
         VerifyMessageBox(messageBox, $"Could not open File: file/path/123");
+        VerifyRanOnUIThread(threadHandling);
     }
     
     [TestMethod]
@@ -68,11 +74,23 @@ public class OpenInIdeMessageBoxTests
     {
         var messageBox = Substitute.For<IMessageBox>();
         var reason = "reason 123";
-        new OpenInIdeMessageBox(messageBox).InvalidRequest(reason);
+        var threadHandling = SetUpThreadHandling();
+        new OpenInIdeMessageBox(messageBox, threadHandling).InvalidRequest(reason);
         
-        VerifyMessageBox(messageBox, string.Format(OpenInIdeResources.MessageBox_InvalidConfiguration, reason));
+
         VerifyMessageBox(messageBox, $"Unable to process Open in IDE request. Reason: reason 123");
+        VerifyRanOnUIThread(threadHandling);
     }
+
+    private IThreadHandling SetUpThreadHandling()
+    {
+        var threadHandling = Substitute.For<IThreadHandling>();
+        threadHandling.When(x => x.RunOnUIThread(Arg.Any<Action>())).Do(call => call.Arg<Action>()());
+        return threadHandling;
+    }
+
+    private void VerifyRanOnUIThread(IThreadHandling threadHandling) =>
+        threadHandling.ReceivedWithAnyArgs().RunOnUIThread(default);
 
     private void VerifyMessageBox(IMessageBox messageBox, string message) =>
         messageBox.Received(1).Show(message, OpenInIdeResources.MessageBox_Caption, MessageBoxButton.OK,

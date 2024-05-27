@@ -21,25 +21,26 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Files;
 using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
-    [Export(typeof(IListFilesListener))]
+    [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class ListFilesListener : IListFilesListener
     {
         private readonly IFolderWorkspaceService folderWorkspaceService;
         private readonly ISolutionWorkspaceService solutionWorkspaceService;
         private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
-
-        private const int DiskRootSize = 2;
 
         [ImportingConstructor]
         public ListFilesListener(IFolderWorkspaceService folderWorkspaceService, ISolutionWorkspaceService solutionWorkspaceService, IActiveConfigScopeTracker activeConfigScopeTracker)
@@ -60,23 +61,40 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
                     var root = GetRoot(fullFilePathList.First());
                     if (activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, root))
                     {
-                        clientFileDtos.AddRange(fullFilePathList.Select(fp => new ClientFileDto(new Uri(fp), GetRelativePath(root, fp), parameters.configScopeId, null, Encoding.UTF8.WebName, fp)));
+                        clientFileDtos.AddRange(fullFilePathList.Select(fp =>
+                        {
+                            var ideRelativePath = GetRelativePath(root, fp);
+                            return new ClientFileDto(CreateUri(fp), ideRelativePath, parameters.configScopeId, null,
+                                Encoding.UTF8.WebName, fp);
+                        }));
                     }
                 }
             }
             return Task.FromResult(new ListFilesResponse(clientFileDtos));
         }
 
+        private static string CreateUri(string fp)
+        {
+            return Uri.UriSchemeFile + Uri.SchemeDelimiter + Uri.EscapeDataString(fp);
+        }
+
         private string GetRelativePath(string root, string fullPath)
         {
-            return fullPath.Substring(root.Length);
+            return fullPath.Substring(root.Length - 1 );
         }
 
         private string GetRoot(string filePath)
         {
             var root = folderWorkspaceService.FindRootDirectory();
+            
+            root ??= Path.GetPathRoot(filePath);
 
-            root ??= filePath.Substring(0, DiskRootSize);
+            Debug.Assert(root != string.Empty);
+
+            if (root[root.Length - 1] != Path.DirectorySeparatorChar)
+            {
+                root += Path.DirectorySeparatorChar;
+            }
 
             return root;
         }

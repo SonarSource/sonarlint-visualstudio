@@ -46,6 +46,6 @@ public class ShowInIdeListener : IShowInIdeListener
     
     public void ShowHotspot(ShowHotspotParams parameters)
     {
-        openHotspotInIdeHandler.Show(parameters.issueDetails, parameters.configurationScopeId);
+        openHotspotInIdeHandler.Show(parameters.hotspotDetails, parameters.configurationScopeId);
     }
 }

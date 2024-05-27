@@ -78,6 +78,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Done processing request for issue Key: {0}.
+        /// </summary>
+        internal static string DoneProcessingRequest {
+            get {
+                return ResourceManager.GetString("DoneProcessingRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid navigation result.
         /// </summary>
         internal static string Exception_InvalidNavigationResult {
@@ -182,6 +191,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         internal static string ValidationReason_FilePathRootNotSet {
             get {
                 return ResourceManager.GetString("ValidationReason_FilePathRootNotSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Malformed request.
+        /// </summary>
+        internal static string ValidationReason_MalformedRequest {
+            get {
+                return ResourceManager.GetString("ValidationReason_MalformedRequest", resourceCulture);
             }
         }
         

@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using System.Windows;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
@@ -36,11 +37,13 @@ internal interface IOpenInIdeMessageBox
 internal class OpenInIdeMessageBox : IOpenInIdeMessageBox
 {
     private readonly IMessageBox messageBox;
+    private readonly IThreadHandling threadHandling;
 
     [ImportingConstructor]
-    public OpenInIdeMessageBox(IMessageBox messageBox)
+    public OpenInIdeMessageBox(IMessageBox messageBox, IThreadHandling threadHandling)
     {
         this.messageBox = messageBox;
+        this.threadHandling = threadHandling;
     }
 
     public void UnableToLocateIssue(string filePath) => 
@@ -52,6 +55,6 @@ internal class OpenInIdeMessageBox : IOpenInIdeMessageBox
     public void InvalidRequest(string reason) => 
         Show(string.Format(OpenInIdeResources.MessageBox_InvalidConfiguration, reason));
 
-    private void Show(string message) =>
-        messageBox.Show(message, OpenInIdeResources.MessageBox_Caption, MessageBoxButton.OK, MessageBoxImage.Warning);
+    private void Show(string message) => threadHandling.RunOnUIThread(() =>
+        messageBox.Show(message, OpenInIdeResources.MessageBox_Caption, MessageBoxButton.OK, MessageBoxImage.Warning));
 }
