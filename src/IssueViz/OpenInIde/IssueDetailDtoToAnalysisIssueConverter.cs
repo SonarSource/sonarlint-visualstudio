@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
 using SonarQube.Client;
 
-namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
+namespace SonarLint.VisualStudio.IssueVisualization.OpenInIDE;
 
 [Export(typeof(IIssueDetailDtoToAnalysisIssueConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]
@@ -36,10 +36,6 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
     private readonly IChecksumCalculator checksumCalculator;
 
     [ImportingConstructor]
-    public IssueDetailDtoToAnalysisIssueConverter() : this(new ChecksumCalculator())
-    {
-    }
-    
     public IssueDetailDtoToAnalysisIssueConverter(IChecksumCalculator checksumCalculator)
     {
         this.checksumCalculator = checksumCalculator;
