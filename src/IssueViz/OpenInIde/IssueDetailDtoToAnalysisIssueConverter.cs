@@ -50,7 +50,7 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
         return new ServerIssue(
             issueDetailDto.ruleKey,
             new AnalysisIssueLocation(issueDetailDto.message,
-                Path.Combine(rootPath, issueDetailDto.ideFilePath),  //todo ideFilePath we get from the server is wrong https://sonarsource.atlassian.net/browse/SLCORE-783
+                Path.Combine(rootPath, issueDetailDto.ideFilePath),
                 new TextRange(issueDetailDto.textRange.startLine,
                     issueDetailDto.textRange.endLine,
                     issueDetailDto.textRange.startLineOffset,
