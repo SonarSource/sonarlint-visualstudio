@@ -117,6 +117,15 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="BindingSuggestionConnect" xml:space="preserve">
+    <value>Connect</value>
+  </data>
+  <data name="BindingSuggestionProjectNotBound" xml:space="preserve">
+    <value>ConnectedMode: The current project is not bound to a SonarQube/SonarCloud project.</value>
+  </data>
+  <data name="BindingSuggetsionBindingConflict" xml:space="preserve">
+    <value>ConnectedMode: The current project does not match the SonarQube/SonarCloud project. Please make sure you are on the correct project.</value>
+  </data>
   <data name="CSharpVB_FailedToAddSonarLintXml" xml:space="preserve">
     <value>Failed to add SonarLint.xml file to the project '{0}'.
 Error: {1}</value>
