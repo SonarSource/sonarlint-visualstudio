@@ -20,12 +20,13 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Binding;
 using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
-    [Export(typeof(IConnectedModeSuggestionListener))]
+    [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class ConnectedModeSuggestionListener : IConnectedModeSuggestionListener
     {
