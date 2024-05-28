@@ -59,27 +59,29 @@ public class BindingSuggestionHandlerTests
     }
 
     [TestMethod]
-    [DataRow(SonarLintMode.Standalone, true)]
-    [DataRow(SonarLintMode.Connected, false)]
-    public void Notify_ShowsMessage(SonarLintMode sonarLintMode, bool promptToConnect)
+    public void Notify_WithStandaloneProject_PromptsToConnect()
     {
         var notificationService = Substitute.For<INotificationService>();
 
-        var testSubject = CreateTestSubject(sonarLintMode: sonarLintMode, notificationService: notificationService);
+        var testSubject = CreateTestSubject(sonarLintMode: SonarLintMode.Standalone, notificationService: notificationService);
         testSubject.Notify();
 
-        if (promptToConnect)
-        {
-            notificationService.Received().ShowNotification(Arg.Is<INotification>(
-                n => n.Message.Equals(BindingStrings.BindingSuggestionProjectNotBound)
-                     && n.Actions.ToArray()[0].CommandText.Equals(BindingStrings.BindingSuggestionConnect)));
-        }
-        else
-        {
-            notificationService.Received().ShowNotification(Arg.Is<INotification>(
-                n => n.Message.Equals(BindingStrings.BindingSuggetsionBindingConflict)
-                     && n.Actions.IsEmpty()));
-        }
+        notificationService.Received().ShowNotification(Arg.Is<INotification>(
+            n => n.Message.Equals(BindingStrings.BindingSuggestionProjectNotBound)
+                 && n.Actions.ToArray()[0].CommandText.Equals(BindingStrings.BindingSuggestionConnect)));
+    }
+
+    [TestMethod]
+    public void Notify_WithBoundProject_ShowsConflictMessage()
+    {
+        var notificationService = Substitute.For<INotificationService>();
+
+        var testSubject = CreateTestSubject(sonarLintMode: SonarLintMode.Connected, notificationService: notificationService);
+        testSubject.Notify();
+
+        notificationService.Received().ShowNotification(Arg.Is<INotification>(
+            n => n.Message.Equals(BindingStrings.BindingSuggetsionBindingConflict)
+                 && n.Actions.IsEmpty()));
     }
 
     private BindingSuggestionHandler CreateTestSubject(SonarLintMode sonarLintMode, INotificationService notificationService = null, IIDEWindowService ideWindowService = null)
