@@ -79,10 +79,10 @@
         "resolved": "13.0.3",
         "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
       },
-      "BouncyCastle": {
+      "BouncyCastle.Cryptography": {
         "type": "Transitive",
-        "resolved": "1.8.9",
-        "contentHash": "axnBgvdD5n+FnEG6efk/tfKuMFru7R/EoISH9zjh319yb3HD24TEHSAbNN/lTRT2ulOGRxDgOsCjkuk08iwWPg=="
+        "resolved": "2.4.0",
+        "contentHash": "SwXsAV3sMvAU/Nn31pbjhWurYSjJ+/giI/0n6tCrYoupEK34iIHCuk3STAd9fx8yudM85KkLSVdn951vTng/vQ=="
       },
       "envdte": {
         "type": "Transitive",
@@ -1128,7 +1128,7 @@
       "sonarqube.client": {
         "type": "Project",
         "dependencies": {
-          "BouncyCastle": "[1.8.9, )",
+          "BouncyCastle.Cryptography": "[2.4.0, )",
           "Google.Protobuf": "[3.6.1, )",
           "Grpc.Tools": "[1.4.1, )",
           "Newtonsoft.Json": "[13.0.3, )",
