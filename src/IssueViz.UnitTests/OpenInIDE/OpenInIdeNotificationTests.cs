@@ -56,7 +56,7 @@ public class OpenInIdeNotificationTests
         new OpenInIdeNotification(infoBar, toolWindowService).UnableToLocateIssue(filePath, toolWindowId);
         
         VerifyToolWindowOpened(toolWindowService, toolWindowId);
-        VerifyInfoBarShown(infoBar, "Open in IDE. Could not locate issue. Ensure the file (file/path/123) has not been modified", toolWindowId);
+        VerifyInfoBarShown(infoBar, "Open in IDE. Could not locate the issue in the file. Please ensure the file (file/path/123) has not been modified.", toolWindowId);
     }
     
     [TestMethod]
@@ -70,7 +70,7 @@ public class OpenInIdeNotificationTests
         new OpenInIdeNotification(infoBar, toolWindowService).UnableToOpenFile(filePath, toolWindowId);
         
         VerifyToolWindowOpened(toolWindowService, toolWindowId);
-        VerifyInfoBarShown(infoBar, "Open in IDE. Could not open File: file/path/123", toolWindowId);
+        VerifyInfoBarShown(infoBar, "Open in IDE. Could not open File: file/path/123. Please ensure that you're on the correct branch and the file has not been deleted locally.", toolWindowId);
     }
     
     [TestMethod]
