@@ -121,10 +121,10 @@
     <value>Connect</value>
   </data>
   <data name="BindingSuggestionProjectNotBound" xml:space="preserve">
-    <value>ConnectedMode: The current project is not bound to a SonarQube/SonarCloud project.</value>
+    <value>ConnectedMode: The current solution is not bound to a SonarQube/SonarCloud project.</value>
   </data>
   <data name="BindingSuggetsionBindingConflict" xml:space="preserve">
-    <value>ConnectedMode: The current project does not match the SonarQube/SonarCloud project. Please make sure you are on the correct project.</value>
+    <value>ConnectedMode: The current bound project does not match the SonarQube/SonarCloud project. Please make sure you have the correct solution opened.</value>
   </data>
   <data name="CSharpVB_FailedToAddSonarLintXml" xml:space="preserve">
     <value>Failed to add SonarLint.xml file to the project '{0}'.
