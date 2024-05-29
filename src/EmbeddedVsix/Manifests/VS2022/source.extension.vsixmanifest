@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="SonarLint.AdditionalFiles.95521f6c-c3e6-460d-b0e6-aa64acd2fdb1" Version="8.0.0.0" Language="en-US" Publisher="SonarSource" />
+        <Identity Id="SonarLint.AdditionalFiles.95521f6c-c3e6-460d-b0e6-aa64acd2fdb1" Version="8.1.0.0" Language="en-US" Publisher="SonarSource" />
         <DisplayName>SLAF</DisplayName>
         <Description xml:space="preserve">VSIX to package additional files required by non-Roslyn analyzers</Description>
     </Metadata>
