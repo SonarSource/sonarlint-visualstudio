@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ConnectedMode: The current project is not bound to a SonarQube/SonarCloud project..
+        ///   Looks up a localized string similar to ConnectedMode: The current solution is not bound to a SonarQube/SonarCloud project..
         /// </summary>
         internal static string BindingSuggestionProjectNotBound {
             get {
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ConnectedMode: The current project does not match the SonarQube/SonarCloud project. Please make sure you are on the correct project..
+        ///   Looks up a localized string similar to ConnectedMode: The current bound project does not match the SonarQube/SonarCloud project. Please make sure you have the correct solution opened..
         /// </summary>
         internal static string BindingSuggetsionBindingConflict {
             get {
