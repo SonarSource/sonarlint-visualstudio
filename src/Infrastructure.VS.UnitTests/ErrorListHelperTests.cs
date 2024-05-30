@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
@@ -232,21 +231,25 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp")]
-        [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic")]
-        [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.VisualBasic")]
-        [DataRow("c:S111", "c", "S111", "SonarLint")]
-        [DataRow("cpp:S222", "cpp", "S222", "SonarLint")]
-        [DataRow("javascript:S333", "javascript", "S333", "SonarLint")]
-        [DataRow("typescript:S444", "typescript", "S444", "SonarLint")]
-        [DataRow("secrets:S555", "secrets", "S555", "SonarLint")]
-        [DataRow("foo:bar", "foo", "bar", "SonarLint")]
-        public void TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool)
+        [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp", null)]
+        [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic", null)]
+        [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.VisualBasic", null)]
+        [DataRow("c:S111", "c", "S111", "SonarLint", null)]
+        [DataRow("cpp:S222", "cpp", "S222", "SonarLint", null)]
+        [DataRow("javascript:S333", "javascript", "S333", "SonarLint", null)]
+        [DataRow("typescript:S444", "typescript", "S444", "SonarLint", null)]
+        [DataRow("secrets:S555", "secrets", "S555", "SonarLint", null)]
+        [DataRow("foo:bar", "foo", "bar", "SonarLint", null)]
+        [DataRow("S666", "csharpsquid", "S666", null, "https://rules.sonarsource.com/csharp/RSPEC-666/")]
+        [DataRow("S666", "vbnet", "S666", null, "https://rules.sonarsource.com/vbnet/RSPEC-666/")]
+        [DataRow("S234", "vbnet", "S234", null, "https://rules.sonarsource.com/vbnet/RSPEC-234/")]
+        public void TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool, string helpLink)
         {
             // Arrange
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
                 { StandardTableKeyNames.BuildTool, buildTool },
+                { StandardTableKeyNames.HelpLink, helpLink },
                 { StandardTableKeyNames.ErrorCode, fullRuleKey }
             });
 
@@ -264,16 +267,19 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp")]
-        [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic")]
-        [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.VisualBasic")]
-        [DataRow("c:S111", "c", "S111", "SonarLint")]
-        [DataRow("cpp:S222", "cpp", "S222", "SonarLint")]
-        [DataRow("javascript:S333", "javascript", "S333", "SonarLint")]
-        [DataRow("typescript:S444", "typescript", "S444", "SonarLint")]
-        [DataRow("secrets:S555", "secrets", "S555", "SonarLint")]
-        [DataRow("foo:bar", "foo", "bar", "SonarLint")]
-        public void TryGetRuleId_FromHandle_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool)
+        [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp", null)]
+        [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic", null)]
+        [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.VisualBasic", null)]
+        [DataRow("c:S111", "c", "S111", "SonarLint", null)]
+        [DataRow("cpp:S222", "cpp", "S222", "SonarLint", null)]
+        [DataRow("javascript:S333", "javascript", "S333", "SonarLint", null)]
+        [DataRow("typescript:S444", "typescript", "S444", "SonarLint", null)]
+        [DataRow("secrets:S555", "secrets", "S555", "SonarLint", null)]
+        [DataRow("foo:bar", "foo", "bar", "SonarLint", null)]
+        [DataRow("S666", "csharpsquid", "S666", null, "https://rules.sonarsource.com/csharp/RSPEC-666/")]
+        [DataRow("S666", "vbnet", "S666", null, "https://rules.sonarsource.com/vbnet/RSPEC-666/")]
+        [DataRow("S234", "vbnet", "S234", null, "https://rules.sonarsource.com/vbnet/RSPEC-234/")]
+        public void TryGetRuleId_FromHandle_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool, string helpLink)
         {
             // Note: this is a copy of TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned,
             //       but without the serviceProvider and IErrorList setup
@@ -282,6 +288,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
                 { StandardTableKeyNames.BuildTool, buildTool },
+                { StandardTableKeyNames.HelpLink, helpLink },
                 { StandardTableKeyNames.ErrorCode, fullRuleKey }
             });
 
@@ -366,7 +373,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        public void TryGetRuleId_FromHandle_NotSonarLintIssue()
+        [DataRow("cpp:S333", "AnotherAnalyzer", null)]
+        [DataRow("S666", "AnotherAnalyzerWithSonarHelpLink", "https://rules.sonarsource.com/csharp/RSPEC-666/")]
+        [DataRow("S234",  "SomeOtherAnalyzer", "https://rules.sonarsource.com/vbnet/RSPEC-234/")]
+        public void TryGetRuleId_FromHandle_NotSonarLintIssue(string fullRuleKey, object buildTool, string helpLink)
         {
             // Note: this is a copy of TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned,
             //       but without the serviceProvider and IErrorList setup
@@ -374,8 +384,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             // Arrange
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
-                { StandardTableKeyNames.BuildTool, new object() },
-                { StandardTableKeyNames.ErrorCode, "cpp:S333" }
+                { StandardTableKeyNames.BuildTool, buildTool },
+                { StandardTableKeyNames.HelpLink, helpLink },
+                { StandardTableKeyNames.ErrorCode, fullRuleKey }
             });
 
             // Act
