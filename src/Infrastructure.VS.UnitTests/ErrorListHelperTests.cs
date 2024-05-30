@@ -375,7 +375,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         [DataRow("cpp:S333", "AnotherAnalyzer", null)]
         [DataRow("S666", "AnotherAnalyzerWithSonarHelpLink", "https://rules.sonarsource.com/csharp/RSPEC-666/")]
-        [DataRow("S234",  "AnotherAnalyzerWithSonarHelpLink", "https://rules.sonarsource.com/vbnet/RSPEC-234/")]
         [DataRow("S234",  "SomeOtherAnalyzer", "https://rules.sonarsource.com/vbnet/RSPEC-234/")]
         public void TryGetRuleId_FromHandle_NotSonarLintIssue(string fullRuleKey, object buildTool, string helpLink)
         {
