@@ -130,35 +130,35 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
         private static string FindErrorCodeForEntry(ITableEntriesSnapshot snapshot, int index)
         {
+            if (!TryGetValue(snapshot, index, StandardTableKeyNames.ErrorCode, out string errorCode))
+            {
+                return null;
+            }
+
             if (TryGetValue(snapshot, index, StandardTableKeyNames.BuildTool, out string buildTool))
             {
-                var prefixErrorCode = "";
-
                 // For CSharp and VisualBasic the buildTool returns the name of the analyzer package.
                 // The prefix is required for roslyn languages as the error code is in style "S111" meaning
                 // unlike other languages it has no repository prefix.
-                switch (buildTool)
+                return buildTool switch
                 {
-                    case "SonarAnalyzer.CSharp":
-                        {
-                            prefixErrorCode = $"{SonarRuleRepoKeys.CSharpRules}:";
-                            break;
-                        }
-                    case "SonarAnalyzer.VisualBasic":
-                        {
-                            prefixErrorCode = $"{SonarRuleRepoKeys.VBNetRules}:";
-                            break;
-                        }
-                    case "SonarLint":
-                        break;
+                    "SonarAnalyzer.CSharp" => $"{SonarRuleRepoKeys.CSharpRules}:{errorCode}",
+                    "SonarAnalyzer.VisualBasic" => $"{SonarRuleRepoKeys.VBNetRules}:{errorCode}",
+                    "SonarLint" => errorCode,
+                    _ => null
+                };
+            }
 
-                    default:
-                        return null;
+            if (TryGetValue(snapshot, index, StandardTableKeyNames.HelpLink, out string helpLink))
+            {
+                if (helpLink.Contains("rules.sonarsource.com/csharp/"))
+                {
+                    return $"{SonarRuleRepoKeys.CSharpRules}:{errorCode}";
                 }
-
-                if (TryGetValue(snapshot, index, StandardTableKeyNames.ErrorCode, out string errorCode))
+                
+                if (helpLink.Contains("rules.sonarsource.com/vbnet/"))
                 {
-                    return prefixErrorCode + errorCode;
+                    return $"{SonarRuleRepoKeys.VBNetRules}:{errorCode}";
                 }
             }
 
