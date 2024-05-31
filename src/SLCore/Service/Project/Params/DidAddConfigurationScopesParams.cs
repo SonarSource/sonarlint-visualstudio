@@ -22,12 +22,4 @@ using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Project.Params;
 
-public class DidAddConfigurationScopesParams
-{
-    public List<ConfigurationScopeDto> addedScopes { get; }
-    
-    public DidAddConfigurationScopesParams(List<ConfigurationScopeDto> addedScopes)
-    {
-        this.addedScopes = addedScopes;
-    }
-}
+public record DidAddConfigurationScopesParams(List<ConfigurationScopeDto> addedScopes);

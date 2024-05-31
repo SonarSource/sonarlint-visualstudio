@@ -20,16 +20,6 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-public class RuleContextualSectionDto
-{
-    public RuleContextualSectionDto(string htmlContent, string contextKey, string displayName)
-    {
-        this.htmlContent = htmlContent;
-        this.contextKey = contextKey;
-        this.displayName = displayName;
-    }
-
-    public string htmlContent { get; }
-    public string contextKey { get; }
-    public string displayName { get; }
-}
+public record RuleContextualSectionDto(string htmlContent,
+    string contextKey,
+    string displayName);

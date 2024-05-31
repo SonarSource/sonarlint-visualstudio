@@ -20,7 +20,6 @@
 
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
-using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Connection;
 
@@ -38,27 +37,4 @@ public interface IConnectionConfigurationSLCoreService : ISLCoreService
     /// </summary>
     /// <param name="parameters"></param>
     void DidChangeCredentials(DidChangeCredentialsParams parameters);
-}
-
-public class DidUpdateConnectionsParams
-{
-    public List<SonarQubeConnectionConfigurationDto> sonarQubeConnections { get; }
-    public List<SonarCloudConnectionConfigurationDto> sonarCloudConnections { get; }
-
-        
-    public DidUpdateConnectionsParams(List<SonarQubeConnectionConfigurationDto> sonarQubeConnections, List<SonarCloudConnectionConfigurationDto> sonarCloudConnections)
-    {
-        this.sonarQubeConnections = sonarQubeConnections;
-        this.sonarCloudConnections = sonarCloudConnections;
-    }
-}
-
-public class DidChangeCredentialsParams
-{
-    public string connectionId { get; }
-        
-    public DidChangeCredentialsParams(string connectionId)
-    {
-        this.connectionId = connectionId;
-    }
 }

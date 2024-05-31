@@ -20,14 +20,5 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-public class RuleContextualSectionWithDefaultContextKeyDto
-{
-    public RuleContextualSectionWithDefaultContextKeyDto(string defaultContextKey, List<RuleContextualSectionDto> contextualSections)
-    {
-        this.defaultContextKey = defaultContextKey;
-        this.contextualSections = contextualSections;
-    }
-
-    public string defaultContextKey { get; }
-    public List<RuleContextualSectionDto> contextualSections { get; }
-}
+public record RuleContextualSectionWithDefaultContextKeyDto(string defaultContextKey,
+    List<RuleContextualSectionDto> contextualSections);
