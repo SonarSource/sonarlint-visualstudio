@@ -36,5 +36,6 @@ namespace SonarLint.VisualStudio.Core
         public const string UseSharedBinding = "https://docs.sonarsource.com/sonarlint/visual-studio/team-features/connected-mode-setup/#bind-using-shared-configuration";
         public const string SetupSharedBinding = "https://docs.sonarsource.com/sonarlint/visual-studio/team-features/connected-mode-setup/#save-the-connection-binding";
         public const string CleanCode = "https://docs.sonarsource.com/sonarlint/visual-studio/concepts/clean-code/introduction";
+        public const string OpenInIdeIssueLocation = "https://docs.sonarsource.com/sonarlint/visual-studio/troubleshooting/#no-matching-issue-found";
     }
 }

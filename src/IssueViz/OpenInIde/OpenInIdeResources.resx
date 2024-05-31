@@ -168,4 +168,10 @@
   <data name="Exception_InvalidNavigationResult" xml:space="preserve">
     <value>Invalid navigation result</value>
   </data>
+  <data name="InfoBar_Button_MoreInfo" xml:space="preserve">
+    <value>Learn more</value>
+  </data>
+  <data name="InfoBar_Button_ShowLogs" xml:space="preserve">
+    <value>Show logs</value>
+  </data>
 </root>

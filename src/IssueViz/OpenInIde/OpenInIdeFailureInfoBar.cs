@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
 public interface IOpenInIdeFailureInfoBar
 {
-    Task ShowAsync(Guid toolWindowId, string text);
+    Task ShowAsync(Guid toolWindowId, string text, bool showMoreInfoButton);
 
     Task ClearAsync();
 }
@@ -41,6 +41,7 @@ internal sealed class OpenInIdeFailureInfoBar : IOpenInIdeFailureInfoBar, IDispo
 {
     private readonly IInfoBarManager infoBarManager;
     private readonly IOutputWindowService outputWindowService;
+    private readonly IBrowserService browService;
     private readonly IThreadHandling threadHandling;
     private readonly object lockObject = new();
     private IInfoBar currentInfoBar;
@@ -48,21 +49,23 @@ internal sealed class OpenInIdeFailureInfoBar : IOpenInIdeFailureInfoBar, IDispo
     [ImportingConstructor]
     public OpenInIdeFailureInfoBar(IInfoBarManager infoBarManager,
         IOutputWindowService outputWindowService,
+        IBrowserService browService,
         IThreadHandling threadHandling)
     {
         this.infoBarManager = infoBarManager;
         this.outputWindowService = outputWindowService;
+        this.browService = browService;
         this.threadHandling = threadHandling;
     }
 
-    public async Task ShowAsync(Guid toolWindowId, string text)
+    public async Task ShowAsync(Guid toolWindowId, string text, bool showMoreInfoButton)
     {
         await threadHandling.RunOnUIThreadAsync(() =>
         {
             lock (lockObject)
             {
                 RemoveExistingInfoBar();
-                AddInfoBar(toolWindowId, text);
+                AddInfoBar(toolWindowId, text, showMoreInfoButton);
             }
         });
     }
@@ -78,27 +81,37 @@ internal sealed class OpenInIdeFailureInfoBar : IOpenInIdeFailureInfoBar, IDispo
         });
     }
 
-    private void AddInfoBar(Guid toolWindowId, string text)
+    private void AddInfoBar(Guid toolWindowId, string text, bool hasMoreInfo)
     {
-        currentInfoBar = infoBarManager.AttachInfoBarWithButton(toolWindowId,
-            text ?? OpenInIdeResources.DefaultInfoBarMessage, "Show Logs", default);
+        List<string> buttonTexts = hasMoreInfo 
+            ? [OpenInIdeResources.InfoBar_Button_MoreInfo, OpenInIdeResources.InfoBar_Button_ShowLogs] 
+            : [OpenInIdeResources.InfoBar_Button_ShowLogs];
+        currentInfoBar = infoBarManager.AttachInfoBarWithButtons(toolWindowId,
+            text ?? OpenInIdeResources.DefaultInfoBarMessage, buttonTexts, default);
         Debug.Assert(currentInfoBar != null, "currentInfoBar != null");
 
-        currentInfoBar.ButtonClick += ShowOutputWindow;
+        currentInfoBar.ButtonClick += HandleInfoBarAction;
         currentInfoBar.Closed += CurrentInfoBar_Closed;
     }
 
-    private void ShowOutputWindow(object sender, EventArgs e)
+    private void HandleInfoBarAction(object sender, InfoBarButtonClickedEventArgs e)
     {
-        outputWindowService.Show();
-        ClearAsync().Forget();
+        if (e.ClickedButtonText == OpenInIdeResources.InfoBar_Button_MoreInfo)
+        {
+            browService.Navigate(DocumentationLinks.OpenInIdeIssueLocation);
+        }
+
+        if (e.ClickedButtonText == OpenInIdeResources.InfoBar_Button_ShowLogs)
+        {
+            outputWindowService.Show();
+        }
     }
 
     private void RemoveExistingInfoBar()
     {
         if (currentInfoBar != null)
         {
-            currentInfoBar.ButtonClick -= ShowOutputWindow;
+            currentInfoBar.ButtonClick -= HandleInfoBarAction;
             currentInfoBar.Closed -= CurrentInfoBar_Closed;
             infoBarManager.DetachInfoBar(currentInfoBar);
             currentInfoBar = null;

@@ -56,7 +56,7 @@ public class OpenInIdeNotificationTests
         new OpenInIdeNotification(infoBar, toolWindowService).UnableToLocateIssue(filePath, toolWindowId);
         
         VerifyToolWindowOpened(toolWindowService, toolWindowId);
-        VerifyInfoBarShown(infoBar, "Open in IDE. Could not locate the issue in the file. Please ensure the file (file/path/123) has not been modified.", toolWindowId);
+        VerifyInfoBarShown(infoBar, "Open in IDE. Could not locate the issue in the file. Please ensure the file (file/path/123) has not been modified.", toolWindowId, true);
     }
     
     [TestMethod]
@@ -70,7 +70,7 @@ public class OpenInIdeNotificationTests
         new OpenInIdeNotification(infoBar, toolWindowService).UnableToOpenFile(filePath, toolWindowId);
         
         VerifyToolWindowOpened(toolWindowService, toolWindowId);
-        VerifyInfoBarShown(infoBar, "Open in IDE. Could not open File: file/path/123. Please ensure that you're on the correct branch and the file has not been deleted locally.", toolWindowId);
+        VerifyInfoBarShown(infoBar, "Open in IDE. Could not open File: file/path/123. Please ensure that you're on the correct branch and the file has not been deleted locally.", toolWindowId, true);
     }
     
     [TestMethod]
@@ -84,12 +84,12 @@ public class OpenInIdeNotificationTests
         new OpenInIdeNotification(infoBar, toolWindowService).InvalidRequest(reason, toolWindowId);
         
         VerifyToolWindowOpened(toolWindowService, toolWindowId);
-        VerifyInfoBarShown(infoBar, $"Unable to process Open in IDE request. Reason: reason 123", toolWindowId);
+        VerifyInfoBarShown(infoBar, $"Unable to process Open in IDE request. Reason: reason 123", toolWindowId, false);
     }
 
     private void VerifyToolWindowOpened(IToolWindowService toolWindowService, Guid toolWindowId) =>
         toolWindowService.Show(toolWindowId);
     
-    private void VerifyInfoBarShown(IOpenInIdeFailureInfoBar infoBar, string message, Guid toolWindowId) =>
-        infoBar.Received(1).ShowAsync(toolWindowId, message);
+    private void VerifyInfoBarShown(IOpenInIdeFailureInfoBar infoBar, string message, Guid toolWindowId, bool hasMoreInfo) =>
+        infoBar.Received(1).ShowAsync(toolWindowId, message, hasMoreInfo);
 }
