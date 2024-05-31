@@ -18,25 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
+namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models
-{
-    [ExcludeFromCodeCoverage] // https://github.com/SonarSource/sonarlint-visualstudio/issues/5199
-    public class EffectiveRuleParamDto
-    {
-        
-        public EffectiveRuleParamDto(string name, string description, string value, string defaultValue)
-        {
-            this.name = name;
-            this.description = description;
-            this.value = value;
-            this.defaultValue = defaultValue;
-        }
-
-        public string name { get; }
-        public string description { get; }
-        public string value { get; }
-        public string defaultValue { get; }
-    }
-}
+public record EffectiveRuleParamDto(string name, string description, string value, string defaultValue);
