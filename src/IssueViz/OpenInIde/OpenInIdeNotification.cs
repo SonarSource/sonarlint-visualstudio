@@ -50,22 +50,22 @@ internal class OpenInIdeNotification : IOpenInIdeNotification
     }
 
     public void UnableToLocateIssue(string filePath, Guid toolWindowId) => 
-        Show(string.Format(OpenInIdeResources.Notification_UnableToLocateIssue, filePath), toolWindowId);
+        Show(string.Format(OpenInIdeResources.Notification_UnableToLocateIssue, filePath), toolWindowId, true);
 
     public void UnableToOpenFile(string filePath, Guid toolWindowId) => 
-        Show(string.Format(OpenInIdeResources.Notification_UnableToOpenFile, filePath), toolWindowId);
+        Show(string.Format(OpenInIdeResources.Notification_UnableToOpenFile, filePath), toolWindowId, true);
     
     public void InvalidRequest(string reason, Guid toolWindowId) => 
-        Show(string.Format(OpenInIdeResources.Notification_InvalidConfiguration, reason), toolWindowId);
+        Show(string.Format(OpenInIdeResources.Notification_InvalidConfiguration, reason), toolWindowId, false);
 
     public void Clear()
     {
         infoBar.ClearAsync().Forget();
     }
 
-    private void Show(string message, Guid toolWindowId)
+    private void Show(string message, Guid toolWindowId, bool hasMoreInfo)
     {
         toolWindowService.Show(toolWindowId);
-        infoBar.ShowAsync(toolWindowId, message).Forget();
+        infoBar.ShowAsync(toolWindowId, message, hasMoreInfo).Forget();
     }
 }

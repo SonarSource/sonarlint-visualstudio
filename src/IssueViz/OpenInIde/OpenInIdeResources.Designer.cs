@@ -97,6 +97,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Learn more.
+        /// </summary>
+        internal static string InfoBar_Button_MoreInfo {
+            get {
+                return ResourceManager.GetString("InfoBar_Button_MoreInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show logs.
+        /// </summary>
+        internal static string InfoBar_Button_ShowLogs {
+            get {
+                return ResourceManager.GetString("InfoBar_Button_ShowLogs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Open in IDE] Could not find the location at File: {0}, Start Line: {1}, Start Position: {2}.
         /// </summary>
         internal static string IssueLocationNotFound {
