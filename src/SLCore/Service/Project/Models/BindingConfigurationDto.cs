@@ -20,16 +20,6 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
-public class BindingConfigurationDto
-{
-    public string connectionId { get; }
-    public string sonarProjectKey { get; }
-    public bool bindingSuggestionDisabled { get; }
-        
-    public BindingConfigurationDto(string connectionId, string sonarProjectKey, bool bindingSuggestionDisabled = true)
-    {
-        this.connectionId = connectionId;
-        this.sonarProjectKey = sonarProjectKey;
-        this.bindingSuggestionDisabled = bindingSuggestionDisabled;
-    }
-}
+public record BindingConfigurationDto(string connectionId,
+    string sonarProjectKey,
+    bool bindingSuggestionDisabled = true);
