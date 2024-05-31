@@ -18,21 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models
+public class RuleContextualSectionWithDefaultContextKeyDto
 {
-    [ExcludeFromCodeCoverage] // https://github.com/SonarSource/sonarlint-visualstudio/issues/5199
-    public class RuleContextualSectionWithDefaultContextKeyDto
+    public RuleContextualSectionWithDefaultContextKeyDto(string defaultContextKey, List<RuleContextualSectionDto> contextualSections)
     {
-        public RuleContextualSectionWithDefaultContextKeyDto(string defaultContextKey, List<RuleContextualSectionDto> contextualSections)
-        {
-            this.defaultContextKey = defaultContextKey;
-            this.contextualSections = contextualSections;
-        }
-
-        public string defaultContextKey { get; }
-        public List<RuleContextualSectionDto> contextualSections { get; }
+        this.defaultContextKey = defaultContextKey;
+        this.contextualSections = contextualSections;
     }
+
+    public string defaultContextKey { get; }
+    public List<RuleContextualSectionDto> contextualSections { get; }
 }

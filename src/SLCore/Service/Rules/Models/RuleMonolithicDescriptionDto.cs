@@ -18,18 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
+namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models
+public class RuleMonolithicDescriptionDto
 {
-    [ExcludeFromCodeCoverage] // https://github.com/SonarSource/sonarlint-visualstudio/issues/5199
-    public class RuleMonolithicDescriptionDto
+    public RuleMonolithicDescriptionDto(string htmlContent)
     {
-        public RuleMonolithicDescriptionDto(string htmlContent)
-        {
-            this.htmlContent = htmlContent;
-        }
-
-        public string htmlContent { get; }
+        this.htmlContent = htmlContent;
     }
+
+    public string htmlContent { get; }
 }

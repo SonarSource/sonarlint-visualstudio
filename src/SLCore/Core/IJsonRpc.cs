@@ -18,39 +18,34 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Threading.Tasks;
 using StreamJsonRpc;
 
-namespace SonarLint.VisualStudio.SLCore.Core
+namespace SonarLint.VisualStudio.SLCore.Core;
+
+/// <summary>
+/// A testable wrapper for JsonRpc. The implementation is expected to be thread-safe.
+/// </summary>
+internal interface IJsonRpc
 {
-    /// <summary>
-    /// A testable wrapper for JsonRpc. The implementation is expected to be thread-safe.
-    /// </summary>
-    internal interface IJsonRpc
-    {
-        T Attach<T>(JsonRpcProxyOptions options) where T : class;
+    T Attach<T>(JsonRpcProxyOptions options) where T : class;
 
-        void AddLocalRpcTarget(object target, JsonRpcTargetOptions options);
+    void AddLocalRpcTarget(object target, JsonRpcTargetOptions options);
 
-        void StartListening();
+    void StartListening();
         
-        Task Completion { get; }
+    Task Completion { get; }
         
-        TraceSource TraceSource { get; }
-    }
+    TraceSource TraceSource { get; }
+}
     
-    /// <summary>
-    /// Wrapper for <see cref="JsonRpc"/> that implements <see cref="IJsonRpc"/>
-    /// </summary>
-    [ExcludeFromCodeCoverage]
-    internal class JsonRpcWrapper : JsonRpc, IJsonRpc
+/// <summary>
+/// Wrapper for <see cref="JsonRpc"/> that implements <see cref="IJsonRpc"/>
+/// </summary>
+internal class JsonRpcWrapper : JsonRpc, IJsonRpc
+{
+    public JsonRpcWrapper(Stream sendingStream, Stream receivingStream) : base(sendingStream, receivingStream)
     {
-        public JsonRpcWrapper(Stream sendingStream, Stream receivingStream) : base(sendingStream, receivingStream)
-        {
-            TraceSource.Listeners.Clear(); // we don't want tracing unless IRpcDebugger is enabled
-        }
+        TraceSource.Listeners.Clear(); // we don't want tracing unless IRpcDebugger is enabled
     }
 }

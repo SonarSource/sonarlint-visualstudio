@@ -18,52 +18,47 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Connection
+namespace SonarLint.VisualStudio.SLCore.Service.Connection;
+
+[JsonRpcClass("connection")]
+public interface IConnectionConfigurationSLCoreService : ISLCoreService
 {
-    [JsonRpcClass("connection")]
-    public interface IConnectionConfigurationSLCoreService : ISLCoreService
-    {
-        /// <summary>
-        /// Changes Connection Configuration
-        /// </summary>
-        /// <param name="parameters"></param>
-        void DidUpdateConnections(DidUpdateConnectionsParams parameters);
+    /// <summary>
+    /// Changes Connection Configuration
+    /// </summary>
+    /// <param name="parameters"></param>
+    void DidUpdateConnections(DidUpdateConnectionsParams parameters);
 
-        /// <summary>
-        /// Connection credentials have been changed
-        /// </summary>
-        /// <param name="parameters"></param>
-        void DidChangeCredentials(DidChangeCredentialsParams parameters);
+    /// <summary>
+    /// Connection credentials have been changed
+    /// </summary>
+    /// <param name="parameters"></param>
+    void DidChangeCredentials(DidChangeCredentialsParams parameters);
+}
+
+public class DidUpdateConnectionsParams
+{
+    public List<SonarQubeConnectionConfigurationDto> sonarQubeConnections { get; }
+    public List<SonarCloudConnectionConfigurationDto> sonarCloudConnections { get; }
+
+        
+    public DidUpdateConnectionsParams(List<SonarQubeConnectionConfigurationDto> sonarQubeConnections, List<SonarCloudConnectionConfigurationDto> sonarCloudConnections)
+    {
+        this.sonarQubeConnections = sonarQubeConnections;
+        this.sonarCloudConnections = sonarCloudConnections;
     }
+}
 
-    public class DidUpdateConnectionsParams
+public class DidChangeCredentialsParams
+{
+    public string connectionId { get; }
+        
+    public DidChangeCredentialsParams(string connectionId)
     {
-        public List<SonarQubeConnectionConfigurationDto> sonarQubeConnections { get; }
-        public List<SonarCloudConnectionConfigurationDto> sonarCloudConnections { get; }
-
-        [ExcludeFromCodeCoverage]
-        public DidUpdateConnectionsParams(List<SonarQubeConnectionConfigurationDto> sonarQubeConnections, List<SonarCloudConnectionConfigurationDto> sonarCloudConnections)
-        {
-            this.sonarQubeConnections = sonarQubeConnections;
-            this.sonarCloudConnections = sonarCloudConnections;
-        }
-    }
-
-    public class DidChangeCredentialsParams
-    {
-        public string connectionId { get; }
-
-        [ExcludeFromCodeCoverage]
-        public DidChangeCredentialsParams(string connectionId)
-        {
-            this.connectionId = connectionId;
-        }
+        this.connectionId = connectionId;
     }
 }
