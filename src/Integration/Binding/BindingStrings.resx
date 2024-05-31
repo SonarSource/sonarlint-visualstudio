@@ -120,6 +120,9 @@
   <data name="BindingSuggestionConnect" xml:space="preserve">
     <value>Connect</value>
   </data>
+  <data name="BindingSuggestionLearnMore" xml:space="preserve">
+    <value>Learn more</value>
+  </data>
   <data name="BindingSuggestionProjectNotBound" xml:space="preserve">
     <value>ConnectedMode: The current solution is not bound to a SonarQube/SonarCloud project.</value>
   </data>
