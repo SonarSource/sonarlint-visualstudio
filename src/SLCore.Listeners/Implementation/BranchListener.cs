@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
     public class BranchListener : IBranchListener
     {
         /// <summary>
-        /// Stub method for compability with SLCore.
+        /// Stub method for compability with SLCore. TODO https://github.com/SonarSource/sonarlint-visualstudio/issues/5401
         /// </summary>
         /// <param name="parameters">Parameter's here for compability we discard it</param>
         /// <remarks>This will be implemented properly in the future when needed but features we support does not need branch awareness for now</remarks>
@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
         }
 
         /// <summary>
-        /// Stub method for compability with SLCore.
+        /// Stub method for compability with SLCore. TODO https://github.com/SonarSource/sonarlint-visualstudio/issues/5401
         /// </summary>
         /// <param name="parameters">Parameter's here for compability we discard it</param>
         /// <remarks>This will be implemented properly in the future when needed but features we support does not need branch awareness for now</remarks>
