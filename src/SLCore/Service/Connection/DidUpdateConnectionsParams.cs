@@ -18,6 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
+using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
-public record RuleMonolithicDescriptionDto(string htmlContent);
+namespace SonarLint.VisualStudio.SLCore.Service.Connection;
+
+public record DidUpdateConnectionsParams(
+    List<SonarQubeConnectionConfigurationDto> sonarQubeConnections,
+    List<SonarCloudConnectionConfigurationDto> sonarCloudConnections);

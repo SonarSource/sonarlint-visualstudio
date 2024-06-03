@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.SLCore.Configuration;
 
 namespace SonarLint.VisualStudio.SLCore.Core.Process;
@@ -36,7 +35,6 @@ internal class SLCoreProcessFactory : ISLCoreProcessFactory
         this.slCoreErrorLoggerFactory = slCoreErrorLoggerFactory;
     }
     
-    [ExcludeFromCodeCoverage]   
     public ISLCoreProcess StartNewProcess(SLCoreLaunchParameters slCoreLaunchParameters)
     {
         return new SLCoreProcess(slCoreLaunchParameters, slCoreErrorLoggerFactory);

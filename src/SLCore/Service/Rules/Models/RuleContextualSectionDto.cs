@@ -18,22 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
+namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models
-{
-    [ExcludeFromCodeCoverage] // https://github.com/SonarSource/sonarlint-visualstudio/issues/5199
-    public class RuleContextualSectionDto
-    {
-        public RuleContextualSectionDto(string htmlContent, string contextKey, string displayName)
-        {
-            this.htmlContent = htmlContent;
-            this.contextKey = contextKey;
-            this.displayName = displayName;
-        }
-
-        public string htmlContent { get; }
-        public string contextKey { get; }
-        public string displayName { get; }
-    }
-}
+public record RuleContextualSectionDto(string htmlContent,
+    string contextKey,
+    string displayName);

@@ -18,13 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.SLCore.Configuration;
 
 namespace SonarLint.VisualStudio.SLCore.Core.Process;
 
-[ExcludeFromCodeCoverage]
 internal sealed class SLCoreProcess : ISLCoreProcess
 {
     private readonly ISLCoreErrorLogger errorLogger;
