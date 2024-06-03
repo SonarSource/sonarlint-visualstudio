@@ -18,19 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Project.Params;
 
-public class DidAddConfigurationScopesParams
-{
-    public List<ConfigurationScopeDto> addedScopes { get; }
-
-    [ExcludeFromCodeCoverage]
-    public DidAddConfigurationScopesParams(List<ConfigurationScopeDto> addedScopes)
-    {
-        this.addedScopes = addedScopes;
-    }
-}
+public record DidAddConfigurationScopesParams(List<ConfigurationScopeDto> addedScopes);

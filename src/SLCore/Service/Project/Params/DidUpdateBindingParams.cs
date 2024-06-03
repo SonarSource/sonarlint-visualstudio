@@ -18,20 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Project.Params;
 
-public class DidUpdateBindingParams
-{
-    public string configScopeId { get; }
-    public BindingConfigurationDto updatedBinding { get; }
-
-    [ExcludeFromCodeCoverage]
-    public DidUpdateBindingParams(string configScopeId, BindingConfigurationDto updatedBinding)
-    {
-        this.configScopeId = configScopeId;
-        this.updatedBinding = updatedBinding;
-    }
-}
+public record DidUpdateBindingParams(string configScopeId,
+    BindingConfigurationDto updatedBinding);

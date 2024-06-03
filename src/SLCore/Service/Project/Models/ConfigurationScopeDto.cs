@@ -18,24 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
+namespace SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Project.Models
-{
-    public class ConfigurationScopeDto
-    {
-        public string id { get; }
-        public string name { get; }
-        public bool bindable { get; }
-        public BindingConfigurationDto binding { get; }
-
-        [ExcludeFromCodeCoverage]
-        public ConfigurationScopeDto(string id, string name, bool bindable, BindingConfigurationDto binding)
-        {
-            this.id = id;
-            this.name = name;
-            this.bindable = bindable;
-            this.binding = binding;
-        }
-    }
-}
+public record ConfigurationScopeDto(string id,
+    string name,
+    bool bindable,
+    BindingConfigurationDto binding);
