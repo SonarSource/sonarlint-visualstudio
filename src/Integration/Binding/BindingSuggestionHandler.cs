@@ -35,15 +35,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IIDEWindowService ideWindowService;
         private readonly ITeamExplorerController teamExplorerController;
+        private readonly IBrowserService browserService;
 
         [ImportingConstructor]
-        public BindingSuggestionHandler(INotificationService notificationService, IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            IIDEWindowService ideWindowService, ITeamExplorerController teamExplorerController)
+        public BindingSuggestionHandler(INotificationService notificationService, 
+            IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            IIDEWindowService ideWindowService,
+            ITeamExplorerController teamExplorerController,
+            IBrowserService browserService)
         {
             this.notificationService = notificationService;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.ideWindowService = ideWindowService;
             this.teamExplorerController = teamExplorerController;
+            this.browserService = browserService;
         }
 
         public void Notify()
@@ -56,13 +61,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 ? BindingStrings.BindingSuggestionProjectNotBound
                 : BindingStrings.BindingSuggetsionBindingConflict;
 
+            var connectAction = new NotificationAction(BindingStrings.BindingSuggestionConnect,
+                _ => teamExplorerController.ShowSonarQubePage(),
+                true);
+            var learnMoreAction = new NotificationAction(BindingStrings.BindingSuggestionLearnMore,
+                _ => browserService.Navigate(DocumentationLinks.OpenInIdeBindingSetup),
+                false);
+
             var notification = new Notification(
                 id: id,
                 message: message,
                 showOncePerSession: false,
-                actions: isStandaloneMode
-                    ? [new NotificationAction(BindingStrings.BindingSuggestionConnect, _ => teamExplorerController.ShowSonarQubePage(), true)]
-                    : []);
+                actions: isStandaloneMode ? [connectAction, learnMoreAction] : [learnMoreAction]);
 
             notificationService.ShowNotification(notification);
 

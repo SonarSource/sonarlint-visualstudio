@@ -70,6 +70,15 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Learn more.
+        /// </summary>
+        internal static string BindingSuggestionLearnMore {
+            get {
+                return ResourceManager.GetString("BindingSuggestionLearnMore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ConnectedMode: The current solution is not bound to a SonarQube/SonarCloud project..
         /// </summary>
         internal static string BindingSuggestionProjectNotBound {
