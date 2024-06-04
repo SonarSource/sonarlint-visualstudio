@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
+namespace SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Core.Analysis
+/// <summary>
+/// Handler for incoming analysis results
+/// </summary>
+public interface IIssueConsumer
 {
-    public interface IIssueConsumer
-    {
-        void Accept(string path, IEnumerable<IAnalysisIssue> issues);
-    }
+    void Accept(string path, IEnumerable<IAnalysisIssue> issues);
 }
