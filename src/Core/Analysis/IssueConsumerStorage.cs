@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class IssueConsumerStorage : IIssueConsumerStorage
     {
-        private static object Lock;
+        private static object Lock = new();
         internal /*For testing*/ readonly Dictionary<string, (Guid analysisID, IIssueConsumer consumer)> internalStorage;
 
         [ImportingConstructor]
