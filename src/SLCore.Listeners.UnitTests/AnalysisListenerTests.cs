@@ -68,4 +68,5 @@ public class AnalysisListenerTests
 
         act.Should().Throw<NotImplementedException>();
     }
+    
 }
