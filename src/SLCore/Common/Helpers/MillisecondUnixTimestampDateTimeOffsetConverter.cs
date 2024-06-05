@@ -18,19 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Common.Models;
+using Newtonsoft.Json;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models
+namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
+
+internal class MillisecondUnixTimestampDateTimeOffsetConverter : JsonConverter
 {
-    public class ImpactDto
+    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
     {
-        public ImpactDto(SoftwareQuality softwareQuality, ImpactSeverity impactSeverity)
-        {
-            this.softwareQuality = softwareQuality;
-            this.impactSeverity = impactSeverity;
-        }
+        throw new NotSupportedException();
+    }
 
-        public SoftwareQuality softwareQuality { get; }
-        public ImpactSeverity impactSeverity { get; }
+    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+    {
+        return reader.Value is long timestamp
+            ? DateTimeOffset.FromUnixTimeMilliseconds(timestamp)
+            : default;
+    }
+
+    public override bool CanConvert(Type objectType)
+    {
+        return objectType == typeof(DateTimeOffset);
     }
 }
