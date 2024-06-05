@@ -22,4 +22,4 @@ using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
-public record RaiseHotspotsParams(string configurationScopeId, Dictionary<Uri, List<RaisedHotspotDto>> issuesByFileUri, bool isIntermediatePublication, string analysisId);
+public record RaiseHotspotsParams(string configurationScopeId, Dictionary<Uri, List<RaisedHotspotDto>> issuesByFileUri, bool isIntermediatePublication, Guid? analysisId);
