@@ -20,4 +20,4 @@
 
 namespace SonarLint.VisualStudio.SLCore.Common.Models;
 
-public record IssueLocationDto(TextRangeDto? textRange, string? message, Uri? fileUri);
+public record IssueLocationDto(TextRangeDto textRange, string message, Uri fileUri);

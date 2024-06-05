@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 public record RaisedHotspotDto(
     Guid id,
-    string? serverKey,
+    string serverKey,
     string ruleKey,
     string primaryMessage,
     IssueSeverity severity,
@@ -36,7 +36,7 @@ public record RaisedHotspotDto(
     [JsonConverter(typeof(MillisecondUnixTimestampDateTimeOffsetConverter))] DateTimeOffset introductionDate,
     bool isOnNewCode,
     bool resolved,
-    TextRangeDto? textRange,
+    TextRangeDto textRange,
     List<IssueFlowDto> flows,
     List<QuickFixDto> quickFixes,
     string ruleDescriptionContextKey,

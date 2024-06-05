@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 public abstract record RaisedFindingDto(
     Guid id,
-    string? serverKey,
+    string serverKey,
     string ruleKey,
     string primaryMessage,
     IssueSeverity severity,
@@ -34,7 +34,7 @@ public abstract record RaisedFindingDto(
     DateTimeOffset introductionDate,
     bool isOnNewCode,
     bool resolved,
-    TextRangeDto? textRange,
+    TextRangeDto textRange,
     List<IssueFlowDto> flows,
     List<QuickFixDto> quickFixes,
-    string? ruleDescriptionContextKey);
+    string ruleDescriptionContextKey);
