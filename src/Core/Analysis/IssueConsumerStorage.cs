@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class IssueConsumerStorage : IIssueConsumerStorage
     {
-        private static object Lock = new();
+        private readonly object Lock = new();
         internal /*For testing*/ readonly Dictionary<string, (Guid analysisID, IIssueConsumer consumer)> internalStorage;
 
         [ImportingConstructor]
@@ -53,25 +53,19 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
         public bool TryGet(string filePath, out Guid analysisId, out IIssueConsumer issueConsumer)
         {
-            (Guid analysisID, IIssueConsumer consumer) storedValue;
-            bool result;
+            analysisId = default;
+            issueConsumer = default;
+
             lock (Lock)
             {
-                result = internalStorage.TryGetValue(filePath, out storedValue);
-            }
+                if (internalStorage.TryGetValue(filePath, out var storedValue))
+                {
+                    (analysisId, issueConsumer) = storedValue;
+                    return true;
+                }
 
-            if (result)
-            {
-                analysisId = storedValue.analysisID;
-                issueConsumer = storedValue.consumer;
+                return false;
             }
-            else
-            {
-                analysisId = default;
-                issueConsumer = default;
-            }
-
-            return result;
         }
     }
 }
