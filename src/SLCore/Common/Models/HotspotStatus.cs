@@ -18,15 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
+namespace SonarLint.VisualStudio.SLCore.Common.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
-
-internal interface IAnalysisListener : ISLCoreListener
+public enum HotspotStatus
 {
-    Task DidChangeAnalysisReadinessAsync(DidChangeAnalysisReadinessParams parameters);
-
-    void RaiseIssues(RaiseIssuesParams parameters);
-    
-    void RaiseHotspots(RaiseHotspotsParams parameters);
+    TO_REVIEW,
+    ACKNOWLEDGED,
+    FIXED,
+    SAFE
 }

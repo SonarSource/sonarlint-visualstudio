@@ -20,7 +20,6 @@
 
 
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
@@ -33,5 +32,15 @@ internal class AnalysisListener : IAnalysisListener
     public Task DidChangeAnalysisReadinessAsync(DidChangeAnalysisReadinessParams parameters)
     {
         return Task.CompletedTask;
+    }
+
+    public void RaiseIssues(RaiseIssuesParams parameters)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void RaiseHotspots(RaiseHotspotsParams parameters)
+    {
+        throw new NotImplementedException();
     }
 }
