@@ -167,32 +167,9 @@ public class TextBufferIssueTrackerTests
         var textDocFactoryServiceMock = new Mock<ITextDocumentFactoryService>();
 
         var languageRecognizer = Mock.Of<ISonarLanguageRecognizer>();
-
-        // // DTE object setup
-        // var mockProject = new Mock<Project>();
-        // mockProject.Setup(p => p.Name).Returns("MyProject");
-        // mockProject.Setup(p => p.FileName).Returns("MyProject.csproj");
-        // var project = mockProject.Object;
-        //
-        // var mockProjectItem = new Mock<ProjectItem>();
-        // mockProjectItem.Setup(s => s.ContainingProject).Returns(project);
-        // var projectItem = mockProjectItem.Object;
-        //
-        // mockSolution = new Mock<Solution>();
-        // mockSolution.Setup(s => s.FindProjectItem(It.IsAny<string>()))
-        //     .Returns(projectItem);
-        //
-        // var mockDTE = new Mock<DTE2>();
-        // mockDTE.Setup(d => d.Solution).Returns(mockSolution.Object);
-        //
-        // var mockVsSolution = new Mock<IVsSolution5>();
-        // mockVsSolution.Setup(x => x.GetGuidOfProjectFile("MyProject.csproj"))
-        //     .Returns(projectGuid);
-
+        
         var serviceProvider = new ConfigurableServiceProvider();
-        // serviceProvider.RegisterService(typeof(SDTE), mockDTE.Object);
         serviceProvider.RegisterService(typeof(IVsStatusbar), Mock.Of<IVsStatusbar>());
-        // serviceProvider.RegisterService(typeof(SVsSolution), mockVsSolution.Object);
 
         var mockAnalysisRequester = new Mock<IAnalysisRequester>();
 
@@ -340,18 +317,4 @@ public class TextBufferIssueTrackerTests
     }
 
     #endregion RequestAnalysis
-
-    // private static Mock<ITextSnapshot> CreateMockTextSnapshot(int lineCount, string textToReturn)
-    // {
-    //     var mockSnapshotLine = new Mock<ITextSnapshotLine>();
-    //     mockSnapshotLine.Setup(x => x.GetText()).Returns(textToReturn);
-    //
-    //     var mockSnapshot = new Mock<ITextSnapshot>();
-    //     mockSnapshot.Setup(x => x.Length).Returns(9999);
-    //     mockSnapshot.Setup(x => x.LineCount).Returns(lineCount);
-    //     mockSnapshot.Setup(x => x.GetLineFromLineNumber(It.IsAny<int>()))
-    //         .Returns(mockSnapshotLine.Object);
-    //
-    //     return mockSnapshot;
-    // }
 }
