@@ -53,18 +53,11 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
         public bool TryGet(string filePath, out Guid analysisId, out IIssueConsumer issueConsumer)
         {
-            analysisId = default;
-            issueConsumer = default;
-
             lock (Lock)
             {
-                if (internalStorage.TryGetValue(filePath, out var storedValue))
-                {
-                    (analysisId, issueConsumer) = storedValue;
-                    return true;
-                }
-
-                return false;
+                var result = internalStorage.TryGetValue(filePath, out var storedValue);
+                (analysisId, issueConsumer) = storedValue;
+                return result;
             }
         }
     }
