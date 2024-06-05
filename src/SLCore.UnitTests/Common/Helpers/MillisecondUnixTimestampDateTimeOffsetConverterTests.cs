@@ -105,6 +105,19 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers
             act.Should().Throw<ArgumentOutOfRangeException>();
         }
 
+        
+        [DataTestMethod]
+        [DataRow(typeof(DateTimeOffset), true)]
+        [DataRow(typeof(long), false)]
+        public void CanConvert_AcceptsOnlyDateTimeOffset(Type type, bool canConvert)
+        {
+            var converter = new MillisecondUnixTimestampDateTimeOffsetConverter();
+
+            var result = converter.CanConvert(type);
+
+            result.Should().Be(canConvert);
+        }
+
         private class TestData
         {
             public TestData(string someString, [JsonConverter(typeof(MillisecondUnixTimestampDateTimeOffsetConverter))]DateTimeOffset someDateTimeOffset, long someLong)
