@@ -18,14 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
@@ -44,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         [ImportingConstructor]
         public AnalyzerController(ILogger logger,
-            [ImportMany]IEnumerable<IAnalyzer> analyzers,
+            [ImportMany] IEnumerable<IAnalyzer> analyzers,
             IAnalysisConfigMonitor analysisConfigMonitor,
             IAnalyzableFileIndicator analyzableFileIndicator)
         {
@@ -63,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         }
 
         public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
-            IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
+            IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken, Guid analysisId = default)
         {
             var supportedAnalyzers = analyzers.Where(x => x.IsAnalysisSupported(detectedLanguages)).ToList();
             var handled = false;
@@ -87,6 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         #endregion IAnalyzerController implementation
 
         #region IDisposable Support
+
         private bool disposedValue = false; // To detect redundant calls
 
         private void Dispose(bool disposing)
@@ -107,6 +103,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
         }
+
         #endregion
     }
 }

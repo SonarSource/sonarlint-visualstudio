@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 
@@ -74,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             analyzers.Any(x => x.RequestAnalysisCalled).Should().BeFalse();
 
             // Verify that the file was checked only once, regardless of number of analyzers
-            analyzableFileIndicator.Verify(x=> x.ShouldAnalyze(It.IsAny<string>()), Times.Once);
+            analyzableFileIndicator.Verify(x => x.ShouldAnalyze(It.IsAny<string>()), Times.Once);
         }
 
         [TestMethod]
@@ -175,7 +168,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             }
 
             public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
-                IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
+                IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken, Guid analysisId = default)
             {
                 detectedLanguages.Should().NotBeNull();
                 detectedLanguages.Any().Should().BeTrue();
@@ -186,4 +179,3 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
     }
 }
-

@@ -18,12 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.Secrets.DotNet;
@@ -89,7 +84,8 @@ namespace SonarLint.VisualStudio.CloudSecrets
             IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer,
             IAnalyzerOptions analyzerOptions,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            Guid analysisId = default)
         {
             var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SecretsAnalyzer), filePath);
 
