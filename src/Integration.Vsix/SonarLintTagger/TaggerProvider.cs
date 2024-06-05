@@ -57,19 +57,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly ISet<IIssueTracker> issueTrackers = new HashSet<IIssueTracker>();
 
-        private readonly IAnalyzerController analyzerController;
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly IVsStatusbar vsStatusBar;
         private readonly ITaggableBufferIndicator taggableBufferIndicator;
-        private readonly IVsAwareAnalysisService vsAwareAnalysisService;
+        private readonly IVsAwareAnalysisService analysisService;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         internal TaggerProvider(ISonarErrorListDataSource sonarErrorDataSource,
             ITextDocumentFactoryService textDocumentFactoryService,
-            IAnalyzerController analyzerController,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ISonarLanguageRecognizer languageRecognizer,
+            IVsAwareAnalysisService analysisService,
             IAnalysisRequester analysisRequester,
             ITaggableBufferIndicator taggableBufferIndicator,
             ILogger logger)
@@ -77,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.sonarErrorDataSource = sonarErrorDataSource;
             this.textDocumentFactoryService = textDocumentFactoryService;
 
-            this.analyzerController = analyzerController;
+            this.analysisService = analysisService;
             this.languageRecognizer = languageRecognizer;
             this.taggableBufferIndicator = taggableBufferIndicator;
             this.logger = logger;
@@ -153,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             var detectedLanguages = languageRecognizer.Detect(textDocument.FilePath, buffer.ContentType);
 
-            if (analyzerController.IsAnalysisSupported(detectedLanguages))
+            if (analysisService.IsAnalysisSupported(detectedLanguages))
             {
                 // We only want one TBIT per buffer and we don't want it be disposed until
                 // it is not being used by any tag aggregators, so we're wrapping it in a SingletonDisposableTaggerManager
@@ -173,7 +172,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 textDocument, 
                 analysisLanguages,
                 sonarErrorDataSource,
-                vsAwareAnalysisService,
+                analysisService,
                 logger);
 
         #endregion IViewTaggerProvider members

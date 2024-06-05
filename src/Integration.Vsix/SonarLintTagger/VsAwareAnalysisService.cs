@@ -34,6 +34,8 @@ internal interface IVsAwareAnalysisService
         IEnumerable<AnalysisLanguage> detectedLanguages,
         SnapshotChangedHandler errorListHandler,
         IAnalyzerOptions analyzerOptions);
+
+    bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
 }
 
 [Export(typeof(IVsAwareAnalysisService))]
@@ -61,6 +63,9 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
         this.analyzerController = analyzerController;
         this.scheduler = scheduler;
     }
+
+    public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages) =>
+        analyzerController.IsAnalysisSupported(languages);
 
     public void RequestAnalysis(string filePath, 
         ITextDocument document,
