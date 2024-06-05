@@ -61,38 +61,37 @@ internal class VsProjectInfoProvider : IVsProjectInfoProvider
 
         await threadHandling.RunOnUIThreadAsync(() =>
         {
-            projectName = GetProjectName(document.FilePath);
-            projectGuid = GetProjectGuid(document.FilePath);
+            var documentFilePath = document.FilePath;
+            var project = GetProject(documentFilePath);
+
+            projectName = GetProjectName(project);
+            projectGuid = GetProjectGuid(project, documentFilePath);
         });
         return (projectName, projectGuid);
     }
 
-    private string GetProjectName(string filePath)
+    private string GetProjectName(Project project)
     {
-        return GetProject(filePath)?.Name ?? "{none}";
+        return project?.Name ?? "{none}";
     }
 
-    private Guid GetProjectGuid(string filePath)
+    private Guid GetProjectGuid(Project project, string documentFilePath)
     {
         threadHandling.ThrowIfNotOnUIThread();
         
-        var project = GetProject(filePath);
-
-        if (project == null || string.IsNullOrEmpty(project.FileName))
-        {
-            return Guid.Empty;
-        }
-
         try
         {
-            return vsSolution.GetGuidOfProjectFile(project.FileName);
+            if (project != null && !string.IsNullOrEmpty(project.FileName))
+            {
+                return vsSolution.GetGuidOfProjectFile(project.FileName);
+            }
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            logger.LogVerbose(Strings.TextBufferIssueTracker_ProjectGuidError, filePath, ex);
-
-            return Guid.Empty;
+            logger.LogVerbose(Strings.TextBufferIssueTracker_ProjectGuidError, documentFilePath, ex);
         }
+
+        return Guid.Empty;
     }
 
     private Project GetProject(string filePath)

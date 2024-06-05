@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix;
 
-internal interface IVsAnalysisService
+internal interface IVsAwareAnalysisService
 {
     void RequestAnalysis(string filePath, 
         ITextDocument document,
@@ -36,9 +36,9 @@ internal interface IVsAnalysisService
         IAnalyzerOptions analyzerOptions);
 }
 
-[Export(typeof(IVsAnalysisService))]
+[Export(typeof(IVsAwareAnalysisService))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class VsAnalysisService : IVsAnalysisService
+internal class VsAwareAnalysisService : IVsAwareAnalysisService
 {
     private readonly IIssueConsumerFactory issueConsumerFactory;
     private readonly IVsProjectInfoProvider vsProjectInfoProvider;
@@ -49,7 +49,7 @@ internal class VsAnalysisService : IVsAnalysisService
     internal /* for testing */ const int DefaultAnalysisTimeoutMs = 60 * 1000;
 
     [ImportingConstructor]
-    public VsAnalysisService(IVsProjectInfoProvider vsProjectInfoProvider, 
+    public VsAwareAnalysisService(IVsProjectInfoProvider vsProjectInfoProvider, 
         IIssueConsumerFactory issueConsumerFactory,
         IAnalyzerController analyzerController,
         IScheduler scheduler, 

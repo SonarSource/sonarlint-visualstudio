@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly IVsStatusbar vsStatusBar;
         private readonly ITaggableBufferIndicator taggableBufferIndicator;
-        private readonly IVsAnalysisService vsAnalysisService;
+        private readonly IVsAwareAnalysisService vsAwareAnalysisService;
         private readonly ILogger logger;
 
         [ImportingConstructor]
@@ -72,11 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ISonarLanguageRecognizer languageRecognizer,
             IAnalysisRequester analysisRequester,
             ITaggableBufferIndicator taggableBufferIndicator,
-            IIssueConsumerFactory issueConsumerFactory,
-            IVsAnalysisService vsAnalysisService,
-            ILogger logger,
-            IScheduler scheduler,
-            IThreadHandling threadHandling)
+            ILogger logger)
         {
             this.sonarErrorDataSource = sonarErrorDataSource;
             this.textDocumentFactoryService = textDocumentFactoryService;
@@ -84,7 +80,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.analyzerController = analyzerController;
             this.languageRecognizer = languageRecognizer;
             this.taggableBufferIndicator = taggableBufferIndicator;
-            this.vsAnalysisService = vsAnalysisService;
             this.logger = logger;
 
             vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
@@ -178,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 textDocument, 
                 analysisLanguages,
                 sonarErrorDataSource,
-                vsAnalysisService,
+                vsAwareAnalysisService,
                 logger);
 
         #endregion IViewTaggerProvider members

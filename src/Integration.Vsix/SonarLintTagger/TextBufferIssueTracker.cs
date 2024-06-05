@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         
         private readonly ITextDocument document;
         private readonly ILogger logger;
-        private readonly IVsAnalysisService vsAnalysisService;
+        private readonly IVsAwareAnalysisService vsAwareAnalysisService;
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
 
         public string LastAnalysisFilePath { get; private set; }
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages,
             ISonarErrorListDataSource sonarErrorDataSource,
-            IVsAnalysisService vsAnalysisService,
+            IVsAwareAnalysisService vsAwareAnalysisService,
             ILogger logger)
         {
 
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
-            this.vsAnalysisService = vsAnalysisService;
+            this.vsAwareAnalysisService = vsAwareAnalysisService;
             this.logger = logger;
 
             this.document = document;
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             try
             {
                 LastAnalysisFilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
-                vsAnalysisService.RequestAnalysis(LastAnalysisFilePath, document, detectedLanguages, SnapToNewSnapshot, options);
+                vsAwareAnalysisService.RequestAnalysis(LastAnalysisFilePath, document, detectedLanguages, SnapToNewSnapshot, options);
             }
             catch (NotSupportedException ex)
             {
