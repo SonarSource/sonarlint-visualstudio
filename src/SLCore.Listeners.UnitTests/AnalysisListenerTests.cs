@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
+using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests;
 
@@ -46,5 +47,25 @@ public class AnalysisListenerTests
         var result = new AnalysisListener().DidChangeAnalysisReadinessAsync(new DidChangeAnalysisReadinessParams(new List<string> { "id" }, true));
 
         result.Status.Should().Be(TaskStatus.RanToCompletion);
+    }
+
+    [TestMethod]
+    public void RaiseIssues_ThrowsNotImplemented()
+    {
+        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", new Dictionary<Uri, List<RaisedIssueDto>>(), false, Guid.NewGuid());
+        
+        var act = () => new AnalysisListener().RaiseIssues(raiseIssuesParams);
+
+        act.Should().Throw<NotImplementedException>();
+    }
+    
+    [TestMethod]
+    public void RaiseHotspots_ThrowsNotImplemented()
+    {
+        var raiseHotspotsParams = new RaiseHotspotsParams("CONFIGURATION_ID", new Dictionary<Uri, List<RaisedHotspotDto>>(), false, Guid.NewGuid());
+        
+        var act = () => new AnalysisListener().RaiseHotspots(raiseHotspotsParams);
+
+        act.Should().Throw<NotImplementedException>();
     }
 }
