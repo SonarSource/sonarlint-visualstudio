@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace SonarLint.VisualStudio.SLCore.Common.Models;
 
+[ExcludeFromCodeCoverage]
 public record QuickFixDto(List<FileEditDto> inputFileEdits, string message);
