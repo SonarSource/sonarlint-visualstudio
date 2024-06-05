@@ -18,15 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
+using System.Diagnostics.CodeAnalysis;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
+namespace SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
-internal interface IAnalysisListener : ISLCoreListener
-{
-    Task DidChangeAnalysisReadinessAsync(DidChangeAnalysisReadinessParams parameters);
-
-    void RaiseIssues(RaiseIssuesParams parameters);
-    
-    void RaiseHotspots(RaiseHotspotsParams parameters);
-}
+[ExcludeFromCodeCoverage]
+public abstract record RaisedFindingDto(
+    Guid id,
+    string serverKey,
+    string ruleKey,
+    string primaryMessage,
+    IssueSeverity severity,
+    RuleType type,
+    CleanCodeAttribute cleanCodeAttribute,
+    List<ImpactDto> impacts,
+    DateTimeOffset introductionDate,
+    bool isOnNewCode,
+    bool resolved,
+    TextRangeDto textRange,
+    List<IssueFlowDto> flows,
+    List<QuickFixDto> quickFixes,
+    string ruleDescriptionContextKey);

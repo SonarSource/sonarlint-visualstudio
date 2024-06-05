@@ -18,19 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Common.Models;
+using System.Diagnostics.CodeAnalysis;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models
-{
-    public class ImpactDto
-    {
-        public ImpactDto(SoftwareQuality softwareQuality, ImpactSeverity impactSeverity)
-        {
-            this.softwareQuality = softwareQuality;
-            this.impactSeverity = impactSeverity;
-        }
+namespace SonarLint.VisualStudio.SLCore.Common.Models;
 
-        public SoftwareQuality softwareQuality { get; }
-        public ImpactSeverity impactSeverity { get; }
-    }
-}
+[ExcludeFromCodeCoverage]
+public record IssueFlowDto(List<IssueLocationDto> locations);
