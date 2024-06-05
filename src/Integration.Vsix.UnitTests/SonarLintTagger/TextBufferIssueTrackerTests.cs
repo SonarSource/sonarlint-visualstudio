@@ -53,11 +53,11 @@ public class TextBufferIssueTrackerTests
     public void SetUp()
     {
         mockSonarErrorDataSource = new Mock<ISonarErrorListDataSource>();
+        mockAnalysisService = new Mock<IVsAwareAnalysisService>();
         taggerProvider = CreateTaggerProvider();
         mockDocumentTextBuffer = CreateTextBufferMock();
         mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js", mockDocumentTextBuffer);
         javascriptLanguage = [AnalysisLanguage.Javascript];
-        mockAnalysisService = new Mock<IVsAwareAnalysisService>();
 
         testSubject = CreateTestSubject(mockAnalysisService);
     }
@@ -177,8 +177,12 @@ public class TextBufferIssueTrackerTests
         mockAnalysisScheduler.Setup(x => x.Schedule(It.IsAny<string>(), It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
             .Callback((string file, Action<CancellationToken> analyze, int timeout) => analyze(CancellationToken.None));
 
-        var provider = new TaggerProvider(mockSonarErrorDataSource.Object, textDocFactoryServiceMock.Object, 
-            serviceProvider, languageRecognizer, mockAnalysisService.Object, mockAnalysisRequester.Object, Mock.Of<ITaggableBufferIndicator>(), logger);
+        var sonarErrorListDataSource = mockSonarErrorDataSource.Object;
+        var textDocumentFactoryService = textDocFactoryServiceMock.Object;
+        var vsAwareAnalysisService = mockAnalysisService.Object;
+        var analysisRequester = mockAnalysisRequester.Object;
+        var provider = new TaggerProvider(sonarErrorListDataSource, textDocumentFactoryService, 
+            serviceProvider, languageRecognizer, vsAwareAnalysisService, analysisRequester, Mock.Of<ITaggableBufferIndicator>(), logger);
         return provider;
     }
 
