@@ -18,12 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Globalization;
-using System.Linq;
-using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -32,7 +28,6 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
@@ -56,12 +51,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal sealed class TaggerProvider : ITaggerProvider, IDocumentEvents
     {
         internal static readonly Type SingletonManagerPropertyCollectionKey = typeof(SingletonDisposableTaggerManager<IErrorTag>);
-
-        internal /* for testing */ const int DefaultAnalysisTimeoutMs = 60 * 1000;
-
+        
         internal readonly ISonarErrorListDataSource sonarErrorDataSource;
         internal readonly ITextDocumentFactoryService textDocumentFactoryService;
-        internal readonly DTE2 dte;
 
         private readonly ISet<IIssueTracker> issueTrackers = new HashSet<IIssueTracker>();
 
@@ -69,11 +61,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly IVsStatusbar vsStatusBar;
         private readonly ITaggableBufferIndicator taggableBufferIndicator;
+        private readonly IVsAnalysisService vsAnalysisService;
         private readonly ILogger logger;
-        private readonly IScheduler scheduler;
-        private readonly IVsSolution5 vsSolution;
-        private readonly IIssueConsumerFactory issueConsumerFactory;
-        private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
         internal TaggerProvider(ISonarErrorListDataSource sonarErrorDataSource,
@@ -84,6 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IAnalysisRequester analysisRequester,
             ITaggableBufferIndicator taggableBufferIndicator,
             IIssueConsumerFactory issueConsumerFactory,
+            IVsAnalysisService vsAnalysisService,
             ILogger logger,
             IScheduler scheduler,
             IThreadHandling threadHandling)
@@ -92,18 +82,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.textDocumentFactoryService = textDocumentFactoryService;
 
             this.analyzerController = analyzerController;
-            this.dte = serviceProvider.GetService<SDTE, DTE2>();
             this.languageRecognizer = languageRecognizer;
             this.taggableBufferIndicator = taggableBufferIndicator;
-            this.issueConsumerFactory = issueConsumerFactory;
+            this.vsAnalysisService = vsAnalysisService;
             this.logger = logger;
-            this.scheduler = scheduler;
-            this.threadHandling = threadHandling;
 
             vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
             analysisRequester.AnalysisRequested += OnAnalysisRequested;
-
-            vsSolution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution5;
         }
 
         private readonly object reanalysisLockObject = new object();
@@ -143,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 return issueTrackers;
             }
-            return issueTrackers.Where(it => filePaths.Contains(it.FilePath, StringComparer.OrdinalIgnoreCase));
+            return issueTrackers.Where(it => filePaths.Contains(it.LastAnalysisFilePath, StringComparer.OrdinalIgnoreCase));
         }
 
         internal IEnumerable<IIssueTracker> ActiveTrackersForTesting => issueTrackers;
@@ -188,51 +173,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private TextBufferIssueTracker InternalCreateTextBufferIssueTracker(ITextDocument textDocument, IEnumerable<AnalysisLanguage> analysisLanguages) =>
-            new TextBufferIssueTracker(dte,
+            new TextBufferIssueTracker(
                 this,
                 textDocument, 
                 analysisLanguages,
-                sonarErrorDataSource, 
-                vsSolution,
-                issueConsumerFactory,
-                logger,
-                threadHandling);
+                sonarErrorDataSource,
+                vsAnalysisService,
+                logger);
 
         #endregion IViewTaggerProvider members
-
-        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer issueConsumer, IAnalyzerOptions analyzerOptions)
-        {
-            // May be called on the UI thread -> unhandled exceptions will crash VS
-            try
-            {
-                var analysisTimeout = GetAnalysisTimeoutInMilliseconds();
-
-                scheduler.Schedule(path,
-                    cancellationToken =>
-                        analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer,
-                            analyzerOptions, cancellationToken),
-                    analysisTimeout);
-            }
-            catch (NotSupportedException ex)
-            {
-                // Display a simple user-friendly message for options we know are not supported.
-                // See https://github.com/SonarSource/sonarlint-visualstudio/pull/2212
-                logger.WriteLine($"Unable to analyze: {ex.Message}");
-            }
-            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine($"Analysis error: {ex}");
-            }
-        }
-
-        internal static int GetAnalysisTimeoutInMilliseconds(IEnvironmentSettings environmentSettings = null)
-        {
-            environmentSettings = environmentSettings ?? new EnvironmentSettings();
-            var userSuppliedTimeout = environmentSettings.AnalysisTimeoutInMs();
-            var analysisTimeoutInMilliseconds = userSuppliedTimeout > 0 ? userSuppliedTimeout : DefaultAnalysisTimeoutMs;
-
-            return analysisTimeoutInMilliseconds;
-        }
 
         public void AddIssueTracker(IIssueTracker issueTracker)
         {
@@ -250,7 +199,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 // The lifetime of an issue tracker is tied to a single document. A tracker is removed when
                 // it is no longer needed i.e. the document has been closed.
-                DocumentClosed?.Invoke(this, new DocumentClosedEventArgs(issueTracker.FilePath));
+                DocumentClosed?.Invoke(this, new DocumentClosedEventArgs(issueTracker.LastAnalysisFilePath));
             }
         }
 

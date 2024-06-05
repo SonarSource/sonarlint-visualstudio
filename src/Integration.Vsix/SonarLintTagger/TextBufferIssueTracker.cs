@@ -18,20 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Integration.Helpers;
-using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
@@ -50,49 +40,39 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </remarks>
     internal sealed class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>, IDisposable
     {
-        private readonly DTE2 dte;
         internal /* for testing */ TaggerProvider Provider { get; }
         private readonly ITextBuffer textBuffer;
         private readonly IEnumerable<AnalysisLanguage> detectedLanguages;
-
+        
         private readonly ITextDocument document;
-        private readonly string charset;
         private readonly ILogger logger;
+        private readonly IVsAnalysisService vsAnalysisService;
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
-        private readonly IVsSolution5 vsSolution;
-        private readonly IIssueConsumerFactory issueConsumerFactory;
-        private readonly IThreadHandling threadHandling;
 
-        public string FilePath { get; private set; }
+        public string LastAnalysisFilePath { get; private set; }
         internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
-        public TextBufferIssueTracker(DTE2 dte,
+        public TextBufferIssueTracker(
             TaggerProvider provider,
             ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages,
             ISonarErrorListDataSource sonarErrorDataSource,
-            IVsSolution5 vsSolution,
-            IIssueConsumerFactory issueConsumerFactory,
-            ILogger logger,
-            IThreadHandling threadHandling)
+            IVsAnalysisService vsAnalysisService,
+            ILogger logger)
         {
-            this.dte = dte;
 
             this.Provider = provider;
             this.textBuffer = document.TextBuffer;
 
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
-            this.vsSolution = vsSolution;
-            this.issueConsumerFactory = issueConsumerFactory;
+            this.vsAnalysisService = vsAnalysisService;
             this.logger = logger;
-            this.threadHandling = threadHandling;
 
             this.document = document;
-            this.FilePath = document.FilePath;
-            this.charset = document.Encoding.WebName;
+            this.LastAnalysisFilePath = document.FilePath;
 
-            this.Factory = new IssuesSnapshotFactory(FilePath);
+            this.Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
 
@@ -129,33 +109,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(IAnalyzerOptions options)
         {
-            RequestAnalysisAsync(options).Forget();
-        }
-
-        internal /* for testing */ async Task RequestAnalysisAsync(IAnalyzerOptions options)
-        {
             try
             {
-                string projectName = null;
-                Guid projectGuid = Guid.Empty;
-
-                await threadHandling.RunOnUIThreadAsync(() =>
-                {
-                    projectName = GetProjectName();
-                    projectGuid = GetProjectGuid();
-                });
-
-                await threadHandling.SwitchToBackgroundThread();
-
-                FilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
-
-                var issueConsumer = issueConsumerFactory.Create(document, projectName, projectGuid, SnapToNewSnapshot);
-
-                // Call the consumer with no analysis issues to immediately clear issues for this file
-                // from the error list
-                issueConsumer.Accept(FilePath, Enumerable.Empty<IAnalysisIssue>());
-
-                Provider.RequestAnalysis(FilePath, charset, detectedLanguages, issueConsumer, options);
+                LastAnalysisFilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
+                vsAnalysisService.RequestAnalysis(LastAnalysisFilePath, document, detectedLanguages, SnapToNewSnapshot, options);
+            }
+            catch (NotSupportedException ex)
+            {
+                // Display a simple user-friendly message for options we know are not supported.
+                // See https://github.com/SonarSource/sonarlint-visualstudio/pull/2212
+                logger.WriteLine($"Unable to analyze: {ex.Message}");
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -163,42 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private string GetProjectName() => GetProject()?.Name ?? "{none}";
-
-        private Project GetProject()
-        {
-            // Bug #676: https://github.com/SonarSource/sonarlint-visualstudio/issues/676
-            // It's possible to have a ProjectItem that doesn't have a ContainingProject
-            // e.g. files under the "External Dependencies" project folder in the Solution Explorer
-            var projectItem = dte.Solution.FindProjectItem(this.FilePath);
-            return projectItem?.ContainingProject;
-        }
-
-        private Guid GetProjectGuid()
-        {
-            var project = GetProject();
-
-            if (project == null || string.IsNullOrEmpty(project.FileName))
-            {
-                return Guid.Empty;
-            }
-
-            try
-            {
-                return vsSolution.GetGuidOfProjectFile(project.FileName);
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.LogVerbose(Strings.TextBufferIssueTracker_ProjectGuidError, FilePath, ex);
-
-                return Guid.Empty;
-            }
-        }
-
-        public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)
-        {
-            return Enumerable.Empty<ITagSpan<IErrorTag>>();
-        }
+        public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans) => [];
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
