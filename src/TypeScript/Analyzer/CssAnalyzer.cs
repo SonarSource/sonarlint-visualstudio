@@ -57,8 +57,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             return languages.Any(language => language == AnalysisLanguage.CascadingStyleSheets);
         }
 
-        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
-            IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken, Guid analysisId = default)
+        public void ExecuteAnalysis(string path, Guid analysisId, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
+            IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 

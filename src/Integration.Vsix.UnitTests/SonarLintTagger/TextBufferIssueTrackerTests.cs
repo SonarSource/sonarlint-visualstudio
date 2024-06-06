@@ -185,10 +185,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestMethod]
         public void WhenCreated_AnalysisIsRequested()
         {
-            mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8",
+            mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", It.IsAny<Guid>(), "utf-8",
                 new[] { AnalysisLanguage.Javascript }, It.IsAny<IIssueConsumer>(),
                 null /* not expecting any options when a new tagger is added */,
-                It.IsAny<CancellationToken>(), It.IsAny<Guid>()), Times.Once);
+                It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]
@@ -235,14 +235,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
         private void CheckAnalysisWasNotRequested()
         {
-            mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
-                It.IsAny<IIssueConsumer>(), It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>(), It.IsAny<Guid>()), Times.Never);
+            mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
+                It.IsAny<IIssueConsumer>(), It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         private void CheckAnalysisWasRequested()
         {
-            mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
-                It.IsAny<IIssueConsumer>(), It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>(), It.IsAny<Guid>()), Times.Once);
+            mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
+                It.IsAny<IIssueConsumer>(), It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         #endregion

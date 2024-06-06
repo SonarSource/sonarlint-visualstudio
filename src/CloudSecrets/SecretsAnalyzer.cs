@@ -80,12 +80,12 @@ namespace SonarLint.VisualStudio.CloudSecrets
         }
 
         public void ExecuteAnalysis(string filePath,
+            Guid analysisId,
             string charset,
             IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer,
             IAnalyzerOptions analyzerOptions,
-            CancellationToken cancellationToken,
-            Guid analysisId = default)
+            CancellationToken cancellationToken)
         {
             var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SecretsAnalyzer), filePath);
 

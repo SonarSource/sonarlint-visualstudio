@@ -513,8 +513,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private void VerifyAnalysisWasRequested()
         {
             mockAnalyzerController.Verify(
-                x => x.ExecuteAnalysis("anyname", "utf-8", It.IsAny<IEnumerable<AnalysisLanguage>>(),
-                    It.IsAny<IIssueConsumer>(), null, CancellationToken.None, It.IsAny<Guid>()), Times.Once);
+                x => x.ExecuteAnalysis("anyname", It.IsAny<Guid>(), "utf-8", It.IsAny<IEnumerable<AnalysisLanguage>>(),
+                    It.IsAny<IIssueConsumer>(), null, CancellationToken.None), Times.Once);
         }
 
         private class DummyTextDocumentFactoryService : ITextDocumentFactoryService

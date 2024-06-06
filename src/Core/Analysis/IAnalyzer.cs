@@ -25,11 +25,11 @@ namespace SonarLint.VisualStudio.Core.Analysis
         bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
 
         void ExecuteAnalysis(string path,
+            Guid analysisId,
             string charset,
             IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer,
             IAnalyzerOptions analyzerOptions,
-            CancellationToken cancellationToken,
-            Guid analysisId = default);
+            CancellationToken cancellationToken);
     }
 }

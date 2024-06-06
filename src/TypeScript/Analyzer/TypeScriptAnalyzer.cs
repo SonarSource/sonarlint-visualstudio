@@ -65,12 +65,12 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         }
 
         public void ExecuteAnalysis(string path,
+            Guid analysisId,
             string charset,
             IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer,
             IAnalyzerOptions analyzerOptions,
-            CancellationToken cancellationToken,
-            Guid analysisId = default)
+            CancellationToken cancellationToken)
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 

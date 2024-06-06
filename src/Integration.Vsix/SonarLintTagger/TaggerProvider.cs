@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Globalization;
-using System.Linq;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -32,7 +29,6 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
@@ -190,9 +186,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private TextBufferIssueTracker InternalCreateTextBufferIssueTracker(ITextDocument textDocument, IEnumerable<AnalysisLanguage> analysisLanguages) =>
             new TextBufferIssueTracker(dte,
                 this,
-                textDocument, 
+                textDocument,
                 analysisLanguages,
-                sonarErrorDataSource, 
+                sonarErrorDataSource,
                 vsSolution,
                 issueConsumerFactory,
                 logger,
@@ -209,7 +205,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 scheduler.Schedule(path,
                     cancellationToken =>
-                        analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer,
+                        analyzerController.ExecuteAnalysis(path, Guid.NewGuid(), charset, detectedLanguages, issueConsumer,
                             analyzerOptions, cancellationToken),
                     analysisTimeout);
             }
