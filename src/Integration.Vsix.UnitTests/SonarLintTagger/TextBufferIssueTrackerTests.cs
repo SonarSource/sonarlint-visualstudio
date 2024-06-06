@@ -18,29 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using EnvDTE;
 using EnvDTE80;
-using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {
@@ -100,7 +91,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             return issueConsumerFactory.Object;
         }
 
-
         [TestMethod]
         [Description("TextBufferIssueTracker is no longer used as a real tagger and therefore should not produce any tags")]
         public void GetTags_EmptyArray()
@@ -138,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             mockVsSolution.Setup(x => x.GetGuidOfProjectFile("MyProject.csproj"))
                 // Note: even critical exceptions are not propagated, because the
-                // analysis is done via RequestAnalysisAsync().Forget() 
+                // analysis is done via RequestAnalysisAsync().Forget()
                 .Throws(new StackOverflowException("this is a test"));
 
             Action act = () => CreateTextBufferIssueTracker(mockVsSolution.Object);
@@ -195,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestMethod]
         public void WhenCreated_AnalysisIsRequested()
         {
-            mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8",
+            mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", It.IsAny<Guid>(), "utf-8",
                 new[] { AnalysisLanguage.Javascript }, It.IsAny<IIssueConsumer>(),
                 null /* not expecting any options when a new tagger is added */,
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -245,12 +235,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
         private void CheckAnalysisWasNotRequested()
         {
-            mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
+            mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
                 It.IsAny<IIssueConsumer>(), It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>()), Times.Never);
         }
+
         private void CheckAnalysisWasRequested()
         {
-            mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
+            mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
                 It.IsAny<IIssueConsumer>(), It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 

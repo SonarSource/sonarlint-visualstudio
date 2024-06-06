@@ -18,12 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.Secrets.DotNet;
@@ -85,6 +80,7 @@ namespace SonarLint.VisualStudio.CloudSecrets
         }
 
         public void ExecuteAnalysis(string filePath,
+            Guid analysisId,
             string charset,
             IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer,

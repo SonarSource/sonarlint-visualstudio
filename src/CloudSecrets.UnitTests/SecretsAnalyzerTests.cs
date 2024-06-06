@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
@@ -134,7 +128,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             var secretDetector = SetupSecretDetector(ValidFileContent);
 
             var testSubject = CreateTestSubject(textDocumentFactoryService: textDocumentFactoryService, detectors: secretDetector);
-            ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object );
+            ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
 
             secretDetector.Verify(x => x.Find(ValidFileContent), Times.Once);
             consumer.Invocations.Count.Should().Be(0);
@@ -158,7 +152,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             }, secretDetector.Object);
 
             var testSubject = CreateTestSubject(
-                textDocumentFactoryService: textDocumentFactoryService, 
+                textDocumentFactoryService: textDocumentFactoryService,
                 secretsToAnalysisIssueConverter: secretsToAnalysisIssueConverter,
                 detectors: secretDetector);
 
@@ -224,16 +218,16 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
             statusNotifier.VerifyNoOtherCalls();
         }
 
-       [TestMethod]
+        [TestMethod]
         public void ExecuteAnalysis_DisabledDetectorsAreNotChecked()
         {
             var textDocumentFactoryService = SetupTextDocumentFactoryService(ValidFilePath, ValidFileContent);
 
             var rulesSettings = new RulesSettings();
-            rulesSettings.Rules.Add("rule1", new RuleConfig{Level = RuleLevel.On});
-            rulesSettings.Rules.Add("rule2", new RuleConfig{Level = RuleLevel.Off });
-            rulesSettings.Rules.Add("rule3", new RuleConfig{Level = RuleLevel.On });
-            rulesSettings.Rules.Add("rule4", new RuleConfig{Level = RuleLevel.Off });
+            rulesSettings.Rules.Add("rule1", new RuleConfig { Level = RuleLevel.On });
+            rulesSettings.Rules.Add("rule2", new RuleConfig { Level = RuleLevel.Off });
+            rulesSettings.Rules.Add("rule3", new RuleConfig { Level = RuleLevel.On });
+            rulesSettings.Rules.Add("rule4", new RuleConfig { Level = RuleLevel.Off });
 
             var consumer = new Mock<IIssueConsumer>();
 
@@ -248,7 +242,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
 
             var testSubject = CreateTestSubject(
                 textDocumentFactoryService: textDocumentFactoryService,
-                detectors: secretDetectors, 
+                detectors: secretDetectors,
                 rulesSettings: rulesSettings);
 
             ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
@@ -290,9 +284,9 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
 
             ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
 
-            telemetryManager.Verify(x=> x.SecretDetected("rule1"), Times.Once());
+            telemetryManager.Verify(x => x.SecretDetected("rule1"), Times.Once());
             telemetryManager.Verify(x => x.SecretDetected("rule2"), Times.Never);
-            telemetryManager.Verify(x=> x.SecretDetected("rule3"), Times.Once());
+            telemetryManager.Verify(x => x.SecretDetected("rule3"), Times.Once());
             telemetryManager.VerifyNoOtherCalls();
         }
 
@@ -319,13 +313,13 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
 
             ExecuteAnalysis(testSubject, ValidFilePath, consumer.Object);
 
-            ruleSettingsProvider.Verify(x=> x.Get(), Times.Once);
+            ruleSettingsProvider.Verify(x => x.Get(), Times.Once);
             ruleSettingsProvider.VerifyNoOtherCalls();
         }
 
         private void ExecuteAnalysis(SecretsAnalyzer testSubject, string filePath, IIssueConsumer consumer)
         {
-            testSubject.ExecuteAnalysis(filePath, "", Array.Empty<AnalysisLanguage>(), consumer, null, CancellationToken.None);
+            testSubject.ExecuteAnalysis(filePath, Guid.Empty, "", Array.Empty<AnalysisLanguage>(), consumer, null, CancellationToken.None);
         }
 
         private SecretsAnalyzer CreateTestSubject(IAnalysisStatusNotifier statusNotifier = null,
@@ -346,7 +340,7 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
 
             var contentTypeRegistryService = new Mock<IContentTypeRegistryService>();
             contentTypeRegistryService.Setup(x => x.UnknownContentType).Returns(Mock.Of<IContentType>());
-            
+
             return new SecretsAnalyzer(textDocumentFactoryService,
                 contentTypeRegistryService.Object,
                 detectors.Select(x => x.Object),
@@ -418,4 +412,3 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         }
     }
 }
-

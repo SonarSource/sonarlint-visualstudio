@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Threading;
-
 namespace SonarLint.VisualStudio.Core.Analysis
 {
     public interface IAnalyzer
@@ -28,6 +25,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
 
         void ExecuteAnalysis(string path,
+            Guid analysisId,
             string charset,
             IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer,

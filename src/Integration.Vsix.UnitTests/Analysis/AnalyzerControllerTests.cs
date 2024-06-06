@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 
@@ -68,13 +61,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var controller = CreateTestSubject(analyzers, analyzableFileIndicator: analyzableFileIndicator.Object);
 
             // Act
-            controller.ExecuteAnalysis("c:\\file.cpp", "charset1",
+            controller.ExecuteAnalysis("c:\\file.cpp", Guid.NewGuid(), "charset1",
                 new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
 
             analyzers.Any(x => x.RequestAnalysisCalled).Should().BeFalse();
 
             // Verify that the file was checked only once, regardless of number of analyzers
-            analyzableFileIndicator.Verify(x=> x.ShouldAnalyze(It.IsAny<string>()), Times.Once);
+            analyzableFileIndicator.Verify(x => x.ShouldAnalyze(It.IsAny<string>()), Times.Once);
         }
 
         [TestMethod]
@@ -94,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var controller = CreateTestSubject(analyzers, analyzableFileIndicator: analyzableFileIndicator.Object);
 
             // Act
-            controller.ExecuteAnalysis("c:\\file.cpp", "charset1", new[] { AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
+            controller.ExecuteAnalysis("c:\\file.cpp", Guid.NewGuid(), "charset1", new[] { AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
 
             analyzers.Any(x => x.RequestAnalysisCalled).Should().BeFalse();
         }
@@ -117,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var controller = CreateTestSubject(analyzers, analyzableFileIndicator: analyzableFileIndicator.Object);
 
             // Act
-            controller.ExecuteAnalysis("c:\\file.cpp", "charset1",
+            controller.ExecuteAnalysis("c:\\file.cpp", Guid.NewGuid(), "charset1",
                 new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
 
             analyzers[0].RequestAnalysisCalled.Should().BeFalse();
@@ -174,7 +167,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 return supportedLanguages?.Intersect(languages).Count() > 0;
             }
 
-            public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
+            public void ExecuteAnalysis(string path, Guid analysisId, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
                 IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
             {
                 detectedLanguages.Should().NotBeNull();
@@ -186,4 +179,3 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
     }
 }
-

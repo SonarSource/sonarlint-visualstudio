@@ -18,31 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition.Primitives;
-using System.Linq;
 using System.Text;
-using System.Threading;
 using EnvDTE;
 using EnvDTE80;
-using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -93,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var mockServiceProvider = new Mock<IServiceProvider>();
             mockServiceProvider.Setup(s => s.GetService(typeof(SDTE))).Returns(dte);
-            mockServiceProvider.Setup(s=> s.GetService(typeof(SVsSolution))).Returns(Mock.Of<IVsSolution5>());
+            mockServiceProvider.Setup(s => s.GetService(typeof(SVsSolution))).Returns(Mock.Of<IVsSolution5>());
 
             var serviceProvider = mockServiceProvider.Object;
 
@@ -119,7 +110,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, mockAnalyzerController.Object, serviceProvider,
                 mockSonarLanguageRecognizer.Object, mockAnalysisRequester.Object, mockTaggableBufferIndicator.Object, issueConsumerFactory.Object, logger, mockAnalysisScheduler.Object, new NoOpThreadHandler());
         }
-
 
         #region MEF tests
 
@@ -171,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         [TestMethod]
         public void CreateTagger_should_return_null_when_analysis_is_not_supported()
-        { 
+        {
             var doc = CreateMockedDocument("anyname", isDetectable: false);
             var tagger = CreateTaggerForDocument(doc);
 
@@ -181,19 +171,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockAnalyzerController.VerifyNoOtherCalls();
         }
 
-
         [TestMethod]
         public void CreateTagger_should_return_null_when_buffer_is_not_taggable()
         {
             var doc = CreateMockedDocument("anyname", isDetectable: true);
-            mockTaggableBufferIndicator.Setup(x => x.IsTaggable(doc.TextBuffer)).Returns(false);;
+            mockTaggableBufferIndicator.Setup(x => x.IsTaggable(doc.TextBuffer)).Returns(false); ;
 
             var tagger = CreateTaggerForDocument(doc);
 
             tagger.Should().BeNull();
 
-            mockTaggableBufferIndicator.Verify(x=> x.IsTaggable(doc.TextBuffer), Times.Once);
-            mockTaggableBufferIndicator.Verify(x=> x.IsTaggable(It.IsAny<ITextBuffer>()), Times.Once);
+            mockTaggableBufferIndicator.Verify(x => x.IsTaggable(doc.TextBuffer), Times.Once);
+            mockTaggableBufferIndicator.Verify(x => x.IsTaggable(It.IsAny<ITextBuffer>()), Times.Once);
         }
 
         [TestMethod]
@@ -524,7 +513,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private void VerifyAnalysisWasRequested()
         {
             mockAnalyzerController.Verify(
-                x => x.ExecuteAnalysis("anyname", "utf-8", It.IsAny<IEnumerable<AnalysisLanguage>>(),
+                x => x.ExecuteAnalysis("anyname", It.IsAny<Guid>(), "utf-8", It.IsAny<IEnumerable<AnalysisLanguage>>(),
                     It.IsAny<IIssueConsumer>(), null, CancellationToken.None), Times.Once);
         }
 
