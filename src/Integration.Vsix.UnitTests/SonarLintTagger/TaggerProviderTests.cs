@@ -79,7 +79,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 mockSonarLanguageRecognizer.Object, mockAnalysisService.Object, mockAnalysisRequester.Object, mockTaggableBufferIndicator.Object, logger);
         }
 
-
         #region MEF tests
 
         [TestMethod]
@@ -127,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         [TestMethod]
         public void CreateTagger_should_return_null_when_analysis_is_not_supported()
-        { 
+        {
             var doc = CreateMockedDocument("anyname", isDetectable: false);
             var tagger = CreateTaggerForDocument(doc);
 
@@ -137,19 +136,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockAnalysisService.VerifyNoOtherCalls();
         }
 
-
         [TestMethod]
         public void CreateTagger_should_return_null_when_buffer_is_not_taggable()
         {
             var doc = CreateMockedDocument("anyname", isDetectable: true);
-            mockTaggableBufferIndicator.Setup(x => x.IsTaggable(doc.TextBuffer)).Returns(false);;
+            mockTaggableBufferIndicator.Setup(x => x.IsTaggable(doc.TextBuffer)).Returns(false);
 
             var tagger = CreateTaggerForDocument(doc);
 
             tagger.Should().BeNull();
 
-            mockTaggableBufferIndicator.Verify(x=> x.IsTaggable(doc.TextBuffer), Times.Once);
-            mockTaggableBufferIndicator.Verify(x=> x.IsTaggable(It.IsAny<ITextBuffer>()), Times.Once);
+            mockTaggableBufferIndicator.Verify(x => x.IsTaggable(doc.TextBuffer), Times.Once);
+            mockTaggableBufferIndicator.Verify(x => x.IsTaggable(It.IsAny<ITextBuffer>()), Times.Once);
         }
 
         [TestMethod]

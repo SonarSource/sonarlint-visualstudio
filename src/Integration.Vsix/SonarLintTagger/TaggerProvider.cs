@@ -169,7 +169,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private TextBufferIssueTracker InternalCreateTextBufferIssueTracker(ITextDocument textDocument, IEnumerable<AnalysisLanguage> analysisLanguages) =>
             new TextBufferIssueTracker(
                 this,
-                textDocument, 
+                textDocument,
                 analysisLanguages,
                 sonarErrorDataSource,
                 analysisService,

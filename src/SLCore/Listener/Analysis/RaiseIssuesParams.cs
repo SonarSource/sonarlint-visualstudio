@@ -18,15 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
-internal interface IAnalysisListener : ISLCoreListener
-{
-    Task DidChangeAnalysisReadinessAsync(DidChangeAnalysisReadinessParams parameters);
-
-    void RaiseIssues(RaiseIssuesParams parameters);
-    
-    void RaiseHotspots(RaiseHotspotsParams parameters);
-}
+public record RaiseIssuesParams(string configurationScopeId, Dictionary<Uri, List<RaisedIssueDto>> issuesByFileUri, bool isIntermediatePublication, Guid? analysisId);

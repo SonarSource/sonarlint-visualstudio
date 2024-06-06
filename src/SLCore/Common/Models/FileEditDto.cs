@@ -18,15 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
+using System.Diagnostics.CodeAnalysis;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
+namespace SonarLint.VisualStudio.SLCore.Common.Models;
 
-internal interface IAnalysisListener : ISLCoreListener
-{
-    Task DidChangeAnalysisReadinessAsync(DidChangeAnalysisReadinessParams parameters);
-
-    void RaiseIssues(RaiseIssuesParams parameters);
-    
-    void RaiseHotspots(RaiseHotspotsParams parameters);
-}
+[ExcludeFromCodeCoverage]
+public record FileEditDto(Uri target, List<TextEditDto> textEdits);
