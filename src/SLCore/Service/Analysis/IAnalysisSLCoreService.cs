@@ -18,9 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Protocol;
+
 namespace SonarLint.VisualStudio.SLCore.Service.Analysis;
 
-public interface IAnalysisSLCoreService
+[JsonRpcClass("analysis")]
+public interface IAnalysisSLCoreService : ISLCoreService
 {
     /// <summary>
     /// Analyze and track issues in the provided files.
