@@ -335,25 +335,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actual.Should().BeEquivalentTo(trackers);
         }
 
-        // [TestMethod]
-        // [DataRow(-1, TaggerProvider.DefaultAnalysisTimeoutMs)]
-        // [DataRow(0, TaggerProvider.DefaultAnalysisTimeoutMs)]
-        // [DataRow(1, 1)]
-        // [DataRow(999, 999)]
-        // public void AnalysisTimeout(int envSettingsResponse, int expectedTimeout)
-        // {
-        //     var envSettingsMock = new Mock<IEnvironmentSettings>();
-        //     envSettingsMock.Setup(x => x.AnalysisTimeoutInMs()).Returns(envSettingsResponse);
-        //
-        //     TaggerProvider.GetAnalysisTimeoutInMilliseconds(envSettingsMock.Object).Should().Be(expectedTimeout);
-        // }
-        //
-        // [TestMethod]
-        // public void AnalysisTimeoutInMilliseconds_NoEnvironmentSettings_DefaultTimeout()
-        // {
-        //     TaggerProvider.GetAnalysisTimeoutInMilliseconds().Should().Be(TaggerProvider.DefaultAnalysisTimeoutMs);
-        // }
-
         private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) =>
             filePaths.Select(x => CreateMockedIssueTracker(x)).ToArray();
 
