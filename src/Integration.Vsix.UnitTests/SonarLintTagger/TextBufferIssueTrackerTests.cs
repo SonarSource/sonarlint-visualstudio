@@ -31,11 +31,6 @@ using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
-/*
- * Note: the TextBufferIssueTracker and TaggerProvider are tightly coupled so it isn't possible
- * to test them completely independently without substantial refactoring.
- * These unit tests are dependent on both classes behaving correctly.
- */
 
 [TestClass]
 public class TextBufferIssueTrackerTests

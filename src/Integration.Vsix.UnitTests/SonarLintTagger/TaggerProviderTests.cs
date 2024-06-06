@@ -32,459 +32,452 @@ using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
+
+[TestClass]
+public class TaggerProviderTests
 {
-    /*
-     * Note: the TextBufferIssueTracker and TaggerProvider are tightly coupled so it isn't possible
-     * to test them completely independently without substantial refactoring.
-     * These unit tests are dependent on both classes behaving correctly.
-     */
+    private Mock<ISonarErrorListDataSource> mockSonarErrorDataSource;
+    private Mock<IVsAwareAnalysisService> mockAnalysisService;
+    private TestLogger logger;
+    private Mock<ISonarLanguageRecognizer> mockSonarLanguageRecognizer;
+    private Mock<ITaggableBufferIndicator> mockTaggableBufferIndicator;
 
-    [TestClass]
-    public class TaggerProviderTests
+    private TaggerProvider provider;
+
+    private DummyTextDocumentFactoryService dummyDocumentFactoryService;
+
+    [TestInitialize]
+    public void SetUp()
     {
-        private Mock<ISonarErrorListDataSource> mockSonarErrorDataSource;
-        private Mock<IVsAwareAnalysisService> mockAnalysisService;
-        private TestLogger logger;
-        private Mock<ISonarLanguageRecognizer> mockSonarLanguageRecognizer;
-        private Mock<ITaggableBufferIndicator> mockTaggableBufferIndicator;
+        // minimal setup to create a tagger
 
-        private TaggerProvider provider;
+        mockSonarErrorDataSource = new Mock<ISonarErrorListDataSource>();
+        mockAnalysisService = new Mock<IVsAwareAnalysisService>();
 
-        private DummyTextDocumentFactoryService dummyDocumentFactoryService;
+        var mockServiceProvider = new Mock<IServiceProvider>();
+        var serviceProvider = mockServiceProvider.Object;
 
-        [TestInitialize]
-        public void SetUp()
-        {
-            // minimal setup to create a tagger
+        dummyDocumentFactoryService = new DummyTextDocumentFactoryService();
 
-            mockSonarErrorDataSource = new Mock<ISonarErrorListDataSource>();
-            mockAnalysisService = new Mock<IVsAwareAnalysisService>();
+        logger = new TestLogger();
 
-            var mockServiceProvider = new Mock<IServiceProvider>();
-            var serviceProvider = mockServiceProvider.Object;
+        mockSonarLanguageRecognizer = new Mock<ISonarLanguageRecognizer>();
 
-            dummyDocumentFactoryService = new DummyTextDocumentFactoryService();
+        mockTaggableBufferIndicator = new Mock<ITaggableBufferIndicator>();
+        mockTaggableBufferIndicator.Setup(x => x.IsTaggable(It.IsAny<ITextBuffer>())).Returns(true);
 
-            logger = new TestLogger();
-
-            mockSonarLanguageRecognizer = new Mock<ISonarLanguageRecognizer>();
-
-            mockTaggableBufferIndicator = new Mock<ITaggableBufferIndicator>();
-            mockTaggableBufferIndicator.Setup(x => x.IsTaggable(It.IsAny<ITextBuffer>())).Returns(true);
-
-            var mockAnalysisRequester = new Mock<IAnalysisRequester>();
+        var mockAnalysisRequester = new Mock<IAnalysisRequester>();
             
-            this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, serviceProvider,
-                mockSonarLanguageRecognizer.Object, mockAnalysisService.Object, mockAnalysisRequester.Object, mockTaggableBufferIndicator.Object, logger);
-        }
+        this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, serviceProvider,
+            mockSonarLanguageRecognizer.Object, mockAnalysisService.Object, mockAnalysisRequester.Object, mockTaggableBufferIndicator.Object, logger);
+    }
 
-        #region MEF tests
+    #region MEF tests
 
-        [TestMethod]
-        public void CheckIsSingletonMefComponent()
-            => MefTestHelpers.CheckIsSingletonMefComponent<TaggerProvider>();
+    [TestMethod]
+    public void CheckIsSingletonMefComponent()
+        => MefTestHelpers.CheckIsSingletonMefComponent<TaggerProvider>();
 
-        [TestMethod]
-        public void MefCtor_CheckIsExported_TaggerProvider()
-            => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, ITaggerProvider>(GetRequiredExports());
+    [TestMethod]
+    public void MefCtor_CheckIsExported_TaggerProvider()
+        => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, ITaggerProvider>(GetRequiredExports());
 
-        [TestMethod]
-        public void MefCtor_CheckIsExported_DocumentEvents()
-            => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, IDocumentEvents>(GetRequiredExports());
+    [TestMethod]
+    public void MefCtor_CheckIsExported_DocumentEvents()
+        => MefTestHelpers.CheckTypeCanBeImported<TaggerProvider, IDocumentEvents>(GetRequiredExports());
 
-        [TestMethod]
-        public void MefCtor_Check_SameInstanceExported()
-            => MefTestHelpers.CheckMultipleExportsReturnSameInstance<TaggerProvider, ITaggerProvider, IDocumentEvents>(GetRequiredExports());
+    [TestMethod]
+    public void MefCtor_Check_SameInstanceExported()
+        => MefTestHelpers.CheckMultipleExportsReturnSameInstance<TaggerProvider, ITaggerProvider, IDocumentEvents>(GetRequiredExports());
 
-        private static Export[] GetRequiredExports() =>
-        [
-            MefTestHelpers.CreateExport<ISonarErrorListDataSource>(),
-            MefTestHelpers.CreateExport<ITextDocumentFactoryService>(),
-            MefTestHelpers.CreateExport<SVsServiceProvider>(),
-            MefTestHelpers.CreateExport<ISonarLanguageRecognizer>(),
-            MefTestHelpers.CreateExport<IVsAwareAnalysisService>(),
-            MefTestHelpers.CreateExport<IAnalysisRequester>(),
-            MefTestHelpers.CreateExport<ITaggableBufferIndicator>(),
-            MefTestHelpers.CreateExport<ILogger>()
-        ];
+    private static Export[] GetRequiredExports() =>
+    [
+        MefTestHelpers.CreateExport<ISonarErrorListDataSource>(),
+        MefTestHelpers.CreateExport<ITextDocumentFactoryService>(),
+        MefTestHelpers.CreateExport<SVsServiceProvider>(),
+        MefTestHelpers.CreateExport<ISonarLanguageRecognizer>(),
+        MefTestHelpers.CreateExport<IVsAwareAnalysisService>(),
+        MefTestHelpers.CreateExport<IAnalysisRequester>(),
+        MefTestHelpers.CreateExport<ITaggableBufferIndicator>(),
+        MefTestHelpers.CreateExport<ILogger>()
+    ];
 
-        #endregion MEF tests
+    #endregion MEF tests
 
-        [TestMethod]
-        public void CreateTagger_should_create_tracker_when_analysis_is_supported()
+    [TestMethod]
+    public void CreateTagger_should_create_tracker_when_analysis_is_supported()
+    {
+        var doc = CreateMockedDocument("anyname", isDetectable: true);
+        var tagger = CreateTaggerForDocument(doc);
+
+        tagger.Should().NotBeNull();
+
+        VerifyCheckedAnalysisIsSupported();
+        VerifyAnalysisWasRequested();
+        mockAnalysisService.VerifyNoOtherCalls();
+    }
+
+    [TestMethod]
+    public void CreateTagger_should_return_null_when_analysis_is_not_supported()
+    {
+        var doc = CreateMockedDocument("anyname", isDetectable: false);
+        var tagger = CreateTaggerForDocument(doc);
+
+        tagger.Should().BeNull();
+
+        VerifyCheckedAnalysisIsSupported();
+        mockAnalysisService.VerifyNoOtherCalls();
+    }
+
+    [TestMethod]
+    public void CreateTagger_should_return_null_when_buffer_is_not_taggable()
+    {
+        var doc = CreateMockedDocument("anyname", isDetectable: true);
+        mockTaggableBufferIndicator.Setup(x => x.IsTaggable(doc.TextBuffer)).Returns(false);
+
+        var tagger = CreateTaggerForDocument(doc);
+
+        tagger.Should().BeNull();
+
+        mockTaggableBufferIndicator.Verify(x => x.IsTaggable(doc.TextBuffer), Times.Once);
+        mockTaggableBufferIndicator.Verify(x => x.IsTaggable(It.IsAny<ITextBuffer>()), Times.Once);
+    }
+
+    [TestMethod]
+    public void CreateTagger_SameDocument_ShouldUseSameSingletonManager()
+    {
+        var doc1 = CreateMockedDocument("doc1.js");
+        var buffer = doc1.TextBuffer;
+
+        VerifySingletonManagerDoesNotExist(buffer);
+
+        // 1. Create first tagger for doc
+        var tagger1 = CreateTaggerForDocument(doc1);
+        var firstRequestManager = VerifySingletonManagerExists(buffer);
+
+        // 2. Create second tagger for doc
+        var tagger2 = CreateTaggerForDocument(doc1);
+        var secondRequestManager = VerifySingletonManagerExists(buffer);
+
+        firstRequestManager.Should().BeSameAs(secondRequestManager);
+    }
+
+    [TestMethod]
+    public void CreateTagger_DifferentDocuments_ShouldUseDifferentSingletonManagers()
+    {
+        var doc1 = CreateMockedDocument("doc1.js");
+        var doc2 = CreateMockedDocument("doc2.js");
+
+        // 1. Create tagger for first doc
+        var tagger1 = CreateTaggerForDocument(doc1);
+        var doc1Manager = VerifySingletonManagerExists(doc1.TextBuffer);
+
+        // 2. Create tagger for second doc
+        var tagger2 = CreateTaggerForDocument(doc2);
+        var doc2Manager = VerifySingletonManagerExists(doc2.TextBuffer);
+
+        doc1Manager.Should().NotBeSameAs(doc2Manager);
+    }
+
+    [TestMethod]
+    public void CreateTagger_should_return_new_tagger_for_already_tracked_file()
+    {
+        var doc1 = CreateMockedDocument("doc1.js");
+
+        var tagger1 = CreateTaggerForDocument(doc1);
+        tagger1.Should().NotBeNull();
+
+        var tagger2 = CreateTaggerForDocument(doc1);
+        tagger2.Should().NotBeNull();
+
+        // Taggers should be different but tracker should be the same
+        tagger1.Should().NotBeSameAs(tagger2);
+        provider.ActiveTrackersForTesting.Count().Should().Be(1);
+    }
+
+    [TestMethod]
+    public void CreateTagger_CloseLastTagger_ShouldUnregisterTrackerAndRaiseEvent()
+    {
+        var doc1 = CreateMockedDocument("doc1.js");
+
+        object actualSender = null;
+        DocumentClosedEventArgs actualEventArgs = null;
+        int eventCount = 0;
+        provider.DocumentClosed += OnDocumentClosed;
+
+        var tracker1 = CreateTaggerForDocument(doc1);
+        provider.ActiveTrackersForTesting.Count().Should().Be(1);
+
+        var tracker2 = CreateTaggerForDocument(doc1);
+        provider.ActiveTrackersForTesting.Count().Should().Be(1);
+
+        // Remove one tagger -> tracker should still be registered
+        ((IDisposable)tracker1).Dispose();
+        provider.ActiveTrackersForTesting.Count().Should().Be(1);
+        eventCount.Should().Be(0); // no event yet...
+
+        // Remove the last tagger -> tracker should be unregistered
+        ((IDisposable)tracker2).Dispose();
+        provider.ActiveTrackersForTesting.Count().Should().Be(0);
+        eventCount.Should().Be(1);
+        actualSender.Should().BeSameAs(provider);
+        actualEventArgs.Should().NotBeNull();
+        actualEventArgs.FullPath.Should().Be("doc1.js");
+
+        void OnDocumentClosed(object sender, DocumentClosedEventArgs e)
         {
-            var doc = CreateMockedDocument("anyname", isDetectable: true);
-            var tagger = CreateTaggerForDocument(doc);
-
-            tagger.Should().NotBeNull();
-
-            VerifyCheckedAnalysisIsSupported();
-            VerifyAnalysisWasRequested();
-            mockAnalysisService.VerifyNoOtherCalls();
+            eventCount++;
+            actualSender = sender;
+            actualEventArgs = e;
         }
+    }
 
-        [TestMethod]
-        public void CreateTagger_should_return_null_when_analysis_is_not_supported()
-        {
-            var doc = CreateMockedDocument("anyname", isDetectable: false);
-            var tagger = CreateTaggerForDocument(doc);
+    [TestMethod]
+    public void DocEvents_CloseLastTagger_NoListeners_NoError()
+    {
+        var doc1 = CreateMockedDocument("doc1.js");
 
-            tagger.Should().BeNull();
+        var tracker1 = CreateTaggerForDocument(doc1);
+        provider.ActiveTrackersForTesting.Count().Should().Be(1);
 
-            VerifyCheckedAnalysisIsSupported();
-            mockAnalysisService.VerifyNoOtherCalls();
-        }
+        ((IDisposable)tracker1).Dispose();
+        provider.ActiveTrackersForTesting.Count().Should().Be(0);
+    }
 
-        [TestMethod]
-        public void CreateTagger_should_return_null_when_buffer_is_not_taggable()
-        {
-            var doc = CreateMockedDocument("anyname", isDetectable: true);
-            mockTaggableBufferIndicator.Setup(x => x.IsTaggable(doc.TextBuffer)).Returns(false);
+    [TestMethod]
+    public void CreateTagger_tracker_should_be_distinct_per_file()
+    {
+        var doc1 = CreateMockedDocument("foo.js");
+        var tagger1 = CreateTaggerForDocument(doc1);
+        tagger1.Should().NotBeNull();
 
-            var tagger = CreateTaggerForDocument(doc);
+        var doc2 = CreateMockedDocument("bar.js");
+        var tagger2 = CreateTaggerForDocument(doc2);
+        tagger2.Should().NotBeNull();
 
-            tagger.Should().BeNull();
+        provider.ActiveTrackersForTesting.Count().Should().Be(2);
+        tagger1.Should().NotBe(tagger2);
+    }
 
-            mockTaggableBufferIndicator.Verify(x => x.IsTaggable(doc.TextBuffer), Times.Once);
-            mockTaggableBufferIndicator.Verify(x => x.IsTaggable(It.IsAny<ITextBuffer>()), Times.Once);
-        }
+    [TestMethod]
+    [DataRow(null)]
+    [DataRow(new string[] { })]
+    public void FilterIssueTrackersByPath_NullOrEmptyPaths_AllTrackersReturned(string[] filePaths)
+    {
+        var trackers = CreateMockedIssueTrackers("any", "any2");
 
-        [TestMethod]
-        public void CreateTagger_SameDocument_ShouldUseSameSingletonManager()
-        {
-            var doc1 = CreateMockedDocument("doc1.js");
-            var buffer = doc1.TextBuffer;
+        var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers, filePaths);
 
-            VerifySingletonManagerDoesNotExist(buffer);
+        actual.Should().BeEquivalentTo(trackers);
+    }
 
-            // 1. Create first tagger for doc
-            var tagger1 = CreateTaggerForDocument(doc1);
-            var firstRequestManager = VerifySingletonManagerExists(buffer);
+    [TestMethod]
+    public void FilterIssueTrackersByPath_WithPaths_NoMatches_EmptyListReturned()
+    {
+        var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp");
 
-            // 2. Create second tagger for doc
-            var tagger2 = CreateTaggerForDocument(doc1);
-            var secondRequestManager = VerifySingletonManagerExists(buffer);
+        var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
+            new string[] { "no matches", "file1.wrongextension" });
 
-            firstRequestManager.Should().BeSameAs(secondRequestManager);
-        }
+        actual.Should().BeEmpty();
+    }
 
-        [TestMethod]
-        public void CreateTagger_DifferentDocuments_ShouldUseDifferentSingletonManagers()
-        {
-            var doc1 = CreateMockedDocument("doc1.js");
-            var doc2 = CreateMockedDocument("doc2.js");
+    [TestMethod]
+    public void FilterIssueTrackersByPath_WithPaths_SingleMatch_SingleTrackerReturned()
+    {
+        var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
 
-            // 1. Create tagger for first doc
-            var tagger1 = CreateTaggerForDocument(doc1);
-            var doc1Manager = VerifySingletonManagerExists(doc1.TextBuffer);
+        var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
+            new string[] { "file1.txt" });
 
-            // 2. Create tagger for second doc
-            var tagger2 = CreateTaggerForDocument(doc2);
-            var doc2Manager = VerifySingletonManagerExists(doc2.TextBuffer);
+        actual.Should().BeEquivalentTo(trackers[0]);
+    }
 
-            doc1Manager.Should().NotBeSameAs(doc2Manager);
-        }
+    [TestMethod]
+    public void FilterIssueTrackersByPath_WithPaths_MultipleMatches_MultipleTrackersReturned()
+    {
+        var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
 
-        [TestMethod]
-        public void CreateTagger_should_return_new_tagger_for_already_tracked_file()
-        {
-            var doc1 = CreateMockedDocument("doc1.js");
-
-            var tagger1 = CreateTaggerForDocument(doc1);
-            tagger1.Should().NotBeNull();
-
-            var tagger2 = CreateTaggerForDocument(doc1);
-            tagger2.Should().NotBeNull();
-
-            // Taggers should be different but tracker should be the same
-            tagger1.Should().NotBeSameAs(tagger2);
-            provider.ActiveTrackersForTesting.Count().Should().Be(1);
-        }
-
-        [TestMethod]
-        public void CreateTagger_CloseLastTagger_ShouldUnregisterTrackerAndRaiseEvent()
-        {
-            var doc1 = CreateMockedDocument("doc1.js");
-
-            object actualSender = null;
-            DocumentClosedEventArgs actualEventArgs = null;
-            int eventCount = 0;
-            provider.DocumentClosed += OnDocumentClosed;
-
-            var tracker1 = CreateTaggerForDocument(doc1);
-            provider.ActiveTrackersForTesting.Count().Should().Be(1);
-
-            var tracker2 = CreateTaggerForDocument(doc1);
-            provider.ActiveTrackersForTesting.Count().Should().Be(1);
-
-            // Remove one tagger -> tracker should still be registered
-            ((IDisposable)tracker1).Dispose();
-            provider.ActiveTrackersForTesting.Count().Should().Be(1);
-            eventCount.Should().Be(0); // no event yet...
-
-            // Remove the last tagger -> tracker should be unregistered
-            ((IDisposable)tracker2).Dispose();
-            provider.ActiveTrackersForTesting.Count().Should().Be(0);
-            eventCount.Should().Be(1);
-            actualSender.Should().BeSameAs(provider);
-            actualEventArgs.Should().NotBeNull();
-            actualEventArgs.FullPath.Should().Be("doc1.js");
-
-            void OnDocumentClosed(object sender, DocumentClosedEventArgs e)
+        var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
+            new string[]
             {
-                eventCount++;
-                actualSender = sender;
-                actualEventArgs = e;
-            }
-        }
+                "file1.txt",
+                "D:\\BBB\\FILE3.xxx" // match should be case-insensitive
+            });
 
-        [TestMethod]
-        public void DocEvents_CloseLastTagger_NoListeners_NoError()
-        {
-            var doc1 = CreateMockedDocument("doc1.js");
+        actual.Should().BeEquivalentTo(trackers[0], trackers[2]);
+    }
 
-            var tracker1 = CreateTaggerForDocument(doc1);
-            provider.ActiveTrackersForTesting.Count().Should().Be(1);
+    [TestMethod]
+    public void FilterIssueTrackersByPath_WithPaths_AllMatched_AllTrackersReturned()
+    {
+        var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
 
-            ((IDisposable)tracker1).Dispose();
-            provider.ActiveTrackersForTesting.Count().Should().Be(0);
-        }
-
-        [TestMethod]
-        public void CreateTagger_tracker_should_be_distinct_per_file()
-        {
-            var doc1 = CreateMockedDocument("foo.js");
-            var tagger1 = CreateTaggerForDocument(doc1);
-            tagger1.Should().NotBeNull();
-
-            var doc2 = CreateMockedDocument("bar.js");
-            var tagger2 = CreateTaggerForDocument(doc2);
-            tagger2.Should().NotBeNull();
-
-            provider.ActiveTrackersForTesting.Count().Should().Be(2);
-            tagger1.Should().NotBe(tagger2);
-        }
-
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow(new string[] { })]
-        public void FilterIssueTrackersByPath_NullOrEmptyPaths_AllTrackersReturned(string[] filePaths)
-        {
-            var trackers = CreateMockedIssueTrackers("any", "any2");
-
-            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers, filePaths);
-
-            actual.Should().BeEquivalentTo(trackers);
-        }
-
-        [TestMethod]
-        public void FilterIssueTrackersByPath_WithPaths_NoMatches_EmptyListReturned()
-        {
-            var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp");
-
-            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-                new string[] { "no matches", "file1.wrongextension" });
-
-            actual.Should().BeEmpty();
-        }
-
-        [TestMethod]
-        public void FilterIssueTrackersByPath_WithPaths_SingleMatch_SingleTrackerReturned()
-        {
-            var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
-
-            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-                new string[] { "file1.txt" });
-
-            actual.Should().BeEquivalentTo(trackers[0]);
-        }
-
-        [TestMethod]
-        public void FilterIssueTrackersByPath_WithPaths_MultipleMatches_MultipleTrackersReturned()
-        {
-            var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
-
-            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-                new string[]
-                {
-                    "file1.txt",
-                    "D:\\BBB\\FILE3.xxx" // match should be case-insensitive
-                });
-
-            actual.Should().BeEquivalentTo(trackers[0], trackers[2]);
-        }
-
-        [TestMethod]
-        public void FilterIssueTrackersByPath_WithPaths_AllMatched_AllTrackersReturned()
-        {
-            var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
-
-            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-                new string[]
-                {
-                    "unmatchedFile1.cs",
-                    "file1.txt",
-                    "c:\\aaa\\file2.cpp",
-                    "unmatchedfile2.cpp",
-                    "d:\\bbb\\file3.xxx"
-                });
-
-            actual.Should().BeEquivalentTo(trackers);
-        }
-
-        private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) =>
-            filePaths.Select(x => CreateMockedIssueTracker(x)).ToArray();
-
-        private static IIssueTracker CreateMockedIssueTracker(string filePath)
-        {
-            var mock = new Mock<IIssueTracker>();
-            mock.Setup(x => x.LastAnalysisFilePath).Returns(filePath);
-            return mock.Object;
-        }
-
-        private ITagger<IErrorTag> CreateTaggerForDocument(ITextDocument document)
-        {
-            var mockTextDataModel = new Mock<ITextDataModel>();
-            mockTextDataModel.Setup(x => x.DocumentBuffer).Returns(document.TextBuffer);
-
-            return provider.CreateTagger<IErrorTag>(document.TextBuffer);
-        }
-
-        private ITextDocument CreateMockedDocument(string fileName, bool isDetectable = true)
-        {
-            var bufferContentType = Mock.Of<IContentType>();
-
-            // Text buffer with a properties collection and current snapshot
-            var mockTextBuffer = new Mock<ITextBuffer>();
-            mockTextBuffer.Setup(b => b.ContentType).Returns(bufferContentType);
-
-            var dummyProperties = new PropertyCollection();
-            mockTextBuffer.Setup(p => p.Properties).Returns(dummyProperties);
-
-            var mockSnapshot = new Mock<ITextSnapshot>();
-            mockSnapshot.Setup(x => x.Length).Returns(0);
-            mockTextBuffer.Setup(x => x.CurrentSnapshot).Returns(mockSnapshot.Object);
-
-            // Create the document and associate the buffer with the it
-            var mockTextDocument = new Mock<ITextDocument>();
-            mockTextDocument.Setup(d => d.FilePath).Returns(fileName);
-            mockTextDocument.Setup(d => d.Encoding).Returns(Encoding.UTF8);
-
-            mockTextDocument.Setup(x => x.TextBuffer).Returns(mockTextBuffer.Object);
-
-            // Register the buffer-to-doc mapping for the factory service
-            dummyDocumentFactoryService.RegisterDocument(mockTextDocument.Object);
-
-            var analysisLanguages = isDetectable ? new[] { AnalysisLanguage.Javascript } : Enumerable.Empty<AnalysisLanguage>();
-
-            SetupDetectedLanguages(fileName, bufferContentType, analysisLanguages);
-
-            mockAnalysisService.Setup(x => x.IsAnalysisSupported(analysisLanguages)).Returns(isDetectable);
-
-            return mockTextDocument.Object;
-        }
-
-        private void SetupDetectedLanguages(string fileName, IContentType bufferContentType, IEnumerable<AnalysisLanguage> detectedLanguages)
-        {
-            mockSonarLanguageRecognizer
-                .Setup(x => x.Detect(fileName, bufferContentType))
-                .Returns(detectedLanguages);
-        }
-
-        private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer) =>
-            FindSingletonManagerInPropertyCollection(buffer).Should().BeNull();
-
-        private static SingletonDisposableTaggerManager<IErrorTag> VerifySingletonManagerExists(ITextBuffer buffer)
-        {
-            var manager = FindSingletonManagerInPropertyCollection(buffer);
-            manager.Should().NotBeNull();
-            return manager;
-        }
-
-        private static SingletonDisposableTaggerManager<IErrorTag> FindSingletonManagerInPropertyCollection(ITextBuffer buffer)
-        {
-            buffer.Properties.TryGetProperty<SingletonDisposableTaggerManager<IErrorTag>>(TaggerProvider.SingletonManagerPropertyCollectionKey, out var propertyValue);
-            return propertyValue;
-        }
-
-        private void VerifyCheckedAnalysisIsSupported()
-        {
-            mockAnalysisService.Verify(x => x.IsAnalysisSupported(It.IsAny<IEnumerable<AnalysisLanguage>>()), Times.Once);
-        }
-
-        private void VerifyAnalysisWasRequested()
-        {
-            mockAnalysisService.Verify(x => x.RequestAnalysis(It.IsAny<string>(), It.IsAny<ITextDocument>(), It.IsAny<IEnumerable<AnalysisLanguage>>(), It.IsAny<SnapshotChangedHandler>(), It.IsAny<IAnalyzerOptions>()));
-        }
-
-        private class DummyTextDocumentFactoryService : ITextDocumentFactoryService
-        {
-            private readonly Dictionary<ITextBuffer, ITextDocument> bufferToDocMapping = new Dictionary<ITextBuffer, ITextDocument>();
-
-            public void RegisterDocument(ITextDocument document)
+        var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
+            new string[]
             {
-                bufferToDocMapping.Add(document.TextBuffer, document);
-            }
+                "unmatchedFile1.cs",
+                "file1.txt",
+                "c:\\aaa\\file2.cpp",
+                "unmatchedfile2.cpp",
+                "d:\\bbb\\file3.xxx"
+            });
 
-            #region Implemented interface methods
+        actual.Should().BeEquivalentTo(trackers);
+    }
 
-            bool ITextDocumentFactoryService.TryGetTextDocument(ITextBuffer textBuffer, out ITextDocument textDocument)
-            {
-                return bufferToDocMapping.TryGetValue(textBuffer, out textDocument);
-            }
+    private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) =>
+        filePaths.Select(x => CreateMockedIssueTracker(x)).ToArray();
 
-            #endregion
+    private static IIssueTracker CreateMockedIssueTracker(string filePath)
+    {
+        var mock = new Mock<IIssueTracker>();
+        mock.Setup(x => x.LastAnalysisFilePath).Returns(filePath);
+        return mock.Object;
+    }
 
-            #region Not implemented interface methods
+    private ITagger<IErrorTag> CreateTaggerForDocument(ITextDocument document)
+    {
+        var mockTextDataModel = new Mock<ITextDataModel>();
+        mockTextDataModel.Setup(x => x.DocumentBuffer).Returns(document.TextBuffer);
 
-            event EventHandler<TextDocumentEventArgs> ITextDocumentFactoryService.TextDocumentCreated
-            {
-                add
-                {
-                    throw new NotImplementedException();
-                }
+        return provider.CreateTagger<IErrorTag>(document.TextBuffer);
+    }
 
-                remove
-                {
-                    throw new NotImplementedException();
-                }
-            }
+    private ITextDocument CreateMockedDocument(string fileName, bool isDetectable = true)
+    {
+        var bufferContentType = Mock.Of<IContentType>();
 
-            event EventHandler<TextDocumentEventArgs> ITextDocumentFactoryService.TextDocumentDisposed
-            {
-                add
-                {
-                    throw new NotImplementedException();
-                }
+        // Text buffer with a properties collection and current snapshot
+        var mockTextBuffer = new Mock<ITextBuffer>();
+        mockTextBuffer.Setup(b => b.ContentType).Returns(bufferContentType);
 
-                remove
-                {
-                    throw new NotImplementedException();
-                }
-            }
+        var dummyProperties = new PropertyCollection();
+        mockTextBuffer.Setup(p => p.Properties).Returns(dummyProperties);
 
-            ITextDocument ITextDocumentFactoryService.CreateAndLoadTextDocument(string filePath, IContentType contentType)
+        var mockSnapshot = new Mock<ITextSnapshot>();
+        mockSnapshot.Setup(x => x.Length).Returns(0);
+        mockTextBuffer.Setup(x => x.CurrentSnapshot).Returns(mockSnapshot.Object);
+
+        // Create the document and associate the buffer with the it
+        var mockTextDocument = new Mock<ITextDocument>();
+        mockTextDocument.Setup(d => d.FilePath).Returns(fileName);
+        mockTextDocument.Setup(d => d.Encoding).Returns(Encoding.UTF8);
+
+        mockTextDocument.Setup(x => x.TextBuffer).Returns(mockTextBuffer.Object);
+
+        // Register the buffer-to-doc mapping for the factory service
+        dummyDocumentFactoryService.RegisterDocument(mockTextDocument.Object);
+
+        var analysisLanguages = isDetectable ? new[] { AnalysisLanguage.Javascript } : Enumerable.Empty<AnalysisLanguage>();
+
+        SetupDetectedLanguages(fileName, bufferContentType, analysisLanguages);
+
+        mockAnalysisService.Setup(x => x.IsAnalysisSupported(analysisLanguages)).Returns(isDetectable);
+
+        return mockTextDocument.Object;
+    }
+
+    private void SetupDetectedLanguages(string fileName, IContentType bufferContentType, IEnumerable<AnalysisLanguage> detectedLanguages)
+    {
+        mockSonarLanguageRecognizer
+            .Setup(x => x.Detect(fileName, bufferContentType))
+            .Returns(detectedLanguages);
+    }
+
+    private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer) =>
+        FindSingletonManagerInPropertyCollection(buffer).Should().BeNull();
+
+    private static SingletonDisposableTaggerManager<IErrorTag> VerifySingletonManagerExists(ITextBuffer buffer)
+    {
+        var manager = FindSingletonManagerInPropertyCollection(buffer);
+        manager.Should().NotBeNull();
+        return manager;
+    }
+
+    private static SingletonDisposableTaggerManager<IErrorTag> FindSingletonManagerInPropertyCollection(ITextBuffer buffer)
+    {
+        buffer.Properties.TryGetProperty<SingletonDisposableTaggerManager<IErrorTag>>(TaggerProvider.SingletonManagerPropertyCollectionKey, out var propertyValue);
+        return propertyValue;
+    }
+
+    private void VerifyCheckedAnalysisIsSupported()
+    {
+        mockAnalysisService.Verify(x => x.IsAnalysisSupported(It.IsAny<IEnumerable<AnalysisLanguage>>()), Times.Once);
+    }
+
+    private void VerifyAnalysisWasRequested()
+    {
+        mockAnalysisService.Verify(x => x.RequestAnalysis(It.IsAny<string>(), It.IsAny<ITextDocument>(), It.IsAny<IEnumerable<AnalysisLanguage>>(), It.IsAny<SnapshotChangedHandler>(), It.IsAny<IAnalyzerOptions>()));
+    }
+
+    private class DummyTextDocumentFactoryService : ITextDocumentFactoryService
+    {
+        private readonly Dictionary<ITextBuffer, ITextDocument> bufferToDocMapping = new Dictionary<ITextBuffer, ITextDocument>();
+
+        public void RegisterDocument(ITextDocument document)
+        {
+            bufferToDocMapping.Add(document.TextBuffer, document);
+        }
+
+        #region Implemented interface methods
+
+        bool ITextDocumentFactoryService.TryGetTextDocument(ITextBuffer textBuffer, out ITextDocument textDocument)
+        {
+            return bufferToDocMapping.TryGetValue(textBuffer, out textDocument);
+        }
+
+        #endregion
+
+        #region Not implemented interface methods
+
+        event EventHandler<TextDocumentEventArgs> ITextDocumentFactoryService.TextDocumentCreated
+        {
+            add
             {
                 throw new NotImplementedException();
             }
 
-            ITextDocument ITextDocumentFactoryService.CreateAndLoadTextDocument(string filePath, IContentType contentType, Encoding encoding, out bool characterSubstitutionsOccurred)
+            remove
             {
                 throw new NotImplementedException();
             }
-
-            ITextDocument ITextDocumentFactoryService.CreateAndLoadTextDocument(string filePath, IContentType contentType, bool attemptUtf8Detection, out bool characterSubstitutionsOccurred)
-            {
-                throw new NotImplementedException();
-            }
-
-            ITextDocument ITextDocumentFactoryService.CreateTextDocument(ITextBuffer textBuffer, string filePath)
-            {
-                throw new NotImplementedException();
-            }
-
-            #endregion
         }
+
+        event EventHandler<TextDocumentEventArgs> ITextDocumentFactoryService.TextDocumentDisposed
+        {
+            add
+            {
+                throw new NotImplementedException();
+            }
+
+            remove
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        ITextDocument ITextDocumentFactoryService.CreateAndLoadTextDocument(string filePath, IContentType contentType)
+        {
+            throw new NotImplementedException();
+        }
+
+        ITextDocument ITextDocumentFactoryService.CreateAndLoadTextDocument(string filePath, IContentType contentType, Encoding encoding, out bool characterSubstitutionsOccurred)
+        {
+            throw new NotImplementedException();
+        }
+
+        ITextDocument ITextDocumentFactoryService.CreateAndLoadTextDocument(string filePath, IContentType contentType, bool attemptUtf8Detection, out bool characterSubstitutionsOccurred)
+        {
+            throw new NotImplementedException();
+        }
+
+        ITextDocument ITextDocumentFactoryService.CreateTextDocument(ITextBuffer textBuffer, string filePath)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }
