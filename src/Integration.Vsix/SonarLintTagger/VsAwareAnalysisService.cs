@@ -101,6 +101,7 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
 
             scheduler.Schedule(filePath,
                 cancellationToken => analyzerController.ExecuteAnalysis(filePath,
+                    Guid.NewGuid(),
                     charset,
                     detectedLanguages,
                     issueConsumer,

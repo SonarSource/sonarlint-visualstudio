@@ -130,7 +130,7 @@ public class VsAwareAnalysisServiceTests
         Received.InOrder(() =>
         {
            scheduler.Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
-           analyzerController.ExecuteAnalysis("file/path", documentEncoding.WebName, detectedLanguages, issueConsumer, analyzerOptions, Arg.Any<CancellationToken>());
+           analyzerController.ExecuteAnalysis("file/path", Arg.Any<Guid>(), documentEncoding.WebName, detectedLanguages, issueConsumer, analyzerOptions, Arg.Any<CancellationToken>());
         });
     }
     
