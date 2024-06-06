@@ -18,12 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -42,7 +37,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             ITelemetryManager telemetryManager,
             IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
             IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory,
-            IThreadHandling threadHandling) : 
+            IThreadHandling threadHandling) :
             base(telemetryManager,
                 analysisStatusNotifierFactory,
                 eslintBridgeAnalyzerFactory,
@@ -62,6 +57,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         }
 
         public void ExecuteAnalysis(string path,
+            Guid analysisId,
             string charset,
             IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer,
