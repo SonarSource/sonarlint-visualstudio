@@ -290,4 +290,7 @@ Please commit this file to share it with other contributors. See documentation f
   <data name="SaveSharedConnectionCommand_SaveSuccess_Caption" xml:space="preserve">
     <value>Success</value>
   </data>
+  <data name="Analysis_NotSupported" xml:space="preserve">
+    <value>[Analysis] Unable to analyze: {0}</value>
+  </data>
 </root>
