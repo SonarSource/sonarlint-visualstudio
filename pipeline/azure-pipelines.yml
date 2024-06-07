@@ -316,7 +316,7 @@ jobs:
       ArtifactName: vsix
     condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
 
-  - task: SonarCloudAnalyze@2
+  - task: SonarCloudAnalyze@1
     displayName: Run Code Analysis (VS2022 only)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
 
