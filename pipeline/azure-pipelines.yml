@@ -308,7 +308,7 @@ jobs:
       configuration: $(BuildConfiguration)
       rerunFailedTests: true
 
-  - task: SonarCloudAnalyze@1
+  - task: SonarCloudAnalyze@2
     displayName: Run Code Analysis (VS2022 only)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
 
