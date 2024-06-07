@@ -290,7 +290,7 @@ public class TextBufferIssueTrackerTests
 
         var act = () => testSubject.RequestAnalysis(Mock.Of<IAnalyzerOptions>());
         act.Should().Throw<DivideByZeroException>()
-            .And.Message.Should().Be("this is a test");
+            .WithMessage("this is a test");
     }
 
     private void VerifyAnalysisRequested(IAnalyzerOptions analyzerOptions)
