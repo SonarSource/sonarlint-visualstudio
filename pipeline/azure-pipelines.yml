@@ -289,12 +289,6 @@ jobs:
       SourceFolder: $(Build.SourcesDirectory)\MarketPlaceFiles\VS2022
       TargetFolder: $(Build.ArtifactStagingDirectory)
 
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: vsix'
-    inputs:
-      ArtifactName: vsix
-    condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
-  
   - task: VSTest@2
     displayName: VsTest - testAssemblies
     inputs:
@@ -307,6 +301,20 @@ jobs:
       platform: $(BuildPlatform)
       configuration: $(BuildConfiguration)
       rerunFailedTests: true
+
+  - task: CopyFiles@2
+    displayName: 'Copy any coverage files to: $(Build.ArtifactStagingDirectory)'
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)
+      Contents: '**\*.coverage'
+      TargetFolder: $(Build.ArtifactStagingDirectory)
+    condition: succeededOrFailed()
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: vsix'
+    inputs:
+      ArtifactName: vsix
+    condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
 
   - task: SonarCloudAnalyze@2
     displayName: Run Code Analysis (VS2022 only)
