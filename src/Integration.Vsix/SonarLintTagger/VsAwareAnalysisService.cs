@@ -120,8 +120,7 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
     {
         var environmentSettings = new EnvironmentSettings();
         var userSuppliedTimeout = environmentSettings.AnalysisTimeoutInMs();
-        var analysisTimeoutInMilliseconds = userSuppliedTimeout > 0 ? userSuppliedTimeout : DefaultAnalysisTimeoutMs;
 
-        return analysisTimeoutInMilliseconds;
+        return userSuppliedTimeout > 0 ? userSuppliedTimeout : DefaultAnalysisTimeoutMs;
     }
 }
