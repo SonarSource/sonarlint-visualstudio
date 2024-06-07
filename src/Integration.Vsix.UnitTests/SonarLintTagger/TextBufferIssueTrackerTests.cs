@@ -278,6 +278,22 @@ public class TextBufferIssueTrackerTests
 
         var act = () => testSubject.RequestAnalysis(Mock.Of<IAnalyzerOptions>());
         act.Should().NotThrow();
+
+        logger.AssertPartialOutputStringExists("[Analysis] Error triggering analysis: ");
+    }
+
+    [TestMethod]
+    public void RequestAnalysis_NotSupportedException_IsSuppressedAndLogged()
+    {
+        // Clear the invocations that occurred during construction
+        mockAnalysisService.Invocations.Clear();
+
+        SetUpAnalysisThrows(mockAnalysisService, new NotSupportedException("This is not supported"));
+
+        var act = () => testSubject.RequestAnalysis(Mock.Of<IAnalyzerOptions>());
+        act.Should().NotThrow();
+
+        logger.AssertOutputStringExists("[Analysis] Unable to analyze: This is not supported");
     }
 
     [TestMethod]

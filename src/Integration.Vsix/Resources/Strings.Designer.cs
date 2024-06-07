@@ -70,6 +70,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Analysis] Unable to analyze: {0}.
+        /// </summary>
+        internal static string Analysis_NotSupported {
+            get {
+                return ResourceManager.GetString("Analysis_NotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Connected mode detected..
         /// </summary>
         internal static string AnalyzerManager_InConnectedMode {
