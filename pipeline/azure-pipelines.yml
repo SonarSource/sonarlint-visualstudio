@@ -147,7 +147,7 @@ jobs:
       solution: build\DownloadDependencies\DownloadDependencies.proj
       vsVersion: 17.0
   
-  - task: SonarCloudPrepare@1
+  - task: SonarCloudPrepare@2
     displayName: Prepare analysis on SonarCloud (VS2022 only)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
     inputs:
@@ -312,7 +312,7 @@ jobs:
     displayName: Run Code Analysis (VS2022 only)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
 
-  - task: SonarCloudPublish@1
+  - task: SonarCloudPublish@2
     displayName: Publish Quality Gate Result (VS2022 only)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
 
