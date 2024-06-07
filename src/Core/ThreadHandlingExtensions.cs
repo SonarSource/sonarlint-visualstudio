@@ -18,13 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Analysis;
+namespace SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+public static class ThreadHandlingExtensions
 {
-    internal interface IIssueTracker
+    public static Task RunOnBackgroundThread(this IThreadHandling threadHandling, Action syncMethod) => ThreadHandlingExtensions.RunOnBackgroundThread(threadHandling, () =>
     {
-        string LastAnalysisFilePath { get; }
-        void RequestAnalysis(IAnalyzerOptions options);
-    }
+        syncMethod();
+        return Task.CompletedTask;
+    });
+        
+    public static Task RunOnBackgroundThread(this IThreadHandling threadHandling, Func<Task> asyncMethod) => Task.FromResult(threadHandling.RunOnBackgroundThread(async () =>
+    {
+        await asyncMethod();
+        return 0;
+    }));
 }
