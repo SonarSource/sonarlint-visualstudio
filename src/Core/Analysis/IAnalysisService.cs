@@ -33,7 +33,7 @@ public interface IAnalysisService
     /// <summary>
     /// Handles analysis results
     /// </summary>
-    void PublishIssues(Guid analysisId, IEnumerable<IAnalysisIssue> issues);
+    void PublishIssues(string filePath, Guid analysisId, IEnumerable<IAnalysisIssue> issues);
 
     /// <summary>
     /// Starts analysis for <paramref name="filePath"/>
