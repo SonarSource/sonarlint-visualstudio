@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
 
         private IQuickFix GetQuickFix(Uri fileURi, QuickFixDto quickFixDto)
         {
-            var fileEdit = quickFixDto.inputFileEdits.FirstOrDefault(e => e.target == fileURi);
+            var fileEdit = quickFixDto.inputFileEdits.Find(e => e.target == fileURi);
 
             if (fileEdit is not null)
             {
