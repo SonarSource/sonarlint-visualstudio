@@ -18,9 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
+using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.SLCore.Common.Models;
-
-[ExcludeFromCodeCoverage]
-public record TextEditDto(TextRangeDto range, string newText);
+namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
+{
+    public interface IRaiseIssueParamsToAnalysisIssueConverter
+    {
+        IEnumerable<IAnalysisIssue> GetAnalysisIssues(RaiseIssuesParams raiseIssuesParams);
+    }
+}
