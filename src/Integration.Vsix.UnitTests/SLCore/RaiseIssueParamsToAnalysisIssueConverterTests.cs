@@ -67,11 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             var analysisID = Guid.NewGuid();
             var dateTimeOffset = DateTimeOffset.Now;
 
-            var issue1impact1 = new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.LOW);
-            var issue1impact2 = new ImpactDto(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.MEDIUM);
-            var issue1impacts = new List<ImpactDto>() { issue1impact1, issue1impact2 };
-
-            var issue1 = new RaisedIssueDto(Guid.NewGuid(), "serverKey1", "ruleKey1", "PrimaryMessage1", IssueSeverity.MAJOR, RuleType.CODE_SMELL, CleanCodeAttribute.EFFICIENT, issue1impacts, dateTimeOffset, true, false, new TextRangeDto(1, 2, 3, 4), null, null, "context1");
+            var issue1 = new RaisedIssueDto(Guid.NewGuid(), "serverKey1", "ruleKey1", "PrimaryMessage1", IssueSeverity.MAJOR, RuleType.CODE_SMELL, CleanCodeAttribute.EFFICIENT, new List<ImpactDto>(), dateTimeOffset, true, false, new TextRangeDto(1, 2, 3, 4), null, null, "context1");
 
             var issue2impact1 = new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.LOW);
             var issue2impact2 = new ImpactDto(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.MEDIUM);
@@ -160,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             result[0].RuleKey.Should().Be("ruleKey1");
             result[0].Severity.Should().Be(AnalysisIssueSeverity.Major);
             result[0].Type.Should().Be(AnalysisIssueType.CodeSmell);
-            result[0].HighestSoftwareQualitySeverity.Should().Be(SoftwareQualitySeverity.Medium);
+            result[0].HighestSoftwareQualitySeverity.Should().BeNull();
             result[0].RuleDescriptionContextKey.Should().Be("context1");
 
             result[0].PrimaryLocation.FilePath.Should().Be("C:\\\\IssueFile.cs");
