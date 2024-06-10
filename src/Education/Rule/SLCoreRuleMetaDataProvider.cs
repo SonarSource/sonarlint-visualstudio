@@ -25,6 +25,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Rules;
@@ -84,7 +85,7 @@ internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
             Convert(effectiveRuleDetailsAsync.defaultImpacts));
 
     private static Dictionary<SoftwareQuality, SoftwareQualitySeverity> Convert(List<ImpactDto> cleanCodeAttribute) => 
-        cleanCodeAttribute?.ToDictionary(x => Convert(x.softwareQuality), x => Convert(x.impactSeverity));
+        cleanCodeAttribute?.ToDictionary(x => Convert(x.softwareQuality), x => x.impactSeverity.ToSoftwareQualitySeverity());
 
 
     private static RuleIssueSeverity Convert(IssueSeverity issueSeverity) =>
@@ -115,15 +116,6 @@ internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
             SLCore.Common.Models.SoftwareQuality.RELIABILITY => SoftwareQuality.Reliability,
             SLCore.Common.Models.SoftwareQuality.SECURITY => SoftwareQuality.Security,
             _ => throw new ArgumentOutOfRangeException(nameof(argSoftwareQuality), argSoftwareQuality, null)
-        };
-
-    private static SoftwareQualitySeverity Convert(ImpactSeverity cleanCodeAttribute) =>
-        cleanCodeAttribute switch
-        {
-            ImpactSeverity.LOW => SoftwareQualitySeverity.Low,
-            ImpactSeverity.MEDIUM => SoftwareQualitySeverity.Medium,
-            ImpactSeverity.HIGH => SoftwareQualitySeverity.High,
-            _ => throw new ArgumentOutOfRangeException(nameof(cleanCodeAttribute), cleanCodeAttribute, null)
         };
 
     private static CleanCodeAttribute? Convert(SLCore.Common.Models.CleanCodeAttribute? cleanCodeAttribute) =>
