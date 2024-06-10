@@ -18,18 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Infrastructure.VS.Editor;
-using SonarLint.VisualStudio.Integration.Vsix.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 using CleanCodeAttribute = SonarLint.VisualStudio.SLCore.Common.Models.CleanCodeAttribute;
 using SoftwareQuality = SonarLint.VisualStudio.SLCore.Common.Models.SoftwareQuality;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Analysis
 {
     [TestClass]
     public class RaiseIssueParamsToAnalysisIssueConverterTests
@@ -37,10 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<RaiseIssueParamsToAnalysisIssueConverter, IRaiseIssueParamsToAnalysisIssueConverter>(
-                MefTestHelpers.CreateExport<ITextDocumentFactoryService>(),
-                MefTestHelpers.CreateExport<IContentTypeRegistryService>()
-                );
+            MefTestHelpers.CheckTypeCanBeImported<RaiseIssueParamsToAnalysisIssueConverter, IRaiseIssueParamsToAnalysisIssueConverter>();
         }
 
         [TestMethod]
@@ -114,39 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
 
             var raisedIssueParams = new RaiseIssuesParams("configurationScopeId", issues, false, analysisID);
 
-            var textSnapshot1 = Substitute.For<ITextSnapshot>();
-            var buffer1 = Substitute.For<ITextBuffer>();
-            buffer1.CurrentSnapshot.Returns(textSnapshot1);
-            var document1 = Substitute.For<ITextDocument>();
-            document1.TextBuffer.Returns(buffer1);
-
-            var textSnapshot2 = Substitute.For<ITextSnapshot>();
-            var buffer2 = Substitute.For<ITextBuffer>();
-            buffer2.CurrentSnapshot.Returns(textSnapshot2);
-            var document2 = Substitute.For<ITextDocument>();
-            document2.TextBuffer.Returns(buffer2);
-
-            var textSnapshot3 = Substitute.For<ITextSnapshot>();
-            var buffer3 = Substitute.For<ITextBuffer>();
-            buffer3.CurrentSnapshot.Returns(textSnapshot3);
-            var document3 = Substitute.For<ITextDocument>();
-            document3.TextBuffer.Returns(buffer3);
-
-            var textDocumentFactoryService = Substitute.For<ITextDocumentFactoryService>();
-            textDocumentFactoryService.CreateAndLoadTextDocument("C:\\\\flowFile1.cs", Arg.Any<IContentType>()).Returns(document1);
-            textDocumentFactoryService.CreateAndLoadTextDocument("C:\\\\flowFile2.cs", Arg.Any<IContentType>()).Returns(document2);
-            textDocumentFactoryService.CreateAndLoadTextDocument("C:\\\\IssueFile.cs", Arg.Any<IContentType>()).Returns(document3);
-
-            var lineHashCalculator = Substitute.For<ILineHashCalculator>();
-
-            lineHashCalculator.Calculate(textSnapshot3, 2).Returns("hash1");
-            lineHashCalculator.Calculate(textSnapshot3, 62).Returns("hash2");
-            lineHashCalculator.Calculate(textSnapshot1, 12).Returns("hash3");
-            lineHashCalculator.Calculate(textSnapshot1, 22).Returns("hash4");
-            lineHashCalculator.Calculate(textSnapshot2, 32).Returns("hash5");
-            lineHashCalculator.Calculate(textSnapshot2, 42).Returns("hash6");
-
-            var testSubject = CreateTestSubject(textDocumentFactoryService: textDocumentFactoryService, lineHashCalculator: lineHashCalculator);
+            var testSubject = CreateTestSubject();
 
             var result = testSubject.GetAnalysisIssues(raisedIssueParams).ToList();
 
@@ -165,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             result[0].PrimaryLocation.TextRange.StartLineOffset.Should().Be(2);
             result[0].PrimaryLocation.TextRange.EndLine.Should().Be(3);
             result[0].PrimaryLocation.TextRange.EndLineOffset.Should().Be(4);
-            result[0].PrimaryLocation.TextRange.LineHash.Should().Be("hash1");
+            result[0].PrimaryLocation.TextRange.LineHash.Should().BeNull();
 
             result[0].Flows.Should().BeEmpty();
             result[0].Fixes.Should().BeEmpty();
@@ -182,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             result[1].PrimaryLocation.TextRange.StartLineOffset.Should().Be(62);
             result[1].PrimaryLocation.TextRange.EndLine.Should().Be(63);
             result[1].PrimaryLocation.TextRange.EndLineOffset.Should().Be(64);
-            result[1].PrimaryLocation.TextRange.LineHash.Should().Be("hash2");
+            result[1].PrimaryLocation.TextRange.LineHash.Should().BeNull();
 
             result[1].Flows.Should().HaveCount(2);
             result[1].Flows[0].Locations.Should().HaveCount(2);
@@ -193,14 +154,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             result[1].Flows[0].Locations[0].TextRange.StartLineOffset.Should().Be(12);
             result[1].Flows[0].Locations[0].TextRange.EndLine.Should().Be(13);
             result[1].Flows[0].Locations[0].TextRange.EndLineOffset.Should().Be(14);
-            result[1].Flows[0].Locations[0].TextRange.LineHash.Should().Be("hash3");
+            result[1].Flows[0].Locations[0].TextRange.LineHash.Should().BeNull();
             result[1].Flows[0].Locations[1].FilePath.Should().Be("C:\\\\flowFile1.cs");
             result[1].Flows[0].Locations[1].Message.Should().Be("Flow1Location2Message");
             result[1].Flows[0].Locations[1].TextRange.StartLine.Should().Be(21);
             result[1].Flows[0].Locations[1].TextRange.StartLineOffset.Should().Be(22);
             result[1].Flows[0].Locations[1].TextRange.EndLine.Should().Be(23);
             result[1].Flows[0].Locations[1].TextRange.EndLineOffset.Should().Be(24);
-            result[1].Flows[0].Locations[1].TextRange.LineHash.Should().Be("hash4");
+            result[1].Flows[0].Locations[1].TextRange.LineHash.Should().BeNull();
 
             result[1].Flows[1].Locations[0].FilePath.Should().Be("C:\\\\flowFile2.cs");
             result[1].Flows[1].Locations[0].Message.Should().Be("Flow2Location1Message");
@@ -208,14 +169,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             result[1].Flows[1].Locations[0].TextRange.StartLineOffset.Should().Be(32);
             result[1].Flows[1].Locations[0].TextRange.EndLine.Should().Be(33);
             result[1].Flows[1].Locations[0].TextRange.EndLineOffset.Should().Be(34);
-            result[1].Flows[1].Locations[0].TextRange.LineHash.Should().Be("hash5");
+            result[1].Flows[1].Locations[0].TextRange.LineHash.Should().BeNull();
             result[1].Flows[1].Locations[1].FilePath.Should().Be("C:\\\\flowFile2.cs");
             result[1].Flows[1].Locations[1].Message.Should().Be("Flow2Location2Message");
             result[1].Flows[1].Locations[1].TextRange.StartLine.Should().Be(41);
             result[1].Flows[1].Locations[1].TextRange.StartLineOffset.Should().Be(42);
             result[1].Flows[1].Locations[1].TextRange.EndLine.Should().Be(43);
             result[1].Flows[1].Locations[1].TextRange.EndLineOffset.Should().Be(44);
-            result[1].Flows[1].Locations[1].TextRange.LineHash.Should().Be("hash6");
+            result[1].Flows[1].Locations[1].TextRange.LineHash.Should().BeNull();
 
             result[1].Fixes.Should().HaveCount(1);
             result[1].Fixes[0].Message.Should().Be("issue 2 fix 2");
@@ -227,16 +188,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             result[1].Fixes[0].Edits[0].RangeToReplace.LineHash.Should().BeNull();
         }
 
-        private static RaiseIssueParamsToAnalysisIssueConverter CreateTestSubject(
-            ITextDocumentFactoryService textDocumentFactoryService = null,
-            IContentTypeRegistryService contentTypeRegistryService = null,
-            ILineHashCalculator lineHashCalculator = null)
+        private static RaiseIssueParamsToAnalysisIssueConverter CreateTestSubject()
         {
-            textDocumentFactoryService ??= Substitute.For<ITextDocumentFactoryService>();
-            contentTypeRegistryService ??= Substitute.For<IContentTypeRegistryService>();
-            lineHashCalculator ??= Substitute.For<ILineHashCalculator>();
-
-            return new RaiseIssueParamsToAnalysisIssueConverter(textDocumentFactoryService, contentTypeRegistryService, lineHashCalculator);
+            return new RaiseIssueParamsToAnalysisIssueConverter();
         }
     }
 }

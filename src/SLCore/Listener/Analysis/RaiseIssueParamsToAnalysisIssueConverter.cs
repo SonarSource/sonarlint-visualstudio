@@ -19,36 +19,16 @@
  */
 
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Infrastructure.VS.Editor;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
-using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
+namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 {
     [Export(typeof(IRaiseIssueParamsToAnalysisIssueConverter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class RaiseIssueParamsToAnalysisIssueConverter : IRaiseIssueParamsToAnalysisIssueConverter
     {
-        private readonly ITextDocumentFactoryService textDocumentFactoryService;
-        private readonly IContentTypeRegistryService contentTypeRegistryService;
-        private readonly ILineHashCalculator lineHashCalculator;
-
-        [ImportingConstructor]
-        public RaiseIssueParamsToAnalysisIssueConverter(ITextDocumentFactoryService textDocumentFactoryService, IContentTypeRegistryService contentTypeRegistryService)
-            : this(textDocumentFactoryService, contentTypeRegistryService, new LineHashCalculator())
-        { }
-
-        internal RaiseIssueParamsToAnalysisIssueConverter(ITextDocumentFactoryService textDocumentFactoryService, IContentTypeRegistryService contentTypeRegistryService, ILineHashCalculator lineHashCalculator)
-        {
-            this.textDocumentFactoryService = textDocumentFactoryService;
-            this.contentTypeRegistryService = contentTypeRegistryService;
-            this.lineHashCalculator = lineHashCalculator;
-        }
-
         public IEnumerable<IAnalysisIssue> GetAnalysisIssues(RaiseIssuesParams raiseIssuesParams)
         {
             var result = new List<IAnalysisIssue>();
@@ -68,7 +48,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
                         ));
                 }
             }
-
             return result;
         }
 
@@ -83,12 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
 
         private IAnalysisIssueLocation GetAnalysisIssueLocation(string filePath, string message, TextRangeDto textRangeDto)
         {
-            var textDocument = textDocumentFactoryService.CreateAndLoadTextDocument(filePath, contentTypeRegistryService.UnknownContentType); // load the document from disc
-            var currentSnapshot = textDocument.TextBuffer.CurrentSnapshot;
-
-            var lineHash = lineHashCalculator.Calculate(currentSnapshot, textRangeDto.startLine + 1);
-
-            var textRange = new TextRange(textRangeDto.startLine, textRangeDto.endLine, textRangeDto.startLineOffset, textRangeDto.endLineOffset, lineHash);
+            var textRange = new TextRange(textRangeDto.startLine, textRangeDto.endLine, textRangeDto.startLineOffset, textRangeDto.endLineOffset, null);
 
             return new AnalysisIssueLocation(message, filePath, textRange);
         }
