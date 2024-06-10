@@ -35,7 +35,7 @@ internal interface IVsAwareAnalysisService
         SnapshotChangedHandler errorListHandler,
         IAnalyzerOptions analyzerOptions);
 
-    bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
+    bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> detectedLanguages);
 }
 
 [Export(typeof(IVsAwareAnalysisService))]
@@ -45,37 +45,29 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
     private readonly IIssueConsumerFactory issueConsumerFactory;
     private readonly IVsProjectInfoProvider vsProjectInfoProvider;
     private readonly IThreadHandling threadHandling;
-    private readonly IAnalyzerController analyzerController;
-    private readonly IScheduler scheduler;
-    
-    internal /* for testing */ const int DefaultAnalysisTimeoutMs = 60 * 1000;
+    private readonly IAnalysisService analysisService;
 
     [ImportingConstructor]
     public VsAwareAnalysisService(IVsProjectInfoProvider vsProjectInfoProvider, 
         IIssueConsumerFactory issueConsumerFactory,
-        IAnalyzerController analyzerController,
-        IScheduler scheduler, 
+        IAnalysisService analysisService,
         IThreadHandling threadHandling)
     {
         this.issueConsumerFactory = issueConsumerFactory;
         this.vsProjectInfoProvider = vsProjectInfoProvider;
+        this.analysisService = analysisService;
         this.threadHandling = threadHandling;
-        this.analyzerController = analyzerController;
-        this.scheduler = scheduler;
     }
-
-    public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages) =>
-        analyzerController.IsAnalysisSupported(languages);
 
     public void RequestAnalysis(string filePath, 
         ITextDocument document,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         SnapshotChangedHandler errorListHandler,
-        IAnalyzerOptions analyzerOptions)
-    {
+        IAnalyzerOptions analyzerOptions) =>
         RequestAnalysisAsync(filePath, document, detectedLanguages, errorListHandler, analyzerOptions)
             .Forget();
-    }
+    public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> detectedLanguages) =>
+        analysisService.IsAnalysisSupported(detectedLanguages);
 
     private async Task RequestAnalysisAsync(string filePath, 
         ITextDocument document, 
@@ -98,29 +90,11 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
         await threadHandling.RunOnBackgroundThread(() =>
         {
             ClearErrorList(filePath, issueConsumer);
-
-            scheduler.Schedule(filePath,
-                cancellationToken => analyzerController.ExecuteAnalysis(filePath,
-                    Guid.NewGuid(),
-                    charset,
-                    detectedLanguages,
-                    issueConsumer,
-                    analyzerOptions,
-                    cancellationToken),
-                GetAnalysisTimeoutInMilliseconds());
+            
+            analysisService.ScheduleAnalysis(filePath, Guid.NewGuid(), charset, detectedLanguages, issueConsumer, analyzerOptions);
         });
     }
 
-    private static void ClearErrorList(string filePath, IIssueConsumer issueConsumer)
-    {
+    private static void ClearErrorList(string filePath, IIssueConsumer issueConsumer) => 
         issueConsumer.Accept(filePath, Enumerable.Empty<IAnalysisIssue>());
-    }
-    
-    private static int GetAnalysisTimeoutInMilliseconds()
-    {
-        var environmentSettings = new EnvironmentSettings();
-        var userSuppliedTimeout = environmentSettings.AnalysisTimeoutInMs();
-
-        return userSuppliedTimeout > 0 ? userSuppliedTimeout : DefaultAnalysisTimeoutMs;
-    }
 }

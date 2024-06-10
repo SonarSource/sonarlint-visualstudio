@@ -20,6 +20,7 @@
 
 using System.Text;
 using Microsoft.VisualStudio.Text;
+using NSubstitute.Extensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
@@ -36,12 +37,10 @@ public class VsAwareAnalysisServiceTests
         MefTestHelpers.CheckTypeCanBeImported<VsAwareAnalysisService, IVsAwareAnalysisService>(
             MefTestHelpers.CreateExport<IVsProjectInfoProvider>(),
             MefTestHelpers.CreateExport<IIssueConsumerFactory>(),
-            MefTestHelpers.CreateExport<IAnalyzerController>(),
-            MefTestHelpers.CreateExport<IScheduler>(),
+            MefTestHelpers.CreateExport<IAnalysisService>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
     }
-    
-    
+
     [TestMethod]
     public void MefCtor_CheckIsSingleton()
     {
@@ -51,16 +50,16 @@ public class VsAwareAnalysisServiceTests
     [DataTestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void IsAnalysisSupported_UsesAnalyzerController(bool isSupported)
+    public void IsAnalysisSupported_UsesAnalyzerService(bool isSupported)
     {
-        var analysisLanguages = Substitute.For<IEnumerable<AnalysisLanguage>>();
-        var analyzerController = Substitute.For<IAnalyzerController>();
-        analyzerController.IsAnalysisSupported(analysisLanguages).Returns(isSupported);
-        var testSubject = CreateTestSubject(analyzerController:analyzerController);
+        var detectedLanguages = Substitute.For<IEnumerable<AnalysisLanguage>>();
+        var analysisService = Substitute.For<IAnalysisService>();
+        analysisService.IsAnalysisSupported(detectedLanguages).Returns(isSupported);
+        var testSubject = CreateTestSubject(analysisService:analysisService);
 
-        testSubject.IsAnalysisSupported(analysisLanguages).Should().Be(isSupported);
+        testSubject.IsAnalysisSupported(detectedLanguages).Should().Be(isSupported);
 
-        analyzerController.Received().IsAnalysisSupported(analysisLanguages);
+        analysisService.Received().IsAnalysisSupported(detectedLanguages);
     }
 
     [TestMethod]
@@ -72,13 +71,13 @@ public class VsAwareAnalysisServiceTests
         var vsProjectInfoProvider = Substitute.For<IVsProjectInfoProvider>();
         vsProjectInfoProvider.GetDocumentProjectInfoAsync(document).Returns(projectInfo);
         var issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
-        var testSubject = CreateTestSubject(issueConsumerFactory:issueConsumerFactory, projectInfoProvider:vsProjectInfoProvider);
+        var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, projectInfoProvider: vsProjectInfoProvider);
 
         testSubject.RequestAnalysis("file/path", document, default, errorListHandler, default);
 
         issueConsumerFactory.Received().Create(document, projectInfo.projectName, projectInfo.projectGuid, errorListHandler);
     }
-    
+
     [TestMethod]
     public void RequestAnalysis_NoProjectInformation_CreatesIssueConsumerCorrectly()
     {
@@ -87,21 +86,22 @@ public class VsAwareAnalysisServiceTests
         var vsProjectInfoProvider = Substitute.For<IVsProjectInfoProvider>();
         vsProjectInfoProvider.GetDocumentProjectInfoAsync(document).Returns(default((string projectName, Guid projectGuid)));
         var issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
-        var testSubject = CreateTestSubject(issueConsumerFactory:issueConsumerFactory, projectInfoProvider:vsProjectInfoProvider);
+        var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, projectInfoProvider: vsProjectInfoProvider);
 
         testSubject.RequestAnalysis("file/path", document, default, errorListHandler, default);
 
         issueConsumerFactory.Received().Create(document, default, default, errorListHandler);
     }
-    
+
     [TestMethod]
     public void RequestAnalysis_ClearsErrorListAndSchedulesAnalysisOnBackgroundThread()
     {
         var document = CreateDefaultDocument();
-        var scheduler = Substitute.For<IScheduler>();
+        var analysisService = Substitute.For<IAnalysisService>();
         var threadHandling = CreateDefaultThreadHandling();
         var issueConsumerFactory = CreateDefaultIssueConsumerFactory(document, out var issueConsumer);
-        var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, scheduler:scheduler, threadHandling:threadHandling);
+        var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, analysisService: analysisService,
+            threadHandling: threadHandling);
 
         testSubject.RequestAnalysis("file/path", document, default, default, default);
 
@@ -109,78 +109,50 @@ public class VsAwareAnalysisServiceTests
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
             issueConsumer.Accept("file/path", Enumerable.Empty<IAnalysisIssue>());
-            scheduler.Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
+            analysisService.ScheduleAnalysis("file/path",
+                Arg.Any<Guid>(),
+                Arg.Any<string>(),
+                Arg.Any<IEnumerable<AnalysisLanguage>>(),
+                issueConsumer,
+                Arg.Any<IAnalyzerOptions>());
         });
     }
 
     [TestMethod]
-    public void RequestAnalysis_AnalysisSchedulerRunsAnalyzerController()
+    public void RequestAnalysis_ProvidesAnalysisParametersCorrectly()
     {
-        var documentEncoding = Encoding.BigEndianUnicode;
-        var document = CreateDefaultDocument(documentEncoding);
+        var encoding = Substitute.ForPartsOf<Encoding>();
+        var encodingName = "encodingname";
+        encoding.Configure().WebName.Returns(encodingName);
+        var document = CreateDefaultDocument(encoding);
         var detectedLanguages = Substitute.For<IEnumerable<AnalysisLanguage>>();
         var analyzerOptions = Substitute.For<IAnalyzerOptions>();
-        var scheduler = CreateDefaultScheduler();
+        var analysisService = Substitute.For<IAnalysisService>();
         var issueConsumerFactory = CreateDefaultIssueConsumerFactory(document, out var issueConsumer);
-        var analyzerController = Substitute.For<IAnalyzerController>();
-        var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, scheduler:scheduler, analyzerController:analyzerController);
+        var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, analysisService: analysisService);
 
         testSubject.RequestAnalysis("file/path", document, detectedLanguages, default, analyzerOptions);
 
-        Received.InOrder(() =>
-        {
-           scheduler.Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
-           analyzerController.ExecuteAnalysis("file/path", Arg.Any<Guid>(), documentEncoding.WebName, detectedLanguages, issueConsumer, analyzerOptions, Arg.Any<CancellationToken>());
-        });
+        analysisService
+            .Received()
+            .ScheduleAnalysis("file/path",
+                Arg.Is<Guid>(x => x != Guid.Empty),
+                encodingName,
+                detectedLanguages,
+                issueConsumer,
+                analyzerOptions);
     }
     
-    [TestMethod]
-    [DataRow(-1, VsAwareAnalysisService.DefaultAnalysisTimeoutMs)]
-    [DataRow(0, VsAwareAnalysisService.DefaultAnalysisTimeoutMs)]
-    [DataRow(1, 1)]
-    [DataRow(999, 999)]
-    public void RequestAnalysis_ProvidesCorrectTimeout(int envSettingsResponse, int expectedTimeout)
-    {
-        try
-        {
-            Environment.SetEnvironmentVariable(EnvironmentSettings.AnalysisTimeoutEnvVar, envSettingsResponse.ToString());
-            var scheduler = Substitute.For<IScheduler>();
-            var testSubject = CreateTestSubject(scheduler:scheduler);
-            
-            testSubject.RequestAnalysis("file/path", CreateDefaultDocument(), default, default, default);
-            
-            scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), expectedTimeout);
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable(EnvironmentSettings.AnalysisTimeoutEnvVar, null);
-        }
-    
-    }
-
-    [TestMethod]
-    public void RequestAnalysis_NoEnvironmentSettings_DefaultTimeout()
-    {
-        var scheduler = Substitute.For<IScheduler>();
-        var testSubject = CreateTestSubject(scheduler: scheduler);
-
-        testSubject.RequestAnalysis("file/path", CreateDefaultDocument(), default, default, default);
-
-        scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), VsAwareAnalysisService.DefaultAnalysisTimeoutMs);
-    }
-
     private static IVsAwareAnalysisService CreateTestSubject(IVsProjectInfoProvider projectInfoProvider = null,
         IIssueConsumerFactory issueConsumerFactory = null,
-        IAnalyzerController analyzerController = null,
-        IScheduler scheduler = null,
+        IAnalysisService analysisService = null,
         IThreadHandling threadHandling = null)
     {
         projectInfoProvider ??= Substitute.For<IVsProjectInfoProvider>();
         issueConsumerFactory ??= Substitute.For<IIssueConsumerFactory>();
-        analyzerController ??= Substitute.For<IAnalyzerController>();
-        scheduler ??= Substitute.For<IScheduler>();
+        analysisService ??= Substitute.For<IAnalysisService>();
         threadHandling ??= new NoOpThreadHandler();
-        return new VsAwareAnalysisService(projectInfoProvider, issueConsumerFactory, analyzerController, scheduler, threadHandling);
+        return new VsAwareAnalysisService(projectInfoProvider, issueConsumerFactory, analysisService, threadHandling);
     }
 
     private static IThreadHandling CreateDefaultThreadHandling()
@@ -197,17 +169,6 @@ public class VsAwareAnalysisServiceTests
         return textDocument;
     }
 
-    private static IScheduler CreateDefaultScheduler()
-    {
-        var scheduler = Substitute.For<IScheduler>();
-        scheduler.When(x => x.Schedule(Arg.Any<string>(), Arg.Any<Action<CancellationToken>>(), Arg.Any<int>()))
-            .Do(info =>
-            {
-                info.Arg<Action<CancellationToken>>()(CancellationToken.None);
-            });
-        return scheduler;
-    }
-    
     private static IIssueConsumerFactory CreateDefaultIssueConsumerFactory(ITextDocument document, out IIssueConsumer issueConsumer)
     {
         var issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
