@@ -43,7 +43,8 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers
         {
             foreach (var issueSeverity in Enum.GetValues(typeof(IssueSeverity)))
             {
-                _ = ((IssueSeverity)issueSeverity).ToAnalysisIssueSeverity();
+                var act = () => ((IssueSeverity)issueSeverity).ToAnalysisIssueSeverity();
+                act.Should().NotThrow();
             }
         }
         
@@ -73,7 +74,8 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers
         {
             foreach (var ruleType in Enum.GetValues(typeof(RuleType)))
             {
-                _ = ((RuleType)ruleType).ToAnalysisIssueType();
+                var act = () => ((RuleType)ruleType).ToAnalysisIssueType();
+                act.Should().NotThrow();
             }
         }
         
@@ -102,7 +104,8 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers
         {
             foreach (var impactSeverity in Enum.GetValues(typeof(ImpactSeverity)))
             {
-                _ = ((ImpactSeverity)impactSeverity).ToSoftwareQualitySeverity();
+                var act = () => ((ImpactSeverity)impactSeverity).ToSoftwareQualitySeverity();
+                act.Should().NotThrow();
             }
         }
         
