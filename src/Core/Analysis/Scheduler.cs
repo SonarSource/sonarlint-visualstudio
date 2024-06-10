@@ -18,13 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading;
-using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Core.Analysis
 {
     [Export(typeof(IScheduler))]
     [PartCreationPolicy(CreationPolicy.Shared)]
