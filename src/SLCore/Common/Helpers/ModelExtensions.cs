@@ -27,53 +27,38 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
     {
         public static AnalysisIssueSeverity ToAnalysisIssueSeverity(this IssueSeverity issueSeverity)
         {
-            switch (issueSeverity)
+            return issueSeverity switch
             {
-                case IssueSeverity.BLOCKER:
-                    return AnalysisIssueSeverity.Blocker;
-                case IssueSeverity.CRITICAL:
-                    return AnalysisIssueSeverity.Critical;
-                case IssueSeverity.MAJOR:
-                    return AnalysisIssueSeverity.Major;
-                case IssueSeverity.MINOR:
-                    return AnalysisIssueSeverity.Minor;
-                case IssueSeverity.INFO:
-                    return AnalysisIssueSeverity.Info;
-                default:
-                    throw new ArgumentException(SLCoreStrings.ModelExtensions_UnexpectedValue, nameof(issueSeverity));
-            }
+                IssueSeverity.BLOCKER => AnalysisIssueSeverity.Blocker,
+                IssueSeverity.CRITICAL => AnalysisIssueSeverity.Critical,
+                IssueSeverity.MAJOR => AnalysisIssueSeverity.Major,
+                IssueSeverity.MINOR => AnalysisIssueSeverity.Minor,
+                IssueSeverity.INFO => AnalysisIssueSeverity.Info,
+                _ => throw new ArgumentException(SLCoreStrings.ModelExtensions_UnexpectedValue, nameof(issueSeverity)),
+            };
         }
 
         public static AnalysisIssueType ToAnalysisIssueType(this RuleType ruleType)
         {
-            switch (ruleType)
+            return ruleType switch
             {
-                case RuleType.CODE_SMELL:
-                    return AnalysisIssueType.CodeSmell;
-                case RuleType.BUG:
-                    return AnalysisIssueType.Bug;
-                case RuleType.VULNERABILITY:
-                    return AnalysisIssueType.Vulnerability;
-                case RuleType.SECURITY_HOTSPOT:
-                    return AnalysisIssueType.SecurityHotspot;
-                default:
-                    throw new ArgumentException(SLCoreStrings.ModelExtensions_UnexpectedValue, nameof(ruleType));
-            }
+                RuleType.CODE_SMELL => AnalysisIssueType.CodeSmell,
+                RuleType.BUG => AnalysisIssueType.Bug,
+                RuleType.VULNERABILITY => AnalysisIssueType.Vulnerability,
+                RuleType.SECURITY_HOTSPOT => AnalysisIssueType.SecurityHotspot,
+                _ => throw new ArgumentException(SLCoreStrings.ModelExtensions_UnexpectedValue, nameof(ruleType)),
+            };
         }
 
         public static SoftwareQualitySeverity ToSoftwareQualitySeverity(this ImpactSeverity impactSeverity)
         {
-            switch (impactSeverity)
+            return impactSeverity switch
             {
-                case ImpactSeverity.LOW:
-                    return SoftwareQualitySeverity.Low;
-                case ImpactSeverity.MEDIUM:
-                    return SoftwareQualitySeverity.Medium;
-                case ImpactSeverity.HIGH:
-                    return SoftwareQualitySeverity.High;
-                default:
-                    throw new ArgumentException(SLCoreStrings.ModelExtensions_UnexpectedValue, nameof(impactSeverity));
-            }
+                ImpactSeverity.LOW => SoftwareQualitySeverity.Low,
+                ImpactSeverity.MEDIUM => SoftwareQualitySeverity.Medium,
+                ImpactSeverity.HIGH => SoftwareQualitySeverity.High,
+                _ => throw new ArgumentException(SLCoreStrings.ModelExtensions_UnexpectedValue, nameof(impactSeverity)),
+            };
         }
     }
 }
