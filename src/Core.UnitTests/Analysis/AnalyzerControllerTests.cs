@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
+using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
+namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
 {
     [TestClass]
     public class AnalyzerControllerTests
