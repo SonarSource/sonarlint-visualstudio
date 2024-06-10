@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers
 {
     [TestClass]
-    public class ModelExtensionsTests
+    public class ModelConversionExtensionsTests
     {
         [DataRow(IssueSeverity.BLOCKER, AnalysisIssueSeverity.Blocker)]
         [DataRow(IssueSeverity.CRITICAL, AnalysisIssueSeverity.Critical)]
@@ -43,8 +43,20 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers
         {
             foreach (var issueSeverity in Enum.GetValues(typeof(IssueSeverity)))
             {
-                _ = ((IssueSeverity)issueSeverity).ToAnalysisIssueSeverity();
+                var act = () => ((IssueSeverity)issueSeverity).ToAnalysisIssueSeverity();
+                act.Should().NotThrow();
             }
+        }
+        
+        [TestMethod]
+        public void ToAnalysisIssueSeverity_ValueOutOfRange_Throws()
+        {
+            var act = () => ((IssueSeverity)1000).ToAnalysisIssueSeverity();
+            act.Should().Throw<ArgumentOutOfRangeException>().WithMessage("""
+                                                                          Unexpected enum value
+                                                                          Parameter name: issueSeverity
+                                                                          Actual value was 1000.
+                                                                          """);
         }
 
         [DataRow(RuleType.BUG, AnalysisIssueType.Bug)]
@@ -62,8 +74,20 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers
         {
             foreach (var ruleType in Enum.GetValues(typeof(RuleType)))
             {
-                _ = ((RuleType)ruleType).ToAnalysisIssueType();
+                var act = () => ((RuleType)ruleType).ToAnalysisIssueType();
+                act.Should().NotThrow();
             }
+        }
+        
+        [TestMethod]
+        public void ToAnalysisIssueType_ValueOutOfRange_Throws()
+        {
+            var act = () => ((RuleType)1000).ToAnalysisIssueType();
+            act.Should().Throw<ArgumentOutOfRangeException>().WithMessage("""
+                                                                          Unexpected enum value
+                                                                          Parameter name: ruleType
+                                                                          Actual value was 1000.
+                                                                          """);
         }
 
         [DataRow(ImpactSeverity.LOW, SoftwareQualitySeverity.Low)]
@@ -80,8 +104,20 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers
         {
             foreach (var impactSeverity in Enum.GetValues(typeof(ImpactSeverity)))
             {
-                _ = ((ImpactSeverity)impactSeverity).ToSoftwareQualitySeverity();
+                var act = () => ((ImpactSeverity)impactSeverity).ToSoftwareQualitySeverity();
+                act.Should().NotThrow();
             }
+        }
+        
+        [TestMethod]
+        public void ToSoftwareQualitySeverity_ValueOutOfRange_Throws()
+        {
+            var act = () => ((ImpactSeverity)1000).ToSoftwareQualitySeverity();
+            act.Should().Throw<ArgumentOutOfRangeException>().WithMessage("""
+                                                                          Unexpected enum value
+                                                                          Parameter name: impactSeverity
+                                                                          Actual value was 1000.
+                                                                          """);
         }
     }
 }

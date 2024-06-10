@@ -23,7 +23,7 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Common.Helpers
 {
-    public static class ModelExtensions
+    public static class ModelConversionExtensions
     {
         public static AnalysisIssueSeverity ToAnalysisIssueSeverity(this IssueSeverity issueSeverity)
         {
@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
                 IssueSeverity.MAJOR => AnalysisIssueSeverity.Major,
                 IssueSeverity.MINOR => AnalysisIssueSeverity.Minor,
                 IssueSeverity.INFO => AnalysisIssueSeverity.Info,
-                _ => throw new ArgumentException(SLCoreStrings.ModelExtensions_UnexpectedValue, nameof(issueSeverity)),
+                _ => throw new ArgumentOutOfRangeException(nameof(issueSeverity), issueSeverity, SLCoreStrings.ModelExtensions_UnexpectedValue),
             };
         }
 
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
                 RuleType.BUG => AnalysisIssueType.Bug,
                 RuleType.VULNERABILITY => AnalysisIssueType.Vulnerability,
                 RuleType.SECURITY_HOTSPOT => AnalysisIssueType.SecurityHotspot,
-                _ => throw new ArgumentException(SLCoreStrings.ModelExtensions_UnexpectedValue, nameof(ruleType)),
+                _ => throw new ArgumentOutOfRangeException(nameof(ruleType), ruleType, SLCoreStrings.ModelExtensions_UnexpectedValue),
             };
         }
 
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
                 ImpactSeverity.LOW => SoftwareQualitySeverity.Low,
                 ImpactSeverity.MEDIUM => SoftwareQualitySeverity.Medium,
                 ImpactSeverity.HIGH => SoftwareQualitySeverity.High,
-                _ => throw new ArgumentException(SLCoreStrings.ModelExtensions_UnexpectedValue, nameof(impactSeverity)),
+                _ => throw new ArgumentOutOfRangeException(nameof(impactSeverity), impactSeverity, SLCoreStrings.ModelExtensions_UnexpectedValue),
             };
         }
     }
