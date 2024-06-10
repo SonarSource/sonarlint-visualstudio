@@ -150,4 +150,7 @@
   <data name="ConfigScopeConflict" xml:space="preserve">
     <value>Configuration scope conflict</value>
   </data>
+  <data name="ModelExtensions_UnexpectedValue" xml:space="preserve">
+    <value>Unexpected enum value</value>
+  </data>
 </root>
