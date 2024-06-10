@@ -70,6 +70,15 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unexpected enum value.
+        /// </summary>
+        public static string ModelExtensions_UnexpectedValue {
+            get {
+                return ResourceManager.GetString("ModelExtensions_UnexpectedValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Service Provider is unavailable.
         /// </summary>
         public static string ServiceProviderNotInitialized {
