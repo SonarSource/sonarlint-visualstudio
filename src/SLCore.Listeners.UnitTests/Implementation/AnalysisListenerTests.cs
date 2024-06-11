@@ -161,20 +161,6 @@ public class AnalysisListenerTests
         return raiseIssueParamsToAnalysisIssueConverter;
     }
 
-    [TestMethod]
-    public void RaiseHotspots_ThrowsNotImplemented()
-    {
-        {
-            var raiseHotspotsParams = new RaiseHotspotsParams("CONFIGURATION_ID", new Dictionary<FileUri, List<RaisedHotspotDto>>(), false, Guid.NewGuid());
-
-            var testSubject = CreateTestSubject();
-
-            var act = () => testSubject.RaiseHotspots(raiseHotspotsParams);
-
-            act.Should().Throw<NotImplementedException>();
-        }
-    }
-
     private AnalysisListener CreateTestSubject(IAnalysisService analysisService = null, IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = null)
         => new AnalysisListener(analysisService ?? Substitute.For<IAnalysisService>(), raiseIssueParamsToAnalysisIssueConverter ?? Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>());
 

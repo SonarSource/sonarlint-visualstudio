@@ -66,6 +66,5 @@ internal class AnalysisListener : IAnalysisListener
 
     public void RaiseHotspots(RaiseHotspotsParams parameters)
     {
-        throw new NotImplementedException();
     }
 }
