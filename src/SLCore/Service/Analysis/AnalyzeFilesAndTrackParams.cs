@@ -18,12 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.SLCore.Common.Models;
+
 namespace SonarLint.VisualStudio.SLCore.Service.Analysis;
 
 public record AnalyzeFilesAndTrackParams(
     string configurationScopeId, 
     Guid analysisId, 
-    List<Uri> filesToAnalyze,
+    List<FileUri> filesToAnalyze,
     Dictionary<string, string> extraProperties, 
     bool shouldFetchServerIssues,
     long startTime);

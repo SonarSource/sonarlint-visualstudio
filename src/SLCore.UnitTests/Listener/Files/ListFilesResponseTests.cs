@@ -30,8 +30,8 @@ public class ListFilesResponseTests
     [TestMethod]
     public void SerializeCorrectly()
     {
-        var file1 = new ClientFileDto("file://uri1", "Project\\file1.cs", "configScope", false, "UTF-8", "C:\\Code\\Solution\\Project\\file1.cs", "some content");
-        var file2 = new ClientFileDto("file://uri2", "Project\\file2.cs", "configScope", false, "UTF-8", "C:\\Code\\Solution\\Project\\file2.cs", null);
+        var file1 = new ClientFileDto(new("C:\\Code\\Solution\\Project\\file1.cs"), "Project\\file1.cs", "configScope", false, "UTF-8", "C:\\Code\\Solution\\Project\\file1.cs", "some content");
+        var file2 = new ClientFileDto(new("C:\\Code\\Solution\\Project\\file 2.cs"), "Project\\file 2.cs", "configScope", false, "UTF-8", "C:\\Code\\Solution\\Project\\file 2.cs", null);
 
         var response = new ListFilesResponse(new[] { file1, file2 });
 
@@ -41,7 +41,7 @@ public class ListFilesResponseTests
                              {
                                "files": [
                                  {
-                                   "uri": "file://uri1",
+                                   "uri": "file:///C:/Code/Solution/Project/file1.cs",
                                    "ideRelativePath": "Project\\file1.cs",
                                    "configScopeId": "configScope",
                                    "isTest": false,
@@ -50,12 +50,12 @@ public class ListFilesResponseTests
                                    "content": "some content"
                                  },
                                  {
-                                   "uri": "file://uri2",
-                                   "ideRelativePath": "Project\\file2.cs",
+                                   "uri": "file:///C:/Code/Solution/Project/file%202.cs",
+                                   "ideRelativePath": "Project\\file 2.cs",
                                    "configScopeId": "configScope",
                                    "isTest": false,
                                    "charset": "UTF-8",
-                                   "fsPath": "C:\\Code\\Solution\\Project\\file2.cs",
+                                   "fsPath": "C:\\Code\\Solution\\Project\\file 2.cs",
                                    "content": null
                                  }
                                ]

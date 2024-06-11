@@ -22,4 +22,4 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Analysis.Models;
 
-public record RawIssueLocationDto(TextRangeDto textRange, string message, Uri fileUri);
+public record RawIssueLocationDto(TextRangeDto textRange, string message, FileUri fileUri);

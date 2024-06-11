@@ -18,9 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Common.Models;
+namespace SonarLint.VisualStudio.SLCore.Protocol;
 
-[ExcludeFromCodeCoverage]
-public record IssueLocationDto(TextRangeDto textRange, string message, FileUri fileUri);
+public class FileUriConverter : JsonConverter<FileUri>
+{
+    public override void WriteJson(JsonWriter writer, FileUri value, JsonSerializer serializer)
+    {
+        writer.WriteValue(value.ToString());
+    }
+
+    public override FileUri ReadJson(JsonReader reader, Type objectType, FileUri existingValue, bool hasExistingValue, JsonSerializer serializer)
+    {
+        return reader.TokenType switch
+        {
+            JsonToken.String => new FileUri(reader.Value as string),
+            _ => throw new InvalidOperationException($"Invalid token type for {nameof(FileUri)}")
+        };
+    }
+}

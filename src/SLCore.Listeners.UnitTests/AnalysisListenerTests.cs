@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
@@ -52,7 +53,7 @@ public class AnalysisListenerTests
     [TestMethod]
     public void RaiseIssues_ThrowsNotImplemented()
     {
-        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", new Dictionary<Uri, List<RaisedIssueDto>>(), false, Guid.NewGuid());
+        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", new Dictionary<FileUri, List<RaisedIssueDto>>(), false, Guid.NewGuid());
         
         var act = () => new AnalysisListener().RaiseIssues(raiseIssuesParams);
 
@@ -62,7 +63,7 @@ public class AnalysisListenerTests
     [TestMethod]
     public void RaiseHotspots_ThrowsNotImplemented()
     {
-        var raiseHotspotsParams = new RaiseHotspotsParams("CONFIGURATION_ID", new Dictionary<Uri, List<RaisedHotspotDto>>(), false, Guid.NewGuid());
+        var raiseHotspotsParams = new RaiseHotspotsParams("CONFIGURATION_ID", new Dictionary<FileUri, List<RaisedHotspotDto>>(), false, Guid.NewGuid());
         
         var act = () => new AnalysisListener().RaiseHotspots(raiseHotspotsParams);
 
