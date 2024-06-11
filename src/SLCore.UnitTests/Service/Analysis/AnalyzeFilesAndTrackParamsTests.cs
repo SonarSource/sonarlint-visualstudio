@@ -19,6 +19,7 @@
  */
 
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Service.Analysis;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Analysis;
@@ -29,7 +30,7 @@ public class AnalyzeFilesAndTrackParamsTests
     [TestMethod]
     public void Serialize_AsExpected()
     {
-        var filesToAnalyze = new List<Uri> { new("file:///tmp/junit14012097140227905793/Foo.cs") };
+        var filesToAnalyze = new List<FileUri> { new("C:\\tmp\\junit14012097140227905793\\Foo.cs") };
 
         var testSubject = new AnalyzeFilesAndTrackParams(
             "CONFIGURATION_ID",
@@ -44,7 +45,7 @@ public class AnalyzeFilesAndTrackParamsTests
                                         "configurationScopeId": "CONFIGURATION_ID",
                                         "analysisId": "5613cd09-25b9-4d83-916b-2067fac3fba7",
                                         "filesToAnalyze": [
-                                          "file:///tmp/junit14012097140227905793/Foo.cs"
+                                          "file:///C:/tmp/junit14012097140227905793/Foo.cs"
                                         ],
                                         "extraProperties": {},
                                         "shouldFetchServerIssues": false,

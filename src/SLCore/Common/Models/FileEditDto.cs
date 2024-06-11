@@ -23,4 +23,4 @@ using System.Diagnostics.CodeAnalysis;
 namespace SonarLint.VisualStudio.SLCore.Common.Models;
 
 [ExcludeFromCodeCoverage]
-public record FileEditDto(Uri target, List<TextEditDto> textEdits);
+public record FileEditDto(FileUri target, List<TextEditDto> textEdits);

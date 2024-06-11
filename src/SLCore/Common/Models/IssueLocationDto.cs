@@ -23,4 +23,4 @@ using System.Diagnostics.CodeAnalysis;
 namespace SonarLint.VisualStudio.SLCore.Common.Models;
 
 [ExcludeFromCodeCoverage]
-public record IssueLocationDto(TextRangeDto textRange, string message, Uri fileUri);
+public record IssueLocationDto(TextRangeDto textRange, string message, FileUri fileUri);

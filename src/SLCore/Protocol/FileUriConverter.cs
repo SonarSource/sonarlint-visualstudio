@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2023 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,9 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
-using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
+namespace SonarLint.VisualStudio.SLCore.Protocol;
 
-public record RaiseIssuesParams(string configurationScopeId, Dictionary<FileUri, List<RaisedIssueDto>> issuesByFileUri, bool isIntermediatePublication, Guid? analysisId);
+public class FileUriConverter : JsonConverter<FileUri>
+{
+    public override void WriteJson(JsonWriter writer, FileUri value, JsonSerializer serializer)
+    {
+        if (value is null)
+        {
+            writer.WriteNull();
+            return;
+        }
+        
+        writer.WriteValue(value.ToString());
+    }
+
+    public override FileUri ReadJson(JsonReader reader, Type objectType, FileUri existingValue, bool hasExistingValue, JsonSerializer serializer)
+    {
+        return reader.TokenType switch
+        {
+            JsonToken.String => new FileUri(reader.Value as string),
+            JsonToken.Null => null,
+            _ => throw new InvalidOperationException($"Invalid token type for {nameof(FileUri)}")
+        };
+    }
+}

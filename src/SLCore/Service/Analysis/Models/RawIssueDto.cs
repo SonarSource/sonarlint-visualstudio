@@ -30,7 +30,7 @@ public record RawIssueDto(
     Dictionary<SoftwareQuality, ImpactSeverity> impacts,
     string ruleKey,
     string primaryMessage,
-    Uri fileUri,
+    FileUri fileUri,
     List<RawIssueFlowDto> flows,
     List<QuickFixDto> quickFixes,
     TextRangeDto textRange,

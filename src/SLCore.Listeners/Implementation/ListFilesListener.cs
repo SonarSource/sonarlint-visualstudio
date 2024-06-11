@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Files;
 using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
@@ -64,18 +60,14 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
                         clientFileDtos.AddRange(fullFilePathList.Select(fp =>
                         {
                             var ideRelativePath = GetRelativePath(root, fp);
-                            return new ClientFileDto(CreateUri(fp), ideRelativePath, parameters.configScopeId, null,
+                            var uri = new FileUri(fp);
+                            return new ClientFileDto(uri, ideRelativePath, parameters.configScopeId, null,
                                 Encoding.UTF8.WebName, fp);
                         }));
                     }
                 }
             }
             return Task.FromResult(new ListFilesResponse(clientFileDtos));
-        }
-
-        private static string CreateUri(string fp)
-        {
-            return Uri.UriSchemeFile + Uri.SchemeDelimiter + Uri.EscapeDataString(fp);
         }
 
         private string GetRelativePath(string root, string fullPath)
