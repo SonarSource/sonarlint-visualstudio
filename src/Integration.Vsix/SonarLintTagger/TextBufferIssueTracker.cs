@@ -111,6 +111,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             try
             {
+                vsAwareAnalysisService.CancelForFile(LastAnalysisFilePath);
                 LastAnalysisFilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
                 vsAwareAnalysisService.RequestAnalysis(LastAnalysisFilePath, document, detectedLanguages, SnapToNewSnapshot, options);
             }
@@ -132,6 +133,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void Dispose()
         {
+            vsAwareAnalysisService.CancelForFile(LastAnalysisFilePath);
             document.FileActionOccurred -= SafeOnFileActionOccurred;
             textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
             sonarErrorDataSource.RemoveFactory(this.Factory);

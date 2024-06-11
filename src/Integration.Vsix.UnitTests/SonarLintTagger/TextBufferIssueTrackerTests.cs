@@ -115,6 +115,8 @@ public class TextBufferIssueTrackerTests
 
         // Act
         testSubject.Dispose();
+        
+        mockAnalysisService.Verify(x => x.CancelForFile(mockedJavascriptDocumentFooJs.Object.FilePath));
 
         VerifySingletonManagerDoesNotExist(mockDocumentTextBuffer.Object);
 
@@ -257,7 +259,7 @@ public class TextBufferIssueTrackerTests
     }
 
     [TestMethod]
-    public void RequestAnalysis_IssueConsumerIsCreatedAndCleared()
+    public void RequestAnalysis_CallsAnalysisService()
     {
         // Clear the invocations that occurred during construction
         mockAnalysisService.Invocations.Clear();
@@ -265,7 +267,23 @@ public class TextBufferIssueTrackerTests
         var analyzerOptions = Mock.Of<IAnalyzerOptions>();
         testSubject.RequestAnalysis(analyzerOptions);
 
+        
         VerifyAnalysisRequested(analyzerOptions);
+    }
+    
+    [TestMethod]
+    public void RequestAnalysis_DocumentRenamed_CancelsForPreviousFilePath()
+    {
+        // Clear the invocations that occurred during construction
+        mockAnalysisService.Invocations.Clear();
+        mockedJavascriptDocumentFooJs.SetupSequence(x => x.FilePath)
+            .Returns("newFoo.js");
+
+        var analyzerOptions = Mock.Of<IAnalyzerOptions>();
+        testSubject.RequestAnalysis(analyzerOptions);
+
+        mockAnalysisService.Verify(x => x.CancelForFile("foo.js"));
+        mockAnalysisService.Verify(x => x.RequestAnalysis("newFoo.js", It.IsAny<ITextDocument>(), It.IsAny<IEnumerable<AnalysisLanguage>>(), It.IsAny<SnapshotChangedHandler>(), It.IsAny<IAnalyzerOptions>()));
     }
 
     [TestMethod]
@@ -308,10 +326,11 @@ public class TextBufferIssueTrackerTests
         act.Should().Throw<DivideByZeroException>()
             .WithMessage("this is a test");
     }
-
+    
     private void VerifyAnalysisRequested(IAnalyzerOptions analyzerOptions)
     {
         var textDocument = mockedJavascriptDocumentFooJs.Object;
+        mockAnalysisService.Verify(x => x.CancelForFile(textDocument.FilePath));
         mockAnalysisService.Verify(x => x.RequestAnalysis(
             textDocument.FilePath,
             textDocument,
@@ -322,6 +341,7 @@ public class TextBufferIssueTrackerTests
 
     private void VerifyAnalysisNotRequested()
     {
+        mockAnalysisService.Verify(x => x.CancelForFile(It.IsAny<string>()), Times.Never);
         mockAnalysisService.Verify(x =>
                 x.RequestAnalysis(It.IsAny<string>(),
                     It.IsAny<ITextDocument>(),

@@ -36,6 +36,8 @@ internal interface IVsAwareAnalysisService
         IAnalyzerOptions analyzerOptions);
 
     bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> detectedLanguages);
+    
+    void CancelForFile(string filePath);
 }
 
 [Export(typeof(IVsAwareAnalysisService))]
@@ -68,6 +70,9 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
             .Forget();
     public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> detectedLanguages) =>
         analysisService.IsAnalysisSupported(detectedLanguages);
+
+    public void CancelForFile(string filePath) => 
+        analysisService.CancelForFile(filePath);
 
     private async Task RequestAnalysisAsync(string filePath, 
         ITextDocument document, 
