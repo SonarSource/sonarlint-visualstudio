@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
@@ -29,6 +29,16 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class AnalysisListener : IAnalysisListener
 {
+    private readonly IAnalysisService analysisService;
+    private readonly IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter;
+
+    [ImportingConstructor]
+    public AnalysisListener(IAnalysisService analysisService, IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter)
+    {
+        this.analysisService = analysisService;
+        this.raiseIssueParamsToAnalysisIssueConverter = raiseIssueParamsToAnalysisIssueConverter;
+    }
+
     public Task DidChangeAnalysisReadinessAsync(DidChangeAnalysisReadinessParams parameters)
     {
         return Task.CompletedTask;
@@ -36,7 +46,22 @@ internal class AnalysisListener : IAnalysisListener
 
     public void RaiseIssues(RaiseIssuesParams parameters)
     {
-        throw new NotImplementedException();
+        if (parameters.analysisId.HasValue)
+        {
+            var filepath = parameters.issuesByFileUri.Single().Key.LocalPath;
+
+            var issues = GetSupportedLanguageIssues(raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(parameters));
+
+            if (issues.Any())
+            {
+                analysisService.PublishIssues(filepath, parameters.analysisId.Value, issues);
+            }
+        }
+    }
+
+    private IEnumerable<IAnalysisIssue> GetSupportedLanguageIssues(IEnumerable<IAnalysisIssue> issues)
+    {
+        return issues.Where(i => i.RuleKey.StartsWith("secrets:", StringComparison.InvariantCultureIgnoreCase));
     }
 
     public void RaiseHotspots(RaiseHotspotsParams parameters)
