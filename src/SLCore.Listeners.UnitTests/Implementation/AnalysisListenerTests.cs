@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
@@ -53,7 +54,7 @@ public class AnalysisListenerTests
     [TestMethod]
     public void RaiseIssues_AnalysisIDisNull_Ignores()
     {
-        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", new Dictionary<Uri, List<RaisedIssueDto>>(), false, null);
+        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", new Dictionary<FileUri, List<RaisedIssueDto>>(), false, null);
 
         var analysisService = Substitute.For<IAnalysisService>();
         var raiseIssueParamsToAnalysisIssueConverter = Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>();
@@ -69,7 +70,7 @@ public class AnalysisListenerTests
     [TestMethod]
     public void RaiseIssues_NoIssues_Ignores()
     {
-        var issuesByFileUri = new Dictionary<Uri, List<RaisedIssueDto>> { { new Uri("file://C://sometfile"), new List<RaisedIssueDto>() } };
+        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { new FileUri("file://C:/somefile"), new List<RaisedIssueDto>() } };
 
         var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, Guid.NewGuid());
 
@@ -91,7 +92,7 @@ public class AnalysisListenerTests
         var issue2 = CreateIssue("csharpsquid:S101");
         var issues = new[] { issue1, issue2 };
 
-        var issuesByFileUri = new Dictionary<Uri, List<RaisedIssueDto>> { { new Uri("file://C://somefile"), new List<RaisedIssueDto>() } };
+        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { new FileUri("file://C:/somefile"), new List<RaisedIssueDto>() } };
 
         var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, Guid.NewGuid());
 
@@ -107,6 +108,28 @@ public class AnalysisListenerTests
     }
 
     [TestMethod]
+    public void RaiseIssues_HasMoreThanOneFileUri_Throws()
+    {
+        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { new FileUri("file://C:/somefile"), new List<RaisedIssueDto>() }, { new FileUri("file://C:/someOtherfile"), new List<RaisedIssueDto>() } };
+        var testSubject = CreateTestSubject();
+
+        var act = () => testSubject.RaiseIssues(new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, Guid.NewGuid()));
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [TestMethod]
+    public void RaiseIssues_HasNoFileUri_Throws()
+    {
+        var testSubject = CreateTestSubject();
+
+        var act = () => testSubject.RaiseIssues(new RaiseIssuesParams("CONFIGURATION_ID", new Dictionary<FileUri, List<RaisedIssueDto>>(), false, Guid.NewGuid()));
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+
+    [TestMethod]
     public void RaiseIssues_HasIssues_PublishIssues()
     {
         var guid = Guid.NewGuid();
@@ -115,7 +138,7 @@ public class AnalysisListenerTests
         var issue3 = CreateIssue("secrets:S1012");
         var issues = new[] { issue1, issue2, issue3 };
 
-        var issuesByFileUri = new Dictionary<Uri, List<RaisedIssueDto>> { { new Uri("file://C://somefile"), new List<RaisedIssueDto>() } };
+        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { new FileUri("file://C:/somefile"), new List<RaisedIssueDto>() } };
 
         var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, guid);
 
@@ -126,7 +149,7 @@ public class AnalysisListenerTests
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
-        analysisService.Received(1).PublishIssues("C:\\\\somefile", guid, Arg.Is<IEnumerable<IAnalysisIssue>>(
+        analysisService.Received(1).PublishIssues("C:\\somefile", guid, Arg.Is<IEnumerable<IAnalysisIssue>>(
            publishedIssues => publishedIssues.Count() == 2 && publishedIssues.ElementAt(0) == issue2 && publishedIssues.ElementAt(1) == issue3));
         raiseIssueParamsToAnalysisIssueConverter.Received(1).GetAnalysisIssues(raiseIssuesParams);
     }
@@ -142,7 +165,7 @@ public class AnalysisListenerTests
     public void RaiseHotspots_ThrowsNotImplemented()
     {
         {
-            var raiseHotspotsParams = new RaiseHotspotsParams("CONFIGURATION_ID", new Dictionary<Uri, List<RaisedHotspotDto>>(), false, Guid.NewGuid());
+            var raiseHotspotsParams = new RaiseHotspotsParams("CONFIGURATION_ID", new Dictionary<FileUri, List<RaisedHotspotDto>>(), false, Guid.NewGuid());
 
             var testSubject = CreateTestSubject();
 
