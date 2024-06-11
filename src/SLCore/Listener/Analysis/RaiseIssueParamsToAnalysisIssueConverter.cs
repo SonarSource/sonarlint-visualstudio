@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
         private IAnalysisIssueFlow GetAnalysisIssueFlow(IssueFlowDto issueFlowDto) =>
             new AnalysisIssueFlow(issueFlowDto.locations.Select(l => GetAnalysisIssueLocation(l.fileUri.LocalPath, l.message, l.textRange)).ToList());
 
-        private IQuickFix GetQuickFix(Uri fileURi, QuickFixDto quickFixDto)
+        private IQuickFix GetQuickFix(FileUri fileURi, QuickFixDto quickFixDto)
         {
             var fileEdit = quickFixDto.inputFileEdits.Find(e => e.target == fileURi);
 

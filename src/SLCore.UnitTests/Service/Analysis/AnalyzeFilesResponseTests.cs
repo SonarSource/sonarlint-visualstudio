@@ -32,14 +32,14 @@ public class AnalyzeFilesResponseTests
     [TestMethod]
     public void Serialize_AsExpected()
     {
-        var failedFile = new Uri("file:///tmp/junit14012097140227905793/Foo.cs");
+        var failedFile = new FileUri("C:\\tmp\\junit14012097140227905793\\Foo.cs");
         var textRange = new TextRangeDto(1, 0, 1, 20);
         var rawIssueFlow = new List<RawIssueFlowDto>
         {
             new([new RawIssueLocationDto(textRange, "MESSAGE", failedFile)])
         };
 
-        var failedAnalysisFiles = new HashSet<Uri> { failedFile };
+        var failedAnalysisFiles = new HashSet<FileUri> { failedFile };
         var rawIssues = new List<RawIssueDto>
         {
             new RawIssueDto(IssueSeverity.Major, RuleType.BUG, CleanCodeAttribute.IDENTIFIABLE,
@@ -53,7 +53,7 @@ public class AnalyzeFilesResponseTests
         const string expectedString = """
                                        {
                                          "failedAnalysisFiles": [
-                                           "file:///tmp/junit14012097140227905793/Foo.cs"
+                                           "file:///C:/tmp/junit14012097140227905793/Foo.cs"
                                          ],
                                          "rawIssues": [
                                            {
@@ -63,7 +63,7 @@ public class AnalyzeFilesResponseTests
                                              "impacts": {},
                                              "ruleKey": "S123",
                                              "primaryMessage": "PRIMARY MESSAGE",
-                                             "fileUri": "file:///tmp/junit14012097140227905793/Foo.cs",
+                                             "fileUri": "file:///C:/tmp/junit14012097140227905793/Foo.cs",
                                              "flows": [
                                                {
                                                  "locations": [
@@ -75,7 +75,7 @@ public class AnalyzeFilesResponseTests
                                                        "endLineOffset": 20
                                                      },
                                                      "message": "MESSAGE",
-                                                     "fileUri": "file:///tmp/junit14012097140227905793/Foo.cs"
+                                                     "fileUri": "file:///C:/tmp/junit14012097140227905793/Foo.cs"
                                                    }
                                                  ]
                                                }
