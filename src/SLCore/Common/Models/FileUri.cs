@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Protocol;
 
@@ -39,9 +40,8 @@ public sealed class FileUri
     {
         return uri.ToString().Replace(" ", "%20");
     }
-    
-    protected bool Equals(FileUri other) => Equals(uri, other.uri);
 
+    [ExcludeFromCodeCoverage]
     public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj))
@@ -61,6 +61,8 @@ public sealed class FileUri
 
         return Equals((FileUri)obj);
     }
+
+    private bool Equals(FileUri other) => Equals(uri, other.uri);
 
     public override int GetHashCode() => uri != null ? uri.GetHashCode() : 0;
 

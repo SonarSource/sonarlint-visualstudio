@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2023 SonarSource SA
+ * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -27,12 +27,6 @@ public class FileUriConverter : JsonConverter<FileUri>
 {
     public override void WriteJson(JsonWriter writer, FileUri value, JsonSerializer serializer)
     {
-        if (value is null)
-        {
-            writer.WriteNull();
-            return;
-        }
-        
         writer.WriteValue(value.ToString());
     }
 
@@ -41,7 +35,6 @@ public class FileUriConverter : JsonConverter<FileUri>
         return reader.TokenType switch
         {
             JsonToken.String => new FileUri(reader.Value as string),
-            JsonToken.Null => null,
             _ => throw new InvalidOperationException($"Invalid token type for {nameof(FileUri)}")
         };
     }
