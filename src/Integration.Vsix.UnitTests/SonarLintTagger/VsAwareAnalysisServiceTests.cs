@@ -61,6 +61,17 @@ public class VsAwareAnalysisServiceTests
 
         analysisService.Received().IsAnalysisSupported(detectedLanguages);
     }
+    
+    [TestMethod]
+    public void CancelForFile_UsesAnalyzerService()
+    {
+        var analysisService = Substitute.For<IAnalysisService>();
+        var testSubject = CreateTestSubject(analysisService:analysisService);
+
+        testSubject.CancelForFile("file/path");
+
+        analysisService.Received().CancelForFile("file/path");
+    }
 
     [TestMethod]
     public void RequestAnalysis_ProjectInformationReturned_CreatesIssueConsumerCorrectly()
@@ -143,7 +154,7 @@ public class VsAwareAnalysisServiceTests
                 analyzerOptions);
     }
     
-    private static IVsAwareAnalysisService CreateTestSubject(IVsProjectInfoProvider projectInfoProvider = null,
+    private static VsAwareAnalysisService CreateTestSubject(IVsProjectInfoProvider projectInfoProvider = null,
         IIssueConsumerFactory issueConsumerFactory = null,
         IAnalysisService analysisService = null,
         IThreadHandling threadHandling = null)
