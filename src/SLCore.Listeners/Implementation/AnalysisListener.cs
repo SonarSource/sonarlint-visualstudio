@@ -77,11 +77,7 @@ internal class AnalysisListener : IAnalysisListener
 
     private IEnumerable<IAnalysisIssue> GetSupportedLanguageIssues(IEnumerable<IAnalysisIssue> issues)
     {
-        foreach (var language in supportedLanguages)
-        {
-            issues = issues.Where(i => IsSupportedLanguage(i.RuleKey));
-        }
-        return issues;
+        return issues.Where(i => IsSupportedLanguage(i.RuleKey));
     }
 
     private bool IsSupportedLanguage(string ruleKey)
