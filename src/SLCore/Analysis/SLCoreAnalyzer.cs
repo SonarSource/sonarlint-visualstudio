@@ -54,17 +54,12 @@ public class SLCoreAnalyzer : IAnalyzer
     public void ExecuteAnalysis(string path, Guid analysisId, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
         IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
     {   
+        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), path);
+        analysisStatusNotifier.AnalysisStarted();
+        
         if (!serviceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService))
         {
-            throw new NotImplementedException();
-        }
-        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), path);
-
-        analysisStatusNotifier.AnalysisStarted();
-
-        if (cancellationToken.IsCancellationRequested)
-        {
-            analysisStatusNotifier.AnalysisCancelled();
+            analysisStatusNotifier.AnalysisFailed("Backend not initialized");
         }
 
         ExecuteAnalysisInternalAsync(path, analysisId, analysisService, analysisStatusNotifier, cancellationToken).Forget();
@@ -102,6 +97,5 @@ public class SLCoreAnalyzer : IAnalyzer
         {
             analysisStatusNotifier.AnalysisFailed(e);
         }
-        
     }
 }
