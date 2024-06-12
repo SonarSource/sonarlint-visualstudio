@@ -67,7 +67,7 @@ internal class AnalysisListener : IAnalysisListener
             {
                 analysisService.PublishIssues(filepath, parameters.analysisId.Value, issues);
             }
-            if (parameters.isIntermediatePublication == false)
+            if (!parameters.isIntermediatePublication)
             {
                 var analysisStatusNotifier = analysisStatusNotifierFactory.Create("SLCoreAnalyzer", filepath);
                 analysisStatusNotifier.AnalysisFinished(issues.Count(), TimeSpan.Zero);
