@@ -29,5 +29,5 @@ public interface IAnalysisSLCoreService : ISLCoreService
     /// <summary>
     /// Analyze and track issues in the provided files.
     /// </summary>
-    Task<AnalyzeFilesResponse> AnalyzeFilesAndTrackAsync(AnalyzeFilesAndTrackParams parameters);
+    Task<AnalyzeFilesResponse> AnalyzeFilesAndTrackAsync(AnalyzeFilesAndTrackParams parameters, CancellationToken token);
 }
