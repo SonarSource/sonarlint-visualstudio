@@ -18,13 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Protocol;
 
 namespace SonarLint.VisualStudio.SLCore.Common.Models;
 
-[JsonConverter(typeof(FileUriConverter))]
+[TypeConverter(typeof(FileUriConverter))]
 public sealed class FileUri
 {
     private readonly Uri uri;

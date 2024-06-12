@@ -18,24 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
+using System.ComponentModel;
+using System.Globalization;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Protocol;
 
-public class FileUriConverter : JsonConverter<FileUri>
+public class FileUriConverter : TypeConverter
 {
-    public override void WriteJson(JsonWriter writer, FileUri value, JsonSerializer serializer)
-    {
-        writer.WriteValue(value.ToString());
-    }
+    public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) =>
+        sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
 
-    public override FileUri ReadJson(JsonReader reader, Type objectType, FileUri existingValue, bool hasExistingValue, JsonSerializer serializer)
-    {
-        return reader.TokenType switch
-        {
-            JsonToken.String => new FileUri(reader.Value as string),
-            _ => throw new InvalidOperationException($"Invalid token type for {nameof(FileUri)}")
-        };
-    }
+    public override object ConvertFrom(ITypeDescriptorContext context,
+        CultureInfo culture, object value) =>
+        value is string s
+            ? new FileUri(s)
+            : base.ConvertFrom(context, culture, value);
+
+    public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) => 
+        destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
+
+    public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) =>
+        value is FileUri uri && destinationType == typeof(string) 
+            ? uri.ToString() 
+            : base.ConvertTo(context, culture, value, destinationType);
 }
