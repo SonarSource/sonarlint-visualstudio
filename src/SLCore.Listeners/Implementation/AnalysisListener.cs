@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
@@ -29,14 +30,18 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class AnalysisListener : IAnalysisListener
 {
+    private readonly List<Language> supportedLanguages = new List<Language>() { Language.Secrets };
+
     private readonly IAnalysisService analysisService;
     private readonly IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter;
+    private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
 
     [ImportingConstructor]
-    public AnalysisListener(IAnalysisService analysisService, IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter)
+    public AnalysisListener(IAnalysisService analysisService, IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter, IAnalysisStatusNotifierFactory analysisStatusNotifierFactory)
     {
         this.analysisService = analysisService;
         this.raiseIssueParamsToAnalysisIssueConverter = raiseIssueParamsToAnalysisIssueConverter;
+        this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
     }
 
     public Task DidChangeAnalysisReadinessAsync(DidChangeAnalysisReadinessParams parameters)
@@ -56,15 +61,23 @@ internal class AnalysisListener : IAnalysisListener
             {
                 analysisService.PublishIssues(filepath, parameters.analysisId.Value, issues);
             }
+            var aanalysisStatusNotifier = analysisStatusNotifierFactory.Create("SLCoreAnalyzer", filepath);
+            aanalysisStatusNotifier.AnalysisFinished(issues.Count(), TimeSpan.Zero);
         }
     }
 
     private IEnumerable<IAnalysisIssue> GetSupportedLanguageIssues(IEnumerable<IAnalysisIssue> issues)
     {
-        return issues.Where(i => i.RuleKey.StartsWith("secrets:", StringComparison.InvariantCultureIgnoreCase));
+        foreach (var language in supportedLanguages)
+        {
+            issues = issues.Where(i => i.RuleKey.StartsWith(Language.GetSonarRepoKeyFromLanguage(language)));
+        }
+        return issues;
     }
 
     public void RaiseHotspots(RaiseHotspotsParams parameters)
     {
+        // no-op: We don't have hotspots in Secrets
+        // it will be implemented when we support a language that have hotspots
     }
 }

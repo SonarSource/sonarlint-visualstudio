@@ -32,7 +32,10 @@ public class AnalysisListenerTests
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<AnalysisListener, ISLCoreListener>(MefTestHelpers.CreateExport<IAnalysisService>(), MefTestHelpers.CreateExport<IRaiseIssueParamsToAnalysisIssueConverter>());
+        MefTestHelpers.CheckTypeCanBeImported<AnalysisListener, ISLCoreListener>
+            (MefTestHelpers.CreateExport<IAnalysisService>()
+            , MefTestHelpers.CreateExport<IRaiseIssueParamsToAnalysisIssueConverter>()
+            , MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>());
     }
 
     [TestMethod]
@@ -128,7 +131,6 @@ public class AnalysisListenerTests
         act.Should().Throw<InvalidOperationException>();
     }
 
-
     [TestMethod]
     public void RaiseIssues_HasIssues_PublishIssues()
     {
@@ -145,13 +147,18 @@ public class AnalysisListenerTests
         var analysisService = Substitute.For<IAnalysisService>();
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(raiseIssuesParams, issues);
 
-        var testSubject = CreateTestSubject(analysisService, raiseIssueParamsToAnalysisIssueConverter);
+        var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier);
+
+        var testSubject = CreateTestSubject(analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory);
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
         analysisService.Received(1).PublishIssues("C:\\somefile", guid, Arg.Is<IEnumerable<IAnalysisIssue>>(
            publishedIssues => publishedIssues.Count() == 2 && publishedIssues.ElementAt(0) == issue2 && publishedIssues.ElementAt(1) == issue3));
         raiseIssueParamsToAnalysisIssueConverter.Received(1).GetAnalysisIssues(raiseIssuesParams);
+
+        analysisStatusNotifier.Received(1).AnalysisFinished(2, TimeSpan.Zero);
+        analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", "C:\\somefile");
     }
 
     private static IRaiseIssueParamsToAnalysisIssueConverter CreateConverter(RaiseIssuesParams raiseIssuesParams, IAnalysisIssue[] issues)
@@ -161,8 +168,20 @@ public class AnalysisListenerTests
         return raiseIssueParamsToAnalysisIssueConverter;
     }
 
-    private AnalysisListener CreateTestSubject(IAnalysisService analysisService = null, IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = null)
-        => new AnalysisListener(analysisService ?? Substitute.For<IAnalysisService>(), raiseIssueParamsToAnalysisIssueConverter ?? Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>());
+    private AnalysisListener CreateTestSubject(IAnalysisService analysisService = null,
+        IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = null,
+        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory = null)
+        => new AnalysisListener(analysisService ?? Substitute.For<IAnalysisService>(),
+            raiseIssueParamsToAnalysisIssueConverter ?? Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>(),
+            analysisStatusNotifierFactory ?? CreateAnalysisStatusNotifierFactory(out _));
+
+    private IAnalysisStatusNotifierFactory CreateAnalysisStatusNotifierFactory(out IAnalysisStatusNotifier analysisStatusNotifier)
+    {
+        var analysisStatusNotifierFactory = Substitute.For<IAnalysisStatusNotifierFactory>();
+        analysisStatusNotifier = Substitute.For<IAnalysisStatusNotifier>();
+        analysisStatusNotifierFactory.Create(Arg.Any<string>(), Arg.Any<string>()).Returns(analysisStatusNotifier);
+        return analysisStatusNotifierFactory;
+    }
 
     private static IAnalysisIssue CreateIssue(string ruleKey)
     {
