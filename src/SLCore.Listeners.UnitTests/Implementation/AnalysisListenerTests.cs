@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
 
@@ -89,7 +90,7 @@ public class AnalysisListenerTests
     }
 
     [TestMethod]
-    public void RaiseIssues_NoSecrets_Ignores()
+    public void RaiseIssues_NoSupportedLanguages_Ignores()
     {
         var issue1 = CreateIssue("csharpsquid:S100");
         var issue2 = CreateIssue("csharpsquid:S101");
@@ -131,34 +132,43 @@ public class AnalysisListenerTests
         act.Should().Throw<InvalidOperationException>();
     }
 
+    [DataRow(true)]
+    [DataRow(false)]
     [TestMethod]
-    public void RaiseIssues_HasIssues_PublishIssues()
+    public void RaiseIssues_HasIssues_PublishIssues(bool isIntermediatePublication)
     {
         var guid = Guid.NewGuid();
         var issue1 = CreateIssue("csharpsquid:S100");
-        var issue2 = CreateIssue("secrets:S101");
+        var issue2 = CreateIssue("javascript:S101");
         var issue3 = CreateIssue("secrets:S1012");
         var issues = new[] { issue1, issue2, issue3 };
 
         var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { new FileUri("file://C:/somefile"), new List<RaisedIssueDto>() } };
 
-        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, guid);
+        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, isIntermediatePublication, guid);
 
         var analysisService = Substitute.For<IAnalysisService>();
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(raiseIssuesParams, issues);
 
         var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier);
 
-        var testSubject = CreateTestSubject(analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory);
+        var testSubject = CreateTestSubject(analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory, new List<Language> { Language.Secrets, Language.CSharp });
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
         analysisService.Received(1).PublishIssues("C:\\somefile", guid, Arg.Is<IEnumerable<IAnalysisIssue>>(
-           publishedIssues => publishedIssues.Count() == 2 && publishedIssues.ElementAt(0) == issue2 && publishedIssues.ElementAt(1) == issue3));
+           publishedIssues => publishedIssues.Count() == 2 && publishedIssues.ElementAt(0) == issue1 && publishedIssues.ElementAt(1) == issue3));
         raiseIssueParamsToAnalysisIssueConverter.Received(1).GetAnalysisIssues(raiseIssuesParams);
 
-        analysisStatusNotifier.Received(1).AnalysisFinished(2, TimeSpan.Zero);
-        analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", "C:\\somefile");
+        if (isIntermediatePublication)
+        {
+            analysisStatusNotifierFactory.DidNotReceive().Create(Arg.Any<string>(), Arg.Any<string>());
+        }
+        else
+        {
+            analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", "C:\\somefile");
+            analysisStatusNotifier.Received(1).AnalysisFinished(2, TimeSpan.Zero);
+        }
     }
 
     private static IRaiseIssueParamsToAnalysisIssueConverter CreateConverter(RaiseIssuesParams raiseIssuesParams, IAnalysisIssue[] issues)
@@ -170,10 +180,12 @@ public class AnalysisListenerTests
 
     private AnalysisListener CreateTestSubject(IAnalysisService analysisService = null,
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = null,
-        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory = null)
+        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory = null,
+        IEnumerable<Language> languages = null)
         => new AnalysisListener(analysisService ?? Substitute.For<IAnalysisService>(),
             raiseIssueParamsToAnalysisIssueConverter ?? Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>(),
-            analysisStatusNotifierFactory ?? CreateAnalysisStatusNotifierFactory(out _));
+            analysisStatusNotifierFactory ?? CreateAnalysisStatusNotifierFactory(out _),
+            languages ?? new List<Language>() { Language.Secrets });
 
     private IAnalysisStatusNotifierFactory CreateAnalysisStatusNotifierFactory(out IAnalysisStatusNotifier analysisStatusNotifier)
     {

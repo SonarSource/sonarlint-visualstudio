@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class AnalysisListener : IAnalysisListener
 {
-    private readonly List<Language> supportedLanguages = new List<Language>() { Language.Secrets };
+    private readonly IEnumerable<Language> supportedLanguages = new List<Language>() { Language.Secrets };
 
     private readonly IAnalysisService analysisService;
     private readonly IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter;
@@ -42,6 +42,12 @@ internal class AnalysisListener : IAnalysisListener
         this.analysisService = analysisService;
         this.raiseIssueParamsToAnalysisIssueConverter = raiseIssueParamsToAnalysisIssueConverter;
         this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
+    }
+
+    internal AnalysisListener(IAnalysisService analysisService, IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter, IAnalysisStatusNotifierFactory analysisStatusNotifierFactory, IEnumerable<Language> supportedLanguages)
+        : this(analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory)
+    {
+        this.supportedLanguages = supportedLanguages;
     }
 
     public Task DidChangeAnalysisReadinessAsync(DidChangeAnalysisReadinessParams parameters)
@@ -61,8 +67,11 @@ internal class AnalysisListener : IAnalysisListener
             {
                 analysisService.PublishIssues(filepath, parameters.analysisId.Value, issues);
             }
-            var aanalysisStatusNotifier = analysisStatusNotifierFactory.Create("SLCoreAnalyzer", filepath);
-            aanalysisStatusNotifier.AnalysisFinished(issues.Count(), TimeSpan.Zero);
+            if (parameters.isIntermediatePublication == false)
+            {
+                var analysisStatusNotifier = analysisStatusNotifierFactory.Create("SLCoreAnalyzer", filepath);
+                analysisStatusNotifier.AnalysisFinished(issues.Count(), TimeSpan.Zero);
+            }
         }
     }
 
@@ -70,9 +79,14 @@ internal class AnalysisListener : IAnalysisListener
     {
         foreach (var language in supportedLanguages)
         {
-            issues = issues.Where(i => i.RuleKey.StartsWith(Language.GetSonarRepoKeyFromLanguage(language)));
+            issues = issues.Where(i => IsSupportedLanguage(i.RuleKey));
         }
         return issues;
+    }
+
+    private bool IsSupportedLanguage(string ruleKey)
+    {
+        return supportedLanguages.Any(l => ruleKey.StartsWith(Language.GetSonarRepoKeyFromLanguage(l)));
     }
 
     public void RaiseHotspots(RaiseHotspotsParams parameters)
