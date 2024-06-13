@@ -59,7 +59,7 @@ internal class AnalysisListener : IAnalysisListener
 
     public void RaiseIssues(RaiseIssuesParams parameters)
     {
-        if (!parameters.analysisId.HasValue)
+        if (!parameters.analysisId.HasValue || parameters.isIntermediatePublication)
         {
             return;
         }
@@ -72,19 +72,16 @@ internal class AnalysisListener : IAnalysisListener
         if (supportedRaisedIssues.Any())
         {
             analysisService.PublishIssues(fileUri.LocalPath,
-                parameters.analysisId.Value,
-                raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
-        }
+               parameters.analysisId.Value,
+               raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
 
-        if (!parameters.isIntermediatePublication)
-        {
             var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), fileUri.LocalPath);
-            analysisStatusNotifier.AnalysisFinished(supportedRaisedIssues.Count(), TimeSpan.Zero);
+            analysisStatusNotifier.AnalysisFinished(supportedRaisedIssues.Length, TimeSpan.Zero);
         }
     }
 
-    private IEnumerable<RaisedIssueDto> GetSupportedLanguageIssues(IEnumerable<RaisedIssueDto> issues) =>
-        issues.Where(i => IsSupportedLanguage(i.ruleKey));
+    private RaisedIssueDto[] GetSupportedLanguageIssues(IEnumerable<RaisedIssueDto> issues) =>
+        issues.Where(i => IsSupportedLanguage(i.ruleKey)).ToArray();
 
     private bool IsSupportedLanguage(string ruleKey) =>
         Array.Exists(supportedLanguages, l => ruleKey.StartsWith(Language.GetSonarRepoKeyFromLanguage(l)));
