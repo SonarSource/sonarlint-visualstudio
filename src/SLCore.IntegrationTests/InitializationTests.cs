@@ -83,7 +83,7 @@ public class InitializationTests
 
     private static void VerifyAnalysisReadinessReached(IAnalysisListener analysisListener, string configScopeId)
     {
-        analysisListener.Received(1).DidChangeAnalysisReadinessAsync(
+        analysisListener.Received(1).DidChangeAnalysisReadiness(
             Arg.Is<DidChangeAnalysisReadinessParams>(d =>
                 d.areReadyForAnalysis && d.configurationScopeIds.Contains(configScopeId)));
     }
@@ -101,15 +101,10 @@ public class InitializationTests
         TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource)
     {
         var analysisListener = Substitute.For<IAnalysisListener>();
-        analysisListener
-            .DidChangeAnalysisReadinessAsync(
-                Arg.Is<DidChangeAnalysisReadinessParams>(a =>
-                    a.areReadyForAnalysis && a.configurationScopeIds.Contains(configScopeId)))
-            .Returns(info =>
-            {
-                analysisReadyCompletionSource.SetResult(info.Arg<DidChangeAnalysisReadinessParams>());
-                return Task.CompletedTask;
-            });
+        analysisListener.When(l =>
+            l.DidChangeAnalysisReadiness(Arg.Is<DidChangeAnalysisReadinessParams>(a =>
+                    a.areReadyForAnalysis && a.configurationScopeIds.Contains(configScopeId))))
+            .Do(info => analysisReadyCompletionSource.SetResult(info.Arg<DidChangeAnalysisReadinessParams>()));
         return analysisListener;
     }
 

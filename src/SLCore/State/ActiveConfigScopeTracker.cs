@@ -41,13 +41,16 @@ public interface IActiveConfigScopeTracker : IDisposable
     void RemoveCurrentConfigScope();
 
     bool TryUpdateRootOnCurrentConfigScope(string id, string root);
+
+    bool TryUpdateAnalysisReadinessOnCurrentConfigScope(string id, bool isReady);
 }
 
 public record ConfigurationScope(
     string Id,
     string ConnectionId = null,
     string SonarProjectId = null,
-    string RootPath = null)
+    string RootPath = null,
+    bool isReadyForAnalysis = false)
 {
     public string Id { get; } = Id ?? throw new ArgumentNullException(nameof(Id));
 }
@@ -155,6 +158,20 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             }
 
             currentConfigScope = currentConfigScope with { RootPath = root };
+            return true;
+        }
+    }
+
+    public bool TryUpdateAnalysisReadinessOnCurrentConfigScope(string id, bool isReady)
+    {
+        using (asyncLock.Acquire())
+        {
+            if (id is null || currentConfigScope?.Id != id)
+            {
+                return false;
+            }
+            
+            currentConfigScope = currentConfigScope with { isReadyForAnalysis = isReady};
             return true;
         }
     }

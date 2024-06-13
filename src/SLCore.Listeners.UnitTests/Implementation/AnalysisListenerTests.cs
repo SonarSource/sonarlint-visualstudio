@@ -18,11 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
+using SonarLint.VisualStudio.SLCore.State;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
@@ -33,10 +35,12 @@ public class AnalysisListenerTests
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<AnalysisListener, ISLCoreListener>
-            (MefTestHelpers.CreateExport<IAnalysisService>()
-            , MefTestHelpers.CreateExport<IRaiseIssueParamsToAnalysisIssueConverter>()
-            , MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>());
+        MefTestHelpers.CheckTypeCanBeImported<AnalysisListener, ISLCoreListener>(
+            MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
+            MefTestHelpers.CreateExport<IAnalysisService>(),
+            MefTestHelpers.CreateExport<IRaiseIssueParamsToAnalysisIssueConverter>(),
+            MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
+            MefTestHelpers.CreateExport<ILogger>());
     }
 
     [TestMethod]
@@ -46,13 +50,33 @@ public class AnalysisListenerTests
     }
 
     [TestMethod]
-    public void DidChangeAnalysisReadiness_DoesNothing()
+    public void DidChangeAnalysisReadiness_NotSuccessful_LogsConfigScopeConflict()
     {
-        var testSubject = CreateTestSubject();
+        var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        activeConfigScopeTracker.TryUpdateAnalysisReadinessOnCurrentConfigScope(Arg.Any<string>(), Arg.Any<bool>()).Returns(false);
+        var testLogger = new TestLogger();
+        var testSubject = CreateTestSubject(activeConfigScopeTracker, logger: testLogger);
+    
+        testSubject.DidChangeAnalysisReadiness(new DidChangeAnalysisReadinessParams(new List<string> { "id" }, true));
 
-        var result = testSubject.DidChangeAnalysisReadinessAsync(new DidChangeAnalysisReadinessParams(new List<string> { "id" }, true));
+        activeConfigScopeTracker.Received().TryUpdateAnalysisReadinessOnCurrentConfigScope("id", true);
+        testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AnalysisReadinessUpdate, SLCoreStrings.ConfigScopeConflict));
+    }
+    
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void DidChangeAnalysisReadiness_Successful_LogsState(bool value)
+    {
+        var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        activeConfigScopeTracker.TryUpdateAnalysisReadinessOnCurrentConfigScope(Arg.Any<string>(), Arg.Any<bool>()).Returns(true);
+        var testLogger = new TestLogger();
+        var testSubject = CreateTestSubject(activeConfigScopeTracker, logger: testLogger);
+    
+        testSubject.DidChangeAnalysisReadiness(new DidChangeAnalysisReadinessParams(new List<string> { "id" }, value));
 
-        result.Status.Should().Be(TaskStatus.RanToCompletion);
+        activeConfigScopeTracker.Received().TryUpdateAnalysisReadinessOnCurrentConfigScope("id", value);
+        testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AnalysisReadinessUpdate, value));
     }
 
     [TestMethod]
@@ -63,7 +87,7 @@ public class AnalysisListenerTests
         var analysisService = Substitute.For<IAnalysisService>();
         var raiseIssueParamsToAnalysisIssueConverter = Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>();
 
-        var testSubject = CreateTestSubject(analysisService, raiseIssueParamsToAnalysisIssueConverter);
+        var testSubject = CreateTestSubject(analysisService: analysisService, raiseIssueParamsToAnalysisIssueConverter: raiseIssueParamsToAnalysisIssueConverter);
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
@@ -81,7 +105,7 @@ public class AnalysisListenerTests
         var analysisService = Substitute.For<IAnalysisService>();
         var raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, Array.Empty<IAnalysisIssue>());
 
-        var testSubject = CreateTestSubject(analysisService, raiseIssueParamsToAnalysisIssueConverter);
+        var testSubject = CreateTestSubject(analysisService: analysisService, raiseIssueParamsToAnalysisIssueConverter: raiseIssueParamsToAnalysisIssueConverter);
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
@@ -103,7 +127,7 @@ public class AnalysisListenerTests
         var analysisService = Substitute.For<IAnalysisService>();
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, issues);
 
-        var testSubject = CreateTestSubject(analysisService, raiseIssueParamsToAnalysisIssueConverter);
+        var testSubject = CreateTestSubject(analysisService: analysisService, raiseIssueParamsToAnalysisIssueConverter: raiseIssueParamsToAnalysisIssueConverter);
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
@@ -156,7 +180,7 @@ public class AnalysisListenerTests
 
         var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier);
 
-        var testSubject = CreateTestSubject(analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory, [Language.Secrets, Language.CSharp]);
+        var testSubject = CreateTestSubject(analysisService: analysisService, raiseIssueParamsToAnalysisIssueConverter: raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory: analysisStatusNotifierFactory, languages: [Language.Secrets, Language.CSharp]);
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
@@ -182,13 +206,17 @@ public class AnalysisListenerTests
         return raiseIssueParamsToAnalysisIssueConverter;
     }
 
-    private AnalysisListener CreateTestSubject(IAnalysisService analysisService = null,
+    private AnalysisListener CreateTestSubject(IActiveConfigScopeTracker activeConfigScopeTracker = null,
+        IAnalysisService analysisService = null,
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = null,
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory = null,
+        ILogger logger = null,
         Language[] languages = null)
-        => new(analysisService ?? Substitute.For<IAnalysisService>(),
+        => new(activeConfigScopeTracker ?? Substitute.For<IActiveConfigScopeTracker>(),
+            analysisService ?? Substitute.For<IAnalysisService>(),
             raiseIssueParamsToAnalysisIssueConverter ?? Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>(),
             analysisStatusNotifierFactory ?? CreateAnalysisStatusNotifierFactory(out _),
+            logger ?? new TestLogger(),
             languages ?? [Language.Secrets]);
 
     private IAnalysisStatusNotifierFactory CreateAnalysisStatusNotifierFactory(out IAnalysisStatusNotifier analysisStatusNotifier)
