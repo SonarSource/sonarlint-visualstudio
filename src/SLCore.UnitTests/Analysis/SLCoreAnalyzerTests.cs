@@ -127,18 +127,17 @@ public class SLCoreAnalyzerTests
             Arg.Any<CancellationToken>());
     }
     
-    [DataTestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void ExecuteAnalysis_PassesCorrectCancellationTokenToAnalysisService(bool isTokenCancelled)
+    [TestMethod]
+    public void ExecuteAnalysis_PassesCorrectCancellationTokenToAnalysisService()
     {
+        var cancellationTokenSource = new CancellationTokenSource();
         var analysisId = Guid.NewGuid();
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"));
 
-        testSubject.ExecuteAnalysis(@"C:\file\path", analysisId, default, default, default, default, new CancellationToken(isTokenCancelled));
+        testSubject.ExecuteAnalysis(@"C:\file\path", analysisId, default, default, default, default, cancellationTokenSource.Token);
         
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Any<AnalyzeFilesAndTrackParams>(),
-            Arg.Is<CancellationToken>(t => t.IsCancellationRequested == isTokenCancelled));
+            cancellationTokenSource.Token);
     }
     
     [TestMethod]
