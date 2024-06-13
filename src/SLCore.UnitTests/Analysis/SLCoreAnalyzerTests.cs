@@ -122,8 +122,8 @@ public class SLCoreAnalyzerTests
                 && a.filesToAnalyze.Single() == new FileUri(@"C:\file\path")
                 && a.extraProperties != null
                 && a.shouldFetchServerIssues
-                && a.startTime > timestampTestStart
-                && a.startTime < timestampTestAssert),
+                && a.startTime >= timestampTestStart
+                && a.startTime <= timestampTestAssert),
             Arg.Any<CancellationToken>());
     }
     
