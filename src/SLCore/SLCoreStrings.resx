@@ -120,7 +120,7 @@
   <data name="SLCoreServiceProvider_CreateServiceError" xml:space="preserve">
     <value>[SLCoreServiceProvider]Cannot Create Service. Error: {0}</value>
   </data>
-  <data name="ServiceProviderNotInitialized" xml:space="preserve">
+  <data name="  ServiceProviderNotInitialized" xml:space="preserve">
     <value>Service Provider is unavailable</value>
   </data>
   <data name="SLCoreHandler_InstanceAlreadyRunning" xml:space="preserve">
@@ -152,5 +152,11 @@
   </data>
   <data name="ModelExtensions_UnexpectedValue" xml:space="preserve">
     <value>Unexpected enum value</value>
+  </data>
+  <data name="AnalysisFailedReason" xml:space="preserve">
+    <value>Internal analysis failure. See logs above.</value>
+  </data>
+  <data name="ConfigScopeNotInitialized" xml:space="preserve">
+    <value>Configuration scope not initialized</value>
   </data>
 </root>

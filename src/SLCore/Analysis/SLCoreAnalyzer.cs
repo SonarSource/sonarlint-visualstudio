@@ -57,15 +57,24 @@ public class SLCoreAnalyzer : IAnalyzer
         var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), path);
         analysisStatusNotifier.AnalysisStarted();
         
+        var configurationScope = activeConfigScopeTracker.Current;
+        if (configurationScope is null)
+        {
+            analysisStatusNotifier.AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
+            return;
+        }
+        
         if (!serviceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService))
         {
-            analysisStatusNotifier.AnalysisFailed("Backend not initialized");
+            analysisStatusNotifier.AnalysisFailed(SLCoreStrings.ServiceProviderNotInitialized);
+            return;
         }
-
-        ExecuteAnalysisInternalAsync(path, analysisId, analysisService, analysisStatusNotifier, cancellationToken).Forget();
+        
+        ExecuteAnalysisInternalAsync(path, configurationScope.Id, analysisId, analysisService, analysisStatusNotifier, cancellationToken).Forget();
     }
 
-    private async Task ExecuteAnalysisInternalAsync(string path, 
+    private async Task ExecuteAnalysisInternalAsync(string path,
+        string configScopeId,
         Guid analysisId, 
         IAnalysisSLCoreService analysisService,
         IAnalysisStatusNotifier analysisStatusNotifier,
@@ -75,7 +84,7 @@ public class SLCoreAnalyzer : IAnalyzer
         {
             var (failedAnalysisFiles, _) = await analysisService.AnalyzeFilesAndTrackAsync(
                 new AnalyzeFilesAndTrackParams(
-                    activeConfigScopeTracker.Current.Id,
+                    configScopeId,
                     analysisId,
                     [new FileUri(path)],
                     [],
@@ -85,7 +94,7 @@ public class SLCoreAnalyzer : IAnalyzer
 
             if (failedAnalysisFiles.Any())
             {
-                analysisStatusNotifier.AnalysisFailed("Analysis failed.");
+                analysisStatusNotifier.AnalysisFailed(SLCoreStrings.AnalysisFailedReason);
             }
 
         }
