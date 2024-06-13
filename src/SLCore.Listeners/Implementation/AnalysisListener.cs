@@ -66,7 +66,7 @@ internal class AnalysisListener : IAnalysisListener
         var fileUri = parameters.issuesByFileUri.Single().Key;
         var raisedIssues = parameters.issuesByFileUri.Single().Value;
 
-        var supportedRaisedIssues = GetSupportedLanguageIssues(raisedIssues).ToList();
+        var supportedRaisedIssues = GetSupportedLanguageIssues(raisedIssues);
 
         if (supportedRaisedIssues.Any())
         {
@@ -74,19 +74,19 @@ internal class AnalysisListener : IAnalysisListener
                 parameters.analysisId.Value,
                 raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
         }
-            
+
         if (!parameters.isIntermediatePublication)
         {
             var analysisStatusNotifier = analysisStatusNotifierFactory.Create("SLCoreAnalyzer", fileUri.LocalPath);
-            analysisStatusNotifier.AnalysisFinished(supportedRaisedIssues.Count, TimeSpan.Zero);
+            analysisStatusNotifier.AnalysisFinished(supportedRaisedIssues.Count(), TimeSpan.Zero);
         }
     }
 
-    private IEnumerable<RaisedIssueDto> GetSupportedLanguageIssues(IEnumerable<RaisedIssueDto> issues) => 
+    private IEnumerable<RaisedIssueDto> GetSupportedLanguageIssues(IEnumerable<RaisedIssueDto> issues) =>
         issues.Where(i => IsSupportedLanguage(i.ruleKey));
 
-    private bool IsSupportedLanguage(string ruleKey) => 
-        supportedLanguages.Any(l => ruleKey.StartsWith(Language.GetSonarRepoKeyFromLanguage(l)));
+    private bool IsSupportedLanguage(string ruleKey) =>
+        Array.Exists(supportedLanguages, l => ruleKey.StartsWith(Language.GetSonarRepoKeyFromLanguage(l)));
 
     public void RaiseHotspots(RaiseHotspotsParams parameters)
     {
