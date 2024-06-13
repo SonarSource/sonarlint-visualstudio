@@ -156,10 +156,8 @@ public class AnalysisListenerTests
         act.Should().Throw<InvalidOperationException>();
     }
 
-    [DataRow(true)]
-    [DataRow(false)]
     [TestMethod]
-    public void RaiseIssues_HasIssues_PublishIssues(bool isIntermediatePublication)
+    public void RaiseIssues_HasIssuesNotIntermediate_PublishIssues()
     {
         var guid = Guid.NewGuid();
         var issue1 = CreateIssue("csharpsquid:S100");
@@ -173,7 +171,7 @@ public class AnalysisListenerTests
 
         var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { new FileUri("file://C:/somefile"), raisedIssues } };
 
-        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, isIntermediatePublication, guid);
+        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, guid);
 
         var analysisService = Substitute.For<IAnalysisService>();
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, filteredIssues);
@@ -188,15 +186,28 @@ public class AnalysisListenerTests
         raiseIssueParamsToAnalysisIssueConverter.Received(1).GetAnalysisIssues(issuesByFileUri.Single().Key, Arg.Is<IEnumerable<RaisedIssueDto>>(
             filteredIssues => filteredIssues.Count() == 2 && filteredIssues.ElementAt(0) == raisedIssue1 && filteredIssues.ElementAt(1) == raisedIssue3));
 
-        if (isIntermediatePublication)
-        {
-            analysisStatusNotifierFactory.DidNotReceive().Create(Arg.Any<string>(), Arg.Any<string>());
-        }
-        else
-        {
-            analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", "C:\\somefile");
-            analysisStatusNotifier.Received(1).AnalysisFinished(2, TimeSpan.Zero);
-        }
+        analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", "C:\\somefile");
+        analysisStatusNotifier.Received(1).AnalysisFinished(2, TimeSpan.Zero);
+    }
+
+    [TestMethod]
+    public void RaiseIssues_HasIssuesIntermediate_DoNotPublishIssues()
+    {
+        var raisedIssue1 = CreateRaisedIssueDto("csharpsquid:S100");
+        var raisedIssue2 = CreateRaisedIssueDto("javascript:S101");
+        var raisedIssue3 = CreateRaisedIssueDto("secrets:S1012");
+        var raisedIssues = new List<RaisedIssueDto> { raisedIssue1, raisedIssue2, raisedIssue3 };
+
+        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { new FileUri("file://C:/somefile"), raisedIssues } };
+        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, true, Guid.NewGuid());
+
+        var analysisService = Substitute.For<IAnalysisService>();
+
+        var testSubject = CreateTestSubject(analysisService);
+
+        testSubject.RaiseIssues(raiseIssuesParams);
+
+        analysisService.DidNotReceive().PublishIssues(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<IEnumerable<IAnalysisIssue>>());
     }
 
     private static IRaiseIssueParamsToAnalysisIssueConverter CreateConverter(FileUri fileUri, IAnalysisIssue[] issues)
