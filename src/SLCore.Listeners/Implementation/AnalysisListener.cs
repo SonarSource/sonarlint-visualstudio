@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
+using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
@@ -33,28 +34,49 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 internal class AnalysisListener : IAnalysisListener
 {
     private readonly Language[] supportedLanguages;
-
+    private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IAnalysisService analysisService;
     private readonly IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter;
     private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
+    private readonly ILogger logger;
 
     [ImportingConstructor]
-    public AnalysisListener(IAnalysisService analysisService, IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter, IAnalysisStatusNotifierFactory analysisStatusNotifierFactory)
-       : this(analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory, [Language.Secrets])
+    public AnalysisListener(IActiveConfigScopeTracker activeConfigScopeTracker,
+        IAnalysisService analysisService,
+        IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter,
+        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
+        ILogger logger)
+       : this(activeConfigScopeTracker, analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory, logger, [Language.Secrets])
     {
     }
 
-    internal AnalysisListener(IAnalysisService analysisService, IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter, IAnalysisStatusNotifierFactory analysisStatusNotifierFactory, Language[] supportedLanguages)
+    internal AnalysisListener(IActiveConfigScopeTracker activeConfigScopeTracker,
+        IAnalysisService analysisService,
+        IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter,
+        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
+        ILogger logger,
+        Language[] supportedLanguages)
     {
+        this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.supportedLanguages = supportedLanguages;
         this.analysisService = analysisService;
         this.raiseIssueParamsToAnalysisIssueConverter = raiseIssueParamsToAnalysisIssueConverter;
         this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
+        this.logger = logger;
     }
 
-    public Task DidChangeAnalysisReadinessAsync(DidChangeAnalysisReadinessParams parameters)
+    public void DidChangeAnalysisReadiness(DidChangeAnalysisReadinessParams parameters)
     {
-        return Task.CompletedTask;
+        var configScopeId = parameters.configurationScopeIds.Single();
+
+        if (activeConfigScopeTracker.TryUpdateAnalysisReadinessOnCurrentConfigScope(configScopeId, parameters.areReadyForAnalysis))
+        {
+            logger.WriteLine(SLCoreStrings.AnalysisReadinessUpdate, parameters.areReadyForAnalysis);
+        }
+        else
+        {
+            logger.WriteLine(SLCoreStrings.AnalysisReadinessUpdate, SLCoreStrings.ConfigScopeConflict);   
+        }
     }
 
     public void RaiseIssues(RaiseIssuesParams parameters)
