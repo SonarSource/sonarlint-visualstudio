@@ -159,4 +159,7 @@
   <data name="ConfigScopeNotInitialized" xml:space="preserve">
     <value>Configuration scope not initialized</value>
   </data>
+  <data name="AnalysisReadinessUpdate" xml:space="preserve">
+    <value>Updated analysis readiness: {0}</value>
+  </data>
 </root>

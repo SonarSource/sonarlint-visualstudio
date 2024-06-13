@@ -94,6 +94,20 @@ public class SLCoreAnalyzerTests
     }
     
     [TestMethod]
+    public void ExecuteAnalysis_ConfigScopeNotReadyForAnalysis_NotifyNotReady()
+    {
+        var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope("someconfigscopeid", isReadyForAnalysis: false));
+        var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), activeConfigScopeTracker, CreateDefaultAnalysisStatusNotifier(out var notifier));
+        
+        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default, default);
+
+        _ = activeConfigScopeTracker.Received().Current;
+        analysisService.ReceivedCalls().Should().BeEmpty();
+        notifier.Received().AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
+    }
+    
+    [TestMethod]
     public void ExecuteAnalysis_ServiceProviderUnavailable_NotifyFailed()
     {
         var slCoreServiceProvider = CreatServiceProvider(out var analysisService, false);
@@ -206,7 +220,7 @@ public class SLCoreAnalyzerTests
     private static IActiveConfigScopeTracker CreateInitializedConfigScope(string id)
     {
         var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
-        activeConfigScopeTracker.Current.Returns(new ConfigurationScope(id));
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope(id, isReadyForAnalysis: true));
         return activeConfigScopeTracker;
     }
 

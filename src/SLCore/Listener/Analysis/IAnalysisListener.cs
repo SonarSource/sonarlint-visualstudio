@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
 internal interface IAnalysisListener : ISLCoreListener
 {
-    Task DidChangeAnalysisReadinessAsync(DidChangeAnalysisReadinessParams parameters);
+    void DidChangeAnalysisReadiness(DidChangeAnalysisReadinessParams parameters);
 
     void RaiseIssues(RaiseIssuesParams parameters);
     
