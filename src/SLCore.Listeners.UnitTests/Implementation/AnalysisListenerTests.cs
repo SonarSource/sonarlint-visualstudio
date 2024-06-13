@@ -156,7 +156,7 @@ public class AnalysisListenerTests
 
         var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier);
 
-        var testSubject = CreateTestSubject(analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory, new List<Language> { Language.Secrets, Language.CSharp });
+        var testSubject = CreateTestSubject(analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory, [Language.Secrets, Language.CSharp]);
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
@@ -185,11 +185,11 @@ public class AnalysisListenerTests
     private AnalysisListener CreateTestSubject(IAnalysisService analysisService = null,
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = null,
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory = null,
-        IEnumerable<Language> languages = null)
-        => new AnalysisListener(analysisService ?? Substitute.For<IAnalysisService>(),
+        Language[] languages = null)
+        => new(analysisService ?? Substitute.For<IAnalysisService>(),
             raiseIssueParamsToAnalysisIssueConverter ?? Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>(),
             analysisStatusNotifierFactory ?? CreateAnalysisStatusNotifierFactory(out _),
-            languages ?? new List<Language>() { Language.Secrets });
+            languages ?? [Language.Secrets]);
 
     private IAnalysisStatusNotifierFactory CreateAnalysisStatusNotifierFactory(out IAnalysisStatusNotifier analysisStatusNotifier)
     {

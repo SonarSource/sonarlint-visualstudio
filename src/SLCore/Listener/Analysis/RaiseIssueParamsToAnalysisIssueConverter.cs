@@ -30,57 +30,41 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class RaiseIssueParamsToAnalysisIssueConverter : IRaiseIssueParamsToAnalysisIssueConverter
     {
-        public IEnumerable<IAnalysisIssue> GetAnalysisIssues(FileUri fileUri, IEnumerable<RaisedIssueDto> raisedIssues)
-        {
-            var result = new List<IAnalysisIssue>();
-
-            foreach (var item in raisedIssues)
-            {
-                result.Add(new AnalysisIssue
-                    (item.ruleKey,
+        public IEnumerable<IAnalysisIssue> GetAnalysisIssues(FileUri fileUri, IEnumerable<RaisedIssueDto> raisedIssues) => 
+            raisedIssues
+                .Select(item => new AnalysisIssue(item.ruleKey,
                     item.severity.ToAnalysisIssueSeverity(),
                     item.type.ToAnalysisIssueType(),
                     GetHighestSoftwareQualitySeverity(item.impacts),
                     GetAnalysisIssueLocation(fileUri.LocalPath, item.primaryMessage, item.textRange),
                     item.flows?.Select(GetAnalysisIssueFlow).ToList(),
                     item.quickFixes?.Select(qf => GetQuickFix(fileUri, qf)).Where(qf => qf is not null).ToList(),
-                    item.ruleDescriptionContextKey
-                    ));
-            }
+                    item.ruleDescriptionContextKey))
+                .ToList();
 
-            return result;
-        }
+        private static SoftwareQualitySeverity? GetHighestSoftwareQualitySeverity(List<ImpactDto> impacts) => 
+            impacts is not null && impacts.Any() 
+                ? impacts.Max(i => i.impactSeverity).ToSoftwareQualitySeverity() 
+                : null;
 
-        private SoftwareQualitySeverity? GetHighestSoftwareQualitySeverity(IEnumerable<ImpactDto> impacts)
-        {
-            if (impacts is not null && impacts.Any())
-            {
-                return impacts.Max(i => i.impactSeverity).ToSoftwareQualitySeverity();
-            }
-            return null;
-        }
+        private static IAnalysisIssueLocation GetAnalysisIssueLocation(string filePath, string message, TextRangeDto textRangeDto) => 
+            new AnalysisIssueLocation(message,
+                filePath,
+                new TextRange(textRangeDto.startLine,
+                    textRangeDto.endLine,
+                    textRangeDto.startLineOffset,
+                    textRangeDto.endLineOffset,
+                    null));
 
-        private IAnalysisIssueLocation GetAnalysisIssueLocation(string filePath, string message, TextRangeDto textRangeDto)
-        {
-            var textRange = new TextRange(textRangeDto.startLine, textRangeDto.endLine, textRangeDto.startLineOffset, textRangeDto.endLineOffset, null);
-
-            return new AnalysisIssueLocation(message, filePath, textRange);
-        }
-
-        private IAnalysisIssueFlow GetAnalysisIssueFlow(IssueFlowDto issueFlowDto) =>
+        private static IAnalysisIssueFlow GetAnalysisIssueFlow(IssueFlowDto issueFlowDto) =>
             new AnalysisIssueFlow(issueFlowDto.locations.Select(l => GetAnalysisIssueLocation(l.fileUri.LocalPath, l.message, l.textRange)).ToList());
 
-        private IQuickFix GetQuickFix(FileUri fileURi, QuickFixDto quickFixDto)
-        {
-            var fileEdit = quickFixDto.inputFileEdits.Find(e => e.target == fileURi);
+        private static IQuickFix GetQuickFix(FileUri fileURi, QuickFixDto quickFixDto) =>
+            quickFixDto.inputFileEdits.Find(e => e.target == fileURi) is { } fileEdit
+                ? new QuickFix(quickFixDto.message, fileEdit.textEdits.Select(GetEdit).ToList())
+                : null;
 
-            if (fileEdit is not null)
-            {
-                return new QuickFix(quickFixDto.message, fileEdit.textEdits.Select(GetEdit).ToList());
-            }
-            return null;
-        }
-
-        private IEdit GetEdit(TextEditDto textEdit) => new Edit(textEdit.newText, new TextRange(textEdit.range.startLine, textEdit.range.endLine, textEdit.range.startLineOffset, textEdit.range.endLineOffset, null));
+        private static IEdit GetEdit(TextEditDto textEdit) => 
+            new Edit(textEdit.newText, new TextRange(textEdit.range.startLine, textEdit.range.endLine, textEdit.range.startLineOffset, textEdit.range.endLineOffset, null));
     }
 }
