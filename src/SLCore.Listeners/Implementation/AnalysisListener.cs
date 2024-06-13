@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
@@ -77,7 +78,7 @@ internal class AnalysisListener : IAnalysisListener
 
         if (!parameters.isIntermediatePublication)
         {
-            var analysisStatusNotifier = analysisStatusNotifierFactory.Create("SLCoreAnalyzer", fileUri.LocalPath);
+            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), fileUri.LocalPath);
             analysisStatusNotifier.AnalysisFinished(supportedRaisedIssues.Count(), TimeSpan.Zero);
         }
     }

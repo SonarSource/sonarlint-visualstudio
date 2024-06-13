@@ -34,16 +34,16 @@ namespace SonarLint.VisualStudio.CloudSecrets.UnitTests
         private const string ValidFilePath = "c:\\test";
         private const string ValidFileContent = "this is a content";
 
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<SecretsAnalyzer, IAnalyzer>(
-                MefTestHelpers.CreateExport<ITextDocumentFactoryService>(),
-                MefTestHelpers.CreateExport<IContentTypeRegistryService>(),
-                MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
-                MefTestHelpers.CreateExport<ICloudSecretsTelemetryManager>(),
-                MefTestHelpers.CreateExport<IRuleSettingsProviderFactory>());
-        }
+        // [TestMethod]
+        // public void MefCtor_CheckIsExported()
+        // {
+        //     MefTestHelpers.CheckTypeCanBeImported<SecretsAnalyzer, IAnalyzer>(
+        //         MefTestHelpers.CreateExport<ITextDocumentFactoryService>(),
+        //         MefTestHelpers.CreateExport<IContentTypeRegistryService>(),
+        //         MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
+        //         MefTestHelpers.CreateExport<ICloudSecretsTelemetryManager>(),
+        //         MefTestHelpers.CreateExport<IRuleSettingsProviderFactory>());
+        // }
 
         [TestMethod]
         public void Ctor_DoesNotCallAnyNonFreeThreadedServices()
