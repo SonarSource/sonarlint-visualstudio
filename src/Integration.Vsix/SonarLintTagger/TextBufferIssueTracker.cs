@@ -20,6 +20,7 @@
 
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
@@ -79,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             sonarErrorDataSource.AddFactory(this.Factory);
             Provider.AddIssueTracker(this);
 
-            RequestAnalysis(null /* no options */);
+            RequestAnalysis(new AnalyzerOptions{ IsOnOpen = true });
         }
 
         private void SafeOnFileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
@@ -90,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 if (e.FileActionType == FileActionTypes.ContentSavedToDisk)
                 {
-                    RequestAnalysis(null /* no options */);
+                    RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
