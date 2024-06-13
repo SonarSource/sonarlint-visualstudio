@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class AnalysisListener : IAnalysisListener
 {
-    private readonly IEnumerable<Language> supportedLanguages = new List<Language>() { Language.Secrets };
+    private readonly IEnumerable<Language> supportedLanguages;
 
     private readonly IAnalysisService analysisService;
     private readonly IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter;
@@ -38,16 +38,16 @@ internal class AnalysisListener : IAnalysisListener
 
     [ImportingConstructor]
     public AnalysisListener(IAnalysisService analysisService, IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter, IAnalysisStatusNotifierFactory analysisStatusNotifierFactory)
+       : this(analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory, new List<Language>() { Language.Secrets })
     {
-        this.analysisService = analysisService;
-        this.raiseIssueParamsToAnalysisIssueConverter = raiseIssueParamsToAnalysisIssueConverter;
-        this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
     }
 
     internal AnalysisListener(IAnalysisService analysisService, IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter, IAnalysisStatusNotifierFactory analysisStatusNotifierFactory, IEnumerable<Language> supportedLanguages)
-        : this(analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory)
     {
         this.supportedLanguages = supportedLanguages;
+        this.analysisService = analysisService;
+        this.raiseIssueParamsToAnalysisIssueConverter = raiseIssueParamsToAnalysisIssueConverter;
+        this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
     }
 
     public Task DidChangeAnalysisReadinessAsync(DidChangeAnalysisReadinessParams parameters)
