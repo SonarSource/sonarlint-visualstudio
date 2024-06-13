@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 {
@@ -29,25 +30,24 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class RaiseIssueParamsToAnalysisIssueConverter : IRaiseIssueParamsToAnalysisIssueConverter
     {
-        public IEnumerable<IAnalysisIssue> GetAnalysisIssues(RaiseIssuesParams raiseIssuesParams)
+        public IEnumerable<IAnalysisIssue> GetAnalysisIssues(FileUri fileUri, IEnumerable<RaisedIssueDto> raisedIssues)
         {
             var result = new List<IAnalysisIssue>();
-            foreach (var issue in raiseIssuesParams.issuesByFileUri)
+
+            foreach (var item in raisedIssues)
             {
-                foreach (var item in issue.Value)
-                {
-                    result.Add(new AnalysisIssue
-                        (item.ruleKey,
-                        item.severity.ToAnalysisIssueSeverity(),
-                        item.type.ToAnalysisIssueType(),
-                        GetHighestSoftwareQualitySeverity(item.impacts),
-                        GetAnalysisIssueLocation(issue.Key.LocalPath, item.primaryMessage, item.textRange),
-                        item.flows?.Select(GetAnalysisIssueFlow).ToList(),
-                        item.quickFixes?.Select(qf => GetQuickFix(issue.Key, qf)).Where(qf => qf is not null).ToList(),
-                        item.ruleDescriptionContextKey
-                        ));
-                }
+                result.Add(new AnalysisIssue
+                    (item.ruleKey,
+                    item.severity.ToAnalysisIssueSeverity(),
+                    item.type.ToAnalysisIssueType(),
+                    GetHighestSoftwareQualitySeverity(item.impacts),
+                    GetAnalysisIssueLocation(fileUri.LocalPath, item.primaryMessage, item.textRange),
+                    item.flows?.Select(GetAnalysisIssueFlow).ToList(),
+                    item.quickFixes?.Select(qf => GetQuickFix(fileUri, qf)).Where(qf => qf is not null).ToList(),
+                    item.ruleDescriptionContextKey
+                    ));
             }
+
             return result;
         }
 

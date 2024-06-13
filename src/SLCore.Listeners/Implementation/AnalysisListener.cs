@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
+using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
@@ -59,25 +60,29 @@ internal class AnalysisListener : IAnalysisListener
     {
         if (parameters.analysisId.HasValue)
         {
-            var filepath = parameters.issuesByFileUri.Single().Key.LocalPath;
+            var issues = Enumerable.Empty<IAnalysisIssue>();
 
-            var issues = GetSupportedLanguageIssues(raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(parameters));
+            var fileUri = parameters.issuesByFileUri.Single().Key;
+            var raisedIssues = parameters.issuesByFileUri.Single().Value;
 
-            if (issues.Any())
+            var supportedRaisedIssues = GetSupportedLanguageIssues(raisedIssues).ToList();
+
+            if (supportedRaisedIssues.Any())
             {
-                analysisService.PublishIssues(filepath, parameters.analysisId.Value, issues);
+                issues = raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues);
+                analysisService.PublishIssues(fileUri.LocalPath, parameters.analysisId.Value, issues);
             }
             if (!parameters.isIntermediatePublication)
             {
-                var analysisStatusNotifier = analysisStatusNotifierFactory.Create("SLCoreAnalyzer", filepath);
+                var analysisStatusNotifier = analysisStatusNotifierFactory.Create("SLCoreAnalyzer", fileUri.LocalPath);
                 analysisStatusNotifier.AnalysisFinished(issues.Count(), TimeSpan.Zero);
             }
         }
     }
 
-    private IEnumerable<IAnalysisIssue> GetSupportedLanguageIssues(IEnumerable<IAnalysisIssue> issues)
+    private IEnumerable<RaisedIssueDto> GetSupportedLanguageIssues(IEnumerable<RaisedIssueDto> issues)
     {
-        return issues.Where(i => IsSupportedLanguage(i.RuleKey));
+        return issues.Where(i => IsSupportedLanguage(i.ruleKey));
     }
 
     private bool IsSupportedLanguage(string ruleKey)
