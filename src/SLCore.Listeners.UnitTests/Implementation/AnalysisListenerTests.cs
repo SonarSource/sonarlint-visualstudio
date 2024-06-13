@@ -68,7 +68,7 @@ public class AnalysisListenerTests
         testSubject.RaiseIssues(raiseIssuesParams);
 
         analysisService.DidNotReceive().PublishIssues(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<IEnumerable<IAnalysisIssue>>());
-        raiseIssueParamsToAnalysisIssueConverter.DidNotReceive().GetAnalysisIssues(Arg.Any<RaiseIssuesParams>());
+        raiseIssueParamsToAnalysisIssueConverter.DidNotReceive().GetAnalysisIssues(Arg.Any<FileUri>(), Arg.Any<List<RaisedIssueDto>>());
     }
 
     [TestMethod]
@@ -79,14 +79,14 @@ public class AnalysisListenerTests
         var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, Guid.NewGuid());
 
         var analysisService = Substitute.For<IAnalysisService>();
-        var raiseIssueParamsToAnalysisIssueConverter = CreateConverter(raiseIssuesParams, Array.Empty<IAnalysisIssue>());
+        var raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, Array.Empty<IAnalysisIssue>());
 
         var testSubject = CreateTestSubject(analysisService, raiseIssueParamsToAnalysisIssueConverter);
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
         analysisService.DidNotReceive().PublishIssues(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<IEnumerable<IAnalysisIssue>>());
-        raiseIssueParamsToAnalysisIssueConverter.Received(1).GetAnalysisIssues(raiseIssuesParams);
+        raiseIssueParamsToAnalysisIssueConverter.DidNotReceive().GetAnalysisIssues(Arg.Any<FileUri>(), Arg.Any<List<RaisedIssueDto>>());
     }
 
     [TestMethod]
@@ -101,14 +101,14 @@ public class AnalysisListenerTests
         var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, Guid.NewGuid());
 
         var analysisService = Substitute.For<IAnalysisService>();
-        IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(raiseIssuesParams, issues);
+        IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, issues);
 
         var testSubject = CreateTestSubject(analysisService, raiseIssueParamsToAnalysisIssueConverter);
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
         analysisService.DidNotReceive().PublishIssues(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<IEnumerable<IAnalysisIssue>>());
-        raiseIssueParamsToAnalysisIssueConverter.Received(1).GetAnalysisIssues(raiseIssuesParams);
+        raiseIssueParamsToAnalysisIssueConverter.DidNotReceive().GetAnalysisIssues(Arg.Any<FileUri>(), Arg.Any<List<RaisedIssueDto>>());
     }
 
     [TestMethod]
@@ -139,26 +139,30 @@ public class AnalysisListenerTests
     {
         var guid = Guid.NewGuid();
         var issue1 = CreateIssue("csharpsquid:S100");
-        var issue2 = CreateIssue("javascript:S101");
-        var issue3 = CreateIssue("secrets:S1012");
-        var issues = new[] { issue1, issue2, issue3 };
+        var issue2 = CreateIssue("secrets:S1012");
+        var filteredIssues = new[] { issue1, issue2 };
 
-        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { new FileUri("file://C:/somefile"), new List<RaisedIssueDto>() } };
+        var raisedIssue1 = CreateRaisedIssueDto("csharpsquid:S100");
+        var raisedIssue2 = CreateRaisedIssueDto("javascript:S101");
+        var raisedIssue3 = CreateRaisedIssueDto("secrets:S1012");
+        var raisedIssues = new List<RaisedIssueDto> { raisedIssue1, raisedIssue2, raisedIssue3 };
+
+        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { new FileUri("file://C:/somefile"), raisedIssues } };
 
         var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, isIntermediatePublication, guid);
 
         var analysisService = Substitute.For<IAnalysisService>();
-        IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(raiseIssuesParams, issues);
+        IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, filteredIssues);
 
         var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier);
 
-        var testSubject = CreateTestSubject(analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory, new List<Language> { Language.Secrets, Language.CSharp });
+        var testSubject = CreateTestSubject(analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory, [Language.Secrets, Language.CSharp]);
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
-        analysisService.Received(1).PublishIssues("C:\\somefile", guid, Arg.Is<IEnumerable<IAnalysisIssue>>(
-           publishedIssues => publishedIssues.Count() == 2 && publishedIssues.ElementAt(0) == issue1 && publishedIssues.ElementAt(1) == issue3));
-        raiseIssueParamsToAnalysisIssueConverter.Received(1).GetAnalysisIssues(raiseIssuesParams);
+        analysisService.Received(1).PublishIssues("C:\\somefile", guid, filteredIssues);
+        raiseIssueParamsToAnalysisIssueConverter.Received(1).GetAnalysisIssues(issuesByFileUri.Single().Key, Arg.Is<IEnumerable<RaisedIssueDto>>(
+            filteredIssues => filteredIssues.Count() == 2 && filteredIssues.ElementAt(0) == raisedIssue1 && filteredIssues.ElementAt(1) == raisedIssue3));
 
         if (isIntermediatePublication)
         {
@@ -171,21 +175,21 @@ public class AnalysisListenerTests
         }
     }
 
-    private static IRaiseIssueParamsToAnalysisIssueConverter CreateConverter(RaiseIssuesParams raiseIssuesParams, IAnalysisIssue[] issues)
+    private static IRaiseIssueParamsToAnalysisIssueConverter CreateConverter(FileUri fileUri, IAnalysisIssue[] issues)
     {
         var raiseIssueParamsToAnalysisIssueConverter = Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>();
-        raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(raiseIssuesParams).Returns(issues);
+        raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(fileUri, Arg.Any<IEnumerable<RaisedIssueDto>>()).Returns(issues);
         return raiseIssueParamsToAnalysisIssueConverter;
     }
 
     private AnalysisListener CreateTestSubject(IAnalysisService analysisService = null,
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = null,
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory = null,
-        IEnumerable<Language> languages = null)
-        => new AnalysisListener(analysisService ?? Substitute.For<IAnalysisService>(),
+        Language[] languages = null)
+        => new(analysisService ?? Substitute.For<IAnalysisService>(),
             raiseIssueParamsToAnalysisIssueConverter ?? Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>(),
             analysisStatusNotifierFactory ?? CreateAnalysisStatusNotifierFactory(out _),
-            languages ?? new List<Language>() { Language.Secrets });
+            languages ?? [Language.Secrets]);
 
     private IAnalysisStatusNotifierFactory CreateAnalysisStatusNotifierFactory(out IAnalysisStatusNotifier analysisStatusNotifier)
     {
@@ -193,6 +197,11 @@ public class AnalysisListenerTests
         analysisStatusNotifier = Substitute.For<IAnalysisStatusNotifier>();
         analysisStatusNotifierFactory.Create(Arg.Any<string>(), Arg.Any<string>()).Returns(analysisStatusNotifier);
         return analysisStatusNotifierFactory;
+    }
+
+    private RaisedIssueDto CreateRaisedIssueDto(string ruleKey)
+    {
+        return new RaisedIssueDto(default, default, ruleKey, default, default, default, default, default, default, default, default, default, default, default, default);
     }
 
     private static IAnalysisIssue CreateIssue(string ruleKey)

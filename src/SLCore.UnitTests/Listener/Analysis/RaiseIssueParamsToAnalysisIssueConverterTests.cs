@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Analysis
 
             RaiseIssueParamsToAnalysisIssueConverter testSubject = CreateTestSubject();
 
-            var result = testSubject.GetAnalysisIssues(raiseIssueParams);
+            var result = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedIssueDto>());
 
             result.Should().BeEmpty();
         }
@@ -57,7 +57,6 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Analysis
         [TestMethod]
         public void GetAnalysisIssues_HasIssues_Converts()
         {
-            var analysisID = Guid.NewGuid();
             var dateTimeOffset = DateTimeOffset.Now;
 
             var issue1 = new RaisedIssueDto(Guid.NewGuid(), "serverKey1", "ruleKey1", "PrimaryMessage1", IssueSeverity.MAJOR, RuleType.CODE_SMELL, CleanCodeAttribute.EFFICIENT, new List<ImpactDto>(), dateTimeOffset, true, false, new TextRangeDto(1, 2, 3, 4), null, null, "context1");
@@ -100,16 +99,9 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Analysis
                 new List<QuickFixDto> { issue2fix1, issue2fix2 },
                 "context2");
 
-            var issues = new Dictionary<FileUri, List<RaisedIssueDto>>
-            {
-                { new FileUri("C:\\IssueFile.cs"), new List<RaisedIssueDto> { issue1, issue2 } }
-            };
-
-            var raisedIssueParams = new RaiseIssuesParams("configurationScopeId", issues, false, analysisID);
-
             var testSubject = CreateTestSubject();
 
-            var result = testSubject.GetAnalysisIssues(raisedIssueParams).ToList();
+            var result = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedIssueDto> { issue1, issue2 }).ToList();
 
             result.Should().NotBeNull();
             result.Should().HaveCount(2);

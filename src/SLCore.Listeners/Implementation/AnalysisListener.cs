@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
+using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
@@ -30,7 +31,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class AnalysisListener : IAnalysisListener
 {
-    private readonly IEnumerable<Language> supportedLanguages;
+    private readonly Language[] supportedLanguages;
 
     private readonly IAnalysisService analysisService;
     private readonly IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter;
@@ -38,11 +39,11 @@ internal class AnalysisListener : IAnalysisListener
 
     [ImportingConstructor]
     public AnalysisListener(IAnalysisService analysisService, IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter, IAnalysisStatusNotifierFactory analysisStatusNotifierFactory)
-       : this(analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory, new List<Language>() { Language.Secrets })
+       : this(analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory, [Language.Secrets])
     {
     }
 
-    internal AnalysisListener(IAnalysisService analysisService, IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter, IAnalysisStatusNotifierFactory analysisStatusNotifierFactory, IEnumerable<Language> supportedLanguages)
+    internal AnalysisListener(IAnalysisService analysisService, IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter, IAnalysisStatusNotifierFactory analysisStatusNotifierFactory, Language[] supportedLanguages)
     {
         this.supportedLanguages = supportedLanguages;
         this.analysisService = analysisService;
@@ -57,33 +58,35 @@ internal class AnalysisListener : IAnalysisListener
 
     public void RaiseIssues(RaiseIssuesParams parameters)
     {
-        if (parameters.analysisId.HasValue)
+        if (!parameters.analysisId.HasValue)
         {
-            var filepath = parameters.issuesByFileUri.Single().Key.LocalPath;
+            return;
+        }
 
-            var issues = GetSupportedLanguageIssues(raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(parameters));
+        var fileUri = parameters.issuesByFileUri.Single().Key;
+        var raisedIssues = parameters.issuesByFileUri.Single().Value;
 
-            if (issues.Any())
-            {
-                analysisService.PublishIssues(filepath, parameters.analysisId.Value, issues);
-            }
-            if (!parameters.isIntermediatePublication)
-            {
-                var analysisStatusNotifier = analysisStatusNotifierFactory.Create("SLCoreAnalyzer", filepath);
-                analysisStatusNotifier.AnalysisFinished(issues.Count(), TimeSpan.Zero);
-            }
+        var supportedRaisedIssues = GetSupportedLanguageIssues(raisedIssues);
+
+        if (supportedRaisedIssues.Any())
+        {
+            analysisService.PublishIssues(fileUri.LocalPath,
+                parameters.analysisId.Value,
+                raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
+        }
+
+        if (!parameters.isIntermediatePublication)
+        {
+            var analysisStatusNotifier = analysisStatusNotifierFactory.Create("SLCoreAnalyzer", fileUri.LocalPath);
+            analysisStatusNotifier.AnalysisFinished(supportedRaisedIssues.Count(), TimeSpan.Zero);
         }
     }
 
-    private IEnumerable<IAnalysisIssue> GetSupportedLanguageIssues(IEnumerable<IAnalysisIssue> issues)
-    {
-        return issues.Where(i => IsSupportedLanguage(i.RuleKey));
-    }
+    private IEnumerable<RaisedIssueDto> GetSupportedLanguageIssues(IEnumerable<RaisedIssueDto> issues) =>
+        issues.Where(i => IsSupportedLanguage(i.ruleKey));
 
-    private bool IsSupportedLanguage(string ruleKey)
-    {
-        return supportedLanguages.Any(l => ruleKey.StartsWith(Language.GetSonarRepoKeyFromLanguage(l)));
-    }
+    private bool IsSupportedLanguage(string ruleKey) =>
+        Array.Exists(supportedLanguages, l => ruleKey.StartsWith(Language.GetSonarRepoKeyFromLanguage(l)));
 
     public void RaiseHotspots(RaiseHotspotsParams parameters)
     {
