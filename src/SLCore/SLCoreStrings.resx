@@ -120,7 +120,7 @@
   <data name="SLCoreServiceProvider_CreateServiceError" xml:space="preserve">
     <value>[SLCoreServiceProvider]Cannot Create Service. Error: {0}</value>
   </data>
-  <data name="  ServiceProviderNotInitialized" xml:space="preserve">
+  <data name="ServiceProviderNotInitialized" xml:space="preserve">
     <value>Service Provider is unavailable</value>
   </data>
   <data name="SLCoreHandler_InstanceAlreadyRunning" xml:space="preserve">
