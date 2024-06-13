@@ -75,6 +75,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             Notify(AnalysisStrings.Notifier_AnalysisFailed, false);
         }
 
+        public void AnalysisNotReady(string reason)
+        {
+            Log(AnalysisStrings.MSG_AnalysisNotReady, filePath, reason);
+            
+            Notify("", false);
+        }
+
         private void Log(string messageFormat, params object[] args)
         {
             logger.WriteLine($"[{analyzerName}] " + messageFormat, args);

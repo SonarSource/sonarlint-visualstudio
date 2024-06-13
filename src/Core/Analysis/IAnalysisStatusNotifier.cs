@@ -29,5 +29,6 @@ namespace SonarLint.VisualStudio.Core.Analysis
         void AnalysisCancelled();
         void AnalysisFailed(Exception ex);
         void AnalysisFailed(string failureMessage);
+        void AnalysisNotReady(string reason);
     }
 }

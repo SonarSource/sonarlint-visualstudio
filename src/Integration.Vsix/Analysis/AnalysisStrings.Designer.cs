@@ -188,6 +188,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analysis not ready for file {0}: {1}.
+        /// </summary>
+        internal static string MSG_AnalysisNotReady {
+            get {
+                return ResourceManager.GetString("MSG_AnalysisNotReady", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Analyzing {0}.
         /// </summary>
         internal static string MSG_AnalysisStarted {

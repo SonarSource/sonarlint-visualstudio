@@ -133,6 +133,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             logger.AssertPartialOutputStringExists(expectedMessage);
             logger.OutputStrings.Count.Should().Be(1);
         }
+        
+        [TestMethod]
+        [DataRow("foo-timedout.cpp")]
+        [DataRow("c:\\test\\foo-timedout.cpp")]
+        [DataRow("..\\test\\foo-timedout.cpp")]
+        public void AnalysisNotReady_RemoveMessageAndStopSpinner(string filePath)
+        {
+            var statusBarMock = new Mock<IStatusBarNotifier>();
+
+            var testSubject = CreateTestSubject(filePath, statusBarNotifier: statusBarMock.Object);
+
+            testSubject.AnalysisNotReady("some reason");
+
+            VerifyStatusBarMessageAndIcon(statusBarMock, "", false);
+        }
+        
+        [TestMethod]
+        public void AnalysisNotReady_LogToOutputWindow()
+        {
+            const string analyzerName = "some analyzer";
+            const string filePath = "c:\\test\\foo-started.cpp";
+            const string reason = "some reason";
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(filePath, analyzerName, logger: logger);
+
+            testSubject.AnalysisNotReady(reason);
+
+            var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisNotReady, filePath, reason);
+            logger.AssertPartialOutputStringExists(analyzerName);
+            logger.AssertPartialOutputStringExists(expectedMessage);
+            logger.OutputStrings.Count.Should().Be(1);
+        }
+        
 
         [TestMethod]
         [DataRow("foo-failed.cpp", "foo-failed.cpp")]
@@ -150,6 +184,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
             VerifyStatusBarMessageAndIcon(statusBarMock, expectedMessage, false);
         }
+        
+        
 
         [TestMethod]
         [DataRow("foo-failed.cpp", "foo-failed.cpp")]

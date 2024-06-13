@@ -153,4 +153,10 @@
   <data name="ModelExtensions_UnexpectedValue" xml:space="preserve">
     <value>Unexpected enum value</value>
   </data>
+  <data name="AnalysisFailedReason" xml:space="preserve">
+    <value>Internal analysis failure. See logs above.</value>
+  </data>
+  <data name="ConfigScopeNotInitialized" xml:space="preserve">
+    <value>Configuration scope not initialized</value>
+  </data>
 </root>
