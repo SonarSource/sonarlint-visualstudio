@@ -56,13 +56,13 @@ public class AnalysisListenerTests
         activeConfigScopeTracker.TryUpdateAnalysisReadinessOnCurrentConfigScope(Arg.Any<string>(), Arg.Any<bool>()).Returns(false);
         var testLogger = new TestLogger();
         var testSubject = CreateTestSubject(activeConfigScopeTracker, logger: testLogger);
-    
+
         testSubject.DidChangeAnalysisReadiness(new DidChangeAnalysisReadinessParams(new List<string> { "id" }, true));
 
         activeConfigScopeTracker.Received().TryUpdateAnalysisReadinessOnCurrentConfigScope("id", true);
         testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AnalysisReadinessUpdate, SLCoreStrings.ConfigScopeConflict));
     }
-    
+
     [DataTestMethod]
     [DataRow(true)]
     [DataRow(false)]
@@ -72,7 +72,7 @@ public class AnalysisListenerTests
         activeConfigScopeTracker.TryUpdateAnalysisReadinessOnCurrentConfigScope(Arg.Any<string>(), Arg.Any<bool>()).Returns(true);
         var testLogger = new TestLogger();
         var testSubject = CreateTestSubject(activeConfigScopeTracker, logger: testLogger);
-    
+
         testSubject.DidChangeAnalysisReadiness(new DidChangeAnalysisReadinessParams(new List<string> { "id" }, value));
 
         activeConfigScopeTracker.Received().TryUpdateAnalysisReadinessOnCurrentConfigScope("id", value);
@@ -203,7 +203,7 @@ public class AnalysisListenerTests
 
         var analysisService = Substitute.For<IAnalysisService>();
 
-        var testSubject = CreateTestSubject(analysisService);
+        var testSubject = CreateTestSubject(analysisService: analysisService);
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
