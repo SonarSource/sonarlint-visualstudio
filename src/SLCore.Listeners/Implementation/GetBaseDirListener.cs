@@ -28,8 +28,8 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class GetBaseDirListener : IGetBaseDirListener
 {
-    public Task<string> GetBaseDirAsync(GetBaseDirParams parameters)
+    public Task<GetBaseDirResponse> GetBaseDirAsync(GetBaseDirParams parameters)
     {
-        return Task.FromResult<string>(null);
+        return Task.FromResult(new GetBaseDirResponse(null));
     }
 }

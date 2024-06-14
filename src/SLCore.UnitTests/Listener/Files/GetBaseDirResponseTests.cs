@@ -18,11 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Listener.Files;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Files;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Files;
 
-public interface IGetBaseDirListener : ISLCoreListener
+[TestClass]
+public class GetBaseDirResponseTests
 {
-    Task<GetBaseDirResponse> GetBaseDirAsync(GetBaseDirParams parameters);
+    [TestMethod]
+    public void NullPath_SerializesCorrectly()
+    {
+        var testSubject = new GetBaseDirResponse(null);
+
+        var serialized = JsonConvert.SerializeObject(testSubject);
+        
+        serialized.Should().Be("""{"baseDir":null}""");
+    }
+    
+    [TestMethod]
+    public void RealPath_SerializesCorrectly()
+    {
+        var testSubject = new GetBaseDirResponse(@"C:\base\folder\");
+
+        var serialized = JsonConvert.SerializeObject(testSubject);
+        
+        serialized.Should().Be("""{"baseDir":"C:\\base\\folder\\"}""");
+    }
 }
