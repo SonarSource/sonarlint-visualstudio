@@ -70,12 +70,13 @@ public class SLCoreAnalyzer : IAnalyzer
             return;
         }
         
-        ExecuteAnalysisInternalAsync(path, configurationScope.Id, analysisId, analysisService, analysisStatusNotifier, cancellationToken).Forget();
+        ExecuteAnalysisInternalAsync(path, configurationScope.Id, analysisId, analyzerOptions, analysisService, analysisStatusNotifier, cancellationToken).Forget();
     }
 
-    private async Task ExecuteAnalysisInternalAsync(string path,
+    private static async Task ExecuteAnalysisInternalAsync(string path,
         string configScopeId,
         Guid analysisId, 
+        IAnalyzerOptions analyzerOptions,
         IAnalysisSLCoreService analysisService,
         IAnalysisStatusNotifier analysisStatusNotifier,
         CancellationToken cancellationToken)
@@ -88,7 +89,7 @@ public class SLCoreAnalyzer : IAnalyzer
                     analysisId,
                     [new FileUri(path)],
                     [],
-                    true,
+                    analyzerOptions?.IsOnOpen ?? false,
                     DateTimeOffset.Now.ToUnixTimeMilliseconds()),
                 cancellationToken);
 
