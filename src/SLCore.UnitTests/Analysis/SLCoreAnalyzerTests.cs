@@ -135,12 +135,27 @@ public class SLCoreAnalyzerTests
                 && a.configurationScopeId == "someconfigscopeid"
                 && a.filesToAnalyze.Single() == new FileUri(@"C:\file\path")
                 && a.extraProperties != null
-                && a.shouldFetchServerIssues
                 && a.startTime >= timestampTestStart
                 && a.startTime <= timestampTestAssert),
             Arg.Any<CancellationToken>());
     }
     
+    [DataTestMethod]
+    [DataRow(null, false)]
+    [DataRow(false, false)]
+    [DataRow(true, true)]
+    public void ExecuteAnalysis_ShouldFetchServerIssues_PassesCorrectValueToAnalysisService(bool? value, bool expected)
+    {
+        IAnalyzerOptions options = value.HasValue ? new AnalyzerOptions { IsOnOpen = value.Value } : null;
+        var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"));
+
+        testSubject.ExecuteAnalysis(@"C:\file\path", default, default, default, default, options, default);
+        
+        analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a => 
+                a.shouldFetchServerIssues == expected),
+            Arg.Any<CancellationToken>());
+    }
+
     [TestMethod]
     public void ExecuteAnalysis_PassesCorrectCancellationTokenToAnalysisService()
     {
