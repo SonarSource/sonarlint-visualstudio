@@ -22,15 +22,14 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Files;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+
+[Export(typeof(ISLCoreListener))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal class GetBaseDirListener : IGetBaseDirListener
 {
-    [Export(typeof(ISLCoreListener))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class GetBaseDirListener : IGetBaseDirListener
+    public Task<string> GetBaseDirAsync(GetBaseDirParams parameters)
     {
-        public Task<string> GetBaseDirAsync(string configScopeId)
-        {
-            return Task.FromResult<string>(null);
-        }
+        return Task.FromResult<string>(null);
     }
 }

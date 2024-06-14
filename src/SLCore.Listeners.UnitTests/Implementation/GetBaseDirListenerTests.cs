@@ -19,34 +19,36 @@
  */
 
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Files;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
+namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
+
+[TestClass]
+public class GetBaseDirListenerTests
 {
-    public class GetBaseDirListenerTests
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<GetBaseDirListener, ISLCoreListener>();
-        }
+        MefTestHelpers.CheckTypeCanBeImported<GetBaseDirListener, ISLCoreListener>();
+    }
 
-        [TestMethod]
-        public void MefCtor_CheckIsSingleton()
-        {
-            MefTestHelpers.CheckIsSingletonMefComponent<GetBaseDirListener>();
-        }
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton()
+    {
+        MefTestHelpers.CheckIsSingletonMefComponent<GetBaseDirListener>();
+    }
 
-        [DataRow(null)]
-        [DataRow("")]
-        [DataRow("configScopeId")]
-        [TestMethod]
-        public void GetBaseDirAsync_AnyValue_ReturnsNull(string configScopeId)
-        {
-            var testSubject = new GetBaseDirListener();
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow("configScopeId")]
+    [DataRow("configScopeId123")]
+    [DataTestMethod]
+    public void GetBaseDirAsync_AnyValue_ReturnsNull(string configScopeId)
+    {
+        var testSubject = new GetBaseDirListener();
 
-            var result = testSubject.GetBaseDirAsync(configScopeId).Result;
+        var result = testSubject.GetBaseDirAsync(new GetBaseDirParams(configScopeId)).Result;
 
-            result.Should().BeNull();
-        }
+        result.Should().BeNull();
     }
 }

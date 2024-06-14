@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-
 namespace SonarLint.VisualStudio.SLCore.Listener.Files;
 
-public interface IGetBaseDirListener : ISLCoreListener
-{
-    Task<string> GetBaseDirAsync(GetBaseDirParams parameters);
-}
+public record GetBaseDirParams(string configurationScopeId);
