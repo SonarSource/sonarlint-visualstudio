@@ -49,6 +49,6 @@ public class GetBaseDirListenerTests
 
         var result = testSubject.GetBaseDirAsync(new GetBaseDirParams(configScopeId)).Result;
 
-        result.Should().BeNull();
+        result.baseDir.Should().BeNull();
     }
 }
