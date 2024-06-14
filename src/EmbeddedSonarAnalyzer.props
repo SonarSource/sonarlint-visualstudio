@@ -12,7 +12,7 @@
 		  rule help from an "normal" Java plugin. The two artefacts are versioned separately.
 	  -->
     <EmbeddedSonarSecretsNuGetVersion>1.0.4</EmbeddedSonarSecretsNuGetVersion>
-    <EmbeddedSonarSecretsJarVersion>2.3.0.1632</EmbeddedSonarSecretsJarVersion>
+    <EmbeddedSonarSecretsJarVersion>2.11.0.2807</EmbeddedSonarSecretsJarVersion>
     <!-- SLOOP: Binaries for SonarLint Out Of Process -->
     <EmbeddedSloopVersion>10.2.0.78029</EmbeddedSloopVersion>
   </PropertyGroup>
