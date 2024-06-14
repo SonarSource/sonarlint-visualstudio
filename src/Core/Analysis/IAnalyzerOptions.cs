@@ -25,5 +25,11 @@ namespace SonarLint.VisualStudio.Core.Analysis
     /// </summary>
     public interface IAnalyzerOptions
     {
+        public bool IsOnOpen { get; set; }
+    }
+
+    public class AnalyzerOptions : IAnalyzerOptions
+    {
+        public bool IsOnOpen { get; set; }
     }
 }
