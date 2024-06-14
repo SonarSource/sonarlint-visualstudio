@@ -212,7 +212,7 @@ public class TextBufferIssueTrackerTests
         mockAnalysisService.Invocations.Clear();
 
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-        VerifyAnalysisRequested(null);
+        VerifyAnalysisRequestedWithDefaultOptions(false);
 
         // Dispose and raise -> analysis not requested
         testSubject.Dispose();
@@ -233,7 +233,7 @@ public class TextBufferIssueTrackerTests
 
         // Sanity check (that the test setup is correct and that events are actually being handled)
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-        VerifyAnalysisRequested(null);
+        VerifyAnalysisRequestedWithDefaultOptions(false);
     }
 
     private static void RaiseFileSavedEvent(Mock<ITextDocument> mockDocument)
@@ -255,7 +255,7 @@ public class TextBufferIssueTrackerTests
     [TestMethod]
     public void Ctor_AnalysisIsRequestedOnCreation()
     {
-        VerifyAnalysisRequested(null);
+        VerifyAnalysisRequestedWithDefaultOptions(true);
     }
 
     [TestMethod]
@@ -337,6 +337,18 @@ public class TextBufferIssueTrackerTests
             javascriptLanguage,
             It.IsAny<SnapshotChangedHandler>(),
             analyzerOptions));
+    }
+    
+    private void VerifyAnalysisRequestedWithDefaultOptions(bool isOnOpen)
+    {
+        var textDocument = mockedJavascriptDocumentFooJs.Object;
+        mockAnalysisService.Verify(x => x.CancelForFile(textDocument.FilePath));
+        mockAnalysisService.Verify(x => x.RequestAnalysis(
+            textDocument.FilePath,
+            textDocument,
+            javascriptLanguage,
+            It.IsAny<SnapshotChangedHandler>(),
+            It.Is<IAnalyzerOptions>(o => o.IsOnOpen == isOnOpen)));
     }
 
     private void VerifyAnalysisNotRequested()
