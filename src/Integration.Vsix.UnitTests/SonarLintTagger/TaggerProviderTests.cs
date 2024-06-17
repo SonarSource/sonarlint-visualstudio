@@ -68,9 +68,12 @@ public class TaggerProviderTests
         mockTaggableBufferIndicator.Setup(x => x.IsTaggable(It.IsAny<ITextBuffer>())).Returns(true);
 
         var mockAnalysisRequester = new Mock<IAnalysisRequester>();
+
+        var mockFileTracker = new Mock<IFileTracker>();
             
-        this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, serviceProvider,
-            mockSonarLanguageRecognizer.Object, mockAnalysisService.Object, mockAnalysisRequester.Object, mockTaggableBufferIndicator.Object, logger);
+        provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, serviceProvider,
+            mockSonarLanguageRecognizer.Object, mockAnalysisService.Object, mockAnalysisRequester.Object,
+            mockTaggableBufferIndicator.Object, mockFileTracker.Object, logger);
     }
 
     #region MEF tests
@@ -100,6 +103,7 @@ public class TaggerProviderTests
         MefTestHelpers.CreateExport<IVsAwareAnalysisService>(),
         MefTestHelpers.CreateExport<IAnalysisRequester>(),
         MefTestHelpers.CreateExport<ITaggableBufferIndicator>(),
+        MefTestHelpers.CreateExport<IFileTracker>(),
         MefTestHelpers.CreateExport<ILogger>()
     ];
 
