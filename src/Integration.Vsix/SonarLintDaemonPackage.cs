@@ -63,6 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private ILogger logger;
         private IPreCompiledHeadersEventListener cFamilyPreCompiledHeadersEventListener;
+        private IProjectDocumentsEventsListener projectDocumentsEventsListener;
         private ISLCoreHandler slCoreHandler;
 
         /// <summary>
@@ -97,8 +98,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 cFamilyPreCompiledHeadersEventListener = await this.GetMefServiceAsync<IPreCompiledHeadersEventListener>();
 
+                projectDocumentsEventsListener = await this.GetMefServiceAsync<IProjectDocumentsEventsListener>();
+                projectDocumentsEventsListener.Initialize();
+                
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
-
+                
                 slCoreHandler = await this.GetMefServiceAsync<ISLCoreHandler>();
                 slCoreHandler.EnableSloop();
             }
@@ -117,6 +121,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 cFamilyPreCompiledHeadersEventListener?.Dispose();
                 cFamilyPreCompiledHeadersEventListener = null;
+                projectDocumentsEventsListener?.Dispose();
+                projectDocumentsEventsListener = null;
                 slCoreHandler?.Dispose();
                 slCoreHandler = null;
             }
