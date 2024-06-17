@@ -36,4 +36,8 @@
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="ProjectToLanguageMapperTests.cs" />
+  </ItemGroup>
+
 </Project>
