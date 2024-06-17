@@ -281,7 +281,6 @@
     <None Remove="Resources\SonarLint_About_For Export.jpg" />
     <None Remove="Resources\sonarlint_nobg.png" />
     <None Remove="Resources\sonarlint_wave_128px.png" />
-    <None Remove="secrets\LICENSE.txt" />
     <None Remove="Settings\GeneralOptionsDialogControl.xaml" />
     <None Remove="Settings\OtherOptionsDialogControl.xaml" />
     <None Remove="SonarLint.vsct" />
@@ -295,10 +294,6 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\sonarlint_200.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="secrets\LICENSE.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -420,27 +415,6 @@
         <Visible>false</Visible>
       </Content>
     </ItemGroup>
-  </Target>
-
-  <!-- *************************************************************************** -->
-  <!-- Sonar Secrets -->
-  <!-- *************************************************************************** -->
-  <!-- In the VSIX, the secrets binary(ies) should be in the secrets subfolder next to the specific license file.
-       We don't need to copy the file(s). It's enough to specify the VSIXSubPath we want.
-  -->
-  <Target Name="SecretsBinariesToVSIX" AfterTargets="GeneratePkgDef" BeforeTargets="GetVsixSourceItems">
-    <ItemGroup>
-      <SonarSecretsFilesToAdd Include="$(OutDir)SonarLint.Secrets.*.dll" />
-    </ItemGroup>
-
-    <Message Importance="high" Text="Adding the SonarSecrets files to the VSIX:@(SonarSecretsFilesToAdd)" />
-
-    <ItemGroup>
-      <VSIXSourceItem Include="@(SonarSecretsFilesToAdd)">
-        <VSIXSubPath>secrets</VSIXSubPath>
-      </VSIXSourceItem>
-    </ItemGroup>
-
   </Target>
 
   <!-- *************************************************************************** -->
