@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
@@ -43,10 +44,11 @@ public class ProjectDocumentsEventsListenerTests
     {
         var trackProjectDocuments2 = Substitute.For<IVsTrackProjectDocuments2>();
         var testSubject = CreateTestSubject(trackProjectDocuments2: trackProjectDocuments2);
-        
+
         testSubject.Initialize();
 
-        trackProjectDocuments2.Received().AdviseTrackProjectDocumentsEvents(Arg.Any<IVsTrackProjectDocumentsEvents2>(), out Arg.Any<uint>());
+        trackProjectDocuments2.Received()
+            .AdviseTrackProjectDocumentsEvents(Arg.Any<IVsTrackProjectDocumentsEvents2>(), out Arg.Any<uint>());
     }
 
     [TestMethod]
@@ -79,28 +81,129 @@ public class ProjectDocumentsEventsListenerTests
         var fileTracker = Substitute.For<IFileTracker>();
         var testSubject = CreateTestSubject(fileTracker: fileTracker);
 
-        testSubject.OnAfterRenameFiles(1, 1, [null], [0], 
+        testSubject.OnAfterRenameFiles(1, 1, [null], [0],
             ["C:\\Users\\test\\TestProject\\AFile.cs"],
-            ["C:\\Users\\test\\TestProject\\ARenamedFile.cs"], 
+            ["C:\\Users\\test\\TestProject\\ARenamedFile.cs"],
             [VSRENAMEFILEFLAGS.VSRENAMEFILEFLAGS_NoFlags]);
 
         fileTracker.Received().RenameFiles(
             Arg.Is<string[]>(strings => strings[0] == "C:\\Users\\test\\TestProject\\AFile.cs"),
             Arg.Is<string[]>(strings => strings[0] == "C:\\Users\\test\\TestProject\\ARenamedFile.cs"));
     }
-    
+
+    [TestMethod]
+    public void OnQueryAddFiles_DoesNothing()
+    {
+        var testSubject = CreateTestSubject();
+
+        var result = testSubject.OnQueryAddFiles(null, 1, ["C:\\Users\\test\\TestProject\\AFile.cs"], [], [], []);
+
+        result.Should().Be(VSConstants.S_OK);
+    }
+
+    [TestMethod]
+    public void OnAfterAddDirectoriesEx_DoesNothing()
+    {
+        var testSubject = CreateTestSubject();
+
+        var result = testSubject.OnAfterAddDirectoriesEx(1, 1, [], [], [], []);
+
+        result.Should().Be(VSConstants.S_OK);
+    }
+
+    [TestMethod]
+    public void OnAfterRemoveDirectories_DoesNothing()
+    {
+        var testSubject = CreateTestSubject();
+
+        var result = testSubject.OnAfterRemoveDirectories(1, 1, [], [], [], []);
+
+        result.Should().Be(VSConstants.S_OK);
+    }
+
+    [TestMethod]
+    public void OnQueryRenameFiles_DoesNothing()
+    {
+        var testSubject = CreateTestSubject();
+
+        var result = testSubject.OnQueryRenameFiles(null, 1, [], [], [], [], []);
+
+        result.Should().Be(VSConstants.S_OK);
+    }
+
+    [TestMethod]
+    public void OnQueryRenameDirectories_DoesNothing()
+    {
+        var testSubject = CreateTestSubject();
+
+        var result = testSubject.OnQueryRenameDirectories(null, 1, [], [], [], [], []);
+
+        result.Should().Be(VSConstants.S_OK);
+    }
+
+    [TestMethod]
+    public void OnAfterRenameDirectories_DoesNothing()
+    {
+        var testSubject = CreateTestSubject();
+
+        var result = testSubject.OnAfterRenameDirectories(1, 1, [], [], [], [], []);
+
+        result.Should().Be(VSConstants.S_OK);
+    }
+
+    [TestMethod]
+    public void OnQueryAddDirectories_DoesNothing()
+    {
+        var testSubject = CreateTestSubject();
+
+        var result = testSubject.OnQueryAddDirectories(null, 1, [], [], [], []);
+
+        result.Should().Be(VSConstants.S_OK);
+    }
+
+    [TestMethod]
+    public void OnQueryRemoveFiles_DoesNothing()
+    {
+        var testSubject = CreateTestSubject();
+
+        var result = testSubject.OnQueryRemoveFiles(null, 1, [], [], [], []);
+
+        result.Should().Be(VSConstants.S_OK);
+    }
+
+    [TestMethod]
+    public void OnQueryRemoveDirectories_DoesNothing()
+    {
+        var testSubject = CreateTestSubject();
+
+        var result = testSubject.OnQueryRemoveDirectories(null, 1, [], [], [], []);
+
+        result.Should().Be(VSConstants.S_OK);
+    }
+
+    [TestMethod]
+    public void OnAfterSccStatusChanged_DoesNothing()
+    {
+        var testSubject = CreateTestSubject();
+
+        var result = testSubject.OnAfterSccStatusChanged(1, 1, [], [], [], []);
+
+        result.Should().Be(VSConstants.S_OK);
+    }
+
     [TestMethod]
     public void Dispose_UnadviseTrackProjectDocumentsEvents()
     {
         var trackProjectDocuments2 = Substitute.For<IVsTrackProjectDocuments2>();
         var testSubject = CreateTestSubject(trackProjectDocuments2: trackProjectDocuments2);
-        
+
         testSubject.Dispose();
 
         trackProjectDocuments2.Received().UnadviseTrackProjectDocumentsEvents(Arg.Any<uint>());
     }
 
-    private static ProjectDocumentsEventsListener CreateTestSubject(IFileTracker fileTracker = null, IVsTrackProjectDocuments2 trackProjectDocuments2 = null)
+    private static ProjectDocumentsEventsListener CreateTestSubject(IFileTracker fileTracker = null,
+        IVsTrackProjectDocuments2 trackProjectDocuments2 = null)
     {
         trackProjectDocuments2 ??= Substitute.For<IVsTrackProjectDocuments2>();
         var serviceProvider = Substitute.For<IServiceProvider>();
