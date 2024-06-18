@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 using SonarLint.VisualStudio.SLCore.State;
+using AnalyzerOptions = SonarLint.VisualStudio.Core.Analysis.AnalyzerOptions;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
@@ -35,6 +36,7 @@ internal class AnalysisListener : IAnalysisListener
 {
     private readonly Language[] supportedLanguages;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
+    private readonly IAnalysisRequester analysisRequester;
     private readonly IAnalysisService analysisService;
     private readonly IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter;
     private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
@@ -42,15 +44,17 @@ internal class AnalysisListener : IAnalysisListener
 
     [ImportingConstructor]
     public AnalysisListener(IActiveConfigScopeTracker activeConfigScopeTracker,
+        IAnalysisRequester analysisRequester,
         IAnalysisService analysisService,
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter,
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
         ILogger logger)
-       : this(activeConfigScopeTracker, analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory, logger, [Language.Secrets])
+       : this(activeConfigScopeTracker, analysisRequester, analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory, logger, [Language.Secrets])
     {
     }
 
     internal AnalysisListener(IActiveConfigScopeTracker activeConfigScopeTracker,
+        IAnalysisRequester analysisRequester,
         IAnalysisService analysisService,
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter,
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
@@ -58,6 +62,7 @@ internal class AnalysisListener : IAnalysisListener
         Language[] supportedLanguages)
     {
         this.activeConfigScopeTracker = activeConfigScopeTracker;
+        this.analysisRequester = analysisRequester;
         this.supportedLanguages = supportedLanguages;
         this.analysisService = analysisService;
         this.raiseIssueParamsToAnalysisIssueConverter = raiseIssueParamsToAnalysisIssueConverter;
@@ -72,6 +77,10 @@ internal class AnalysisListener : IAnalysisListener
         if (activeConfigScopeTracker.TryUpdateAnalysisReadinessOnCurrentConfigScope(configScopeId, parameters.areReadyForAnalysis))
         {
             logger.WriteLine(SLCoreStrings.AnalysisReadinessUpdate, parameters.areReadyForAnalysis);
+            if (parameters.areReadyForAnalysis)
+            {
+                analysisRequester.RequestAnalysis(new AnalyzerOptions{ IsOnOpen = true });
+            }
         }
         else
         {

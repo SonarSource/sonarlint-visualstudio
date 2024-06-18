@@ -37,6 +37,7 @@ public class AnalysisListenerTests
     {
         MefTestHelpers.CheckTypeCanBeImported<AnalysisListener, ISLCoreListener>(
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
+            MefTestHelpers.CreateExport<IAnalysisRequester>(),
             MefTestHelpers.CreateExport<IAnalysisService>(),
             MefTestHelpers.CreateExport<IRaiseIssueParamsToAnalysisIssueConverter>(),
             MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
@@ -66,17 +67,22 @@ public class AnalysisListenerTests
     [DataTestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void DidChangeAnalysisReadiness_Successful_LogsState(bool value)
+    public void DidChangeAnalysisReadiness_Successful_LogsState(bool isReady)
     {
         var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         activeConfigScopeTracker.TryUpdateAnalysisReadinessOnCurrentConfigScope(Arg.Any<string>(), Arg.Any<bool>()).Returns(true);
+        var analysisRequester = Substitute.For<IAnalysisRequester>();
         var testLogger = new TestLogger();
-        var testSubject = CreateTestSubject(activeConfigScopeTracker, logger: testLogger);
+        var testSubject = CreateTestSubject(activeConfigScopeTracker, analysisRequester: analysisRequester, logger: testLogger);
 
-        testSubject.DidChangeAnalysisReadiness(new DidChangeAnalysisReadinessParams(new List<string> { "id" }, value));
+        testSubject.DidChangeAnalysisReadiness(new DidChangeAnalysisReadinessParams(new List<string> { "id" }, isReady));
 
-        activeConfigScopeTracker.Received().TryUpdateAnalysisReadinessOnCurrentConfigScope("id", value);
-        testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AnalysisReadinessUpdate, value));
+        activeConfigScopeTracker.Received().TryUpdateAnalysisReadinessOnCurrentConfigScope("id", isReady);
+        if (isReady)
+        {
+            analysisRequester.Received().RequestAnalysis(Arg.Is<IAnalyzerOptions>(o => o.IsOnOpen), Arg.Is<string[]>(s => s.Length == 0));
+        }
+        testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AnalysisReadinessUpdate, isReady));
     }
 
     [TestMethod]
@@ -219,11 +225,13 @@ public class AnalysisListenerTests
 
     private AnalysisListener CreateTestSubject(IActiveConfigScopeTracker activeConfigScopeTracker = null,
         IAnalysisService analysisService = null,
+        IAnalysisRequester analysisRequester = null,
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = null,
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory = null,
         ILogger logger = null,
         Language[] languages = null)
         => new(activeConfigScopeTracker ?? Substitute.For<IActiveConfigScopeTracker>(),
+            analysisRequester ?? Substitute.For<IAnalysisRequester>(),
             analysisService ?? Substitute.For<IAnalysisService>(),
             raiseIssueParamsToAnalysisIssueConverter ?? Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>(),
             analysisStatusNotifierFactory ?? CreateAnalysisStatusNotifierFactory(out _),
