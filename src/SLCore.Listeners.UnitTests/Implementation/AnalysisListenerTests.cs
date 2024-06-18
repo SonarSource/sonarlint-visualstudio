@@ -67,7 +67,7 @@ public class AnalysisListenerTests
     [DataTestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void DidChangeAnalysisReadiness_Successful_LogsState(bool value)
+    public void DidChangeAnalysisReadiness_Successful_LogsState(bool isReady)
     {
         var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         activeConfigScopeTracker.TryUpdateAnalysisReadinessOnCurrentConfigScope(Arg.Any<string>(), Arg.Any<bool>()).Returns(true);
@@ -75,14 +75,14 @@ public class AnalysisListenerTests
         var testLogger = new TestLogger();
         var testSubject = CreateTestSubject(activeConfigScopeTracker, analysisRequester: analysisRequester, logger: testLogger);
 
-        testSubject.DidChangeAnalysisReadiness(new DidChangeAnalysisReadinessParams(new List<string> { "id" }, value));
+        testSubject.DidChangeAnalysisReadiness(new DidChangeAnalysisReadinessParams(new List<string> { "id" }, isReady));
 
-        activeConfigScopeTracker.Received().TryUpdateAnalysisReadinessOnCurrentConfigScope("id", value);
-        if (value)
+        activeConfigScopeTracker.Received().TryUpdateAnalysisReadinessOnCurrentConfigScope("id", isReady);
+        if (isReady)
         {
             analysisRequester.Received().RequestAnalysis(Arg.Is<IAnalyzerOptions>(o => o.IsOnOpen), Arg.Is<string[]>(s => s.Length == 0));
         }
-        testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AnalysisReadinessUpdate, value));
+        testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AnalysisReadinessUpdate, isReady));
     }
 
     [TestMethod]
