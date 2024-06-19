@@ -42,7 +42,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableServiceProvider serviceProvider;
         private SolutionMock solutionMock;
         private ProjectSystemHelper testSubject;
-        private Mock<IProjectToLanguageMapper> projectToLanguageMapper;
 
         [TestInitialize]
         public void TestInitialize()
@@ -50,9 +49,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionMock = new SolutionMock();
             this.serviceProvider = new ConfigurableServiceProvider();
             this.serviceProvider.RegisterService(typeof(SVsSolution), this.solutionMock);
-            projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
 
-            this.testSubject = new ProjectSystemHelper(this.serviceProvider, projectToLanguageMapper.Object);
+            this.testSubject = new ProjectSystemHelper(this.serviceProvider);
         }
 
         [TestMethod]
@@ -61,7 +59,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var batch = new CompositionBatch();
 
             batch.AddExport(MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()));
-            batch.AddExport(MefTestHelpers.CreateExport<IProjectToLanguageMapper>(Mock.Of<IProjectToLanguageMapper>()));
 
             var helperImport = new SingleObjectImporter<IProjectSystemHelper>();
             var vsHierarchyLocator = new SingleObjectImporter<IVsHierarchyLocator>();
@@ -115,28 +112,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
             csProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, csProject);
             csProject.ProjectKind = ProjectSystemHelper.CSharpProjectKind;
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(csProject)).Returns(true);
 
             ProjectMock vbProject = this.solutionMock.AddOrGetProject("vb.net");
             vbProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, vbProject);
             vbProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(vbProject)).Returns(true);
 
-            ProjectMock otherProject = this.solutionMock.AddOrGetProject("other");
+            ProjectMock otherProject = this.solutionMock.AddOrGetProject("other"); // other can still contain secrets
             otherProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, otherProject);
             otherProject.ProjectKind = "other";
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(otherProject)).Returns(false);
 
             ProjectMock erronousProject = this.solutionMock.AddOrGetProject("err");
             erronousProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, null);
             erronousProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(erronousProject)).Returns(true);
 
             // Act
             var actual = this.testSubject.GetSolutionProjects().ToArray();
 
             // Assert
-            CollectionAssert.AreEqual(new[] { csProject, vbProject }, actual,
+            CollectionAssert.AreEqual(new[] { csProject, vbProject, otherProject }, actual,
                 "Unexpected projects: {0}", string.Join(", ", actual.Select(p => p.Name)));
         }
 

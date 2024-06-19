@@ -38,11 +38,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         [TestMethod]
         public void Ctor_ArgsCheck()
         {
-            Action act = () => new ProjectTestPropertySetCommand(null, Mock.Of<IProjectToLanguageMapper>(), true);
+            Action act = () => new ProjectTestPropertySetCommand(null, true);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("propertyManager");
-
-            act = () => new ProjectTestPropertySetCommand(Mock.Of<IProjectPropertyManager>(), null, true);
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectToLanguageMapper");
         }
 
         [TestMethod]
@@ -59,14 +56,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             var p2 = Mock.Of<Project>();
             var p3 = Mock.Of<Project>();
 
-            var projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
-            SetupHasSupportedLanguage(projectToLanguageMapper, p1, true);
-            SetupHasSupportedLanguage(projectToLanguageMapper, p2, true);
-            SetupHasSupportedLanguage(projectToLanguageMapper, p3, true);
-
             var propertyManager = CreatePropertyManager(p1, p2, p3);
 
-            var testSubject = CreateTestSubject(setPropertyValue, propertyManager.Object, projectToLanguageMapper.Object);
+            var testSubject = CreateTestSubject(setPropertyValue, propertyManager.Object);
 
             // Act
             testSubject.Invoke(command, null);
@@ -103,12 +95,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             var project = Mock.Of<Project>();
 
-            var projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
-            SetupHasSupportedLanguage(projectToLanguageMapper, project, projectSupported);
-
             var propertyManager = CreatePropertyManager(project);
 
-            var testSubject = CreateTestSubject(propertyManager: propertyManager.Object, projectToLanguageMapper: projectToLanguageMapper.Object);
+            var testSubject = CreateTestSubject(propertyManager: propertyManager.Object);
 
             // Act
             testSubject.QueryStatus(command, null);
@@ -128,13 +117,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             var project = Mock.Of<Project>();
 
-            var projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
-            SetupHasSupportedLanguage(projectToLanguageMapper, project, true);
-
             var propertyManager = CreatePropertyManager(project);
             SetupGetBooleanProperty(propertyManager, project, excludeValue);
 
-            var testSubject = CreateTestSubject(propertyManager: propertyManager.Object, projectToLanguageMapper: projectToLanguageMapper.Object);
+            var testSubject = CreateTestSubject(propertyManager: propertyManager.Object);
 
             // Act
             testSubject.QueryStatus(command, null);
@@ -155,16 +141,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             var p1 = Mock.Of<Project>();
             var p2 = Mock.Of<Project>();
-
-            var projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
-            SetupHasSupportedLanguage(projectToLanguageMapper, p1, true);
-            SetupHasSupportedLanguage(projectToLanguageMapper, p2, true);
+            
 
             var propertyManager = CreatePropertyManager(p1, p2);
             SetupGetBooleanProperty(propertyManager, p1, excludeValue1);
             SetupGetBooleanProperty(propertyManager, p2, excludeValue2);
 
-            var testSubject = CreateTestSubject(excludeValue1, propertyManager.Object, projectToLanguageMapper.Object);
+            var testSubject = CreateTestSubject(excludeValue1, propertyManager.Object);
 
             // Act
             testSubject.QueryStatus(command, null);
@@ -177,7 +160,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         [DataRow(true, true, true)]
         [DataRow(false, false, false)]
         [DataRow(true, false, false)]
-        public void QueryStatus_MultipleProjects_AllSupported_MixedSupport_CorrectCommandState(bool supportedValue1, bool supportedValue2, bool expectedCommandState)
+        public void QueryStatus_MultipleProjects_NullProject_CorrectCommandState(bool supportedValue1, bool supportedValue2, bool expectedCommandState)
         {
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
@@ -185,13 +168,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             var p1 = Mock.Of<Project>();
             var p2 = Mock.Of<Project>();
 
-            var projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
-            SetupHasSupportedLanguage(projectToLanguageMapper, p1, supportedValue1);
-            SetupHasSupportedLanguage(projectToLanguageMapper, p2, supportedValue2);
+            var propertyManager = CreatePropertyManager(p1, null, p2);
 
-            var propertyManager = CreatePropertyManager(p1, p2);
-
-            var testSubject = CreateTestSubject(propertyManager:propertyManager.Object, projectToLanguageMapper:projectToLanguageMapper.Object);
+            var testSubject = CreateTestSubject(propertyManager:propertyManager.Object);
 
             // Act
             testSubject.QueryStatus(command, null);
@@ -208,9 +187,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         private static void SetupGetBooleanProperty(Mock<IProjectPropertyManager> propertyManager, Project project, bool? value) =>
             propertyManager.Setup(x => x.GetBooleanProperty(project, "SonarQubeExclude")).Returns(value);
 
-        private static void SetupHasSupportedLanguage(Mock<IProjectToLanguageMapper> projectToLanguageMapper, Project project, bool value) =>
-            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(value);
-
         private static Mock<IProjectPropertyManager> CreatePropertyManager(params Project[] projectsToReturn)
         {
             var propertyManager = new Mock<IProjectPropertyManager>();
@@ -218,11 +194,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             return propertyManager;
         }
 
-        private ProjectTestPropertySetCommand CreateTestSubject(bool? setPropertyValue = null, IProjectPropertyManager propertyManager = null, IProjectToLanguageMapper projectToLanguageMapper = null)
+        private ProjectTestPropertySetCommand CreateTestSubject(bool? setPropertyValue = null, IProjectPropertyManager propertyManager = null)
         {
             propertyManager ??= Mock.Of<IProjectPropertyManager>();
-            projectToLanguageMapper ??= Mock.Of<IProjectToLanguageMapper>();
-            return new ProjectTestPropertySetCommand(propertyManager, projectToLanguageMapper, setPropertyValue);
+            return new ProjectTestPropertySetCommand(propertyManager, setPropertyValue);
         }
 
         #endregion Test helpers
