@@ -19,12 +19,12 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Text;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 using SonarLint.VisualStudio.SLCore.Service.File;
 using SonarLint.VisualStudio.SLCore.State;
 
@@ -37,18 +37,23 @@ public class FileTracker : IFileTracker
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IThreadHandling threadHandling;
+    private readonly IClientFileDtoFactory clientFileDtoFactory;
+    private readonly ILogger logger;
 
     [ImportingConstructor]
-    public FileTracker(ISLCoreServiceProvider serviceProvider, IActiveConfigScopeTracker activeConfigScopeTracker, IThreadHandling threadHandling)
+    public FileTracker(ISLCoreServiceProvider serviceProvider, IActiveConfigScopeTracker activeConfigScopeTracker,
+        IThreadHandling threadHandling, IClientFileDtoFactory clientFileDtoFactory, ILogger logger)
     {
         this.serviceProvider = serviceProvider;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.threadHandling = threadHandling;
+        this.clientFileDtoFactory = clientFileDtoFactory;
+        this.logger = logger;
     }
 
     public void AddFiles(params string[] addedFiles)
     {
-        threadHandling.RunOnBackgroundThread(() =>  NotifySlCoreFilesChangedAsync([], addedFiles)).Forget();
+        threadHandling.RunOnBackgroundThread(() => NotifySlCoreFilesChangedAsync([], addedFiles)).Forget();
     }
 
     public void RemoveFiles(params string[] removedFiles)
@@ -58,25 +63,25 @@ public class FileTracker : IFileTracker
 
     public void RenameFiles(string[] beforeRenameFiles, string[] afterRenameFiles)
     {
-        threadHandling.RunOnBackgroundThread(() => NotifySlCoreFilesChangedAsync(beforeRenameFiles, afterRenameFiles)).Forget();
+        threadHandling.RunOnBackgroundThread(() => NotifySlCoreFilesChangedAsync(beforeRenameFiles, afterRenameFiles))
+            .Forget();
     }
 
     private Task NotifySlCoreFilesChangedAsync(string[] removedFiles, string[] addedFiles)
     {
         if (serviceProvider.TryGetTransientService(out IFileRpcSLCoreService fileRpcSlCoreService))
         {
-            var clientFiles = addedFiles.Select(f => new ClientFileDto(
-                new FileUri(f),
-                f.Substring(activeConfigScopeTracker.Current.RootPath.Length),
-                activeConfigScopeTracker.Current.Id,
-                null,
-                Encoding.UTF8.WebName,
-                f)).ToList();
-            
+            var rootPath = activeConfigScopeTracker.Current.RootPath;
+            var configScopeId = activeConfigScopeTracker.Current.Id;
+            var clientFiles = addedFiles.Select(fp => clientFileDtoFactory.Create(fp, configScopeId, rootPath)).ToList();
             var removedFileUris = removedFiles.Select(f => new FileUri(f)).ToList();
-                
+
             fileRpcSlCoreService.DidUpdateFileSystem(new DidUpdateFileSystemParams(
                 removedFileUris, clientFiles));
+        }
+        else
+        {
+            logger.WriteLine(Strings.FileTrackerGetRpcServiceError);
         }
 
         return Task.CompletedTask;

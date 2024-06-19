@@ -20,6 +20,8 @@
 
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.LocalServices;
+using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.File;
@@ -37,7 +39,27 @@ public class FileTrackerTests
         MefTestHelpers.CheckTypeCanBeImported<FileTracker, IFileTracker>(
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
-            MefTestHelpers.CreateExport<IThreadHandling>());
+            MefTestHelpers.CreateExport<IThreadHandling>(),
+            MefTestHelpers.CreateExport<IClientFileDtoFactory>(),
+            MefTestHelpers.CreateExport<ILogger>());
+    }
+    
+    [TestMethod]
+    public void AddFiles_ServiceProviderFailed_LogsError()
+    {
+        var serviceProvider = Substitute.For<ISLCoreServiceProvider>();
+        var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        var clientFileDtoFactory = Substitute.For<IClientFileDtoFactory>();
+        var threadHandling = Substitute.For<IThreadHandling>();
+        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>())
+            .Returns(async info => await info.Arg<Func<Task<int>>>()());
+        var testLogger = new TestLogger();
+
+        var testSubject = new FileTracker(serviceProvider, activeConfigScopeTracker, threadHandling, clientFileDtoFactory, testLogger);
+        
+        testSubject.AddFiles("C:\\Users\\test\\TestProject\\AFile.cs");
+
+        testLogger.AssertOutputStrings(Strings.FileTrackerGetRpcServiceError);
     }
 
     [TestMethod]
@@ -46,12 +68,11 @@ public class FileTrackerTests
         var testSubject = CreateTestSubject(out var fileRpcSlCoreService);
         DidUpdateFileSystemParams result = null;
         fileRpcSlCoreService.DidUpdateFileSystem(Arg.Do<DidUpdateFileSystemParams>(parameters => result = parameters));
-        
+
         testSubject.AddFiles("C:\\Users\\test\\TestProject\\AFile.cs");
-        
-        result.removedFiles.Should().BeEquivalentTo([]);
-        result.addedOrChangedFiles.Count.Should().Be(1);
-        result.addedOrChangedFiles[0].fsPath.Should().Be("C:\\Users\\test\\TestProject\\AFile.cs");
+
+        result.removedFiles.Should().BeEmpty();
+        result.addedOrChangedFiles.Should().ContainSingle();
     }
 
     [TestMethod]
@@ -60,27 +81,29 @@ public class FileTrackerTests
         var testSubject = CreateTestSubject(out var fileRpcSlCoreService);
         DidUpdateFileSystemParams result = null;
         fileRpcSlCoreService.DidUpdateFileSystem(Arg.Do<DidUpdateFileSystemParams>(parameters => result = parameters));
-        
+
         testSubject.RemoveFiles("C:\\Users\\test\\TestProject\\AFile.cs");
-        
-        result.removedFiles.Should().BeEquivalentTo([new FileUri("C:\\Users\\test\\TestProject\\AFile.cs")]);
-        result.addedOrChangedFiles.Should().BeEquivalentTo([]);
+
+        result.removedFiles.Should().ContainSingle();
+        result.removedFiles[0].Should().BeEquivalentTo(new FileUri("C:\\Users\\test\\TestProject\\AFile.cs"));
+        result.addedOrChangedFiles.Should().BeEmpty();
     }
-    
+
     [TestMethod]
     public void RenameFiles_ShouldForwardFilesToSlCore()
     {
         var testSubject = CreateTestSubject(out var fileRpcSlCoreService);
         DidUpdateFileSystemParams result = null;
         fileRpcSlCoreService.DidUpdateFileSystem(Arg.Do<DidUpdateFileSystemParams>(parameters => result = parameters));
-        
-        testSubject.RenameFiles(["C:\\Users\\test\\TestProject\\AFile.cs"], ["C:\\Users\\test\\TestProject\\ARenamedFile.cs"]);
-        
-        result.removedFiles.Should().BeEquivalentTo([new FileUri("C:\\Users\\test\\TestProject\\AFile.cs")]);
-        result.addedOrChangedFiles.Count.Should().Be(1);
-        result.addedOrChangedFiles[0].fsPath.Should().Be("C:\\Users\\test\\TestProject\\ARenamedFile.cs");
+
+        testSubject.RenameFiles(["C:\\Users\\test\\TestProject\\AFile.cs"],
+            ["C:\\Users\\test\\TestProject\\ARenamedFile.cs"]);
+
+        result.removedFiles.Should().ContainSingle();
+        result.removedFiles[0].Should().BeEquivalentTo(new FileUri("C:\\Users\\test\\TestProject\\AFile.cs"));
+        result.addedOrChangedFiles.Should().ContainSingle();
     }
-    
+
     private static FileTracker CreateTestSubject(out IFileRpcSLCoreService slCoreService)
     {
         var serviceProvider = Substitute.For<ISLCoreServiceProvider>();
@@ -91,14 +114,17 @@ public class FileTrackerTests
             return true;
         });
         slCoreService = fileRpcSlCoreService;
-        
+
         var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
-        activeConfigScopeTracker.Current.Returns(new ConfigurationScope("CONFIG_SCOPE_ID", RootPath: "C:\\Users\\test\\TestProject\\"));
-        
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope("CONFIG_SCOPE_ID", RootPath: "C:\\"));
+        var clientFileDtoFactory = Substitute.For<IClientFileDtoFactory>();
+
         var threadHandling = Substitute.For<IThreadHandling>();
-        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(async info => await info.Arg<Func<Task<int>>>()());
+        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>())
+            .Returns(async info => await info.Arg<Func<Task<int>>>()());
+
+        var logger = Substitute.For<ILogger>();
         
-        return new FileTracker(serviceProvider, activeConfigScopeTracker, threadHandling);
+        return new FileTracker(serviceProvider, activeConfigScopeTracker, threadHandling, clientFileDtoFactory, logger);
     }
 }
-

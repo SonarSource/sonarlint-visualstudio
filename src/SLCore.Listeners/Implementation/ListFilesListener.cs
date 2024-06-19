@@ -20,9 +20,8 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Text;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Files;
 using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
@@ -37,13 +36,16 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
         private readonly IFolderWorkspaceService folderWorkspaceService;
         private readonly ISolutionWorkspaceService solutionWorkspaceService;
         private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
+        private readonly IClientFileDtoFactory clientFileDtoFactory;
 
         [ImportingConstructor]
-        public ListFilesListener(IFolderWorkspaceService folderWorkspaceService, ISolutionWorkspaceService solutionWorkspaceService, IActiveConfigScopeTracker activeConfigScopeTracker)
+        public ListFilesListener(IFolderWorkspaceService folderWorkspaceService, ISolutionWorkspaceService solutionWorkspaceService,
+            IActiveConfigScopeTracker activeConfigScopeTracker, IClientFileDtoFactory clientFileDtoFactory)
         {
             this.folderWorkspaceService = folderWorkspaceService;
             this.solutionWorkspaceService = solutionWorkspaceService;
             this.activeConfigScopeTracker = activeConfigScopeTracker;
+            this.clientFileDtoFactory = clientFileDtoFactory;
         }
 
         public Task<ListFilesResponse> ListFilesAsync(ListFilesParams parameters)
@@ -57,22 +59,11 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
                     var root = GetRoot(fullFilePathList.First());
                     if (activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, root))
                     {
-                        clientFileDtos.AddRange(fullFilePathList.Select(fp =>
-                        {
-                            var ideRelativePath = GetRelativePath(root, fp);
-                            var uri = new FileUri(fp);
-                            return new ClientFileDto(uri, ideRelativePath, parameters.configScopeId, null,
-                                Encoding.UTF8.WebName, fp);
-                        }));
+                        clientFileDtos.AddRange(fullFilePathList.Select(fp => clientFileDtoFactory.Create(fp, parameters.configScopeId, root)));
                     }
                 }
             }
             return Task.FromResult(new ListFilesResponse(clientFileDtos));
-        }
-
-        private string GetRelativePath(string root, string fullPath)
-        {
-            return fullPath.Substring(root.Length);
         }
 
         private string GetRoot(string filePath)

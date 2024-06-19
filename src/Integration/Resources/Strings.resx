@@ -610,4 +610,7 @@ This is the general format to use when writing errors to output window or when t
   <data name="MuteWindow_WontFixTitle" xml:space="preserve">
     <value>Won't Fix</value>
   </data>
+  <data name="FileTrackerGetRpcServiceError" xml:space="preserve">
+    <value>FileTracker couldn't get transient service (IFileRpcSLCoreService)</value>
+  </data>
 </root>
