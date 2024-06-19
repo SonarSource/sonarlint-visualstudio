@@ -19,9 +19,9 @@
  */
 
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Events;
@@ -33,19 +33,17 @@ public class ProjectDocumentsEventsListenerTests
     public void MefCtor_CheckExports()
     {
         MefTestHelpers.CheckTypeCanBeImported<ProjectDocumentsEventsListener, IProjectDocumentsEventsListener>(
-            MefTestHelpers.CreateExport<SVsServiceProvider>(),
             MefTestHelpers.CreateExport<IFileTracker>(),
-            MefTestHelpers.CreateExport<IThreadHandling>());
+            MefTestHelpers.CreateExport<IThreadHandling>(),
+            MefTestHelpers.CreateExport<IVsUIServiceOperation>());
     }
 
     [TestMethod]
     public void Initialize_CallsAdviseTrackProjectDocumentsEvents()
     {
-        var threadHandling = Substitute.For<IThreadHandling>();
-        threadHandling.When(t => t.RunOnUIThread(Arg.Any<Action>()))
-            .Do(info => info.Arg<Action>()());
         var trackProjectDocuments2 = Substitute.For<IVsTrackProjectDocuments2>();
-        var testSubject = CreateTestSubject(trackProjectDocuments2: trackProjectDocuments2, threadHandling: threadHandling);
+        var serviceOperation = CreateServiceOperation(trackProjectDocuments2);
+        var testSubject = CreateTestSubject(serviceOperation: serviceOperation);
 
         testSubject.Initialize();
 
@@ -197,21 +195,35 @@ public class ProjectDocumentsEventsListenerTests
     public void Dispose_UnadviseTrackProjectDocumentsEvents()
     {
         var trackProjectDocuments2 = Substitute.For<IVsTrackProjectDocuments2>();
-        var testSubject = CreateTestSubject(trackProjectDocuments2: trackProjectDocuments2);
+        var serviceOperation = CreateServiceOperation(trackProjectDocuments2);
+        var testSubject = CreateTestSubject(serviceOperation: serviceOperation);
 
         testSubject.Dispose();
 
         trackProjectDocuments2.Received().UnadviseTrackProjectDocumentsEvents(Arg.Any<uint>());
     }
 
-    private static ProjectDocumentsEventsListener CreateTestSubject(IFileTracker fileTracker = null,
-        IVsTrackProjectDocuments2 trackProjectDocuments2 = null, IThreadHandling threadHandling = null)
+    private static IVsUIServiceOperation CreateServiceOperation(IVsTrackProjectDocuments2 trackProjectDocuments2)
     {
-        trackProjectDocuments2 ??= Substitute.For<IVsTrackProjectDocuments2>();
-        var serviceProvider = Substitute.For<IServiceProvider>();
-        serviceProvider.GetService(typeof(SVsTrackProjectDocuments)).Returns(trackProjectDocuments2);
+        var serviceOperation = Substitute.For<IVsUIServiceOperation>();
+        serviceOperation
+            .When(s => s.Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(Arg.Any<Action<IVsTrackProjectDocuments2>>()))
+            .Do(callback =>
+            {
+                var func = callback.Arg<Action<IVsTrackProjectDocuments2>>();
+                func(trackProjectDocuments2);
+            });
+
+        return serviceOperation;
+    }
+
+    private static ProjectDocumentsEventsListener CreateTestSubject(IFileTracker fileTracker = null,
+        IThreadHandling threadHandling = null,
+        IVsUIServiceOperation serviceOperation = null)
+    {
         fileTracker ??= Substitute.For<IFileTracker>();
         threadHandling ??= Substitute.For<IThreadHandling>();
-        return new ProjectDocumentsEventsListener(serviceProvider, fileTracker, threadHandling);
+        serviceOperation ??= Substitute.For<IVsUIServiceOperation>();
+        return new ProjectDocumentsEventsListener(fileTracker, threadHandling, serviceOperation);
     }
 }

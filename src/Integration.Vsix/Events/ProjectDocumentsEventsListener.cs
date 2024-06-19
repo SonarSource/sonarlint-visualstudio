@@ -20,9 +20,10 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Events;
 
@@ -30,29 +31,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Events;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsListener, IVsTrackProjectDocumentsEvents2
 {
-    private readonly IServiceProvider serviceProvider;
     private readonly IFileTracker fileTracker;
     private readonly IThreadHandling threadHandling;
-    private IVsTrackProjectDocuments2 trackProjectDocuments;
+    private readonly IVsUIServiceOperation serviceOperation;
     private uint trackDocumentEventsCookie;
     private bool isDisposed;
 
     [ImportingConstructor]
-    public ProjectDocumentsEventsListener([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IFileTracker fileTracker, IThreadHandling threadHandling)
+    public ProjectDocumentsEventsListener(IFileTracker fileTracker, IThreadHandling threadHandling, IVsUIServiceOperation serviceOperation)
     {
-        this.serviceProvider = serviceProvider;
         this.fileTracker = fileTracker;
         this.threadHandling = threadHandling;
+        this.serviceOperation = serviceOperation;
     }
 
     public void Initialize()
     {
-        threadHandling.RunOnUIThread(() =>
-        {
-            threadHandling.ThrowIfNotOnUIThread();
-            trackProjectDocuments = serviceProvider.GetService(typeof(SVsTrackProjectDocuments)) as IVsTrackProjectDocuments2;
-            trackProjectDocuments?.AdviseTrackProjectDocumentsEvents(this, out trackDocumentEventsCookie);
-        });
+        serviceOperation.Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(AdviseTrackProjectDocumentsEvents);
     }
     
     public int OnQueryAddFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYADDFILEFLAGS[] rgFlags,
@@ -148,10 +143,20 @@ internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsLi
         {
             return;
         }
-     
-        ThreadHelper.ThrowIfNotOnUIThread();
         
-        trackProjectDocuments?.UnadviseTrackProjectDocumentsEvents(trackDocumentEventsCookie);
+        serviceOperation.Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(UnadviseTrackProjectDocumentsEvents);
         isDisposed = true;
+    }
+
+    private void AdviseTrackProjectDocumentsEvents(IVsTrackProjectDocuments2 trackProjectDocuments)
+    {
+        Debug.Assert(trackProjectDocuments != null, "Cannot find IVsTrackProjectDocuments2");
+        ErrorHandler.ThrowOnFailure(trackProjectDocuments.AdviseTrackProjectDocumentsEvents(this, out trackDocumentEventsCookie));
+    }
+
+    private void UnadviseTrackProjectDocumentsEvents(IVsTrackProjectDocuments2 trackProjectDocuments)
+    {
+        Debug.Assert(trackProjectDocuments != null, "Cannot find IVsTrackProjectDocuments2");
+        ErrorHandler.ThrowOnFailure(trackProjectDocuments.UnadviseTrackProjectDocumentsEvents(trackDocumentEventsCookie));
     }
 }
