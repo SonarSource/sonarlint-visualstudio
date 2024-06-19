@@ -21,7 +21,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration.Resources;
+using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -71,9 +71,8 @@ public class FileTracker : IFileTracker
     {
         if (serviceProvider.TryGetTransientService(out IFileRpcSLCoreService fileRpcSlCoreService))
         {
-            var rootPath = activeConfigScopeTracker.Current.RootPath;
-            var configScopeId = activeConfigScopeTracker.Current.Id;
-            var clientFiles = addedFiles.Select(fp => clientFileDtoFactory.Create(fp, configScopeId, rootPath)).ToList();
+            var configScope = activeConfigScopeTracker.Current;
+            var clientFiles = addedFiles.Select(fp => clientFileDtoFactory.Create(fp, configScope.Id, configScope.RootPath)).ToList();
             var removedFileUris = removedFiles.Select(f => new FileUri(f)).ToList();
 
             fileRpcSlCoreService.DidUpdateFileSystem(new DidUpdateFileSystemParams(
@@ -81,7 +80,7 @@ public class FileTracker : IFileTracker
         }
         else
         {
-            logger.WriteLine(Strings.FileTrackerGetRpcServiceError);
+            logger.WriteLine("[FileTracker] {0}", SLCoreStrings.ServiceProviderNotInitialized);
         }
 
         return Task.CompletedTask;

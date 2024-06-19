@@ -432,15 +432,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to FileTracker couldn&apos;t get transient service (IFileRpcSLCoreService).
-        /// </summary>
-        public static string FileTrackerGetRpcServiceError {
-            get {
-                return ResourceManager.GetString("FileTrackerGetRpcServiceError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Completed successfully.
         /// </summary>
         public static string FinishedSolutionBindingWorkflowSuccessful {
