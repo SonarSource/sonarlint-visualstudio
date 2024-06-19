@@ -45,7 +45,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void Initialize(ITeamExplorerController teamExplorerController,
             IProjectPropertyManager projectPropertyManager,
-            IProjectToLanguageMapper projectToLanguageMapper,
             IOutputWindowService outputWindowService,
             IShowInBrowserService showInBrowserService,
             IBrowserService browserService,
@@ -53,13 +52,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IConfigurationProvider configurationProvider,
             ISharedBindingConfigProvider sharedBindingConfigProvider)
         {
-            RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(projectPropertyManager, projectToLanguageMapper));
-            RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, null));
-            RegisterCommand((int)PackageCommandId.ProjectTestPropertyTrue, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, true));
-            RegisterCommand((int)PackageCommandId.ProjectTestPropertyFalse, new ProjectTestPropertySetCommand(projectPropertyManager, projectToLanguageMapper, false));
+            RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(projectPropertyManager));
+            RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, null));
+            RegisterCommand((int)PackageCommandId.ProjectTestPropertyTrue, new ProjectTestPropertySetCommand(projectPropertyManager, true));
+            RegisterCommand((int)PackageCommandId.ProjectTestPropertyFalse, new ProjectTestPropertySetCommand(projectPropertyManager, false));
 
             // Menus
-            RegisterCommand((int)PackageCommandId.ProjectSonarLintMenu, new ProjectSonarLintMenuCommand(projectPropertyManager, projectToLanguageMapper));
+            RegisterCommand((int)PackageCommandId.ProjectSonarLintMenu, new ProjectSonarLintMenuCommand(projectPropertyManager));
 
             // Commands
             RegisterCommand(CommonGuids.SonarLintMenuCommandSet, OptionsCommand.Id, new OptionsCommand(showOptionsPage));

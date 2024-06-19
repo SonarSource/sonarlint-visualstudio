@@ -35,5 +35,4 @@
     <ProjectReference Include="..\Integration\Integration.csproj" />
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
-
 </Project>
