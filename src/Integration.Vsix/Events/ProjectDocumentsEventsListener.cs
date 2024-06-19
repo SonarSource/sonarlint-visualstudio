@@ -24,28 +24,35 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.MefServices;
+namespace SonarLint.VisualStudio.Integration.Vsix.Events;
 
 [Export(typeof(IProjectDocumentsEventsListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class ProjectDocumentsEventsListener : IProjectDocumentsEventsListener, IVsTrackProjectDocumentsEvents2
+internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsListener, IVsTrackProjectDocumentsEvents2
 {
+    private readonly IServiceProvider serviceProvider;
     private readonly IFileTracker fileTracker;
     private readonly IThreadHandling threadHandling;
-    private readonly IVsTrackProjectDocuments2 trackProjectDocuments;
+    private IVsTrackProjectDocuments2 trackProjectDocuments;
     private uint trackDocumentEventsCookie;
+    private bool isDisposed;
 
     [ImportingConstructor]
     public ProjectDocumentsEventsListener([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IFileTracker fileTracker, IThreadHandling threadHandling)
     {
+        this.serviceProvider = serviceProvider;
         this.fileTracker = fileTracker;
         this.threadHandling = threadHandling;
-        trackProjectDocuments = (IVsTrackProjectDocuments2)serviceProvider.GetService(typeof(SVsTrackProjectDocuments));
     }
-    
+
     public void Initialize()
     {
-        trackProjectDocuments.AdviseTrackProjectDocumentsEvents(this, out trackDocumentEventsCookie);
+        threadHandling.RunOnUIThread(() =>
+        {
+            threadHandling.ThrowIfNotOnUIThread();
+            trackProjectDocuments = serviceProvider.GetService(typeof(SVsTrackProjectDocuments)) as IVsTrackProjectDocuments2;
+            trackProjectDocuments?.AdviseTrackProjectDocumentsEvents(this, out trackDocumentEventsCookie);
+        });
     }
     
     public int OnQueryAddFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYADDFILEFLAGS[] rgFlags,
@@ -134,18 +141,17 @@ public class ProjectDocumentsEventsListener : IProjectDocumentsEventsListener, I
     {
         return VSConstants.S_OK;
     }
-    
+
     public void Dispose()
     {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
-    
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
+        if (isDisposed)
         {
-            trackProjectDocuments.UnadviseTrackProjectDocumentsEvents(trackDocumentEventsCookie);
+            return;
         }
+     
+        ThreadHelper.ThrowIfNotOnUIThread();
+        
+        trackProjectDocuments?.UnadviseTrackProjectDocumentsEvents(trackDocumentEventsCookie);
+        isDisposed = true;
     }
 }

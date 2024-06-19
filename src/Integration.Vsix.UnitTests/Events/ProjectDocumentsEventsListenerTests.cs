@@ -22,10 +22,9 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration.MefServices;
-using SonarLint.VisualStudio.TestInfrastructure;
+using SonarLint.VisualStudio.Integration.Vsix.Events;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.MefServices;
+namespace SonarLint.VisualStudio.Integration.UnitTests.Events;
 
 [TestClass]
 public class ProjectDocumentsEventsListenerTests
@@ -42,8 +41,11 @@ public class ProjectDocumentsEventsListenerTests
     [TestMethod]
     public void Initialize_CallsAdviseTrackProjectDocumentsEvents()
     {
+        var threadHandling = Substitute.For<IThreadHandling>();
+        threadHandling.When(t => t.RunOnUIThread(Arg.Any<Action>()))
+            .Do(info => info.Arg<Action>()());
         var trackProjectDocuments2 = Substitute.For<IVsTrackProjectDocuments2>();
-        var testSubject = CreateTestSubject(trackProjectDocuments2: trackProjectDocuments2);
+        var testSubject = CreateTestSubject(trackProjectDocuments2: trackProjectDocuments2, threadHandling: threadHandling);
 
         testSubject.Initialize();
 
@@ -203,13 +205,13 @@ public class ProjectDocumentsEventsListenerTests
     }
 
     private static ProjectDocumentsEventsListener CreateTestSubject(IFileTracker fileTracker = null,
-        IVsTrackProjectDocuments2 trackProjectDocuments2 = null)
+        IVsTrackProjectDocuments2 trackProjectDocuments2 = null, IThreadHandling threadHandling = null)
     {
         trackProjectDocuments2 ??= Substitute.For<IVsTrackProjectDocuments2>();
         var serviceProvider = Substitute.For<IServiceProvider>();
         serviceProvider.GetService(typeof(SVsTrackProjectDocuments)).Returns(trackProjectDocuments2);
         fileTracker ??= Substitute.For<IFileTracker>();
-        var threadHandling = Substitute.For<IThreadHandling>();
+        threadHandling ??= Substitute.For<IThreadHandling>();
         return new ProjectDocumentsEventsListener(serviceProvider, fileTracker, threadHandling);
     }
 }

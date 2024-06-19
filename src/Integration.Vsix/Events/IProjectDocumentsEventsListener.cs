@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core;
+namespace SonarLint.VisualStudio.Integration.Vsix.Events;
 
-public interface IProjectDocumentsEventsListener : IDisposable
+internal interface IProjectDocumentsEventsListener : IDisposable
 {
     void Initialize();
 }
