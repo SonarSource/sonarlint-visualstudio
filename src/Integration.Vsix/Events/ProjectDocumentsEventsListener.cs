@@ -47,7 +47,11 @@ internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsLi
 
     public void Initialize()
     {
-        serviceOperation.Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(AdviseTrackProjectDocumentsEvents);
+        serviceOperation.Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(trackProjectDocuments =>
+        {
+            Debug.Assert(trackProjectDocuments != null, "Cannot find IVsTrackProjectDocuments2");
+            ErrorHandler.ThrowOnFailure(trackProjectDocuments.AdviseTrackProjectDocumentsEvents(this, out trackDocumentEventsCookie));
+        });
     }
     
     public int OnQueryAddFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYADDFILEFLAGS[] rgFlags,
@@ -144,19 +148,12 @@ internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsLi
             return;
         }
         
-        serviceOperation.Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(UnadviseTrackProjectDocumentsEvents);
+        serviceOperation.Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(trackProjectDocuments =>
+        {
+            Debug.Assert(trackProjectDocuments != null, "Cannot find IVsTrackProjectDocuments2");
+            ErrorHandler.ThrowOnFailure(trackProjectDocuments.UnadviseTrackProjectDocumentsEvents(trackDocumentEventsCookie));
+        });
+        
         isDisposed = true;
-    }
-
-    private void AdviseTrackProjectDocumentsEvents(IVsTrackProjectDocuments2 trackProjectDocuments)
-    {
-        Debug.Assert(trackProjectDocuments != null, "Cannot find IVsTrackProjectDocuments2");
-        ErrorHandler.ThrowOnFailure(trackProjectDocuments.AdviseTrackProjectDocumentsEvents(this, out trackDocumentEventsCookie));
-    }
-
-    private void UnadviseTrackProjectDocumentsEvents(IVsTrackProjectDocuments2 trackProjectDocuments)
-    {
-        Debug.Assert(trackProjectDocuments != null, "Cannot find IVsTrackProjectDocuments2");
-        ErrorHandler.ThrowOnFailure(trackProjectDocuments.UnadviseTrackProjectDocumentsEvents(trackDocumentEventsCookie));
     }
 }
