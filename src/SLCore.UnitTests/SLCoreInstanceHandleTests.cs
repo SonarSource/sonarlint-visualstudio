@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using NSubstitute.ClearExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -102,6 +99,7 @@ public class SLCoreInstanceHandleTests
                 && parameters.connectedModeEmbeddedPluginPathsByKey.Count == 0
                 && parameters.enabledLanguagesInStandaloneMode.SequenceEqual(new[]
                 {
+                    Language.SECRETS,
                     Language.C,
                     Language.CPP,
                     Language.CS,
@@ -109,7 +107,16 @@ public class SLCoreInstanceHandleTests
                     Language.JS,
                     Language.TS,
                     Language.CSS,
-                    Language.SECRETS
+                })
+                && parameters.disabledLanguagesForAnalysis.SequenceEqual(new []
+                {
+                    Language.C,
+                    Language.CPP,
+                    Language.CS,
+                    Language.VBNET,
+                    Language.JS,
+                    Language.TS,
+                    Language.CSS,
                 })
                 && parameters.extraEnabledLanguagesInConnectedMode.Count == 0
                 && parameters.sonarQubeConnections.SequenceEqual(new[] { SonarQubeConnection1, SonarQubeConnection2 })
