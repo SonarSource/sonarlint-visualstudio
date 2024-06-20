@@ -4,4 +4,3 @@
 [SonarLint.VisualStudio.Core.IThreadHandling]::SwitchToMainThreadAsync
 [SonarLint.VisualStudio.Core.IThreadHandling]::RunOnUIThread
 [SonarLint.VisualStudio.Core.IThreadHandling]::RunOnUIThreadAsync
-[SonarLint.VisualStudio.Infrastructure.IVsUIServiceOperation]::Execute<S, I>(System.Action<I>)
