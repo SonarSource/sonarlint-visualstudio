@@ -93,8 +93,9 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             workDir,
             embeddedPluginPaths: slCoreEmbeddedPluginJarProvider.ListJarFiles(),
             connectedModeEmbeddedPluginPathsByKey: new Dictionary<string, string>(),
-            enabledLanguagesInStandaloneMode: new List<Language>
-            {
+            enabledLanguagesInStandaloneMode:
+            [
+                Language.SECRETS,
                 Language.C,
                 Language.CPP,
                 Language.CS,
@@ -102,9 +103,18 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
                 Language.JS,
                 Language.TS,
                 Language.CSS,
-                Language.SECRETS
-            },
+            ],
             extraEnabledLanguagesInConnectedMode: new List<Language>(),
+            disabledLanguagesForAnalysis:
+            [
+                Language.C,
+                Language.CPP,
+                Language.CS,
+                Language.VBNET,
+                Language.JS,
+                Language.TS,
+                Language.CSS,
+            ],
             serverConnectionConfigurations.Values.OfType<SonarQubeConnectionConfigurationDto>().ToList(),
             serverConnectionConfigurations.Values.OfType<SonarCloudConnectionConfigurationDto>().ToList(),
             sonarlintUserHome,

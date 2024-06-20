@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle
         Dictionary<string, string> connectedModeEmbeddedPluginPathsByKey,
         List<Language> enabledLanguagesInStandaloneMode,
         List<Language> extraEnabledLanguagesInConnectedMode,
+        List<Language> disabledLanguagesForAnalysis,
         List<SonarQubeConnectionConfigurationDto> sonarQubeConnections,
         List<SonarCloudConnectionConfigurationDto> sonarCloudConnections,
         string sonarlintUserHome,
