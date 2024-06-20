@@ -49,6 +49,7 @@ internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsLi
     {
         serviceOperation.Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(trackProjectDocuments =>
         {
+            threadHandling.ThrowIfNotOnUIThread();
             Debug.Assert(trackProjectDocuments != null, "Cannot find IVsTrackProjectDocuments2");
             ErrorHandler.ThrowOnFailure(trackProjectDocuments.AdviseTrackProjectDocumentsEvents(this, out trackDocumentEventsCookie));
         });
@@ -150,6 +151,7 @@ internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsLi
         
         serviceOperation.Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(trackProjectDocuments =>
         {
+            threadHandling.ThrowIfNotOnUIThread();
             Debug.Assert(trackProjectDocuments != null, "Cannot find IVsTrackProjectDocuments2");
             ErrorHandler.ThrowOnFailure(trackProjectDocuments.UnadviseTrackProjectDocumentsEvents(trackDocumentEventsCookie));
         });
