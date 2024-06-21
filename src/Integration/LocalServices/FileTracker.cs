@@ -80,7 +80,7 @@ public class FileTracker : IFileTracker
         }
         else
         {
-            logger.WriteLine("[FileTracker] {0}", SLCoreStrings.ServiceProviderNotInitialized);
+            logger.WriteLine("[{0}] {1}", nameof(FileTracker), SLCoreStrings.ServiceProviderNotInitialized);
         }
 
         return Task.CompletedTask;

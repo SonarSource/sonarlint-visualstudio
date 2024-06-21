@@ -33,14 +33,30 @@ public class ClientFileDtoFactoryTests
         MefTestHelpers.CheckIsSingletonMefComponent<ClientFileDtoFactory>();
     }
     
+    [DataTestMethod]
+    [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\", @"user\projectA\directoryA\file.cs")]
+    [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\user\projectA\", @"directoryA\file.cs")]
+    [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\user\projectA\directoryA\", @"file.cs")]
+    [DataRow(@"\\servername\user\projectA\directoryA\file.cs", @"\\servername\user\", @"projectA\directoryA\file.cs")]
+    [DataRow(@"\\servername\user\projectA\directoryA\file.cs", @"\\servername\user\projectA\", @"directoryA\file.cs")]
+    [DataRow(@"\\servername\user\projectA\directoryA\file.cs", @"\\servername\user\projectA\directoryA\", @"file.cs")]
+    public void Create_CalculatesCorrectRelativePath(string filePath, string rootPath, string expectedRelativePath)
+    {
+        var testSubject = new ClientFileDtoFactory();
+
+        var result = testSubject.Create(filePath, "CONFIG_SCOPE_ID", rootPath);
+
+        result.ideRelativePath.Should().BeEquivalentTo(expectedRelativePath);
+    }
+    
     [TestMethod]
     public void Create_ConstructsValidDto()
     {
         var testSubject = new ClientFileDtoFactory();
 
-        var result = testSubject.Create("C:\\Code\\Project\\File1.js", "CONFIG_SCOPE_ID", "C:\\");
+        var result = testSubject.Create(@"C:\Code\Project\File1.js", "CONFIG_SCOPE_ID", @"C:\");
         
-        ValidateDto(result, "C:\\Code\\Project\\File1.js", "Code\\Project\\File1.js");
+        ValidateDto(result, @"C:\Code\Project\File1.js", @"Code\Project\File1.js");
     }
     
     [TestMethod]
@@ -48,9 +64,9 @@ public class ClientFileDtoFactoryTests
     {
         var testSubject = new ClientFileDtoFactory();
 
-        var result = testSubject.Create("C:\\привет\\project\\file1.js", "CONFIG_SCOPE_ID", "C:\\привет\\");
+        var result = testSubject.Create(@"C:\привет\project\file1.js", "CONFIG_SCOPE_ID", @"C:\");
         
-        ValidateDto(result,  "C:\\привет\\project\\file1.js", "project\\file1.js");
+        ValidateDto(result,  @"C:\привет\project\file1.js", @"привет\project\file1.js");
     }
     
     [TestMethod]
@@ -58,9 +74,9 @@ public class ClientFileDtoFactoryTests
     {
         var testSubject = new ClientFileDtoFactory();
 
-        var result = testSubject.Create("\\\\servername\\work\\project\\file1.js", "CONFIG_SCOPE_ID", "\\\\servername\\work\\");
+        var result = testSubject.Create(@"\\servername\work\project\file1.js", "CONFIG_SCOPE_ID", @"\\servername\work\");
         
-        ValidateDto(result, "\\\\servername\\work\\project\\file1.js", "project\\file1.js");
+        ValidateDto(result, @"\\servername\work\project\file1.js", @"project\file1.js");
     }
     
     [TestMethod]
@@ -68,9 +84,9 @@ public class ClientFileDtoFactoryTests
     {
         var testSubject = new ClientFileDtoFactory();
 
-        var result = testSubject.Create("C:\\Code\\My Project\\My Favorite File2.js", "CONFIG_SCOPE_ID", "C:\\");
+        var result = testSubject.Create(@"C:\Code\My Project\My Favorite File2.js", "CONFIG_SCOPE_ID", @"C:\");
         
-        ValidateDto(result, "C:\\Code\\My Project\\My Favorite File2.js", "Code\\My Project\\My Favorite File2.js");
+        ValidateDto(result, @"C:\Code\My Project\My Favorite File2.js", @"Code\My Project\My Favorite File2.js");
     }
 
     private static void ValidateDto(ClientFileDto actual, string expectedFsPath, string expectedIdeRelativePath)
@@ -82,6 +98,5 @@ public class ClientFileDtoFactoryTests
             null, 
             "utf-8", 
             expectedFsPath));
-        
     }
 }

@@ -20,7 +20,6 @@
 
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.LocalServices;
-using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
