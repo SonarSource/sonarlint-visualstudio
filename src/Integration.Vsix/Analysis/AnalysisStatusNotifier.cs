@@ -30,27 +30,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     {
         private readonly string analyzerName;
         private readonly string filePath;
+        private readonly Guid? analysisId;
         private readonly IStatusBarNotifier statusBarNotifier;
         private readonly ILogger logger;
 
-        public AnalysisStatusNotifier(string analyzerName, string filePath, IStatusBarNotifier statusBarNotifier, ILogger logger)
+        public AnalysisStatusNotifier(string analyzerName, string filePath, Guid? analysisId, IStatusBarNotifier statusBarNotifier, ILogger logger)
         {
             this.analyzerName = analyzerName;
             this.filePath = filePath;
+            this.analysisId = analysisId;
             this.statusBarNotifier = statusBarNotifier;
             this.logger = logger;
         }
 
         public void AnalysisStarted()
         {
-            Log(AnalysisStrings.MSG_AnalysisStarted, filePath);
+            Log(AnalysisStrings.MSG_AnalysisStarted, filePath, analysisId);
 
             Notify(AnalysisStrings.Notifier_AnalysisStarted, true);
         }
 
         public void AnalysisFinished(int issueCount, TimeSpan analysisTime)
         {
-            Log(AnalysisStrings.MSG_AnalysisComplete, filePath, Math.Round(analysisTime.TotalSeconds, 3));
+            Log(AnalysisStrings.MSG_AnalysisComplete, filePath, analysisId, Math.Round(analysisTime.TotalSeconds, 3));
             Log(AnalysisStrings.MSG_FoundIssues, issueCount, filePath);
 
             Notify(AnalysisStrings.Notifier_AnalysisFinished, false);
@@ -58,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         public void AnalysisCancelled()
         {
-            Log(AnalysisStrings.MSG_AnalysisAborted, filePath);
+            Log(AnalysisStrings.MSG_AnalysisAborted, filePath, analysisId);
             
             Notify("", false);
         }
@@ -70,14 +72,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         public void AnalysisFailed(string failureMessage)
         {
-            Log(AnalysisStrings.MSG_AnalysisFailed, filePath, failureMessage);
+            Log(AnalysisStrings.MSG_AnalysisFailed, filePath, analysisId, failureMessage);
 
             Notify(AnalysisStrings.Notifier_AnalysisFailed, false);
         }
 
         public void AnalysisNotReady(string reason)
         {
-            Log(AnalysisStrings.MSG_AnalysisNotReady, filePath, reason);
+            Log(AnalysisStrings.MSG_AnalysisNotReady, filePath, analysisId, reason);
             
             Notify("", false);
         }

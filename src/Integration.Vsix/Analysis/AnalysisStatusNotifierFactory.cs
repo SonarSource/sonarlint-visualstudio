@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.logger = logger;
         }
 
-        public IAnalysisStatusNotifier Create(string analyzerName, string filePath)
+        public IAnalysisStatusNotifier Create(string analyzerName, string filePath, Guid? analysisId = null)
         {
             if (analyzerName == null)
             {
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            return new AnalysisStatusNotifier(analyzerName, filePath, statusBarNotifier, logger);
+            return new AnalysisStatusNotifier(analyzerName, filePath, analysisId, statusBarNotifier, logger);
         }
     }
 }
