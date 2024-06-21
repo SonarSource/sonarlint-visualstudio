@@ -161,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Aborted analysis of {0}, analysis has been re-triggered or has timed-out..
+        ///   Looks up a localized string similar to Aborted analysis of {0} with id {1}, analysis has been re-triggered or has timed-out..
         /// </summary>
         internal static string MSG_AnalysisAborted {
             get {
@@ -170,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Finished analyzing {0}, analysis time: {1}s.
+        ///   Looks up a localized string similar to Finished analyzing {0} with id {1}, analysis time: {2}s.
         /// </summary>
         internal static string MSG_AnalysisComplete {
             get {
@@ -179,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to analyze {0}: {1}.
+        ///   Looks up a localized string similar to Failed to analyze {0} with id {1}: {2}.
         /// </summary>
         internal static string MSG_AnalysisFailed {
             get {
@@ -188,7 +188,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analysis not ready for file {0}: {1}.
+        ///   Looks up a localized string similar to Analysis {1} not ready for file {0}: {2}.
         /// </summary>
         internal static string MSG_AnalysisNotReady {
             get {
@@ -197,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analyzing {0}.
+        ///   Looks up a localized string similar to Analyzing {0} with id {1}.
         /// </summary>
         internal static string MSG_AnalysisStarted {
             get {

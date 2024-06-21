@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
@@ -80,7 +81,7 @@ public class AnalysisListenerTests
         activeConfigScopeTracker.Received().TryUpdateAnalysisReadinessOnCurrentConfigScope("id", isReady);
         if (isReady)
         {
-            analysisRequester.Received().RequestAnalysis(Arg.Is<IAnalyzerOptions>(o => o.IsOnOpen), Arg.Is<string[]>(s => s.Length == 0));
+            analysisRequester.Received().RequestAnalysis(Arg.Is<IAnalyzerOptions>(o => o.IsOnOpen), Arg.Is<string[]>(s => !s.Any()));
         }
         testLogger.AssertPartialOutputStringExists(string.Format(SLCoreStrings.AnalysisReadinessUpdate, isReady));
     }
@@ -104,68 +105,72 @@ public class AnalysisListenerTests
     [TestMethod]
     public void RaiseIssues_NoIssues_Ignores()
     {
-        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { new FileUri("file://C:/somefile"), new List<RaisedIssueDto>() } };
+        var fileUri = new FileUri("file://C:/somefile");
+        var analysisId = Guid.NewGuid();
+        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { fileUri, [] } };
 
-        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, Guid.NewGuid());
+        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
 
         var analysisService = Substitute.For<IAnalysisService>();
-        var raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, Array.Empty<IAnalysisIssue>());
+        var raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, [], []);
 
         var testSubject = CreateTestSubject(analysisService: analysisService, raiseIssueParamsToAnalysisIssueConverter: raiseIssueParamsToAnalysisIssueConverter);
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
-        analysisService.DidNotReceive().PublishIssues(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<IEnumerable<IAnalysisIssue>>());
-        raiseIssueParamsToAnalysisIssueConverter.DidNotReceive().GetAnalysisIssues(Arg.Any<FileUri>(), Arg.Any<List<RaisedIssueDto>>());
+        raiseIssueParamsToAnalysisIssueConverter.Received().GetAnalysisIssues(fileUri, Arg.Is<IEnumerable<RaisedIssueDto>>(x => !x.Any()));
+        analysisService.Received().PublishIssues(fileUri.LocalPath, analysisId, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
     }
 
     [TestMethod]
-    public void RaiseIssues_NoSupportedLanguages_Ignores()
+    public void RaiseIssues_NoSupportedLanguages_PublishesEmpty()
     {
         var issue1 = CreateIssue("csharpsquid:S100");
         var issue2 = CreateIssue("csharpsquid:S101");
         var issues = new[] { issue1, issue2 };
 
-        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { new FileUri("file://C:/somefile"), new List<RaisedIssueDto>() } };
+        var analysisId = Guid.NewGuid();
+        var fileUri = new FileUri("file://C:/somefile");
+        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { fileUri, [CreateRaisedIssueDto("csharpsquid:S100"), CreateRaisedIssueDto("csharpsquid:S101")] } };
 
-        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, Guid.NewGuid());
+        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
 
         var analysisService = Substitute.For<IAnalysisService>();
-        IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, issues);
+        IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, [], []);
+        
+        var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier, fileUri.LocalPath, analysisId);
 
-        var testSubject = CreateTestSubject(analysisService: analysisService, raiseIssueParamsToAnalysisIssueConverter: raiseIssueParamsToAnalysisIssueConverter);
+        var testSubject = CreateTestSubject(analysisService: analysisService,
+            raiseIssueParamsToAnalysisIssueConverter: raiseIssueParamsToAnalysisIssueConverter,
+            analysisStatusNotifierFactory: analysisStatusNotifierFactory);
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
-        analysisService.DidNotReceive().PublishIssues(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<IEnumerable<IAnalysisIssue>>());
-        raiseIssueParamsToAnalysisIssueConverter.DidNotReceive().GetAnalysisIssues(Arg.Any<FileUri>(), Arg.Any<List<RaisedIssueDto>>());
+        raiseIssueParamsToAnalysisIssueConverter.Received().GetAnalysisIssues(fileUri, Arg.Is<IEnumerable<RaisedIssueDto>>(x => !x.Any()));
+        analysisService.Received().PublishIssues(fileUri.LocalPath, analysisId, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
+        analysisStatusNotifier.AnalysisFinished(0, TimeSpan.Zero);
     }
 
     [TestMethod]
-    public void RaiseIssues_HasMoreThanOneFileUri_Throws()
+    public void RaiseIssues_HasNoFileUri_FinishesAnalysis()
     {
-        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { new FileUri("file://C:/somefile"), new List<RaisedIssueDto>() }, { new FileUri("file://C:/someOtherfile"), new List<RaisedIssueDto>() } };
-        var testSubject = CreateTestSubject();
+        var analysisId = Guid.NewGuid();
+        var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier, null, analysisId);
+        var analysisService = Substitute.For<IAnalysisService>();
+        var testSubject = CreateTestSubject(analysisService: analysisService, analysisStatusNotifierFactory: analysisStatusNotifierFactory);
 
-        var act = () => testSubject.RaiseIssues(new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, Guid.NewGuid()));
+        var act = () => testSubject.RaiseIssues(new RaiseIssuesParams("CONFIGURATION_ID", new Dictionary<FileUri, List<RaisedIssueDto>>(), false, analysisId));
 
-        act.Should().Throw<InvalidOperationException>();
-    }
-
-    [TestMethod]
-    public void RaiseIssues_HasNoFileUri_Throws()
-    {
-        var testSubject = CreateTestSubject();
-
-        var act = () => testSubject.RaiseIssues(new RaiseIssuesParams("CONFIGURATION_ID", new Dictionary<FileUri, List<RaisedIssueDto>>(), false, Guid.NewGuid()));
-
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().NotThrow();
+        analysisService.ReceivedCalls().Should().BeEmpty();
+        analysisStatusNotifier.ReceivedCalls().Should().BeEmpty();
     }
 
     [TestMethod]
     public void RaiseIssues_HasIssuesNotIntermediate_PublishIssues()
     {
-        var guid = Guid.NewGuid();
+        var analysisId = Guid.NewGuid();
+        var fileUri = new FileUri("file://C:/somefile");
         var issue1 = CreateIssue("csharpsquid:S100");
         var issue2 = CreateIssue("secrets:S1012");
         var filteredIssues = new[] { issue1, issue2 };
@@ -173,27 +178,67 @@ public class AnalysisListenerTests
         var raisedIssue1 = CreateRaisedIssueDto("csharpsquid:S100");
         var raisedIssue2 = CreateRaisedIssueDto("javascript:S101");
         var raisedIssue3 = CreateRaisedIssueDto("secrets:S1012");
+        var filteredRaisedIssues = new [] {raisedIssue1, raisedIssue3};
         var raisedIssues = new List<RaisedIssueDto> { raisedIssue1, raisedIssue2, raisedIssue3 };
 
-        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { new FileUri("file://C:/somefile"), raisedIssues } };
+        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { fileUri, raisedIssues } };
 
-        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, guid);
+        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
 
         var analysisService = Substitute.For<IAnalysisService>();
-        IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, filteredIssues);
+        IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, filteredRaisedIssues, filteredIssues);
 
-        var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier);
+        var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier, fileUri.LocalPath, analysisId);
 
-        var testSubject = CreateTestSubject(analysisService: analysisService, raiseIssueParamsToAnalysisIssueConverter: raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory: analysisStatusNotifierFactory, languages: [Language.Secrets, Language.CSharp]);
+        var testSubject = CreateTestSubject(analysisService: analysisService,
+            raiseIssueParamsToAnalysisIssueConverter: raiseIssueParamsToAnalysisIssueConverter,
+            analysisStatusNotifierFactory: analysisStatusNotifierFactory,
+            languages: [Language.Secrets, Language.CSharp]);
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
-        analysisService.Received(1).PublishIssues("C:\\somefile", guid, filteredIssues);
+        analysisService.Received(1).PublishIssues(fileUri.LocalPath, analysisId, filteredIssues);
         raiseIssueParamsToAnalysisIssueConverter.Received(1).GetAnalysisIssues(issuesByFileUri.Single().Key, Arg.Is<IEnumerable<RaisedIssueDto>>(
-            filteredIssues => filteredIssues.Count() == 2 && filteredIssues.ElementAt(0) == raisedIssue1 && filteredIssues.ElementAt(1) == raisedIssue3));
+            x => x.SequenceEqual(filteredRaisedIssues)));
 
-        analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", "C:\\somefile");
+        analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", fileUri.LocalPath, analysisId);
         analysisStatusNotifier.Received(1).AnalysisFinished(2, TimeSpan.Zero);
+    }
+    
+    [TestMethod]
+    public void RaiseIssues_MultipleFiles_PublishIssuesForEachFile()
+    {
+        var analysisId = Guid.NewGuid();
+        var fileUri1 = new FileUri("file://C:/somefile");
+        var fileUri2 = new FileUri("file://C:/someOtherfile");
+        var issue1 = CreateIssue("secrets:S100");
+        var issue2 = CreateIssue("secrets:S101");
+
+        var raisedIssue1 = CreateRaisedIssueDto("secrets:S100");
+        var raisedIssue2 = CreateRaisedIssueDto("secrets:S101");
+
+        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { fileUri1, [raisedIssue1] }, { fileUri2, [raisedIssue2] } };
+
+        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
+
+        var analysisService = Substitute.For<IAnalysisService>();
+        var raiseIssueParamsToAnalysisIssueConverter = Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>();
+        raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(fileUri1, Arg.Any<IEnumerable<RaisedIssueDto>>()).Returns([issue1]);
+        raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(fileUri2, Arg.Any<IEnumerable<RaisedIssueDto>>()).Returns([issue2]);
+
+        var analysisStatusNotifierFactory = Substitute.For<IAnalysisStatusNotifierFactory>();
+
+        var testSubject = CreateTestSubject(analysisService: analysisService,
+            raiseIssueParamsToAnalysisIssueConverter: raiseIssueParamsToAnalysisIssueConverter,
+            analysisStatusNotifierFactory: analysisStatusNotifierFactory);
+
+        testSubject.RaiseIssues(raiseIssuesParams);
+
+        analysisService.Received(1).PublishIssues(fileUri1.LocalPath, analysisId, Arg.Is<IEnumerable<IAnalysisIssue>>(x => x.SequenceEqual(new List<IAnalysisIssue> { issue1 })));
+        analysisService.Received(1).PublishIssues(fileUri2.LocalPath, analysisId, Arg.Is<IEnumerable<IAnalysisIssue>>(x => x.SequenceEqual(new List<IAnalysisIssue> { issue2 })));
+
+        analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", fileUri1.LocalPath, analysisId);
+        analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", fileUri2.LocalPath, analysisId);
     }
 
     [TestMethod]
@@ -213,13 +258,13 @@ public class AnalysisListenerTests
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
-        analysisService.DidNotReceive().PublishIssues(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<IEnumerable<IAnalysisIssue>>());
+        analysisService.DidNotReceiveWithAnyArgs().PublishIssues(default, default, default);
     }
 
-    private static IRaiseIssueParamsToAnalysisIssueConverter CreateConverter(FileUri fileUri, IAnalysisIssue[] issues)
+    private static IRaiseIssueParamsToAnalysisIssueConverter CreateConverter(FileUri fileUri, IReadOnlyCollection<RaisedIssueDto> raisedIssueDtos, IAnalysisIssue[] issues)
     {
         var raiseIssueParamsToAnalysisIssueConverter = Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>();
-        raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(fileUri, Arg.Any<IEnumerable<RaisedIssueDto>>()).Returns(issues);
+        raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(fileUri, Arg.Is<IEnumerable<RaisedIssueDto>>(x => x.SequenceEqual(raisedIssueDtos))).Returns(issues);
         return raiseIssueParamsToAnalysisIssueConverter;
     }
 
@@ -234,15 +279,16 @@ public class AnalysisListenerTests
             analysisRequester ?? Substitute.For<IAnalysisRequester>(),
             analysisService ?? Substitute.For<IAnalysisService>(),
             raiseIssueParamsToAnalysisIssueConverter ?? Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>(),
-            analysisStatusNotifierFactory ?? CreateAnalysisStatusNotifierFactory(out _),
+            analysisStatusNotifierFactory ?? Substitute.For<IAnalysisStatusNotifierFactory>(),
             logger ?? new TestLogger(),
             languages ?? [Language.Secrets]);
 
-    private IAnalysisStatusNotifierFactory CreateAnalysisStatusNotifierFactory(out IAnalysisStatusNotifier analysisStatusNotifier)
+    private IAnalysisStatusNotifierFactory CreateAnalysisStatusNotifierFactory(out IAnalysisStatusNotifier analysisStatusNotifier, string filePath,
+        Guid? analysisId)
     {
         var analysisStatusNotifierFactory = Substitute.For<IAnalysisStatusNotifierFactory>();
         analysisStatusNotifier = Substitute.For<IAnalysisStatusNotifier>();
-        analysisStatusNotifierFactory.Create(Arg.Any<string>(), Arg.Any<string>()).Returns(analysisStatusNotifier);
+        analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), filePath, analysisId).Returns(analysisStatusNotifier);
         return analysisStatusNotifierFactory;
     }
 

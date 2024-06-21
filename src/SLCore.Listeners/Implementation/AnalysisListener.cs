@@ -90,23 +90,33 @@ internal class AnalysisListener : IAnalysisListener
 
     public void RaiseIssues(RaiseIssuesParams parameters)
     {
-        if (!parameters.analysisId.HasValue || parameters.isIntermediatePublication)
+        if (!parameters.analysisId.HasValue)
         {
+            logger.LogVerbose($"[{nameof(RaiseIssues)}] No {nameof(parameters.analysisId)}, ignoring...");
             return;
         }
 
-        var fileUri = parameters.issuesByFileUri.Single().Key;
-        var raisedIssues = parameters.issuesByFileUri.Single().Value;
-
-        var supportedRaisedIssues = GetSupportedLanguageIssues(raisedIssues);
-
-        if (supportedRaisedIssues.Any())
+        if (parameters.isIntermediatePublication)
         {
-            analysisService.PublishIssues(fileUri.LocalPath,
-               parameters.analysisId.Value,
-               raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
+            logger.LogVerbose($"[{nameof(RaiseIssues)}] {nameof(parameters.isIntermediatePublication)}=true, ignoring...");
+            return;
+        }
 
-            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), fileUri.LocalPath);
+        if (parameters.issuesByFileUri.Count == 0)
+        {
+            logger.LogVerbose($"[{nameof(RaiseIssues)}] Empty {nameof(parameters.issuesByFileUri)} dictionary, ignoring...");
+            return;
+        }
+
+        foreach (var fileAndIssues in parameters.issuesByFileUri)
+        {
+            var fileUri = fileAndIssues.Key;
+            var localPath = fileUri.LocalPath;
+            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), localPath, parameters.analysisId);
+            var supportedRaisedIssues = GetSupportedLanguageIssues(fileAndIssues.Value ?? Enumerable.Empty<RaisedIssueDto>());
+            analysisService.PublishIssues(localPath,
+                parameters.analysisId.Value,
+                raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
             analysisStatusNotifier.AnalysisFinished(supportedRaisedIssues.Length, TimeSpan.Zero);
         }
     }
