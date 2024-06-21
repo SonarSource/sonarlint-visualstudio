@@ -59,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IEnumerable<AnalysisLanguage> detectedLanguages,
             ISonarErrorListDataSource sonarErrorDataSource,
             IVsAwareAnalysisService vsAwareAnalysisService,
+            IFileTracker fileTracker,
             ILogger logger)
         {
 
@@ -71,9 +72,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.logger = logger;
 
             this.document = document;
-            this.LastAnalysisFilePath = document.FilePath;
-
-            this.Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
+            LastAnalysisFilePath = document.FilePath;
+            fileTracker.AddFiles(LastAnalysisFilePath);
+            Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
 

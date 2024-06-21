@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
@@ -41,6 +42,7 @@ public class TextBufferIssueTrackerTests
     private Mock<ITextBuffer> mockDocumentTextBuffer;
     private Mock<ITextDocument> mockedJavascriptDocumentFooJs;
     private Mock<ISonarErrorListDataSource> mockSonarErrorDataSource;
+    private Mock<IFileTracker> mockFileTracker;
     private TaggerProvider taggerProvider;
     private TextBufferIssueTracker testSubject;
 
@@ -49,6 +51,7 @@ public class TextBufferIssueTrackerTests
     {
         mockSonarErrorDataSource = new Mock<ISonarErrorListDataSource>();
         mockAnalysisService = new Mock<IVsAwareAnalysisService>();
+        mockFileTracker = new Mock<IFileTracker>();
         taggerProvider = CreateTaggerProvider();
         mockDocumentTextBuffer = CreateTextBufferMock();
         mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js", mockDocumentTextBuffer);
@@ -64,7 +67,8 @@ public class TextBufferIssueTrackerTests
 
         return new TextBufferIssueTracker(taggerProvider,
             mockedJavascriptDocumentFooJs.Object, javascriptLanguage,
-            mockSonarErrorDataSource.Object, vsAnalysisService.Object, logger);
+            mockSonarErrorDataSource.Object, vsAnalysisService.Object, 
+            mockFileTracker.Object, logger);
     }
 
     [TestMethod]
@@ -179,7 +183,7 @@ public class TextBufferIssueTrackerTests
         var vsAwareAnalysisService = mockAnalysisService.Object;
         var analysisRequester = mockAnalysisRequester.Object;
         var provider = new TaggerProvider(sonarErrorListDataSource, textDocumentFactoryService, 
-            serviceProvider, languageRecognizer, vsAwareAnalysisService, analysisRequester, Mock.Of<ITaggableBufferIndicator>(), logger);
+            serviceProvider, languageRecognizer, vsAwareAnalysisService, analysisRequester, Mock.Of<ITaggableBufferIndicator>(), mockFileTracker.Object, logger);
         return provider;
     }
 

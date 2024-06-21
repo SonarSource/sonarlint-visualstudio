@@ -19,9 +19,9 @@
  */
 
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Files;
-using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
@@ -37,13 +37,14 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             MefTestHelpers.CheckTypeCanBeImported<ListFilesListener, ISLCoreListener>(
                 MefTestHelpers.CreateExport<IFolderWorkspaceService>(),
                 MefTestHelpers.CreateExport<ISolutionWorkspaceService>(),
-                MefTestHelpers.CreateExport<IActiveConfigScopeTracker>());
+                MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
+                MefTestHelpers.CreateExport<IClientFileDtoFactory>());
         }
 
         [TestMethod]
         public void MefCtor_CheckIsSingleton()
         {
-            MefTestHelpers.CheckIsSingletonMefComponent<ClientInfoListener>();
+            MefTestHelpers.CheckIsSingletonMefComponent<ListFilesListener>();
         }
 
         [TestMethod]
@@ -73,44 +74,17 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
 
             var files = result.files.ToList();
-
             files.Should().HaveCount(3);
-
-            files[0].uri.ToString().Should().Be("file:///C:/Code/Project/File1.js");
-            files[0].ideRelativePath.Should().Be("File1.js");
-            files[0].configScopeId.Should().Be(ConfigScopeId);
-            files[0].isTest.Should().BeNull();
-            files[0].charset.Should().Be("utf-8");
-            files[0].fsPath.Should().Be("C:\\Code\\Project\\File1.js");
-            files[0].content.Should().BeNull();
-            ValidateUriPath(files[0]);
-
-            files[1].uri.ToString().Should().Be("file:///C:/Code/Project/File2.js");
-            files[1].ideRelativePath.Should().Be("File2.js");
-            files[1].configScopeId.Should().Be(ConfigScopeId);
-            files[1].isTest.Should().BeNull();
-            files[1].charset.Should().Be("utf-8");
-            files[1].fsPath.Should().Be("C:\\Code\\Project\\File2.js");
-            files[1].content.Should().BeNull();
-            ValidateUriPath(files[1]);
-
-            files[2].uri.ToString().Should().Be("file:///C:/Code/Project/Folder1/File3.js");
-            files[2].ideRelativePath.Should().Be("Folder1\\File3.js");
-            files[2].configScopeId.Should().Be(ConfigScopeId);
-            files[2].isTest.Should().BeNull();
-            files[2].charset.Should().Be("utf-8");
-            files[2].fsPath.Should().Be("C:\\Code\\Project\\Folder1\\File3.js");
-            files[2].content.Should().BeNull();
-            ValidateUriPath(files[2]);
-
             solutionWorkspaceService.DidNotReceive().ListFiles();
             activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\Code\\Project\\");
         }
 
-        [TestMethod]
-        public async Task ListFilesAsync_FolderWorkSpace_SupportsPathsWithWhitespaces()
+        [DataTestMethod]
+        [DataRow("C:\\Code\\My Project", "C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\")] // supports whitespace
+        [DataRow("C:\\привет", "C:\\привет\\project\\file1.js", "C:\\привет\\")] // supports localized
+        public async Task ListFilesAsync_FolderWorkSpace_UpdatesRootPath(string workspaceRootPath, string filePath, string expectedRootPath)
         {
-            var folderWorkspaceService = CreateFolderWorkSpaceService("C:\\Code", "C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\My Favorite File2.js", "C:\\Code\\Project\\Folder1\\File3.js");
+            var folderWorkspaceService = CreateFolderWorkSpaceService(workspaceRootPath, filePath);
             var solutionWorkspaceService = CreateSolutionWorkspaceService();
             var activeConfigScopeTracker = CreateActiveConfigScopeTracker();
 
@@ -119,49 +93,12 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
 
             var files = result.files.ToList();
-
-            files.Should().HaveCount(3);
-
-            files[0].uri.ToString().Should().Be("file:///C:/Code/My%20Project/File1.js");
-            files[0].fsPath.Should().Be("C:\\Code\\My Project\\File1.js");
-            files[0].ideRelativePath.Should().Be("My Project\\File1.js");
-            ValidateUriPath(files[0]);
-
-            files[1].uri.ToString().Should().Be("file:///C:/Code/My%20Project/My%20Favorite%20File2.js");
-            files[1].fsPath.Should().Be("C:\\Code\\My Project\\My Favorite File2.js");
-            files[1].ideRelativePath.Should().Be("My Project\\My Favorite File2.js");
-            ValidateUriPath(files[1]);
-
-            files[2].uri.ToString().Should().Be("file:///C:/Code/Project/Folder1/File3.js");
-            files[2].fsPath.Should().Be("C:\\Code\\Project\\Folder1\\File3.js");
-            files[2].ideRelativePath.Should().Be("Project\\Folder1\\File3.js");
-            ValidateUriPath(files[2]);
-        }
-
-        [TestMethod]
-        public async Task ListFilesAsync_FolderWorkSpace_SupportsLocalized()
-        {
-            var folderWorkspaceService = CreateFolderWorkSpaceService("C:\\привет", "C:\\привет\\project\\file1.js");
-            var solutionWorkspaceService = CreateSolutionWorkspaceService();
-            var activeConfigScopeTracker = CreateActiveConfigScopeTracker();
-
-            var testSubject = CreateTestSubject(folderWorkspaceService: folderWorkspaceService, solutionWorkspaceService: solutionWorkspaceService, activeConfigScopeTracker: activeConfigScopeTracker);
-
-            var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
-
-            var files = result.files.ToList();
-
             files.Should().ContainSingle();
-
-            files[0].uri.ToString().Should().Be("file:///C:/привет/project/file1.js");
-            files[0].fsPath.Should().Be("C:\\привет\\project\\file1.js");
-            files[0].ideRelativePath.Should().Be("project\\file1.js");
-            ValidateUriPath(files[0]);
-            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\привет\\");
+            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, expectedRootPath);
         }
 
         [TestMethod]
-        public async Task ListFilesAsync_SolutionWorkSpace_UsesSoluionWorkspaceService()
+        public async Task ListFilesAsync_SolutionWorkSpace_UsesSolutionWorkspaceService()
         {
             var folderWorkspaceService = CreateFolderWorkSpaceService(null);
             var solutionWorkspaceService = CreateSolutionWorkspaceService("C:\\Code\\Project\\File1.js", "C:\\Code\\Project\\File2.js", "C:\\Code\\Project\\Folder1\\File3.js");
@@ -172,45 +109,19 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
 
             var files = result.files.ToList();
-
             files.Should().HaveCount(3);
-
-            files[0].uri.ToString().Should().Be("file:///C:/Code/Project/File1.js");
-            files[0].ideRelativePath.Should().Be("Code\\Project\\File1.js");
-            files[0].configScopeId.Should().Be(ConfigScopeId);
-            files[0].isTest.Should().BeNull();
-            files[0].charset.Should().Be("utf-8");
-            files[0].fsPath.Should().Be("C:\\Code\\Project\\File1.js");
-            files[0].content.Should().BeNull();
-            ValidateUriPath(files[0]);
-
-            files[1].uri.ToString().Should().Be("file:///C:/Code/Project/File2.js");
-            files[1].ideRelativePath.Should().Be("Code\\Project\\File2.js");
-            files[1].configScopeId.Should().Be(ConfigScopeId);
-            files[1].isTest.Should().BeNull();
-            files[1].charset.Should().Be("utf-8");
-            files[1].fsPath.Should().Be("C:\\Code\\Project\\File2.js");
-            files[1].content.Should().BeNull();
-            ValidateUriPath(files[1]);
-
-            files[2].uri.ToString().Should().Be("file:///C:/Code/Project/Folder1/File3.js");
-            files[2].ideRelativePath.Should().Be("Code\\Project\\Folder1\\File3.js");
-            files[2].configScopeId.Should().Be(ConfigScopeId);
-            files[2].isTest.Should().BeNull();
-            files[2].charset.Should().Be("utf-8");
-            files[2].fsPath.Should().Be("C:\\Code\\Project\\Folder1\\File3.js");
-            files[2].content.Should().BeNull();
-            ValidateUriPath(files[2]);
-
             folderWorkspaceService.DidNotReceive().ListFiles();
             activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\");
         }
 
-        [TestMethod]
-        public async Task ListFilesAsync_SolutionWorkSpace_SupportsPathsWithWhitespaces()
+        [DataTestMethod]
+        [DataRow("C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\My Favorite File2.js", "C:\\")] // supports whitespace
+        [DataRow("C:\\привет\\project\\file1.js", "C:\\привет\\project\\file2.js", "C:\\")] // supports localized
+        [DataRow("\\\\servername\\work\\project\\file1.js", "\\\\servername\\work\\project\\file2.js", "\\\\servername\\work\\")] // supports UNC
+        public async Task ListFilesAsync_SolutionWorkSpace_UpdatesRootPath(string filePath1, string filepath2, string expectedRootPath)
         {
             var folderWorkspaceService = CreateFolderWorkSpaceService(null);
-            var solutionWorkspaceService = CreateSolutionWorkspaceService("C:\\Code\\My Project\\File1.js", "C:\\Code\\My Project\\My Favorite File2.js", "C:\\Code\\Project\\Folder1\\File3.js");
+            var solutionWorkspaceService = CreateSolutionWorkspaceService(filePath1, filepath2);
             var activeConfigScopeTracker = CreateActiveConfigScopeTracker();
 
             var testSubject = CreateTestSubject(folderWorkspaceService: folderWorkspaceService, solutionWorkspaceService: solutionWorkspaceService, activeConfigScopeTracker: activeConfigScopeTracker);
@@ -218,67 +129,8 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
 
             var files = result.files.ToList();
-
-            files.Should().HaveCount(3);
-
-            files[0].uri.ToString().Should().Be("file:///C:/Code/My%20Project/File1.js");
-            files[0].fsPath.Should().Be("C:\\Code\\My Project\\File1.js");
-            files[0].ideRelativePath.Should().Be("Code\\My Project\\File1.js");
-            ValidateUriPath(files[0]);
-
-            files[1].uri.ToString().Should().Be("file:///C:/Code/My%20Project/My%20Favorite%20File2.js");
-            files[1].fsPath.Should().Be("C:\\Code\\My Project\\My Favorite File2.js");
-            files[1].ideRelativePath.Should().Be("Code\\My Project\\My Favorite File2.js");
-            ValidateUriPath(files[1]);
-
-            files[2].uri.ToString().Should().Be("file:///C:/Code/Project/Folder1/File3.js");
-            files[2].fsPath.Should().Be("C:\\Code\\Project\\Folder1\\File3.js");
-            files[2].ideRelativePath.Should().Be("Code\\Project\\Folder1\\File3.js");
-            ValidateUriPath(files[2]);
-        }
-
-        [TestMethod]
-        public async Task ListFilesAsync_SolutionWorkSpace_SupportsUNCpaths()
-        {
-            var folderWorkspaceService = CreateFolderWorkSpaceService(null);
-            var solutionWorkspaceService = CreateSolutionWorkspaceService("\\\\servername\\work\\project\\file1.js");
-            var activeConfigScopeTracker = CreateActiveConfigScopeTracker();
-
-            var testSubject = CreateTestSubject(folderWorkspaceService: folderWorkspaceService, solutionWorkspaceService: solutionWorkspaceService, activeConfigScopeTracker: activeConfigScopeTracker);
-
-            var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
-
-            var files = result.files.ToList();
-
-            files.Should().ContainSingle();
-
-            files[0].uri.ToString().Should().Be("file://servername/work/project/file1.js");
-            files[0].fsPath.Should().Be("\\\\servername\\work\\project\\file1.js");
-            files[0].ideRelativePath.Should().Be("project\\file1.js");
-            ValidateUriPath(files[0]);
-            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "\\\\servername\\work\\");
-        }
-
-        [TestMethod]
-        public async Task ListFilesAsync_SolutionWorkSpace_SupportsLocalized()
-        {
-            var folderWorkspaceService = CreateFolderWorkSpaceService(null);
-            var solutionWorkspaceService = CreateSolutionWorkspaceService("C:\\привет\\project\\file1.js");
-            var activeConfigScopeTracker = CreateActiveConfigScopeTracker();
-
-            var testSubject = CreateTestSubject(folderWorkspaceService: folderWorkspaceService, solutionWorkspaceService: solutionWorkspaceService, activeConfigScopeTracker: activeConfigScopeTracker);
-
-            var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
-
-            var files = result.files.ToList();
-
-            files.Should().ContainSingle();
-
-            files[0].uri.ToString().Should().Be("file:///C:/привет/project/file1.js");
-            files[0].fsPath.Should().Be("C:\\привет\\project\\file1.js");
-            files[0].ideRelativePath.Should().Be("привет\\project\\file1.js");
-            ValidateUriPath(files[0]);
-            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, "C:\\");
+            files.Should().HaveCount(2);
+            activeConfigScopeTracker.Received(1).TryUpdateRootOnCurrentConfigScope(ConfigScopeId, expectedRootPath);
         }
 
         [TestMethod]
@@ -293,13 +145,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             var result = await testSubject.ListFilesAsync(new ListFilesParams(ConfigScopeId));
 
             var files = result.files.ToList();
-
             files.Should().BeEmpty();
-        }
-
-        private static void ValidateUriPath(ClientFileDto file)
-        {
-            file.uri.LocalPath.Should().Be(file.fsPath);
         }
 
         private IFolderWorkspaceService CreateFolderWorkSpaceService(string root, params string[] files)
@@ -332,13 +178,16 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             return activeConfigScopeTracker;
         }
 
-        private ListFilesListener CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null, ISolutionWorkspaceService solutionWorkspaceService = null, IActiveConfigScopeTracker activeConfigScopeTracker = null)
+        private ListFilesListener CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null,
+            ISolutionWorkspaceService solutionWorkspaceService = null, IActiveConfigScopeTracker activeConfigScopeTracker = null,
+            IClientFileDtoFactory clientFileDtoFactory = null)
         {
             folderWorkspaceService ??= Substitute.For<IFolderWorkspaceService>();
             solutionWorkspaceService ??= Substitute.For<ISolutionWorkspaceService>();
             activeConfigScopeTracker ??= CreateActiveConfigScopeTracker();
+            clientFileDtoFactory ??= Substitute.For<IClientFileDtoFactory>();
 
-            var testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, activeConfigScopeTracker);
+            var testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, activeConfigScopeTracker, clientFileDtoFactory);
             return testSubject;
         }
     }
