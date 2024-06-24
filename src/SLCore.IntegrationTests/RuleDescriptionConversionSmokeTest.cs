@@ -45,7 +45,7 @@ public class RuleDescriptionConversionSmokeTest
         var slCoreErrorLogger = new TestLogger();
         using var slCoreTestRunner = new SLCoreTestRunner(testLogger, slCoreErrorLogger, TestContext.TestName);
         slCoreTestRunner.AddListener(new LoggerListener(testLogger));
-        await slCoreTestRunner.Start();
+        slCoreTestRunner.Start();
 
         var ruleHelpXamlBuilder = CreateRuleHelpXamlBuilder();
         var activeConfigScopeTracker = CreateActiveConfigScopeTracker(slCoreTestRunner);
