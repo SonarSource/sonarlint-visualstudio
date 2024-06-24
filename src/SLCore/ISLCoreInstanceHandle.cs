@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Configuration;
@@ -29,7 +25,6 @@ using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
-using SonarLint.VisualStudio.SLCore.Service.Telemetry;
 using SonarLint.VisualStudio.SLCore.State;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
@@ -37,7 +32,7 @@ namespace SonarLint.VisualStudio.SLCore;
 
 internal interface ISLCoreInstanceHandle : IDisposable
 {
-    Task InitializeAsync();
+    void Initialize();
 
     Task ShutdownTask { get; }
 }
@@ -71,7 +66,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         this.threadHandling = threadHandling;
     }
 
-    public async Task InitializeAsync()
+    public void Initialize()
     {
         threadHandling.ThrowIfOnUIThread();
 
@@ -85,7 +80,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         var serverConnectionConfigurations = serverConnectionConfigurationProvider.GetServerConnections();
         var (storageRoot, workDir, sonarlintUserHome) = slCoreFoldersProvider.GetWorkFolders();
 
-        await lifecycleManagementSlCoreService.InitializeAsync(new InitializeParams(
+        lifecycleManagementSlCoreService.Initialize(new InitializeParams(
             constantsProvider.ClientConstants,
             new HttpConfigurationDto(new SslConfigurationDto()),
             constantsProvider.FeatureFlags,
@@ -125,28 +120,32 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
 
         configScopeUpdater.UpdateConfigScopeForCurrentSolution(activeSolutionBoundTracker.CurrentConfiguration.Project);
     }
-
-
+    
     public void Dispose()
     {
-        if (SLCoreRpc?.ServiceProvider?.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService) ?? false)
+        Shutdown();
+        SLCoreRpc?.Dispose();
+        SLCoreRpc = null;
+    }
+    private void Shutdown()
+    {
+        try
         {
             threadHandling.Run(async () =>
             {
-                try
+                await threadHandling.SwitchToBackgroundThread();
+                if (SLCoreRpc?.ServiceProvider?.TryGetTransientService(out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService) ?? false)
                 {
-                    await lifecycleManagementSlCoreService.ShutdownAsync();
+                    lifecycleManagementSlCoreService.Shutdown();
                 }
-                catch (Exception)
-                {
-                    // suppressed
-                }
-                
+
                 return 0;
             });
         }
-
-        SLCoreRpc?.Dispose();
-        SLCoreRpc = null;
+        catch
+        {
+            // ignore
+        }
+        
     }
 }

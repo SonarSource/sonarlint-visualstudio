@@ -18,26 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
-using SonarLint.VisualStudio.SLCore.Core;
+namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle
+public static class ConcurrencyTestHelper
 {
-    /// <summary>
-    /// Collection of methods relating to SLCore lifecycle management
-    /// </summary>
-    public interface ILifecycleManagementSLCoreService : ISLCoreService
-    {
-        /// <summary>
-        /// Initialize SLCore
-        /// </summary>
-        /// <remarks>Notification</remarks>
-        void Initialize(InitializeParams parameters);
+    private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(15);
 
-        /// <summary>
-        /// Shutdown SLCore
-        /// </summary>
-        /// <remarks>Notification</remarks>
-        void Shutdown();
+    public static Task WaitForTaskWithTimeout(Task task, TimeSpan? timeout = null) =>
+        WaitForTaskWithTimeout(_ => task, timeout);
+    
+    public static async Task WaitForTaskWithTimeout(Func<CancellationToken, Task> func, TimeSpan? timeout = null)
+    {
+        var cts = new CancellationTokenSource();
+        var task = func(cts.Token);
+        var whenAny = await Task.WhenAny(task, Task.Delay(timeout ?? DefaultTimeout, cts.Token));
+        if (whenAny != task)
+        {
+            cts.Cancel();
+            Assert.Fail("timeout reached");
+        }
     }
 }

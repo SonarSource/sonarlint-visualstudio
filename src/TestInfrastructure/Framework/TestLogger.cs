@@ -30,6 +30,8 @@ namespace SonarLint.VisualStudio.TestInfrastructure
     {
         public BlockingCollection<string> OutputStrings { get; private set; } = new();
 
+        public event EventHandler LogMessageAdded;
+
         private readonly bool logToConsole;
         private readonly bool logThreadId;
 
@@ -104,6 +106,8 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             {
                 Console.WriteLine(messageToLog);
             }
+
+            LogMessageAdded?.Invoke(this, EventArgs.Empty);
         }
 
         public void WriteLine(string messageFormat, params object[] args)

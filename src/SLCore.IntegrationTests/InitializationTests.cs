@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using NSubstitute;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
@@ -40,14 +39,16 @@ public class InitializationTests
         using (var slCoreTestRunner = new SLCoreTestRunner(testLogger, slCoreErrorLogger, TestContext.TestName))
         {
             slCoreTestRunner.AddListener(new LoggerListener(slCoreLogger));
-            await slCoreTestRunner.Start();
+            slCoreTestRunner.Start();
+            await WaitForSloopLog(slCoreLogger);
         }
 
         VerifyNoErrorsInLogs(testLogger);
         VerifyNoErrorsInLogs(slCoreErrorLogger);
         VerifyLogMessagesReceived(slCoreLogger);
+        slCoreLogger.AssertPartialOutputStringExists("SonarLint backend started");
     }
-    
+
     [TestMethod]
     public async Task Sloop_ConfigScopeSetAndUnsetWithoutErrors()
     {
@@ -63,7 +64,7 @@ public class InitializationTests
             slCoreTestRunner.AddListener(new LoggerListener(slCoreLogger));
             slCoreTestRunner.AddListener(new ProgressListener());
             slCoreTestRunner.AddListener(analysisListener);
-            await slCoreTestRunner.Start();
+            slCoreTestRunner.Start();
 
             var activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
                 new AsyncLockFactory(),
@@ -88,12 +89,21 @@ public class InitializationTests
                 d.areReadyForAnalysis && d.configurationScopeIds.Contains(configScopeId)));
     }
 
-    private static async Task WaitForAnalysisReadiness(TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource)
+    private static async Task WaitForAnalysisReadiness(TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource) => 
+        await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
+    
+    private static async Task WaitForSloopLog(TestLogger slCoreLogger)
     {
-        var whenAny = await Task.WhenAny(analysisReadyCompletionSource.Task, Task.Delay(TimeSpan.FromSeconds(15)));
-        if (whenAny != analysisReadyCompletionSource.Task)
+        var tcs = new TaskCompletionSource<bool>();
+        EventHandler eventHandler = (_, _) => tcs.TrySetResult(true);
+        slCoreLogger.LogMessageAdded += eventHandler;
+        try
         {
-            Assert.Fail("timeout reached");
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(tcs.Task);
+        }
+        finally
+        {
+            slCoreLogger.LogMessageAdded -= eventHandler;
         }
     }
 

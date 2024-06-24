@@ -60,7 +60,7 @@ public class SLCoreInstanceHandlerTests
         {
             threadHandling.ThrowIfOnUIThread();
             factory.CreateInstance();
-            handle.InitializeAsync();
+            handle.Initialize();
             _ = handle.ShutdownTask;
         });
     }
@@ -109,7 +109,7 @@ public class SLCoreInstanceHandlerTests
         {
             threadHandling.ThrowIfOnUIThread();
             factory.CreateInstance();
-            handle.InitializeAsync();
+            handle.Initialize();
             _ = handle.ShutdownTask;
             handle.Dispose();
             activeConfigScopeTracker.Reset();
@@ -142,7 +142,7 @@ public class SLCoreInstanceHandlerTests
     {
         var slCoreHandler = CreateTestSubject(out var factory, out var threadHandling, out var logger, out var activeConfigScopeTracker, out _);
         SetUpHandleFactory(factory, out var handle, out _);
-        handle.InitializeAsync().Returns(Task.FromException(new Exception()));
+        handle.When(x => x.Initialize()).Do(_ => throw new Exception());
 
         var task = slCoreHandler.StartInstanceAsync();
 
@@ -157,7 +157,7 @@ public class SLCoreInstanceHandlerTests
         {
             threadHandling.ThrowIfOnUIThread();
             factory.CreateInstance();
-            handle.InitializeAsync();
+            handle.Initialize();
             handle.Dispose();
             activeConfigScopeTracker.Reset();
         });
