@@ -70,7 +70,7 @@ public sealed class SLCoreTestRunner : IDisposable
         listenersToSetUp.Add(listener);
     }
 
-    public async Task Start()
+    public void Start()
     {
         try
         {
@@ -112,7 +112,7 @@ public sealed class SLCoreTestRunner : IDisposable
                 noOpActiveSolutionBoundTracker,
                 noOpConfigScopeUpdater,
                 new NoOpThreadHandler());
-            await slCoreInstanceHandle.InitializeAsync();
+            slCoreInstanceHandle.Initialize();
         }
         finally
         {

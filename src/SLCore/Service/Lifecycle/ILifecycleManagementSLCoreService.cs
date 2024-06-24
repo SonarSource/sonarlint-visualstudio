@@ -32,12 +32,12 @@ namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle
         /// Initialize SLCore
         /// </summary>
         /// <remarks>Notification</remarks>
-        Task InitializeAsync(InitializeParams parameters);
+        void Initialize(InitializeParams parameters);
 
         /// <summary>
         /// Shutdown SLCore
         /// </summary>
         /// <remarks>Notification</remarks>
-        Task ShutdownAsync();
+        void Shutdown();
     }
 }

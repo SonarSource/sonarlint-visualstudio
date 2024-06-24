@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using NSubstitute;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
@@ -40,7 +39,14 @@ public class InitializationTests
         using (var slCoreTestRunner = new SLCoreTestRunner(testLogger, slCoreErrorLogger, TestContext.TestName))
         {
             slCoreTestRunner.AddListener(new LoggerListener(slCoreLogger));
-            await slCoreTestRunner.Start();
+            slCoreTestRunner.Start();
+            await WaitForWithTimeout(Task.Run(() =>
+            {
+                while (slCoreLogger.OutputStrings.Count == 0)
+                {
+                    Thread.Sleep(100);
+                }
+            }));
         }
 
         VerifyNoErrorsInLogs(testLogger);
@@ -63,7 +69,7 @@ public class InitializationTests
             slCoreTestRunner.AddListener(new LoggerListener(slCoreLogger));
             slCoreTestRunner.AddListener(new ProgressListener());
             slCoreTestRunner.AddListener(analysisListener);
-            await slCoreTestRunner.Start();
+            slCoreTestRunner.Start();
 
             var activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
                 new AsyncLockFactory(),
@@ -88,10 +94,13 @@ public class InitializationTests
                 d.areReadyForAnalysis && d.configurationScopeIds.Contains(configScopeId)));
     }
 
-    private static async Task WaitForAnalysisReadiness(TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource)
+    private static async Task WaitForAnalysisReadiness(TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource) => 
+        await WaitForWithTimeout(analysisReadyCompletionSource.Task);
+
+    private static async Task WaitForWithTimeout(Task task)
     {
-        var whenAny = await Task.WhenAny(analysisReadyCompletionSource.Task, Task.Delay(TimeSpan.FromSeconds(15)));
-        if (whenAny != analysisReadyCompletionSource.Task)
+        var whenAny = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(15)));
+        if (whenAny != task)
         {
             Assert.Fail("timeout reached");
         }
