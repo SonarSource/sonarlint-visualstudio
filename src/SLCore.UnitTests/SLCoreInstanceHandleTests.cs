@@ -19,6 +19,7 @@
  */
 
 using NSubstitute.ClearExtensions;
+using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Configuration;
@@ -167,6 +168,70 @@ public class SLCoreInstanceHandleTests
             lifecycleManagement.Shutdown();
         });
         rpc.Received().Dispose();
+    }
+    
+    [TestMethod]
+    public void Dispose_IgnoresServiceProviderException()
+    {
+        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
+            out var constantsProvider,
+            out var foldersProvider,
+            out var connectionsProvider,
+            out var jarLocator,
+            out var activeSolutionBoundTracker,
+            out _,
+            out var threadHandling);
+        SetUpThreadHandling(threadHandling);
+
+        SetUpSuccessfulInitialization(slCoreRpcFactory,
+            constantsProvider,
+            foldersProvider,
+            connectionsProvider,
+            jarLocator,
+            activeSolutionBoundTracker,
+            out var lifecycleManagement,
+            out var rpc);
+        lifecycleManagement.When(x => x.Shutdown()).Do(_ => throw new Exception());
+        testSubject.Initialize();
+        var serviceProvider = rpc.ServiceProvider;
+        serviceProvider.ClearSubstitute();
+        serviceProvider.ClearReceivedCalls();
+        serviceProvider.TryGetTransientService(out Arg.Any<AnySLCoreService>()).Throws(new Exception());
+        
+        var act = () => testSubject.Dispose();
+        
+        act.Should().NotThrow();
+    }
+    
+    [TestMethod]
+    public void Dispose_IgnoresShutdownException()
+    {
+        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
+            out var constantsProvider,
+            out var foldersProvider,
+            out var connectionsProvider,
+            out var jarLocator,
+            out var activeSolutionBoundTracker,
+            out _,
+            out var threadHandling);
+        SetUpThreadHandling(threadHandling);
+
+        SetUpSuccessfulInitialization(slCoreRpcFactory,
+            constantsProvider,
+            foldersProvider,
+            connectionsProvider,
+            jarLocator,
+            activeSolutionBoundTracker,
+            out var lifecycleManagement,
+            out var rpc);
+        lifecycleManagement.When(x => x.Shutdown()).Do(_ => throw new Exception());
+        testSubject.Initialize();
+
+        var serviceProvider = rpc.ServiceProvider;
+        serviceProvider.ClearReceivedCalls();
+        var act = () => testSubject.Dispose();
+        
+        act.Should().NotThrow();
     }
     
     [TestMethod]
