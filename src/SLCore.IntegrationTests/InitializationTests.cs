@@ -40,20 +40,15 @@ public class InitializationTests
         {
             slCoreTestRunner.AddListener(new LoggerListener(slCoreLogger));
             slCoreTestRunner.Start();
-            await WaitForWithTimeout(Task.Run(() =>
-            {
-                while (slCoreLogger.OutputStrings.Count == 0)
-                {
-                    Thread.Sleep(100);
-                }
-            }));
+            await WaitForSloopLog(slCoreLogger);
         }
 
         VerifyNoErrorsInLogs(testLogger);
         VerifyNoErrorsInLogs(slCoreErrorLogger);
         VerifyLogMessagesReceived(slCoreLogger);
+        slCoreLogger.AssertPartialOutputStringExists("SonarLint backend started");
     }
-    
+
     [TestMethod]
     public async Task Sloop_ConfigScopeSetAndUnsetWithoutErrors()
     {
@@ -95,14 +90,20 @@ public class InitializationTests
     }
 
     private static async Task WaitForAnalysisReadiness(TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource) => 
-        await WaitForWithTimeout(analysisReadyCompletionSource.Task);
-
-    private static async Task WaitForWithTimeout(Task task)
+        await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
+    
+    private static async Task WaitForSloopLog(TestLogger slCoreLogger)
     {
-        var whenAny = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(15)));
-        if (whenAny != task)
+        var tcs = new TaskCompletionSource<bool>();
+        EventHandler eventHandler = (_, _) => tcs.TrySetResult(true);
+        slCoreLogger.LogMessageAdded += eventHandler;
+        try
         {
-            Assert.Fail("timeout reached");
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(tcs.Task);
+        }
+        finally
+        {
+            slCoreLogger.LogMessageAdded -= eventHandler;
         }
     }
 
