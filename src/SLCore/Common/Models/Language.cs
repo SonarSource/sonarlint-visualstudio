@@ -20,49 +20,70 @@
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using CoreLanguage = SonarLint.VisualStudio.Core.Language;
 
-namespace SonarLint.VisualStudio.SLCore.Common.Models
+
+namespace SonarLint.VisualStudio.SLCore.Common.Models;
+
+/// <summary>
+/// SLCore Language. Taken from org.sonarsource.sonarlint.core.rpc.protocol.common
+/// </summary>
+[JsonConverter(typeof(StringEnumConverter))]
+public enum Language 
 {
-    /// <summary>
-    /// SLCore Language. Taken from org.sonarsource.sonarlint.core.rpc.protocol.common
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum Language 
+    ABAP,
+    APEX,
+    AZURERESOURCEMANAGER,
+    C,
+    CLOUDFORMATION,
+    COBOL,
+    CPP,
+    CS,
+    CSS,
+    DOCKER,
+    GO,
+    HTML,
+    IPYTHON,
+    JAVA,
+    JS,
+    JSON,
+    JSP,
+    KOTLIN,
+    KUBERNETES,
+    OBJC,
+    PHP,
+    PLI,
+    PLSQL,
+    PYTHON,
+    RPG,
+    RUBY,
+    SCALA,
+    SECRETS,
+    SWIFT,
+    TERRAFORM,
+    TS,
+    TSQL,
+    VBNET,
+    XML,
+    YAML
+}
+
+public static class LanguageExtensions
+{
+    public static CoreLanguage ConvertToCoreLanguage(this Language language)
     {
-        ABAP,
-        APEX,
-        AZURERESOURCEMANAGER,
-        C,
-        CLOUDFORMATION,
-        COBOL,
-        CPP,
-        CS,
-        CSS,
-        DOCKER,
-        GO,
-        HTML,
-        IPYTHON,
-        JAVA,
-        JS,
-        JSON,
-        JSP,
-        KOTLIN,
-        KUBERNETES,
-        OBJC,
-        PHP,
-        PLI,
-        PLSQL,
-        PYTHON,
-        RPG,
-        RUBY,
-        SCALA,
-        SECRETS,
-        SWIFT,
-        TERRAFORM,
-        TS,
-        TSQL,
-        VBNET,
-        XML,
-        YAML
+        return language switch
+        {
+
+            Language.C => CoreLanguage.C,
+            Language.CPP => CoreLanguage.Cpp,
+            Language.CS => CoreLanguage.CSharp,
+            Language.CSS => CoreLanguage.Css,
+            Language.JS => CoreLanguage.Js,
+            Language.SECRETS => CoreLanguage.Secrets,
+            Language.TS => CoreLanguage.Ts,
+            Language.VBNET => CoreLanguage.VBNET,
+            _ => CoreLanguage.Unknown
+        };
     }
 }

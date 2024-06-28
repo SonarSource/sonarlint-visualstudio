@@ -24,6 +24,7 @@ using System.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
@@ -56,5 +57,25 @@ namespace SonarLint.VisualStudio.Integration.SLCore
 
         //We do not support telemetry now
         public TelemetryClientConstantAttributesDto TelemetryConstants => new TelemetryClientConstantAttributesDto("SLVS_SHOULD_NOT_SEND_TELEMETRY", default, default, default, default);
+
+        public List<Language> LanguagesInStandaloneMode =>
+        [
+            Language.JS,
+            Language.TS,
+            Language.CSS,
+            Language.C,
+            Language.CPP,
+            Language.CS,
+            Language.VBNET
+        ];
+
+        public List<Language> LanguagesAddedInConnectedMode =>
+        [
+        ];
+
+        public List<Language> SLCoreAnalyzableLanguages =>
+        [
+            Language.SECRETS
+        ];
     }
 }
