@@ -26,6 +26,7 @@
     <Message Importance="high" Text="Processing analyzer jar files..." />
     <CallTarget Targets="PrepareDirectories" />
     <CallTarget Targets="DownloadIndividualJars" />
+    <CallTarget Targets="DownloadOmnisharp" />
     <CallTarget Targets="DownloadSloop" />
     <CallTarget Targets="UnzipSloop" />
     <CallTarget Targets="WriteOutputFile" />
@@ -46,6 +47,10 @@
 
   <Target Name ="DownloadSloop">
     <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(SloopBinaryDownloadPath) --url $(SloopBinaryRemoteUrl)" />
+  </Target>
+
+  <Target Name ="DownloadOmnisharp">
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(OmnisharpDownloadPath) --url $(OmnisharpBinaryRemoteUrl)" />
   </Target>
 
   <Target Name="UnzipSloop">
