@@ -145,7 +145,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
         }
         
         [TestMethod]
-        public void Verify_AllEnabledLanguagesAreKnown()
+        public void Verify_AllConfiguredLanguagesAreKnown()
         {
             var slCoreConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsUIServiceOperation>());
 
