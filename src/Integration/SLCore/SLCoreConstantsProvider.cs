@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
@@ -58,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
         //We do not support telemetry now
         public TelemetryClientConstantAttributesDto TelemetryConstants => new TelemetryClientConstantAttributesDto("SLVS_SHOULD_NOT_SEND_TELEMETRY", default, default, default, default);
 
-        public List<Language> LanguagesInStandaloneMode =>
+        public IReadOnlyList<Language> LanguagesInStandaloneMode =>
         [
             Language.JS,
             Language.TS,
@@ -66,14 +64,15 @@ namespace SonarLint.VisualStudio.Integration.SLCore
             Language.C,
             Language.CPP,
             Language.CS,
-            Language.VBNET
+            Language.VBNET,
+            Language.SECRETS
         ];
 
-        public List<Language> LanguagesAddedInConnectedMode =>
+        public IReadOnlyList<Language> ExtraLanguagesInConnectedMode =>
         [
         ];
 
-        public List<Language> SLCoreAnalyzableLanguages =>
+        public IReadOnlyList<Language> AnalyzableLanguages =>
         [
             Language.SECRETS
         ];

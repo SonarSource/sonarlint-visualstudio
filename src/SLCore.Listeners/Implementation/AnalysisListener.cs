@@ -115,7 +115,7 @@ internal class AnalysisListener : IAnalysisListener
 
     private RaisedIssueDto[] GetSupportedLanguageIssues(IEnumerable<RaisedIssueDto> issues)
     {
-        var analyzableLanguages = slCoreConstantsProvider.SLCoreAnalyzableLanguages
+        var analyzableLanguages = slCoreConstantsProvider.AnalyzableLanguages
             .Select(x => x.ConvertToCoreLanguage())
             .Select(Language.GetSonarRepoKeyFromLanguage)
             .Where(r => r is not null)

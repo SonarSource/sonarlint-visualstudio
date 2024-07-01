@@ -75,6 +75,7 @@ public class SLCoreInstanceHandleTests
             out var activeSolutionBoundTracker,
             out var configScopeUpdater,
             out var threadHandling);
+        SetUpLanguages(constantsProvider, [], [], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -98,29 +99,6 @@ public class SLCoreInstanceHandleTests
                 && parameters.workDir == WorkDir
                 && parameters.embeddedPluginPaths == JarList
                 && parameters.connectedModeEmbeddedPluginPathsByKey.Count == 0
-                // todo add more tests for this
-                /*&& parameters.enabledLanguagesInStandaloneMode.SequenceEqual(new[]
-                {
-                    Language.SECRETS,
-                    Language.C,
-                    Language.CPP,
-                    Language.CS,
-                    Language.VBNET,
-                    Language.JS,
-                    Language.TS,
-                    Language.CSS,
-                })
-                && parameters.disabledLanguagesForAnalysis.SequenceEqual(new []
-                {
-                    Language.C,
-                    Language.CPP,
-                    Language.CS,
-                    Language.VBNET,
-                    Language.JS,
-                    Language.TS,
-                    Language.CSS,
-                })
-                && parameters.extraEnabledLanguagesInConnectedMode.Count == 0*/
                 && parameters.sonarQubeConnections.SequenceEqual(new[] { SonarQubeConnection1, SonarQubeConnection2 })
                 && parameters.sonarCloudConnections.SequenceEqual(new[] { SonarCloudConnection })
                 && parameters.sonarlintUserHome == UserHome
@@ -130,6 +108,96 @@ public class SLCoreInstanceHandleTests
                 && parameters.languageSpecificRequirements.clientNodeJsPath == null));
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(Binding);
         });
+    }
+    
+    [TestMethod]
+    public void Initialize_NoLanguagesAnalysisEnabled_DisablesAllLanguages()
+    {
+        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
+            out var constantsProvider,
+            out var foldersProvider,
+            out var connectionsProvider,
+            out var jarLocator,
+            out var activeSolutionBoundTracker,
+            out _,
+            out _);
+        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX], [Language.YAML, Language.XML], []);
+
+        SetUpSuccessfulInitialization(slCoreRpcFactory,
+            constantsProvider,
+            foldersProvider,
+            connectionsProvider,
+            jarLocator,
+            activeSolutionBoundTracker,
+            out var lifecycleManagement,
+            out _);
+
+        testSubject.Initialize();
+
+        var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single();
+        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX });
+        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(new[] { Language.YAML, Language.XML });
+        initializeParams.disabledLanguagesForAnalysis.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX, Language.YAML, Language.XML });
+    }
+    
+    [TestMethod]
+    public void Initialize_AnalysisPartiallyEnabled_DisablesAllNotEnabledLanguages()
+    {
+        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
+            out var constantsProvider,
+            out var foldersProvider,
+            out var connectionsProvider,
+            out var jarLocator,
+            out var activeSolutionBoundTracker,
+            out _,
+            out _);
+        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX], [Language.YAML, Language.XML], [Language.APEX, Language.YAML]);
+
+        SetUpSuccessfulInitialization(slCoreRpcFactory,
+            constantsProvider,
+            foldersProvider,
+            connectionsProvider,
+            jarLocator,
+            activeSolutionBoundTracker,
+            out var lifecycleManagement,
+            out _);
+
+        testSubject.Initialize();
+
+        var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single();
+        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX });
+        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(new[] { Language.YAML, Language.XML });
+        initializeParams.disabledLanguagesForAnalysis.Should().BeEquivalentTo(new[] { Language.ABAP, Language.XML });
+    }
+    
+    [TestMethod]
+    public void Initialize_AnalysisFullyEnabled_DisablesNoLanguages()
+    {
+        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
+            out var constantsProvider,
+            out var foldersProvider,
+            out var connectionsProvider,
+            out var jarLocator,
+            out var activeSolutionBoundTracker,
+            out _,
+            out _);
+        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX], [Language.YAML, Language.XML], [Language.XML, Language.APEX, Language.YAML, Language.ABAP, ]);
+
+        SetUpSuccessfulInitialization(slCoreRpcFactory,
+            constantsProvider,
+            foldersProvider,
+            connectionsProvider,
+            jarLocator,
+            activeSolutionBoundTracker,
+            out var lifecycleManagement,
+            out _);
+
+        testSubject.Initialize();
+
+        var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single();
+        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX });
+        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(new[] { Language.YAML, Language.XML });
+        initializeParams.disabledLanguagesForAnalysis.Should().BeEquivalentTo(Array.Empty<Language>());
     }
 
     [TestMethod]
@@ -144,6 +212,7 @@ public class SLCoreInstanceHandleTests
             out _,
             out var threadHandling);
         SetUpThreadHandling(threadHandling);
+        SetUpLanguages(constantsProvider, [], [], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -183,6 +252,7 @@ public class SLCoreInstanceHandleTests
             out _,
             out var threadHandling);
         SetUpThreadHandling(threadHandling);
+        SetUpLanguages(constantsProvider, [], [], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -216,6 +286,7 @@ public class SLCoreInstanceHandleTests
             out _,
             out var threadHandling);
         SetUpThreadHandling(threadHandling);
+        SetUpLanguages(constantsProvider, [], [], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -247,6 +318,7 @@ public class SLCoreInstanceHandleTests
             out _,
             out var threadHandling);
         SetUpThreadHandling(threadHandling);
+        SetUpLanguages(constantsProvider, [], [], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -307,9 +379,7 @@ public class SLCoreInstanceHandleTests
         constantsProvider.ClientConstants.Returns(ClientConstants);
         constantsProvider.FeatureFlags.Returns(FeatureFlags);
         constantsProvider.TelemetryConstants.Returns(TelemetryConstants);
-        constantsProvider.LanguagesInStandaloneMode.Returns([Language.C, Language.CPP]);
-        constantsProvider.LanguagesAddedInConnectedMode.Returns([Language.CS]);
-        constantsProvider.SLCoreAnalyzableLanguages.Returns([Language.CPP]);
+        
         foldersProvider.GetWorkFolders().Returns(new SLCoreFolders(StorageRoot, WorkDir, UserHome));
         connectionsProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfiguration>
         {
@@ -319,6 +389,16 @@ public class SLCoreInstanceHandleTests
         });
         jarLocator.ListJarFiles().Returns(JarList);
         activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(Binding, SonarLintMode.Connected, "dir"));
+    }
+
+    private void SetUpLanguages(ISLCoreConstantsProvider constantsProvider,
+        List<Language> standalone,
+        List<Language> connected, 
+        List<Language> enabledAnalysis)
+    {
+        constantsProvider.LanguagesInStandaloneMode.Returns(standalone);
+        constantsProvider.ExtraLanguagesInConnectedMode.Returns(connected);
+        constantsProvider.AnalyzableLanguages.Returns(enabledAnalysis);
     }
 
     #region RpcSetUp

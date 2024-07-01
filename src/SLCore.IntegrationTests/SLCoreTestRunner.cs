@@ -24,7 +24,9 @@ using System.IO.Abstractions;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.SLCore;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.SLCore;
 using SonarLint.VisualStudio.SLCore.Configuration;
@@ -86,6 +88,7 @@ public sealed class SLCoreTestRunner : IDisposable
             constantsProvider.FeatureFlags.Returns(new FeatureFlagsDto(true, true, false, true, false, false, true, false));
             constantsProvider.TelemetryConstants.Returns(new TelemetryClientConstantAttributesDto("slvs_integration_tests", "SLVS Integration Tests",
                 VersionHelper.SonarLintVersion, "17.0", new()));
+            SetLanguagesConfigurationToDefaults(constantsProvider);
 
             var foldersProvider = Substitute.For<ISLCoreFoldersProvider>();
             foldersProvider.GetWorkFolders().Returns(new SLCoreFolders(storageRoot, workDir, userHome));
@@ -118,6 +121,14 @@ public sealed class SLCoreTestRunner : IDisposable
         {
             Environment.SetEnvironmentVariable("SONARLINT_LOG_RPC", null, EnvironmentVariableTarget.Process);
         }
+    }
+
+    private static void SetLanguagesConfigurationToDefaults(ISLCoreConstantsProvider constantsProvider)
+    {
+        var defaultConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsUIServiceOperation>());
+        constantsProvider.LanguagesInStandaloneMode.Returns(defaultConstantsProvider.LanguagesInStandaloneMode);
+        constantsProvider.ExtraLanguagesInConnectedMode.Returns(defaultConstantsProvider.ExtraLanguagesInConnectedMode);
+        constantsProvider.AnalyzableLanguages.Returns(defaultConstantsProvider.AnalyzableLanguages);
     }
 
     public void Dispose()

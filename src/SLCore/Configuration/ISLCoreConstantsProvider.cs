@@ -29,7 +29,7 @@ public interface ISLCoreConstantsProvider
     FeatureFlagsDto FeatureFlags { get; }
     TelemetryClientConstantAttributesDto TelemetryConstants { get; }
     
-    List<Language> LanguagesInStandaloneMode { get; }
-    List<Language> LanguagesAddedInConnectedMode { get; }
-    List<Language> SLCoreAnalyzableLanguages { get; }
+    IReadOnlyList<Language> LanguagesInStandaloneMode { get; }
+    IReadOnlyList<Language> ExtraLanguagesInConnectedMode { get; }
+    IReadOnlyList<Language> AnalyzableLanguages { get; }
 }

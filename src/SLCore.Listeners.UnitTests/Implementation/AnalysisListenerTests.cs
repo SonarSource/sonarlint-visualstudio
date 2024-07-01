@@ -295,7 +295,7 @@ public class AnalysisListenerTests
     private ISLCoreConstantsProvider CreateConstantsProviderWithLanguages(params SloopLanguage[] languages)
     {
         var slCoreConstantsProvider = Substitute.For<ISLCoreConstantsProvider>();
-        slCoreConstantsProvider.SLCoreAnalyzableLanguages.Returns(languages.ToList());
+        slCoreConstantsProvider.AnalyzableLanguages.Returns(languages.ToList());
         return slCoreConstantsProvider;
     }
 
