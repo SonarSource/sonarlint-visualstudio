@@ -148,7 +148,39 @@ public class AnalysisListenerTests
 
         var testSubject = CreateTestSubject(analysisService: analysisService,
             raiseIssueParamsToAnalysisIssueConverter: raiseIssueParamsToAnalysisIssueConverter,
-            analysisStatusNotifierFactory: analysisStatusNotifierFactory);
+            analysisStatusNotifierFactory: analysisStatusNotifierFactory,
+            slCoreConstantsProvider:CreateConstantsProviderWithLanguages([]));
+
+        testSubject.RaiseIssues(raiseIssuesParams);
+
+        raiseIssueParamsToAnalysisIssueConverter.Received().GetAnalysisIssues(fileUri, Arg.Is<IEnumerable<RaisedIssueDto>>(x => !x.Any()));
+        analysisService.Received().PublishIssues(fileUri.LocalPath, analysisId, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
+        analysisStatusNotifier.AnalysisFinished(0, TimeSpan.Zero);
+    }
+    
+    [TestMethod]
+    public void RaiseIssues_NoKnownLanguages_PublishesEmpty()
+    {
+        var issue1 = CreateIssue("csharpsquid:S100");
+        var issue2 = CreateIssue("csharpsquid:S101");
+        var issues = new[] { issue1, issue2 };
+
+        var analysisId = Guid.NewGuid();
+        var fileUri = new FileUri("file://C:/somefile");
+        var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>>
+            { { fileUri, [CreateRaisedIssueDto("csharpsquid:S100"), CreateRaisedIssueDto("csharpsquid:S101")] } };
+
+        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
+
+        var analysisService = Substitute.For<IAnalysisService>();
+        IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, [], []);
+
+        var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier, fileUri.LocalPath, analysisId);
+
+        var testSubject = CreateTestSubject(analysisService: analysisService,
+            raiseIssueParamsToAnalysisIssueConverter: raiseIssueParamsToAnalysisIssueConverter,
+            analysisStatusNotifierFactory: analysisStatusNotifierFactory,
+            slCoreConstantsProvider:CreateConstantsProviderWithLanguages([SloopLanguage.JAVA]));
 
         testSubject.RaiseIssues(raiseIssuesParams);
 
