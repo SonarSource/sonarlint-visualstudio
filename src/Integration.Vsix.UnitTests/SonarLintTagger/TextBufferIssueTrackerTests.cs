@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -203,9 +204,23 @@ public class TextBufferIssueTrackerTests
         var mockTextDocument = new Mock<ITextDocument>();
         mockTextDocument.Setup(d => d.FilePath).Returns(fileName);
         mockTextDocument.Setup(d => d.TextBuffer).Returns(textBufferMock.Object);
+        mockTextDocument.Setup(d => d.Encoding).Returns(Encoding.UTF8);
         mockTextDocument.SetupAdd(d => d.FileActionOccurred += (sender, args) => { });
 
         return mockTextDocument;
+    }
+    
+    [TestMethod]
+    public void WhenFileIsSavedWithDifferentEncoding_EncodingIsUpdated()
+    {
+        mockAnalysisService.Invocations.Clear();
+
+        mockFileTracker.Verify(ft => ft.AddFiles(new SourceFile(mockedJavascriptDocumentFooJs.Object.FilePath, Encoding.UTF8.WebName)));
+        
+        mockedJavascriptDocumentFooJs.Setup(d => d.Encoding).Returns(Encoding.UTF32);
+        RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
+        
+        mockFileTracker.Verify(ft => ft.AddFiles(new SourceFile(mockedJavascriptDocumentFooJs.Object.FilePath, Encoding.UTF32.WebName)));
     }
 
     #region Triggering analysis tests
