@@ -48,9 +48,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ITextDocument document;
         private readonly ILogger logger;
         private readonly IVsAwareAnalysisService vsAwareAnalysisService;
+        private readonly IFileTracker fileTracker;
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
 
         public string LastAnalysisFilePath { get; private set; }
+        private string LastAnalysisFileEncoding { get; set; }
         internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
         public TextBufferIssueTracker(
@@ -69,11 +71,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
             this.vsAwareAnalysisService = vsAwareAnalysisService;
+            this.fileTracker = fileTracker;
             this.logger = logger;
 
             this.document = document;
             LastAnalysisFilePath = document.FilePath;
-            fileTracker.AddFiles(new SourceFile(LastAnalysisFilePath, this.document.Encoding?.WebName));
+            NotifyFileTracker();
             Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
@@ -90,15 +93,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // propagating to VS, which would display a dialogue and disable the extension.
             try
             {
-                if (e.FileActionType == FileActionTypes.ContentSavedToDisk)
+                if (e.FileActionType != FileActionTypes.ContentSavedToDisk)
                 {
-                    RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
+                    return;
                 }
+                
+                if (document.Encoding?.WebName != LastAnalysisFileEncoding)
+                {
+                    NotifyFileTracker();
+                }
+                    
+                RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(Strings.Analysis_ErrorTriggeringAnalysis, ex);
             }
+        }
+
+        private void NotifyFileTracker()
+        {
+            LastAnalysisFileEncoding = document.Encoding?.WebName;
+            fileTracker.AddFiles(new SourceFile(LastAnalysisFilePath, LastAnalysisFileEncoding));
         }
 
         private void SnapToNewSnapshot(IIssuesSnapshot newSnapshot)
