@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.document = document;
             LastAnalysisFilePath = document.FilePath;
-            fileTracker.AddFiles(LastAnalysisFilePath);
+            fileTracker.AddFiles(new SourceFile(LastAnalysisFilePath, this.document.Encoding?.WebName));
             Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
 
             document.FileActionOccurred += SafeOnFileActionOccurred;

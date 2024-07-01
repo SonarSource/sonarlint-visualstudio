@@ -65,7 +65,7 @@ internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsLi
         string[] rgpszMkDocuments, VSADDFILEFLAGS[] rgFlags)
     {
         threadHandling.ThrowIfNotOnUIThread();
-        fileTracker.AddFiles(rgpszMkDocuments);
+        fileTracker.AddFiles(rgpszMkDocuments.Select(fp => new SourceFile(fp)).ToArray());
         return VSConstants.S_OK;
     }
 
@@ -99,7 +99,7 @@ internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsLi
         string[] rgszMkOldNames, string[] rgszMkNewNames, VSRENAMEFILEFLAGS[] rgFlags)
     {
         threadHandling.ThrowIfNotOnUIThread();
-        fileTracker.RenameFiles(rgszMkOldNames, rgszMkNewNames);
+        fileTracker.RenameFiles(rgszMkOldNames, rgszMkNewNames.Select(fp => new SourceFile(fp)).ToArray());
         return VSConstants.S_OK;
     }
 

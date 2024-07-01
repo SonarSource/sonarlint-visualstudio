@@ -22,9 +22,9 @@ namespace SonarLint.VisualStudio.Core;
 
 public interface IFileTracker
 {
-    void AddFiles(params string[] addedFiles);
+    void AddFiles(params SourceFile[] addedFiles);
 
     void RemoveFiles(params string[] removedFiles);
 
-    void RenameFiles(string[] beforeRenameFiles, string[] afterRenameFiles);
+    void RenameFiles(string[] beforeRenameFiles, SourceFile[] afterRenameFiles);
 }
