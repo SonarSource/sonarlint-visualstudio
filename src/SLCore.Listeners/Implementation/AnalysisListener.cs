@@ -23,7 +23,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
@@ -38,7 +37,6 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class AnalysisListener : IAnalysisListener
 {
-    private readonly ISLCoreConstantsProvider slCoreConstantsProvider;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IAnalysisRequester analysisRequester;
     private readonly IAnalysisService analysisService;
@@ -48,14 +46,14 @@ internal class AnalysisListener : IAnalysisListener
     private readonly List<string> analyzableLanguagesRuleKeyPrefixes;
 
     [ImportingConstructor]
-    public AnalysisListener(ISLCoreConstantsProvider slCoreConstantsProvider, IActiveConfigScopeTracker activeConfigScopeTracker,
+    public AnalysisListener(ISLCoreConstantsProvider slCoreConstantsProvider, 
+        IActiveConfigScopeTracker activeConfigScopeTracker,
         IAnalysisRequester analysisRequester,
         IAnalysisService analysisService,
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter,
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
         ILogger logger)
     {
-        this.slCoreConstantsProvider = slCoreConstantsProvider;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.analysisRequester = analysisRequester;
         this.analysisService = analysisService;
