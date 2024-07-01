@@ -18,51 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
+namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
 
-namespace SonarLint.VisualStudio.SLCore.Common.Models;
-
-/// <summary>
-/// SLCore Language. Taken from org.sonarsource.sonarlint.core.rpc.protocol.common
-/// </summary>
-[JsonConverter(typeof(StringEnumConverter))]
-public enum Language 
+internal static class LanguageExtensions
 {
-    ABAP,
-    APEX,
-    AZURERESOURCEMANAGER,
-    C,
-    CLOUDFORMATION,
-    COBOL,
-    CPP,
-    CS,
-    CSS,
-    DOCKER,
-    GO,
-    HTML,
-    IPYTHON,
-    JAVA,
-    JS,
-    JSON,
-    JSP,
-    KOTLIN,
-    KUBERNETES,
-    OBJC,
-    PHP,
-    PLI,
-    PLSQL,
-    PYTHON,
-    RPG,
-    RUBY,
-    SCALA,
-    SECRETS,
-    SWIFT,
-    TERRAFORM,
-    TS,
-    TSQL,
-    VBNET,
-    XML,
-    YAML
+    public static VisualStudio.Core.Language ConvertToCoreLanguage(this Language language)
+    {
+        return language switch
+        {
+            Language.C => VisualStudio.Core.Language.C,
+            Language.CPP => VisualStudio.Core.Language.Cpp,
+            Language.CS => VisualStudio.Core.Language.CSharp,
+            Language.CSS => VisualStudio.Core.Language.Css,
+            Language.JS => VisualStudio.Core.Language.Js,
+            Language.SECRETS => VisualStudio.Core.Language.Secrets,
+            Language.TS => VisualStudio.Core.Language.Ts,
+            Language.VBNET => VisualStudio.Core.Language.VBNET,
+            _ => VisualStudio.Core.Language.Unknown
+        };
+    }
 }

@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Analysis;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -44,6 +45,7 @@ internal class AnalysisListener : IAnalysisListener
     private readonly IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter;
     private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
     private readonly ILogger logger;
+    private readonly List<string> analyzableLanguagesRuleKeyPrefixes;
 
     [ImportingConstructor]
     public AnalysisListener(ISLCoreConstantsProvider slCoreConstantsProvider, IActiveConfigScopeTracker activeConfigScopeTracker,
@@ -60,6 +62,12 @@ internal class AnalysisListener : IAnalysisListener
         this.raiseIssueParamsToAnalysisIssueConverter = raiseIssueParamsToAnalysisIssueConverter;
         this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
         this.logger = logger;
+        
+        analyzableLanguagesRuleKeyPrefixes = slCoreConstantsProvider.AnalyzableLanguages?
+            .Select(x => x.ConvertToCoreLanguage())
+            .Select(Language.GetSonarRepoKeyFromLanguage)
+            .Where(r => r is not null)
+            .ToList() ?? [];
     }
 
     public void DidChangeAnalysisReadiness(DidChangeAnalysisReadinessParams parameters)
@@ -115,12 +123,7 @@ internal class AnalysisListener : IAnalysisListener
 
     private RaisedIssueDto[] GetSupportedLanguageIssues(IEnumerable<RaisedIssueDto> issues)
     {
-        var analyzableLanguages = slCoreConstantsProvider.AnalyzableLanguages
-            .Select(x => x.ConvertToCoreLanguage())
-            .Select(Language.GetSonarRepoKeyFromLanguage)
-            .Where(r => r is not null)
-            .ToArray();
-        return issues.Where(i => analyzableLanguages.Any(languageRepo => i.ruleKey.StartsWith(languageRepo))).ToArray();
+        return issues.Where(i => analyzableLanguagesRuleKeyPrefixes.Exists(languageRepo => i.ruleKey.StartsWith(languageRepo))).ToArray();
     }
 
     public void RaiseHotspots(RaiseHotspotsParams parameters)
