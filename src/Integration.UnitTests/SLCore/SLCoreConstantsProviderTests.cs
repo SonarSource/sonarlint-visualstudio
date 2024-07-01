@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.SLCore;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
@@ -142,6 +143,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
 
             actual.Should().BeEquivalentTo(expected);
         }
+        
+        [TestMethod]
+        public void Verify_AllEnabledLanguagesAreKnown()
+        {
+            var slCoreConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsUIServiceOperation>());
+
+            var languages = slCoreConstantsProvider.LanguagesInStandaloneMode
+                .Concat(slCoreConstantsProvider.ExtraLanguagesInConnectedMode)
+                .Concat(slCoreConstantsProvider.AnalyzableLanguages)
+                .Select(x => x.ConvertToCoreLanguage());
+
+            languages.Should().NotContain(Core.Language.Unknown);
+        }
+
 
         private void SetupIdeName(object name)
         {

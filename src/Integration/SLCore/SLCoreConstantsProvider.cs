@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
             Language.CPP,
             Language.CS,
             Language.VBNET,
-            Language.SECRETS
+            Language.SECRETS,
         ];
 
         public IReadOnlyList<Language> ExtraLanguagesInConnectedMode =>
