@@ -60,7 +60,7 @@ public class ProjectDocumentsEventsListenerTests
         testSubject.OnAfterAddFilesEx(1, 1, [null], [0], ["C:\\Users\\test\\TestProject\\AFile.cs"],
             [VSADDFILEFLAGS.VSADDFILEFLAGS_NoFlags]);
 
-        fileTracker.Received().AddFiles("C:\\Users\\test\\TestProject\\AFile.cs");
+        fileTracker.Received().AddFiles(new SourceFile("C:\\Users\\test\\TestProject\\AFile.cs"));
     }
 
     [TestMethod]
@@ -88,7 +88,7 @@ public class ProjectDocumentsEventsListenerTests
 
         fileTracker.Received().RenameFiles(
             Arg.Is<string[]>(strings => strings[0] == "C:\\Users\\test\\TestProject\\AFile.cs"),
-            Arg.Is<string[]>(strings => strings[0] == "C:\\Users\\test\\TestProject\\ARenamedFile.cs"));
+            Arg.Is<SourceFile[]>(addedFiles => addedFiles[0].FilePath == "C:\\Users\\test\\TestProject\\ARenamedFile.cs"));
     }
 
     [TestMethod]

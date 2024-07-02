@@ -57,7 +57,7 @@ public class FileTrackerTests
 
         var testSubject = new FileTracker(serviceProvider, activeConfigScopeTracker, threadHandling, clientFileDtoFactory, testLogger);
         
-        testSubject.AddFiles("C:\\Users\\test\\TestProject\\AFile.cs");
+        testSubject.AddFiles(new SourceFile("C:\\Users\\test\\TestProject\\AFile.cs"));
 
         testLogger.AssertOutputStrings($"[FileTracker] {SLCoreStrings.ServiceProviderNotInitialized}");
     }
@@ -69,7 +69,7 @@ public class FileTrackerTests
         DidUpdateFileSystemParams result = null;
         fileRpcSlCoreService.DidUpdateFileSystem(Arg.Do<DidUpdateFileSystemParams>(parameters => result = parameters));
 
-        testSubject.AddFiles("C:\\Users\\test\\TestProject\\AFile.cs");
+        testSubject.AddFiles(new SourceFile("C:\\Users\\test\\TestProject\\AFile.cs"));
 
         result.removedFiles.Should().BeEmpty();
         result.addedOrChangedFiles.Should().ContainSingle();
@@ -97,7 +97,7 @@ public class FileTrackerTests
         fileRpcSlCoreService.DidUpdateFileSystem(Arg.Do<DidUpdateFileSystemParams>(parameters => result = parameters));
 
         testSubject.RenameFiles(["C:\\Users\\test\\TestProject\\AFile.cs"],
-            ["C:\\Users\\test\\TestProject\\ARenamedFile.cs"]);
+            [new SourceFile("C:\\Users\\test\\TestProject\\ARenamedFile.cs")]);
 
         result.removedFiles.Should().ContainSingle();
         result.removedFiles[0].Should().BeEquivalentTo(new FileUri("C:\\Users\\test\\TestProject\\AFile.cs"));

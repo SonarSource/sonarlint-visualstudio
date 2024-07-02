@@ -18,12 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
+namespace SonarLint.VisualStudio.Core.UnitTests;
 
-namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
-
-public interface IClientFileDtoFactory
+[TestClass]
+public class SourceFileTests
 {
-    ClientFileDto Create(string configScopeId, string rootPath, SourceFile sourceFile);
+    [TestMethod]
+    public void SourceFile_EncodingDefaultsToUTF8()
+    {
+        var sourceFile = new SourceFile(@"C:\Users\Project\JustASourceFile.cs");
+
+        sourceFile.Encoding.Should().Be("utf-8");
+    }
+
+    [DataTestMethod]
+    [DataRow("windows-1250")]
+    [DataRow("windows-1251")]
+    [DataRow("windows-1252")]
+    [DataRow("iso-8859-15")]
+    public void SourceFile_StoresFileEncoding(string encoding)
+    {
+        var sourceFile = new SourceFile(@"C:\Users\Project\JustASourceFile.cs", encoding);
+
+        sourceFile.Encoding.Should().Be(encoding);
+    }
 }

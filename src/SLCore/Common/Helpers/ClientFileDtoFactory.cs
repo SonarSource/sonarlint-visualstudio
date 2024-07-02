@@ -19,7 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Text;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 
@@ -29,11 +29,11 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class ClientFileDtoFactory : IClientFileDtoFactory
 {
-    public ClientFileDto Create(string fullPath, string configScopeId, string rootPath)
+    public ClientFileDto Create(string configScopeId, string rootPath, SourceFile sourceFile)
     {
-        var ideRelativePath = GetRelativePath(rootPath, fullPath);
-        var uri = new FileUri(fullPath);
-        return new ClientFileDto(uri, ideRelativePath, configScopeId, null, Encoding.UTF8.WebName, fullPath);
+        var ideRelativePath = GetRelativePath(rootPath, sourceFile.FilePath);
+        var uri = new FileUri(sourceFile.FilePath);
+        return new ClientFileDto(uri, ideRelativePath, configScopeId, null, sourceFile.Encoding, sourceFile.FilePath);
     }
 
     private static string GetRelativePath(string root, string fullPath)
