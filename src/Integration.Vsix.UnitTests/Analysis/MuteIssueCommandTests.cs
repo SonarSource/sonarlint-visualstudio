@@ -18,15 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Design;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using FluentAssertions;
 using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -35,7 +29,6 @@ using SonarLint.VisualStudio.Core.Transition;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.TestInfrastructure.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis;
@@ -66,6 +59,25 @@ public class MuteIssueCommandTests
         var rule = It.IsAny<SonarCompositeRuleId>();
         var suppressionState = false;
         errorListHelperMock.Setup(x => x.TryGetRuleIdAndSuppressionStateFromSelectedRow(out rule, out suppressionState)).Returns(false);
+        activeSolutionBoundTrackerMock
+            .SetupGet(x => x.CurrentConfiguration)
+            .Returns(ConnectedModeBinding);
+
+        ThreadHelper.SetCurrentThreadAsUIThread();
+        var oleStatus = testSubject.OleStatus;
+
+        oleStatus.Should().Be(InvisibleAndDisabled);
+        testSubject.Visible.Should().BeFalse();
+        testSubject.Enabled.Should().BeFalse();
+    }
+    
+    [TestMethod]
+    public void QueryStatus_Exception_Invisible()
+    {
+        var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out _, out var activeSolutionBoundTrackerMock, out _, out _, out _);
+        var suppressionState = false;
+        var ruleId = It.IsAny<SonarCompositeRuleId>();
+        errorListHelperMock.Setup(x => x.TryGetRuleIdAndSuppressionStateFromSelectedRow(out ruleId, out suppressionState)).Throws(new Exception());
         activeSolutionBoundTrackerMock
             .SetupGet(x => x.CurrentConfiguration)
             .Returns(ConnectedModeBinding);
