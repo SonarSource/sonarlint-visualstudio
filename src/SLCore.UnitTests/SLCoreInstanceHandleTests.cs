@@ -75,7 +75,7 @@ public class SLCoreInstanceHandleTests
             out var activeSolutionBoundTracker,
             out var configScopeUpdater,
             out var threadHandling);
-        SetUpLanguages(constantsProvider, [], [], []);
+        SetUpLanguages(constantsProvider, [], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -121,7 +121,7 @@ public class SLCoreInstanceHandleTests
             out var activeSolutionBoundTracker,
             out _,
             out _);
-        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX], [Language.YAML, Language.XML], []);
+        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX, Language.YAML, Language.XML], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -135,8 +135,8 @@ public class SLCoreInstanceHandleTests
         testSubject.Initialize();
 
         var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single();
-        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX });
-        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(new[] { Language.YAML, Language.XML });
+        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX, Language.YAML, Language.XML });
+        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(Array.Empty<Language>());
         initializeParams.disabledLanguagesForAnalysis.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX, Language.YAML, Language.XML });
     }
     
@@ -151,7 +151,7 @@ public class SLCoreInstanceHandleTests
             out var activeSolutionBoundTracker,
             out _,
             out _);
-        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX], [Language.YAML, Language.XML], [Language.APEX, Language.YAML]);
+        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX, Language.YAML, Language.XML], [Language.APEX, Language.YAML]);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -165,8 +165,8 @@ public class SLCoreInstanceHandleTests
         testSubject.Initialize();
 
         var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single();
-        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX });
-        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(new[] { Language.YAML, Language.XML });
+        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX, Language.YAML, Language.XML });
+        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(Array.Empty<Language>());
         initializeParams.disabledLanguagesForAnalysis.Should().BeEquivalentTo(new[] { Language.ABAP, Language.XML });
     }
     
@@ -181,7 +181,7 @@ public class SLCoreInstanceHandleTests
             out var activeSolutionBoundTracker,
             out _,
             out _);
-        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX], [Language.YAML, Language.XML], [Language.XML, Language.APEX, Language.YAML, Language.ABAP, ]);
+        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX, Language.YAML, Language.XML], [Language.XML, Language.APEX, Language.YAML, Language.ABAP, ]);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -195,8 +195,8 @@ public class SLCoreInstanceHandleTests
         testSubject.Initialize();
 
         var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single();
-        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX });
-        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(new[] { Language.YAML, Language.XML });
+        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX, Language.YAML, Language.XML });
+        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(Array.Empty<Language>());
         initializeParams.disabledLanguagesForAnalysis.Should().BeEquivalentTo(Array.Empty<Language>());
     }
 
@@ -212,7 +212,7 @@ public class SLCoreInstanceHandleTests
             out _,
             out var threadHandling);
         SetUpThreadHandling(threadHandling);
-        SetUpLanguages(constantsProvider, [], [], []);
+        SetUpLanguages(constantsProvider, [], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -252,7 +252,7 @@ public class SLCoreInstanceHandleTests
             out _,
             out var threadHandling);
         SetUpThreadHandling(threadHandling);
-        SetUpLanguages(constantsProvider, [], [], []);
+        SetUpLanguages(constantsProvider, [], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -286,7 +286,7 @@ public class SLCoreInstanceHandleTests
             out _,
             out var threadHandling);
         SetUpThreadHandling(threadHandling);
-        SetUpLanguages(constantsProvider, [], [], []);
+        SetUpLanguages(constantsProvider, [], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -318,7 +318,7 @@ public class SLCoreInstanceHandleTests
             out _,
             out var threadHandling);
         SetUpThreadHandling(threadHandling);
-        SetUpLanguages(constantsProvider, [], [], []);
+        SetUpLanguages(constantsProvider, [], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -393,12 +393,10 @@ public class SLCoreInstanceHandleTests
 
     private void SetUpLanguages(ISLCoreConstantsProvider constantsProvider,
         List<Language> standalone,
-        List<Language> connected, 
         List<Language> enabledAnalysis)
     {
         constantsProvider.LanguagesInStandaloneMode.Returns(standalone);
-        constantsProvider.ExtraLanguagesInConnectedMode.Returns(connected);
-        constantsProvider.AnalyzableLanguages.Returns(enabledAnalysis);
+        constantsProvider.SLCoreAnalyzableLanguages.Returns(enabledAnalysis);
     }
 
     #region RpcSetUp

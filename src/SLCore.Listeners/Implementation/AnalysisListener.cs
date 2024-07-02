@@ -61,7 +61,7 @@ internal class AnalysisListener : IAnalysisListener
         this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
         this.logger = logger;
         
-        analyzableLanguagesRuleKeyPrefixes = slCoreConstantsProvider.AnalyzableLanguages?
+        analyzableLanguagesRuleKeyPrefixes = slCoreConstantsProvider.SLCoreAnalyzableLanguages?
             .Select(x => x.ConvertToCoreLanguage())
             .Select(Language.GetSonarRepoKeyFromLanguage)
             .Where(r => r is not null)

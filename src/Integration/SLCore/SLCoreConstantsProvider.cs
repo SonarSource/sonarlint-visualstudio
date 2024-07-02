@@ -68,11 +68,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
             Language.SECRETS,
         ];
 
-        public IReadOnlyList<Language> ExtraLanguagesInConnectedMode =>
-        [
-        ];
-
-        public IReadOnlyList<Language> AnalyzableLanguages =>
+        public IReadOnlyList<Language> SLCoreAnalyzableLanguages =>
         [
             Language.SECRETS
         ];

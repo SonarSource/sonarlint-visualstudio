@@ -127,19 +127,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
         }
 
         [TestMethod]
-        public void ConnectedLanguages_ShouldBeExpected()
-        {
-            var expected = Array.Empty<Language>();
-            var actual = testSubject.ExtraLanguagesInConnectedMode;
-
-            actual.Should().BeEquivalentTo(expected);
-        }
-
-        [TestMethod]
         public void AnalyzableLanguages_ShouldBeExpected()
         {
             var expected = new[] { Language.SECRETS };
-            var actual = testSubject.AnalyzableLanguages;
+            var actual = testSubject.SLCoreAnalyzableLanguages;
 
             actual.Should().BeEquivalentTo(expected);
         }
@@ -150,8 +141,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
             var slCoreConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsUIServiceOperation>());
 
             var languages = slCoreConstantsProvider.LanguagesInStandaloneMode
-                .Concat(slCoreConstantsProvider.ExtraLanguagesInConnectedMode)
-                .Concat(slCoreConstantsProvider.AnalyzableLanguages)
+                .Concat(slCoreConstantsProvider.SLCoreAnalyzableLanguages)
                 .Select(x => x.ConvertToCoreLanguage());
 
             languages.Should().NotContain(Core.Language.Unknown);
