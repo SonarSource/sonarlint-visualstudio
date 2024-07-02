@@ -24,10 +24,9 @@
   <Target Name="CopyJars">
     <ItemGroup>
       <SourceJars Include="$(JarDownloadDir)\sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar" />
-      <SourceJars Include="$(JarDownloadDir)\sonar-csharp-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
-      <SourceJars Include="$(JarDownloadDir)\sonar-vbnet-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-text-plugin-$(EmbeddedSonarSecretsJarVersion).jar" />
+      <SourceJars Include="$(JarDownloadDir)\sonarlint-omnisharp-plugin-$(EmbeddedOmnisharpPluginVersion).jar" />
     </ItemGroup>
     <Copy SourceFiles ="@(SourceJars)" DestinationFolder="$(EmbeddedJarDir)" />
   </Target>

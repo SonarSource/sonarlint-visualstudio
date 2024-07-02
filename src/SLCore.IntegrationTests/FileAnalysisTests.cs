@@ -28,7 +28,6 @@ using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 using SonarLint.VisualStudio.SLCore.Service.Analysis;
 using SonarLint.VisualStudio.SLCore.State;
-using StreamJsonRpc;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
@@ -38,7 +37,6 @@ public class FileAnalysisTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    [ExpectedException(typeof(RemoteInvocationException),"Internal error.")]
     public async Task Sloop_AnalyzesFilesWithSecretsAndRaisesIssues()
     {
         const string configScopeId = "ConfigScope1";

@@ -21,6 +21,13 @@
     <SloopBinaryDownloadPath>$(SloopBinaryDownloadDir)\$(SloopBinaryFileName)</SloopBinaryDownloadPath>
     <SloopBinaryRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/sonarlint/core/sonarlint-backend-cli/$(EmbeddedSloopVersion)/$(SloopBinaryFileName)</SloopBinaryRemoteUrl>
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <OmnisharpBinaryFileName>sonarlint-omnisharp-plugin-$(EmbeddedOmnisharpPluginVersion).jar</OmnisharpBinaryFileName>
+    <OmnisharpDownloadDir>$(JarDownloadDir)</OmnisharpDownloadDir>
+    <OmnisharpDownloadPath>$(OmnisharpDownloadDir)/$(OmnisharpBinaryFileName)</OmnisharpDownloadPath>
+    <OmnisharpBinaryRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource-public-releases/org/sonarsource/sonarlint/omnisharp/sonarlint-omnisharp-plugin/$(EmbeddedOmnisharpPluginVersion)/$(OmnisharpBinaryFileName)</OmnisharpBinaryRemoteUrl>
+  </PropertyGroup>
 
   <!-- ************************************************************** -->
   <!-- Information about the individual language plugins we need to download -->
@@ -60,20 +67,6 @@
       <URL>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/%(JarName)</URL>
       <LanguageKey>css</LanguageKey>
       <RepoKey>css</RepoKey>
-    </PluginJars>
-
-    <PluginJars Include="C#">
-      <JarName>sonar-csharp-plugin-$(EmbeddedSonarAnalyzerVersion).jar</JarName>
-      <URL>https://binaries.sonarsource.com/Distribution/sonar-csharp-plugin/%(JarName)</URL>
-      <LanguageKey>cs</LanguageKey>
-      <RepoKey>csharpsquid</RepoKey>
-    </PluginJars>
-
-    <PluginJars Include="VB.NET">
-      <JarName>sonar-vbnet-plugin-$(EmbeddedSonarAnalyzerVersion).jar</JarName>
-      <URL>https://binaries.sonarsource.com/Distribution/sonar-vbnet-plugin/%(JarName)</URL>
-      <LanguageKey>vbnet</LanguageKey>
-      <RepoKey>vbnet</RepoKey>
     </PluginJars>
 
     <PluginJars Include="Secrets">

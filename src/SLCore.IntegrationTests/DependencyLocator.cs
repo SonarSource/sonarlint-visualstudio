@@ -44,14 +44,13 @@ public class DependencyLocator // this might be reused in the product code in th
     {
         var jarDirectoryPath = Path.Combine(localAppData, "SLVS_Build_DownloadedJars");
         var availablePluginJars = Directory.GetFiles(jarDirectoryPath);
-        var roslynAnalyzerVersion = GetDependencyVersion("EmbeddedSonarAnalyzerVersion", dependencyProps);
+        var omnisharpPluginVersion = GetDependencyVersion("EmbeddedOmnisharpPluginVersion", dependencyProps);
         var cfamilyAnalyzerVersion = GetDependencyVersion("EmbeddedSonarCFamilyAnalyzerVersion", dependencyProps);
         var jstsAnalyzerVersion = GetDependencyVersion("EmbeddedSonarJSAnalyzerVersion", dependencyProps);
         var secrestsAnalyzerVersion = GetDependencyVersion("EmbeddedSonarSecretsJarVersion", dependencyProps);
         AnalyzerPlugins = new List<string>
         {
-            GetAnalyzerPath("sonar-csharp-plugin", roslynAnalyzerVersion, availablePluginJars),
-            GetAnalyzerPath("sonar-vbnet-plugin", roslynAnalyzerVersion, availablePluginJars),    
+            GetAnalyzerPath("sonarlint-omnisharp-plugin", omnisharpPluginVersion, availablePluginJars),
             GetAnalyzerPath("sonar-cfamily-plugin", cfamilyAnalyzerVersion, availablePluginJars),
             GetAnalyzerPath("sonar-javascript-plugin", jstsAnalyzerVersion, availablePluginJars),
             GetAnalyzerPath("sonar-text-plugin", secrestsAnalyzerVersion, availablePluginJars),
