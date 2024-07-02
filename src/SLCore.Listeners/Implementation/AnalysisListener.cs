@@ -22,11 +22,14 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Analysis;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
+using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 using SonarLint.VisualStudio.SLCore.State;
 using AnalyzerOptions = SonarLint.VisualStudio.Core.Analysis.AnalyzerOptions;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
@@ -34,40 +37,35 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class AnalysisListener : IAnalysisListener
 {
-    private readonly Language[] supportedLanguages;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IAnalysisRequester analysisRequester;
     private readonly IAnalysisService analysisService;
     private readonly IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter;
     private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
     private readonly ILogger logger;
+    private readonly List<string> analyzableLanguagesRuleKeyPrefixes;
 
     [ImportingConstructor]
-    public AnalysisListener(IActiveConfigScopeTracker activeConfigScopeTracker,
+    public AnalysisListener(ISLCoreConstantsProvider slCoreConstantsProvider, 
+        IActiveConfigScopeTracker activeConfigScopeTracker,
         IAnalysisRequester analysisRequester,
         IAnalysisService analysisService,
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter,
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
         ILogger logger)
-       : this(activeConfigScopeTracker, analysisRequester, analysisService, raiseIssueParamsToAnalysisIssueConverter, analysisStatusNotifierFactory, logger, [Language.Secrets])
-    {
-    }
-
-    internal AnalysisListener(IActiveConfigScopeTracker activeConfigScopeTracker,
-        IAnalysisRequester analysisRequester,
-        IAnalysisService analysisService,
-        IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter,
-        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
-        ILogger logger,
-        Language[] supportedLanguages)
     {
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.analysisRequester = analysisRequester;
-        this.supportedLanguages = supportedLanguages;
         this.analysisService = analysisService;
         this.raiseIssueParamsToAnalysisIssueConverter = raiseIssueParamsToAnalysisIssueConverter;
         this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
         this.logger = logger;
+        
+        analyzableLanguagesRuleKeyPrefixes = slCoreConstantsProvider.SLCoreAnalyzableLanguages?
+            .Select(x => x.ConvertToCoreLanguage())
+            .Select(Language.GetSonarRepoKeyFromLanguage)
+            .Where(r => r is not null)
+            .ToList() ?? [];
     }
 
     public void DidChangeAnalysisReadiness(DidChangeAnalysisReadinessParams parameters)
@@ -121,15 +119,14 @@ internal class AnalysisListener : IAnalysisListener
         }
     }
 
-    private RaisedIssueDto[] GetSupportedLanguageIssues(IEnumerable<RaisedIssueDto> issues) =>
-        issues.Where(i => IsSupportedLanguage(i.ruleKey)).ToArray();
-
-    private bool IsSupportedLanguage(string ruleKey) =>
-        Array.Exists(supportedLanguages, l => ruleKey.StartsWith(Language.GetSonarRepoKeyFromLanguage(l)));
+    private RaisedIssueDto[] GetSupportedLanguageIssues(IEnumerable<RaisedIssueDto> issues)
+    {
+        return issues.Where(i => analyzableLanguagesRuleKeyPrefixes.Exists(languageRepo => i.ruleKey.StartsWith(languageRepo))).ToArray();
+    }
 
     public void RaiseHotspots(RaiseHotspotsParams parameters)
     {
         // no-op: We don't have hotspots in Secrets
-        // it will be implemented when we support a language that have hotspots
+        // it will be implemented when we support a language that has hotspots
     }
 }

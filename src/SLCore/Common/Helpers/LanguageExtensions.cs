@@ -19,16 +19,24 @@
  */
 
 using SonarLint.VisualStudio.SLCore.Common.Models;
-using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Configuration;
+namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
 
-public interface ISLCoreConstantsProvider
+internal static class LanguageExtensions
 {
-    ClientConstantsDto ClientConstants { get; }
-    FeatureFlagsDto FeatureFlags { get; }
-    TelemetryClientConstantAttributesDto TelemetryConstants { get; }
-    
-    IReadOnlyList<Language> LanguagesInStandaloneMode { get; }
-    IReadOnlyList<Language> SLCoreAnalyzableLanguages { get; }
+    public static VisualStudio.Core.Language ConvertToCoreLanguage(this Language language)
+    {
+        return language switch
+        {
+            Language.C => VisualStudio.Core.Language.C,
+            Language.CPP => VisualStudio.Core.Language.Cpp,
+            Language.CS => VisualStudio.Core.Language.CSharp,
+            Language.CSS => VisualStudio.Core.Language.Css,
+            Language.JS => VisualStudio.Core.Language.Js,
+            Language.SECRETS => VisualStudio.Core.Language.Secrets,
+            Language.TS => VisualStudio.Core.Language.Ts,
+            Language.VBNET => VisualStudio.Core.Language.VBNET,
+            _ => VisualStudio.Core.Language.Unknown
+        };
+    }
 }
