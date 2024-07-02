@@ -18,12 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
@@ -114,6 +110,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
+                menuItem.Visible = false;
+                menuItem.Enabled = false;
                 logger.WriteLine(AnalysisStrings.MuteIssue_ErrorCheckingCommandStatus, ex.Message);
             }
         }
@@ -195,7 +193,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             SonarRuleRepoKeys.JavaScript,
             SonarRuleRepoKeys.TypeScript,
             SonarRuleRepoKeys.Css,
-            SonarRuleRepoKeys.Secrets,
             SonarRuleRepoKeys.CSharpRules,
             SonarRuleRepoKeys.VBNetRules
         };
