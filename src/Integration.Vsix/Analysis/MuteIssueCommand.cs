@@ -110,6 +110,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
+                menuItem.Visible = false;
+                menuItem.Enabled = false;
                 logger.WriteLine(AnalysisStrings.MuteIssue_ErrorCheckingCommandStatus, ex.Message);
             }
         }

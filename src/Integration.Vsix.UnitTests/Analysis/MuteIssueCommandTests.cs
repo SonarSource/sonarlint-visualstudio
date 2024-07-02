@@ -78,11 +78,13 @@ public class MuteIssueCommandTests
         testSubject.Enabled.Should().BeFalse();
     }
 
-    [TestMethod]
-    public void QueryStatus_NotSupportedIssue_Invisible()
+    [DataTestMethod]
+    [DataRow("java:S111")]
+    [DataRow("secrets:S111")] // disabled temporarily
+    public void QueryStatus_NotSupportedIssue_Invisible(string errorCode)
     {
         var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out _, out var activeSolutionBoundTrackerMock, out _, out _, out _);
-        SonarCompositeRuleId.TryParse("java:S333", out SonarCompositeRuleId ruleId);
+        SonarCompositeRuleId.TryParse(errorCode, out SonarCompositeRuleId ruleId);
         var suppressionState = false;
         errorListHelperMock.Setup(x => x.TryGetRuleIdAndSuppressionStateFromSelectedRow(out ruleId, out suppressionState)).Returns(true);
         activeSolutionBoundTrackerMock
@@ -140,7 +142,6 @@ public class MuteIssueCommandTests
     [DataRow("c:S222")]
     [DataRow("javascript:S333")]
     [DataRow("typescript:S444")]
-    [DataRow("secrets:S555")]
     [DataRow("css:S555")]
     [DataRow("csharpsquid:S555")]
     [DataRow("vbnet:S555")]
@@ -148,7 +149,8 @@ public class MuteIssueCommandTests
     {
         var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out _, out var activeSolutionBoundTrackerMock, out _, out _, out _);
         SonarCompositeRuleId.TryParse(errorCode, out SonarCompositeRuleId ruleId);
-        errorListHelperMock.Setup(x => x.TryGetRuleIdFromSelectedRow(out ruleId)).Returns(true);
+        var suppressionState = false;
+        errorListHelperMock.Setup(x => x.TryGetRuleIdAndSuppressionStateFromSelectedRow(out ruleId, out suppressionState)).Returns(true);
         activeSolutionBoundTrackerMock
             .SetupGet(x => x.CurrentConfiguration)
             .Returns(ConnectedModeBinding);
