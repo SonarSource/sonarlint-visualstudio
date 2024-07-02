@@ -18,15 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Files;
 using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
@@ -41,13 +36,16 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
         private readonly IFolderWorkspaceService folderWorkspaceService;
         private readonly ISolutionWorkspaceService solutionWorkspaceService;
         private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
+        private readonly IClientFileDtoFactory clientFileDtoFactory;
 
         [ImportingConstructor]
-        public ListFilesListener(IFolderWorkspaceService folderWorkspaceService, ISolutionWorkspaceService solutionWorkspaceService, IActiveConfigScopeTracker activeConfigScopeTracker)
+        public ListFilesListener(IFolderWorkspaceService folderWorkspaceService, ISolutionWorkspaceService solutionWorkspaceService,
+            IActiveConfigScopeTracker activeConfigScopeTracker, IClientFileDtoFactory clientFileDtoFactory)
         {
             this.folderWorkspaceService = folderWorkspaceService;
             this.solutionWorkspaceService = solutionWorkspaceService;
             this.activeConfigScopeTracker = activeConfigScopeTracker;
+            this.clientFileDtoFactory = clientFileDtoFactory;
         }
 
         public Task<ListFilesResponse> ListFilesAsync(ListFilesParams parameters)
@@ -61,26 +59,11 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
                     var root = GetRoot(fullFilePathList.First());
                     if (activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, root))
                     {
-                        clientFileDtos.AddRange(fullFilePathList.Select(fp =>
-                        {
-                            var ideRelativePath = GetRelativePath(root, fp);
-                            return new ClientFileDto(CreateUri(fp), ideRelativePath, parameters.configScopeId, null,
-                                Encoding.UTF8.WebName, fp);
-                        }));
+                        clientFileDtos.AddRange(fullFilePathList.Select(fp => clientFileDtoFactory.Create(parameters.configScopeId, root, new SourceFile(fp))));
                     }
                 }
             }
             return Task.FromResult(new ListFilesResponse(clientFileDtos));
-        }
-
-        private static string CreateUri(string fp)
-        {
-            return Uri.UriSchemeFile + Uri.SchemeDelimiter + Uri.EscapeDataString(fp);
-        }
-
-        private string GetRelativePath(string root, string fullPath)
-        {
-            return fullPath.Substring(root.Length);
         }
 
         private string GetRoot(string filePath)

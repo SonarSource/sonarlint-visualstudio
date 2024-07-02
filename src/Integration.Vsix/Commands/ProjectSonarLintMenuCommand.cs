@@ -34,12 +34,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal class ProjectSonarLintMenuCommand : VsCommandBase
     {
         private readonly IProjectPropertyManager propertyManager;
-        private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
-        public ProjectSonarLintMenuCommand(IProjectPropertyManager propertyManager, IProjectToLanguageMapper projectToLanguageMapper)
+        public ProjectSonarLintMenuCommand(IProjectPropertyManager propertyManager)
         {
             this.propertyManager = propertyManager ?? throw new ArgumentNullException(nameof(propertyManager));
-            this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
         }
 
         protected override void InvokeInternal()
@@ -57,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                           .GetSelectedProjects()
                                           .ToList();
 
-            if (projects.Any() && projects.All(x => projectToLanguageMapper.HasSupportedLanguage(x)))
+            if (projects.Any() && projects.All(x => x is not null))
             {
                 command.Enabled = true;
                 command.Visible = true;

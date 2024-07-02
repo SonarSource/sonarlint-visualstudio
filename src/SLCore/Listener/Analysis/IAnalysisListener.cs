@@ -18,12 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
 internal interface IAnalysisListener : ISLCoreListener
 {
-    Task DidChangeAnalysisReadinessAsync(DidChangeAnalysisReadinessParams parameters);
+    void DidChangeAnalysisReadiness(DidChangeAnalysisReadinessParams parameters);
+
+    void RaiseIssues(RaiseIssuesParams parameters);
+    
+    void RaiseHotspots(RaiseHotspotsParams parameters);
 }

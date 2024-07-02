@@ -224,12 +224,6 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
-    <ProjectReference Include="..\CloudSecrets\CloudSecrets.csproj">
-      <Project>{4bc2f68c-6c25-4763-a22e-21b211749e04}</Project>
-      <Name>CloudSecrets</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-    </ProjectReference>
     <ProjectReference Include="..\SLCore\SLCore.csproj">
       <Name>SLCore</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
@@ -287,7 +281,6 @@
     <None Remove="Resources\SonarLint_About_For Export.jpg" />
     <None Remove="Resources\sonarlint_nobg.png" />
     <None Remove="Resources\sonarlint_wave_128px.png" />
-    <None Remove="secrets\LICENSE.txt" />
     <None Remove="Settings\GeneralOptionsDialogControl.xaml" />
     <None Remove="Settings\OtherOptionsDialogControl.xaml" />
     <None Remove="SonarLint.vsct" />
@@ -301,10 +294,6 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\sonarlint_200.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="secrets\LICENSE.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -429,27 +418,6 @@
   </Target>
 
   <!-- *************************************************************************** -->
-  <!-- Sonar Secrets -->
-  <!-- *************************************************************************** -->
-  <!-- In the VSIX, the secrets binary(ies) should be in the secrets subfolder next to the specific license file.
-       We don't need to copy the file(s). It's enough to specify the VSIXSubPath we want.
-  -->
-  <Target Name="SecretsBinariesToVSIX" AfterTargets="GeneratePkgDef" BeforeTargets="GetVsixSourceItems">
-    <ItemGroup>
-      <SonarSecretsFilesToAdd Include="$(OutDir)SonarLint.Secrets.*.dll" />
-    </ItemGroup>
-
-    <Message Importance="high" Text="Adding the SonarSecrets files to the VSIX:@(SonarSecretsFilesToAdd)" />
-
-    <ItemGroup>
-      <VSIXSourceItem Include="@(SonarSecretsFilesToAdd)">
-        <VSIXSubPath>secrets</VSIXSubPath>
-      </VSIXSourceItem>
-    </ItemGroup>
-
-  </Target>
-
-  <!-- *************************************************************************** -->
   <!-- Include nuget packages in the VSIX: workaround for bug https://github.com/NuGet/Home/issues/5899 -->
   <!-- *************************************************************************** -->
 
@@ -497,10 +465,6 @@
 
     <!-- Include SonarLint assemblies, the SonarQube.Client library, and the analyzers-->
     <AsmRefIncludePatterns>Sonar*</AsmRefIncludePatterns>
-    <!-- SonarSecrets is referenced as a released package, so it is always signed, regardless of the value of
-         SignAssembly. This messes up the comparison of unsigned assemblies we do below, causing the AsmRef
-         comparison to fail. For now, we'll expclude it from the comparison. -->
-    <AsmRefExcludePatterns>!SonarLint.Secrets.DotNet*</AsmRefExcludePatterns>
 
     <BaselineWithStrongNames>$(MSBuildProjectDirectory)\AsmRef_Integration.Vsix_Baseline_WithStrongNames.txt</BaselineWithStrongNames>
     <BaselineWithoutStrongNames>$(MSBuildProjectDirectory)\AsmRef_Integration.Vsix_Baseline_WithoutStrongNames.txt</BaselineWithoutStrongNames>

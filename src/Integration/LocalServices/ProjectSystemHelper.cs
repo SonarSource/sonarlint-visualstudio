@@ -56,14 +56,11 @@ namespace SonarLint.VisualStudio.Integration
         public const int E_XML_ATTRIBUTE_NOT_FOUND = unchecked((int)0x8004C738);
 
         private readonly IServiceProvider serviceProvider;
-        private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
         [ImportingConstructor]
-        public ProjectSystemHelper([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            IProjectToLanguageMapper projectToLanguageMapper)
+        public ProjectSystemHelper([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider;
-            this.projectToLanguageMapper = projectToLanguageMapper;
         }
 
         public IVsHierarchy GetVsHierarchyForFile(string fileName)
@@ -83,8 +80,7 @@ namespace SonarLint.VisualStudio.Integration
             {
                 Project Project = GetProject(hierarchy);
 
-                if (Project != null && 
-                    projectToLanguageMapper.HasSupportedLanguage(Project))
+                if (Project != null)
                 {
                     yield return Project;
                 }

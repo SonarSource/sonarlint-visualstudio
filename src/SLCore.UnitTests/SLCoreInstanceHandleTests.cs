@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using NSubstitute.ClearExtensions;
+using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Configuration;
@@ -54,20 +52,20 @@ public class SLCoreInstanceHandleTests
     private static readonly List<string> JarList = new() { "jar1" };
 
     [TestMethod]
-    public async Task Initialize_ThrowsIfServicesUnavailable()
+    public void Initialize_ThrowsIfServicesUnavailable()
     {
         var testSubject = CreateTestSubject(out var slCoreRpcFactory, out _, out _, out _, out _, out _, out _, out _);
         SetUpSLCoreRpcFactory(slCoreRpcFactory, out var rpc);
         SetUpSLCoreRpc(rpc, out var serviceProvider);
         serviceProvider.TryGetTransientService(out Arg.Any<AnySLCoreService>()).ReturnsForAnyArgs(false);
 
-        var act = () => testSubject.InitializeAsync();
+        var act = () => testSubject.Initialize();
 
-        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage(SLCoreStrings.ServiceProviderNotInitialized);
+        act.Should().Throw<InvalidOperationException>().WithMessage(SLCoreStrings.ServiceProviderNotInitialized);
     }
 
     [TestMethod]
-    public async Task Initialize_SuccessfullyInitializesInCorrectOrder()
+    public void Initialize_SuccessfullyInitializesInCorrectOrder()
     {
         var testSubject = CreateTestSubject(out var slCoreRpcFactory,
             out var constantsProvider,
@@ -77,6 +75,7 @@ public class SLCoreInstanceHandleTests
             out var activeSolutionBoundTracker,
             out var configScopeUpdater,
             out var threadHandling);
+        SetUpLanguages(constantsProvider, [], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -87,31 +86,19 @@ public class SLCoreInstanceHandleTests
             out var lifecycleManagement,
             out _);
 
-        await testSubject.InitializeAsync();
+        testSubject.Initialize();
 
         Received.InOrder(() =>
         {
             threadHandling.ThrowIfOnUIThread();
             slCoreRpcFactory.StartNewRpcInstance();
-            lifecycleManagement.InitializeAsync(Arg.Is<InitializeParams>(parameters =>
+            lifecycleManagement.Initialize(Arg.Is<InitializeParams>(parameters =>
                 parameters.clientConstantInfo == ClientConstants
                 && parameters.featureFlags == FeatureFlags
                 && parameters.storageRoot == StorageRoot
                 && parameters.workDir == WorkDir
                 && parameters.embeddedPluginPaths == JarList
                 && parameters.connectedModeEmbeddedPluginPathsByKey.Count == 0
-                && parameters.enabledLanguagesInStandaloneMode.SequenceEqual(new[]
-                {
-                    Language.C,
-                    Language.CPP,
-                    Language.CS,
-                    Language.VBNET,
-                    Language.JS,
-                    Language.TS,
-                    Language.CSS,
-                    Language.SECRETS
-                })
-                && parameters.extraEnabledLanguagesInConnectedMode.Count == 0
                 && parameters.sonarQubeConnections.SequenceEqual(new[] { SonarQubeConnection1, SonarQubeConnection2 })
                 && parameters.sonarCloudConnections.SequenceEqual(new[] { SonarCloudConnection })
                 && parameters.sonarlintUserHome == UserHome
@@ -122,9 +109,99 @@ public class SLCoreInstanceHandleTests
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(Binding);
         });
     }
+    
+    [TestMethod]
+    public void Initialize_NoLanguagesAnalysisEnabled_DisablesAllLanguages()
+    {
+        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
+            out var constantsProvider,
+            out var foldersProvider,
+            out var connectionsProvider,
+            out var jarLocator,
+            out var activeSolutionBoundTracker,
+            out _,
+            out _);
+        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX, Language.YAML, Language.XML], []);
+
+        SetUpSuccessfulInitialization(slCoreRpcFactory,
+            constantsProvider,
+            foldersProvider,
+            connectionsProvider,
+            jarLocator,
+            activeSolutionBoundTracker,
+            out var lifecycleManagement,
+            out _);
+
+        testSubject.Initialize();
+
+        var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single();
+        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX, Language.YAML, Language.XML });
+        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(Array.Empty<Language>());
+        initializeParams.disabledLanguagesForAnalysis.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX, Language.YAML, Language.XML });
+    }
+    
+    [TestMethod]
+    public void Initialize_AnalysisPartiallyEnabled_DisablesAllNotEnabledLanguages()
+    {
+        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
+            out var constantsProvider,
+            out var foldersProvider,
+            out var connectionsProvider,
+            out var jarLocator,
+            out var activeSolutionBoundTracker,
+            out _,
+            out _);
+        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX, Language.YAML, Language.XML], [Language.APEX, Language.YAML]);
+
+        SetUpSuccessfulInitialization(slCoreRpcFactory,
+            constantsProvider,
+            foldersProvider,
+            connectionsProvider,
+            jarLocator,
+            activeSolutionBoundTracker,
+            out var lifecycleManagement,
+            out _);
+
+        testSubject.Initialize();
+
+        var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single();
+        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX, Language.YAML, Language.XML });
+        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(Array.Empty<Language>());
+        initializeParams.disabledLanguagesForAnalysis.Should().BeEquivalentTo(new[] { Language.ABAP, Language.XML });
+    }
+    
+    [TestMethod]
+    public void Initialize_AnalysisFullyEnabled_DisablesNoLanguages()
+    {
+        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
+            out var constantsProvider,
+            out var foldersProvider,
+            out var connectionsProvider,
+            out var jarLocator,
+            out var activeSolutionBoundTracker,
+            out _,
+            out _);
+        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX, Language.YAML, Language.XML], [Language.XML, Language.APEX, Language.YAML, Language.ABAP, ]);
+
+        SetUpSuccessfulInitialization(slCoreRpcFactory,
+            constantsProvider,
+            foldersProvider,
+            connectionsProvider,
+            jarLocator,
+            activeSolutionBoundTracker,
+            out var lifecycleManagement,
+            out _);
+
+        testSubject.Initialize();
+
+        var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single();
+        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX, Language.YAML, Language.XML });
+        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(Array.Empty<Language>());
+        initializeParams.disabledLanguagesForAnalysis.Should().BeEquivalentTo(Array.Empty<Language>());
+    }
 
     [TestMethod]
-    public async Task Dispose_Initialized_ShutsDownAndDisposesRpc()
+    public void Dispose_Initialized_ShutsDownAndDisposesRpc()
     {
         var testSubject = CreateTestSubject(out var slCoreRpcFactory,
             out var constantsProvider,
@@ -134,6 +211,8 @@ public class SLCoreInstanceHandleTests
             out var activeSolutionBoundTracker,
             out _,
             out var threadHandling);
+        SetUpThreadHandling(threadHandling);
+        SetUpLanguages(constantsProvider, [], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -143,7 +222,7 @@ public class SLCoreInstanceHandleTests
             activeSolutionBoundTracker,
             out var lifecycleManagement,
             out var rpc);
-        await testSubject.InitializeAsync();
+        testSubject.Initialize();
 
         var serviceProvider = rpc.ServiceProvider;
         serviceProvider.ClearReceivedCalls();
@@ -151,13 +230,18 @@ public class SLCoreInstanceHandleTests
         
         
         serviceProvider.Received().TryGetTransientService(out Arg.Any<ILifecycleManagementSLCoreService>());
-        threadHandling.ReceivedWithAnyArgs().Run(() => Task.FromResult(0));
-        lifecycleManagement.Received().ShutdownAsync();
+        Received.InOrder(() =>
+        {
+            threadHandling.Run(Arg.Any<Func<Task<int>>>());
+            threadHandling.SwitchToBackgroundThread();
+            serviceProvider.TryGetTransientService(out Arg.Any<ILifecycleManagementSLCoreService>());
+            lifecycleManagement.Shutdown();
+        });
         rpc.Received().Dispose();
     }
     
     [TestMethod]
-    public async Task Dispose_ConnectionDied_DisposesRpc()
+    public void Dispose_IgnoresServiceProviderException()
     {
         var testSubject = CreateTestSubject(out var slCoreRpcFactory,
             out var constantsProvider,
@@ -167,6 +251,8 @@ public class SLCoreInstanceHandleTests
             out var activeSolutionBoundTracker,
             out _,
             out var threadHandling);
+        SetUpThreadHandling(threadHandling);
+        SetUpLanguages(constantsProvider, [], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
             constantsProvider,
@@ -176,18 +262,89 @@ public class SLCoreInstanceHandleTests
             activeSolutionBoundTracker,
             out var lifecycleManagement,
             out var rpc);
-        await testSubject.InitializeAsync();
+        lifecycleManagement.When(x => x.Shutdown()).Do(_ => throw new Exception());
+        testSubject.Initialize();
+        var serviceProvider = rpc.ServiceProvider;
+        serviceProvider.ClearSubstitute();
+        serviceProvider.ClearReceivedCalls();
+        serviceProvider.TryGetTransientService(out Arg.Any<AnySLCoreService>()).Throws(new Exception());
+        
+        var act = () => testSubject.Dispose();
+        
+        act.Should().NotThrow();
+    }
+    
+    [TestMethod]
+    public void Dispose_IgnoresShutdownException()
+    {
+        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
+            out var constantsProvider,
+            out var foldersProvider,
+            out var connectionsProvider,
+            out var jarLocator,
+            out var activeSolutionBoundTracker,
+            out _,
+            out var threadHandling);
+        SetUpThreadHandling(threadHandling);
+        SetUpLanguages(constantsProvider, [], []);
 
-        var slCoreServiceProvider = rpc.ServiceProvider;
-        slCoreServiceProvider.ClearSubstitute();
-        slCoreServiceProvider.ClearReceivedCalls();
-        slCoreServiceProvider.TryGetTransientService(out Arg.Any<AnySLCoreService>()).Returns(false);
+        SetUpSuccessfulInitialization(slCoreRpcFactory,
+            constantsProvider,
+            foldersProvider,
+            connectionsProvider,
+            jarLocator,
+            activeSolutionBoundTracker,
+            out var lifecycleManagement,
+            out var rpc);
+        lifecycleManagement.When(x => x.Shutdown()).Do(_ => throw new Exception());
+        testSubject.Initialize();
+
+        var serviceProvider = rpc.ServiceProvider;
+        serviceProvider.ClearReceivedCalls();
+        var act = () => testSubject.Dispose();
+        
+        act.Should().NotThrow();
+    }
+    
+    [TestMethod]
+    public void Dispose_ConnectionDied_DisposesRpc()
+    {
+        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
+            out var constantsProvider,
+            out var foldersProvider,
+            out var connectionsProvider,
+            out var jarLocator,
+            out var activeSolutionBoundTracker,
+            out _,
+            out var threadHandling);
+        SetUpThreadHandling(threadHandling);
+        SetUpLanguages(constantsProvider, [], []);
+
+        SetUpSuccessfulInitialization(slCoreRpcFactory,
+            constantsProvider,
+            foldersProvider,
+            connectionsProvider,
+            jarLocator,
+            activeSolutionBoundTracker,
+            out var lifecycleManagement,
+            out var rpc);
+        testSubject.Initialize();
+
+        var serviceProvider = rpc.ServiceProvider;
+        serviceProvider.ClearSubstitute();
+        serviceProvider.ClearReceivedCalls();
+        serviceProvider.TryGetTransientService(out Arg.Any<AnySLCoreService>()).Returns(false);
         testSubject.Dispose();
         
-        slCoreServiceProvider.ReceivedWithAnyArgs().TryGetTransientService(out Arg.Any<ILifecycleManagementSLCoreService>());
+        serviceProvider.ReceivedWithAnyArgs().TryGetTransientService(out Arg.Any<ILifecycleManagementSLCoreService>());
         rpc.Received().Dispose();
-        threadHandling.DidNotReceiveWithAnyArgs().Run(() => Task.FromResult(0));
-        lifecycleManagement.DidNotReceive().ShutdownAsync();
+        Received.InOrder(() =>
+        {
+            threadHandling.Run(Arg.Any<Func<Task<int>>>());
+            threadHandling.SwitchToBackgroundThread();
+            serviceProvider.TryGetTransientService(out Arg.Any<ILifecycleManagementSLCoreService>());
+        });
+        lifecycleManagement.DidNotReceive().Shutdown();
     }
     
     [TestMethod]
@@ -200,12 +357,11 @@ public class SLCoreInstanceHandleTests
             out _,
             out _,
             out _,
-            out var threadHandling);
+            out _);
         
         var act = () => testSubject.Dispose();
 
         act.Should().NotThrow();
-        threadHandling.DidNotReceiveWithAnyArgs().Run(() => Task.FromResult(0));
     }
 
     private void SetUpSuccessfulInitialization(ISLCoreRpcFactory slCoreRpcFactory,
@@ -223,6 +379,7 @@ public class SLCoreInstanceHandleTests
         constantsProvider.ClientConstants.Returns(ClientConstants);
         constantsProvider.FeatureFlags.Returns(FeatureFlags);
         constantsProvider.TelemetryConstants.Returns(TelemetryConstants);
+        
         foldersProvider.GetWorkFolders().Returns(new SLCoreFolders(StorageRoot, WorkDir, UserHome));
         connectionsProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfiguration>
         {
@@ -232,6 +389,14 @@ public class SLCoreInstanceHandleTests
         });
         jarLocator.ListJarFiles().Returns(JarList);
         activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(Binding, SonarLintMode.Connected, "dir"));
+    }
+
+    private void SetUpLanguages(ISLCoreConstantsProvider constantsProvider,
+        List<Language> standalone,
+        List<Language> enabledAnalysis)
+    {
+        constantsProvider.LanguagesInStandaloneMode.Returns(standalone);
+        constantsProvider.SLCoreAnalyzableLanguages.Returns(enabledAnalysis);
     }
 
     #region RpcSetUp
@@ -262,6 +427,12 @@ public class SLCoreInstanceHandleTests
 
     #endregion
 
+    private void SetUpThreadHandling(IThreadHandling threadHandling)
+    {
+        threadHandling.Run(Arg.Any<Func<Task<int>>>()).Returns(info => info.Arg<Func<Task<int>>>()().GetAwaiter().GetResult());
+        threadHandling.SwitchToBackgroundThread().Returns(new NoOpThreadHandler.NoOpAwaitable());
+    }
+
     private SLCoreInstanceHandle CreateTestSubject(out ISLCoreRpcFactory slCoreRpcFactory,
         out ISLCoreConstantsProvider constantsProvider,
         out ISLCoreFoldersProvider slCoreFoldersProvider,
@@ -278,7 +449,7 @@ public class SLCoreInstanceHandleTests
         slCoreEmbeddedPluginJarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
-        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+        threadHandling = Substitute.For<IThreadHandling>();
 
         return new SLCoreInstanceHandle(slCoreRpcFactory,
             constantsProvider,

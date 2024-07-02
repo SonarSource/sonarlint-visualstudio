@@ -26,5 +26,6 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
     {
         public bool CreateReproducer { get; set; }
         public bool CreatePreCompiledHeaders { get; set; }
+        public bool IsOnOpen { get; set; }
     }
 }

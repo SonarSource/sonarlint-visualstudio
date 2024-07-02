@@ -36,12 +36,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public const string PropertyName = Constants.SonarQubeExcludeBuildPropertyKey;
 
         private readonly IProjectPropertyManager propertyManager;
-        private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
-        public ProjectExcludePropertyToggleCommand(IProjectPropertyManager propertyManager, IProjectToLanguageMapper projectToLanguageMapper)
+        public ProjectExcludePropertyToggleCommand(IProjectPropertyManager propertyManager)
         {
             this.propertyManager = propertyManager ?? throw new ArgumentNullException(nameof(propertyManager));
-            this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
         }
 
         protected override void InvokeInternal()
@@ -53,7 +51,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                           .ToList();
 
             Debug.Assert(projects.Any(), "No projects selected");
-            Debug.Assert(projects.All(x => projectToLanguageMapper.HasSupportedLanguage(x)), "Unsupported projects");
 
             if (projects.Count == 1 ||
                 projects.Select(x => this.propertyManager.GetBooleanProperty(x, PropertyName)).AllEqual())
@@ -101,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                           .GetSelectedProjects()
                                           .ToList();
 
-            if (projects.Any() && projects.All(x => projectToLanguageMapper.HasSupportedLanguage(x)))
+            if (projects.Any() && projects.All(x => x is not null))
             {
                 IList<bool> properties = projects.Select(x =>
                     this.propertyManager.GetBooleanProperty(x, PropertyName) ?? false).ToList();

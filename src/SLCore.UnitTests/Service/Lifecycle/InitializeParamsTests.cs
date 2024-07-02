@@ -40,12 +40,13 @@ public class InitializeParamsTests
             new FeatureFlagsDto(false, true, false, true, false, true, false, false),
             "storageRoot",
             "workDir",
-            new List<string> { "myplugin1", "myplugin2" },
-            new Dictionary<string, string> {{"myplugin3", "location"}},
-            new List<Language> { Language.JS },
-            new List<Language> { Language.CPP },
-            new List<SonarQubeConnectionConfigurationDto> { new("con1", true, "localhost")},
-            new List<SonarCloudConnectionConfigurationDto> { new("con2", false, "organization1")},
+            ["myplugin1", "myplugin2"],
+            new() {{"myplugin3", "location"}},
+            [Language.JS],
+            [Language.CPP],
+            [Language.TS],
+            [new SonarQubeConnectionConfigurationDto("con1", true, "localhost")],
+            [new SonarCloudConnectionConfigurationDto("con2", false, "organization1")],
             "userHome",
             new Dictionary<string, StandaloneRuleConfigDto>
             {
@@ -91,6 +92,9 @@ public class InitializeParamsTests
                                   ],
                                   "extraEnabledLanguagesInConnectedMode": [
                                     "CPP"
+                                  ],
+                                  "disabledLanguagesForAnalysis": [
+                                    "TS"
                                   ],
                                   "sonarQubeConnections": [
                                     {

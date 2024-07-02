@@ -34,7 +34,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         public const string PropertyName = Constants.SonarQubeTestProjectBuildPropertyKey;
         private readonly IProjectPropertyManager propertyManager;
-        private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
         private readonly bool? commandPropertyValue;
 
@@ -45,10 +44,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// project property to a specified value.
         /// </summary>
         /// <param name="setPropertyValue">Value this instance will set the project properties to.</param>
-        public ProjectTestPropertySetCommand(IProjectPropertyManager propertyManager, IProjectToLanguageMapper projectToLanguageMapper, bool? setPropertyValue)
+        public ProjectTestPropertySetCommand(IProjectPropertyManager propertyManager, bool? setPropertyValue)
         {
             this.propertyManager = propertyManager ?? throw new ArgumentNullException(nameof(propertyManager));
-            this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
             this.commandPropertyValue = setPropertyValue;
         }
 
@@ -61,7 +59,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                           .ToList();
 
             Debug.Assert(projects.Any(), "No projects selected");
-            Debug.Assert(projects.All(x => projectToLanguageMapper.HasSupportedLanguage(x)), "Unsupported projects");
 
             foreach (Project project in projects)
             {
@@ -82,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                           .GetSelectedProjects()
                                           .ToList();
 
-            if (projects.Any() && projects.All(x => projectToLanguageMapper.HasSupportedLanguage(x)))
+            if (projects.Any() && projects.All(x => x is not null))
             {
                 IList<bool?> properties = projects.Select(x =>
                     this.propertyManager.GetBooleanProperty(x, PropertyName)).ToList();

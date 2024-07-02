@@ -120,15 +120,15 @@
       },
       "SonarAnalyzer.CSharp": {
         "type": "Direct",
-        "requested": "[9.25.0.90414, )",
-        "resolved": "9.25.0.90414",
-        "contentHash": "T5zhLMv1uC98eDXZtLNOcS+fIlRJZ8VNlWLaXVlgmI7wPuYwTPDpfaKXB0UfTMFAvnMCAsG2kFpdRszUY3kh5g=="
+        "requested": "[9.27.0.93347, )",
+        "resolved": "9.27.0.93347",
+        "contentHash": "NinyCe6I1D+b8anA7RaTg1wkdGglMeW+qsp+z0tMQ4vm616oLAn47XU9DK3NclE5r3UhAoXyrUZVzcBVHe6dDA=="
       },
       "SonarAnalyzer.VisualBasic": {
         "type": "Direct",
-        "requested": "[9.25.0.90414, )",
-        "resolved": "9.25.0.90414",
-        "contentHash": "HTZ0FmLLeLP22gdyL964XZOjT1ZbUPScmf98EPNVAlN6NlUmcpyScGWrLhFIxwCtZL6e4SHRHySWX9fkw35pXw=="
+        "requested": "[9.27.0.93347, )",
+        "resolved": "9.27.0.93347",
+        "contentHash": "3wM3JfqGtlwu30z4ObvTndanpATnOg05LQqvYM/6L3Q5WMH0aM4Hq+KYse7E20iqFT+WZmPWzEfSLB8Tmv9Fsg=="
       },
       "System.IO.Abstractions": {
         "type": "Direct",
@@ -1060,11 +1060,6 @@
         "resolved": "1.0.0",
         "contentHash": "OseTFniKmyp76mEzOBwIKGBRS5eMoYNkMKaMXOpxx9jv88+b6mh1rSaw43vjBOItNhaLFG3d0a20PfHyibH5sw=="
       },
-      "SonarLint.Secrets.DotNet": {
-        "type": "Transitive",
-        "resolved": "1.0.4",
-        "contentHash": "0NU6qf6oJkZNysnjqO9/A6AtRbL2qj4SXAiltjQKpYqclQ0dcA9Hr6ZTnUm90s1EySpksisXJ7GlgI02vCOPDg=="
-      },
       "stdole": {
         "type": "Transitive",
         "resolved": "17.0.31902.203",
@@ -1542,15 +1537,6 @@
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )"
         }
       },
-      "SonarLint.VisualStudio.CloudSecrets": {
-        "type": "Project",
-        "dependencies": {
-          "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
-          "SonarLint.Secrets.DotNet": "[1.0.4, )",
-          "SonarLint.VisualStudio.Core": "[1.0.0, )",
-          "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )"
-        }
-      },
       "SonarLint.VisualStudio.ConnectedMode": {
         "type": "Project",
         "dependencies": {
@@ -1598,7 +1584,6 @@
           "Newtonsoft.Json": "[13.0.3, )",
           "NuGet.Core": "[2.12.0, )",
           "NuGet.VisualStudio": "[3.3.0, )",
-          "SonarLint.VisualStudio.CloudSecrets": "[1.0.0, )",
           "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
           "SonarLint.VisualStudio.Core": "[1.0.0, )",
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",

@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -69,36 +67,76 @@ public class ActiveConfigScopeTrackerTests
     public void TryUpdateRootOnCurrentConfigScope_ConfigScopeSame_Updates()
     {
         const string configScopeId = "myid";
+        const string connectionId = "connectionid";
+        const string sonarProjectKey = "projectkey";
+        const bool isReady = true;
         var threadHandling = new Mock<IThreadHandling>();
-        ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
-        ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
+        ConfigureServiceProvider(out var serviceProvider, out _);
+        ConfigureAsyncLockFactory(out var lockFactory, out _, out _);
         var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
+        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, isReadyForAnalysis: isReady);
 
-        testSubject.SetCurrentConfigScope(configScopeId);
-
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId));
-
-        var result = testSubject.TryUpdateRootOnCurrentConfigScope(configScopeId, "Some Root");
+        var result = testSubject.TryUpdateRootOnCurrentConfigScope(configScopeId, "some root");
+        
         result.Should().BeTrue();
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, RootPath: "Some Root"));
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, "some root", isReady));
     }
 
     [TestMethod]
     public void TryUpdateRootOnCurrentConfigScope_ConfigScopeDifferent_DoesNotUpdate()
     {
         const string configScopeId = "myid";
+        const string connectionId = "connectionid";
+        const string sonarProjectKey = "projectkey";
+        const bool isReady = true;
         var threadHandling = new Mock<IThreadHandling>();
-        ConfigureServiceProvider(out var serviceProvider, out var configScopeService);
-        ConfigureAsyncLockFactory(out var lockFactory, out var asyncLock, out var lockRelease);
+        ConfigureServiceProvider(out var serviceProvider, out _);
+        ConfigureAsyncLockFactory(out var lockFactory, out _, out _);
         var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
+        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, isReadyForAnalysis: isReady);
 
-        testSubject.SetCurrentConfigScope(configScopeId);
-
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId));
-
-        var result = testSubject.TryUpdateRootOnCurrentConfigScope("some other Id", "Some Root");
+        var result = testSubject.TryUpdateRootOnCurrentConfigScope("some other id", "some root");
+        
         result.Should().BeFalse();
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId));
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, isReadyForAnalysis: isReady));
+    }
+    
+    [TestMethod]
+    public void TryUpdateAnalysisReadinessOnCurrentConfigScope_ConfigScopeSame_Updates()
+    {
+        const string configScopeId = "myid";
+        const string connectionId = "connectionid";
+        const string sonarProjectKey = "projectkey";
+        const string root = "root";
+        var threadHandling = new Mock<IThreadHandling>();
+        ConfigureServiceProvider(out var serviceProvider, out _);
+        ConfigureAsyncLockFactory(out var lockFactory, out _, out _);
+        var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
+        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root);
+
+        var result = testSubject.TryUpdateAnalysisReadinessOnCurrentConfigScope(configScopeId, true);
+        
+        result.Should().BeTrue();
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root, true));
+    }
+
+    [TestMethod]
+    public void TryUpdateAnalysisReadinessOnCurrentConfigScope_ConfigScopeDifferent_DoesNotUpdate()
+    {
+        const string configScopeId = "myid";
+        const string connectionId = "connectionid";
+        const string sonarProjectKey = "projectkey";
+        const string root = "root";
+        var threadHandling = new Mock<IThreadHandling>();
+        ConfigureServiceProvider(out var serviceProvider, out _);
+        ConfigureAsyncLockFactory(out var lockFactory, out _, out _);
+        var testSubject = CreateTestSubject(serviceProvider.Object, threadHandling.Object, lockFactory.Object);
+        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root);
+
+        var result = testSubject.TryUpdateAnalysisReadinessOnCurrentConfigScope("some other id", true);
+        
+        result.Should().BeFalse();
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root));
     }
 
     [TestMethod]

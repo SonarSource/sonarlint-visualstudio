@@ -41,10 +41,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [Guid(CommonGuids.Package)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideBindingPath]
-    // The secrets assemblies are in a sub-folder so we need to add it to the probing path
-    // to make sure it can be loaded reliably.
-    // See https://github.com/SonarSource/sonarlint-visualstudio/issues/3008
-    [ProvideBindingPath(SubPath = "secrets")]
     // Specify when to load the extension (GUID can be found in Microsoft.VisualStudio.VSConstants.UICONTEXT)
     [ProvideAutoLoad(CommonGuids.PackageActivation, PackageAutoLoadFlags.BackgroundLoad)]
     // Register the information needed to show the package in the Help/About dialog of VS.
@@ -97,7 +93,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
                 this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
-                    serviceProvider.GetMefService<IProjectToLanguageMapper>(),
                     serviceProvider.GetMefService<IOutputWindowService>(),
                     serviceProvider.GetMefService<IShowInBrowserService>(),
                     serviceProvider.GetMefService<IBrowserService>(),

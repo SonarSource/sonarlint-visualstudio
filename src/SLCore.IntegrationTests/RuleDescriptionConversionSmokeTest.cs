@@ -45,7 +45,7 @@ public class RuleDescriptionConversionSmokeTest
         var slCoreErrorLogger = new TestLogger();
         using var slCoreTestRunner = new SLCoreTestRunner(testLogger, slCoreErrorLogger, TestContext.TestName);
         slCoreTestRunner.AddListener(new LoggerListener(testLogger));
-        await slCoreTestRunner.Start();
+        slCoreTestRunner.Start();
 
         var ruleHelpXamlBuilder = CreateRuleHelpXamlBuilder();
         var activeConfigScopeTracker = CreateActiveConfigScopeTracker(slCoreTestRunner);
@@ -61,7 +61,7 @@ public class RuleDescriptionConversionSmokeTest
             new List<string>
             {
                 "cpp:S1232", // unsupported <caption> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5014
-                "csharpsquid:S6962", // rule cross-ref inside <a> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5413
+                "csharpsquid:S6932", // unsupported <dl> and <dt> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5414
                 "csharpsquid:S6966", // unsupported <dl> and <dt> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5414
                 "typescript:S6811", // unsupported <caption> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5014
                 "javascript:S6811" // unsupported <caption> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5014

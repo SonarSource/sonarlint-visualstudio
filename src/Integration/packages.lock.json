@@ -977,11 +977,6 @@
           "System.Runtime.CompilerServices.Unsafe": "4.7.1"
         }
       },
-      "SonarLint.Secrets.DotNet": {
-        "type": "Transitive",
-        "resolved": "1.0.4",
-        "contentHash": "0NU6qf6oJkZNysnjqO9/A6AtRbL2qj4SXAiltjQKpYqclQ0dcA9Hr6ZTnUm90s1EySpksisXJ7GlgI02vCOPDg=="
-      },
       "stdole": {
         "type": "Transitive",
         "resolved": "17.0.31902.203",
@@ -1451,15 +1446,6 @@
         "contentHash": "KoyI+jvJ9fHwR2uGGlUxOqAmTgDO1naxwXbt504y/Jx1h/BXnhCWipGdyM/lS83GUGsmx8RhZbiiMlZw7LmYhw==",
         "dependencies": {
           "Microsoft.VisualStudio.Interop": "17.0.31902.203"
-        }
-      },
-      "SonarLint.VisualStudio.CloudSecrets": {
-        "type": "Project",
-        "dependencies": {
-          "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
-          "SonarLint.Secrets.DotNet": "[1.0.4, )",
-          "SonarLint.VisualStudio.Core": "[1.0.0, )",
-          "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )"
         }
       },
       "SonarLint.VisualStudio.ConnectedMode": {

@@ -18,15 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
-using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.SLCore;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -70,11 +67,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
         {
             const string ideName = "MyIde";
             SetupIdeName(ideName);
-            
-            var expectedClientConstants = new ClientConstantsDto(ideName, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
-            var result = testSubject.ClientConstants;
 
-            result.Should().BeEquivalentTo(expectedClientConstants);
+            var expectedClientConstants = new ClientConstantsDto(ideName, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}",
+                Process.GetCurrentProcess().Id);
+            var actual = testSubject.ClientConstants;
+
+            actual.Should().BeEquivalentTo(expectedClientConstants);
         }
 
         [TestMethod]
@@ -94,19 +92,61 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
         public void FeatureFlags_ShouldBeExpected()
         {
             var expectedFeatureFlags = new FeatureFlagsDto(true, true, true, true, false, false, true, false);
-            var result = testSubject.FeatureFlags;
+            var actual = testSubject.FeatureFlags;
 
-            result.Should().BeEquivalentTo(expectedFeatureFlags);
+            actual.Should().BeEquivalentTo(expectedFeatureFlags);
         }
 
         [TestMethod]
         public void TelemetryConstants_ShouldBeExpected()
         {
-            var expectedTelemetryConstants = new TelemetryClientConstantAttributesDto("SLVS_SHOULD_NOT_SEND_TELEMETRY", default, default, default, default);
-            var result = testSubject.TelemetryConstants;
+            var expectedTelemetryConstants =
+                new TelemetryClientConstantAttributesDto("SLVS_SHOULD_NOT_SEND_TELEMETRY", default, default, default, default);
+            var actual = testSubject.TelemetryConstants;
 
-            result.Should().BeEquivalentTo(expectedTelemetryConstants);
+            actual.Should().BeEquivalentTo(expectedTelemetryConstants);
         }
+
+        [TestMethod]
+        public void StandaloneLanguages_ShouldBeExpected()
+        {
+            var expected = new[]
+            {
+                Language.JS,
+                Language.TS,
+                Language.CSS,
+                Language.C,
+                Language.CPP,
+                Language.CS,
+                Language.VBNET,
+                Language.SECRETS
+            };
+            var actual = testSubject.LanguagesInStandaloneMode;
+
+            actual.Should().BeEquivalentTo(expected);
+        }
+
+        [TestMethod]
+        public void AnalyzableLanguages_ShouldBeExpected()
+        {
+            var expected = new[] { Language.SECRETS };
+            var actual = testSubject.SLCoreAnalyzableLanguages;
+
+            actual.Should().BeEquivalentTo(expected);
+        }
+        
+        [TestMethod]
+        public void Verify_AllConfiguredLanguagesAreKnown()
+        {
+            var slCoreConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsUIServiceOperation>());
+
+            var languages = slCoreConstantsProvider.LanguagesInStandaloneMode
+                .Concat(slCoreConstantsProvider.SLCoreAnalyzableLanguages)
+                .Select(x => x.ConvertToCoreLanguage());
+
+            languages.Should().NotContain(Core.Language.Unknown);
+        }
+
 
         private void SetupIdeName(object name)
         {

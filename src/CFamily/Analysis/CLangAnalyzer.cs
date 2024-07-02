@@ -18,15 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.CFamily.SubProcess;
 using SonarLint.VisualStudio.Core;
@@ -98,7 +92,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
             return languages.Contains(AnalysisLanguage.CFamily);
         }
 
-        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
+        public void ExecuteAnalysis(string path, Guid analysisId, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer, IAnalyzerOptions analyzerOptions,
             CancellationToken cancellationToken)
         {
@@ -209,7 +203,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
             }
 
             var createReproducer = request.Context.AnalyzerOptions?.CreateReproducer ?? false;
-            if(createReproducer)
+            if (createReproducer)
             {
                 SaveRequestDiagnostics(request, logger, fileSystem);
             }

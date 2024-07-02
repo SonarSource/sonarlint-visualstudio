@@ -22,6 +22,6 @@ namespace SonarLint.VisualStudio.Core.Analysis
 {
     public interface IAnalysisStatusNotifierFactory
     {
-        IAnalysisStatusNotifier Create(string analyzerName, string filePath);
+        IAnalysisStatusNotifier Create(string analyzerName, string filePath, Guid? analysisId = null);
     }
 }

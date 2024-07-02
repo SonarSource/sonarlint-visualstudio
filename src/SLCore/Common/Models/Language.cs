@@ -21,48 +21,48 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace SonarLint.VisualStudio.SLCore.Common.Models
+
+namespace SonarLint.VisualStudio.SLCore.Common.Models;
+
+/// <summary>
+/// SLCore Language. Taken from org.sonarsource.sonarlint.core.rpc.protocol.common
+/// </summary>
+[JsonConverter(typeof(StringEnumConverter))]
+public enum Language 
 {
-    /// <summary>
-    /// SLCore Language. Taken from org.sonarsource.sonarlint.core.rpc.protocol.common
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum Language 
-    {
-        ABAP,
-        APEX,
-        AZURERESOURCEMANAGER,
-        C,
-        CLOUDFORMATION,
-        COBOL,
-        CPP,
-        CS,
-        CSS,
-        DOCKER,
-        GO,
-        HTML,
-        IPYTHON,
-        JAVA,
-        JS,
-        JSON,
-        JSP,
-        KOTLIN,
-        KUBERNETES,
-        OBJC,
-        PHP,
-        PLI,
-        PLSQL,
-        PYTHON,
-        RPG,
-        RUBY,
-        SCALA,
-        SECRETS,
-        SWIFT,
-        TERRAFORM,
-        TS,
-        TSQL,
-        VBNET,
-        XML,
-        YAML
-    }
+    ABAP,
+    APEX,
+    AZURERESOURCEMANAGER,
+    C,
+    CLOUDFORMATION,
+    COBOL,
+    CPP,
+    CS,
+    CSS,
+    DOCKER,
+    GO,
+    HTML,
+    IPYTHON,
+    JAVA,
+    JS,
+    JSON,
+    JSP,
+    KOTLIN,
+    KUBERNETES,
+    OBJC,
+    PHP,
+    PLI,
+    PLSQL,
+    PYTHON,
+    RPG,
+    RUBY,
+    SCALA,
+    SECRETS,
+    SWIFT,
+    TERRAFORM,
+    TS,
+    TSQL,
+    VBNET,
+    XML,
+    YAML
 }

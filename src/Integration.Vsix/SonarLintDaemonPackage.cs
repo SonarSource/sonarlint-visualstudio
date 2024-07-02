@@ -18,18 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.VisualStudio;
-using SonarLint.VisualStudio.Core;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.CFamily.PreCompiledHeaders;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.Integration.Vsix.Events;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.SLCore;
-using SonarLint.VisualStudio.SLCore.State;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -54,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(PackageGuidString)]
     [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     public sealed class SonarLintDaemonPackage : AsyncPackage
     {
         public const string PackageGuidString = "6f63ab5a-5ab8-4a0d-9914-151911885966";
@@ -63,6 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private ILogger logger;
         private IPreCompiledHeadersEventListener cFamilyPreCompiledHeadersEventListener;
+        private IProjectDocumentsEventsListener projectDocumentsEventsListener;
         private ISLCoreHandler slCoreHandler;
 
         /// <summary>
@@ -78,18 +78,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #region Package Members
 
-        protected override System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        protected override Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             JoinableTaskFactory.RunAsync(InitAsync);
-            return System.Threading.Tasks.Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
-        private async System.Threading.Tasks.Task InitAsync()
+        private async Task InitAsync()
         {
             try
             {
                 logger = await this.GetMefServiceAsync<ILogger>();
-                logger.WriteLine(Resources.Strings.Daemon_Initializing);
+                logger.WriteLine(Strings.Daemon_Initializing);
 
                 await MuteIssueCommand.InitializeAsync(this, logger);
                 await DisableRuleCommand.InitializeAsync(this, logger);
@@ -97,16 +97,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 cFamilyPreCompiledHeadersEventListener = await this.GetMefServiceAsync<IPreCompiledHeadersEventListener>();
 
+                projectDocumentsEventsListener = await this.GetMefServiceAsync<IProjectDocumentsEventsListener>();
+                projectDocumentsEventsListener.Initialize();
+                
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
-
+                
                 slCoreHandler = await this.GetMefServiceAsync<ISLCoreHandler>();
                 slCoreHandler.EnableSloop();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger?.WriteLine(Resources.Strings.ERROR_InitializingDaemon, ex);
+                logger?.WriteLine(Strings.ERROR_InitializingDaemon, ex);
             }
-            logger?.WriteLine(Resources.Strings.Daemon_InitializationComplete);
+            logger?.WriteLine(Strings.Daemon_InitializationComplete);
         }
 
         protected override void Dispose(bool disposing)
@@ -117,6 +120,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 cFamilyPreCompiledHeadersEventListener?.Dispose();
                 cFamilyPreCompiledHeadersEventListener = null;
+                projectDocumentsEventsListener?.Dispose();
+                projectDocumentsEventsListener = null;
                 slCoreHandler?.Dispose();
                 slCoreHandler = null;
             }

@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Configuration;
@@ -27,4 +28,7 @@ public interface ISLCoreConstantsProvider
     ClientConstantsDto ClientConstants { get; }
     FeatureFlagsDto FeatureFlags { get; }
     TelemetryClientConstantAttributesDto TelemetryConstants { get; }
+    
+    IReadOnlyList<Language> LanguagesInStandaloneMode { get; }
+    IReadOnlyList<Language> SLCoreAnalyzableLanguages { get; }
 }
