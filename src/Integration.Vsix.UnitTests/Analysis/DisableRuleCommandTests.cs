@@ -82,7 +82,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [DataRow("javascript:S333")]
         [DataRow("typescript:S444")]
         [DataRow("css:S777")]
-        [DataRow("secrets:S555")]
         public void CheckStatusAndExecute_SingleIssue_SupportedRepo_StandaloneMode_VisibleAndEnabled(string errorCode)
         {
             var errorListHelper = CreateErrorListHelper(errorCode, ruleExists: true);
@@ -140,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        public void CheckStatus_SingleIssue_Secrets_ConnectedMode_HasExpectedEnabledStatus()
+        public void CheckStatus_SingleIssue_Secrets_ConnectedMode_HasExpectedDisabledStatus()
         {
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
             var solutionTracker = CreateSolutionTracker(SonarLintMode.Connected);
@@ -152,32 +151,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             ThreadHelper.SetCurrentThreadAsUIThread();
             var result = command.OleStatus;
 
-            var expectedOleStatus = VisibleButDisabled;
+            var expectedOleStatus = InvisbleAndDisabled;
             result.Should().Be(expectedOleStatus);
-
-            // Should always be visible, but not necessarily enabled
-            command.Visible.Should().BeTrue();
+            
+            command.Visible.Should().BeFalse();
             command.Enabled.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void CheckStatus_SingleIssue_Secrets_NotConnected_IsEnabled()
-        {
-            var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
-            var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
-            var errorListHelper = CreateErrorListHelper("secrets:S111", ruleExists: true);
-
-            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper);
-
-            // Act. Trigger the query status check
-            ThreadHelper.SetCurrentThreadAsUIThread();
-            var result = command.OleStatus;
-
-            var expectedOleStatus =  VisibleAndEnabled;
-            result.Should().Be(expectedOleStatus);
-
-            command.Visible.Should().BeTrue();
-            command.Enabled.Should().BeTrue();
         }
 
         [TestMethod]
