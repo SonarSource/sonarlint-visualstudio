@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
@@ -44,7 +45,7 @@ public class ClientFileDtoFactoryTests
     {
         var testSubject = new ClientFileDtoFactory();
 
-        var result = testSubject.Create(filePath, "CONFIG_SCOPE_ID", rootPath);
+        var result = testSubject.Create("CONFIG_SCOPE_ID", rootPath, new SourceFile(filePath));
 
         result.ideRelativePath.Should().BeEquivalentTo(expectedRelativePath);
     }
@@ -54,7 +55,7 @@ public class ClientFileDtoFactoryTests
     {
         var testSubject = new ClientFileDtoFactory();
 
-        var result = testSubject.Create(@"C:\Code\Project\File1.js", "CONFIG_SCOPE_ID", @"C:\");
+        var result = testSubject.Create("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\Code\Project\File1.js"));
         
         ValidateDto(result, @"C:\Code\Project\File1.js", @"Code\Project\File1.js");
     }
@@ -64,7 +65,7 @@ public class ClientFileDtoFactoryTests
     {
         var testSubject = new ClientFileDtoFactory();
 
-        var result = testSubject.Create(@"C:\привет\project\file1.js", "CONFIG_SCOPE_ID", @"C:\");
+        var result = testSubject.Create("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\привет\project\file1.js"));
         
         ValidateDto(result,  @"C:\привет\project\file1.js", @"привет\project\file1.js");
     }
@@ -74,7 +75,7 @@ public class ClientFileDtoFactoryTests
     {
         var testSubject = new ClientFileDtoFactory();
 
-        var result = testSubject.Create(@"\\servername\work\project\file1.js", "CONFIG_SCOPE_ID", @"\\servername\work\");
+        var result = testSubject.Create("CONFIG_SCOPE_ID", @"\\servername\work\", new SourceFile(@"\\servername\work\project\file1.js"));
         
         ValidateDto(result, @"\\servername\work\project\file1.js", @"project\file1.js");
     }
@@ -84,7 +85,7 @@ public class ClientFileDtoFactoryTests
     {
         var testSubject = new ClientFileDtoFactory();
 
-        var result = testSubject.Create(@"C:\Code\My Project\My Favorite File2.js", "CONFIG_SCOPE_ID", @"C:\");
+        var result = testSubject.Create("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\Code\My Project\My Favorite File2.js"));
         
         ValidateDto(result, @"C:\Code\My Project\My Favorite File2.js", @"Code\My Project\My Favorite File2.js");
     }
