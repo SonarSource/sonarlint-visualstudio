@@ -24,9 +24,8 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
 
 internal static class LanguageExtensions
 {
-    public static VisualStudio.Core.Language ConvertToCoreLanguage(this Language language)
-    {
-        return language switch
+    public static VisualStudio.Core.Language ConvertToCoreLanguage(this Language language) =>
+        language switch
         {
             Language.C => VisualStudio.Core.Language.C,
             Language.CPP => VisualStudio.Core.Language.Cpp,
@@ -38,5 +37,15 @@ internal static class LanguageExtensions
             Language.VBNET => VisualStudio.Core.Language.VBNET,
             _ => VisualStudio.Core.Language.Unknown
         };
-    }
+
+    public static string GetPluginKey(this Language language) =>
+        language switch
+        {
+            Language.C or Language.CPP => "cpp",
+            Language.JS or Language.TS or Language.CSS => "javascript",
+            Language.CS => "csharp",
+            Language.VBNET => "vbnet",
+            Language.SECRETS => "text",
+            _ => null
+        };
 }
