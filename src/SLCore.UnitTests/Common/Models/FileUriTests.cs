@@ -52,6 +52,15 @@ public class FileUriTests
         var testSubject = new FileUri(@"C:\file\path with spaces");
 
         testSubject.Should().Be(reference);
+    }    
+    
+    [TestMethod]
+    public void Ctor_FromFilePathBackticks_FormsCorrectUri()
+    {
+        var reference = new FileUri("file:///C:/filewithbacktick%601");
+        var testSubject = new FileUri(@"C:\filewithbacktick`1");
+
+        testSubject.Should().Be(reference);
     }
     
     [DataTestMethod]
@@ -98,18 +107,24 @@ public class FileUriTests
     {
         new FileUri(@"C:\file with  4 spaces").ToString().Should().Be("file:///C:/file%20with%20%204%20spaces");
     }
+    
+    [TestMethod]
+    public void ToString_PercentEncodesBackticks()
+    {
+        new FileUri(@"C:\filewithbacktick`1").ToString().Should().Be("file:///C:/filewithbacktick%601");
+    }
 
     [TestMethod]
     public void LocalPath_ReturnsCorrectPath()
     {
-        var filePath = @"C:\file\path\with some spaces";
+        var filePath = @"C:\file\path\with some spaces\and with some backticks`1`2`3";
         new FileUri(filePath).LocalPath.Should().Be(filePath);
     }
 
     [TestMethod]
     public void SerializeDeserializeToEqualObject()
     {
-        var fileUri = new FileUri(@"C:\file with  4 spaces");
+        var fileUri = new FileUri(@"C:\file with  4 spaces and a back`tick");
 
         var serializeObject = JsonConvert.SerializeObject(fileUri);
         var deserialized = JsonConvert.DeserializeObject<FileUri>(serializeObject);
@@ -120,21 +135,21 @@ public class FileUriTests
     [TestMethod]
     public void Serialize_UsesToString()
     {
-        var fileUri = new FileUri(@"C:\file with  4 spaces");
+        var fileUri = new FileUri(@"C:\file with  4 spaces and a back`tick");
 
         var serializeObject = JsonConvert.SerializeObject(fileUri);
 
-        serializeObject.Should().Be(@"""file:///C:/file%20with%20%204%20spaces""");
+        serializeObject.Should().Be(@"""file:///C:/file%20with%20%204%20spaces%20and%20a%20back%60tick""");
     }
     
     [TestMethod]
     public void Deserialize_ProducesCorrectUri()
     {
-        var serialized = @"""file:///C:/file%20with%20%204%20spaces""";
+        var serialized = @"""file:///C:/file%20with%20%204%20spaces%20and%20a%20back%60tick""";
 
         var fileUri = JsonConvert.DeserializeObject<FileUri>(serialized);
 
-        fileUri.ToString().Should().Be("file:///C:/file%20with%20%204%20spaces");
-        fileUri.LocalPath.Should().Be(@"C:\file with  4 spaces");
+        fileUri.ToString().Should().Be("file:///C:/file%20with%20%204%20spaces%20and%20a%20back%60tick");
+        fileUri.LocalPath.Should().Be(@"C:\file with  4 spaces and a back`tick");
     }
 }
