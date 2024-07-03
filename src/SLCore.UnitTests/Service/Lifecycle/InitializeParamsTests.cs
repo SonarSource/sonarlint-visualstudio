@@ -44,7 +44,7 @@ public class InitializeParamsTests
             new() {{"myplugin3", "location"}},
             [Language.JS],
             [Language.CPP],
-            [Language.TS],
+            ["csharp"],
             [new SonarQubeConnectionConfigurationDto("con1", true, "localhost")],
             [new SonarCloudConnectionConfigurationDto("con2", false, "organization1")],
             "userHome",
@@ -93,8 +93,8 @@ public class InitializeParamsTests
                                   "extraEnabledLanguagesInConnectedMode": [
                                     "CPP"
                                   ],
-                                  "disabledLanguagesForAnalysis": [
-                                    "TS"
+                                  "disabledPluginKeys": [
+                                    "csharp"
                                   ],
                                   "sonarQubeConnections": [
                                     {

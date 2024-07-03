@@ -27,21 +27,37 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers;
 public class LanguageExtensionsTests
 {
     [TestMethod]
-    public void VerifyConversion()
+    public void VerifyConversionToCoreLanguage()
     {
-        Verify(Language.C, VisualStudio.Core.Language.C);
-        Verify(Language.CPP, VisualStudio.Core.Language.Cpp);
-        Verify(Language.CS, VisualStudio.Core.Language.CSharp);
-        Verify(Language.CSS, VisualStudio.Core.Language.Css);
-        Verify(Language.JS, VisualStudio.Core.Language.Js);
-        Verify(Language.SECRETS, VisualStudio.Core.Language.Secrets);
-        Verify(Language.TS, VisualStudio.Core.Language.Ts);
-        Verify(Language.VBNET, VisualStudio.Core.Language.VBNET);
-        Verify(Language.ABAP, VisualStudio.Core.Language.Unknown);
-        Verify(Language.JAVA, VisualStudio.Core.Language.Unknown);
+        VerifyConversionToCoreLanguage(Language.C, VisualStudio.Core.Language.C);
+        VerifyConversionToCoreLanguage(Language.CPP, VisualStudio.Core.Language.Cpp);
+        VerifyConversionToCoreLanguage(Language.CS, VisualStudio.Core.Language.CSharp);
+        VerifyConversionToCoreLanguage(Language.CSS, VisualStudio.Core.Language.Css);
+        VerifyConversionToCoreLanguage(Language.JS, VisualStudio.Core.Language.Js);
+        VerifyConversionToCoreLanguage(Language.SECRETS, VisualStudio.Core.Language.Secrets);
+        VerifyConversionToCoreLanguage(Language.TS, VisualStudio.Core.Language.Ts);
+        VerifyConversionToCoreLanguage(Language.VBNET, VisualStudio.Core.Language.VBNET);
+        VerifyConversionToCoreLanguage(Language.ABAP, VisualStudio.Core.Language.Unknown);
+        VerifyConversionToCoreLanguage(Language.JAVA, VisualStudio.Core.Language.Unknown);
     }
 
-    private static void Verify(Language language, VisualStudio.Core.Language coreLanguage)
+    [DataTestMethod]
+    [DataRow(Language.C, "cpp")]
+    [DataRow(Language.CPP, "cpp")]
+    [DataRow(Language.JS, "javascript")]
+    [DataRow(Language.TS, "javascript")]
+    [DataRow(Language.CSS, "javascript")]
+    [DataRow(Language.CS, "csharp")]
+    [DataRow(Language.VBNET, "vbnet")]
+    [DataRow(Language.SECRETS, "text")]
+    [DataRow(Language.ABAP, null)]
+    [DataRow(Language.JAVA, null)]
+    public void VerifyPluginKeys(Language language, string expectedPluginKey)
+    {
+        language.GetPluginKey().Should().BeEquivalentTo(expectedPluginKey);
+    }
+
+    private static void VerifyConversionToCoreLanguage(Language language, VisualStudio.Core.Language coreLanguage)
     {
         language.ConvertToCoreLanguage().Should().BeSameAs(coreLanguage);
     }
