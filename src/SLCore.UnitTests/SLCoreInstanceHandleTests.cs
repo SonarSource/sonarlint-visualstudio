@@ -22,6 +22,7 @@ using NSubstitute.ClearExtensions;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
@@ -134,10 +135,11 @@ public class SLCoreInstanceHandleTests
 
         testSubject.Initialize();
 
-        var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single();
-        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX, Language.YAML, Language.XML });
-        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(Array.Empty<Language>());
-        initializeParams.disabledLanguagesForAnalysis.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX, Language.YAML, Language.XML });
+        var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single()!;
+        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo([Language.ABAP, Language.APEX, Language.YAML, Language.XML]);
+        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo([]);
+        Language[] expectedDisabledLanguages = [Language.ABAP, Language.APEX, Language.YAML, Language.XML];
+        initializeParams.disabledPluginKeys.Should().BeEquivalentTo(expectedDisabledLanguages.Select(l => l.GetPluginKey()));
     }
     
     [TestMethod]
@@ -164,10 +166,11 @@ public class SLCoreInstanceHandleTests
 
         testSubject.Initialize();
 
-        var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single();
-        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX, Language.YAML, Language.XML });
-        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(Array.Empty<Language>());
-        initializeParams.disabledLanguagesForAnalysis.Should().BeEquivalentTo(new[] { Language.ABAP, Language.XML });
+        var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single()!;
+        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo([Language.ABAP, Language.APEX, Language.YAML, Language.XML]);
+        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo([]);
+        Language[] expectedDisabledLanguages = [Language.ABAP, Language.XML];
+        initializeParams.disabledPluginKeys.Should().BeEquivalentTo(expectedDisabledLanguages.Select(l => l.GetPluginKey()));
     }
     
     [TestMethod]
@@ -195,9 +198,9 @@ public class SLCoreInstanceHandleTests
         testSubject.Initialize();
 
         var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single();
-        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo(new[] { Language.ABAP, Language.APEX, Language.YAML, Language.XML });
-        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo(Array.Empty<Language>());
-        initializeParams.disabledLanguagesForAnalysis.Should().BeEquivalentTo(Array.Empty<Language>());
+        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo([Language.ABAP, Language.APEX, Language.YAML, Language.XML]);
+        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo([]);
+        initializeParams.disabledPluginKeys.Should().BeEquivalentTo([]);
     }
 
     [TestMethod]

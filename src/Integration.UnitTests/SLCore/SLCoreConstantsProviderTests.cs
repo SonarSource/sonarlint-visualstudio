@@ -146,6 +146,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
 
             languages.Should().NotContain(Core.Language.Unknown);
         }
+        
+        [TestMethod]
+        public void Verify_AllConfiguredLanguagesHaveKnownPluginKeys()
+        {
+            var slCoreConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsUIServiceOperation>());
+
+            var languages = slCoreConstantsProvider.LanguagesInStandaloneMode
+                .Concat(slCoreConstantsProvider.SLCoreAnalyzableLanguages)
+                .Select(x => x.GetPluginKey());
+
+            languages.Should().NotContainNulls();
+        }
 
 
         private void SetupIdeName(object name)
