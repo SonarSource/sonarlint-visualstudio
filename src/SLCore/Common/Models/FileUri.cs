@@ -36,10 +36,7 @@ public sealed class FileUri
 
     public string LocalPath => uri.LocalPath;
 
-    public override string ToString()
-    {
-        return uri.ToString().Replace(" ", "%20");
-    }
+    public override string ToString() => Uri.EscapeUriString(uri.ToString());
 
     [ExcludeFromCodeCoverage]
     public override bool Equals(object obj)
