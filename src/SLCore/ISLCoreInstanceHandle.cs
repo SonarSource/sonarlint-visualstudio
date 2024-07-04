@@ -90,7 +90,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             connectedModeEmbeddedPluginPathsByKey: new Dictionary<string, string>(),
             enabledLanguagesInStandaloneMode:constantsProvider.LanguagesInStandaloneMode,
             extraEnabledLanguagesInConnectedMode: [],
-            disabledPluginKeys: constantsProvider.LanguagesInStandaloneMode.Except(constantsProvider.SLCoreAnalyzableLanguages).Select(l => l.GetPluginKey()).ToList(),
+            disabledPluginKeysForAnalysis: constantsProvider.LanguagesInStandaloneMode.Except(constantsProvider.SLCoreAnalyzableLanguages).Select(l => l.GetPluginKey()).ToList(),
             serverConnectionConfigurations.Values.OfType<SonarQubeConnectionConfigurationDto>().ToList(),
             serverConnectionConfigurations.Values.OfType<SonarCloudConnectionConfigurationDto>().ToList(),
             sonarlintUserHome,

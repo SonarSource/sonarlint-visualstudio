@@ -93,7 +93,7 @@ public class InitializeParamsTests
                                   "extraEnabledLanguagesInConnectedMode": [
                                     "CPP"
                                   ],
-                                  "disabledPluginKeys": [
+                                  "disabledPluginKeysForAnalysis": [
                                     "csharp"
                                   ],
                                   "sonarQubeConnections": [
