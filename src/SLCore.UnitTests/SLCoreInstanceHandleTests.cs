@@ -139,7 +139,7 @@ public class SLCoreInstanceHandleTests
         initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo([Language.ABAP, Language.APEX, Language.YAML, Language.XML]);
         initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo([]);
         Language[] expectedDisabledLanguages = [Language.ABAP, Language.APEX, Language.YAML, Language.XML];
-        initializeParams.disabledPluginKeys.Should().BeEquivalentTo(expectedDisabledLanguages.Select(l => l.GetPluginKey()));
+        initializeParams.disabledPluginKeysForAnalysis.Should().BeEquivalentTo(expectedDisabledLanguages.Select(l => l.GetPluginKey()));
     }
     
     [TestMethod]
@@ -170,7 +170,7 @@ public class SLCoreInstanceHandleTests
         initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo([Language.ABAP, Language.APEX, Language.YAML, Language.XML]);
         initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo([]);
         Language[] expectedDisabledLanguages = [Language.ABAP, Language.XML];
-        initializeParams.disabledPluginKeys.Should().BeEquivalentTo(expectedDisabledLanguages.Select(l => l.GetPluginKey()));
+        initializeParams.disabledPluginKeysForAnalysis.Should().BeEquivalentTo(expectedDisabledLanguages.Select(l => l.GetPluginKey()));
     }
     
     [TestMethod]
@@ -200,7 +200,7 @@ public class SLCoreInstanceHandleTests
         var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single();
         initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo([Language.ABAP, Language.APEX, Language.YAML, Language.XML]);
         initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo([]);
-        initializeParams.disabledPluginKeys.Should().BeEquivalentTo([]);
+        initializeParams.disabledPluginKeysForAnalysis.Should().BeEquivalentTo([]);
     }
 
     [TestMethod]
