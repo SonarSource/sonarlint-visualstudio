@@ -4,7 +4,7 @@
        NB we assume that the SonarC# and SonarVB NuGet packages have the same version number. -->
   <PropertyGroup>
     <!-- Note: Guide on how to update the analyzers is on the xtranet! -->
-    <EmbeddedSonarAnalyzerVersion>9.27.0.93347</EmbeddedSonarAnalyzerVersion>
+    <EmbeddedSonarAnalyzerVersion>9.28.0.94264</EmbeddedSonarAnalyzerVersion>
     <EmbeddedSonarCFamilyAnalyzerVersion>6.56.0.72172</EmbeddedSonarCFamilyAnalyzerVersion>
     <EmbeddedSonarJSAnalyzerVersion>10.14.0.26080</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedSonarSecretsJarVersion>2.12.1.2905</EmbeddedSonarSecretsJarVersion>
