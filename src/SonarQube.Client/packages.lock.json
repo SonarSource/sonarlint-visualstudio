@@ -2,11 +2,11 @@
   "version": 1,
   "dependencies": {
     ".NETFramework,Version=v4.7.2": {
-      "BouncyCastle.Cryptography": {
+      "BouncyCastle": {
         "type": "Direct",
-        "requested": "[2.4.0, )",
-        "resolved": "2.4.0",
-        "contentHash": "SwXsAV3sMvAU/Nn31pbjhWurYSjJ+/giI/0n6tCrYoupEK34iIHCuk3STAd9fx8yudM85KkLSVdn951vTng/vQ=="
+        "requested": "[1.8.9, )",
+        "resolved": "1.8.9",
+        "contentHash": "axnBgvdD5n+FnEG6efk/tfKuMFru7R/EoISH9zjh319yb3HD24TEHSAbNN/lTRT2ulOGRxDgOsCjkuk08iwWPg=="
       },
       "Google.Protobuf": {
         "type": "Direct",
