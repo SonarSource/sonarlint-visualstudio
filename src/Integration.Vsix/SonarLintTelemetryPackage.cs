@@ -71,8 +71,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 telemetryManager = await this.GetMefServiceAsync<ITelemetryManager>();
                 logger.WriteLine(Resources.Strings.Telemetry_InitializationComplete);
 
-                await this.GetMefServiceAsync<ICFamilyTelemetryManager>();
-
                 var solutionInfoProvider = await this.GetMefServiceAsync<ISolutionInfoProvider>();
 
                 if (await solutionInfoProvider.IsSolutionFullyOpenedAsync())
