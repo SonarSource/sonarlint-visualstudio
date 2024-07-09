@@ -18,14 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
@@ -88,25 +83,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
 
             model.AreNotificationsEnabled.Should().BeTrue();
             monitor.Should().RaisePropertyChangeFor(x => x.AreNotificationsEnabled);
-        }
-
-        [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void AreNotificationsEnabled_UpdatesTelemetry(bool areEnabled)
-        {
-            var telemetryManager = new Mock<IServerNotificationsTelemetryManager>();
-            var model = CreateTestSubject(telemetryManager: telemetryManager.Object);
-
-            model.AreNotificationsEnabled = areEnabled;
-
-            telemetryManager.Verify(x=> x.NotificationsToggled(areEnabled));
-            telemetryManager.VerifyNoOtherCalls();
-
-            model.AreNotificationsEnabled = !areEnabled;
-
-            telemetryManager.Verify(x => x.NotificationsToggled(!areEnabled));
-            telemetryManager.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -187,34 +163,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
 
             model = SetupModelWithNotifications(true, true, testEvents);
             model.HasUnreadEvents.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void SetNotificationEvents_SetEvents_UpdatesTelemetry()
-        {
-            var telemetryManager = new Mock<IServerNotificationsTelemetryManager>();
-            var model = CreateTestSubject(telemetryManager: telemetryManager.Object);
-            model.AreNotificationsEnabled = true;
-            model.IsIconVisible = true;
-
-            var events = new[]
-            {
-                CreateNotification("category1"),
-                CreateNotification("category2"),
-                CreateNotification("category1"),
-                CreateNotification("category3"),
-            };
-
-            model.SetNotificationEvents(events);
-
-            telemetryManager.Verify(x=> x.NotificationReceived("category1"), Times.Exactly(2));
-            telemetryManager.Verify(x=> x.NotificationReceived("category2"), Times.Once());
-            telemetryManager.Verify(x=> x.NotificationReceived("category3"), Times.Once());
-
-            telemetryManager.Reset();
-            model.SetNotificationEvents(Enumerable.Empty<SonarQubeNotification>());
-
-            telemetryManager.Verify(x => x.NotificationReceived(It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]

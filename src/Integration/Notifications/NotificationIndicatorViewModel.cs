@@ -18,13 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -36,7 +32,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 {
     public class NotificationIndicatorViewModel : ViewModelBase, INotificationIndicatorViewModel
     {
-        private readonly IServerNotificationsTelemetryManager telemetryManager;
         private readonly ITimer autocloseTimer;
         private readonly IThreadHandling threadHandling;
 
@@ -62,7 +57,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             IThreadHandling threadHandling, 
             ITimer autocloseTimer)
         {
-            this.telemetryManager = telemetryManager;
             this.threadHandling = threadHandling;
             this.autocloseTimer = autocloseTimer;
 
@@ -130,7 +124,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             set
             {
                 SetAndRaisePropertyChanged(ref areNotificationsEnabled, value);
-                telemetryManager.NotificationsToggled(value);
             }
         }
 
@@ -169,7 +162,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                     foreach (var ev in events)
                     {
                         NotificationEvents.Add(ev);
-                        telemetryManager.NotificationReceived(ev.Category);
                     }
 
                     HasUnreadEvents = true;

@@ -18,107 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Integration.Telemetry;
-using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
+namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry;
+
+[TestClass]
+public class ServerNotificationsTelemetryManagerTests
 {
-    [TestClass]
-    public class ServerNotificationsTelemetryManagerTests
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<ServerNotificationsTelemetryManager, IServerNotificationsTelemetryManager>(
-                MefTestHelpers.CreateExport<ITelemetryDataRepository>());
-        }
+        MefTestHelpers
+            .CheckTypeCanBeImported<ServerNotificationsTelemetryManager, IServerNotificationsTelemetryManager>();
+    }
 
-        [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void NotificationsToggled_ChangeNotificationsEnabledFlag(bool areNotificationsEnabled)
-        {
-            var telemetryData = CreateServerNotificationsData();
-            var telemetryRepository = CreateTelemetryRepository(telemetryData);
-            var testSubject = CreateTestSubject(telemetryRepository.Object);
-
-            testSubject.NotificationsToggled(areNotificationsEnabled);
-
-            telemetryData.ServerNotifications.IsDisabled.Should().Be(!areNotificationsEnabled);
-            telemetryRepository.Verify(x => x.Save(), Times.Once);
-        }
-
-        [TestMethod]
-        [DataRow(1)]
-        [DataRow(2)]
-        public void NotificationReceived_CounterIncremented(int numberOfNotifications)
-        {
-            const string counterName = "Test";
-            var telemetryData = CreateServerNotificationsData();
-
-            var telemetryRepository = CreateTelemetryRepository(telemetryData);
-            var testSubject = CreateTestSubject(telemetryRepository.Object);
-
-            telemetryData.ServerNotifications.ServerNotificationCounters.Should().NotContainKey(counterName);
-
-            for (var i = 0; i < numberOfNotifications; i++)
-            {
-                testSubject.NotificationReceived(counterName);
-            }
-
-            telemetryData.ServerNotifications.ServerNotificationCounters[counterName].ReceivedCount.Should().Be(numberOfNotifications);
-
-            telemetryRepository.Verify(x => x.Save(), Times.Exactly(numberOfNotifications));
-        }
-
-        [TestMethod]
-        [DataRow(1)]
-        [DataRow(2)]
-        public void NotificationClicked_CounterIncremented(int numberOfNotifications)
-        {
-            const string counterName = "Test";
-            var telemetryData = CreateServerNotificationsData();
-
-            var telemetryRepository = CreateTelemetryRepository(telemetryData);
-            var testSubject = CreateTestSubject(telemetryRepository.Object);
-
-            telemetryData.ServerNotifications.ServerNotificationCounters.Should().NotContainKey(counterName);
-
-            for (var i = 0; i < numberOfNotifications; i++)
-            {
-                testSubject.NotificationClicked(counterName);
-            }
-
-            telemetryData.ServerNotifications.ServerNotificationCounters[counterName].ClickedCount.Should().Be(numberOfNotifications);
-
-            telemetryRepository.Verify(x => x.Save(), Times.Exactly(numberOfNotifications));
-        }
-
-        private static IServerNotificationsTelemetryManager CreateTestSubject(ITelemetryDataRepository dataRepository)
-        {
-            return new ServerNotificationsTelemetryManager(dataRepository);
-        }
-
-        private static Mock<ITelemetryDataRepository> CreateTelemetryRepository(TelemetryData data)
-        {
-            var telemetryRepository = new Mock<ITelemetryDataRepository>();
-            telemetryRepository.SetupGet(x => x.Data).Returns(data);
-            
-            return telemetryRepository;
-        }
-
-        private TelemetryData CreateServerNotificationsData() =>
-            new TelemetryData
-            {
-                ServerNotifications = new ServerNotifications
-                {
-                    ServerNotificationCounters = new Dictionary<string, ServerNotificationCounter>()
-                }
-            };
+    [TestMethod]
+    public void NotificationClicked_DoesNothing()
+    {
+        var telemetryManager = new ServerNotificationsTelemetryManager();
+        
+        telemetryManager.NotificationClicked("A_CATEGORY");
     }
 }

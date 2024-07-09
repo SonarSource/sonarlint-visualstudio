@@ -18,9 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
+
 namespace SonarLint.VisualStudio.Integration.Telemetry;
 
-public interface IServerNotificationsTelemetryManager
+[Export(typeof(IServerNotificationsTelemetryManager))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal class ServerNotificationsTelemetryManager : IServerNotificationsTelemetryManager
 {
-    void NotificationClicked(string category);
+
+    [ImportingConstructor]
+    public ServerNotificationsTelemetryManager()
+    {
+    }
+
+    public void NotificationClicked(string category)
+    {
+        // Do nothing. https://sonarsource.atlassian.net/browse/SLVS-1239 - Migrate user notifications to Sloop
+    }
 }
