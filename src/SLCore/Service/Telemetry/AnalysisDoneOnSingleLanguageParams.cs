@@ -1,4 +1,4 @@
-﻿/*
+﻿    /*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,25 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Telemetry;
 
-[JsonRpcClass("telemetry")]
-public interface ITelemetrySLCoreService : ISLCoreService
-{
-    Task<GetStatusResponse> GetStatusAsync();
-    void EnableTelemetry();
-    void DisableTelemetry();
-    void AnalysisDoneOnSingleLanguage(AnalysisDoneOnSingleLanguageParams parameters);
-    void DevNotificationsClicked(DevNotificationsClickedParams parameters);
-    void TaintVulnerabilitiesInvestigatedLocally();
-    void TaintVulnerabilitiesInvestigatedRemotely();
-    void AddReportedRules(AddReportedRulesParams parameters);
-    void AddQuickFixAppliedForRule(AddQuickFixAppliedForRuleParams parameters);
-    void HelpAndFeedbackLinkClicked(HelpAndFeedbackClickedParams parameters);
-    void AddedManualBindings();
-    void AddedImportedBindings();
-    void AddedAutomaticBindings();
-}
+public record AnalysisDoneOnSingleLanguageParams(Language language, int analysisTimeMs);
