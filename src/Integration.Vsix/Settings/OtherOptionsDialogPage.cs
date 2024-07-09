@@ -19,8 +19,8 @@
  */
 
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Windows;
+using System.Windows.Media;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core.Telemetry;
 
@@ -39,7 +39,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             base.OnActivate(e);
 
-            this.optionsDialogControl.ShareAnonymousData.IsChecked = this.TelemetryManager?.IsAnonymousDataShared ?? false;
+            var telemetryStatus = this.TelemetryManager?.GetStatus();
+            SetEnabled(telemetryStatus);
+            optionsDialogControl.ShareAnonymousData.IsChecked = telemetryStatus ?? false;
+        }
+
+        private void SetEnabled(bool? telemetryStatus)
+        {
+            optionsDialogControl.ShareAnonymousData.IsEnabled = telemetryStatus.HasValue;
+            optionsDialogControl.ShareAnonymousData.Foreground = telemetryStatus.HasValue ? Brushes.Black : Brushes.Gray;
+            optionsDialogControl.BackendStartedText.Visibility = telemetryStatus.HasValue ? Visibility.Hidden : Visibility.Visible;
         }
 
         protected override void OnApply(PageApplyEventArgs e)
@@ -47,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (e.ApplyBehavior == ApplyKind.Apply &&
                 this.TelemetryManager != null)
             {
-                var wasShared = this.TelemetryManager.IsAnonymousDataShared;
+                var wasShared = this.TelemetryManager.GetStatus() ?? false;
                 var isShared = this.optionsDialogControl.ShareAnonymousData.IsChecked ?? true;
 
                 if (wasShared && !isShared)

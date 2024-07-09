@@ -16,6 +16,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
@@ -44,7 +45,7 @@
         <CheckBox x:Name="ShareAnonymousData"
                   Grid.Row="2"
                   Margin="10,5"
-                  Content="Share anonymous SonarLint statistics"
-                  />
+                  Content="Share anonymous SonarLint statistics" />
+        <TextBlock x:Name="BackendStartedText" Grid.Row="3" Margin="10,5" Foreground="Brown" TextWrapping="Wrap">*This setting is not active until the SonarLint backend has started</TextBlock>
     </Grid>
 </UserControl>

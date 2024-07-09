@@ -99,7 +99,7 @@ public class CssAnalyzerTests
             var testSubject = CreateTestSubject(client.Object, telemetryManager: telemetryManager.Object);
             await testSubject.ExecuteAsync(ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
-            telemetryManager.Verify(x => x.LanguageAnalyzed(TelemetryLanguageName), Times.Once);
+            telemetryManager.Verify(x => x.LanguageAnalyzed(TelemetryLanguageName, It.Is<int>(value => value > 0)), Times.Once);
             telemetryManager.VerifyNoOtherCalls();
         }
 

@@ -22,12 +22,10 @@ namespace SonarLint.VisualStudio.Core.Telemetry
 {
     public interface ITelemetryManager
     {
-        bool IsAnonymousDataShared { get; }
+        bool? GetStatus();
         void OptOut();
         void OptIn();
-        void Update();
-        void LanguageAnalyzed(string languageKey);
-        void ShowHotspotRequested();
+        void LanguageAnalyzed(string languageKey, int analysisTimeMs);
         void TaintIssueInvestigatedLocally();
         void TaintIssueInvestigatedRemotely();
     }
