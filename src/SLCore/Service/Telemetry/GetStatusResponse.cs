@@ -18,25 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
-
 namespace SonarLint.VisualStudio.SLCore.Service.Telemetry;
 
-[JsonRpcClass("telemetry")]
-public interface ITelemetrySLCoreService : ISLCoreService
-{
-    Task<GetStatusResponse> GetStatusAsync();
-    void EnableTelemetry();
-    void DisableTelemetry();
-    void AnalysisDoneOnSingleLanguage(AnalysisDoneOnSingleLanguageParams parameters);
-    void DevNotificationsClicked(DevNotificationsClickedParams parameters);
-    void TaintVulnerabilitiesInvestigatedLocally();
-    void TaintVulnerabilitiesInvestigatedRemotely();
-    void AddReportedRules(AddReportedRulesParams parameters);
-    void AddQuickFixAppliedForRule(AddQuickFixAppliedForRuleParams parameters);
-    void HelpAndFeedbackLinkClicked(HelpAndFeedbackClickedParams parameters);
-    void AddedManualBindings();
-    void AddedImportedBindings();
-    void AddedAutomaticBindings();
-}
+public record GetStatusResponse(bool enabled);
