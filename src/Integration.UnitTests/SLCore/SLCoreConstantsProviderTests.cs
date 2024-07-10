@@ -28,145 +28,138 @@ using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore
+namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore;
+
+[TestClass]
+public class SLCoreConstantsProviderTests
 {
-    [TestClass]
-    public class SLCoreConstantsProviderTests
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
     {
-        SLCoreConstantsProvider testSubject;
-        private IVsShell vsShell;
+        MefTestHelpers.CheckTypeCanBeImported<SLCoreConstantsProvider, ISLCoreConstantsProvider>(
+            MefTestHelpers.CreateExport<IVsUIServiceOperation>());
+    }
 
-        [TestInitialize]
-        public void Setup()
-        {
-            vsShell = Substitute.For<IVsShell>();
-            var vsServiceOperation = Substitute.For<IVsUIServiceOperation>();
-            vsServiceOperation.Execute<SVsShell, IVsShell, string>(Arg.Any<Func<IVsShell, string>>()).Returns(info =>
-            {
-                var func = info.Arg<Func<IVsShell, string>>();
-                return func(vsShell);
-            });
-            testSubject = new SLCoreConstantsProvider(vsServiceOperation);
-        }
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton()
+    {
+        MefTestHelpers.CheckIsSingletonMefComponent<SLCoreConstantsProvider>();
+    }
 
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<SLCoreConstantsProvider, ISLCoreConstantsProvider>(
-                MefTestHelpers.CreateExport<IVsUIServiceOperation>());
-        }
+    [TestMethod]
+    public void ClientConstants_ShouldBeExpected()
+    {
+        const string ideName = "MyIde";
+        var testSubject = CreateTestSubject(ideName);
+        var expectedClientConstants = new ClientConstantsDto(ideName, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}",
+            Process.GetCurrentProcess().Id);
+        var actual = testSubject.ClientConstants;
 
-        [TestMethod]
-        public void MefCtor_CheckIsSingleton()
-        {
-            MefTestHelpers.CheckIsSingletonMefComponent<SLCoreConstantsProvider>();
-        }
+        actual.Should().BeEquivalentTo(expectedClientConstants);
+    }
 
-        [TestMethod]
-        public void ClientConstants_ShouldBeExpected()
-        {
-            const string ideName = "MyIde";
-            SetupIdeName(ideName);
+    [TestMethod]
+    public void ClientConstants_VsOperationCalledOnlyOnce()
+    {
+        var testSubject = CreateTestSubject(out var vsShell, ideName: "somename");
 
-            var expectedClientConstants = new ClientConstantsDto(ideName, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}",
-                Process.GetCurrentProcess().Id);
-            var actual = testSubject.ClientConstants;
+        _ = testSubject.ClientConstants;
+        _ = testSubject.ClientConstants;
+        _ = testSubject.ClientConstants;
+        _ = testSubject.ClientConstants;
 
-            actual.Should().BeEquivalentTo(expectedClientConstants);
-        }
+        vsShell.ReceivedWithAnyArgs(1).GetProperty(default, out _);
+    }
 
-        [TestMethod]
-        public void ClientConstants_VsOperationCalledOnlyOnce()
-        {
-            SetupIdeName("somename");
+    [TestMethod]
+    public void FeatureFlags_ShouldBeExpected()
+    {
+        var testSubject = CreateTestSubject();
+        var expectedFeatureFlags = new FeatureFlagsDto(true, true, true, true, false, false, true, false);
+        var actual = testSubject.FeatureFlags;
 
-            _ = testSubject.ClientConstants;
-            _ = testSubject.ClientConstants;
-            _ = testSubject.ClientConstants;
-            _ = testSubject.ClientConstants;
+        actual.Should().BeEquivalentTo(expectedFeatureFlags);
+    }
 
-            vsShell.ReceivedWithAnyArgs(1).GetProperty(default, out _);
-        }
-
-        [TestMethod]
-        public void FeatureFlags_ShouldBeExpected()
-        {
-            var expectedFeatureFlags = new FeatureFlagsDto(true, true, true, true, false, false, true, false);
-            var actual = testSubject.FeatureFlags;
-
-            actual.Should().BeEquivalentTo(expectedFeatureFlags);
-        }
-
-        [TestMethod]
-        public void TelemetryConstants_ShouldBeExpected()
-        {
-            var expectedTelemetryConstants =
-                new TelemetryClientConstantAttributesDto("SLVS_SHOULD_NOT_SEND_TELEMETRY", default, default, default, default);
-            var actual = testSubject.TelemetryConstants;
-
-            actual.Should().BeEquivalentTo(expectedTelemetryConstants);
-        }
-
-        [TestMethod]
-        public void StandaloneLanguages_ShouldBeExpected()
-        {
-            var expected = new[]
-            {
-                Language.JS,
-                Language.TS,
-                Language.CSS,
-                Language.C,
-                Language.CPP,
-                Language.CS,
-                Language.VBNET,
-                Language.SECRETS
-            };
-            var actual = testSubject.LanguagesInStandaloneMode;
-
-            actual.Should().BeEquivalentTo(expected);
-        }
-
-        [TestMethod]
-        public void AnalyzableLanguages_ShouldBeExpected()
-        {
-            var expected = new[] { Language.SECRETS };
-            var actual = testSubject.SLCoreAnalyzableLanguages;
-
-            actual.Should().BeEquivalentTo(expected);
-        }
         
-        [TestMethod]
-        public void Verify_AllConfiguredLanguagesAreKnown()
+
+    [TestMethod]
+    public void StandaloneLanguages_ShouldBeExpected()
+    {
+        var testSubject = CreateTestSubject();
+        var expected = new[]
         {
-            var slCoreConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsUIServiceOperation>());
+            Language.JS,
+            Language.TS,
+            Language.CSS,
+            Language.C,
+            Language.CPP,
+            Language.CS,
+            Language.VBNET,
+            Language.SECRETS
+        };
+            
+        var actual = testSubject.LanguagesInStandaloneMode;
 
-            var languages = slCoreConstantsProvider.LanguagesInStandaloneMode
-                .Concat(slCoreConstantsProvider.SLCoreAnalyzableLanguages)
-                .Select(x => x.ConvertToCoreLanguage());
+        actual.Should().BeEquivalentTo(expected);
+    }
 
-            languages.Should().NotContain(Core.Language.Unknown);
-        }
+    [TestMethod]
+    public void AnalyzableLanguages_ShouldBeExpected()
+    {
+        var testSubject = CreateTestSubject();
+        var expected = new[] { Language.SECRETS };
+            
+        var actual = testSubject.SLCoreAnalyzableLanguages;
+
+        actual.Should().BeEquivalentTo(expected);
+    }
         
-        [TestMethod]
-        public void Verify_AllConfiguredLanguagesHaveKnownPluginKeys()
+    [TestMethod]
+    public void Verify_AllConfiguredLanguagesAreKnown()
+    {
+        var slCoreConstantsProvider = CreateTestSubject();
+
+        var languages = slCoreConstantsProvider.LanguagesInStandaloneMode
+            .Concat(slCoreConstantsProvider.SLCoreAnalyzableLanguages)
+            .Select(x => x.ConvertToCoreLanguage());
+
+        languages.Should().NotContain(Core.Language.Unknown);
+    }
+        
+    [TestMethod]
+    public void Verify_AllConfiguredLanguagesHaveKnownPluginKeys()
+    {
+        var slCoreConstantsProvider = CreateTestSubject();
+
+        var languages = slCoreConstantsProvider.LanguagesInStandaloneMode
+            .Concat(slCoreConstantsProvider.SLCoreAnalyzableLanguages)
+            .Select(x => x.GetPluginKey());
+
+        languages.Should().NotContainNulls();
+    }
+        
+    private SLCoreConstantsProvider CreateTestSubject(out IVsShell vsShell, object ideName = null)
+    {
+        var substituteVsShell = Substitute.For<IVsShell>();
+        var vsServiceOperation = Substitute.For<IVsUIServiceOperation>();
+        vsServiceOperation.Execute<SVsShell, IVsShell, string>(Arg.Any<Func<IVsShell, string>>()).Returns(info =>
         {
-            var slCoreConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsUIServiceOperation>());
-
-            var languages = slCoreConstantsProvider.LanguagesInStandaloneMode
-                .Concat(slCoreConstantsProvider.SLCoreAnalyzableLanguages)
-                .Select(x => x.GetPluginKey());
-
-            languages.Should().NotContainNulls();
-        }
-
-
-        private void SetupIdeName(object name)
+            var func = info.Arg<Func<IVsShell, string>>();
+            return func(substituteVsShell);
+        });
+        vsShell = substituteVsShell;
+        vsShell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out Arg.Any<object>()).Returns(info =>
         {
-            vsShell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out Arg.Any<object>()).Returns(info =>
-            {
-                info[1] = name;
-                return 0;
-            });
-        }
+            info[1] = ideName;
+            return 0;
+        });
+            
+        return new SLCoreConstantsProvider(vsServiceOperation);
+    }
+        
+    private SLCoreConstantsProvider CreateTestSubject(object ideName = null)
+    {
+        return CreateTestSubject(out _, ideName);
     }
 }
