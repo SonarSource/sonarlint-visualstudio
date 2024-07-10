@@ -18,17 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
 
@@ -36,7 +31,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 {
     public class NotificationIndicatorViewModel : ViewModelBase, INotificationIndicatorViewModel
     {
-        private readonly IServerNotificationsTelemetryManager telemetryManager;
         private readonly ITimer autocloseTimer;
         private readonly IThreadHandling threadHandling;
 
@@ -50,19 +44,18 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         public ICommand NavigateToNotification { get; }
 
-        public NotificationIndicatorViewModel(IServerNotificationsTelemetryManager telemetryManager, IBrowserService vsBrowserService)
-            : this(telemetryManager, vsBrowserService, ThreadHandling.Instance,
+        public NotificationIndicatorViewModel(IBrowserService vsBrowserService)
+            : this(vsBrowserService, ThreadHandling.Instance,
                   new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */})
         {
         }
 
         // For testing
-        internal NotificationIndicatorViewModel(IServerNotificationsTelemetryManager telemetryManager, 
+        internal NotificationIndicatorViewModel(
             IBrowserService vsBrowserService,
             IThreadHandling threadHandling, 
             ITimer autocloseTimer)
         {
-            this.telemetryManager = telemetryManager;
             this.threadHandling = threadHandling;
             this.autocloseTimer = autocloseTimer;
 
@@ -77,7 +70,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                 var notification = (SonarQubeNotification) parameter;
                 vsBrowserService.Navigate(notification.Link.ToString());
                 IsToolTipVisible = false;
-                telemetryManager.NotificationClicked(notification.Category);
             });
         }
 
@@ -130,7 +122,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             set
             {
                 SetAndRaisePropertyChanged(ref areNotificationsEnabled, value);
-                telemetryManager.NotificationsToggled(value);
             }
         }
 
@@ -169,7 +160,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                     foreach (var ev in events)
                     {
                         NotificationEvents.Add(ev);
-                        telemetryManager.NotificationReceived(ev.Category);
                     }
 
                     HasUnreadEvents = true;
