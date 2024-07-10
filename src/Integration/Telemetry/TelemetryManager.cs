@@ -18,106 +18,81 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.Telemetry;
-using SonarLint.VisualStudio.Integration.Telemetry.Payload;
-using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
-namespace SonarLint.VisualStudio.Integration;
+namespace SonarLint.VisualStudio.Integration.Telemetry;
 
 [Export(typeof(ITelemetryManager))]
 [Export(typeof(IQuickFixesTelemetryManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public sealed class TelemetryManager : ITelemetryManager, 
+internal sealed class TelemetryManager : ITelemetryManager,
     IQuickFixesTelemetryManager,
     IDisposable
 {
-    private readonly ISLCoreServiceProvider serviceProvider;
-    private readonly ILogger logger;
+    private readonly ITelemetryChangeHandler telemetryChangeHandler;
     private readonly IKnownUIContexts knownUiContexts;
-    private readonly IThreadHandling threadHandling;
-
-    private static readonly object Lock = new object();
 
     [ImportingConstructor]
-    public TelemetryManager(
-        ISLCoreServiceProvider serviceProvider,
-        IUserSettingsProvider userSettingsProvider,
-        ILogger logger, IThreadHandling threadHandling)
-        : this(serviceProvider, userSettingsProvider, logger,
-            new KnownUIContextsWrapper(), threadHandling)
+    public TelemetryManager(ITelemetryChangeHandler telemetryChangeHandler)
+        : this(telemetryChangeHandler, new KnownUIContextsWrapper())
     {
     }
 
-    public TelemetryManager(ISLCoreServiceProvider serviceProvider,
-        IUserSettingsProvider userSettingsProvider,
-        ILogger logger,
-        IKnownUIContexts knownUIContexts,
-        IThreadHandling threadHandling)
+    internal /* for testing */ TelemetryManager(ITelemetryChangeHandler telemetryChangeHandler,
+        IKnownUIContexts knownUIContexts)
     {
-        this.serviceProvider = serviceProvider;
-        this.logger = logger;
-        this.knownUiContexts = knownUIContexts;
-        this.threadHandling = threadHandling;
+        this.telemetryChangeHandler = telemetryChangeHandler;
+        knownUiContexts = knownUIContexts;
+        knownUiContexts.CSharpProjectContextChanged += OnCSharpProjectContextChanged;
+        knownUiContexts.VBProjectContextChanged += OnVBProjectContextChanged;
     }
 
-    public void Dispose()
+    public void QuickFixApplied(string ruleId)
     {
-        DisableAllEvents();
-    }
-
-    public void OptIn()
-    {
-        EnableAllEvents();
-        SendTelemetry(telemetryService =>
-        {
-            telemetryService.EnableTelemetry();
-        });
+        telemetryChangeHandler.SendTelemetry(telemetryService => telemetryService.AddQuickFixAppliedForRule(new AddQuickFixAppliedForRuleParams(ruleId)));
     }
 
     public bool? GetStatus()
     {
-        return threadHandling.Run(async () =>
-        {
-            bool? result = null;
-            await threadHandling.SwitchToBackgroundThread();
-            if (serviceProvider.TryGetTransientService(out ITelemetrySLCoreService telemetryService))
-            {
-                result = (await telemetryService.GetStatusAsync()).enabled;
-            }
-
-            return result;
-        });
+        return telemetryChangeHandler.GetStatus();
     }
 
+    public void OptIn()
+    {
+        telemetryChangeHandler.SendTelemetry(telemetryService => telemetryService.EnableTelemetry());
+    }
+    
     public void OptOut()
     {
-        DisableAllEvents();
-        SendTelemetry(telemetryService =>
-        {
-            telemetryService.DisableTelemetry();
-        });
+        telemetryChangeHandler.SendTelemetry(telemetryService => telemetryService.DisableTelemetry());
     }
 
-    private void DisableAllEvents()
+    public void LanguageAnalyzed(string languageKey, int analysisTimeMs = 0)
+    {
+        var language = Convert(languageKey);
+        telemetryChangeHandler.SendTelemetry(telemetryService =>
+            telemetryService.AnalysisDoneOnSingleLanguage(new AnalysisDoneOnSingleLanguageParams(language, analysisTimeMs)));
+    }
+
+    public void TaintIssueInvestigatedLocally()
+    {
+        telemetryChangeHandler.SendTelemetry(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedLocally());
+    }
+
+    public void TaintIssueInvestigatedRemotely()
+    {
+        telemetryChangeHandler.SendTelemetry(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedRemotely());
+    }
+    
+    public void Dispose()
     {
         knownUiContexts.CSharpProjectContextChanged -= OnCSharpProjectContextChanged;
         knownUiContexts.VBProjectContextChanged -= OnVBProjectContextChanged;
-    }
-
-    private void EnableAllEvents()
-    {
-        knownUiContexts.CSharpProjectContextChanged += OnCSharpProjectContextChanged;
-        knownUiContexts.VBProjectContextChanged += OnVBProjectContextChanged;
     }
 
     private void OnCSharpProjectContextChanged(object sender, UIContextChangedEventArgs e)
@@ -132,18 +107,13 @@ public sealed class TelemetryManager : ITelemetryManager,
     {
         if (e.Activated)
         {
-           LanguageAnalyzed(SonarLanguageKeys.VBNet);
+            LanguageAnalyzed(SonarLanguageKeys.VBNet);
         }
     }
 
-    public void LanguageAnalyzed(string languageKey, int analysisTimeMs = 0)
+    private static Language Convert(string languageKey)
     {
-        var language = Convert(languageKey);
-        SendTelemetry(telemetryService => telemetryService.AnalysisDoneOnSingleLanguage(new AnalysisDoneOnSingleLanguageParams(language, analysisTimeMs)));
-    }
-    
-    private static Language Convert(string languageKey) =>
-        languageKey switch
+        return languageKey switch
         {
             SonarLanguageKeys.CPlusPlus => Language.CPP,
             SonarLanguageKeys.C => Language.C,
@@ -155,35 +125,5 @@ public sealed class TelemetryManager : ITelemetryManager,
             SonarLanguageKeys.Secrets => Language.SECRETS,
             _ => throw new ArgumentOutOfRangeException(nameof(languageKey), languageKey, null)
         };
-        
-    public void TaintIssueInvestigatedLocally()
-    {
-        SendTelemetry(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedLocally());
-    }
-
-    public void TaintIssueInvestigatedRemotely()
-    {
-        SendTelemetry(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedRemotely());
-    }
-
-    public void QuickFixApplied(string ruleId)
-    {
-        SendTelemetry(telemetryService => telemetryService.AddQuickFixAppliedForRule(new AddQuickFixAppliedForRuleParams(ruleId)));
-    }
-    
-    private void SendTelemetry(Action<ITelemetrySLCoreService> telemetryProducer)
-    {
-        threadHandling
-            .RunOnBackgroundThread(() =>
-            {
-                if (!serviceProvider.TryGetTransientService(out ITelemetrySLCoreService telemetryService))
-                {
-                    // todo logger.
-                    return;
-                }
-
-                telemetryProducer(telemetryService);
-            })
-            .Forget();
     }
 }
