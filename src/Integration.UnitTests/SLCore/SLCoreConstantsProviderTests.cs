@@ -18,7 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Reflection;
 using Microsoft.VisualStudio.Shell.Interop;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.SLCore;
@@ -37,7 +40,8 @@ public class SLCoreConstantsProviderTests
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<SLCoreConstantsProvider, ISLCoreConstantsProvider>(
-            MefTestHelpers.CreateExport<IVsUIServiceOperation>());
+            MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
+            MefTestHelpers.CreateExport<IVsVersionProvider>());
     }
 
     [TestMethod]
@@ -50,8 +54,9 @@ public class SLCoreConstantsProviderTests
     public void ClientConstants_ShouldBeExpected()
     {
         const string ideName = "MyIde";
-        var testSubject = CreateTestSubject(ideName);
-        var expectedClientConstants = new ClientConstantsDto(ideName, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}",
+        var testSubject = CreateTestSubject(ideName: ideName);
+        var expectedClientConstants = new ClientConstantsDto(ideName,
+            $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}",
             Process.GetCurrentProcess().Id);
         var actual = testSubject.ClientConstants;
 
@@ -81,7 +86,39 @@ public class SLCoreConstantsProviderTests
         actual.Should().BeEquivalentTo(expectedFeatureFlags);
     }
 
-        
+    [TestMethod]
+    public void TelemetryConstants_ShouldBeExpected()
+    {
+        var versionProvider = Substitute.For<IVsVersionProvider>();
+        var version = Substitute.For<IVsVersion>();
+        version.DisplayName.Returns("VISUAL STUDIO");
+        version.InstallationVersion.Returns("INSTALLATION VERSION");
+        version.DisplayVersion.Returns("DISPLAY VERSION");
+        versionProvider.Version.Returns(version);
+
+        var testSubject = CreateTestSubject(versionProvider: versionProvider);
+        VisualStudioHelpers.VisualStudioVersion = "1.2.3.4";
+        var expectedString = $$"""
+                         {
+                           "productKey": "visualstudio",
+                           "productName": "SonarLint Visual Studio",
+                           "productVersion": "{{typeof(TelemetryData).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version}}",
+                           "ideVersion": "1.2.3.4",
+                           "additionalAttributes": {
+                             "slvs_ide_info": {
+                               "name": "VISUAL STUDIO",
+                               "install_version": "INSTALLATION VERSION",
+                               "display_version": "DISPLAY VERSION"
+                             }
+                           }
+                         }
+                         """;
+
+        var actual = testSubject.TelemetryConstants;
+
+        var serializedString = JsonConvert.SerializeObject(actual, Formatting.Indented);
+        serializedString.Should().Be(expectedString);
+    }
 
     [TestMethod]
     public void StandaloneLanguages_ShouldBeExpected()
@@ -98,7 +135,7 @@ public class SLCoreConstantsProviderTests
             Language.VBNET,
             Language.SECRETS
         };
-            
+
         var actual = testSubject.LanguagesInStandaloneMode;
 
         actual.Should().BeEquivalentTo(expected);
@@ -109,12 +146,12 @@ public class SLCoreConstantsProviderTests
     {
         var testSubject = CreateTestSubject();
         var expected = new[] { Language.SECRETS };
-            
+
         var actual = testSubject.SLCoreAnalyzableLanguages;
 
         actual.Should().BeEquivalentTo(expected);
     }
-        
+
     [TestMethod]
     public void Verify_AllConfiguredLanguagesAreKnown()
     {
@@ -126,7 +163,7 @@ public class SLCoreConstantsProviderTests
 
         languages.Should().NotContain(Core.Language.Unknown);
     }
-        
+
     [TestMethod]
     public void Verify_AllConfiguredLanguagesHaveKnownPluginKeys()
     {
@@ -138,8 +175,9 @@ public class SLCoreConstantsProviderTests
 
         languages.Should().NotContainNulls();
     }
-        
-    private SLCoreConstantsProvider CreateTestSubject(out IVsShell vsShell, object ideName = null)
+
+    private SLCoreConstantsProvider CreateTestSubject(out IVsShell vsShell, IVsVersionProvider versionProvider = null,
+        object ideName = null)
     {
         var substituteVsShell = Substitute.For<IVsShell>();
         var vsServiceOperation = Substitute.For<IVsUIServiceOperation>();
@@ -154,12 +192,14 @@ public class SLCoreConstantsProviderTests
             info[1] = ideName;
             return 0;
         });
-            
-        return new SLCoreConstantsProvider(vsServiceOperation);
+
+        versionProvider ??= Substitute.For<IVsVersionProvider>();
+
+        return new SLCoreConstantsProvider(vsServiceOperation, versionProvider);
     }
-        
-    private SLCoreConstantsProvider CreateTestSubject(object ideName = null)
+
+    private SLCoreConstantsProvider CreateTestSubject(IVsVersionProvider versionProvider = null, object ideName = null)
     {
-        return CreateTestSubject(out _, ideName);
+        return CreateTestSubject(out _, versionProvider, ideName);
     }
 }
