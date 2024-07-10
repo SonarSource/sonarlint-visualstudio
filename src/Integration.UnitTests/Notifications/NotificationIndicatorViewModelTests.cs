@@ -18,19 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
-using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration.Telemetry;
+using SonarLint.VisualStudio.Integration.Notifications;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
+namespace SonarLint.VisualStudio.Integration.UnitTests.Notifications
 {
     [TestClass]
     public class NotificationIndicatorViewModelTests
@@ -88,25 +83,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
 
             model.AreNotificationsEnabled.Should().BeTrue();
             monitor.Should().RaisePropertyChangeFor(x => x.AreNotificationsEnabled);
-        }
-
-        [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void AreNotificationsEnabled_UpdatesTelemetry(bool areEnabled)
-        {
-            var telemetryManager = new Mock<IServerNotificationsTelemetryManager>();
-            var model = CreateTestSubject(telemetryManager: telemetryManager.Object);
-
-            model.AreNotificationsEnabled = areEnabled;
-
-            telemetryManager.Verify(x=> x.NotificationsToggled(areEnabled));
-            telemetryManager.VerifyNoOtherCalls();
-
-            model.AreNotificationsEnabled = !areEnabled;
-
-            telemetryManager.Verify(x => x.NotificationsToggled(!areEnabled));
-            telemetryManager.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -190,34 +166,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         }
 
         [TestMethod]
-        public void SetNotificationEvents_SetEvents_UpdatesTelemetry()
-        {
-            var telemetryManager = new Mock<IServerNotificationsTelemetryManager>();
-            var model = CreateTestSubject(telemetryManager: telemetryManager.Object);
-            model.AreNotificationsEnabled = true;
-            model.IsIconVisible = true;
-
-            var events = new[]
-            {
-                CreateNotification("category1"),
-                CreateNotification("category2"),
-                CreateNotification("category1"),
-                CreateNotification("category3"),
-            };
-
-            model.SetNotificationEvents(events);
-
-            telemetryManager.Verify(x=> x.NotificationReceived("category1"), Times.Exactly(2));
-            telemetryManager.Verify(x=> x.NotificationReceived("category2"), Times.Once());
-            telemetryManager.Verify(x=> x.NotificationReceived("category3"), Times.Once());
-
-            telemetryManager.Reset();
-            model.SetNotificationEvents(Enumerable.Empty<SonarQubeNotification>());
-
-            telemetryManager.Verify(x => x.NotificationReceived(It.IsAny<string>()), Times.Never);
-        }
-
-        [TestMethod]
         public void HasUnreadEvents_RunOnUIThread()
         {
             var threadHandling = new Mock<IThreadHandling>();
@@ -245,18 +193,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             testSubject.NavigateToNotification.Execute(notification);
 
             vsBrowserService.Verify(x=> x.Navigate("http://localhost:2000/"), Times.Once());
-        }
-
-        [TestMethod]
-        public void NavigateToNotification_TelemetrySent()
-        {
-            var telemetryManager = new Mock<IServerNotificationsTelemetryManager>();
-            var testSubject = CreateTestSubject(telemetryManager: telemetryManager.Object);
-
-            var notification = CreateNotification("test");
-            testSubject.NavigateToNotification.Execute(notification);
-
-            telemetryManager.Verify(x => x.NotificationClicked("test"), Times.Once());
         }
 
         [TestMethod]
@@ -299,17 +235,15 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             return model;
         }
 
-        private NotificationIndicatorViewModel CreateTestSubject(ITimer timer = null, 
-            IServerNotificationsTelemetryManager telemetryManager = null,
+        private NotificationIndicatorViewModel CreateTestSubject(ITimer timer = null,
             IBrowserService vsBrowserService = null,
             IThreadHandling threadHandling = null)
         {
             timer ??= Mock.Of<ITimer>();
-            telemetryManager ??= Mock.Of<IServerNotificationsTelemetryManager>();
             vsBrowserService ??= Mock.Of<IBrowserService>();
             threadHandling ??= new NoOpThreadHandler();
 
-            return new NotificationIndicatorViewModel(telemetryManager, vsBrowserService, threadHandling, timer);
+            return new NotificationIndicatorViewModel(vsBrowserService, threadHandling, timer);
         }
     }
 }
