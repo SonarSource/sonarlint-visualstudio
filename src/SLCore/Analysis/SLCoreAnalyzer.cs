@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Analysis;
@@ -35,15 +36,18 @@ public class SLCoreAnalyzer : IAnalyzer
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
+    private readonly ICurrentTimeProvider currentTimeProvider;
 
     [ImportingConstructor]
     public SLCoreAnalyzer(ISLCoreServiceProvider serviceProvider, 
         IActiveConfigScopeTracker activeConfigScopeTracker,
-        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory)
+        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory, 
+        ICurrentTimeProvider currentTimeProvider)
     {
         this.serviceProvider = serviceProvider;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
+        this.currentTimeProvider = currentTimeProvider;
     }
 
     public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
@@ -73,7 +77,7 @@ public class SLCoreAnalyzer : IAnalyzer
         ExecuteAnalysisInternalAsync(path, configurationScope.Id, analysisId, analyzerOptions, analysisService, analysisStatusNotifier, cancellationToken).Forget();
     }
 
-    private static async Task ExecuteAnalysisInternalAsync(string path,
+    private async Task ExecuteAnalysisInternalAsync(string path,
         string configScopeId,
         Guid analysisId, 
         IAnalyzerOptions analyzerOptions,
@@ -90,7 +94,7 @@ public class SLCoreAnalyzer : IAnalyzer
                     [new FileUri(path)],
                     [],
                     analyzerOptions?.IsOnOpen ?? false,
-                    DateTimeOffset.Now.ToUnixTimeMilliseconds()),
+                    currentTimeProvider.Now.ToUnixTimeMilliseconds()),
                 cancellationToken);
 
             if (failedAnalysisFiles.Any())
