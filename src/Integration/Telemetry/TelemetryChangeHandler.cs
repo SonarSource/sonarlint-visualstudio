@@ -32,12 +32,14 @@ internal class TelemetryChangeHandler : ITelemetryChangeHandler
 {
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IThreadHandling threadHandling;
+    private readonly ILogger logger;
 
     [ImportingConstructor]
-    public TelemetryChangeHandler(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling)
+    public TelemetryChangeHandler(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling, ILogger logger)
     {
         this.serviceProvider = serviceProvider;
         this.threadHandling = threadHandling;
+        this.logger = logger;
     }
 
     public bool? GetStatus()
@@ -45,15 +47,24 @@ internal class TelemetryChangeHandler : ITelemetryChangeHandler
         return threadHandling.Run(async () =>
         {
             bool? result = null;
-            await threadHandling.SwitchToBackgroundThread();
-            if (serviceProvider.TryGetTransientService(out ITelemetrySLCoreService telemetryService))
+            try
             {
-                result = (await telemetryService.GetStatusAsync()).enabled;
-            }
+                await threadHandling.SwitchToBackgroundThread();
+                if (serviceProvider.TryGetTransientService(out ITelemetrySLCoreService telemetryService))
+                {
+                    result = (await telemetryService.GetStatusAsync()).enabled;
+                }
 
+            }
+            catch (Exception e) when(!ErrorHandler.IsCriticalException(e))
+            {
+                logger.WriteLine(e.ToString());
+            }
+                
             return result;
         });
     }
+    
     public void SendTelemetry(Action<ITelemetrySLCoreService> telemetryProducer)
     {
         threadHandling
@@ -61,7 +72,7 @@ internal class TelemetryChangeHandler : ITelemetryChangeHandler
             {
                 if (!serviceProvider.TryGetTransientService(out ITelemetrySLCoreService telemetryService))
                 {
-                    // todo logger.
+                    logger.LogVerbose("SLCore service is not available, telemetry is discarded");
                     return;
                 }
 

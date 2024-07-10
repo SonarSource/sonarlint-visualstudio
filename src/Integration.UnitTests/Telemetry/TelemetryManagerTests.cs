@@ -20,8 +20,10 @@
 
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry;
+using SonarLint.VisualStudio.TestInfrastructure;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.Integration.Tests;
@@ -29,6 +31,20 @@ namespace SonarLint.VisualStudio.Integration.Tests;
 [TestClass]
 public class TelemetryManagerTests
 {
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
+    {
+        MefTestHelpers.CheckTypeCanBeImported<TelemetryManager, ITelemetryManager>(
+            MefTestHelpers.CreateExport<ITelemetryChangeHandler>(),
+            MefTestHelpers.CreateExport<IKnownUIContexts>());
+    }
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton()
+    {
+        MefTestHelpers.CheckIsSingletonMefComponent<TelemetryManager>();
+    }
+    
     [DataTestMethod]
     [DataRow(null)]
     [DataRow(true)]
