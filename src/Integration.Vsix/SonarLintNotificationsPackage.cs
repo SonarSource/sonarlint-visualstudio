@@ -77,12 +77,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             logger.WriteLine(Resources.Strings.Notifications_Initializing);
 
             AddOptionKey(NotificationDataKey);
-
-            var telemetryManager = await this.GetMefServiceAsync<IServerNotificationsTelemetryManager>();
+            
             var vsBrowserService = await this.GetMefServiceAsync<Core.IBrowserService>();
 
             notifications = new SonarQubeNotificationService(sonarqubeService,
-                new NotificationIndicatorViewModel(telemetryManager, vsBrowserService), new TimerWrapper { Interval = 60000 }, logger);
+                new NotificationIndicatorViewModel(vsBrowserService), new TimerWrapper { Interval = 60000 }, logger);
             
             // Initialising the UI elements has to be on the main thread
             await JoinableTaskFactory.SwitchToMainThreadAsync();
