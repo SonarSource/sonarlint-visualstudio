@@ -21,11 +21,11 @@
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
-using SonarLint.VisualStudio.Integration.Telemetry;
+using SonarLint.VisualStudio.Integration.Notifications;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
+namespace SonarLint.VisualStudio.Integration.UnitTests.Notifications
 {
     [TestClass]
     public class NotificationIndicatorViewModelTests
@@ -196,18 +196,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         }
 
         [TestMethod]
-        public void NavigateToNotification_TelemetrySent()
-        {
-            var telemetryManager = new Mock<IServerNotificationsTelemetryManager>();
-            var testSubject = CreateTestSubject(telemetryManager: telemetryManager.Object);
-
-            var notification = CreateNotification("test");
-            testSubject.NavigateToNotification.Execute(notification);
-
-            telemetryManager.Verify(x => x.NotificationClicked("test"), Times.Once());
-        }
-
-        [TestMethod]
         public void NavigateToNotification_TooltipClosed()
         {
             var testSubject = CreateTestSubject();
@@ -247,17 +235,15 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             return model;
         }
 
-        private NotificationIndicatorViewModel CreateTestSubject(ITimer timer = null, 
-            IServerNotificationsTelemetryManager telemetryManager = null,
+        private NotificationIndicatorViewModel CreateTestSubject(ITimer timer = null,
             IBrowserService vsBrowserService = null,
             IThreadHandling threadHandling = null)
         {
             timer ??= Mock.Of<ITimer>();
-            telemetryManager ??= Mock.Of<IServerNotificationsTelemetryManager>();
             vsBrowserService ??= Mock.Of<IBrowserService>();
             threadHandling ??= new NoOpThreadHandler();
 
-            return new NotificationIndicatorViewModel(telemetryManager, vsBrowserService, threadHandling, timer);
+            return new NotificationIndicatorViewModel(vsBrowserService, threadHandling, timer);
         }
     }
 }

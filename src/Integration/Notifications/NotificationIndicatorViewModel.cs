@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
 
@@ -45,14 +44,14 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         public ICommand NavigateToNotification { get; }
 
-        public NotificationIndicatorViewModel(IServerNotificationsTelemetryManager telemetryManager, IBrowserService vsBrowserService)
-            : this(telemetryManager, vsBrowserService, ThreadHandling.Instance,
+        public NotificationIndicatorViewModel(IBrowserService vsBrowserService)
+            : this(vsBrowserService, ThreadHandling.Instance,
                   new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */})
         {
         }
 
         // For testing
-        internal NotificationIndicatorViewModel(IServerNotificationsTelemetryManager telemetryManager, 
+        internal NotificationIndicatorViewModel(
             IBrowserService vsBrowserService,
             IThreadHandling threadHandling, 
             ITimer autocloseTimer)
@@ -71,7 +70,6 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                 var notification = (SonarQubeNotification) parameter;
                 vsBrowserService.Navigate(notification.Link.ToString());
                 IsToolTipVisible = false;
-                telemetryManager.NotificationClicked(notification.Category);
             });
         }
 
