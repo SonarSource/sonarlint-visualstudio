@@ -119,6 +119,19 @@ public class SLCoreConstantsProviderTests
         var serializedString = JsonConvert.SerializeObject(actual, Formatting.Indented);
         serializedString.Should().Be(expectedString);
     }
+    
+    [TestMethod]
+    public void TelemetryConstants_WhenVsVersionNull_ReturnNullWithoutException()
+    {
+        var versionProvider = Substitute.For<IVsVersionProvider>();
+        versionProvider.Version.Returns((IVsVersion) null);
+
+        var testSubject = CreateTestSubject(versionProvider: versionProvider);
+        VisualStudioHelpers.VisualStudioVersion = "1.2.3.4";
+
+        var actual = testSubject.TelemetryConstants;
+        actual.additionalAttributes["slvs_ide_info"].Should().BeNull();
+    }
 
     [TestMethod]
     public void StandaloneLanguages_ShouldBeExpected()
