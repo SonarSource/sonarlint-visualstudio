@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.VisualStudio.Shell;
@@ -26,6 +27,7 @@ using SonarLint.VisualStudio.Core.Telemetry;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    [ExcludeFromCodeCoverage] // https://github.com/SonarSource/sonarlint-visualstudio/issues/2760
     internal class OtherOptionsDialogPage : UIElementDialogPage
     {
         public const string PageName = "Other";
