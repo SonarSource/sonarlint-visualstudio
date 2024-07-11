@@ -37,6 +37,10 @@ public class TelemetryManagerTests
         MefTestHelpers.CheckTypeCanBeImported<TelemetryManager, ITelemetryManager>(
             MefTestHelpers.CreateExport<ITelemetryChangeHandler>(),
             MefTestHelpers.CreateExport<IKnownUIContexts>());
+        
+        MefTestHelpers.CheckTypeCanBeImported<TelemetryManager, IQuickFixesTelemetryManager>(
+            MefTestHelpers.CreateExport<ITelemetryChangeHandler>(),
+            MefTestHelpers.CreateExport<IKnownUIContexts>());
     }
 
     [TestMethod]
@@ -147,7 +151,7 @@ public class TelemetryManagerTests
         CreteTelemetryService(out var telemetryHandler, out var telemetryService);
         var telemetryManager = CreateTestSubject(telemetryHandler);
         
-        telemetryManager.LanguageAnalyzed(languageKey, analysisTimeMs);
+        telemetryManager.LanguageAnalyzed(languageKey, TimeSpan.FromMilliseconds(analysisTimeMs));
         
         Received.InOrder(() =>
         {

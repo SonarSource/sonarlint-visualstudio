@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Core.Telemetry
         bool? GetStatus();
         void OptOut();
         void OptIn();
-        void LanguageAnalyzed(string languageKey, int analysisTimeMs);
+        void LanguageAnalyzed(string languageKey, TimeSpan analysisTime);
         void TaintIssueInvestigatedLocally();
         void TaintIssueInvestigatedRemotely();
     }

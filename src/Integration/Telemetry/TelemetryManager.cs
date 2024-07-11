@@ -38,13 +38,7 @@ internal sealed class TelemetryManager : ITelemetryManager,
     private readonly IKnownUIContexts knownUiContexts;
 
     [ImportingConstructor]
-    public TelemetryManager(ITelemetryChangeHandler telemetryChangeHandler)
-        : this(telemetryChangeHandler, new KnownUIContextsWrapper())
-    {
-    }
-
-    internal /* for testing */ TelemetryManager(ITelemetryChangeHandler telemetryChangeHandler,
-        IKnownUIContexts knownUIContexts)
+    public TelemetryManager(ITelemetryChangeHandler telemetryChangeHandler, IKnownUIContexts knownUIContexts)
     {
         this.telemetryChangeHandler = telemetryChangeHandler;
         knownUiContexts = knownUIContexts;
@@ -66,17 +60,18 @@ internal sealed class TelemetryManager : ITelemetryManager,
     {
         telemetryChangeHandler.SendTelemetry(telemetryService => telemetryService.EnableTelemetry());
     }
-    
+
+
     public void OptOut()
     {
         telemetryChangeHandler.SendTelemetry(telemetryService => telemetryService.DisableTelemetry());
     }
 
-    public void LanguageAnalyzed(string languageKey, int analysisTimeMs = 0)
+    public void LanguageAnalyzed(string languageKey, TimeSpan analysisTime)
     {
         var language = Convert(languageKey);
         telemetryChangeHandler.SendTelemetry(telemetryService =>
-            telemetryService.AnalysisDoneOnSingleLanguage(new AnalysisDoneOnSingleLanguageParams(language, analysisTimeMs)));
+            telemetryService.AnalysisDoneOnSingleLanguage(new AnalysisDoneOnSingleLanguageParams(language, (int)Math.Round(analysisTime.TotalMilliseconds))));
     }
 
     public void TaintIssueInvestigatedLocally()
@@ -99,7 +94,7 @@ internal sealed class TelemetryManager : ITelemetryManager,
     {
         if (e.Activated)
         {
-            LanguageAnalyzed(SonarLanguageKeys.CSharp);
+            LanguageAnalyzed(SonarLanguageKeys.CSharp, TimeSpan.Zero);
         }
     }
 
@@ -107,7 +102,7 @@ internal sealed class TelemetryManager : ITelemetryManager,
     {
         if (e.Activated)
         {
-            LanguageAnalyzed(SonarLanguageKeys.VBNet);
+            LanguageAnalyzed(SonarLanguageKeys.VBNet, TimeSpan.Zero);
         }
     }
 
