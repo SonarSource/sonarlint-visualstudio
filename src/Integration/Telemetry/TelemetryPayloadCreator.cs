@@ -49,18 +49,6 @@ namespace SonarLint.VisualStudio.Integration
         public TelemetryPayloadCreator(IActiveSolutionBoundTracker solutionBindingTracker,
             IVsVersionProvider vsVersionProvider,
             INodeVersionInfoProvider nodeVersionInfoProvider,
-            ICompatibleNodeLocator compatibleNodeLocator)
-            : this(solutionBindingTracker,
-                vsVersionProvider,
-                nodeVersionInfoProvider,
-                compatibleNodeLocator,
-                DefaultCurrentTimeProvider.Instance)
-        {
-        }
-
-        internal TelemetryPayloadCreator(IActiveSolutionBoundTracker solutionBindingTracker,
-            IVsVersionProvider vsVersionProvider,
-            INodeVersionInfoProvider nodeVersionInfoProvider,
             ICompatibleNodeLocator compatibleNodeLocator,
             ICurrentTimeProvider currentTimeProvider)
         {

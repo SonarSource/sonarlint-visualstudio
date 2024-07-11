@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 
 namespace SonarLint.VisualStudio.Core.UnitTests.SystemAbstractions
@@ -30,25 +28,29 @@ namespace SonarLint.VisualStudio.Core.UnitTests.SystemAbstractions
     public class DefaultCurrentTimeProviderTests
     {
         [TestMethod]
-        public void Instance_ReturnsCurrentTime()
+        public void MefCtor_IsSingleton()
         {
-            var now = DefaultCurrentTimeProvider.Instance.Now;
-            now.Should().BeOnOrBefore(DateTimeOffset.Now);
-        }
-
-
-        [TestMethod]
-        public void Instance_ReturnsLocalTimeZone()
-        {
-            DefaultCurrentTimeProvider.Instance.LocalTimeZone.Should().Be(TimeZoneInfo.Local);
+            MefTestHelpers.CheckIsSingletonMefComponent<DefaultCurrentTimeProvider>();
         }
 
         [TestMethod]
-        public void Instance_IsSingleton()
+        public void MefCtor_CheckIsExported()
         {
-            var instance1 = DefaultCurrentTimeProvider.Instance;
-            var instance2 = DefaultCurrentTimeProvider.Instance;
-            instance1.Should().BeSameAs(instance2);
+            MefTestHelpers.CheckTypeCanBeImported<DefaultCurrentTimeProvider, ICurrentTimeProvider>();
+        }
+
+        [TestMethod]
+        public void Now_ReturnsCurrentTime()
+        {
+            ICurrentTimeProvider currentTimeProvider = new DefaultCurrentTimeProvider();
+            currentTimeProvider.Now.Should().BeOnOrBefore(DateTimeOffset.Now);
+        }
+
+        [TestMethod]
+        public void LocalTimeZone_ReturnsLocalTimeZone()
+        {
+            ICurrentTimeProvider currentTimeProvider = new DefaultCurrentTimeProvider();
+            currentTimeProvider.LocalTimeZone.Should().Be(TimeZoneInfo.Local);
         }
     }
 }
