@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Telemetry;
@@ -27,81 +26,76 @@ using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.TypeScript.Analyzer;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.Rules;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Collections.Generic;
-using System;
-using FluentAssertions;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer;
 
 [TestClass]
 public class CssAnalyzerTests
 {
-        private const string ValidFilePath = "some path";
-        private const string TelemetryLanguageName = "css";
-        private const string AnalyzerName = nameof(CssAnalyzer);
+    private const string ValidFilePath = "some path";
+    private const string TelemetryLanguageName = "css";
+    private const string AnalyzerName = nameof(CssAnalyzer);
 
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            var eslintBridgeClient = Mock.Of<ICssEslintBridgeClient>();
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
+    {
+        var eslintBridgeClient = Mock.Of<ICssEslintBridgeClient>();
 
-            var rulesProvider = Mock.Of<IRulesProvider>();
-            var rulesProviderFactory = new Mock<IRulesProviderFactory>();
-            rulesProviderFactory
-                .Setup(x => x.Create("css", Language.Css))
-                .Returns(rulesProvider);
+        var rulesProvider = Mock.Of<IRulesProvider>();
+        var rulesProviderFactory = new Mock<IRulesProviderFactory>();
+        rulesProviderFactory
+            .Setup(x => x.Create("css", Language.Css))
+            .Returns(rulesProvider);
 
-            var eslintBridgeAnalyzer = Mock.Of<IEslintBridgeAnalyzer>();
-            var eslintBridgeAnalyzerFactory = new Mock<IEslintBridgeAnalyzerFactory>();
-            eslintBridgeAnalyzerFactory
-                .Setup(x => x.Create(rulesProvider, eslintBridgeClient))
-                .Returns(eslintBridgeAnalyzer);
+        var eslintBridgeAnalyzer = Mock.Of<IEslintBridgeAnalyzer>();
+        var eslintBridgeAnalyzerFactory = new Mock<IEslintBridgeAnalyzerFactory>();
+        eslintBridgeAnalyzerFactory
+            .Setup(x => x.Create(rulesProvider, eslintBridgeClient))
+            .Returns(eslintBridgeAnalyzer);
 
-            MefTestHelpers.CheckTypeCanBeImported<CssAnalyzer, IAnalyzer>(
-                MefTestHelpers.CreateExport<ICssEslintBridgeClient>(eslintBridgeClient),
-                MefTestHelpers.CreateExport<IRulesProviderFactory>(rulesProviderFactory.Object),
-                MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
-                MefTestHelpers.CreateExport<IEslintBridgeAnalyzerFactory>(eslintBridgeAnalyzerFactory.Object),
-                MefTestHelpers.CreateExport<ITelemetryManager>(),
-                MefTestHelpers.CreateExport<IThreadHandling>());
-        }
+        MefTestHelpers.CheckTypeCanBeImported<CssAnalyzer, IAnalyzer>(
+            MefTestHelpers.CreateExport<ICssEslintBridgeClient>(eslintBridgeClient),
+            MefTestHelpers.CreateExport<IRulesProviderFactory>(rulesProviderFactory.Object),
+            MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
+            MefTestHelpers.CreateExport<IEslintBridgeAnalyzerFactory>(eslintBridgeAnalyzerFactory.Object),
+            MefTestHelpers.CreateExport<ITelemetryManager>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());
+    }
 
-        [TestMethod]
-        public void IsAnalysisSupported_NotTypeScript_False()
-        {
-            var testSubject = CreateTestSubject();
+    [TestMethod]
+    public void IsAnalysisSupported_NotTypeScript_False()
+    {
+        var testSubject = CreateTestSubject();
 
-            var languages = new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript };
-            var result = testSubject.IsAnalysisSupported(languages);
+        var languages = new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript };
+        var result = testSubject.IsAnalysisSupported(languages);
 
-            result.Should().BeFalse();
-        }
+        result.Should().BeFalse();
+    }
 
-        [TestMethod]
-        public void IsAnalysisSupported_HasCss_True()
-        {
-            var testSubject = CreateTestSubject();
+    [TestMethod]
+    public void IsAnalysisSupported_HasCss_True()
+    {
+        var testSubject = CreateTestSubject();
 
-            var languages = new[] { AnalysisLanguage.CFamily, AnalysisLanguage.TypeScript, AnalysisLanguage.CascadingStyleSheets };
-            var result = testSubject.IsAnalysisSupported(languages);
+        var languages = new[] { AnalysisLanguage.CFamily, AnalysisLanguage.TypeScript, AnalysisLanguage.CascadingStyleSheets };
+        var result = testSubject.IsAnalysisSupported(languages);
 
-            result.Should().BeTrue();
-        }
+        result.Should().BeTrue();
+    }
 
-        [TestMethod]
-        public async Task ExecuteAnalysisAsync_AlwaysCollectsTelemetry()
-        {
-            var telemetryManager = new Mock<ITelemetryManager>();
-            var client = SetupEslintBridgeAnalyzer(null);
+    [TestMethod]
+    public async Task ExecuteAnalysisAsync_AlwaysCollectsTelemetry()
+    {
+        var telemetryManager = new Mock<ITelemetryManager>();
+        var client = SetupEslintBridgeAnalyzer(null);
 
-            var testSubject = CreateTestSubject(client.Object, telemetryManager: telemetryManager.Object);
-            await testSubject.ExecuteAsync(ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
+        var testSubject = CreateTestSubject(client.Object, telemetryManager: telemetryManager.Object);
+        await testSubject.ExecuteAsync(ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
-            telemetryManager.Verify(x => x.LanguageAnalyzed(TelemetryLanguageName), Times.Once);
-            telemetryManager.VerifyNoOtherCalls();
-        }
+        telemetryManager.Verify(x => x.LanguageAnalyzed(TelemetryLanguageName, It.Is<TimeSpan>(value => value > TimeSpan.Zero)), Times.Once);
+        telemetryManager.VerifyNoOtherCalls();
+    }
 
     [TestMethod]
     public async Task ExecuteAnalysisAsync_ResponseWithNoIssues_ConsumerNotCalled()
