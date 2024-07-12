@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
     public class SLCoreConstantsProvider : ISLCoreConstantsProvider
     {
         private readonly Lazy<string> ideName;
-        private readonly IVsVersion ideVersion;
+        private readonly IVsVersionProvider vsVersionProvider;
 
         [ImportingConstructor]
         public SLCoreConstantsProvider(IVsUIServiceOperation vsUiServiceOperation, IVsVersionProvider vsVersionProvider)
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
                     });
                 }
             );
-            ideVersion = vsVersionProvider.Version;
+            this.vsVersionProvider = vsVersionProvider;
         }
 
         public ClientConstantsDto ClientConstants => new ClientConstantsDto(ideName.Value, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
 
         public TelemetryClientConstantAttributesDto TelemetryConstants => new("visualstudio", "SonarLint Visual Studio", VersionHelper.SonarLintVersion, VisualStudioHelpers.VisualStudioVersion, new Dictionary<string, object>
         {
-            { "slvs_ide_info", GetVsVersion(ideVersion) }
+            { "slvs_ide_info", GetVsVersion(vsVersionProvider.Version) }
         });
 
         public IReadOnlyList<Language> LanguagesInStandaloneMode =>
