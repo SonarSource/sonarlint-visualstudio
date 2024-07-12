@@ -124,7 +124,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
     private static void SetLanguagesConfigurationToDefaults(ISLCoreConstantsProvider constantsProvider)
     {
-        var defaultConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsUIServiceOperation>(), Substitute.For<IVsInfoProvider>());
+        var defaultConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsInfoProvider>());
         constantsProvider.LanguagesInStandaloneMode.Returns(defaultConstantsProvider.LanguagesInStandaloneMode);
         constantsProvider.SLCoreAnalyzableLanguages.Returns(defaultConstantsProvider.SLCoreAnalyzableLanguages);
     }
