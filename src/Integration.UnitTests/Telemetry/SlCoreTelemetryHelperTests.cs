@@ -20,6 +20,7 @@
 
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry;
@@ -72,7 +73,7 @@ public class SlCoreTelemetryHelperTests
 
         var status = testSubject.GetStatus();
 
-        status.Should().BeNull();
+        status.Should().Be(SlCoreTelemetryStatus.Unavailable);
         testLogger.OutputStrings.Should().BeEmpty();
     }
     
@@ -87,7 +88,7 @@ public class SlCoreTelemetryHelperTests
 
         var status = testSubject.GetStatus();
 
-        status.Should().Be(result);
+        status.Should().Be(result ? SlCoreTelemetryStatus.Enabled : SlCoreTelemetryStatus.Disabled);
     }
 
 
@@ -101,7 +102,7 @@ public class SlCoreTelemetryHelperTests
 
         var status = testSubject.GetStatus();
 
-        status.Should().BeNull();
+        status.Should().Be(SlCoreTelemetryStatus.Unavailable);
         testLogger.OutputStrings.Should().HaveCount(1);
     }
     
@@ -119,7 +120,7 @@ public class SlCoreTelemetryHelperTests
     }
 
     [TestMethod]
-    public void SendTelemetry_RunsOnBackgroundThread()
+    public void Notify_RunsOnBackgroundThread()
     {
         var threadHandling = Substitute.For<IThreadHandling>();
         threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(info => info.Arg<Func<Task<int>>>()().GetAwaiter().GetResult());
@@ -139,7 +140,7 @@ public class SlCoreTelemetryHelperTests
     }
     
     [TestMethod]
-    public void SendTelemetry_ServiceUnavailable_Discards()
+    public void Notify_ServiceUnavailable_Discards()
     {
         var testSubject = CreateTestSubject();
         var telemetryProducer = Substitute.For<Action<ITelemetrySLCoreService>>();
@@ -150,7 +151,7 @@ public class SlCoreTelemetryHelperTests
     }
     
     [TestMethod]
-    public void SendTelemetry_ServiceAvailable_CallsTelemetryProducer()
+    public void Notify_ServiceAvailable_CallsTelemetryProducer()
     {
         var serviceProvider = CreateTelemetryService(out var telemetryService);
         var testSubject = CreateTestSubject(serviceProvider);
