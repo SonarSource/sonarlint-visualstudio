@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
@@ -54,10 +51,10 @@ namespace SonarLint.VisualStudio.Integration
         public TelemetryManager(ITelemetryDataRepository telemetryRepository,
             IUserSettingsProvider userSettingsProvider,
             ITelemetryPayloadCreator telemetryPayloadCreator,
-            ILogger logger)
+            ILogger logger, ICurrentTimeProvider currentTimeProvider)
             : this(telemetryRepository, userSettingsProvider, telemetryPayloadCreator, logger,
                   new TelemetryClient(), new TelemetryTimer(telemetryRepository, new TimerFactory()),
-                  new KnownUIContextsWrapper(), DefaultCurrentTimeProvider.Instance)
+                  new KnownUIContextsWrapper(), currentTimeProvider)
         {
         }
 

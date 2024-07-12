@@ -20,6 +20,7 @@
 
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -37,7 +38,8 @@ public class SLCoreAnalyzerTests
         MefTestHelpers.CheckTypeCanBeImported<SLCoreAnalyzer, IAnalyzer>(
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
-            MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>());
+            MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(), 
+            MefTestHelpers.CreateExport<ICurrentTimeProvider>());
     }
 
     [TestMethod]
@@ -123,20 +125,18 @@ public class SLCoreAnalyzerTests
     [TestMethod]
     public void ExecuteAnalysis_PassesCorrectArgumentsToAnalysisService()
     {
-        var timestampTestStart = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+        var expectedTimeStamp = DateTimeOffset.Now;
         var analysisId = Guid.NewGuid();
-        var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"));
+        var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"), currentTimeProvider:CreatCurrentTimeProvider(expectedTimeStamp));
 
         testSubject.ExecuteAnalysis(@"C:\file\path", analysisId, default, default, default, default, default);
 
-        var timestampTestAssert = DateTimeOffset.Now.ToUnixTimeMilliseconds();
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a => 
                 a.analysisId == analysisId 
                 && a.configurationScopeId == "someconfigscopeid"
                 && a.filesToAnalyze.Single() == new FileUri(@"C:\file\path")
                 && a.extraProperties != null
-                && a.startTime >= timestampTestStart
-                && a.startTime <= timestampTestAssert),
+                && a.startTime == expectedTimeStamp.ToUnixTimeMilliseconds()),
             Arg.Any<CancellationToken>());
     }
     
@@ -247,15 +247,27 @@ public class SLCoreAnalyzerTests
         return analysisStatusNotifierFactory;
     }
 
+    private static ICurrentTimeProvider CreatCurrentTimeProvider(DateTimeOffset nowTime)
+    {
+        var currentTimeProvider = Substitute.For<ICurrentTimeProvider>();
+        currentTimeProvider.Now.Returns(nowTime);
+
+        return currentTimeProvider;
+    }
+
+
     private static SLCoreAnalyzer CreateTestSubject(ISLCoreServiceProvider slCoreServiceProvider = null,
         IActiveConfigScopeTracker activeConfigScopeTracker = null,
-        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory = null)
+        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory = null, 
+        ICurrentTimeProvider currentTimeProvider = null)
     {
         slCoreServiceProvider ??= Substitute.For<ISLCoreServiceProvider>();
         activeConfigScopeTracker ??= Substitute.For<IActiveConfigScopeTracker>();
         analysisStatusNotifierFactory ??= Substitute.For<IAnalysisStatusNotifierFactory>();
+        currentTimeProvider ??= Substitute.For<ICurrentTimeProvider>();
         return new SLCoreAnalyzer(slCoreServiceProvider,
             activeConfigScopeTracker,
-            analysisStatusNotifierFactory);
+            analysisStatusNotifierFactory, 
+            currentTimeProvider);
     }
 }

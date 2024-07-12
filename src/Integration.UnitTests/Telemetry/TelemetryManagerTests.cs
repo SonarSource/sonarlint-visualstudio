@@ -38,7 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
         // Fixed time to use in tests in which the specific time is not checked or manipulated
         private readonly DateTimeOffset AnyValidTime = new DateTimeOffset(2020, 06, 04, 11, 01, 02, TimeSpan.FromHours(1));
-        private readonly ICurrentTimeProvider currentTimeProvider = DefaultCurrentTimeProvider.Instance;
 
         private Mock<ITelemetryDataRepository> telemetryRepositoryMock;
         private Mock<ITelemetryClient> telemetryClientMock;
@@ -47,6 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         private Mock<IKnownUIContexts> knownUIContexts;
         private Mock<IUserSettingsProvider> userSettingsProvider;
         private Mock<ITelemetryPayloadCreator> payloadCreatorMock;
+        private Mock<ICurrentTimeProvider> currentTimeProvider;
 
         [TestInitialize]
         public void TestInitialize()
@@ -58,7 +58,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
             knownUIContexts = new Mock<IKnownUIContexts>();
             userSettingsProvider = new Mock<IUserSettingsProvider>();
             payloadCreatorMock = new Mock<ITelemetryPayloadCreator>();
+            currentTimeProvider = new Mock<ICurrentTimeProvider>();
 
+            currentTimeProvider.Setup(mock => mock.Now).Returns(DateTime.Now);
             SetupUserSettingsProvider(new RulesSettings());
         }
 
@@ -361,7 +363,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
         private TelemetryManager CreateManager(ICurrentTimeProvider mockTimeProvider = null) =>
             new(telemetryRepositoryMock.Object, userSettingsProvider.Object, payloadCreatorMock.Object, loggerMock.Object, telemetryClientMock.Object,
-            telemetryTimerMock.Object, knownUIContexts.Object, mockTimeProvider ?? currentTimeProvider);
+            telemetryTimerMock.Object, knownUIContexts.Object, mockTimeProvider ?? currentTimeProvider.Object);
 
         #region Languages analyzed tests
 

@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 
 namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
@@ -38,15 +39,10 @@ namespace SonarLint.VisualStudio.Core.SystemAbstractions
         TimeZoneInfo LocalTimeZone { get; }
     }
 
+    [Export(typeof(ICurrentTimeProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public sealed class DefaultCurrentTimeProvider : ICurrentTimeProvider
     {
-        public static ICurrentTimeProvider Instance { get; } = new DefaultCurrentTimeProvider();
-
-        private DefaultCurrentTimeProvider()
-        {
-            // Can't be publicly constructed
-        }
-
         DateTimeOffset ICurrentTimeProvider.Now => DateTimeOffset.Now;
 
         TimeZoneInfo ICurrentTimeProvider.LocalTimeZone => TimeZoneInfo.Local;
