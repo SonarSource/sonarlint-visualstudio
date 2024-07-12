@@ -21,7 +21,6 @@
 using System.Reflection;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.VsInfo;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
@@ -46,6 +45,21 @@ public class SLCoreConstantsProviderTests
     public void MefCtor_CheckIsSingleton()
     {
         MefTestHelpers.CheckIsSingletonMefComponent<SLCoreConstantsProvider>();
+    }
+    
+    [TestMethod]
+    public void ClientConstants_ShouldBeExpected()
+    {
+        const string ideName = "MyIde";
+        var infoProvider = Substitute.For<IVsInfoProvider>();
+        infoProvider.Name.Returns(ideName);
+        var testSubject = CreateTestSubject(infoProvider);
+        var expectedClientConstants = new ClientConstantsDto(ideName,
+            $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}",
+            Process.GetCurrentProcess().Id);
+        var actual = testSubject.ClientConstants;
+
+        actual.Should().BeEquivalentTo(expectedClientConstants);
     }
 
     [TestMethod]
