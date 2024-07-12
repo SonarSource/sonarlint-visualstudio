@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.Telemetry.Payload;
+using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
