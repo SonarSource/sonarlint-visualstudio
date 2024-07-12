@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Service
 
         private static string GetSonarLintVersion()
         {
-            return FileVersionInfo.GetVersionInfo(typeof(TelemetryTimer).Assembly.Location).FileVersion;
+            return FileVersionInfo.GetVersionInfo(typeof(VersionHelper).Assembly.Location).FileVersion;
         }
 
         /// <summary>
