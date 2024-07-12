@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
 
         private void RunAnalysis(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken)
         {
-            var analysisStartTime = DateTime.Now;
+            var analysisStopwatch = Stopwatch.StartNew();
             statusNotifier?.AnalysisStarted();
 
             var messageHandler = consumer == null
@@ -177,8 +177,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
                 {
                     if (messageHandler.AnalysisSucceeded)
                     {
-                        var analysisTime = DateTime.Now - analysisStartTime;
-                        statusNotifier?.AnalysisFinished(messageHandler.IssueCount, analysisTime);
+                        statusNotifier?.AnalysisFinished(messageHandler.IssueCount, analysisStopwatch.Elapsed);
                     }
                     else
                     {
@@ -191,7 +190,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
                 statusNotifier?.AnalysisFailed(ex);
             }
 
-            telemetryManager.LanguageAnalyzed(request.Context.CFamilyLanguage); // different keys for C and C++
+            telemetryManager.LanguageAnalyzed(request.Context.CFamilyLanguage, analysisStopwatch.Elapsed); // different keys for C and C++
         }
 
         internal /* for testing */ static void ExecuteSubProcess(Action<Message> handleMessage, IRequest request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken, IFileSystem fileSystem)

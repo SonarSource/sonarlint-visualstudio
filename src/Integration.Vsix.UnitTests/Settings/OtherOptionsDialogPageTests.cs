@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
         {
             // Arrange
             var telemetryManager = new Mock<ITelemetryManager>();
-            telemetryManager.Setup(x => x.IsAnonymousDataShared).Returns(true);
+            telemetryManager.Setup(x => x.GetStatus()).Returns(SlCoreTelemetryStatus.Enabled);
 
             var optionsPage = CreateTestSubject(telemetryManager.Object);
 
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
         {
             // Arrange
             var telemetryManager = new Mock<ITelemetryManager>();
-            telemetryManager.Setup(x => x.IsAnonymousDataShared).Returns(false);
+            telemetryManager.Setup(x => x.GetStatus()).Returns(SlCoreTelemetryStatus.Disabled);
             var optionsPage = CreateTestSubject(telemetryManager.Object);
 
             // Act
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
             // Arrange
             var isOptInOrOptOutCalled = false;
             var telemetryManager = new Mock<ITelemetryManager>();
-            telemetryManager.Setup(x => x.IsAnonymousDataShared).Returns(false);
+            telemetryManager.Setup(x => x.GetStatus()).Returns(SlCoreTelemetryStatus.Disabled);
             telemetryManager.Setup(x => x.OptIn()).Callback(() => isOptInOrOptOutCalled = true);
             telemetryManager.Setup(x => x.OptOut()).Callback(() => isOptInOrOptOutCalled = true);
 
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
             // Arrange
             var isOptInOrOptOutCalled = false;
             var telemetryManager = new Mock<ITelemetryManager>();
-            telemetryManager.Setup(x => x.IsAnonymousDataShared).Returns(true);
+            telemetryManager.Setup(x => x.GetStatus()).Returns(SlCoreTelemetryStatus.Enabled);
             telemetryManager.Setup(x => x.OptIn()).Callback(() => isOptInOrOptOutCalled = true);
             telemetryManager.Setup(x => x.OptOut()).Callback(() => isOptInOrOptOutCalled = true);
 
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
             var isOptInCalled = false;
             var isOptOutCalled = false;
             var telemetryManager = new Mock<ITelemetryManager>();
-            telemetryManager.Setup(x => x.IsAnonymousDataShared).Returns(false);
+            telemetryManager.Setup(x => x.GetStatus()).Returns(SlCoreTelemetryStatus.Disabled);
             telemetryManager.Setup(x => x.OptIn()).Callback(() => isOptInCalled = true);
             telemetryManager.Setup(x => x.OptOut()).Callback(() => isOptOutCalled = true);
 
@@ -184,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Tests
             var isOptInCalled = false;
             var isOptOutCalled = false;
             var telemetryManager = new Mock<ITelemetryManager>();
-            telemetryManager.Setup(x => x.IsAnonymousDataShared).Returns(true);
+            telemetryManager.Setup(x => x.GetStatus()).Returns(SlCoreTelemetryStatus.Enabled);
             telemetryManager.Setup(x => x.OptIn()).Callback(() => isOptInCalled = true);
             telemetryManager.Setup(x => x.OptOut()).Callback(() => isOptOutCalled = true);
 

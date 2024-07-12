@@ -94,12 +94,12 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         public async Task ExecuteAnalysis_AlwaysCollectsTelemetry()
         {
             var telemetryManager = new Mock<ITelemetryManager>();
-            var client = SetupEslintBridgeAnalyzer(null);
+            var client = SetupEslintBridgeAnalyzer();
 
             var testSubject = CreateTestSubject(client.Object, telemetryManager: telemetryManager.Object);
             await testSubject.ExecuteAsync(ValidFilePath, Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
-            telemetryManager.Verify(x => x.LanguageAnalyzed(TelemetryLanguageName), Times.Once);
+            telemetryManager.Verify(x => x.LanguageAnalyzed(TelemetryLanguageName, It.Is<TimeSpan>(value => value > TimeSpan.Zero)), Times.Once);
             telemetryManager.VerifyNoOtherCalls();
         }
 
