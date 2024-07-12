@@ -20,7 +20,7 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Core.VsVersion;
+using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Telemetry;
@@ -35,10 +35,10 @@ namespace SonarLint.VisualStudio.Integration.SLCore
     public class SLCoreConstantsProvider : ISLCoreConstantsProvider
     {
         private readonly Lazy<string> ideName;
-        private readonly IVsVersionProvider vsVersionProvider;
+        private readonly IVsInfoProvider vsInfoProvider;
 
         [ImportingConstructor]
-        public SLCoreConstantsProvider(IVsUIServiceOperation vsUiServiceOperation, IVsVersionProvider vsVersionProvider)
+        public SLCoreConstantsProvider(IVsUIServiceOperation vsUiServiceOperation, IVsInfoProvider vsInfoProvider)
         {
             // lazy is used to keep the mef-constructor free threaded and to avoid calling this multiple times
             ideName = new Lazy<string>(() =>
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
                     });
                 }
             );
-            this.vsVersionProvider = vsVersionProvider;
+            this.vsInfoProvider = vsInfoProvider;
         }
 
         public ClientConstantsDto ClientConstants => new ClientConstantsDto(ideName.Value, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
 
         public TelemetryClientConstantAttributesDto TelemetryConstants => new("visualstudio", "SonarLint Visual Studio", VersionHelper.SonarLintVersion, VisualStudioHelpers.VisualStudioVersion, new Dictionary<string, object>
         {
-            { "slvs_ide_info", GetVsVersion(vsVersionProvider.Version) }
+            { "slvs_ide_info", GetVsVersion(vsInfoProvider.Version) }
         });
 
         public IReadOnlyList<Language> LanguagesInStandaloneMode =>

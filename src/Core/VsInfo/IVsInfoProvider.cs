@@ -18,16 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.VsVersion
+namespace SonarLint.VisualStudio.Core.VsInfo
 {
     /// <summary>
-    /// Provides the current VS version information.
-    /// Logs exceptions and returns null if a failure occurred.
+    /// Provides the current VS information such as the Version and Name.
     /// </summary>
-    public interface IVsVersionProvider
+    public interface IVsInfoProvider
     {
         /// <summary>
         /// Cached value of current VS version
+        /// Logs exceptions and returns null if a failure occurred.
         /// </summary>
         IVsVersion Version { get; }
     }

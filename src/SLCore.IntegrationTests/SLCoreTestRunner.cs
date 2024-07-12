@@ -22,7 +22,7 @@ using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.VsVersion;
+using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.SLCore;
@@ -124,7 +124,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
     private static void SetLanguagesConfigurationToDefaults(ISLCoreConstantsProvider constantsProvider)
     {
-        var defaultConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsUIServiceOperation>(), Substitute.For<IVsVersionProvider>());
+        var defaultConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsUIServiceOperation>(), Substitute.For<IVsInfoProvider>());
         constantsProvider.LanguagesInStandaloneMode.Returns(defaultConstantsProvider.LanguagesInStandaloneMode);
         constantsProvider.SLCoreAnalyzableLanguages.Returns(defaultConstantsProvider.SLCoreAnalyzableLanguages);
     }

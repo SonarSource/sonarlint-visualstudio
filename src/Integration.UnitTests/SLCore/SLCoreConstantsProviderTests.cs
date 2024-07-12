@@ -21,7 +21,7 @@
 using System.Reflection;
 using Microsoft.VisualStudio.Shell.Interop;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core.VsVersion;
+using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.SLCore;
@@ -41,7 +41,7 @@ public class SLCoreConstantsProviderTests
     {
         MefTestHelpers.CheckTypeCanBeImported<SLCoreConstantsProvider, ISLCoreConstantsProvider>(
             MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
-            MefTestHelpers.CreateExport<IVsVersionProvider>());
+            MefTestHelpers.CreateExport<IVsInfoProvider>());
     }
 
     [TestMethod]
@@ -89,14 +89,14 @@ public class SLCoreConstantsProviderTests
     [TestMethod]
     public void TelemetryConstants_ShouldBeExpected()
     {
-        var versionProvider = Substitute.For<IVsVersionProvider>();
+        var versionProvider = Substitute.For<IVsInfoProvider>();
         var version = Substitute.For<IVsVersion>();
         version.DisplayName.Returns("Visual Studio Professional 2022");
         version.InstallationVersion.Returns("17.10.55645.41");
         version.DisplayVersion.Returns("17.10.0 Preview 3.0");
         versionProvider.Version.Returns(version);
 
-        var testSubject = CreateTestSubject(versionProvider: versionProvider);
+        var testSubject = CreateTestSubject(infoProvider: versionProvider);
         VisualStudioHelpers.VisualStudioVersion = "1.2.3.4";
         var expectedString = $$"""
                          {
@@ -123,10 +123,10 @@ public class SLCoreConstantsProviderTests
     [TestMethod]
     public void TelemetryConstants_WhenVsVersionNull_ReturnNullWithoutException()
     {
-        var versionProvider = Substitute.For<IVsVersionProvider>();
+        var versionProvider = Substitute.For<IVsInfoProvider>();
         versionProvider.Version.Returns((IVsVersion) null);
 
-        var testSubject = CreateTestSubject(versionProvider: versionProvider);
+        var testSubject = CreateTestSubject(infoProvider: versionProvider);
         VisualStudioHelpers.VisualStudioVersion = "1.2.3.4";
 
         var actual = testSubject.TelemetryConstants;
@@ -189,7 +189,7 @@ public class SLCoreConstantsProviderTests
         languages.Should().NotContainNulls();
     }
 
-    private SLCoreConstantsProvider CreateTestSubject(out IVsShell vsShell, IVsVersionProvider versionProvider = null,
+    private SLCoreConstantsProvider CreateTestSubject(out IVsShell vsShell, IVsInfoProvider infoProvider = null,
         object ideName = null)
     {
         var substituteVsShell = Substitute.For<IVsShell>();
@@ -206,13 +206,13 @@ public class SLCoreConstantsProviderTests
             return 0;
         });
 
-        versionProvider ??= Substitute.For<IVsVersionProvider>();
+        infoProvider ??= Substitute.For<IVsInfoProvider>();
 
-        return new SLCoreConstantsProvider(vsServiceOperation, versionProvider);
+        return new SLCoreConstantsProvider(vsServiceOperation, infoProvider);
     }
 
-    private SLCoreConstantsProvider CreateTestSubject(IVsVersionProvider versionProvider = null, object ideName = null)
+    private SLCoreConstantsProvider CreateTestSubject(IVsInfoProvider infoProvider = null, object ideName = null)
     {
-        return CreateTestSubject(out _, versionProvider, ideName);
+        return CreateTestSubject(out _, infoProvider, ideName);
     }
 }
