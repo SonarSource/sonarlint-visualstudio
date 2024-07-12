@@ -50,7 +50,7 @@ public class SlCoreTelemetryHelperTests
     public void GetStatus_RunsOnBackgroundThreadSynchronously()
     {
         var threadHandling = Substitute.For<IThreadHandling>();
-        threadHandling.Run(Arg.Any<Func<Task<bool?>>>()).Returns(info => Task.Run(() => info.Arg<Func<Task<bool?>>>()()).GetAwaiter().GetResult());
+        threadHandling.Run(Arg.Any<Func<Task<SlCoreTelemetryStatus>>>()).Returns(info => Task.Run(() => info.Arg<Func<Task<SlCoreTelemetryStatus>>>()()).GetAwaiter().GetResult());
         threadHandling.SwitchToBackgroundThread().Returns(new NoOpThreadHandler.NoOpAwaitable());
         var serviceProvider = Substitute.For<ISLCoreServiceProvider>();
         var testSubject = CreateTestSubject(serviceProvider, threadHandling);
@@ -59,7 +59,7 @@ public class SlCoreTelemetryHelperTests
 
         Received.InOrder(() =>
         {
-            threadHandling.Run(Arg.Any<Func<Task<bool?>>>());
+            threadHandling.Run(Arg.Any<Func<Task<SlCoreTelemetryStatus>>>());
             threadHandling.SwitchToBackgroundThread();
             serviceProvider.TryGetTransientService(out Arg.Any<ITelemetrySLCoreService>());
         });
