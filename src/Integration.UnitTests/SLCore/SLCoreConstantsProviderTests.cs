@@ -102,7 +102,7 @@ public class SLCoreConstantsProviderTests
                          {
                            "productKey": "visualstudio",
                            "productName": "SonarLint Visual Studio",
-                           "productVersion": "{{typeof(TelemetryTimer).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version}}",
+                           "productVersion": "{{typeof(VersionHelper).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version}}",
                            "ideVersion": "1.2.3.4",
                            "additionalAttributes": {
                              "slvs_ide_info": {
