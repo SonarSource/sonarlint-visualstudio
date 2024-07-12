@@ -34,13 +34,13 @@ internal sealed class TelemetryManager : ITelemetryManager,
     IQuickFixesTelemetryManager,
     IDisposable
 {
-    private readonly ITelemetryChangeHandler telemetryChangeHandler;
+    private readonly ISlCoreTelemetryHelper telemetryHelper;
     private readonly IKnownUIContexts knownUiContexts;
 
     [ImportingConstructor]
-    public TelemetryManager(ITelemetryChangeHandler telemetryChangeHandler, IKnownUIContexts knownUIContexts)
+    public TelemetryManager(ISlCoreTelemetryHelper telemetryHelper, IKnownUIContexts knownUIContexts)
     {
-        this.telemetryChangeHandler = telemetryChangeHandler;
+        this.telemetryHelper = telemetryHelper;
         knownUiContexts = knownUIContexts;
         knownUiContexts.CSharpProjectContextChanged += OnCSharpProjectContextChanged;
         knownUiContexts.VBProjectContextChanged += OnVBProjectContextChanged;
@@ -48,40 +48,40 @@ internal sealed class TelemetryManager : ITelemetryManager,
 
     public void QuickFixApplied(string ruleId)
     {
-        telemetryChangeHandler.SendTelemetry(telemetryService => telemetryService.AddQuickFixAppliedForRule(new AddQuickFixAppliedForRuleParams(ruleId)));
+        telemetryHelper.Notify(telemetryService => telemetryService.AddQuickFixAppliedForRule(new AddQuickFixAppliedForRuleParams(ruleId)));
     }
 
-    public bool? GetStatus()
+    public SlCoreTelemetryStatus GetStatus()
     {
-        return telemetryChangeHandler.GetStatus();
+        return telemetryHelper.GetStatus();
     }
 
     public void OptIn()
     {
-        telemetryChangeHandler.SendTelemetry(telemetryService => telemetryService.EnableTelemetry());
+        telemetryHelper.Notify(telemetryService => telemetryService.EnableTelemetry());
     }
 
 
     public void OptOut()
     {
-        telemetryChangeHandler.SendTelemetry(telemetryService => telemetryService.DisableTelemetry());
+        telemetryHelper.Notify(telemetryService => telemetryService.DisableTelemetry());
     }
 
     public void LanguageAnalyzed(string languageKey, TimeSpan analysisTime)
     {
         var language = Convert(languageKey);
-        telemetryChangeHandler.SendTelemetry(telemetryService =>
+        telemetryHelper.Notify(telemetryService =>
             telemetryService.AnalysisDoneOnSingleLanguage(new AnalysisDoneOnSingleLanguageParams(language, (int)Math.Round(analysisTime.TotalMilliseconds))));
     }
 
     public void TaintIssueInvestigatedLocally()
     {
-        telemetryChangeHandler.SendTelemetry(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedLocally());
+        telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedLocally());
     }
 
     public void TaintIssueInvestigatedRemotely()
     {
-        telemetryChangeHandler.SendTelemetry(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedRemotely());
+        telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedRemotely());
     }
     
     public void Dispose()

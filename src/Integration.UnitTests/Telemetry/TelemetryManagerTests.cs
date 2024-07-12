@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.SLCore.Service.Telemetry;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
-namespace SonarLint.VisualStudio.Integration.Tests;
+namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry;
 
 [TestClass]
 public class TelemetryManagerTests
@@ -35,11 +35,11 @@ public class TelemetryManagerTests
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<TelemetryManager, ITelemetryManager>(
-            MefTestHelpers.CreateExport<ITelemetryChangeHandler>(),
+            MefTestHelpers.CreateExport<ISlCoreTelemetryHelper>(),
             MefTestHelpers.CreateExport<IKnownUIContexts>());
         
         MefTestHelpers.CheckTypeCanBeImported<TelemetryManager, IQuickFixesTelemetryManager>(
-            MefTestHelpers.CreateExport<ITelemetryChangeHandler>(),
+            MefTestHelpers.CreateExport<ISlCoreTelemetryHelper>(),
             MefTestHelpers.CreateExport<IKnownUIContexts>());
     }
 
@@ -50,10 +50,10 @@ public class TelemetryManagerTests
     }
     
     [DataTestMethod]
-    [DataRow(null)]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void GetStatus_CallsRpcService(bool? status)
+    [DataRow(SlCoreTelemetryStatus.Unavailable)]
+    [DataRow(SlCoreTelemetryStatus.Disabled)]
+    [DataRow(SlCoreTelemetryStatus.Enabled)]
+    public void GetStatus_CallsRpcService(SlCoreTelemetryStatus status)
     {
         CreteTelemetryService(out var telemetryHandler, out _);
         telemetryHandler.GetStatus().Returns(status);
@@ -72,7 +72,7 @@ public class TelemetryManagerTests
         
         Received.InOrder(() =>
         {
-            telemetryHandler.SendTelemetry(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.DisableTelemetry();
         });
     }
@@ -87,7 +87,7 @@ public class TelemetryManagerTests
         
         Received.InOrder(() =>
         {
-            telemetryHandler.SendTelemetry(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.EnableTelemetry();
         });
     }
@@ -102,7 +102,7 @@ public class TelemetryManagerTests
         
         Received.InOrder(() =>
         {
-            telemetryHandler.SendTelemetry(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.TaintVulnerabilitiesInvestigatedLocally();
         });
     }
@@ -117,7 +117,7 @@ public class TelemetryManagerTests
         
         Received.InOrder(() =>
         {
-            telemetryHandler.SendTelemetry(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.TaintVulnerabilitiesInvestigatedRemotely();
         });
     }
@@ -132,7 +132,7 @@ public class TelemetryManagerTests
         
         Received.InOrder(() =>
         {
-            telemetryHandler.SendTelemetry(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.AddQuickFixAppliedForRule(Arg.Is<AddQuickFixAppliedForRuleParams>(a => a.ruleKey == "myrule"));
         });
     }
@@ -155,7 +155,7 @@ public class TelemetryManagerTests
         
         Received.InOrder(() =>
         {
-            telemetryHandler.SendTelemetry(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.AnalysisDoneOnSingleLanguage(Arg.Is<AnalysisDoneOnSingleLanguageParams>(a => a.language == language && a.analysisTimeMs == analysisTimeMs));
         });
     }
@@ -188,17 +188,17 @@ public class TelemetryManagerTests
         telemetryService.Received(activated ? 1 : 0).AnalysisDoneOnSingleLanguage(Arg.Is<AnalysisDoneOnSingleLanguageParams>(a => a.language == Language.VBNET));
     }
 
-    private static void CreteTelemetryService(out ITelemetryChangeHandler telemetryHandler, out ITelemetrySLCoreService telemetryService)
+    private static void CreteTelemetryService(out ISlCoreTelemetryHelper telemetryHandler, out ITelemetrySLCoreService telemetryService)
     {
-        telemetryHandler = Substitute.For<ITelemetryChangeHandler>();
+        telemetryHandler = Substitute.For<ISlCoreTelemetryHelper>();
         var telemetryServiceMock = Substitute.For<ITelemetrySLCoreService>();
         telemetryService = telemetryServiceMock;
         telemetryHandler
-            .When(x => x.SendTelemetry(Arg.Any<Action<ITelemetrySLCoreService>>()))
+            .When(x => x.Notify(Arg.Any<Action<ITelemetrySLCoreService>>()))
             .Do(callInfo => callInfo.Arg<Action<ITelemetrySLCoreService>>()(telemetryServiceMock));
     }
 
-    private static TelemetryManager CreateTestSubject(ITelemetryChangeHandler telemetryHandler, IKnownUIContexts uiContexts = null)
+    private static TelemetryManager CreateTestSubject(ISlCoreTelemetryHelper telemetryHandler, IKnownUIContexts uiContexts = null)
     {
         uiContexts ??= Substitute.For<IKnownUIContexts>();
         return new TelemetryManager(telemetryHandler, uiContexts);

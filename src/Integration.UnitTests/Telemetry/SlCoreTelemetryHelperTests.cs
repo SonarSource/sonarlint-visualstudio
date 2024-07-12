@@ -28,12 +28,12 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry;
 
 [TestClass]
-public class TelemetryChangeHandlerTests
+public class SlCoreTelemetryHelperTests
 {
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<TelemetryChangeHandler, ITelemetryChangeHandler>(
+        MefTestHelpers.CheckTypeCanBeImported<SlCoreTelemetryHelper, ISlCoreTelemetryHelper>(
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ILogger>());
@@ -42,7 +42,7 @@ public class TelemetryChangeHandlerTests
     [TestMethod]
     public void MefCtor_CheckIsSingleton()
     {
-        MefTestHelpers.CheckIsSingletonMefComponent<TelemetryChangeHandler>();
+        MefTestHelpers.CheckIsSingletonMefComponent<SlCoreTelemetryHelper>();
     }
     
     [TestMethod]
@@ -128,7 +128,7 @@ public class TelemetryChangeHandlerTests
         var testSubject = CreateTestSubject(serviceProvider, threadHandling);
         var telemetryProducer = Substitute.For<Action<ITelemetrySLCoreService>>();
 
-        testSubject.SendTelemetry(telemetryProducer);
+        testSubject.Notify(telemetryProducer);
         
         Received.InOrder(() =>
         {
@@ -144,7 +144,7 @@ public class TelemetryChangeHandlerTests
         var testSubject = CreateTestSubject();
         var telemetryProducer = Substitute.For<Action<ITelemetrySLCoreService>>();
 
-        testSubject.SendTelemetry(telemetryProducer);
+        testSubject.Notify(telemetryProducer);
         
         telemetryProducer.DidNotReceiveWithAnyArgs().Invoke(default);
     }
@@ -156,7 +156,7 @@ public class TelemetryChangeHandlerTests
         var testSubject = CreateTestSubject(serviceProvider);
         var telemetryProducer = Substitute.For<Action<ITelemetrySLCoreService>>();
 
-        testSubject.SendTelemetry(telemetryProducer);
+        testSubject.Notify(telemetryProducer);
         
         telemetryProducer.Received().Invoke(telemetryService);
     }
@@ -174,11 +174,11 @@ public class TelemetryChangeHandlerTests
         return serviceProvider;
     }
     
-    private TelemetryChangeHandler CreateTestSubject(ISLCoreServiceProvider slCoreServiceProvider = null, IThreadHandling threadHandling = null, ILogger logger = null)
+    private SlCoreTelemetryHelper CreateTestSubject(ISLCoreServiceProvider slCoreServiceProvider = null, IThreadHandling threadHandling = null, ILogger logger = null)
     {
         slCoreServiceProvider ??= Substitute.For<ISLCoreServiceProvider>();
         threadHandling ??= new NoOpThreadHandler();
         logger ??= new TestLogger();
-        return new TelemetryChangeHandler(slCoreServiceProvider, threadHandling, logger);
+        return new SlCoreTelemetryHelper(slCoreServiceProvider, threadHandling, logger);
     }
 }

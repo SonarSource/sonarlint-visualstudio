@@ -21,38 +21,39 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry;
 
 namespace SonarLint.VisualStudio.Integration.Telemetry;
 
-[Export(typeof(ITelemetryChangeHandler))]
+[Export(typeof(ISlCoreTelemetryHelper))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class TelemetryChangeHandler : ITelemetryChangeHandler
+internal class SlCoreTelemetryHelper : ISlCoreTelemetryHelper
 {
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
 
     [ImportingConstructor]
-    public TelemetryChangeHandler(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling, ILogger logger)
+    public SlCoreTelemetryHelper(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling, ILogger logger)
     {
         this.serviceProvider = serviceProvider;
         this.threadHandling = threadHandling;
         this.logger = logger;
     }
 
-    public bool? GetStatus()
+    public SlCoreTelemetryStatus GetStatus()
     {
         return threadHandling.Run(async () =>
         {
-            bool? result = null;
+            var result = SlCoreTelemetryStatus.Unavailable;
             try
             {
                 await threadHandling.SwitchToBackgroundThread();
                 if (serviceProvider.TryGetTransientService(out ITelemetrySLCoreService telemetryService))
                 {
-                    result = (await telemetryService.GetStatusAsync()).enabled;
+                    result = (await telemetryService.GetStatusAsync()).enabled ? SlCoreTelemetryStatus.Enabled : SlCoreTelemetryStatus.Disabled;
                 }
 
             }
@@ -65,7 +66,7 @@ internal class TelemetryChangeHandler : ITelemetryChangeHandler
         });
     }
     
-    public void SendTelemetry(Action<ITelemetrySLCoreService> telemetryProducer)
+    public void Notify(Action<ITelemetrySLCoreService> telemetryProducer)
     {
         threadHandling
             .RunOnBackgroundThread(() =>

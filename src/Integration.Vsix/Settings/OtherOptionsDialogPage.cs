@@ -41,16 +41,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             base.OnActivate(e);
 
-            var telemetryStatus = this.TelemetryManager?.GetStatus();
+            var telemetryStatus = this.TelemetryManager?.GetStatus() ?? SlCoreTelemetryStatus.Unavailable;
             SetEnabled(telemetryStatus);
-            optionsDialogControl.ShareAnonymousData.IsChecked = telemetryStatus ?? false;
+            optionsDialogControl.ShareAnonymousData.IsChecked = telemetryStatus is SlCoreTelemetryStatus.Enabled;
         }
 
-        private void SetEnabled(bool? telemetryStatus)
+        private void SetEnabled(SlCoreTelemetryStatus telemetryStatus)
         {
-            optionsDialogControl.ShareAnonymousData.IsEnabled = telemetryStatus.HasValue;
-            optionsDialogControl.ShareAnonymousData.Foreground = telemetryStatus.HasValue ? Brushes.Black : Brushes.Gray;
-            optionsDialogControl.BackendStartedText.Visibility = telemetryStatus.HasValue ? Visibility.Hidden : Visibility.Visible;
+            optionsDialogControl.ShareAnonymousData.IsEnabled = telemetryStatus is not SlCoreTelemetryStatus.Unavailable;
+            optionsDialogControl.ShareAnonymousData.Foreground = telemetryStatus is SlCoreTelemetryStatus.Unavailable ? Brushes.Gray : Brushes.Black;
+            optionsDialogControl.BackendStartedText.Visibility = telemetryStatus is SlCoreTelemetryStatus.Unavailable ? Visibility.Visible : Visibility.Hidden;
         }
 
         protected override void OnApply(PageApplyEventArgs e)
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (e.ApplyBehavior == ApplyKind.Apply &&
                 this.TelemetryManager != null)
             {
-                var wasShared = this.TelemetryManager.GetStatus() ?? false;
+                var wasShared = this.TelemetryManager.GetStatus() is SlCoreTelemetryStatus.Enabled;
                 var isShared = this.optionsDialogControl.ShareAnonymousData.IsChecked ?? true;
 
                 if (wasShared && !isShared)

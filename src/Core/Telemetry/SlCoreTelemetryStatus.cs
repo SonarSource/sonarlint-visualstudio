@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Telemetry
+namespace SonarLint.VisualStudio.Core.Telemetry;
+
+public enum SlCoreTelemetryStatus
 {
-    public interface ITelemetryManager
-    {
-        SlCoreTelemetryStatus GetStatus();
-        void OptOut();
-        void OptIn();
-        void LanguageAnalyzed(string languageKey, TimeSpan analysisTime);
-        void TaintIssueInvestigatedLocally();
-        void TaintIssueInvestigatedRemotely();
-    }
+    Unavailable,
+    Enabled,
+    Disabled
 }
