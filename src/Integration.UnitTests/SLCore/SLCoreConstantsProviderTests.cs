@@ -91,9 +91,9 @@ public class SLCoreConstantsProviderTests
     {
         var versionProvider = Substitute.For<IVsVersionProvider>();
         var version = Substitute.For<IVsVersion>();
-        version.DisplayName.Returns("VISUAL STUDIO");
-        version.InstallationVersion.Returns("INSTALLATION VERSION");
-        version.DisplayVersion.Returns("DISPLAY VERSION");
+        version.DisplayName.Returns("Visual Studio Professional 2022");
+        version.InstallationVersion.Returns("17.10.55645.41");
+        version.DisplayVersion.Returns("17.10.0 Preview 3.0");
         versionProvider.Version.Returns(version);
 
         var testSubject = CreateTestSubject(versionProvider: versionProvider);
@@ -102,13 +102,13 @@ public class SLCoreConstantsProviderTests
                          {
                            "productKey": "visualstudio",
                            "productName": "SonarLint Visual Studio",
-                           "productVersion": "{{typeof(TelemetryData).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version}}",
+                           "productVersion": "{{typeof(TelemetryTimer).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version}}",
                            "ideVersion": "1.2.3.4",
                            "additionalAttributes": {
                              "slvs_ide_info": {
-                               "name": "VISUAL STUDIO",
-                               "install_version": "INSTALLATION VERSION",
-                               "display_version": "DISPLAY VERSION"
+                               "name": "Visual Studio Professional 2022",
+                               "install_version": "17.10.55645.41",
+                               "display_version": "17.10.0 Preview 3.0"
                              }
                            }
                          }
