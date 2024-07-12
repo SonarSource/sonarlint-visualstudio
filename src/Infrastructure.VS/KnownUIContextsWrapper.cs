@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell;
 
@@ -37,6 +38,8 @@ namespace SonarLint.VisualStudio.Integration
     }
 
     [ExcludeFromCodeCoverage] // Wrapper around Visual Studio
+    [Export(typeof(IKnownUIContexts))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class KnownUIContextsWrapper : IKnownUIContexts
     {
         public event EventHandler<UIContextChangedEventArgs> SolutionBuildingContextChanged

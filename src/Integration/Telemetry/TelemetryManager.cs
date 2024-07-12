@@ -18,263 +18,107 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.Telemetry;
-using SonarLint.VisualStudio.Integration.Telemetry.Payload;
+using SonarLint.VisualStudio.SLCore.Service.Telemetry;
+using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Integration.Telemetry;
+
+[Export(typeof(ITelemetryManager))]
+[Export(typeof(IQuickFixesTelemetryManager))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal sealed class TelemetryManager : ITelemetryManager,
+    IQuickFixesTelemetryManager,
+    IDisposable
 {
-    [Export(typeof(ITelemetryManager))]
-    [Export(typeof(IQuickFixesTelemetryManager))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public sealed class TelemetryManager : ITelemetryManager, 
-        IQuickFixesTelemetryManager,
-        IDisposable
+    private readonly ISlCoreTelemetryHelper telemetryHelper;
+    private readonly IKnownUIContexts knownUiContexts;
+
+    [ImportingConstructor]
+    public TelemetryManager(ISlCoreTelemetryHelper telemetryHelper, IKnownUIContexts knownUIContexts)
     {
-        private const string SecretsRepositoryKey = "secrets:";
+        this.telemetryHelper = telemetryHelper;
+        knownUiContexts = knownUIContexts;
+        knownUiContexts.CSharpProjectContextChanged += OnCSharpProjectContextChanged;
+        knownUiContexts.VBProjectContextChanged += OnVBProjectContextChanged;
+    }
 
-        private readonly ITelemetryClient telemetryClient;
-        private readonly ILogger logger;
-        private readonly ITelemetryTimer telemetryTimer;
-        private readonly ITelemetryDataRepository telemetryRepository;
-        private readonly IKnownUIContexts knownUIContexts;
-        private readonly ICurrentTimeProvider currentTimeProvider;
-        private readonly IUserSettingsProvider userSettingsProvider;
-        private readonly ITelemetryPayloadCreator telemetryPayloadCreator;
+    public void QuickFixApplied(string ruleId)
+    {
+        telemetryHelper.Notify(telemetryService => telemetryService.AddQuickFixAppliedForRule(new AddQuickFixAppliedForRuleParams(ruleId)));
+    }
 
-        private static readonly object Lock = new object();
+    public SlCoreTelemetryStatus GetStatus()
+    {
+        return telemetryHelper.GetStatus();
+    }
 
-        [ImportingConstructor]
-        public TelemetryManager(ITelemetryDataRepository telemetryRepository,
-            IUserSettingsProvider userSettingsProvider,
-            ITelemetryPayloadCreator telemetryPayloadCreator,
-            ILogger logger)
-            : this(telemetryRepository, userSettingsProvider, telemetryPayloadCreator, logger,
-                  new TelemetryClient(), new TelemetryTimer(telemetryRepository, new TimerFactory()),
-                  new KnownUIContextsWrapper(), DefaultCurrentTimeProvider.Instance)
+    public void OptIn()
+    {
+        telemetryHelper.Notify(telemetryService => telemetryService.EnableTelemetry());
+    }
+
+
+    public void OptOut()
+    {
+        telemetryHelper.Notify(telemetryService => telemetryService.DisableTelemetry());
+    }
+
+    public void LanguageAnalyzed(string languageKey, TimeSpan analysisTime)
+    {
+        var language = Convert(languageKey);
+        telemetryHelper.Notify(telemetryService =>
+            telemetryService.AnalysisDoneOnSingleLanguage(new AnalysisDoneOnSingleLanguageParams(language, (int)Math.Round(analysisTime.TotalMilliseconds))));
+    }
+
+    public void TaintIssueInvestigatedLocally()
+    {
+        telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedLocally());
+    }
+
+    public void TaintIssueInvestigatedRemotely()
+    {
+        telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedRemotely());
+    }
+    
+    public void Dispose()
+    {
+        knownUiContexts.CSharpProjectContextChanged -= OnCSharpProjectContextChanged;
+        knownUiContexts.VBProjectContextChanged -= OnVBProjectContextChanged;
+    }
+
+    private void OnCSharpProjectContextChanged(object sender, UIContextChangedEventArgs e)
+    {
+        if (e.Activated)
         {
+            LanguageAnalyzed(SonarLanguageKeys.CSharp, TimeSpan.Zero);
         }
+    }
 
-        public TelemetryManager(ITelemetryDataRepository telemetryRepository,
-            IUserSettingsProvider userSettingsProvider,
-            ITelemetryPayloadCreator telemetryPayloadCreator,
-            ILogger logger,
-            ITelemetryClient telemetryClient,
-            ITelemetryTimer telemetryTimer,
-            IKnownUIContexts knownUIContexts,
-            ICurrentTimeProvider currentTimeProvider)
+    private void OnVBProjectContextChanged(object sender, UIContextChangedEventArgs e)
+    {
+        if (e.Activated)
         {
-            this.telemetryRepository = telemetryRepository;
-            this.logger = logger;
-            this.telemetryClient = telemetryClient;
-            this.telemetryTimer = telemetryTimer;
-            this.knownUIContexts = knownUIContexts;
-            this.currentTimeProvider = currentTimeProvider;
-            this.userSettingsProvider = userSettingsProvider;
-            this.telemetryPayloadCreator = telemetryPayloadCreator;
-
-
-            if (this.telemetryRepository.Data.InstallationDate == DateTimeOffset.MinValue)
-            {
-                this.telemetryRepository.Data.InstallationDate = currentTimeProvider.Now;
-                this.telemetryRepository.Save();
-            }
-
-            if (IsAnonymousDataShared)
-            {
-                EnableAllEvents();
-            }
+            LanguageAnalyzed(SonarLanguageKeys.VBNet, TimeSpan.Zero);
         }
+    }
 
-        public bool IsAnonymousDataShared => telemetryRepository.Data.IsAnonymousDataShared;
-
-        public void Dispose()
+    private static Language Convert(string languageKey)
+    {
+        return languageKey switch
         {
-            DisableAllEvents();
-
-            (telemetryTimer as IDisposable)?.Dispose();
-            (telemetryClient as IDisposable)?.Dispose();
-            (telemetryRepository as IDisposable)?.Dispose();
-        }
-
-        public void OptIn()
-        {
-            telemetryRepository.Data.IsAnonymousDataShared = true;
-            telemetryRepository.Save();
-
-            EnableAllEvents();
-        }
-
-        public async void OptOut()
-        {
-            telemetryRepository.Data.IsAnonymousDataShared = false;
-            telemetryRepository.Save();
-
-            DisableAllEvents();
-
-            await telemetryClient.OptOutAsync(telemetryPayloadCreator.Create(telemetryRepository.Data));
-        }
-
-        private void DisableAllEvents()
-        {
-            telemetryTimer.Elapsed -= OnTelemetryTimerElapsed;
-            telemetryTimer.Stop();
-
-            knownUIContexts.SolutionBuildingContextChanged -= this.OnAnalysisRun;
-            knownUIContexts.SolutionExistsAndFullyLoadedContextChanged -= this.OnAnalysisRun;
-            knownUIContexts.CSharpProjectContextChanged -= OnCSharpProjectContextChanged;
-            knownUIContexts.VBProjectContextChanged -= OnVBProjectContextChanged;
-        }
-
-        private void EnableAllEvents()
-        {
-            telemetryTimer.Elapsed += OnTelemetryTimerElapsed;
-            telemetryTimer.Start();
-
-            knownUIContexts.SolutionBuildingContextChanged += this.OnAnalysisRun;
-            knownUIContexts.SolutionExistsAndFullyLoadedContextChanged += this.OnAnalysisRun;
-            knownUIContexts.CSharpProjectContextChanged += OnCSharpProjectContextChanged;
-            knownUIContexts.VBProjectContextChanged += OnVBProjectContextChanged;
-        }
-
-        private void OnCSharpProjectContextChanged(object sender, UIContextChangedEventArgs e)
-        {
-            if (e.Activated)
-            {
-                LanguageAnalyzed(SonarLanguageKeys.CSharp);
-            }
-        }
-
-        private void OnVBProjectContextChanged(object sender, UIContextChangedEventArgs e)
-        {
-            if (e.Activated)
-            {
-                LanguageAnalyzed(SonarLanguageKeys.VBNet);
-            }
-        }
-
-        private void OnAnalysisRun(object sender, UIContextChangedEventArgs e)
-        {
-            if (e.Activated)
-            {
-                this.Update();
-            }
-        }
-
-        public void Update()
-        {
-            try
-            {
-                var lastAnalysisDate = telemetryRepository.Data.LastSavedAnalysisDate;
-                var now = currentTimeProvider.Now;
-                if (!now.IsSameDay(lastAnalysisDate, currentTimeProvider.LocalTimeZone))
-                {
-                    // Fix up bad days_of_use data. See #1440: https://github.com/SonarSource/sonarlint-visualstudio/issues/1440
-                    var maxPossibleDaysOfUse = now.DaysPassedSince(telemetryRepository.Data.InstallationDate) + 1;
-                    var daysOfUse = Math.Min(telemetryRepository.Data.NumberOfDaysOfUse + 1, maxPossibleDaysOfUse);
-
-                    telemetryRepository.Data.LastSavedAnalysisDate = now;
-                    telemetryRepository.Data.NumberOfDaysOfUse = daysOfUse;
-                    telemetryRepository.Save();
-                }
-            }
-            catch (Exception ex) when (!Core.ErrorHandler.IsCriticalException(ex))
-            {
-                // Suppress non-critical exceptions
-                logger.WriteLine(Resources.Strings.Telemetry_ERROR_Recording, ex.Message);
-            }
-        }
-
-        public void LanguageAnalyzed(string languageKey)
-        {
-            Debug.Assert(!string.IsNullOrEmpty(languageKey), "Supplied languageKey should not be null/empty");
-            Debug.Assert(telemetryRepository.Data != null);
-
-            lock (Lock)
-            {
-                if (!telemetryRepository.Data.Analyses.Any(x => string.Equals(x.Language, languageKey, StringComparison.OrdinalIgnoreCase)))
-                {
-                    telemetryRepository.Data.Analyses.Add(new Analysis { Language = languageKey });
-                    telemetryRepository.Save();
-                }
-            }
-        }
-
-        public void ShowHotspotRequested()
-        {
-            Debug.Assert(telemetryRepository.Data != null);
-
-            ++telemetryRepository.Data.ShowHotspot.NumberOfRequests;
-            telemetryRepository.Save();
-        }
-
-        public void TaintIssueInvestigatedLocally()
-        {
-            Debug.Assert(telemetryRepository.Data != null);
-
-            ++telemetryRepository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally;
-            telemetryRepository.Save();
-        }
-
-        public void TaintIssueInvestigatedRemotely()
-        {
-            Debug.Assert(telemetryRepository.Data != null);
-
-            ++telemetryRepository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely;
-            telemetryRepository.Save();
-        }
-
-        public void QuickFixApplied(string ruleId)
-        {
-            var rulesUsage = telemetryRepository.Data.RulesUsage;
-
-            lock (Lock)
-            {
-                if (!rulesUsage.RulesWithAppliedQuickFixes.Contains(ruleId))
-                {
-                    rulesUsage.RulesWithAppliedQuickFixes.Add(ruleId);
-                    rulesUsage.RulesWithAppliedQuickFixes = rulesUsage.RulesWithAppliedQuickFixes.OrderBy(x => x).ToList();
-                    telemetryRepository.Save();
-                }
-            }
-        }
-
-        private async void OnTelemetryTimerElapsed(object sender, TelemetryTimerEventArgs e)
-        {
-            try
-            {
-                telemetryRepository.Data.LastUploadDate = e.SignalTime;
-
-                var disabledSecretRules = userSettingsProvider.UserSettings.RulesSettings.Rules
-                    .Where(x => x.Key.StartsWith(SecretsRepositoryKey) && x.Value.Level == RuleLevel.Off)
-                    .Select(x => x.Key)
-                    .OrderBy(x => x)
-                    .ToList();
-
-                telemetryRepository.Data.RulesUsage.EnabledByDefaultThatWereDisabled = disabledSecretRules;
-
-                await telemetryClient.SendPayloadAsync(telemetryPayloadCreator.Create(telemetryRepository.Data));
-
-                // Reset daily data
-                telemetryRepository.Data.Analyses = new System.Collections.Generic.List<Analysis>();
-                telemetryRepository.Data.ShowHotspot = new ShowHotspot();
-                telemetryRepository.Data.TaintVulnerabilities = new TaintVulnerabilities();
-                telemetryRepository.Data.ServerNotifications = new ServerNotifications();
-                telemetryRepository.Data.CFamilyProjectTypes = new CFamilyProjectTypes();
-                telemetryRepository.Data.RulesUsage = new RulesUsage();
-                telemetryRepository.Save();
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                // Suppress non-critical exceptions
-                logger.WriteLine(Resources.Strings.Telemetry_ERROR_SendingTelemetry, ex.Message);
-            }
-        }
+            SonarLanguageKeys.CPlusPlus => Language.CPP,
+            SonarLanguageKeys.C => Language.C,
+            SonarLanguageKeys.Css => Language.CSS,
+            SonarLanguageKeys.JavaScript => Language.JS,
+            SonarLanguageKeys.TypeScript => Language.TS,
+            SonarLanguageKeys.VBNet => Language.VBNET,
+            SonarLanguageKeys.CSharp => Language.CS,
+            SonarLanguageKeys.Secrets => Language.SECRETS,
+            _ => throw new ArgumentOutOfRangeException(nameof(languageKey), languageKey, null)
+        };
     }
 }

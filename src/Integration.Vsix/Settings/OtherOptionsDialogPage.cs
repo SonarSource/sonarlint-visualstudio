@@ -19,13 +19,15 @@
  */
 
 using System.ComponentModel;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using System.Windows.Media;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core.Telemetry;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    [ExcludeFromCodeCoverage] // https://github.com/SonarSource/sonarlint-visualstudio/issues/2760
     internal class OtherOptionsDialogPage : UIElementDialogPage
     {
         public const string PageName = "Other";
@@ -39,7 +41,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             base.OnActivate(e);
 
-            this.optionsDialogControl.ShareAnonymousData.IsChecked = this.TelemetryManager?.IsAnonymousDataShared ?? false;
+            var telemetryStatus = this.TelemetryManager?.GetStatus() ?? SlCoreTelemetryStatus.Unavailable;
+            SetEnabled(telemetryStatus);
+            optionsDialogControl.ShareAnonymousData.IsChecked = telemetryStatus is SlCoreTelemetryStatus.Enabled;
+        }
+
+        private void SetEnabled(SlCoreTelemetryStatus telemetryStatus)
+        {
+            optionsDialogControl.ShareAnonymousData.IsEnabled = telemetryStatus is not SlCoreTelemetryStatus.Unavailable;
+            optionsDialogControl.ShareAnonymousData.Foreground = telemetryStatus is SlCoreTelemetryStatus.Unavailable ? Brushes.Gray : Brushes.Black;
+            optionsDialogControl.BackendStartedText.Visibility = telemetryStatus is SlCoreTelemetryStatus.Unavailable ? Visibility.Visible : Visibility.Hidden;
         }
 
         protected override void OnApply(PageApplyEventArgs e)
@@ -47,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (e.ApplyBehavior == ApplyKind.Apply &&
                 this.TelemetryManager != null)
             {
-                var wasShared = this.TelemetryManager.IsAnonymousDataShared;
+                var wasShared = this.TelemetryManager.GetStatus() is SlCoreTelemetryStatus.Enabled;
                 var isShared = this.optionsDialogControl.ShareAnonymousData.IsChecked ?? true;
 
                 if (wasShared && !isShared)
