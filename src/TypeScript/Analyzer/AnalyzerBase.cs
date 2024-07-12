@@ -76,23 +76,24 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         internal async Task ExecuteAsync(string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
         {
-            telemetryManager.LanguageAnalyzed(telemetryLanguageKey);
             analysisStatusNotifier = analysisStatusNotifierFactory.Create(concreteAnalyzerName, filePath);
 
             await threadHandling.SwitchToBackgroundThread();
             analysisStatusNotifier.AnalysisStarted();
-
+            var analysisStopwatch = Stopwatch.StartNew();
+            
             try
             {
                 var tsConfigResult = await GetTsConfigAsync(filePath, cancellationToken);
 
-                if (tsConfigResult.hasError) { return; }
-
-                var stopwatch = Stopwatch.StartNew();
+                if (tsConfigResult.hasError)
+                {
+                    return;
+                }
 
                 var issues = await eslintBridgeAnalyzer.Value.Analyze(filePath, tsConfigResult.tsConfig, cancellationToken);
-                analysisStatusNotifier.AnalysisFinished(issues.Count, stopwatch.Elapsed);
-
+                analysisStatusNotifier.AnalysisFinished(issues.Count, analysisStopwatch.Elapsed);
+                
                 if (issues.Any())
                 {
                     consumer.Accept(filePath, issues);
@@ -110,6 +111,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             {
                 analysisStatusNotifier.AnalysisFailed(ex);
             }
+            
+            telemetryManager.LanguageAnalyzed(telemetryLanguageKey, analysisStopwatch.Elapsed);
         }
 
         public void Dispose()
