@@ -28,22 +28,26 @@ namespace SonarLint.VisualStudio.Core.UnitTests.SystemAbstractions
     public class DefaultCurrentTimeProviderTests
     {
         [TestMethod]
-        public void MefCtor_IsSingleton()
-        {
-            MefTestHelpers.CheckIsSingletonMefComponent<DefaultCurrentTimeProvider>();
-        }
-
-        [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<DefaultCurrentTimeProvider, ICurrentTimeProvider>();
         }
 
         [TestMethod]
+        public void MefCtor_IsSingleton()
+        {
+            MefTestHelpers.CheckIsSingletonMefComponent<DefaultCurrentTimeProvider>();
+        }
+
+        [TestMethod]
         public void Now_ReturnsCurrentTime()
         {
             ICurrentTimeProvider currentTimeProvider = new DefaultCurrentTimeProvider();
-            currentTimeProvider.Now.Should().BeOnOrBefore(DateTimeOffset.Now);
+
+            var currentTime = currentTimeProvider.Now;
+            var expectedTime = DateTime.Now;
+
+            currentTime.Should().BeCloseTo(expectedTime);
         }
 
         [TestMethod]
