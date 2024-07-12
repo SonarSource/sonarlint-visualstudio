@@ -20,8 +20,10 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
+using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
@@ -33,9 +35,10 @@ namespace SonarLint.VisualStudio.Integration.SLCore
     public class SLCoreConstantsProvider : ISLCoreConstantsProvider
     {
         private readonly Lazy<string> ideName;
+        private readonly IVsVersionProvider vsVersionProvider;
 
         [ImportingConstructor]
-        public SLCoreConstantsProvider(IVsUIServiceOperation vsUiServiceOperation)
+        public SLCoreConstantsProvider(IVsUIServiceOperation vsUiServiceOperation, IVsVersionProvider vsVersionProvider)
         {
             // lazy is used to keep the mef-constructor free threaded and to avoid calling this multiple times
             ideName = new Lazy<string>(() =>
@@ -47,14 +50,17 @@ namespace SonarLint.VisualStudio.Integration.SLCore
                     });
                 }
             );
+            this.vsVersionProvider = vsVersionProvider;
         }
 
         public ClientConstantsDto ClientConstants => new ClientConstantsDto(ideName.Value, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
 
         public FeatureFlagsDto FeatureFlags => new FeatureFlagsDto(true, true, true, true, false, false, true, false);
 
-        //We do not support telemetry now
-        public TelemetryClientConstantAttributesDto TelemetryConstants => new TelemetryClientConstantAttributesDto("SLVS_SHOULD_NOT_SEND_TELEMETRY", default, default, default, default);
+        public TelemetryClientConstantAttributesDto TelemetryConstants => new("visualstudio", "SonarLint Visual Studio", VersionHelper.SonarLintVersion, VisualStudioHelpers.VisualStudioVersion, new Dictionary<string, object>
+        {
+            { "slvs_ide_info", GetVsVersion(vsVersionProvider.Version) }
+        });
 
         public IReadOnlyList<Language> LanguagesInStandaloneMode =>
         [
@@ -72,5 +78,20 @@ namespace SonarLint.VisualStudio.Integration.SLCore
         [
             Language.SECRETS
         ];
+        
+        private static IdeVersionInformation GetVsVersion(IVsVersion vsVersion)
+        {
+            if (vsVersion == null)
+            {
+                return null;
+            }
+
+            return new IdeVersionInformation
+            {
+                DisplayName = vsVersion.DisplayName,
+                InstallationVersion = vsVersion.InstallationVersion,
+                DisplayVersion = vsVersion.DisplayVersion
+            };
+        }
     }
 }
