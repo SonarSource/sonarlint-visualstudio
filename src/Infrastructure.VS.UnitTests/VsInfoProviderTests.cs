@@ -18,16 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.Infrastructure.VS.VsInfo;
-using SonarLint.VisualStudio.TestInfrastructure;
 using IVsShell = Microsoft.VisualStudio.Shell.Interop.IVsShell;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
@@ -133,10 +129,52 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             setupConfigurationProvider.VerifyAll();
         }
+        
+        [TestMethod]
+        public void Name_CalculatesName()
+        {
+            object name = "Microsoft Visual Studio Enterprise 2019";
+            var vsShell = new Mock<IVsShell>();
+            vsShell.Setup(x => x.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out name));
+            var serviceOperation = CreateServiceOperation(vsShell.Object);
+            var logger = new Mock<ILogger>();
+            var testSubject = new VsInfoProvider(serviceOperation, logger.Object);
+            
+            var vsName = testSubject.Name;
+            
+            vsName.Should().Be((string) name);
+        }
+        
+        [TestMethod]
+        public void Name_NameIsCached()
+        {
+            var vsShell = CreateVsShell();
+            var testSubject = CreateTestSubject(vsShell.Object);
+            
+            var vsName1 = testSubject.Name;
+            vsShell.Invocations.Clear();
 
-        private IVsInfoProvider CreateTestSubject(IVsShell vsShell, ISetupConfiguration2 setupConfiguration, ILogger logger = null)
+            var vsName2 = testSubject.Name;
+            
+            vsName1.Should().BeSameAs(vsName2);
+            vsShell.Invocations.Should().BeEmpty();
+        }
+        
+        [TestMethod]
+        public void Name_FailureToGetName_ReturnsDefault()
+        {
+            var vsShell = CreateVsShell();
+            var testSubject = CreateTestSubject(vsShell.Object);
+
+            var vsName = testSubject.Name;
+
+            vsName.Should().Be("Microsoft Visual Studio");
+        }
+
+        private IVsInfoProvider CreateTestSubject(IVsShell vsShell, ISetupConfiguration2 setupConfiguration = null, ILogger logger = null)
         {
             logger ??= Mock.Of<ILogger>();
+            setupConfiguration ??= Mock.Of<ISetupConfiguration2>();
 
             var setupConfigurationProvider = new Mock<ISetupConfigurationProvider>();
             setupConfigurationProvider.Setup(x => x.Get()).Returns(setupConfiguration);
@@ -151,6 +189,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             // Set up the mock to invoke the operation with the supplied VS service
             serviceOp.Setup(x => x.Execute<SVsShell, IVsShell, IVsVersion>(It.IsAny<Func<IVsShell, IVsVersion>>()))
                 .Returns<Func<IVsShell, IVsVersion>>(op => op(svcToPassToCallback));
+            serviceOp.Setup(x => x.Execute<SVsShell, IVsShell, string>(It.IsAny<Func<IVsShell, string>>()))
+                .Returns<Func<IVsShell, string>>(op => op(svcToPassToCallback));
 
             return serviceOp.Object;
         }

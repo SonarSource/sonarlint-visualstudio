@@ -31,8 +31,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.VsInfo
     internal class VsInfoProvider : IVsInfoProvider
     {
         private readonly Lazy<IVsVersion> lazyVersion;
+        private readonly Lazy<string> lazyName;
 
         public IVsVersion Version => lazyVersion.Value;
+        public string Name => lazyName.Value;
 
         [ImportingConstructor]
         public VsInfoProvider(IVsUIServiceOperation serviceOperation, ILogger logger)
@@ -44,6 +46,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.VsInfo
         {
             lazyVersion = new Lazy<IVsVersion>(() =>
                 serviceOperation.Execute<SVsShell, IVsShell, IVsVersion>(vsShell => CalculateVersion(vsShell, setupConfigurationProvider, logger)));
+            lazyName = new Lazy<string>(() =>
+                serviceOperation.Execute<SVsShell, IVsShell, string>(CalculateName));
         }
 
         private static IVsVersion CalculateVersion(IVsShell vsShell, ISetupConfigurationProvider setupConfigurationProvider, ILogger logger)
@@ -72,6 +76,20 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.VsInfo
                 logger.LogVerbose(Resources.FailedToCalculateVsVersion, ex);
 
                 return null;
+            }
+        }
+
+        private static string CalculateName(IVsShell vsShell)
+        {
+            const string defaultName = "Microsoft Visual Studio";
+            try
+            {
+                vsShell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out var name);
+                return name as string ?? defaultName;
+            }
+            catch (Exception)
+            {
+                return defaultName;
             }
         }
     }

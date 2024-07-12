@@ -30,6 +30,11 @@ namespace SonarLint.VisualStudio.Core.VsInfo
         /// Logs exceptions and returns null if a failure occurred.
         /// </summary>
         IVsVersion Version { get; }
+        
+        /// <summary>
+        /// Cached value of current VS name
+        /// </summary>
+        string Name { get; }
     }
 
 }
