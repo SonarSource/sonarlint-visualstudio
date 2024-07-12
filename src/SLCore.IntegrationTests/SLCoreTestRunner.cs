@@ -18,12 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.SLCore;
@@ -125,7 +124,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
     private static void SetLanguagesConfigurationToDefaults(ISLCoreConstantsProvider constantsProvider)
     {
-        var defaultConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsUIServiceOperation>());
+        var defaultConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsUIServiceOperation>(), Substitute.For<IVsVersionProvider>());
         constantsProvider.LanguagesInStandaloneMode.Returns(defaultConstantsProvider.LanguagesInStandaloneMode);
         constantsProvider.SLCoreAnalyzableLanguages.Returns(defaultConstantsProvider.SLCoreAnalyzableLanguages);
     }
