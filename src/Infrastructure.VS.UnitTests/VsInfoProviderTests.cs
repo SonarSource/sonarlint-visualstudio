@@ -18,32 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.VsVersion;
-using SonarLint.VisualStudio.Infrastructure.VS.VsVersion;
-using SonarLint.VisualStudio.TestInfrastructure;
+using SonarLint.VisualStudio.Core.VsInfo;
+using SonarLint.VisualStudio.Infrastructure.VS.VsInfo;
 using IVsShell = Microsoft.VisualStudio.Shell.Interop.IVsShell;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
     [TestClass]
-    public class VsVersionProviderTests
+    public class VsInfoProviderTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
-            => MefTestHelpers.CheckTypeCanBeImported<VsVersionProvider, IVsVersionProvider>(
+            => MefTestHelpers.CheckTypeCanBeImported<VsInfoProvider, IVsInfoProvider>(
                 MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
                 MefTestHelpers.CreateExport<ILogger>());
 
         [TestMethod]
         public void MefCtor_CheckIsSingleton()
-            => MefTestHelpers.CheckIsSingletonMefComponent<VsVersionProvider>();
+            => MefTestHelpers.CheckIsSingletonMefComponent<VsInfoProvider>();
 
         [TestMethod]
         public void MefCtor_DoesNotCallAnyServices()
@@ -51,7 +47,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var serviceOp = new Mock<IVsUIServiceOperation>();
             var logger = new Mock<ILogger>();
 
-            _ = new VsVersionProvider(serviceOp.Object, logger.Object);
+            _ = new VsInfoProvider(serviceOp.Object, logger.Object);
 
             // The MEF constructor should be free-threaded, which it will be if
             // it doesn't make any external calls.
@@ -127,21 +123,73 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                 .Setup(x => x.Get())
                 .Throws(new Exception("this is a test"));
 
-            var testSubject = new VsVersionProvider(CreateServiceOperation(vsShell.Object), setupConfigurationProvider.Object, Mock.Of<ILogger>());;
+            var testSubject = new VsInfoProvider(CreateServiceOperation(vsShell.Object), setupConfigurationProvider.Object, Mock.Of<ILogger>());;
 
             testSubject.Version.Should().BeNull();
 
             setupConfigurationProvider.VerifyAll();
         }
+        
+        [TestMethod]
+        public void Name_CalculatesName()
+        {
+            object name = "Microsoft Visual Studio Enterprise 2019";
+            var vsShell = new Mock<IVsShell>();
+            vsShell.Setup(x => x.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out name));
+            var serviceOperation = CreateServiceOperation(vsShell.Object);
+            var logger = new Mock<ILogger>();
+            var testSubject = new VsInfoProvider(serviceOperation, logger.Object);
+            
+            var vsName = testSubject.Name;
+            
+            vsName.Should().Be((string) name);
+        }
+        
+        [TestMethod]
+        public void Name_NameIsCached()
+        {
+            var vsShell = CreateVsShell();
+            var testSubject = CreateTestSubject(vsShell.Object);
+            
+            var vsName1 = testSubject.Name;
+            vsShell.Invocations.Clear();
 
-        private IVsVersionProvider CreateTestSubject(IVsShell vsShell, ISetupConfiguration2 setupConfiguration, ILogger logger = null)
+            var vsName2 = testSubject.Name;
+            
+            vsName1.Should().BeSameAs(vsName2);
+            vsShell.Invocations.Should().BeEmpty();
+        }
+        
+        [TestMethod]
+        public void Name_FailureToGetName_ReturnsDefault()
+        {
+            var vsShell = CreateVsShell();
+            var testSubject = CreateTestSubject(vsShell.Object);
+
+            var vsName = testSubject.Name;
+
+            vsName.Should().Be("Microsoft Visual Studio");
+        }
+        
+        [TestMethod]
+        public void Name_OnException_ReturnsDefault()
+        {
+            var testSubject = CreateTestSubject(null);
+
+            var vsName = testSubject.Name;
+
+            vsName.Should().Be("Microsoft Visual Studio");
+        }
+
+        private IVsInfoProvider CreateTestSubject(IVsShell vsShell, ISetupConfiguration2 setupConfiguration = null, ILogger logger = null)
         {
             logger ??= Mock.Of<ILogger>();
+            setupConfiguration ??= Mock.Of<ISetupConfiguration2>();
 
             var setupConfigurationProvider = new Mock<ISetupConfigurationProvider>();
             setupConfigurationProvider.Setup(x => x.Get()).Returns(setupConfiguration);
 
-            return new VsVersionProvider(CreateServiceOperation(vsShell), setupConfigurationProvider.Object, logger);
+            return new VsInfoProvider(CreateServiceOperation(vsShell), setupConfigurationProvider.Object, logger);
         }
 
         private IVsUIServiceOperation CreateServiceOperation(IVsShell svcToPassToCallback)
@@ -151,6 +199,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             // Set up the mock to invoke the operation with the supplied VS service
             serviceOp.Setup(x => x.Execute<SVsShell, IVsShell, IVsVersion>(It.IsAny<Func<IVsShell, IVsVersion>>()))
                 .Returns<Func<IVsShell, IVsVersion>>(op => op(svcToPassToCallback));
+            serviceOp.Setup(x => x.Execute<SVsShell, IVsShell, string>(It.IsAny<Func<IVsShell, string>>()))
+                .Returns<Func<IVsShell, string>>(op => op(svcToPassToCallback));
 
             return serviceOp.Object;
         }

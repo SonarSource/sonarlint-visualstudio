@@ -20,6 +20,7 @@
 
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Infrastructure.VS.VsInfo;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
@@ -33,7 +34,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void MajorInstallationVersion_CalculatedCorrectly(string installationVersion, string expectedMajorInstallationVersion)
         {
-            var testSubject = new VsVersion.VsVersion(null, installationVersion, null);
+            var testSubject = new VsVersion(null, installationVersion, null);
             testSubject.MajorInstallationVersion.Should().Be(expectedMajorInstallationVersion);
         }
     }
