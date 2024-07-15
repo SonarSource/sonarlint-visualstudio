@@ -18,18 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.VsVersion
+using Microsoft.VisualStudio.Setup.Configuration;
+
+namespace SonarLint.VisualStudio.Infrastructure.VS.VsInfo
 {
     /// <summary>
-    /// Provides the current VS version information.
-    /// Logs exceptions and returns null if a failure occurred.
+    /// Fix for https://github.com/SonarSource/sonarlint-visualstudio/issues/2229 - wrapped instantiation of <see cref="SetupConfiguration"/>
     /// </summary>
-    public interface IVsVersionProvider
+    internal interface ISetupConfigurationProvider
     {
-        /// <summary>
-        /// Cached value of current VS version
-        /// </summary>
-        IVsVersion Version { get; }
+        ISetupConfiguration2 Get();
     }
 
+    internal class SetupConfigurationProvider : ISetupConfigurationProvider
+    {
+        public ISetupConfiguration2 Get() => new SetupConfiguration();
+    }
 }
