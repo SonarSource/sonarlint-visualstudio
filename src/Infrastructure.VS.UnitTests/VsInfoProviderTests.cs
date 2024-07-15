@@ -170,6 +170,16 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             vsName.Should().Be("Microsoft Visual Studio");
         }
+        
+        [TestMethod]
+        public void Name_OnException_ReturnsDefault()
+        {
+            var testSubject = CreateTestSubject(null);
+
+            var vsName = testSubject.Name;
+
+            vsName.Should().Be("Microsoft Visual Studio");
+        }
 
         private IVsInfoProvider CreateTestSubject(IVsShell vsShell, ISetupConfiguration2 setupConfiguration = null, ILogger logger = null)
         {

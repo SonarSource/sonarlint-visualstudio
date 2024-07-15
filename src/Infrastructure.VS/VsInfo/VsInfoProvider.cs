@@ -81,8 +81,16 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.VsInfo
 
         private static string CalculateName(IVsShell vsShell)
         {
-            vsShell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out var name);
-            return name as string ?? "Microsoft Visual Studio";
+            const string defaultName = "Microsoft Visual Studio";
+            try
+            {
+                vsShell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out var name);
+                return name as string ?? defaultName;
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                return defaultName;
+            }
         }
     }
 }
