@@ -18,33 +18,36 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.VsVersion;
+using SonarLint.VisualStudio.Core.VsInfo;
 
-namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
+namespace SonarLint.VisualStudio.Infrastructure.VS.VsInfo
 {
-    [Export(typeof(IVsVersionProvider))]
+    [Export(typeof(IVsInfoProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class VsVersionProvider : IVsVersionProvider
+    internal class VsInfoProvider : IVsInfoProvider
     {
         private readonly Lazy<IVsVersion> lazyVersion;
+        private readonly Lazy<string> lazyName;
 
         public IVsVersion Version => lazyVersion.Value;
+        public string Name => lazyName.Value;
 
         [ImportingConstructor]
-        public VsVersionProvider(IVsUIServiceOperation serviceOperation, ILogger logger)
+        public VsInfoProvider(IVsUIServiceOperation serviceOperation, ILogger logger)
             : this(serviceOperation, new SetupConfigurationProvider(), logger)
         {
         }
 
-        internal VsVersionProvider(IVsUIServiceOperation serviceOperation, ISetupConfigurationProvider setupConfigurationProvider, ILogger logger)
+        internal VsInfoProvider(IVsUIServiceOperation serviceOperation, ISetupConfigurationProvider setupConfigurationProvider, ILogger logger)
         {
             lazyVersion = new Lazy<IVsVersion>(() =>
                 serviceOperation.Execute<SVsShell, IVsShell, IVsVersion>(vsShell => CalculateVersion(vsShell, setupConfigurationProvider, logger)));
+            lazyName = new Lazy<string>(() =>
+                serviceOperation.Execute<SVsShell, IVsShell, string>(CalculateName));
         }
 
         private static IVsVersion CalculateVersion(IVsShell vsShell, ISetupConfigurationProvider setupConfigurationProvider, ILogger logger)
@@ -73,6 +76,20 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
                 logger.LogVerbose(Resources.FailedToCalculateVsVersion, ex);
 
                 return null;
+            }
+        }
+
+        private static string CalculateName(IVsShell vsShell)
+        {
+            const string defaultName = "Microsoft Visual Studio";
+            try
+            {
+                vsShell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out var name);
+                return name as string ?? defaultName;
+            }
+            catch (Exception)
+            {
+                return defaultName;
             }
         }
     }

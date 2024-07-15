@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Notifications;
-using SonarLint.VisualStudio.Core.VsVersion;
+using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         {
             MefTestHelpers.CheckTypeCanBeImported<DisabledNotificationsStorage, IDisabledNotificationsStorage>(new[]
             {
-                MefTestHelpers.CreateExport<IVsVersionProvider>(),
+                MefTestHelpers.CreateExport<IVsInfoProvider>(),
                 MefTestHelpers.CreateExport<ILogger>()
             });
         }
@@ -280,12 +280,12 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             return file;
         }
 
-        private IVsVersionProvider CreateVsVersionProvider()
+        private IVsInfoProvider CreateVsVersionProvider()
         {
             var version = new Mock<IVsVersion>();
             version.SetupGet(v => v.MajorInstallationVersion).Returns(HardCodedVSVersion);
 
-            var versionProvider = new Mock<IVsVersionProvider>();
+            var versionProvider = new Mock<IVsInfoProvider>();
             versionProvider.SetupGet(vp => vp.Version).Returns(version.Object);
 
             return versionProvider.Object;
