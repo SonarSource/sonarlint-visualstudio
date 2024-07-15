@@ -19,9 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Core.VsVersion;
-using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarLint.VisualStudio.SLCore.Common.Models;
@@ -34,32 +32,21 @@ namespace SonarLint.VisualStudio.Integration.SLCore
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class SLCoreConstantsProvider : ISLCoreConstantsProvider
     {
-        private readonly Lazy<string> ideName;
-        private readonly IVsVersionProvider vsVersionProvider;
+        private readonly IVsInfoProvider vsInfoProvider;
 
         [ImportingConstructor]
-        public SLCoreConstantsProvider(IVsUIServiceOperation vsUiServiceOperation, IVsVersionProvider vsVersionProvider)
+        public SLCoreConstantsProvider(IVsInfoProvider vsInfoProvider)
         {
-            // lazy is used to keep the mef-constructor free threaded and to avoid calling this multiple times
-            ideName = new Lazy<string>(() =>
-                {
-                    return vsUiServiceOperation.Execute<SVsShell, IVsShell, string>(shell =>
-                    {
-                        shell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out var name);
-                        return name as string ?? "Microsoft Visual Studio";
-                    });
-                }
-            );
-            this.vsVersionProvider = vsVersionProvider;
+            this.vsInfoProvider = vsInfoProvider;
         }
 
-        public ClientConstantsDto ClientConstants => new ClientConstantsDto(ideName.Value, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
+        public ClientConstantsDto ClientConstants => new(vsInfoProvider.Name, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
 
-        public FeatureFlagsDto FeatureFlags => new FeatureFlagsDto(true, true, true, true, false, false, true, false);
+        public FeatureFlagsDto FeatureFlags => new(true, true, true, true, false, false, true, false);
 
         public TelemetryClientConstantAttributesDto TelemetryConstants => new("visualstudio", "SonarLint Visual Studio", VersionHelper.SonarLintVersion, VisualStudioHelpers.VisualStudioVersion, new Dictionary<string, object>
         {
-            { "slvs_ide_info", GetVsVersion(vsVersionProvider.Version) }
+            { "slvs_ide_info", GetVsVersion(vsInfoProvider.Version) }
         });
 
         public IReadOnlyList<Language> LanguagesInStandaloneMode =>

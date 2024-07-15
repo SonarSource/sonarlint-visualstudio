@@ -26,7 +26,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Resources;
-using SonarLint.VisualStudio.Core.VsVersion;
+using SonarLint.VisualStudio.Core.VsInfo;
 
 namespace SonarLint.VisualStudio.Core.Notifications
 {
@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class DisabledNotificationsStorage : IDisabledNotificationsStorage
     {
-        private readonly IVsVersionProvider vsVersionProvider;
+        private readonly IVsInfoProvider vsInfoProvider;
         private readonly IFileSystem fileSystem;
         private readonly IEnvironmentVariableProvider environmentVars;
         private readonly ILogger logger;
@@ -51,16 +51,16 @@ namespace SonarLint.VisualStudio.Core.Notifications
         private readonly object lockObject = new object();
 
         [ImportingConstructor]
-        public DisabledNotificationsStorage(IVsVersionProvider vsVersionProvider, ILogger logger)
-            : this(vsVersionProvider, logger, new FileSystem(), EnvironmentVariableProvider.Instance)
+        public DisabledNotificationsStorage(IVsInfoProvider vsInfoProvider, ILogger logger)
+            : this(vsInfoProvider, logger, new FileSystem(), EnvironmentVariableProvider.Instance)
         {
         }
 
-        internal /*for testing*/ DisabledNotificationsStorage(IVsVersionProvider vsVersionProvider, ILogger logger,
+        internal /*for testing*/ DisabledNotificationsStorage(IVsInfoProvider vsInfoProvider, ILogger logger,
             IFileSystem fileSystem,
             IEnvironmentVariableProvider environmentVars)
         {
-            this.vsVersionProvider = vsVersionProvider;
+            this.vsInfoProvider = vsInfoProvider;
             this.fileSystem = fileSystem;
             this.environmentVars = environmentVars;
             this.logger = logger;
@@ -145,7 +145,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
         private string GetFilePath()
         {
             string slvsRootPath = environmentVars.GetSLVSAppDataRootPath();
-            string fullPath = Path.Combine(slvsRootPath, vsVersionProvider.Version.MajorInstallationVersion, "internal.notifications.json");
+            string fullPath = Path.Combine(slvsRootPath, vsInfoProvider.Version.MajorInstallationVersion, "internal.notifications.json");
 
             return fullPath;
         }

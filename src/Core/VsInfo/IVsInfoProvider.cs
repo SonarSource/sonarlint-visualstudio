@@ -18,28 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.VsVersion
+namespace SonarLint.VisualStudio.Core.VsInfo
 {
-    public interface IVsVersion
+    /// <summary>
+    /// Provides the current VS information such as the Version and Name.
+    /// </summary>
+    public interface IVsInfoProvider
     {
         /// <summary>
-        /// VS full product name, including edition. Example: "Visual Studio Enterprise 2022"
+        /// Cached value of current VS version
+        /// Logs exceptions and returns null if a failure occurred.
         /// </summary>
-        string DisplayName { get; }
-
+        IVsVersion Version { get; }
+        
         /// <summary>
-        /// VS build version. Example: "16.9.30914.41"
+        /// Cached value of current VS name
         /// </summary>
-        string InstallationVersion { get; }
-
-        /// <summary>
-        /// VS display version, as seen in the About window. Example: "16.9.0 Preview 3.0"
-        /// </summary>
-        string DisplayVersion { get; }
-
-        /// <summary>
-        /// Major VS build version. Example: for "16.9.30914.41" it'll be "16"
-        /// </summary>
-        string MajorInstallationVersion { get; }
+        string Name { get; }
     }
+
 }

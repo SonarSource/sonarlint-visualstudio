@@ -18,20 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Setup.Configuration;
-
-namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
+namespace SonarLint.VisualStudio.Core.VsInfo
 {
-    /// <summary>
-    /// Fix for https://github.com/SonarSource/sonarlint-visualstudio/issues/2229 - wrapped instantiation of <see cref="SetupConfiguration"/>
-    /// </summary>
-    internal interface ISetupConfigurationProvider
+    public interface IVsVersion
     {
-        ISetupConfiguration2 Get();
-    }
+        /// <summary>
+        /// VS full product name, including edition. Example: "Visual Studio Enterprise 2022"
+        /// </summary>
+        string DisplayName { get; }
 
-    internal class SetupConfigurationProvider : ISetupConfigurationProvider
-    {
-        public ISetupConfiguration2 Get() => new SetupConfiguration();
+        /// <summary>
+        /// VS build version. Example: "16.9.30914.41"
+        /// </summary>
+        string InstallationVersion { get; }
+
+        /// <summary>
+        /// VS display version, as seen in the About window. Example: "16.9.0 Preview 3.0"
+        /// </summary>
+        string DisplayVersion { get; }
+
+        /// <summary>
+        /// Major VS build version. Example: for "16.9.30914.41" it'll be "16"
+        /// </summary>
+        string MajorInstallationVersion { get; }
     }
 }
