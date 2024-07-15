@@ -53,25 +53,24 @@ public class FileTracker : IFileTracker
 
     public void AddFiles(params SourceFile[] addedFiles)
     {
-        threadHandling.RunOnBackgroundThread(() => NotifySlCoreFilesChangedAsync([], addedFiles)).Forget();
+        threadHandling.RunOnBackgroundThread(() => NotifySlCoreFilesChanged([], addedFiles)).Forget();
     }
 
     public void RemoveFiles(params string[] removedFiles)
     {
-        threadHandling.RunOnBackgroundThread(() => NotifySlCoreFilesChangedAsync(removedFiles, [])).Forget();
+        threadHandling.RunOnBackgroundThread(() => NotifySlCoreFilesChanged(removedFiles, [])).Forget();
     }
 
     public void RenameFiles(string[] beforeRenameFiles, SourceFile[] afterRenameFiles)
     {
-        threadHandling.RunOnBackgroundThread(() => NotifySlCoreFilesChangedAsync(beforeRenameFiles, afterRenameFiles))
+        threadHandling.RunOnBackgroundThread(() => NotifySlCoreFilesChanged(beforeRenameFiles, afterRenameFiles))
             .Forget();
     }
 
-    private Task NotifySlCoreFilesChangedAsync(string[] removedFiles, SourceFile[] addedFiles)
+    private void NotifySlCoreFilesChanged(string[] removedFiles, SourceFile[] addedFiles)
     {
-        if (serviceProvider.TryGetTransientService(out IFileRpcSLCoreService fileRpcSlCoreService))
+        if (serviceProvider.TryGetTransientService(out IFileRpcSLCoreService fileRpcSlCoreService) && activeConfigScopeTracker.Current is {} configScope) 
         {
-            var configScope = activeConfigScopeTracker.Current;
             var clientFiles = addedFiles.Select(sourceFile => clientFileDtoFactory.Create(configScope.Id, configScope.RootPath, sourceFile)).ToList();
             var removedFileUris = removedFiles.Select(f => new FileUri(f)).ToList();
 
@@ -82,7 +81,5 @@ public class FileTracker : IFileTracker
         {
             logger.WriteLine("[{0}] {1}", nameof(FileTracker), SLCoreStrings.ServiceProviderNotInitialized);
         }
-
-        return Task.CompletedTask;
     }
 }
