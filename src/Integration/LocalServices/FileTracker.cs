@@ -69,9 +69,8 @@ public class FileTracker : IFileTracker
 
     private Task NotifySlCoreFilesChangedAsync(string[] removedFiles, SourceFile[] addedFiles)
     {
-        if (serviceProvider.TryGetTransientService(out IFileRpcSLCoreService fileRpcSlCoreService))
+        if (serviceProvider.TryGetTransientService(out IFileRpcSLCoreService fileRpcSlCoreService) && activeConfigScopeTracker.Current is {} configScope) 
         {
-            var configScope = activeConfigScopeTracker.Current;
             var clientFiles = addedFiles.Select(sourceFile => clientFileDtoFactory.Create(configScope.Id, configScope.RootPath, sourceFile)).ToList();
             var removedFileUris = removedFiles.Select(f => new FileUri(f)).ToList();
 
