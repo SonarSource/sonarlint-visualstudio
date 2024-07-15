@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
 
         public ClientConstantsDto ClientConstants => new(vsInfoProvider.Name, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
 
-        public FeatureFlagsDto FeatureFlags => new(true, true, true, true, false, false, true, false);
+        public FeatureFlagsDto FeatureFlags => new(true, true, true, true, false, false, true, true);
 
         public TelemetryClientConstantAttributesDto TelemetryConstants => new("visualstudio", "SonarLint Visual Studio", VersionHelper.SonarLintVersion, VisualStudioHelpers.VisualStudioVersion, new Dictionary<string, object>
         {
