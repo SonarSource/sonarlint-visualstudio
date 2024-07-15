@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.VsInfo
                 vsShell.GetProperty((int)__VSSPROPID5.VSSPROPID_AppBrandName, out var name);
                 return name as string ?? defaultName;
             }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            catch (Exception)
             {
                 return defaultName;
             }
