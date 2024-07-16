@@ -23,4 +23,4 @@ using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
-public record RaiseIssuesParams(string configurationScopeId, Dictionary<FileUri, List<RaisedIssueDto>> issuesByFileUri, bool isIntermediatePublication, Guid? analysisId);
+public record RaiseFindingParams<T>(string configurationScopeId, Dictionary<FileUri, List<T>> issuesByFileUri, bool isIntermediatePublication, Guid? analysisId) where T : RaisedFindingDto;

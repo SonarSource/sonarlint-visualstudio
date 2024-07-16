@@ -92,7 +92,7 @@ public class AnalysisListenerTests
     [TestMethod]
     public void RaiseIssues_AnalysisIDisNull_Ignores()
     {
-        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", new Dictionary<FileUri, List<RaisedIssueDto>>(), false, null);
+        var raiseIssuesParams = new RaiseFindingParams<RaisedIssueDto>("CONFIGURATION_ID", new Dictionary<FileUri, List<RaisedIssueDto>>(), false, null);
 
         var analysisService = Substitute.For<IAnalysisService>();
         var raiseIssueParamsToAnalysisIssueConverter = Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>();
@@ -113,7 +113,7 @@ public class AnalysisListenerTests
         var analysisId = Guid.NewGuid();
         var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { fileUri, [] } };
 
-        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
+        var raiseIssuesParams = new RaiseFindingParams<RaisedIssueDto>("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
 
         var analysisService = Substitute.For<IAnalysisService>();
         var raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, [], []);
@@ -139,7 +139,7 @@ public class AnalysisListenerTests
         var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>>
             { { fileUri, [CreateRaisedIssueDto("csharpsquid:S100"), CreateRaisedIssueDto("csharpsquid:S101")] } };
 
-        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
+        var raiseIssuesParams = new RaiseFindingParams<RaisedIssueDto>("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
 
         var analysisService = Substitute.For<IAnalysisService>();
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, [], []);
@@ -170,7 +170,7 @@ public class AnalysisListenerTests
         var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>>
             { { fileUri, [CreateRaisedIssueDto("csharpsquid:S100"), CreateRaisedIssueDto("csharpsquid:S101")] } };
 
-        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
+        var raiseIssuesParams = new RaiseFindingParams<RaisedIssueDto>("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
 
         var analysisService = Substitute.For<IAnalysisService>();
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter = CreateConverter(issuesByFileUri.Single().Key, [], []);
@@ -198,7 +198,7 @@ public class AnalysisListenerTests
         var testSubject = CreateTestSubject(analysisService: analysisService, analysisStatusNotifierFactory: analysisStatusNotifierFactory);
 
         var act = () =>
-            testSubject.RaiseIssues(new RaiseIssuesParams("CONFIGURATION_ID", new Dictionary<FileUri, List<RaisedIssueDto>>(), false, analysisId));
+            testSubject.RaiseIssues(new RaiseFindingParams<RaisedIssueDto>("CONFIGURATION_ID", new Dictionary<FileUri, List<RaisedIssueDto>>(), false, analysisId));
 
         act.Should().NotThrow();
         analysisService.ReceivedCalls().Should().BeEmpty();
@@ -222,7 +222,7 @@ public class AnalysisListenerTests
 
         var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { fileUri, raisedIssues } };
 
-        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
+        var raiseIssuesParams = new RaiseFindingParams<RaisedIssueDto>("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
 
         var analysisService = Substitute.For<IAnalysisService>();
         IRaiseIssueParamsToAnalysisIssueConverter raiseIssueParamsToAnalysisIssueConverter =
@@ -259,7 +259,7 @@ public class AnalysisListenerTests
 
         var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { fileUri1, [raisedIssue1] }, { fileUri2, [raisedIssue2] } };
 
-        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
+        var raiseIssuesParams = new RaiseFindingParams<RaisedIssueDto>("CONFIGURATION_ID", issuesByFileUri, false, analysisId);
 
         var analysisService = Substitute.For<IAnalysisService>();
         var raiseIssueParamsToAnalysisIssueConverter = Substitute.For<IRaiseIssueParamsToAnalysisIssueConverter>();
@@ -292,7 +292,7 @@ public class AnalysisListenerTests
         var raisedIssues = new List<RaisedIssueDto> { raisedIssue1, raisedIssue2, raisedIssue3 };
 
         var issuesByFileUri = new Dictionary<FileUri, List<RaisedIssueDto>> { { new FileUri("file://C:/somefile"), raisedIssues } };
-        var raiseIssuesParams = new RaiseIssuesParams("CONFIGURATION_ID", issuesByFileUri, true, Guid.NewGuid());
+        var raiseIssuesParams = new RaiseFindingParams<RaisedIssueDto>("CONFIGURATION_ID", issuesByFileUri, true, Guid.NewGuid());
 
         var analysisService = Substitute.For<IAnalysisService>();
 

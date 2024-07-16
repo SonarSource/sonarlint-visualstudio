@@ -32,7 +32,7 @@ public class RaiseIssuesParamsTests
     [TestMethod]
     public void DeserializedCorrectly()
     {
-        var expected = new RaiseIssuesParams("SLVS_Bound_VS2019",
+        var expected = new RaiseFindingParams<RaisedIssueDto>("SLVS_Bound_VS2019",
             new Dictionary<FileUri, List<RaisedIssueDto>>
             {
                 {
@@ -97,9 +97,9 @@ public class RaiseIssuesParamsTests
             }
             """;
 
-        var deserialized = JsonConvert.DeserializeObject<RaiseIssuesParams>(serialized);
+        var deserialized = JsonConvert.DeserializeObject<RaiseFindingParams<RaisedIssueDto>>(serialized);
         
         deserialized.Should().BeEquivalentTo(expected, options => 
-            options.ComparingByMembers<RaiseIssuesParams>().ComparingByMembers<RaisedIssueDto>());
+            options.ComparingByMembers<RaiseFindingParams<RaisedIssueDto>>().ComparingByMembers<RaisedIssueDto>());
     }
 }

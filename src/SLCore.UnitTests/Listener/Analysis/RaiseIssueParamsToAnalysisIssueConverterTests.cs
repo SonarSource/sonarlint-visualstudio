@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Analysis
         [TestMethod]
         public void GetAnalysisIssues_HasNoIssues_ReturnsEmpty()
         {
-            var raiseIssueParams = new RaiseIssuesParams("configurationScopeId", new Dictionary<FileUri, List<RaisedIssueDto>>(), false, Guid.NewGuid());
+            var raiseIssueParams = new RaiseFindingParams<RaisedIssueDto>("configurationScopeId", new Dictionary<FileUri, List<RaisedIssueDto>>(), false, Guid.NewGuid());
 
             RaiseIssueParamsToAnalysisIssueConverter testSubject = CreateTestSubject();
 

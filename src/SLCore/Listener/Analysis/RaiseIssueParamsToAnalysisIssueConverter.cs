@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class RaiseIssueParamsToAnalysisIssueConverter : IRaiseIssueParamsToAnalysisIssueConverter
     {
-        public IEnumerable<IAnalysisIssue> GetAnalysisIssues(FileUri fileUri, IEnumerable<RaisedIssueDto> raisedIssues) => 
+        public IEnumerable<IAnalysisIssue> GetAnalysisIssues<T>(FileUri fileUri, IEnumerable<T> raisedIssues) where T : RaisedFindingDto => 
             raisedIssues
                 .Select(item => new AnalysisIssue(item.ruleKey,
                     item.severity.ToAnalysisIssueSeverity(),

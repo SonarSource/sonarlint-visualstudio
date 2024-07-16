@@ -86,7 +86,17 @@ internal class AnalysisListener : IAnalysisListener
         }
     }
 
-    public void RaiseIssues(RaiseIssuesParams parameters)
+    public void RaiseIssues(RaiseFindingParams<RaisedIssueDto> parameters)
+    {
+        RaiseFinding(parameters);
+    }
+
+    public void RaiseHotspots(RaiseFindingParams<RaisedHotspotDto> parameters)
+    {
+        RaiseFinding(parameters);
+    }
+
+    private void RaiseFinding<T>(RaiseFindingParams<T> parameters) where T : RaisedFindingDto
     {
         if (!parameters.analysisId.HasValue)
         {
@@ -111,22 +121,16 @@ internal class AnalysisListener : IAnalysisListener
             var fileUri = fileAndIssues.Key;
             var localPath = fileUri.LocalPath;
             var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), localPath, parameters.analysisId);
-            var supportedRaisedIssues = GetSupportedLanguageIssues(fileAndIssues.Value ?? Enumerable.Empty<RaisedIssueDto>());
+            var supportedRaisedIssues = GetSupportedLanguageFindings(fileAndIssues.Value ?? []);
             analysisService.PublishIssues(localPath,
                 parameters.analysisId.Value,
                 raiseIssueParamsToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
             analysisStatusNotifier.AnalysisFinished(supportedRaisedIssues.Length, TimeSpan.Zero);
         }
     }
-
-    private RaisedIssueDto[] GetSupportedLanguageIssues(IEnumerable<RaisedIssueDto> issues)
+    
+    private RaisedFindingDto[] GetSupportedLanguageFindings(IEnumerable<RaisedFindingDto> findings)
     {
-        return issues.Where(i => analyzableLanguagesRuleKeyPrefixes.Exists(languageRepo => i.ruleKey.StartsWith(languageRepo))).ToArray();
-    }
-
-    public void RaiseHotspots(RaiseHotspotsParams parameters)
-    {
-        // no-op: We don't have hotspots in Secrets
-        // it will be implemented when we support a language that has hotspots
+        return findings.Where(i => analyzableLanguagesRuleKeyPrefixes.Exists(languageRepo => i.ruleKey.StartsWith(languageRepo))).ToArray();
     }
 }
