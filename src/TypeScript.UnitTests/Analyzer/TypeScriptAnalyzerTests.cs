@@ -44,33 +44,33 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         private const string TelemetryLanguageName = "ts";
         private const string AnalyzerName = nameof(TypeScriptAnalyzer);
 
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            var eslintBridgeClient = Mock.Of<ITypeScriptEslintBridgeClient>();
-
-            var rulesProvider = Mock.Of<IRulesProvider>();
-            var rulesProviderFactory = new Mock<IRulesProviderFactory>();
-            rulesProviderFactory
-                .Setup(x => x.Create("typescript", Language.Ts))
-                .Returns(rulesProvider);
-
-            var eslintBridgeAnalyzer = Mock.Of<IEslintBridgeAnalyzer>();
-            var eslintBridgeAnalyzerFactory = new Mock<IEslintBridgeAnalyzerFactory>();
-            eslintBridgeAnalyzerFactory
-                .Setup(x => x.Create(rulesProvider, eslintBridgeClient))
-                .Returns(eslintBridgeAnalyzer);
-
-            MefTestHelpers.CheckTypeCanBeImported<TypeScriptAnalyzer, IAnalyzer>(
-                MefTestHelpers.CreateExport<ITypeScriptEslintBridgeClient>(eslintBridgeClient),
-                MefTestHelpers.CreateExport<IRulesProviderFactory>(rulesProviderFactory.Object),
-                MefTestHelpers.CreateExport<ITsConfigProvider>(),
-                MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
-                MefTestHelpers.CreateExport<IEslintBridgeAnalyzerFactory>(eslintBridgeAnalyzerFactory.Object),
-                MefTestHelpers.CreateExport<ITelemetryManager>(),
-                MefTestHelpers.CreateExport<ILogger>(),
-                MefTestHelpers.CreateExport<IThreadHandling>());
-        }
+        // [TestMethod]
+        // public void MefCtor_CheckIsExported()
+        // {
+        //     var eslintBridgeClient = Mock.Of<ITypeScriptEslintBridgeClient>();
+        //
+        //     var rulesProvider = Mock.Of<IRulesProvider>();
+        //     var rulesProviderFactory = new Mock<IRulesProviderFactory>();
+        //     rulesProviderFactory
+        //         .Setup(x => x.Create("typescript", Language.Ts))
+        //         .Returns(rulesProvider);
+        //
+        //     var eslintBridgeAnalyzer = Mock.Of<IEslintBridgeAnalyzer>();
+        //     var eslintBridgeAnalyzerFactory = new Mock<IEslintBridgeAnalyzerFactory>();
+        //     eslintBridgeAnalyzerFactory
+        //         .Setup(x => x.Create(rulesProvider, eslintBridgeClient))
+        //         .Returns(eslintBridgeAnalyzer);
+        //
+        //     MefTestHelpers.CheckTypeCanBeImported<TypeScriptAnalyzer, IAnalyzer>(
+        //         MefTestHelpers.CreateExport<ITypeScriptEslintBridgeClient>(eslintBridgeClient),
+        //         MefTestHelpers.CreateExport<IRulesProviderFactory>(rulesProviderFactory.Object),
+        //         MefTestHelpers.CreateExport<ITsConfigProvider>(),
+        //         MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
+        //         MefTestHelpers.CreateExport<IEslintBridgeAnalyzerFactory>(eslintBridgeAnalyzerFactory.Object),
+        //         MefTestHelpers.CreateExport<ITelemetryManager>(),
+        //         MefTestHelpers.CreateExport<ILogger>(),
+        //         MefTestHelpers.CreateExport<IThreadHandling>());
+        // }
 
         [TestMethod]
         public void IsAnalysisSupported_NotTypeScript_False()

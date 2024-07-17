@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.TypeScript.Rules;
 
 namespace SonarLint.VisualStudio.TypeScript.Analyzer
 {
-    [Export(typeof(IAnalyzer))]
+    // [Export(typeof(IAnalyzer))] disabled, to be removed
     internal class CssAnalyzer : AnalyzerBase, IAnalyzer
     {
         [ImportingConstructor]
