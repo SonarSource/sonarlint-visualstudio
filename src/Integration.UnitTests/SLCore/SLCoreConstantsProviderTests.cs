@@ -46,7 +46,7 @@ public class SLCoreConstantsProviderTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<SLCoreConstantsProvider>();
     }
-    
+
     [TestMethod]
     public void ClientConstants_ShouldBeExpected()
     {
@@ -85,32 +85,32 @@ public class SLCoreConstantsProviderTests
         var testSubject = CreateTestSubject(infoProvider: infoProvider);
         VisualStudioHelpers.VisualStudioVersion = "1.2.3.4";
         var expectedString = $$"""
-                         {
-                           "productKey": "visualstudio",
-                           "productName": "SonarLint Visual Studio",
-                           "productVersion": "{{typeof(VersionHelper).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version}}",
-                           "ideVersion": "1.2.3.4",
-                           "additionalAttributes": {
-                             "slvs_ide_info": {
-                               "name": "Visual Studio Professional 2022",
-                               "install_version": "17.10.55645.41",
-                               "display_version": "17.10.0 Preview 3.0"
-                             }
-                           }
-                         }
-                         """;
+                               {
+                                 "productKey": "visualstudio",
+                                 "productName": "SonarLint Visual Studio",
+                                 "productVersion": "{{typeof(VersionHelper).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version}}",
+                                 "ideVersion": "1.2.3.4",
+                                 "additionalAttributes": {
+                                   "slvs_ide_info": {
+                                     "name": "Visual Studio Professional 2022",
+                                     "install_version": "17.10.55645.41",
+                                     "display_version": "17.10.0 Preview 3.0"
+                                   }
+                                 }
+                               }
+                               """;
 
         var actual = testSubject.TelemetryConstants;
 
         var serializedString = JsonConvert.SerializeObject(actual, Formatting.Indented);
         serializedString.Should().Be(expectedString);
     }
-    
+
     [TestMethod]
     public void TelemetryConstants_WhenVsVersionNull_ReturnNullWithoutException()
     {
         var versionProvider = Substitute.For<IVsInfoProvider>();
-        versionProvider.Version.Returns((IVsVersion) null);
+        versionProvider.Version.Returns((IVsVersion)null);
 
         var testSubject = CreateTestSubject(infoProvider: versionProvider);
         VisualStudioHelpers.VisualStudioVersion = "1.2.3.4";
@@ -144,7 +144,13 @@ public class SLCoreConstantsProviderTests
     public void AnalyzableLanguages_ShouldBeExpected()
     {
         var testSubject = CreateTestSubject();
-        var expected = new[] { Language.SECRETS };
+        var expected = new[]
+        {
+            Language.JS,
+            Language.TS,
+            Language.CSS,
+            Language.SECRETS
+        };
 
         var actual = testSubject.SLCoreAnalyzableLanguages;
 

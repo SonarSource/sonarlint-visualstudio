@@ -23,6 +23,7 @@ using System.Text;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
+using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Files;
 using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
@@ -37,17 +38,37 @@ public class FileAnalysisTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public async Task Sloop_AnalyzesFilesWithSecretsAndRaisesIssues()
+    public async Task Sloop_DefaultRuleConfiguration_JavaScriptAnalysisProducesExpectedNumberOfIssues()
+    {
+        var relativeFilePath = @"Resources\Secrets.yml";
+        
+        var issuesByFileUri = await RunFileAnalysis(relativeFilePath);
+        
+        issuesByFileUri.Should().HaveCount(1);
+        issuesByFileUri[new FileUri(GetFullPath(relativeFilePath))].Should().HaveCount(3);
+    }
+    
+    [TestMethod]
+    public async Task Sloop_DefaultRuleConfiguration_SecretsAnalysisProducesExpectedNumberOfIssues()
+    {
+        var relativeFilePath = @"Resources\TwoIssues.js";
+        
+        var issuesByFileUri = await RunFileAnalysis(relativeFilePath);
+        
+        issuesByFileUri.Should().HaveCount(1);
+        issuesByFileUri[new FileUri(GetFullPath(relativeFilePath))].Should().HaveCount(2);
+    }
+    
+    private async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(string fileToAnalyzeRelativePath)
     {
         const string configScopeId = "ConfigScope1";
-        const string fileToAnalyzeRelativePath = @"Resources\Secrets.yml";
         
         var testLogger = new TestLogger();
         var slCoreLogger = new TestLogger();
         var slCoreErrorLogger = new TestLogger();
         var analysisReadyCompletionSource = new TaskCompletionSource<DidChangeAnalysisReadinessParams>();
         var analysisRaisedIssues = new TaskCompletionSource<RaiseIssuesParams>();
-        var fileToAnalyzeAbsolutePath = Path.GetFullPath(fileToAnalyzeRelativePath);
+        var fileToAnalyzeAbsolutePath = GetFullPath(fileToAnalyzeRelativePath);
         var fileToAnalyze = new ClientFileDto(new FileUri(fileToAnalyzeAbsolutePath), fileToAnalyzeRelativePath,
             configScopeId, false, Encoding.UTF8.WebName, fileToAnalyzeAbsolutePath);
         var analysisListener = SetUpAnalysisListener(configScopeId, analysisReadyCompletionSource, analysisRaisedIssues);
@@ -79,8 +100,12 @@ public class FileAnalysisTests
         failedAnalysisFiles.Should().BeEmpty();
         
         await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task);
-        analysisRaisedIssues.Task.Result.issuesByFileUri.Should().HaveCount(1);
-        analysisRaisedIssues.Task.Result.issuesByFileUri[new FileUri(fileToAnalyzeAbsolutePath)].Should().HaveCount(3);
+        return analysisRaisedIssues.Task.Result.issuesByFileUri;
+    }
+
+    private static string GetFullPath(string fileToAnalyzeRelativePath)
+    {
+        return Path.GetFullPath(fileToAnalyzeRelativePath);
     }
 
     private static IAnalysisListener SetUpAnalysisListener(string configScopeId,
