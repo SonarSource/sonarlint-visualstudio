@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Request support or report a bug.
+    url: https://community.sonarsource.com/c/sl/visual-studio/35
+    about: Community Forum - SonarLint for Visual Studio.
+  - name: Report problems with raised issues.
+    url: https://community.sonarsource.com/c/clean-code/fp/7
+    about: Community Forum - Report False-positive / False-negative
+  - name: Suggest new feature
+    url: https://community.sonarsource.com/c/sl/pm-for-a-day-sl/41
+    about: Community Forum - Product Manager for a Day
