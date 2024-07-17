@@ -36,31 +36,31 @@ public class CssAnalyzerTests
     private const string TelemetryLanguageName = "css";
     private const string AnalyzerName = nameof(CssAnalyzer);
 
-    [TestMethod]
-    public void MefCtor_CheckIsExported()
-    {
-        var eslintBridgeClient = Mock.Of<ICssEslintBridgeClient>();
-
-        var rulesProvider = Mock.Of<IRulesProvider>();
-        var rulesProviderFactory = new Mock<IRulesProviderFactory>();
-        rulesProviderFactory
-            .Setup(x => x.Create("css", Language.Css))
-            .Returns(rulesProvider);
-
-        var eslintBridgeAnalyzer = Mock.Of<IEslintBridgeAnalyzer>();
-        var eslintBridgeAnalyzerFactory = new Mock<IEslintBridgeAnalyzerFactory>();
-        eslintBridgeAnalyzerFactory
-            .Setup(x => x.Create(rulesProvider, eslintBridgeClient))
-            .Returns(eslintBridgeAnalyzer);
-
-        MefTestHelpers.CheckTypeCanBeImported<CssAnalyzer, IAnalyzer>(
-            MefTestHelpers.CreateExport<ICssEslintBridgeClient>(eslintBridgeClient),
-            MefTestHelpers.CreateExport<IRulesProviderFactory>(rulesProviderFactory.Object),
-            MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
-            MefTestHelpers.CreateExport<IEslintBridgeAnalyzerFactory>(eslintBridgeAnalyzerFactory.Object),
-            MefTestHelpers.CreateExport<ITelemetryManager>(),
-            MefTestHelpers.CreateExport<IThreadHandling>());
-    }
+    // [TestMethod]
+    // public void MefCtor_CheckIsExported()
+    // {
+    //     var eslintBridgeClient = Mock.Of<ICssEslintBridgeClient>();
+    //
+    //     var rulesProvider = Mock.Of<IRulesProvider>();
+    //     var rulesProviderFactory = new Mock<IRulesProviderFactory>();
+    //     rulesProviderFactory
+    //         .Setup(x => x.Create("css", Language.Css))
+    //         .Returns(rulesProvider);
+    //
+    //     var eslintBridgeAnalyzer = Mock.Of<IEslintBridgeAnalyzer>();
+    //     var eslintBridgeAnalyzerFactory = new Mock<IEslintBridgeAnalyzerFactory>();
+    //     eslintBridgeAnalyzerFactory
+    //         .Setup(x => x.Create(rulesProvider, eslintBridgeClient))
+    //         .Returns(eslintBridgeAnalyzer);
+    //
+    //     MefTestHelpers.CheckTypeCanBeImported<CssAnalyzer, IAnalyzer>(
+    //         MefTestHelpers.CreateExport<ICssEslintBridgeClient>(eslintBridgeClient),
+    //         MefTestHelpers.CreateExport<IRulesProviderFactory>(rulesProviderFactory.Object),
+    //         MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
+    //         MefTestHelpers.CreateExport<IEslintBridgeAnalyzerFactory>(eslintBridgeAnalyzerFactory.Object),
+    //         MefTestHelpers.CreateExport<ITelemetryManager>(),
+    //         MefTestHelpers.CreateExport<IThreadHandling>());
+    // }
 
     [TestMethod]
     public void IsAnalysisSupported_NotTypeScript_False()

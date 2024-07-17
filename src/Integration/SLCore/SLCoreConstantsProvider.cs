@@ -63,6 +63,9 @@ namespace SonarLint.VisualStudio.Integration.SLCore
 
         public IReadOnlyList<Language> SLCoreAnalyzableLanguages =>
         [
+            Language.JS,
+            Language.TS,
+            Language.CSS,
             Language.SECRETS
         ];
         
