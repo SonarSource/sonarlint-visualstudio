@@ -165,7 +165,6 @@ $RECYCLE.BIN/
 /src/Integration.Vsix/.CFamilyEmbedded
 /src/Integration.Vsix/lib
 /build/DownloadCFamilyPlugin/ManualTestOutput
-/src/EmbeddedVsix/ts
 /build/DownloadSonarPlugin/ManualTestOutput
 /build/DownloadDependencies/tmp
 /**/launchSettings.json
