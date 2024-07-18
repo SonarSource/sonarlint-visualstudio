@@ -18,13 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.JsTs;
-using SonarLint.VisualStudio.TypeScript.Notifications;
+using SonarLint.VisualStudio.Integration.NodeJS.Notifications;
 
-namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
+namespace SonarLint.VisualStudio.Integration.NodeJS.Locator
 {
     [Export(typeof(ICompatibleNodeLocator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
@@ -51,15 +50,15 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
             {
                 if (!IsCompatibleVersion(nodeVersionInfo.Version))
                 {
-                    logger.WriteLine(Resources.ERR_IncompatibleVersion, nodeVersionInfo.Version, nodeVersionInfo.NodeExePath);
+                    logger.WriteLine(LocatorResources.ERR_IncompatibleVersion, nodeVersionInfo.Version, nodeVersionInfo.NodeExePath);
                     continue;
                 }
 
-                logger.WriteLine(Resources.INFO_FoundCompatibleVersion, nodeVersionInfo.Version, nodeVersionInfo.NodeExePath);
+                logger.WriteLine(LocatorResources.INFO_FoundCompatibleVersion, nodeVersionInfo.Version, nodeVersionInfo.NodeExePath);
                 return nodeVersionInfo;
             }
 
-            logger.WriteLine(Resources.ERR_NoCompatibleVersion, MinSupportedVersion);
+            logger.WriteLine(LocatorResources.ERR_NoCompatibleVersion, MinSupportedVersion);
             unsupportedNodeNotificationService.Show();
             return null;
         }

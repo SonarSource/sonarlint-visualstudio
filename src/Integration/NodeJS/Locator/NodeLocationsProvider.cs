@@ -18,15 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders;
+using SonarLint.VisualStudio.Integration.NodeJS.Locator.LocationProviders;
 
-namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
+namespace SonarLint.VisualStudio.Integration.NodeJS.Locator
 {
     internal interface INodeLocationsProvider
     {

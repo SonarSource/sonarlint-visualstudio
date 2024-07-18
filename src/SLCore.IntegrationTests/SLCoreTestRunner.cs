@@ -22,6 +22,7 @@ using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
@@ -97,6 +98,9 @@ public sealed class SLCoreTestRunner : IDisposable
 
             var jarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
             jarProvider.ListJarFiles().Returns(DependencyLocator.AnalyzerPlugins);
+            
+            var compatibleNodeLocator = Substitute.For<ICompatibleNodeLocator>();
+            compatibleNodeLocator.Locate().Returns((NodeVersionInfo)null);
 
             var noOpActiveSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
             noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
@@ -111,6 +115,7 @@ public sealed class SLCoreTestRunner : IDisposable
                 foldersProvider,
                 connectionProvider,
                 jarProvider,
+                compatibleNodeLocator,
                 noOpActiveSolutionBoundTracker,
                 noOpConfigScopeUpdater,
                 new NoOpThreadHandler());
