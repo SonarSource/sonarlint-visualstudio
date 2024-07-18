@@ -68,7 +68,7 @@ public class FileAnalysisTests
     [TestMethod]
     public async Task StandaloneRuleConfig_JavaScriptAnalysisShouldIgnoreOneIssueOfInactiveRule()
     {
-        var letRuleConfig = CreateInactiveRuleConfigDtoByKey(LetRuleId);
+        var letRuleConfig = CreateInactiveRuleConfig(LetRuleId);
 
         var issuesByFileUri = await RunFileAnalysis(TwoJsIssuesPath, letRuleConfig);
 
@@ -79,7 +79,7 @@ public class FileAnalysisTests
     [TestMethod]
     public async Task StandaloneRuleConfig_SecretsAnalysisShouldIgnoreTwoIssuesOfInactiveRule()
     {
-        var secretsRuleConfig = CreateInactiveRuleConfigDtoByKey(CloudSecretsRuleId);
+        var secretsRuleConfig = CreateInactiveRuleConfig(CloudSecretsRuleId);
 
         var issuesByFileUri = await RunFileAnalysis(ThreeSecretsIssuesPath, secretsRuleConfig);
 
@@ -90,7 +90,7 @@ public class FileAnalysisTests
     [TestMethod]
     public async Task StandaloneRuleConfig_CtorParamsUnderThreshold_JavaScriptActiveRuleShouldHaveNoIssue()
     {
-        var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfigDtoByKey(threshold:ActualCtorParams + 1);
+        var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfig(threshold:ActualCtorParams + 1);
 
         var issuesByFileUri = await RunFileAnalysis(OneIssueRuleWithParamPath, ctorParamsRuleConfig);
 
@@ -101,7 +101,7 @@ public class FileAnalysisTests
     [TestMethod]
     public async Task StandaloneRuleConfig_CtorParamsAboveThreshold_JavaScriptActiveRuleShouldHaveOneIssue()
     {
-        var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfigDtoByKey(threshold:ActualCtorParams - 1);
+        var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfig(threshold:ActualCtorParams - 1);
 
         var issuesByFileUri = await RunFileAnalysis(OneIssueRuleWithParamPath, ctorParamsRuleConfig);
 
@@ -109,7 +109,7 @@ public class FileAnalysisTests
         issuesByFileUri[new FileUri(GetFullPath(OneIssueRuleWithParamPath))].Should().HaveCount(1);
     }
 
-    private async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(string fileToAnalyzeRelativePath, params KeyValuePair<string, StandaloneRuleConfigDto>[] ruleKeyToRuleConfigDto)
+    private async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(string fileToAnalyzeRelativePath, Dictionary<string, StandaloneRuleConfigDto> ruleConfigByKey = null)
     {
         const string configScopeId = "ConfigScope1";
 
@@ -141,7 +141,7 @@ public class FileAnalysisTests
         
         await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
 
-        UpdateStandaloneRulesConfiguration(slCoreTestRunner, ruleKeyToRuleConfigDto);
+        UpdateStandaloneRulesConfiguration(slCoreTestRunner, ruleConfigByKey);
 
         slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService)
             .Should().BeTrue();
@@ -161,12 +161,15 @@ public class FileAnalysisTests
         return Path.GetFullPath(fileToAnalyzeRelativePath);
     }
 
-    private static void UpdateStandaloneRulesConfiguration(SLCoreTestRunner slCoreTestRunner, params KeyValuePair<string, StandaloneRuleConfigDto>[] ruleKeyToRuleConfigDto)
+    private static void UpdateStandaloneRulesConfiguration(SLCoreTestRunner slCoreTestRunner, Dictionary<string, StandaloneRuleConfigDto> ruleConfigByKey = null)
     {
+        if (ruleConfigByKey == null)
+        {
+            return;
+        }
+
         slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesCoreService)
             .Should().BeTrue();
-        var ruleConfigByKey = ruleKeyToRuleConfigDto.ToDictionary(ruleKeyToDto => ruleKeyToDto.Key, keyValuePair => keyValuePair.Value);
-
         rulesCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(ruleConfigByKey));
     }
 
@@ -193,14 +196,19 @@ public class FileAnalysisTests
         return analysisListener;
     }
 
-    private static KeyValuePair<string, StandaloneRuleConfigDto> CreateActiveCtorParamRuleConfigDtoByKey(int threshold)
+    private static Dictionary<string, StandaloneRuleConfigDto> CreateActiveCtorParamRuleConfig(int threshold)
     {
-        return new KeyValuePair<string, StandaloneRuleConfigDto>(CtorParamRuleId, 
-            new StandaloneRuleConfigDto(isActive: true, new() { { CtorParamName, threshold.ToString() } }));
+        return new () 
+        { 
+            {CtorParamRuleId, new StandaloneRuleConfigDto(isActive: true, new (){ {CtorParamName, threshold.ToString()}}) }
+        };
     }
 
-    private static KeyValuePair<string, StandaloneRuleConfigDto> CreateInactiveRuleConfigDtoByKey(string ruleId)
+    private static Dictionary<string, StandaloneRuleConfigDto> CreateInactiveRuleConfig(string ruleId)
     {
-        return new KeyValuePair<string, StandaloneRuleConfigDto>(ruleId, new StandaloneRuleConfigDto(isActive: false, []));
+        return new()
+        {
+            {ruleId, new StandaloneRuleConfigDto(isActive: false, []) }
+        };
     }
 }
