@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.NodeJS.Notifications
 
             createdNotification.Should().NotBeNull();
             createdNotification.Id.Should().Be("sonarlint.nodejs.min.version.not.found.14.17");
-            createdNotification.Message.Should().Be("SonarLint: JavaScript/TypeScript analysis failed. Could not find a supported Node.js runtime on your computer.");
+            createdNotification.Message.Should().Be(NotificationStrings.NotificationUnsupportedNode);
             createdNotification.Actions.Count().Should().Be(2);
         }
 
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.NodeJS.Notifications
             createdNotification.Should().NotBeNull();
             var firstAction = createdNotification.Actions.First();
 
-            firstAction.CommandText.Should().Be("How do I fix this?");
+            firstAction.CommandText.Should().Be(NotificationStrings.NotificationShowMoreInfoAction);
             firstAction.Action.Should().NotBeNull();
 
             browserService.Invocations.Count.Should().Be(0);
