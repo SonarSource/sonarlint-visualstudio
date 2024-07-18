@@ -18,26 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Rules;
 
-[JsonRpcClass("rule")]
-public interface IRulesSLCoreService : ISLCoreService
-{
-    /// <summary>
-    /// Gets Rule Meta Data from SLCORE
-    /// </summary>
-    Task<GetEffectiveRuleDetailsResponse> GetEffectiveRuleDetailsAsync(GetEffectiveRuleDetailsParams parameters);
-
-    /// <summary>
-    /// Lists all available standalone rule definitions
-    /// </summary>
-    Task<ListAllStandaloneRulesDefinitionsResponse> ListAllStandaloneRulesDefinitionsAsync();
-
-    /// <summary>
-    /// Notify the backend about changes to the standalone rule's configuration. This configuration will override defaults rule activation and parameters
-    /// </summary>
-    void UpdateStandaloneRulesConfiguration(UpdateStandaloneRulesConfigurationParams parameters);
-}
+public record UpdateStandaloneRulesConfigurationParams(Dictionary<string, StandaloneRuleConfigDto> ruleConfigByKey);
