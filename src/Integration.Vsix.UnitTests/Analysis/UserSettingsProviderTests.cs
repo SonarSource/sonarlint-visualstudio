@@ -18,15 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
 using System.IO.Abstractions;
-using System.Threading;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 {
@@ -51,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var fileMonitorMock = new Mock<ISingleFileMonitor>();
 
             // Act
-            _ = new UserSettingsProvider(logger.Object, fileSystemMock.Object, fileMonitorMock.Object);
+            _ = CreateTestSubject(logger.Object, fileSystemMock.Object, fileMonitorMock.Object);
 
             // The MEF constructor should be free-threaded, which it will be if
             // it doesn't make any external calls.
@@ -67,13 +61,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         {
             var mockSingleFileMonitor = new Mock<ISingleFileMonitor>();
 
-            Action act = () => new UserSettingsProvider(null, new FileSystem(), mockSingleFileMonitor.Object);
+            Action act = () => CreateUserSettingsProvider(null, new FileSystem(), mockSingleFileMonitor.Object);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
-            act = () => new UserSettingsProvider(new TestLogger(), null, mockSingleFileMonitor.Object);
+            act = () => CreateUserSettingsProvider(new TestLogger(), null, mockSingleFileMonitor.Object); 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
 
-            act = () => new UserSettingsProvider(new TestLogger(), new FileSystem(), null);
+            act = () => CreateUserSettingsProvider(new TestLogger(), new FileSystem(), null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingsFileMonitor");
         }
 
@@ -86,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var testLogger = new TestLogger();
 
             // Act
-            var testSubject = new UserSettingsProvider(testLogger, fileSystemMock.Object, CreateMockFileMonitor("nonexistentFile").Object);
+            var testSubject = CreateTestSubject(testLogger, fileSystemMock.Object, CreateMockFileMonitor("nonexistentFile").Object);
 
             // Assert
             CheckSettingsAreEmpty(testSubject.UserSettings);
@@ -104,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var logger = new TestLogger(logToConsole: true);
 
             // Act
-            var testSubject = new UserSettingsProvider(logger, fileSystemMock.Object, CreateMockFileMonitor("settings.file").Object);
+            var testSubject = CreateTestSubject(logger, fileSystemMock.Object, CreateMockFileMonitor("settings.file").Object);
 
             // Assert
             CheckSettingsAreEmpty(testSubject.UserSettings);
@@ -129,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
     }
 }";
             var logger = new TestLogger();
-            var testSubject = new UserSettingsProvider(logger, fileSystemMock.Object, fileMonitorMock.Object);
+            var testSubject = CreateTestSubject(logger, fileSystemMock.Object, fileMonitorMock.Object);
             testSubject.SettingsChanged += (s, args) => settingsChangedEventCount++;
             logger.Reset();
 
@@ -162,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var fileSystemMock = new Mock<IFileSystem>();
             fileSystemMock.Setup(x => x.File.Exists(fileName)).Returns(false);
 
-            var testSubject = new UserSettingsProvider(new TestLogger(), fileSystemMock.Object, CreateMockFileMonitor(fileName).Object);
+            var testSubject = CreateTestSubject(new TestLogger(), fileSystemMock.Object, CreateMockFileMonitor(fileName).Object);
 
             // Act
             testSubject.EnsureFileExists();
@@ -181,7 +175,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var fileSystemMock = new Mock<IFileSystem>();
             fileSystemMock.Setup(x => x.File.Exists(fileName)).Returns(true);
 
-            var testSubject = new UserSettingsProvider(new TestLogger(), fileSystemMock.Object, CreateMockFileMonitor(fileName).Object);
+            var testSubject = CreateTestSubject(new TestLogger(), fileSystemMock.Object, CreateMockFileMonitor(fileName).Object);
             fileSystemMock.Invocations.Clear();
 
             // Act
@@ -203,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var fileMonitorMock = CreateMockFileMonitor(fileName);
 
             // 1. Construct
-            var testSubject = new UserSettingsProvider(new TestLogger(), fileSystemMock.Object, fileMonitorMock.Object);
+            var testSubject = CreateTestSubject(new TestLogger(), fileSystemMock.Object, fileMonitorMock.Object);
             testSubject.SettingsFilePath.Should().Be(fileName);
             fileMonitorMock.Verify(x => x.Dispose(), Times.Never);
 
@@ -219,7 +213,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var settingsFile = Path.Combine(dir, "settings.txt");
 
             var testLogger = new TestLogger(logToConsole: true);
-            var testSubject = new UserSettingsProvider(testLogger, new FileSystem(), new SingleFileMonitor(settingsFile, testLogger));
+            var testSubject = CreateTestSubject(testLogger, new FileSystem(), new SingleFileMonitor(settingsFile, testLogger));
 
             // Sanity check of test setup
             testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(0);
@@ -255,7 +249,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             SaveSettings(settingsFile, initialSettings);
 
             var testLogger = new TestLogger(logToConsole: true);
-            var testSubject = new UserSettingsProvider(testLogger, new FileSystem(), new SingleFileMonitor(settingsFile, testLogger));
+            var testSubject = CreateTestSubject(testLogger, new FileSystem(), new SingleFileMonitor(settingsFile, testLogger));
 
             // Sanity check of test setup
             testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(3);
@@ -297,7 +291,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             int eventCount = 0;
             var settingsChangedEventReceived = new ManualResetEvent(initialState: false);
 
-            var testSubject = new UserSettingsProvider(new TestLogger(), fileSystemMock.Object, singleFileMonitorMock.Object);
+            var testSubject = CreateTestSubject(new TestLogger(), fileSystemMock.Object, singleFileMonitorMock.Object);
             testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(0); // sanity check of setup
 
             testSubject.SettingsChanged += (s, args) =>
@@ -368,6 +362,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             settings.RulesSettings.Should().NotBeNull();
             settings.RulesSettings.Rules.Should().NotBeNull();
             settings.RulesSettings.Rules.Count.Should().Be(0);
+        }
+
+        private static UserSettingsProvider CreateTestSubject(ILogger logger = null, IFileSystem fileSystem = null, ISingleFileMonitor settingsFileMonitor = null)
+        {
+            logger ??= new Mock<ILogger>().Object;
+            fileSystem ??= new Mock<IFileSystem>().Object;
+            settingsFileMonitor ??= new Mock<ISingleFileMonitor>().Object;
+
+            return CreateUserSettingsProvider(logger, fileSystem, settingsFileMonitor);
+        }
+
+        private static UserSettingsProvider CreateUserSettingsProvider(ILogger logger, IFileSystem fileSystem, ISingleFileMonitor settingsFileMonitor)
+        {
+            return new UserSettingsProvider(logger, fileSystem, settingsFileMonitor);
         }
     }
 }
