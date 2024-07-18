@@ -49,10 +49,10 @@ namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications
 
             notification = new Notification(
                 id: NotificationId,
-                message: Resources.NotificationUnsupportedNode,
+                message: NotificationStrings.NotificationUnsupportedNode,
                 actions: new INotificationAction[]
                 {
-                    new NotificationAction(Resources.NotificationShowMoreInfoAction, _ => ShowMoreInfo(), false),
+                    new NotificationAction(NotificationStrings.NotificationShowMoreInfoAction, _ => ShowMoreInfo(), false),
                     doNotShowAgainNotificationAction
                 }
             );

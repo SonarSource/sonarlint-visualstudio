@@ -43,6 +43,16 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
+    <Compile Update="NodeJS\Locator\LocatorResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LocatorResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="NodeJS\Notifications\NotificationStrings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NotificationStrings.resx</DependentUpon>
+    </Compile>
     <EmbeddedResource Update="Binding\BindingStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>BindingStrings.Designer.cs</LastGenOutput>
@@ -52,13 +62,13 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Update="NodeJS\Notifications\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
     <EmbeddedResource Update="NodeJS\Locator\LocatorResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <LastGenOutput>LocatorResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="NodeJS\Notifications\NotificationStrings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>NotificationStrings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 
