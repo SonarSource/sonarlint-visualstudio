@@ -18,17 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
+using SonarLint.VisualStudio.Integration.NodeJS.Notifications;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarLint.VisualStudio.TypeScript.Notifications;
 
-namespace SonarLint.VisualStudio.TypeScript.UnitTests.Notifications
+namespace SonarLint.VisualStudio.Integration.UnitTests.NodeJS.Notifications
 {
     [TestClass]
     public class UnsupportedNodeVersionNotificationServiceTests
@@ -60,7 +56,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Notifications
 
             createdNotification.Should().NotBeNull();
             createdNotification.Id.Should().Be("sonarlint.nodejs.min.version.not.found.14.17");
-            createdNotification.Message.Should().Be(Resources.NotificationUnsupportedNode);
+            createdNotification.Message.Should().Be(NotificationStrings.NotificationUnsupportedNode);
             createdNotification.Actions.Count().Should().Be(2);
         }
 
@@ -101,7 +97,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Notifications
             createdNotification.Should().NotBeNull();
             var firstAction = createdNotification.Actions.First();
 
-            firstAction.CommandText.Should().Be(Resources.NotificationShowMoreInfoAction);
+            firstAction.CommandText.Should().Be(NotificationStrings.NotificationShowMoreInfoAction);
             firstAction.Action.Should().NotBeNull();
 
             browserService.Invocations.Count.Should().Be(0);

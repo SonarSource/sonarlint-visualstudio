@@ -18,18 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.Integration.NodeJS.Locator;
+using SonarLint.VisualStudio.Integration.NodeJS.Notifications;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
-using SonarLint.VisualStudio.TypeScript.Notifications;
 
-namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
+namespace SonarLint.VisualStudio.Integration.UnitTests.NodeJS.Locator
 {
     [TestClass]
     public class CompatibleNodeLocatorTests

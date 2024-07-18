@@ -22,7 +22,7 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
 
-namespace SonarLint.VisualStudio.TypeScript.Notifications
+namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications
 {
     internal interface IUnsupportedNodeVersionNotificationService
     {
@@ -49,10 +49,10 @@ namespace SonarLint.VisualStudio.TypeScript.Notifications
 
             notification = new Notification(
                 id: NotificationId,
-                message: Resources.NotificationUnsupportedNode,
+                message: NotificationStrings.NotificationUnsupportedNode,
                 actions: new INotificationAction[]
                 {
-                    new NotificationAction(Resources.NotificationShowMoreInfoAction, _ => ShowMoreInfo(), false),
+                    new NotificationAction(NotificationStrings.NotificationShowMoreInfoAction, _ => ShowMoreInfo(), false),
                     doNotShowAgainNotificationAction
                 }
             );

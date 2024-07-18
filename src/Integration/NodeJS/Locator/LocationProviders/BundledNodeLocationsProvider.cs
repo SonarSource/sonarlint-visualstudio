@@ -18,15 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.IO;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
-
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
-namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders
+namespace SonarLint.VisualStudio.Integration.NodeJS.Locator.LocationProviders
 {
     internal class BundledNodeLocationsProvider : INodeLocationsProvider
     {
@@ -49,7 +46,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders
 
             if (ErrorHandler.Failed(hr))
             {
-                logger.WriteLine(Resources.ERR_FailedToGetVsInstallDirectory, hr);
+                logger.WriteLine(LocatorResources.ERR_FailedToGetVsInstallDirectory, hr);
                 return Array.Empty<string>();
             }
 
