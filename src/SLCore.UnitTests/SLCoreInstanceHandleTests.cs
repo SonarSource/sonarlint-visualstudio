@@ -22,6 +22,7 @@ using NSubstitute.ClearExtensions;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -55,7 +56,7 @@ public class SLCoreInstanceHandleTests
     [TestMethod]
     public void Initialize_ThrowsIfServicesUnavailable()
     {
-        var testSubject = CreateTestSubject(out var slCoreRpcFactory, out _, out _, out _, out _, out _, out _, out _);
+        var testSubject = CreateTestSubject(out var slCoreRpcFactory, out _, out _, out _, out _, out _, out _, out _, out _);
         SetUpSLCoreRpcFactory(slCoreRpcFactory, out var rpc);
         SetUpSLCoreRpc(rpc, out var serviceProvider);
         serviceProvider.TryGetTransientService(out Arg.Any<AnySLCoreService>()).ReturnsForAnyArgs(false);
@@ -65,14 +66,17 @@ public class SLCoreInstanceHandleTests
         act.Should().Throw<InvalidOperationException>().WithMessage(SLCoreStrings.ServiceProviderNotInitialized);
     }
 
-    [TestMethod]
-    public void Initialize_SuccessfullyInitializesInCorrectOrder()
+    [DataTestMethod]
+    [DataRow("some/node/path")]
+    [DataRow(null)]
+    public void Initialize_SuccessfullyInitializesInCorrectOrder(string nodeJsPath)
     {
         var testSubject = CreateTestSubject(out var slCoreRpcFactory,
             out var constantsProvider,
             out var foldersProvider,
             out var connectionsProvider,
             out var jarLocator,
+            out var nodeLocator,
             out var activeSolutionBoundTracker,
             out var configScopeUpdater,
             out var threadHandling);
@@ -86,6 +90,7 @@ public class SLCoreInstanceHandleTests
             activeSolutionBoundTracker,
             out var lifecycleManagement,
             out _);
+        nodeLocator.Locate().Returns(nodeJsPath is null ? null : new NodeVersionInfo(nodeJsPath, new Version()));
 
         testSubject.Initialize();
 
@@ -106,7 +111,7 @@ public class SLCoreInstanceHandleTests
                 && parameters.standaloneRuleConfigByKey.Count == 0
                 && !parameters.isFocusOnNewCode
                 && parameters.telemetryConstantAttributes == TelemetryConstants
-                && parameters.languageSpecificRequirements.clientNodeJsPath == null));
+                && parameters.languageSpecificRequirements.clientNodeJsPath == nodeJsPath));
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(Binding);
         });
     }
@@ -119,6 +124,7 @@ public class SLCoreInstanceHandleTests
             out var foldersProvider,
             out var connectionsProvider,
             out var jarLocator,
+            out _,
             out var activeSolutionBoundTracker,
             out _,
             out _);
@@ -150,6 +156,7 @@ public class SLCoreInstanceHandleTests
             out var foldersProvider,
             out var connectionsProvider,
             out var jarLocator,
+            out _,
             out var activeSolutionBoundTracker,
             out _,
             out _);
@@ -181,6 +188,7 @@ public class SLCoreInstanceHandleTests
             out var foldersProvider,
             out var connectionsProvider,
             out var jarLocator,
+            out _,
             out var activeSolutionBoundTracker,
             out _,
             out _);
@@ -211,6 +219,7 @@ public class SLCoreInstanceHandleTests
             out var foldersProvider,
             out var connectionsProvider,
             out var jarLocator,
+            out _,
             out var activeSolutionBoundTracker,
             out _,
             out var threadHandling);
@@ -251,6 +260,7 @@ public class SLCoreInstanceHandleTests
             out var foldersProvider,
             out var connectionsProvider,
             out var jarLocator,
+            out _,
             out var activeSolutionBoundTracker,
             out _,
             out var threadHandling);
@@ -285,6 +295,7 @@ public class SLCoreInstanceHandleTests
             out var foldersProvider,
             out var connectionsProvider,
             out var jarLocator,
+            out _,
             out var activeSolutionBoundTracker,
             out _,
             out var threadHandling);
@@ -317,6 +328,7 @@ public class SLCoreInstanceHandleTests
             out var foldersProvider,
             out var connectionsProvider,
             out var jarLocator,
+            out _,
             out var activeSolutionBoundTracker,
             out _,
             out var threadHandling);
@@ -354,6 +366,7 @@ public class SLCoreInstanceHandleTests
     public void Dispose_NotInitialized_DoesNothing()
     {
         var testSubject = CreateTestSubject(out _,
+            out _,
             out _,
             out _,
             out _,
@@ -441,6 +454,7 @@ public class SLCoreInstanceHandleTests
         out ISLCoreFoldersProvider slCoreFoldersProvider,
         out IServerConnectionsProvider serverConnectionConfigurationProvider,
         out ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
+        out ICompatibleNodeLocator compatibleNodeLocator, 
         out IActiveSolutionBoundTracker activeSolutionBoundTracker,
         out IConfigScopeUpdater configScopeUpdater,
         out IThreadHandling threadHandling)
@@ -450,6 +464,7 @@ public class SLCoreInstanceHandleTests
         slCoreFoldersProvider = Substitute.For<ISLCoreFoldersProvider>();
         serverConnectionConfigurationProvider = Substitute.For<IServerConnectionsProvider>();
         slCoreEmbeddedPluginJarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
+        compatibleNodeLocator = Substitute.For<ICompatibleNodeLocator>();
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
         threadHandling = Substitute.For<IThreadHandling>();
@@ -459,6 +474,7 @@ public class SLCoreInstanceHandleTests
             slCoreFoldersProvider,
             serverConnectionConfigurationProvider,
             slCoreEmbeddedPluginJarProvider,
+            compatibleNodeLocator,
             activeSolutionBoundTracker,
             configScopeUpdater,
             threadHandling);

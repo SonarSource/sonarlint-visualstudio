@@ -18,14 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core.JsTs;
 
-namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
+namespace SonarLint.VisualStudio.Integration.NodeJS.Locator
 {
     [Export(typeof(INodeVersionInfoProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
