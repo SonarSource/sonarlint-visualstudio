@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
@@ -46,21 +47,28 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     private readonly ISLCoreConstantsProvider constantsProvider;
     private readonly ISLCoreFoldersProvider slCoreFoldersProvider;
     private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
+    private readonly ICompatibleNodeLocator compatibleNodeLocator;
     private readonly IThreadHandling threadHandling;
     public Task ShutdownTask => SLCoreRpc.ShutdownTask;
     internal ISLCoreRpc SLCoreRpc { get; private set; }
 
 
-    internal SLCoreInstanceHandle(ISLCoreRpcFactory slCoreRpcFactory, ISLCoreConstantsProvider constantsProvider,
+    internal SLCoreInstanceHandle(ISLCoreRpcFactory slCoreRpcFactory,
+        ISLCoreConstantsProvider constantsProvider,
         ISLCoreFoldersProvider slCoreFoldersProvider,
-        IServerConnectionsProvider serverConnectionConfigurationProvider, ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
-        IActiveSolutionBoundTracker activeSolutionBoundTracker, IConfigScopeUpdater configScopeUpdater, IThreadHandling threadHandling)
+        IServerConnectionsProvider serverConnectionConfigurationProvider, 
+        ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
+        ICompatibleNodeLocator compatibleNodeLocator,
+        IActiveSolutionBoundTracker activeSolutionBoundTracker,
+        IConfigScopeUpdater configScopeUpdater,
+        IThreadHandling threadHandling)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
         this.constantsProvider = constantsProvider;
         this.slCoreFoldersProvider = slCoreFoldersProvider;
         this.serverConnectionConfigurationProvider = serverConnectionConfigurationProvider;
         this.slCoreEmbeddedPluginJarProvider = slCoreEmbeddedPluginJarProvider;
+        this.compatibleNodeLocator = compatibleNodeLocator;
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.configScopeUpdater = configScopeUpdater;
         this.threadHandling = threadHandling;
@@ -97,7 +105,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             standaloneRuleConfigByKey: new Dictionary<string, StandaloneRuleConfigDto>(),
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
-            new LanguageSpecificRequirements(null)));
+            new LanguageSpecificRequirements(compatibleNodeLocator.Locate()?.NodeExePath)));
 
         configScopeUpdater.UpdateConfigScopeForCurrentSolution(activeSolutionBoundTracker.CurrentConfiguration.Project);
     }

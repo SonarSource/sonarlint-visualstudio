@@ -43,6 +43,16 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
+    <Compile Update="NodeJS\Locator\LocatorResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LocatorResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="NodeJS\Notifications\NotificationStrings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NotificationStrings.resx</DependentUpon>
+    </Compile>
     <EmbeddedResource Update="Binding\BindingStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>BindingStrings.Designer.cs</LastGenOutput>
@@ -51,6 +61,14 @@
       <!-- Note: must be public so the resources are visible to XAML -->
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="NodeJS\Locator\LocatorResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>LocatorResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="NodeJS\Notifications\NotificationStrings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>NotificationStrings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 
@@ -75,6 +93,10 @@
     <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj" />
     <ProjectReference Include="..\Progress\Progress.csproj" />
     <ProjectReference Include="..\ProgressVS\ProgressVS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="NodeJS\" />
   </ItemGroup>
 
 
