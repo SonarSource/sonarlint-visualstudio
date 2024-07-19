@@ -22,7 +22,7 @@ using NSubstitute.ClearExtensions;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.Integration.NodeJS.Locator;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
@@ -60,7 +60,7 @@ public class SLCoreInstanceHandleTests
     private ISLCoreFoldersProvider foldersProvider;
     private IServerConnectionsProvider connectionsProvider;
     private ISLCoreEmbeddedPluginJarLocator jarLocator;
-    private ICompatibleNodeLocator nodeLocator;
+    private INodeLocationProvider nodeLocator;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private IConfigScopeUpdater configScopeUpdater;
     private IThreadHandling threadHandling;
@@ -75,7 +75,7 @@ public class SLCoreInstanceHandleTests
         foldersProvider = Substitute.For<ISLCoreFoldersProvider>();
         connectionsProvider = Substitute.For<IServerConnectionsProvider>();
         jarLocator = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
-        nodeLocator = Substitute.For<ICompatibleNodeLocator>();
+        nodeLocator = Substitute.For<INodeLocationProvider>();
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
         threadHandling = Substitute.For<IThreadHandling>();
@@ -112,8 +112,8 @@ public class SLCoreInstanceHandleTests
     {
         SetUpLanguages(constantsProvider, [], []);
         SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
-        nodeLocator.Locate().Returns(nodeJsPath is null ? null : new NodeVersionInfo(nodeJsPath, new Version()));
-
+        nodeLocator.Get().Returns(nodeJsPath);
+        
         testSubject.Initialize();
 
         Received.InOrder(() =>

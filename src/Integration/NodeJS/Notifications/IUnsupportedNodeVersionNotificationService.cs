@@ -21,12 +21,13 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
+using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications
 {
-    internal interface IUnsupportedNodeVersionNotificationService
+    public interface IUnsupportedNodeVersionNotificationService
     {
-        void Show();
+        void Show(Language language, string minVersion, string currentVersion);
     }
 
     [Export(typeof(IUnsupportedNodeVersionNotificationService))]
@@ -34,33 +35,31 @@ namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications
     internal class UnsupportedNodeVersionNotificationService : IUnsupportedNodeVersionNotificationService
     {
         private readonly INotificationService notificationService;
+        private readonly IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction;
         private readonly IBrowserService browserService;
-        private readonly INotification notification;
 
-        private const string NotificationId = "sonarlint.nodejs.min.version.not.found.14.17";
+        private const string NotificationIdPrefix = "sonarlint.nodejs.min.version.not.found.";
 
         [ImportingConstructor]
-        public UnsupportedNodeVersionNotificationService(INotificationService notificationService, 
+        public UnsupportedNodeVersionNotificationService(INotificationService notificationService,
             IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction,
             IBrowserService browserService)
         {
             this.notificationService = notificationService;
+            this.doNotShowAgainNotificationAction = doNotShowAgainNotificationAction;
             this.browserService = browserService;
+        }
 
-            notification = new Notification(
-                id: NotificationId,
-                message: NotificationStrings.NotificationUnsupportedNode,
+        public void Show(Language language, string minVersion, string currentVersion)
+        {
+            notificationService.ShowNotification(new Notification(
+                id: NotificationIdPrefix + language,
+                message: string.Format(NotificationStrings.NotificationUnsupportedNode, language, minVersion, currentVersion ?? NotificationStrings.NotificationNoneVersion),
                 actions: new INotificationAction[]
                 {
                     new NotificationAction(NotificationStrings.NotificationShowMoreInfoAction, _ => ShowMoreInfo(), false),
                     doNotShowAgainNotificationAction
-                }
-            );
-        }
-
-        public void Show()
-        {
-            notificationService.ShowNotification(notification);
+                }));
         }
 
         private void ShowMoreInfo()

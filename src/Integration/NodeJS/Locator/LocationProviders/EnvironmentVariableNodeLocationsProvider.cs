@@ -18,22 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.NodeJS.Locator.LocationProviders
 {
-    internal class EnvironmentVariableNodeLocationsProvider : INodeLocationsProvider
+    [Export(typeof(INodeLocationProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class EnvironmentVariableNodeLocationsProvider : INodeLocationProvider
     {
         internal const string NodeJsPathEnvVar = "SONAR_NODEJS_PATH";
 
         private readonly ILogger logger;
 
+        [ImportingConstructor]
         public EnvironmentVariableNodeLocationsProvider(ILogger logger)
         {
             this.logger = logger;
         }
 
-        public IReadOnlyCollection<string> Get()
+        public string Get()
         {
             logger.WriteLine(LocatorResources.INFO_CheckingEnvVar, NodeJsPathEnvVar);
             var nodeExePath = Environment.GetEnvironmentVariable(NodeJsPathEnvVar);
@@ -41,11 +45,11 @@ namespace SonarLint.VisualStudio.Integration.NodeJS.Locator.LocationProviders
             if (string.IsNullOrEmpty(nodeExePath))
             {
                 logger.WriteLine(LocatorResources.INFO_NoEnvVar);
-                return Array.Empty<string>();
+                return null;
             }
 
             logger.WriteLine(LocatorResources.INFO_EnvVarValue, nodeExePath);
-            return new[] {nodeExePath};
+            return nodeExePath;
         }
     }
 }

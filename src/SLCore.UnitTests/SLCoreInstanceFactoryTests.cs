@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using NSubstitute;
+
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.Integration.NodeJS.Locator;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.State;
@@ -40,7 +40,7 @@ public class SLCoreInstanceFactoryTests
             MefTestHelpers.CreateExport<ISLCoreFoldersProvider>(),
             MefTestHelpers.CreateExport<IServerConnectionsProvider>(),
             MefTestHelpers.CreateExport<ISLCoreEmbeddedPluginJarLocator>(),
-            MefTestHelpers.CreateExport<ICompatibleNodeLocator>(),
+            MefTestHelpers.CreateExport<INodeLocationProvider>(),
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
             MefTestHelpers.CreateExport<IConfigScopeUpdater>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
@@ -62,7 +62,7 @@ public class SLCoreInstanceFactoryTests
         var islCoreFoldersProvider = Substitute.For<ISLCoreFoldersProvider>();
         var serverConnectionsProvider = Substitute.For<IServerConnectionsProvider>();
         var islCoreEmbeddedPluginJarLocator = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
-        var compatibleNodeLocator = Substitute.For<ICompatibleNodeLocator>();
+        var compatibleNodeLocator = Substitute.For<INodeLocationProvider>();
         var activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         var configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
         var threadHandling = Substitute.For<IThreadHandling>();

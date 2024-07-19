@@ -60,6 +60,15 @@ namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string NotificationNoneVersion {
+            get {
+                return ResourceManager.GetString("NotificationNoneVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to How do I fix this?.
         /// </summary>
         internal static string NotificationShowMoreInfoAction {
@@ -69,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: JavaScript/TypeScript analysis failed. Could not find a supported Node.js runtime on your computer..
+        ///   Looks up a localized string similar to SonarLint: {0} analysis failed. Could not find a supported (&gt;={1}) Node.js runtime on your computer..
         /// </summary>
         internal static string NotificationUnsupportedNode {
             get {

@@ -21,7 +21,7 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.Integration.NodeJS.Locator;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.State;
@@ -42,7 +42,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
     private readonly ISLCoreFoldersProvider slCoreFoldersProvider;
     private readonly IServerConnectionsProvider serverConnectionConfigurationProvider;
     private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
-    private readonly ICompatibleNodeLocator compatibleNodeLocator;
+    private readonly INodeLocationProvider nodeLocator;
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IConfigScopeUpdater configScopeUpdater;
     private readonly IThreadHandling threadHandling;
@@ -54,7 +54,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         ISLCoreFoldersProvider slCoreFoldersProvider,
         IServerConnectionsProvider serverConnectionConfigurationProvider,
         ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
-        ICompatibleNodeLocator compatibleNodeLocator,
+        INodeLocationProvider nodeLocator,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IConfigScopeUpdater configScopeUpdater,
         IThreadHandling threadHandling,
@@ -65,7 +65,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         this.slCoreFoldersProvider = slCoreFoldersProvider;
         this.serverConnectionConfigurationProvider = serverConnectionConfigurationProvider;
         this.slCoreEmbeddedPluginJarProvider = slCoreEmbeddedPluginJarProvider;
-        this.compatibleNodeLocator = compatibleNodeLocator;
+        this.nodeLocator = nodeLocator;
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.configScopeUpdater = configScopeUpdater;
         this.threadHandling = threadHandling;
@@ -78,7 +78,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
             slCoreFoldersProvider,
             serverConnectionConfigurationProvider,
             slCoreEmbeddedPluginJarProvider,
-            compatibleNodeLocator,
+            nodeLocator,
             activeSolutionBoundTracker,
             configScopeUpdater,
             threadHandling,

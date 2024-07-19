@@ -20,7 +20,7 @@
 
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.Integration.NodeJS.Locator;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Configuration;
@@ -48,7 +48,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     private readonly ISLCoreConstantsProvider constantsProvider;
     private readonly ISLCoreFoldersProvider slCoreFoldersProvider;
     private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
-    private readonly ICompatibleNodeLocator compatibleNodeLocator;
+    private readonly INodeLocationProvider nodeLocator;
     private readonly IThreadHandling threadHandling;
     private readonly ISLCoreRuleSettings slCoreRuleSettings;
     public Task ShutdownTask => SLCoreRpc.ShutdownTask;
@@ -60,7 +60,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         ISLCoreFoldersProvider slCoreFoldersProvider,
         IServerConnectionsProvider serverConnectionConfigurationProvider, 
         ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
-        ICompatibleNodeLocator compatibleNodeLocator,
+        INodeLocationProvider nodeLocator,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IConfigScopeUpdater configScopeUpdater,
         IThreadHandling threadHandling,
@@ -71,7 +71,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         this.slCoreFoldersProvider = slCoreFoldersProvider;
         this.serverConnectionConfigurationProvider = serverConnectionConfigurationProvider;
         this.slCoreEmbeddedPluginJarProvider = slCoreEmbeddedPluginJarProvider;
-        this.compatibleNodeLocator = compatibleNodeLocator;
+        this.nodeLocator = nodeLocator;
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.configScopeUpdater = configScopeUpdater;
         this.threadHandling = threadHandling;
@@ -109,7 +109,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             standaloneRuleConfigByKey: slCoreRuleSettings.RulesSettings,
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
-            new LanguageSpecificRequirements(compatibleNodeLocator.Locate()?.NodeExePath)));
+            new LanguageSpecificRequirements(nodeLocator.Get())));
 
         configScopeUpdater.UpdateConfigScopeForCurrentSolution(activeSolutionBoundTracker.CurrentConfiguration.Project);
     }
