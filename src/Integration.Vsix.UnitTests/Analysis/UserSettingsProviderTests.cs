@@ -326,17 +326,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        public void DisableRule_CallsUpdateStandaloneRulesConfiguration()
+        public void FileChanged_CallsUpdateStandaloneRulesConfiguration()
         {
-            var slCoreServiceProvider = new Mock<ISLCoreServiceProvider>();
-            var mockRulesSlCoreService = MockRulesSlCoreService(slCoreServiceProvider);
-            var fileMonitorMock = new Mock<ISingleFileMonitor>();
-            CreateTestSubject(fileSystem: CreateMockFile("dummyPath", "dummyContent").Object, 
-                singleFileMonitor: fileMonitorMock.Object, slCoreService:slCoreServiceProvider.Object);
+            var mockSlCoreServiceProvider = new Mock<ISLCoreServiceProvider>();
+            var mockRulesSlCoreService = MockRulesSlCoreService(mockSlCoreServiceProvider);
 
-            fileMonitorMock.Raise(x => x.FileChanged += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+            SetupFileChangedInUserSettingsProvider(mockSlCoreServiceProvider);
 
             mockRulesSlCoreService.Verify(mock => mock.UpdateStandaloneRulesConfiguration(It.IsAny<UpdateStandaloneRulesConfigurationParams>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void FileChanged_UpdatingStandaloneRulesConfigurationInSlCoreFails_WritesLog()
+        {
+            var mockSlCoreServiceProvider = new Mock<ISLCoreServiceProvider>();
+            var mockLogger = new Mock<ILogger>();
+            var mockRulesSlCoreService = MockRulesSlCoreService(mockSlCoreServiceProvider);
+            SetupFileChangedInUserSettingsProvider(mockSlCoreServiceProvider, mockLogger);
+
+            mockRulesSlCoreService.Setup(mock =>
+                mock.UpdateStandaloneRulesConfiguration(It.IsAny<UpdateStandaloneRulesConfigurationParams>())).Throws<Exception>();
+
+            mockLogger.Verify(mock => mock.WriteLine(It.IsAny<string>()), Times.Once);
         }
 
         private string CreateTestSpecificDirectory()
@@ -405,6 +416,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             slCoreServiceProvider.Setup(s => s.TryGetTransientService(out rulesSlCoreService)).Returns(true);
 
             return mockRulesSlCoreService;
+        }
+
+        private static void SetupFileChangedInUserSettingsProvider(Mock<ISLCoreServiceProvider> slCoreServiceProvider, Mock<ILogger> logger = null)
+        {
+            var fileMonitorMock = new Mock<ISingleFileMonitor>();
+            CreateUserSettingsProvider(
+                logger?.Object ?? new Mock<ILogger>().Object,
+                CreateMockFile("dummyPath", "dummyContent").Object,
+                fileMonitorMock.Object, 
+                slCoreServiceProvider.Object);
+
+            fileMonitorMock.Raise(x => x.FileChanged += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
         }
     }
 }
