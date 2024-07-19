@@ -20,7 +20,6 @@
     </Installation>
     <Dependencies>
         <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.7.2,)" />
-        <Dependency d:Source="Project" d:ProjectName="EmbeddedVsix" Version="[8.2.0.0]" d:InstallSource="Embed" d:VsixSubPath="EmbeddedVsix" Location="|EmbeddedVsix;VSIXContainerProjectOutputGroup|" DisplayName="|EmbeddedVsix;VSIXNameProjectOutputGroup|" Id="|EmbeddedVsix;VSIXIdentifierProjectOutputGroup|" />
     </Dependencies>
     <Assets>
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Integration" Path="|Integration|" />
