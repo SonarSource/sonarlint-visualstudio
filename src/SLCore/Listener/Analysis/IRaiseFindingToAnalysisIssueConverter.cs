@@ -24,8 +24,8 @@ using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 {
-    public interface IRaiseIssueParamsToAnalysisIssueConverter
+    public interface IRaiseFindingToAnalysisIssueConverter
     {
-        IEnumerable<IAnalysisIssue> GetAnalysisIssues<T>(FileUri fileUri, IEnumerable<T> raisedIssues) where T : RaisedFindingDto;
+        IEnumerable<IAnalysisIssue> GetAnalysisIssues<T>(FileUri fileUri, IEnumerable<T> raisedFindings) where T : RaisedFindingDto;
     }
 }
