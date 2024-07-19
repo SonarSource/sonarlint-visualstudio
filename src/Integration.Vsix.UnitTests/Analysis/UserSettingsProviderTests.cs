@@ -21,6 +21,8 @@
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.Rules;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 {
@@ -33,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<UserSettingsProvider, IUserSettingsProvider>(
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<ILogger>(), MefTestHelpers.CreateExport<ISLCoreServiceProvider>());
         }
 
         [TestMethod]
@@ -60,14 +62,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void Ctor_NullArguments()
         {
             var mockSingleFileMonitor = new Mock<ISingleFileMonitor>();
+            var mockSlCoreServiceProvider = new Mock<ISLCoreServiceProvider>();
 
-            Action act = () => CreateUserSettingsProvider(null, new FileSystem(), mockSingleFileMonitor.Object);
+            Action act = () => CreateUserSettingsProvider(null, new FileSystem(), mockSingleFileMonitor.Object, mockSlCoreServiceProvider.Object);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
-            act = () => CreateUserSettingsProvider(new TestLogger(), null, mockSingleFileMonitor.Object); 
+            act = () => CreateUserSettingsProvider(new TestLogger(), null, mockSingleFileMonitor.Object, mockSlCoreServiceProvider.Object); 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
 
-            act = () => CreateUserSettingsProvider(new TestLogger(), new FileSystem(), null);
+            act = () => CreateUserSettingsProvider(new TestLogger(), new FileSystem(), null, mockSlCoreServiceProvider.Object);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingsFileMonitor");
         }
 
@@ -322,6 +325,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             testSubject.UserSettings.RulesSettings.Rules["typescript:S2685"].Level.Should().Be(RuleLevel.On);
         }
 
+        [TestMethod]
+        public void DisableRule_CallsUpdateStandaloneRulesConfiguration()
+        {
+            var slCoreServiceProvider = new Mock<ISLCoreServiceProvider>();
+            var mockRulesSlCoreService = MockRulesSlCoreService(slCoreServiceProvider);
+            var fileMonitorMock = new Mock<ISingleFileMonitor>();
+            CreateTestSubject(fileSystem: CreateMockFile("dummyPath", "dummyContent").Object, 
+                singleFileMonitor: fileMonitorMock.Object, slCoreService:slCoreServiceProvider.Object);
+
+            fileMonitorMock.Raise(x => x.FileChanged += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+
+            mockRulesSlCoreService.Verify(mock => mock.UpdateStandaloneRulesConfiguration(It.IsAny<UpdateStandaloneRulesConfigurationParams>()), Times.Once);
+        }
+
         private string CreateTestSpecificDirectory()
         {
             var dir = Path.Combine(TestContext.DeploymentDirectory, TestContext.TestName);
@@ -364,18 +381,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             settings.RulesSettings.Rules.Count.Should().Be(0);
         }
 
-        private static UserSettingsProvider CreateTestSubject(ILogger logger = null, IFileSystem fileSystem = null, ISingleFileMonitor settingsFileMonitor = null)
+        private static UserSettingsProvider CreateTestSubject(ILogger logger = null, IFileSystem fileSystem = null, 
+            ISingleFileMonitor singleFileMonitor = null, ISLCoreServiceProvider slCoreService = null)
         {
             logger ??= new Mock<ILogger>().Object;
             fileSystem ??= new Mock<IFileSystem>().Object;
-            settingsFileMonitor ??= new Mock<ISingleFileMonitor>().Object;
+            singleFileMonitor ??= new Mock<ISingleFileMonitor>().Object;
+            slCoreService ??= new Mock<ISLCoreServiceProvider>().Object;
 
-            return CreateUserSettingsProvider(logger, fileSystem, settingsFileMonitor);
+            return CreateUserSettingsProvider(logger, fileSystem, singleFileMonitor, slCoreService);
         }
 
-        private static UserSettingsProvider CreateUserSettingsProvider(ILogger logger, IFileSystem fileSystem, ISingleFileMonitor settingsFileMonitor)
+        private static UserSettingsProvider CreateUserSettingsProvider(ILogger logger, IFileSystem fileSystem, 
+            ISingleFileMonitor singleFileMonitor, ISLCoreServiceProvider slCoreService)
         {
-            return new UserSettingsProvider(logger, fileSystem, settingsFileMonitor);
+            return new UserSettingsProvider(logger, fileSystem, singleFileMonitor, slCoreService);
+        }
+
+        private static Mock<IRulesSLCoreService> MockRulesSlCoreService(Mock<ISLCoreServiceProvider> slCoreServiceProvider)
+        {
+            var mockRulesSlCoreService = new Mock<IRulesSLCoreService>();
+            var rulesSlCoreService = mockRulesSlCoreService.Object;
+            slCoreServiceProvider.Setup(s => s.TryGetTransientService(out rulesSlCoreService)).Returns(true);
+
+            return mockRulesSlCoreService;
         }
     }
 }

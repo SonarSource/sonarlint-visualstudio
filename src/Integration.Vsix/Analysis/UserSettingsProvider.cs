@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.Rules;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             Path.Combine(EnvironmentVariableProvider.Instance.GetSLVSAppDataRootPath(), "settings.json"));
 
         private readonly ISingleFileMonitor settingsFileMonitor;
+        private readonly ISLCoreServiceProvider slCoreServiceProvider;
 
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
@@ -43,18 +44,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private UserSettings userSettings;
 
         [ImportingConstructor]
-        public UserSettingsProvider(ILogger logger)
+        public UserSettingsProvider(ILogger logger, ISLCoreServiceProvider slCoreServiceProvider)
             : this(logger, new FileSystem(),
-                  new SingleFileMonitor(UserSettingsFilePath, logger))
+                  new SingleFileMonitor(UserSettingsFilePath, logger), slCoreServiceProvider)
         {
         }
 
         internal /* for testing */ UserSettingsProvider(ILogger logger,
-            IFileSystem fileSystem, ISingleFileMonitor settingsFileMonitor)
+            IFileSystem fileSystem, ISingleFileMonitor settingsFileMonitor, 
+            ISLCoreServiceProvider slCoreServiceProvider)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             this.settingsFileMonitor = settingsFileMonitor ?? throw new ArgumentNullException(nameof(settingsFileMonitor));
+            this.slCoreServiceProvider = slCoreServiceProvider;
 
             this.serializer = new RulesSettingsSerializer(fileSystem, logger);
 
@@ -65,6 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private void OnFileChanged(object sender, EventArgs e)
         {
             userSettings = SafeLoadUserSettings(SettingsFilePath, logger);
+            UpdateStandaloneRulesConfiguration();
             SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -118,6 +122,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 settings = new RulesSettings();
             }
             return new UserSettings(settings);
+        }
+
+        private void UpdateStandaloneRulesConfiguration()
+        {
+            if (!slCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesSlCoreService))
+            {
+                return;
+            }
+
+            try
+            {
+                var slCoreSettings = RuleSettingsMapper.MapRuleSettingsToSlCoreSettings(UserSettings.RulesSettings);
+                rulesSlCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(slCoreSettings));
+            }
+            catch (Exception e)
+            {
+                logger.WriteLine(e.ToString());
+            }
         }
 
         public void Dispose()
