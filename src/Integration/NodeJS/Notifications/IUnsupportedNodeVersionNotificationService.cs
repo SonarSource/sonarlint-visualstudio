@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications
 {
     public interface IUnsupportedNodeVersionNotificationService
     {
-        void Show(Language language, string minVersion, string currentVersion);
+        void Show(Language language, string minVersion, string currentVersion = null);
     }
 
     [Export(typeof(IUnsupportedNodeVersionNotificationService))]
@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications
         private readonly IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction;
         private readonly IBrowserService browserService;
 
-        private const string NotificationIdPrefix = "sonarlint.nodejs.min.version.not.found.";
+        private const string NotificationId = "sonarlint.nodejs.min.version.not.found";
 
         [ImportingConstructor]
         public UnsupportedNodeVersionNotificationService(INotificationService notificationService,
@@ -50,10 +50,10 @@ namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications
             this.browserService = browserService;
         }
 
-        public void Show(Language language, string minVersion, string currentVersion)
+        public void Show(Language language, string minVersion, string currentVersion = null)
         {
             notificationService.ShowNotification(new Notification(
-                id: NotificationIdPrefix + language,
+                id: NotificationId,
                 message: string.Format(NotificationStrings.NotificationUnsupportedNode, language, minVersion, currentVersion ?? NotificationStrings.NotificationNoneVersion),
                 actions: new INotificationAction[]
                 {

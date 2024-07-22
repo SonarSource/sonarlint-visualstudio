@@ -21,18 +21,18 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.NodeJS.Locator.LocationProviders
+namespace SonarLint.VisualStudio.Integration.NodeJS.Locator
 {
     [Export(typeof(INodeLocationProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class EnvironmentVariableNodeLocationsProvider : INodeLocationProvider
+    internal class EnvironmentVariableNodeLocationProvider : INodeLocationProvider
     {
         internal const string NodeJsPathEnvVar = "SONAR_NODEJS_PATH";
 
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public EnvironmentVariableNodeLocationsProvider(ILogger logger)
+        public EnvironmentVariableNodeLocationProvider(ILogger logger)
         {
             this.logger = logger;
         }

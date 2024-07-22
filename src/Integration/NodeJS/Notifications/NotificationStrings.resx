@@ -121,9 +121,9 @@
     <value>How do I fix this?</value>
   </data>
   <data name="NotificationUnsupportedNode" xml:space="preserve">
-    <value>SonarLint: {0} analysis failed. Could not find a Node.js runtime (required: >={1}, found: {2}) on your computer.</value>
+    <value>SonarLint: {0} analysis failed. Could not find a Node.js runtime (required: >={1}, actual: {2}) on your computer.</value>
   </data>
   <data name="NotificationNoneVersion" xml:space="preserve">
-    <value>None</value>
+    <value>Not found</value>
   </data>
 </root>

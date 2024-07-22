@@ -20,19 +20,19 @@
 
 using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration.NodeJS.Locator.LocationProviders;
+using SonarLint.VisualStudio.Integration.NodeJS.Locator;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.NodeJS.Locator.LocationProviders
+namespace SonarLint.VisualStudio.Integration.UnitTests.NodeJS.Locator
 {
     [TestClass]
-    public class EnvironmentVariableNodeLocationsProviderTests
+    public class EnvironmentVariableNodeLocationProviderTests
     {
         [TestMethod]
         public void Get_HasEnvironmentVariable_ReturnsListWithValue()
         {
             using var scope = new EnvironmentVariableScope();
-            scope.SetVariable(EnvironmentVariableNodeLocationsProvider.NodeJsPathEnvVar, "some path");
+            scope.SetVariable(EnvironmentVariableNodeLocationProvider.NodeJsPathEnvVar, "some path");
 
             var testSubject = CreateTestSubject();
             var result = testSubject.Get();
@@ -46,17 +46,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.NodeJS.Locator.LocationPr
         public void Get_NoEnvironmentVariable_EmptyList(string envVarValue)
         {
             using var scope = new EnvironmentVariableScope();
-            scope.SetVariable(EnvironmentVariableNodeLocationsProvider.NodeJsPathEnvVar, envVarValue);
+            scope.SetVariable(EnvironmentVariableNodeLocationProvider.NodeJsPathEnvVar, envVarValue);
 
             var testSubject = CreateTestSubject();
             var result = testSubject.Get();
 
-            result.Should().BeEmpty();
+            result.Should().BeNull();
         }
 
-        private EnvironmentVariableNodeLocationsProvider CreateTestSubject()
+        private EnvironmentVariableNodeLocationProvider CreateTestSubject()
         {
-            return new EnvironmentVariableNodeLocationsProvider(Mock.Of<ILogger>());
+            return new EnvironmentVariableNodeLocationProvider(Mock.Of<ILogger>());
         }
     }
 }

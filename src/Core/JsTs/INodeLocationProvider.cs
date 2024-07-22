@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Integration.NodeJS.Locator;
 public interface INodeLocationProvider
 {
     /// <summary>
-    /// Returns `node.exe` candidate file locations, in precedence order. The files might not exist on disk.
+    /// Returns `node.exe` file location if set by user
     /// </summary>
     string Get();
 }

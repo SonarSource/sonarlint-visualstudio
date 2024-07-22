@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Not found.
         /// </summary>
         internal static string NotificationNoneVersion {
             get {
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: {0} analysis failed. Could not find a supported (&gt;={1}) Node.js runtime on your computer..
+        ///   Looks up a localized string similar to SonarLint: {0} analysis failed. Could not find a Node.js runtime (required: &gt;={1}, actual: {2}) on your computer..
         /// </summary>
         internal static string NotificationUnsupportedNode {
             get {
