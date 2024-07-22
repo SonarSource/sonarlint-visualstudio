@@ -22,130 +22,133 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Rules;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
+namespace SonarLint.VisualStudio.Integration.Vsix.Analysis;
+
+[Export(typeof(IUserSettingsProvider))]
+internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
 {
-    [Export(typeof(IUserSettingsProvider))]
-    internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
+    // Note: the data is stored in the roaming profile so it will be sync across machines
+    // for domain-joined users.
+    public static readonly string UserSettingsFilePath = Path.GetFullPath(
+        Path.Combine(EnvironmentVariableProvider.Instance.GetSLVSAppDataRootPath(), "settings.json"));
+
+    private readonly ISingleFileMonitor settingsFileMonitor;
+    private readonly ISLCoreServiceProvider slCoreServiceProvider;
+    private readonly IRuleSettingsMapper ruleSettingsMapper;
+    private readonly IFileSystem fileSystem;
+    private readonly ILogger logger;
+    private readonly RulesSettingsSerializer serializer;
+    private UserSettings userSettings;
+
+    [ImportingConstructor]
+    public UserSettingsProvider(ILogger logger, ISLCoreServiceProvider slCoreServiceProvider, IRuleSettingsMapper ruleSettingsMapper)
+        : this(logger, new FileSystem(),
+            new SingleFileMonitor(UserSettingsFilePath, logger), slCoreServiceProvider, ruleSettingsMapper)
     {
-        // Note: the data is stored in the roaming profile so it will be sync across machines
-        // for domain-joined users.
-        public static readonly string UserSettingsFilePath = Path.GetFullPath(
-            Path.Combine(EnvironmentVariableProvider.Instance.GetSLVSAppDataRootPath(), "settings.json"));
+    }
 
-        private readonly ISingleFileMonitor settingsFileMonitor;
-        private readonly ISLCoreServiceProvider slCoreServiceProvider;
+    internal /* for testing */ UserSettingsProvider(ILogger logger,
+        IFileSystem fileSystem, ISingleFileMonitor settingsFileMonitor, 
+        ISLCoreServiceProvider slCoreServiceProvider, IRuleSettingsMapper ruleSettingsMapper)
+    {
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+        this.settingsFileMonitor = settingsFileMonitor ?? throw new ArgumentNullException(nameof(settingsFileMonitor));
+        this.slCoreServiceProvider = slCoreServiceProvider;
+        this.ruleSettingsMapper = ruleSettingsMapper;
 
-        private readonly IFileSystem fileSystem;
-        private readonly ILogger logger;
-        private readonly RulesSettingsSerializer serializer;
-        private UserSettings userSettings;
+        this.serializer = new RulesSettingsSerializer(fileSystem, logger);
 
-        [ImportingConstructor]
-        public UserSettingsProvider(ILogger logger, ISLCoreServiceProvider slCoreServiceProvider)
-            : this(logger, new FileSystem(),
-                  new SingleFileMonitor(UserSettingsFilePath, logger), slCoreServiceProvider)
+        SettingsFilePath = settingsFileMonitor.MonitoredFilePath;
+        settingsFileMonitor.FileChanged += OnFileChanged;
+        this.ruleSettingsMapper = ruleSettingsMapper;
+    }
+
+    private void OnFileChanged(object sender, EventArgs e)
+    {
+        userSettings = SafeLoadUserSettings(SettingsFilePath, logger);
+        UpdateStandaloneRulesConfiguration();
+        SettingsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    #region IUserSettingsProvider implementation
+
+    public UserSettings UserSettings
+    {
+        get
         {
+            if (userSettings == null) { userSettings = SafeLoadUserSettings(SettingsFilePath, logger); }
+            return userSettings;
+        }
+    }
+
+    public event EventHandler SettingsChanged;
+
+    public void DisableRule(string ruleId)
+    {
+        Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
+
+        if (UserSettings.RulesSettings.Rules.TryGetValue(ruleId, out var ruleConfig))
+        {
+            ruleConfig.Level = RuleLevel.Off;
+        }
+        else
+        {
+            UserSettings.RulesSettings.Rules[ruleId] = new RuleConfig { Level = RuleLevel.Off };
         }
 
-        internal /* for testing */ UserSettingsProvider(ILogger logger,
-            IFileSystem fileSystem, ISingleFileMonitor settingsFileMonitor, 
-            ISLCoreServiceProvider slCoreServiceProvider)
+        serializer.SafeSave(SettingsFilePath, UserSettings.RulesSettings);
+    }
+
+    public string SettingsFilePath { get; }
+
+    public void EnsureFileExists()
+    {
+        if (!fileSystem.File.Exists(SettingsFilePath))
         {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-            this.settingsFileMonitor = settingsFileMonitor ?? throw new ArgumentNullException(nameof(settingsFileMonitor));
-            this.slCoreServiceProvider = slCoreServiceProvider;
-
-            this.serializer = new RulesSettingsSerializer(fileSystem, logger);
-
-            SettingsFilePath = settingsFileMonitor.MonitoredFilePath;
-            settingsFileMonitor.FileChanged += OnFileChanged;
-        }
-
-        private void OnFileChanged(object sender, EventArgs e)
-        {
-            userSettings = SafeLoadUserSettings(SettingsFilePath, logger);
-            UpdateStandaloneRulesConfiguration();
-            SettingsChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        #region IUserSettingsProvider implementation
-
-        public UserSettings UserSettings
-        {
-            get
-            {
-                if (userSettings == null) { userSettings = SafeLoadUserSettings(SettingsFilePath, logger); }
-                return userSettings;
-            }
-        }
-
-        public event EventHandler SettingsChanged;
-
-        public void DisableRule(string ruleId)
-        {
-            Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
-
-            if (UserSettings.RulesSettings.Rules.TryGetValue(ruleId, out var ruleConfig))
-            {
-                ruleConfig.Level = RuleLevel.Off;
-            }
-            else
-            {
-                UserSettings.RulesSettings.Rules[ruleId] = new RuleConfig { Level = RuleLevel.Off };
-            }
-
             serializer.SafeSave(SettingsFilePath, UserSettings.RulesSettings);
         }
+    }
 
-        public string SettingsFilePath { get; }
+    #endregion
 
-        public void EnsureFileExists()
+    private UserSettings SafeLoadUserSettings(string filePath, ILogger logger)
+    {
+        var settings = serializer.SafeLoad(filePath);
+        if (settings == null)
         {
-            if (!fileSystem.File.Exists(SettingsFilePath))
-            {
-                serializer.SafeSave(SettingsFilePath, UserSettings.RulesSettings);
-            }
+            logger.WriteLine(AnalysisStrings.Settings_UsingDefaultSettings);
+            settings = new RulesSettings();
+        }
+        return new UserSettings(settings);
+    }
+
+    private void UpdateStandaloneRulesConfiguration()
+    {
+        if (!slCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesSlCoreService))
+        {
+            logger.WriteLine($"[{nameof(UserSettingsProvider)}] {SLCoreStrings.ServiceProviderNotInitialized}");
+            return;
         }
 
-        #endregion
-
-        private UserSettings SafeLoadUserSettings(string filePath, ILogger logger)
+        try
         {
-            var settings = serializer.SafeLoad(filePath);
-            if (settings == null)
-            {
-                logger.WriteLine(AnalysisStrings.Settings_UsingDefaultSettings);
-                settings = new RulesSettings();
-            }
-            return new UserSettings(settings);
+            var slCoreSettings = ruleSettingsMapper.MapRuleSettingsToSlCoreSettings(UserSettings.RulesSettings);
+            rulesSlCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(slCoreSettings));
         }
-
-        private void UpdateStandaloneRulesConfiguration()
+        catch (Exception e)
         {
-            if (!slCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesSlCoreService))
-            {
-                return;
-            }
-
-            try
-            {
-                var slCoreSettings = RuleSettingsMapper.MapRuleSettingsToSlCoreSettings(UserSettings.RulesSettings);
-                rulesSlCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(slCoreSettings));
-            }
-            catch (Exception e)
-            {
-                logger.WriteLine(e.ToString());
-            }
+            logger.WriteLine(e.ToString());
         }
+    }
 
-        public void Dispose()
-        {
-            settingsFileMonitor.FileChanged -= OnFileChanged;
-            settingsFileMonitor.Dispose();
-        }
+    public void Dispose()
+    {
+        settingsFileMonitor.FileChanged -= OnFileChanged;
+        settingsFileMonitor.Dispose();
     }
 }

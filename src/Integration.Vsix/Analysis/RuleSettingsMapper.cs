@@ -18,20 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
-{
-    internal static class RuleSettingsMapper
-    {
-        internal static Dictionary<string, StandaloneRuleConfigDto> MapRuleSettingsToSlCoreSettings(RulesSettings rulesSettings)
-        { 
-            return rulesSettings.Rules.ToDictionary(kvp => kvp.Key, kvp => MapStandaloneRuleConfigDto(kvp.Value));
-        }
+namespace SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
-        private static StandaloneRuleConfigDto MapStandaloneRuleConfigDto(RuleConfig ruleConfig) => new(MapIsActive(ruleConfig.Level), MapParameters(ruleConfig.Parameters));
-        private static bool MapIsActive(RuleLevel ruleLevel) => ruleLevel == RuleLevel.On;
-        private static Dictionary<string, string> MapParameters(Dictionary<string, string> ruleParameters) => ruleParameters ?? [];
+public interface IRuleSettingsMapper
+{
+    Dictionary<string, StandaloneRuleConfigDto> MapRuleSettingsToSlCoreSettings(RulesSettings rulesSettings);
+}
+
+[Export(typeof(IRuleSettingsMapper))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+public class RuleSettingsMapper : IRuleSettingsMapper
+{
+    public Dictionary<string, StandaloneRuleConfigDto> MapRuleSettingsToSlCoreSettings(RulesSettings rulesSettings)
+    { 
+        return rulesSettings.Rules.ToDictionary(kvp => kvp.Key, kvp => MapStandaloneRuleConfigDto(kvp.Value));
     }
+
+    private static StandaloneRuleConfigDto MapStandaloneRuleConfigDto(RuleConfig ruleConfig) => new(MapIsActive(ruleConfig.Level), MapParameters(ruleConfig.Parameters));
+    private static bool MapIsActive(RuleLevel ruleLevel) => ruleLevel == RuleLevel.On;
+    private static Dictionary<string, string> MapParameters(Dictionary<string, string> ruleParameters) => ruleParameters ?? [];
 }

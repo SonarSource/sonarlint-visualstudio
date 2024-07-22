@@ -19,84 +19,102 @@
  */
 
 using SonarLint.VisualStudio.Core;
-using static SonarLint.VisualStudio.Integration.Vsix.Analysis.RuleSettingsMapper;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
+namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis;
+
+[TestClass]
+public class RuleSettingsMapperTests
 {
-    [TestClass]
-    public class RuleSettingsMapperTests
+    private const string RuleId = "dummyRule";
+    private const string RuleId2 = "dummyRule2";
+    private readonly RulesSettings rulesSettings = new();
+    private RuleSettingsMapper ruleSettingsMapper;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        private const string RuleId = "dummyRule";
-        private const string RuleId2 = "dummyRule2";
-        private readonly RulesSettings rulesSettings = new();
+        ruleSettingsMapper = new RuleSettingsMapper();
+    }
 
-        [TestMethod]
-        public void MapRuleSettingsToSlCoreSettings_RuleSettingsHaveOneRule_ShouldCreateDictionaryWithOneRule()
-        {
-            AddRule(RuleId);
+    [TestMethod]
+    public void MefCtor_CheckExports()
+    {
+        MefTestHelpers.CheckTypeCanBeImported<RuleSettingsProvider, IRuleSettingsProvider>();
+    }
 
-            var slCoreSettings = MapRuleSettingsToSlCoreSettings(rulesSettings);
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton()
+    {
+        MefTestHelpers.CheckIsSingletonMefComponent<RuleSettingsProvider>();
+    }
 
-            slCoreSettings.Should().NotBeNull();
-            slCoreSettings.Keys.Count.Should().Be(1);
-            slCoreSettings.Keys.First().Should().Be(RuleId);
-        }
+    [TestMethod]
+    public void MapRuleSettingsToSlCoreSettings_RuleSettingsHaveOneRule_ShouldCreateDictionaryWithOneRule()
+    {
+        AddRule(RuleId);
 
-        [TestMethod]
-        public void MapRuleSettingsToSlCoreSettings_RuleSettingsHaveTwoRules_ShouldCreateDictionaryWithTwoRules()
-        {
-            AddRule(RuleId);
-            AddRule(RuleId2);
+        var slCoreSettings = ruleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
 
-            var slCoreSettings = MapRuleSettingsToSlCoreSettings(rulesSettings);
+        slCoreSettings.Should().NotBeNull();
+        slCoreSettings.Keys.Count.Should().Be(1);
+        slCoreSettings.Keys.First().Should().Be(RuleId);
+    }
 
-            slCoreSettings.Should().NotBeNull();
-            slCoreSettings.Keys.Count.Should().Be(2);
-            slCoreSettings.Keys.First().Should().Be(RuleId);
-            slCoreSettings.Keys.Last().Should().Be(RuleId2);
-        }
+    [TestMethod]
+    public void MapRuleSettingsToSlCoreSettings_RuleSettingsHaveTwoRules_ShouldCreateDictionaryWithTwoRules()
+    {
+        AddRule(RuleId);
+        AddRule(RuleId2);
 
-        [TestMethod]
-        [DataRow(RuleLevel.Off, false)]
-        [DataRow(RuleLevel.On, true)]
-        public void MapRuleSettingsToSlCoreSettings_ShouldSetCorrectlySqlCoreIsActiveValue(RuleLevel ruleLevel, bool expectedIsActive)
-        {
-            AddRule(RuleId, ruleLevel);
+        var slCoreSettings = ruleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
 
-            var slCoreSettings = MapRuleSettingsToSlCoreSettings(rulesSettings);
+        slCoreSettings.Should().NotBeNull();
+        slCoreSettings.Keys.Count.Should().Be(2);
+        slCoreSettings.Keys.First().Should().Be(RuleId);
+        slCoreSettings.Keys.Last().Should().Be(RuleId2);
+    }
 
-            var ruleConfigDto = slCoreSettings.Values.First();
-            ruleConfigDto.isActive.Should().Be(expectedIsActive);
-        }
+    [TestMethod]
+    [DataRow(RuleLevel.Off, false)]
+    [DataRow(RuleLevel.On, true)]
+    public void MapRuleSettingsToSlCoreSettings_ShouldSetCorrectlySqlCoreIsActiveValue(RuleLevel ruleLevel, bool expectedIsActive)
+    {
+        AddRule(RuleId, ruleLevel);
 
-        [TestMethod]
-        public void MapRuleSettingsToSlCoreSettings_RuleSettingHaveOneRuleWithParametersSetToNull_ShouldInitializeSqlCoreParametersToEmpty()
-        {
-            AddRule(RuleId, ruleParameters:null);
+        var slCoreSettings = ruleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
 
-            var slCoreSettings = MapRuleSettingsToSlCoreSettings(rulesSettings);
+        var ruleConfigDto = slCoreSettings.Values.First();
+        ruleConfigDto.isActive.Should().Be(expectedIsActive);
+    }
 
-            slCoreSettings.Values.Count.Should().Be(1);
-            var ruleConfigDto = slCoreSettings.Values.First();
-            ruleConfigDto.paramValueByKey.Should().BeEmpty();
-        }
+    [TestMethod]
+    public void MapRuleSettingsToSlCoreSettings_RuleSettingHaveOneRuleWithParametersSetToNull_ShouldInitializeSqlCoreParametersToEmpty()
+    {
+        AddRule(RuleId, ruleParameters:null);
 
-        [TestMethod]
-        public void MapRuleSettingsToSlCoreSettings_RuleSettingHaveOneRuleWithOneParameter_ShouldCreateSqlCoreParameterWithSameValues()
-        {
-            var parameters = new Dictionary<string, string> { { "threshold", "15" } };
-            AddRule(RuleId, RuleLevel.On, parameters);
+        var slCoreSettings = ruleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
 
-            var slCoreSettings = MapRuleSettingsToSlCoreSettings(rulesSettings);
+        slCoreSettings.Values.Count.Should().Be(1);
+        var ruleConfigDto = slCoreSettings.Values.First();
+        ruleConfigDto.paramValueByKey.Should().BeEmpty();
+    }
 
-            slCoreSettings.Values.Count.Should().Be(1);
-            var ruleConfigDto = slCoreSettings.Values.First();
-            ruleConfigDto.paramValueByKey.Should().Equal(parameters);
-        }
+    [TestMethod]
+    public void MapRuleSettingsToSlCoreSettings_RuleSettingHaveOneRuleWithOneParameter_ShouldCreateSqlCoreParameterWithSameValues()
+    {
+        var parameters = new Dictionary<string, string> { { "threshold", "15" } };
+        AddRule(RuleId, RuleLevel.On, parameters);
 
-        private void AddRule(string ruleId, RuleLevel ruleLevel = RuleLevel.On, Dictionary<string, string> ruleParameters = null)
-        {
-            rulesSettings.Rules.Add(ruleId, new RuleConfig { Level = ruleLevel, Parameters = ruleParameters});
-        }
+        var slCoreSettings = ruleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
+
+        slCoreSettings.Values.Count.Should().Be(1);
+        var ruleConfigDto = slCoreSettings.Values.First();
+        ruleConfigDto.paramValueByKey.Should().Equal(parameters);
+    }
+
+    private void AddRule(string ruleId, RuleLevel ruleLevel = RuleLevel.On, Dictionary<string, string> ruleParameters = null)
+    {
+        rulesSettings.Rules.Add(ruleId, new RuleConfig { Level = ruleLevel, Parameters = ruleParameters});
     }
 }
