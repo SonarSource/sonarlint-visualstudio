@@ -20,6 +20,8 @@
 
 using System.IO;
 using System.IO.Abstractions;
+using EnvDTE;
+using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Rules;
@@ -42,35 +44,35 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void Ctor_DoesNotCallAnyNonFreeThreadedServices()
         {
             // Arrange
-            var logger = new Mock<ILogger>();
-            var fileSystemMock = new Mock<IFileSystem>();
-            var fileMonitorMock = new Mock<ISingleFileMonitor>();
+            var logger = Substitute.For<ILogger>();
+            var fileSystemMock = Substitute.For<IFileSystem>();
+            var fileMonitorMock = Substitute.For<ISingleFileMonitor>();
 
             // Act
-            _ = CreateTestSubject(logger.Object, fileSystemMock.Object, fileMonitorMock.Object);
+            _ = CreateTestSubject(logger, fileSystemMock, fileMonitorMock);
 
             // The MEF constructor should be free-threaded, which it will be if
             // it doesn't make any external calls.
-            logger.Invocations.Should().BeEmpty();
-            fileSystemMock.Invocations.Should().BeEmpty();
-            fileMonitorMock.Verify(x => x.MonitoredFilePath, Times.Once);
-            fileMonitorMock.VerifyAdd(x => x.FileChanged += It.IsAny<EventHandler>(), Times.Once);
-            fileMonitorMock.VerifyNoOtherCalls();
+            logger.ReceivedCalls().Should().BeEmpty();
+            fileSystemMock.ReceivedCalls().Should().BeEmpty();
+
+            fileMonitorMock.ReceivedCalls().Count().Should().Be(2);
+            _ = fileMonitorMock.Received(1).MonitoredFilePath;
+            fileMonitorMock.Received(1).FileChanged += Arg.Any<EventHandler>();
         }
 
         [TestMethod]
         public void Ctor_NullArguments()
         {
-            var mockSingleFileMonitor = new Mock<ISingleFileMonitor>();
-            var mockSlCoreServiceProvider = new Mock<ISLCoreServiceProvider>();
+            var mockSingleFileMonitor = Substitute.For<ISingleFileMonitor>();var mockSlCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
 
-            Action act = () => CreateUserSettingsProvider(null, new FileSystem(), mockSingleFileMonitor.Object, mockSlCoreServiceProvider.Object);
+            Action act = () => CreateUserSettingsProvider(null, new FileSystem(), mockSingleFileMonitor, mockSlCoreServiceProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
-            act = () => CreateUserSettingsProvider(new TestLogger(), null, mockSingleFileMonitor.Object, mockSlCoreServiceProvider.Object); 
+            act = () => CreateUserSettingsProvider(new TestLogger(), null, mockSingleFileMonitor, mockSlCoreServiceProvider); 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
 
-            act = () => CreateUserSettingsProvider(new TestLogger(), new FileSystem(), null, mockSlCoreServiceProvider.Object);
+            act = () => CreateUserSettingsProvider(new TestLogger(), new FileSystem(), null, mockSlCoreServiceProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingsFileMonitor");
         }
 
@@ -78,12 +80,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void Ctor_NoSettingsFile_EmptySettingsReturned()
         {
             // Arrange
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.File.Exists("nonExistentFile")).Returns(false);
+            var fileSystemMock = Substitute.For<IFileSystem>();
+            fileSystemMock.File.Exists("nonExistentFile").Returns(false);
             var testLogger = new TestLogger();
 
             // Act
-            var testSubject = CreateTestSubject(testLogger, fileSystemMock.Object, CreateMockFileMonitor("nonexistentFile").Object);
+            var testSubject = CreateTestSubject(testLogger, fileSystemMock, CreateMockFileMonitor("nonexistentFile"));
 
             // Assert
             CheckSettingsAreEmpty(testSubject.UserSettings);
@@ -94,14 +96,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void Ctor_ErrorLoadingSettings_ErrorSquashed_AndEmptySettingsReturned()
         {
             // Arrange
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.File.Exists("settings.file")).Returns(true);
-            fileSystemMock.Setup(x => x.File.ReadAllText("settings.file")).Throws(new System.InvalidOperationException("custom error message"));
+            var fileSystemMock = Substitute.For<IFileSystem>();
+            fileSystemMock.File.Exists("settings.file").Returns(true);
+            fileSystemMock.File.ReadAllText("settings.file").Throws(new System.InvalidOperationException("custom error message"));
 
             var logger = new TestLogger(logToConsole: true);
 
             // Act
-            var testSubject = CreateTestSubject(logger, fileSystemMock.Object, CreateMockFileMonitor("settings.file").Object);
+            var testSubject = CreateTestSubject(logger, fileSystemMock, CreateMockFileMonitor("settings.file"));
 
             // Assert
             CheckSettingsAreEmpty(testSubject.UserSettings);
@@ -111,8 +113,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [TestMethod]
         public void FileChanges_EventsRaised()
         {
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.File.Exists("settings.file")).Returns(true);
+            var fileSystemMock = Substitute.For<IFileSystem>();
+            fileSystemMock.File.Exists("settings.file").Returns(true);
             var fileMonitorMock = CreateMockFileMonitor("settings.file");
 
             int settingsChangedEventCount = 0;
@@ -126,21 +128,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
     }
 }";
             var logger = new TestLogger();
-            var testSubject = CreateTestSubject(logger, fileSystemMock.Object, fileMonitorMock.Object);
+            var testSubject = CreateTestSubject(logger, fileSystemMock, fileMonitorMock);
             testSubject.SettingsChanged += (s, args) => settingsChangedEventCount++;
             logger.Reset();
 
             // 1. Simulate the file change when the file is invalid
-            fileSystemMock.Setup(x => x.File.ReadAllText("settings.file")).Returns(invalidSettingsData);
-            fileMonitorMock.Raise(x => x.FileChanged += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+            fileSystemMock.File.ReadAllText("settings.file").Returns(invalidSettingsData);
+            fileMonitorMock.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
 
             // Assert
             settingsChangedEventCount.Should().Be(1);
             CheckSettingsAreEmpty(testSubject.UserSettings);
 
             // 2. Simulate another event when the file is valid - valid settings should be returned
-            fileSystemMock.Setup(x => x.File.ReadAllText("settings.file")).Returns(validSettingsData);
-            fileMonitorMock.Raise(x => x.FileChanged += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+            fileSystemMock.File.ReadAllText("settings.file").Returns(validSettingsData);
+            fileMonitorMock.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
 
             // Assert
             settingsChangedEventCount.Should().Be(2);
@@ -156,17 +158,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             // Arrange
             const string fileName = "c:\\missingFile.txt";
 
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.File.Exists(fileName)).Returns(false);
+            var fileSystemMock = Substitute.For<IFileSystem>();
+            fileSystemMock.File.Exists(fileName).Returns(false);
 
-            var testSubject = CreateTestSubject(new TestLogger(), fileSystemMock.Object, CreateMockFileMonitor(fileName).Object);
+            var testSubject = CreateTestSubject(new TestLogger(), fileSystemMock, CreateMockFileMonitor(fileName));
 
             // Act
             testSubject.EnsureFileExists();
 
             // Assert
-            fileSystemMock.Verify(x => x.File.Exists(fileName), Times.Exactly(2));
-            fileSystemMock.Verify(x => x.File.WriteAllText(fileName, It.IsAny<string>()), Times.Once);
+            fileSystemMock.File.Received(2).Exists(fileName);
+            fileSystemMock.File.WriteAllText(fileName, Arg.Any<string>());
         }
 
         [TestMethod]
@@ -175,18 +177,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             // Arrange
             const string fileName = "c:\\subDir1\\existingFile.txt";
 
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.File.Exists(fileName)).Returns(true);
+            var fileSystemMock = Substitute.For<IFileSystem>();
+            fileSystemMock.File.Exists(fileName).Returns(true);
 
-            var testSubject = CreateTestSubject(new TestLogger(), fileSystemMock.Object, CreateMockFileMonitor(fileName).Object);
-            fileSystemMock.Invocations.Clear();
+            var testSubject = CreateTestSubject(new TestLogger(), fileSystemMock, CreateMockFileMonitor(fileName));
+            fileSystemMock.ClearReceivedCalls();
 
             // Act
             testSubject.EnsureFileExists();
 
             // Assert
-            fileSystemMock.Verify(x => x.File.Exists(fileName), Times.Exactly(1));
-            fileSystemMock.Verify(x => x.File.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            fileSystemMock.File.Received(1).Exists(fileName);
+            fileSystemMock.File.DidNotReceive().WriteAllText(Arg.Any<string>(), Arg.Any<string>());
         }
 
         [TestMethod]
@@ -194,19 +196,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         {
             const string fileName = "c:\\aaa\\bbb\\file.txt";
             // Arrange
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.File.Exists(fileName)).Returns(false);
+            var fileSystemMock = Substitute.For<IFileSystem>();
+            fileSystemMock.File.Exists(fileName).Returns(false);
 
             var fileMonitorMock = CreateMockFileMonitor(fileName);
 
             // 1. Construct
-            var testSubject = CreateTestSubject(new TestLogger(), fileSystemMock.Object, fileMonitorMock.Object);
+            var testSubject = CreateTestSubject(new TestLogger(), fileSystemMock, fileMonitorMock);
             testSubject.SettingsFilePath.Should().Be(fileName);
-            fileMonitorMock.Verify(x => x.Dispose(), Times.Never);
+            fileMonitorMock.DidNotReceive().Dispose();
 
             // 2. Dispose
             testSubject.Dispose();
-            fileMonitorMock.Verify(x => x.Dispose(), Times.Once);
+            fileMonitorMock.Received(1).Dispose();
         }
 
         [TestMethod]
@@ -294,7 +296,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             int eventCount = 0;
             var settingsChangedEventReceived = new ManualResetEvent(initialState: false);
 
-            var testSubject = CreateTestSubject(new TestLogger(), fileSystemMock.Object, singleFileMonitorMock.Object);
+            var testSubject = CreateTestSubject(new TestLogger(), fileSystemMock, singleFileMonitorMock);
             testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(0); // sanity check of setup
 
             testSubject.SettingsChanged += (s, args) =>
@@ -313,8 +315,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             eventCount.Should().Be(0);
 
             // 2. Now simulate a file-change event
-            fileSystemMock.Setup(x => x.File.ReadAllText(fileName)).Returns(modifiedData);
-            singleFileMonitorMock.Raise(x => x.FileChanged += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+            fileSystemMock.File.ReadAllText(fileName).Returns(modifiedData);
+            singleFileMonitorMock.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
             settingsChangedEventReceived.WaitOne(pause);
 
             // Check the settings change event was raised
@@ -328,26 +330,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [TestMethod]
         public void FileChanged_CallsUpdateStandaloneRulesConfiguration()
         {
-            var mockSlCoreServiceProvider = new Mock<ISLCoreServiceProvider>();
+            var mockSlCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
             var mockRulesSlCoreService = MockRulesSlCoreService(mockSlCoreServiceProvider);
 
             SetupFileChangedInUserSettingsProvider(mockSlCoreServiceProvider);
 
-            mockRulesSlCoreService.Verify(mock => mock.UpdateStandaloneRulesConfiguration(It.IsAny<UpdateStandaloneRulesConfigurationParams>()), Times.Once);
+            mockRulesSlCoreService.Received(1).UpdateStandaloneRulesConfiguration(Arg.Any<UpdateStandaloneRulesConfigurationParams>());
         }
 
         [TestMethod]
         public void FileChanged_UpdatingStandaloneRulesConfigurationInSlCoreFails_WritesLog()
         {
-            var mockSlCoreServiceProvider = new Mock<ISLCoreServiceProvider>();
-            var mockLogger = new Mock<ILogger>();
+            var mockSlCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
+            var mockLogger = Substitute.For<ILogger>();
             var mockRulesSlCoreService = MockRulesSlCoreService(mockSlCoreServiceProvider);
+            mockRulesSlCoreService.When(x => x.UpdateStandaloneRulesConfiguration(Arg.Any<UpdateStandaloneRulesConfigurationParams>()))
+                .Do(x => throw new Exception("update failed"));
+
             SetupFileChangedInUserSettingsProvider(mockSlCoreServiceProvider, mockLogger);
 
-            mockRulesSlCoreService.Setup(mock =>
-                mock.UpdateStandaloneRulesConfiguration(It.IsAny<UpdateStandaloneRulesConfigurationParams>())).Throws<Exception>();
-
-            mockLogger.Verify(mock => mock.WriteLine(It.IsAny<string>()), Times.Once);
+            mockLogger.Received(1).WriteLine(Arg.Is<string>(msg => msg.Contains("update failed")));
         }
 
         private string CreateTestSpecificDirectory()
@@ -369,18 +371,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             return serializer.SafeLoad(filePath);
         }
 
-        private static Mock<ISingleFileMonitor> CreateMockFileMonitor(string filePathToMonitor)
+        private static ISingleFileMonitor CreateMockFileMonitor(string filePathToMonitor)
         {
-            var mockSettingsFileMonitor = new Mock<ISingleFileMonitor>();
-            mockSettingsFileMonitor.Setup(x => x.MonitoredFilePath).Returns(filePathToMonitor);
+            var mockSettingsFileMonitor = Substitute.For<ISingleFileMonitor>();
+            mockSettingsFileMonitor.MonitoredFilePath.Returns(filePathToMonitor);
             return mockSettingsFileMonitor;
         }
 
-        private static Mock<IFileSystem> CreateMockFile(string filePath, string contents)
+        private static IFileSystem CreateMockFile(string filePath, string contents)
         {
-            var mockFile = new Mock<IFileSystem>();
-            mockFile.Setup(x => x.File.Exists(filePath)).Returns(true);
-            mockFile.Setup(x => x.File.ReadAllText(filePath)).Returns(contents);
+            var mockFile = Substitute.For<IFileSystem>();
+            mockFile.File.Exists(filePath).Returns(true);
+            mockFile.File.ReadAllText(filePath).Returns(contents);
             return mockFile;
         }
 
@@ -395,10 +397,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         private static UserSettingsProvider CreateTestSubject(ILogger logger = null, IFileSystem fileSystem = null, 
             ISingleFileMonitor singleFileMonitor = null, ISLCoreServiceProvider slCoreService = null)
         {
-            logger ??= new Mock<ILogger>().Object;
-            fileSystem ??= new Mock<IFileSystem>().Object;
-            singleFileMonitor ??= new Mock<ISingleFileMonitor>().Object;
-            slCoreService ??= new Mock<ISLCoreServiceProvider>().Object;
+            logger ??= Substitute.For<ILogger>();
+            fileSystem ??= Substitute.For<IFileSystem>();
+            singleFileMonitor ??= Substitute.For<ISingleFileMonitor>();
+            slCoreService ??= Substitute.For<ISLCoreServiceProvider>();
 
             return CreateUserSettingsProvider(logger, fileSystem, singleFileMonitor, slCoreService);
         }
@@ -409,25 +411,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             return new UserSettingsProvider(logger, fileSystem, singleFileMonitor, slCoreService);
         }
 
-        private static Mock<IRulesSLCoreService> MockRulesSlCoreService(Mock<ISLCoreServiceProvider> slCoreServiceProvider)
+        private static IRulesSLCoreService MockRulesSlCoreService(ISLCoreServiceProvider slCoreServiceProvider)
         {
-            var mockRulesSlCoreService = new Mock<IRulesSLCoreService>();
-            var rulesSlCoreService = mockRulesSlCoreService.Object;
-            slCoreServiceProvider.Setup(s => s.TryGetTransientService(out rulesSlCoreService)).Returns(true);
+            var mockRulesSlCoreService = Substitute.For<IRulesSLCoreService>();
+            slCoreServiceProvider.TryGetTransientService(out Arg.Any<IRulesSLCoreService>()).Returns(callInfo =>
+            {
+                callInfo[0] = mockRulesSlCoreService;
+                return true;
+            });
+
 
             return mockRulesSlCoreService;
         }
 
-        private static void SetupFileChangedInUserSettingsProvider(Mock<ISLCoreServiceProvider> slCoreServiceProvider, Mock<ILogger> logger = null)
+        private static void SetupFileChangedInUserSettingsProvider(ISLCoreServiceProvider slCoreServiceProvider, ILogger logger = null)
         {
-            var fileMonitorMock = new Mock<ISingleFileMonitor>();
+            var fileMonitorMock = Substitute.For<ISingleFileMonitor>();
             CreateUserSettingsProvider(
-                logger?.Object ?? new Mock<ILogger>().Object,
-                CreateMockFile("dummyPath", "dummyContent").Object,
-                fileMonitorMock.Object, 
-                slCoreServiceProvider.Object);
+                logger ?? Substitute.For<ILogger>(),
+                CreateMockFile("dummyPath", "dummyContent"),
+                fileMonitorMock, 
+                slCoreServiceProvider);
 
-            fileMonitorMock.Raise(x => x.FileChanged += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+            fileMonitorMock.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
         }
     }
 }
