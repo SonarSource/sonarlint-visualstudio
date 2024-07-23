@@ -94,8 +94,7 @@ internal sealed class UserSettingsUpdater : IUserSettingsUpdater, IDisposable
 
         try
         {
-            var slCoreSettings = slCoreRuleSettings.MapRuleSettingsToSlCoreSettings(userSettingsProvider.UserSettings.RulesSettings);
-            rulesSlCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(slCoreSettings));
+            rulesSlCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(slCoreRuleSettings.RulesSettings));
         }
         catch (Exception e)
         {

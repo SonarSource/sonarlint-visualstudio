@@ -30,17 +30,19 @@ public class SLCoreRuleSettingsTests
     private const string RuleId2 = "dummyRule2";
     private readonly RulesSettings rulesSettings = new();
     private SlCoreRuleSettings slCoreRuleSettings;
+    private IUserSettingsProvider userSettingsProvider;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        slCoreRuleSettings = new SlCoreRuleSettings();
+        userSettingsProvider = Substitute.For<IUserSettingsProvider>();
+        slCoreRuleSettings = new SlCoreRuleSettings(userSettingsProvider);
     }
 
     [TestMethod]
     public void MefCtor_CheckExports()
     {
-        MefTestHelpers.CheckTypeCanBeImported<SlCoreRuleSettings, ISLCoreRuleSettings>();
+        MefTestHelpers.CheckTypeCanBeImported<SlCoreRuleSettings, ISLCoreRuleSettings>(MefTestHelpers.CreateExport<IUserSettingsProvider>());
     }
 
     [TestMethod]
@@ -54,7 +56,7 @@ public class SLCoreRuleSettingsTests
     {
         AddRule(RuleId);
 
-        var slCoreSettings = slCoreRuleSettings.MapRuleSettingsToSlCoreSettings(rulesSettings);
+        var slCoreSettings = slCoreRuleSettings.RulesSettings;
 
         slCoreSettings.Should().NotBeNull();
         slCoreSettings.Keys.Count.Should().Be(1);
@@ -67,7 +69,7 @@ public class SLCoreRuleSettingsTests
         AddRule(RuleId);
         AddRule(RuleId2);
 
-        var slCoreSettings = slCoreRuleSettings.MapRuleSettingsToSlCoreSettings(rulesSettings);
+        var slCoreSettings = slCoreRuleSettings.RulesSettings;
 
         slCoreSettings.Should().NotBeNull();
         slCoreSettings.Keys.Count.Should().Be(2);
@@ -82,7 +84,7 @@ public class SLCoreRuleSettingsTests
     {
         AddRule(RuleId, ruleLevel);
 
-        var slCoreSettings = slCoreRuleSettings.MapRuleSettingsToSlCoreSettings(rulesSettings);
+        var slCoreSettings = slCoreRuleSettings.RulesSettings;
 
         var ruleConfigDto = slCoreSettings.Values.First();
         ruleConfigDto.isActive.Should().Be(expectedIsActive);
@@ -93,7 +95,7 @@ public class SLCoreRuleSettingsTests
     {
         AddRule(RuleId, ruleParameters:null);
 
-        var slCoreSettings = slCoreRuleSettings.MapRuleSettingsToSlCoreSettings(rulesSettings);
+        var slCoreSettings = slCoreRuleSettings.RulesSettings;
 
         slCoreSettings.Values.Count.Should().Be(1);
         var ruleConfigDto = slCoreSettings.Values.First();
@@ -106,7 +108,7 @@ public class SLCoreRuleSettingsTests
         var parameters = new Dictionary<string, string> { { "threshold", "15" } };
         AddRule(RuleId, RuleLevel.On, parameters);
 
-        var slCoreSettings = slCoreRuleSettings.MapRuleSettingsToSlCoreSettings(rulesSettings);
+        var slCoreSettings = slCoreRuleSettings.RulesSettings;
 
         slCoreSettings.Values.Count.Should().Be(1);
         var ruleConfigDto = slCoreSettings.Values.First();
@@ -116,5 +118,6 @@ public class SLCoreRuleSettingsTests
     private void AddRule(string ruleId, RuleLevel ruleLevel = RuleLevel.On, Dictionary<string, string> ruleParameters = null)
     {
         rulesSettings.Rules.Add(ruleId, new RuleConfig { Level = ruleLevel, Parameters = ruleParameters});
+        userSettingsProvider.UserSettings.Returns(new UserSettings(rulesSettings));
     }
 }

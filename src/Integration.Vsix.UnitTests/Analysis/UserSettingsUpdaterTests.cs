@@ -189,7 +189,7 @@ public class UserSettingsUpdaterTests
 
         SetupFileChangedInUserSettingsUpdater(mockSlCoreServiceProvider, slCoreRuleSettings:slCoreRuleSettings, userSettingsProvider:userSettingsProvider);
 
-        slCoreRuleSettings.Received(1).MapRuleSettingsToSlCoreSettings(userSettingsProvider.UserSettings.RulesSettings);
+        _ = slCoreRuleSettings.Received(1).RulesSettings;
     }
 
     [TestMethod]

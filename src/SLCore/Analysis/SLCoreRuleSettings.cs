@@ -26,14 +26,24 @@ namespace SonarLint.VisualStudio.SLCore.Analysis;
 
 public interface ISLCoreRuleSettings
 {
-    Dictionary<string, StandaloneRuleConfigDto> MapRuleSettingsToSlCoreSettings(RulesSettings rulesSettings);
+    Dictionary<string, StandaloneRuleConfigDto> RulesSettings { get; }
 }
 
 [Export(typeof(ISLCoreRuleSettings))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class SlCoreRuleSettings : ISLCoreRuleSettings
+internal sealed class SlCoreRuleSettings : ISLCoreRuleSettings
 {
-    public Dictionary<string, StandaloneRuleConfigDto> MapRuleSettingsToSlCoreSettings(RulesSettings rulesSettings)
+    private readonly IUserSettingsProvider userSettingsProvider;
+
+    [ImportingConstructor]
+    public SlCoreRuleSettings(IUserSettingsProvider userSettingsProvider)
+    {
+        this.userSettingsProvider = userSettingsProvider;
+    }
+
+    public Dictionary<string, StandaloneRuleConfigDto> RulesSettings => MapRuleSettingsToSlCoreSettings(userSettingsProvider.UserSettings.RulesSettings);
+
+    private Dictionary<string, StandaloneRuleConfigDto> MapRuleSettingsToSlCoreSettings(RulesSettings rulesSettings)
     { 
         return rulesSettings.Rules.ToDictionary(kvp => kvp.Key, kvp => MapStandaloneRuleConfigDto(kvp.Value));
     }
@@ -41,4 +51,5 @@ public class SlCoreRuleSettings : ISLCoreRuleSettings
     private static StandaloneRuleConfigDto MapStandaloneRuleConfigDto(RuleConfig ruleConfig) => new(MapIsActive(ruleConfig.Level), MapParameters(ruleConfig.Parameters));
     private static bool MapIsActive(RuleLevel ruleLevel) => ruleLevel == RuleLevel.On;
     private static Dictionary<string, string> MapParameters(Dictionary<string, string> ruleParameters) => ruleParameters ?? [];
+
 }
