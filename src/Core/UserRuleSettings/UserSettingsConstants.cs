@@ -18,29 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
+
 namespace SonarLint.VisualStudio.Core.UserRuleSettings;
 
-public interface IUserSettingsProvider
+public static class UserSettingsConstants
 {
-    /// <summary>
-    /// The settings for the current user
-    /// </summary>
-    UserSettings UserSettings { get; }
-
-    /// <summary>
-    /// Full path to the file containing the user settings
-    /// </summary>
-    string SettingsFilePath { get; }
-
-    /// <summary>
-    /// Updates the user settings to disabled the specified rule
-    /// </summary>
-    void DisableRule(string ruleId);
-
-    /// <summary>
-    /// Ensure the settings file exists, creating a new file if necessary
-    /// </summary>
-    void EnsureFileExists();
-
-    UserSettings SafeLoadUserSettings();
+    // Note: the data is stored in the roaming profile so it will be sync across machines
+    // for domain-joined users.
+    public static readonly string UserSettingsFilePath = Path.GetFullPath(
+        Path.Combine(EnvironmentVariableProvider.Instance.GetSLVSAppDataRootPath(), "settings.json"));
 }

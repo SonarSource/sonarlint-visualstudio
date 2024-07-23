@@ -86,5 +86,14 @@ namespace SonarLint.VisualStudio.Core.Resources {
                 return ResourceManager.GetString("DisabledNotificationsFailedToLoad", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default settings will be used.
+        /// </summary>
+        internal static string Settings_UsingDefaultSettings {
+            get {
+                return ResourceManager.GetString("Settings_UsingDefaultSettings", resourceCulture);
+            }
+        }
     }
 }
