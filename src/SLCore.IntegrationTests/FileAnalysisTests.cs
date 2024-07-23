@@ -117,7 +117,7 @@ public class FileAnalysisTests
         var slCoreLogger = new TestLogger();
         var slCoreErrorLogger = new TestLogger();
         var analysisReadyCompletionSource = new TaskCompletionSource<DidChangeAnalysisReadinessParams>();
-        var analysisRaisedIssues = new TaskCompletionSource<RaiseIssuesParams>();
+        var analysisRaisedIssues = new TaskCompletionSource<RaiseFindingParams<RaisedIssueDto>>();
         var fileToAnalyzeAbsolutePath = GetFullPath(fileToAnalyzeRelativePath);
         var fileToAnalyze = new ClientFileDto(new FileUri(fileToAnalyzeAbsolutePath), fileToAnalyzeRelativePath,
             configScopeId, false, Encoding.UTF8.WebName, fileToAnalyzeAbsolutePath);
@@ -175,7 +175,7 @@ public class FileAnalysisTests
 
     private static IAnalysisListener SetUpAnalysisListener(string configScopeId,
         TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource,
-        TaskCompletionSource<RaiseIssuesParams> analysisRaisedIssues)
+        TaskCompletionSource<RaiseFindingParams<RaisedIssueDto>> analysisRaisedIssues)
     {
         var analysisListener = Substitute.For<IAnalysisListener>();
         analysisListener.When(l =>
@@ -183,10 +183,10 @@ public class FileAnalysisTests
                     a.areReadyForAnalysis && a.configurationScopeIds.Contains(configScopeId))))
             .Do(info => analysisReadyCompletionSource.SetResult(info.Arg<DidChangeAnalysisReadinessParams>()));
 
-        analysisListener.When(x => x.RaiseIssues(Arg.Any<RaiseIssuesParams>()))
+        analysisListener.When(x => x.RaiseIssues(Arg.Any<RaiseFindingParams<RaisedIssueDto>>()))
             .Do(info =>
             {
-                var raiseIssuesParams = info.Arg<RaiseIssuesParams>();
+                var raiseIssuesParams = info.Arg<RaiseFindingParams<RaisedIssueDto>>();
                 if (!raiseIssuesParams.isIntermediatePublication)
                 {
                     analysisRaisedIssues.SetResult(raiseIssuesParams);

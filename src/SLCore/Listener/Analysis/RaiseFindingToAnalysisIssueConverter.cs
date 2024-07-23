@@ -26,12 +26,12 @@ using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 {
-    [Export(typeof(IRaiseIssueParamsToAnalysisIssueConverter))]
+    [Export(typeof(IRaiseFindingToAnalysisIssueConverter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class RaiseIssueParamsToAnalysisIssueConverter : IRaiseIssueParamsToAnalysisIssueConverter
+    public class RaiseFindingToAnalysisIssueConverter : IRaiseFindingToAnalysisIssueConverter
     {
-        public IEnumerable<IAnalysisIssue> GetAnalysisIssues(FileUri fileUri, IEnumerable<RaisedIssueDto> raisedIssues) => 
-            raisedIssues
+        public IEnumerable<IAnalysisIssue> GetAnalysisIssues<T>(FileUri fileUri, IEnumerable<T> raisedFindings) where T : RaisedFindingDto => 
+            raisedFindings
                 .Select(item => new AnalysisIssue(item.ruleKey,
                     item.severity.ToAnalysisIssueSeverity(),
                     item.type.ToAnalysisIssueType(),

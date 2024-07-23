@@ -28,26 +28,26 @@ using SoftwareQuality = SonarLint.VisualStudio.SLCore.Common.Models.SoftwareQual
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Analysis
 {
     [TestClass]
-    public class RaiseIssueParamsToAnalysisIssueConverterTests
+    public class RaiseFindingToAnalysisIssueConverterTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<RaiseIssueParamsToAnalysisIssueConverter, IRaiseIssueParamsToAnalysisIssueConverter>();
+            MefTestHelpers.CheckTypeCanBeImported<RaiseFindingToAnalysisIssueConverter, IRaiseFindingToAnalysisIssueConverter>();
         }
 
         [TestMethod]
         public void MefCtor_CheckIsSingleton()
         {
-            MefTestHelpers.CheckIsSingletonMefComponent<RaiseIssueParamsToAnalysisIssueConverter>();
+            MefTestHelpers.CheckIsSingletonMefComponent<RaiseFindingToAnalysisIssueConverter>();
         }
 
         [TestMethod]
         public void GetAnalysisIssues_HasNoIssues_ReturnsEmpty()
         {
-            var raiseIssueParams = new RaiseIssuesParams("configurationScopeId", new Dictionary<FileUri, List<RaisedIssueDto>>(), false, Guid.NewGuid());
+            var raiseIssueParams = new RaiseFindingParams<RaisedIssueDto>("configurationScopeId", new Dictionary<FileUri, List<RaisedIssueDto>>(), false, Guid.NewGuid());
 
-            RaiseIssueParamsToAnalysisIssueConverter testSubject = CreateTestSubject();
+            RaiseFindingToAnalysisIssueConverter testSubject = CreateTestSubject();
 
             var result = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedIssueDto>());
 
@@ -180,9 +180,9 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Analysis
             result[1].Fixes[0].Edits[0].RangeToReplace.LineHash.Should().BeNull();
         }
 
-        private static RaiseIssueParamsToAnalysisIssueConverter CreateTestSubject()
+        private static RaiseFindingToAnalysisIssueConverter CreateTestSubject()
         {
-            return new RaiseIssueParamsToAnalysisIssueConverter();
+            return new RaiseFindingToAnalysisIssueConverter();
         }
     }
 }
