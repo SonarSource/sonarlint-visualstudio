@@ -18,11 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
-using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using SonarLint.VisualStudio.SLCore.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Analysis;
 
 [TestClass]
 public class RuleSettingsMapperTests
@@ -30,24 +29,24 @@ public class RuleSettingsMapperTests
     private const string RuleId = "dummyRule";
     private const string RuleId2 = "dummyRule2";
     private readonly RulesSettings rulesSettings = new();
-    private RuleSettingsMapper ruleSettingsMapper;
+    private SlCoreIslCoreRuleSettings islCoreRuleSettingsMapper;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        ruleSettingsMapper = new RuleSettingsMapper();
+        islCoreRuleSettingsMapper = new SlCoreIslCoreRuleSettings();
     }
 
     [TestMethod]
     public void MefCtor_CheckExports()
     {
-        MefTestHelpers.CheckTypeCanBeImported<RuleSettingsMapper, IRuleSettingsMapper>();
+        MefTestHelpers.CheckTypeCanBeImported<SlCoreIslCoreRuleSettings, ISLCoreRuleSettings>();
     }
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton()
     {
-        MefTestHelpers.CheckIsSingletonMefComponent<RuleSettingsMapper>();
+        MefTestHelpers.CheckIsSingletonMefComponent<SlCoreIslCoreRuleSettings>();
     }
 
     [TestMethod]
@@ -55,7 +54,7 @@ public class RuleSettingsMapperTests
     {
         AddRule(RuleId);
 
-        var slCoreSettings = ruleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
+        var slCoreSettings = islCoreRuleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
 
         slCoreSettings.Should().NotBeNull();
         slCoreSettings.Keys.Count.Should().Be(1);
@@ -68,7 +67,7 @@ public class RuleSettingsMapperTests
         AddRule(RuleId);
         AddRule(RuleId2);
 
-        var slCoreSettings = ruleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
+        var slCoreSettings = islCoreRuleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
 
         slCoreSettings.Should().NotBeNull();
         slCoreSettings.Keys.Count.Should().Be(2);
@@ -83,7 +82,7 @@ public class RuleSettingsMapperTests
     {
         AddRule(RuleId, ruleLevel);
 
-        var slCoreSettings = ruleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
+        var slCoreSettings = islCoreRuleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
 
         var ruleConfigDto = slCoreSettings.Values.First();
         ruleConfigDto.isActive.Should().Be(expectedIsActive);
@@ -94,7 +93,7 @@ public class RuleSettingsMapperTests
     {
         AddRule(RuleId, ruleParameters:null);
 
-        var slCoreSettings = ruleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
+        var slCoreSettings = islCoreRuleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
 
         slCoreSettings.Values.Count.Should().Be(1);
         var ruleConfigDto = slCoreSettings.Values.First();
@@ -107,7 +106,7 @@ public class RuleSettingsMapperTests
         var parameters = new Dictionary<string, string> { { "threshold", "15" } };
         AddRule(RuleId, RuleLevel.On, parameters);
 
-        var slCoreSettings = ruleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
+        var slCoreSettings = islCoreRuleSettingsMapper.MapRuleSettingsToSlCoreSettings(rulesSettings);
 
         slCoreSettings.Values.Count.Should().Be(1);
         var ruleConfigDto = slCoreSettings.Values.First();

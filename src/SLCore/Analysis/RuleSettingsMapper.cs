@@ -19,11 +19,10 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Analysis;
+namespace SonarLint.VisualStudio.SLCore.Analysis;
 
 public interface IRuleSettingsMapper
 {
