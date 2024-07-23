@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
@@ -26,7 +27,7 @@ internal interface IAnalysisListener : ISLCoreListener
 {
     void DidChangeAnalysisReadiness(DidChangeAnalysisReadinessParams parameters);
 
-    void RaiseIssues(RaiseIssuesParams parameters);
+    void RaiseIssues(RaiseFindingParams<RaisedIssueDto> parameters);
     
-    void RaiseHotspots(RaiseHotspotsParams parameters);
+    void RaiseHotspots(RaiseFindingParams<RaisedHotspotDto> parameters);
 }

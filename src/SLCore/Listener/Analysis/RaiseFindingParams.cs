@@ -18,14 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
-{
-    public interface IRaiseIssueParamsToAnalysisIssueConverter
-    {
-        IEnumerable<IAnalysisIssue> GetAnalysisIssues(FileUri fileUri, IEnumerable<RaisedIssueDto> raisedIssues);
-    }
-}
+namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
+
+public record RaiseFindingParams<T>(string configurationScopeId, Dictionary<FileUri, List<T>> issuesByFileUri, bool isIntermediatePublication, Guid? analysisId) where T : RaisedFindingDto;
