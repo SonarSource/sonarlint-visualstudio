@@ -40,13 +40,13 @@ public class RuleSettingsMapperTests
     [TestMethod]
     public void MefCtor_CheckExports()
     {
-        MefTestHelpers.CheckTypeCanBeImported<RuleSettingsProvider, IRuleSettingsProvider>();
+        MefTestHelpers.CheckTypeCanBeImported<RuleSettingsMapper, IRuleSettingsMapper>();
     }
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton()
     {
-        MefTestHelpers.CheckIsSingletonMefComponent<RuleSettingsProvider>();
+        MefTestHelpers.CheckIsSingletonMefComponent<RuleSettingsMapper>();
     }
 
     [TestMethod]
