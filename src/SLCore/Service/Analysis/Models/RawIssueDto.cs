@@ -19,7 +19,7 @@
  */
 
 using SonarLint.VisualStudio.SLCore.Common.Models;
-using IssueSeverity = SonarLint.VisualStudio.Core.IssueSeverity;
+using IssueSeverity = SonarLint.VisualStudio.Core.UserRuleSettings.IssueSeverity;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Analysis.Models;
 

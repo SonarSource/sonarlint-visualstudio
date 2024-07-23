@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Core.UserRuleSettings
 {
     /*
      // Example config file - same format as the VS Code settings.json file, with the addition of "parameters"
