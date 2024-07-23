@@ -24,14 +24,14 @@ using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Analysis;
 
-public interface IRuleSettingsMapper
+public interface ISLCoreRuleSettings
 {
     Dictionary<string, StandaloneRuleConfigDto> MapRuleSettingsToSlCoreSettings(RulesSettings rulesSettings);
 }
 
-[Export(typeof(IRuleSettingsMapper))]
+[Export(typeof(ISLCoreRuleSettings))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class RuleSettingsMapper : IRuleSettingsMapper
+public class SlCoreRuleSettings : ISLCoreRuleSettings
 {
     public Dictionary<string, StandaloneRuleConfigDto> MapRuleSettingsToSlCoreSettings(RulesSettings rulesSettings)
     { 

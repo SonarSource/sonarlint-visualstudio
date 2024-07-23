@@ -43,30 +43,30 @@ internal sealed class UserSettingsUpdater : IUserSettingsUpdater, IDisposable
 
     private readonly ISingleFileMonitor settingsFileMonitor;
     private readonly ISLCoreServiceProvider slCoreServiceProvider;
-    private readonly IRuleSettingsMapper ruleSettingsMapper;
+    private readonly ISLCoreRuleSettings slCoreRuleSettings;
     private readonly ILogger logger;
     private readonly IUserSettingsProvider userSettingsProvider;
 
     [ImportingConstructor]
     public UserSettingsUpdater(ILogger logger, 
         ISLCoreServiceProvider slCoreServiceProvider, 
-        IRuleSettingsMapper ruleSettingsMapper, 
+        ISLCoreRuleSettings slCoreRuleSettings, 
         IUserSettingsProvider userSettingsProvider)
-        : this(logger, new SingleFileMonitor(UserSettingsConstants.UserSettingsFilePath, logger), slCoreServiceProvider, ruleSettingsMapper, userSettingsProvider)
+        : this(logger, new SingleFileMonitor(UserSettingsConstants.UserSettingsFilePath, logger), slCoreServiceProvider, slCoreRuleSettings, userSettingsProvider)
     {
     }
 
     internal /* for testing */ UserSettingsUpdater(ILogger logger, 
         ISingleFileMonitor settingsFileMonitor, 
         ISLCoreServiceProvider slCoreServiceProvider, 
-        IRuleSettingsMapper ruleSettingsMapper, 
+        ISLCoreRuleSettings slCoreRuleSettings, 
         IUserSettingsProvider userSettingsProvider)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.userSettingsProvider = userSettingsProvider ?? throw new ArgumentNullException(nameof(userSettingsProvider));
         this.settingsFileMonitor = settingsFileMonitor ?? throw new ArgumentNullException(nameof(settingsFileMonitor));
         this.slCoreServiceProvider = slCoreServiceProvider;
-        this.ruleSettingsMapper = ruleSettingsMapper;
+        this.slCoreRuleSettings = slCoreRuleSettings;
 
         settingsFileMonitor.FileChanged += OnFileChanged;
     }
@@ -94,7 +94,7 @@ internal sealed class UserSettingsUpdater : IUserSettingsUpdater, IDisposable
 
         try
         {
-            var slCoreSettings = ruleSettingsMapper.MapRuleSettingsToSlCoreSettings(userSettingsProvider.UserSettings.RulesSettings);
+            var slCoreSettings = slCoreRuleSettings.MapRuleSettingsToSlCoreSettings(userSettingsProvider.UserSettings.RulesSettings);
             rulesSlCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(slCoreSettings));
         }
         catch (Exception e)

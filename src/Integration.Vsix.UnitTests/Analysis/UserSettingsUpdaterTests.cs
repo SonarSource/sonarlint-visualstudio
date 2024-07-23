@@ -39,7 +39,7 @@ public class UserSettingsUpdaterTests
         MefTestHelpers.CheckTypeCanBeImported<UserSettingsUpdater, IUserSettingsUpdater>(
             MefTestHelpers.CreateExport<ILogger>(), 
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(), 
-            MefTestHelpers.CreateExport<IRuleSettingsMapper>(),
+            MefTestHelpers.CreateExport<ISLCoreRuleSettings>(),
             MefTestHelpers.CreateExport<IUserSettingsProvider>());
     }
 
@@ -66,13 +66,13 @@ public class UserSettingsUpdaterTests
     {
         var mockSingleFileMonitor = Substitute.For<ISingleFileMonitor>();
         var mockSlCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
-        var mockRuleSettingsMapper = Substitute.For<IRuleSettingsMapper>();
+        var slCoreRuleSettings = Substitute.For<ISLCoreRuleSettings>();
         var mockUserSettingsProvider = Substitute.For<IUserSettingsProvider>();
 
-        Action act = () => CreateUserSettingsUpdater(null, mockSingleFileMonitor, mockSlCoreServiceProvider, mockRuleSettingsMapper, mockUserSettingsProvider);
+        Action act = () => CreateUserSettingsUpdater(null, mockSingleFileMonitor, mockSlCoreServiceProvider, slCoreRuleSettings, mockUserSettingsProvider);
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
-        act = () => CreateUserSettingsUpdater(new TestLogger(), null, mockSlCoreServiceProvider, mockRuleSettingsMapper, mockUserSettingsProvider);
+        act = () => CreateUserSettingsUpdater(new TestLogger(), null, mockSlCoreServiceProvider, slCoreRuleSettings, mockUserSettingsProvider);
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingsFileMonitor");
     }
 
@@ -180,16 +180,16 @@ public class UserSettingsUpdaterTests
     }
 
     [TestMethod]
-    public void FileChanged_UpdateStandaloneRulesConfiguration_CallsRuleSettingsMapper()
+    public void FileChanged_UpdateStandaloneRulesConfiguration_CallsSlCoreRuleSettings()
     {
         var mockSlCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
         MockRulesSlCoreService(mockSlCoreServiceProvider);
-        var rulesSettingsMapper = Substitute.For<IRuleSettingsMapper>();
+        var slCoreRuleSettings = Substitute.For<ISLCoreRuleSettings>();
         var userSettingsProvider = Substitute.For<IUserSettingsProvider>();
 
-        SetupFileChangedInUserSettingsUpdater(mockSlCoreServiceProvider, ruleSettingsMapper:rulesSettingsMapper, userSettingsProvider:userSettingsProvider);
+        SetupFileChangedInUserSettingsUpdater(mockSlCoreServiceProvider, slCoreRuleSettings:slCoreRuleSettings, userSettingsProvider:userSettingsProvider);
 
-        rulesSettingsMapper.Received(1).MapRuleSettingsToSlCoreSettings(userSettingsProvider.UserSettings.RulesSettings);
+        slCoreRuleSettings.Received(1).MapRuleSettingsToSlCoreSettings(userSettingsProvider.UserSettings.RulesSettings);
     }
 
     [TestMethod]
@@ -237,22 +237,22 @@ public class UserSettingsUpdaterTests
         ILogger logger = null, 
         ISingleFileMonitor singleFileMonitor = null, 
         ISLCoreServiceProvider slCoreService = null, 
-        IRuleSettingsMapper ruleSettingsMapper = null, 
+        ISLCoreRuleSettings islCoreRuleSettings = null, 
         IUserSettingsProvider userSettingsProvider = null)
     {
         logger ??= Substitute.For<ILogger>();
         singleFileMonitor ??= Substitute.For<ISingleFileMonitor>();
         slCoreService ??= Substitute.For<ISLCoreServiceProvider>();
-        ruleSettingsMapper ??= Substitute.For<IRuleSettingsMapper>();
+        islCoreRuleSettings ??= Substitute.For<ISLCoreRuleSettings>();
         userSettingsProvider ??= Substitute.For<IUserSettingsProvider>();
 
-        return CreateUserSettingsUpdater(logger, singleFileMonitor, slCoreService, ruleSettingsMapper, userSettingsProvider);
+        return CreateUserSettingsUpdater(logger, singleFileMonitor, slCoreService, islCoreRuleSettings, userSettingsProvider);
     }
 
     private static UserSettingsUpdater CreateUserSettingsUpdater(ILogger logger,
-        ISingleFileMonitor singleFileMonitor, ISLCoreServiceProvider slCoreService, IRuleSettingsMapper ruleSettingsMapper, IUserSettingsProvider userSettingsProvider)
+        ISingleFileMonitor singleFileMonitor, ISLCoreServiceProvider slCoreService, ISLCoreRuleSettings slCoreRuleSettings, IUserSettingsProvider userSettingsProvider)
     {
-        return new UserSettingsUpdater(logger, singleFileMonitor, slCoreService, ruleSettingsMapper, userSettingsProvider);
+        return new UserSettingsUpdater(logger, singleFileMonitor, slCoreService, slCoreRuleSettings, userSettingsProvider);
     }
 
     private static IRulesSLCoreService MockRulesSlCoreService(ISLCoreServiceProvider slCoreServiceProvider)
@@ -271,7 +271,7 @@ public class UserSettingsUpdaterTests
     private static void SetupFileChangedInUserSettingsUpdater(
         ISLCoreServiceProvider slCoreServiceProvider, 
         ILogger logger = null,
-        IRuleSettingsMapper ruleSettingsMapper = null,
+        ISLCoreRuleSettings slCoreRuleSettings = null,
         IUserSettingsProvider userSettingsProvider = null)
     {
         var fileMonitorMock = Substitute.For<ISingleFileMonitor>();
@@ -282,7 +282,7 @@ public class UserSettingsUpdaterTests
             logger ?? Substitute.For<ILogger>(),
             fileMonitorMock, 
             slCoreServiceProvider, 
-            ruleSettingsMapper ?? Substitute.For<IRuleSettingsMapper>(),
+            slCoreRuleSettings ?? Substitute.For<ISLCoreRuleSettings>(),
             userSettingsProvider);
       fileMonitorMock.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
     }
