@@ -93,10 +93,6 @@ public class RaisedFindingProcessorTests
     [TestMethod]
     public void RaiseFindings_NoSupportedLanguages_PublishesEmpty()
     {
-        var analysisIssue1 = CreateAnalysisIssue("csharpsquid:S100");
-        var analysisIssue2 = CreateAnalysisIssue("csharpsquid:S101");
-        var findings = new[] { analysisIssue1, analysisIssue2 };
-
         var analysisId = Guid.NewGuid();
         var fileUri = new FileUri("file://C:/somefile");
         var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>>
@@ -124,10 +120,6 @@ public class RaisedFindingProcessorTests
     [TestMethod]
     public void RaiseFindings_NoKnownLanguages_PublishesEmpty()
     {
-        var analysisIssue1 = CreateAnalysisIssue("csharpsquid:S100");
-        var analysisIssue2 = CreateAnalysisIssue("csharpsquid:S101");
-        var findings = new[] { analysisIssue1, analysisIssue2 };
-
         var analysisId = Guid.NewGuid();
         var fileUri = new FileUri("file://C:/somefile");
         var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>>
