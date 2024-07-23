@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.State;
 
@@ -45,6 +46,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
     private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private readonly IConfigScopeUpdater configScopeUpdater;
     private readonly IThreadHandling threadHandling;
+    private readonly ISLCoreRuleSettings ruleSettings;
 
     [ImportingConstructor]
     public SLCoreInstanceFactory(ISLCoreRpcFactory slCoreRpcFactory,
@@ -55,7 +57,8 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         ICompatibleNodeLocator compatibleNodeLocator,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IConfigScopeUpdater configScopeUpdater,
-        IThreadHandling threadHandling)
+        IThreadHandling threadHandling,
+        ISLCoreRuleSettings ruleSettings)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
         this.constantsProvider = constantsProvider;
@@ -66,6 +69,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.configScopeUpdater = configScopeUpdater;
         this.threadHandling = threadHandling;
+        this.ruleSettings = ruleSettings;
     }
     
     public ISLCoreInstanceHandle CreateInstance() =>
@@ -77,5 +81,6 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
             compatibleNodeLocator,
             activeSolutionBoundTracker,
             configScopeUpdater,
-            threadHandling);
+            threadHandling,
+            ruleSettings);
 }

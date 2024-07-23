@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.SLCore;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.SLCore;
+using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Core.Process;
@@ -106,6 +107,8 @@ public sealed class SLCoreTestRunner : IDisposable
             noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
             var noOpConfigScopeUpdater = Substitute.For<IConfigScopeUpdater>();
 
+            var slCoreRulesSettings = Substitute.For<ISLCoreRuleSettings>();
+
             slCoreInstanceHandle = new SLCoreInstanceHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
                     new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
                     new RpcDebugger(new FileSystem(), Path.Combine(privateFolder, "logrpc.log")),
@@ -118,7 +121,8 @@ public sealed class SLCoreTestRunner : IDisposable
                 compatibleNodeLocator,
                 noOpActiveSolutionBoundTracker,
                 noOpConfigScopeUpdater,
-                new NoOpThreadHandler());
+                new NoOpThreadHandler(),
+                slCoreRulesSettings);
             slCoreInstanceHandle.Initialize();
         }
         finally

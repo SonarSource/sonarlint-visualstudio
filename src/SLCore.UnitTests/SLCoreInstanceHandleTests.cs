@@ -23,12 +23,14 @@ using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
+using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SonarLint.VisualStudio.SLCore.State;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
@@ -79,7 +81,8 @@ public class SLCoreInstanceHandleTests
             out var nodeLocator,
             out var activeSolutionBoundTracker,
             out var configScopeUpdater,
-            out var threadHandling);
+            out var threadHandling,
+            out var slCoreRuleSettings);
         SetUpLanguages(constantsProvider, [], []);
 
         SetUpSuccessfulInitialization(slCoreRpcFactory,
@@ -89,7 +92,8 @@ public class SLCoreInstanceHandleTests
             jarLocator,
             activeSolutionBoundTracker,
             out var lifecycleManagement,
-            out _);
+            out _, 
+            slCoreRuleSettings);
         nodeLocator.Locate().Returns(nodeJsPath is null ? null : new NodeVersionInfo(nodeJsPath, new Version()));
 
         testSubject.Initialize();
@@ -387,7 +391,8 @@ public class SLCoreInstanceHandleTests
         ISLCoreEmbeddedPluginJarLocator jarLocator,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         out ILifecycleManagementSLCoreService lifecycleManagement,
-        out ISLCoreRpc rpc)
+        out ISLCoreRpc rpc, 
+        ISLCoreRuleSettings slCoreRuleSettings = null)
     {
         SetUpSLCoreRpcFactory(slCoreRpcFactory, out rpc);
         SetUpSLCoreRpc(rpc, out var serviceProvider);
@@ -405,6 +410,7 @@ public class SLCoreInstanceHandleTests
         });
         jarLocator.ListJarFiles().Returns(JarList);
         activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(Binding, SonarLintMode.Connected, "dir"));
+        slCoreRuleSettings?.RulesSettings.Returns(new Dictionary<string, StandaloneRuleConfigDto>());
     }
 
     private void SetUpLanguages(ISLCoreConstantsProvider constantsProvider,
@@ -477,7 +483,42 @@ public class SLCoreInstanceHandleTests
             compatibleNodeLocator,
             activeSolutionBoundTracker,
             configScopeUpdater,
-            threadHandling);
+            threadHandling, 
+            Substitute.For<ISLCoreRuleSettings>());
+    }
+
+    private SLCoreInstanceHandle CreateTestSubject(out ISLCoreRpcFactory slCoreRpcFactory,
+        out ISLCoreConstantsProvider constantsProvider,
+        out ISLCoreFoldersProvider slCoreFoldersProvider,
+        out IServerConnectionsProvider serverConnectionConfigurationProvider,
+        out ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
+        out ICompatibleNodeLocator compatibleNodeLocator,
+        out IActiveSolutionBoundTracker activeSolutionBoundTracker,
+        out IConfigScopeUpdater configScopeUpdater,
+        out IThreadHandling threadHandling,
+        out ISLCoreRuleSettings slCoreRuleSettings)
+    {
+        slCoreRpcFactory = Substitute.For<ISLCoreRpcFactory>();
+        constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
+        slCoreFoldersProvider = Substitute.For<ISLCoreFoldersProvider>();
+        serverConnectionConfigurationProvider = Substitute.For<IServerConnectionsProvider>();
+        slCoreEmbeddedPluginJarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
+        compatibleNodeLocator = Substitute.For<ICompatibleNodeLocator>();
+        activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+        configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
+        threadHandling = Substitute.For<IThreadHandling>();
+        slCoreRuleSettings = Substitute.For<ISLCoreRuleSettings>();
+
+        return new SLCoreInstanceHandle(slCoreRpcFactory,
+            constantsProvider,
+            slCoreFoldersProvider,
+            serverConnectionConfigurationProvider,
+            slCoreEmbeddedPluginJarProvider,
+            compatibleNodeLocator,
+            activeSolutionBoundTracker,
+            configScopeUpdater,
+            threadHandling,
+            slCoreRuleSettings);
     }
 
     internal class AnySLCoreService : Arg.AnyType, ISLCoreService
