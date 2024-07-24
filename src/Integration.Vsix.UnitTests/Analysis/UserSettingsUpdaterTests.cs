@@ -110,8 +110,6 @@ public class UserSettingsUpdaterTests
     [TestMethod]
     public void SettingsChangeNotificationIsRaised()
     {
-        int pause = System.Diagnostics.Debugger.IsAttached ? 20000 : 300;
-
         const string fileName = "mySettings.xxx";
 
         // We're deliberately returning different data on each call to IFile.ReadAllText
@@ -143,16 +141,11 @@ public class UserSettingsUpdaterTests
         // 1. Disable a rule
         // Should trigger a save, but should not *directly* raise a "SettingsChanged" event
         userSettingsProvider.DisableRule("dummyRule");
-
-        // Timing - unfortunately, we can't reliably test for the absence of an event. We
-        // can only wait for a certain amount of time and check no events arrive in that period.
-        System.Threading.Thread.Sleep(pause);
         eventCount.Should().Be(0);
 
         // 2. Now simulate a file-change event
         fileSystemMock.File.ReadAllText(fileName).Returns(modifiedData);
         singleFileMonitorMock.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
-        settingsChangedEventReceived.WaitOne(pause);
 
         // Check the settings change event was raised
         eventCount.Should().Be(1);
