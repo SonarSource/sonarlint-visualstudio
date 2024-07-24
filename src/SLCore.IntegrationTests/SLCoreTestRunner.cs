@@ -36,6 +36,7 @@ using SonarLint.VisualStudio.SLCore.Core.Process;
 using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
+using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
@@ -52,6 +53,7 @@ public sealed class SLCoreTestRunner : IDisposable
     private SLCoreInstanceHandle slCoreInstanceHandle;
     internal ISLCoreServiceProvider SLCoreServiceProvider => slCoreInstanceHandle?.SLCoreRpc?.ServiceProvider;
     private readonly string testName;
+    private readonly ISLCoreRuleSettings slCoreRulesSettings = Substitute.For<ISLCoreRuleSettings>();
 
     public SLCoreTestRunner(ILogger logger, ILogger slCoreErrorLogger, string testName)
     {
@@ -71,6 +73,11 @@ public sealed class SLCoreTestRunner : IDisposable
             throw new InvalidOperationException("Listening already started");
         }
         listenersToSetUp.Add(listener);
+    }
+
+    public void MockInitialSlCoreRulesSettings(Dictionary<string, StandaloneRuleConfigDto> rulesSettings)
+    {
+        slCoreRulesSettings.RulesSettings.Returns(rulesSettings);
     }
 
     public void Start()
@@ -106,8 +113,6 @@ public sealed class SLCoreTestRunner : IDisposable
             var noOpActiveSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
             noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
             var noOpConfigScopeUpdater = Substitute.For<IConfigScopeUpdater>();
-
-            var slCoreRulesSettings = Substitute.For<ISLCoreRuleSettings>();
 
             slCoreInstanceHandle = new SLCoreInstanceHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
                     new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
@@ -152,12 +157,17 @@ public sealed class SLCoreTestRunner : IDisposable
 
         if (Directory.Exists(privateFolder))
         {
-            Directory.Delete(privateFolder, true);
+            DeleteDirectoryForLongPaths(privateFolder);
         }
 
         Directory.CreateDirectory(privateFolder);
         Directory.CreateDirectory(storageRoot);
         Directory.CreateDirectory(workDir);
         Directory.CreateDirectory(userHome);
+    }
+
+    private static void DeleteDirectoryForLongPaths(string dirToDelete)
+    {
+        Directory.Delete(@"\\?\" + dirToDelete, true);
     }
 }
