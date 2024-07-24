@@ -19,7 +19,10 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.Rules;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Analysis;
@@ -27,18 +30,23 @@ namespace SonarLint.VisualStudio.SLCore.Analysis;
 public interface ISLCoreRuleSettings
 {
     Dictionary<string, StandaloneRuleConfigDto> RulesSettings { get; }
+    void UpdateStandaloneRulesConfiguration();
 }
 
 [Export(typeof(ISLCoreRuleSettings))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class SlCoreRuleSettings : ISLCoreRuleSettings
 {
+    private readonly ILogger logger;
     private readonly IUserSettingsProvider userSettingsProvider;
+    private readonly ISLCoreServiceProvider slCoreServiceProvider;
 
     [ImportingConstructor]
-    public SlCoreRuleSettings(IUserSettingsProvider userSettingsProvider)
+    public SlCoreRuleSettings(ILogger logger, IUserSettingsProvider userSettingsProvider, ISLCoreServiceProvider slCoreServiceProvider)
     {
+        this.logger = logger;
         this.userSettingsProvider = userSettingsProvider;
+        this.slCoreServiceProvider = slCoreServiceProvider;
     }
 
     public Dictionary<string, StandaloneRuleConfigDto> RulesSettings => MapRuleSettingsToSlCoreSettings(userSettingsProvider.UserSettings.RulesSettings);
@@ -46,6 +54,24 @@ internal sealed class SlCoreRuleSettings : ISLCoreRuleSettings
     private Dictionary<string, StandaloneRuleConfigDto> MapRuleSettingsToSlCoreSettings(RulesSettings rulesSettings)
     { 
         return rulesSettings.Rules.ToDictionary(kvp => kvp.Key, kvp => MapStandaloneRuleConfigDto(kvp.Value));
+    }
+
+    public void UpdateStandaloneRulesConfiguration()
+    {
+        if (!slCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesSlCoreService))
+        {
+            logger.WriteLine($"[{nameof(SlCoreRuleSettings)}] {SLCoreStrings.ServiceProviderNotInitialized}");
+            return;
+        }
+
+        try
+        {
+            rulesSlCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(RulesSettings));
+        }
+        catch (Exception e)
+        {
+            logger.WriteLine(e.ToString());
+        }
     }
 
     private static StandaloneRuleConfigDto MapStandaloneRuleConfigDto(RuleConfig ruleConfig) => new(MapIsActive(ruleConfig.Level), MapParameters(ruleConfig.Parameters));

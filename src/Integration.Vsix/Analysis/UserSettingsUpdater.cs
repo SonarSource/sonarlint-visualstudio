@@ -21,10 +21,7 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
-using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Analysis;
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Service.Rules;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
@@ -42,31 +39,23 @@ internal sealed class UserSettingsUpdater : IUserSettingsUpdater, IDisposable
 {
 
     private readonly ISingleFileMonitor settingsFileMonitor;
-    private readonly ISLCoreServiceProvider slCoreServiceProvider;
     private readonly ISLCoreRuleSettings slCoreRuleSettings;
-    private readonly ILogger logger;
     private readonly IUserSettingsProvider userSettingsProvider;
 
     [ImportingConstructor]
-    public UserSettingsUpdater(ILogger logger, 
-        ISLCoreServiceProvider slCoreServiceProvider, 
-        ISLCoreRuleSettings slCoreRuleSettings, 
-        IUserSettingsProvider userSettingsProvider)
-        : this(logger, new SingleFileMonitor(UserSettingsConstants.UserSettingsFilePath, logger), slCoreServiceProvider, slCoreRuleSettings, userSettingsProvider)
+    public UserSettingsUpdater(ILogger logger, ISLCoreRuleSettings slCoreRuleSettings, IUserSettingsProvider userSettingsProvider)
+        : this(new SingleFileMonitor(UserSettingsConstants.UserSettingsFilePath, logger), slCoreRuleSettings, userSettingsProvider)
     {
     }
 
-    internal /* for testing */ UserSettingsUpdater(ILogger logger, 
-        ISingleFileMonitor settingsFileMonitor, 
-        ISLCoreServiceProvider slCoreServiceProvider, 
+    internal /* for testing */ UserSettingsUpdater(
+        ISingleFileMonitor settingsFileMonitor,
         ISLCoreRuleSettings slCoreRuleSettings, 
         IUserSettingsProvider userSettingsProvider)
     {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.userSettingsProvider = userSettingsProvider ?? throw new ArgumentNullException(nameof(userSettingsProvider));
         this.settingsFileMonitor = settingsFileMonitor ?? throw new ArgumentNullException(nameof(settingsFileMonitor));
-        this.slCoreServiceProvider = slCoreServiceProvider;
-        this.slCoreRuleSettings = slCoreRuleSettings;
+        this.slCoreRuleSettings = slCoreRuleSettings ?? throw new ArgumentNullException(nameof(slCoreRuleSettings)); 
 
         settingsFileMonitor.FileChanged += OnFileChanged;
     }
@@ -74,7 +63,7 @@ internal sealed class UserSettingsUpdater : IUserSettingsUpdater, IDisposable
     private void OnFileChanged(object sender, EventArgs e)
     {
         userSettingsProvider.SafeLoadUserSettings();
-        UpdateStandaloneRulesConfiguration();
+        slCoreRuleSettings.UpdateStandaloneRulesConfiguration();
         SettingsChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -83,24 +72,6 @@ internal sealed class UserSettingsUpdater : IUserSettingsUpdater, IDisposable
     public event EventHandler SettingsChanged;
 
     #endregion
-
-    private void UpdateStandaloneRulesConfiguration()
-    {
-        if (!slCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesSlCoreService))
-        {
-            logger.WriteLine($"[{nameof(UserSettingsUpdater)}] {SLCoreStrings.ServiceProviderNotInitialized}");
-            return;
-        }
-
-        try
-        {
-            rulesSlCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(slCoreRuleSettings.RulesSettings));
-        }
-        catch (Exception e)
-        {
-            logger.WriteLine(e.ToString());
-        }
-    }
 
     public void Dispose()
     {
