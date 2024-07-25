@@ -23,6 +23,7 @@ using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Configuration;
@@ -54,11 +55,47 @@ public class SLCoreInstanceHandleTests
     private static readonly BoundSonarQubeProject Binding = new();
     
     private static readonly List<string> JarList = new() { "jar1" };
+    private ISLCoreRpcFactory slCoreRpcFactory;
+    private ISLCoreConstantsProvider constantsProvider;
+    private ISLCoreFoldersProvider foldersProvider;
+    private IServerConnectionsProvider connectionsProvider;
+    private ISLCoreEmbeddedPluginJarLocator jarLocator;
+    private ICompatibleNodeLocator nodeLocator;
+    private IActiveSolutionBoundTracker activeSolutionBoundTracker;
+    private IConfigScopeUpdater configScopeUpdater;
+    private IThreadHandling threadHandling;
+    private ISLCoreRuleSettings slCoreRuleSettings;
+    private SLCoreInstanceHandle testSubject;
+
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        slCoreRpcFactory = Substitute.For<ISLCoreRpcFactory>();
+        constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
+        foldersProvider = Substitute.For<ISLCoreFoldersProvider>();
+        connectionsProvider = Substitute.For<IServerConnectionsProvider>();
+        jarLocator = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
+        nodeLocator = Substitute.For<ICompatibleNodeLocator>();
+        activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+        configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
+        threadHandling = Substitute.For<IThreadHandling>();
+        slCoreRuleSettings = Substitute.For<ISLCoreRuleSettings>();
+
+        testSubject = new SLCoreInstanceHandle(slCoreRpcFactory,
+            constantsProvider,
+            foldersProvider,
+            connectionsProvider,
+            jarLocator,
+            nodeLocator,
+            activeSolutionBoundTracker,
+            configScopeUpdater,
+            threadHandling,
+            slCoreRuleSettings);
+    }
 
     [TestMethod]
     public void Initialize_ThrowsIfServicesUnavailable()
     {
-        var testSubject = CreateTestSubject(out var slCoreRpcFactory, out _, out _, out _, out _, out _, out _, out _, out _);
         SetUpSLCoreRpcFactory(slCoreRpcFactory, out var rpc);
         SetUpSLCoreRpc(rpc, out var serviceProvider);
         serviceProvider.TryGetTransientService(out Arg.Any<AnySLCoreService>()).ReturnsForAnyArgs(false);
@@ -73,27 +110,8 @@ public class SLCoreInstanceHandleTests
     [DataRow(null)]
     public void Initialize_SuccessfullyInitializesInCorrectOrder(string nodeJsPath)
     {
-        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
-            out var constantsProvider,
-            out var foldersProvider,
-            out var connectionsProvider,
-            out var jarLocator,
-            out var nodeLocator,
-            out var activeSolutionBoundTracker,
-            out var configScopeUpdater,
-            out var threadHandling,
-            out var slCoreRuleSettings);
         SetUpLanguages(constantsProvider, [], []);
-
-        SetUpSuccessfulInitialization(slCoreRpcFactory,
-            constantsProvider,
-            foldersProvider,
-            connectionsProvider,
-            jarLocator,
-            activeSolutionBoundTracker,
-            out var lifecycleManagement,
-            out _, 
-            slCoreRuleSettings);
+        SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
         nodeLocator.Locate().Returns(nodeJsPath is null ? null : new NodeVersionInfo(nodeJsPath, new Version()));
 
         testSubject.Initialize();
@@ -123,25 +141,8 @@ public class SLCoreInstanceHandleTests
     [TestMethod]
     public void Initialize_NoLanguagesAnalysisEnabled_DisablesAllLanguages()
     {
-        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
-            out var constantsProvider,
-            out var foldersProvider,
-            out var connectionsProvider,
-            out var jarLocator,
-            out _,
-            out var activeSolutionBoundTracker,
-            out _,
-            out _);
         SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX, Language.YAML, Language.XML], []);
-
-        SetUpSuccessfulInitialization(slCoreRpcFactory,
-            constantsProvider,
-            foldersProvider,
-            connectionsProvider,
-            jarLocator,
-            activeSolutionBoundTracker,
-            out var lifecycleManagement,
-            out _);
+        SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
 
         testSubject.Initialize();
 
@@ -155,25 +156,8 @@ public class SLCoreInstanceHandleTests
     [TestMethod]
     public void Initialize_AnalysisPartiallyEnabled_DisablesAllNotEnabledLanguages()
     {
-        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
-            out var constantsProvider,
-            out var foldersProvider,
-            out var connectionsProvider,
-            out var jarLocator,
-            out _,
-            out var activeSolutionBoundTracker,
-            out _,
-            out _);
         SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX, Language.YAML, Language.XML], [Language.APEX, Language.YAML]);
-
-        SetUpSuccessfulInitialization(slCoreRpcFactory,
-            constantsProvider,
-            foldersProvider,
-            connectionsProvider,
-            jarLocator,
-            activeSolutionBoundTracker,
-            out var lifecycleManagement,
-            out _);
+        SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
 
         testSubject.Initialize();
 
@@ -187,25 +171,8 @@ public class SLCoreInstanceHandleTests
     [TestMethod]
     public void Initialize_AnalysisFullyEnabled_DisablesNoLanguages()
     {
-        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
-            out var constantsProvider,
-            out var foldersProvider,
-            out var connectionsProvider,
-            out var jarLocator,
-            out _,
-            out var activeSolutionBoundTracker,
-            out _,
-            out _);
         SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX, Language.YAML, Language.XML], [Language.XML, Language.APEX, Language.YAML, Language.ABAP, ]);
-
-        SetUpSuccessfulInitialization(slCoreRpcFactory,
-            constantsProvider,
-            foldersProvider,
-            connectionsProvider,
-            jarLocator,
-            activeSolutionBoundTracker,
-            out var lifecycleManagement,
-            out _);
+        SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
 
         testSubject.Initialize();
 
@@ -216,28 +183,23 @@ public class SLCoreInstanceHandleTests
     }
 
     [TestMethod]
+    public void Initialize_ProvidesRulesSettings()
+    {
+        SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
+        slCoreRuleSettings.RulesSettings.Returns(new Dictionary<string, StandaloneRuleConfigDto>() { { "rule1", new StandaloneRuleConfigDto(true, []) } });
+
+        testSubject.Initialize();
+
+        lifecycleManagement.Received(1).Initialize(Arg.Is<InitializeParams>(param => param.standaloneRuleConfigByKey.SequenceEqual(slCoreRuleSettings.RulesSettings)));
+    }
+
+    [TestMethod]
     public void Dispose_Initialized_ShutsDownAndDisposesRpc()
     {
-        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
-            out var constantsProvider,
-            out var foldersProvider,
-            out var connectionsProvider,
-            out var jarLocator,
-            out _,
-            out var activeSolutionBoundTracker,
-            out _,
-            out var threadHandling);
         SetUpThreadHandling(threadHandling);
         SetUpLanguages(constantsProvider, [], []);
 
-        SetUpSuccessfulInitialization(slCoreRpcFactory,
-            constantsProvider,
-            foldersProvider,
-            connectionsProvider,
-            jarLocator,
-            activeSolutionBoundTracker,
-            out var lifecycleManagement,
-            out var rpc);
+        SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         testSubject.Initialize();
 
         var serviceProvider = rpc.ServiceProvider;
@@ -259,26 +221,10 @@ public class SLCoreInstanceHandleTests
     [TestMethod]
     public void Dispose_IgnoresServiceProviderException()
     {
-        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
-            out var constantsProvider,
-            out var foldersProvider,
-            out var connectionsProvider,
-            out var jarLocator,
-            out _,
-            out var activeSolutionBoundTracker,
-            out _,
-            out var threadHandling);
         SetUpThreadHandling(threadHandling);
         SetUpLanguages(constantsProvider, [], []);
 
-        SetUpSuccessfulInitialization(slCoreRpcFactory,
-            constantsProvider,
-            foldersProvider,
-            connectionsProvider,
-            jarLocator,
-            activeSolutionBoundTracker,
-            out var lifecycleManagement,
-            out var rpc);
+        SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         lifecycleManagement.When(x => x.Shutdown()).Do(_ => throw new Exception());
         testSubject.Initialize();
         var serviceProvider = rpc.ServiceProvider;
@@ -294,26 +240,10 @@ public class SLCoreInstanceHandleTests
     [TestMethod]
     public void Dispose_IgnoresShutdownException()
     {
-        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
-            out var constantsProvider,
-            out var foldersProvider,
-            out var connectionsProvider,
-            out var jarLocator,
-            out _,
-            out var activeSolutionBoundTracker,
-            out _,
-            out var threadHandling);
         SetUpThreadHandling(threadHandling);
         SetUpLanguages(constantsProvider, [], []);
 
-        SetUpSuccessfulInitialization(slCoreRpcFactory,
-            constantsProvider,
-            foldersProvider,
-            connectionsProvider,
-            jarLocator,
-            activeSolutionBoundTracker,
-            out var lifecycleManagement,
-            out var rpc);
+        SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         lifecycleManagement.When(x => x.Shutdown()).Do(_ => throw new Exception());
         testSubject.Initialize();
 
@@ -327,26 +257,10 @@ public class SLCoreInstanceHandleTests
     [TestMethod]
     public void Dispose_ConnectionDied_DisposesRpc()
     {
-        var testSubject = CreateTestSubject(out var slCoreRpcFactory,
-            out var constantsProvider,
-            out var foldersProvider,
-            out var connectionsProvider,
-            out var jarLocator,
-            out _,
-            out var activeSolutionBoundTracker,
-            out _,
-            out var threadHandling);
         SetUpThreadHandling(threadHandling);
         SetUpLanguages(constantsProvider, [], []);
 
-        SetUpSuccessfulInitialization(slCoreRpcFactory,
-            constantsProvider,
-            foldersProvider,
-            connectionsProvider,
-            jarLocator,
-            activeSolutionBoundTracker,
-            out var lifecycleManagement,
-            out var rpc);
+        SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         testSubject.Initialize();
 
         var serviceProvider = rpc.ServiceProvider;
@@ -369,30 +283,12 @@ public class SLCoreInstanceHandleTests
     [TestMethod]
     public void Dispose_NotInitialized_DoesNothing()
     {
-        var testSubject = CreateTestSubject(out _,
-            out _,
-            out _,
-            out _,
-            out _,
-            out _,
-            out _,
-            out _,
-            out _);
-        
         var act = () => testSubject.Dispose();
 
         act.Should().NotThrow();
     }
 
-    private void SetUpSuccessfulInitialization(ISLCoreRpcFactory slCoreRpcFactory,
-        ISLCoreConstantsProvider constantsProvider,
-        ISLCoreFoldersProvider foldersProvider,
-        IServerConnectionsProvider connectionsProvider,
-        ISLCoreEmbeddedPluginJarLocator jarLocator,
-        IActiveSolutionBoundTracker activeSolutionBoundTracker,
-        out ILifecycleManagementSLCoreService lifecycleManagement,
-        out ISLCoreRpc rpc, 
-        ISLCoreRuleSettings slCoreRuleSettings = null)
+    private void SetUpSuccessfulInitialization(out ILifecycleManagementSLCoreService lifecycleManagement, out ISLCoreRpc rpc)
     {
         SetUpSLCoreRpcFactory(slCoreRpcFactory, out rpc);
         SetUpSLCoreRpc(rpc, out var serviceProvider);
@@ -410,7 +306,7 @@ public class SLCoreInstanceHandleTests
         });
         jarLocator.ListJarFiles().Returns(JarList);
         activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(Binding, SonarLintMode.Connected, "dir"));
-        slCoreRuleSettings?.RulesSettings.Returns(new Dictionary<string, StandaloneRuleConfigDto>());
+        slCoreRuleSettings.RulesSettings.Returns(new Dictionary<string, StandaloneRuleConfigDto>());
     }
 
     private void SetUpLanguages(ISLCoreConstantsProvider constantsProvider,
@@ -453,72 +349,6 @@ public class SLCoreInstanceHandleTests
     {
         threadHandling.Run(Arg.Any<Func<Task<int>>>()).Returns(info => info.Arg<Func<Task<int>>>()().GetAwaiter().GetResult());
         threadHandling.SwitchToBackgroundThread().Returns(new NoOpThreadHandler.NoOpAwaitable());
-    }
-
-    private SLCoreInstanceHandle CreateTestSubject(out ISLCoreRpcFactory slCoreRpcFactory,
-        out ISLCoreConstantsProvider constantsProvider,
-        out ISLCoreFoldersProvider slCoreFoldersProvider,
-        out IServerConnectionsProvider serverConnectionConfigurationProvider,
-        out ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
-        out ICompatibleNodeLocator compatibleNodeLocator, 
-        out IActiveSolutionBoundTracker activeSolutionBoundTracker,
-        out IConfigScopeUpdater configScopeUpdater,
-        out IThreadHandling threadHandling)
-    {
-        slCoreRpcFactory = Substitute.For<ISLCoreRpcFactory>();
-        constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
-        slCoreFoldersProvider = Substitute.For<ISLCoreFoldersProvider>();
-        serverConnectionConfigurationProvider = Substitute.For<IServerConnectionsProvider>();
-        slCoreEmbeddedPluginJarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
-        compatibleNodeLocator = Substitute.For<ICompatibleNodeLocator>();
-        activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
-        configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
-        threadHandling = Substitute.For<IThreadHandling>();
-
-        return new SLCoreInstanceHandle(slCoreRpcFactory,
-            constantsProvider,
-            slCoreFoldersProvider,
-            serverConnectionConfigurationProvider,
-            slCoreEmbeddedPluginJarProvider,
-            compatibleNodeLocator,
-            activeSolutionBoundTracker,
-            configScopeUpdater,
-            threadHandling, 
-            Substitute.For<ISLCoreRuleSettings>());
-    }
-
-    private SLCoreInstanceHandle CreateTestSubject(out ISLCoreRpcFactory slCoreRpcFactory,
-        out ISLCoreConstantsProvider constantsProvider,
-        out ISLCoreFoldersProvider slCoreFoldersProvider,
-        out IServerConnectionsProvider serverConnectionConfigurationProvider,
-        out ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
-        out ICompatibleNodeLocator compatibleNodeLocator,
-        out IActiveSolutionBoundTracker activeSolutionBoundTracker,
-        out IConfigScopeUpdater configScopeUpdater,
-        out IThreadHandling threadHandling,
-        out ISLCoreRuleSettings slCoreRuleSettings)
-    {
-        slCoreRpcFactory = Substitute.For<ISLCoreRpcFactory>();
-        constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
-        slCoreFoldersProvider = Substitute.For<ISLCoreFoldersProvider>();
-        serverConnectionConfigurationProvider = Substitute.For<IServerConnectionsProvider>();
-        slCoreEmbeddedPluginJarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
-        compatibleNodeLocator = Substitute.For<ICompatibleNodeLocator>();
-        activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
-        configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
-        threadHandling = Substitute.For<IThreadHandling>();
-        slCoreRuleSettings = Substitute.For<ISLCoreRuleSettings>();
-
-        return new SLCoreInstanceHandle(slCoreRpcFactory,
-            constantsProvider,
-            slCoreFoldersProvider,
-            serverConnectionConfigurationProvider,
-            slCoreEmbeddedPluginJarProvider,
-            compatibleNodeLocator,
-            activeSolutionBoundTracker,
-            configScopeUpdater,
-            threadHandling,
-            slCoreRuleSettings);
     }
 
     internal class AnySLCoreService : Arg.AnyType, ISLCoreService

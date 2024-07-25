@@ -115,7 +115,7 @@ public class FileAnalysisTests
     {
         var letRuleConfig = CreateInactiveRuleConfig(LetRuleId);
 
-        var issuesByFileUri = await RunFileAnalysis(TwoJsIssuesPath, initialRulesConfig: letRuleConfig, updatedRulesConfig:null);
+        var issuesByFileUri = await RunFileAnalysisWithInitialRulesConfiguration(TwoJsIssuesPath, initialRulesConfig: letRuleConfig, updatedRulesConfig:null);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(GetFullPath(TwoJsIssuesPath))].Should().HaveCount(1);
@@ -126,18 +126,18 @@ public class FileAnalysisTests
     {
         var secretsRuleConfig = CreateInactiveRuleConfig(CloudSecretsRuleId);
 
-        var issuesByFileUri = await RunFileAnalysis(ThreeSecretsIssuesPath, initialRulesConfig:secretsRuleConfig, updatedRulesConfig:null);
+        var issuesByFileUri = await RunFileAnalysisWithInitialRulesConfiguration(ThreeSecretsIssuesPath, initialRulesConfig:secretsRuleConfig, updatedRulesConfig:null);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(GetFullPath(ThreeSecretsIssuesPath))].Should().HaveCount(1);
     }
 
-    private async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(string fileToAnalyzeRelativePath, Dictionary<string, StandaloneRuleConfigDto> ruleConfigByKey = null)
+    private async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(string fileToAnalyzeRelativePath, Dictionary<string, StandaloneRuleConfigDto> updatedRulesConfig = null)
     {
-        return await RunFileAnalysis(fileToAnalyzeRelativePath, null, ruleConfigByKey);
+        return await RunFileAnalysisWithInitialRulesConfiguration(fileToAnalyzeRelativePath, null, updatedRulesConfig);
     }
 
-    private async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(
+    private async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysisWithInitialRulesConfiguration(
         string fileToAnalyzeRelativePath, 
         Dictionary<string, StandaloneRuleConfigDto> initialRulesConfig,
         Dictionary<string, StandaloneRuleConfigDto> updatedRulesConfig)
