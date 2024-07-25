@@ -22,6 +22,7 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 {

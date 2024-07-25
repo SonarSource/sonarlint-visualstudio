@@ -157,9 +157,6 @@
   <data name="Requester_Error" xml:space="preserve">
     <value>Error re-analysing open documents: {0}</value>
   </data>
-  <data name="Settings_UsingDefaultSettings" xml:space="preserve">
-    <value>Default settings will be used</value>
-  </data>
   <data name="Notifier_AnalysisFinished" xml:space="preserve">
     <value>SonarLint: Finished analyzing {0}</value>
   </data>

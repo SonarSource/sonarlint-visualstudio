@@ -36,31 +36,64 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 public class FileAnalysisTestsBase
 {
+    private const string ConfigScopeId = "ConfigScope1";
     protected const string TwoJsIssuesPath = @"Resources\TwoIssues.js";
     protected const string ThreeSecretsIssuesPath = @"Resources\Secrets.yml";
     protected const string OneIssueRuleWithParamPath = @"Resources\RuleParam.js";
-    
-    public TestContext TestContext { get; set; }
-    
-    protected async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(string fileToAnalyzeRelativePath,
-        Dictionary<string, StandaloneRuleConfigDto> ruleConfigByKey = null, bool sendContent = false)
-    {
-        const string configScopeId = "ConfigScope1";
 
-        var testLogger = new TestLogger();
-        var slCoreLogger = new TestLogger();
-        var slCoreErrorLogger = new TestLogger();
-        var analysisReadyCompletionSource = new TaskCompletionSource<DidChangeAnalysisReadinessParams>();
-        var analysisRaisedIssues = new TaskCompletionSource<RaiseFindingParams<RaisedIssueDto>>();
+    public TestContext TestContext { get; set; }
+
+    protected async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(string fileToAnalyzeRelativePath, 
+        Dictionary<string, StandaloneRuleConfigDto> updatedRulesConfig = null, 
+        bool sendContent = false)
+    {
+        return await RunFileAnalysisWithInitialRulesConfiguration(fileToAnalyzeRelativePath, null, updatedRulesConfig, sendContent);
+    }
+
+    protected async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysisWithInitialRulesConfiguration(
+        string fileToAnalyzeRelativePath, 
+        Dictionary<string, StandaloneRuleConfigDto> initialRulesConfig,
+        Dictionary<string, StandaloneRuleConfigDto> updatedRulesConfig,
+        bool sendContent = false)
+    {
+        using var slCoreTestRunner = new SLCoreTestRunner(new TestLogger(), new TestLogger(), TestContext.TestName);
         var fileToAnalyzeAbsolutePath = GetFullPath(fileToAnalyzeRelativePath);
-        var fileToAnalyze = CreateFileToAnalyze(fileToAnalyzeRelativePath, fileToAnalyzeAbsolutePath, configScopeId, sendContent);
-        var analysisListener = SetUpAnalysisListener(configScopeId, analysisReadyCompletionSource, analysisRaisedIssues);
+        var analysisRaisedIssues = new TaskCompletionSource<RaiseFindingParams<RaisedIssueDto>>();
+        slCoreTestRunner.MockInitialSlCoreRulesSettings(initialRulesConfig);
+
+        await SetupSlCoreAnalysis(slCoreTestRunner, fileToAnalyzeRelativePath, fileToAnalyzeAbsolutePath, analysisRaisedIssues, sendContent);
+        UpdateStandaloneRulesConfiguration(slCoreTestRunner, updatedRulesConfig);
+        await RunSlCoreFileAnalysis(slCoreTestRunner, fileToAnalyzeAbsolutePath);
+        await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task);
+
+        return analysisRaisedIssues.Task.Result.issuesByFileUri;
+    }
+
+    private static async Task RunSlCoreFileAnalysis(SLCoreTestRunner slCoreTestRunner, string fileToAnalyzeAbsolutePath)
+    {
+        slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService).Should().BeTrue();
+
+        var (failedAnalysisFiles, _) = await analysisService.AnalyzeFilesAndTrackAsync(
+            new AnalyzeFilesAndTrackParams(ConfigScopeId, Guid.NewGuid(),
+                [new FileUri(fileToAnalyzeAbsolutePath)], [], false,
+                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()), CancellationToken.None);
+        failedAnalysisFiles.Should().BeEmpty();
+    }
+
+    private async Task SetupSlCoreAnalysis(SLCoreTestRunner slCoreTestRunner, 
+        string fileToAnalyzeRelativePath,
+        string fileToAnalyzeAbsolutePath, 
+        TaskCompletionSource<RaiseFindingParams<RaisedIssueDto>> analysisRaisedIssues, 
+        bool sendContent)
+    {
+        var analysisReadyCompletionSource = new TaskCompletionSource<DidChangeAnalysisReadinessParams>();
+        var fileToAnalyze = CreateFileToAnalyze(fileToAnalyzeRelativePath, fileToAnalyzeAbsolutePath, ConfigScopeId, sendContent);
+        var analysisListener = SetUpAnalysisListener(ConfigScopeId, analysisReadyCompletionSource, analysisRaisedIssues);
         var listFilesListener = Substitute.For<IListFilesListener>();
         listFilesListener.ListFilesAsync(Arg.Any<ListFilesParams>())
             .Returns(Task.FromResult(new ListFilesResponse([fileToAnalyze])));
 
-        using var slCoreTestRunner = new SLCoreTestRunner(testLogger, slCoreErrorLogger, TestContext.TestName);
-        slCoreTestRunner.AddListener(new LoggerListener(slCoreLogger));
+        slCoreTestRunner.AddListener(new LoggerListener(new TestLogger()));
         slCoreTestRunner.AddListener(new ProgressListener());
         slCoreTestRunner.AddListener(analysisListener);
         slCoreTestRunner.AddListener(listFilesListener);
@@ -70,23 +103,8 @@ public class FileAnalysisTestsBase
         var activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
             new AsyncLockFactory(),
             new NoOpThreadHandler());
-        activeConfigScopeTracker.SetCurrentConfigScope(configScopeId);
-
+        activeConfigScopeTracker.SetCurrentConfigScope(ConfigScopeId);
         await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
-
-        UpdateStandaloneRulesConfiguration(slCoreTestRunner, ruleConfigByKey);
-
-        slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService)
-            .Should().BeTrue();
-
-        var (failedAnalysisFiles, _) = await analysisService.AnalyzeFilesAndTrackAsync(
-            new AnalyzeFilesAndTrackParams(configScopeId, Guid.NewGuid(),
-                [new FileUri(fileToAnalyzeAbsolutePath)], [], false,
-                DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()), CancellationToken.None);
-        failedAnalysisFiles.Should().BeEmpty();
-
-        await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task);
-        return analysisRaisedIssues.Task.Result.issuesByFileUri;
     }
 
     private static ClientFileDto CreateFileToAnalyze(string fileToAnalyzeRelativePath,

@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.TestInfrastructure;
 

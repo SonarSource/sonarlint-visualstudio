@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Configuration;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 
 namespace SonarLint.VisualStudio.CFamily.Rules
 {

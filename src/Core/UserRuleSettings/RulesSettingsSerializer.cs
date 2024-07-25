@@ -18,11 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Core.UserRuleSettings
 {
     public interface IRulesSettingsSerializer
     {

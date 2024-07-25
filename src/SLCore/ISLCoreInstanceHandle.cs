@@ -21,6 +21,7 @@
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
@@ -49,6 +50,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
     private readonly ICompatibleNodeLocator compatibleNodeLocator;
     private readonly IThreadHandling threadHandling;
+    private readonly ISLCoreRuleSettings slCoreRuleSettings;
     public Task ShutdownTask => SLCoreRpc.ShutdownTask;
     internal ISLCoreRpc SLCoreRpc { get; private set; }
 
@@ -61,7 +63,8 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         ICompatibleNodeLocator compatibleNodeLocator,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IConfigScopeUpdater configScopeUpdater,
-        IThreadHandling threadHandling)
+        IThreadHandling threadHandling,
+        ISLCoreRuleSettings slCoreRuleSettings)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
         this.constantsProvider = constantsProvider;
@@ -72,6 +75,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.configScopeUpdater = configScopeUpdater;
         this.threadHandling = threadHandling;
+        this.slCoreRuleSettings = slCoreRuleSettings;
     }
 
     public void Initialize()
@@ -102,7 +106,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             serverConnectionConfigurations.Values.OfType<SonarQubeConnectionConfigurationDto>().ToList(),
             serverConnectionConfigurations.Values.OfType<SonarCloudConnectionConfigurationDto>().ToList(),
             sonarlintUserHome,
-            standaloneRuleConfigByKey: new Dictionary<string, StandaloneRuleConfigDto>(),
+            standaloneRuleConfigByKey: slCoreRuleSettings.RulesSettings,
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
             new LanguageSpecificRequirements(compatibleNodeLocator.Locate()?.NodeExePath)));

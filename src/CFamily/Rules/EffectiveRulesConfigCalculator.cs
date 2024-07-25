@@ -23,6 +23,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Configuration;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 
 /* The calculator implements simple cache to reduce the number of times the effective settings
  * are recalculated (and so reduce the pressure on the garbage collector - we are creating

@@ -34,6 +34,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.Core.ETW;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Infrastructure.VS.Editor;
 
 /* Instancing: a new issue converter should be created for each analysis run.

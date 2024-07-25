@@ -126,4 +126,7 @@
   <data name="DisabledNotificationsFailedToLoad" xml:space="preserve">
     <value>[Notifications] Couldn't load disabled notification config. Notification will be shown.</value>
   </data>
+  <data name="Settings_UsingDefaultSettings" xml:space="preserve">
+    <value>Default settings will be used</value>
+  </data>
 </root>

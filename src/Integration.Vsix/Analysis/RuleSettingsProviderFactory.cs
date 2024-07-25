@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {

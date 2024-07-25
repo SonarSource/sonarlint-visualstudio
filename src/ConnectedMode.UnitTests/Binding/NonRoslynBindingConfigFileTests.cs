@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO.Abstractions.TestingHelpers;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 
 namespace SSonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 {

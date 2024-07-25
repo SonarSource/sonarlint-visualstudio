@@ -22,6 +22,7 @@ using System.ComponentModel.Design;
 using Microsoft.VisualStudio.OLE.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using ThreadHelper = SonarLint.VisualStudio.TestInfrastructure.ThreadHelper;
