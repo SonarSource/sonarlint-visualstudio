@@ -18,18 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core;
-
-public record SourceFile
-{
-    public string FilePath { get; }
-    public string Content { get; }
-    public string Encoding { get; }
-
-    public SourceFile(string filePath, string encoding = null, string content = null)
-    {
-        FilePath = filePath;
-        Content = content;
-        Encoding = encoding ?? System.Text.Encoding.UTF8.WebName;
-    }
-}
+#if DEBUG
+    [assembly:Parallelize(Workers = 4, Scope = ExecutionScope.MethodLevel)]
+#endif
