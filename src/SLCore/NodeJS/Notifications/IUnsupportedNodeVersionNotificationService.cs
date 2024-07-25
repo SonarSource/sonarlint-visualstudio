@@ -22,11 +22,11 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
 
-namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications
+namespace SonarLint.VisualStudio.SLCore.NodeJS.Notifications
 {
-    internal interface IUnsupportedNodeVersionNotificationService
+    public interface IUnsupportedNodeVersionNotificationService
     {
-        void Show();
+        void Show(string languageName, string minVersion, string currentVersion = null);
     }
 
     [Export(typeof(IUnsupportedNodeVersionNotificationService))]
@@ -34,33 +34,31 @@ namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications
     internal class UnsupportedNodeVersionNotificationService : IUnsupportedNodeVersionNotificationService
     {
         private readonly INotificationService notificationService;
+        private readonly IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction;
         private readonly IBrowserService browserService;
-        private readonly INotification notification;
 
-        private const string NotificationId = "sonarlint.nodejs.min.version.not.found.14.17";
+        private const string NotificationId = "sonarlint.nodejs.min.version.not.found";
 
         [ImportingConstructor]
-        public UnsupportedNodeVersionNotificationService(INotificationService notificationService, 
+        public UnsupportedNodeVersionNotificationService(INotificationService notificationService,
             IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction,
             IBrowserService browserService)
         {
             this.notificationService = notificationService;
+            this.doNotShowAgainNotificationAction = doNotShowAgainNotificationAction;
             this.browserService = browserService;
+        }
 
-            notification = new Notification(
+        public void Show(string languageName, string minVersion, string currentVersion = null)
+        {
+            notificationService.ShowNotification(new VisualStudio.Core.Notifications.Notification(
                 id: NotificationId,
-                message: NotificationStrings.NotificationUnsupportedNode,
+                message: string.Format(NotificationStrings.NotificationUnsupportedNode, languageName, minVersion, currentVersion ?? NotificationStrings.NotificationNoneVersion),
                 actions: new INotificationAction[]
                 {
                     new NotificationAction(NotificationStrings.NotificationShowMoreInfoAction, _ => ShowMoreInfo(), false),
                     doNotShowAgainNotificationAction
-                }
-            );
-        }
-
-        public void Show()
-        {
-            notificationService.ShowNotification(notification);
+                }));
         }
 
         private void ShowMoreInfo()

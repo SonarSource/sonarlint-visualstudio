@@ -21,6 +21,16 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Compile Update="NodeJS\Locator\LocatorResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LocatorResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="NodeJS\Notifications\NotificationStrings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>NotificationStrings.resx</DependentUpon>
+    </Compile>
     <Compile Update="SLCoreStrings.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -32,6 +42,14 @@
     <EmbeddedResource Update="SLCoreStrings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>SLCoreStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="NodeJS\Locator\LocatorResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>LocatorResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="NodeJS\Notifications\NotificationStrings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>NotificationStrings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 
