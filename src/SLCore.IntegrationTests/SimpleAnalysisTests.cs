@@ -33,14 +33,6 @@ public class SimpleAnalysisTests : FileAnalysisTestsBase
     public Task DefaultRuleConfig_ContentFromRpc_JavaScriptAnalysisProducesExpectedNumberOfIssues() 
         => DefaultRuleConfig_JavaScriptAnalysisProducesExpectedNumberOfIssues(true);
 
-    private async Task DefaultRuleConfig_JavaScriptAnalysisProducesExpectedNumberOfIssues(bool sendContent)
-    {
-        var issuesByFileUri = await RunFileAnalysis(ThreeSecretsIssuesPath, sendContent: sendContent);
-        
-        issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(GetFullPath(ThreeSecretsIssuesPath))].Should().HaveCount(3);
-    }
-
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_SecretsAnalysisProducesExpectedNumberOfIssues() 
         => DefaultRuleConfig_SecretsAnalysisProducesExpectedNumberOfIssues(false);
@@ -49,11 +41,19 @@ public class SimpleAnalysisTests : FileAnalysisTestsBase
     public Task DefaultRuleConfig_ContentFromRpc_SecretsAnalysisProducesExpectedNumberOfIssues() 
         => DefaultRuleConfig_SecretsAnalysisProducesExpectedNumberOfIssues(true);
 
-    private async Task DefaultRuleConfig_SecretsAnalysisProducesExpectedNumberOfIssues(bool sendContent)
+    private async Task DefaultRuleConfig_JavaScriptAnalysisProducesExpectedNumberOfIssues(bool sendContent)
     {
         var issuesByFileUri = await RunFileAnalysis(TwoJsIssuesPath, sendContent: sendContent);
-
+        
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(GetFullPath(TwoJsIssuesPath))].Should().HaveCount(2);
+    }
+    
+    private async Task DefaultRuleConfig_SecretsAnalysisProducesExpectedNumberOfIssues(bool sendContent)
+    {
+        var issuesByFileUri = await RunFileAnalysis(ThreeSecretsIssuesPath, sendContent: sendContent);
+
+        issuesByFileUri.Should().HaveCount(1);
+        issuesByFileUri[new FileUri(GetFullPath(ThreeSecretsIssuesPath))].Should().HaveCount(3);
     }
 }
