@@ -18,4 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-[assembly:Parallelize(Workers = 4, Scope = ExecutionScope.MethodLevel)]
+#if DEBUG
+    [assembly:Parallelize(Workers = 4, Scope = ExecutionScope.MethodLevel)]
+#endif
