@@ -18,35 +18,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+namespace SonarLint.VisualStudio.Core.UserRuleSettings;
 
-namespace SonarLint.VisualStudio.Core
+public interface IUserSettingsProvider
 {
-    public interface IUserSettingsProvider
-    {
-        /// <summary>
-        /// Notification that one or more settings have changed
-        /// </summary>
-        event EventHandler SettingsChanged;
+    /// <summary>
+    /// The settings for the current user
+    /// </summary>
+    UserSettings UserSettings { get; }
 
-        /// <summary>
-        /// The settings for the current user
-        /// </summary>
-        UserSettings UserSettings { get; }
+    /// <summary>
+    /// Full path to the file containing the user settings
+    /// </summary>
+    string SettingsFilePath { get; }
 
-        /// <summary>
-        /// Full path to the file containing the user settings
-        /// </summary>
-        string SettingsFilePath { get; }
+    /// <summary>
+    /// Updates the user settings to disabled the specified rule
+    /// </summary>
+    void DisableRule(string ruleId);
 
-        /// <summary>
-        /// Updates the user settings to disabled the specified rule
-        /// </summary>
-        void DisableRule(string ruleId);
+    /// <summary>
+    /// Ensure the settings file exists, creating a new file if necessary
+    /// </summary>
+    void EnsureFileExists();
 
-        /// <summary>
-        /// Ensure the settings file exists, creating a new file if necessary
-        /// </summary>
-        void EnsureFileExists();
-    }
+    UserSettings SafeLoadUserSettings();
 }

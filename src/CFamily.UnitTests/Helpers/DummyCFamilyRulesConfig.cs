@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SonarLint.VisualStudio.CFamily.Rules;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 
 namespace SonarLint.VisualStudio.CFamily.Helpers.UnitTests
 {

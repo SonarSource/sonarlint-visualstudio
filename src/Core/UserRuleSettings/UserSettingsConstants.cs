@@ -18,17 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.IO;
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Core.UserRuleSettings;
+
+public static class UserSettingsConstants
 {
-    public class UserSettings
-    {
-        public UserSettings(RulesSettings rulesSettings)
-        {
-            this.RulesSettings = rulesSettings ?? throw new ArgumentNullException(nameof(rulesSettings));
-        }
-
-        public RulesSettings RulesSettings { get; }
-    }
+    // Note: the data is stored in the roaming profile so it will be sync across machines
+    // for domain-joined users.
+    public static readonly string UserSettingsFilePath = Path.GetFullPath(
+        Path.Combine(EnvironmentVariableProvider.Instance.GetSLVSAppDataRootPath(), "settings.json"));
 }

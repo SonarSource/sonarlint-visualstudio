@@ -22,7 +22,7 @@ using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Service.Analysis;
 using SonarLint.VisualStudio.SLCore.Service.Analysis.Models;
-using IssueSeverity = SonarLint.VisualStudio.Core.IssueSeverity;
+using IssueSeverity = SonarLint.VisualStudio.Core.UserRuleSettings.IssueSeverity;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Analysis;
 

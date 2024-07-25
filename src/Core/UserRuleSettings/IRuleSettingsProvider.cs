@@ -20,7 +20,7 @@
 
 using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Core.UserRuleSettings
 {
     public interface IRuleSettingsProviderFactory
     {
