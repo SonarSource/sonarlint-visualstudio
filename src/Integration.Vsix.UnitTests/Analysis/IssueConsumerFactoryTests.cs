@@ -18,18 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
-using Moq;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 {
@@ -48,28 +42,41 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         [TestMethod]
         public void Create_InitializedIssueConsumerReturned()
         {
-            var testSubject = new IssueConsumerFactory(Mock.Of<ISuppressedIssueMatcher>(), Mock.Of<IAnalysisIssueVisualizationConverter>(), Mock.Of<ILocalHotspotsStoreUpdater>());
+            IIssuesSnapshot publishedIssuesSnapshot = null;
+            var validTextDocument = CreateValidTextDocument("updatedfile.txt");
+            var updatedTextSnapshot = validTextDocument.TextBuffer.CurrentSnapshot;
 
-            IIssuesSnapshot publishedSnaphot = null;
-            var consumer = testSubject.Create(CreateValidTextDocument("file.txt"), "project name", Guid.NewGuid(), x => { publishedSnaphot = x; });
+            var testSubject = new IssueConsumerFactory(Substitute.For<ISuppressedIssueMatcher>(),
+                Substitute.For<IAnalysisIssueVisualizationConverter>(), Substitute.For<ILocalHotspotsStoreUpdater>());
 
+            var consumer = testSubject.Create(validTextDocument,
+                "analysisfile.txt",
+                Substitute.For<ITextSnapshot>(),
+                "project name",
+                projectGuid: Guid.NewGuid(),
+                x => { publishedIssuesSnapshot = x; });
             consumer.Should().NotBeNull();
+            /* The empty issues list is passed as an argument here because
+            it's impossible to verify the actual pipeline due to the fact
+            that mocking ITextSnapshot in a way that then can be used by a SnapshotSpan takes a lot of effort */
+            consumer.Accept("analysisfile.txt", []);
 
-            consumer.Accept("file.txt", Array.Empty<IAnalysisIssue>());
-            publishedSnaphot.Should().NotBeNull();
+            publishedIssuesSnapshot.Should().NotBeNull();
+            publishedIssuesSnapshot.AnalyzedFilePath.Should().Be("updatedfile.txt"); // filename should be updted by this point
+            publishedIssuesSnapshot.Issues.Should().BeEquivalentTo([]);
         }
 
         private static ITextDocument CreateValidTextDocument(string filePath)
         {
-            var document = new Mock<ITextDocument>();
-            var buffer = new Mock<ITextBuffer>();
-            var snapshot = new Mock<ITextSnapshot>();
+            var document = Substitute.For<ITextDocument>();
+            var buffer = Substitute.For<ITextBuffer>();
+            var snapshot = Substitute.For<ITextSnapshot>();
 
-            document.Setup(x => x.FilePath).Returns(filePath);
-            document.Setup(x => x.TextBuffer).Returns(buffer.Object);
-            buffer.Setup(x => x.CurrentSnapshot).Returns(snapshot.Object);
+            document.FilePath.Returns(filePath);
+            document.TextBuffer.Returns(buffer);
+            buffer.CurrentSnapshot.Returns(snapshot);
 
-            return document.Object;
+            return document;
         }
     }
 }

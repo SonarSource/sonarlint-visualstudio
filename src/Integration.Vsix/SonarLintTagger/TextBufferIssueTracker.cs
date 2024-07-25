@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.CFamily.Analysis;
@@ -52,7 +53,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
 
         public string LastAnalysisFilePath { get; private set; }
-        private string LastAnalysisFileEncoding { get; set; }
         internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
         public TextBufferIssueTracker(
@@ -76,7 +76,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.document = document;
             LastAnalysisFilePath = document.FilePath;
-            NotifyFileTracker();
             Factory = new IssuesSnapshotFactory(LastAnalysisFilePath);
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
@@ -97,24 +96,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     return;
                 }
-                
-                if (document.Encoding?.WebName != LastAnalysisFileEncoding)
-                {
-                    NotifyFileTracker();
-                }
-                    
+
                 RequestAnalysis(new AnalyzerOptions { IsOnOpen = false });
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(Strings.Analysis_ErrorTriggeringAnalysis, ex);
             }
-        }
-
-        private void NotifyFileTracker()
-        {
-            LastAnalysisFileEncoding = document.Encoding?.WebName;
-            fileTracker.AddFiles(new SourceFile(LastAnalysisFilePath, LastAnalysisFileEncoding));
         }
 
         private void SnapToNewSnapshot(IIssuesSnapshot newSnapshot)
@@ -130,8 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             try
             {
                 vsAwareAnalysisService.CancelForFile(LastAnalysisFilePath);
-                LastAnalysisFilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
-                vsAwareAnalysisService.RequestAnalysis(LastAnalysisFilePath, document, detectedLanguages, SnapToNewSnapshot, options);
+                RequestNewAnalysis(options);
             }
             catch (NotSupportedException ex)
             {
@@ -143,6 +130,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 logger.WriteLine(Strings.Analysis_ErrorTriggeringAnalysis, ex);
             }
+        }
+
+        private void RequestNewAnalysis(IAnalyzerOptions options)
+        {
+            LastAnalysisFilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
+            var analysisSnapshot = document.TextBuffer.CurrentSnapshot;
+            NotifyFileTracker(analysisSnapshot);
+            vsAwareAnalysisService.RequestAnalysis(document, LastAnalysisFilePath, analysisSnapshot, document.Encoding, detectedLanguages, SnapToNewSnapshot, options);
+        }
+
+        private void NotifyFileTracker(ITextSnapshot snapshot)
+        {
+            fileTracker.AddFiles(new SourceFile(LastAnalysisFilePath, content: snapshot.GetText()));
         }
 
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans) => [];

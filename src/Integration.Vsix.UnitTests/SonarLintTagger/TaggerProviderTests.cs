@@ -414,7 +414,7 @@ public class TaggerProviderTests
     private void VerifyAnalysisWasRequested()
     {
         mockAnalysisService.Verify(x => x.CancelForFile(It.IsAny<string>()));
-        mockAnalysisService.Verify(x => x.RequestAnalysis(It.IsAny<string>(), It.IsAny<ITextDocument>(), It.IsAny<IEnumerable<AnalysisLanguage>>(), It.IsAny<SnapshotChangedHandler>(), It.IsAny<IAnalyzerOptions>()));
+        mockAnalysisService.Verify(x => x.RequestAnalysis(It.IsAny<ITextDocument>(), It.IsAny<string>(), It.IsAny<ITextSnapshot>(), It.IsAny<Encoding>(), It.IsAny<IEnumerable<AnalysisLanguage>>(), It.IsAny<SnapshotChangedHandler>(), It.IsAny<IAnalyzerOptions>()));
     }
 
     private class DummyTextDocumentFactoryService : ITextDocumentFactoryService

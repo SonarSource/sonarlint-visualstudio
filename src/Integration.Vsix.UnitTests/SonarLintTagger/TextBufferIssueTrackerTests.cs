@@ -104,8 +104,13 @@ public class TextBufferIssueTrackerTests
 
     private static void SetUpAnalysisThrows(Mock<IVsAwareAnalysisService> mockAnalysisService, Exception exception)
     {
-        mockAnalysisService.Setup(x => x.RequestAnalysis(It.IsAny<string>(), It.IsAny<ITextDocument>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
-                It.IsAny<SnapshotChangedHandler>(), It.IsAny<IAnalyzerOptions>()))
+        mockAnalysisService.Setup(x => x.RequestAnalysis(It.IsAny<ITextDocument>(),
+                It.IsAny<string>(),
+                It.IsAny<ITextSnapshot>(),
+                It.IsAny<Encoding>(),
+                It.IsAny<IEnumerable<AnalysisLanguage>>(),
+                It.IsAny<SnapshotChangedHandler>(),
+                It.IsAny<IAnalyzerOptions>()))
             .Throws(exception);
     }
 
@@ -195,6 +200,7 @@ public class TextBufferIssueTrackerTests
 
         var dummyProperties = new PropertyCollection();
         mockTextBuffer.Setup(p => p.Properties).Returns(dummyProperties);
+        mockTextBuffer.Setup(p => p.CurrentSnapshot).Returns(Mock.Of<ITextSnapshot>());
 
         return mockTextBuffer;
     }
@@ -208,19 +214,6 @@ public class TextBufferIssueTrackerTests
         mockTextDocument.SetupAdd(d => d.FileActionOccurred += (sender, args) => { });
 
         return mockTextDocument;
-    }
-    
-    [TestMethod]
-    public void WhenFileIsSavedWithDifferentEncoding_EncodingIsUpdated()
-    {
-        mockAnalysisService.Invocations.Clear();
-
-        mockFileTracker.Verify(ft => ft.AddFiles(new SourceFile(mockedJavascriptDocumentFooJs.Object.FilePath, Encoding.UTF8.WebName, null)));
-        
-        mockedJavascriptDocumentFooJs.Setup(d => d.Encoding).Returns(Encoding.UTF32);
-        RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-        
-        mockFileTracker.Verify(ft => ft.AddFiles(new SourceFile(mockedJavascriptDocumentFooJs.Object.FilePath, Encoding.UTF32.WebName, null)));
     }
 
     #region Triggering analysis tests
@@ -302,7 +295,13 @@ public class TextBufferIssueTrackerTests
         testSubject.RequestAnalysis(analyzerOptions);
 
         mockAnalysisService.Verify(x => x.CancelForFile("foo.js"));
-        mockAnalysisService.Verify(x => x.RequestAnalysis("newFoo.js", It.IsAny<ITextDocument>(), It.IsAny<IEnumerable<AnalysisLanguage>>(), It.IsAny<SnapshotChangedHandler>(), It.IsAny<IAnalyzerOptions>()));
+        mockAnalysisService.Verify(x => x.RequestAnalysis(It.IsAny<ITextDocument>(),
+            "newFoo.js",
+            It.IsAny<ITextSnapshot>(),
+            It.IsAny<Encoding>(),
+            It.IsAny<IEnumerable<AnalysisLanguage>>(),
+            It.IsAny<SnapshotChangedHandler>(),
+            It.IsAny<IAnalyzerOptions>()));
     }
 
     [TestMethod]
@@ -351,8 +350,10 @@ public class TextBufferIssueTrackerTests
         var textDocument = mockedJavascriptDocumentFooJs.Object;
         mockAnalysisService.Verify(x => x.CancelForFile(textDocument.FilePath));
         mockAnalysisService.Verify(x => x.RequestAnalysis(
-            textDocument.FilePath,
             textDocument,
+            textDocument.FilePath,
+            textDocument.TextBuffer.CurrentSnapshot,
+            textDocument.Encoding,
             javascriptLanguage,
             It.IsAny<SnapshotChangedHandler>(),
             analyzerOptions));
@@ -363,8 +364,10 @@ public class TextBufferIssueTrackerTests
         var textDocument = mockedJavascriptDocumentFooJs.Object;
         mockAnalysisService.Verify(x => x.CancelForFile(textDocument.FilePath));
         mockAnalysisService.Verify(x => x.RequestAnalysis(
-            textDocument.FilePath,
             textDocument,
+            textDocument.FilePath,
+            textDocument.TextBuffer.CurrentSnapshot,
+            textDocument.Encoding,
             javascriptLanguage,
             It.IsAny<SnapshotChangedHandler>(),
             It.Is<IAnalyzerOptions>(o => o.IsOnOpen == isOnOpen)));
@@ -374,8 +377,10 @@ public class TextBufferIssueTrackerTests
     {
         mockAnalysisService.Verify(x => x.CancelForFile(It.IsAny<string>()), Times.Never);
         mockAnalysisService.Verify(x =>
-                x.RequestAnalysis(It.IsAny<string>(),
-                    It.IsAny<ITextDocument>(),
+                x.RequestAnalysis(It.IsAny<ITextDocument>(),
+                    It.IsAny<string>(),
+                    It.IsAny<ITextSnapshot>(),
+                    It.IsAny<Encoding>(),
                     It.IsAny<IEnumerable<AnalysisLanguage>>(),
                     It.IsAny<SnapshotChangedHandler>(),
                     It.IsAny<IAnalyzerOptions>()),
