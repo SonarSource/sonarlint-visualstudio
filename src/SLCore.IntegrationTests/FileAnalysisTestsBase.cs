@@ -42,19 +42,29 @@ public class FileAnalysisTestsBase
     protected const string OneIssueRuleWithParamPath = @"Resources\RuleParam.js";
 
     public TestContext TestContext { get; set; }
-
-    protected async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(string fileToAnalyzeRelativePath, 
-        Dictionary<string, StandaloneRuleConfigDto> updatedRulesConfig = null, 
-        bool sendContent = false)
+    
+    protected Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(string fileToAnalyzeRelativePath, bool sendContent = false)
     {
-        return await RunFileAnalysisWithInitialRulesConfiguration(fileToAnalyzeRelativePath, null, updatedRulesConfig, sendContent);
+        return RunFileAnalysisInternal(fileToAnalyzeRelativePath, [], null, sendContent);
     }
 
-    protected async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysisWithInitialRulesConfiguration(
+    protected  Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysisWithUpdatedRulesConfiguration(string fileToAnalyzeRelativePath, 
+        Dictionary<string, StandaloneRuleConfigDto> updatedRulesConfig = null)
+    {
+        return RunFileAnalysisInternal(fileToAnalyzeRelativePath, [], updatedRulesConfig, false);
+    }
+
+    protected Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysisWithInitialRulesConfiguration(string fileToAnalyzeRelativePath,
+        Dictionary<string, StandaloneRuleConfigDto> initialRulesConfig)
+    {
+        return RunFileAnalysisInternal(fileToAnalyzeRelativePath, initialRulesConfig, null, false);
+    }
+
+    private async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysisInternal(
         string fileToAnalyzeRelativePath, 
         Dictionary<string, StandaloneRuleConfigDto> initialRulesConfig,
         Dictionary<string, StandaloneRuleConfigDto> updatedRulesConfig,
-        bool sendContent = false)
+        bool sendContent)
     {
         using var slCoreTestRunner = new SLCoreTestRunner(new TestLogger(), new TestLogger(), TestContext.TestName);
         var fileToAnalyzeAbsolutePath = GetFullPath(fileToAnalyzeRelativePath);

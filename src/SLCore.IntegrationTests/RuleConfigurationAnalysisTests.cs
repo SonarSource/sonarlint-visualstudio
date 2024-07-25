@@ -37,7 +37,7 @@ public class RuleConfigurationAnalysisTests : FileAnalysisTestsBase
     {
         var letRuleConfig = CreateInactiveRuleConfig(LetRuleId);
 
-        var issuesByFileUri = await RunFileAnalysis(TwoJsIssuesPath, letRuleConfig);
+        var issuesByFileUri = await RunFileAnalysisWithUpdatedRulesConfiguration(TwoJsIssuesPath, letRuleConfig);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(GetFullPath(TwoJsIssuesPath))].Should().HaveCount(1);
@@ -48,7 +48,7 @@ public class RuleConfigurationAnalysisTests : FileAnalysisTestsBase
     {
         var secretsRuleConfig = CreateInactiveRuleConfig(CloudSecretsRuleId);
 
-        var issuesByFileUri = await RunFileAnalysis(ThreeSecretsIssuesPath, secretsRuleConfig);
+        var issuesByFileUri = await RunFileAnalysisWithUpdatedRulesConfiguration(ThreeSecretsIssuesPath, secretsRuleConfig);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(GetFullPath(ThreeSecretsIssuesPath))].Should().HaveCount(1);
@@ -59,7 +59,7 @@ public class RuleConfigurationAnalysisTests : FileAnalysisTestsBase
     {
         var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfig(threshold: ActualCtorParams + 1);
 
-        var issuesByFileUri = await RunFileAnalysis(OneIssueRuleWithParamPath, ctorParamsRuleConfig);
+        var issuesByFileUri = await RunFileAnalysisWithUpdatedRulesConfiguration(OneIssueRuleWithParamPath, ctorParamsRuleConfig);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(GetFullPath(OneIssueRuleWithParamPath))].Should().HaveCount(0);
@@ -70,7 +70,7 @@ public class RuleConfigurationAnalysisTests : FileAnalysisTestsBase
     {
         var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfig(threshold: ActualCtorParams - 1);
 
-        var issuesByFileUri = await RunFileAnalysis(OneIssueRuleWithParamPath, ctorParamsRuleConfig);
+        var issuesByFileUri = await RunFileAnalysisWithUpdatedRulesConfiguration(OneIssueRuleWithParamPath, ctorParamsRuleConfig);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(GetFullPath(OneIssueRuleWithParamPath))].Should().HaveCount(1);
@@ -81,7 +81,7 @@ public class RuleConfigurationAnalysisTests : FileAnalysisTestsBase
     {
         var letRuleConfig = CreateInactiveRuleConfig(LetRuleId);
 
-        var issuesByFileUri = await RunFileAnalysisWithInitialRulesConfiguration(TwoJsIssuesPath, initialRulesConfig: letRuleConfig, updatedRulesConfig: null);
+        var issuesByFileUri = await RunFileAnalysisWithInitialRulesConfiguration(TwoJsIssuesPath, letRuleConfig);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(GetFullPath(TwoJsIssuesPath))].Should().HaveCount(1);
@@ -92,7 +92,7 @@ public class RuleConfigurationAnalysisTests : FileAnalysisTestsBase
     {
         var secretsRuleConfig = CreateInactiveRuleConfig(CloudSecretsRuleId);
 
-        var issuesByFileUri = await RunFileAnalysisWithInitialRulesConfiguration(ThreeSecretsIssuesPath, initialRulesConfig: secretsRuleConfig, updatedRulesConfig: null);
+        var issuesByFileUri = await RunFileAnalysisWithInitialRulesConfiguration(ThreeSecretsIssuesPath, secretsRuleConfig);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(GetFullPath(ThreeSecretsIssuesPath))].Should().HaveCount(1);
