@@ -18,21 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Common.Models;
-using IssueSeverity = SonarLint.VisualStudio.Core.UserRuleSettings.IssueSeverity;
+namespace SonarLint.VisualStudio.Core.UserRuleSettings
+{
+    public class UserSettings
+    {
+        public UserSettings(RulesSettings rulesSettings)
+        {
+            this.RulesSettings = rulesSettings ?? throw new ArgumentNullException(nameof(rulesSettings));
+        }
 
-namespace SonarLint.VisualStudio.SLCore.Service.Analysis.Models;
-
-public record RawIssueDto(
-    IssueSeverity severity,
-    RuleType type,
-    CleanCodeAttribute cleanCodeAttribute,
-    Dictionary<SoftwareQuality, ImpactSeverity> impacts,
-    string ruleKey,
-    string primaryMessage,
-    FileUri fileUri,
-    List<RawIssueFlowDto> flows,
-    List<QuickFixDto> quickFixes,
-    TextRangeDto textRange,
-    string ruleDescriptionContextKey,
-    VulnerabilityProbability? vulnerabilityProbability);
+        public RulesSettings RulesSettings { get; }
+    }
+}

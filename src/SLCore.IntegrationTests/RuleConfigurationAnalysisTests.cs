@@ -75,7 +75,29 @@ public class RuleConfigurationAnalysisTests : FileAnalysisTestsBase
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(GetFullPath(OneIssueRuleWithParamPath))].Should().HaveCount(1);
     }
-    
+
+    [TestMethod]
+    public async Task StandaloneRuleConfig_JsLetRuleIsDisableInSettingsFile_JavaScriptAnalysisShouldIgnoreIssueOnInitialization()
+    {
+        var letRuleConfig = CreateInactiveRuleConfig(LetRuleId);
+
+        var issuesByFileUri = await RunFileAnalysisWithInitialRulesConfiguration(TwoJsIssuesPath, initialRulesConfig: letRuleConfig, updatedRulesConfig: null);
+
+        issuesByFileUri.Should().HaveCount(1);
+        issuesByFileUri[new FileUri(GetFullPath(TwoJsIssuesPath))].Should().HaveCount(1);
+    }
+
+    [TestMethod]
+    public async Task StandaloneRuleConfig_CloudSecretsRuleIsDisabledInSettingsFile_SecretsAnalysisShouldIgnoreIssueOnInitialization()
+    {
+        var secretsRuleConfig = CreateInactiveRuleConfig(CloudSecretsRuleId);
+
+        var issuesByFileUri = await RunFileAnalysisWithInitialRulesConfiguration(ThreeSecretsIssuesPath, initialRulesConfig: secretsRuleConfig, updatedRulesConfig: null);
+
+        issuesByFileUri.Should().HaveCount(1);
+        issuesByFileUri[new FileUri(GetFullPath(ThreeSecretsIssuesPath))].Should().HaveCount(1);
+    }
+
     private static Dictionary<string, StandaloneRuleConfigDto> CreateActiveCtorParamRuleConfig(int threshold)
     {
         return new()

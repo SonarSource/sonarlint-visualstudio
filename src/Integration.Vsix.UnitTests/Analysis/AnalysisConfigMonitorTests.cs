@@ -25,6 +25,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.TestInfrastructure.NoOpThreadHandler;
 
@@ -129,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         private class TestEnvironmentBuilder
         {
             private readonly Mock<IAnalysisRequester> analysisRequesterMock;
-            private readonly Mock<IUserSettingsProvider> userSettingsProviderMock;
+            private readonly Mock<IUserSettingsUpdater> userSettingsUpdaterMock;
             private readonly Mock<IActiveSolutionBoundTracker> activeSolutionBoundTracker;
             private readonly Mock<INotifyQualityProfilesChanged> notifyQPsUpdated;
             private readonly Mock<IThreadHandling> threadHandling;
@@ -137,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             public TestEnvironmentBuilder()
             {
                 analysisRequesterMock = new Mock<IAnalysisRequester>();
-                userSettingsProviderMock = new Mock<IUserSettingsProvider>();
+                userSettingsUpdaterMock = new Mock<IUserSettingsUpdater>();
                 activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
                 notifyQPsUpdated = new Mock<INotifyQualityProfilesChanged>();
                 threadHandling = new Mock<IThreadHandling>();
@@ -147,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 Logger = new TestLogger();
 
                 TestSubject = new AnalysisConfigMonitor(analysisRequesterMock.Object,
-                    userSettingsProviderMock.Object, activeSolutionBoundTracker.Object, notifyQPsUpdated.Object, Logger, threadHandling.Object);
+                    userSettingsUpdaterMock.Object, activeSolutionBoundTracker.Object, notifyQPsUpdated.Object, Logger, threadHandling.Object);
             }
 
             public TestLogger Logger { get; }
@@ -155,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             public AnalysisConfigMonitor TestSubject { get; }
 
             public void SimulateUserSettingsChanged()
-                => userSettingsProviderMock.Raise(x => x.SettingsChanged += null, EventArgs.Empty);
+                => userSettingsUpdaterMock.Raise(x => x.SettingsChanged += null, EventArgs.Empty);
 
             public void SimulateBindingChanged(BindingConfiguration config = null)
                 => activeSolutionBoundTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(config));

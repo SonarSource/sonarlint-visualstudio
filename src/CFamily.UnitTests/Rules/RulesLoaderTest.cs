@@ -25,6 +25,7 @@ using FluentAssertions.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.UserRuleSettings;
 using static SonarLint.VisualStudio.CFamily.Rules.RulesLoader;
 
 namespace SonarLint.VisualStudio.CFamily.Rules.UnitTests

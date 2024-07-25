@@ -22,6 +22,7 @@ using NSubstitute;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.JsTs;
+using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.State;
 
@@ -42,7 +43,8 @@ public class SLCoreInstanceFactoryTests
             MefTestHelpers.CreateExport<ICompatibleNodeLocator>(),
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
             MefTestHelpers.CreateExport<IConfigScopeUpdater>(),
-            MefTestHelpers.CreateExport<IThreadHandling>());
+            MefTestHelpers.CreateExport<IThreadHandling>(),
+            MefTestHelpers.CreateExport<ISLCoreRuleSettings>());
     }
 
     [TestMethod]
@@ -64,7 +66,9 @@ public class SLCoreInstanceFactoryTests
         var activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         var configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
         var threadHandling = Substitute.For<IThreadHandling>();
-        var testSubject = new SLCoreInstanceFactory(islCoreRpcFactory, islCoreConstantsProvider, islCoreFoldersProvider, serverConnectionsProvider, islCoreEmbeddedPluginJarLocator, compatibleNodeLocator, activeSolutionBoundTracker, configScopeUpdater, threadHandling);
+        var slCoreRuleSettings = Substitute.For<ISLCoreRuleSettings>();
+
+        var testSubject = new SLCoreInstanceFactory(islCoreRpcFactory, islCoreConstantsProvider, islCoreFoldersProvider, serverConnectionsProvider, islCoreEmbeddedPluginJarLocator, compatibleNodeLocator, activeSolutionBoundTracker, configScopeUpdater, threadHandling, slCoreRuleSettings);
 
         testSubject.CreateInstance().Should().NotBeNull();
     }
