@@ -45,13 +45,13 @@ public class FileAnalysisTestsBase
     
     protected Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(string fileToAnalyzeRelativePath, bool sendContent = false)
     {
-        return RunFileAnalysisInternal(fileToAnalyzeRelativePath, [], null, sendContent);
+        return RunFileAnalysisInternal(fileToAnalyzeRelativePath, null, null, sendContent);
     }
 
     protected  Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysisWithUpdatedRulesConfiguration(string fileToAnalyzeRelativePath, 
         Dictionary<string, StandaloneRuleConfigDto> updatedRulesConfig = null)
     {
-        return RunFileAnalysisInternal(fileToAnalyzeRelativePath, [], updatedRulesConfig, false);
+        return RunFileAnalysisInternal(fileToAnalyzeRelativePath, null, updatedRulesConfig, false);
     }
 
     protected Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysisWithInitialRulesConfiguration(string fileToAnalyzeRelativePath,
