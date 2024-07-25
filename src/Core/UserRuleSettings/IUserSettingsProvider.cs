@@ -43,4 +43,6 @@ public interface IUserSettingsProvider
     void EnsureFileExists();
 
     UserSettings SafeLoadUserSettings();
+    
+    event EventHandler SettingsChanged;
 }

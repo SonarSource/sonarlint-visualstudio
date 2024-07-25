@@ -20,62 +20,45 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.SLCore.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
-public interface IUserSettingsUpdater
-{
-    /// <summary>
-    /// Notification that one or more settings have changed
-    /// </summary>
-    event EventHandler SettingsChanged;
-
-}
+public interface IUserSettingsUpdater;
 
 [Export(typeof(IUserSettingsUpdater))]
 internal sealed class UserSettingsUpdater : IUserSettingsUpdater, IDisposable
 {
-
-    private readonly ISingleFileMonitor settingsFileMonitor;
-    private readonly ISLCoreRuleSettings slCoreRuleSettings;
+    private readonly ISLCoreRuleSettingsUpdater slCoreRuleSettings;
     private readonly IUserSettingsProvider userSettingsProvider;
-
+    private readonly IAnalysisRequester analysisRequester;
+    
     [ImportingConstructor]
-    public UserSettingsUpdater(ILogger logger, ISLCoreRuleSettings slCoreRuleSettings, IUserSettingsProvider userSettingsProvider)
-        : this(new SingleFileMonitor(UserSettingsConstants.UserSettingsFilePath, logger), slCoreRuleSettings, userSettingsProvider)
+    public UserSettingsUpdater(ILogger logger, ISLCoreRuleSettingsUpdater slCoreRuleSettings, IUserSettingsProvider userSettingsProvider)
+        : this(slCoreRuleSettings, userSettingsProvider)
     {
     }
 
     internal /* for testing */ UserSettingsUpdater(
-        ISingleFileMonitor settingsFileMonitor,
-        ISLCoreRuleSettings slCoreRuleSettings, 
+        ISLCoreRuleSettingsUpdater slCoreRuleSettings, 
         IUserSettingsProvider userSettingsProvider)
     {
         this.userSettingsProvider = userSettingsProvider ?? throw new ArgumentNullException(nameof(userSettingsProvider));
-        this.settingsFileMonitor = settingsFileMonitor ?? throw new ArgumentNullException(nameof(settingsFileMonitor));
         this.slCoreRuleSettings = slCoreRuleSettings ?? throw new ArgumentNullException(nameof(slCoreRuleSettings)); 
 
-        settingsFileMonitor.FileChanged += OnFileChanged;
+        userSettingsProvider.SettingsChanged += OnSettingsChanged;
     }
 
-    private void OnFileChanged(object sender, EventArgs e)
+    private void OnSettingsChanged(object sender, EventArgs e)
     {
-        userSettingsProvider.SafeLoadUserSettings();
         slCoreRuleSettings.UpdateStandaloneRulesConfiguration();
-        SettingsChanged?.Invoke(this, EventArgs.Empty);
+        analysisRequester.RequestAnalysis();
     }
-
-    #region IUserSettingsUpdater implementation
-
-    public event EventHandler SettingsChanged;
-
-    #endregion
-
+    
     public void Dispose()
     {
-        settingsFileMonitor.FileChanged -= OnFileChanged;
-        settingsFileMonitor.Dispose();
+        // todo
     }
 }

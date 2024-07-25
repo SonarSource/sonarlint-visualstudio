@@ -50,7 +50,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
     private readonly ICompatibleNodeLocator compatibleNodeLocator;
     private readonly IThreadHandling threadHandling;
-    private readonly ISLCoreRuleSettings slCoreRuleSettings;
+    private readonly ISLCoreRuleSettingsProvider slCoreRuleSettings;
     public Task ShutdownTask => SLCoreRpc.ShutdownTask;
     internal ISLCoreRpc SLCoreRpc { get; private set; }
 
@@ -64,7 +64,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IConfigScopeUpdater configScopeUpdater,
         IThreadHandling threadHandling,
-        ISLCoreRuleSettings slCoreRuleSettings)
+        ISLCoreRuleSettingsProvider slCoreRuleSettings)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
         this.constantsProvider = constantsProvider;
@@ -106,7 +106,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             serverConnectionConfigurations.Values.OfType<SonarQubeConnectionConfigurationDto>().ToList(),
             serverConnectionConfigurations.Values.OfType<SonarCloudConnectionConfigurationDto>().ToList(),
             sonarlintUserHome,
-            standaloneRuleConfigByKey: slCoreRuleSettings.RulesSettings,
+            standaloneRuleConfigByKey: slCoreRuleSettings.GetSLCoreRuleSettings(),
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
             new LanguageSpecificRequirements(compatibleNodeLocator.Locate()?.NodeExePath)));
