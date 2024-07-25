@@ -55,7 +55,7 @@ public class SLCoreAnalyzer : IAnalyzer
         return true;
     }
 
-    public void ExecuteAnalysis(string path, Guid analysisId, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
+    public void ExecuteAnalysis(string path, Guid analysisId, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
         IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
     {   
         var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), path);

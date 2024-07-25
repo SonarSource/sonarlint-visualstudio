@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             return isSupported;
         }
 
-        public void ExecuteAnalysis(string path, Guid analysisId, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
+        public void ExecuteAnalysis(string path, Guid analysisId, IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
             var supportedAnalyzers = analyzers.Where(x => x.IsAnalysisSupported(detectedLanguages)).ToList();
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
                 foreach (var analyzer in supportedAnalyzers)
                 {
-                    analyzer.ExecuteAnalysis(path, analysisId, charset, detectedLanguages, consumer, analyzerOptions, cancellationToken);
+                    analyzer.ExecuteAnalysis(path, analysisId, detectedLanguages, consumer, analyzerOptions, cancellationToken);
                 }
             }
 
