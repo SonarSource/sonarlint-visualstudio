@@ -77,7 +77,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
     public void MockInitialSlCoreRulesSettings(Dictionary<string, StandaloneRuleConfigDto> rulesSettings)
     {
-        slCoreRulesSettings.RulesSettings.Returns(rulesSettings);
+        slCoreRulesSettings.RulesSettings.Returns(rulesSettings ?? []);
     }
 
     public void Start()
