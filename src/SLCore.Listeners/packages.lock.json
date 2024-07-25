@@ -910,6 +910,11 @@
         "resolved": "12.0.0",
         "contentHash": "HeuaZh8+wNVdwx7VF8guFGH2Z2zH+FYxWBsRNp+FjjlmrhCfM7GUQV5azaTv/bN5TPaK8ALJoP9UX5o1FB5k1A=="
       },
+      "Microsoft.Web.Xdt": {
+        "type": "Transitive",
+        "resolved": "2.1.0",
+        "contentHash": "/ieJ02r4MEJM21Eyl+c5kwoJWPhy+qEEcN68JaqDoamabgxJI1jGi/kNLuKvHUCl6tU7E0rMvaR6FmEnDWtS4A=="
+      },
       "Microsoft.Win32.Primitives": {
         "type": "Transitive",
         "resolved": "4.3.0",
@@ -941,6 +946,19 @@
         "type": "Transitive",
         "resolved": "13.0.3",
         "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
+      },
+      "NuGet.Core": {
+        "type": "Transitive",
+        "resolved": "2.12.0",
+        "contentHash": "kSDD1VFIq7BBrimjMRk9HeeQlZteyknbHgz3AT4AUVUCZ8BZaCSzO1A5UTVPLLbSHryjozPcEmNYSds/IDAIjw==",
+        "dependencies": {
+          "Microsoft.Web.Xdt": "2.1.0"
+        }
+      },
+      "NuGet.VisualStudio": {
+        "type": "Transitive",
+        "resolved": "3.3.0",
+        "contentHash": "ZVBJ43/IxaAl5iX+OuuDLQ9tSNJaRlP85SUMAdiGoqEbyK/ZPfQmPfqSMZMFpucRlf8HgsEK/hR73DwpCmqcLA=="
       },
       "stdole": {
         "type": "Transitive",
@@ -1452,6 +1470,24 @@
           "SonarLint.VisualStudio.Core": "[1.0.0, )"
         }
       },
+      "SonarLint.VisualStudio.Integration": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Alm.Authentication": "[4.0.0.1, )",
+          "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
+          "Newtonsoft.Json": "[13.0.3, )",
+          "NuGet.Core": "[2.12.0, )",
+          "NuGet.VisualStudio": "[3.3.0, )",
+          "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
+          "SonarLint.VisualStudio.Core": "[1.0.0, )",
+          "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
+          "SonarLint.VisualStudio.Progress": "[1.0.0, )",
+          "SonarLint.VisualStudio.ProgressVS": "[1.0.0, )",
+          "SonarQube.Client": "[1.0.0, )",
+          "StrongNamer": "[0.0.8, )",
+          "System.IO.Abstractions": "[9.0.4, )"
+        }
+      },
       "SonarLint.VisualStudio.IssueVisualization": {
         "type": "Project",
         "dependencies": {
@@ -1460,6 +1496,16 @@
           "SonarLint.VisualStudio.Infrastructure.VS": "[1.0.0, )",
           "SonarLint.VisualStudio.SLCore": "[1.0.0, )",
           "SonarQube.Client": "[1.0.0, )"
+        }
+      },
+      "SonarLint.VisualStudio.Progress": {
+        "type": "Project"
+      },
+      "SonarLint.VisualStudio.ProgressVS": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.VisualStudio.Sdk": "[17.0.31902.203, )",
+          "SonarLint.VisualStudio.Progress": "[1.0.0, )"
         }
       },
       "SonarLint.VisualStudio.SLCore": {
