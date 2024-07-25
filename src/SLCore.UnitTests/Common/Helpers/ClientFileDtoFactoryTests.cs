@@ -61,6 +61,18 @@ public class ClientFileDtoFactoryTests
     }
     
     [TestMethod]
+    public void Create_WithContent_ConstructsValidDto()
+    {
+        const string content = "somecontent";
+        
+        var testSubject = new ClientFileDtoFactory();
+
+        var result = testSubject.Create("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\Code\Project\File1.js", content: content));
+        
+        ValidateDto(result, @"C:\Code\Project\File1.js", @"Code\Project\File1.js", expectedContent: content);
+    }
+    
+    [TestMethod]
     public void Create_WithLocalizedPath_ConstructsValidDto()
     {
         var testSubject = new ClientFileDtoFactory();
@@ -90,7 +102,7 @@ public class ClientFileDtoFactoryTests
         ValidateDto(result, @"C:\Code\My Project\My Favorite File2.js", @"Code\My Project\My Favorite File2.js");
     }
 
-    private static void ValidateDto(ClientFileDto actual, string expectedFsPath, string expectedIdeRelativePath)
+    private static void ValidateDto(ClientFileDto actual, string expectedFsPath, string expectedIdeRelativePath, string expectedContent = null)
     {
         actual.Should().BeEquivalentTo(new ClientFileDto(
             new FileUri(expectedFsPath),
@@ -98,6 +110,7 @@ public class ClientFileDtoFactoryTests
             "CONFIG_SCOPE_ID", 
             null, 
             "utf-8", 
-            expectedFsPath));
+            expectedFsPath,
+            expectedContent));
     }
 }
