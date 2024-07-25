@@ -9,6 +9,9 @@
 //------------------------------------------------------------------------------
 
 namespace SonarLint.VisualStudio.SLCore.NodeJS.Notifications {
+    using System;
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -17,7 +20,7 @@ namespace SonarLint.VisualStudio.SLCore.NodeJS.Notifications {
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
-    [DebuggerNonUserCode()]
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class NotificationStrings {
         
@@ -36,7 +39,7 @@ namespace SonarLint.VisualStudio.SLCore.NodeJS.Notifications {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.Core.NodeJS.Notifications.NotificationStrings", typeof(NotificationStrings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.SLCore.NodeJS.Notifications.NotificationStrings", typeof(NotificationStrings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
