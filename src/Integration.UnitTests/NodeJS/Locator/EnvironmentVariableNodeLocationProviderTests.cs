@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.NodeJS.Locator
     public class EnvironmentVariableNodeLocationProviderTests
     {
         [TestMethod]
-        public void Get_HasEnvironmentVariable_ReturnsListWithValue()
+        public void Get_HasEnvironmentVariable_ReturnsValue()
         {
             using var scope = new EnvironmentVariableScope();
             scope.SetVariable(EnvironmentVariableNodeLocationProvider.NodeJsPathEnvVar, "some path");
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.NodeJS.Locator
         [TestMethod]
         [DataRow(null)]
         [DataRow("")]
-        public void Get_NoEnvironmentVariable_EmptyList(string envVarValue)
+        public void Get_NoEnvironmentVariable_Null(string envVarValue)
         {
             using var scope = new EnvironmentVariableScope();
             scope.SetVariable(EnvironmentVariableNodeLocationProvider.NodeJsPathEnvVar, envVarValue);

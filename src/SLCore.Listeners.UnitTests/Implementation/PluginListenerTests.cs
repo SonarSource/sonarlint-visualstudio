@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Integration.NodeJS.Notifications;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -28,6 +29,16 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
 [TestClass]
 public class PluginListenerTests
 {
+    private IUnsupportedNodeVersionNotificationService notificationService;
+    private PluginListener testSubject;
+
+    [TestInitialize]
+    public void SetUp()
+    {
+        notificationService = Substitute.For<IUnsupportedNodeVersionNotificationService>();
+        testSubject = new PluginListener(notificationService);
+    }
+    
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
@@ -46,9 +57,6 @@ public class PluginListenerTests
     [DataRow(Language.JS, "min.version", null)]
     public void DidSkipLoadingPlugin_NodeJs_CallsNotificationService(Language language, string minVersion, string currentVersion)
     {
-        var notificationService = Substitute.For<IUnsupportedNodeVersionNotificationService>();
-        var testSubject = CreateTestSubject(notificationService);
-        
         testSubject.DidSkipLoadingPlugin(new DidSkipLoadingPluginParams(default, language, SkipReason.UNSATISFIED_NODE_JS, minVersion, currentVersion));
         
         notificationService.Received().Show(language, minVersion, currentVersion);
@@ -57,14 +65,8 @@ public class PluginListenerTests
     [TestMethod]
     public void DidSkipLoadingPlugin_Other_Discards()
     {
-        var notificationService = Substitute.For<IUnsupportedNodeVersionNotificationService>();
-        var testSubject = CreateTestSubject(notificationService);
-        
         testSubject.DidSkipLoadingPlugin(new DidSkipLoadingPluginParams(default, Language.JAVA, SkipReason.UNSATISFIED_JRE, "min", "cur"));
         
         notificationService.DidNotReceiveWithAnyArgs().Show(default, default, default);
     }
-
-    private PluginListener CreateTestSubject(IUnsupportedNodeVersionNotificationService notificationService) 
-        => new(notificationService);
 }
