@@ -22,9 +22,7 @@ using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.JsTs;
 using SonarLint.VisualStudio.Core.VsInfo;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.SLCore;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
@@ -33,6 +31,7 @@ using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Core.Process;
+using SonarLint.VisualStudio.SLCore.NodeJS;
 using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
@@ -107,8 +106,8 @@ public sealed class SLCoreTestRunner : IDisposable
             var jarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
             jarProvider.ListJarFiles().Returns(DependencyLocator.AnalyzerPlugins);
             
-            var compatibleNodeLocator = Substitute.For<ICompatibleNodeLocator>();
-            compatibleNodeLocator.Locate().Returns((NodeVersionInfo)null);
+            var compatibleNodeLocator = Substitute.For<INodeLocationProvider>();
+            compatibleNodeLocator.Get().Returns((string)null);
 
             var noOpActiveSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
             noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);

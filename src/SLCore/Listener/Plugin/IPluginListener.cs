@@ -18,26 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.SLCore.Core;
 
-namespace SonarLint.VisualStudio.Core.JsTs
+namespace SonarLint.VisualStudio.SLCore.Listener.Plugin;
+
+public interface IPluginListener : ISLCoreListener
 {
-    public class NodeVersionInfo
-    {
-        public NodeVersionInfo(string nodeExePath, Version version)
-        {
-            NodeExePath = nodeExePath;
-            Version = version;
-        }
+    void DidSkipLoadingPlugin(DidSkipLoadingPluginParams parameters);
+}
 
-        /// <summary>
-        /// Absolute file path of `node.exe`
-        /// </summary>
-        public string NodeExePath { get; }
+public record DidSkipLoadingPluginParams(string configurationScopeId, Language language, SkipReason reason, string minVersion, string currentVersion);
 
-        /// <summary>
-        /// File version of `node.exe`
-        /// </summary>
-        public Version Version { get; }
-    }
+public enum SkipReason
+{
+    UNSATISFIED_JRE,
+    UNSATISFIED_NODE_JS
 }
