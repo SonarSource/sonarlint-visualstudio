@@ -18,11 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Notifications;
-using SonarLint.VisualStudio.Integration.NodeJS.Notifications;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Plugin;
+using SonarLint.VisualStudio.SLCore.NodeJS.Notifications;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
 
@@ -59,7 +58,7 @@ public class PluginListenerTests
     {
         testSubject.DidSkipLoadingPlugin(new DidSkipLoadingPluginParams(default, language, SkipReason.UNSATISFIED_NODE_JS, minVersion, currentVersion));
         
-        notificationService.Received().Show(language, minVersion, currentVersion);
+        notificationService.Received().Show(language.ToString(), minVersion, currentVersion);
     }
     
     [TestMethod]

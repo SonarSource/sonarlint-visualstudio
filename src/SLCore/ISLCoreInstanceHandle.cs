@@ -20,10 +20,10 @@
 
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.NodeJS.Locator;
 using SonarLint.VisualStudio.SLCore.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Configuration;
+using SonarLint.VisualStudio.SLCore.NodeJS;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;

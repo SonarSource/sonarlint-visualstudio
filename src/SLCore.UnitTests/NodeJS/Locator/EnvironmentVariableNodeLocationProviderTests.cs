@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration.NodeJS.Locator;
-using SonarLint.VisualStudio.TestInfrastructure;
+using SonarLint.VisualStudio.SLCore.NodeJS.Locator;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.NodeJS.Locator
+namespace SonarLint.VisualStudio.SLCore.UnitTests.NodeJS.Locator
 {
     [TestClass]
     public class EnvironmentVariableNodeLocationProviderTests

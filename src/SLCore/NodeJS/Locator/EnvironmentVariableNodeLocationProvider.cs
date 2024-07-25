@@ -21,7 +21,7 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.NodeJS.Locator
+namespace SonarLint.VisualStudio.SLCore.NodeJS.Locator
 {
     [Export(typeof(INodeLocationProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]

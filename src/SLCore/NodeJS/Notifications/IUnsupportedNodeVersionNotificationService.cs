@@ -21,13 +21,12 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
-using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
-namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications
+namespace SonarLint.VisualStudio.SLCore.NodeJS.Notifications
 {
     public interface IUnsupportedNodeVersionNotificationService
     {
-        void Show(Language language, string minVersion, string currentVersion = null);
+        void Show(string languageName, string minVersion, string currentVersion = null);
     }
 
     [Export(typeof(IUnsupportedNodeVersionNotificationService))]
@@ -50,11 +49,11 @@ namespace SonarLint.VisualStudio.Integration.NodeJS.Notifications
             this.browserService = browserService;
         }
 
-        public void Show(Language language, string minVersion, string currentVersion = null)
+        public void Show(string languageName, string minVersion, string currentVersion = null)
         {
-            notificationService.ShowNotification(new Notification(
+            notificationService.ShowNotification(new VisualStudio.Core.Notifications.Notification(
                 id: NotificationId,
-                message: string.Format(NotificationStrings.NotificationUnsupportedNode, language, minVersion, currentVersion ?? NotificationStrings.NotificationNoneVersion),
+                message: string.Format(NotificationStrings.NotificationUnsupportedNode, languageName, minVersion, currentVersion ?? NotificationStrings.NotificationNoneVersion),
                 actions: new INotificationAction[]
                 {
                     new NotificationAction(NotificationStrings.NotificationShowMoreInfoAction, _ => ShowMoreInfo(), false),

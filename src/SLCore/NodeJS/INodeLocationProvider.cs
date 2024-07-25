@@ -19,7 +19,7 @@
  */
 
 
-namespace SonarLint.VisualStudio.Integration.NodeJS.Locator;
+namespace SonarLint.VisualStudio.SLCore.NodeJS;
 
 public interface INodeLocationProvider
 {

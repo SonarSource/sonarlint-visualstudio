@@ -1657,7 +1657,6 @@
         "type": "Project",
         "dependencies": {
           "SonarLint.VisualStudio.ConnectedMode": "[1.0.0, )",
-          "SonarLint.VisualStudio.Integration": "[1.0.0, )",
           "SonarLint.VisualStudio.SLCore": "[1.0.0, )"
         }
       },

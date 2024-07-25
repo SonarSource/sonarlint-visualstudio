@@ -19,9 +19,9 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Integration.NodeJS.Notifications;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Plugin;
+using SonarLint.VisualStudio.SLCore.NodeJS.Notifications;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
@@ -41,7 +41,7 @@ public class PluginListener : IPluginListener
     {
         if (parameters.reason == SkipReason.UNSATISFIED_NODE_JS)
         {
-            unsupportedNodeVersionNotificationService.Show(parameters.language, parameters.minVersion, parameters.currentVersion);
+            unsupportedNodeVersionNotificationService.Show(parameters.language.ToString(), parameters.minVersion, parameters.currentVersion);
         }
     }
 }

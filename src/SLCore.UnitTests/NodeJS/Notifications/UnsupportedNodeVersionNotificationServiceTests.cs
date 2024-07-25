@@ -18,14 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
-using SonarLint.VisualStudio.Integration.NodeJS.Notifications;
-using SonarLint.VisualStudio.TestInfrastructure;
-using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
+using SonarLint.VisualStudio.SLCore.NodeJS.Notifications;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.NodeJS.Notifications
+namespace SonarLint.VisualStudio.SLCore.UnitTests.NodeJS.Notifications
 {
     [TestClass]
     public class UnsupportedNodeVersionNotificationServiceTests
@@ -40,11 +37,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.NodeJS.Notifications
         }
 
         [DataTestMethod]
-        [DataRow(Language.JS, "321", "123", "123")]
-        [DataRow(Language.CSS, "99.00.11", "9876.5432", "9876.5432")]
-        [DataRow(Language.JS, "321", null, "Not found")]
-        [DataRow(Language.TS, "5.4.3.2.1", null, "Not found")]
-        public void Show_ShowsCorrectMessageAndNotificationId(Language language, string expectedVersion, string actualVersion, string displayActualVersion)
+        [DataRow(SLCore.Common.Models.Language.JS, "321", "123", "123")]
+        [DataRow(SLCore.Common.Models.Language.CSS, "99.00.11", "9876.5432", "9876.5432")]
+        [DataRow(SLCore.Common.Models.Language.JS, "321", null, "Not found")]
+        [DataRow(SLCore.Common.Models.Language.TS, "5.4.3.2.1", null, "Not found")]
+        public void Show_ShowsCorrectMessageAndNotificationId(SLCore.Common.Models.Language language, string expectedVersion, string actualVersion, string displayActualVersion)
         {
             INotification createdNotification = null;
             var notificationService = CreateNotificationService(n => createdNotification = n);
@@ -54,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.NodeJS.Notifications
             notificationService.Invocations.Count.Should().Be(0);
             createdNotification.Should().BeNull();
 
-            testSubject.Show(language, expectedVersion, actualVersion);
+            testSubject.Show(language.ToString(), expectedVersion, actualVersion);
 
             notificationService.Verify(x => x.ShowNotification(It.IsAny<INotification>()), Times.Once);
             notificationService.VerifyNoOtherCalls();
