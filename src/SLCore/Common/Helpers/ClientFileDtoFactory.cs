@@ -33,7 +33,7 @@ public class ClientFileDtoFactory : IClientFileDtoFactory
     {
         var ideRelativePath = GetRelativePath(rootPath, sourceFile.FilePath);
         var uri = new FileUri(sourceFile.FilePath);
-        return new ClientFileDto(uri, ideRelativePath, configScopeId, null, sourceFile.Encoding, sourceFile.FilePath);
+        return new ClientFileDto(uri, ideRelativePath, configScopeId, null, sourceFile.Encoding, sourceFile.FilePath, sourceFile.Content);
     }
 
     private static string GetRelativePath(string root, string fullPath)

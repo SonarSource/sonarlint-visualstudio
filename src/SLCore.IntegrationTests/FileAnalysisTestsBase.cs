@@ -34,82 +34,16 @@ using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
-[TestClass]
-public class FileAnalysisTests
+public class FileAnalysisTestsBase
 {
-    private const string TwoJsIssuesPath = @"Resources\TwoIssues.js";
-    private const string ThreeSecretsIssuesPath = @"Resources\Secrets.yml";
-    private const string OneIssueRuleWithParamPath = @"Resources\RuleParam.js";
-    private const string LetRuleId = "javascript:S3504";
-    private const string CloudSecretsRuleId = "secrets:S6336";
-    private const string CtorParamRuleId = "javascript:S107";
-    private const int ActualCtorParams = 4;
-    private const string CtorParamName = "maximumFunctionParameters";
-    public TestContext TestContext { get; set; }
-
-    [TestMethod]
-    public async Task DefaultRuleConfig_JavaScriptAnalysisProducesExpectedNumberOfIssues()
-    {
-        var issuesByFileUri = await RunFileAnalysis(ThreeSecretsIssuesPath);
-        
-        issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(GetFullPath(ThreeSecretsIssuesPath))].Should().HaveCount(3);
-    }
+    protected const string TwoJsIssuesPath = @"Resources\TwoIssues.js";
+    protected const string ThreeSecretsIssuesPath = @"Resources\Secrets.yml";
+    protected const string OneIssueRuleWithParamPath = @"Resources\RuleParam.js";
     
-    [TestMethod]
-    public async Task DefaultRuleConfig_SecretsAnalysisProducesExpectedNumberOfIssues()
-    {
-        var issuesByFileUri = await RunFileAnalysis(TwoJsIssuesPath);
-        
-        issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(GetFullPath(TwoJsIssuesPath))].Should().HaveCount(2);
-    }
-
-    [TestMethod]
-    public async Task StandaloneRuleConfig_JavaScriptAnalysisShouldIgnoreOneIssueOfInactiveRule()
-    {
-        var letRuleConfig = CreateInactiveRuleConfig(LetRuleId);
-
-        var issuesByFileUri = await RunFileAnalysis(TwoJsIssuesPath, letRuleConfig);
-
-        issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(GetFullPath(TwoJsIssuesPath))].Should().HaveCount(1);
-    }
-
-    [TestMethod]
-    public async Task StandaloneRuleConfig_SecretsAnalysisShouldIgnoreTwoIssuesOfInactiveRule()
-    {
-        var secretsRuleConfig = CreateInactiveRuleConfig(CloudSecretsRuleId);
-
-        var issuesByFileUri = await RunFileAnalysis(ThreeSecretsIssuesPath, secretsRuleConfig);
-
-        issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(GetFullPath(ThreeSecretsIssuesPath))].Should().HaveCount(1);
-    }
-
-    [TestMethod]
-    public async Task StandaloneRuleConfig_CtorParamsUnderThreshold_JavaScriptActiveRuleShouldHaveNoIssue()
-    {
-        var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfig(threshold:ActualCtorParams + 1);
-
-        var issuesByFileUri = await RunFileAnalysis(OneIssueRuleWithParamPath, ctorParamsRuleConfig);
-
-        issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(GetFullPath(OneIssueRuleWithParamPath))].Should().HaveCount(0);
-    }
-
-    [TestMethod]
-    public async Task StandaloneRuleConfig_CtorParamsAboveThreshold_JavaScriptActiveRuleShouldHaveOneIssue()
-    {
-        var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfig(threshold:ActualCtorParams - 1);
-
-        var issuesByFileUri = await RunFileAnalysis(OneIssueRuleWithParamPath, ctorParamsRuleConfig);
-
-        issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(GetFullPath(OneIssueRuleWithParamPath))].Should().HaveCount(1);
-    }
-
-    private async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(string fileToAnalyzeRelativePath, Dictionary<string, StandaloneRuleConfigDto> ruleConfigByKey = null)
+    public TestContext TestContext { get; set; }
+    
+    protected async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(string fileToAnalyzeRelativePath,
+        Dictionary<string, StandaloneRuleConfigDto> ruleConfigByKey = null, bool sendContent = false)
     {
         const string configScopeId = "ConfigScope1";
 
@@ -119,12 +53,11 @@ public class FileAnalysisTests
         var analysisReadyCompletionSource = new TaskCompletionSource<DidChangeAnalysisReadinessParams>();
         var analysisRaisedIssues = new TaskCompletionSource<RaiseFindingParams<RaisedIssueDto>>();
         var fileToAnalyzeAbsolutePath = GetFullPath(fileToAnalyzeRelativePath);
-        var fileToAnalyze = new ClientFileDto(new FileUri(fileToAnalyzeAbsolutePath), fileToAnalyzeRelativePath,
-            configScopeId, false, Encoding.UTF8.WebName, fileToAnalyzeAbsolutePath);
+        var fileToAnalyze = CreateFileToAnalyze(fileToAnalyzeRelativePath, fileToAnalyzeAbsolutePath, configScopeId, sendContent);
         var analysisListener = SetUpAnalysisListener(configScopeId, analysisReadyCompletionSource, analysisRaisedIssues);
         var listFilesListener = Substitute.For<IListFilesListener>();
         listFilesListener.ListFilesAsync(Arg.Any<ListFilesParams>())
-            .Returns(Task.FromResult(new ListFilesResponse([ fileToAnalyze ])));
+            .Returns(Task.FromResult(new ListFilesResponse([fileToAnalyze])));
 
         using var slCoreTestRunner = new SLCoreTestRunner(testLogger, slCoreErrorLogger, TestContext.TestName);
         slCoreTestRunner.AddListener(new LoggerListener(slCoreLogger));
@@ -138,7 +71,7 @@ public class FileAnalysisTests
             new AsyncLockFactory(),
             new NoOpThreadHandler());
         activeConfigScopeTracker.SetCurrentConfigScope(configScopeId);
-        
+
         await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
 
         UpdateStandaloneRulesConfiguration(slCoreTestRunner, ruleConfigByKey);
@@ -156,12 +89,27 @@ public class FileAnalysisTests
         return analysisRaisedIssues.Task.Result.issuesByFileUri;
     }
 
-    private static string GetFullPath(string fileToAnalyzeRelativePath)
+    private static ClientFileDto CreateFileToAnalyze(string fileToAnalyzeRelativePath,
+        string fileToAnalyzeAbsolutePath,
+        string configScopeId,
+        bool sendContent)
+        => new(new FileUri(fileToAnalyzeAbsolutePath),
+            fileToAnalyzeRelativePath,
+            configScopeId,
+            false,
+            Encoding.UTF8.WebName,
+            fileToAnalyzeAbsolutePath,
+            sendContent
+                ? File.ReadAllText(fileToAnalyzeAbsolutePath)
+                : null);
+
+    protected static string GetFullPath(string fileToAnalyzeRelativePath)
     {
         return Path.GetFullPath(fileToAnalyzeRelativePath);
     }
 
-    private static void UpdateStandaloneRulesConfiguration(SLCoreTestRunner slCoreTestRunner, Dictionary<string, StandaloneRuleConfigDto> ruleConfigByKey = null)
+    private static void UpdateStandaloneRulesConfiguration(SLCoreTestRunner slCoreTestRunner,
+        Dictionary<string, StandaloneRuleConfigDto> ruleConfigByKey = null)
     {
         if (ruleConfigByKey == null)
         {
@@ -194,21 +142,5 @@ public class FileAnalysisTests
             });
 
         return analysisListener;
-    }
-
-    private static Dictionary<string, StandaloneRuleConfigDto> CreateActiveCtorParamRuleConfig(int threshold)
-    {
-        return new () 
-        { 
-            {CtorParamRuleId, new StandaloneRuleConfigDto(isActive: true, new (){ {CtorParamName, threshold.ToString()}}) }
-        };
-    }
-
-    private static Dictionary<string, StandaloneRuleConfigDto> CreateInactiveRuleConfig(string ruleId)
-    {
-        return new()
-        {
-            {ruleId, new StandaloneRuleConfigDto(isActive: false, []) }
-        };
     }
 }

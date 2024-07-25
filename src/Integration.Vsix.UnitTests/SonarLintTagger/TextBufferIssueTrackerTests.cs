@@ -215,12 +215,12 @@ public class TextBufferIssueTrackerTests
     {
         mockAnalysisService.Invocations.Clear();
 
-        mockFileTracker.Verify(ft => ft.AddFiles(new SourceFile(mockedJavascriptDocumentFooJs.Object.FilePath, Encoding.UTF8.WebName)));
+        mockFileTracker.Verify(ft => ft.AddFiles(new SourceFile(mockedJavascriptDocumentFooJs.Object.FilePath, Encoding.UTF8.WebName, null)));
         
         mockedJavascriptDocumentFooJs.Setup(d => d.Encoding).Returns(Encoding.UTF32);
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
         
-        mockFileTracker.Verify(ft => ft.AddFiles(new SourceFile(mockedJavascriptDocumentFooJs.Object.FilePath, Encoding.UTF32.WebName)));
+        mockFileTracker.Verify(ft => ft.AddFiles(new SourceFile(mockedJavascriptDocumentFooJs.Object.FilePath, Encoding.UTF32.WebName, null)));
     }
 
     #region Triggering analysis tests
