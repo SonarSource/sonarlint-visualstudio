@@ -46,7 +46,7 @@ public class VsAwareAnalysisServiceTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<VsAwareAnalysisService>();
     }
-    
+
     [DataTestMethod]
     [DataRow(true)]
     [DataRow(false)]
@@ -55,18 +55,18 @@ public class VsAwareAnalysisServiceTests
         var detectedLanguages = Substitute.For<IEnumerable<AnalysisLanguage>>();
         var analysisService = Substitute.For<IAnalysisService>();
         analysisService.IsAnalysisSupported(detectedLanguages).Returns(isSupported);
-        var testSubject = CreateTestSubject(analysisService:analysisService);
+        var testSubject = CreateTestSubject(analysisService: analysisService);
 
         testSubject.IsAnalysisSupported(detectedLanguages).Should().Be(isSupported);
 
         analysisService.Received().IsAnalysisSupported(detectedLanguages);
     }
-    
+
     [TestMethod]
     public void CancelForFile_UsesAnalyzerService()
     {
         var analysisService = Substitute.For<IAnalysisService>();
-        var testSubject = CreateTestSubject(analysisService:analysisService);
+        var testSubject = CreateTestSubject(analysisService: analysisService);
 
         testSubject.CancelForFile("file/path");
 
@@ -76,37 +76,44 @@ public class VsAwareAnalysisServiceTests
     [TestMethod]
     public void RequestAnalysis_ProjectInformationReturned_CreatesIssueConsumerCorrectly()
     {
+        const string analysisFilePath = "analysis/file/path";
+        var analysisTextSnapshot = Substitute.For<ITextSnapshot>();
         var projectInfo = (projectName: "project123", projectGuid: Guid.NewGuid());
         var document = CreateDefaultDocument();
         var errorListHandler = Substitute.For<SnapshotChangedHandler>();
         var vsProjectInfoProvider = Substitute.For<IVsProjectInfoProvider>();
-        vsProjectInfoProvider.GetDocumentProjectInfoAsync(document).Returns(projectInfo);
+        vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisFilePath).Returns(projectInfo);
         var issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
         var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, projectInfoProvider: vsProjectInfoProvider);
 
-        testSubject.RequestAnalysis("file/path", document, default, errorListHandler, default);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot, default), default, errorListHandler, default);
 
-        issueConsumerFactory.Received().Create(document, projectInfo.projectName, projectInfo.projectGuid, errorListHandler);
+        issueConsumerFactory.Received().Create(document, analysisFilePath, analysisTextSnapshot, projectInfo.projectName, projectInfo.projectGuid,
+            errorListHandler);
     }
 
     [TestMethod]
     public void RequestAnalysis_NoProjectInformation_CreatesIssueConsumerCorrectly()
     {
+        const string analysisFilePath = "analysis/file/path";
+        var analysisTextSnapshot = Substitute.For<ITextSnapshot>();
         var document = CreateDefaultDocument();
         var errorListHandler = Substitute.For<SnapshotChangedHandler>();
         var vsProjectInfoProvider = Substitute.For<IVsProjectInfoProvider>();
-        vsProjectInfoProvider.GetDocumentProjectInfoAsync(document).Returns(default((string projectName, Guid projectGuid)));
+        vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisFilePath).Returns(default((string projectName, Guid projectGuid)));
         var issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
         var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, projectInfoProvider: vsProjectInfoProvider);
 
-        testSubject.RequestAnalysis("file/path", document, default, errorListHandler, default);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot, default), default, errorListHandler, default);
 
-        issueConsumerFactory.Received().Create(document, default, default, errorListHandler);
+        issueConsumerFactory.Received().Create(document, analysisFilePath, analysisTextSnapshot, default, Guid.Empty, errorListHandler);
     }
 
     [TestMethod]
     public void RequestAnalysis_ClearsErrorListAndSchedulesAnalysisOnBackgroundThread()
     {
+        const string analysisFilePath = "analysis/file/path";
+        var analysisTextSnapshot = Substitute.For<ITextSnapshot>();
         var document = CreateDefaultDocument();
         var analysisService = Substitute.For<IAnalysisService>();
         var threadHandling = CreateDefaultThreadHandling();
@@ -114,15 +121,15 @@ public class VsAwareAnalysisServiceTests
         var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, analysisService: analysisService,
             threadHandling: threadHandling);
 
-        testSubject.RequestAnalysis("file/path", document, default, default, default);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot, Encoding.UTF8), default, default, default);
 
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-            issueConsumer.Accept("file/path", Enumerable.Empty<IAnalysisIssue>());
-            analysisService.ScheduleAnalysis("file/path",
+            issueConsumer.Accept(analysisFilePath, []);
+            analysisService.ScheduleAnalysis(analysisFilePath,
                 Arg.Any<Guid>(),
-                Arg.Any<string>(),
+                "utf-8",
                 Arg.Any<IEnumerable<AnalysisLanguage>>(),
                 issueConsumer,
                 Arg.Any<IAnalyzerOptions>());
@@ -132,6 +139,8 @@ public class VsAwareAnalysisServiceTests
     [TestMethod]
     public void RequestAnalysis_ProvidesAnalysisParametersCorrectly()
     {
+        const string analysisFilePath = "analysis/file/path";
+        var analysisTextSnapshot = Substitute.For<ITextSnapshot>();
         var encoding = Substitute.ForPartsOf<Encoding>();
         var encodingName = "encodingname";
         encoding.Configure().WebName.Returns(encodingName);
@@ -142,18 +151,18 @@ public class VsAwareAnalysisServiceTests
         var issueConsumerFactory = CreateDefaultIssueConsumerFactory(document, out var issueConsumer);
         var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, analysisService: analysisService);
 
-        testSubject.RequestAnalysis("file/path", document, detectedLanguages, default, analyzerOptions);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot, encoding), detectedLanguages, default, analyzerOptions);
 
         analysisService
             .Received()
-            .ScheduleAnalysis("file/path",
+            .ScheduleAnalysis(analysisFilePath,
                 Arg.Is<Guid>(x => x != Guid.Empty),
                 encodingName,
                 detectedLanguages,
                 issueConsumer,
                 analyzerOptions);
     }
-    
+
     private static VsAwareAnalysisService CreateTestSubject(IVsProjectInfoProvider projectInfoProvider = null,
         IIssueConsumerFactory issueConsumerFactory = null,
         IAnalysisService analysisService = null,
@@ -184,7 +193,13 @@ public class VsAwareAnalysisServiceTests
     {
         var issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
         issueConsumer = Substitute.For<IIssueConsumer>();
-        issueConsumerFactory.Create(document, Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<SnapshotChangedHandler>())
+        issueConsumerFactory
+            .Create(document,
+                Arg.Any<string>(),
+                Arg.Any<ITextSnapshot>(),
+                Arg.Any<string>(),
+                Arg.Any<Guid>(),
+                Arg.Any<SnapshotChangedHandler>())
             .Returns(issueConsumer);
         return issueConsumerFactory;
     }

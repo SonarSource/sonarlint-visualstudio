@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
@@ -27,13 +28,15 @@ using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix;
 
+internal record AnalysisSnapshot(string FilePath, ITextSnapshot TextSnapshot, Encoding Encoding);
+
 internal interface IVsAwareAnalysisService
 {
-    void RequestAnalysis(string filePath, 
-        ITextDocument document,
+    void RequestAnalysis(ITextDocument document,
+        AnalysisSnapshot analysisSnapshot,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         SnapshotChangedHandler errorListHandler,
-        IAnalyzerOptions analyzerOptions);
+        IAnalyzerOptions options);
 
     bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> detectedLanguages);
     
@@ -61,29 +64,32 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
         this.threadHandling = threadHandling;
     }
 
-    public void RequestAnalysis(string filePath, 
-        ITextDocument document,
+    public void RequestAnalysis(ITextDocument document,
+        AnalysisSnapshot analysisSnapshot,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         SnapshotChangedHandler errorListHandler,
-        IAnalyzerOptions analyzerOptions) =>
-        RequestAnalysisAsync(filePath, document, detectedLanguages, errorListHandler, analyzerOptions)
+        IAnalyzerOptions options)
+    {
+        RequestAnalysisAsync(document, analysisSnapshot, detectedLanguages, errorListHandler, options)
             .Forget();
+    }
+
     public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> detectedLanguages) =>
         analysisService.IsAnalysisSupported(detectedLanguages);
 
     public void CancelForFile(string filePath) => 
         analysisService.CancelForFile(filePath);
 
-    private async Task RequestAnalysisAsync(string filePath, 
-        ITextDocument document, 
+    private async Task RequestAnalysisAsync(ITextDocument document,
+        AnalysisSnapshot analysisSnapshot,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         SnapshotChangedHandler errorListHandler,
-        IAnalyzerOptions analyzerOptions)
+        IAnalyzerOptions options)
     {
-        var (projectName, projectGuid) = await vsProjectInfoProvider.GetDocumentProjectInfoAsync(document);
-        var issueConsumer = issueConsumerFactory.Create(document, projectName, projectGuid, errorListHandler);
+        var (projectName, projectGuid) = await vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisSnapshot.FilePath);
+        var issueConsumer = issueConsumerFactory.Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, errorListHandler);
         
-        await ScheduleAnalysisOnBackgroundThreadAsync(filePath, document.Encoding.WebName, detectedLanguages, issueConsumer, analyzerOptions);
+        await ScheduleAnalysisOnBackgroundThreadAsync(analysisSnapshot.FilePath, analysisSnapshot.Encoding.WebName, detectedLanguages, issueConsumer, options);
     }
 
     private async Task ScheduleAnalysisOnBackgroundThreadAsync(string filePath,
@@ -101,5 +107,5 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
     }
 
     private static void ClearErrorList(string filePath, IIssueConsumer issueConsumer) => 
-        issueConsumer.Accept(filePath, Enumerable.Empty<IAnalysisIssue>());
+        issueConsumer.Accept(filePath, []);
 }

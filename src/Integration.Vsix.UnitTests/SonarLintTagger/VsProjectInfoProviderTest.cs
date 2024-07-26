@@ -22,7 +22,6 @@ using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
@@ -55,7 +54,6 @@ public class VsProjectInfoProviderTest
     public async Task GetDocumentProjectInfoAsync_RunsOnUIThread()
     {
         var dte = SetUpCorrectDte(ProjectName);
-        var document = SetUpDocument();
         var vsSolution = SetUpProjectGuid(ProjectName, ProjectGuid);
         var threadHandling = Substitute.For<IThreadHandling>();
         threadHandling.RunOnUIThreadAsync(Arg.Any<Action>()).Returns(info =>
@@ -65,7 +63,7 @@ public class VsProjectInfoProviderTest
         });
         var testSubject = CreateTestSubject(vsSolution, dte, threadHandling: threadHandling);
 
-        await testSubject.GetDocumentProjectInfoAsync(document);
+        await testSubject.GetDocumentProjectInfoAsync(FilePath);
         
         Received.InOrder(() =>
         {
@@ -80,11 +78,10 @@ public class VsProjectInfoProviderTest
     {
         var dte = SetUpDte(SetUpSolution(null));
         var vsSolution = Substitute.For<IVsSolution5>();
-        var document = SetUpDocument();
         var testLogger = new TestLogger();
         var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
 
-        var result = await testSubject.GetDocumentProjectInfoAsync(document);
+        var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
         
         result.Should().BeEquivalentTo(("{none}", Guid.Empty));
         testLogger.AssertNoOutputMessages();
@@ -96,11 +93,10 @@ public class VsProjectInfoProviderTest
     {
         var dte = SetUpDte(SetUpSolution(SetUpProjectItem(null)));
         var vsSolution = Substitute.For<IVsSolution5>();
-        var document = SetUpDocument();
         var testLogger = new TestLogger();
         var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
 
-        var result = await testSubject.GetDocumentProjectInfoAsync(document);
+        var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
         
         result.Should().BeEquivalentTo(("{none}", Guid.Empty));
         testLogger.AssertNoOutputMessages();
@@ -115,11 +111,10 @@ public class VsProjectInfoProviderTest
         project.FileName.Returns((string)null);
         var dte = SetUpDte(SetUpSolution(SetUpProjectItem(project)));
         var vsSolution = Substitute.For<IVsSolution5>();
-        var document = SetUpDocument();
         var testLogger = new TestLogger();
         var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
 
-        var result = await testSubject.GetDocumentProjectInfoAsync(document);
+        var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
         
         result.Should().BeEquivalentTo(("{none}", Guid.Empty));
         testLogger.AssertNoOutputMessages();
@@ -134,11 +129,10 @@ public class VsProjectInfoProviderTest
         project.FileName.Returns("someprojectfile.csproj");
         var dte = SetUpDte(SetUpSolution(SetUpProjectItem(project)));
         var vsSolution = SetUpProjectGuid("someprojectfile", ProjectGuid);
-        var document = SetUpDocument();
         var testLogger = new TestLogger();
         var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
 
-        var result = await testSubject.GetDocumentProjectInfoAsync(document);
+        var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
         
         result.Should().BeEquivalentTo(("{none}", ProjectGuid));
         testLogger.AssertNoOutputMessages();
@@ -152,11 +146,10 @@ public class VsProjectInfoProviderTest
         project.FileName.Returns((string)null);
         var dte = SetUpDte(SetUpSolution(SetUpProjectItem(project)));
         var vsSolution = Substitute.For<IVsSolution5>();
-        var document = SetUpDocument();
         var testLogger = new TestLogger();
         var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
 
-        var result = await testSubject.GetDocumentProjectInfoAsync(document);
+        var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
         
         result.Should().BeEquivalentTo((ProjectName, Guid.Empty));
         testLogger.AssertNoOutputMessages();
@@ -168,11 +161,10 @@ public class VsProjectInfoProviderTest
     {
         var dte = SetUpCorrectDte(ProjectName);
         var vsSolution = SetUpProjectGuid(ProjectName, ProjectGuid);
-        var document = SetUpDocument();
         var testLogger = new TestLogger();
         var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
 
-        var result = await testSubject.GetDocumentProjectInfoAsync(document);
+        var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
         
         result.Should().BeEquivalentTo((ProjectName, ProjectGuid));
         testLogger.AssertNoOutputMessages();
@@ -186,11 +178,10 @@ public class VsProjectInfoProviderTest
         vsSolution
             .GetGuidOfProjectFile(default)
             .ThrowsForAnyArgs(new InvalidOperationException());
-        var document = SetUpDocument();
         var testLogger = new TestLogger();
         var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
 
-        var act = async() => await testSubject.GetDocumentProjectInfoAsync(document);
+        var act = async() => await testSubject.GetDocumentProjectInfoAsync(FilePath);
 
         await act.Should().NotThrowAsync();
         testLogger.AssertPartialOutputStringExists("Failed to calculate project guid of file");
@@ -204,20 +195,12 @@ public class VsProjectInfoProviderTest
         vsSolution
             .GetGuidOfProjectFile(default)
             .ThrowsForAnyArgs(new DivideByZeroException());
-        var document = SetUpDocument();
         var testLogger = new TestLogger();
         var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
 
-        var act = async() => await testSubject.GetDocumentProjectInfoAsync(document);
+        var act = async() => await testSubject.GetDocumentProjectInfoAsync(FilePath);
 
         await act.Should().ThrowAsync<DivideByZeroException>();
-    }
-
-    private static ITextDocument SetUpDocument()
-    {
-        var textDocument = Substitute.For<ITextDocument>();
-        textDocument.FilePath.Returns(FilePath);
-        return textDocument;
     }
 
     private static IVsProjectInfoProvider CreateTestSubject(IVsSolution5 vsSolution, DTE2 dte, ILogger logger = null, IThreadHandling threadHandling = null)
