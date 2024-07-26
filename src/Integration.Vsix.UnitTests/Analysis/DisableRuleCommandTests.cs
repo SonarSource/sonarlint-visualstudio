@@ -83,6 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [DataRow("javascript:S333")]
         [DataRow("typescript:S444")]
         [DataRow("css:S777")]
+        [DataRow("secrets:S555")]
         public void CheckStatusAndExecute_SingleIssue_SupportedRepo_StandaloneMode_VisibleAndEnabled(string errorCode)
         {
             var errorListHelper = CreateErrorListHelper(errorCode, ruleExists: true);
@@ -140,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        public void CheckStatus_SingleIssue_Secrets_ConnectedMode_HasExpectedDisabledStatus()
+        public void CheckStatus_SingleIssue_Secrets_ConnectedMode_HasExpectedEnabledStatus()
         {
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
             var solutionTracker = CreateSolutionTracker(SonarLintMode.Connected);
@@ -152,10 +153,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             ThreadHelper.SetCurrentThreadAsUIThread();
             var result = command.OleStatus;
 
-            var expectedOleStatus = InvisbleAndDisabled;
+            var expectedOleStatus = VisibleButDisabled;
             result.Should().Be(expectedOleStatus);
             
-            command.Visible.Should().BeFalse();
+            command.Visible.Should().BeTrue();
             command.Enabled.Should().BeFalse();
         }
 
