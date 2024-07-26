@@ -28,12 +28,12 @@ using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix;
 
+internal record AnalysisSnapshot(string FilePath, ITextSnapshot TextSnapshot, Encoding Encoding);
+
 internal interface IVsAwareAnalysisService
 {
     void RequestAnalysis(ITextDocument document,
-        string analysisFilePath,
-        ITextSnapshot analysisSnapshot,
-        Encoding encoding,
+        AnalysisSnapshot analysisSnapshot,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         SnapshotChangedHandler errorListHandler,
         IAnalyzerOptions options);
@@ -65,14 +65,12 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
     }
 
     public void RequestAnalysis(ITextDocument document,
-        string analysisFilePath,
-        ITextSnapshot analysisSnapshot,
-        Encoding encoding,
+        AnalysisSnapshot analysisSnapshot,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         SnapshotChangedHandler errorListHandler,
         IAnalyzerOptions options)
     {
-        RequestAnalysisAsync(document, analysisFilePath, analysisSnapshot, encoding, detectedLanguages, errorListHandler, options)
+        RequestAnalysisAsync(document, analysisSnapshot, detectedLanguages, errorListHandler, options)
             .Forget();
     }
 
@@ -83,17 +81,15 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
         analysisService.CancelForFile(filePath);
 
     private async Task RequestAnalysisAsync(ITextDocument document,
-        string analysisFilePath,
-        ITextSnapshot analysisSnapshot,
-        Encoding encoding,
+        AnalysisSnapshot analysisSnapshot,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         SnapshotChangedHandler errorListHandler,
         IAnalyzerOptions options)
     {
-        var (projectName, projectGuid) = await vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisFilePath);
-        var issueConsumer = issueConsumerFactory.Create(document, analysisFilePath, analysisSnapshot, projectName, projectGuid, errorListHandler);
+        var (projectName, projectGuid) = await vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisSnapshot.FilePath);
+        var issueConsumer = issueConsumerFactory.Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, errorListHandler);
         
-        await ScheduleAnalysisOnBackgroundThreadAsync(analysisFilePath, encoding.WebName, detectedLanguages, issueConsumer, options);
+        await ScheduleAnalysisOnBackgroundThreadAsync(analysisSnapshot.FilePath, analysisSnapshot.Encoding.WebName, detectedLanguages, issueConsumer, options);
     }
 
     private async Task ScheduleAnalysisOnBackgroundThreadAsync(string filePath,

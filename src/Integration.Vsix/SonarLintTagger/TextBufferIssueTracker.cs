@@ -118,7 +118,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             try
             {
                 vsAwareAnalysisService.CancelForFile(LastAnalysisFilePath);
-                RequestNewAnalysis(options);
+                var analysisSnapshot = UpdateAnalysisState();
+                vsAwareAnalysisService.RequestAnalysis(document, analysisSnapshot, detectedLanguages, SnapToNewSnapshot, options);
             }
             catch (NotSupportedException ex)
             {
@@ -132,12 +133,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private void RequestNewAnalysis(IAnalyzerOptions options)
+        private AnalysisSnapshot UpdateAnalysisState()
         {
             LastAnalysisFilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
-            var analysisSnapshot = document.TextBuffer.CurrentSnapshot;
-            NotifyFileTracker(analysisSnapshot);
-            vsAwareAnalysisService.RequestAnalysis(document, LastAnalysisFilePath, analysisSnapshot, document.Encoding, detectedLanguages, SnapToNewSnapshot, options);
+            var analysisSnapshot = new AnalysisSnapshot(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot, document.Encoding);
+            NotifyFileTracker(analysisSnapshot.TextSnapshot);
+            return analysisSnapshot;
         }
 
         private void NotifyFileTracker(ITextSnapshot snapshot)

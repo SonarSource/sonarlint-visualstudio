@@ -44,7 +44,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         {
             IIssuesSnapshot publishedIssuesSnapshot = null;
             var validTextDocument = CreateValidTextDocument("updatedfile.txt");
-            var updatedTextSnapshot = validTextDocument.TextBuffer.CurrentSnapshot;
 
             var testSubject = new IssueConsumerFactory(Substitute.For<ISuppressedIssueMatcher>(),
                 Substitute.For<IAnalysisIssueVisualizationConverter>(), Substitute.For<ILocalHotspotsStoreUpdater>());
