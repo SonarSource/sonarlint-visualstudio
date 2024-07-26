@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
             var controller = CreateTestSubject(analyzers, analyzableFileIndicator: analyzableFileIndicator.Object);
 
             // Act
-            controller.ExecuteAnalysis("c:\\file.cpp", Guid.NewGuid(), "charset1",
+            controller.ExecuteAnalysis("c:\\file.cpp", Guid.NewGuid(),
                 new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
 
             analyzers.Any(x => x.RequestAnalysisCalled).Should().BeFalse();
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
             var controller = CreateTestSubject(analyzers, analyzableFileIndicator: analyzableFileIndicator.Object);
 
             // Act
-            controller.ExecuteAnalysis("c:\\file.cpp", Guid.NewGuid(), "charset1", new[] { AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
+            controller.ExecuteAnalysis("c:\\file.cpp", Guid.NewGuid(), new[] { AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
 
             analyzers.Any(x => x.RequestAnalysisCalled).Should().BeFalse();
         }
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
             var controller = CreateTestSubject(analyzers, analyzableFileIndicator: analyzableFileIndicator.Object);
 
             // Act
-            controller.ExecuteAnalysis("c:\\file.cpp", Guid.NewGuid(), "charset1",
+            controller.ExecuteAnalysis("c:\\file.cpp", Guid.NewGuid(),
                 new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
 
             analyzers[0].RequestAnalysisCalled.Should().BeFalse();
@@ -167,7 +167,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Analysis
                 return supportedLanguages?.Intersect(languages).Count() > 0;
             }
 
-            public void ExecuteAnalysis(string path, Guid analysisId, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
+            public void ExecuteAnalysis(string path, Guid analysisId, IEnumerable<AnalysisLanguage> detectedLanguages,
                 IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
             {
                 detectedLanguages.Should().NotBeNull();
