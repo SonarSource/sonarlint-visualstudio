@@ -23,7 +23,6 @@ using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
@@ -31,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix;
 
 internal interface IVsProjectInfoProvider
 {
-    Task<(string projectName, Guid projectGuid)> GetDocumentProjectInfoAsync(ITextDocument document);
+    Task<(string projectName, Guid projectGuid)> GetDocumentProjectInfoAsync(string filePath);
 }
 
 [Export(typeof(IVsProjectInfoProvider))]
@@ -54,14 +53,14 @@ internal class VsProjectInfoProvider : IVsProjectInfoProvider
         this.threadHandling = threadHandling;
     }
 
-    public async Task<(string projectName, Guid projectGuid)> GetDocumentProjectInfoAsync(ITextDocument document)
+    public async Task<(string projectName, Guid projectGuid)> GetDocumentProjectInfoAsync(string filePath)
     {
         string projectName = null;
         var projectGuid = Guid.Empty;
 
         await threadHandling.RunOnUIThreadAsync(() =>
         {
-            var documentFilePath = document.FilePath;
+            var documentFilePath = filePath;
             var project = GetProject(documentFilePath);
 
             projectName = GetProjectName(project);
