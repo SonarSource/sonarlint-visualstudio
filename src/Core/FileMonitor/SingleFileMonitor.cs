@@ -18,21 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Resources;
 
-using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
-
-namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
+namespace SonarLint.VisualStudio.Core.FileMonitor
 {
     /// <summary>
     /// Monitors a single file for all types of change (creation, modification, deletion, rename)
     /// and raises an event for any change.
     /// </summary>
-    internal interface ISingleFileMonitor : IDisposable
+    public interface ISingleFileMonitor : IDisposable
     {
         event EventHandler FileChanged;
         string MonitoredFilePath { get; }
@@ -119,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             if (!fileSystem.Directory.Exists(dirPath))
             {
                 fileSystem.Directory.CreateDirectory(dirPath);
-                logger.WriteLine(AnalysisStrings.FileMonitory_CreatedDirectory, dirPath);
+                logger.WriteLine(Strings.FileMonitory_CreatedDirectory, dirPath);
             }
         }
 
@@ -148,13 +144,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 }
 
                 lastWriteTime = currentTime;
-                logger.WriteLine(AnalysisStrings.FileMonitor_FileChanged, MonitoredFilePath, args.ChangeType);
+                logger.WriteLine(Strings.FileMonitor_FileChanged, MonitoredFilePath, args.ChangeType);
 
                 fileChangedHandlers(this, EventArgs.Empty);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(AnalysisStrings.FileMonitor_ErrorHandlingFileChange, ex.Message);
+                logger.WriteLine(Strings.FileMonitor_ErrorHandlingFileChange, ex.Message);
             }
             finally
             {

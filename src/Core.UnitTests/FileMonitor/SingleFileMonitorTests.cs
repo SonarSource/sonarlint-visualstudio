@@ -18,17 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
 using System.IO.Abstractions;
-using System.Threading;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core.FileMonitor;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarLint.VisualStudio.TestInfrastructure.Extensions;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
+namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
 {
     [TestClass]
     public class SingleFileMonitorTests
@@ -224,8 +220,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
 
             // Stage 2: raise the file system event then block until we are in the event handler
-            var eventHandlerMethodTask = System.Threading.Tasks.Task.Run(() =>
-                watcherMock.Raise(x => x.Created += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", "")));
+            var eventHandlerMethodTask = System.Threading.Tasks.Task.Run((Action)(() =>
+                watcherMock.Raise(x => x.Created += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", ""))));
 
             eventHandlerStartedEvent.WaitOne(timeout).Should().BeTrue();
 

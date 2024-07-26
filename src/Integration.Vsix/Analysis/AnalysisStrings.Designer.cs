@@ -135,33 +135,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error handling file change notification: {0}.
-        /// </summary>
-        internal static string FileMonitor_ErrorHandlingFileChange {
-            get {
-                return ResourceManager.GetString("FileMonitor_ErrorHandlingFileChange", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to File changed: {0}. Change type: {1}.
-        /// </summary>
-        internal static string FileMonitor_FileChanged {
-            get {
-                return ResourceManager.GetString("FileMonitor_FileChanged", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Created directory: {0}.
-        /// </summary>
-        internal static string FileMonitory_CreatedDirectory {
-            get {
-                return ResourceManager.GetString("FileMonitory_CreatedDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Aborted analysis of {0} with id {1}, analysis has been re-triggered or has timed-out..
         /// </summary>
         internal static string MSG_AnalysisAborted {
