@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Text;
 using Microsoft.VisualStudio.Text;
 using NSubstitute.Extensions;
 using SonarLint.VisualStudio.Core;
@@ -86,7 +85,7 @@ public class VsAwareAnalysisServiceTests
         var issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
         var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, projectInfoProvider: vsProjectInfoProvider);
 
-        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot, default), default, errorListHandler, default);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), default, errorListHandler, default);
 
         issueConsumerFactory.Received().Create(document, analysisFilePath, analysisTextSnapshot, projectInfo.projectName, projectInfo.projectGuid,
             errorListHandler);
@@ -104,7 +103,7 @@ public class VsAwareAnalysisServiceTests
         var issueConsumerFactory = Substitute.For<IIssueConsumerFactory>();
         var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, projectInfoProvider: vsProjectInfoProvider);
 
-        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot, default), default, errorListHandler, default);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), default, errorListHandler, default);
 
         issueConsumerFactory.Received().Create(document, analysisFilePath, analysisTextSnapshot, default, Guid.Empty, errorListHandler);
     }
@@ -121,7 +120,7 @@ public class VsAwareAnalysisServiceTests
         var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, analysisService: analysisService,
             threadHandling: threadHandling);
 
-        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot, Encoding.UTF8), default, default, default);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), default, default, default);
 
         Received.InOrder(() =>
         {
@@ -129,7 +128,6 @@ public class VsAwareAnalysisServiceTests
             issueConsumer.Accept(analysisFilePath, []);
             analysisService.ScheduleAnalysis(analysisFilePath,
                 Arg.Any<Guid>(),
-                "utf-8",
                 Arg.Any<IEnumerable<AnalysisLanguage>>(),
                 issueConsumer,
                 Arg.Any<IAnalyzerOptions>());
@@ -141,23 +139,19 @@ public class VsAwareAnalysisServiceTests
     {
         const string analysisFilePath = "analysis/file/path";
         var analysisTextSnapshot = Substitute.For<ITextSnapshot>();
-        var encoding = Substitute.ForPartsOf<Encoding>();
-        var encodingName = "encodingname";
-        encoding.Configure().WebName.Returns(encodingName);
-        var document = CreateDefaultDocument(encoding);
+        var document = CreateDefaultDocument();
         var detectedLanguages = Substitute.For<IEnumerable<AnalysisLanguage>>();
         var analyzerOptions = Substitute.For<IAnalyzerOptions>();
         var analysisService = Substitute.For<IAnalysisService>();
         var issueConsumerFactory = CreateDefaultIssueConsumerFactory(document, out var issueConsumer);
         var testSubject = CreateTestSubject(issueConsumerFactory: issueConsumerFactory, analysisService: analysisService);
 
-        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot, encoding), detectedLanguages, default, analyzerOptions);
+        testSubject.RequestAnalysis(document, new AnalysisSnapshot(analysisFilePath, analysisTextSnapshot), detectedLanguages, default, analyzerOptions);
 
         analysisService
             .Received()
             .ScheduleAnalysis(analysisFilePath,
                 Arg.Is<Guid>(x => x != Guid.Empty),
-                encodingName,
                 detectedLanguages,
                 issueConsumer,
                 analyzerOptions);
@@ -182,10 +176,9 @@ public class VsAwareAnalysisServiceTests
         return threadHandling;
     }
 
-    private static ITextDocument CreateDefaultDocument(Encoding charset = null)
+    private static ITextDocument CreateDefaultDocument()
     {
         var textDocument = Substitute.For<ITextDocument>();
-        textDocument.Encoding.Returns(charset ?? Encoding.UTF8);
         return textDocument;
     }
 

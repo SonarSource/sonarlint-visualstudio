@@ -53,13 +53,13 @@ public class AnalysisServiceTests
         var issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
         var testSubject = CreateTestSubject(analyzerController, issueConsumerStorage, scheduler);
 
-        testSubject.ScheduleAnalysis("file/path", analysisId, "somecharset", detectedLanguages, issueConsumer, analyzerOptions);
+        testSubject.ScheduleAnalysis("file/path", analysisId, detectedLanguages, issueConsumer, analyzerOptions);
     
         Received.InOrder(() =>
         {
            scheduler.Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
            issueConsumerStorage.Set("file/path", analysisId, issueConsumer);
-           analyzerController.ExecuteAnalysis("file/path", analysisId, "somecharset", detectedLanguages, issueConsumer, analyzerOptions, Arg.Any<CancellationToken>());
+           analyzerController.ExecuteAnalysis("file/path", analysisId, detectedLanguages, issueConsumer, analyzerOptions, Arg.Any<CancellationToken>());
         });
     }
     
@@ -71,11 +71,11 @@ public class AnalysisServiceTests
         var issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
         var testSubject = CreateTestSubject(analyzerController, issueConsumerStorage, scheduler);
 
-        testSubject.ScheduleAnalysis("file/path", default, default, default, default, default);
+        testSubject.ScheduleAnalysis("file/path", default, default, default, default);
     
         scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
         issueConsumerStorage.DidNotReceiveWithAnyArgs().Set(default, default, default);
-        analyzerController.DidNotReceiveWithAnyArgs().ExecuteAnalysis(default, default, default, default, default, default, default);
+        analyzerController.DidNotReceiveWithAnyArgs().ExecuteAnalysis(default, default, default, default, default, default);
     }
 
     [TestMethod]
@@ -91,7 +91,7 @@ public class AnalysisServiceTests
             var scheduler = Substitute.For<IScheduler>();
             var testSubject = CreateTestSubject(scheduler: scheduler);
     
-            testSubject.ScheduleAnalysis("file/path", default, default, default, default, default);
+            testSubject.ScheduleAnalysis("file/path", default, default, default, default);
             
             scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), expectedTimeout);
         }
@@ -108,7 +108,7 @@ public class AnalysisServiceTests
         var scheduler = Substitute.For<IScheduler>();
         var testSubject = CreateTestSubject(scheduler: scheduler);
     
-        testSubject.ScheduleAnalysis("file/path", default, default, default, default, default);
+        testSubject.ScheduleAnalysis("file/path", default, default, default, default);
     
         scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), AnalysisService.DefaultAnalysisTimeoutMs);
     }

@@ -56,7 +56,6 @@ internal class AnalysisService : IAnalysisService
 
     public void ScheduleAnalysis(string filePath,
         Guid analysisId,
-        string charset,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         IIssueConsumer issueConsumer,
         IAnalyzerOptions analyzerOptions)
@@ -67,7 +66,7 @@ internal class AnalysisService : IAnalysisService
                 if (!token.IsCancellationRequested)
                 {
                     issueConsumerStorage.Set(filePath, analysisId, issueConsumer);
-                    analyzerController.ExecuteAnalysis(filePath, analysisId, charset, detectedLanguages, issueConsumer, analyzerOptions, token);
+                    analyzerController.ExecuteAnalysis(filePath, analysisId, detectedLanguages, issueConsumer, analyzerOptions, token);
                 }
             },
             GetAnalysisTimeoutInMilliseconds());

@@ -366,7 +366,7 @@ public class TextBufferIssueTrackerTests
         mockFileTracker.Verify(x => x.AddFiles(new SourceFile(textDocument.FilePath, null, TextContent)));
         mockAnalysisService.Verify(x => x.RequestAnalysis(
             textDocument,
-            new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot, textDocument.Encoding),
+            new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot),
             javascriptLanguage,
             It.IsAny<SnapshotChangedHandler>(),
             analyzerOptions));
@@ -380,7 +380,7 @@ public class TextBufferIssueTrackerTests
         mockFileTracker.Verify(x => x.AddFiles(new SourceFile(textDocument.FilePath, null, TextContent)));
         mockAnalysisService.Verify(x => x.RequestAnalysis(
             textDocument,
-            new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot, textDocument.Encoding),
+            new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot),
             javascriptLanguage,
             It.IsAny<SnapshotChangedHandler>(),
             It.Is<IAnalyzerOptions>(o => o.IsOnOpen == isOnOpen)));

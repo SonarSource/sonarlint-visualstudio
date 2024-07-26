@@ -26,7 +26,6 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
         void ExecuteAnalysis(string path,
             Guid analysisId,
-            string charset,
             IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer,
             IAnalyzerOptions analyzerOptions,

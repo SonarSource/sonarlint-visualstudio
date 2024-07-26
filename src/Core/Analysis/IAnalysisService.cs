@@ -40,7 +40,6 @@ public interface IAnalysisService
     /// </summary>
     void ScheduleAnalysis(string filePath,
         Guid analysisId,
-        string charset,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         IIssueConsumer issueConsumer,
         IAnalyzerOptions analyzerOptions);

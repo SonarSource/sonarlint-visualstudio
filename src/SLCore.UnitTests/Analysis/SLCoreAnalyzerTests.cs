@@ -75,7 +75,7 @@ public class SLCoreAnalyzerTests
         var analysisStatusNotifierFactory = CreateDefaultAnalysisStatusNotifier(out var notifier);
         var testSubject = CreateTestSubject(analysisStatusNotifierFactory: analysisStatusNotifierFactory);
         
-        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default, default);
+        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
 
         analysisStatusNotifierFactory.Received().Create(nameof(SLCoreAnalyzer), @"C:\file\path");
         notifier.Received().AnalysisStarted();
@@ -88,7 +88,7 @@ public class SLCoreAnalyzerTests
         activeConfigScopeTracker.Current.Returns((ConfigurationScope)null);
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), activeConfigScopeTracker, CreateDefaultAnalysisStatusNotifier(out var notifier));
         
-        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default, default);
+        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
 
         _ = activeConfigScopeTracker.Received().Current;
         analysisService.ReceivedCalls().Should().BeEmpty();
@@ -102,7 +102,7 @@ public class SLCoreAnalyzerTests
         activeConfigScopeTracker.Current.Returns(new ConfigurationScope("someconfigscopeid", isReadyForAnalysis: false));
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), activeConfigScopeTracker, CreateDefaultAnalysisStatusNotifier(out var notifier));
         
-        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default, default);
+        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
 
         _ = activeConfigScopeTracker.Received().Current;
         analysisService.ReceivedCalls().Should().BeEmpty();
@@ -115,7 +115,7 @@ public class SLCoreAnalyzerTests
         var slCoreServiceProvider = CreatServiceProvider(out var analysisService, false);
         var testSubject = CreateTestSubject(slCoreServiceProvider, CreateInitializedConfigScope("someconfigscopeid"), CreateDefaultAnalysisStatusNotifier(out var notifier));
         
-        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default, default);
+        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
 
         slCoreServiceProvider.Received().TryGetTransientService(out Arg.Any<IAnalysisSLCoreService>());
         analysisService.ReceivedCalls().Should().BeEmpty();
@@ -129,7 +129,7 @@ public class SLCoreAnalyzerTests
         var analysisId = Guid.NewGuid();
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"), currentTimeProvider:CreatCurrentTimeProvider(expectedTimeStamp));
 
-        testSubject.ExecuteAnalysis(@"C:\file\path", analysisId, default, default, default, default, default);
+        testSubject.ExecuteAnalysis(@"C:\file\path", analysisId, default, default, default, default);
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a => 
                 a.analysisId == analysisId 
@@ -149,7 +149,7 @@ public class SLCoreAnalyzerTests
         IAnalyzerOptions options = value.HasValue ? new AnalyzerOptions { IsOnOpen = value.Value } : null;
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"));
 
-        testSubject.ExecuteAnalysis(@"C:\file\path", default, default, default, default, options, default);
+        testSubject.ExecuteAnalysis(@"C:\file\path", default, default, default, options, default);
         
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a => 
                 a.shouldFetchServerIssues == expected),
@@ -163,7 +163,7 @@ public class SLCoreAnalyzerTests
         var analysisId = Guid.NewGuid();
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"));
 
-        testSubject.ExecuteAnalysis(@"C:\file\path", analysisId, default, default, default, default, cancellationTokenSource.Token);
+        testSubject.ExecuteAnalysis(@"C:\file\path", analysisId, default, default, default, cancellationTokenSource.Token);
         
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Any<AnalyzeFilesAndTrackParams>(),
             cancellationTokenSource.Token);
@@ -175,7 +175,7 @@ public class SLCoreAnalyzerTests
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"), CreateDefaultAnalysisStatusNotifier(out var notifier));
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ReturnsForAnyArgs(new AnalyzeFilesResponse(new HashSet<FileUri>(), []));
         
-        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default, default);
+        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
         
         notifier.DidNotReceiveWithAnyArgs().AnalysisNotReady(default);
         notifier.DidNotReceiveWithAnyArgs().AnalysisFailed(default(Exception));
@@ -189,7 +189,7 @@ public class SLCoreAnalyzerTests
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"), CreateDefaultAnalysisStatusNotifier(out var notifier));
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ReturnsForAnyArgs(new AnalyzeFilesResponse(new HashSet<FileUri>{new(@"C:\file\path")}, []));
         
-        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default, default);
+        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
         
         notifier.Received().AnalysisFailed(SLCoreStrings.AnalysisFailedReason);
     }
@@ -201,7 +201,7 @@ public class SLCoreAnalyzerTests
         var operationCanceledException = new OperationCanceledException();
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ThrowsAsyncForAnyArgs(operationCanceledException);
         
-        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default, default);
+        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
         
         notifier.Received().AnalysisCancelled();
     }
@@ -213,7 +213,7 @@ public class SLCoreAnalyzerTests
         var exception = new Exception();
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ThrowsAsyncForAnyArgs(exception);
         
-        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default, default);
+        testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
         
         notifier.Received().AnalysisFailed(exception);
     }
