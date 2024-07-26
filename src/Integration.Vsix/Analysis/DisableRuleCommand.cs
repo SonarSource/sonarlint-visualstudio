@@ -148,6 +148,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             SonarRuleRepoKeys.JavaScript,
             SonarRuleRepoKeys.TypeScript,
             SonarRuleRepoKeys.Css,
+            SonarRuleRepoKeys.Secrets,
         };
 
         private bool IsSonarRule(SonarCompositeRuleId rule)
