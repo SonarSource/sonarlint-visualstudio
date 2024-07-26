@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
@@ -28,7 +27,7 @@ using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix;
 
-internal record AnalysisSnapshot(string FilePath, ITextSnapshot TextSnapshot, Encoding Encoding);
+internal record AnalysisSnapshot(string FilePath, ITextSnapshot TextSnapshot);
 
 internal interface IVsAwareAnalysisService
 {
@@ -89,11 +88,10 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
         var (projectName, projectGuid) = await vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisSnapshot.FilePath);
         var issueConsumer = issueConsumerFactory.Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, errorListHandler);
         
-        await ScheduleAnalysisOnBackgroundThreadAsync(analysisSnapshot.FilePath, analysisSnapshot.Encoding.WebName, detectedLanguages, issueConsumer, options);
+        await ScheduleAnalysisOnBackgroundThreadAsync(analysisSnapshot.FilePath, detectedLanguages, issueConsumer, options);
     }
 
     private async Task ScheduleAnalysisOnBackgroundThreadAsync(string filePath,
-        string charset,
         IEnumerable<AnalysisLanguage> detectedLanguages,
         IIssueConsumer issueConsumer,
         IAnalyzerOptions analyzerOptions)
@@ -102,7 +100,7 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
         {
             ClearErrorList(filePath, issueConsumer);
             
-            analysisService.ScheduleAnalysis(filePath, Guid.NewGuid(), charset, detectedLanguages, issueConsumer, analyzerOptions);
+            analysisService.ScheduleAnalysis(filePath, Guid.NewGuid(), detectedLanguages, issueConsumer, analyzerOptions);
         });
     }
 

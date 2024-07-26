@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private AnalysisSnapshot UpdateAnalysisState()
         {
             LastAnalysisFilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
-            var analysisSnapshot = new AnalysisSnapshot(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot, document.Encoding);
+            var analysisSnapshot = new AnalysisSnapshot(LastAnalysisFilePath, document.TextBuffer.CurrentSnapshot);
             NotifyFileTracker(analysisSnapshot.TextSnapshot);
             return analysisSnapshot;
         }
