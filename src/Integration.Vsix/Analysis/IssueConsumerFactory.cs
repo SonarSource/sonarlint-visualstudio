@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
@@ -43,7 +42,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         /// Instancing: a new issue consumer should be created for each analysis request
         /// i.e. the lifetime of the issue consumer should be tied to that analysis.
         /// </remarks>
-        IIssueConsumer Create(ITextDocument textDocument, string projectName, Guid projectGuid, SnapshotChangedHandler onSnapshotChanged);
+        IIssueConsumer Create(ITextDocument textDocument,
+            string analysisFilePath,
+            ITextSnapshot analysisSnapshot,
+            string projectName,
+            Guid projectGuid,
+            SnapshotChangedHandler onSnapshotChanged);
     }
 
     [Export(typeof(IIssueConsumerFactory))]
@@ -62,10 +66,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.localHotspotsStore = localHotspotsStore;
         }
 
-        public IIssueConsumer Create(ITextDocument textDocument, string projectName, Guid projectGuid, SnapshotChangedHandler onSnapshotChanged)
+        public IIssueConsumer Create(ITextDocument textDocument,
+            string analysisFilePath,
+            ITextSnapshot analysisSnapshot,
+            string projectName,
+            Guid projectGuid,
+            SnapshotChangedHandler onSnapshotChanged)
         {
             var issueHandler = new IssueHandler(textDocument, projectName, projectGuid, suppressedIssueMatcher, onSnapshotChanged, localHotspotsStore);
-            var issueConsumer = new AccumulatingIssueConsumer(textDocument.TextBuffer.CurrentSnapshot, textDocument.FilePath, issueHandler.HandleNewIssues, converter);
+            var issueConsumer = new AccumulatingIssueConsumer(analysisSnapshot, analysisFilePath, issueHandler.HandleNewIssues, converter);
 
             return issueConsumer;
         }

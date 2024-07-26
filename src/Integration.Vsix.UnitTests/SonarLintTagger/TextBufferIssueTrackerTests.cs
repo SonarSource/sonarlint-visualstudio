@@ -37,9 +37,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 [TestClass]
 public class TextBufferIssueTrackerTests
 {
+    private const string TextContent = "file content";
+        
     private AnalysisLanguage[] javascriptLanguage = [AnalysisLanguage.Javascript];
     private TestLogger logger;
     private Mock<IVsAwareAnalysisService> mockAnalysisService;
+    private Mock<ITextSnapshot> mockTextSnapshot;
     private Mock<ITextBuffer> mockDocumentTextBuffer;
     private Mock<ITextDocument> mockedJavascriptDocumentFooJs;
     private Mock<ISonarErrorListDataSource> mockSonarErrorDataSource;
@@ -54,7 +57,8 @@ public class TextBufferIssueTrackerTests
         mockAnalysisService = new Mock<IVsAwareAnalysisService>();
         mockFileTracker = new Mock<IFileTracker>();
         taggerProvider = CreateTaggerProvider();
-        mockDocumentTextBuffer = CreateTextBufferMock();
+        mockTextSnapshot = CreateTextSnapshotMock();
+        mockDocumentTextBuffer = CreateTextBufferMock(mockTextSnapshot);
         mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js", mockDocumentTextBuffer);
         javascriptLanguage = [AnalysisLanguage.Javascript];
 
@@ -104,8 +108,11 @@ public class TextBufferIssueTrackerTests
 
     private static void SetUpAnalysisThrows(Mock<IVsAwareAnalysisService> mockAnalysisService, Exception exception)
     {
-        mockAnalysisService.Setup(x => x.RequestAnalysis(It.IsAny<string>(), It.IsAny<ITextDocument>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
-                It.IsAny<SnapshotChangedHandler>(), It.IsAny<IAnalyzerOptions>()))
+        mockAnalysisService.Setup(x => x.RequestAnalysis(It.IsAny<ITextDocument>(),
+                It.IsAny<AnalysisSnapshot>(),
+                It.IsAny<IEnumerable<AnalysisLanguage>>(),
+                It.IsAny<SnapshotChangedHandler>(),
+                It.IsAny<IAnalyzerOptions>()))
             .Throws(exception);
     }
 
@@ -187,14 +194,25 @@ public class TextBufferIssueTrackerTests
             serviceProvider, languageRecognizer, vsAwareAnalysisService, analysisRequester, Mock.Of<ITaggableBufferIndicator>(), mockFileTracker.Object, logger);
         return provider;
     }
+    
+    
+    private static Mock<ITextSnapshot>CreateTextSnapshotMock()
+    {
+        var textSnapshot = new Mock<ITextSnapshot>();
+        textSnapshot.Setup(x => x.GetText()).Returns(TextContent);
+        return textSnapshot;
+    }
 
-    private static Mock<ITextBuffer> CreateTextBufferMock()
+
+    private static Mock<ITextBuffer> CreateTextBufferMock(Mock<ITextSnapshot> textSnapshot)
     {
         // Text buffer with a properties collection and current snapshot
         var mockTextBuffer = new Mock<ITextBuffer>();
 
         var dummyProperties = new PropertyCollection();
         mockTextBuffer.Setup(p => p.Properties).Returns(dummyProperties);
+        
+        mockTextBuffer.Setup(p => p.CurrentSnapshot).Returns(textSnapshot.Object);
 
         return mockTextBuffer;
     }
@@ -209,19 +227,6 @@ public class TextBufferIssueTrackerTests
 
         return mockTextDocument;
     }
-    
-    [TestMethod]
-    public void WhenFileIsSavedWithDifferentEncoding_EncodingIsUpdated()
-    {
-        mockAnalysisService.Invocations.Clear();
-
-        mockFileTracker.Verify(ft => ft.AddFiles(new SourceFile(mockedJavascriptDocumentFooJs.Object.FilePath, Encoding.UTF8.WebName, null)));
-        
-        mockedJavascriptDocumentFooJs.Setup(d => d.Encoding).Returns(Encoding.UTF32);
-        RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-        
-        mockFileTracker.Verify(ft => ft.AddFiles(new SourceFile(mockedJavascriptDocumentFooJs.Object.FilePath, Encoding.UTF32.WebName, null)));
-    }
 
     #region Triggering analysis tests
 
@@ -229,6 +234,7 @@ public class TextBufferIssueTrackerTests
     public void WhenFileIsSaved_AnalysisIsRequested()
     {
         mockAnalysisService.Invocations.Clear();
+        mockTextSnapshot.Invocations.Clear();
 
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
         VerifyAnalysisRequestedWithDefaultOptions(false);
@@ -236,6 +242,7 @@ public class TextBufferIssueTrackerTests
         // Dispose and raise -> analysis not requested
         testSubject.Dispose();
         mockAnalysisService.Invocations.Clear();
+        mockTextSnapshot.Invocations.Clear();
 
         RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
         VerifyAnalysisNotRequested();
@@ -245,6 +252,7 @@ public class TextBufferIssueTrackerTests
     public void WhenFileIsLoaded_AnalysisIsNotRequested()
     {
         mockAnalysisService.Invocations.Clear();
+        mockTextSnapshot.Invocations.Clear();
 
         // Act
         RaiseFileLoadedEvent(mockedJavascriptDocumentFooJs);
@@ -302,7 +310,11 @@ public class TextBufferIssueTrackerTests
         testSubject.RequestAnalysis(analyzerOptions);
 
         mockAnalysisService.Verify(x => x.CancelForFile("foo.js"));
-        mockAnalysisService.Verify(x => x.RequestAnalysis("newFoo.js", It.IsAny<ITextDocument>(), It.IsAny<IEnumerable<AnalysisLanguage>>(), It.IsAny<SnapshotChangedHandler>(), It.IsAny<IAnalyzerOptions>()));
+        mockAnalysisService.Verify(x => x.RequestAnalysis(It.IsAny<ITextDocument>(),
+            It.Is<AnalysisSnapshot>(x => x.FilePath == "newFoo.js"),
+            It.IsAny<IEnumerable<AnalysisLanguage>>(),
+            It.IsAny<SnapshotChangedHandler>(),
+            It.IsAny<IAnalyzerOptions>()));
     }
 
     [TestMethod]
@@ -350,9 +362,11 @@ public class TextBufferIssueTrackerTests
     {
         var textDocument = mockedJavascriptDocumentFooJs.Object;
         mockAnalysisService.Verify(x => x.CancelForFile(textDocument.FilePath));
+        mockTextSnapshot.Verify(x => x.GetText());
+        mockFileTracker.Verify(x => x.AddFiles(new SourceFile(textDocument.FilePath, null, TextContent)));
         mockAnalysisService.Verify(x => x.RequestAnalysis(
-            textDocument.FilePath,
             textDocument,
+            new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot, textDocument.Encoding),
             javascriptLanguage,
             It.IsAny<SnapshotChangedHandler>(),
             analyzerOptions));
@@ -362,9 +376,11 @@ public class TextBufferIssueTrackerTests
     {
         var textDocument = mockedJavascriptDocumentFooJs.Object;
         mockAnalysisService.Verify(x => x.CancelForFile(textDocument.FilePath));
+        mockTextSnapshot.Verify(x => x.GetText());
+        mockFileTracker.Verify(x => x.AddFiles(new SourceFile(textDocument.FilePath, null, TextContent)));
         mockAnalysisService.Verify(x => x.RequestAnalysis(
-            textDocument.FilePath,
             textDocument,
+            new AnalysisSnapshot(textDocument.FilePath, textDocument.TextBuffer.CurrentSnapshot, textDocument.Encoding),
             javascriptLanguage,
             It.IsAny<SnapshotChangedHandler>(),
             It.Is<IAnalyzerOptions>(o => o.IsOnOpen == isOnOpen)));
@@ -373,9 +389,10 @@ public class TextBufferIssueTrackerTests
     private void VerifyAnalysisNotRequested()
     {
         mockAnalysisService.Verify(x => x.CancelForFile(It.IsAny<string>()), Times.Never);
+        mockTextSnapshot.Verify(x => x.GetText(), Times.Never);
         mockAnalysisService.Verify(x =>
-                x.RequestAnalysis(It.IsAny<string>(),
-                    It.IsAny<ITextDocument>(),
+                x.RequestAnalysis(It.IsAny<ITextDocument>(),
+                    It.IsAny<AnalysisSnapshot>(),
                     It.IsAny<IEnumerable<AnalysisLanguage>>(),
                     It.IsAny<SnapshotChangedHandler>(),
                     It.IsAny<IAnalyzerOptions>()),
