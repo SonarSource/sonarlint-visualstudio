@@ -21,6 +21,7 @@
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.FileMonitor;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.SLCore.Analysis;
@@ -30,64 +31,71 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis;
 [TestClass]
 public class UserSettingsUpdaterTests
 {
+    private ISingleFileMonitor settingsFileMonitor;
+    private ISingleFileMonitorFactory singleFileMonitorFactory;
+    private ISLCoreRuleSettings slCoreRuleSettings;
+    private IUserSettingsProvider userSettingsProvider;
+    private UserSettingsUpdater testSubject;
+
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        settingsFileMonitor = Substitute.For<ISingleFileMonitor>();
+        singleFileMonitorFactory = Substitute.For<ISingleFileMonitorFactory>();
+        slCoreRuleSettings ??= Substitute.For<ISLCoreRuleSettings>();
+        userSettingsProvider ??= Substitute.For<IUserSettingsProvider>();
+
+        singleFileMonitorFactory.Create(Arg.Any<string>()).Returns(settingsFileMonitor);
+        testSubject = CreateUserSettingsUpdater(singleFileMonitorFactory, slCoreRuleSettings, userSettingsProvider);
+    }
+
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<UserSettingsUpdater, IUserSettingsUpdater>(
-            MefTestHelpers.CreateExport<ILogger>(), 
             MefTestHelpers.CreateExport<ISLCoreRuleSettings>(),
-            MefTestHelpers.CreateExport<IUserSettingsProvider>());
+            MefTestHelpers.CreateExport<IUserSettingsProvider>(),
+            MefTestHelpers.CreateExport<ISingleFileMonitorFactory>(singleFileMonitorFactory));
     }
 
     [TestMethod]
     public void Ctor_DoesNotCallAnyNonFreeThreadedServices()
     {
-        // Arrange
-        var fileMonitorMock = Substitute.For<ISingleFileMonitor>();
-
-        // Act
-        _ = CreateTestSubject(fileMonitorMock);
-
         // The MEF constructor should be free-threaded, which it will be if
         // it doesn't make any external calls.
-        fileMonitorMock.ReceivedCalls().Count().Should().Be(1);
-        fileMonitorMock.Received(1).FileChanged += Arg.Any<EventHandler>();
+        settingsFileMonitor.ReceivedCalls().Count().Should().Be(1);
+        settingsFileMonitor.Received(1).FileChanged += Arg.Any<EventHandler>();
     }
 
     [TestMethod]
     public void Ctor_NullArguments()
     {
-        var settingsFileMonitor = Substitute.For<ISingleFileMonitor>();
-        var slCoreRuleSettings = Substitute.For<ISLCoreRuleSettings>();
-        var userSettingsProvider = Substitute.For<IUserSettingsProvider>();
-
-        Action act = () => CreateUserSettingsUpdater(settingsFileMonitor, slCoreRuleSettings, userSettingsProvider);
+        Action act = () => CreateUserSettingsUpdater(singleFileMonitorFactory, slCoreRuleSettings, userSettingsProvider);
         act.Should().NotThrow<ArgumentNullException>();
 
         act = () => CreateUserSettingsUpdater(null, slCoreRuleSettings, userSettingsProvider);
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(nameof(settingsFileMonitor));
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(nameof(singleFileMonitorFactory));
 
-        act = () => CreateUserSettingsUpdater(settingsFileMonitor, slCoreRuleSettings, null);
+        act = () => CreateUserSettingsUpdater(singleFileMonitorFactory, slCoreRuleSettings, null);
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(nameof(userSettingsProvider));
 
-        act = () => CreateUserSettingsUpdater(settingsFileMonitor, null, userSettingsProvider);
+        act = () => CreateUserSettingsUpdater(singleFileMonitorFactory, null, userSettingsProvider);
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(nameof(slCoreRuleSettings));
     }
 
     [TestMethod]
     public void FileChanges_EventsRaised()
     {
-        var fileMonitorMock = CreateMockFileMonitor("settings.file");
+        MockPath("settings.file");
         int settingsChangedEventCount = 0;
-        var testSubject = CreateTestSubject(fileMonitorMock);
 
         testSubject.SettingsChanged += (s, args) => settingsChangedEventCount++;
 
-        fileMonitorMock.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+        settingsFileMonitor.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
         settingsChangedEventCount.Should().Be(1);
 
         // 2. Simulate another event when the file is valid - valid settings should be returned
-        fileMonitorMock.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+        settingsFileMonitor.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
         settingsChangedEventCount.Should().Be(2);
     }
 
@@ -96,15 +104,14 @@ public class UserSettingsUpdaterTests
     {
         // Arrange
         const string fileName = "c:\\aaa\\bbb\\file.txt";
-        var fileMonitorMock = CreateMockFileMonitor(fileName);
+        MockPath(fileName);
 
         // 1. Construct
-        var testSubject = CreateTestSubject(singleFileMonitor:fileMonitorMock);
-        fileMonitorMock.DidNotReceive().Dispose();
+        settingsFileMonitor.DidNotReceive().Dispose();
 
         // 2. Dispose
         testSubject.Dispose();
-        fileMonitorMock.Received(1).Dispose();
+        settingsFileMonitor.Received(1).Dispose();
     }
 
     [TestMethod]
@@ -124,15 +131,15 @@ public class UserSettingsUpdaterTests
     }
 }";
         var fileSystemMock = CreateMockFile(fileName, originalData);
-        var userSettingsProvider = new UserSettingsProvider(Substitute.For<ILogger>(), fileSystemMock, fileName);
-        var singleFileMonitorMock = CreateMockFileMonitor(fileName);
+        var settingsProvider = new UserSettingsProvider(Substitute.For<ILogger>(), fileSystemMock, fileName);
+        MockPath(fileName);
         int eventCount = 0;
         var settingsChangedEventReceived = new ManualResetEvent(initialState: false);
 
-        var testSubject = CreateTestSubject(singleFileMonitorMock, userSettingsProvider: userSettingsProvider);
-        userSettingsProvider.UserSettings.RulesSettings.Rules.Count.Should().Be(0); // sanity check of setup
+        var userSettingsUpdater = CreateUserSettingsUpdater(singleFileMonitorFactory, slCoreRuleSettings, settingsProvider);
+        settingsProvider.UserSettings.RulesSettings.Rules.Count.Should().Be(0); // sanity check of setup
 
-        testSubject.SettingsChanged += (s, args) =>
+        userSettingsUpdater.SettingsChanged += (s, args) =>
         {
             eventCount++;
             settingsChangedEventReceived.Set();
@@ -140,36 +147,32 @@ public class UserSettingsUpdaterTests
 
         // 1. Disable a rule
         // Should trigger a save, but should not *directly* raise a "SettingsChanged" event
-        userSettingsProvider.DisableRule("dummyRule");
+        settingsProvider.DisableRule("dummyRule");
         eventCount.Should().Be(0);
 
         // 2. Now simulate a file-change event
         fileSystemMock.File.ReadAllText(fileName).Returns(modifiedData);
-        singleFileMonitorMock.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+        settingsFileMonitor.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
 
         // Check the settings change event was raised
         eventCount.Should().Be(1);
 
         // Check the data was actually reloaded from the file
-        userSettingsProvider.UserSettings.RulesSettings.Rules.Count.Should().Be(1);
-        userSettingsProvider.UserSettings.RulesSettings.Rules["typescript:S2685"].Level.Should().Be(RuleLevel.On);
+        settingsProvider.UserSettings.RulesSettings.Rules.Count.Should().Be(1);
+        settingsProvider.UserSettings.RulesSettings.Rules["typescript:S2685"].Level.Should().Be(RuleLevel.On);
     }
 
     [TestMethod]
     public void FileChanged_CallsUpdateStandaloneRulesConfiguration()
     {
-        var slCoreRuleSettings = Substitute.For<ISLCoreRuleSettings>();
-
-        SetupFileChangedInUserSettingsUpdater(slCoreRuleSettings:slCoreRuleSettings);
+        SetupFileChangedInUserSettingsUpdater();
 
         slCoreRuleSettings.Received(1).UpdateStandaloneRulesConfiguration();
     }
 
-    private static ISingleFileMonitor CreateMockFileMonitor(string filePathToMonitor)
+    private void MockPath(string filePathToMonitor)
     {
-        var mockSettingsFileMonitor = Substitute.For<ISingleFileMonitor>();
-        mockSettingsFileMonitor.MonitoredFilePath.Returns(filePathToMonitor);
-        return mockSettingsFileMonitor;
+        settingsFileMonitor.MonitoredFilePath.Returns(filePathToMonitor);
     }
 
     private static IFileSystem CreateMockFile(string filePath, string contents)
@@ -180,33 +183,14 @@ public class UserSettingsUpdaterTests
         return mockFile;
     }
 
-    private static UserSettingsUpdater CreateTestSubject(
-        ISingleFileMonitor singleFileMonitor = null, 
-        ISLCoreRuleSettings islCoreRuleSettings = null, 
-        IUserSettingsProvider userSettingsProvider = null)
+    private static UserSettingsUpdater CreateUserSettingsUpdater(ISingleFileMonitorFactory singleFileMonitorFactory, ISLCoreRuleSettings slCoreRuleSettings, IUserSettingsProvider userSettingsProvider)
     {
-        singleFileMonitor ??= Substitute.For<ISingleFileMonitor>();
-        islCoreRuleSettings ??= Substitute.For<ISLCoreRuleSettings>();
-        userSettingsProvider ??= Substitute.For<IUserSettingsProvider>();
-
-        return CreateUserSettingsUpdater(singleFileMonitor, islCoreRuleSettings, userSettingsProvider);
+        return new UserSettingsUpdater(singleFileMonitorFactory, slCoreRuleSettings, userSettingsProvider);
     }
 
-    private static UserSettingsUpdater CreateUserSettingsUpdater(ISingleFileMonitor singleFileMonitor, ISLCoreRuleSettings slCoreRuleSettings, IUserSettingsProvider userSettingsProvider)
+    private void SetupFileChangedInUserSettingsUpdater()
     {
-        return new UserSettingsUpdater(singleFileMonitor, slCoreRuleSettings, userSettingsProvider);
-    }
-
-    private static void SetupFileChangedInUserSettingsUpdater(ISLCoreRuleSettings slCoreRuleSettings = null, IUserSettingsProvider userSettingsProvider = null)
-    {
-        var fileMonitorMock = Substitute.For<ISingleFileMonitor>();
-        userSettingsProvider ??= Substitute.For<IUserSettingsProvider>();
         userSettingsProvider.UserSettings.Returns(new UserSettings(new RulesSettings()));
-
-      CreateUserSettingsUpdater(
-            fileMonitorMock, 
-            slCoreRuleSettings ?? Substitute.For<ISLCoreRuleSettings>(),
-            userSettingsProvider);
-      fileMonitorMock.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+        settingsFileMonitor.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
     }
 }

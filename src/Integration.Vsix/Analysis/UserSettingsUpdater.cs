@@ -19,7 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.FileMonitor;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.SLCore.Analysis;
 
@@ -37,26 +37,26 @@ public interface IUserSettingsUpdater
 [Export(typeof(IUserSettingsUpdater))]
 internal sealed class UserSettingsUpdater : IUserSettingsUpdater, IDisposable
 {
-
     private readonly ISingleFileMonitor settingsFileMonitor;
     private readonly ISLCoreRuleSettings slCoreRuleSettings;
     private readonly IUserSettingsProvider userSettingsProvider;
 
     [ImportingConstructor]
-    public UserSettingsUpdater(ILogger logger, ISLCoreRuleSettings slCoreRuleSettings, IUserSettingsProvider userSettingsProvider)
-        : this(new SingleFileMonitor(UserSettingsConstants.UserSettingsFilePath, logger), slCoreRuleSettings, userSettingsProvider)
+    public UserSettingsUpdater(ISLCoreRuleSettings slCoreRuleSettings, IUserSettingsProvider userSettingsProvider, ISingleFileMonitorFactory singleFileMonitorFactory)
+        : this(singleFileMonitorFactory, slCoreRuleSettings, userSettingsProvider)
     {
     }
 
     internal /* for testing */ UserSettingsUpdater(
-        ISingleFileMonitor settingsFileMonitor,
-        ISLCoreRuleSettings slCoreRuleSettings, 
+        ISingleFileMonitorFactory singleFileMonitorFactory,
+        ISLCoreRuleSettings slCoreRuleSettings,
         IUserSettingsProvider userSettingsProvider)
     {
         this.userSettingsProvider = userSettingsProvider ?? throw new ArgumentNullException(nameof(userSettingsProvider));
-        this.settingsFileMonitor = settingsFileMonitor ?? throw new ArgumentNullException(nameof(settingsFileMonitor));
-        this.slCoreRuleSettings = slCoreRuleSettings ?? throw new ArgumentNullException(nameof(slCoreRuleSettings)); 
+        var fileMonitorFactory = singleFileMonitorFactory ?? throw new ArgumentNullException(nameof(singleFileMonitorFactory));
+        this.slCoreRuleSettings = slCoreRuleSettings ?? throw new ArgumentNullException(nameof(slCoreRuleSettings));
 
+        this.settingsFileMonitor = fileMonitorFactory.Create(UserSettingsConstants.UserSettingsFilePath);
         settingsFileMonitor.FileChanged += OnFileChanged;
     }
 

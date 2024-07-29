@@ -137,15 +137,6 @@
   <data name="DisableRule_UnknownErrorCode" xml:space="preserve">
     <value>{unknown}</value>
   </data>
-  <data name="FileMonitory_CreatedDirectory" xml:space="preserve">
-    <value>Created directory: {0}</value>
-  </data>
-  <data name="FileMonitor_ErrorHandlingFileChange" xml:space="preserve">
-    <value>Error handling file change notification: {0}</value>
-  </data>
-  <data name="FileMonitor_FileChanged" xml:space="preserve">
-    <value>File changed: {0}. Change type: {1}</value>
-  </data>
   <data name="ReanalysisStatusBar_Error" xml:space="preserve">
     <value>Error re-analysing open documents: {0}</value>
     <comment>Output window message</comment>
