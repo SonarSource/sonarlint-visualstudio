@@ -45,7 +45,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private readonly IThreadHandling threadHandling;
         private readonly ISLCoreRuleSettingsUpdater slCoreRuleSettings;
 
-        public event EventHandler ConfigChanged;
 
         [ImportingConstructor]
         public AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
@@ -111,15 +110,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private async Task OnSettingsChangedAsync()
         {
             await threadHandling.SwitchToBackgroundThread();
-            RaiseConfigChangedEvent();
 
             // NB assumes exception handling is done by the AnalysisRequester
             analysisRequester.RequestAnalysis();
-        }
-
-        private void RaiseConfigChangedEvent()
-        {
-            ConfigChanged?.Invoke(this, EventArgs.Empty);
         }
 
         #region IDisposable Support
