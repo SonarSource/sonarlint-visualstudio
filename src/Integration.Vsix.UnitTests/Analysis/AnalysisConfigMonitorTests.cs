@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
-using SonarLint.VisualStudio.TestInfrastructure;
+using SonarLint.VisualStudio.SLCore.Analysis;
 using static SonarLint.VisualStudio.TestInfrastructure.NoOpThreadHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
@@ -45,6 +41,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             builder.AssertAnalysisIsRequested();
             builder.AssertSwitchedToBackgroundThread();
             builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
+        }
+
+        [TestMethod]
+        public void WhenUserSettingsChange_UpdatesSlCoreSettings()
+        {
+            var builder = new TestEnvironmentBuilder();
+
+            builder.SimulateUserSettingsChanged();
+
+            builder.AssertSlCoreSettingsWereUpdated();
         }
 
         [TestMethod]
@@ -130,25 +136,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         private class TestEnvironmentBuilder
         {
             private readonly Mock<IAnalysisRequester> analysisRequesterMock;
-            private readonly Mock<IUserSettingsUpdater> userSettingsUpdaterMock;
+            private readonly Mock<IUserSettingsProvider> userSettingsUpdaterMock;
             private readonly Mock<IActiveSolutionBoundTracker> activeSolutionBoundTracker;
             private readonly Mock<INotifyQualityProfilesChanged> notifyQPsUpdated;
             private readonly Mock<IThreadHandling> threadHandling;
+            private readonly Mock<ISLCoreRuleSettingsUpdater> slCoreRuleSettingsUpdater;
 
             public TestEnvironmentBuilder()
             {
                 analysisRequesterMock = new Mock<IAnalysisRequester>();
-                userSettingsUpdaterMock = new Mock<IUserSettingsUpdater>();
+                userSettingsUpdaterMock = new Mock<IUserSettingsProvider>();
                 activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
                 notifyQPsUpdated = new Mock<INotifyQualityProfilesChanged>();
                 threadHandling = new Mock<IThreadHandling>();
+                slCoreRuleSettingsUpdater = new Mock<ISLCoreRuleSettingsUpdater>();
                 
                 threadHandling.Setup(th => th.SwitchToBackgroundThread()).Returns(new NoOpAwaitable());
 
                 Logger = new TestLogger();
 
                 TestSubject = new AnalysisConfigMonitor(analysisRequesterMock.Object,
-                    userSettingsUpdaterMock.Object, activeSolutionBoundTracker.Object, notifyQPsUpdated.Object, Logger, threadHandling.Object);
+                    userSettingsUpdaterMock.Object, activeSolutionBoundTracker.Object, notifyQPsUpdated.Object, Logger, threadHandling.Object, slCoreRuleSettingsUpdater.Object);
             }
 
             public TestLogger Logger { get; }
@@ -172,6 +180,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
     
             public void AssertSwitchedToBackgroundThread()
                 => threadHandling.Verify(x => x.SwitchToBackgroundThread(), Times.Once);
+
+            public void AssertSlCoreSettingsWereUpdated()
+                => slCoreRuleSettingsUpdater.Verify(x => x.UpdateStandaloneRulesConfiguration(), Times.Once);
         }
     }
 }

@@ -63,7 +63,7 @@ public class SLCoreInstanceHandleTests
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private IConfigScopeUpdater configScopeUpdater;
     private IThreadHandling threadHandling;
-    private ISLCoreRuleSettings slCoreRuleSettings;
+    private ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
     private SLCoreInstanceHandle testSubject;
 
     [TestInitialize]
@@ -78,7 +78,7 @@ public class SLCoreInstanceHandleTests
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
         threadHandling = Substitute.For<IThreadHandling>();
-        slCoreRuleSettings = Substitute.For<ISLCoreRuleSettings>();
+        slCoreRuleSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
 
         testSubject = new SLCoreInstanceHandle(slCoreRpcFactory,
             constantsProvider,
@@ -89,7 +89,7 @@ public class SLCoreInstanceHandleTests
             activeSolutionBoundTracker,
             configScopeUpdater,
             threadHandling,
-            slCoreRuleSettings);
+            slCoreRuleSettingsProvider);
     }
 
     [TestMethod]
@@ -185,11 +185,11 @@ public class SLCoreInstanceHandleTests
     public void Initialize_ProvidesRulesSettings()
     {
         SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
-        slCoreRuleSettings.RulesSettings.Returns(new Dictionary<string, StandaloneRuleConfigDto>() { { "rule1", new StandaloneRuleConfigDto(true, []) } });
+        slCoreRuleSettingsProvider.GetSLCoreRuleSettings().Returns(new Dictionary<string, StandaloneRuleConfigDto>() { { "rule1", new StandaloneRuleConfigDto(true, []) } });
 
         testSubject.Initialize();
 
-        lifecycleManagement.Received(1).Initialize(Arg.Is<InitializeParams>(param => param.standaloneRuleConfigByKey.SequenceEqual(slCoreRuleSettings.RulesSettings)));
+        lifecycleManagement.Received(1).Initialize(Arg.Is<InitializeParams>(param => param.standaloneRuleConfigByKey.SequenceEqual(slCoreRuleSettingsProvider.GetSLCoreRuleSettings())));
     }
 
     [TestMethod]
@@ -305,7 +305,7 @@ public class SLCoreInstanceHandleTests
         });
         jarLocator.ListJarFiles().Returns(JarList);
         activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(Binding, SonarLintMode.Connected, "dir"));
-        slCoreRuleSettings.RulesSettings.Returns(new Dictionary<string, StandaloneRuleConfigDto>());
+        slCoreRuleSettingsProvider.GetSLCoreRuleSettings().Returns(new Dictionary<string, StandaloneRuleConfigDto>());
     }
 
     private void SetUpLanguages(ISLCoreConstantsProvider constantsProvider,

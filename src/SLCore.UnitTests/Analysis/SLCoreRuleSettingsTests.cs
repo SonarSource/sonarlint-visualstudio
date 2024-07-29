@@ -49,7 +49,7 @@ public class SLCoreRuleSettingsTests
     [TestMethod]
     public void MefCtor_CheckExports()
     {
-        MefTestHelpers.CheckTypeCanBeImported<SlCoreRuleSettings, ISLCoreRuleSettings>(
+        MefTestHelpers.CheckTypeCanBeImported<SlCoreRuleSettings, ISLCoreRuleSettingsUpdater>(
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IUserSettingsProvider>(),
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>());
@@ -62,11 +62,11 @@ public class SLCoreRuleSettingsTests
     }
 
     [TestMethod]
-    public void MapRuleSettingsToSlCoreSettings_RuleSettingsHaveOneRule_ShouldCreateDictionaryWithOneRule()
+    public void GetSLCoreRuleSettings_RuleSettingsHaveOneRule_ShouldCreateDictionaryWithOneRule()
     {
         AddRule(RuleId);
 
-        var slCoreSettings = slCoreRuleSettings.RulesSettings;
+        var slCoreSettings = slCoreRuleSettings.GetSLCoreRuleSettings();
 
         slCoreSettings.Should().NotBeNull();
         slCoreSettings.Keys.Count.Should().Be(1);
@@ -74,12 +74,12 @@ public class SLCoreRuleSettingsTests
     }
 
     [TestMethod]
-    public void MapRuleSettingsToSlCoreSettings_RuleSettingsHaveTwoRules_ShouldCreateDictionaryWithTwoRules()
+    public void GetSLCoreRuleSettings_RuleSettingsHaveTwoRules_ShouldCreateDictionaryWithTwoRules()
     {
         AddRule(RuleId);
         AddRule(RuleId2);
 
-        var slCoreSettings = slCoreRuleSettings.RulesSettings;
+        var slCoreSettings = slCoreRuleSettings.GetSLCoreRuleSettings();
 
         slCoreSettings.Should().NotBeNull();
         slCoreSettings.Keys.Count.Should().Be(2);
@@ -90,22 +90,22 @@ public class SLCoreRuleSettingsTests
     [TestMethod]
     [DataRow(RuleLevel.Off, false)]
     [DataRow(RuleLevel.On, true)]
-    public void MapRuleSettingsToSlCoreSettings_ShouldSetCorrectlySqlCoreIsActiveValue(RuleLevel ruleLevel, bool expectedIsActive)
+    public void GetSLCoreRuleSettings_ShouldSetCorrectlySqlCoreIsActiveValue(RuleLevel ruleLevel, bool expectedIsActive)
     {
         AddRule(RuleId, ruleLevel);
 
-        var slCoreSettings = slCoreRuleSettings.RulesSettings;
+        var slCoreSettings = slCoreRuleSettings.GetSLCoreRuleSettings();
 
         var ruleConfigDto = slCoreSettings.Values.First();
         ruleConfigDto.isActive.Should().Be(expectedIsActive);
     }
 
     [TestMethod]
-    public void MapRuleSettingsToSlCoreSettings_RuleSettingHaveOneRuleWithParametersSetToNull_ShouldInitializeSqlCoreParametersToEmpty()
+    public void GetSLCoreRuleSettings_RuleSettingHaveOneRuleWithParametersSetToNull_ShouldInitializeSqlCoreParametersToEmpty()
     {
         AddRule(RuleId, ruleParameters:null);
 
-        var slCoreSettings = slCoreRuleSettings.RulesSettings;
+        var slCoreSettings = slCoreRuleSettings.GetSLCoreRuleSettings();
 
         slCoreSettings.Values.Count.Should().Be(1);
         var ruleConfigDto = slCoreSettings.Values.First();
@@ -113,12 +113,12 @@ public class SLCoreRuleSettingsTests
     }
 
     [TestMethod]
-    public void MapRuleSettingsToSlCoreSettings_RuleSettingHaveOneRuleWithOneParameter_ShouldCreateSqlCoreParameterWithSameValues()
+    public void GetSLCoreRuleSettings_RuleSettingHaveOneRuleWithOneParameter_ShouldCreateSqlCoreParameterWithSameValues()
     {
         var parameters = new Dictionary<string, string> { { "threshold", "15" } };
         AddRule(RuleId, RuleLevel.On, parameters);
 
-        var slCoreSettings = slCoreRuleSettings.RulesSettings;
+        var slCoreSettings = slCoreRuleSettings.GetSLCoreRuleSettings();
 
         slCoreSettings.Values.Count.Should().Be(1);
         var ruleConfigDto = slCoreSettings.Values.First();
@@ -133,7 +133,7 @@ public class SLCoreRuleSettingsTests
 
         slCoreRuleSettings.UpdateStandaloneRulesConfiguration();
 
-        rulesSlCoreService.Received(1).UpdateStandaloneRulesConfiguration(Arg.Is<UpdateStandaloneRulesConfigurationParams>(param => param.ruleConfigByKey.SequenceEqual(slCoreRuleSettings.RulesSettings) ));
+        rulesSlCoreService.Received(1).UpdateStandaloneRulesConfiguration(Arg.Is<UpdateStandaloneRulesConfigurationParams>(param => param.ruleConfigByKey.SequenceEqual(slCoreRuleSettings.GetSLCoreRuleSettings()) ));
     }
 
     [TestMethod]
