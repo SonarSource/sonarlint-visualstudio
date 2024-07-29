@@ -51,13 +51,8 @@ namespace SonarLint.VisualStudio.Core.FileMonitor
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
         private DateTime lastWriteTime = DateTime.MinValue;
-
-        public SingleFileMonitor(string filePathToMonitor, ILogger logger)
-            : this(new FileSystemWatcherFactory(), new FileSystem(), filePathToMonitor, logger)
-        {
-        }
-
-        public SingleFileMonitor(IFileSystemWatcherFactory factory, IFileSystem fileSystem, string filePathToMonitor, ILogger logger)
+        
+        internal SingleFileMonitor(IFileSystemWatcherFactory factory, IFileSystem fileSystem, string filePathToMonitor, ILogger logger)
         {
             this.MonitoredFilePath = filePathToMonitor;
             this.fileSystem = fileSystem;

@@ -127,8 +127,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
 
             EventHandler dummyHandler = (sender, args) => { };
 
-            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
+            using (var fileMonitor = CreateTestSubject(filePathToMonitor, testLogger))
             {
+                var singleFileMonitor = fileMonitor as SingleFileMonitor;
+                singleFileMonitor.Should().NotBeNull();
+
                 singleFileMonitor.MonitoredFilePath.Should().Be(filePathToMonitor);
 
                 // 1. Nothing registered -> underlying wrapper should not be raising events
@@ -256,7 +259,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
 
-            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
+            using (var singleFileMonitor = CreateTestSubject(filePathToMonitor, testLogger))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -277,7 +280,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             File.WriteAllText(filePathToMonitor, "contents");
 
-            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
+            using (var singleFileMonitor = CreateTestSubject(filePathToMonitor, testLogger))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -298,7 +301,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             File.WriteAllText(filePathToMonitor, "contents");
 
-            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
+            using (var singleFileMonitor = CreateTestSubject(filePathToMonitor, testLogger))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -319,7 +322,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             File.WriteAllText(filePathToMonitor, "contents");
 
-            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
+            using (var singleFileMonitor = CreateTestSubject(filePathToMonitor, testLogger))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -343,7 +346,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
             var otherFilePath = Path.ChangeExtension(filePathToMonitor, "other");
             File.WriteAllText(otherFilePath, "contents");
 
-            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
+            using (var singleFileMonitor = CreateTestSubject(filePathToMonitor, testLogger))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -357,26 +360,20 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
         }
 
         [TestMethod]
-        public void Real_File_ChangesToOtherFiles_AreIgnored()
+        public void WatchesProvidedFile()
         {
-            // Arrange
-            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
-            var otherFileInDir = Path.Combine(testDir, "otherSettingsFile.txt");
+            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
 
-            using (var firstMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
-            {
-                var waitableFileMonitor = new WaitableFileMonitor(firstMonitor);
-                waitableFileMonitor.EventCount.Should().Be(0);
+            using var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, CreateFileSystemMock().Object, filePathToMonitor, new TestLogger());
 
-                // 1. Create the other file
-                File.WriteAllText(otherFileInDir, "initial other text");
-                System.Threading.Thread.Sleep(1000);
-                waitableFileMonitor.EventCount.Should().Be(0);
-            }
+            fileMonitor.MonitoredFilePath.Should().Be(filePathToMonitor);
+            watcherMock.VerifySet(mock => mock.Path = Path.GetDirectoryName(filePathToMonitor), Times.Once());
+            watcherMock.VerifySet(mock => mock.Filter = Path.GetFileName(filePathToMonitor), Times.Once());
+            watcherMock.VerifySet(mock => mock.NotifyFilter = (NotifyFilters.CreationTime | NotifyFilters.LastWrite |
+                                                              NotifyFilters.FileName | NotifyFilters.DirectoryName), Times.Once());
         }
-
 
         [TestMethod]
         public void File_DuplicateChangesSameTime_AreIgnored()
@@ -446,6 +443,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
 
         #endregion Simple file operations
 
+        private static ISingleFileMonitor CreateTestSubject(string filePathToMonitor, ILogger logger)
+        {
+            return new SingleFileMonitorFactory(logger).Create(filePathToMonitor);
+        }
+
         private string CreateTestSpecificDirectory()
         {
             var testPath = Path.Combine(TestContext.DeploymentDirectory, TestContext.TestName);
@@ -459,9 +461,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.FileMonitor
         /// </summary>
         private class WaitableFileMonitor
         {
-            private readonly SingleFileMonitor singleFileMonitor;
+            private readonly ISingleFileMonitor singleFileMonitor;
 
-            public WaitableFileMonitor(SingleFileMonitor singleFileMonitor)
+            public WaitableFileMonitor(ISingleFileMonitor singleFileMonitor)
             {
                 this.singleFileMonitor = singleFileMonitor;
                 this.singleFileMonitor.FileChanged += OnFileChanged;

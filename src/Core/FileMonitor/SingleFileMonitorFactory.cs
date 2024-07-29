@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.IO.Abstractions;
 
 namespace SonarLint.VisualStudio.Core.FileMonitor;
 
@@ -46,6 +47,6 @@ internal class SingleFileMonitorFactory : ISingleFileMonitorFactory
             throw new ArgumentNullException(nameof(filePathToMonitor));
         }
 
-        return new SingleFileMonitor(filePathToMonitor, logger);
+        return new SingleFileMonitor(new FileSystemWatcherFactory(), new FileSystem(), filePathToMonitor, logger);
     }
 }
