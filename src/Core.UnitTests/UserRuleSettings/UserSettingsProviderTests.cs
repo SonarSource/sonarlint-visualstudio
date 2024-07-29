@@ -20,6 +20,7 @@
 
 using System.IO;
 using System.IO.Abstractions;
+using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core.FileMonitor;
 using SonarLint.VisualStudio.Core.Resources;
@@ -311,6 +312,17 @@ public class UserSettingsProviderTests
         // Check the data was actually reloaded from the file
         settingsProvider.UserSettings.RulesSettings.Rules.Count.Should().Be(1);
         settingsProvider.UserSettings.RulesSettings.Rules["typescript:S2685"].Level.Should().Be(RuleLevel.On);
+    }
+
+    [TestMethod]
+    public void MonitorsSettingsFilePath()
+    {
+        var testSettingsPath = "testSettings.json";
+
+        var testSubject = CreateUserSettingsProvider(testLogger, fileSystem, singleFileMonitorFactory, testSettingsPath);
+
+        testSubject.SettingsFilePath.Should().Be(testSettingsPath);
+        singleFileMonitorFactory.Received(1).Create(testSettingsPath);
     }
 
     private UserSettingsProvider CreateUserSettingsProvider(ILogger logger, IFileSystem fileSystemMock, ISingleFileMonitorFactory singleFileMonitorFactoryMock, string settingsPath = null)
