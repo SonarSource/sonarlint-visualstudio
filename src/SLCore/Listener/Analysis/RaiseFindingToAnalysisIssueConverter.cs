@@ -30,24 +30,24 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class RaiseFindingToAnalysisIssueConverter : IRaiseFindingToAnalysisIssueConverter
     {
-        public IEnumerable<IAnalysisIssue> GetAnalysisIssues<T>(FileUri fileUri, IEnumerable<T> raisedFindings) where T : RaisedFindingDto => 
+        public IEnumerable<IAnalysisIssue> GetAnalysisIssues<T>(FileUri fileUri, IEnumerable<T> raisedFindings) where T : RaisedFindingDto =>
             raisedFindings
                 .Select(item => new AnalysisIssue(item.ruleKey,
                     item.severity.ToAnalysisIssueSeverity(),
                     item.type.ToAnalysisIssueType(),
                     GetHighestSoftwareQualitySeverity(item.impacts),
                     GetAnalysisIssueLocation(fileUri.LocalPath, item.primaryMessage, item.textRange),
-                    item.flows?.Select(GetAnalysisIssueFlow).ToList(),
+                    GetFlows(item.flows),
                     item.quickFixes?.Select(qf => GetQuickFix(fileUri, qf)).Where(qf => qf is not null).ToList(),
                     item.ruleDescriptionContextKey))
                 .ToList();
 
-        private static SoftwareQualitySeverity? GetHighestSoftwareQualitySeverity(List<ImpactDto> impacts) => 
-            impacts is not null && impacts.Any() 
-                ? impacts.Max(i => i.impactSeverity).ToSoftwareQualitySeverity() 
+        private static SoftwareQualitySeverity? GetHighestSoftwareQualitySeverity(List<ImpactDto> impacts) =>
+            impacts is not null && impacts.Any()
+                ? impacts.Max(i => i.impactSeverity).ToSoftwareQualitySeverity()
                 : null;
 
-        private static IAnalysisIssueLocation GetAnalysisIssueLocation(string filePath, string message, TextRangeDto textRangeDto) => 
+        private static IAnalysisIssueLocation GetAnalysisIssueLocation(string filePath, string message, TextRangeDto textRangeDto) =>
             new AnalysisIssueLocation(message,
                 filePath,
                 new TextRange(textRangeDto.startLine,
@@ -56,15 +56,31 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
                     textRangeDto.endLineOffset,
                     null));
 
-        private static IAnalysisIssueFlow GetAnalysisIssueFlow(IssueFlowDto issueFlowDto) =>
-            new AnalysisIssueFlow(issueFlowDto.locations.Select(l => GetAnalysisIssueLocation(l.fileUri.LocalPath, l.message, l.textRange)).ToList());
+        private static IAnalysisIssueFlow[] GetFlows(List<IssueFlowDto> issueFlows)
+        {
+            if (issueFlows is null || issueFlows.Count == 0)
+            {
+                return [];
+            }
+
+            if (issueFlows.All(x => x.locations?.Count == 1))
+            {
+                return [GetAnalysisIssueFlow(issueFlows.SelectMany(x => x.locations))];
+            }
+
+            return issueFlows.Select(x => GetAnalysisIssueFlow(x.locations)).ToArray();
+        }
+
+        private static IAnalysisIssueFlow GetAnalysisIssueFlow(IEnumerable<IssueLocationDto> flowLocations) =>
+            new AnalysisIssueFlow(flowLocations.Select(l => GetAnalysisIssueLocation(l.fileUri.LocalPath, l.message, l.textRange)).ToList());
 
         private static IQuickFix GetQuickFix(FileUri fileURi, QuickFixDto quickFixDto) =>
             quickFixDto.inputFileEdits.Find(e => e.target == fileURi) is { } fileEdit
                 ? new QuickFix(quickFixDto.message, fileEdit.textEdits.Select(GetEdit).ToList())
                 : null;
 
-        private static IEdit GetEdit(TextEditDto textEdit) => 
-            new Edit(textEdit.newText, new TextRange(textEdit.range.startLine, textEdit.range.endLine, textEdit.range.startLineOffset, textEdit.range.endLineOffset, null));
+        private static IEdit GetEdit(TextEditDto textEdit) =>
+            new Edit(textEdit.newText,
+                new TextRange(textEdit.range.startLine, textEdit.range.endLine, textEdit.range.startLineOffset, textEdit.range.endLineOffset, null));
     }
 }
