@@ -48,9 +48,10 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     private readonly ISLCoreConstantsProvider constantsProvider;
     private readonly ISLCoreFoldersProvider slCoreFoldersProvider;
     private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
+    private readonly ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
+    private readonly ISLCoreTelemetryMigrationProvider telemetryMigrationProvider;
     private readonly INodeLocationProvider nodeLocator;
     private readonly IThreadHandling threadHandling;
-    private readonly ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
     public Task ShutdownTask => SLCoreRpc.ShutdownTask;
     internal ISLCoreRpc SLCoreRpc { get; private set; }
 
@@ -58,13 +59,14 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     internal SLCoreInstanceHandle(ISLCoreRpcFactory slCoreRpcFactory,
         ISLCoreConstantsProvider constantsProvider,
         ISLCoreFoldersProvider slCoreFoldersProvider,
-        IServerConnectionsProvider serverConnectionConfigurationProvider, 
+        IServerConnectionsProvider serverConnectionConfigurationProvider,
         ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
         INodeLocationProvider nodeLocator,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IConfigScopeUpdater configScopeUpdater,
-        IThreadHandling threadHandling,
-        ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider)
+        ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider,
+        ISLCoreTelemetryMigrationProvider telemetryMigrationProvider,
+        IThreadHandling threadHandling)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
         this.constantsProvider = constantsProvider;
@@ -76,6 +78,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         this.configScopeUpdater = configScopeUpdater;
         this.threadHandling = threadHandling;
         this.slCoreRuleSettingsProvider = slCoreRuleSettingsProvider;
+        this.telemetryMigrationProvider = telemetryMigrationProvider;
     }
 
     public void Initialize()
@@ -109,7 +112,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             standaloneRuleConfigByKey: slCoreRuleSettingsProvider.GetSLCoreRuleSettings(),
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
-            null, // todo: https://sonarsource.atlassian.net/browse/SLVS-1304
+            telemetryMigrationProvider.Get(),
             new LanguageSpecificRequirements(nodeLocator.Get())));
 
         configScopeUpdater.UpdateConfigScopeForCurrentSolution(activeSolutionBoundTracker.CurrentConfiguration.Project);
