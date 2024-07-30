@@ -18,13 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Linq;
-using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.CFamily;
 using SonarLint.VisualStudio.CFamily.Rules;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
@@ -32,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     [TestClass]
     public class CFamilyEmbeddedSonarWayRulesTests
     {
-        // Sanity checks that the rules metata for the CFamily plugin is present and can be loaded
+        // Sanity checks that the rules metadata for the CFamily plugin is present and can be loaded
 
         // Note: how to find the expected number of active/inactive rules in SonarWay by language:
         // 1. Start a local SQ instance with the correct plugin version installed
@@ -50,12 +46,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         // e.g. https://next.sonarqube.com/sonarqube/api/plugins/installed and https://sonarcloud.io/api/plugins/installed
         // Note - you need to be logged in.
 
-        // Rule data for C-Family plugin v6.54.0.69031
+        // Rule data for C-Family plugin v6.57.0.73017
 
-        private const int Active_C_Rules = 207;
+        private const int Active_C_Rules = 209;
         private const int Inactive_C_Rules = 130;
 
-        private const int Active_CPP_Rules = 434;
+        private const int Active_CPP_Rules = 438;
         private const int Inactive_CPP_Rules = 219;
 
         private readonly CFamilySonarWayRulesConfigProvider rulesMetadataCache = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory);
@@ -86,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // The choice of rule ID here is arbitrary - any rule that has parameters will do.
             rulesMetadataCache.GetRulesConfiguration("cpp").RulesParameters.TryGetValue("S100", out var parameters);
             parameters.Should()
-                .Contain(new System.Collections.Generic.KeyValuePair<string, string>("format", "^[a-z][a-zA-Z0-9]*$"));
+                .Contain(new KeyValuePair<string, string>("format", "^[a-z][a-zA-Z0-9]*$"));
         }
 
         [TestMethod]
