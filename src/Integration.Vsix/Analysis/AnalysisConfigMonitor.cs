@@ -18,15 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.SLCore.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
@@ -39,34 +38,37 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposable
     {
         private readonly IAnalysisRequester analysisRequester;
-        private readonly IUserSettingsUpdater userSettingsUpdater;
+        private readonly IUserSettingsProvider userSettingsUpdater;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly INotifyQualityProfilesChanged notifyQualityProfilesUpdated;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
+        private readonly ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
 
-        public event EventHandler ConfigChanged;
 
         [ImportingConstructor]
         public AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
-            IUserSettingsUpdater userSettingsUpdater, // reports changes to user settings.json
+            IUserSettingsProvider userSettingsUpdater, // reports changes to user settings.json
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             INotifyQualityProfilesChanged notifyQualityProfilesUpdated,
-            ILogger logger)
+            ILogger logger,
+            ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater)
             : this(analysisRequester,
                   userSettingsUpdater,
                   activeSolutionBoundTracker,
                   notifyQualityProfilesUpdated,
                   logger,
-                  ThreadHandling.Instance)
+                  ThreadHandling.Instance, 
+                  slCoreRuleSettingsUpdater)
         { }
 
         internal AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
-            IUserSettingsUpdater userSettingsUpdater,
+            IUserSettingsProvider userSettingsUpdater,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             INotifyQualityProfilesChanged notifyQualityProfilesUpdated,
             ILogger logger,
-            IThreadHandling threadHandling)
+            IThreadHandling threadHandling,
+            ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater)
         {
             this.analysisRequester = analysisRequester;
             this.userSettingsUpdater = userSettingsUpdater;
@@ -74,6 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.notifyQualityProfilesUpdated = notifyQualityProfilesUpdated;
             this.logger = logger;
             this.threadHandling = threadHandling;
+            this.slCoreRuleSettingsUpdater = slCoreRuleSettingsUpdater;
 
             userSettingsUpdater.SettingsChanged += OnUserSettingsChanged;
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
@@ -92,6 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             // There is a corner-case where we want to raise the event even in Connected Mode - see https://github.com/SonarSource/sonarlint-visualstudio/issues/3701
             logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
+            slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
             OnSettingsChangedAsync().Forget();
         }
 
@@ -106,15 +110,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private async Task OnSettingsChangedAsync()
         {
             await threadHandling.SwitchToBackgroundThread();
-            RaiseConfigChangedEvent();
 
             // NB assumes exception handling is done by the AnalysisRequester
             analysisRequester.RequestAnalysis();
-        }
-
-        private void RaiseConfigChangedEvent()
-        {
-            ConfigChanged?.Invoke(this, EventArgs.Empty);
         }
 
         #region IDisposable Support

@@ -27,15 +27,20 @@ using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Analysis;
 
-public interface ISLCoreRuleSettings
+public interface ISLCoreRuleSettingsUpdater
 {
-    Dictionary<string, StandaloneRuleConfigDto> RulesSettings { get; }
     void UpdateStandaloneRulesConfiguration();
 }
 
-[Export(typeof(ISLCoreRuleSettings))]
+public interface ISLCoreRuleSettingsProvider
+{
+    Dictionary<string, StandaloneRuleConfigDto> GetSLCoreRuleSettings();
+}
+
+[Export(typeof(ISLCoreRuleSettingsUpdater))]
+[Export(typeof(ISLCoreRuleSettingsProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class SlCoreRuleSettings : ISLCoreRuleSettings
+internal sealed class SlCoreRuleSettings : ISLCoreRuleSettingsUpdater, ISLCoreRuleSettingsProvider
 {
     private readonly ILogger logger;
     private readonly IUserSettingsProvider userSettingsProvider;
@@ -49,11 +54,9 @@ internal sealed class SlCoreRuleSettings : ISLCoreRuleSettings
         this.slCoreServiceProvider = slCoreServiceProvider;
     }
 
-    public Dictionary<string, StandaloneRuleConfigDto> RulesSettings => MapRuleSettingsToSlCoreSettings(userSettingsProvider.UserSettings.RulesSettings);
-
-    private Dictionary<string, StandaloneRuleConfigDto> MapRuleSettingsToSlCoreSettings(RulesSettings rulesSettings)
-    { 
-        return rulesSettings.Rules.ToDictionary(kvp => kvp.Key, kvp => MapStandaloneRuleConfigDto(kvp.Value));
+    public Dictionary<string, StandaloneRuleConfigDto> GetSLCoreRuleSettings()
+    {
+        return userSettingsProvider.UserSettings.RulesSettings.Rules.ToDictionary(kvp => kvp.Key, kvp => MapStandaloneRuleConfigDto(kvp.Value));
     }
 
     public void UpdateStandaloneRulesConfiguration()
@@ -66,7 +69,7 @@ internal sealed class SlCoreRuleSettings : ISLCoreRuleSettings
 
         try
         {
-            rulesSlCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(RulesSettings));
+            rulesSlCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(GetSLCoreRuleSettings()));
         }
         catch (Exception e)
         {
@@ -77,5 +80,4 @@ internal sealed class SlCoreRuleSettings : ISLCoreRuleSettings
     private static StandaloneRuleConfigDto MapStandaloneRuleConfigDto(RuleConfig ruleConfig) => new(MapIsActive(ruleConfig.Level), MapParameters(ruleConfig.Parameters));
     private static bool MapIsActive(RuleLevel ruleLevel) => ruleLevel == RuleLevel.On;
     private static Dictionary<string, string> MapParameters(Dictionary<string, string> ruleParameters) => ruleParameters ?? [];
-
 }
