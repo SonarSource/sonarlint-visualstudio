@@ -109,6 +109,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             standaloneRuleConfigByKey: slCoreRuleSettingsProvider.GetSLCoreRuleSettings(),
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
+            null, // todo: https://sonarsource.atlassian.net/browse/SLVS-1304
             new LanguageSpecificRequirements(nodeLocator.Get())));
 
         configScopeUpdater.UpdateConfigScopeForCurrentSolution(activeSolutionBoundTracker.CurrentConfiguration.Project);
