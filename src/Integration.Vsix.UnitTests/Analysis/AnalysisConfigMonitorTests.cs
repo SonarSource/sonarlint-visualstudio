@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
@@ -63,6 +62,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 slCoreRuleSettingsUpdater);
         }
 
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<AnalysisConfigMonitor, IAnalysisConfigMonitor>(
+            MefTestHelpers.CreateExport<IAnalysisRequester>(),
+            MefTestHelpers.CreateExport<IUserSettingsProvider>(), 
+            MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
+            MefTestHelpers.CreateExport<INotifyQualityProfilesChanged>(),
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<ISLCoreRuleSettingsUpdater>());
+        }
 
         [TestMethod]
         public void WhenUserSettingsChange_AnalysisIsRequested()

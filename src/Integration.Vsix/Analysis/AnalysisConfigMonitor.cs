@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private readonly INotifyQualityProfilesChanged notifyQualityProfilesUpdated;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
-        private readonly ISLCoreRuleSettingsUpdater slCoreRuleSettings;
+        private readonly ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
 
 
         [ImportingConstructor]
@@ -52,14 +52,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             INotifyQualityProfilesChanged notifyQualityProfilesUpdated,
             ILogger logger,
-            ISLCoreRuleSettingsUpdater slCoreRuleSettings)
+            ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater)
             : this(analysisRequester,
                   userSettingsUpdater,
                   activeSolutionBoundTracker,
                   notifyQualityProfilesUpdated,
                   logger,
                   ThreadHandling.Instance, 
-                  slCoreRuleSettings)
+                  slCoreRuleSettingsUpdater)
         { }
 
         internal AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             INotifyQualityProfilesChanged notifyQualityProfilesUpdated,
             ILogger logger,
             IThreadHandling threadHandling,
-            ISLCoreRuleSettingsUpdater slCoreRuleSettings)
+            ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater)
         {
             this.analysisRequester = analysisRequester;
             this.userSettingsUpdater = userSettingsUpdater;
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.notifyQualityProfilesUpdated = notifyQualityProfilesUpdated;
             this.logger = logger;
             this.threadHandling = threadHandling;
-            this.slCoreRuleSettings = slCoreRuleSettings;
+            this.slCoreRuleSettingsUpdater = slCoreRuleSettingsUpdater;
 
             userSettingsUpdater.SettingsChanged += OnUserSettingsChanged;
             activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             // There is a corner-case where we want to raise the event even in Connected Mode - see https://github.com/SonarSource/sonarlint-visualstudio/issues/3701
             logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
-            slCoreRuleSettings.UpdateStandaloneRulesConfiguration();
+            slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
             OnSettingsChangedAsync().Forget();
         }
 
