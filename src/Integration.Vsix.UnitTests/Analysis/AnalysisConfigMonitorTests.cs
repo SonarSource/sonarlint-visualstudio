@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
-using SonarLint.VisualStudio.TestInfrastructure;
+using SonarLint.VisualStudio.SLCore.Analysis;
 using static SonarLint.VisualStudio.TestInfrastructure.NoOpThreadHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
@@ -34,144 +30,124 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
     [TestClass]
     public class AnalysisConfigMonitorTests
     {
-        [TestMethod]
-        public void WhenUserSettingsChange_AnalysisIsRequested()
+        private IAnalysisRequester analysisRequesterMock;
+        private IUserSettingsProvider userSettingsUpdaterMock;
+        private IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private INotifyQualityProfilesChanged notifyQPsUpdated;
+        private IThreadHandling threadHandling;
+        private ISLCoreRuleSettingsUpdater slCoreRuleSettingsUpdater;
+        private TestLogger logger;
+        private AnalysisConfigMonitor testSubject;
+
+        [TestInitialize]
+        public void TestInitialize()
         {
-            var builder = new TestEnvironmentBuilder();
+            analysisRequesterMock = Substitute.For<IAnalysisRequester>();
+            userSettingsUpdaterMock = Substitute.For<IUserSettingsProvider>();
+            activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+            notifyQPsUpdated = Substitute.For<INotifyQualityProfilesChanged>();
+            threadHandling = Substitute.For<IThreadHandling>();
+            slCoreRuleSettingsUpdater = Substitute.For<ISLCoreRuleSettingsUpdater>();
 
-            builder.SimulateUserSettingsChanged();
+            threadHandling.SwitchToBackgroundThread().Returns(new NoOpAwaitable());
 
-            // Should re-analyse
-            builder.AssertAnalysisIsRequested();
-            builder.AssertSwitchedToBackgroundThread();
-            builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
+            logger = new TestLogger();
+
+            testSubject = new AnalysisConfigMonitor(analysisRequesterMock, 
+                userSettingsUpdaterMock, 
+                activeSolutionBoundTracker, 
+                notifyQPsUpdated, 
+                logger, 
+                threadHandling, 
+                slCoreRuleSettingsUpdater);
         }
 
         [TestMethod]
-        public void WhenUserSettingsChange_HasSubscribersToConfigChangedEvent_SubscribersNotified()
+        public void MefCtor_CheckIsExported()
         {
-            var builder = new TestEnvironmentBuilder();
-            var eventHandler = new Mock<EventHandler>();
-            builder.TestSubject.ConfigChanged += eventHandler.Object;
+            MefTestHelpers.CheckTypeCanBeImported<AnalysisConfigMonitor, IAnalysisConfigMonitor>(
+            MefTestHelpers.CreateExport<IAnalysisRequester>(),
+            MefTestHelpers.CreateExport<IUserSettingsProvider>(), 
+            MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
+            MefTestHelpers.CreateExport<INotifyQualityProfilesChanged>(),
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<ISLCoreRuleSettingsUpdater>());
+        }
 
-            builder.SimulateUserSettingsChanged();
-            builder.AssertSwitchedToBackgroundThread();
+        [TestMethod]
+        public void WhenUserSettingsChange_AnalysisIsRequested()
+        {
+            SimulateUserSettingsChanged();
 
-            eventHandler.Verify(x=> x(builder.TestSubject, EventArgs.Empty), Times.Once);            
+            // Should re-analyse
+            AssertAnalysisIsRequested();
+            AssertSwitchedToBackgroundThread();
+            logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
+        }
+
+        [TestMethod]
+        public void WhenUserSettingsChange_UpdatesSlCoreSettingsBeforeTriggeringAnalysis()
+        {
+            SimulateUserSettingsChanged();
+
+            Received.InOrder(() =>
+            {
+                slCoreRuleSettingsUpdater.UpdateStandaloneRulesConfiguration();
+                analysisRequesterMock.RequestAnalysis(null, Array.Empty<string>());
+            });
         }
 
         [TestMethod]
         public void WhenBindingChanges_AnalysisIsRequested()
         {
-            var builder = new TestEnvironmentBuilder();
-
-            builder.SimulateBindingChanged();
+            SimulateBindingChanged();
 
             // Should re-analyse
-            builder.AssertAnalysisIsRequested();
-            builder.AssertSwitchedToBackgroundThread();
-            builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_BindingChanged);
-        }
-
-        [TestMethod]
-        public void WhenBindingChanges_HasSubscribersToConfigChangedEvent_SubscribersNotified()
-        {
-            var builder = new TestEnvironmentBuilder();
-            var eventHandler = new Mock<EventHandler>();
-            builder.TestSubject.ConfigChanged += eventHandler.Object;
-
-            builder.SimulateBindingChanged();
-            builder.AssertSwitchedToBackgroundThread();
-
-            eventHandler.Verify(x => x(builder.TestSubject, EventArgs.Empty), Times.Once);
+            AssertAnalysisIsRequested();
+            AssertSwitchedToBackgroundThread();
+            logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_BindingChanged);
         }
 
         [TestMethod]
         public void WhenQualityProfilesChanged_AnalysisIsRequested()
         {
-            var builder = new TestEnvironmentBuilder();
-
-            builder.SimulateQualityProfilesChanged();
+            SimulateQualityProfilesChanged();
 
             // Should re-analyse
-            builder.AssertAnalysisIsRequested();
-            builder.AssertSwitchedToBackgroundThread();
-            builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_QualityProfilesChanged);
-        }
-
-        [TestMethod]
-        public void WhenQualityProfilesChanged_HasSubscribersToConfigChangedEvent_SubscribersNotified()
-        {
-            var builder = new TestEnvironmentBuilder();
-            var eventHandler = new Mock<EventHandler>();
-            builder.TestSubject.ConfigChanged += eventHandler.Object;
-
-            builder.SimulateQualityProfilesChanged();
-            builder.AssertSwitchedToBackgroundThread();
-
-            eventHandler.Verify(x => x(builder.TestSubject, EventArgs.Empty), Times.Once);
+            AssertAnalysisIsRequested();
+            AssertSwitchedToBackgroundThread();
+            logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_QualityProfilesChanged);
         }
 
         [TestMethod]
         public void WhenDisposed_EventsAreIgnored()
         {
-            var builder = new TestEnvironmentBuilder();
-
             // Act
-            builder.TestSubject.Dispose();
+            testSubject.Dispose();
 
             // Raise events and check they are ignored
-            builder.SimulateUserSettingsChanged();
-            builder.SimulateBindingChanged();
-            builder.SimulateQualityProfilesChanged();
-            builder.AssertAnalysisIsNotRequested();
+            SimulateUserSettingsChanged();
+            SimulateBindingChanged();
+            SimulateQualityProfilesChanged();
+            AssertAnalysisIsNotRequested();
         }
 
-        private class TestEnvironmentBuilder
-        {
-            private readonly Mock<IAnalysisRequester> analysisRequesterMock;
-            private readonly Mock<IUserSettingsUpdater> userSettingsUpdaterMock;
-            private readonly Mock<IActiveSolutionBoundTracker> activeSolutionBoundTracker;
-            private readonly Mock<INotifyQualityProfilesChanged> notifyQPsUpdated;
-            private readonly Mock<IThreadHandling> threadHandling;
+        private void SimulateUserSettingsChanged()
+            => userSettingsUpdaterMock.SettingsChanged += Raise.EventWith(null, EventArgs.Empty);
 
-            public TestEnvironmentBuilder()
-            {
-                analysisRequesterMock = new Mock<IAnalysisRequester>();
-                userSettingsUpdaterMock = new Mock<IUserSettingsUpdater>();
-                activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
-                notifyQPsUpdated = new Mock<INotifyQualityProfilesChanged>();
-                threadHandling = new Mock<IThreadHandling>();
-                
-                threadHandling.Setup(th => th.SwitchToBackgroundThread()).Returns(new NoOpAwaitable());
+        private void SimulateBindingChanged(BindingConfiguration config = null)
+            => activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(null, new ActiveSolutionBindingEventArgs(config));
 
-                Logger = new TestLogger();
+        private void SimulateQualityProfilesChanged()
+            => notifyQPsUpdated.QualityProfilesChanged += Raise.EventWith(null, EventArgs.Empty);
 
-                TestSubject = new AnalysisConfigMonitor(analysisRequesterMock.Object,
-                    userSettingsUpdaterMock.Object, activeSolutionBoundTracker.Object, notifyQPsUpdated.Object, Logger, threadHandling.Object);
-            }
+        private void AssertAnalysisIsRequested()
+            => analysisRequesterMock.Received(1).RequestAnalysis(null, Array.Empty<string>());
 
-            public TestLogger Logger { get; }
+        private void AssertAnalysisIsNotRequested()
+            => analysisRequesterMock.ReceivedCalls().Count().Should().Be(0);
 
-            public AnalysisConfigMonitor TestSubject { get; }
-
-            public void SimulateUserSettingsChanged()
-                => userSettingsUpdaterMock.Raise(x => x.SettingsChanged += null, EventArgs.Empty);
-
-            public void SimulateBindingChanged(BindingConfiguration config = null)
-                => activeSolutionBoundTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(config));
-
-            public void SimulateQualityProfilesChanged()
-                => notifyQPsUpdated.Raise(x => x.QualityProfilesChanged += null, EventArgs.Empty);
-
-            public void AssertAnalysisIsRequested()
-                => analysisRequesterMock.Verify(x => x.RequestAnalysis((IAnalyzerOptions)null, Array.Empty<string>()), Times.Once);
-
-            public void AssertAnalysisIsNotRequested()
-                => analysisRequesterMock.Invocations.Count.Should().Be(0);
-    
-            public void AssertSwitchedToBackgroundThread()
-                => threadHandling.Verify(x => x.SwitchToBackgroundThread(), Times.Once);
-        }
+        private void AssertSwitchedToBackgroundThread()
+            => threadHandling.Received(1).SwitchToBackgroundThread();
     }
 }

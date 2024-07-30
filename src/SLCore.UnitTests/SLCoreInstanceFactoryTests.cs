@@ -44,7 +44,7 @@ public class SLCoreInstanceFactoryTests
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
             MefTestHelpers.CreateExport<IConfigScopeUpdater>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
-            MefTestHelpers.CreateExport<ISLCoreRuleSettings>());
+            MefTestHelpers.CreateExport<ISLCoreRuleSettingsProvider>());
     }
 
     [TestMethod]
@@ -66,9 +66,9 @@ public class SLCoreInstanceFactoryTests
         var activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         var configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
         var threadHandling = Substitute.For<IThreadHandling>();
-        var slCoreRuleSettings = Substitute.For<ISLCoreRuleSettings>();
+        var slCoreRuleSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
 
-        var testSubject = new SLCoreInstanceFactory(islCoreRpcFactory, islCoreConstantsProvider, islCoreFoldersProvider, serverConnectionsProvider, islCoreEmbeddedPluginJarLocator, compatibleNodeLocator, activeSolutionBoundTracker, configScopeUpdater, threadHandling, slCoreRuleSettings);
+        var testSubject = new SLCoreInstanceFactory(islCoreRpcFactory, islCoreConstantsProvider, islCoreFoldersProvider, serverConnectionsProvider, islCoreEmbeddedPluginJarLocator, compatibleNodeLocator, activeSolutionBoundTracker, configScopeUpdater, threadHandling, slCoreRuleSettingsProvider);
 
         testSubject.CreateInstance().Should().NotBeNull();
     }
