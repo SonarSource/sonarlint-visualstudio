@@ -52,7 +52,7 @@ public sealed class SLCoreTestRunner : IDisposable
     private SLCoreInstanceHandle slCoreInstanceHandle;
     internal ISLCoreServiceProvider SLCoreServiceProvider => slCoreInstanceHandle?.SLCoreRpc?.ServiceProvider;
     private readonly string testName;
-    private readonly ISLCoreRuleSettings slCoreRulesSettings = Substitute.For<ISLCoreRuleSettings>();
+    private readonly ISLCoreRuleSettingsProvider slCoreRulesSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
 
     public SLCoreTestRunner(ILogger logger, ILogger slCoreErrorLogger, string testName)
     {
@@ -76,7 +76,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
     public void MockInitialSlCoreRulesSettings(Dictionary<string, StandaloneRuleConfigDto> rulesSettings)
     {
-        slCoreRulesSettings.RulesSettings.Returns(rulesSettings ?? []);
+        slCoreRulesSettingsProvider.GetSLCoreRuleSettings().Returns(rulesSettings ?? []);
     }
 
     public void Start()
@@ -126,7 +126,7 @@ public sealed class SLCoreTestRunner : IDisposable
                 noOpActiveSolutionBoundTracker,
                 noOpConfigScopeUpdater,
                 new NoOpThreadHandler(),
-                slCoreRulesSettings);
+                slCoreRulesSettingsProvider);
             slCoreInstanceHandle.Initialize();
         }
         finally

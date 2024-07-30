@@ -20,7 +20,9 @@
 
 using System.IO;
 using System.IO.Abstractions;
+using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using NSubstitute.ExceptionExtensions;
+using SonarLint.VisualStudio.Core.FileMonitor;
 using SonarLint.VisualStudio.Core.Resources;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -35,6 +37,8 @@ public class UserSettingsProviderTests
     private TestLogger testLogger;
     private UserSettingsProvider userSettingsProvider;
     private IFileSystem fileSystem;
+    private ISingleFileMonitorFactory singleFileMonitorFactory;
+    private ISingleFileMonitor singleFileMonitor;
 
     public TestContext TestContext { get; set; }
 
@@ -43,14 +47,21 @@ public class UserSettingsProviderTests
     {
         testLogger = new TestLogger();
         fileSystem = Substitute.For<IFileSystem>();
+        singleFileMonitorFactory = Substitute.For<ISingleFileMonitorFactory>();
+        singleFileMonitor = Substitute.For<ISingleFileMonitor>();
 
-        userSettingsProvider = CreateUserSettingsProvider(testLogger, fileSystem);
+        singleFileMonitor.MonitoredFilePath.Returns(SettingsFilePath);
+        singleFileMonitorFactory.Create(Arg.Any<string>()).Returns(singleFileMonitor);
+
+        userSettingsProvider = CreateUserSettingsProvider(testLogger, fileSystem, singleFileMonitorFactory);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<UserSettingsProvider, IUserSettingsProvider>(MefTestHelpers.CreateExport<ILogger>());
+        MefTestHelpers.CheckTypeCanBeImported<UserSettingsProvider, IUserSettingsProvider>(
+            MefTestHelpers.CreateExport<ILogger>(), 
+            MefTestHelpers.CreateExport<ISingleFileMonitorFactory>(singleFileMonitorFactory));
     }
 
     [TestMethod]
@@ -73,11 +84,14 @@ public class UserSettingsProviderTests
     [TestMethod]
     public void Ctor_NullArguments()
     {
-        Action act = () => CreateUserSettingsProvider(null, fileSystem);
+        Action act = () => CreateUserSettingsProvider(null, fileSystem, singleFileMonitorFactory);
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
-        act = () => CreateUserSettingsProvider(testLogger, null);
+        act = () => CreateUserSettingsProvider(testLogger, null, singleFileMonitorFactory);
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
+
+        act = () => CreateUserSettingsProvider(testLogger, fileSystem, singleFileMonitorFactoryMock:null);
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("singleFileMonitorFactory");
     }
 
     [TestMethod]
@@ -87,7 +101,7 @@ public class UserSettingsProviderTests
         fileSystem.File.Exists(SettingsFilePath).Returns(true);
         fileSystem.File.ReadAllText(SettingsFilePath).Throws(new InvalidOperationException("custom error message"));
 
-        CreateUserSettingsProvider(testLogger, fileSystem);
+        CreateUserSettingsProvider(testLogger, fileSystem, singleFileMonitorFactory);
 
         // Assert
         CheckSettingsAreEmpty(userSettingsProvider.UserSettings);
@@ -98,13 +112,17 @@ public class UserSettingsProviderTests
     public void Ctor_DoesNotCallAnyNonFreeThreadedServices()
     {
         var logger = Substitute.For<ILogger>();
+        var fileMonitor = Substitute.For<ISingleFileMonitor>();
+        singleFileMonitorFactory.Create(Arg.Any<string>()).Returns(fileMonitor);
 
-        CreateUserSettingsProvider(logger, fileSystem);
+        CreateUserSettingsProvider(logger, fileSystem, singleFileMonitorFactory);
 
         // The MEF constructor should be free-threaded, which it will be if
         // it doesn't make any external calls.
         logger.ReceivedCalls().Should().BeEmpty();
         fileSystem.ReceivedCalls().Should().BeEmpty();
+        fileMonitor.ReceivedCalls().Count().Should().Be(1);
+        fileMonitor.Received(1).FileChanged += Arg.Any<EventHandler>();
     }
 
     [TestMethod]
@@ -143,7 +161,7 @@ public class UserSettingsProviderTests
         var settingsFile = Path.Combine(dir, "settings.txt");
 
         var logger = new TestLogger(logToConsole: true);
-        var testSubject = CreateUserSettingsProvider(logger, new FileSystem(), settingsFile);
+        var testSubject = CreateUserSettingsProvider(logger, new FileSystem(), singleFileMonitorFactory, settingsFile);
 
         // Sanity check of test setup
         testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(0);
@@ -179,7 +197,7 @@ public class UserSettingsProviderTests
         SaveSettings(settingsFile, initialSettings);
 
         var logger = new TestLogger(logToConsole: true);
-        var testSubject = CreateUserSettingsProvider(logger, new FileSystem(), settingsFile);
+        var testSubject = CreateUserSettingsProvider(logger, new FileSystem(), singleFileMonitorFactory, settingsFile);
 
         // Sanity check of test setup
         testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(3);
@@ -202,7 +220,7 @@ public class UserSettingsProviderTests
     {
         var dir = CreateTestSpecificDirectory();
         var settingsFile = Path.Combine(dir, "settings.txt");
-        var testSubject = CreateUserSettingsProvider(testLogger, new FileSystem(), settingsFile);
+        var testSubject = CreateUserSettingsProvider(testLogger, new FileSystem(), singleFileMonitorFactory, settingsFile);
         testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(0);
 
         var newSettings = new RulesSettings
@@ -218,11 +236,100 @@ public class UserSettingsProviderTests
         testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(1);
     }
 
-    private UserSettingsProvider CreateUserSettingsProvider(ILogger logger, IFileSystem fileSystem, string settings = null)
+    [TestMethod]
+    public void FileChanges_EventsRaised()
     {
-        settings ??= SettingsFilePath;
+        int settingsChangedEventCount = 0;
 
-        return new UserSettingsProvider(logger, fileSystem, settings);    
+        userSettingsProvider.SettingsChanged += (s, args) => settingsChangedEventCount++;
+
+        singleFileMonitor.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+        settingsChangedEventCount.Should().Be(1);
+
+        // 2. Simulate another event when the file is valid - valid settings should be returned
+        singleFileMonitor.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+        settingsChangedEventCount.Should().Be(2);
+    }
+
+    [TestMethod]
+    public void FileChanges_UserSettingsAreLoaded()
+    {
+        singleFileMonitor.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+      
+        fileSystem.Received(1).File.Exists(SettingsFilePath);
+    }
+
+    [TestMethod]
+    public void ConstructAndDispose()
+    {
+        singleFileMonitor.DidNotReceive().Dispose();
+
+        userSettingsProvider.Dispose();
+
+        singleFileMonitor.Received(1).Dispose();
+        singleFileMonitor.Received(1).FileChanged -= Arg.Any<EventHandler>();
+    }
+
+    [TestMethod]
+    public void SettingsChangeNotificationIsRaised()
+    {
+        // We're deliberately returning different data on each call to IFile.ReadAllText
+        // so we can check that the provider is correctly reloading and using the file data,
+        // and not re-using the in-memory version.
+        const string originalData = "{}";
+        const string modifiedData = @"{
+    'sonarlint.rules': {
+        'typescript:S2685': {
+            'level': 'on'
+        }
+    }
+}";
+        var fileSystemMock = CreateMockFile(SettingsFilePath, originalData);
+        var settingsProvider = new UserSettingsProvider(Substitute.For<ILogger>(), singleFileMonitorFactory, fileSystemMock, SettingsFilePath);
+        int eventCount = 0;
+        var settingsChangedEventReceived = new ManualResetEvent(initialState: false);
+
+        settingsProvider.UserSettings.RulesSettings.Rules.Count.Should().Be(0); // sanity check of setup
+
+        settingsProvider.SettingsChanged += (s, args) =>
+        {
+            eventCount++;
+            settingsChangedEventReceived.Set();
+        };
+
+        // 1. Disable a rule
+        // Should trigger a save, but should not *directly* raise a "SettingsChanged" event
+        settingsProvider.DisableRule("dummyRule");
+        eventCount.Should().Be(0);
+
+        // 2. Now simulate a file-change event
+        fileSystemMock.File.ReadAllText(SettingsFilePath).Returns(modifiedData);
+        singleFileMonitor.FileChanged += Raise.EventWith(null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
+
+        // Check the settings change event was raised
+        eventCount.Should().Be(1);
+
+        // Check the data was actually reloaded from the file
+        settingsProvider.UserSettings.RulesSettings.Rules.Count.Should().Be(1);
+        settingsProvider.UserSettings.RulesSettings.Rules["typescript:S2685"].Level.Should().Be(RuleLevel.On);
+    }
+
+    [TestMethod]
+    public void MonitorsSettingsFilePath()
+    {
+        var testSettingsPath = "testSettings.json";
+
+        var testSubject = CreateUserSettingsProvider(testLogger, fileSystem, singleFileMonitorFactory, testSettingsPath);
+
+        testSubject.SettingsFilePath.Should().Be(testSettingsPath);
+        singleFileMonitorFactory.Received(1).Create(testSettingsPath);
+    }
+
+    private UserSettingsProvider CreateUserSettingsProvider(ILogger logger, IFileSystem fileSystemMock, ISingleFileMonitorFactory singleFileMonitorFactoryMock, string settingsPath = null)
+    {
+        settingsPath ??= SettingsFilePath;
+
+        return new UserSettingsProvider(logger, singleFileMonitorFactoryMock, fileSystemMock, settingsPath);    
     }
 
     private static void CheckSettingsAreEmpty(UserSettings settings)
@@ -250,5 +357,13 @@ public class UserSettingsProviderTests
         var dir = Path.Combine(TestContext.DeploymentDirectory, TestContext.TestName);
         Directory.CreateDirectory(dir);
         return dir;
+    }
+
+    private static IFileSystem CreateMockFile(string filePath, string contents)
+    {
+        var mockFile = Substitute.For<IFileSystem>();
+        mockFile.File.Exists(filePath).Returns(true);
+        mockFile.File.ReadAllText(filePath).Returns(contents);
+        return mockFile;
     }
 }

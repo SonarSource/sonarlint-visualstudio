@@ -19,30 +19,41 @@
  */
 
 using System.ComponentModel.Composition;
+using System.IO;
 using System.IO.Abstractions;
+using SonarLint.VisualStudio.Core.FileMonitor;
 using SonarLint.VisualStudio.Core.Resources;
 
 namespace SonarLint.VisualStudio.Core.UserRuleSettings;
 
 [Export(typeof(IUserSettingsProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class UserSettingsProvider : IUserSettingsProvider
+internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
 {
     private readonly IFileSystem fileSystem;
     private readonly ILogger logger;
     private readonly RulesSettingsSerializer serializer;
     private UserSettings userSettings;
+    private readonly ISingleFileMonitor settingsFileMonitor;
+
+    // Note: the data is stored in the roaming profile so it will be sync across machines
+    // for domain-joined users.
+    private static readonly string UserSettingsFilePath = Path.GetFullPath(
+        Path.Combine(EnvironmentVariableProvider.Instance.GetSLVSAppDataRootPath(), "settings.json"));
 
     [ImportingConstructor]
-    public UserSettingsProvider(ILogger logger) : this(logger, new FileSystem(), UserSettingsConstants.UserSettingsFilePath) { }
+    public UserSettingsProvider(ILogger logger, ISingleFileMonitorFactory singleFileMonitorFactory) : this(logger, singleFileMonitorFactory, new FileSystem(), UserSettingsFilePath) { }
 
-    internal /* for testing */ UserSettingsProvider(ILogger logger, IFileSystem fileSystem, string settingsFilePath)
+    internal /* for testing */ UserSettingsProvider(ILogger logger, ISingleFileMonitorFactory singleFileMonitorFactory, IFileSystem fileSystem, string settingsFilePath)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+        var fileMonitorFactory = singleFileMonitorFactory ?? throw new ArgumentNullException(nameof(singleFileMonitorFactory));
         this.serializer = new RulesSettingsSerializer(fileSystem, logger);
 
         SettingsFilePath = settingsFilePath;
+        settingsFileMonitor = fileMonitorFactory.Create(SettingsFilePath);
+        settingsFileMonitor.FileChanged += OnFileChanged;
     }
 
     #region IUserSettingsProvider implementation
@@ -60,6 +71,8 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider
         userSettings = new UserSettings(settings);
         return userSettings;
     }
+
+    public event EventHandler SettingsChanged;
 
     public void DisableRule(string ruleId)
     {
@@ -88,4 +101,16 @@ internal sealed class UserSettingsProvider : IUserSettingsProvider
     }
 
     #endregion
+
+    private void OnFileChanged(object sender, EventArgs e)
+    {
+        SafeLoadUserSettings();
+        SettingsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void Dispose()
+    {
+        settingsFileMonitor.FileChanged -= OnFileChanged;
+        settingsFileMonitor.Dispose();
+    }
 }

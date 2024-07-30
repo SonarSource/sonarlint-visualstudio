@@ -50,7 +50,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
     private readonly INodeLocationProvider nodeLocator;
     private readonly IThreadHandling threadHandling;
-    private readonly ISLCoreRuleSettings slCoreRuleSettings;
+    private readonly ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
     public Task ShutdownTask => SLCoreRpc.ShutdownTask;
     internal ISLCoreRpc SLCoreRpc { get; private set; }
 
@@ -64,7 +64,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IConfigScopeUpdater configScopeUpdater,
         IThreadHandling threadHandling,
-        ISLCoreRuleSettings slCoreRuleSettings)
+        ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
         this.constantsProvider = constantsProvider;
@@ -75,7 +75,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.configScopeUpdater = configScopeUpdater;
         this.threadHandling = threadHandling;
-        this.slCoreRuleSettings = slCoreRuleSettings;
+        this.slCoreRuleSettingsProvider = slCoreRuleSettingsProvider;
     }
 
     public void Initialize()
@@ -106,7 +106,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             serverConnectionConfigurations.Values.OfType<SonarQubeConnectionConfigurationDto>().ToList(),
             serverConnectionConfigurations.Values.OfType<SonarCloudConnectionConfigurationDto>().ToList(),
             sonarlintUserHome,
-            standaloneRuleConfigByKey: slCoreRuleSettings.RulesSettings,
+            standaloneRuleConfigByKey: slCoreRuleSettingsProvider.GetSLCoreRuleSettings(),
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
             new LanguageSpecificRequirements(nodeLocator.Get())));
