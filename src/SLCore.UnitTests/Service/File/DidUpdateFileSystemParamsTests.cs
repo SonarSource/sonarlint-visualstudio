@@ -59,7 +59,8 @@ public class DidUpdateFileSystemParamsTests
                                             "isTest": false,
                                             "charset": "utf8",
                                             "fsPath": "C:\\Users\\test\\project",
-                                            "content": "CONTENT"
+                                            "content": "CONTENT",
+                                            "isUserDefined": true
                                           }
                                         ]
                                       }

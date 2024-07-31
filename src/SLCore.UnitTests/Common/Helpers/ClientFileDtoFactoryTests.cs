@@ -112,5 +112,6 @@ public class ClientFileDtoFactoryTests
             "utf-8", 
             expectedFsPath,
             expectedContent));
+        actual.isUserDefined.Should().BeTrue();
     }
 }

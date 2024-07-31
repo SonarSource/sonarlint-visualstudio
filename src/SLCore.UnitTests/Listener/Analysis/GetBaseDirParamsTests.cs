@@ -18,6 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Files;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
-public record GetBaseDirResponse(string baseDir);
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Analysis;
+
+[TestClass]
+public class GetBaseDirParamsTests
+{
+
+    [TestMethod]
+    public void DeserializesCorrectly()
+    {
+        var expected = new GetBaseDirParams("My Config Scope");
+        var serialized =
+            """
+            {
+                "configurationScopeId": "My Config Scope"
+            }
+            """;
+
+        var actual = JsonConvert.DeserializeObject<GetBaseDirParams>(serialized);
+        
+        actual.Should().BeEquivalentTo(expected);
+    }
+}

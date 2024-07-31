@@ -18,37 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener.Files;
+using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation.Analysis;
 
-[TestClass]
-public class GetBaseDirListenerTests
+[Export(typeof(ISLCoreListener))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal class AnalysisConfigurationProviderListener : IAnalysisConfigurationProviderListener
 {
-    [TestMethod]
-    public void MefCtor_CheckIsExported()
+    public Task<GetBaseDirResponse> GetBaseDirAsync(GetBaseDirParams parameters)
     {
-        MefTestHelpers.CheckTypeCanBeImported<GetBaseDirListener, ISLCoreListener>();
+        return Task.FromResult(new GetBaseDirResponse(null));
     }
 
-    [TestMethod]
-    public void MefCtor_CheckIsSingleton()
+    public Task<GetInferredAnalysisPropertiesResponse> GetInferredAnalysisPropertiesAsync(GetInferredAnalysisPropertiesParams parameters)
     {
-        MefTestHelpers.CheckIsSingletonMefComponent<GetBaseDirListener>();
-    }
-
-    [DataRow(null)]
-    [DataRow("")]
-    [DataRow("configScopeId")]
-    [DataRow("configScopeId123")]
-    [DataTestMethod]
-    public void GetBaseDirAsync_AnyValue_ReturnsNull(string configScopeId)
-    {
-        var testSubject = new GetBaseDirListener();
-
-        var result = testSubject.GetBaseDirAsync(new GetBaseDirParams(configScopeId)).Result;
-
-        result.baseDir.Should().BeNull();
+        return Task.FromResult(new GetInferredAnalysisPropertiesResponse([]));
     }
 }
