@@ -47,6 +47,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
     private readonly IConfigScopeUpdater configScopeUpdater;
     private readonly IThreadHandling threadHandling;
     private readonly ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
+    private readonly ISLCoreTelemetryMigrationProvider telemetryMigrationProvider;
 
     [ImportingConstructor]
     public SLCoreInstanceFactory(ISLCoreRpcFactory slCoreRpcFactory,
@@ -57,8 +58,9 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         INodeLocationProvider nodeLocator,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IConfigScopeUpdater configScopeUpdater,
-        IThreadHandling threadHandling,
-        ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider)
+        ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider,
+        ISLCoreTelemetryMigrationProvider telemetryMigrationProvider,
+        IThreadHandling threadHandling)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
         this.constantsProvider = constantsProvider;
@@ -68,8 +70,9 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         this.nodeLocator = nodeLocator;
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.configScopeUpdater = configScopeUpdater;
-        this.threadHandling = threadHandling;
         this.slCoreRuleSettingsProvider = slCoreRuleSettingsProvider;
+        this.telemetryMigrationProvider = telemetryMigrationProvider;
+        this.threadHandling = threadHandling;
     }
     
     public ISLCoreInstanceHandle CreateInstance() =>
@@ -81,6 +84,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
             nodeLocator,
             activeSolutionBoundTracker,
             configScopeUpdater,
-            threadHandling,
-            slCoreRuleSettingsProvider);
+            slCoreRuleSettingsProvider,
+            telemetryMigrationProvider, 
+            threadHandling);
 }
