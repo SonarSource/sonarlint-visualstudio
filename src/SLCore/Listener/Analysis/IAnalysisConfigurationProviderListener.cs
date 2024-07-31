@@ -18,18 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.SLCore.Core;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Files.Models;
+namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
-public record ClientFileDto(
-    FileUri uri,
-    string ideRelativePath,
-    string configScopeId,
-    bool? isTest,
-    string charset,
-    string fsPath,
-    string content = null)
+public interface IAnalysisConfigurationProviderListener : ISLCoreListener
 {
-    public bool isUserDefined => true;
+    Task<GetBaseDirResponse> GetBaseDirAsync(GetBaseDirParams parameters);
+
+    Task<GetInferredAnalysisPropertiesResponse> GetInferredAnalysisPropertiesAsync(GetInferredAnalysisPropertiesParams parameters);
 }
