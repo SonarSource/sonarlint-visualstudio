@@ -65,6 +65,7 @@ public class SLCoreInstanceHandleTests
     private IThreadHandling threadHandling;
     private ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
     private SLCoreInstanceHandle testSubject;
+    private ISLCoreTelemetryMigrationProvider telemetryMigrationProvider;
 
     [TestInitialize]
     public void TestInitialize()
@@ -79,6 +80,7 @@ public class SLCoreInstanceHandleTests
         configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
         threadHandling = Substitute.For<IThreadHandling>();
         slCoreRuleSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
+        telemetryMigrationProvider = Substitute.For<ISLCoreTelemetryMigrationProvider>();
 
         testSubject = new SLCoreInstanceHandle(slCoreRpcFactory,
             constantsProvider,
@@ -88,8 +90,8 @@ public class SLCoreInstanceHandleTests
             nodeLocator,
             activeSolutionBoundTracker,
             configScopeUpdater,
-            threadHandling,
-            slCoreRuleSettingsProvider);
+            slCoreRuleSettingsProvider,
+            telemetryMigrationProvider, threadHandling);
     }
 
     [TestMethod]
@@ -112,6 +114,8 @@ public class SLCoreInstanceHandleTests
         SetUpLanguages(constantsProvider, [], []);
         SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
         nodeLocator.Get().Returns(nodeJsPath);
+        var telemetryMigrationDto = new TelemetryMigrationDto(default, default, default);
+        telemetryMigrationProvider.Get().Returns(telemetryMigrationDto);
         
         testSubject.Initialize();
 
@@ -132,7 +136,8 @@ public class SLCoreInstanceHandleTests
                 && parameters.standaloneRuleConfigByKey.Count == 0
                 && !parameters.isFocusOnNewCode
                 && parameters.telemetryConstantAttributes == TelemetryConstants
-                && parameters.languageSpecificRequirements.clientNodeJsPath == nodeJsPath));
+                && parameters.languageSpecificRequirements.clientNodeJsPath == nodeJsPath
+                && parameters.telemetryMigration == telemetryMigrationDto));
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(Binding);
         });
     }
