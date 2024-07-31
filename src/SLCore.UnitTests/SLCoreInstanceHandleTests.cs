@@ -91,7 +91,8 @@ public class SLCoreInstanceHandleTests
             activeSolutionBoundTracker,
             configScopeUpdater,
             slCoreRuleSettingsProvider,
-            telemetryMigrationProvider, threadHandling);
+            telemetryMigrationProvider,
+            threadHandling);
     }
 
     [TestMethod]
