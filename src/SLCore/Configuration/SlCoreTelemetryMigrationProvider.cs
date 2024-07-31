@@ -24,9 +24,9 @@ using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Configuration;
 
-[Export(typeof(ISLCoreTelemetryMigrationProvider))]
+[Export(typeof(ISlCoreTelemetryMigrationProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class SlCoreTelemetryMigrationProvider : ISLCoreTelemetryMigrationProvider
+internal class SlCoreTelemetryMigrationProvider : ISlCoreTelemetryMigrationProvider
 {
     private readonly ITelemetryDataRepository telemetryDataRepository;
 

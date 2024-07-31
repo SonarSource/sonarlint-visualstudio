@@ -47,7 +47,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
     private readonly IConfigScopeUpdater configScopeUpdater;
     private readonly IThreadHandling threadHandling;
     private readonly ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
-    private readonly ISLCoreTelemetryMigrationProvider telemetryMigrationProvider;
+    private readonly ISlCoreTelemetryMigrationProvider telemetryMigrationProvider;
 
     [ImportingConstructor]
     public SLCoreInstanceFactory(ISLCoreRpcFactory slCoreRpcFactory,
@@ -59,7 +59,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IConfigScopeUpdater configScopeUpdater,
         ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider,
-        ISLCoreTelemetryMigrationProvider telemetryMigrationProvider,
+        ISlCoreTelemetryMigrationProvider telemetryMigrationProvider,
         IThreadHandling threadHandling)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;

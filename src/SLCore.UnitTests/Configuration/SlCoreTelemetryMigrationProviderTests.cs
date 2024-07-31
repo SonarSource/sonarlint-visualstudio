@@ -30,7 +30,7 @@ public class SlCoreTelemetryMigrationProviderTests
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<SlCoreTelemetryMigrationProvider, ISLCoreTelemetryMigrationProvider>(
+        MefTestHelpers.CheckTypeCanBeImported<SlCoreTelemetryMigrationProvider, ISlCoreTelemetryMigrationProvider>(
             MefTestHelpers.CreateExport<ITelemetryDataRepository>());
     }
 

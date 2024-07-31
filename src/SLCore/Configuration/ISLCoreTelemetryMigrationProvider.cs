@@ -22,7 +22,7 @@ using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Configuration;
 
-internal interface ISLCoreTelemetryMigrationProvider
+internal interface ISlCoreTelemetryMigrationProvider
 {
     TelemetryMigrationDto Get();
 }
