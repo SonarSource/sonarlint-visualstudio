@@ -22,4 +22,14 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 
-public record ClientFileDto(FileUri uri, string ideRelativePath, string configScopeId, bool? isTest, string charset, string fsPath, string content = null);
+public record ClientFileDto(
+    FileUri uri,
+    string ideRelativePath,
+    string configScopeId,
+    bool? isTest,
+    string charset,
+    string fsPath,
+    string content = null)
+{
+    public bool isUserDefined => true;
+}

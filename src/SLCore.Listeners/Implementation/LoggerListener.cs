@@ -40,14 +40,14 @@ public class LoggerListener : ILoggerListener
     public void Log(LogParams parameters)
     {
         var message = "[SLCORE] " + parameters.message;
-
+        
         switch (parameters.level)
         {
             case LogLevel.ERROR:
             case LogLevel.WARN:
                 logger.WriteLine(message);
                 break;
-
+        
             case LogLevel.INFO:
             case LogLevel.DEBUG:
             case LogLevel.TRACE:

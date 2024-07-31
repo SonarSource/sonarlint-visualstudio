@@ -19,9 +19,9 @@
  */
 
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.SLCore.Listener.Files;
+using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
-namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Files;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Analysis;
 
 [TestClass]
 public class GetBaseDirResponseTests

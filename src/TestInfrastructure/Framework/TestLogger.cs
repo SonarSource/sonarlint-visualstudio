@@ -117,7 +117,15 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public void LogVerbose(string message, params object[] args)
         {
-            WriteLine($"[Verbose] {message}", args);
+            var verboseMessage = $"[Verbose] {message}";
+            if (args.Length == 0)
+            {
+                WriteLine(verboseMessage);
+            }
+            else
+            {
+                WriteLine(verboseMessage, args);
+            }
         }
 
         private string GetFormattedMessage(string message)

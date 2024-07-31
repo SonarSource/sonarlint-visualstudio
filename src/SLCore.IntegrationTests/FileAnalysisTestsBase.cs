@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Files;
 using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 using SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+using SonarLint.VisualStudio.SLCore.Listeners.Implementation.Analysis;
 using SonarLint.VisualStudio.SLCore.Service.Analysis;
 using SonarLint.VisualStudio.SLCore.Service.Rules;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
@@ -34,7 +35,7 @@ using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
-public class FileAnalysisTestsBase
+public abstract class FileAnalysisTestsBase
 {
     private const string ConfigScopeId = "ConfigScope1";
     protected const string TwoJsIssuesPath = @"Resources\TwoIssues.js";
@@ -42,6 +43,8 @@ public class FileAnalysisTestsBase
     protected const string OneIssueRuleWithParamPath = @"Resources\RuleParam.js";
 
     public TestContext TestContext { get; set; }
+    
+    protected abstract Guid AnalysisId { get; set; }
     
     protected Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(string fileToAnalyzeRelativePath, bool sendContent = false)
     {
@@ -79,12 +82,12 @@ public class FileAnalysisTestsBase
         return analysisRaisedIssues.Task.Result.issuesByFileUri;
     }
 
-    private static async Task RunSlCoreFileAnalysis(SLCoreTestRunner slCoreTestRunner, string fileToAnalyzeAbsolutePath)
+    private async Task RunSlCoreFileAnalysis(SLCoreTestRunner slCoreTestRunner, string fileToAnalyzeAbsolutePath)
     {
         slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService).Should().BeTrue();
 
         var (failedAnalysisFiles, _) = await analysisService.AnalyzeFilesAndTrackAsync(
-            new AnalyzeFilesAndTrackParams(ConfigScopeId, Guid.NewGuid(),
+            new AnalyzeFilesAndTrackParams(ConfigScopeId, AnalysisId,
                 [new FileUri(fileToAnalyzeAbsolutePath)], [], false,
                 DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()), CancellationToken.None);
         failedAnalysisFiles.Should().BeEmpty();
@@ -107,7 +110,7 @@ public class FileAnalysisTestsBase
         slCoreTestRunner.AddListener(new ProgressListener());
         slCoreTestRunner.AddListener(analysisListener);
         slCoreTestRunner.AddListener(listFilesListener);
-        slCoreTestRunner.AddListener(new GetBaseDirListener());
+        slCoreTestRunner.AddListener(new AnalysisConfigurationProviderListener());
         slCoreTestRunner.Start();
 
         var activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
@@ -133,7 +136,9 @@ public class FileAnalysisTestsBase
 
     protected static string GetFullPath(string fileToAnalyzeRelativePath)
     {
-        return Path.GetFullPath(fileToAnalyzeRelativePath);
+        var currentDomainBaseDirectory = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+        var integrationTestBaseDirectory = currentDomainBaseDirectory.Parent.Parent.Parent.FullName;
+        return Path.Combine(integrationTestBaseDirectory, fileToAnalyzeRelativePath);
     }
 
     private static void UpdateStandaloneRulesConfiguration(SLCoreTestRunner slCoreTestRunner,
@@ -149,7 +154,7 @@ public class FileAnalysisTestsBase
         rulesCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(ruleConfigByKey));
     }
 
-    private static IAnalysisListener SetUpAnalysisListener(string configScopeId,
+    private IAnalysisListener SetUpAnalysisListener(string configScopeId,
         TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource,
         TaskCompletionSource<RaiseFindingParams<RaisedIssueDto>> analysisRaisedIssues)
     {
@@ -163,7 +168,7 @@ public class FileAnalysisTestsBase
             .Do(info =>
             {
                 var raiseIssuesParams = info.Arg<RaiseFindingParams<RaisedIssueDto>>();
-                if (!raiseIssuesParams.isIntermediatePublication)
+                if (raiseIssuesParams.analysisId == AnalysisId && !raiseIssuesParams.isIntermediatePublication)
                 {
                     analysisRaisedIssues.SetResult(raiseIssuesParams);
                 }
