@@ -31,14 +31,6 @@ public class RuleConfigurationAnalysisTests : FileAnalysisTestsBase
     private const string CtorParamRuleId = "javascript:S107";
     private const int ActualCtorParams = 4;
     private const string CtorParamName = "maximumFunctionParameters";
-    
-    protected override Guid AnalysisId { get; set; }
-
-    [TestInitialize]
-    public void TestInitialize()
-    {
-        AnalysisId = Guid.NewGuid();
-    }
 
     [TestMethod]
     public async Task StandaloneRuleConfig_JavaScriptAnalysisShouldIgnoreOneIssueOfInactiveRule()

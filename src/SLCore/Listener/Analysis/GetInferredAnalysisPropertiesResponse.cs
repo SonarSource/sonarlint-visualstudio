@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-
 namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
-public interface IAnalysisConfigurationProviderListener : ISLCoreListener
-{
-    Task<GetBaseDirResponse> GetBaseDirAsync(GetBaseDirParams parameters);
-
-    Task<GetInferredAnalysisPropertiesResponse> GetInferredAnalysisPropertiesAsync(GetInferredAnalysisPropertiesParams parameters);
-}
+public record GetInferredAnalysisPropertiesResponse(Dictionary<string, string> properties);

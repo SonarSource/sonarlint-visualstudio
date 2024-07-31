@@ -25,14 +25,6 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 [TestClass]
 public class SimpleAnalysisTests : FileAnalysisTestsBase
 {
-    protected override Guid AnalysisId { get; set; }
-
-    [TestInitialize]
-    public void TestInitialize()
-    {
-        AnalysisId = Guid.NewGuid();
-    }
-    
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_JavaScriptAnalysisProducesExpectedNumberOfIssues() 
         => DefaultRuleConfig_JavaScriptAnalysisProducesExpectedNumberOfIssues(false);
