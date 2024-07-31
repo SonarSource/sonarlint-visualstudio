@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarQube.Client.Models;
 
