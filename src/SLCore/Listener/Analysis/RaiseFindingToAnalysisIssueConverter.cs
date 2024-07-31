@@ -37,27 +37,36 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 
         private static AnalysisIssue CreateAnalysisIssue<T>(FileUri fileUri, T item) where T : RaisedFindingDto
         {
+            var itemRuleKey = item.ruleKey;
+            var analysisIssueSeverity = item.severity.ToAnalysisIssueSeverity();
+            var analysisIssueType = item.type.ToAnalysisIssueType();
+            var highestSoftwareQualitySeverity = GetHighestSoftwareQualitySeverity(item.impacts);
+            var analysisIssueLocation = GetAnalysisIssueLocation(fileUri.LocalPath, item.primaryMessage, item.textRange);
+            var analysisIssueFlows = GetFlows(item.flows);
+            var readOnlyList = item.quickFixes?.Select(qf => GetQuickFix(fileUri, qf)).Where(qf => qf is not null).ToList();
+            var itemRuleDescriptionContextKey = item.ruleDescriptionContextKey;
+
             if (item is RaisedHotspotDto raisedHotspotDto)
             {
-                return new AnalysisHotspotIssue(item.ruleKey,
-                    item.severity.ToAnalysisIssueSeverity(),
-                    item.type.ToAnalysisIssueType(),
-                    GetHighestSoftwareQualitySeverity(item.impacts),
-                    GetAnalysisIssueLocation(fileUri.LocalPath, item.primaryMessage, item.textRange),
-                    GetFlows(item.flows),
-                    item.quickFixes?.Select(qf => GetQuickFix(fileUri, qf)).Where(qf => qf is not null).ToList(),
-                    item.ruleDescriptionContextKey,
-                    GetHotspotPriority(raisedHotspotDto));
+                return new AnalysisHotspotIssue(itemRuleKey,
+                    analysisIssueSeverity,
+                    analysisIssueType,
+                    highestSoftwareQualitySeverity,
+                    analysisIssueLocation,
+                    analysisIssueFlows,
+                    readOnlyList,
+                    itemRuleDescriptionContextKey,
+                    raisedHotspotDto.vulnerabilityProbability.GetHotspotPriority());
             }
 
-            return new AnalysisIssue(item.ruleKey,
-                item.severity.ToAnalysisIssueSeverity(),
-                item.type.ToAnalysisIssueType(),
-                GetHighestSoftwareQualitySeverity(item.impacts),
-                GetAnalysisIssueLocation(fileUri.LocalPath, item.primaryMessage, item.textRange),
-                GetFlows(item.flows),
-                item.quickFixes?.Select(qf => GetQuickFix(fileUri, qf)).Where(qf => qf is not null).ToList(),
-                item.ruleDescriptionContextKey);
+            return new AnalysisIssue(itemRuleKey,
+                analysisIssueSeverity,
+                analysisIssueType,
+                highestSoftwareQualitySeverity,
+                analysisIssueLocation,
+                analysisIssueFlows,
+                readOnlyList,
+                itemRuleDescriptionContextKey);
         }
 
         private static SoftwareQualitySeverity? GetHighestSoftwareQualitySeverity(List<ImpactDto> impacts) =>
@@ -100,14 +109,5 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
         private static IEdit GetEdit(TextEditDto textEdit) =>
             new Edit(textEdit.newText,
                 new TextRange(textEdit.range.startLine, textEdit.range.endLine, textEdit.range.startLineOffset, textEdit.range.endLineOffset, null));
-
-        private static HotspotPriority? GetHotspotPriority(RaisedHotspotDto hotspotDto)
-        {
-            if(hotspotDto.vulnerabilityProbability == null)
-            {
-                return null;
-            }
-            return (HotspotPriority)Enum.Parse(typeof(HotspotPriority), hotspotDto.vulnerabilityProbability.ToString(), ignoreCase:true);
-        }
     }
 }

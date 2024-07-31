@@ -60,5 +60,17 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
                 _ => throw new ArgumentOutOfRangeException(nameof(impactSeverity), impactSeverity, SLCoreStrings.ModelExtensions_UnexpectedValue),
             };
         }
+
+        public static HotspotPriority? GetHotspotPriority(this VulnerabilityProbability? vulnerabilityProbability)
+        {
+            return vulnerabilityProbability switch
+            {
+                null => null,
+                VulnerabilityProbability.HIGH => HotspotPriority.High,
+                VulnerabilityProbability.MEDIUM => HotspotPriority.Medium,
+                VulnerabilityProbability.LOW => HotspotPriority.Low,
+                _ => throw new ArgumentOutOfRangeException(nameof(vulnerabilityProbability), vulnerabilityProbability, SLCoreStrings.ModelExtensions_UnexpectedValue),
+            };
+        }
     }
 }
