@@ -47,7 +47,8 @@ public class ListFilesResponseTests
                                    "isTest": false,
                                    "charset": "UTF-8",
                                    "fsPath": "C:\\Code\\Solution\\Project\\file1.cs",
-                                   "content": "some content"
+                                   "content": "some content",
+                                   "isUserDefined": true
                                  },
                                  {
                                    "uri": "file:///C:/Code/Solution/Project/file%202.cs",
@@ -56,7 +57,8 @@ public class ListFilesResponseTests
                                    "isTest": false,
                                    "charset": "UTF-8",
                                    "fsPath": "C:\\Code\\Solution\\Project\\file 2.cs",
-                                   "content": null
+                                   "content": null,
+                                   "isUserDefined": true
                                  }
                                ]
                              }
