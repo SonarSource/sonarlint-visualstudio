@@ -31,6 +31,11 @@ namespace SonarLint.VisualStudio.Core.Analysis
         IReadOnlyList<IQuickFix> Fixes { get; }
     }
 
+    public interface IAnalysisHotspotIssue : IAnalysisIssue
+    {
+        HotspotPriority? HotspotPriority { get; }
+    }
+
     public interface IAnalysisIssueBase
     {
         string RuleKey { get; }

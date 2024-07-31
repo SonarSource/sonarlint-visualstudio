@@ -32,15 +32,33 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
     {
         public IEnumerable<IAnalysisIssue> GetAnalysisIssues<T>(FileUri fileUri, IEnumerable<T> raisedFindings) where T : RaisedFindingDto =>
             raisedFindings
-                .Select(item => new AnalysisIssue(item.ruleKey,
+                .Select(item => CreateAnalysisIssue(fileUri, item))
+                .ToList();
+
+        private static AnalysisIssue CreateAnalysisIssue<T>(FileUri fileUri, T item) where T : RaisedFindingDto
+        {
+            if (item is RaisedHotspotDto raisedHotspotDto)
+            {
+                return new AnalysisHotspotIssue(item.ruleKey,
                     item.severity.ToAnalysisIssueSeverity(),
                     item.type.ToAnalysisIssueType(),
                     GetHighestSoftwareQualitySeverity(item.impacts),
                     GetAnalysisIssueLocation(fileUri.LocalPath, item.primaryMessage, item.textRange),
                     GetFlows(item.flows),
                     item.quickFixes?.Select(qf => GetQuickFix(fileUri, qf)).Where(qf => qf is not null).ToList(),
-                    item.ruleDescriptionContextKey))
-                .ToList();
+                    item.ruleDescriptionContextKey,
+                    GetHotspotPriority(raisedHotspotDto));
+            }
+
+            return new AnalysisIssue(item.ruleKey,
+                item.severity.ToAnalysisIssueSeverity(),
+                item.type.ToAnalysisIssueType(),
+                GetHighestSoftwareQualitySeverity(item.impacts),
+                GetAnalysisIssueLocation(fileUri.LocalPath, item.primaryMessage, item.textRange),
+                GetFlows(item.flows),
+                item.quickFixes?.Select(qf => GetQuickFix(fileUri, qf)).Where(qf => qf is not null).ToList(),
+                item.ruleDescriptionContextKey);
+        }
 
         private static SoftwareQualitySeverity? GetHighestSoftwareQualitySeverity(List<ImpactDto> impacts) =>
             impacts is not null && impacts.Any()
@@ -63,7 +81,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
                 return [];
             }
 
-            if (issueFlows.All(x => x.locations?.Count == 1))
+            if (issueFlows.TrueForAll(x => x.locations?.Count == 1))
             {
                 return [GetAnalysisIssueFlow(issueFlows.SelectMany(x => x.locations))];
             }
@@ -82,5 +100,14 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
         private static IEdit GetEdit(TextEditDto textEdit) =>
             new Edit(textEdit.newText,
                 new TextRange(textEdit.range.startLine, textEdit.range.endLine, textEdit.range.startLineOffset, textEdit.range.endLineOffset, null));
+
+        private static HotspotPriority? GetHotspotPriority(RaisedHotspotDto hotspotDto)
+        {
+            if(hotspotDto.vulnerabilityProbability == null)
+            {
+                return null;
+            }
+            return (HotspotPriority)Enum.Parse(typeof(HotspotPriority), hotspotDto.vulnerabilityProbability.ToString(), ignoreCase:true);
+        }
     }
 }
