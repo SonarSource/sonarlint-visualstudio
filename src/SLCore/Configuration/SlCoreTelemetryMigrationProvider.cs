@@ -18,11 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.Telemetry.Legacy;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Configuration;
 
-internal interface ISLCoreTelemetryMigrationProvider
+[Export(typeof(ISLCoreTelemetryMigrationProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal class SlCoreTelemetryMigrationProvider : ISLCoreTelemetryMigrationProvider
 {
-    TelemetryMigrationDto Get();
+    private readonly ITelemetryDataRepository telemetryDataRepository;
+
+    [ImportingConstructor]
+    public SlCoreTelemetryMigrationProvider(ITelemetryDataRepository telemetryDataRepository)
+    {
+        this.telemetryDataRepository = telemetryDataRepository;
+    }
+
+    public TelemetryMigrationDto Get()
+    {
+        var telemetryData = telemetryDataRepository.ReadTelemetryData();
+        
+        return new TelemetryMigrationDto(
+            isEnabled: telemetryData.IsAnonymousDataShared,
+            installTime: telemetryData.InstallationDate,
+            numUseDays: telemetryData.NumberOfDaysOfUse);
+    }
 }

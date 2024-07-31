@@ -28,7 +28,7 @@ public sealed class TelemetryData
 {
     public bool IsAnonymousDataShared { get; set; }
 
-    public long NumberOfDaysOfUse { get; set; }
+    public int NumberOfDaysOfUse { get; set; }
 
     [XmlIgnore] public DateTimeOffset InstallationDate { get; set; }
 
