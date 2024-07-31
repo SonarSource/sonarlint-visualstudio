@@ -44,7 +44,8 @@ public class SLCoreInstanceFactoryTests
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
             MefTestHelpers.CreateExport<IConfigScopeUpdater>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
-            MefTestHelpers.CreateExport<ISLCoreRuleSettingsProvider>());
+            MefTestHelpers.CreateExport<ISLCoreRuleSettingsProvider>(),
+            MefTestHelpers.CreateExport<ISLCoreTelemetryMigrationProvider>());
     }
 
     [TestMethod]
@@ -67,8 +68,18 @@ public class SLCoreInstanceFactoryTests
         var configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
         var threadHandling = Substitute.For<IThreadHandling>();
         var slCoreRuleSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
+        var telemetryMigrationProvider = Substitute.For<ISLCoreTelemetryMigrationProvider>();
 
-        var testSubject = new SLCoreInstanceFactory(islCoreRpcFactory, islCoreConstantsProvider, islCoreFoldersProvider, serverConnectionsProvider, islCoreEmbeddedPluginJarLocator, compatibleNodeLocator, activeSolutionBoundTracker, configScopeUpdater, threadHandling, slCoreRuleSettingsProvider);
+        var testSubject = new SLCoreInstanceFactory(islCoreRpcFactory,
+            islCoreConstantsProvider,
+            islCoreFoldersProvider,
+            serverConnectionsProvider,
+            islCoreEmbeddedPluginJarLocator,
+            compatibleNodeLocator,
+            activeSolutionBoundTracker,
+            configScopeUpdater,
+            slCoreRuleSettingsProvider, 
+            telemetryMigrationProvider, threadHandling);
 
         testSubject.CreateInstance().Should().NotBeNull();
     }

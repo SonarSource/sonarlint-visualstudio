@@ -55,6 +55,7 @@ public class InitializeParamsTests
             },
             false,
             new TelemetryClientConstantAttributesDto("TESTkey", "TESTname", "TESTversion", "TESTde", new Dictionary<string, object>{{"telemetryObj", new {field = 10}}}),
+            new TelemetryMigrationDto(true, new DateTimeOffset(2024, 07, 30, 14, 46, 28, TimeSpan.FromHours(1)), 123),
             new LanguageSpecificRequirements("node")
         );
 
@@ -134,6 +135,11 @@ public class InitializeParamsTests
                                         "field": 10
                                       }
                                     }
+                                  },
+                                  "telemetryMigration": {
+                                    "isEnabled": true,
+                                    "installTime": "2024-07-30T14:46:28+01:00",
+                                    "numUseDays": 123
                                   },
                                   "languageSpecificRequirements": {
                                     "clientNodeJsPath": "node"

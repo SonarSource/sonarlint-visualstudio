@@ -125,8 +125,8 @@ public sealed class SLCoreTestRunner : IDisposable
                 compatibleNodeLocator,
                 noOpActiveSolutionBoundTracker,
                 noOpConfigScopeUpdater,
-                new NoOpThreadHandler(),
-                slCoreRulesSettingsProvider);
+                slCoreRulesSettingsProvider,
+                Substitute.For<ISLCoreTelemetryMigrationProvider>(), new NoOpThreadHandler());
             slCoreInstanceHandle.Initialize();
         }
         finally
