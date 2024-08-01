@@ -1,0 +1,22 @@
+﻿p {
+    color: blue;
+    font-size: 16px;
+}
+
+@keyframes kf {
+    from {
+        margin-top: 50px;
+    }
+
+    50% {
+        margin-top: 150px !important;
+    }
+    /* Noncompliant; ignored */
+    to {
+        margin-top: 100px;
+    }
+}
+
+p { /* Noncompliant: duplicated selector 'p', overwrites property 'color' */
+    color: red;
+}

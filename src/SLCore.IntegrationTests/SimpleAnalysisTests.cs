@@ -50,6 +50,22 @@ public class SimpleAnalysisTests : FileAnalysisTestsBase
     public Task DefaultRuleConfig_ContentFromRpc_TypeScriptAnalysisProducesExpectedIssues()
         => DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(TypeScriptIssues, true);
 
+    [TestMethod]
+    public Task DefaultRuleConfig_ContentFromDisk_CssAnalysisProducesExpectedIssues()
+        => DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(CssIssues, false);
+
+    [TestMethod]
+    public Task DefaultRuleConfig_ContentFromRpc_CssProducesExpectedIssues()
+        => DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(CssIssues, true);
+
+    [TestMethod]
+    public Task DefaultRuleConfig_ContentFromDisk_CssAnalysisInVueProducesExpectedIssues()
+        => DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(VueIssues, false);
+
+    [TestMethod]
+    public Task DefaultRuleConfig_ContentFromRpc_CssAnalysisInVyeProducesExpectedIssues()
+        => DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(VueIssues, true);
+
     private async Task DefaultRuleConfig_JavaScriptAnalysisProducesExpectedNumberOfIssues(bool sendContent)
     {
         var issuesByFileUri = await RunFileAnalysis(TwoJsIssuesPath, sendContent: sendContent);

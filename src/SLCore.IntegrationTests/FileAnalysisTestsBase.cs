@@ -42,6 +42,8 @@ public abstract class FileAnalysisTestsBase
     protected const string ThreeSecretsIssuesPath = @"Resources\Secrets.yml";
     protected const string OneIssueRuleWithParamPath = @"Resources\RuleParam.js";
     protected readonly TypeScriptIssuesFile TypeScriptIssues = new();
+    protected readonly CssIssuesFile CssIssues = new();
+    protected readonly VueIssuesFile VueIssues = new();
 
     public TestContext TestContext { get; set; }
     
@@ -196,6 +198,28 @@ public abstract class FileAnalysisTestsBase
             new ExpectedTestIssue("typescript:S2737", new TextRangeDto(3, 2, 3, 7), RuleType.CODE_SMELL, 0),
             new ExpectedTestIssue("typescript:S1186", new TextRangeDto(7, 16, 7, 19), RuleType.CODE_SMELL, 0),
             new ExpectedTestIssue("typescript:S3776", new TextRangeDto(30, 9, 30,  18), RuleType.CODE_SMELL, 21)
+        ];
+    }
+
+    protected class CssIssuesFile : ITestingFile
+    {
+        public string Path => @"Resources\CssIssues.css";
+
+        public List<ExpectedTestIssue> ExpectedIssues =>
+        [
+            new ExpectedTestIssue("css:S4666", new TextRangeDto(20, 0, 20, 77), RuleType.CODE_SMELL, 0),
+            new ExpectedTestIssue("css:S4655", new TextRangeDto(12, 0, 12, 38), RuleType.BUG, 0),
+        ];
+    }
+
+    protected class VueIssuesFile : ITestingFile
+    {
+        public string Path => @"Resources\VueIssues.vue";
+
+        public List<ExpectedTestIssue> ExpectedIssues =>
+        [
+            new ExpectedTestIssue("css:S4661", new TextRangeDto(12, 0, 12, 43), RuleType.BUG, 0),
+            new ExpectedTestIssue("css:S4658", new TextRangeDto(12, 0, 12, 43), RuleType.CODE_SMELL, 0),
         ];
     }
 }
