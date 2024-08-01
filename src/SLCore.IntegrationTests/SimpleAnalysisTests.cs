@@ -25,6 +25,7 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 [TestClass]
 public class SimpleAnalysisTests : FileAnalysisTestsBase
 {
+
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_JavaScriptAnalysisProducesExpectedNumberOfIssues() 
         => DefaultRuleConfig_JavaScriptAnalysisProducesExpectedNumberOfIssues(false);
@@ -41,6 +42,14 @@ public class SimpleAnalysisTests : FileAnalysisTestsBase
     public Task DefaultRuleConfig_ContentFromRpc_SecretsAnalysisProducesExpectedNumberOfIssues() 
         => DefaultRuleConfig_SecretsAnalysisProducesExpectedNumberOfIssues(true);
 
+    [TestMethod]
+    public Task DefaultRuleConfig_ContentFromDisk_TypeScriptAnalysisProducesExpectedIssues()
+        => DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(TypeScriptIssues, false);
+
+    [TestMethod]
+    public Task DefaultRuleConfig_ContentFromRpc_TypeScriptAnalysisProducesExpectedIssues()
+        => DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(TypeScriptIssues, true);
+
     private async Task DefaultRuleConfig_JavaScriptAnalysisProducesExpectedNumberOfIssues(bool sendContent)
     {
         var issuesByFileUri = await RunFileAnalysis(TwoJsIssuesPath, sendContent: sendContent);
@@ -55,5 +64,23 @@ public class SimpleAnalysisTests : FileAnalysisTestsBase
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(GetFullPath(ThreeSecretsIssuesPath))].Should().HaveCount(3);
+    }
+
+    private async Task DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(ITestingFile testingFile, bool sendContent)
+    {
+        var issuesByFileUri = await RunFileAnalysis(testingFile.Path, sendContent: sendContent);
+
+        issuesByFileUri.Should().HaveCount(1);
+        var receivedIssues = issuesByFileUri[new FileUri(GetFullPath(testingFile.Path))];
+        receivedIssues.Should().HaveCount(testingFile.ExpectedIssues.Count);
+
+        foreach (var expectedIssues in testingFile.ExpectedIssues)
+        {
+            var receivedIssue = receivedIssues.SingleOrDefault(x => x.ruleKey == expectedIssues.ruleKey);
+            receivedIssue.Should().NotBeNull();
+            receivedIssue.textRange.Should().BeEquivalentTo(expectedIssues.textRange);
+            receivedIssue.type.Should().Be(expectedIssues.type);
+            receivedIssue.flows.Count.Should().Be(expectedIssues.expectedFlows);
+        }
     }
 }

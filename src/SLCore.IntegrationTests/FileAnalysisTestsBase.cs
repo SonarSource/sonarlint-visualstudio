@@ -41,6 +41,7 @@ public abstract class FileAnalysisTestsBase
     protected const string TwoJsIssuesPath = @"Resources\TwoIssues.js";
     protected const string ThreeSecretsIssuesPath = @"Resources\Secrets.yml";
     protected const string OneIssueRuleWithParamPath = @"Resources\RuleParam.js";
+    protected readonly TypeScriptIssuesFile TypeScriptIssues = new();
 
     public TestContext TestContext { get; set; }
     
@@ -176,5 +177,25 @@ public abstract class FileAnalysisTestsBase
             });
 
         return analysisListener;
+    }
+
+    protected interface ITestingFile
+    {
+        string Path { get; }
+        List<ExpectedTestIssue> ExpectedIssues { get; }
+    }
+
+    protected record ExpectedTestIssue(string ruleKey, TextRangeDto textRange, RuleType type, int expectedFlows);
+
+    protected class TypeScriptIssuesFile : ITestingFile
+    {
+        public string Path => @"Resources\TypeScriptIssues.ts";
+
+        public List<ExpectedTestIssue> ExpectedIssues =>
+        [
+            new ExpectedTestIssue("typescript:S2737", new TextRangeDto(3, 2, 3, 7), RuleType.CODE_SMELL, 0),
+            new ExpectedTestIssue("typescript:S1186", new TextRangeDto(7, 16, 7, 19), RuleType.CODE_SMELL, 0),
+            new ExpectedTestIssue("typescript:S3776", new TextRangeDto(30, 9, 30,  18), RuleType.CODE_SMELL, 21)
+        ];
     }
 }
