@@ -44,7 +44,7 @@
     <None Update="Resources\tsconfig.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Resources\TwoIssues.js">
+    <None Update="Resources\JavaScriptIssues.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Resources\TypeScriptIssues.ts">

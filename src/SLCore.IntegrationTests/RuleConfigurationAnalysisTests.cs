@@ -26,8 +26,6 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 [TestClass]
 public class RuleConfigurationAnalysisTests : FileAnalysisTestsBase
 {
-    private const string LetRuleId = "javascript:S3504";
-    private const string CloudSecretsRuleId = "secrets:S6336";
     private const string CtorParamRuleId = "javascript:S107";
     private const int ActualCtorParams = 4;
     private const string CtorParamName = "maximumFunctionParameters";
@@ -35,23 +33,25 @@ public class RuleConfigurationAnalysisTests : FileAnalysisTestsBase
     [TestMethod]
     public async Task StandaloneRuleConfig_JavaScriptAnalysisShouldIgnoreOneIssueOfInactiveRule()
     {
-        var letRuleConfig = CreateInactiveRuleConfig(LetRuleId);
+        var ruleToDisable = JavaScriptIssues.ExpectedIssues[0];
+        var ruleConfig = CreateInactiveRuleConfig(ruleToDisable.ruleKey);
 
-        var issuesByFileUri = await RunFileAnalysisWithUpdatedRulesConfiguration(TwoJsIssuesPath, letRuleConfig);
+        var issuesByFileUri = await RunFileAnalysisWithUpdatedRulesConfiguration(JavaScriptIssues.Path, ruleConfig);
 
         issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(GetFullPath(TwoJsIssuesPath))].Should().HaveCount(1);
+        issuesByFileUri[new FileUri(GetFullPath(JavaScriptIssues.Path))].Should().HaveCount(JavaScriptIssues.ExpectedIssues.Count - 1);
     }
     
     [TestMethod]
     public async Task StandaloneRuleConfig_SecretsAnalysisShouldIgnoreTwoIssuesOfInactiveRule()
     {
-        var secretsRuleConfig = CreateInactiveRuleConfig(CloudSecretsRuleId);
+        var multipleIssuesRule = SecretsIssues.RuleWithMultipleIssues;
+        var secretsRuleConfig = CreateInactiveRuleConfig(multipleIssuesRule.ruleKey);
 
-        var issuesByFileUri = await RunFileAnalysisWithUpdatedRulesConfiguration(ThreeSecretsIssuesPath, secretsRuleConfig);
+        var issuesByFileUri = await RunFileAnalysisWithUpdatedRulesConfiguration(SecretsIssues.Path, secretsRuleConfig);
 
         issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(GetFullPath(ThreeSecretsIssuesPath))].Should().HaveCount(1);
+        issuesByFileUri[new FileUri(GetFullPath(SecretsIssues.Path))].Should().HaveCount(SecretsIssues.ExpectedIssues.Count - multipleIssuesRule.issuesCount);
     }
     
     [TestMethod]
@@ -79,23 +79,25 @@ public class RuleConfigurationAnalysisTests : FileAnalysisTestsBase
     [TestMethod]
     public async Task StandaloneRuleConfig_JsLetRuleIsDisableInSettingsFile_JavaScriptAnalysisShouldIgnoreIssueOnInitialization()
     {
-        var letRuleConfig = CreateInactiveRuleConfig(LetRuleId);
+        var ruleToDisable = JavaScriptIssues.ExpectedIssues[0];
+        var ruleConfig = CreateInactiveRuleConfig(ruleToDisable.ruleKey);
 
-        var issuesByFileUri = await RunFileAnalysisWithInitialRulesConfiguration(TwoJsIssuesPath, letRuleConfig);
+        var issuesByFileUri = await RunFileAnalysisWithInitialRulesConfiguration(JavaScriptIssues.Path, ruleConfig);
 
         issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(GetFullPath(TwoJsIssuesPath))].Should().HaveCount(1);
+        issuesByFileUri[new FileUri(GetFullPath(JavaScriptIssues.Path))].Should().HaveCount(JavaScriptIssues.ExpectedIssues.Count - 1);
     }
 
     [TestMethod]
     public async Task StandaloneRuleConfig_CloudSecretsRuleIsDisabledInSettingsFile_SecretsAnalysisShouldIgnoreIssueOnInitialization()
     {
-        var secretsRuleConfig = CreateInactiveRuleConfig(CloudSecretsRuleId);
+        var multipleIssuesRule = SecretsIssues.RuleWithMultipleIssues;
+        var secretsRuleConfig = CreateInactiveRuleConfig(multipleIssuesRule.ruleKey);
 
-        var issuesByFileUri = await RunFileAnalysisWithInitialRulesConfiguration(ThreeSecretsIssuesPath, secretsRuleConfig);
+        var issuesByFileUri = await RunFileAnalysisWithInitialRulesConfiguration(SecretsIssues.Path, secretsRuleConfig);
 
         issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(GetFullPath(ThreeSecretsIssuesPath))].Should().HaveCount(1);
+        issuesByFileUri[new FileUri(GetFullPath(SecretsIssues.Path))].Should().HaveCount(SecretsIssues.ExpectedIssues.Count - multipleIssuesRule.issuesCount);
     }
 
     private static Dictionary<string, StandaloneRuleConfigDto> CreateActiveCtorParamRuleConfig(int threshold)

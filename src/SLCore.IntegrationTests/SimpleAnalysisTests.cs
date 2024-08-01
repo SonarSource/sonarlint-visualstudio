@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using FluentAssertions.Common;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
@@ -25,64 +26,47 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 [TestClass]
 public class SimpleAnalysisTests : FileAnalysisTestsBase
 {
-
     [TestMethod]
-    public Task DefaultRuleConfig_ContentFromDisk_JavaScriptAnalysisProducesExpectedNumberOfIssues() 
-        => DefaultRuleConfig_JavaScriptAnalysisProducesExpectedNumberOfIssues(false);
+    public Task DefaultRuleConfig_ContentFromDisk_JavaScriptAnalysisProducesExpectedIssues() 
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(JavaScriptIssues,false);
     
     [TestMethod]
-    public Task DefaultRuleConfig_ContentFromRpc_JavaScriptAnalysisProducesExpectedNumberOfIssues() 
-        => DefaultRuleConfig_JavaScriptAnalysisProducesExpectedNumberOfIssues(true);
+    public Task DefaultRuleConfig_ContentFromRpc_JavaScriptAnalysisProducesExpectedIssues() 
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(JavaScriptIssues,true);
 
     [TestMethod]
-    public Task DefaultRuleConfig_ContentFromDisk_SecretsAnalysisProducesExpectedNumberOfIssues() 
-        => DefaultRuleConfig_SecretsAnalysisProducesExpectedNumberOfIssues(false);
+    public Task DefaultRuleConfig_ContentFromDisk_SecretsAnalysisProducesExpectedIssues() 
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(SecretsIssues, false);
 
     [TestMethod]
-    public Task DefaultRuleConfig_ContentFromRpc_SecretsAnalysisProducesExpectedNumberOfIssues() 
-        => DefaultRuleConfig_SecretsAnalysisProducesExpectedNumberOfIssues(true);
+    public Task DefaultRuleConfig_ContentFromRpc_SecretsAnalysisProducesExpectedIssues() 
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(SecretsIssues, true);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_TypeScriptAnalysisProducesExpectedIssues()
-        => DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(TypeScriptIssues, false);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(TypeScriptIssues, false);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromRpc_TypeScriptAnalysisProducesExpectedIssues()
-        => DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(TypeScriptIssues, true);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(TypeScriptIssues, true);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_CssAnalysisProducesExpectedIssues()
-        => DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(CssIssues, false);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(CssIssues, false);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromRpc_CssProducesExpectedIssues()
-        => DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(CssIssues, true);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(CssIssues, true);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_CssAnalysisInVueProducesExpectedIssues()
-        => DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(VueIssues, false);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(VueIssues, false);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromRpc_CssAnalysisInVyeProducesExpectedIssues()
-        => DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(VueIssues, true);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(VueIssues, true);
 
-    private async Task DefaultRuleConfig_JavaScriptAnalysisProducesExpectedNumberOfIssues(bool sendContent)
-    {
-        var issuesByFileUri = await RunFileAnalysis(TwoJsIssuesPath, sendContent: sendContent);
-        
-        issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(GetFullPath(TwoJsIssuesPath))].Should().HaveCount(2);
-    }
-    
-    private async Task DefaultRuleConfig_SecretsAnalysisProducesExpectedNumberOfIssues(bool sendContent)
-    {
-        var issuesByFileUri = await RunFileAnalysis(ThreeSecretsIssuesPath, sendContent: sendContent);
-
-        issuesByFileUri.Should().HaveCount(1);
-        issuesByFileUri[new FileUri(GetFullPath(ThreeSecretsIssuesPath))].Should().HaveCount(3);
-    }
-
-    private async Task DefaultRuleConfig_TypeScriptAnalysisProducesExpectedIssues(ITestingFile testingFile, bool sendContent)
+    private async Task DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(ITestingFile testingFile, bool sendContent)
     {
         var issuesByFileUri = await RunFileAnalysis(testingFile.Path, sendContent: sendContent);
 
@@ -90,13 +74,12 @@ public class SimpleAnalysisTests : FileAnalysisTestsBase
         var receivedIssues = issuesByFileUri[new FileUri(GetFullPath(testingFile.Path))];
         receivedIssues.Should().HaveCount(testingFile.ExpectedIssues.Count);
 
-        foreach (var expectedIssues in testingFile.ExpectedIssues)
+        foreach (var expectedIssue in testingFile.ExpectedIssues)
         {
-            var receivedIssue = receivedIssues.SingleOrDefault(x => x.ruleKey == expectedIssues.ruleKey);
+            var receivedIssue = receivedIssues.SingleOrDefault(x => x.ruleKey == expectedIssue.ruleKey && x.textRange.Equals(expectedIssue.textRange));
             receivedIssue.Should().NotBeNull();
-            receivedIssue.textRange.Should().BeEquivalentTo(expectedIssues.textRange);
-            receivedIssue.type.Should().Be(expectedIssues.type);
-            receivedIssue.flows.Count.Should().Be(expectedIssues.expectedFlows);
+            receivedIssue.type.Should().Be(expectedIssue.type);
+            receivedIssue.flows.Count.Should().Be(expectedIssue.expectedFlows);
         }
     }
 }
