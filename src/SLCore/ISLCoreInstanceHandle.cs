@@ -49,7 +49,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     private readonly ISLCoreFoldersProvider slCoreFoldersProvider;
     private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
     private readonly ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
-    private readonly ISLCoreTelemetryMigrationProvider telemetryMigrationProvider;
+    private readonly ISlCoreTelemetryMigrationProvider telemetryMigrationProvider;
     private readonly INodeLocationProvider nodeLocator;
     private readonly IThreadHandling threadHandling;
     public Task ShutdownTask => SLCoreRpc.ShutdownTask;
@@ -65,7 +65,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IConfigScopeUpdater configScopeUpdater,
         ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider,
-        ISLCoreTelemetryMigrationProvider telemetryMigrationProvider,
+        ISlCoreTelemetryMigrationProvider telemetryMigrationProvider,
         IThreadHandling threadHandling)
     {
         this.slCoreRpcFactory = slCoreRpcFactory;

@@ -45,7 +45,7 @@ public class SLCoreInstanceFactoryTests
             MefTestHelpers.CreateExport<IConfigScopeUpdater>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ISLCoreRuleSettingsProvider>(),
-            MefTestHelpers.CreateExport<ISLCoreTelemetryMigrationProvider>());
+            MefTestHelpers.CreateExport<ISlCoreTelemetryMigrationProvider>());
     }
 
     [TestMethod]
@@ -68,7 +68,7 @@ public class SLCoreInstanceFactoryTests
         var configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
         var threadHandling = Substitute.For<IThreadHandling>();
         var slCoreRuleSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
-        var telemetryMigrationProvider = Substitute.For<ISLCoreTelemetryMigrationProvider>();
+        var telemetryMigrationProvider = Substitute.For<ISlCoreTelemetryMigrationProvider>();
 
         var testSubject = new SLCoreInstanceFactory(islCoreRpcFactory,
             islCoreConstantsProvider,
