@@ -65,7 +65,7 @@ public class SLCoreInstanceHandleTests
     private IThreadHandling threadHandling;
     private ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
     private SLCoreInstanceHandle testSubject;
-    private ISLCoreTelemetryMigrationProvider telemetryMigrationProvider;
+    private ISlCoreTelemetryMigrationProvider telemetryMigrationProvider;
 
     [TestInitialize]
     public void TestInitialize()
@@ -80,7 +80,7 @@ public class SLCoreInstanceHandleTests
         configScopeUpdater = Substitute.For<IConfigScopeUpdater>();
         threadHandling = Substitute.For<IThreadHandling>();
         slCoreRuleSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
-        telemetryMigrationProvider = Substitute.For<ISLCoreTelemetryMigrationProvider>();
+        telemetryMigrationProvider = Substitute.For<ISlCoreTelemetryMigrationProvider>();
 
         testSubject = new SLCoreInstanceHandle(slCoreRpcFactory,
             constantsProvider,
@@ -91,7 +91,8 @@ public class SLCoreInstanceHandleTests
             activeSolutionBoundTracker,
             configScopeUpdater,
             slCoreRuleSettingsProvider,
-            telemetryMigrationProvider, threadHandling);
+            telemetryMigrationProvider,
+            threadHandling);
     }
 
     [TestMethod]

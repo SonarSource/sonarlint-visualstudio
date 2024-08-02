@@ -18,11 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
+namespace SonarLint.VisualStudio.Core.Telemetry.Legacy;
 
-namespace SonarLint.VisualStudio.SLCore.Configuration;
 
-internal interface ISlCoreTelemetryMigrationProvider
+public interface ITelemetryDataRepository
 {
-    TelemetryMigrationDto Get();
+    TelemetryData ReadTelemetryData();
 }
