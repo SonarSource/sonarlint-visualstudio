@@ -181,18 +181,16 @@ public class LocalHotspotStoreTests
     [DataRow(HotspotPriority.High)]
     [DataRow(HotspotPriority.Medium)]
     [DataRow(HotspotPriority.Low)]
-    public void UpdateForFile_NoServerHotspots_UsesHotspotsPriorityForNonCFamily(HotspotPriority priority)
+    public void UpdateForFile_WithNoServerHotspots_ShouldAssignHotspotPriority(HotspotPriority priority)
     {
         const string rule1 = "rule:s1";
-        var issueVis1 = new Mock<IAnalysisIssueVisualization>();
-        issueVis1.SetupGet(x => x.RuleId).Returns(rule1);
-        MockHotspotPriority(issueVis1, priority);
+        var issueVis1 = CreateIssueVisualizationWithHotspot(rule1, priority);
         var reviewPriorityProviderMock = new Mock<IHotspotReviewPriorityProvider>();
         var testSubject = CreateTestSubject(out _, reviewPriorityProvider: reviewPriorityProviderMock.Object);
 
-        testSubject.UpdateForFile("file1", new[] { issueVis1.Object });
+        testSubject.UpdateForFile("file1", new[] { issueVis1 });
 
-        VerifyContent(testSubject, new LocalHotspot(issueVis1.Object, priority));
+        VerifyContent(testSubject, new LocalHotspot(issueVis1, priority));
         reviewPriorityProviderMock.Verify(mock => mock.GetPriority(It.IsAny<string>()), Times.Never);
     }
 
@@ -225,7 +223,7 @@ public class LocalHotspotStoreTests
     }
 
     [TestMethod]
-    public void UpdateForFile_ServerHotspots_UsesReviewPriority()
+    public void UpdateForFile_WithNoServerHotspots_ForCFamily_ShouldAssignHotspotPriority()
     {
         /*
          * issue1 + server1 -> rule1 -> Low - could be changed to test server override once implemented
@@ -641,10 +639,14 @@ public class LocalHotspotStoreTests
         }
     }
 
-    private static void MockHotspotPriority(Mock<IAnalysisIssueVisualization> issueVis, HotspotPriority priority)
+    private static IAnalysisIssueVisualization CreateIssueVisualizationWithHotspot(string rule, HotspotPriority priority)
     {
-        var hotspotIssue1 = new Mock<IAnalysisHotspotIssue>();
-        hotspotIssue1.SetupGet(x => x.HotspotPriority).Returns(priority);
-        issueVis.Setup(x => x.Issue).Returns(hotspotIssue1.Object);
+        var issueVis = new Mock<IAnalysisIssueVisualization>();
+        var hotspotIssue = new Mock<IAnalysisHotspotIssue>();
+        hotspotIssue.SetupGet(x => x.HotspotPriority).Returns(priority);
+        issueVis.Setup(x => x.Issue).Returns(hotspotIssue.Object);
+        issueVis.Setup(x => x.RuleId).Returns(rule);
+
+        return issueVis.Object;
     }
 }
