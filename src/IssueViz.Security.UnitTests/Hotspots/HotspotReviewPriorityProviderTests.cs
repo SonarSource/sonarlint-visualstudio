@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots;
@@ -43,11 +40,6 @@ public class HotspotReviewPriorityProviderTests
     }
 
     [DataRow("notakey", null)]
-    [DataRow("typescript:S4502", HotspotPriority.High)]
-    [DataRow("javascript:S4502", HotspotPriority.High)]
-    [DataRow("typescript:S1313", HotspotPriority.Low)]
-    [DataRow("javascript:S1313", HotspotPriority.Low)]
-    [DataRow("javascript:S90000000000000000", null)]
     [DataRow("c:S1313", HotspotPriority.Low)]
     [DataRow("cpp:S1313", HotspotPriority.Low)]
     [DataRow("python:S1313", null)]
@@ -58,7 +50,7 @@ public class HotspotReviewPriorityProviderTests
     {
         new HotspotReviewPriorityProvider().GetPriority(ruleKey).Should().Be(expectedPriority);
     }
-    
+
     [TestMethod]
     public void GetPriority_NullKey_Throws()
     {
