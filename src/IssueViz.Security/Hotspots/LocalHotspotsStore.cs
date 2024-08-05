@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarQube.Client.Models;
 
@@ -58,19 +54,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class LocalHotspotsStore : ILocalHotspotsStore
     {
-        private static readonly List<IAnalysisIssueVisualization> EmptyList = new List<IAnalysisIssueVisualization>();
+        private static readonly List<IAnalysisIssueVisualization> EmptyList = [];
 
         // on the off chance we can't map the RuleId to Priority, which shouldn't happen, it's better to raise it as High
         private static readonly HotspotPriority DefaultPriority = HotspotPriority.High;
 
-        private readonly object lockObject = new object();
+        private readonly object lockObject = new();
         private readonly IHotspotMatcher hotspotMatcher;
         private readonly IThreadHandling threadHandling;
         private readonly IServerHotspotStore serverHotspotStore;
         private readonly IHotspotReviewPriorityProvider hotspotReviewPriorityProvider;
 
-        private Dictionary<string, List<LocalHotspot>> fileToHotspotsMapping =
-            new Dictionary<string, List<LocalHotspot>>();
+        private Dictionary<string, List<LocalHotspot>> fileToHotspotsMapping = [];
 
         private ISet<SonarQubeHotspot> unmatchedHotspots = CreateServerHotspotSet();
 
@@ -221,12 +216,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
                 }
 
                 unmatchedHotspots.Remove(serverHotspot);
-                return new LocalHotspot(visualization,
-                    hotspotReviewPriorityProvider.GetPriority(visualization.RuleId) ?? DefaultPriority, // todo: override with server priority
-                    serverHotspot);
+                return new LocalHotspot(visualization, GetPriority(visualization), serverHotspot);
             }
 
-            return new LocalHotspot(visualization, hotspotReviewPriorityProvider.GetPriority(visualization.RuleId) ?? DefaultPriority);
+            return new LocalHotspot(visualization, GetPriority(visualization));
+        }
+
+        private HotspotPriority GetPriority(IAnalysisIssueVisualization visualization)
+        {
+            var mappedHotspotPriority = (visualization.Issue as IAnalysisHotspotIssue)?.HotspotPriority ?? hotspotReviewPriorityProvider.GetPriority(visualization.RuleId);
+
+            return mappedHotspotPriority ?? DefaultPriority;
         }
 
         private IEnumerable<LocalHotspot> GetOpenHotspots() =>
@@ -239,9 +239,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
         private static ISet<SonarQubeHotspot> CreateServerHotspotSet(IEnumerable<SonarQubeHotspot> serverHotspots = null)
         {
-            return new SortedSet<SonarQubeHotspot>(
-                serverHotspots ?? Enumerable.Empty<SonarQubeHotspot>(),
-                new ServerHotspotComparer());
+            return new SortedSet<SonarQubeHotspot>(serverHotspots ?? [], new ServerHotspotComparer());
         }
 
         /// <summary>
@@ -250,7 +248,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
         /// </summary>
         internal /* for testing */ class ServerHotspotComparer : IComparer<SonarQubeHotspot>
         {
-            private static IssueTextRange EmptyTextRange = new IssueTextRange(0, 0, 0, 0);
+            private static readonly IssueTextRange EmptyTextRange = new(0, 0, 0, 0);
             public int Compare(SonarQubeHotspot x, SonarQubeHotspot y)
             {
                 Debug.Assert(x != null && y != null, "Not expecting either server hotspot to be null");

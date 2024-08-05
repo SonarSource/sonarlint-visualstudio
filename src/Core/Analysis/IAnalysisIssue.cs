@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-
 namespace SonarLint.VisualStudio.Core.Analysis
 {
     public interface IAnalysisIssue : IAnalysisIssueBase
@@ -31,6 +29,11 @@ namespace SonarLint.VisualStudio.Core.Analysis
         AnalysisIssueType Type { get; }
 
         IReadOnlyList<IQuickFix> Fixes { get; }
+    }
+
+    public interface IAnalysisHotspotIssue : IAnalysisIssue
+    {
+        HotspotPriority? HotspotPriority { get; }
     }
 
     public interface IAnalysisIssueBase
@@ -104,6 +107,13 @@ namespace SonarLint.VisualStudio.Core.Analysis
         Bug,
         Vulnerability,
         SecurityHotspot
+    }
+
+    public enum HotspotPriority
+    {
+        High,
+        Medium,
+        Low
     }
 
     public static class IAnalysisIssueExtensions

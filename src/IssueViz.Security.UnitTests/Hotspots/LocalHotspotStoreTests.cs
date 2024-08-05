@@ -18,18 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
-using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
@@ -43,8 +39,8 @@ public class LocalHotspotStoreTests
     {
         MefTestHelpers.CheckTypeCanBeImported<LocalHotspotsStore, ILocalHotspotsStore>(
             MefTestHelpers.CreateExport<IServerHotspotStore>(),
-            MefTestHelpers.CreateExport<IHotspotMatcher>(),
             MefTestHelpers.CreateExport<IHotspotReviewPriorityProvider>(),
+            MefTestHelpers.CreateExport<IHotspotMatcher>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
     }
 
@@ -53,8 +49,8 @@ public class LocalHotspotStoreTests
     {
         MefTestHelpers.CheckTypeCanBeImported<LocalHotspotsStore, ILocalHotspotsStoreUpdater>(
             MefTestHelpers.CreateExport<IServerHotspotStore>(),
-            MefTestHelpers.CreateExport<IHotspotMatcher>(),
             MefTestHelpers.CreateExport<IHotspotReviewPriorityProvider>(),
+            MefTestHelpers.CreateExport<IHotspotMatcher>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
     }
 
@@ -63,8 +59,8 @@ public class LocalHotspotStoreTests
     {
         MefTestHelpers.CheckTypeCanBeImported<LocalHotspotsStore, IIssuesStore>(
             MefTestHelpers.CreateExport<IServerHotspotStore>(),
-            MefTestHelpers.CreateExport<IHotspotMatcher>(),
             MefTestHelpers.CreateExport<IHotspotReviewPriorityProvider>(),
+            MefTestHelpers.CreateExport<IHotspotMatcher>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
     }
 
@@ -182,6 +178,23 @@ public class LocalHotspotStoreTests
     }
 
     [TestMethod]
+    [DataRow(HotspotPriority.High)]
+    [DataRow(HotspotPriority.Medium)]
+    [DataRow(HotspotPriority.Low)]
+    public void UpdateForFile_WithNoServerHotspots_ShouldAssignHotspotPriority(HotspotPriority priority)
+    {
+        const string rule1 = "rule:s1";
+        var issueVis1 = CreateIssueVisualizationWithHotspot(rule1, priority);
+        var reviewPriorityProviderMock = new Mock<IHotspotReviewPriorityProvider>();
+        var testSubject = CreateTestSubject(out _, reviewPriorityProvider: reviewPriorityProviderMock.Object);
+
+        testSubject.UpdateForFile("file1", new[] { issueVis1 });
+
+        VerifyContent(testSubject, new LocalHotspot(issueVis1, priority));
+        reviewPriorityProviderMock.Verify(mock => mock.GetPriority(It.IsAny<string>()), Times.Never);
+    }
+
+    [TestMethod]
     public void UpdateForFile_ServerHotspots_MatchesCorrectly()
     {
         var serverStoreMock = new Mock<IServerHotspotStore>();
@@ -210,7 +223,7 @@ public class LocalHotspotStoreTests
     }
 
     [TestMethod]
-    public void UpdateForFile_ServerHotspots_UsesReviewPriority()
+    public void UpdateForFile_WithNoServerHotspots_ForCFamily_ShouldAssignHotspotPriority()
     {
         /*
          * issue1 + server1 -> rule1 -> Low - could be changed to test server override once implemented
@@ -624,5 +637,16 @@ public class LocalHotspotStoreTests
         {
             Events.Add(eventArgs);
         }
+    }
+
+    private static IAnalysisIssueVisualization CreateIssueVisualizationWithHotspot(string rule, HotspotPriority priority)
+    {
+        var issueVis = new Mock<IAnalysisIssueVisualization>();
+        var hotspotIssue = new Mock<IAnalysisHotspotIssue>();
+        hotspotIssue.SetupGet(x => x.HotspotPriority).Returns(priority);
+        issueVis.Setup(x => x.Issue).Returns(hotspotIssue.Object);
+        issueVis.Setup(x => x.RuleId).Returns(rule);
+
+        return issueVis.Object;
     }
 }

@@ -18,8 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.Models
