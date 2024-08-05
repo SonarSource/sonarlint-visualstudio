@@ -119,5 +119,27 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers
                                                                           Actual value was 1000.
                                                                           """);
         }
+
+        [TestMethod]
+        [DataRow(null, null)]
+        [DataRow(VulnerabilityProbability.HIGH, HotspotPriority.High)]
+        [DataRow(VulnerabilityProbability.MEDIUM, HotspotPriority.Medium)]
+        [DataRow(VulnerabilityProbability.LOW, HotspotPriority.Low)]
+        public void GetHotspotPriority_HotspotHasVulnerabilityProbability_ConvertsCorrectly(VulnerabilityProbability? vulnerabilityProbability, HotspotPriority? expectedHotspotPriority)
+        {
+            var result = vulnerabilityProbability.GetHotspotPriority();
+
+            result.Should().Be(expectedHotspotPriority);
+        }
+
+        [TestMethod]
+        public void GetHotspotPriority_ValueOutOfRange_Throws()
+        {
+            var vulnerabilityProbability = ((VulnerabilityProbability?)1000);
+
+            var act = () => vulnerabilityProbability.GetHotspotPriority();
+
+            act.Should().Throw<ArgumentOutOfRangeException>();
+        }
     }
 }

@@ -18,16 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
@@ -87,7 +83,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         {
             var monitorSelection = CreateMonitorSelection(222);
             var serviceProvider = CreateServiceProvider(monitorSelection.Object);
-            var store = CreateStore(new LocalHotspot(Mock.Of<IAnalysisIssueVisualization>(), Security.Hotspots.Models.HotspotPriority.Medium));
+            var store = CreateStore(new LocalHotspot(Mock.Of<IAnalysisIssueVisualization>(), HotspotPriority.Medium));
 
             _ = await CreateInitializedTestSubject(serviceProvider.Object, store.Object);
             monitorSelection.Invocations.Clear();

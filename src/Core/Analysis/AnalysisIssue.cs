@@ -18,15 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-
 namespace SonarLint.VisualStudio.Core.Analysis
 {
     public class AnalysisIssue : IAnalysisIssue
     {
-        private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
-        private static readonly IReadOnlyList<IQuickFix> EmptyFixes = Array.Empty<IQuickFix>();
+        private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = [];
+        private static readonly IReadOnlyList<IQuickFix> EmptyFixes = [];
 
         public AnalysisIssue(
             string ruleKey,
@@ -64,6 +61,25 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public IReadOnlyList<IQuickFix> Fixes { get; }
 
         public string RuleDescriptionContextKey { get; }
+    }
+
+    public class AnalysisHotspotIssue : AnalysisIssue, IAnalysisHotspotIssue
+    {
+        public AnalysisHotspotIssue(string ruleKey, 
+            AnalysisIssueSeverity severity, 
+            AnalysisIssueType type, 
+            SoftwareQualitySeverity? highestSoftwareQualitySeverity,
+            IAnalysisIssueLocation primaryLocation, 
+            IReadOnlyList<IAnalysisIssueFlow> flows, 
+            IReadOnlyList<IQuickFix> fixes = null, 
+            string context = null,
+            HotspotPriority? hotspotPriority = null) : 
+            base(ruleKey, severity, type, highestSoftwareQualitySeverity, primaryLocation, flows, fixes, context)
+        {
+            HotspotPriority = hotspotPriority;
+        }
+
+        public HotspotPriority? HotspotPriority { get; }
     }
 
     public class AnalysisIssueFlow : IAnalysisIssueFlow
