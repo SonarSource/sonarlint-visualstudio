@@ -38,9 +38,12 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 public abstract class FileAnalysisTestsBase
 {
     private const string ConfigScopeId = "ConfigScope1";
-    protected const string TwoJsIssuesPath = @"Resources\TwoIssues.js";
-    protected const string ThreeSecretsIssuesPath = @"Resources\Secrets.yml";
     protected const string OneIssueRuleWithParamPath = @"Resources\RuleParam.js";
+    protected readonly JavaScriptIssuesFile JavaScriptIssues = new(); 
+    protected readonly TypeScriptIssuesFile TypeScriptIssues = new();
+    protected readonly CssIssuesFile CssIssues = new();
+    protected readonly VueIssuesFile VueIssues = new();
+    protected readonly SecretsIssuesFile SecretsIssues = new();
 
     public TestContext TestContext { get; set; }
     
@@ -176,5 +179,72 @@ public abstract class FileAnalysisTestsBase
             });
 
         return analysisListener;
+    }
+
+    protected interface ITestingFile
+    {
+        string Path { get; }
+        List<ExpectedTestIssue> ExpectedIssues { get; }
+    }
+
+    protected record ExpectedTestIssue(string ruleKey, TextRangeDto textRange, RuleType type, int expectedFlows);
+
+    protected class JavaScriptIssuesFile : ITestingFile
+    {
+        public string Path => @"Resources\JavaScriptIssues.js";
+
+        public List<ExpectedTestIssue> ExpectedIssues =>
+        [
+            new ExpectedTestIssue("javascript:S1135", new TextRangeDto(1, 3, 1, 7), RuleType.CODE_SMELL, 0),
+            new ExpectedTestIssue("javascript:S3504", new TextRangeDto(2, 0, 2, 5), RuleType.CODE_SMELL, 0)
+        ];
+    }
+
+    protected class TypeScriptIssuesFile : ITestingFile
+    {
+        public string Path => @"Resources\TypeScriptIssues.ts";
+
+        public List<ExpectedTestIssue> ExpectedIssues =>
+        [
+            new ExpectedTestIssue("typescript:S2737", new TextRangeDto(3, 2, 3, 7), RuleType.CODE_SMELL, 0),
+            new ExpectedTestIssue("typescript:S1186", new TextRangeDto(7, 16, 7, 19), RuleType.CODE_SMELL, 0),
+            new ExpectedTestIssue("typescript:S3776", new TextRangeDto(30, 9, 30,  18), RuleType.CODE_SMELL, 21)
+        ];
+    }
+
+    protected class CssIssuesFile : ITestingFile
+    {
+        public string Path => @"Resources\CssIssues.css";
+
+        public List<ExpectedTestIssue> ExpectedIssues =>
+        [
+            new ExpectedTestIssue("css:S4666", new TextRangeDto(20, 0, 20, 77), RuleType.CODE_SMELL, 0),
+            new ExpectedTestIssue("css:S4655", new TextRangeDto(12, 0, 12, 38), RuleType.BUG, 0),
+        ];
+    }
+
+    protected class VueIssuesFile : ITestingFile
+    {
+        public string Path => @"Resources\VueIssues.vue";
+
+        public List<ExpectedTestIssue> ExpectedIssues =>
+        [
+            new ExpectedTestIssue("css:S4661", new TextRangeDto(12, 0, 12, 43), RuleType.BUG, 0),
+            new ExpectedTestIssue("css:S4658", new TextRangeDto(12, 0, 12, 43), RuleType.CODE_SMELL, 0),
+        ];
+    }
+
+    protected class SecretsIssuesFile : ITestingFile
+    {
+        private const string CloudSecretsRuleKey = "secrets:S6336";
+        public string Path => @"Resources\Secrets.yml";
+        public (string ruleKey, int issuesCount) RuleWithMultipleIssues => (CloudSecretsRuleKey, 2);
+
+        public List<ExpectedTestIssue> ExpectedIssues =>
+        [
+            new ExpectedTestIssue(CloudSecretsRuleKey, new TextRangeDto(9, 1, 9, 25), RuleType.VULNERABILITY, 0),
+            new ExpectedTestIssue(CloudSecretsRuleKey, new TextRangeDto(14, 24, 14, 54), RuleType.VULNERABILITY, 0),
+            new ExpectedTestIssue("secrets:S6337", new TextRangeDto(20, 12, 20, 56), RuleType.VULNERABILITY, 0),
+        ];
     }
 }
