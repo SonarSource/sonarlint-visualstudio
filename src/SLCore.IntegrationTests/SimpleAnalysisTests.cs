@@ -18,60 +18,75 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions.Common;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 [TestClass]
-public class SimpleAnalysisTests : FileAnalysisTestsBase
+public class SimpleAnalysisTests
 {
+    private static FileAnalysisTestsRunner sharedFileAnalysisTestsRunner;
+
+    public TestContext TestContext { get; set; }
+
+    [ClassInitialize]
+    public static void ClassInitialize(TestContext context)
+    {
+        sharedFileAnalysisTestsRunner = new FileAnalysisTestsRunner(nameof(SimpleAnalysisTests));
+    }
+    
+    [ClassCleanup]
+    public static void ClassCleanup()
+    {
+        sharedFileAnalysisTestsRunner.Dispose();
+    }
+    
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_JavaScriptAnalysisProducesExpectedIssues() 
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(JavaScriptIssues,false);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.JavaScriptIssues,false);
     
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromRpc_JavaScriptAnalysisProducesExpectedIssues() 
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(JavaScriptIssues,true);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.JavaScriptIssues,true);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_SecretsAnalysisProducesExpectedIssues() 
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(SecretsIssues, false);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.SecretsIssues, false);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromRpc_SecretsAnalysisProducesExpectedIssues() 
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(SecretsIssues, true);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.SecretsIssues, true);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_TypeScriptAnalysisProducesExpectedIssues()
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(TypeScriptIssues, false);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.TypeScriptIssues, false);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromRpc_TypeScriptAnalysisProducesExpectedIssues()
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(TypeScriptIssues, true);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.TypeScriptIssues, true);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_CssAnalysisProducesExpectedIssues()
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(CssIssues, false);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.CssIssues, false);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromRpc_CssProducesExpectedIssues()
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(CssIssues, true);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.CssIssues, true);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_CssAnalysisInVueProducesExpectedIssues()
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(VueIssues, false);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.VueIssues, false);
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromRpc_CssAnalysisInVyeProducesExpectedIssues()
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(VueIssues, true);
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.VueIssues, true);
 
     private async Task DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(ITestingFile testingFile, bool sendContent)
     {
-        var issuesByFileUri = await RunFileAnalysis(testingFile.Path, sendContent: sendContent);
+        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(testingFile, TestContext.TestName, sendContent: sendContent);
 
         issuesByFileUri.Should().HaveCount(1);
-        var receivedIssues = issuesByFileUri[new FileUri(GetFullPath(testingFile.Path))];
+        var receivedIssues = issuesByFileUri[new FileUri(testingFile.GetFullPath())];
         receivedIssues.Should().HaveCount(testingFile.ExpectedIssues.Count);
 
         foreach (var expectedIssue in testingFile.ExpectedIssues)
@@ -82,4 +97,5 @@ public class SimpleAnalysisTests : FileAnalysisTestsBase
             receivedIssue.flows.Count.Should().Be(expectedIssue.expectedFlows);
         }
     }
+
 }

@@ -19,5 +19,5 @@
  */
 
 #if DEBUG
-    [assembly:Parallelize(Workers = 4, Scope = ExecutionScope.MethodLevel)]
+    [assembly:Parallelize(Workers = 4, Scope = ExecutionScope.ClassLevel)] // method level is not safe, as SLCore instance are shared inside the test classes
 #endif
