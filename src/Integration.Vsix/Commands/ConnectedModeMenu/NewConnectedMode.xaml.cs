@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
     {
         internal NewConnectedMode()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
     }
 }
