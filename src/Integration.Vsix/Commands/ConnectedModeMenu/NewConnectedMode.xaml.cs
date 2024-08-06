@@ -26,13 +26,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public sealed partial class NewConnectedMode : DialogWindow
     {
- 
-
         internal NewConnectedMode()
         {
-
+            InitializeComponent();
         }
-
-        
     }
 }

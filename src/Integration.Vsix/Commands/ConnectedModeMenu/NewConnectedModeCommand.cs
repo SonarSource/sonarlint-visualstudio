@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using SonarLint.VisualStudio.ConnectedMode.Migration.Wizard;
-using MessageBox = SonarLint.VisualStudio.Core.MessageBox;
+﻿using SonarLint.VisualStudio.ConnectedMode.Migration.Wizard;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class NewConnectedModeCommand : VsCommandBase
     {
         internal const int Id = 0x104;

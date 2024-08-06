@@ -12,10 +12,6 @@
     MinHeight="400"
     MinWidth="400"
     MaxWidth="600"
-    
-    Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}"
-    FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"    
-    FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
     >
 
     <Grid>
