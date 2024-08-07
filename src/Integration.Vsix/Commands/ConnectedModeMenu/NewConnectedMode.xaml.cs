@@ -18,10 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
 using Microsoft.VisualStudio.PlatformUI;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Migration.Wizard
+namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 {
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public sealed partial class NewConnectedMode : DialogWindow

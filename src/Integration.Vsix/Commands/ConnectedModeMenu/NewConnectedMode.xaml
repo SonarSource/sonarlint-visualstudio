@@ -1,5 +1,5 @@
 ﻿<platformUi:DialogWindow
-    x:Class="SonarLint.VisualStudio.ConnectedMode.Migration.Wizard.NewConnectedMode"
+    x:Class="SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu.NewConnectedMode"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
