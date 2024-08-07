@@ -261,6 +261,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Commands\ConnectedModeMenu\NewConnectedMode.xaml" />
     <None Remove="Commands\HelpMenu\AboutDialog.xaml" />
     <None Remove="Resources\MavenPro-Regular.ttf" />
     <None Remove="Resources\sonarlint_200.png" />
@@ -284,6 +285,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Page Include="Commands\ConnectedModeMenu\NewConnectedMode.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Commands\HelpMenu\AboutDialog.xaml" />
 
     <Page Include="Settings\GeneralOptionsDialogControl.xaml" />
