@@ -38,9 +38,9 @@ namespace SonarLint.VisualStudio.Core.WPF
         {
             bool equal;
 
-            if (value is IEquatable<T>)
+            if (value is IEquatable<T> equatable)
             {
-                equal = ((IEquatable<T>)value).Equals(field);
+                equal = equatable.Equals(field);
             }
             else if (typeof(T).IsSubclassOf(typeof(Enum)))
             {
