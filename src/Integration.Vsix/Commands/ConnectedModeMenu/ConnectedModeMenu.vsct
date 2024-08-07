@@ -21,12 +21,19 @@
           <ButtonText>Export Binding Configuration</ButtonText>
         </Strings>
       </Button>
+      <Button guid="ConnectedModeMenuCmdSet" id="NewConnectedMode">
+        <Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup" />
+        <Strings>
+          <ButtonText>New Connected Mode</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
   </Commands>
 
   <Symbols>
     <GuidSymbol name="ConnectedModeMenuCmdSet" value="{E5D50D82-248A-4300-A2B2-B640FCC4D4FD}">
       <IDSymbol name="ConnectedModeGroup" value="0x101" />
+      <IDSymbol name="NewConnectedMode" value="0x104" />
       <IDSymbol name="ManageServerConnectionsCommand" value="0x102" />
       <IDSymbol name="SaveSharedConnectionCommand" value="0x103" />
     </GuidSymbol>
