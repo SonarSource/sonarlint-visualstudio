@@ -39,6 +39,11 @@ internal class SlCoreTelemetryMigrationProvider : ISlCoreTelemetryMigrationProvi
     public TelemetryMigrationDto Get()
     {
         var telemetryData = telemetryDataRepository.ReadTelemetryData();
+
+        if (telemetryData is null)
+        {
+            return null;
+        }
         
         return new TelemetryMigrationDto(
             isEnabled: telemetryData.IsAnonymousDataShared,

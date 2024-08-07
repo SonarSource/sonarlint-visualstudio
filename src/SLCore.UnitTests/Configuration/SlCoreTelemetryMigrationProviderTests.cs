@@ -39,6 +39,18 @@ public class SlCoreTelemetryMigrationProviderTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<SlCoreTelemetryMigrationProvider>();
     }
+    
+    [TestMethod]
+    public void Get_NoData_ReturnsNull()
+    {
+        var telemetryDataRepository = Substitute.For<ITelemetryDataRepository>();
+        telemetryDataRepository.ReadTelemetryData().Returns((TelemetryData)null);
+        var slCoreTelemetryMigrationProvider = new SlCoreTelemetryMigrationProvider(telemetryDataRepository);
+
+        var telemetryMigrationDto = slCoreTelemetryMigrationProvider.Get();
+
+        telemetryMigrationDto.Should().BeNull();
+    }
 
     [TestMethod]
     public void Get_ConvertsOldTelemetryDataToTelemetryMigration()
