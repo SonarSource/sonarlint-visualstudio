@@ -19,12 +19,11 @@
  */
 
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.State
 {
