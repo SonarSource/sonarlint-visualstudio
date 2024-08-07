@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,11 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace SonarLint.VisualStudio.Integration.WPF
+namespace SonarLint.VisualStudio.Core.WPF
 {
     public abstract class ViewModelBase : INotifyPropertyChanged
     {
