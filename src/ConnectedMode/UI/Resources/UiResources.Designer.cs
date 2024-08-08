@@ -78,6 +78,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Bind.
+        /// </summary>
+        public static string BindButton {
+            get {
+                return ResourceManager.GetString("BindButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string CancelBtn {
@@ -240,6 +249,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Projects on server.
+        /// </summary>
+        public static string ProjectSelectionDialogTitle {
+            get {
+                return ResourceManager.GetString("ProjectSelectionDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enter the SonarQube URL:.
         /// </summary>
         public static string QubeUrlLbl {
@@ -263,6 +281,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string SelectOrganizationLabel {
             get {
                 return ResourceManager.GetString("SelectOrganizationLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search for projects....
+        /// </summary>
+        public static string SearchProjectPlaceholder {
+            get {
+                return ResourceManager.GetString("SearchProjectPlaceholder", resourceCulture);
             }
         }
         

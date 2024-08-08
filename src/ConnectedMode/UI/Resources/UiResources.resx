@@ -200,6 +200,14 @@
   </data>
   <data name="Username" xml:space="preserve">
     <value>Username</value>
+  <data name="BindButton" xml:space="preserve">
+    <value>Bind</value>
+  </data>
+  <data name="SearchProjectPlaceholder" xml:space="preserve">
+    <value>Search for projects...</value>
+  </data>
+  <data name="ProjectSelectionDialogTitle" xml:space="preserve">
+    <value>Projects on server</value>
   </data>
   <data name="SelectOrganizationLabel" xml:space="preserve">
     <value>Choose one of your organizations:</value>

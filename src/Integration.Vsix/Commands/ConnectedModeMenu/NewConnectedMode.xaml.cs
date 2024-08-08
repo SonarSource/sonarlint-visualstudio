@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Microsoft.VisualStudio.PlatformUI;
+using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
@@ -87,6 +89,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
                 new("mykey1", "totallydifferentname"),
             ]);
             organizationSelectionDialog.ShowDialog();
+        }
+
+        private void ProjectSelectionButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            new ProjectSelectionWindow().ShowDialog();
         }
     }
 }
