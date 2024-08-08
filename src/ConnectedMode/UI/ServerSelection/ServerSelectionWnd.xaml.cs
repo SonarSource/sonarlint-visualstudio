@@ -18,27 +18,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using Microsoft.VisualStudio.PlatformUI;
-using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
+using System.Windows.Navigation;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
+namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
 {
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public sealed partial class NewConnectedMode : DialogWindow
+    [ExcludeFromCodeCoverage] // UI, not really unit-testable
+    public partial class ServerSelectionWnd : Window
     {
         private readonly IBrowserService browserService;
 
-        internal NewConnectedMode(IBrowserService browserService)
+        public ServerSelectionWnd(IBrowserService browserService)
         {
             this.browserService = browserService;
-            this.InitializeComponent();
+            InitializeComponent();
         }
 
-        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        public ServerSelectionViewModel ViewModel { get; } = new();
+
+        private void ViewWebsite(object sender, RequestNavigateEventArgs e)
         {
-            new ServerSelectionWnd(browserService).ShowDialog();
+            browserService.Navigate(e.Uri.AbsoluteUri);
         }
     }
 }

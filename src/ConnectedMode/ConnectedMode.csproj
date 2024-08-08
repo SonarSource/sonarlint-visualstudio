@@ -37,11 +37,25 @@
   <ItemGroup>
     <None Remove="Install\SonarLintTargets.xml" />
     <None Remove="Migration\Wizard\MigrationWizardWindow.xaml" />
+    <None Remove="UI\Resources\SonarCloud.png" />
+    <None Remove="UI\Resources\sonarlint_32px.ico" />
+    <None Remove="UI\Resources\SonarQube.png" />
+    <None Remove="UI\Resources\Styles.xaml" />
+    <None Remove="UI\ServerSelection\ServerSelectionWnd.xaml" />
+    <Resource Include="UI\Resources\SonarCloud.png" />
+    <Resource Include="UI\Resources\sonarlint_32px.ico">
+      <CopyToOutputDirectory></CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="UI\Resources\SonarQube.png" />
     <EmbeddedResource Include="Install\SonarLintTargets.xml" />
   </ItemGroup>
 
   <ItemGroup>
     <Page Include="Migration\Wizard\MigrationWizardWindow.xaml" />
+    <Page Include="UI\Resources\Styles.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\ServerSelection\ServerSelectionWnd.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -85,6 +99,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Update="UI\Resources\UiResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>UiResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -108,6 +127,10 @@
     <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="UI\Resources\UiResources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>UiResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 
