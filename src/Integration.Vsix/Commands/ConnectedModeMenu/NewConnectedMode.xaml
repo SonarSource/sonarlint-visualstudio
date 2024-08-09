@@ -15,7 +15,11 @@
     >
 
     <Grid>
-        <TextBlock Text="Hello Word"></TextBlock>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Button Content="Server Selection Window" Click="ButtonBase_OnClick" Width="150"></Button>
     </Grid>
 
 </platformUi:DialogWindow>
