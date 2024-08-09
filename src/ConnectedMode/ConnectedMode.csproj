@@ -42,7 +42,7 @@
     <None Remove="UI\Resources\sonarlint_32px.ico" />
     <None Remove="UI\Resources\SonarQube.png" />
     <None Remove="UI\Resources\Styles.xaml" />
-    <None Remove="UI\ServerSelection\ServerSelectionWnd.xaml" />
+    <None Remove="UI\ServerSelection\ServerSelectionWindow.xaml" />
     <Resource Include="UI\Resources\SonarCloud.png" />
     <Resource Include="UI\Resources\sonarlint_32px.ico">
       <CopyToOutputDirectory></CopyToOutputDirectory>
@@ -59,7 +59,7 @@
     <Page Include="UI\Resources\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\ServerSelection\ServerSelectionWnd.xaml" />
+    <Page Include="UI\ServerSelection\ServerSelectionWindow.xaml" />
   </ItemGroup>
 
   <ItemGroup>

@@ -150,6 +150,9 @@
   <data name="Password" xml:space="preserve">
     <value>Password</value>
   </data>
+  <data name="NextBtn" xml:space="preserve">
+    <value>Next</value>
+  </data>
   <data name="QubeUrlLbl" xml:space="preserve">
     <value>Enter the SonarQube URL:</value>
   </data>
@@ -179,5 +182,8 @@
   </data>
   <data name="Username" xml:space="preserve">
     <value>Username</value>
+  </data>
+  <data name="SonarQubeDescriptionLbl" xml:space="preserve">
+    <value>An open-source, self-managed tool that easily integrates into the developers' CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code.</value>
   </data>
 </root>

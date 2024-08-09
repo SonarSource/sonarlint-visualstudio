@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
         private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
-            new ServerSelectionWnd(browserService).ShowDialog();
+            new ServerSelectionWindow(browserService).ShowDialog();
         }
 
         private void Credentials_OnClick(object sender, RoutedEventArgs e)

@@ -41,46 +41,46 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
         }
 
         [TestMethod]
-        public void IsNextBtnEnabled_NoServerIsSelected_ReturnsFalse()
+        public void IsNextButtonEnabled_NoServerIsSelected_ReturnsFalse()
         {
             testSubject.IsSonarCloudSelected = false;
             testSubject.IsSonarQubeSelected = false;
 
-            testSubject.IsNextBtnEnabled.Should().BeFalse();
+            testSubject.IsNextButtonEnabled.Should().BeFalse();
         }
 
         [TestMethod]
-        public void IsNextBtnEnabled_SonarCloudIsSelected_ReturnsTrue()
+        public void IsNextButtonEnabled_SonarCloudIsSelected_ReturnsTrue()
         {
             testSubject.IsSonarCloudSelected = true;
             testSubject.IsSonarQubeSelected = false;
 
-            testSubject.IsNextBtnEnabled.Should().BeTrue();
+            testSubject.IsNextButtonEnabled.Should().BeTrue();
         }
 
         [TestMethod]
         [DataRow(null)]
         [DataRow("")]
         [DataRow("  ")]
-        public void IsNextBtnEnabled_SonarQubeIsSelectedAndNoUrlProvided_ReturnsFalse(string url)
+        public void IsNextButtonEnabled_SonarQubeIsSelectedAndNoUrlProvided_ReturnsFalse(string url)
         {
             testSubject.IsSonarCloudSelected = false;
             testSubject.IsSonarQubeSelected = true;
 
             testSubject.SonarQubeUrl = url;
 
-            testSubject.IsNextBtnEnabled.Should().BeFalse();
+            testSubject.IsNextButtonEnabled.Should().BeFalse();
         }
 
         [TestMethod]
-        public void IsNextBtnEnabled_SonarQubeIsSelectedAndUrlIsProvided_ReturnsTrue()
+        public void IsNextButtonEnabled_SonarQubeIsSelectedAndUrlIsProvided_ReturnsTrue()
         {
             testSubject.IsSonarCloudSelected = false;
             testSubject.IsSonarQubeSelected = true;
 
             testSubject.SonarQubeUrl = "dummy URL";
 
-            testSubject.IsNextBtnEnabled.Should().BeTrue();
+            testSubject.IsNextButtonEnabled.Should().BeTrue();
         }
 
         [TestMethod]

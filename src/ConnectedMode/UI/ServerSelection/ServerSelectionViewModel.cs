@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
             {
                 isSonarCloudSelected = value;
                 RaisePropertyChanged();
-                RaisePropertyChanged(nameof(IsNextBtnEnabled));
+                RaisePropertyChanged(nameof(IsNextButtonEnabled));
                 RaisePropertyChanged(nameof(ShouldSonarQubeUrlBeFilled));
             }
         } 
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
             {
                 isSonarQubeSelected = value;
                 RaisePropertyChanged();
-                RaisePropertyChanged(nameof(IsNextBtnEnabled));
+                RaisePropertyChanged(nameof(IsNextButtonEnabled));
                 RaisePropertyChanged(nameof(ShouldSonarQubeUrlBeFilled));
             }
         }
@@ -59,12 +59,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
             {
                 sonarQubeUrl = value;
                 RaisePropertyChanged();
-                RaisePropertyChanged(nameof(IsNextBtnEnabled));
+                RaisePropertyChanged(nameof(IsNextButtonEnabled));
                 RaisePropertyChanged(nameof(ShouldSonarQubeUrlBeFilled));
             }
         }
 
-        public bool IsNextBtnEnabled => IsSonarCloudSelected || (IsSonarQubeSelected && IsSonarQubeUrlProvided);
+        public bool IsNextButtonEnabled => IsSonarCloudSelected || (IsSonarQubeSelected && IsSonarQubeUrlProvided);
         public bool ShouldSonarQubeUrlBeFilled => IsSonarQubeSelected && !IsSonarQubeUrlProvided;
         private bool IsSonarQubeUrlProvided => !string.IsNullOrWhiteSpace(SonarQubeUrl);
     }
