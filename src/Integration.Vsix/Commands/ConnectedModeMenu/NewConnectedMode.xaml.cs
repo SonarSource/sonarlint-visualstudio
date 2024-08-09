@@ -20,6 +20,7 @@
 
 using System.Windows;
 using Microsoft.VisualStudio.PlatformUI;
+using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 using SonarLint.VisualStudio.Core;
 
@@ -39,6 +40,39 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
         private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
             new ServerSelectionWindow(browserService).ShowDialog();
+        }
+
+        private void ShowOrganizationSelectionDialog(object sender, RoutedEventArgs e)
+        {
+            var organizationSelectionDialog = new OrganizationSelectionDialog(
+            [
+                ("mykey1", "totallydifferentname"),
+                ("myFAVOURITEkey", "maybe_a_differentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+            ]);
+            organizationSelectionDialog.ShowDialog();
         }
     }
 }
