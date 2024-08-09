@@ -208,7 +208,10 @@
     <value>Search for project...</value>
   </data>
   <data name="ProjectSelectionDialogTitle" xml:space="preserve">
-    <value>Projects on server</value>
+    <value>Bind local project</value>
+  </data>
+  <data name="ProjectSelectionConnectionInfo" xml:space="preserve">
+    <value>Projects on: </value>
   </data>
   <data name="SelectOrganizationLabel" xml:space="preserve">
     <value>Choose one of your organizations:</value>

@@ -249,7 +249,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Projects on server.
+        ///   Looks up a localized string similar to Projects on: .
+        /// </summary>
+        public static string ProjectSelectionConnectionInfo {
+            get {
+                return ResourceManager.GetString("ProjectSelectionConnectionInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bind local project.
         /// </summary>
         public static string ProjectSelectionDialogTitle {
             get {

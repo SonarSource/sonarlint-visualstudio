@@ -38,7 +38,7 @@
         </Grid.ColumnDefinitions>
 
         <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" Margin="0, 0, 0, 15" TextWrapping="Wrap">
-            <Run>Projects on: </Run>
+            <Run Text="{x:Static ui:UiResources.ProjectSelectionConnectionInfo}"></Run>
             <InlineUIContainer>
                 <Image Width="20" Height="20">
                     <Image.Style>
