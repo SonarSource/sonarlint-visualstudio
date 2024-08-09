@@ -22,6 +22,7 @@ using System.Windows;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 using SonarLint.VisualStudio.Core;
@@ -53,6 +54,39 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
         private void Connections_OnClick(object sender, RoutedEventArgs e)
         {
             new ManageConnectionsWindow(browserService).ShowDialog();
+        }
+
+        private void ShowOrganizationSelectionDialog(object sender, RoutedEventArgs e)
+        {
+            var organizationSelectionDialog = new OrganizationSelectionDialog(
+            [
+                ("mykey1", "totallydifferentname"),
+                ("myFAVOURITEkey", "maybe_a_differentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+                ("mykey1", "totallydifferentname"),
+            ]);
+            organizationSelectionDialog.ShowDialog();
         }
     }
 }
