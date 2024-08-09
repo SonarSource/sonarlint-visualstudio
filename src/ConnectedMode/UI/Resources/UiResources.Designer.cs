@@ -61,6 +61,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please fill the authentication details for: .
+        /// </summary>
+        public static string AuthenticationDescriptionLbl {
+            get {
+                return ResourceManager.GetString("AuthenticationDescriptionLbl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authentication type.
+        /// </summary>
+        public static string AuthenticationTypeLbl {
+            get {
+                return ResourceManager.GetString("AuthenticationTypeLbl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string CancelBtn {
@@ -88,11 +106,56 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Credentials.
+        /// </summary>
+        public static string Credentials {
+            get {
+                return ResourceManager.GetString("Credentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Authentication Details.
+        /// </summary>
+        public static string CredentialsWndTitle {
+            get {
+                return ResourceManager.GetString("CredentialsWndTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authentication via username and password is deprecated and will be removed in the future. Please use a token instead..
+        /// </summary>
+        public static string DeprecatedAuthenticationType {
+            get {
+                return ResourceManager.GetString("DeprecatedAuthenticationType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Next.
         /// </summary>
         public static string NextBtn {
             get {
                 return ResourceManager.GetString("NextBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OK.
+        /// </summary>
+        public static string OkBtn {
+            get {
+                return ResourceManager.GetString("OkBtn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password.
+        /// </summary>
+        public static string Password {
+            get {
+                return ResourceManager.GetString("Password", resourceCulture);
             }
         }
         
@@ -147,6 +210,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string SonarQubeDescriptionLbl {
             get {
                 return ResourceManager.GetString("SonarQubeDescriptionLbl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Token.
+        /// </summary>
+        public static string Token {
+            get {
+                return ResourceManager.GetString("Token", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Username.
+        /// </summary>
+        public static string Username {
+            get {
+                return ResourceManager.GetString("Username", resourceCulture);
             }
         }
     }

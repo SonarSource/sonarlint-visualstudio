@@ -18,35 +18,45 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using Microsoft.VisualStudio.PlatformUI;
-using SonarLint.VisualStudio.ConnectedMode;
-using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
-using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
+using System.Windows.Input;
+using System.Windows.Navigation;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
+namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
 {
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public sealed partial class NewConnectedMode : DialogWindow
+    [ExcludeFromCodeCoverage] // UI, not really unit-testable
+    public partial class CredentialsWnd : Window
     {
         private readonly IBrowserService browserService;
 
-        internal NewConnectedMode(IBrowserService browserService)
+        public CredentialsWnd(IBrowserService browserService, Connection connection, bool isWizardMode)
         {
             this.browserService = browserService;
-            this.InitializeComponent();
+            ViewModel = new CredentialsViewModel(connection);
+            InitializeComponent();
+
+            ConfirmationBtn.Content = isWizardMode ? UiResources.NextBtn : UiResources.OkBtn;
         }
 
-        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        public CredentialsViewModel ViewModel { get; }
+
+        private void GenerateToken_Navigate(object sender, RequestNavigateEventArgs e)
         {
-            new ServerSelectionWnd(browserService).ShowDialog();
+            NavigateToGenerateTokenUrl();
         }
 
-        private void Credentials_OnClick(object sender, RoutedEventArgs e)
+        private void NavigateToGenerateTokenUrl()
         {
-            new CredentialsWnd(browserService, new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube), isWizardMode:true).ShowDialog();
+            browserService.Navigate(ViewModel.GenerateTokenUrl);
+        }
+
+        private void GenerateLinkIcon_Click(object sender, MouseButtonEventArgs e)
+        {
+            NavigateToGenerateTokenUrl();
         }
     }
 }
