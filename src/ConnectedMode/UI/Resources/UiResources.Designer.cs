@@ -133,6 +133,42 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit the authentication details of the connection.
+        /// </summary>
+        public static string EditConnection {
+            get {
+                return ResourceManager.GetString("EditConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Existing Connections.
+        /// </summary>
+        public static string ExistingConnections {
+            get {
+                return ResourceManager.GetString("ExistingConnections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Manage Connections.
+        /// </summary>
+        public static string ManageConnectionsWndTitle {
+            get {
+                return ResourceManager.GetString("ManageConnectionsWndTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Connection.
+        /// </summary>
+        public static string NewConnection {
+            get {
+                return ResourceManager.GetString("NewConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Next.
         /// </summary>
         public static string NextBtn {
@@ -169,11 +205,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove connection.
+        /// </summary>
+        public static string RemoveConnection {
+            get {
+                return ResourceManager.GetString("RemoveConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Create New Connection.
         /// </summary>
         public static string ServerSelectionWndTitle {
             get {
                 return ResourceManager.GetString("ServerSelectionWndTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Smart Notifications.
+        /// </summary>
+        public static string SmartNotifications {
+            get {
+                return ResourceManager.GetString("SmartNotifications", resourceCulture);
             }
         }
         
