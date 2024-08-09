@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
         private void ProjectSelectionButton_OnClick(object sender, RoutedEventArgs e)
         {
-            new ProjectSelectionWindow().ShowDialog();
+            new ProjectSelectionWindow(new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube, true)).ShowDialog();
         }
     }
 }

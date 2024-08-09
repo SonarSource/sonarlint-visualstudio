@@ -30,13 +30,16 @@ public class ProjectSelectionViewModelTests
         new ServerProject("a-project", "A Project"),
         new ServerProject("another-project", "Another Project")
     ];
+
+    private static readonly ConnectionInfo.Connection AConnection = new("http://localhost:9000",
+        ConnectionInfo.ServerType.SonarQube, true);
     
     private ProjectSelectionViewModel testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new ProjectSelectionViewModel();
+        testSubject = new ProjectSelectionViewModel(AConnection);
     }
 
     [TestMethod]
@@ -68,7 +71,7 @@ public class ProjectSelectionViewModelTests
     }
 
     [TestMethod]
-    public void ProjectSearchTerm_WithEmtpyTerm_ShouldNotUpdateSearchResult()
+    public void ProjectSearchTerm_WithEmptyTerm_ShouldNotUpdateSearchResult()
     {
         testSubject.InitProjects(AnInitialListOfProjects);
 

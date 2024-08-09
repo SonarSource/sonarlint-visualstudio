@@ -285,7 +285,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Search for projects....
+        ///   Looks up a localized string similar to Search for project....
         /// </summary>
         public static string SearchProjectPlaceholder {
             get {

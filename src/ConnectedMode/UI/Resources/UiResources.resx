@@ -200,11 +200,12 @@
   </data>
   <data name="Username" xml:space="preserve">
     <value>Username</value>
+  </data>
   <data name="BindButton" xml:space="preserve">
     <value>Bind</value>
   </data>
   <data name="SearchProjectPlaceholder" xml:space="preserve">
-    <value>Search for projects...</value>
+    <value>Search for project...</value>
   </data>
   <data name="ProjectSelectionDialogTitle" xml:space="preserve">
     <value>Projects on server</value>

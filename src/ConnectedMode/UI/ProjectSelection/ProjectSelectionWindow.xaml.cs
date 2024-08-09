@@ -26,10 +26,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 [ExcludeFromCodeCoverage]
 public partial class ProjectSelectionWindow
 {
-    public ProjectSelectionViewModel ViewModel { get; } = new();
+    public ProjectSelectionViewModel ViewModel { get; }
 
-    public ProjectSelectionWindow()
+    public ProjectSelectionWindow(ConnectionInfo.Connection connection)
     {
+        ViewModel = new ProjectSelectionViewModel(connection);
         InitializeComponent();
     }
 

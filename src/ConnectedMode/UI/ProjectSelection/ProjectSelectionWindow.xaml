@@ -27,6 +27,7 @@
     <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -36,11 +37,32 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <TextBox Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0"
+        <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" Margin="0, 0, 0, 15" TextWrapping="Wrap">
+            <Run>Projects on: </Run>
+            <InlineUIContainer>
+                <Image Width="20" Height="20">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Path=Connection.serverType}" Value="SonarCloud">
+                                    <Setter Property="Source" Value="../Resources/SonarCloudIcon.png"></Setter>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Path=Connection.serverType}" Value="SonarQube">
+                                    <Setter Property="Source" Value="../Resources/SonarQubeIcon.png"></Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+            </InlineUIContainer>
+            <Run Text="{Binding Connection.id}" FontWeight="Bold" />
+        </TextBlock>
+
+        <TextBox Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1"
                  x:Name="ProjectSearchTextBox"
                  VerticalAlignment="Top"
                  Text="{Binding ProjectSearchTerm, UpdateSourceTrigger=PropertyChanged}" />
-        <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" IsHitTestVisible="False"
+        <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" IsHitTestVisible="False"
                    Text="{x:Static ui:UiResources.SearchProjectPlaceholder}" VerticalAlignment="Center"
                    HorizontalAlignment="Left" Margin="5,0,0,0" Foreground="DarkGray">
             <TextBlock.Style>
@@ -56,7 +78,7 @@
         </TextBlock>
 
         <ListBox x:Name="SearchResultsListBox"
-                 Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1"
+                 Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2"
                  Margin="0, 10, 0, 10"
                  ItemsSource="{Binding ProjectResults}"
                  SelectedItem="{Binding SelectedProject}">
@@ -76,13 +98,13 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <Button Grid.Column="1" Grid.Row="2" Name="BindButton" Content="{x:Static ui:UiResources.BindButton}"
+        <Button Grid.Column="1" Grid.Row="3" Name="BindButton" Content="{x:Static ui:UiResources.BindButton}"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
                 Margin="5, 0"
                 IsEnabled="{Binding IsProjectSelected}"
                 Click="BindButton_OnClick" />
-        <Button Grid.Column="2" Grid.Row="2" Name="CancelButton" Content="{x:Static ui:UiResources.CancelBtn}"
+        <Button Grid.Column="2" Grid.Row="3" Name="CancelButton" Content="{x:Static ui:UiResources.CancelBtn}"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
                 Click="CancelButton_OnClick" />
