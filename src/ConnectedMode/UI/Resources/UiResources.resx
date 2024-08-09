@@ -117,10 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AuthenticationDescriptionLbl" xml:space="preserve">
+  <data name="AuthenticationDescription" xml:space="preserve">
     <value>Please fill the authentication details for: </value>
   </data>
-  <data name="AuthenticationTypeLbl" xml:space="preserve">
+  <data name="AuthenticationType" xml:space="preserve">
     <value>Authentication type</value>
   </data>
   <data name="CancelBtn" xml:space="preserve">
@@ -135,23 +135,20 @@
   <data name="Credentials" xml:space="preserve">
     <value>Credentials</value>
   </data>
-  <data name="CredentialsWndTitle" xml:space="preserve">
+  <data name="CredentialsWindowTitle" xml:space="preserve">
     <value>Edit Authentication Details</value>
   </data>
   <data name="DeprecatedAuthenticationType" xml:space="preserve">
     <value>Authentication via username and password is deprecated and will be removed in the future. Please use a token instead.</value>
   </data>
-  <data name="NextBtn" xml:space="preserve">
+  <data name="Next" xml:space="preserve">
     <value>Next</value>
   </data>
-  <data name="OkBtn" xml:space="preserve">
+  <data name="Ok" xml:space="preserve">
     <value>OK</value>
   </data>
   <data name="Password" xml:space="preserve">
     <value>Password</value>
-  </data>
-  <data name="NextBtn" xml:space="preserve">
-    <value>Next</value>
   </data>
   <data name="QubeUrlLbl" xml:space="preserve">
     <value>Enter the SonarQube URL:</value>
@@ -182,8 +179,5 @@
   </data>
   <data name="Username" xml:space="preserve">
     <value>Username</value>
-  </data>
-  <data name="SonarQubeDescriptionLbl" xml:space="preserve">
-    <value>An open-source, self-managed tool that easily integrates into the developers' CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code.</value>
   </data>
 </root>

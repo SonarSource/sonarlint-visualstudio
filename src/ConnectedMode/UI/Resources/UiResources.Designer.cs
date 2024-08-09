@@ -63,18 +63,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Please fill the authentication details for: .
         /// </summary>
-        public static string AuthenticationDescriptionLbl {
+        public static string AuthenticationDescription {
             get {
-                return ResourceManager.GetString("AuthenticationDescriptionLbl", resourceCulture);
+                return ResourceManager.GetString("AuthenticationDescription", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Authentication type.
         /// </summary>
-        public static string AuthenticationTypeLbl {
+        public static string AuthenticationType {
             get {
-                return ResourceManager.GetString("AuthenticationTypeLbl", resourceCulture);
+                return ResourceManager.GetString("AuthenticationType", resourceCulture);
             }
         }
         
@@ -117,9 +117,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Edit Authentication Details.
         /// </summary>
-        public static string CredentialsWndTitle {
+        public static string CredentialsWindowTitle {
             get {
-                return ResourceManager.GetString("CredentialsWndTitle", resourceCulture);
+                return ResourceManager.GetString("CredentialsWindowTitle", resourceCulture);
             }
         }
         
@@ -135,18 +135,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Next.
         /// </summary>
-        public static string NextBtn {
+        public static string Next {
             get {
-                return ResourceManager.GetString("NextBtn", resourceCulture);
+                return ResourceManager.GetString("Next", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
-        public static string OkBtn {
+        public static string Ok {
             get {
-                return ResourceManager.GetString("OkBtn", resourceCulture);
+                return ResourceManager.GetString("Ok", resourceCulture);
             }
         }
         

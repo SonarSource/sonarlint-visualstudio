@@ -20,10 +20,13 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
@@ -39,7 +42,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
             ViewModel = new CredentialsViewModel(connection);
             InitializeComponent();
 
-            ConfirmationBtn.Content = isWizardMode ? UiResources.NextBtn : UiResources.OkBtn;
+            ConfirmationBtn.Content = isWizardMode ? UiResources.Next : UiResources.Ok;
         }
 
         public CredentialsViewModel ViewModel { get; }
@@ -57,6 +60,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
         private void GenerateLinkIcon_Click(object sender, MouseButtonEventArgs e)
         {
             NavigateToAccountSecurityUrl();
+        }
+
+        private void PasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Password = Password.Password;
+        }
+
+        private void Token_OnPasswordChanged(object sender, RoutedEventArgs e)
+        {
+            ViewModel.Token = Token.Password;
+        }
+
+        private void AuthenticationType_SourceUpdated(object sender, DataTransferEventArgs dataTransferEventArgs)
+        {
+            if (ViewModel.SelectedAuthenticationType == UiResources.Token)
+            {
+                ViewModel.Username = null;
+                Password.Password = string.Empty;
+            }
+            else if (ViewModel.SelectedAuthenticationType == UiResources.Credentials)
+            {
+                Token.Password = string.Empty;
+            }
         }
     }
 }

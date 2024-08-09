@@ -58,7 +58,6 @@ public class CredentialsViewModel(Connection connection) : ViewModelBase
         set
         {
             token = value;
-            RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsConfirmationEnabled));
             RaisePropertyChanged(nameof(ShouldTokenBeFilled));
         }
@@ -70,7 +69,6 @@ public class CredentialsViewModel(Connection connection) : ViewModelBase
         set
         {
             username = value;
-            RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsConfirmationEnabled));
             RaisePropertyChanged(nameof(ShouldUsernameBeFilled));
         }

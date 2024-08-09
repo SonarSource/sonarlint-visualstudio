@@ -12,6 +12,11 @@
         <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
 
+    <Style TargetType="PasswordBox">
+        <Setter Property="Height" Value="30" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
     <Style TargetType="TextBlock">
         <Setter Property="TextWrapping" Value="WrapWithOverflow" />
         <Setter Property="TextTrimming" Value="None" />
