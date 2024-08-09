@@ -61,6 +61,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please fill the authentication details for: .
+        /// </summary>
+        public static string AuthenticationDescription {
+            get {
+                return ResourceManager.GetString("AuthenticationDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authentication type.
+        /// </summary>
+        public static string AuthenticationType {
+            get {
+                return ResourceManager.GetString("AuthenticationType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string CancelBtn {
@@ -88,11 +106,56 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Credentials.
+        /// </summary>
+        public static string Credentials {
+            get {
+                return ResourceManager.GetString("Credentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Authentication Details.
+        /// </summary>
+        public static string CredentialsWindowTitle {
+            get {
+                return ResourceManager.GetString("CredentialsWindowTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authentication via username and password is deprecated and will be removed in the future. Please use a token instead..
+        /// </summary>
+        public static string DeprecatedAuthenticationType {
+            get {
+                return ResourceManager.GetString("DeprecatedAuthenticationType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Next.
         /// </summary>
-        public static string NextBtn {
+        public static string Next {
             get {
-                return ResourceManager.GetString("NextBtn", resourceCulture);
+                return ResourceManager.GetString("Next", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OK.
+        /// </summary>
+        public static string Ok {
+            get {
+                return ResourceManager.GetString("Ok", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password.
+        /// </summary>
+        public static string Password {
+            get {
+                return ResourceManager.GetString("Password", resourceCulture);
             }
         }
         
@@ -111,6 +174,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string ServerSelectionWndTitle {
             get {
                 return ResourceManager.GetString("ServerSelectionWndTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://sonarcloud.io/account/security.
+        /// </summary>
+        public static string SonarCloudAccountSecurityUrl {
+            get {
+                return ResourceManager.GetString("SonarCloudAccountSecurityUrl", resourceCulture);
             }
         }
         
@@ -142,11 +214,38 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to account/security.
+        /// </summary>
+        public static string SonarQubeAccountSecurityUrl {
+            get {
+                return ResourceManager.GetString("SonarQubeAccountSecurityUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An open-source, self-managed tool that easily integrates into the developers&apos; CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code..
         /// </summary>
         public static string SonarQubeDescriptionLbl {
             get {
                 return ResourceManager.GetString("SonarQubeDescriptionLbl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Token.
+        /// </summary>
+        public static string Token {
+            get {
+                return ResourceManager.GetString("Token", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Username.
+        /// </summary>
+        public static string Username {
+            get {
+                return ResourceManager.GetString("Username", resourceCulture);
             }
         }
     }

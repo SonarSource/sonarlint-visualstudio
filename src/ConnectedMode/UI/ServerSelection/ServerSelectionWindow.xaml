@@ -119,7 +119,7 @@
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="{x:Static ui:UiResources.NextBtn}" IsEnabled="{Binding Path=IsNextButtonEnabled}" /> 
+            <Button Grid.Column="0" Content="{x:Static ui:UiResources.Next}" IsEnabled="{Binding Path=IsNextButtonEnabled}" /> 
             <Button Grid.Column="1" Content="{x:Static ui:UiResources.CancelBtn}" Margin="10,0"/> 
         </Grid>
     </Grid>
