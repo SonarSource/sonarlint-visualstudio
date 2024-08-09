@@ -219,7 +219,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         {
             var viewModel = new CredentialsViewModel(new Connection("http://sonarcloud.io/myorg", ServerType.SonarCloud));
 
-            viewModel.AccountSecurityUrl.Should().Be(SonarCloudAccountSecurityUrl);
+            viewModel.AccountSecurityUrl.Should().Be(UiResources.SonarCloudAccountSecurityUrl);
         }
 
         [TestMethod]
@@ -227,7 +227,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         {
             var qubeUrl = "http://localhost:9000/";
             var viewModel = new CredentialsViewModel(new Connection(qubeUrl, ServerType.SonarQube));
-            var expectedUrl = Path.Combine(qubeUrl, SonarQubeAccountSecurityUrl);
+            var expectedUrl = Path.Combine(qubeUrl, UiResources.SonarQubeAccountSecurityUrl);
 
             viewModel.AccountSecurityUrl.Should().Be(expectedUrl);
         }

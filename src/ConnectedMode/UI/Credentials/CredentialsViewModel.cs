@@ -99,7 +99,7 @@ public class CredentialsViewModel(Connection connection) : ViewModelBase
     private bool AreCredentialsProvided => IsPasswordProvided && IsUsernameProvided;
     private bool IsUsernameProvided => IsValueFilled(Username);
     private bool IsPasswordProvided => IsValueFilled(Password);
-    public string AccountSecurityUrl => Connection.serverType == ServerType.SonarCloud ? SonarCloudAccountSecurityUrl : Path.Combine(Connection.id, SonarQubeAccountSecurityUrl);
+    public string AccountSecurityUrl => Connection.serverType == ServerType.SonarCloud ? UiResources.SonarCloudAccountSecurityUrl : Path.Combine(Connection.id, UiResources.SonarQubeAccountSecurityUrl);
 
     private bool IsValueFilled(string value)
     {

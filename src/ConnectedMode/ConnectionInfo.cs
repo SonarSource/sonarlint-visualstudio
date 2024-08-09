@@ -22,9 +22,6 @@ namespace SonarLint.VisualStudio.ConnectedMode;
 
 public static class ConnectionInfo
 {
-    public const string SonarCloudAccountSecurityUrl = "https://sonarcloud.io/account/security";
-    public const string SonarQubeAccountSecurityUrl = "account/security";
-
     public enum ServerType
     {
         SonarQube,
