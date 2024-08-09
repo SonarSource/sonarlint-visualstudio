@@ -8,6 +8,7 @@
     Title="SonarLint Connected Mode Migration"
     HorizontalAlignment="Center"
     ResizeMode="NoResize"
+    WindowStartupLocation="CenterOwner"
     SizeToContent="WidthAndHeight"
     MinHeight="400"
     MinWidth="400"
@@ -17,9 +18,11 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Button Content="Server Selection Window" Click="ButtonBase_OnClick" Width="150"></Button>
+        <Button Grid.Row="0" Content="Server Selection Window" Click="ButtonBase_OnClick" Width="150"></Button>
+        <Button Grid.Row="1" Click="ShowOrganizationSelectionDialog" Width="150">Organization Selection</Button>
     </Grid>
 
 </platformUi:DialogWindow>
