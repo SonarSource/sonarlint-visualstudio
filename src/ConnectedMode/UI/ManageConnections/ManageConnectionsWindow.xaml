@@ -1,0 +1,112 @@
+﻿<Window x:Class="SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections.ManageConnectionsWindow"
+                         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                         xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+                         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
+                         xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+                         xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+                         Title="{x:Static ui:UiResources.ManageConnectionsWndTitle}" 
+                         HorizontalAlignment="Center"
+                         SizeToContent="WidthAndHeight"
+                         ResizeMode="NoResize"
+                         MinWidth="750"  MaxWidth="750"
+                         MinHeight="500" MaxHeight="500"
+                         Icon="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarlint_32px.ico"
+                         Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}"
+                         FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"    
+                         FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
+                         x:Name="This">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+           <Grid.RowDefinitions>
+               <RowDefinition Height="Auto"/>
+               <RowDefinition Height="*"/>
+           </Grid.RowDefinitions>
+           <Grid.ColumnDefinitions>
+               <ColumnDefinition Width="*"/>
+           </Grid.ColumnDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="{x:Static ui:UiResources.ExistingConnections}" FontSize="20" VerticalAlignment="Center"/>
+                <Button Grid.Column="1" Content="{x:Static ui:UiResources.NewConnection}" HorizontalAlignment="Right" Padding="5,0" Margin="0,10"
+                        Click="NewConnection_Clicked"/>
+            </Grid>
+           <ListBox Grid.Row="1" ItemsSource="{Binding Path=ConnectionViewModels, Mode=OneWay}" Margin="0,10" 
+                    ItemContainerStyle="{StaticResource NoSelectionListBoxItemStyle}" BorderBrush="{DynamicResource {x:Static vsShell:VsBrushes.ActiveBorderKey}}"
+                    Background="Transparent">
+               <ListBox.ItemTemplate>
+                   <DataTemplate>
+                        <Grid Margin="0,5,0,0">
+                           <Grid.ColumnDefinitions>
+                               <ColumnDefinition Width="Auto"/>
+                               <ColumnDefinition Width="*"/>
+                               <ColumnDefinition Width="Auto"/>
+                           </Grid.ColumnDefinitions>
+
+                           <Image Grid.Column="0" Width="50" Height="50" VerticalAlignment="Center" HorizontalAlignment="Center">
+                               <Image.Style>
+                                   <Style TargetType="Image">
+                                       <Style.Triggers>
+                                           <DataTrigger Binding="{Binding Path=ServerType}" Value="SonarCloud">
+                                               <Setter Property="Source" Value="../Resources/SonarCloudIcon.png"></Setter>
+                                           </DataTrigger>
+                                           <DataTrigger Binding="{Binding Path=ServerType}" Value="SonarQube">
+                                               <Setter Property="Source" Value="../Resources/SonarQubeIcon.png"></Setter>
+                                           </DataTrigger>
+                                        </Style.Triggers>
+                                   </Style>
+                               </Image.Style>
+                           </Image>
+                           <Grid Grid.Column="1">
+                               <Grid.RowDefinitions>
+                                   <RowDefinition Height="*"/>
+                                   <RowDefinition Height="*"/>
+                               </Grid.RowDefinitions>
+
+                               <TextBlock Grid.Row="0" Text="{Binding Path=Name, Mode=OneWay}" />
+                               <CheckBox Grid.Row="1" Content="{x:Static ui:UiResources.SmartNotifications}" IsChecked="{Binding Path=HasSmartNotifications}"/>
+                            </Grid>
+
+                           <Grid Grid.Column="2" HorizontalAlignment="Right">
+                               <Grid.ColumnDefinitions>
+                                   <ColumnDefinition Width="Auto"/>
+                                   <ColumnDefinition Width="Auto"/>
+                               </Grid.ColumnDefinitions>
+
+                               <Button Grid.Column="0" Style="{StaticResource IconButtonStyle}" ToolTip="{x:Static ui:UiResources.EditConnection}" Click="EditConnection_Clicked">
+                                   <imaging:CrispImage Width="20" Height="20" VerticalAlignment="Center" Cursor="Hand" Moniker="{x:Static vsimagecatalog:KnownMonikers.Edit}"
+                                                       Margin="5,0" />
+                                </Button>
+                                <Button Grid.Column="1" Style="{StaticResource IconButtonStyle}" ToolTip="{x:Static ui:UiResources.RemoveConnection}">
+                                    <imaging:CrispImage Width="20" Height="20" VerticalAlignment="Center" Cursor="Hand" Moniker="{x:Static vsimagecatalog:KnownMonikers.Close}"/>
+                                </Button>
+                            </Grid>
+                       </Grid>
+                   </DataTemplate>
+                </ListBox.ItemTemplate>
+           </ListBox>
+       </Grid>
+
+        <Grid HorizontalAlignment="Right" Grid.Row="1" Margin="10">
+            <Button Content="{x:Static ui:UiResources.OkBtn}" IsCancel="True"/>
+        </Grid>
+    </Grid>
+</Window>
