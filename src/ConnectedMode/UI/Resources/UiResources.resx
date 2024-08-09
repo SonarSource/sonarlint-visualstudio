@@ -147,4 +147,13 @@
   <data name="SonarQubeDescriptionLbl" xml:space="preserve">
     <value>An open-source, self-managed tool that easily integrates into the developers' CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code.</value>
   </data>
+  <data name="BindButton" xml:space="preserve">
+    <value>Bind</value>
+  </data>
+  <data name="SearchProjectPlaceholder" xml:space="preserve">
+    <value>Search for projects...</value>
+  </data>
+  <data name="ProjectSelectionDialogTitle" xml:space="preserve">
+    <value>Projects on server</value>
+  </data>
 </root>

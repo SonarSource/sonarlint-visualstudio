@@ -56,6 +56,7 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\ServerSelection\ServerSelectionWindow.xaml" />
+    <Page Include="UI\ProjectSelection\ProjectSelectionWindow.xaml" />
   </ItemGroup>
 
   <ItemGroup>

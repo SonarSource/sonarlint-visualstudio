@@ -18,14 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Microsoft.VisualStudio.PlatformUI;
+using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 {
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     public sealed partial class NewConnectedMode : DialogWindow
     {
         private readonly IBrowserService browserService;
@@ -39,6 +41,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
         private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
             new ServerSelectionWindow(browserService).ShowDialog();
+        }
+
+        private void ProjectSelectionButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            new ProjectSelectionWindow().ShowDialog();
         }
     }
 }
