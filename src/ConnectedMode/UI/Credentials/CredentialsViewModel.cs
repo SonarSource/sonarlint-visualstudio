@@ -45,7 +45,7 @@ public class CredentialsViewModel(Connection connection) : ViewModelBase
             RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsTokenAuthentication));
             RaisePropertyChanged(nameof(IsCredentialsAuthentication));
-            RaisePropertyChanged(nameof(IsConfirmationBtnEnabled));
+            RaisePropertyChanged(nameof(IsConfirmationEnabled));
             RaisePropertyChanged(nameof(ShouldTokenBeFilled));
             RaisePropertyChanged(nameof(ShouldUsernameBeFilled));
             RaisePropertyChanged(nameof(ShouldPasswordBeFilled));
@@ -59,7 +59,7 @@ public class CredentialsViewModel(Connection connection) : ViewModelBase
         {
             token = value;
             RaisePropertyChanged();
-            RaisePropertyChanged(nameof(IsConfirmationBtnEnabled));
+            RaisePropertyChanged(nameof(IsConfirmationEnabled));
             RaisePropertyChanged(nameof(ShouldTokenBeFilled));
         }
     }
@@ -71,7 +71,7 @@ public class CredentialsViewModel(Connection connection) : ViewModelBase
         {
             username = value;
             RaisePropertyChanged();
-            RaisePropertyChanged(nameof(IsConfirmationBtnEnabled));
+            RaisePropertyChanged(nameof(IsConfirmationEnabled));
             RaisePropertyChanged(nameof(ShouldUsernameBeFilled));
         }
     }
@@ -83,7 +83,7 @@ public class CredentialsViewModel(Connection connection) : ViewModelBase
         {
             password = value;
             RaisePropertyChanged();
-            RaisePropertyChanged(nameof(IsConfirmationBtnEnabled));
+            RaisePropertyChanged(nameof(IsConfirmationEnabled));
             RaisePropertyChanged(nameof(ShouldPasswordBeFilled));
         }
     }
@@ -93,13 +93,13 @@ public class CredentialsViewModel(Connection connection) : ViewModelBase
     public bool ShouldTokenBeFilled => IsTokenAuthentication && !IsTokenProvided;
     public bool ShouldUsernameBeFilled => IsCredentialsAuthentication && !IsUsernameProvided;
     public bool ShouldPasswordBeFilled => IsCredentialsAuthentication && !IsPasswordProvided;
-    public bool IsConfirmationBtnEnabled => (IsTokenAuthentication && IsTokenProvided) || (IsCredentialsAuthentication && AreCredentialsProvided);
+    public bool IsConfirmationEnabled => (IsTokenAuthentication && IsTokenProvided) || (IsCredentialsAuthentication && AreCredentialsProvided);
 
     private bool IsTokenProvided => IsValueFilled(Token);
     private bool AreCredentialsProvided => IsPasswordProvided && IsUsernameProvided;
     private bool IsUsernameProvided => IsValueFilled(Username);
     private bool IsPasswordProvided => IsValueFilled(Password);
-    public string GenerateTokenUrl => Connection.serverType == ServerType.SonarCloud ? SonarCloudGenerateTokenUrl : Path.Combine(Connection.id, SonarQubeGenerateTokenUrl);
+    public string AccountSecurityUrl => Connection.serverType == ServerType.SonarCloud ? SonarCloudAccountSecurityUrl : Path.Combine(Connection.id, SonarQubeAccountSecurityUrl);
 
     private bool IsValueFilled(string value)
     {

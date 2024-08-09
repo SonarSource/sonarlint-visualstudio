@@ -46,17 +46,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
 
         private void GenerateToken_Navigate(object sender, RequestNavigateEventArgs e)
         {
-            NavigateToGenerateTokenUrl();
+            NavigateToAccountSecurityUrl();
         }
 
-        private void NavigateToGenerateTokenUrl()
+        private void NavigateToAccountSecurityUrl()
         {
-            browserService.Navigate(ViewModel.GenerateTokenUrl);
+            browserService.Navigate(ViewModel.AccountSecurityUrl);
         }
 
         private void GenerateLinkIcon_Click(object sender, MouseButtonEventArgs e)
         {
-            NavigateToGenerateTokenUrl();
+            NavigateToAccountSecurityUrl();
         }
     }
 }

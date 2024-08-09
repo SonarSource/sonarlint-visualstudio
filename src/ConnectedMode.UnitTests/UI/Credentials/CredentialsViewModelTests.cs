@@ -77,37 +77,37 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         }
 
         [TestMethod]
-        public void IsConfirmationBtnEnabled_TokenIsSelectedAndTokenIsFilled_ReturnsTrue()
+        public void IsConfirmationEnabled_TokenIsSelectedAndTokenIsFilled_ReturnsTrue()
         {
             testSubject.SelectedAuthenticationType = UiResources.Token;
 
             testSubject.Token = "dummy token";
 
-            testSubject.IsConfirmationBtnEnabled.Should().BeTrue();
+            testSubject.IsConfirmationEnabled.Should().BeTrue();
         }
 
         [TestMethod]
         [DataRow(null)]
         [DataRow("")]
         [DataRow("  ")]
-        public void IsConfirmationBtnEnabled_TokenIsSelectedAndTokenIsNotFilled_ReturnsFalse(string token)
+        public void IsConfirmationEnabled_TokenIsSelectedAndTokenIsNotFilled_ReturnsFalse(string token)
         {
             testSubject.SelectedAuthenticationType = UiResources.Token;
 
             testSubject.Token = token;
 
-            testSubject.IsConfirmationBtnEnabled.Should().BeFalse();
+            testSubject.IsConfirmationEnabled.Should().BeFalse();
         }
 
         [TestMethod]
-        public void IsConfirmationBtnEnabled_CredentialsIsSelectedAndUsernameAndPasswordAreFilled_ReturnsTrue()
+        public void IsConfirmationEnabled_CredentialsIsSelectedAndUsernameAndPasswordAreFilled_ReturnsTrue()
         {
             testSubject.SelectedAuthenticationType = UiResources.Credentials;
 
             testSubject.Username = "dummy username";
             testSubject.Password = "dummy password";
 
-            testSubject.IsConfirmationBtnEnabled.Should().BeTrue();
+            testSubject.IsConfirmationEnabled.Should().BeTrue();
         }
 
         [TestMethod]
@@ -117,14 +117,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [DataRow("username", null)]
         [DataRow("username", "")]
         [DataRow("username", "  ")]
-        public void IsConfirmationBtnEnabled_CredentialsIsSelectedAndUsernameOrPasswordAreNotFilled_ReturnsFalse(string username, string password)
+        public void IsConfirmationEnabled_CredentialsIsSelectedAndUsernameOrPasswordAreNotFilled_ReturnsFalse(string username, string password)
         {
             testSubject.SelectedAuthenticationType = UiResources.Credentials;
 
             testSubject.Username = username;
             testSubject.Password = password;
 
-            testSubject.IsConfirmationBtnEnabled.Should().BeFalse();
+            testSubject.IsConfirmationEnabled.Should().BeFalse();
         }
 
         [TestMethod]
@@ -215,21 +215,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         }
 
         [TestMethod]
-        public void GenerateTokenUrl_ConnectionIsSonarCloud_ReturnsSonarCloudUrl()
+        public void AccountSecurityUrl_ConnectionIsSonarCloud_ReturnsSonarCloudUrl()
         {
             var viewModel = new CredentialsViewModel(new Connection("http://sonarcloud.io/myorg", ServerType.SonarCloud));
 
-            viewModel.GenerateTokenUrl.Should().Be(SonarCloudGenerateTokenUrl);
+            viewModel.AccountSecurityUrl.Should().Be(SonarCloudAccountSecurityUrl);
         }
 
         [TestMethod]
-        public void GenerateTokenUrl_ConnectionIsSonarQube_ReturnsSonarQubeUrl()
+        public void AccountSecurityUrl_ConnectionIsSonarQube_ReturnsSonarQubeUrl()
         {
             var qubeUrl = "http://localhost:9000/";
             var viewModel = new CredentialsViewModel(new Connection(qubeUrl, ServerType.SonarQube));
-            var expectedUrl = Path.Combine(qubeUrl, SonarQubeGenerateTokenUrl);
+            var expectedUrl = Path.Combine(qubeUrl, SonarQubeAccountSecurityUrl);
 
-            viewModel.GenerateTokenUrl.Should().Be(expectedUrl);
+            viewModel.AccountSecurityUrl.Should().Be(expectedUrl);
         }
     }
 }
