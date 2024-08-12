@@ -7,6 +7,16 @@
         <Setter Property="MinWidth" Value="75" />
     </Style>
 
+    <Style TargetType="TextBox">
+        <Setter Property="Height" Value="30" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style TargetType="PasswordBox">
+        <Setter Property="Height" Value="30" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
     <Style TargetType="TextBlock">
         <Setter Property="TextWrapping" Value="WrapWithOverflow" />
         <Setter Property="TextTrimming" Value="None" />

@@ -37,6 +37,7 @@
   <ItemGroup>
     <None Remove="Install\SonarLintTargets.xml" />
     <None Remove="Migration\Wizard\MigrationWizardWindow.xaml" />
+    <None Remove="UI\Credentials\CredentialsWnd.xaml" />
     <None Remove="UI\Resources\SonarCloud.png" />
     <None Remove="UI\Resources\sonarlint_32px.ico" />
     <None Remove="UI\Resources\SonarQube.png" />
@@ -52,6 +53,9 @@
 
   <ItemGroup>
     <Page Include="Migration\Wizard\MigrationWizardWindow.xaml" />
+    <Page Include="UI\Credentials\CredentialsWnd.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\Resources\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
