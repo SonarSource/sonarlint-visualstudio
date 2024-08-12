@@ -141,6 +141,18 @@
   <data name="DeprecatedAuthenticationType" xml:space="preserve">
     <value>Authentication via username and password is deprecated and will be removed in the future. Please use a token instead.</value>
   </data>
+  <data name="EditConnection" xml:space="preserve">
+    <value>Edit the authentication details of the connection</value>
+  </data>
+  <data name="ExistingConnections" xml:space="preserve">
+    <value>Existing Connections</value>
+  </data>
+  <data name="ManageConnectionsWindowTitle" xml:space="preserve">
+    <value>Manage Connections</value>
+  </data>
+  <data name="NewConnection" xml:space="preserve">
+    <value>New Connection</value>
+  </data>
   <data name="Next" xml:space="preserve">
     <value>Next</value>
   </data>
@@ -153,8 +165,14 @@
   <data name="QubeUrlLbl" xml:space="preserve">
     <value>Enter the SonarQube URL:</value>
   </data>
+  <data name="RemoveConnection" xml:space="preserve">
+    <value>Remove connection</value>
+  </data>
   <data name="ServerSelectionWndTitle" xml:space="preserve">
     <value>Create New Connection</value>
+  </data>
+  <data name="SmartNotifications" xml:space="preserve">
+    <value>Smart Notifications</value>
   </data>
   <data name="SonarCloudAccountSecurityUrl" xml:space="preserve">
     <value>https://sonarcloud.io/account/security</value>
