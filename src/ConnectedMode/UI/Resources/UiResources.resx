@@ -201,4 +201,19 @@
   <data name="Username" xml:space="preserve">
     <value>Username</value>
   </data>
+  <data name="SelectOrganizationLabel" xml:space="preserve">
+    <value>Choose one of your organizations:</value>
+  </data>
+  <data name="OrganizationSelectionDialogTitle" xml:space="preserve">
+    <value>Select SonarCloud Organization</value>
+  </data>
+  <data name="OpenManualOrganizationSelectionButton" xml:space="preserve">
+    <value>Select another organization...</value>
+  </data>
+  <data name="ManualOrganizationSelectionDialogTitle" xml:space="preserve">
+    <value>Use Another Organization</value>
+  </data>
+  <data name="ManualOrganizationSelectionLabel" xml:space="preserve">
+    <value>Enter organization key:</value>
+  </data>
 </root>
