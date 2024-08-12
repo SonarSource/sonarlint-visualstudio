@@ -59,6 +59,9 @@
     <Page Include="UI\Resources\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UI\WarningMessage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\ServerSelection\ServerSelectionWindow.xaml" />
   </ItemGroup>
 
