@@ -32,14 +32,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
     {
         private readonly IBrowserService browserService;
 
-        public ManageConnectionsWindow(IBrowserService browserService, IEnumerable<Connection> connections)
+        public ManageConnectionsViewModel ViewModel { get; } = new();
+
+        public ManageConnectionsWindow(IBrowserService browserService)
         {
             this.browserService = browserService;
-            ViewModel = new ManageConnectionsViewModel(connections);
             InitializeComponent();
         }
-    
-        public ManageConnectionsViewModel ViewModel { get; }
 
         private void EditConnection_Clicked(object sender, RoutedEventArgs e)
         {
@@ -53,6 +52,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         {
             new ServerSelectionWindow(browserService).ShowDialog();
         }
-        
+
+        private void ManageConnectionsWindow_OnInitialized(object sender, EventArgs e)
+        {
+            ViewModel.InitializeConnections([
+                new Connection("http://localhost:9000", ServerType.SonarQube, true),
+                new Connection("https://sonarcloud.io/myOrg", ServerType.SonarCloud, false)
+            ]);
+        }
     }
 }

@@ -1,8 +1,4 @@
-﻿using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
-
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageConnections;
-
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -22,7 +18,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageConnections;
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using static ConnectionInfo;
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
+using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
+
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageConnections;
 
 [TestClass]
 public class ManageConnectionsViewModelTest
@@ -38,30 +37,34 @@ public class ManageConnectionsViewModelTest
             new Connection("http://localhost:9000", ServerType.SonarQube, true),
             new Connection("https://sonarcloud.io/myOrg", ServerType.SonarCloud, false)
         ];
-        testSubject = new ManageConnectionsViewModel(connections);
+        testSubject = new ManageConnectionsViewModel();
     }
 
     [TestMethod]
-    public void ConnectionViewModels_NoConnections_HasEmptyList()
+    public void ConnectionViewModels_NoInitialization_HasEmptyList()
     {
-        var viewModel = new ManageConnectionsViewModel([]);
-
-        viewModel.ConnectionViewModels.Should().NotBeNull();
-        viewModel.ConnectionViewModels.Count.Should().Be(0);
+        testSubject.ConnectionViewModels.Should().NotBeNull();
+        testSubject.ConnectionViewModels.Count.Should().Be(0);
     }
 
     [TestMethod]
-    public void ConnectionViewModels_InitializesConnectionsCorrectly()
+    public void InitializeConnections_InitializesConnectionsCorrectly()
     { 
+        testSubject.InitializeConnections(connections);
+
+        HasExpectedConnections(connections);
+    }
+
+    private void HasExpectedConnections(IEnumerable<Connection> expectedConnections)
+    {
         testSubject.ConnectionViewModels.Should().NotBeNull();
         testSubject.ConnectionViewModels.Count.Should().Be(connections.Count());
-
-        foreach (var connection in connections)
+        foreach (var connection in expectedConnections)
         {
-            var connectionViewModel = testSubject.ConnectionViewModels.SingleOrDefault(c => c.Name == connection.id);
+            var connectionViewModel = testSubject.ConnectionViewModels.SingleOrDefault(c => c.Name == connection.Id);
             connectionViewModel.Should().NotBeNull();
-            connectionViewModel.ServerType.Should().Be(connection.serverType.ToString());
-            connectionViewModel.HasSmartNotifications.Should().Be(connection.hasSmartNotifications);
+            connectionViewModel.ServerType.Should().Be(connection.ServerType.ToString());
+            connectionViewModel.EnableSmartNotifications.Should().Be(connection.EnableSmartNotifications);
         }
     }
 }

@@ -27,15 +27,7 @@ public class ConnectionViewModel : ViewModelBase
 {
     private readonly string name;
     private readonly string serverType;
-    private bool hasSmartNotifications;
-
-    public ConnectionViewModel(Connection connection)
-    {
-        Connection = connection;
-        Name = connection.id;
-        ServerType = connection.serverType.ToString();
-        HasSmartNotifications = connection.hasSmartNotifications;
-    }
+    private bool enableSmartNotifications;
 
     public Connection Connection { get; }
 
@@ -59,13 +51,21 @@ public class ConnectionViewModel : ViewModelBase
         }
     }
 
-    public bool HasSmartNotifications
+    public bool EnableSmartNotifications
     {
-        get => hasSmartNotifications;
+        get => enableSmartNotifications;
         set
         {
-            hasSmartNotifications = value;
+            enableSmartNotifications = value;
             RaisePropertyChanged();
         }
+    }
+
+    public ConnectionViewModel(Connection connection)
+    {
+        Connection = connection;
+        Name = connection.Id;
+        ServerType = connection.ServerType.ToString();
+        EnableSmartNotifications = connection.EnableSmartNotifications;
     }
 }

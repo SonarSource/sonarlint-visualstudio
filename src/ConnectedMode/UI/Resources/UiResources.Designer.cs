@@ -153,9 +153,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Manage Connections.
         /// </summary>
-        public static string ManageConnectionsWndTitle {
+        public static string ManageConnectionsWindowTitle {
             get {
-                return ResourceManager.GetString("ManageConnectionsWndTitle", resourceCulture);
+                return ResourceManager.GetString("ManageConnectionsWindowTitle", resourceCulture);
             }
         }
         
@@ -180,9 +180,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
-        public static string OkBtn {
+        public static string Ok {
             get {
-                return ResourceManager.GetString("OkBtn", resourceCulture);
+                return ResourceManager.GetString("Ok", resourceCulture);
             }
         }
         

@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
             ViewModel = new CredentialsViewModel(connection);
             InitializeComponent();
 
-            ConfirmationBtn.Content = isWizardMode ? UiResources.NextBtn : UiResources.OkBtn;
+            ConfirmationBtn.Content = isWizardMode ? UiResources.NextBtn : UiResources.Ok;
         }
 
         public CredentialsViewModel ViewModel { get; }

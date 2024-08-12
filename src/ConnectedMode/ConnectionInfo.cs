@@ -28,5 +28,6 @@ public static class ConnectionInfo
         SonarCloud
     }
 
-    public record Connection(string id, ServerType serverType, bool hasSmartNotifications);
+
+    public record Connection(string Id, ServerType ServerType, bool EnableSmartNotifications);
 }

@@ -147,7 +147,7 @@
   <data name="ExistingConnections" xml:space="preserve">
     <value>Existing Connections</value>
   </data>
-  <data name="ManageConnectionsWndTitle" xml:space="preserve">
+  <data name="ManageConnectionsWindowTitle" xml:space="preserve">
     <value>Manage Connections</value>
   </data>
   <data name="NewConnection" xml:space="preserve">
@@ -156,7 +156,7 @@
   <data name="NextBtn" xml:space="preserve">
     <value>Next</value>
   </data>
-  <data name="OkBtn" xml:space="preserve">
+  <data name="Ok" xml:space="preserve">
     <value>OK</value>
   </data>
   <data name="Password" xml:space="preserve">

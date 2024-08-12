@@ -52,11 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
         private void Connections_OnClick(object sender, RoutedEventArgs e)
         {
-            new ManageConnectionsWindow(browserService, 
-            [
-                new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube, true),
-                new ConnectionInfo.Connection("https://sonarcloud.io/myOrg", ServerType.SonarCloud, false)
-            ]).ShowDialog();
+            new ManageConnectionsWindow(browserService).ShowDialog();
         }
     }
 }
