@@ -57,7 +57,7 @@ public class ManualOrganizationSelectionViewModelTests
     [DataRow(null, false)]
     [DataRow("", false)]
     [DataRow("       ", false)]
-    [DataRow("my key", false)]
+    [DataRow("my key", true)]
     [DataRow("key", true)]
     public void IsValidOrganizationKey_Validates(string key, bool expectedResult)
     {

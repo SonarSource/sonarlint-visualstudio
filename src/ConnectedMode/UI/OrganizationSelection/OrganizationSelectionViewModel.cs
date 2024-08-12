@@ -37,12 +37,12 @@ public class OrganizationSelectionViewModel : ViewModelBase
         }
     }
 
-    public bool IsValidSelectedOrganization => SelectedOrganization is { Key: var key } && !string.IsNullOrWhiteSpace(key) && !key.Any(char.IsWhiteSpace);
+    public bool IsValidSelectedOrganization => SelectedOrganization is { Key: var key } && !string.IsNullOrWhiteSpace(key);
 
     public IReadOnlyList<OrganizationDisplay> Organizations { get; }
 
-    public OrganizationSelectionViewModel(List<(string organizationKey, string organizationName)> organizations)
+    public OrganizationSelectionViewModel(IReadOnlyList<OrganizationDisplay> organizations)
     {
-        Organizations = organizations?.Select(x =>  new OrganizationDisplay(x.organizationKey, x.organizationName)).ToArray() ?? [];
+        Organizations = organizations ?? [];
     }
 }

@@ -37,5 +37,5 @@ public class ManualOrganizationSelectionViewModel : ViewModelBase
         }
     }
 
-    public bool IsValidOrganizationKey => !string.IsNullOrEmpty(organizationKey) && !organizationKey.Any(char.IsWhiteSpace);
+    public bool IsValidOrganizationKey => !string.IsNullOrWhiteSpace(organizationKey);
 }

@@ -47,23 +47,18 @@ public class OrganizationSelectionViewModelTests
     }
 
     [TestMethod]
-    public void Ctor_OrganizationList_ConvertsToDisplayModels()
+    public void Ctor_OrganizationList_SetsPropertyValue()
     {
+        IReadOnlyList<OrganizationDisplay> organizations = [
+            new("key1", "name1"),
+            new("key2", "name2"),
+            new("key3", "name3"),
+        ];
         new OrganizationSelectionViewModel(
-            [
-                ("key1", "name1"),
-                ("key2", "name2"),
-                ("key3", "name3"),
-            ])
+            organizations)
             .Organizations
             .Should()
-            .BeEquivalentTo(
-                [
-                    new OrganizationDisplay("key1", "name1"),
-                    new OrganizationDisplay("key2", "name2"),
-                    new OrganizationDisplay("key3", "name3"),
-                ],
-                options => options.ComparingByMembers<OrganizationDisplay>());
+            .BeSameAs(organizations);
     }
 
     [TestMethod]
@@ -101,12 +96,21 @@ public class OrganizationSelectionViewModelTests
     [DataRow(null)]
     [DataRow("")]
     [DataRow("      ")]
-    [DataRow("my key")]
     public void IsValidSelectedOrganization_OrganizationWithInvalidKey_ReturnsFalse(string key)
     {
         testSubject.SelectedOrganization = new OrganizationDisplay(key, "value");
 
         testSubject.IsValidSelectedOrganization.Should().BeFalse();
+    }
+    
+    [DataTestMethod]
+    [DataRow("mykey")]
+    [DataRow("my key")]
+    public void IsValidSelectedOrganization_OrganizationWithValidKey_ReturnsTrue(string key)
+    {
+        testSubject.SelectedOrganization = new OrganizationDisplay(key, "value");
+
+        testSubject.IsValidSelectedOrganization.Should().BeTrue();
     }
 
     [DataTestMethod]
@@ -114,7 +118,7 @@ public class OrganizationSelectionViewModelTests
     [DataRow("key", "name", true)]
     [DataRow(null, null, false)]
     [DataRow(null, "name", false)]
-    public void IsValidSelectedOrganization_OnlyValidatesKey(string key, string name, bool expectedResult)
+    public void IsValidSelectedOrganization_IgnoresName(string key, string name, bool expectedResult)
     {
         testSubject.SelectedOrganization = new OrganizationDisplay(key, name);
 

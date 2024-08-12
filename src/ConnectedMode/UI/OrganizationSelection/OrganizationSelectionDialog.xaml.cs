@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 [ExcludeFromCodeCoverage]
 public partial class OrganizationSelectionDialog : Window
 {
-    public OrganizationSelectionDialog(List<(string organizationKey, string organizationName)> organizations)
+    public OrganizationSelectionDialog(IReadOnlyList<OrganizationDisplay> organizations)
     {
         ViewModel = new OrganizationSelectionViewModel(organizations);
         Owner = Application.Current.MainWindow;
