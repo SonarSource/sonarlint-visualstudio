@@ -26,17 +26,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
     public class ManageConnectionsViewModel : ViewModelBase
     {
-        private ObservableCollection<ConnectionViewModel> connectionViewModels = [];
-
-        public ObservableCollection<ConnectionViewModel> ConnectionViewModels   
-        {
-            get => connectionViewModels;
-            private set
-            {
-                connectionViewModels = value;
-                RaisePropertyChanged();
-            }
-        }
+        public ObservableCollection<ConnectionViewModel> ConnectionViewModels { get; } = [];
 
         public void InitializeConnections(IEnumerable<Connection> connections)
         {
