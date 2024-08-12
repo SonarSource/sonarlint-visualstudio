@@ -18,44 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
-public record OrganizationDisplay(string Key, string Name);
-
 public class OrganizationSelectionViewModel : ViewModelBase
 {
-    private OrganizationDisplay selectedOrganizationKey;
-    private bool isValidOrganizationKey;
+    private OrganizationDisplay selectedOrganization;
 
-    public OrganizationDisplay SelectedOrganizationKey
+    public OrganizationDisplay SelectedOrganization
     {
-        get => selectedOrganizationKey;
+        get => selectedOrganization;
         set
         {
-            selectedOrganizationKey = value;
-            IsValidOrganizationKey = value is { Key: not null };
+            selectedOrganization = value;
             RaisePropertyChanged();
+            RaisePropertyChanged(nameof(IsValidSelectedOrganization));
         }
     }
 
-    public bool IsValidOrganizationKey
-    {
-        get => isValidOrganizationKey;
-        set
-        {
-            isValidOrganizationKey = value;
-            RaisePropertyChanged();
-        }
-    }
+    public bool IsValidSelectedOrganization => SelectedOrganization is { Key: var key } && !string.IsNullOrWhiteSpace(key) && !key.Any(char.IsWhiteSpace);
 
-    public ObservableCollection<OrganizationDisplay> Organizations { get; }
+    public IReadOnlyList<OrganizationDisplay> Organizations { get; }
 
     public OrganizationSelectionViewModel(List<(string organizationKey, string organizationName)> organizations)
     {
-        Organizations = new ObservableCollection<OrganizationDisplay>(organizations.Select(x =>  new OrganizationDisplay(x.organizationKey, x.organizationName)));
-        // RaisePropertyChanged(nameof(Organizations));
+        Organizations = organizations?.Select(x =>  new OrganizationDisplay(x.organizationKey, x.organizationName)).ToArray() ?? [];
     }
 }

@@ -18,10 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
+[ExcludeFromCodeCoverage]
 public partial class ManualOrganizationSelectionDialog : Window
 {
     public ManualOrganizationSelectionViewModel ViewModel { get; } = new();

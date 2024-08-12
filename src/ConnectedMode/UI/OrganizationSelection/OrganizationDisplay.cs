@@ -18,24 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.WPF;
-
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
-public class ManualOrganizationSelectionViewModel : ViewModelBase
-{
-    private string organizationKey;
-    
-    public string OrganizationKey
-    {
-        get => organizationKey;
-        set
-        {
-            organizationKey = value;
-            RaisePropertyChanged();
-            RaisePropertyChanged(nameof(IsValidOrganizationKey));
-        }
-    }
-
-    public bool IsValidOrganizationKey => !string.IsNullOrEmpty(organizationKey) && !organizationKey.Any(char.IsWhiteSpace);
-}
+public record OrganizationDisplay(string Key, string Name);

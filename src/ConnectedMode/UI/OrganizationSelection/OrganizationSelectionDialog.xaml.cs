@@ -18,11 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using Microsoft.VisualStudio.PlatformUI;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
+[ExcludeFromCodeCoverage]
 public partial class OrganizationSelectionDialog : Window
 {
     public OrganizationSelectionDialog(List<(string organizationKey, string organizationName)> organizations)
@@ -42,11 +43,11 @@ public partial class OrganizationSelectionDialog : Window
 
     private void ManualOrganizationSelection(object sender, RoutedEventArgs e)
     {
-        ViewModel.SelectedOrganizationKey = null;
+        ViewModel.SelectedOrganization = null;
         var manualOrganizationSelectionDialog = new ManualOrganizationSelectionDialog();
         manualOrganizationSelectionDialog.Owner = this;
         var manualSelection = manualOrganizationSelectionDialog.ShowDialog();
-        ViewModel.SelectedOrganizationKey =new OrganizationDisplay(manualOrganizationSelectionDialog.ViewModel.OrganizationKey, null);
+        ViewModel.SelectedOrganization =new OrganizationDisplay(manualOrganizationSelectionDialog.ViewModel.OrganizationKey, null);
         if (manualSelection is true)
         {
             DialogResult = true;
@@ -54,14 +55,9 @@ public partial class OrganizationSelectionDialog : Window
         }
     }
 
-    // private void OrganizationList_OnSelected(object sender, RoutedEventArgs e)
-    // {
-    //     ViewModel.SelectedOrganizationKey = (OrganizationList.SelectedItem as OrganizationDisplay)?.Key;
-    // }
-
     private void ShowSelectedKey()
     {
-        MessageBox.Show(ViewModel.SelectedOrganizationKey.Key);
+        MessageBox.Show(ViewModel.SelectedOrganization.Key);
     }
 }
 
