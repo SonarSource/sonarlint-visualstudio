@@ -18,12 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
 using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
+[ExcludeFromCodeCoverage] // UI, not really unit-testable
 public sealed partial class ConnectionInfoComponent : UserControl
 {
     public static readonly DependencyProperty ConnectionInfoProp = DependencyProperty.Register(nameof(ConnectionInfo), typeof(Connection), typeof(ConnectionInfoComponent));
