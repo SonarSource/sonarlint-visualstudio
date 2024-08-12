@@ -132,24 +132,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use Another Organization.
-        /// </summary>
-        public static string ManualOrganizationSelectionDialogTitle {
-            get {
-                return ResourceManager.GetString("ManualOrganizationSelectionDialogTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Enter organization key:.
-        /// </summary>
-        public static string ManualOrganizationSelectionLabel {
-            get {
-                return ResourceManager.GetString("ManualOrganizationSelectionLabel", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Edit the authentication details of the connection.
         /// </summary>
         public static string EditConnection {
@@ -173,6 +155,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string ManageConnectionsWindowTitle {
             get {
                 return ResourceManager.GetString("ManageConnectionsWindowTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use Another Organization.
+        /// </summary>
+        public static string ManualOrganizationSelectionDialogTitle {
+            get {
+                return ResourceManager.GetString("ManualOrganizationSelectionDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter organization key:.
+        /// </summary>
+        public static string ManualOrganizationSelectionLabel {
+            get {
+                return ResourceManager.GetString("ManualOrganizationSelectionLabel", resourceCulture);
             }
         }
         
@@ -240,20 +240,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Choose one of your organizations:.
-        /// </summary>
-        public static string SelectOrganizationLabel {
-            get {
-                return ResourceManager.GetString("SelectOrganizationLabel", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove connection.
         /// </summary>
         public static string RemoveConnection {
             get {
                 return ResourceManager.GetString("RemoveConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Choose one of your organizations:.
+        /// </summary>
+        public static string SelectOrganizationLabel {
+            get {
+                return ResourceManager.GetString("SelectOrganizationLabel", resourceCulture);
             }
         }
         
