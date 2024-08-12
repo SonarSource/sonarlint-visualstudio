@@ -26,11 +26,11 @@ using SonarLint.VisualStudio.Core;
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
 {
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public partial class ServerSelectionWindow : Window
+    public partial class ServerSelectionDialog : Window
     {
         private readonly IBrowserService browserService;
 
-        public ServerSelectionWindow(IBrowserService browserService)
+        public ServerSelectionDialog(IBrowserService browserService)
         {
             this.browserService = browserService;
             InitializeComponent();

@@ -37,14 +37,14 @@
   <ItemGroup>
     <None Remove="Install\SonarLintTargets.xml" />
     <None Remove="Migration\Wizard\MigrationWizardWindow.xaml" />
-    <None Remove="UI\Credentials\CredentialsWnd.xaml" />
+    <None Remove="UI\Credentials\CredentialsDialog.xaml" />
     <None Remove="UI\Resources\SonarCloud.png" />
     <None Remove="UI\Resources\SonarCloudIcon.png" />
     <None Remove="UI\Resources\sonarlint_32px.ico" />
     <None Remove="UI\Resources\SonarQube.png" />
     <None Remove="UI\Resources\SonarQubeIcon.png" />
     <None Remove="UI\Resources\Styles.xaml" />
-    <None Remove="UI\ServerSelection\ServerSelectionWindow.xaml" />
+    <None Remove="UI\ServerSelection\ServerSelectionDialog.xaml" />
     <Resource Include="UI\Resources\SonarCloud.png" />
     <Resource Include="UI\Resources\SonarCloudIcon.png" />
     <Resource Include="UI\Resources\sonarlint_32px.ico">
@@ -57,7 +57,7 @@
 
   <ItemGroup>
     <Page Include="Migration\Wizard\MigrationWizardWindow.xaml" />
-    <Page Include="UI\Credentials\CredentialsWnd.xaml">
+    <Page Include="UI\Credentials\CredentialsDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Resources\Styles.xaml">
@@ -66,8 +66,8 @@
     <Page Include="UI\WarningMessage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\ServerSelection\ServerSelectionWindow.xaml" />
-    <Page Include="UI\ManageConnections\ManageConnectionsWindow.xaml" />
+    <Page Include="UI\ServerSelection\ServerSelectionDialog.xaml" />
+    <Page Include="UI\ManageConnections\ManageConnectionsDialog.xaml" />
     <Page Include="UI\OrganizationSelection\ManualOrganizationSelectionDialog.xaml" />
     <Page Include="UI\OrganizationSelection\OrganizationSelectionDialog.xaml" />
   </ItemGroup>

@@ -126,10 +126,10 @@
   <data name="CancelBtn" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  <data name="ChooseConnectionTypeLbl" xml:space="preserve">
+  <data name="ChooseConnectionType" xml:space="preserve">
     <value>Choose a connection type:</value>
   </data>
-  <data name="ConnectionDocHelpLbl" xml:space="preserve">
+  <data name="ConnectionDiscovering" xml:space="preserve">
     <value>Discover which connection is best for your team </value>
   </data>
   <data name="Credentials" xml:space="preserve">
@@ -165,7 +165,7 @@
   <data name="Password" xml:space="preserve">
     <value>Password</value>
   </data>
-  <data name="QubeUrlLbl" xml:space="preserve">
+  <data name="EnterSonarQubeUrl" xml:space="preserve">
     <value>Enter the SonarQube URL:</value>
   </data>
   <data name="RemoveConnection" xml:space="preserve">
@@ -180,7 +180,7 @@
   <data name="SonarCloudAccountSecurityUrl" xml:space="preserve">
     <value>https://sonarcloud.io/account/security</value>
   </data>
-  <data name="SonarCloudDescriptionLbl" xml:space="preserve">
+  <data name="SonarCloudDescription" xml:space="preserve">
     <value>A Software-as-a-Service (Saas) tool that easily integrates into the cloud DevOps platforms and extends the CI/CD workflow to systematically help developers and organizations deliver CleanCode.</value>
   </data>
   <data name="SonarCloudFree" xml:space="preserve">
@@ -192,7 +192,7 @@
   <data name="SonarQubeAccountSecurityUrl" xml:space="preserve">
     <value>account/security</value>
   </data>
-  <data name="SonarQubeDescriptionLbl" xml:space="preserve">
+  <data name="SonarQubeDescription" xml:space="preserve">
     <value>An open-source, self-managed tool that easily integrates into the developers' CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code.</value>
   </data>
   <data name="Token" xml:space="preserve">

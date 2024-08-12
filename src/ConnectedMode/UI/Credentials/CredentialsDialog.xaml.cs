@@ -30,11 +30,11 @@ using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
 {
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public partial class CredentialsWnd : Window
+    public partial class CredentialsDialog : Window
     {
         private readonly IBrowserService browserService;
 
-        public CredentialsWnd(IBrowserService browserService, Connection connection, bool withNextButton)
+        public CredentialsDialog(IBrowserService browserService, Connection connection, bool withNextButton)
         {
             this.browserService = browserService;
             ViewModel = new CredentialsViewModel(connection);
