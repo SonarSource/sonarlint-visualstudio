@@ -39,15 +39,19 @@
     <None Remove="Migration\Wizard\MigrationWizardWindow.xaml" />
     <None Remove="UI\Credentials\CredentialsWnd.xaml" />
     <None Remove="UI\Resources\SonarCloud.png" />
+    <None Remove="UI\Resources\SonarCloudIcon.png" />
     <None Remove="UI\Resources\sonarlint_32px.ico" />
     <None Remove="UI\Resources\SonarQube.png" />
+    <None Remove="UI\Resources\SonarQubeIcon.png" />
     <None Remove="UI\Resources\Styles.xaml" />
     <None Remove="UI\ServerSelection\ServerSelectionWindow.xaml" />
     <Resource Include="UI\Resources\SonarCloud.png" />
+    <Resource Include="UI\Resources\SonarCloudIcon.png" />
     <Resource Include="UI\Resources\sonarlint_32px.ico">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
     <Resource Include="UI\Resources\SonarQube.png" />
+    <Resource Include="UI\Resources\SonarQubeIcon.png" />
     <EmbeddedResource Include="Install\SonarLintTargets.xml" />
   </ItemGroup>
 
@@ -63,6 +67,7 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\ServerSelection\ServerSelectionWindow.xaml" />
+    <Page Include="UI\ManageConnections\ManageConnectionsWindow.xaml" />
   </ItemGroup>
 
   <ItemGroup>

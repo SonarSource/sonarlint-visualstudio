@@ -133,11 +133,47 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit the authentication details of the connection.
+        /// </summary>
+        public static string EditConnection {
+            get {
+                return ResourceManager.GetString("EditConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Existing Connections.
+        /// </summary>
+        public static string ExistingConnections {
+            get {
+                return ResourceManager.GetString("ExistingConnections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The URL you entered is not secure. Use HTTPS connections to protect sensitive information..
         /// </summary>
         public static string InsecureProtocolWarning {
             get {
                 return ResourceManager.GetString("InsecureProtocolWarning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Manage Connections.
+        /// </summary>
+        public static string ManageConnectionsWindowTitle {
+            get {
+                return ResourceManager.GetString("ManageConnectionsWindowTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Connection.
+        /// </summary>
+        public static string NewConnection {
+            get {
+                return ResourceManager.GetString("NewConnection", resourceCulture);
             }
         }
         
@@ -178,11 +214,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove connection.
+        /// </summary>
+        public static string RemoveConnection {
+            get {
+                return ResourceManager.GetString("RemoveConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Create New Connection.
         /// </summary>
         public static string ServerSelectionWndTitle {
             get {
                 return ResourceManager.GetString("ServerSelectionWndTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Smart Notifications.
+        /// </summary>
+        public static string SmartNotifications {
+            get {
+                return ResourceManager.GetString("SmartNotifications", resourceCulture);
             }
         }
         
