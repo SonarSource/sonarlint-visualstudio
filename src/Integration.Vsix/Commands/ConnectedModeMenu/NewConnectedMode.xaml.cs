@@ -20,8 +20,11 @@
 
 using System.Windows;
 using Microsoft.VisualStudio.PlatformUI;
+using SonarLint.VisualStudio.ConnectedMode;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 using SonarLint.VisualStudio.Core;
+using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 {
@@ -39,6 +42,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
         private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
             new ServerSelectionWindow(browserService).ShowDialog();
+        }
+
+        private void Credentials_OnClick(object sender, RoutedEventArgs e)
+        {
+            new CredentialsWnd(browserService, new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube), withNextButton:true).ShowDialog();
         }
     }
 }
