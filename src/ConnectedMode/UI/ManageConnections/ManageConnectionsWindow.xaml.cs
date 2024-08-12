@@ -18,41 +18,47 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using Microsoft.VisualStudio.PlatformUI;
-using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
-using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 using SonarLint.VisualStudio.Core;
 using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
+namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public sealed partial class NewConnectedMode : DialogWindow
+    [ExcludeFromCodeCoverage] // UI, not really unit-testable
+    public partial class ManageConnectionsWindow : Window
     {
         private readonly IBrowserService browserService;
 
-        internal NewConnectedMode(IBrowserService browserService)
+        public ManageConnectionsViewModel ViewModel { get; } = new();
+
+        public ManageConnectionsWindow(IBrowserService browserService)
         {
             this.browserService = browserService;
-            this.InitializeComponent();
+            InitializeComponent();
         }
 
-        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        private void EditConnection_Clicked(object sender, RoutedEventArgs e)
+        {
+            if(sender is System.Windows.Controls.Button button && button.DataContext is ConnectionViewModel connectionViewModel)
+            {
+                new CredentialsWnd(browserService, connectionViewModel.Connection, false).ShowDialog();
+            }
+        }
+
+        private void NewConnection_Clicked(object sender, RoutedEventArgs e)
         {
             new ServerSelectionWindow(browserService).ShowDialog();
         }
 
-        private void Credentials_OnClick(object sender, RoutedEventArgs e)
+        private void ManageConnectionsWindow_OnInitialized(object sender, EventArgs e)
         {
-            new CredentialsWnd(browserService, new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube, true), withNextButton:true).ShowDialog();
-        }
-
-        private void Connections_OnClick(object sender, RoutedEventArgs e)
-        {
-            new ManageConnectionsWindow(browserService).ShowDialog();
+            ViewModel.InitializeConnections([
+                new Connection("http://localhost:9000", ServerType.SonarQube, true),
+                new Connection("https://sonarcloud.io/myOrg", ServerType.SonarCloud, false)
+            ]);
         }
     }
 }

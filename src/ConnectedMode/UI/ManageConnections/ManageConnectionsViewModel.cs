@@ -18,16 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.ConnectedMode;
+using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.Core.WPF;
+using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
-public static class ConnectionInfo
+namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
-    public enum ServerType
+    public class ManageConnectionsViewModel : ViewModelBase
     {
-        SonarQube,
-        SonarCloud
+        public ObservableCollection<ConnectionViewModel> ConnectionViewModels { get; } = [];
+
+        public void InitializeConnections(IEnumerable<Connection> connections)
+        {
+            ConnectionViewModels.Clear();
+            connections.ToList().ForEach(c => ConnectionViewModels.Add(new ConnectionViewModel(c)));
+        }
     }
-
-
-    public record Connection(string Id, ServerType ServerType, bool EnableSmartNotifications);
 }
