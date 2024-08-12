@@ -141,6 +141,9 @@
   <data name="DeprecatedAuthenticationType" xml:space="preserve">
     <value>Authentication via username and password is deprecated and will be removed in the future. Please use a token instead.</value>
   </data>
+  <data name="InsecureProtocolWarning" xml:space="preserve">
+    <value>The URL you entered is not secure. Use HTTPS connections to protect sensitive information.</value>
+  </data>
   <data name="EditConnection" xml:space="preserve">
     <value>Edit the authentication details of the connection</value>
   </data>
@@ -197,5 +200,20 @@
   </data>
   <data name="Username" xml:space="preserve">
     <value>Username</value>
+  </data>
+  <data name="SelectOrganizationLabel" xml:space="preserve">
+    <value>Choose one of your organizations:</value>
+  </data>
+  <data name="OrganizationSelectionDialogTitle" xml:space="preserve">
+    <value>Select SonarCloud Organization</value>
+  </data>
+  <data name="OpenManualOrganizationSelectionButton" xml:space="preserve">
+    <value>Select another organization...</value>
+  </data>
+  <data name="ManualOrganizationSelectionDialogTitle" xml:space="preserve">
+    <value>Use Another Organization</value>
+  </data>
+  <data name="ManualOrganizationSelectionLabel" xml:space="preserve">
+    <value>Enter organization key:</value>
   </data>
 </root>
