@@ -227,5 +227,7 @@
   </data>
   <data name="ManualOrganizationSelectionLabel" xml:space="preserve">
     <value>Enter organization key:</value>
+  <data name="DeleteConnectionDialogTitle" xml:space="preserve">
+    <value>Delete Connection</value>
   </data>
 </root>
