@@ -20,13 +20,11 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
@@ -36,13 +34,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
     {
         private readonly IBrowserService browserService;
 
-        public CredentialsWnd(IBrowserService browserService, Connection connection, bool isWizardMode)
+        public CredentialsWnd(IBrowserService browserService, Connection connection, bool withNextButton)
         {
             this.browserService = browserService;
             ViewModel = new CredentialsViewModel(connection);
             InitializeComponent();
 
-            ConfirmationBtn.Content = isWizardMode ? UiResources.Next : UiResources.Ok;
+            ConfirmationBtn.Content = withNextButton ? UiResources.Next : UiResources.Ok;
         }
 
         public CredentialsViewModel ViewModel { get; }
@@ -64,12 +62,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
 
         private void PasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
         {
-            ViewModel.Password = Password.Password;
+            ViewModel.Password = PasswordBox.Password;
         }
 
-        private void Token_OnPasswordChanged(object sender, RoutedEventArgs e)
+        private void TokenBox_OnPasswordChanged(object sender, RoutedEventArgs e)
         {
-            ViewModel.Token = Token.Password;
+            ViewModel.Token = TokenBox.Password;
         }
 
         private void AuthenticationType_SourceUpdated(object sender, DataTransferEventArgs dataTransferEventArgs)
@@ -77,11 +75,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
             if (ViewModel.SelectedAuthenticationType == UiResources.Token)
             {
                 ViewModel.Username = null;
-                Password.Password = string.Empty;
+                PasswordBox.Password = string.Empty;
             }
             else if (ViewModel.SelectedAuthenticationType == UiResources.Credentials)
             {
-                Token.Password = string.Empty;
+                TokenBox.Password = string.Empty;
             }
         }
     }

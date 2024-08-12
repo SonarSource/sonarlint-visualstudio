@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
         private void Credentials_OnClick(object sender, RoutedEventArgs e)
         {
-            new CredentialsWnd(browserService, new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube, true), isWizardMode:true).ShowDialog();
+            new CredentialsWnd(browserService, new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube, true), withNextButton:true).ShowDialog();
         }
 
         private void Connections_OnClick(object sender, RoutedEventArgs e)
