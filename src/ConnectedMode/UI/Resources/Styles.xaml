@@ -1,8 +1,14 @@
 ﻿<ResourceDictionary
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0">
+             xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0">
     <Style TargetType="Button">
+        <Setter Property="MinHeight" Value="25" />
+        <Setter Property="MinWidth" Value="75" />
+    </Style>
+
+    <Style TargetType="platformUi:DialogButton">
         <Setter Property="MinHeight" Value="25" />
         <Setter Property="MinWidth" Value="75" />
     </Style>
@@ -64,5 +70,16 @@
 
     <SolidColorBrush x:Key="DisabledText" Color="DarkGray"/>
     <SolidColorBrush x:Key="InvalidText" Color="Red"/>
+
+    <Style x:Key="DialogButtonsPanel" TargetType="{x:Type StackPanel}">
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Style.Resources>
+            <Style TargetType="platformUi:DialogButton">
+                <Setter Property="Margin" Value="6,0,0,0" />
+            </Style>
+        </Style.Resources>
+    </Style>
 
 </ResourceDictionary>

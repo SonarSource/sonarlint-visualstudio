@@ -1,0 +1,70 @@
+﻿<Window x:Class="SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection.OrganizationSelectionDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+        xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+        xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
+        Title="{x:Static ui:UiResources.OrganizationSelectionDialogTitle}"
+        MaxWidth="800"
+        Height="400"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        FocusManager.FocusedElement="{Binding ElementName=OrganizationList}"
+        Background="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}"
+        FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
+        FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
+        x:Name="OrganizationSelectionDialogWindow">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid DataContext="{Binding ElementName=OrganizationSelectionDialogWindow, Path=ViewModel}" Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="{x:Static ui:UiResources.SelectOrganizationLabel}"/>
+        <ListBox x:Name="OrganizationList"
+                 ScrollViewer.CanContentScroll="True"
+                 MaxHeight="350"
+                 Grid.Row="1" 
+                 Margin="0, 10, 0, 10"
+                 ItemsSource="{Binding Organizations}"
+                 SelectedItem="{Binding SelectedOrganization, Mode=TwoWay}"
+                 Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}" Margin="0,0,5,0" />
+                        <TextBlock Text="{Binding Key}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0"
+                    HorizontalAlignment="Left"
+                    Click="ManualOrganizationSelection"
+                    Padding="4, 1"
+                    Content="{x:Static ui:UiResources.OpenManualOrganizationSelectionButton}"/>
+            <StackPanel Grid.Column="1" Style="{StaticResource DialogButtonsPanel}">
+                <vsui:DialogButton Content="{x:Static ui:UiResources.Ok}"
+                                   IsDefault="True"
+                                   Click="OnSelectFromList"
+                                   IsEnabled="{Binding IsValidSelectedOrganization}" />
+                <vsui:DialogButton Content="{x:Static ui:UiResources.CancelBtn}" IsCancel="True" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
