@@ -61,11 +61,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
                 RaisePropertyChanged();
                 RaisePropertyChanged(nameof(IsNextButtonEnabled));
                 RaisePropertyChanged(nameof(ShouldSonarQubeUrlBeFilled));
+                RaisePropertyChanged(nameof(ShowSecurityWarning));
             }
         }
 
         public bool IsNextButtonEnabled => IsSonarCloudSelected || (IsSonarQubeSelected && IsSonarQubeUrlProvided);
         public bool ShouldSonarQubeUrlBeFilled => IsSonarQubeSelected && !IsSonarQubeUrlProvided;
         private bool IsSonarQubeUrlProvided => !string.IsNullOrWhiteSpace(SonarQubeUrl);
+        public bool ShowSecurityWarning => Uri.TryCreate(SonarQubeUrl, UriKind.Absolute, out Uri uriResult) && uriResult.Scheme != Uri.UriSchemeHttps;
     }
 }

@@ -151,6 +151,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The URL you entered is not secure. Use HTTPS connections to protect sensitive information..
+        /// </summary>
+        public static string InsecureProtocolWarning {
+            get {
+                return ResourceManager.GetString("InsecureProtocolWarning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Manage Connections.
         /// </summary>
         public static string ManageConnectionsWindowTitle {

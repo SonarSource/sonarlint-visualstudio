@@ -116,5 +116,42 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
 
             testSubject.ShouldSonarQubeUrlBeFilled.Should().BeFalse();
         }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("  ")]
+        [DataRow("  asab")]
+        public void ShowSecurityWarning_UrlInvalid_ReturnsFalse(string url)
+        {
+            testSubject.IsSonarCloudSelected = false;
+            testSubject.IsSonarQubeSelected = true;
+
+            testSubject.SonarQubeUrl = url;
+
+            testSubject.ShowSecurityWarning.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShowSecurityWarning_UrlSecureProtocol_ReturnsFalse()
+        {
+            testSubject.IsSonarCloudSelected = false;
+            testSubject.IsSonarQubeSelected = true;
+
+            testSubject.SonarQubeUrl = "https://localhost:9000";
+
+            testSubject.ShowSecurityWarning.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void ShowSecurityWarning_UrlInsecureProtocol_ReturnsTrue()
+        {
+            testSubject.IsSonarCloudSelected = false;
+            testSubject.IsSonarQubeSelected = true;
+
+            testSubject.SonarQubeUrl = "http://localhost:9000";
+
+            testSubject.ShowSecurityWarning.Should().BeTrue();
+        }
     }
 }
