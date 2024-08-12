@@ -18,15 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.ConnectedMode;
+using System.Windows;
+using System.Windows.Controls;
+using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
-public static class ConnectionInfo
+namespace SonarLint.VisualStudio.ConnectedMode.UI;
+
+public sealed partial class ConnectionInfoComponent : UserControl
 {
-    public enum ServerType
+    public static readonly DependencyProperty ConnectionInfoProp = DependencyProperty.Register(nameof(ConnectionInfo), typeof(Connection), typeof(ConnectionInfoComponent));
+
+    public ConnectionInfoComponent()
     {
-        SonarQube,
-        SonarCloud
+        InitializeComponent();
     }
 
-    public record Connection(string Id, ServerType ServerType, bool EnableSmartNotifications);
+    public Connection ConnectionInfo
+    {
+        get => (Connection)GetValue(ConnectionInfoProp);
+        set => SetValue(ConnectionInfoProp, value);
+    }
 }

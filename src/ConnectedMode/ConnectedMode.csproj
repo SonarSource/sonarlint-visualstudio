@@ -65,6 +65,9 @@
     </Page>
     <Page Include="UI\ServerSelection\ServerSelectionWindow.xaml" />
     <Page Include="UI\ManageConnections\ManageConnectionsWindow.xaml" />
+    <Page Include="UI\ConnectionInfo.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <ItemGroup>
