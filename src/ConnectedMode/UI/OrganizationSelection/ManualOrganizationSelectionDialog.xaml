@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
-        Title="Select an organization on SonarCloud"
+        xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
+        Title="{x:Static ui:UiResources.ManualOrganizationSelectionDialogTitle}"
         Width="400"
         Height="200"
         ResizeMode="NoResize"
@@ -30,17 +31,17 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Vertical" >
-            <TextBlock Margin="0,0,0, 20">Enter organization key:</TextBlock>
+            <TextBlock Text="{x:Static ui:UiResources.ManualOrganizationSelectionLabel}" Margin="0,0,0, 20"/>
             <TextBox
                 Text="{Binding OrganizationKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
             </TextBox>
         </StackPanel>
         <StackPanel Grid.Row="1" Style="{StaticResource DialogButtonsPanel}">
-            <vsui:DialogButton Content="OK" 
+            <vsui:DialogButton Content="{x:Static ui:UiResources.Ok}" 
                                IsDefault="True"
                                Click="OnOk"
                                IsEnabled="{Binding IsValidOrganizationKey, UpdateSourceTrigger=PropertyChanged}" />
-            <vsui:DialogButton Content="Cancel" IsCancel="True" />
+            <vsui:DialogButton Content="{x:Static ui:UiResources.CancelBtn}" IsCancel="True" />
         </StackPanel>
     </Grid>
 </Window>

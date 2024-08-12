@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
-        Title="Select an organization on SonarCloud"
+        xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
+        Title="{x:Static ui:UiResources.OrganizationSelectionDialogTitle}"
         MaxWidth="800"
         Height="400"
         ResizeMode="NoResize"
@@ -29,7 +30,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0">Choose one of your organizations:</TextBlock>
+        <TextBlock Grid.Row="0" Text="{x:Static ui:UiResources.SelectOrganizationLabel}"/>
         <ListBox x:Name="OrganizationList"
                  ScrollViewer.CanContentScroll="True"
                  MaxHeight="350"
@@ -55,15 +56,14 @@
             <Button Grid.Column="0"
                     HorizontalAlignment="Left"
                     Click="ManualOrganizationSelection"
-                    Padding="4, 1">
-                Select another organization
-            </Button>
+                    Padding="4, 1"
+                    Content="{x:Static ui:UiResources.OpenManualOrganizationSelectionButton}"/>
             <StackPanel Grid.Column="1" Style="{StaticResource DialogButtonsPanel}">
-                <vsui:DialogButton Content="OK"
+                <vsui:DialogButton Content="{x:Static ui:UiResources.Ok}"
                                    IsDefault="True"
                                    Click="OnSelectFromList"
                                    IsEnabled="{Binding IsValidSelectedOrganization}" />
-                <vsui:DialogButton Content="Cancel" IsCancel="True" />
+                <vsui:DialogButton Content="{x:Static ui:UiResources.CancelBtn}" IsCancel="True" />
             </StackPanel>
         </Grid>
     </Grid>
