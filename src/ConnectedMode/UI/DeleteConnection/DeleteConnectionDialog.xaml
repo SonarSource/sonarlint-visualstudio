@@ -3,9 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
-        xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
+        xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
+        xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
         xmlns:converters="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
-        Title="{x:Static ui:UiResources.DeleteConnectionDialogTitle}"
+        Title="{x:Static res:UiResources.DeleteConnectionDialogTitle}"
         Width="600"
         MinHeight="200"
         MaxHeight="400"
@@ -18,47 +19,62 @@
         FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
         Foreground="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"
         x:Name="This">
-    
+
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml"/>
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <converters:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
-            <converters:BoolToVisibilityConverter x:Key="FalseToVisibleConverter" FalseValue="Visible" TrueValue="Collapsed"/>
+            <converters:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed"
+                                                  TrueValue="Visible" />
+            <converters:BoolToVisibilityConverter x:Key="FalseToVisibleConverter" FalseValue="Visible"
+                                                  TrueValue="Collapsed" />
         </ResourceDictionary>
     </Window.Resources>
-    
-    <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="5">
+
+    <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0">
-            You are about to delete the connection to [] 
+        <TextBlock Grid.Row="0" Margin="0, 0, 0, 20">
+            You are about to delete the connection to
+            <InlineUIContainer Style="{StaticResource ConnectionInfoInlineWrapper}">
+                <ui:ConnectionInfoComponent ConnectionInfo="{Binding ConnectionInfo}" />
+            </InlineUIContainer>
         </TextBlock>
-        <TextBlock Grid.Row="1" Visibility="{Binding DisplayProjectList, Converter={StaticResource FalseToVisibleConverter}}">It has no associated project bindings</TextBlock>
+        <TextBlock Grid.Row="1"
+                   Visibility="{Binding DisplayProjectList, Converter={StaticResource FalseToVisibleConverter}}">
+            It has no associated project bindings
+        </TextBlock>
         <Grid Grid.Row="1" Visibility="{Binding DisplayProjectList, Converter={StaticResource TrueToVisibleConverter}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Visibility="Collapsed">It is used in the following project bindings</TextBlock>
-            <ListBox Grid.Row="1" ItemContainerStyle="{StaticResource NoSelectionListBoxItemStyle}" ItemsSource="{Binding ProjectsToUnbind}"/>
+            <TextBlock Grid.Row="0">It is used in the following project bindings:</TextBlock>
+            <ListBox Grid.Row="1"
+                     Margin="0, 10"
+
+                     ItemContainerStyle="{StaticResource NoSelectionListBoxItemStyle}"
+                     ItemsSource="{Binding ProjectsToUnbind}" />
+            <ui:WarningMessage Grid.Row="2" WarningText="These bindings will be deleted alongside with the connection!"></ui:WarningMessage>
         </Grid>
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" Margin="0, 20, 0, 0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" HorizontalAlignment="Left">Are you sure?</TextBlock>
-            <StackPanel Grid.Column="1" >
-                <vsui:DialogButton Content="{x:Static ui:UiResources.Ok}" 
+            <StackPanel Grid.Column="1" Style="{StaticResource DialogButtonsPanel}">
+                <vsui:DialogButton Content="{x:Static res:UiResources.Ok}"
                                    IsDefault="True"
                                    Click="OnOk"
                                    IsEnabled="True" />
-                <vsui:DialogButton Content="{x:Static ui:UiResources.CancelBtn}" IsCancel="True" />
+                <vsui:DialogButton Content="{x:Static res:UiResources.CancelBtn}" IsCancel="True" />
             </StackPanel>
         </Grid>
     </Grid>

@@ -100,28 +100,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
         private void DeleteConnection_OnClick(object sender, RoutedEventArgs e)
         {
             new DeleteConnectionDialog(
-            [
-                "A",
-                "A",
-                "B",
-                "B",
-                "B",
-                "B",
-                "C",
-                "C",
-                "C",
-                "C",
-                "D",
-                "D",
-                "D",
-                "D",
-                "D",
-            ]).ShowDialog();
+                    [
+                        "A",
+                        "A",
+                        "B",
+                        "B",
+                        "B",
+                        "B",
+                        "C",
+                        "C",
+                        "C",
+                        "C",
+                        "D",
+                        "D",
+                        "D",
+                        "D",
+                        "D",
+                    ],
+                    new ConnectionInfo.Connection("https://next.sonarqube.com/next", ServerType.SonarQube, true))
+                .ShowDialog();
         }
 
         private void DeleteEmptyConnection_OnClick(object sender, RoutedEventArgs e)
         {
-            new DeleteConnectionDialog([]).ShowDialog();
+            new DeleteConnectionDialog([], new ConnectionInfo.Connection("SonarSource", ServerType.SonarCloud, false)).ShowDialog();
         }
     }
 }
