@@ -14,7 +14,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid>
+    <Grid DataContext="{Binding ElementName=ConnectionInfoUc, Path=ConnectionInfo}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
             <ColumnDefinition />
@@ -24,17 +24,17 @@
             <Image.Style>
                 <Style TargetType="Image">
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding ElementName=ConnectionInfoUc, Path=ConnectionInfo.ServerType}" Value="SonarCloud">
+                        <DataTrigger Binding="{Binding Path=ServerType}" Value="SonarCloud">
                             <Setter Property="Source" Value="../UI/Resources/SonarCloudIcon.png"></Setter>
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding ElementName=ConnectionInfoUc, Path=ConnectionInfo.ServerType}" Value="SonarQube">
+                        <DataTrigger Binding="{Binding Path=ServerType}" Value="SonarQube">
                             <Setter Property="Source" Value="../UI/Resources/SonarQubeIcon.png"></Setter>
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
             </Image.Style>
         </Image>
-        <TextBlock Grid.Column="1" Text="{Binding ElementName=ConnectionInfoUc, Path=ConnectionInfo.Id}" VerticalAlignment="Center" FontWeight="DemiBold" />
+        <TextBlock Grid.Column="1" Text="{Binding Path=Id}" VerticalAlignment="Center" FontWeight="DemiBold" />
     </Grid>
 
 </UserControl>
