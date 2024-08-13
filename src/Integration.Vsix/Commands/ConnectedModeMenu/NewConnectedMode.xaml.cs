@@ -118,5 +118,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
                 "D",
             ]).ShowDialog();
         }
+
+        private void DeleteEmptyConnection_OnClick(object sender, RoutedEventArgs e)
+        {
+            new DeleteConnectionDialog([]).ShowDialog();
+        }
     }
 }
