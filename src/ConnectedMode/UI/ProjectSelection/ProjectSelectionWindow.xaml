@@ -44,10 +44,10 @@
                     <Image.Style>
                         <Style TargetType="Image">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Path=Connection.serverType}" Value="SonarCloud">
+                                <DataTrigger Binding="{Binding Path=Connection.ServerType}" Value="SonarCloud">
                                     <Setter Property="Source" Value="../Resources/SonarCloudIcon.png"></Setter>
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding Path=Connection.serverType}" Value="SonarQube">
+                                <DataTrigger Binding="{Binding Path=Connection.ServerType}" Value="SonarQube">
                                     <Setter Property="Source" Value="../Resources/SonarQubeIcon.png"></Setter>
                                 </DataTrigger>
                             </Style.Triggers>
@@ -55,7 +55,7 @@
                     </Image.Style>
                 </Image>
             </InlineUIContainer>
-            <Run Text="{Binding Connection.id}" FontWeight="Bold" />
+            <Run Text="{Binding Connection.Id}" FontWeight="Bold" />
         </TextBlock>
 
         <TextBox Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1"
@@ -98,13 +98,13 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <Button Grid.Column="1" Grid.Row="3" Name="BindButton" Content="{x:Static ui:UiResources.BindButton}"
+        <Button Grid.Column="1" Grid.Row="3" Content="{x:Static ui:UiResources.SelectProjectButton}"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
                 Margin="5, 0"
                 IsEnabled="{Binding IsProjectSelected}"
                 Click="BindButton_OnClick" />
-        <Button Grid.Column="2" Grid.Row="3" Name="CancelButton" Content="{x:Static ui:UiResources.CancelBtn}"
+        <Button Grid.Column="2" Grid.Row="3" Content="{x:Static ui:UiResources.CancelBtn}"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
                 Click="CancelButton_OnClick" />

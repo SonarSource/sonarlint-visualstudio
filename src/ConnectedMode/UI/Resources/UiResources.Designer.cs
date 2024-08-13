@@ -78,15 +78,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Bind.
-        /// </summary>
-        public static string BindButton {
-            get {
-                return ResourceManager.GetString("BindButton", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string CancelBtn {
@@ -285,6 +276,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Search for project....
+        /// </summary>
+        public static string SearchProjectPlaceholder {
+            get {
+                return ResourceManager.GetString("SearchProjectPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Choose one of your organizations:.
         /// </summary>
         public static string SelectOrganizationLabel {
@@ -294,11 +294,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Search for project....
+        ///   Looks up a localized string similar to Select.
         /// </summary>
-        public static string SearchProjectPlaceholder {
+        public static string SelectProjectButton {
             get {
-                return ResourceManager.GetString("SearchProjectPlaceholder", resourceCulture);
+                return ResourceManager.GetString("SelectProjectButton", resourceCulture);
             }
         }
         

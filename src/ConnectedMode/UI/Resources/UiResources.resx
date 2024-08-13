@@ -201,8 +201,8 @@
   <data name="Username" xml:space="preserve">
     <value>Username</value>
   </data>
-  <data name="BindButton" xml:space="preserve">
-    <value>Bind</value>
+  <data name="SelectProjectButton" xml:space="preserve">
+    <value>Select</value>
   </data>
   <data name="SearchProjectPlaceholder" xml:space="preserve">
     <value>Search for project...</value>
