@@ -1,0 +1,40 @@
+﻿<UserControl
+    x:Class="SonarLint.VisualStudio.ConnectedMode.UI.ConnectionInfoComponent"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+    FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"    
+    FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
+    Name="ConnectionInfoUc">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid DataContext="{Binding ElementName=ConnectionInfoUc, Path=ConnectionInfo}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+
+        <Image Grid.Column="0" Width="25" Height="25" VerticalAlignment="Center" HorizontalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality">
+            <Image.Style>
+                <Style TargetType="Image">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=ServerType}" Value="SonarCloud">
+                            <Setter Property="Source" Value="../UI/Resources/SonarCloudIcon.png"></Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=ServerType}" Value="SonarQube">
+                            <Setter Property="Source" Value="../UI/Resources/SonarQubeIcon.png"></Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Image.Style>
+        </Image>
+        <TextBlock Grid.Column="1" Text="{Binding Path=Id}" VerticalAlignment="Center" FontWeight="DemiBold" />
+    </Grid>
+
+</UserControl>

@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AuthenticationDescription" xml:space="preserve">
-    <value>Please fill the authentication details for: </value>
+    <value>Please fill the authentication details for </value>
   </data>
   <data name="AuthenticationType" xml:space="preserve">
     <value>Authentication type</value>
