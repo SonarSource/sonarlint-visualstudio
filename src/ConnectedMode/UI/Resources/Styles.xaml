@@ -51,6 +51,7 @@
 
     <Style TargetType="ListBox">
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}" />
     </Style>
 
     <Style x:Key="NoSelectionListBoxItemStyle" TargetType="ListBoxItem">
