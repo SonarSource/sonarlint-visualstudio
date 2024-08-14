@@ -34,7 +34,7 @@ public partial class DeleteConnectionDialog : Window
         InitializeComponent();
     }
 
-    private void OnOk(object sender, RoutedEventArgs e)
+    private void DeleteButton_OnClick(object sender, RoutedEventArgs e)
     {
         DialogResult = true;
     }

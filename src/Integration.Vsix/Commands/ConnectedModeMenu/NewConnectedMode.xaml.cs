@@ -46,17 +46,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
         private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
         {
-            new ServerSelectionWindow(browserService).ShowDialog();
+            new ServerSelectionDialog(browserService).ShowDialog();
         }
 
         private void Credentials_OnClick(object sender, RoutedEventArgs e)
         {
-            new CredentialsWnd(browserService, new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube, true), withNextButton:true).ShowDialog();
+            new CredentialsDialog(browserService, new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube, true), withNextButton:true).ShowDialog();
         }
 
         private void Connections_OnClick(object sender, RoutedEventArgs e)
         {
-            new ManageConnectionsWindow(browserService).ShowDialog();
+            new ManageConnectionsDialog(browserService).ShowDialog();
         }
 
         private void ShowOrganizationSelectionDialog(object sender, RoutedEventArgs e)
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
         private void ProjectSelectionButton_OnClick(object sender, RoutedEventArgs e)
         {
-            new ProjectSelectionWindow(new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube, true)).ShowDialog();
+            new ProjectSelectionDialog(new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube, true)).ShowDialog();
         }
 
         private void DeleteConnection_OnClick(object sender, RoutedEventArgs e)

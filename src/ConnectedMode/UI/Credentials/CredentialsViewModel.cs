@@ -29,12 +29,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 public class CredentialsViewModel(Connection connection) : ViewModelBase
 {
     private string token;
-    private string selectedAuthenticationType = UiResources.Token;
+    private string selectedAuthenticationType = UiResources.AuthenticationTypeOptionToken;
     private string username;
     private string password;
 
     public Connection Connection { get; } = connection;
-    public ObservableCollection<string> AuthenticationType { get; } = [UiResources.Token, UiResources.Credentials];
+    public ObservableCollection<string> AuthenticationType { get; } = [UiResources.AuthenticationTypeOptionToken, UiResources.AuthenticationTypeOptionCredentials];
 
     public string SelectedAuthenticationType
     {
@@ -86,8 +86,8 @@ public class CredentialsViewModel(Connection connection) : ViewModelBase
         }
     }
 
-    public bool IsTokenAuthentication => SelectedAuthenticationType == UiResources.Token;
-    public bool IsCredentialsAuthentication => SelectedAuthenticationType == UiResources.Credentials;
+    public bool IsTokenAuthentication => SelectedAuthenticationType == UiResources.AuthenticationTypeOptionToken;
+    public bool IsCredentialsAuthentication => SelectedAuthenticationType == UiResources.AuthenticationTypeOptionCredentials;
     public bool ShouldTokenBeFilled => IsTokenAuthentication && !IsTokenProvided;
     public bool ShouldUsernameBeFilled => IsCredentialsAuthentication && !IsUsernameProvided;
     public bool ShouldPasswordBeFilled => IsCredentialsAuthentication && !IsPasswordProvided;

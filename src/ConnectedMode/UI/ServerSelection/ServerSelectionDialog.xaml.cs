@@ -20,39 +20,27 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using System.Windows.Navigation;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
-
-[ExcludeFromCodeCoverage]
-public partial class ProjectSelectionWindow
+namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
 {
-    public ProjectSelectionViewModel ViewModel { get; }
-
-    public ProjectSelectionWindow(ConnectionInfo.Connection connection)
+    [ExcludeFromCodeCoverage] // UI, not really unit-testable
+    public partial class ServerSelectionDialog : Window
     {
-        ViewModel = new ProjectSelectionViewModel(connection);
-        InitializeComponent();
-    }
+        private readonly IBrowserService browserService;
 
-    protected override void OnInitialized(EventArgs e)
-    {
-        base.OnInitialized(e);
-        
-        ViewModel.InitProjects([
-            new ServerProject(Key: "my_project", Name: "My Project"),
-            new ServerProject(Key: "your_project", Name: "Your Project"),
-            new ServerProject(Key: "our_project", Name: "Our Project"),
-        ]);
-    }
+        public ServerSelectionDialog(IBrowserService browserService)
+        {
+            this.browserService = browserService;
+            InitializeComponent();
+        }
 
-    private void BindButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        Close();
-    }
+        public ServerSelectionViewModel ViewModel { get; } = new();
 
-    private void CancelButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        Close();
+        private void ViewWebsite(object sender, RequestNavigateEventArgs e)
+        {
+            browserService.Navigate(e.Uri.AbsoluteUri);
+        }
     }
 }
-

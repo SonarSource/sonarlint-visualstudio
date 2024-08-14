@@ -35,13 +35,13 @@ public partial class OrganizationSelectionDialog : Window
 
     public OrganizationSelectionViewModel ViewModel { get; private set; }
 
-    private void OnSelectFromList(object sender, RoutedEventArgs e)
+    private void OkButton_OnClick(object sender, RoutedEventArgs e)
     {
         DialogResult = true;
         ShowSelectedKey();
     }
 
-    private void ManualOrganizationSelection(object sender, RoutedEventArgs e)
+    private void ManualOrganizationSelectionButton_OnClick(object sender, RoutedEventArgs e)
     {
         ViewModel.SelectedOrganization = null;
         var manualOrganizationSelectionDialog = new ManualOrganizationSelectionDialog();
