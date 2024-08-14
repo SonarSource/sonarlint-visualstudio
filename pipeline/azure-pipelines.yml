@@ -302,7 +302,7 @@ jobs:
     condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
     
   - task: JfrogCliV2@1
-    displayName: 'Publish vsix on repox'
+    displayName: 'Publish Artifact vsix on repox'
     inputs:
       jfrogPlatformConnection: 'jfrog_platform_qa_deployer_access_token'
       command:
