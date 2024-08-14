@@ -23,6 +23,8 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Button Content="Server Selection Window" Click="ButtonBase_OnClick" Width="150"></Button>
@@ -30,7 +32,9 @@
         <Button Grid.Row="2" Content="Connections Window" Click="Connections_OnClick" Width="150" Margin="0,10,0,0"></Button>
         <Button Grid.Row="3" Click="ShowOrganizationSelectionDialog" Width="150" Margin="0,10,0,0">Organization Selection</Button>
         <Button Grid.Row="4" Content="Project Selection Window" Click="ProjectSelectionButton_OnClick" Width="150" Margin="0,10,0,0"></Button>
-        <Button Grid.Row="5" Click="ManageBindingDialog_OnClick" Width="150" Margin="0,10,0,0">Manage Binding</Button>
+        <Button Grid.Row="5" Click="DeleteConnection_OnClick" Width="150" Margin="0,10,0,0">Delete Connection dialog</Button>
+        <Button Grid.Row="6" Click="DeleteEmptyConnection_OnClick" Width="150" Margin="0,10,0,0">Delete Empty Connection dialog</Button>
+        <Button Grid.Row="7" Click="ManageBindingDialog_OnClick" Width="150" Margin="0,10,0,0">Manage Binding</Button>
     </Grid>
 
 </platformUi:DialogWindow>

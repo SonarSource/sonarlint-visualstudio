@@ -62,6 +62,7 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\ManageBinding\ManageBindingDialog.xaml" />
+    <Page Include="UI\DeleteConnection\DeleteConnectionDialog.xaml" />
     <Page Include="UI\Resources\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
