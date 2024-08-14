@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
@@ -94,6 +95,35 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
         private void ProjectSelectionButton_OnClick(object sender, RoutedEventArgs e)
         {
             new ProjectSelectionWindow(new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube, true)).ShowDialog();
+        }
+
+        private void DeleteConnection_OnClick(object sender, RoutedEventArgs e)
+        {
+            new DeleteConnectionDialog(
+                    [
+                        "A",
+                        "A",
+                        "B",
+                        "B",
+                        "B",
+                        "B",
+                        "C",
+                        "C",
+                        "C",
+                        "C",
+                        "D",
+                        "D",
+                        "D",
+                        "D",
+                        "D",
+                    ],
+                    new ConnectionInfo.Connection("https://next.sonarqube.com/next", ServerType.SonarQube, true))
+                .ShowDialog();
+        }
+
+        private void DeleteEmptyConnection_OnClick(object sender, RoutedEventArgs e)
+        {
+            new DeleteConnectionDialog(null, new ConnectionInfo.Connection("SonarSource", ServerType.SonarCloud, false)).ShowDialog();
         }
     }
 }
