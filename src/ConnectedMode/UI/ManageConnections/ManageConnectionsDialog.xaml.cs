@@ -30,13 +30,13 @@ using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public partial class ManageConnectionsWindow : Window
+    public partial class ManageConnectionsDialog : Window
     {
         private readonly IBrowserService browserService;
 
         public ManageConnectionsViewModel ViewModel { get; } = new();
 
-        public ManageConnectionsWindow(IBrowserService browserService)
+        public ManageConnectionsDialog(IBrowserService browserService)
         {
             this.browserService = browserService;
             InitializeComponent();
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         {
             if(sender is System.Windows.Controls.Button button && button.DataContext is ConnectionViewModel connectionViewModel)
             {
-                new CredentialsWnd(browserService, connectionViewModel.Connection, withNextButton: false).ShowDialog();
+                new CredentialsDialog(browserService, connectionViewModel.Connection, false).ShowDialog();
             }
         }
 
@@ -60,14 +60,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private Connection GetNewConnection()
         {
-            var serverSelectionDialog = new ServerSelectionWindow(browserService);
+            var serverSelectionDialog = new ServerSelectionDialog(browserService);
             return serverSelectionDialog.ShowDialog() != true ? null : serverSelectionDialog.ViewModel.CreateConnection();
         }
 
         private bool CredentialsDialogSucceeded(Connection newConnection)
         {
             var isAnyDialogFollowing = newConnection.ServerType == ServerType.SonarCloud; 
-            var credentialsDialog = new CredentialsWnd(browserService, newConnection, withNextButton: isAnyDialogFollowing);
+            var credentialsDialog = new CredentialsDialog(browserService, newConnection, withNextButton: isAnyDialogFollowing);
             return credentialsDialog.ShowDialog() == true;
         }
 
