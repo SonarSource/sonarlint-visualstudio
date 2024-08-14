@@ -79,29 +79,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Authentication type.
+        /// </summary>
+        public static string AuthenticationTypeLabel {
+            get {
+                return ResourceManager.GetString("AuthenticationTypeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Credentials.
         /// </summary>
-        public static string AuthenticationType_Credentials {
+        public static string AuthenticationTypeOptionCredentials {
             get {
-                return ResourceManager.GetString("AuthenticationType_Credentials", resourceCulture);
+                return ResourceManager.GetString("AuthenticationTypeOptionCredentials", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Token.
         /// </summary>
-        public static string AuthenticationType_Token {
+        public static string AuthenticationTypeOptionToken {
             get {
-                return ResourceManager.GetString("AuthenticationType_Token", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Authentication type.
-        /// </summary>
-        public static string AuthenticationTypeLabel {
-            get {
-                return ResourceManager.GetString("AuthenticationTypeLabel", resourceCulture);
+                return ResourceManager.GetString("AuthenticationTypeOptionToken", resourceCulture);
             }
         }
         

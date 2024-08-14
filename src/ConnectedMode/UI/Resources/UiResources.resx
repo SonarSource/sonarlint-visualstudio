@@ -228,10 +228,10 @@
   <data name="ManualOrganizationSelectionLabel" xml:space="preserve">
     <value>Enter organization key:</value>
   </data>
-  <data name="AuthenticationType_Credentials" xml:space="preserve">
+  <data name="AuthenticationTypeOptionCredentials" xml:space="preserve">
     <value>Credentials</value>
   </data>
-  <data name="AuthenticationType_Token" xml:space="preserve">
+  <data name="AuthenticationTypeOptionToken" xml:space="preserve">
     <value>Token</value>
   </data>  
   <data name="DeleteConnectionDialogTitle" xml:space="preserve">

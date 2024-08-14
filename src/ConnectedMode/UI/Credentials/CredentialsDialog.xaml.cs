@@ -72,12 +72,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
 
         private void AuthenticationTypeCombobox_OnSourceUpdated(object sender, DataTransferEventArgs dataTransferEventArgs)
         {
-            if (ViewModel.SelectedAuthenticationType == UiResources.AuthenticationType_Token)
+            if (ViewModel.SelectedAuthenticationType == UiResources.AuthenticationTypeOptionToken)
             {
                 ViewModel.Username = null;
                 PasswordBox.Password = string.Empty;
             }
-            else if (ViewModel.SelectedAuthenticationType == UiResources.AuthenticationType_Credentials)
+            else if (ViewModel.SelectedAuthenticationType == UiResources.AuthenticationTypeOptionCredentials)
             {
                 TokenBox.Password = string.Empty;
             }
