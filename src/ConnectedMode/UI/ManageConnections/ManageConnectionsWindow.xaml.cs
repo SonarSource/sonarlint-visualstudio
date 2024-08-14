@@ -21,6 +21,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 using SonarLint.VisualStudio.Core;
 using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
@@ -59,6 +60,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 new Connection("http://localhost:9000", ServerType.SonarQube, true),
                 new Connection("https://sonarcloud.io/myOrg", ServerType.SonarCloud, false)
             ]);
+        }
+
+        private void RemoveConnectionButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.Button { DataContext: ConnectionViewModel connectionViewModel })
+            {
+                return;
+            }
+
+            var deleteConnectionDialog = new DeleteConnectionDialog(["my proj", "vs sample 2019", "vs sample 2022"], connectionViewModel.Connection);
+            if(deleteConnectionDialog.ShowDialog() == true)
+            {
+                ViewModel.RemoveConnection(connectionViewModel);
+            }
+        }
+
+        private void OkButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }

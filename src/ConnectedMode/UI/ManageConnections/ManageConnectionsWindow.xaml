@@ -96,7 +96,7 @@
                                    <imaging:CrispImage Width="20" Height="20" VerticalAlignment="Center" Cursor="Hand" Moniker="{x:Static vsimagecatalog:KnownMonikers.Edit}"
                                                        Margin="5,0" />
                                 </Button>
-                                <Button Grid.Column="1" Style="{StaticResource IconButtonStyle}" ToolTip="{x:Static ui:UiResources.RemoveConnection}">
+                                <Button Grid.Column="1" Style="{StaticResource IconButtonStyle}" ToolTip="{x:Static ui:UiResources.RemoveConnection}" Click="RemoveConnectionButton_OnClick">
                                     <imaging:CrispImage Width="20" Height="20" VerticalAlignment="Center" Cursor="Hand" Moniker="{x:Static vsimagecatalog:KnownMonikers.Close}"/>
                                 </Button>
                             </Grid>
