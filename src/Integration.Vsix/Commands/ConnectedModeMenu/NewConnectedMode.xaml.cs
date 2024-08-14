@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
         private void DeleteEmptyConnection_OnClick(object sender, RoutedEventArgs e)
         {
-            new DeleteConnectionDialog([], new ConnectionInfo.Connection("SonarSource", ServerType.SonarCloud, false)).ShowDialog();
+            new DeleteConnectionDialog(null, new ConnectionInfo.Connection("SonarSource", ServerType.SonarCloud, false)).ShowDialog();
         }
     }
 }
