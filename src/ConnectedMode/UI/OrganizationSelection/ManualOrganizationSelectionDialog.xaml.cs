@@ -33,7 +33,7 @@ public partial class ManualOrganizationSelectionDialog : Window
         InitializeComponent();
     }
 
-    private void OnOk(object sender, RoutedEventArgs e)
+    private void OkButton_OnClick(object sender, RoutedEventArgs e)
     {
         DialogResult = true;
     }
