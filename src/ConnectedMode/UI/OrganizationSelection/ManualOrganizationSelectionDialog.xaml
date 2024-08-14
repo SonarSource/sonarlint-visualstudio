@@ -37,11 +37,11 @@
             </TextBox>
         </StackPanel>
         <StackPanel Grid.Row="1" Style="{StaticResource DialogButtonsPanel}">
-            <vsui:DialogButton Content="{x:Static ui:UiResources.Ok}" 
+            <vsui:DialogButton Content="{x:Static ui:UiResources.OkButton}" 
                                IsDefault="True"
                                Click="OnOk"
                                IsEnabled="{Binding IsValidOrganizationKey, UpdateSourceTrigger=PropertyChanged}" />
-            <vsui:DialogButton Content="{x:Static ui:UiResources.CancelBtn}" IsCancel="True" />
+            <vsui:DialogButton Content="{x:Static ui:UiResources.CancelButton}" IsCancel="True" />
         </StackPanel>
     </Grid>
 </Window>

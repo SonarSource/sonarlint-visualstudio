@@ -24,11 +24,11 @@ using System.Windows;
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 
 [ExcludeFromCodeCoverage]
-public partial class ProjectSelectionWindow
+public partial class ProjectSelectionDialog
 {
     public ProjectSelectionViewModel ViewModel { get; }
 
-    public ProjectSelectionWindow(ConnectionInfo.Connection connection)
+    public ProjectSelectionDialog(ConnectionInfo.Connection connection)
     {
         ViewModel = new ProjectSelectionViewModel(connection);
         InitializeComponent();

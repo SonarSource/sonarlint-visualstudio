@@ -41,21 +41,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void SelectedAuthenticationType_ShouldBeTokenByDefault()
         {
-            testSubject.SelectedAuthenticationType.Should().Be(UiResources.Token);
+            testSubject.SelectedAuthenticationType.Should().Be(UiResources.AuthenticationType_Token);
             testSubject.IsTokenAuthentication.Should().BeTrue();
         }
 
         [TestMethod]
         public void IsTokenAuthentication_TokenIsSelected_ReturnsTrue()
         {
-            testSubject.SelectedAuthenticationType = UiResources.Token;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Token;
 
             testSubject.IsTokenAuthentication.Should().BeTrue();
         }
 
         [TestMethod] public void IsTokenAuthentication_CredentialsIsSelected_ReturnsFalse()
         {
-            testSubject.SelectedAuthenticationType = UiResources.Credentials;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Credentials;
 
             testSubject.IsTokenAuthentication.Should().BeFalse();
         }
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void IsCredentialsAuthentication_TokenIsSelected_ReturnsFalse()
         {
-            testSubject.SelectedAuthenticationType = UiResources.Token;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Token;
 
             testSubject.IsCredentialsAuthentication.Should().BeFalse();
         }
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void IsCredentialsAuthentication_CredentialsIsSelected_ReturnsTrue()
         {
-            testSubject.SelectedAuthenticationType = UiResources.Credentials;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Credentials;
 
             testSubject.IsCredentialsAuthentication.Should().BeTrue();
         }
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void IsConfirmationEnabled_TokenIsSelectedAndTokenIsFilled_ReturnsTrue()
         {
-            testSubject.SelectedAuthenticationType = UiResources.Token;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Token;
 
             testSubject.Token = "dummy token";
 
@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [DataRow("  ")]
         public void IsConfirmationEnabled_TokenIsSelectedAndTokenIsNotFilled_ReturnsFalse(string token)
         {
-            testSubject.SelectedAuthenticationType = UiResources.Token;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Token;
 
             testSubject.Token = token;
 
@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void IsConfirmationEnabled_CredentialsIsSelectedAndUsernameAndPasswordAreFilled_ReturnsTrue()
         {
-            testSubject.SelectedAuthenticationType = UiResources.Credentials;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Credentials;
 
             testSubject.Username = "dummy username";
             testSubject.Password = "dummy password";
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [DataRow("username", "  ")]
         public void IsConfirmationEnabled_CredentialsIsSelectedAndUsernameOrPasswordAreNotFilled_ReturnsFalse(string username, string password)
         {
-            testSubject.SelectedAuthenticationType = UiResources.Credentials;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Credentials;
 
             testSubject.Username = username;
             testSubject.Password = password;
@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [DataRow("  ")]
         public void ShouldTokenBeFilled_TokenAuthenticationIsSelectedAndTokenIsEmpty_ReturnsTrue(string token)
         {
-            testSubject.SelectedAuthenticationType = UiResources.Token;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Token;
             testSubject.Token = token;
 
             testSubject.ShouldTokenBeFilled.Should().BeTrue();
@@ -142,7 +142,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void ShouldTokenBeFilled_TokenAuthenticationIsSelectedAndTokenIsFilled_ReturnsFalse()
         {
-            testSubject.SelectedAuthenticationType = UiResources.Token;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Token;
             testSubject.Token = "dummy token";
 
             testSubject.ShouldTokenBeFilled.Should().BeFalse();
@@ -151,7 +151,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void ShouldTokenBeFilled_CredentialsAuthenticationIsSelected_ReturnsFalse()
         {
-            testSubject.SelectedAuthenticationType = UiResources.Credentials;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Credentials;
 
             testSubject.ShouldTokenBeFilled.Should().BeFalse();
         }
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [DataRow("  ")]
         public void ShouldUsernameBeFilled_CredentialsAuthenticationIsSelectedAndUsernameIsEmpty_ReturnsTrue(string username)
         {
-            testSubject.SelectedAuthenticationType = UiResources.Credentials;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Credentials;
             testSubject.Username = username;
 
             testSubject.ShouldUsernameBeFilled.Should().BeTrue();
@@ -171,7 +171,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void ShouldUsernameBeFilled_CredentialsAuthenticationIsSelectedAndUsernameIsFilled_ReturnsFalse()
         {
-            testSubject.SelectedAuthenticationType = UiResources.Credentials;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Credentials;
             testSubject.Username = "dummy username";
 
             testSubject.ShouldUsernameBeFilled.Should().BeFalse();
@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void ShouldUsernameBeFilled_TokenAuthenticationIsSelected_ReturnsFalse()
         {
-            testSubject.SelectedAuthenticationType = UiResources.Token;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Token;
 
             testSubject.ShouldUsernameBeFilled.Should().BeFalse();
         }
@@ -191,7 +191,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [DataRow("  ")]
         public void ShouldPasswordBeFilled_CredentialsAuthenticationIsSelectedAndPasswordIsEmpty_ReturnsTrue(string password)
         {
-            testSubject.SelectedAuthenticationType = UiResources.Credentials;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Credentials;
             testSubject.Password = password;
 
             testSubject.ShouldPasswordBeFilled.Should().BeTrue();
@@ -200,7 +200,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void ShouldPasswordBeFilled_CredentialsAuthenticationIsSelectedAndPasswordIsFilled_ReturnsFalse()
         {
-            testSubject.SelectedAuthenticationType = UiResources.Credentials;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Credentials;
             testSubject.Password = "dummy password";
 
             testSubject.ShouldPasswordBeFilled.Should().BeFalse();
@@ -209,7 +209,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void ShouldPasswordBeFilled_TokenAuthenticationIsSelected_ReturnsFalse()
         {
-            testSubject.SelectedAuthenticationType = UiResources.Token;
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationType_Token;
 
             testSubject.ShouldPasswordBeFilled.Should().BeFalse();
         }

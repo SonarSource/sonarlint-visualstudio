@@ -71,7 +71,7 @@
     <Page Include="UI\ConnectionInfoComponent.xaml" />
     <Page Include="UI\OrganizationSelection\ManualOrganizationSelectionDialog.xaml" />
     <Page Include="UI\OrganizationSelection\OrganizationSelectionDialog.xaml" />
-    <Page Include="UI\ProjectSelection\ProjectSelectionWindow.xaml" />
+    <Page Include="UI\ProjectSelection\ProjectSelectionDialog.xaml" />
   </ItemGroup>
 
   <ItemGroup>

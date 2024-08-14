@@ -120,61 +120,61 @@
   <data name="AuthenticationDescription" xml:space="preserve">
     <value>Please fill the authentication details for </value>
   </data>
-  <data name="AuthenticationType" xml:space="preserve">
+  <data name="AuthenticationTypeLabel" xml:space="preserve">
     <value>Authentication type</value>
   </data>
-  <data name="CancelBtn" xml:space="preserve">
+  <data name="CancelButton" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  <data name="ChooseConnectionType" xml:space="preserve">
+  <data name="ChooseConnectionTypeLabel" xml:space="preserve">
     <value>Choose a connection type:</value>
   </data>
-  <data name="ConnectionDiscovering" xml:space="preserve">
+  <data name="ConnectionDiscoveringText" xml:space="preserve">
     <value>Discover which connection is best for your team </value>
   </data>
-  <data name="Credentials" xml:space="preserve">
+  <data name="CredentialsLabel" xml:space="preserve">
     <value>Credentials</value>
   </data>
-  <data name="CredentialsWindowTitle" xml:space="preserve">
+  <data name="CredentialsDialogTitle" xml:space="preserve">
     <value>Edit Authentication Details</value>
   </data>
-  <data name="DeprecatedAuthenticationType" xml:space="preserve">
+  <data name="DeprecatedAuthenticationTypeDescription" xml:space="preserve">
     <value>Authentication via username and password is deprecated and will be removed in the future. Please use a token instead.</value>
   </data>
-  <data name="InsecureProtocolWarning" xml:space="preserve">
+  <data name="InsecureProtocolWarningDescription" xml:space="preserve">
     <value>The URL you entered is not secure. Use HTTPS connections to protect sensitive information.</value>
   </data>
-  <data name="EditConnection" xml:space="preserve">
+  <data name="EditConnectionToolTip" xml:space="preserve">
     <value>Edit the authentication details of the connection</value>
   </data>
-  <data name="ExistingConnections" xml:space="preserve">
+  <data name="ExistingConnectionsLabel" xml:space="preserve">
     <value>Existing Connections</value>
   </data>
-  <data name="ManageConnectionsWindowTitle" xml:space="preserve">
+  <data name="ManageConnectionsDialogTitle" xml:space="preserve">
     <value>Manage Connections</value>
   </data>
-  <data name="NewConnection" xml:space="preserve">
+  <data name="NewConnectionButton" xml:space="preserve">
     <value>New Connection</value>
   </data>
-  <data name="Next" xml:space="preserve">
+  <data name="NextButton" xml:space="preserve">
     <value>Next</value>
   </data>
-  <data name="Ok" xml:space="preserve">
+  <data name="OkButton" xml:space="preserve">
     <value>OK</value>
   </data>
-  <data name="Password" xml:space="preserve">
+  <data name="PasswordLabel" xml:space="preserve">
     <value>Password</value>
   </data>
-  <data name="EnterSonarQubeUrl" xml:space="preserve">
+  <data name="EnterSonarQubeUrlLabel" xml:space="preserve">
     <value>Enter the SonarQube URL:</value>
   </data>
-  <data name="RemoveConnection" xml:space="preserve">
+  <data name="RemoveConnectionToolTip" xml:space="preserve">
     <value>Remove connection</value>
   </data>
-  <data name="ServerSelectionWndTitle" xml:space="preserve">
+  <data name="ServerSelectionDialogTitle" xml:space="preserve">
     <value>Create New Connection</value>
   </data>
-  <data name="SmartNotifications" xml:space="preserve">
+  <data name="SmartNotificationsCheckboxLabel" xml:space="preserve">
     <value>Smart Notifications</value>
   </data>
   <data name="SonarCloudAccountSecurityUrl" xml:space="preserve">
@@ -183,10 +183,10 @@
   <data name="SonarCloudDescription" xml:space="preserve">
     <value>A Software-as-a-Service (Saas) tool that easily integrates into the cloud DevOps platforms and extends the CI/CD workflow to systematically help developers and organizations deliver CleanCode.</value>
   </data>
-  <data name="SonarCloudFree" xml:space="preserve">
+  <data name="FreeSonarCloudOfferDescription" xml:space="preserve">
     <value>is entirely free for open source projects</value>
   </data>
-  <data name="SonarCubeFree" xml:space="preserve">
+  <data name="FreeSonarQubeOfferDescription" xml:space="preserve">
     <value>SonarQube offers a free</value>
   </data>
   <data name="SonarQubeAccountSecurityUrl" xml:space="preserve">
@@ -195,22 +195,22 @@
   <data name="SonarQubeDescription" xml:space="preserve">
     <value>An open-source, self-managed tool that easily integrates into the developers' CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code.</value>
   </data>
-  <data name="Token" xml:space="preserve">
+  <data name="TokenLabel" xml:space="preserve">
     <value>Token</value>
   </data>
-  <data name="Username" xml:space="preserve">
+  <data name="UsernameLabel" xml:space="preserve">
     <value>Username</value>
   </data>
-  <data name="SelectProjectButton" xml:space="preserve">
+  <data name="SelectButton" xml:space="preserve">
     <value>Select</value>
   </data>
-  <data name="SearchProjectPlaceholder" xml:space="preserve">
+  <data name="SearchForProjectPlaceholder" xml:space="preserve">
     <value>Search for project...</value>
   </data>
   <data name="ProjectSelectionDialogTitle" xml:space="preserve">
     <value>Select project to bind</value>
   </data>
-  <data name="ProjectSelectionConnectionInfo" xml:space="preserve">
+  <data name="ProjectSelectionConnectionLabel" xml:space="preserve">
     <value>Projects on </value>
   </data>
   <data name="SelectOrganizationLabel" xml:space="preserve">
@@ -227,5 +227,11 @@
   </data>
   <data name="ManualOrganizationSelectionLabel" xml:space="preserve">
     <value>Enter organization key:</value>
+  </data>
+  <data name="AuthenticationType_Credentials" xml:space="preserve">
+    <value>Credentials</value>
+  </data>
+  <data name="AuthenticationType_Token" xml:space="preserve">
+    <value>Token</value>
   </data>
 </root>

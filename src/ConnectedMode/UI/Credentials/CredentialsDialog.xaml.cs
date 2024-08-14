@@ -40,12 +40,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
             ViewModel = new CredentialsViewModel(connection);
             InitializeComponent();
 
-            ConfirmationBtn.Content = withNextButton ? UiResources.Next : UiResources.Ok;
+            ConfirmationBtn.Content = withNextButton ? UiResources.NextButton : UiResources.OkButton;
         }
 
         public CredentialsViewModel ViewModel { get; }
 
-        private void GenerateToken_Navigate(object sender, RequestNavigateEventArgs e)
+        private void GenerateTokenHyperlink_Navigate(object sender, RequestNavigateEventArgs e)
         {
             NavigateToAccountSecurityUrl();
         }
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
             browserService.Navigate(ViewModel.AccountSecurityUrl);
         }
 
-        private void GenerateLinkIcon_Click(object sender, MouseButtonEventArgs e)
+        private void GenerateLinkIcon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             NavigateToAccountSecurityUrl();
         }
@@ -65,19 +65,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
             ViewModel.Password = PasswordBox.Password;
         }
 
-        private void TokenBox_OnPasswordChanged(object sender, RoutedEventArgs e)
+        private void TokenPasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
         {
             ViewModel.Token = TokenBox.Password;
         }
 
-        private void AuthenticationType_SourceUpdated(object sender, DataTransferEventArgs dataTransferEventArgs)
+        private void AuthenticationTypeCombobox_OnSourceUpdated(object sender, DataTransferEventArgs dataTransferEventArgs)
         {
-            if (ViewModel.SelectedAuthenticationType == UiResources.Token)
+            if (ViewModel.SelectedAuthenticationType == UiResources.AuthenticationType_Token)
             {
                 ViewModel.Username = null;
                 PasswordBox.Password = string.Empty;
             }
-            else if (ViewModel.SelectedAuthenticationType == UiResources.Credentials)
+            else if (ViewModel.SelectedAuthenticationType == UiResources.AuthenticationType_Credentials)
             {
                 TokenBox.Password = string.Empty;
             }
