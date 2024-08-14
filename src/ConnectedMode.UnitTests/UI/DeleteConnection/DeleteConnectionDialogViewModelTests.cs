@@ -42,7 +42,7 @@ public class DeleteConnectionDialogViewModelTests
     [DataRow(new string[0], false)]
     [DataRow(new string[]{"a"}, true)]
     [DataRow(new string[]{"a", "b", "c"}, true)]
-    public void Ctor_SetsProperties(IReadOnlyList<string> projects, bool result)
+    public void DisplayProjectList_ReturnsBasedOnProjectList(IReadOnlyList<string> projects, bool result)
     {
         var testSubject = new DeleteConnectionDialogViewModel(projects, new ConnectionInfo.Connection(default, default, default));
 
