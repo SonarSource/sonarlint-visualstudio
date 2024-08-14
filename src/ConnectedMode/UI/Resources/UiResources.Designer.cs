@@ -132,6 +132,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Delete.
+        /// </summary>
+        public static string DeleteButton {
+            get {
+                return ResourceManager.GetString("DeleteButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to It is used in the following project bindings:.
         /// </summary>
         public static string DeleteConnectionBindingListLabel {

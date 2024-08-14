@@ -246,4 +246,7 @@
   <data name="DeleteConnectionDescription" xml:space="preserve">
     <value>You are about to delete the connection to</value>
   </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>Delete</value>
+  </data>
 </root>
