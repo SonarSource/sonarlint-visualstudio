@@ -96,4 +96,8 @@
         </Style.Resources>
     </Style>
 
+    <Style x:Key="ConnectionInfoInlineWrapper" TargetType="InlineUIContainer">
+        <Setter Property="BaselineAlignment" Value="TextBottom" />
+    </Style>
+
 </ResourceDictionary>

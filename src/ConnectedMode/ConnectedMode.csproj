@@ -70,7 +70,7 @@
     </Page>
     <Page Include="UI\ServerSelection\ServerSelectionWindow.xaml" />
     <Page Include="UI\ManageConnections\ManageConnectionsWindow.xaml" />
-    <Page Include="UI\ConnectionInfo.xaml" />
+    <Page Include="UI\ConnectionInfoComponent.xaml" />
     <Page Include="UI\OrganizationSelection\ManualOrganizationSelectionDialog.xaml" />
     <Page Include="UI\OrganizationSelection\OrganizationSelectionDialog.xaml" />
     <Page Include="UI\ProjectSelection\ProjectSelectionWindow.xaml" />
