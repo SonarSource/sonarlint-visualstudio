@@ -60,6 +60,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Are you sure?.
+        /// </summary>
+        public static string AreYouSureConfirmationLabel {
+            get {
+                return ResourceManager.GetString("AreYouSureConfirmationLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Please fill the authentication details for .
         /// </summary>
         public static string AuthenticationDescription {
@@ -123,11 +132,47 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to It is used in the following project bindings:.
+        /// </summary>
+        public static string DeleteConnectionBindingListLabel {
+            get {
+                return ResourceManager.GetString("DeleteConnectionBindingListLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These projects bindings will no longer be in connected mode!.
+        /// </summary>
+        public static string DeleteConnectionBindingsWarningText {
+            get {
+                return ResourceManager.GetString("DeleteConnectionBindingsWarningText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You are about to delete the connection to.
+        /// </summary>
+        public static string DeleteConnectionDescription {
+            get {
+                return ResourceManager.GetString("DeleteConnectionDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete Connection.
         /// </summary>
         public static string DeleteConnectionDialogTitle {
             get {
                 return ResourceManager.GetString("DeleteConnectionDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to It has no associated project bindings.
+        /// </summary>
+        public static string DeleteConnectionNoProjectsLabel {
+            get {
+                return ResourceManager.GetString("DeleteConnectionNoProjectsLabel", resourceCulture);
             }
         }
         
