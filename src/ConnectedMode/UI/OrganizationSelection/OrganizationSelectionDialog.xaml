@@ -55,13 +55,13 @@
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0"
                     HorizontalAlignment="Left"
-                    Click="ManualOrganizationSelection"
+                    Click="ManualOrganizationSelectionButton_OnClick"
                     Padding="4, 1"
                     Content="{x:Static ui:UiResources.OpenManualOrganizationSelectionButton}"/>
             <StackPanel Grid.Column="1" Style="{StaticResource DialogButtonsPanel}">
                 <vsui:DialogButton Content="{x:Static ui:UiResources.OkButton}"
                                    IsDefault="True"
-                                   Click="OnSelectFromList"
+                                   Click="OkButton_OnClick"
                                    IsEnabled="{Binding IsValidSelectedOrganization}" />
                 <vsui:DialogButton Content="{x:Static ui:UiResources.CancelButton}" IsCancel="True" />
             </StackPanel>
