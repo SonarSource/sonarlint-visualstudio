@@ -3,13 +3,13 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
-    FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"    
+    FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
     FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
     Name="ConnectionInfoUc">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -20,7 +20,8 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
-        <Image Grid.Column="0" Width="25" Height="25" VerticalAlignment="Center" HorizontalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality">
+        <Image Grid.Column="0" Width="25" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                   RenderOptions.BitmapScalingMode="HighQuality">
             <Image.Style>
                 <Style TargetType="Image">
                     <Style.Triggers>
@@ -34,7 +35,7 @@
                 </Style>
             </Image.Style>
         </Image>
-        <TextBlock Grid.Column="1" Text="{Binding Path=Id}" VerticalAlignment="Center" FontWeight="DemiBold" />
+        <TextBlock Grid.Column="1" Text="{Binding Path=Id}" VerticalAlignment="Bottom" FontWeight="DemiBold" />
     </Grid>
 
 </UserControl>
