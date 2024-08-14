@@ -70,9 +70,9 @@
             <StackPanel Grid.Column="1" Style="{StaticResource DialogButtonsPanel}">
                 <vsui:DialogButton Content="{x:Static res:UiResources.DeleteButton}"
                                    IsDefault="True"
-                                   Click="OnOk"
+                                   Click="DeleteButton_OnClick"
                                    IsEnabled="True" />
-                <vsui:DialogButton Content="{x:Static res:UiResources.CancelBtn}" IsCancel="True" />
+                <vsui:DialogButton Content="{x:Static res:UiResources.CancelButton}" IsCancel="True" />
             </StackPanel>
         </Grid>
     </Grid>
