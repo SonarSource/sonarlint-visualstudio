@@ -309,6 +309,7 @@ jobs:
         jf rt upload
         $(vsixPath)
         sonarsource-public-builds/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio/
+        --flat
         --build-name $(buildName)
         --build-number $(Build.BuildId)
     condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
