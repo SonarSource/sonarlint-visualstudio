@@ -233,6 +233,7 @@
   </data>
   <data name="AuthenticationType_Token" xml:space="preserve">
     <value>Token</value>
+  </data>  
   <data name="DeleteConnectionDialogTitle" xml:space="preserve">
     <value>Delete Connection</value>
   </data>
