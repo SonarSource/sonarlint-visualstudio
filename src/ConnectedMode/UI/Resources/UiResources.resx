@@ -233,5 +233,25 @@
   </data>
   <data name="AuthenticationType_Token" xml:space="preserve">
     <value>Token</value>
+  <data name="DeleteConnectionDialogTitle" xml:space="preserve">
+    <value>Delete Connection</value>
+  </data>
+  <data name="DeleteConnectionBindingsWarningText" xml:space="preserve">
+    <value>These projects bindings will no longer be in connected mode!</value>
+  </data>
+  <data name="DeleteConnectionBindingListLabel" xml:space="preserve">
+    <value>It is used in the following project bindings:</value>
+  </data>
+  <data name="AreYouSureConfirmationLabel" xml:space="preserve">
+    <value>Are you sure?</value>
+  </data>
+  <data name="DeleteConnectionNoProjectsLabel" xml:space="preserve">
+    <value>It has no associated project bindings</value>
+  </data>
+  <data name="DeleteConnectionDescription" xml:space="preserve">
+    <value>You are about to delete the connection to</value>
+  </data>
+  <data name="DeleteButton" xml:space="preserve">
+    <value>Delete</value>
   </data>
 </root>
