@@ -47,6 +47,7 @@ public partial class ProjectSelectionWindow
 
     private void BindButton_OnClick(object sender, RoutedEventArgs e)
     {
+        DialogResult = true;
         Close();
     }
 

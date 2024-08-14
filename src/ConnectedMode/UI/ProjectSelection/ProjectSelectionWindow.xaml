@@ -98,7 +98,7 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <Button Grid.Column="1" Grid.Row="3" Content="{x:Static ui:UiResources.SelectProjectButton}"
+        <Button Grid.Column="1" Grid.Row="3" Content="{x:Static ui:UiResources.SelectButton}"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
                 Margin="5, 0"

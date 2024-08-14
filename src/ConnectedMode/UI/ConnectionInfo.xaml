@@ -34,7 +34,7 @@
                 </Style>
             </Image.Style>
         </Image>
-        <TextBlock Grid.Column="1" Text="{Binding Path=Id}" VerticalAlignment="Center" FontWeight="DemiBold" />
+        <TextBlock Grid.Column="1" Text="{Binding Path=Id}" VerticalAlignment="Center" FontWeight="{Binding ElementName=ConnectionInfoUc, Path=TextFontWeight}" />
     </Grid>
 
 </UserControl>

@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
@@ -94,6 +95,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
         private void ProjectSelectionButton_OnClick(object sender, RoutedEventArgs e)
         {
             new ProjectSelectionWindow(new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube, true)).ShowDialog();
+        }
+
+        private void ManageBindingDialog_OnClick(object sender, RoutedEventArgs e)
+        {
+            new ManageBindingDialog(browserService, new SolutionInfoModel("VS Sample 2022", SolutionType.Solution)).ShowDialog();
         }
     }
 }

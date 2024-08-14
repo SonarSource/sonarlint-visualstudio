@@ -79,6 +79,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Bind.
+        /// </summary>
+        public static string BindButton {
+            get {
+                return ResourceManager.GetString("BindButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Binding in progress....
+        /// </summary>
+        public static string BindingInProgressText {
+            get {
+                return ResourceManager.GetString("BindingInProgressText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string CancelBtn {
@@ -102,6 +120,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string ConnectionDocHelpLbl {
             get {
                 return ResourceManager.GetString("ConnectionDocHelpLbl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connection to bind.
+        /// </summary>
+        public static string ConnectionToBindLabel {
+            get {
+                return ResourceManager.GetString("ConnectionToBindLabel", resourceCulture);
             }
         }
         
@@ -156,6 +183,42 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string InsecureProtocolWarning {
             get {
                 return ResourceManager.GetString("InsecureProtocolWarning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to is bound to.
+        /// </summary>
+        public static string IsBoundToText {
+            get {
+                return ResourceManager.GetString("IsBoundToText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to is not bound.
+        /// </summary>
+        public static string IsNotBoundText {
+            get {
+                return ResourceManager.GetString("IsNotBoundText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Manage Project Binding.
+        /// </summary>
+        public static string ManageBindingDialogTitle {
+            get {
+                return ResourceManager.GetString("ManageBindingDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Manage connections.
+        /// </summary>
+        public static string ManageConnectionsButton {
+            get {
+                return ResourceManager.GetString("ManageConnectionsButton", resourceCulture);
             }
         }
         
@@ -259,6 +322,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Project to bind.
+        /// </summary>
+        public static string ProjectToBindLabel {
+            get {
+                return ResourceManager.GetString("ProjectToBindLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enter the SonarQube URL:.
         /// </summary>
         public static string QubeUrlLbl {
@@ -286,6 +358,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select.
+        /// </summary>
+        public static string SelectButton {
+            get {
+                return ResourceManager.GetString("SelectButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select a connection to bind....
+        /// </summary>
+        public static string SelectConnectionToBindDescription {
+            get {
+                return ResourceManager.GetString("SelectConnectionToBindDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Choose one of your organizations:.
         /// </summary>
         public static string SelectOrganizationLabel {
@@ -295,11 +385,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select.
+        ///   Looks up a localized string similar to Select project.
         /// </summary>
         public static string SelectProjectButton {
             get {
                 return ResourceManager.GetString("SelectProjectButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select a project to bind from the chosen connection....
+        /// </summary>
+        public static string SelectProjectToBindDescription {
+            get {
+                return ResourceManager.GetString("SelectProjectToBindDescription", resourceCulture);
             }
         }
         
@@ -385,11 +484,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unbind.
+        /// </summary>
+        public static string UnbindButton {
+            get {
+                return ResourceManager.GetString("UnbindButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Username.
         /// </summary>
         public static string Username {
             get {
                 return ResourceManager.GetString("Username", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use shared binding.
+        /// </summary>
+        public static string UseSharedBindingButton {
+            get {
+                return ResourceManager.GetString("UseSharedBindingButton", resourceCulture);
             }
         }
     }
