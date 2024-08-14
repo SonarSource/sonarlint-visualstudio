@@ -18,15 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.ConnectedMode;
+namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 
-public static class ConnectionInfo
-{
-    public enum ServerType
-    {
-        SonarQube,
-        SonarCloud
-    }
-
-    public record Connection(string Id, ServerType ServerType, bool EnableSmartNotifications);
-}
+public record ServerProject(string Key, string Name);

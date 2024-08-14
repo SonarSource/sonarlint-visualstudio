@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please fill the authentication details for: .
+        ///   Looks up a localized string similar to Please fill the authentication details for .
         /// </summary>
         public static string AuthenticationDescription {
             get {
@@ -250,6 +250,33 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Projects on .
+        /// </summary>
+        public static string ProjectSelectionConnectionInfo {
+            get {
+                return ResourceManager.GetString("ProjectSelectionConnectionInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select project to bind.
+        /// </summary>
+        public static string ProjectSelectionDialogTitle {
+            get {
+                return ResourceManager.GetString("ProjectSelectionDialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter the SonarQube URL:.
+        /// </summary>
+        public static string QubeUrlLbl {
+            get {
+                return ResourceManager.GetString("QubeUrlLbl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove connection.
         /// </summary>
         public static string RemoveConnection {
@@ -259,11 +286,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Search for project....
+        /// </summary>
+        public static string SearchProjectPlaceholder {
+            get {
+                return ResourceManager.GetString("SearchProjectPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Choose one of your organizations:.
         /// </summary>
         public static string SelectOrganizationLabel {
             get {
                 return ResourceManager.GetString("SelectOrganizationLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select.
+        /// </summary>
+        public static string SelectProjectButton {
+            get {
+                return ResourceManager.GetString("SelectProjectButton", resourceCulture);
             }
         }
         

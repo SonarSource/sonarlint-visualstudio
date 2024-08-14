@@ -68,8 +68,10 @@
     </Page>
     <Page Include="UI\ServerSelection\ServerSelectionDialog.xaml" />
     <Page Include="UI\ManageConnections\ManageConnectionsDialog.xaml" />
+    <Page Include="UI\ConnectionInfoComponent.xaml" />
     <Page Include="UI\OrganizationSelection\ManualOrganizationSelectionDialog.xaml" />
     <Page Include="UI\OrganizationSelection\OrganizationSelectionDialog.xaml" />
+    <Page Include="UI\ProjectSelection\ProjectSelectionWindow.xaml" />
   </ItemGroup>
 
   <ItemGroup>

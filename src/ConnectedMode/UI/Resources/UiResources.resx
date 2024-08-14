@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AuthenticationDescription" xml:space="preserve">
-    <value>Please fill the authentication details for: </value>
+    <value>Please fill the authentication details for </value>
   </data>
   <data name="AuthenticationType" xml:space="preserve">
     <value>Authentication type</value>
@@ -200,6 +200,18 @@
   </data>
   <data name="Username" xml:space="preserve">
     <value>Username</value>
+  </data>
+  <data name="SelectProjectButton" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="SearchProjectPlaceholder" xml:space="preserve">
+    <value>Search for project...</value>
+  </data>
+  <data name="ProjectSelectionDialogTitle" xml:space="preserve">
+    <value>Select project to bind</value>
+  </data>
+  <data name="ProjectSelectionConnectionInfo" xml:space="preserve">
+    <value>Projects on </value>
   </data>
   <data name="SelectOrganizationLabel" xml:space="preserve">
     <value>Choose one of your organizations:</value>
