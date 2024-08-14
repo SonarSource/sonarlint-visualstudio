@@ -22,6 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
+using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 using SonarLint.VisualStudio.Core;
 using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
@@ -45,13 +46,40 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         {
             if(sender is System.Windows.Controls.Button button && button.DataContext is ConnectionViewModel connectionViewModel)
             {
-                new CredentialsWnd(browserService, connectionViewModel.Connection, false).ShowDialog();
+                new CredentialsWnd(browserService, connectionViewModel.Connection, withNextButton: false).ShowDialog();
             }
         }
 
         private void NewConnection_Clicked(object sender, RoutedEventArgs e)
         {
-            new ServerSelectionWindow(browserService).ShowDialog();
+            if (GetNewConnection() is {} newConnection && CredentialsDialogSucceeded(newConnection) && OrganizationSelectionDialogSucceeded(newConnection))
+            {
+               ViewModel.AddConnection(newConnection);
+            }
+        }
+
+        private Connection GetNewConnection()
+        {
+            var serverSelectionDialog = new ServerSelectionWindow(browserService);
+            return serverSelectionDialog.ShowDialog() != true ? null : serverSelectionDialog.ViewModel.CreateConnection();
+        }
+
+        private bool CredentialsDialogSucceeded(Connection newConnection)
+        {
+            var isAnyDialogFollowing = newConnection.ServerType == ServerType.SonarCloud; 
+            var credentialsDialog = new CredentialsWnd(browserService, newConnection, withNextButton: isAnyDialogFollowing);
+            return credentialsDialog.ShowDialog() == true;
+        }
+
+        private bool OrganizationSelectionDialogSucceeded(Connection newConnection)
+        {
+            if (newConnection.ServerType == ServerType.SonarQube)
+            {
+                return true;
+            }
+            
+            var organizationSelectionDialog = new OrganizationSelectionDialog([new OrganizationDisplay("a", "a"), new OrganizationDisplay("b", "b")]);
+            return organizationSelectionDialog.ShowDialog() == true;
         }
 
         private void ManageConnectionsWindow_OnInitialized(object sender, EventArgs e)

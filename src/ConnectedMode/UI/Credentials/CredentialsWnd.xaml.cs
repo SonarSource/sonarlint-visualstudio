@@ -82,5 +82,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
                 TokenBox.Password = string.Empty;
             }
         }
+
+        private void OkButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            DialogResult = true;
+            Close();
+        }
     }
 }
