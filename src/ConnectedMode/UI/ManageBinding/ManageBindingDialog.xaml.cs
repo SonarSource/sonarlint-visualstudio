@@ -20,6 +20,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.Core;
@@ -45,9 +46,9 @@ public partial class ManageBindingDialog : Window
         new ManageConnectionsWindow(browserService).ShowDialog();
     }
 
-    private async void Binding_OnClick(object sender, RoutedEventArgs e)
+    private void Binding_OnClick(object sender, RoutedEventArgs e)
     { 
-        await ViewModel.BindAsync();
+        ViewModel.BindAsync().Forget();
     }
 
     private void SelectProject_OnClick(object sender, RoutedEventArgs e)
@@ -69,8 +70,8 @@ public partial class ManageBindingDialog : Window
         ViewModel.Unbind();
     }
 
-    private async void UseSharedBinding_OnClick(object sender, RoutedEventArgs e)
+    private void UseSharedBinding_OnClick(object sender, RoutedEventArgs e)
     {
-        await ViewModel.UseSharedBindingAsync();
+        ViewModel.UseSharedBindingAsync().Forget();
     }
 }
