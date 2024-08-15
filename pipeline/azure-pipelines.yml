@@ -308,7 +308,7 @@ jobs:
       command:
         jf rt upload
         $(vsixPath)
-        sonarsource-public-builds/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio/
+        sonarsource-public-qa/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio/
         --flat
         --build-name $(buildName)
         --build-number $(Build.BuildId)
