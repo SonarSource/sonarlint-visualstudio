@@ -308,7 +308,7 @@ jobs:
       command:
         jf rt upload
         $(vsixPath)
-        sonarsource-public-qa/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio/$(SONAR_PROJECT_VERSION).$(Build.BuildId)/{1}
+        sonarsource-public-qa/org/sonarsource/sonarlint/visualstudio/$(buildName)/$(SONAR_PROJECT_VERSION).$(Build.BuildId)/{1}
         --flat
         --build-name $(buildName)
         --build-number $(Build.BuildId)
@@ -319,7 +319,6 @@ jobs:
     inputs:
       jfrogPlatformConnection: 'jfrog_platform_qa_deployer_access_token'
       command: |
-        jf rt build-add-dependencies $(buildName) $(Build.BuildId) .
         jf rt bp $(buildName) $(Build.BuildId)
 
   - task: VSTest@2
@@ -342,6 +341,14 @@ jobs:
   - task: SonarCloudPublish@2
     displayName: Publish Quality Gate Result (VS2022 only)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+
+  - task: JFrogBuildPromotion@1
+    inputs:
+      artifactoryConnection: 'repox_promoter_token'
+      buildName: '$(buildName)'
+      buildNumber: '$(Build.BuildId)'
+      targetRepo: 'sonarsource-public-builds'
+      status: 'it-passed'
 
   - task: PowerShell@2
     displayName: Set trigger dogfood VSIX build tag (VS2022 only)
