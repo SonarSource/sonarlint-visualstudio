@@ -51,10 +51,5 @@ public partial class ProjectSelectionDialog
         DialogResult = true;
         Close();
     }
-
-    private void CancelButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        Close();
-    }
 }
 

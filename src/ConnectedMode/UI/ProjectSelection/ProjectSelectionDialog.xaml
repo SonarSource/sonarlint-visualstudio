@@ -80,10 +80,11 @@
                 VerticalAlignment="Bottom"
                 Margin="5, 0"
                 IsEnabled="{Binding IsProjectSelected}"
+                IsDefault="True"
                 Click="BindButton_OnClick" />
         <Button Grid.Column="2" Grid.Row="3" Content="{x:Static res:UiResources.CancelButton}"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
-                Click="CancelButton_OnClick" />
+                IsCancel="True"/>
     </Grid>
 </Window>

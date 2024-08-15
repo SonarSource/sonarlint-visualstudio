@@ -105,10 +105,5 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 ViewModel.RemoveConnection(connectionViewModel);
             }
         }
-
-        private void OkButton_OnClick(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
     }
 }

@@ -113,7 +113,7 @@
         </Grid>
 
         <Grid HorizontalAlignment="Right" Grid.Row="1" Margin="10">
-            <Button Content="{x:Static ui:UiResources.OkButton}" Click="OkButton_OnClick"/>
+            <Button Content="{x:Static ui:UiResources.OkButton}" IsCancel="True" IsDefault="True"/>
         </Grid>
     </Grid>
 </Window>
