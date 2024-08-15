@@ -164,11 +164,11 @@
 
             <Button Grid.Column="0" Content="{x:Static res:UiResources.BindButton}" Padding="20,0" IsDefault="True" IsEnabled="{Binding Path=IsBindButtonEnabled}"
                     Click="Binding_OnClick"/>
-            <Button Grid.Column="1" Content="{x:Static res:UiResources.CancelBtn}" IsCancel="True" Margin="10,0"/> 
+            <Button Grid.Column="1" Content="{x:Static res:UiResources.CancelButton}" IsCancel="True" Margin="10,0"/> 
         </Grid>
 
         <Grid Grid.Row="3" HorizontalAlignment="Right" Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToVisibleConverter}}">
-            <Button Grid.Column="0" Content="{x:Static res:UiResources.Ok}" Padding="20,0" IsDefault="True" IsCancel="True"/>
+            <Button Grid.Column="0" Content="{x:Static res:UiResources.OkButton}" Padding="20,0" IsDefault="True" IsCancel="True"/>
         </Grid>
 
     </Grid>

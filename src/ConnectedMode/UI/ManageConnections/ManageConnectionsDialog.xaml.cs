@@ -28,13 +28,13 @@ using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public partial class ManageConnectionsWindow : Window
+    public partial class ManageConnectionsDialog : Window
     {
         private readonly IBrowserService browserService;
 
         public ManageConnectionsViewModel ViewModel { get; } = new();
 
-        public ManageConnectionsWindow(IBrowserService browserService)
+        public ManageConnectionsDialog(IBrowserService browserService)
         {
             this.browserService = browserService;
             InitializeComponent();
@@ -44,13 +44,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         {
             if(sender is System.Windows.Controls.Button button && button.DataContext is ConnectionViewModel connectionViewModel)
             {
-                new CredentialsWnd(browserService, connectionViewModel.Connection, false).ShowDialog();
+                new CredentialsDialog(browserService, connectionViewModel.Connection, false).ShowDialog();
             }
         }
 
         private void NewConnection_Clicked(object sender, RoutedEventArgs e)
         {
-            new ServerSelectionWindow(browserService).ShowDialog();
+            new ServerSelectionDialog(browserService).ShowDialog();
         }
 
         private void ManageConnectionsWindow_OnInitialized(object sender, EventArgs e)

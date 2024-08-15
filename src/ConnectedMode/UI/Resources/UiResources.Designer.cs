@@ -81,9 +81,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Authentication type.
         /// </summary>
-        public static string AuthenticationType {
+        public static string AuthenticationTypeLabel {
             get {
-                return ResourceManager.GetString("AuthenticationType", resourceCulture);
+                return ResourceManager.GetString("AuthenticationTypeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Credentials.
+        /// </summary>
+        public static string AuthenticationTypeOptionCredentials {
+            get {
+                return ResourceManager.GetString("AuthenticationTypeOptionCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Token.
+        /// </summary>
+        public static string AuthenticationTypeOptionToken {
+            get {
+                return ResourceManager.GetString("AuthenticationTypeOptionToken", resourceCulture);
             }
         }
         
@@ -108,27 +126,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
-        public static string CancelBtn {
+        public static string CancelButton {
             get {
-                return ResourceManager.GetString("CancelBtn", resourceCulture);
+                return ResourceManager.GetString("CancelButton", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Choose a connection type:.
         /// </summary>
-        public static string ChooseConnectionTypeLbl {
+        public static string ChooseConnectionTypeLabel {
             get {
-                return ResourceManager.GetString("ChooseConnectionTypeLbl", resourceCulture);
+                return ResourceManager.GetString("ChooseConnectionTypeLabel", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Discover which connection is best for your team .
         /// </summary>
-        public static string ConnectionDocHelpLbl {
+        public static string ConnectionDiscoveringText {
             get {
-                return ResourceManager.GetString("ConnectionDocHelpLbl", resourceCulture);
+                return ResourceManager.GetString("ConnectionDiscoveringText", resourceCulture);
             }
         }
         
@@ -142,20 +160,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Credentials.
+        ///   Looks up a localized string similar to Edit Authentication Details.
         /// </summary>
-        public static string Credentials {
+        public static string CredentialsDialogTitle {
             get {
-                return ResourceManager.GetString("Credentials", resourceCulture);
+                return ResourceManager.GetString("CredentialsDialogTitle", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Edit Authentication Details.
+        ///   Looks up a localized string similar to Credentials.
         /// </summary>
-        public static string CredentialsWindowTitle {
+        public static string CredentialsLabel {
             get {
-                return ResourceManager.GetString("CredentialsWindowTitle", resourceCulture);
+                return ResourceManager.GetString("CredentialsLabel", resourceCulture);
             }
         }
         
@@ -216,27 +234,36 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Authentication via username and password is deprecated and will be removed in the future. Please use a token instead..
         /// </summary>
-        public static string DeprecatedAuthenticationType {
+        public static string DeprecatedAuthenticationTypeDescription {
             get {
-                return ResourceManager.GetString("DeprecatedAuthenticationType", resourceCulture);
+                return ResourceManager.GetString("DeprecatedAuthenticationTypeDescription", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Edit the authentication details of the connection.
         /// </summary>
-        public static string EditConnection {
+        public static string EditConnectionToolTip {
             get {
-                return ResourceManager.GetString("EditConnection", resourceCulture);
+                return ResourceManager.GetString("EditConnectionToolTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter the SonarQube URL:.
+        /// </summary>
+        public static string EnterSonarQubeUrlLabel {
+            get {
+                return ResourceManager.GetString("EnterSonarQubeUrlLabel", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Existing Connections.
         /// </summary>
-        public static string ExistingConnections {
+        public static string ExistingConnectionsLabel {
             get {
-                return ResourceManager.GetString("ExistingConnections", resourceCulture);
+                return ResourceManager.GetString("ExistingConnectionsLabel", resourceCulture);
             }
         }
         
@@ -268,11 +295,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to is entirely free for open source projects.
+        /// </summary>
+        public static string FreeSonarCloudOfferDescription {
+            get {
+                return ResourceManager.GetString("FreeSonarCloudOfferDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube offers a free.
+        /// </summary>
+        public static string FreeSonarQubeOfferDescription {
+            get {
+                return ResourceManager.GetString("FreeSonarQubeOfferDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The URL you entered is not secure. Use HTTPS connections to protect sensitive information..
         /// </summary>
-        public static string InsecureProtocolWarning {
+        public static string InsecureProtocolWarningDescription {
             get {
-                return ResourceManager.GetString("InsecureProtocolWarning", resourceCulture);
+                return ResourceManager.GetString("InsecureProtocolWarningDescription", resourceCulture);
             }
         }
         
@@ -315,9 +360,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Manage Connections.
         /// </summary>
-        public static string ManageConnectionsWindowTitle {
+        public static string ManageConnectionsDialogTitle {
             get {
-                return ResourceManager.GetString("ManageConnectionsWindowTitle", resourceCulture);
+                return ResourceManager.GetString("ManageConnectionsDialogTitle", resourceCulture);
             }
         }
         
@@ -342,27 +387,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to New Connection.
         /// </summary>
-        public static string NewConnection {
+        public static string NewConnectionButton {
             get {
-                return ResourceManager.GetString("NewConnection", resourceCulture);
+                return ResourceManager.GetString("NewConnectionButton", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Next.
         /// </summary>
-        public static string Next {
+        public static string NextButton {
             get {
-                return ResourceManager.GetString("Next", resourceCulture);
+                return ResourceManager.GetString("NextButton", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
-        public static string Ok {
+        public static string OkButton {
             get {
-                return ResourceManager.GetString("Ok", resourceCulture);
+                return ResourceManager.GetString("OkButton", resourceCulture);
             }
         }
         
@@ -387,18 +432,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Password.
         /// </summary>
-        public static string Password {
+        public static string PasswordLabel {
             get {
-                return ResourceManager.GetString("Password", resourceCulture);
+                return ResourceManager.GetString("PasswordLabel", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Projects on .
         /// </summary>
-        public static string ProjectSelectionConnectionInfo {
+        public static string ProjectSelectionConnectionLabel {
             get {
-                return ResourceManager.GetString("ProjectSelectionConnectionInfo", resourceCulture);
+                return ResourceManager.GetString("ProjectSelectionConnectionLabel", resourceCulture);
             }
         }
         
@@ -421,29 +466,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enter the SonarQube URL:.
-        /// </summary>
-        public static string QubeUrlLbl {
-            get {
-                return ResourceManager.GetString("QubeUrlLbl", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove connection.
         /// </summary>
-        public static string RemoveConnection {
+        public static string RemoveConnectionToolTip {
             get {
-                return ResourceManager.GetString("RemoveConnection", resourceCulture);
+                return ResourceManager.GetString("RemoveConnectionToolTip", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Search for project....
         /// </summary>
-        public static string SearchProjectPlaceholder {
+        public static string SearchForProjectPlaceholder {
             get {
-                return ResourceManager.GetString("SearchProjectPlaceholder", resourceCulture);
+                return ResourceManager.GetString("SearchForProjectPlaceholder", resourceCulture);
             }
         }
         
@@ -495,18 +531,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Create New Connection.
         /// </summary>
-        public static string ServerSelectionWndTitle {
+        public static string ServerSelectionDialogTitle {
             get {
-                return ResourceManager.GetString("ServerSelectionWndTitle", resourceCulture);
+                return ResourceManager.GetString("ServerSelectionDialogTitle", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Smart Notifications.
         /// </summary>
-        public static string SmartNotifications {
+        public static string SmartNotificationsCheckboxLabel {
             get {
-                return ResourceManager.GetString("SmartNotifications", resourceCulture);
+                return ResourceManager.GetString("SmartNotificationsCheckboxLabel", resourceCulture);
             }
         }
         
@@ -522,27 +558,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to A Software-as-a-Service (Saas) tool that easily integrates into the cloud DevOps platforms and extends the CI/CD workflow to systematically help developers and organizations deliver CleanCode..
         /// </summary>
-        public static string SonarCloudDescriptionLbl {
+        public static string SonarCloudDescription {
             get {
-                return ResourceManager.GetString("SonarCloudDescriptionLbl", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to is entirely free for open source projects.
-        /// </summary>
-        public static string SonarCloudFree {
-            get {
-                return ResourceManager.GetString("SonarCloudFree", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarQube offers a free.
-        /// </summary>
-        public static string SonarCubeFree {
-            get {
-                return ResourceManager.GetString("SonarCubeFree", resourceCulture);
+                return ResourceManager.GetString("SonarCloudDescription", resourceCulture);
             }
         }
         
@@ -558,18 +576,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to An open-source, self-managed tool that easily integrates into the developers&apos; CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code..
         /// </summary>
-        public static string SonarQubeDescriptionLbl {
+        public static string SonarQubeDescription {
             get {
-                return ResourceManager.GetString("SonarQubeDescriptionLbl", resourceCulture);
+                return ResourceManager.GetString("SonarQubeDescription", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Token.
         /// </summary>
-        public static string Token {
+        public static string TokenLabel {
             get {
-                return ResourceManager.GetString("Token", resourceCulture);
+                return ResourceManager.GetString("TokenLabel", resourceCulture);
             }
         }
         
@@ -585,9 +603,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Username.
         /// </summary>
-        public static string Username {
+        public static string UsernameLabel {
             get {
-                return ResourceManager.GetString("Username", resourceCulture);
+                return ResourceManager.GetString("UsernameLabel", resourceCulture);
             }
         }
         

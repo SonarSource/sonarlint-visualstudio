@@ -43,7 +43,7 @@ public partial class ManageBindingDialog : Window
 
     private void ManageConnections_OnClick(object sender, RoutedEventArgs e)
     {
-        new ManageConnectionsWindow(browserService).ShowDialog();
+        new ManageConnectionsDialog(browserService).ShowDialog();
     }
 
     private void Binding_OnClick(object sender, RoutedEventArgs e)
@@ -53,7 +53,7 @@ public partial class ManageBindingDialog : Window
 
     private void SelectProject_OnClick(object sender, RoutedEventArgs e)
     {
-        var projectSelection = new ProjectSelectionWindow(ViewModel.SelectedConnection);
+        var projectSelection = new ProjectSelectionDialog(ViewModel.SelectedConnection);
         if(projectSelection.ShowDialog() == true)
         {
             ViewModel.SelectedProject = projectSelection.ViewModel.SelectedProject;
