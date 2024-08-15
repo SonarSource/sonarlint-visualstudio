@@ -47,16 +47,6 @@ jobs:
       targetType: filePath
       filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\should-sign-vsix.ps1
 
-#  - task: PowerShell@2
-#    displayName: 'Install JFrog CLI'
-#    env:
-#      JFROG_CLI_BUILD_NAME: $(buildName)
-#      JFROG_CLI_BUILD_NUMBER: $(Build.BuildId)
-#    inputs:
-#      targetType: 'inline'
-#      script: |
-#        Invoke-WebRequest -Uri https://getcli.jfrog.io -OutFile jfrog.exe
-
   - task: NuGetToolInstaller@0
     displayName: Use NuGet 6.3.x
     inputs:
@@ -75,23 +65,6 @@ jobs:
       includeNuGetOrg: false
       nugetConfigPath: nuget.config
       arguments: restore -LockedMode -Verbosity detailed
-
-  - task: JfrogCliV2@1
-    displayName: 'Publish Artifact vsix on repox'
-    inputs:
-      jfrogPlatformConnection: 'jfrog_platform_qa_deployer_access_token'
-      command:
-        jf rt build-add-dependencies "**/*.nupkg"
-  
-#  - task: PowerShell@2
-#    displayName: 'Add Dependencies to Build Info'
-#    env:
-#      JFROG_CLI_BUILD_NAME: $(buildName)
-#      JFROG_CLI_BUILD_NUMBER: $(Build.BuildId)
-#    inputs:
-#      targetType: 'inline'
-#      script: |
-#        .\jfrog.exe rt build-add-dependencies "**/*.nupkg"
 
   - task: PowerShell@2
     displayName: 'Read Sonar project version from the versions.props file '
@@ -340,22 +313,19 @@ jobs:
         --build-name $(buildName)
         --build-number $(Build.BuildId)
     condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
-    
+
+  - task: JfrogCliV2@1
+    displayName: 'Add dependencies to Build Info'
+    inputs:
+      jfrogPlatformConnection: 'jfrog_platform_qa_deployer_access_token'
+      command: 'jf rt build-add-dependencies $(buildName) $(Build.BuildId)' .
+  
   - task: JfrogCliV2@1
     displayName: 'Publish Build Info on repox'
     inputs:
       jfrogPlatformConnection: 'jfrog_platform_qa_deployer_access_token'
       command: 'jf rt bp $(buildName) $(Build.BuildId)'
 
-#  - task: JFrogPublishBuildInfo@1
-#    displayName: 'Publish build info'
-#    inputs:
-#      artifactoryConnection: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
-#      buildName: '$(buildName)'
-#      buildNumber: '$(Build.BuildId)'
-#      excludeEnvVars: '*password*;*psw*;*secret*;*key*;*token*;*auth*;'
-#    condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
-    
   - task: VSTest@2
     displayName: VsTest - testAssemblies
     inputs:
