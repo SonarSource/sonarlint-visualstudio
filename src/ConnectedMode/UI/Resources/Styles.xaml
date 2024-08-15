@@ -45,6 +45,12 @@
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
     </Style>
 
+    <Style x:Key="CaptionTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="Foreground" Value="DarkGray" />
+        <Setter Property="FontStyle" Value="Italic" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+
     <Style TargetType="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
     </Style>
@@ -52,6 +58,14 @@
     <Style TargetType="ListBox">
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
         <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}" />
+    </Style>
+
+    <Style TargetType="ComboBox">
+        <Setter Property="Height" Value="30" />
+    </Style>
+
+    <Style TargetType="ProgressBar">
+        <Setter Property="Height" Value="30" />
     </Style>
 
     <Style x:Key="NoSelectionListBoxItemStyle" TargetType="ListBoxItem">

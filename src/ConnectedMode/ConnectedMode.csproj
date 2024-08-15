@@ -37,6 +37,8 @@
   <ItemGroup>
     <None Remove="Install\SonarLintTargets.xml" />
     <None Remove="Migration\Wizard\MigrationWizardWindow.xaml" />
+    <None Remove="UI\Credentials\CredentialsWnd.xaml" />
+    <None Remove="UI\ManageBinding\ManageBindingDialog.xaml" />
     <None Remove="UI\Credentials\CredentialsDialog.xaml" />
     <None Remove="UI\Resources\SonarCloud.png" />
     <None Remove="UI\Resources\SonarCloudIcon.png" />
@@ -60,6 +62,7 @@
     <Page Include="UI\Credentials\CredentialsDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UI\ManageBinding\ManageBindingDialog.xaml" />
     <Page Include="UI\DeleteConnection\DeleteConnectionDialog.xaml" />
     <Page Include="UI\Resources\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>

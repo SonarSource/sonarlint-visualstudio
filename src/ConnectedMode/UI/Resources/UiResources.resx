@@ -201,6 +201,9 @@
   <data name="UsernameLabel" xml:space="preserve">
     <value>Username</value>
   </data>
+  <data name="SelectProjectButton" xml:space="preserve">
+    <value>Select project</value>
+  </data>
   <data name="SelectButton" xml:space="preserve">
     <value>Select</value>
   </data>
@@ -228,6 +231,45 @@
   <data name="ManualOrganizationSelectionLabel" xml:space="preserve">
     <value>Enter organization key:</value>
   </data>
+  <data name="BindButton" xml:space="preserve">
+    <value>Bind</value>
+  </data>
+  <data name="ConnectionToBindLabel" xml:space="preserve">
+    <value>Connection to bind</value>
+  </data>
+  <data name="ManageBindingDialogTitle" xml:space="preserve">
+    <value>Manage Project Binding</value>
+  </data>
+  <data name="ManageConnectionsButton" xml:space="preserve">
+    <value>Manage connections</value>
+  </data>
+  <data name="IsNotBoundText" xml:space="preserve">
+    <value>is not bound</value>
+  </data>
+  <data name="ProjectToBindLabel" xml:space="preserve">
+    <value>Project to bind</value>
+  </data>
+  <data name="SelectButton" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="UnbindButton" xml:space="preserve">
+    <value>Unbind</value>
+  </data>
+  <data name="UseSharedBindingButton" xml:space="preserve">
+    <value>Use shared binding</value>
+  </data>
+  <data name="IsBoundToText" xml:space="preserve">
+    <value>is bound to</value>
+  </data>
+  <data name="BindingInProgressText" xml:space="preserve">
+    <value>Binding in progress...</value>
+  </data>
+  <data name="SelectConnectionToBindDescription" xml:space="preserve">
+    <value>Select a connection to bind...</value>
+  </data>
+  <data name="SelectProjectToBindDescription" xml:space="preserve">
+    <value>Select a project to bind from the chosen connection...</value>
+  </data>
   <data name="AuthenticationTypeOptionCredentials" xml:space="preserve">
     <value>Credentials</value>
   </data>
@@ -254,6 +296,15 @@
   </data>
   <data name="DeleteButton" xml:space="preserve">
     <value>Delete</value>
+  </data>
+  <data name="ExportBindingConfigurationTooltip" xml:space="preserve">
+    <value>Export the binding configuration to share it with your team</value>
+  </data>
+  <data name="ExportingBindingConfigurationProgressText" xml:space="preserve">
+    <value>Binding configuration is being exported...</value>
+  </data>
+  <data name="ExportButton" xml:space="preserve">
+    <value>Export</value>
   </data>
   <data name="SonarCloudUrl" xml:space="preserve">
     <value>https://sonarcloud.io/</value>
