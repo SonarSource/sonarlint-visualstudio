@@ -313,18 +313,14 @@ jobs:
         --build-name $(buildName)
         --build-number $(Build.BuildId)
     condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
-
-  - task: JfrogCliV2@1
-    displayName: 'Add dependencies to Build Info'
-    inputs:
-      jfrogPlatformConnection: 'jfrog_platform_qa_deployer_access_token'
-      command: 'jf rt build-add-dependencies $(buildName) $(Build.BuildId)' .
   
   - task: JfrogCliV2@1
     displayName: 'Publish Build Info on repox'
     inputs:
       jfrogPlatformConnection: 'jfrog_platform_qa_deployer_access_token'
-      command: 'jf rt bp $(buildName) $(Build.BuildId)'
+      command: |
+        jf rt build-add-dependencies $(buildName) $(Build.BuildId) .
+        jf rt bp $(buildName) $(Build.BuildId)
 
   - task: VSTest@2
     displayName: VsTest - testAssemblies
