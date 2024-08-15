@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
+using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
 {
@@ -69,5 +71,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
         public bool ShouldSonarQubeUrlBeFilled => IsSonarQubeSelected && !IsSonarQubeUrlProvided;
         private bool IsSonarQubeUrlProvided => !string.IsNullOrWhiteSpace(SonarQubeUrl);
         public bool ShowSecurityWarning => Uri.TryCreate(SonarQubeUrl, UriKind.Absolute, out Uri uriResult) && uriResult.Scheme != Uri.UriSchemeHttps;
+
+        public Connection CreateConnection()
+        {
+            var url = IsSonarQubeSelected ? SonarQubeUrl : UiResources.SonarCloudUrl;
+            var serverType = IsSonarQubeSelected ? ServerType.SonarQube : ServerType.SonarCloud;
+            return new Connection(url, serverType, true);
+        }
     }
 }

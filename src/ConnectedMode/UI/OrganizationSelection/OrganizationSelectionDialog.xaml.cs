@@ -38,7 +38,6 @@ public partial class OrganizationSelectionDialog : Window
     private void OkButton_OnClick(object sender, RoutedEventArgs e)
     {
         DialogResult = true;
-        ShowSelectedKey();
     }
 
     private void ManualOrganizationSelectionButton_OnClick(object sender, RoutedEventArgs e)
@@ -51,13 +50,7 @@ public partial class OrganizationSelectionDialog : Window
         if (manualSelection is true)
         {
             DialogResult = true;
-            ShowSelectedKey();
         }
-    }
-
-    private void ShowSelectedKey()
-    {
-        MessageBox.Show(ViewModel.SelectedOrganization.Key);
     }
 }
 

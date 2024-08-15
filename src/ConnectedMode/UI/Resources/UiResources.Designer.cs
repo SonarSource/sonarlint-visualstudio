@@ -565,6 +565,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to https://sonarcloud.io/.
+        /// </summary>
+        public static string SonarCloudUrl {
+            get {
+                return ResourceManager.GetString("SonarCloudUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to account/security.
         /// </summary>
         public static string SonarQubeAccountSecurityUrl {

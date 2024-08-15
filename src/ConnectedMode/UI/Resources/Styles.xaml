@@ -101,4 +101,21 @@
         <Setter Property="BaselineAlignment" Value="TextBottom" />
     </Style>
 
+    <DataTemplate x:Key="NameAndKeyListBoxItem">
+        <TextBlock>
+                <Run Text="{Binding Name}" 
+                     FontWeight="Bold"
+                     FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment133PercentFontSizeKey}}"
+                     Foreground="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
+
+                <Run FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}"
+                     Foreground="{DynamicResource {x:Static vsShell:VsBrushes.GrayTextKey}}">
+                    <Run.Text>
+                        <MultiBinding StringFormat="({0})">
+                            <Binding Path="Key" />
+                        </MultiBinding>
+                    </Run.Text>
+                </Run>
+        </TextBlock>
+    </DataTemplate>
 </ResourceDictionary>
