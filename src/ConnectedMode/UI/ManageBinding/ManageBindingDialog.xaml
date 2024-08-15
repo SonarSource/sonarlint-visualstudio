@@ -93,7 +93,7 @@
                         Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToVisibleConverter}}" VerticalAlignment="Center"
                         Click="Unbind_OnClick"/>
                 <Button Grid.Column="1" Content="{x:Static res:UiResources.ExportButton}" Padding="5,0" ToolTip="{x:Static res:UiResources.ExportBindingConfigurationTooltip}"
-                        IsEnabled="{Binding Path=IsCurrentProjectBound}" Margin="0,15" VerticalAlignment="Center"
+                        IsEnabled="{Binding Path=IsExportButtonEnabled}" Margin="0,15" VerticalAlignment="Center"
                         Click="ExportBindingConfigurationButton_OnClick"/>
             </Grid>
         </Grid>

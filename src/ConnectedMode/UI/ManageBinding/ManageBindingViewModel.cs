@@ -31,7 +31,6 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
     private ServerProject boundProject;
     private Connection selectedConnection;
     private ServerProject selectedProject;
-    private bool isBindingInProgress;
     private string progressStatus;
 
     public SolutionInfoModel SolutionInfo { get; } = solutionInfo;
@@ -46,6 +45,7 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
             RaisePropertyChanged(nameof(IsCurrentProjectBound));
             RaisePropertyChanged(nameof(IsSelectProjectButtonEnabled));
             RaisePropertyChanged(nameof(IsConnectionSelectionEnabled));
+            RaisePropertyChanged(nameof(IsExportButtonEnabled));
         }
     }
 
@@ -80,22 +80,6 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
         }
     }
 
-    public bool IsBindingInProgress
-    {
-        get => isBindingInProgress;
-        set
-        {
-            isBindingInProgress = value;
-            RaisePropertyChanged();
-            RaisePropertyChanged(nameof(IsBindButtonEnabled));
-            RaisePropertyChanged(nameof(IsUnbindButtonEnabled));
-            RaisePropertyChanged(nameof(IsUseSharedBindingButtonEnabled));
-            RaisePropertyChanged(nameof(IsManageConnectionsButtonEnabled));
-            RaisePropertyChanged(nameof(IsSelectProjectButtonEnabled));
-            RaisePropertyChanged(nameof(IsConnectionSelectionEnabled));
-        }
-    }
-
     public string ProgressStatus    
     {
         get => progressStatus;
@@ -104,19 +88,27 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
             progressStatus = value;
             RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsOperationInProgress));
+            RaisePropertyChanged(nameof(IsBindButtonEnabled));
+            RaisePropertyChanged(nameof(IsUnbindButtonEnabled));
+            RaisePropertyChanged(nameof(IsUseSharedBindingButtonEnabled));
+            RaisePropertyChanged(nameof(IsManageConnectionsButtonEnabled));
+            RaisePropertyChanged(nameof(IsSelectProjectButtonEnabled));
+            RaisePropertyChanged(nameof(IsConnectionSelectionEnabled));
+            RaisePropertyChanged(nameof(IsExportButtonEnabled));
         }
     }
 
     public bool IsCurrentProjectBound => BoundProject != null;
     public bool IsProjectSelected => SelectedProject != null;
     public bool IsConnectionSelected => SelectedConnection != null;
-    public bool IsConnectionSelectionEnabled => !IsBindingInProgress && !IsCurrentProjectBound;
+    public bool IsConnectionSelectionEnabled => !IsOperationInProgress && !IsCurrentProjectBound;
     public bool IsOperationInProgress => !string.IsNullOrEmpty(ProgressStatus);
-    public bool IsBindButtonEnabled => IsProjectSelected && !IsBindingInProgress;
-    public bool IsSelectProjectButtonEnabled => IsConnectionSelected && !IsBindingInProgress && !IsCurrentProjectBound;
-    public bool IsUnbindButtonEnabled => !IsBindingInProgress;
-    public bool IsManageConnectionsButtonEnabled => !IsBindingInProgress;
-    public bool IsUseSharedBindingButtonEnabled => !IsBindingInProgress;
+    public bool IsBindButtonEnabled => IsProjectSelected && !IsOperationInProgress;
+    public bool IsSelectProjectButtonEnabled => IsConnectionSelected && !IsOperationInProgress && !IsCurrentProjectBound;
+    public bool IsUnbindButtonEnabled => !IsOperationInProgress;
+    public bool IsManageConnectionsButtonEnabled => !IsOperationInProgress;
+    public bool IsUseSharedBindingButtonEnabled => !IsOperationInProgress;
+    public bool IsExportButtonEnabled => !IsOperationInProgress && IsCurrentProjectBound;
 
     public void InitializeConnections()
     {
@@ -133,7 +125,6 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
     {
         try
         {
-            IsBindingInProgress = true;
             ProgressStatus = UiResources.BindingInProgressText;
             // this is only for demo purposes. When it will be replaced with real SlCore binding logic, it can be removed
             await Task.Delay(3000);
@@ -141,7 +132,6 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
         }
         finally
         {
-            IsBindingInProgress = false;
             ProgressStatus = null;
         }
     }
