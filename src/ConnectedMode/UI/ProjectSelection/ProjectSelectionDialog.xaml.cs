@@ -30,6 +30,7 @@ public partial class ProjectSelectionDialog
 
     public ProjectSelectionDialog(ConnectionInfo.Connection connection)
     {
+        Owner = Application.Current.MainWindow;
         ViewModel = new ProjectSelectionViewModel(connection);
         InitializeComponent();
     }

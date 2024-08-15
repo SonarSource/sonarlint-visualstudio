@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         public ManageConnectionsDialog(IBrowserService browserService)
         {
+            Owner = Application.Current.MainWindow;
             this.browserService = browserService;
             InitializeComponent();
         }

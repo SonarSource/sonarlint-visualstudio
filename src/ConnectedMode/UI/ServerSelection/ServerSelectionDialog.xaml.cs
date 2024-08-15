@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
 
         public ServerSelectionDialog(IBrowserService browserService)
         {
+            Owner = Application.Current.MainWindow;
             this.browserService = browserService;
             InitializeComponent();
         }

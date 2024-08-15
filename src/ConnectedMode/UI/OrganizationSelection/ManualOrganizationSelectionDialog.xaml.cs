@@ -30,6 +30,7 @@ public partial class ManualOrganizationSelectionDialog : Window
     
     public ManualOrganizationSelectionDialog()
     {
+        Owner = Application.Current.MainWindow;
         InitializeComponent();
     }
 

@@ -10,6 +10,7 @@
         MinHeight="350"
         Width="500"
         Height="350"
+        WindowStartupLocation="CenterOwner"
         Icon="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarlint_32px.ico"
         Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}"
         FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
