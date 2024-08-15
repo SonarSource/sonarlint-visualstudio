@@ -317,7 +317,7 @@ jobs:
   - task: JFrogPublishBuildInfo@1
     displayName: 'Publish build info'
     inputs:
-      artifactoryConnection: 'repox_promoter_token'
+      artifactoryConnection: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
       buildName: '$(buildName)'
       buildNumber: '$(Build.BuildId)'
       excludeEnvVars: '*password*;*psw*;*secret*;*key*;*token*;*auth*;'
