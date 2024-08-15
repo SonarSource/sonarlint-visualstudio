@@ -11,7 +11,7 @@ variables:
 - name: buildName
   value: 'sonarlint-visualstudio-2022'
 - name: vsixPath
-  value: '$(Build.ArtifactStagingDirectory)/(*)'
+  value: '$(Build.ArtifactStagingDirectory)\(*)'
 
 name: $(Build.BuildId)
 
@@ -308,7 +308,7 @@ jobs:
       command:
         jf rt upload
         $(vsixPath)
-        sonarsource-public-qa/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio/$(SONAR_PROJECT_VERSION).$(Build.BuildId)/
+        sonarsource-public-qa/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio/$(SONAR_PROJECT_VERSION).$(Build.BuildId)/{1}
         --flat
         --build-name $(buildName)
         --build-number $(Build.BuildId)
