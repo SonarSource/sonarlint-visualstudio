@@ -52,9 +52,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private void NewConnection_Clicked(object sender, RoutedEventArgs e)
         {
-            if (GetNewConnection() is {} newConnection && CredentialsDialogSucceeded(newConnection) && OrganizationSelectionDialogSucceeded(newConnection))
+            if (GetNewConnection() is {} partialConnection && CredentialsDialogSucceeded(partialConnection) && GetCompleteConnection(partialConnection) is {} completeConnection)
             {
-               ViewModel.AddConnection(newConnection);
+               ViewModel.AddConnection(completeConnection);
             }
         }
 
@@ -71,22 +71,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return credentialsDialog.ShowDialog() == true;
         }
 
-        private bool OrganizationSelectionDialogSucceeded(Connection newConnection)
+        private Connection GetCompleteConnection(Connection newConnection)
         {
             if (newConnection.ServerType == ServerType.SonarQube)
             {
-                return true;
+                return newConnection;
             }
             
             var organizationSelectionDialog = new OrganizationSelectionDialog([new OrganizationDisplay("a", "a"), new OrganizationDisplay("b", "b")]);
-            return organizationSelectionDialog.ShowDialog() == true;
+            if (organizationSelectionDialog.ShowDialog() == true)
+            {
+                return newConnection with { Id = organizationSelectionDialog.ViewModel.SelectedOrganization.Key };
+            }
+            return null;
         }
 
         private void ManageConnectionsWindow_OnInitialized(object sender, EventArgs e)
         {
             ViewModel.InitializeConnections([
                 new Connection("http://localhost:9000", ServerType.SonarQube, true),
-                new Connection("https://sonarcloud.io/myOrg", ServerType.SonarCloud, false)
+                new Connection("myOrg", ServerType.SonarCloud, false)
             ]);
         }
 
