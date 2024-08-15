@@ -249,9 +249,6 @@
   <data name="ProjectToBindLabel" xml:space="preserve">
     <value>Project to bind</value>
   </data>
-  <data name="SelectButton" xml:space="preserve">
-    <value>Select</value>
-  </data>
   <data name="UnbindButton" xml:space="preserve">
     <value>Unbind</value>
   </data>
@@ -275,7 +272,7 @@
   </data>
   <data name="AuthenticationTypeOptionToken" xml:space="preserve">
     <value>Token</value>
-  </data>  
+  </data>
   <data name="DeleteConnectionDialogTitle" xml:space="preserve">
     <value>Delete Connection</value>
   </data>
@@ -308,5 +305,14 @@
   </data>
   <data name="SonarCloudUrl" xml:space="preserve">
     <value>https://sonarcloud.io/</value>
+  </data>
+  <data name="NoConnectionExistsLabel" xml:space="preserve">
+    <value>No connection exists</value>
+  </data>
+  <data name="NoOrganizationExistsLabel" xml:space="preserve">
+    <value>No organization exists</value>
+  </data>
+  <data name="NoProjectsExistLabel" xml:space="preserve">
+    <value>No project exists</value>
   </data>
 </root>
