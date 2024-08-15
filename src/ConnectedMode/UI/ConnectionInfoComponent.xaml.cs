@@ -29,6 +29,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI;
 public sealed partial class ConnectionInfoComponent : UserControl
 {
     public static readonly DependencyProperty ConnectionInfoProp = DependencyProperty.Register(nameof(ConnectionInfo), typeof(Connection), typeof(ConnectionInfoComponent));
+    public static readonly DependencyProperty FontWeightProp = DependencyProperty.Register(nameof(TextFontWeight), typeof(FontWeight), typeof(ConnectionInfoComponent), new PropertyMetadata(FontWeights.DemiBold));
 
     public ConnectionInfoComponent()
     {
@@ -39,5 +40,11 @@ public sealed partial class ConnectionInfoComponent : UserControl
     {
         get => (Connection)GetValue(ConnectionInfoProp);
         set => SetValue(ConnectionInfoProp, value);
+    }
+
+    public FontWeight TextFontWeight
+    {
+        get => (FontWeight)GetValue(FontWeightProp);
+        set => SetValue(FontWeightProp, value);
     }
 }
