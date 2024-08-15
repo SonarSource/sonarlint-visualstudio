@@ -11,7 +11,7 @@ variables:
 - name: buildName
   value: 'sonarlint-visualstudio-2022'
 - name: vsixPath
-  value: '$(Build.ArtifactStagingDirectory)'
+  value: '$(Build.ArtifactStagingDirectory)/(*)'
 
 name: $(Build.BuildId)
 
@@ -185,7 +185,7 @@ jobs:
   - task: PowerShell@2
     displayName: Sign Vsix file
     env:
-      PACKAGE_PATH: $(vsixPath)
+      PACKAGE_PATH: '$(Build.SourcesDirectory)\binaries\SonarLint.VSIX-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-$(vsTargetVersion).vsix'
       SM_HOST: $(SM_HOST)
       SM_API_KEY: $(SM_API_KEY)
       SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
