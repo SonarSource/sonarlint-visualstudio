@@ -40,9 +40,11 @@ public class OrganizationSelectionViewModel : ViewModelBase
     public bool IsValidSelectedOrganization => SelectedOrganization is { Key: var key } && !string.IsNullOrWhiteSpace(key);
 
     public IReadOnlyList<OrganizationDisplay> Organizations { get; }
+    public bool NoOrganizationExists => Organizations.Count == 0;
 
     public OrganizationSelectionViewModel(IReadOnlyList<OrganizationDisplay> organizations)
     {
         Organizations = organizations ?? [];
+        RaisePropertyChanged(nameof(NoOrganizationExists));
     }
 }
