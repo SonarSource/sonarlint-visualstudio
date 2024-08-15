@@ -47,6 +47,16 @@ jobs:
       targetType: filePath
       filePath: $(System.DefaultWorkingDirectory)\pipeline\scripts\should-sign-vsix.ps1
 
+  - task: PowerShell@2
+    displayName: 'Install JFrog CLI'
+    env:
+      JFROG_CLI_BUILD_NAME: $(buildName)
+      JFROG_CLI_BUILD_NUMBER: $(Build.BuildId)
+    inputs:
+      targetType: 'inline'
+      script: |
+        Invoke-WebRequest -Uri https://getcli.jfrog.io -OutFile jfrog.exe
+
   - task: NuGetToolInstaller@0
     displayName: Use NuGet 6.3.x
     inputs:
@@ -65,6 +75,16 @@ jobs:
       includeNuGetOrg: false
       nugetConfigPath: nuget.config
       arguments: restore -LockedMode -Verbosity detailed
+
+  - task: PowerShell@2
+    displayName: 'Add Dependencies to Build Info'
+    env:
+      JFROG_CLI_BUILD_NAME: $(buildName)
+      JFROG_CLI_BUILD_NUMBER: $(Build.BuildId)
+    inputs:
+      targetType: 'inline'
+      script: |
+        .\jfrog.exe rt build-add-dependencies "**/*.nupkg"
 
   - task: PowerShell@2
     displayName: 'Read Sonar project version from the versions.props file '
