@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
@@ -124,6 +125,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
         private void DeleteEmptyConnection_OnClick(object sender, RoutedEventArgs e)
         {
             new DeleteConnectionDialog(null, new ConnectionInfo.Connection("SonarSource", ServerType.SonarCloud, false)).ShowDialog();
+        }
+
+        private void ManageBindingDialog_OnClick(object sender, RoutedEventArgs e)
+        {
+            new ManageBindingDialog(browserService, new SolutionInfoModel("VS Sample 2022", SolutionType.Solution)).ShowDialog();
         }
     }
 }
