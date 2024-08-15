@@ -20,7 +20,6 @@
 
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
-using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
 {
@@ -166,8 +165,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
             var createdConnection = testSubject.CreateConnection();
 
             createdConnection.Id.Should().Be(testSubject.SonarQubeUrl);
-            createdConnection.ServerType.Should().Be(ServerType.SonarQube);
-            createdConnection.EnableSmartNotifications.Should().BeTrue();
+            createdConnection.ServerType.Should().Be(ConnectionServerType.SonarQube);
         }
 
         [TestMethod]
@@ -179,8 +177,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
             var createdConnection = testSubject.CreateConnection();
 
             createdConnection.Id.Should().Be(UiResources.SonarCloudUrl);
-            createdConnection.ServerType.Should().Be(ServerType.SonarCloud);
-            createdConnection.EnableSmartNotifications.Should().BeTrue();
+            createdConnection.ServerType.Should().Be(ConnectionServerType.SonarCloud);
         }
     }
 }

@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
@@ -30,7 +29,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 using SonarLint.VisualStudio.Core;
-using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
+using ConnectionInfo = SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 {
@@ -52,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
         private void Credentials_OnClick(object sender, RoutedEventArgs e)
         {
-            new CredentialsDialog(browserService, new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube, true), withNextButton:true).ShowDialog();
+            new CredentialsDialog(browserService, new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube), withNextButton:true).ShowDialog();
         }
 
         private void Connections_OnClick(object sender, RoutedEventArgs e)
@@ -95,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
         private void ProjectSelectionButton_OnClick(object sender, RoutedEventArgs e)
         {
-            new ProjectSelectionDialog(new ConnectionInfo.Connection("http://localhost:9000", ServerType.SonarQube, true)).ShowDialog();
+            new ProjectSelectionDialog(new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube)).ShowDialog();
         }
 
         private void DeleteConnection_OnClick(object sender, RoutedEventArgs e)
@@ -118,13 +117,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
                         "D",
                         "D",
                     ],
-                    new ConnectionInfo.Connection("https://next.sonarqube.com/next", ServerType.SonarQube, true))
+                    new ConnectionInfo("https://next.sonarqube.com/next", ConnectionServerType.SonarQube))
                 .ShowDialog();
         }
 
         private void DeleteEmptyConnection_OnClick(object sender, RoutedEventArgs e)
         {
-            new DeleteConnectionDialog(null, new ConnectionInfo.Connection("SonarSource", ServerType.SonarCloud, false)).ShowDialog();
+            new DeleteConnectionDialog(null, new ConnectionInfo("SonarSource", ConnectionServerType.SonarCloud)).ShowDialog();
         }
 
         private void ManageBindingDialog_OnClick(object sender, RoutedEventArgs e)

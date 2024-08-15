@@ -25,7 +25,6 @@ using SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 using SonarLint.VisualStudio.Core;
-using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
@@ -46,7 +45,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         {
             if(sender is System.Windows.Controls.Button button && button.DataContext is ConnectionViewModel connectionViewModel)
             {
-                new CredentialsDialog(browserService, connectionViewModel.Connection, false).ShowDialog();
+                new CredentialsDialog(browserService, connectionViewModel.Connection.Info, false).ShowDialog();
             }
         }
 
@@ -54,34 +53,34 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         {
             if (GetNewConnection() is {} partialConnection && CredentialsDialogSucceeded(partialConnection) && GetCompleteConnection(partialConnection) is {} completeConnection)
             {
-               ViewModel.AddConnection(completeConnection);
+               ViewModel.AddConnection(new Connection(completeConnection));
             }
         }
 
-        private Connection GetNewConnection()
+        private ConnectionInfo GetNewConnection()
         {
             var serverSelectionDialog = new ServerSelectionDialog(browserService);
             return serverSelectionDialog.ShowDialog() != true ? null : serverSelectionDialog.ViewModel.CreateConnection();
         }
 
-        private bool CredentialsDialogSucceeded(Connection newConnection)
+        private bool CredentialsDialogSucceeded(ConnectionInfo newConnectionInfo)
         {
-            var isAnyDialogFollowing = newConnection.ServerType == ServerType.SonarCloud; 
-            var credentialsDialog = new CredentialsDialog(browserService, newConnection, withNextButton: isAnyDialogFollowing);
+            var isAnyDialogFollowing = newConnectionInfo.ServerType == ConnectionServerType.SonarCloud; 
+            var credentialsDialog = new CredentialsDialog(browserService, newConnectionInfo, withNextButton: isAnyDialogFollowing);
             return credentialsDialog.ShowDialog() == true;
         }
 
-        private Connection GetCompleteConnection(Connection newConnection)
+        private ConnectionInfo GetCompleteConnection(ConnectionInfo newConnectionInfo)
         {
-            if (newConnection.ServerType == ServerType.SonarQube)
+            if (newConnectionInfo.ServerType == ConnectionServerType.SonarQube)
             {
-                return newConnection;
+                return newConnectionInfo;
             }
             
             var organizationSelectionDialog = new OrganizationSelectionDialog([new OrganizationDisplay("a", "a"), new OrganizationDisplay("b", "b")]);
             if (organizationSelectionDialog.ShowDialog() == true)
             {
-                return newConnection with { Id = organizationSelectionDialog.ViewModel.SelectedOrganization.Key };
+                return newConnectionInfo with { Id = organizationSelectionDialog.ViewModel.SelectedOrganization.Key };
             }
             return null;
         }
@@ -89,8 +88,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         private void ManageConnectionsWindow_OnInitialized(object sender, EventArgs e)
         {
             ViewModel.InitializeConnections([
-                new Connection("http://localhost:9000", ServerType.SonarQube, true),
-                new Connection("myOrg", ServerType.SonarCloud, false)
+                new Connection(new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube), true),
+                new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud), false)
             ]);
         }
 
@@ -101,7 +100,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 return;
             }
 
-            var deleteConnectionDialog = new DeleteConnectionDialog(["my proj", "vs sample 2019", "vs sample 2022"], connectionViewModel.Connection);
+            var deleteConnectionDialog = new DeleteConnectionDialog(["my proj", "vs sample 2019", "vs sample 2022"], connectionViewModel.Connection.Info);
             if(deleteConnectionDialog.ShowDialog() == true)
             {
                 ViewModel.RemoveConnection(connectionViewModel);

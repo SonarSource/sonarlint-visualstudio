@@ -20,7 +20,6 @@
 
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
-using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
 {
@@ -72,11 +71,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
         private bool IsSonarQubeUrlProvided => !string.IsNullOrWhiteSpace(SonarQubeUrl);
         public bool ShowSecurityWarning => Uri.TryCreate(SonarQubeUrl, UriKind.Absolute, out Uri uriResult) && uriResult.Scheme != Uri.UriSchemeHttps;
 
-        public Connection CreateConnection()
+        public ConnectionInfo CreateConnection()
         {
             var url = IsSonarQubeSelected ? SonarQubeUrl : UiResources.SonarCloudUrl;
-            var serverType = IsSonarQubeSelected ? ServerType.SonarQube : ServerType.SonarCloud;
-            return new Connection(url, serverType, true);
+            var serverType = IsSonarQubeSelected ? ConnectionServerType.SonarQube : ConnectionServerType.SonarCloud;
+            return new ConnectionInfo(url, serverType);
         }
     }
 }

@@ -19,7 +19,6 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
-using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageConnections;
 
@@ -34,8 +33,8 @@ public class ManageConnectionsViewModelTest
     {
         connections =
         [
-            new Connection("http://localhost:9000", ServerType.SonarQube, true),
-            new Connection("https://sonarcloud.io/myOrg", ServerType.SonarCloud, false)
+            new Connection(new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube), true),
+            new Connection(new ConnectionInfo("https://sonarcloud.io/myOrg", ConnectionServerType.SonarCloud), false)
         ];
         testSubject = new ManageConnectionsViewModel();
     }
@@ -71,7 +70,7 @@ public class ManageConnectionsViewModelTest
     public void AddConnection_AddsProvidedConnection()
     {
         testSubject.InitializeConnections(connections);
-        var connectionToAdd = new Connection("https://sonarcloud.io/mySeondOrg", ServerType.SonarCloud, false);
+        var connectionToAdd = new Connection(new ConnectionInfo("https://sonarcloud.io/mySeondOrg", ConnectionServerType.SonarCloud), false);
 
         testSubject.AddConnection(connectionToAdd);
 
@@ -86,9 +85,9 @@ public class ManageConnectionsViewModelTest
         testSubject.ConnectionViewModels.Count.Should().Be(connections.Count());
         foreach (var connection in expectedConnections)
         {
-            var connectionViewModel = testSubject.ConnectionViewModels.SingleOrDefault(c => c.Name == connection.Id);
+            var connectionViewModel = testSubject.ConnectionViewModels.SingleOrDefault(c => c.Name == connection.Info.Id);
             connectionViewModel.Should().NotBeNull();
-            connectionViewModel.ServerType.Should().Be(connection.ServerType.ToString());
+            connectionViewModel.ServerType.Should().Be(connection.Info.ServerType.ToString());
             connectionViewModel.EnableSmartNotifications.Should().Be(connection.EnableSmartNotifications);
         }
     }

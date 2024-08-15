@@ -41,7 +41,7 @@
         <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" Margin="0, 0, 0, 15" TextWrapping="Wrap">
             <Run Text="{x:Static res:UiResources.ProjectSelectionConnectionLabel}" />
             <InlineUIContainer Style="{StaticResource ConnectionInfoInlineWrapper}">
-                <ui:ConnectionInfoComponent ConnectionInfo="{Binding Connection}" />
+                <ui:ConnectionInfoComponent ConnectionInfo="{Binding ConnectionInfo}" />
             </InlineUIContainer>
         </TextBlock>
 

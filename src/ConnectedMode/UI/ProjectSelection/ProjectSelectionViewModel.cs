@@ -27,7 +27,7 @@ public class ProjectSelectionViewModel : ViewModelBase
 {
     public ObservableCollection<ServerProject> ProjectResults { get; } = [];
 
-    public ConnectionInfo.Connection Connection { get; }
+    public ConnectionInfo ConnectionInfo { get; }
 
     public string ProjectSearchTerm
     {
@@ -56,9 +56,9 @@ public class ProjectSelectionViewModel : ViewModelBase
     private string projectSearchTerm;
     private ServerProject selectedProject;
 
-    public ProjectSelectionViewModel(ConnectionInfo.Connection connection)
+    public ProjectSelectionViewModel(ConnectionInfo connectionInfo)
     {
-        Connection = connection;
+        ConnectionInfo = connectionInfo;
     }
 
     public void InitProjects(List<ServerProject> projects)
