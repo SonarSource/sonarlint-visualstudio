@@ -288,4 +288,13 @@
   <data name="DeleteButton" xml:space="preserve">
     <value>Delete</value>
   </data>
+  <data name="ExportBindingConfigurationTooltip" xml:space="preserve">
+    <value>Export the binding configuration to share it with your team</value>
+  </data>
+  <data name="ExportingBindingConfigurationProgressText" xml:space="preserve">
+    <value>Binding configuration is being exported...</value>
+  </data>
+  <data name="ExportButton" xml:space="preserve">
+    <value>Export</value>
+  </data>
 </root>

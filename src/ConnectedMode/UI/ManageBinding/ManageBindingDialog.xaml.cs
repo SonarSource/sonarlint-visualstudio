@@ -74,4 +74,9 @@ public partial class ManageBindingDialog : Window
     {
         ViewModel.UseSharedBindingAsync().Forget();
     }
+
+    private void ExportBindingConfigurationButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ExportBindingConfigurationAsync().Forget();
+    }
 }

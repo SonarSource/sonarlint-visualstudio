@@ -21,6 +21,7 @@
 using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageBinding;
@@ -66,7 +67,13 @@ public class ManageBindingViewModelTests
         testSubject.BoundProject = serverProject;
 
         eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.BoundProject)));
+        eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsCurrentProjectBound)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsConnectionSelectionEnabled)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSelectProjectButtonEnabled)));
     }
 
     [TestMethod]
@@ -94,6 +101,8 @@ public class ManageBindingViewModelTests
 
         testSubject.SelectedProject = serverProject;
 
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.SelectedProject)));
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsProjectSelected)));
         eventHandler.Received().Invoke(testSubject,
@@ -145,9 +154,10 @@ public class ManageBindingViewModelTests
         testSubject.PropertyChanged += eventHandler;
         eventHandler.ReceivedCalls().Should().BeEmpty();
 
-        testSubject.SelectedConnection =
-            SonarQubeConnection;
+        testSubject.SelectedConnection = SonarQubeConnection;
 
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.SelectedConnection)));
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsConnectionSelected)));
         eventHandler.Received().Invoke(testSubject,
@@ -173,6 +183,18 @@ public class ManageBindingViewModelTests
         testSubject.Unbind();
 
         testSubject.BoundProject.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void Unbind_SetsConnectionInfoToNull()
+    {
+        testSubject.SelectedConnection = SonarQubeConnection;
+        testSubject.SelectedProject = serverProject;
+
+        testSubject.Unbind();
+
+        testSubject.SelectedConnection.Should().BeNull();
+        testSubject.SelectedProject.Should().BeNull();
     }
 
     [TestMethod]
@@ -235,8 +257,9 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void IsSelectProjectButtonEnabled_ConnectionIsSelectedAndNoBindingIsInProgress_ReturnsTrue()
+    public void IsSelectProjectButtonEnabled_ConnectionIsSelectedAndNoBindingIsInProgressAndProjectIsNotBound_ReturnsTrue()
     {
+        testSubject.BoundProject = null;
         testSubject.IsBindingInProgress = false;
         testSubject.SelectedConnection = SonarQubeConnection;
 
@@ -244,8 +267,9 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void IsSelectProjectButtonEnabled_ConnectionIsSelectedAndBindingIsInProgress_ReturnsFalse()
+    public void IsSelectProjectButtonEnabled_BindingIsInProgress_ReturnsFalse()
     {
+        testSubject.BoundProject = null;
         testSubject.IsBindingInProgress = true;
         testSubject.SelectedConnection = SonarQubeConnection;
 
@@ -264,6 +288,16 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
+    public void IsSelectProjectButtonEnabled_ProjectIsAlreadyBound_ReturnsFalse()
+    {
+        testSubject.BoundProject = serverProject;
+        testSubject.IsBindingInProgress = false;
+        testSubject.SelectedConnection = SonarQubeConnection;
+
+        testSubject.IsSelectProjectButtonEnabled.Should().BeFalse();
+    }
+
+    [TestMethod]
     public void IsBindingInProgress_Set_RaisesEvents()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
@@ -272,6 +306,8 @@ public class ManageBindingViewModelTests
 
         testSubject.IsBindingInProgress = true;
 
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsBindingInProgress)));
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsUseSharedBindingButtonEnabled)));
         eventHandler.Received().Invoke(testSubject,
@@ -282,5 +318,69 @@ public class ManageBindingViewModelTests
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsManageConnectionsButtonEnabled)));
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSelectProjectButtonEnabled)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsConnectionSelectionEnabled)));
+    }
+
+    [TestMethod]
+    public void IsConnectionSelectionEnabled_BindingIsInProgress_ReturnsFalse()
+    {
+        testSubject.BoundProject = null;
+        testSubject.IsBindingInProgress = true;
+
+        testSubject.IsConnectionSelectionEnabled.Should().BeFalse();
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void IsConnectionSelectionEnabled_ProjectIsBound_ReturnsFalse(bool isBindingInProgress)
+    {
+        testSubject.BoundProject = serverProject;
+        testSubject.IsBindingInProgress = isBindingInProgress;
+
+        testSubject.IsConnectionSelectionEnabled.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void IsConnectionSelectionEnabled_ProjectIsNotBoundAndBindingIsNotInProgress_ReturnsTrue()
+    {
+        testSubject.BoundProject = null;
+        testSubject.IsBindingInProgress = false;
+
+        testSubject.IsConnectionSelectionEnabled.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void ProgressStatus_Set_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        eventHandler.ReceivedCalls().Should().BeEmpty();
+
+        testSubject.ProgressStatus = "In progress...";
+
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.ProgressStatus)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsOperationInProgress)));
+    }
+
+    [TestMethod]
+    public void IsOperationInProgress_ProgressStatusIsSet_ReturnsTrue()
+    {
+        testSubject.ProgressStatus = "In progres...";
+
+        testSubject.IsOperationInProgress.Should().BeTrue();
+    }
+
+    [TestMethod]
+    [DataRow(null)]
+    [DataRow("")]
+    public void IsOperationInProgress_ProgressStatusIsNull_ReturnsFalse(string status)
+    {
+        testSubject.ProgressStatus = status;
+
+        testSubject.IsOperationInProgress.Should().BeFalse();
     }
 }

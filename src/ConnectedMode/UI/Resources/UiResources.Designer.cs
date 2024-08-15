@@ -241,6 +241,33 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Export the binding configuration to share it with your team.
+        /// </summary>
+        public static string ExportBindingConfigurationTooltip {
+            get {
+                return ResourceManager.GetString("ExportBindingConfigurationTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export.
+        /// </summary>
+        public static string ExportButton {
+            get {
+                return ResourceManager.GetString("ExportButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Binding configuration is being exported....
+        /// </summary>
+        public static string ExportingBindingConfigurationProgressText {
+            get {
+                return ResourceManager.GetString("ExportingBindingConfigurationProgressText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The URL you entered is not secure. Use HTTPS connections to protect sensitive information..
         /// </summary>
         public static string InsecureProtocolWarning {

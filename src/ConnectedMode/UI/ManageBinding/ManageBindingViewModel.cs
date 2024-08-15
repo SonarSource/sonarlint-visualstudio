@@ -20,6 +20,7 @@
 
 using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
 using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
@@ -31,6 +32,7 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
     private Connection selectedConnection;
     private ServerProject selectedProject;
     private bool isBindingInProgress;
+    private string progressStatus;
 
     public SolutionInfoModel SolutionInfo { get; } = solutionInfo;
 
@@ -42,6 +44,8 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
             boundProject = value;
             RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsCurrentProjectBound));
+            RaisePropertyChanged(nameof(IsSelectProjectButtonEnabled));
+            RaisePropertyChanged(nameof(IsConnectionSelectionEnabled));
         }
     }
 
@@ -88,14 +92,28 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
             RaisePropertyChanged(nameof(IsUseSharedBindingButtonEnabled));
             RaisePropertyChanged(nameof(IsManageConnectionsButtonEnabled));
             RaisePropertyChanged(nameof(IsSelectProjectButtonEnabled));
+            RaisePropertyChanged(nameof(IsConnectionSelectionEnabled));
+        }
+    }
+
+    public string ProgressStatus    
+    {
+        get => progressStatus;
+        set
+        {
+            progressStatus = value;
+            RaisePropertyChanged();
+            RaisePropertyChanged(nameof(IsOperationInProgress));
         }
     }
 
     public bool IsCurrentProjectBound => BoundProject != null;
     public bool IsProjectSelected => SelectedProject != null;
     public bool IsConnectionSelected => SelectedConnection != null;
+    public bool IsConnectionSelectionEnabled => !IsBindingInProgress && !IsCurrentProjectBound;
+    public bool IsOperationInProgress => !string.IsNullOrEmpty(ProgressStatus);
     public bool IsBindButtonEnabled => IsProjectSelected && !IsBindingInProgress;
-    public bool IsSelectProjectButtonEnabled => IsConnectionSelected && !IsBindingInProgress;
+    public bool IsSelectProjectButtonEnabled => IsConnectionSelected && !IsBindingInProgress && !IsCurrentProjectBound;
     public bool IsUnbindButtonEnabled => !IsBindingInProgress;
     public bool IsManageConnectionsButtonEnabled => !IsBindingInProgress;
     public bool IsUseSharedBindingButtonEnabled => !IsBindingInProgress;
@@ -116,6 +134,7 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
         try
         {
             IsBindingInProgress = true;
+            ProgressStatus = UiResources.BindingInProgressText;
             // this is only for demo purposes. When it will be replaced with real SlCore binding logic, it can be removed
             await Task.Delay(3000);
             BoundProject = SelectedProject;
@@ -123,12 +142,15 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
         finally
         {
             IsBindingInProgress = false;
+            ProgressStatus = null;
         }
     }
 
     public void Unbind()
     {
         BoundProject = null;
+        SelectedConnection = null;
+        SelectedProject = null;
     }
 
     public async Task UseSharedBindingAsync()
@@ -137,5 +159,19 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
         SelectedConnection = Connections.FirstOrDefault();
         SelectedProject = new ServerProject("Myproj", "My proj");
         await BindAsync();
+    }
+
+    public async Task ExportBindingConfigurationAsync()
+    {
+        try
+        {
+            ProgressStatus = UiResources.ExportingBindingConfigurationProgressText;
+            // this is only for demo purposes. When it will be replaced with real SlCore binding logic, it can be removed
+            await Task.Delay(3000);
+        }
+        finally
+        {
+            ProgressStatus = null;
+        }
     }
 }
