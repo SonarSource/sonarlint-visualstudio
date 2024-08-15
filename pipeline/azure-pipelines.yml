@@ -314,6 +314,13 @@ jobs:
         --build-number $(Build.BuildId)
     condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
     
+  - task: JFrogPublishBuildInfo@1
+    inputs:
+      buildName: '$(buildName)'
+      buildNumber: '$(Build.BuildId)'
+      excludeEnvVars: '*password*;*psw*;*secret*;*key*;*token*;*auth*;'
+    condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
+    
   - task: VSTest@2
     displayName: VsTest - testAssemblies
     inputs:
