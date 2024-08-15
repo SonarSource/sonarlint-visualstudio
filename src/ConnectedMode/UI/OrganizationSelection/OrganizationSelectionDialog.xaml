@@ -14,6 +14,7 @@
         Background="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}"
         FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
         FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
+        Icon="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarlint_32px.ico"
         x:Name="OrganizationSelectionDialogWindow">
 
     <Window.Resources>

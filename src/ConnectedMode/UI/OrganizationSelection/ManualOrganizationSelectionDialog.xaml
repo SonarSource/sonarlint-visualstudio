@@ -14,6 +14,7 @@
         FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
         FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
         Foreground="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"
+        Icon="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarlint_32px.ico"
         x:Name="This">
 
     <Window.Resources>
