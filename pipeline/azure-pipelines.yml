@@ -11,7 +11,7 @@ variables:
 - name: buildName
   value: 'sonarlint-visualstudio-2022'
 - name: vsixPath
-  value: '$(Build.SourcesDirectory)\binaries\SonarLint.VSIX-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-$(vsTargetVersion).vsix'
+  value: '$(Build.ArtifactStagingDirectory)'
 
 name: $(Build.BuildId)
 
@@ -308,20 +308,20 @@ jobs:
       command:
         jf rt upload
         $(vsixPath)
-        sonarsource-public-qa/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio/
+        sonarsource-public-qa/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio/$(SONAR_PROJECT_VERSION).$(Build.BuildId)/
         --flat
         --build-name $(buildName)
         --build-number $(Build.BuildId)
     condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
     
-  - task: JFrogPublishBuildInfo@1
-    displayName: 'Publish build info'
-    inputs:
-      artifactoryConnection: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
-      buildName: '$(buildName)'
-      buildNumber: '$(Build.BuildId)'
-      excludeEnvVars: '*password*;*psw*;*secret*;*key*;*token*;*auth*;'
-    condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
+#  - task: JFrogPublishBuildInfo@1
+#    displayName: 'Publish build info'
+#    inputs:
+#      artifactoryConnection: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
+#      buildName: '$(buildName)'
+#      buildNumber: '$(Build.BuildId)'
+#      excludeEnvVars: '*password*;*psw*;*secret*;*key*;*token*;*auth*;'
+#    condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
     
   - task: VSTest@2
     displayName: VsTest - testAssemblies
