@@ -42,5 +42,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
         {
             browserService.Navigate(e.Uri.AbsoluteUri);
         }
+
+        private void OkButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            DialogResult = true;
+            Close();
+        }
     }
 }
