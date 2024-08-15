@@ -31,7 +31,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         public void InitializeConnections(IEnumerable<Connection> connections)
         {
             ConnectionViewModels.Clear();
-            connections.ToList().ForEach(c => ConnectionViewModels.Add(new ConnectionViewModel(c)));
+            connections.ToList().ForEach(AddConnection);
+        }
+
+        public void RemoveConnection(ConnectionViewModel connectionViewModel)
+        {
+            ConnectionViewModels.Remove(connectionViewModel);
+        }
+
+        public void AddConnection(Connection connection)
+        {
+           ConnectionViewModels.Add(new ConnectionViewModel(connection));
         }
     }
 }
