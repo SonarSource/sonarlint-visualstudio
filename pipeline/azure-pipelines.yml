@@ -316,7 +316,7 @@ jobs:
     
   - task: JFrogPublishBuildInfo@1
     inputs:
-      jfrogPlatformConnection: 'jfrog_platform_qa_deployer_access_token'
+      artifactoryConnection: '$(ARTIFACTORY_DEPLOY_TOKEN)'
       buildName: '$(buildName)'
       buildNumber: '$(Build.BuildId)'
       excludeEnvVars: '*password*;*psw*;*secret*;*key*;*token*;*auth*;'
