@@ -4,6 +4,7 @@
         xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
+        xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
         Title="{x:Static res:UiResources.ProjectSelectionDialogTitle}"
         HorizontalAlignment="Center"
         MinWidth="500"
@@ -23,6 +24,7 @@
                 <ResourceDictionary
                     Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -70,6 +72,8 @@
                  ItemsSource="{Binding ProjectResults}"
                  SelectedItem="{Binding SelectedProject}"
                  ItemTemplate="{StaticResource NameAndKeyListBoxItem}" />
+        <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{x:Static res:UiResources.NoProjectsExistLabel}" 
+                   Visibility="{Binding Path=NoProjectExists, Converter={StaticResource TrueToVisibleConverter}}"/>
 
         <Button Grid.Column="1" Grid.Row="3" Content="{x:Static res:UiResources.SelectButton}"
                 HorizontalAlignment="Right"
