@@ -124,4 +124,20 @@ public class OrganizationSelectionViewModelTests
 
         testSubject.IsValidSelectedOrganization.Should().Be(expectedResult);
     }
+
+    [TestMethod]
+    public void NoOrganizationExists_NoOrganizations_ReturnsTrue()
+    {
+        var viewModel = new OrganizationSelectionViewModel([]);
+
+        viewModel.NoOrganizationExists.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void NoOrganizationExists_HasOrganizations_ReturnsFalse()
+    {
+        var viewModel = new OrganizationSelectionViewModel([new OrganizationDisplay("my org", "my org")]);
+
+        viewModel.NoOrganizationExists.Should().BeFalse();
+    }
 }

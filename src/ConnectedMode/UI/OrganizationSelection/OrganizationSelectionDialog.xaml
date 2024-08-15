@@ -4,6 +4,7 @@
         xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
+        xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
         Title="{x:Static ui:UiResources.OrganizationSelectionDialogTitle}"
         MaxWidth="800"
         Height="400"
@@ -21,6 +22,7 @@
                 <ResourceDictionary
                     Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -40,6 +42,9 @@
                  SelectedItem="{Binding SelectedOrganization, Mode=TwoWay}"
                  Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}"
                  ItemTemplate="{StaticResource NameAndKeyListBoxItem}" />
+        <TextBlock Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{x:Static ui:UiResources.NoOrganizationExistsLabel}" 
+                   Visibility="{Binding Path=NoOrganizationExists, Converter={StaticResource TrueToVisibleConverter}}"/>
+
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>

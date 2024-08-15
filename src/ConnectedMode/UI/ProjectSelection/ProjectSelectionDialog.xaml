@@ -4,12 +4,14 @@
         xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
+        xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
         Title="{x:Static res:UiResources.ProjectSelectionDialogTitle}"
         HorizontalAlignment="Center"
         MinWidth="500"
         MinHeight="350"
         Width="500"
         Height="350"
+        WindowStartupLocation="CenterOwner"
         Icon="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarlint_32px.ico"
         Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}"
         FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
@@ -22,6 +24,7 @@
                 <ResourceDictionary
                     Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -69,16 +72,19 @@
                  ItemsSource="{Binding ProjectResults}"
                  SelectedItem="{Binding SelectedProject}"
                  ItemTemplate="{StaticResource NameAndKeyListBoxItem}" />
+        <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{x:Static res:UiResources.NoProjectsExistLabel}" 
+                   Visibility="{Binding Path=NoProjectExists, Converter={StaticResource TrueToVisibleConverter}}"/>
 
         <Button Grid.Column="1" Grid.Row="3" Content="{x:Static res:UiResources.SelectButton}"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
                 Margin="5, 0"
                 IsEnabled="{Binding IsProjectSelected}"
+                IsDefault="True"
                 Click="BindButton_OnClick" />
         <Button Grid.Column="2" Grid.Row="3" Content="{x:Static res:UiResources.CancelButton}"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
-                Click="CancelButton_OnClick" />
+                IsCancel="True"/>
     </Grid>
 </Window>

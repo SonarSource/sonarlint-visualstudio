@@ -5,12 +5,14 @@
                          xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
                          xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
                          xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+                         xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
                          Title="{x:Static ui:UiResources.ManageConnectionsDialogTitle}" 
                          HorizontalAlignment="Center"
                          SizeToContent="WidthAndHeight"
                          ResizeMode="NoResize"
                          MinWidth="750" MaxWidth="750"
                          MinHeight="500" MaxHeight="500"
+                         WindowStartupLocation="CenterOwner"
                          Icon="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarlint_32px.ico"
                          Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}"
                          FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"    
@@ -22,6 +24,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -104,10 +107,13 @@
                    </DataTemplate>
                 </ListBox.ItemTemplate>
            </ListBox>
-       </Grid>
+
+            <TextBlock Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{x:Static ui:UiResources.NoConnectionExistsLabel}" 
+                       Visibility="{Binding Path=NoConnectionExists, Converter={StaticResource TrueToVisibleConverter}}"/>
+        </Grid>
 
         <Grid HorizontalAlignment="Right" Grid.Row="1" Margin="10">
-            <Button Content="{x:Static ui:UiResources.OkButton}" Click="OkButton_OnClick"/>
+            <Button Content="{x:Static ui:UiResources.OkButton}" IsCancel="True" IsDefault="True"/>
         </Grid>
     </Grid>
 </Window>

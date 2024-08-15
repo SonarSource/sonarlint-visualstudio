@@ -403,6 +403,33 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No connection exists.
+        /// </summary>
+        public static string NoConnectionExistsLabel {
+            get {
+                return ResourceManager.GetString("NoConnectionExistsLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No organization exists.
+        /// </summary>
+        public static string NoOrganizationExistsLabel {
+            get {
+                return ResourceManager.GetString("NoOrganizationExistsLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No project exists.
+        /// </summary>
+        public static string NoProjectsExistLabel {
+            get {
+                return ResourceManager.GetString("NoProjectsExistLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
         public static string OkButton {

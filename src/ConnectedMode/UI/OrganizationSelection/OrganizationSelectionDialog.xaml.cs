@@ -29,7 +29,6 @@ public partial class OrganizationSelectionDialog : Window
     public OrganizationSelectionDialog(IReadOnlyList<OrganizationDisplay> organizations)
     {
         ViewModel = new OrganizationSelectionViewModel(organizations);
-        Owner = Application.Current.MainWindow;
         InitializeComponent();
     }
 
@@ -45,7 +44,7 @@ public partial class OrganizationSelectionDialog : Window
         ViewModel.SelectedOrganization = null;
         var manualOrganizationSelectionDialog = new ManualOrganizationSelectionDialog();
         manualOrganizationSelectionDialog.Owner = this;
-        var manualSelection = manualOrganizationSelectionDialog.ShowDialog();
+        var manualSelection = manualOrganizationSelectionDialog.ShowDialog(this);
         ViewModel.SelectedOrganization =new OrganizationDisplay(manualOrganizationSelectionDialog.ViewModel.OrganizationKey, null);
         if (manualSelection is true)
         {
