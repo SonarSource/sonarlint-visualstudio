@@ -105,6 +105,22 @@ public class ManageConnectionsViewModelTest
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoConnectionExists)));
     }
 
+    [TestMethod]
+    public void NoConnectionExists_NoConnections_ReturnsTrue()
+    {
+        testSubject.InitializeConnections([]);
+
+        testSubject.NoConnectionExists.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void NoConnectionExists_HasConnections_ReturnsFalse()
+    {
+        testSubject.InitializeConnections(connections);
+
+        testSubject.NoConnectionExists.Should().BeFalse();
+    }
+
     private void HasExpectedConnections(IEnumerable<Connection> expectedConnections)
     {
         testSubject.ConnectionViewModels.Should().NotBeNull();

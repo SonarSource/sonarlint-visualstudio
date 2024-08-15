@@ -112,4 +112,20 @@ public class ProjectSelectionViewModelTests
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoProjectExists)));
     }
+
+    [TestMethod]
+    public void NoProjectExists_NoConnections_ReturnsTrue()
+    {
+        testSubject.InitProjects([]);
+
+        testSubject.NoProjectExists.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void NoProjectExists_HasConnections_ReturnsFalse()
+    {
+        testSubject.InitProjects(AnInitialListOfProjects);
+
+        testSubject.NoProjectExists.Should().BeFalse();
+    }
 }
