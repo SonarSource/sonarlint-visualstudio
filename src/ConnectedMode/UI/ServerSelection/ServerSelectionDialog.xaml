@@ -129,8 +129,9 @@
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="{x:Static res:UiResources.NextButton}" IsEnabled="{Binding Path=IsNextButtonEnabled}" /> 
-            <Button Grid.Column="1" Content="{x:Static res:UiResources.CancelButton}" Margin="10,0"/> 
+            <Button Grid.Column="0" Content="{x:Static res:UiResources.NextButton}" IsEnabled="{Binding Path=IsNextButtonEnabled}" IsDefault="True"
+                    Click="OkButton_OnClick"/> 
+            <Button Grid.Column="1" Content="{x:Static res:UiResources.CancelButton}" Margin="10,0" IsCancel="True"/> 
         </Grid>
     </Grid>
 </Window>

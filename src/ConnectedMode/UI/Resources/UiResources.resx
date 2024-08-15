@@ -255,4 +255,7 @@
   <data name="DeleteButton" xml:space="preserve">
     <value>Delete</value>
   </data>
+  <data name="SonarCloudUrl" xml:space="preserve">
+    <value>https://sonarcloud.io/</value>
+  </data>
 </root>

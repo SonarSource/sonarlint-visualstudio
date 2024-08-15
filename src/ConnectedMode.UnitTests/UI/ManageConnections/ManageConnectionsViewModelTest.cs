@@ -55,6 +55,31 @@ public class ManageConnectionsViewModelTest
         HasExpectedConnections(connections);
     }
 
+    [TestMethod]
+    public void RemoveConnection_RemovesProvidedConnection()
+    {
+        testSubject.InitializeConnections(connections);
+        var connectionToRemove = testSubject.ConnectionViewModels.First();
+
+        testSubject.RemoveConnection(connectionToRemove);
+
+        testSubject.ConnectionViewModels.Count.Should().Be(connections.Count() - 1);
+        testSubject.ConnectionViewModels.Should().NotContain(connectionToRemove);
+    }
+
+    [TestMethod]
+    public void AddConnection_AddsProvidedConnection()
+    {
+        testSubject.InitializeConnections(connections);
+        var connectionToAdd = new Connection("https://sonarcloud.io/mySeondOrg", ServerType.SonarCloud, false);
+
+        testSubject.AddConnection(connectionToAdd);
+
+        var viewModelsCount = testSubject.ConnectionViewModels.Count;
+        viewModelsCount.Should().Be(connections.Count() + 1);
+        testSubject.ConnectionViewModels[viewModelsCount - 1].Connection.Should().Be(connectionToAdd);
+    }
+
     private void HasExpectedConnections(IEnumerable<Connection> expectedConnections)
     {
         testSubject.ConnectionViewModels.Should().NotBeNull();
