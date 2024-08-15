@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
     public class ManageConnectionsViewModel : ViewModelBase
     {
         public ObservableCollection<ConnectionViewModel> ConnectionViewModels { get; } = [];
+        public bool NoConnectionExists => ConnectionViewModels.Count == 0;
 
         public void InitializeConnections(IEnumerable<Connection> connections)
         {
@@ -37,11 +38,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         public void RemoveConnection(ConnectionViewModel connectionViewModel)
         {
             ConnectionViewModels.Remove(connectionViewModel);
+            RaisePropertyChanged(nameof(NoConnectionExists));
         }
 
         public void AddConnection(Connection connection)
         {
            ConnectionViewModels.Add(new ConnectionViewModel(connection));
+           RaisePropertyChanged(nameof(NoConnectionExists));
         }
     }
 }
