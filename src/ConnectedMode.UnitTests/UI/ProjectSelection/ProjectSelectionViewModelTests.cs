@@ -114,7 +114,7 @@ public class ProjectSelectionViewModelTests
     }
 
     [TestMethod]
-    public void NoProjectExists_NoConnections_ReturnsTrue()
+    public void NoProjectExists_NoProjects_ReturnsTrue()
     {
         testSubject.InitProjects([]);
 
@@ -122,7 +122,7 @@ public class ProjectSelectionViewModelTests
     }
 
     [TestMethod]
-    public void NoProjectExists_HasConnections_ReturnsFalse()
+    public void NoProjectExists_HasProjects_ReturnsFalse()
     {
         testSubject.InitProjects(AnInitialListOfProjects);
 
