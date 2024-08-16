@@ -22,6 +22,7 @@ using System.Windows;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
@@ -56,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
         private void Connections_OnClick(object sender, RoutedEventArgs e)
         {
-            new ManageConnectionsDialog(browserService).ShowDialog();
+            new ManageConnectionsDialog(browserService).ShowDialog(Application.Current.MainWindow);
         }
 
         private void ShowOrganizationSelectionDialog(object sender, RoutedEventArgs e)
@@ -128,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 
         private void ManageBindingDialog_OnClick(object sender, RoutedEventArgs e)
         {
-            new ManageBindingDialog(browserService, new SolutionInfoModel("VS Sample 2022", SolutionType.Solution)).ShowDialog();
+            new ManageBindingDialog(browserService, new SolutionInfoModel("VS Sample 2022", SolutionType.Solution)).ShowDialog(Application.Current.MainWindow);
         }
     }
 }

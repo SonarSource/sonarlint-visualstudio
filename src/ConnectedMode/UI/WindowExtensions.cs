@@ -21,34 +21,14 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
+namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
 [ExcludeFromCodeCoverage]
-public partial class ProjectSelectionDialog
+public static class WindowExtensions
 {
-    public ProjectSelectionViewModel ViewModel { get; }
-
-    public ProjectSelectionDialog(ConnectionInfo connectionInfo)
+    public static bool? ShowDialog(this Window window, Window owner)
     {
-        ViewModel = new ProjectSelectionViewModel(connectionInfo);
-        InitializeComponent();
-    }
-
-    protected override void OnInitialized(EventArgs e)
-    {
-        base.OnInitialized(e);
-        
-        ViewModel.InitProjects([
-            new ServerProject(Key: "my_project", Name: "My Project"),
-            new ServerProject(Key: "your_project", Name: "Your Project"),
-            new ServerProject(Key: "our_project", Name: "Our Project"),
-        ]);
-    }
-
-    private void BindButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        DialogResult = true;
-        Close();
+        window.Owner = owner;
+        return window.ShowDialog();
     }
 }
-

@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ProjectSelection;
@@ -70,6 +71,17 @@ public class ProjectSelectionViewModelTests
     }
 
     [TestMethod]
+    public void InitProjects_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        testSubject.InitProjects(AnInitialListOfProjects);
+
+        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoProjectExists)));
+    }
+
+    [TestMethod]
     public void ProjectSearchTerm_WithEmptyTerm_ShouldNotUpdateSearchResult()
     {
         testSubject.InitProjects(AnInitialListOfProjects);
@@ -87,5 +99,32 @@ public class ProjectSelectionViewModelTests
         testSubject.ProjectSearchTerm = "My Project";
 
         testSubject.ProjectResults.Should().NotContain(AnInitialListOfProjects);
+    }
+
+    [TestMethod]
+    public void SearchForProject_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        testSubject.ProjectSearchTerm = "proj1";
+
+        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoProjectExists)));
+    }
+
+    [TestMethod]
+    public void NoProjectExists_NoProjects_ReturnsTrue()
+    {
+        testSubject.InitProjects([]);
+
+        testSubject.NoProjectExists.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void NoProjectExists_HasProjects_ReturnsFalse()
+    {
+        testSubject.InitProjects(AnInitialListOfProjects);
+
+        testSubject.NoProjectExists.Should().BeFalse();
     }
 }

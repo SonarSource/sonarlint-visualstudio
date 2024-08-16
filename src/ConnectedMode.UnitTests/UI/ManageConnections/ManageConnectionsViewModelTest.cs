@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageConnections;
@@ -67,16 +68,56 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
+    public void RemoveConnection_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        testSubject.InitializeConnections(connections);
+
+        testSubject.RemoveConnection(testSubject.ConnectionViewModels[0]);
+
+        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoConnectionExists)));
+    }
+
+    [TestMethod]
     public void AddConnection_AddsProvidedConnection()
     {
         testSubject.InitializeConnections(connections);
-        var connectionToAdd = new Connection(new ConnectionInfo("https://sonarcloud.io/mySeondOrg", ConnectionServerType.SonarCloud), false);
+        var connectionToAdd = new Connection(new ConnectionInfo("https://sonarcloud.io/mySecondOrg", ConnectionServerType.SonarCloud), false);
 
         testSubject.AddConnection(connectionToAdd);
 
         var viewModelsCount = testSubject.ConnectionViewModels.Count;
         viewModelsCount.Should().Be(connections.Count() + 1);
         testSubject.ConnectionViewModels[viewModelsCount - 1].Connection.Should().Be(connectionToAdd);
+    }
+
+    [TestMethod]
+    public void AddConnection_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        testSubject.InitializeConnections(connections);
+
+        testSubject.AddConnection(new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false));
+
+        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoConnectionExists)));
+    }
+
+    [TestMethod]
+    public void NoConnectionExists_NoConnections_ReturnsTrue()
+    {
+        testSubject.InitializeConnections([]);
+
+        testSubject.NoConnectionExists.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void NoConnectionExists_HasConnections_ReturnsFalse()
+    {
+        testSubject.InitializeConnections(connections);
+
+        testSubject.NoConnectionExists.Should().BeFalse();
     }
 
     private void HasExpectedConnections(IEnumerable<Connection> expectedConnections)

@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         {
             if(sender is System.Windows.Controls.Button button && button.DataContext is ConnectionViewModel connectionViewModel)
             {
-                new CredentialsDialog(browserService, connectionViewModel.Connection.Info, false).ShowDialog();
+                new CredentialsDialog(browserService, connectionViewModel.Connection.Info, false).ShowDialog(this);
             }
         }
 
@@ -60,14 +60,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         private ConnectionInfo GetNewConnection()
         {
             var serverSelectionDialog = new ServerSelectionDialog(browserService);
-            return serverSelectionDialog.ShowDialog() != true ? null : serverSelectionDialog.ViewModel.CreateConnection();
+            return serverSelectionDialog.ShowDialog(this) != true ? null : serverSelectionDialog.ViewModel.CreateConnection();
         }
 
         private bool CredentialsDialogSucceeded(ConnectionInfo newConnectionInfo)
         {
             var isAnyDialogFollowing = newConnectionInfo.ServerType == ConnectionServerType.SonarCloud; 
             var credentialsDialog = new CredentialsDialog(browserService, newConnectionInfo, withNextButton: isAnyDialogFollowing);
-            return credentialsDialog.ShowDialog() == true;
+            return credentialsDialog.ShowDialog(this) == true;
         }
 
         private ConnectionInfo GetCompleteConnection(ConnectionInfo newConnectionInfo)
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             }
             
             var organizationSelectionDialog = new OrganizationSelectionDialog([new OrganizationDisplay("a", "a"), new OrganizationDisplay("b", "b")]);
-            if (organizationSelectionDialog.ShowDialog() == true)
+            if (organizationSelectionDialog.ShowDialog(this) == true)
             {
                 return newConnectionInfo with { Id = organizationSelectionDialog.ViewModel.SelectedOrganization.Key };
             }
@@ -87,10 +87,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private void ManageConnectionsWindow_OnInitialized(object sender, EventArgs e)
         {
-            ViewModel.InitializeConnections([
-                new Connection(new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube), true),
-                new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud), false)
-            ]);
+            ViewModel.InitializeConnections([]);
         }
 
         private void RemoveConnectionButton_OnClick(object sender, RoutedEventArgs e)
@@ -101,15 +98,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             }
 
             var deleteConnectionDialog = new DeleteConnectionDialog(["my proj", "vs sample 2019", "vs sample 2022"], connectionViewModel.Connection.Info);
-            if(deleteConnectionDialog.ShowDialog() == true)
+            if(deleteConnectionDialog.ShowDialog(this) == true)
             {
                 ViewModel.RemoveConnection(connectionViewModel);
             }
-        }
-
-        private void OkButton_OnClick(object sender, RoutedEventArgs e)
-        {
-            Close();
         }
     }
 }

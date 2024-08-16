@@ -29,6 +29,8 @@ public class ProjectSelectionViewModel : ViewModelBase
 
     public ConnectionInfo ConnectionInfo { get; }
 
+    public bool NoProjectExists => ProjectResults.Count == 0;
+
     public string ProjectSearchTerm
     {
         get => projectSearchTerm;
@@ -65,6 +67,7 @@ public class ProjectSelectionViewModel : ViewModelBase
     {
         ProjectResults.Clear();
         projects.ForEach(x => ProjectResults.Add(x));
+        RaisePropertyChanged(nameof(NoProjectExists));
     }
 
     private void SearchForProject()
@@ -82,5 +85,6 @@ public class ProjectSelectionViewModel : ViewModelBase
             Name: $"{ProjectSearchTerm}_2"));
         ProjectResults.Add(new ServerProject(Key: $"{ProjectSearchTerm.ToLower().Replace(" ", "_")}_3",
             Name: $"{ProjectSearchTerm}_3"));
+        RaisePropertyChanged(nameof(NoProjectExists));
     }
 }
