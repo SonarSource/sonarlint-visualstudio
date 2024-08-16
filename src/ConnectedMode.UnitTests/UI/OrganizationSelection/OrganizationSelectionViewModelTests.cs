@@ -126,7 +126,7 @@ public class OrganizationSelectionViewModelTests
     }
 
     [TestMethod]
-    public void NoProjectExists_NoConnections_ReturnsTrue()
+    public void NoOrganizationExists_NoOrganizations_ReturnsTrue()
     {
         var viewModel = new OrganizationSelectionViewModel([]);
 
@@ -134,7 +134,7 @@ public class OrganizationSelectionViewModelTests
     }
 
     [TestMethod]
-    public void NoProjectExists_HasConnections_ReturnsFalse()
+    public void NoOrganizationExists_HasOrganizations_ReturnsFalse()
     {
         var viewModel = new OrganizationSelectionViewModel([new OrganizationDisplay("my org", "my org")]);
 

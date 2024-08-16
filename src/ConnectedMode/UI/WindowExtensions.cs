@@ -18,27 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.ConnectedMode.UI;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
+namespace SonarLint.VisualStudio.ConnectedMode.UI;
+
+[ExcludeFromCodeCoverage]
+public static class WindowExtensions
 {
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public class NewConnectedModeCommand : VsCommandBase
+    public static bool? ShowDialog(this Window window, Window owner)
     {
-        private readonly IBrowserService browserService;
-        internal const int Id = 0x104;
-
-        public NewConnectedModeCommand(IBrowserService browserService)
-        {
-            this.browserService = browserService;
-        }
-
-        protected override void InvokeInternal()
-        {
-           new ManageBindingDialog(browserService, new SolutionInfoModel("Sample Project VS 2022", SolutionType.Solution)).ShowDialog(Application.Current.MainWindow);
-        }
+        window.Owner = owner;
+        return window.ShowDialog();
     }
 }
