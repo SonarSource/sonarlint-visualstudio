@@ -25,6 +25,59 @@
         <Setter Property="MinWidth" Value="75" />
         <Setter Property="Margin" Value="10,0,0,0" />
         <Setter Property="Padding" Value="5,2"/>
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonTextBrushKey}}" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonBrushKey}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonBorderBrushKey}}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsDefault" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonDefaultTextBrushKey}}" />
+                            <Setter Property="Background" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonDefaultBrushKey}}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonBorderDefaultBrushKey}}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonDisabledTextBrushKey}}" />
+                            <Setter Property="Background" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonDisabledBrushKey}}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonBorderDisabledBrushKey}}" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonHoverTextBrushKey}}" />
+                            <Setter Property="Background" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonHoverBrushKey}}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonBorderHoverBrushKey}}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonPressedTextBrushKey}}" />
+                            <Setter Property="Background" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonPressedBrushKey}}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonBorderPressedBrushKey}}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonFocusedTextBrushKey}}" />
+                            <Setter Property="Background" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonFocusedBrushKey}}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonBorderFocusedBrushKey}}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                    <Border BorderThickness="{TemplateBinding Border.BorderThickness}" BorderBrush="{TemplateBinding Border.BorderBrush}" Background="{TemplateBinding Panel.Background}" Name="ContentContainer" x:Uid="ContentContainer" SnapsToDevicePixels="True">
+                        <ContentPresenter RecognizesAccessKey="True" Content="{TemplateBinding ContentControl.Content}" ContentTemplate="{TemplateBinding ContentControl.ContentTemplate}" ContentStringFormat="{TemplateBinding ContentControl.ContentStringFormat}" Margin="{TemplateBinding Control.Padding}" HorizontalAlignment="{TemplateBinding Control.HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding Control.VerticalContentAlignment}" x:Uid="ContentPresenter_1" SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="FocusVisualStyle">
+            <Setter.Value>
+                <Style>
+                    <Setter Property="Control.Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Rectangle Stroke="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonFocusedTextBrushKey}}"  StrokeThickness="1" StrokeDashArray="1 2" Margin="2" x:Uid="ButtonFocusVisualStyleRect" SnapsToDevicePixels="True">
+                                </Rectangle>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <Style x:Key="IconButtonStyle" TargetType="Button">
