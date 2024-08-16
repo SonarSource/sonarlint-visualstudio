@@ -11,15 +11,9 @@
         MinHeight="200"
         MaxHeight="400"
         ResizeMode="NoResize"
-        SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         FocusManager.FocusedElement="{Binding ElementName=OrganizationComboBox}"
-        Background="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}"
-        FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
-        FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
-        Foreground="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"
         x:Name="This">
-
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -32,6 +26,9 @@
                                                   TrueValue="Collapsed" />
         </ResourceDictionary>
     </Window.Resources>
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}"></Style>
+    </Window.Style>
 
     <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="15">
         <Grid.RowDefinitions>

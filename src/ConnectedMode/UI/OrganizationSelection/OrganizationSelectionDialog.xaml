@@ -6,17 +6,9 @@
         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
         xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
         Title="{x:Static ui:UiResources.OrganizationSelectionDialogTitle}"
-        MaxWidth="800"
-        Height="400"
-        ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         FocusManager.FocusedElement="{Binding ElementName=OrganizationList}"
-        Background="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}"
-        FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
-        FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
-        Icon="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarlint_32px.ico"
         x:Name="OrganizationSelectionDialogWindow">
-
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -26,6 +18,9 @@
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
         </ResourceDictionary>
     </Window.Resources>
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource ConnectedModeWindow}"></Style>
+    </Window.Style>
 
     <Grid DataContext="{Binding ElementName=OrganizationSelectionDialogWindow, Path=ViewModel}" Margin="10">
         <Grid.RowDefinitions>

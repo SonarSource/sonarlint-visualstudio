@@ -6,16 +6,7 @@
                          xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
                          xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
                          Title="{x:Static res:UiResources.ServerSelectionDialogTitle}" 
-                         HorizontalAlignment="Center"
-                         SizeToContent="WidthAndHeight"
-                         ResizeMode="NoResize"
-                         MaxWidth="750"
-                         MaxHeight="550"
                          WindowStartupLocation="CenterOwner"
-                         Icon="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarlint_32px.ico"
-                         Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}"
-                         FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"    
-                         FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
                          x:Name="This">
     <Window.Resources>
         <ResourceDictionary>
@@ -25,6 +16,9 @@
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
         </ResourceDictionary>
     </Window.Resources>
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource ConnectedModeWindow}"></Style>
+    </Window.Style>
 
     <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="10">
         <Grid.RowDefinitions>

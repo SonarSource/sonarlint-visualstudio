@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private void ManageConnectionsWindow_OnInitialized(object sender, EventArgs e)
         {
-            ViewModel.InitializeConnections([]);
+            ViewModel.InitializeConnections([new Connection("My Org", ServerType.SonarCloud, true), new Connection("http://localhost:9000", ServerType.SonarQube, false)]);
         }
 
         private void RemoveConnectionButton_OnClick(object sender, RoutedEventArgs e)

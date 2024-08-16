@@ -3,6 +3,21 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0">
+
+    <Style TargetType="Window">
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}" />
+        <Setter Property="FontSize" Value="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}" />
+        <Setter Property="FontFamily" Value="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
+        <Setter Property="Icon" Value="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarlint_32px.ico" />
+    </Style>
+
+    <Style x:Key="ConnectedModeWindow" TargetType="Window" BasedOn="{StaticResource {x:Type Window}}">
+        <Setter Property="ResizeMode" Value="CanResizeWithGrip" />
+        <Setter Property="Height" Value="550" />
+        <Setter Property="Width" Value="750" />
+    </Style>
+
     <Style TargetType="Button">
         <Setter Property="MinHeight" Value="25" />
         <Setter Property="MinWidth" Value="75" />

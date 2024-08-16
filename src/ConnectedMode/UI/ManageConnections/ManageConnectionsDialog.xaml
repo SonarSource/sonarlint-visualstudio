@@ -7,16 +7,7 @@
                          xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
                          xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
                          Title="{x:Static ui:UiResources.ManageConnectionsDialogTitle}" 
-                         HorizontalAlignment="Center"
-                         SizeToContent="WidthAndHeight"
-                         ResizeMode="NoResize"
-                         MinWidth="750" MaxWidth="750"
-                         MinHeight="500" MaxHeight="500"
                          WindowStartupLocation="CenterOwner"
-                         Icon="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarlint_32px.ico"
-                         Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}"
-                         FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"    
-                         FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
                          Initialized="ManageConnectionsWindow_OnInitialized"
                          x:Name="This">
     <Window.Resources>
@@ -27,6 +18,9 @@
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
         </ResourceDictionary>
     </Window.Resources>
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource ConnectedModeWindow}"></Style>
+    </Window.Style>
 
     <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="10">
         <Grid.RowDefinitions>
