@@ -6,9 +6,10 @@
 
     <Style TargetType="Window">
         <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}" />
-        <Setter Property="FontSize" Value="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}" />
+        <Setter Property="FontSize" Value="{DynamicResource {x:Static vsShell:VsFonts.Environment133PercentFontSizeKey}}" />
         <Setter Property="FontFamily" Value="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}" />
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
+        <Setter Property="SnapsToDevicePixels" Value="False" />
         <Setter Property="Icon" Value="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarlint_32px.ico" />
     </Style>
 
@@ -16,16 +17,14 @@
         <Setter Property="ResizeMode" Value="CanResizeWithGrip" />
         <Setter Property="Height" Value="600" />
         <Setter Property="Width" Value="750" />
+        <Setter Property="MinWidth" Value="750" />
     </Style>
 
     <Style TargetType="Button">
         <Setter Property="MinHeight" Value="25" />
         <Setter Property="MinWidth" Value="75" />
-    </Style>
-
-    <Style TargetType="platformUi:DialogButton">
-        <Setter Property="MinHeight" Value="25" />
-        <Setter Property="MinWidth" Value="75" />
+        <Setter Property="Margin" Value="10,0,0,0" />
+        <Setter Property="Padding" Value="5,2"/>
     </Style>
 
     <Style x:Key="IconButtonStyle" TargetType="Button">
@@ -56,14 +55,18 @@
         <Setter Property="TextWrapping" Value="WrapWithOverflow" />
         <Setter Property="TextTrimming" Value="None" />
         <Setter Property="LineStackingStrategy" Value="MaxHeight" />
-        <Setter Property="FontSize" Value="15" />
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
     </Style>
 
     <Style x:Key="CaptionTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
         <Setter Property="Foreground" Value="DarkGray" />
         <Setter Property="FontStyle" Value="Italic" />
         <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+
+    <Style x:Key="HeaderTextBlock" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontSize" Value="{DynamicResource {x:Static vsShell:VsFonts.Environment155PercentFontSizeKey}}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="FontWeight" Value="DemiBold" />
     </Style>
 
     <Style TargetType="CheckBox">
@@ -73,10 +76,13 @@
     <Style TargetType="ListBox">
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
         <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.ActiveBorderKey}}"></Setter>
     </Style>
 
     <Style TargetType="ComboBox">
         <Setter Property="Height" Value="30" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.ActiveBorderKey}}"></Setter>
     </Style>
 
     <Style TargetType="ProgressBar">
@@ -133,4 +139,15 @@
                 </Run>
         </TextBlock>
     </DataTemplate>
+
+    <Style TargetType="GroupBox">
+        <Setter Property="HeaderTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" Style="{StaticResource  HeaderTextBlock}"/>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}" />
+    </Style>
 </ResourceDictionary>

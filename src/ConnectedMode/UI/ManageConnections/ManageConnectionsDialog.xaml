@@ -44,13 +44,12 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" Text="{x:Static ui:UiResources.ExistingConnectionsLabel}" FontSize="20" VerticalAlignment="Center"/>
-                <Button Grid.Column="1" Content="{x:Static ui:UiResources.NewConnectionButton}" HorizontalAlignment="Right" Padding="5,0" Margin="0,10"
+                <TextBlock Grid.Column="0" Text="{x:Static ui:UiResources.ExistingConnectionsLabel}" Style="{StaticResource HeaderTextBlock}"/>
+                <Button Grid.Column="1" Content="{x:Static ui:UiResources.NewConnectionButton}" HorizontalAlignment="Right"
                         Click="NewConnection_Clicked"/>
             </Grid>
            <ListBox Grid.Row="1" ItemsSource="{Binding Path=ConnectionViewModels, Mode=OneWay}" Margin="0,10" 
-                    ItemContainerStyle="{StaticResource NoSelectionListBoxItemStyle}" BorderBrush="{DynamicResource {x:Static vsShell:VsBrushes.ActiveBorderKey}}"
-                    Background="Transparent">
+                    ItemContainerStyle="{StaticResource NoSelectionListBoxItemStyle}">
                <ListBox.ItemTemplate>
                    <DataTemplate>
                         <Grid Margin="0,5,0,0">
@@ -80,8 +79,9 @@
                                    <RowDefinition Height="*"/>
                                </Grid.RowDefinitions>
 
-                               <TextBlock Grid.Row="0" Text="{Binding Path=Name, Mode=OneWay}" />
-                               <CheckBox Grid.Row="1" Content="{x:Static ui:UiResources.SmartNotificationsCheckboxLabel}" IsChecked="{Binding Path=EnableSmartNotifications}"/>
+                               <TextBlock Grid.Row="0" Text="{Binding Path=Name, Mode=OneWay}" VerticalAlignment="Center" />
+                               <CheckBox Grid.Row="1" Content="{x:Static ui:UiResources.SmartNotificationsCheckboxLabel}" IsChecked="{Binding Path=EnableSmartNotifications}"
+                                         VerticalContentAlignment="Center"/>
                             </Grid>
 
                            <Grid Grid.Column="2" HorizontalAlignment="Right">
@@ -91,8 +91,8 @@
                                </Grid.ColumnDefinitions>
 
                                <Button Grid.Column="0" Style="{StaticResource IconButtonStyle}" ToolTip="{x:Static ui:UiResources.EditConnectionToolTip}" Click="EditConnection_Clicked">
-                                   <imaging:CrispImage Width="20" Height="20" VerticalAlignment="Center" Cursor="Hand" Moniker="{x:Static vsimagecatalog:KnownMonikers.Edit}"
-                                                       Margin="5,0" />
+                                   <imaging:CrispImage Width="20" Height="20" VerticalAlignment="Center" Cursor="Hand" Moniker="{x:Static vsimagecatalog:KnownMonikers.Settings}"
+                                                       Margin="10,0" />
                                 </Button>
                                 <Button Grid.Column="1" Style="{StaticResource IconButtonStyle}" ToolTip="{x:Static ui:UiResources.RemoveConnectionToolTip}" Click="RemoveConnectionButton_OnClick">
                                     <imaging:CrispImage Width="20" Height="20" VerticalAlignment="Center" Cursor="Hand" Moniker="{x:Static vsimagecatalog:KnownMonikers.Close}"/>

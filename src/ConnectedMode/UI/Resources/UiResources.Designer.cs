@@ -70,11 +70,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please fill the authentication details for .
+        ///   Looks up a localized string similar to Please fill the authentication details for.
         /// </summary>
         public static string AuthenticationDescription {
             get {
                 return ResourceManager.GetString("AuthenticationDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authentication Details.
+        /// </summary>
+        public static string AuthenticationDetailsLabel {
+            get {
+                return ResourceManager.GetString("AuthenticationDetailsLabel", resourceCulture);
             }
         }
         
@@ -124,6 +133,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Binding Status.
+        /// </summary>
+        public static string BindingStatusLabel {
+            get {
+                return ResourceManager.GetString("BindingStatusLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string CancelButton {
@@ -133,11 +151,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Choose a connection type:.
+        ///   Looks up a localized string similar to Choose another organization.
+        /// </summary>
+        public static string ChooseAnotherOrganizationButton {
+            get {
+                return ResourceManager.GetString("ChooseAnotherOrganizationButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Choose a connection type.
         /// </summary>
         public static string ChooseConnectionTypeLabel {
             get {
                 return ResourceManager.GetString("ChooseConnectionTypeLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more about connected mode .
+        /// </summary>
+        public static string ConnectedModeExplanationText {
+            get {
+                return ResourceManager.GetString("ConnectedModeExplanationText", resourceCulture);
             }
         }
         
@@ -264,6 +300,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string ExistingConnectionsLabel {
             get {
                 return ResourceManager.GetString("ExistingConnectionsLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Existing Organizations.
+        /// </summary>
+        public static string ExistingOrganizationsLabel {
+            get {
+                return ResourceManager.GetString("ExistingOrganizationsLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Existing Projects.
+        /// </summary>
+        public static string ExistingProjectsLabel {
+            get {
+                return ResourceManager.GetString("ExistingProjectsLabel", resourceCulture);
             }
         }
         
@@ -439,15 +493,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select another organization....
-        /// </summary>
-        public static string OpenManualOrganizationSelectionButton {
-            get {
-                return ResourceManager.GetString("OpenManualOrganizationSelectionButton", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Select SonarCloud Organization.
         /// </summary>
         public static string OrganizationSelectionDialogTitle {
@@ -466,7 +511,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Projects on .
+        ///   Looks up a localized string similar to Select one of the projects from the server .
         /// </summary>
         public static string ProjectSelectionConnectionLabel {
             get {
@@ -529,7 +574,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Choose one of your organizations:.
+        ///   Looks up a localized string similar to Select one of your SonarCloud organizations from the list or manually provide one..
         /// </summary>
         public static string SelectOrganizationLabel {
             get {

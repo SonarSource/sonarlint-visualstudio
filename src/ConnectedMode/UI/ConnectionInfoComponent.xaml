@@ -21,8 +21,8 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
-        <Image Grid.Column="0" Width="25" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                   RenderOptions.BitmapScalingMode="HighQuality">
+        <Image Grid.Column="0" Height="30" Margin="{Binding ElementName=ConnectionInfoUc, Path= ImageMargin}" 
+               VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path= TextAndIconVerticalAlignment}" HorizontalAlignment="Center">
             <Image.Style>
                 <Style TargetType="Image">
                     <Style.Triggers>
@@ -36,7 +36,7 @@
                 </Style>
             </Image.Style>
         </Image>
-        <TextBlock Grid.Column="1" Text="{Binding Path=Id}" VerticalAlignment="Bottom" FontWeight="{Binding ElementName=ConnectionInfoUc, Path=TextFontWeight}" />
+        <TextBlock Grid.Column="1" Text="{Binding Path=Id}" VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path=TextAndIconVerticalAlignment}" FontWeight="{Binding ElementName=ConnectionInfoUc, Path=TextFontWeight}" />
     </Grid>
 
 </UserControl>

@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AuthenticationDescription" xml:space="preserve">
-    <value>Please fill the authentication details for </value>
+    <value>Please fill the authentication details for</value>
   </data>
   <data name="AuthenticationTypeLabel" xml:space="preserve">
     <value>Authentication type</value>
@@ -127,7 +127,7 @@
     <value>Cancel</value>
   </data>
   <data name="ChooseConnectionTypeLabel" xml:space="preserve">
-    <value>Choose a connection type:</value>
+    <value>Choose a connection type</value>
   </data>
   <data name="ConnectionDiscoveringText" xml:space="preserve">
     <value>Discover which connection is best for your team </value>
@@ -214,16 +214,16 @@
     <value>Select project to bind</value>
   </data>
   <data name="ProjectSelectionConnectionLabel" xml:space="preserve">
-    <value>Projects on </value>
+    <value>Select one of the projects from the server </value>
   </data>
   <data name="SelectOrganizationLabel" xml:space="preserve">
-    <value>Choose one of your organizations:</value>
+    <value>Select one of your SonarCloud organizations from the list or manually provide one.</value>
   </data>
   <data name="OrganizationSelectionDialogTitle" xml:space="preserve">
     <value>Select SonarCloud Organization</value>
   </data>
-  <data name="OpenManualOrganizationSelectionButton" xml:space="preserve">
-    <value>Select another organization...</value>
+  <data name="ChooseAnotherOrganizationButton" xml:space="preserve">
+    <value>Choose another organization</value>
   </data>
   <data name="ManualOrganizationSelectionDialogTitle" xml:space="preserve">
     <value>Use Another Organization</value>
@@ -314,5 +314,20 @@
   </data>
   <data name="NoProjectsExistLabel" xml:space="preserve">
     <value>No project exists</value>
+  </data>
+  <data name="ExistingOrganizationsLabel" xml:space="preserve">
+    <value>Existing Organizations</value>
+  </data>
+  <data name="AuthenticationDetailsLabel" xml:space="preserve">
+    <value>Authentication Details</value>
+  </data>
+  <data name="BindingStatusLabel" xml:space="preserve">
+    <value>Binding Status</value>
+  </data>
+  <data name="ConnectedModeExplanationText" xml:space="preserve">
+    <value>Learn more about connected mode </value>
+  </data>
+  <data name="ExistingProjectsLabel" xml:space="preserve">
+    <value>Existing Projects</value>
   </data>
 </root>

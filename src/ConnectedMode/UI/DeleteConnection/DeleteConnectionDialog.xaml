@@ -11,6 +11,7 @@
         MinHeight="200"
         MaxHeight="400"
         ResizeMode="NoResize"
+        SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         FocusManager.FocusedElement="{Binding ElementName=OrganizationComboBox}"
         x:Name="This">
@@ -65,11 +66,11 @@
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" HorizontalAlignment="Left" Text="{x:Static res:UiResources.AreYouSureConfirmationLabel}" />
             <StackPanel Grid.Column="1" Style="{StaticResource DialogButtonsPanel}">
-                <vsui:DialogButton Content="{x:Static res:UiResources.DeleteButton}"
+                <Button Content="{x:Static res:UiResources.DeleteButton}"
                                    IsDefault="True"
                                    Click="DeleteButton_OnClick"
                                    IsEnabled="True" />
-                <vsui:DialogButton Content="{x:Static res:UiResources.CancelButton}" IsCancel="True" />
+                <Button Content="{x:Static res:UiResources.CancelButton}" IsCancel="True" />
             </StackPanel>
         </Grid>
     </Grid>
