@@ -12,6 +12,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/LogoImages.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
         </ResourceDictionary>
@@ -35,7 +36,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Margin="10">
+                <Grid Grid.Row="0" Margin="10, 0">
                     <Grid.RowDefinitions>
                         <RowDefinition />
                         <RowDefinition />
@@ -43,8 +44,8 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <RadioButton GroupName="ServerSelection" VerticalContentAlignment="Center" Margin="0,0,10,0" IsChecked="{Binding Path=IsSonarCloudSelected}">
-                            <Image Source="../Resources/SonarCloud.png" Width="250"/>
+                        <RadioButton GroupName="ServerSelection" VerticalContentAlignment="Center" IsChecked="{Binding Path=IsSonarCloudSelected}">
+                            <Image Source="{StaticResource SonarCloudDrawingImage}" Width="250"/>
                         </RadioButton>
                     </StackPanel>
                     <TextBlock Grid.Row="1" Text="{x:Static res:UiResources.SonarCloudDescription}" Margin="10"/>
@@ -54,7 +55,7 @@
                     </TextBlock>
                 </Grid>
 
-                <Grid Grid.Row="1" Margin="10">
+                <Grid Grid.Row="1" Margin="10, 0">
                     <Grid.RowDefinitions>
                         <RowDefinition />
                         <RowDefinition />
@@ -63,8 +64,8 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <RadioButton GroupName="ServerSelection" VerticalContentAlignment="Center" Margin="0,10,10,0" IsChecked="{Binding Path=IsSonarQubeSelected}">
-                            <Image Source="../Resources/SonarQube.png" Width="250" Margin="0,-10,0,0"/>
+                        <RadioButton GroupName="ServerSelection" VerticalContentAlignment="Center" IsChecked="{Binding Path=IsSonarQubeSelected}">
+                            <Image Source="{StaticResource SonarQubeDrawingImage}" Width="250" Margin="0,-10,0,0"/>
                         </RadioButton>
                     </StackPanel>
                     <TextBlock Grid.Row="1" Text="{x:Static res:UiResources.SonarQubeDescription}" Margin="10"/>

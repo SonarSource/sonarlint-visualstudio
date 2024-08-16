@@ -10,6 +10,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/LogoImages.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -26,10 +27,10 @@
                 <Style TargetType="Image">
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding Path=ServerType}" Value="SonarCloud">
-                            <Setter Property="Source" Value="../UI/Resources/SonarCloudIcon.png"></Setter>
+                            <Setter Property="Source" Value="{StaticResource SonarCloudIconDrawingImage}"></Setter>
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Path=ServerType}" Value="SonarQube">
-                            <Setter Property="Source" Value="../UI/Resources/SonarQubeIcon.png"></Setter>
+                            <Setter Property="Source" Value="{StaticResource SonarQubeIconDrawingImage}"></Setter>
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>

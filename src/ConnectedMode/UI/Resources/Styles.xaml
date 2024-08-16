@@ -14,7 +14,7 @@
 
     <Style x:Key="ConnectedModeWindow" TargetType="Window" BasedOn="{StaticResource {x:Type Window}}">
         <Setter Property="ResizeMode" Value="CanResizeWithGrip" />
-        <Setter Property="Height" Value="550" />
+        <Setter Property="Height" Value="600" />
         <Setter Property="Width" Value="750" />
     </Style>
 
