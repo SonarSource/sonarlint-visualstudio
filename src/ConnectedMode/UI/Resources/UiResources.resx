@@ -315,4 +315,7 @@
   <data name="NoProjectsExistLabel" xml:space="preserve">
     <value>No project exists</value>
   </data>
+  <data name="SharedBindingConfigurationTooltip" xml:space="preserve">
+    <value>No shared binding configuration was detected</value>
+  </data>
 </root>

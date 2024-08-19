@@ -59,8 +59,19 @@
                 </TextBlock>
             </Grid>
 
-            <Button Grid.Column="1" HorizontalAlignment="Right" Content="{x:Static res:UiResources.UseSharedBindingButton}" Padding="5,0"  IsEnabled="{Binding Path=IsUseSharedBindingButtonEnabled}"
-                    Click="UseSharedBinding_OnClick"/>
+            <Button Grid.Column="1" HorizontalAlignment="Right" Content="{x:Static res:UiResources.UseSharedBindingButton}" Padding="5,0" 
+                    IsEnabled="{Binding Path=IsUseSharedBindingButtonEnabled}" ToolTipService.ShowOnDisabled="True"
+                    Click="UseSharedBinding_OnClick">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=IsSharedBindingConfigurationDetected}" Value="False">
+                                <Setter Property="ToolTip" Value="{x:Static res:UiResources.SharedBindingConfigurationTooltip}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
         </Grid>
 
         <Grid Grid.Row="0" VerticalAlignment="Center" Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToVisibleConverter}}">
