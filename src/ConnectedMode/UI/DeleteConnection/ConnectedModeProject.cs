@@ -23,4 +23,4 @@ using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
 
-public record ProjectInfo(ServerProject ServerProject, SolutionInfoModel SolutionInfo);
+public record ConnectedModeProject(ServerProject ServerProject, SolutionInfoModel SolutionInfo);

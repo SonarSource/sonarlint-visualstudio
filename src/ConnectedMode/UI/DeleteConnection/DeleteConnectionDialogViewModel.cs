@@ -24,13 +24,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
 
 public class DeleteConnectionDialogViewModel : ViewModelBase
 {
-    public DeleteConnectionDialogViewModel(IReadOnlyList<ProjectInfo> projectsToUnbind, ConnectionInfo connectionInfo)
+    public DeleteConnectionDialogViewModel(IReadOnlyList<ConnectedModeProject> projectsToUnbind, ConnectionInfo connectionInfo)
     {
         ProjectsToUnbind = projectsToUnbind;
         ConnectionInfo = connectionInfo;
     }
 
-    public IReadOnlyList<ProjectInfo> ProjectsToUnbind { get; }
+    public IReadOnlyList<ConnectedModeProject> ProjectsToUnbind { get; }
     public ConnectionInfo ConnectionInfo { get; }
 
     public bool DisplayProjectList => ProjectsToUnbind is not null && ProjectsToUnbind.Count > 0;

@@ -100,8 +100,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             }
 
             var deleteConnectionDialog = new DeleteConnectionDialog([
-                new ProjectInfo(new ServerProject("my proj key", "my proj name"), new SolutionInfoModel("my sol", SolutionType.Solution)),
-                new ProjectInfo(new ServerProject("my folder key", "my folder name"), new SolutionInfoModel("my folder", SolutionType.Folder))
+                new ConnectedModeProject(new ServerProject("my proj key", "my proj name"), new SolutionInfoModel("my sol", SolutionType.Solution)),
+                new ConnectedModeProject(new ServerProject("my folder key", "my folder name"), new SolutionInfoModel("my folder", SolutionType.Folder))
             ], connectionViewModel.Connection.Info);
             if(deleteConnectionDialog.ShowDialog(this) == true)
             {

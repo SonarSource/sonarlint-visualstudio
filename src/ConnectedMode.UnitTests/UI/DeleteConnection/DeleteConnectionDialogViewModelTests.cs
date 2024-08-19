@@ -31,7 +31,7 @@ public class DeleteConnectionDialogViewModelTests
     [TestMethod]
     public void Ctor_SetsProperties()
     {
-        var projectsToUnbind = Substitute.For<IReadOnlyList<ProjectInfo>>();
+        var projectsToUnbind = Substitute.For<IReadOnlyList<ConnectedModeProject>>();
         var connectionInfo = new ConnectionInfo(default, default);
         var testSubject = new DeleteConnectionDialogViewModel(projectsToUnbind, connectionInfo);
 
@@ -42,7 +42,7 @@ public class DeleteConnectionDialogViewModelTests
     [DataTestMethod]
     public void DisplayProjectList_MultipleProjectsToUnbind_ReturnsTrue()
     {
-        var projects = new[] { new ProjectInfo(new ServerProject("proj key", "proj name"), new SolutionInfoModel("my sol", SolutionType.Folder)) };
+        var projects = new[] { new ConnectedModeProject(new ServerProject("proj key", "proj name"), new SolutionInfoModel("my sol", SolutionType.Folder)) };
         var testSubject = new DeleteConnectionDialogViewModel(projects, new ConnectionInfo(default, default));
 
         testSubject.DisplayProjectList.Should().BeTrue();
