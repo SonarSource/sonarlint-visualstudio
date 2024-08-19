@@ -21,7 +21,6 @@
 using System.IO;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
-using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
 {
@@ -29,13 +28,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
     public class CredentialsViewModelTests
     {
         private CredentialsViewModel testSubject;
-        private Connection connection;
+        private ConnectionInfo connectionInfo;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            connection = new Connection("http://localhost:9000", ServerType.SonarQube, true);
-            testSubject = new CredentialsViewModel(connection);
+            connectionInfo = new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube);
+            testSubject = new CredentialsViewModel(connectionInfo);
         }
 
         [TestMethod]
@@ -217,7 +216,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void AccountSecurityUrl_ConnectionIsSonarCloud_ReturnsSonarCloudUrl()
         {
-            var viewModel = new CredentialsViewModel(new Connection("http://sonarcloud.io/myorg", ServerType.SonarCloud, true));
+            var viewModel = new CredentialsViewModel(new ConnectionInfo("http://sonarcloud.io/myorg", ConnectionServerType.SonarCloud));
 
             viewModel.AccountSecurityUrl.Should().Be(UiResources.SonarCloudAccountSecurityUrl);
         }
@@ -226,7 +225,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         public void AccountSecurityUrl_ConnectionIsSonarQube_ReturnsSonarQubeUrl()
         {
             var qubeUrl = "http://localhost:9000/";
-            var viewModel = new CredentialsViewModel(new Connection(qubeUrl, ServerType.SonarQube, true));
+            var viewModel = new CredentialsViewModel(new ConnectionInfo(qubeUrl, ConnectionServerType.SonarQube));
             var expectedUrl = Path.Combine(qubeUrl, UiResources.SonarQubeAccountSecurityUrl);
 
             viewModel.AccountSecurityUrl.Should().Be(expectedUrl);
