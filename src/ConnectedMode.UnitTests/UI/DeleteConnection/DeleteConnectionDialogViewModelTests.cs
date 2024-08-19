@@ -19,6 +19,8 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
+using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.DeleteConnection;
 
@@ -29,23 +31,36 @@ public class DeleteConnectionDialogViewModelTests
     [TestMethod]
     public void Ctor_SetsProperties()
     {
-        var projectsToUnbind = Substitute.For<IReadOnlyList<string>>();
+        var projectsToUnbind = Substitute.For<IReadOnlyList<ConnectedModeProject>>();
         var connectionInfo = new ConnectionInfo(default, default);
         var testSubject = new DeleteConnectionDialogViewModel(projectsToUnbind, connectionInfo);
 
-        testSubject.ConnectionInfoInfo.Should().BeSameAs(connectionInfo);
+        testSubject.ConnectionInfo.Should().BeSameAs(connectionInfo);
         testSubject.ProjectsToUnbind.Should().BeSameAs(projectsToUnbind);
     }
-    
+
     [DataTestMethod]
-    [DataRow(null, false)]
-    [DataRow(new string[0], false)]
-    [DataRow(new string[]{"a"}, true)]
-    [DataRow(new string[]{"a", "b", "c"}, true)]
-    public void DisplayProjectList_ReturnsBasedOnProjectList(IReadOnlyList<string> projects, bool result)
+    public void DisplayProjectList_MultipleProjectsToUnbind_ReturnsTrue()
     {
+        var projects = new[] { new ConnectedModeProject(new ServerProject("proj key", "proj name"), new SolutionInfoModel("my sol", SolutionType.Folder)) };
         var testSubject = new DeleteConnectionDialogViewModel(projects, new ConnectionInfo(default, default));
 
-        testSubject.DisplayProjectList.Should().Be(result);
+        testSubject.DisplayProjectList.Should().BeTrue();
+    }
+
+    [DataTestMethod]
+    public void DisplayProjectList_ProjectsIsNull_ReturnsFalse()
+    {
+        var testSubject = new DeleteConnectionDialogViewModel(null, new ConnectionInfo(default, default));
+
+        testSubject.DisplayProjectList.Should().BeFalse();
+    }
+
+    [DataTestMethod]
+    public void DisplayProjectList_NoProjectsToUnbind_ReturnsFalse()
+    {
+        var testSubject = new DeleteConnectionDialogViewModel([], new ConnectionInfo(default, default));
+
+        testSubject.DisplayProjectList.Should().BeFalse();
     }
 }
