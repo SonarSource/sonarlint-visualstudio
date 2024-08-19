@@ -295,7 +295,7 @@ jobs:
     displayName: 'Publish Artifact: vsix'
     inputs:
       ArtifactName: vsix
-    condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
+    condition: succeededOrFailed()  # always publish artifacts - helps with diagnosing failures
     
   - task: JfrogCliV2@1
     displayName: 'Publish Artifact vsix on repox'
@@ -308,7 +308,7 @@ jobs:
         --flat
         --build-name $(buildName)
         --build-number $(Build.BuildId)
-    condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
+    condition: succeededOrFailed()  # always publish artifacts - helps with diagnosing failures
   
   - task: JfrogCliV2@1
     displayName: 'Publish Build Info on repox'
@@ -316,6 +316,7 @@ jobs:
       jfrogPlatformConnection: 'jfrog_platform_qa_deployer_access_token'
       command: |
         jf rt bp $(buildName) $(Build.BuildId)
+    condition: succeededOrFailed()  # always publish build info - helps with diagnosing failures
 
   - task: VSTest@2
     displayName: VsTest - testAssemblies
