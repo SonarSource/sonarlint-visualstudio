@@ -28,9 +28,9 @@ public partial class DeleteConnectionDialog : Window
 {
     public DeleteConnectionDialogViewModel ViewModel { get; }
     
-    public DeleteConnectionDialog(IReadOnlyList<ConnectedModeProject> projectsToUnbind, ConnectionInfo connectionInfoInfo)
+    public DeleteConnectionDialog(IReadOnlyList<ConnectedModeProject> projectsToUnbind, ConnectionInfo connectionInfo)
     {
-        ViewModel = new DeleteConnectionDialogViewModel(projectsToUnbind, connectionInfoInfo);
+        ViewModel = new DeleteConnectionDialogViewModel(projectsToUnbind, connectionInfo);
         InitializeComponent();
     }
 

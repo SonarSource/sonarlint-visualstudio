@@ -6,18 +6,8 @@
         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
         xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
         Title="{x:Static res:UiResources.ProjectSelectionDialogTitle}"
-        HorizontalAlignment="Center"
-        MinWidth="500"
-        MinHeight="350"
-        Width="500"
-        Height="350"
         WindowStartupLocation="CenterOwner"
-        Icon="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarlint_32px.ico"
-        Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}"
-        FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
-        FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
         x:Name="This">
-
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -27,8 +17,11 @@
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
         </ResourceDictionary>
     </Window.Resources>
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource ConnectedModeWindow}"></Style>
+    </Window.Style>
 
-    <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="20">
+    <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -41,44 +34,54 @@
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" Margin="0, 0, 0, 15" TextWrapping="Wrap">
+        <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0">
             <Run Text="{x:Static res:UiResources.ProjectSelectionConnectionLabel}" />
             <InlineUIContainer Style="{StaticResource ConnectionInfoInlineWrapper}">
                 <ui:ConnectionInfoComponent ConnectionInfo="{Binding ConnectionInfo}" />
             </InlineUIContainer>
         </TextBlock>
 
-        <TextBox Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1"
-                 x:Name="ProjectSearchTextBox"
-                 VerticalAlignment="Top"
-                 Text="{Binding ProjectSearchTerm, UpdateSourceTrigger=PropertyChanged}" />
-        <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" IsHitTestVisible="False"
-                   Text="{x:Static res:UiResources.SearchForProjectPlaceholder}" VerticalAlignment="Center"
-                   HorizontalAlignment="Left" Margin="5,0,0,0" Foreground="DarkGray">
-            <TextBlock.Style>
-                <Style TargetType="{x:Type TextBlock}">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding Text, ElementName=ProjectSearchTextBox}" Value="">
-                            <Setter Property="Visibility" Value="Visible" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </TextBlock.Style>
-        </TextBlock>
+        <Grid Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Margin="0, 15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-        <ListBox Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2"
-                 Margin="0, 10, 0, 10"
-                 ItemsSource="{Binding ProjectResults}"
-                 SelectedItem="{Binding SelectedProject}"
-                 ItemTemplate="{StaticResource NameAndKeyListBoxItem}" />
-        <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{x:Static res:UiResources.NoProjectsExistLabel}" 
-                   Visibility="{Binding Path=NoProjectExists, Converter={StaticResource TrueToVisibleConverter}}"/>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:UiResources.ExistingProjectsLabel}" Style="{StaticResource HeaderTextBlock}"
+                       Margin="0,10"/>
+            <TextBox Grid.Row="1"
+                     x:Name="ProjectSearchTextBox"
+                     VerticalAlignment="Top"
+                     Text="{Binding ProjectSearchTerm, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Grid.Row="1" IsHitTestVisible="False"
+                       Text="{x:Static res:UiResources.SearchForProjectPlaceholder}" VerticalAlignment="Center"
+                       HorizontalAlignment="Left" Margin="5,0,0,0" Foreground="DarkGray">
+                <TextBlock.Style>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Text, ElementName=ProjectSearchTextBox}" Value="">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+            <ListBox Grid.Row="2"
+                     Margin="0, 10, 0, 10"
+                     ItemsSource="{Binding ProjectResults}"
+                     SelectedItem="{Binding SelectedProject}"
+                     ItemTemplate="{StaticResource NameAndKeyListBoxItem}" />
+
+            <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{x:Static res:UiResources.NoProjectsExistLabel}" 
+                       Visibility="{Binding Path=NoProjectExists, Converter={StaticResource TrueToVisibleConverter}}"/>
+        </Grid>
 
         <Button Grid.Column="1" Grid.Row="3" Content="{x:Static res:UiResources.SelectButton}"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
-                Margin="5, 0"
                 IsEnabled="{Binding IsProjectSelected}"
                 IsDefault="True"
                 Click="BindButton_OnClick" />
