@@ -6,6 +6,8 @@ variables:
 - group: artifactory_access
 - name: BuildParameters.solution
   value: SonarLint.VisualStudio.Integration.sln
+- name: buildName
+  value: 'sonarlint-visualstudio-2022'
 
 name: $(Build.BuildId)
 
@@ -293,8 +295,17 @@ jobs:
     displayName: 'Publish Artifact: vsix'
     inputs:
       ArtifactName: vsix
-    condition: succeededOrFailed()  # always publish artefacts - helps with diagnosing failures
-  
+    condition: succeededOrFailed()  # always publish artifacts - helps with diagnosing failures
+    
+  - task: JfrogCliV2@1
+    displayName: 'Publish Artifact vsix on repox'
+    inputs:
+      jfrogPlatformConnection: 'jfrog_platform_qa_deployer_access_token'
+      command: |
+        jf rt upload $(Build.ArtifactStagingDirectory)\(*) sonarsource-public-qa/org/sonarsource/sonarlint/visualstudio/$(buildName)/$(SONAR_PROJECT_VERSION).$(Build.BuildId)/{1} --flat --build-name $(buildName) --build-number $(Build.BuildId)
+        jf rt bp $(buildName) $(Build.BuildId)
+    condition: succeededOrFailed()  # always publish artifacts - helps with diagnosing failures
+
   - task: VSTest@2
     displayName: VsTest - testAssemblies
     inputs:
@@ -315,6 +326,14 @@ jobs:
   - task: SonarCloudPublish@2
     displayName: Publish Quality Gate Result (VS2022 only)
     condition: and(succeeded(), eq(variables['vsTargetVersion'], '2022'))
+
+  - task: JFrogBuildPromotion@1
+    inputs:
+      artifactoryConnection: 'repox_promoter_token'
+      buildName: '$(buildName)'
+      buildNumber: '$(Build.BuildId)'
+      targetRepo: 'sonarsource-public-builds'
+      status: 'it-passed'
 
   - task: PowerShell@2
     displayName: Set trigger dogfood VSIX build tag (VS2022 only)
