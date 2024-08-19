@@ -21,7 +21,6 @@
 using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
-using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageBinding;
 
@@ -31,8 +30,8 @@ public class ManageBindingViewModelTests
     private ManageBindingViewModel testSubject;
     private readonly SolutionInfoModel solutionInfoModel = new("VS Sample 2022", SolutionType.Solution);
     private readonly ServerProject serverProject = new ("a-project", "A Project");
-    private readonly Connection SonarQubeConnection = new ("http://localhost:9000", ServerType.SonarQube, true);
-    private readonly Connection SonarCloudConnection = new ("http://sonarcloud.io", ServerType.SonarCloud, true);
+    private readonly ConnectionInfo sonarQubeConnectionInfo = new ("http://localhost:9000", ConnectionServerType.SonarQube);
+    private readonly ConnectionInfo sonarCloudConnectionInfo = new ("http://sonarcloud.io", ConnectionServerType.SonarCloud);
 
     [TestInitialize]
     public void TestInitialize()
@@ -113,7 +112,7 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public void IsConnectionSelected_ProjectIsSelected_ReturnsTrue()
     {
-        testSubject.SelectedConnection = SonarQubeConnection;
+        testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
 
         testSubject.IsConnectionSelected.Should().BeTrue();
     }
@@ -121,7 +120,7 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public void IsConnectionSelected_ProjectIsNotSelected_ReturnsFalse()
     {
-        testSubject.SelectedConnection = null;
+        testSubject.SelectedConnectionInfo = null;
 
         testSubject.IsConnectionSelected.Should().BeFalse();
     }
@@ -129,10 +128,10 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public void SelectedConnection_NewConnectionIsSet_ClearsSelectedProject()
     {
-        testSubject.SelectedConnection = SonarQubeConnection;
+        testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
         testSubject.SelectedProject = serverProject;
 
-        testSubject.SelectedConnection = SonarCloudConnection;
+        testSubject.SelectedConnectionInfo = sonarCloudConnectionInfo;
 
         testSubject.SelectedProject.Should().BeNull();
     }
@@ -140,10 +139,10 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public void SelectedConnection_SameConnectionIsSet_DoesNotClearSelectedProject()
     {
-        testSubject.SelectedConnection = SonarQubeConnection;
+        testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
         testSubject.SelectedProject = serverProject;
 
-        testSubject.SelectedConnection = SonarQubeConnection;
+        testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
 
         testSubject.SelectedProject.Should().Be(serverProject);
     }
@@ -155,10 +154,10 @@ public class ManageBindingViewModelTests
         testSubject.PropertyChanged += eventHandler;
         eventHandler.ReceivedCalls().Should().BeEmpty();
 
-        testSubject.SelectedConnection = SonarQubeConnection;
+        testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
 
         eventHandler.Received().Invoke(testSubject,
-            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.SelectedConnection)));
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.SelectedConnectionInfo)));
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsConnectionSelected)));
         eventHandler.Received().Invoke(testSubject,
@@ -189,12 +188,12 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public void Unbind_SetsConnectionInfoToNull()
     {
-        testSubject.SelectedConnection = SonarQubeConnection;
+        testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
         testSubject.SelectedProject = serverProject;
 
         testSubject.Unbind();
 
-        testSubject.SelectedConnection.Should().BeNull();
+        testSubject.SelectedConnectionInfo.Should().BeNull();
         testSubject.SelectedProject.Should().BeNull();
     }
 
@@ -262,7 +261,7 @@ public class ManageBindingViewModelTests
     {
         testSubject.BoundProject = null;
         testSubject.ProgressStatus = null;
-        testSubject.SelectedConnection = SonarQubeConnection;
+        testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
 
         testSubject.IsSelectProjectButtonEnabled.Should().BeTrue();
     }
@@ -272,7 +271,7 @@ public class ManageBindingViewModelTests
     {
         testSubject.BoundProject = null;
         testSubject.ProgressStatus = "in progress";
-        testSubject.SelectedConnection = SonarQubeConnection;
+        testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
 
         testSubject.IsSelectProjectButtonEnabled.Should().BeFalse();
     }
@@ -283,7 +282,7 @@ public class ManageBindingViewModelTests
     public void IsSelectProjectButtonEnabled_ConnectionIsNotSelected_ReturnsFalse(string bindingStatus)
     {
         testSubject.ProgressStatus = bindingStatus;
-        testSubject.SelectedConnection = null;
+        testSubject.SelectedConnectionInfo = null;
 
         testSubject.IsSelectProjectButtonEnabled.Should().BeFalse();
     }
@@ -293,7 +292,7 @@ public class ManageBindingViewModelTests
     {
         testSubject.BoundProject = serverProject;
         testSubject.ProgressStatus = null;
-        testSubject.SelectedConnection = SonarQubeConnection;
+        testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
 
         testSubject.IsSelectProjectButtonEnabled.Should().BeFalse();
     }

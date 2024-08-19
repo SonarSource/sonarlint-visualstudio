@@ -20,13 +20,16 @@
 
 namespace SonarLint.VisualStudio.ConnectedMode;
 
-public static class ConnectionInfo
+public enum ConnectionServerType
 {
-    public enum ServerType
-    {
-        SonarQube,
-        SonarCloud
-    }
+    SonarQube,
+    SonarCloud
+}
 
-    public record Connection(string Id, ServerType ServerType, bool EnableSmartNotifications);
+public record ConnectionInfo(string Id, ConnectionServerType ServerType);
+
+public class Connection(ConnectionInfo info, bool enableSmartNotifications = true)
+{
+    public ConnectionInfo Info { get; } = info;
+    public bool EnableSmartNotifications { get; set; } = enableSmartNotifications;
 }

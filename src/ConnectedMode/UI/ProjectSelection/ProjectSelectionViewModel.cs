@@ -26,8 +26,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 public class ProjectSelectionViewModel : ViewModelBase
 {
     public ObservableCollection<ServerProject> ProjectResults { get; } = [];
-    
-    public ConnectionInfo.Connection Connection { get; }
+
+    public ConnectionInfo ConnectionInfo { get; }
 
     public bool NoProjectExists => ProjectResults.Count == 0;
 
@@ -58,9 +58,9 @@ public class ProjectSelectionViewModel : ViewModelBase
     private string projectSearchTerm;
     private ServerProject selectedProject;
 
-    public ProjectSelectionViewModel(ConnectionInfo.Connection connection)
+    public ProjectSelectionViewModel(ConnectionInfo connectionInfo)
     {
-        Connection = connection;
+        ConnectionInfo = connectionInfo;
     }
 
     public void InitProjects(List<ServerProject> projects)
