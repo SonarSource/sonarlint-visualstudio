@@ -19,44 +19,23 @@
  */
 
 using SonarLint.VisualStudio.Core.WPF;
-using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 
 public class ConnectionViewModel : ViewModelBase
 {
-    private readonly string name;
-    private readonly string serverType;
-    private bool enableSmartNotifications;
-
     public Connection Connection { get; }
 
-    public string Name      
-    {
-        get => name;
-        private init
-        {
-            name = value;
-            RaisePropertyChanged();
-        }
-    }
+    public string Name => Connection.Info.Id;
 
-    public string ServerType
-    {
-        get => serverType;
-        private init
-        {
-            serverType = value;
-            RaisePropertyChanged();
-        }
-    }
+    public string ServerType => Connection.Info.ServerType.ToString();
 
     public bool EnableSmartNotifications
     {
-        get => enableSmartNotifications;
+        get => Connection.EnableSmartNotifications;
         set
         {
-            enableSmartNotifications = value;
+            Connection.EnableSmartNotifications = value;
             RaisePropertyChanged();
         }
     }
@@ -64,8 +43,6 @@ public class ConnectionViewModel : ViewModelBase
     public ConnectionViewModel(Connection connection)
     {
         Connection = connection;
-        Name = connection.Id;
-        ServerType = connection.ServerType.ToString();
         EnableSmartNotifications = connection.EnableSmartNotifications;
     }
 }
