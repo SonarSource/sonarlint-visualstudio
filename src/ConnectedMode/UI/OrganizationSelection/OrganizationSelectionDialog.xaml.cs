@@ -39,7 +39,7 @@ public partial class OrganizationSelectionDialog : Window
         DialogResult = true;
     }
 
-    private void ManualOrganizationSelectionButton_OnClick(object sender, RoutedEventArgs e)
+    private void ChooseAnotherOrganizationButton_OnClick(object sender, RoutedEventArgs e)
     {
         ViewModel.SelectedOrganization = null;
         var manualOrganizationSelectionDialog = new ManualOrganizationSelectionDialog();

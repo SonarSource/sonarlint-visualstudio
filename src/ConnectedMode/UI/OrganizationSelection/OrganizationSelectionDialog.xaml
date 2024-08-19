@@ -6,16 +6,9 @@
         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
         xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
         Title="{x:Static ui:UiResources.OrganizationSelectionDialogTitle}"
-        MaxWidth="800"
-        Height="400"
-        ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         FocusManager.FocusedElement="{Binding ElementName=OrganizationList}"
-        Background="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}"
-        FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
-        FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
         x:Name="OrganizationSelectionDialogWindow">
-
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -25,6 +18,9 @@
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
         </ResourceDictionary>
     </Window.Resources>
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource ConnectedModeWindow}"></Style>
+    </Window.Style>
 
     <Grid DataContext="{Binding ElementName=OrganizationSelectionDialogWindow, Path=ViewModel}" Margin="10">
         <Grid.RowDefinitions>
@@ -33,35 +29,49 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <TextBlock Grid.Row="0" Text="{x:Static ui:UiResources.SelectOrganizationLabel}"/>
-        <ListBox x:Name="OrganizationList"
-                 ScrollViewer.CanContentScroll="True"
-                 MaxHeight="350"
-                 Grid.Row="1" 
-                 Margin="0, 10, 0, 10"
-                 ItemsSource="{Binding Organizations}"
-                 SelectedItem="{Binding SelectedOrganization, Mode=TwoWay}"
-                 Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}"
-                 ItemTemplate="{StaticResource NameAndKeyListBoxItem}" />
-        <TextBlock Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{x:Static ui:UiResources.NoOrganizationExistsLabel}" 
-                   Visibility="{Binding Path=NoOrganizationExists, Converter={StaticResource TrueToVisibleConverter}}"/>
-
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="1" Margin="0,20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0"
-                    HorizontalAlignment="Left"
-                    Click="ManualOrganizationSelectionButton_OnClick"
-                    Padding="4, 1"
-                    Content="{x:Static ui:UiResources.OpenManualOrganizationSelectionButton}"/>
-            <StackPanel Grid.Column="1" Style="{StaticResource DialogButtonsPanel}">
-                <vsui:DialogButton Content="{x:Static ui:UiResources.OkButton}"
-                                   IsDefault="True"
-                                   Click="OkButton_OnClick"
-                                   IsEnabled="{Binding IsValidSelectedOrganization}" />
-                <vsui:DialogButton Content="{x:Static ui:UiResources.CancelButton}" IsCancel="True" />
-            </StackPanel>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static ui:UiResources.ExistingOrganizationsLabel}" 
+                       Style="{StaticResource HeaderTextBlock}"/>
+            <Button Grid.Row="0" Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    Click="ChooseAnotherOrganizationButton_OnClick"
+                    Padding="10,2"
+                    Margin="0"
+                    Content="{x:Static ui:UiResources.ChooseAnotherOrganizationButton}"/>
+
+            <ListBox x:Name="OrganizationList"
+                     ScrollViewer.CanContentScroll="True"
+                     Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                     Margin="0, 10, 0, 10"
+                     ItemsSource="{Binding Organizations}"
+                     SelectedItem="{Binding SelectedOrganization, Mode=TwoWay}"
+                     ItemTemplate="{StaticResource NameAndKeyListBoxItem}"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{x:Static ui:UiResources.NoOrganizationExistsLabel}" 
+                                   Visibility="{Binding Path=NoOrganizationExists, Converter={StaticResource TrueToVisibleConverter}}"/>
+        </Grid>
+
+        <Grid Grid.Row="2" HorizontalAlignment="Right">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="{x:Static ui:UiResources.OkButton}"
+                    IsDefault="True"
+                    Click="OkButton_OnClick"
+                    IsEnabled="{Binding IsValidSelectedOrganization}" 
+            />
+            <Button Grid.Column="1" Content="{x:Static ui:UiResources.CancelButton}" IsCancel="True" />
         </Grid>
     </Grid>
 </Window>

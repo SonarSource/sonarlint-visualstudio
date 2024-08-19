@@ -14,12 +14,7 @@
         SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         FocusManager.FocusedElement="{Binding ElementName=OrganizationComboBox}"
-        Background="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}"
-        FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
-        FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
-        Foreground="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"
         x:Name="This">
-
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -32,6 +27,9 @@
                                                   TrueValue="Collapsed" />
         </ResourceDictionary>
     </Window.Resources>
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}"></Style>
+    </Window.Style>
 
     <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="15">
         <Grid.RowDefinitions>
@@ -68,11 +66,11 @@
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" HorizontalAlignment="Left" Text="{x:Static res:UiResources.AreYouSureConfirmationLabel}" />
             <StackPanel Grid.Column="1" Style="{StaticResource DialogButtonsPanel}">
-                <vsui:DialogButton Content="{x:Static res:UiResources.DeleteButton}"
+                <Button Content="{x:Static res:UiResources.DeleteButton}"
                                    IsDefault="True"
                                    Click="DeleteButton_OnClick"
                                    IsEnabled="True" />
-                <vsui:DialogButton Content="{x:Static res:UiResources.CancelButton}" IsCancel="True" />
+                <Button Content="{x:Static res:UiResources.CancelButton}" IsCancel="True" />
             </StackPanel>
         </Grid>
     </Grid>
