@@ -565,6 +565,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No shared binding configuration was detected.
+        /// </summary>
+        public static string SharedBindingConfigurationTooltip {
+            get {
+                return ResourceManager.GetString("SharedBindingConfigurationTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Smart Notifications.
         /// </summary>
         public static string SmartNotificationsCheckboxLabel {
