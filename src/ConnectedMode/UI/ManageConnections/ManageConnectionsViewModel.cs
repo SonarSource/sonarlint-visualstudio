@@ -20,7 +20,6 @@
 
 using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.Core.WPF;
-using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {

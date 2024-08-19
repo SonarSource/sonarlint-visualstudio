@@ -32,15 +32,14 @@ public class ProjectSelectionViewModelTests
         new ServerProject("another-project", "Another Project")
     ];
 
-    private static readonly ConnectionInfo.Connection AConnection = new("http://localhost:9000",
-        ConnectionInfo.ServerType.SonarQube, true);
+    private static readonly ConnectionInfo AConnectionInfo = new("http://localhost:9000", ConnectionServerType.SonarQube);
     
     private ProjectSelectionViewModel testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new ProjectSelectionViewModel(AConnection);
+        testSubject = new ProjectSelectionViewModel(AConnectionInfo);
     }
 
     [TestMethod]

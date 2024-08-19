@@ -30,10 +30,10 @@ public class DeleteConnectionDialogViewModelTests
     public void Ctor_SetsProperties()
     {
         var projectsToUnbind = Substitute.For<IReadOnlyList<string>>();
-        var connectionInfo = new ConnectionInfo.Connection(default, default, default);
+        var connectionInfo = new ConnectionInfo(default, default);
         var testSubject = new DeleteConnectionDialogViewModel(projectsToUnbind, connectionInfo);
 
-        testSubject.ConnectionInfo.Should().BeSameAs(connectionInfo);
+        testSubject.ConnectionInfoInfo.Should().BeSameAs(connectionInfo);
         testSubject.ProjectsToUnbind.Should().BeSameAs(projectsToUnbind);
     }
     
@@ -44,7 +44,7 @@ public class DeleteConnectionDialogViewModelTests
     [DataRow(new string[]{"a", "b", "c"}, true)]
     public void DisplayProjectList_ReturnsBasedOnProjectList(IReadOnlyList<string> projects, bool result)
     {
-        var testSubject = new DeleteConnectionDialogViewModel(projects, new ConnectionInfo.Connection(default, default, default));
+        var testSubject = new DeleteConnectionDialogViewModel(projects, new ConnectionInfo(default, default));
 
         testSubject.DisplayProjectList.Should().Be(result);
     }

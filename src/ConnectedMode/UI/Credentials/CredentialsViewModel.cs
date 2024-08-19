@@ -22,18 +22,17 @@ using System.Collections.ObjectModel;
 using System.IO;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
-using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
-public class CredentialsViewModel(Connection connection) : ViewModelBase
+public class CredentialsViewModel(ConnectionInfo connectionInfo) : ViewModelBase
 {
     private string token;
     private string selectedAuthenticationType = UiResources.AuthenticationTypeOptionToken;
     private string username;
     private string password;
 
-    public Connection Connection { get; } = connection;
+    public ConnectionInfo ConnectionInfo { get; } = connectionInfo;
     public ObservableCollection<string> AuthenticationType { get; } = [UiResources.AuthenticationTypeOptionToken, UiResources.AuthenticationTypeOptionCredentials];
 
     public string SelectedAuthenticationType
@@ -97,7 +96,7 @@ public class CredentialsViewModel(Connection connection) : ViewModelBase
     private bool AreCredentialsProvided => IsPasswordProvided && IsUsernameProvided;
     private bool IsUsernameProvided => IsValueFilled(Username);
     private bool IsPasswordProvided => IsValueFilled(Password);
-    public string AccountSecurityUrl => Connection.ServerType == ServerType.SonarCloud ? UiResources.SonarCloudAccountSecurityUrl : Path.Combine(Connection.Id, UiResources.SonarQubeAccountSecurityUrl);
+    public string AccountSecurityUrl => ConnectionInfo.ServerType == ConnectionServerType.SonarCloud ? UiResources.SonarCloudAccountSecurityUrl : Path.Combine(ConnectionInfo.Id, UiResources.SonarQubeAccountSecurityUrl);
 
     private bool IsValueFilled(string value)
     {

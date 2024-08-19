@@ -21,14 +21,13 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
-using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 public sealed partial class ConnectionInfoComponent : UserControl
 {
-    public static readonly DependencyProperty ConnectionInfoProp = DependencyProperty.Register(nameof(ConnectionInfo), typeof(Connection), typeof(ConnectionInfoComponent));
+    public static readonly DependencyProperty ConnectionInfoProp = DependencyProperty.Register(nameof(ConnectionInfo), typeof(ConnectionInfo), typeof(ConnectionInfoComponent));
     public static readonly DependencyProperty FontWeightProp = DependencyProperty.Register(nameof(TextFontWeight), typeof(FontWeight), typeof(ConnectionInfoComponent), new PropertyMetadata(FontWeights.DemiBold));
 
     public ConnectionInfoComponent()
@@ -36,9 +35,9 @@ public sealed partial class ConnectionInfoComponent : UserControl
         InitializeComponent();
     }
 
-    public Connection ConnectionInfo
+    public ConnectionInfo ConnectionInfo
     {
-        get => (Connection)GetValue(ConnectionInfoProp);
+        get => (ConnectionInfo)GetValue(ConnectionInfoProp);
         set => SetValue(ConnectionInfoProp, value);
     }
 
