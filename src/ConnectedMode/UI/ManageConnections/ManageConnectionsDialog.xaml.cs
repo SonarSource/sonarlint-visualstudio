@@ -22,7 +22,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
+using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 using SonarLint.VisualStudio.Core;
 
@@ -97,7 +99,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 return;
             }
 
-            var deleteConnectionDialog = new DeleteConnectionDialog(["my proj", "vs sample 2019", "vs sample 2022"], connectionViewModel.Connection.Info);
+            var deleteConnectionDialog = new DeleteConnectionDialog([
+                new ConnectedModeProject(new ServerProject("my proj key", "my proj name"), new SolutionInfoModel("my sol", SolutionType.Solution)),
+                new ConnectedModeProject(new ServerProject("my folder key", "my folder name"), new SolutionInfoModel("my folder", SolutionType.Folder))
+            ], connectionViewModel.Connection.Info);
             if(deleteConnectionDialog.ShowDialog(this) == true)
             {
                 ViewModel.RemoveConnection(connectionViewModel);
