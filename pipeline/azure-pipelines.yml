@@ -6,12 +6,8 @@ variables:
 - group: artifactory_access
 - name: BuildParameters.solution
   value: SonarLint.VisualStudio.Integration.sln
-- name: ARTIFACTORY_DEPLOY_TOKEN
-  value: $[variables.ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN]
 - name: buildName
   value: 'sonarlint-visualstudio-2022'
-- name: vsixPath
-  value: '$(Build.ArtifactStagingDirectory)\(*)'
 
 name: $(Build.BuildId)
 
@@ -307,7 +303,7 @@ jobs:
       jfrogPlatformConnection: 'jfrog_platform_qa_deployer_access_token'
       command:
         jf rt upload
-        $(vsixPath)
+        '$(Build.ArtifactStagingDirectory)\(*)'
         sonarsource-public-qa/org/sonarsource/sonarlint/visualstudio/$(buildName)/$(SONAR_PROJECT_VERSION).$(Build.BuildId)/{1}
         --flat
         --build-name $(buildName)
