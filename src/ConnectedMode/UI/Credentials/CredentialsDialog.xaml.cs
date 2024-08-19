@@ -25,7 +25,6 @@ using System.Windows.Input;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
-using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
 {
@@ -34,11 +33,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
     {
         private readonly IBrowserService browserService;
 
-        public CredentialsDialog(IBrowserService browserService, Connection connection, bool withNextButton)
+        public CredentialsDialog(IBrowserService browserService, ConnectionInfo connectionInfo, bool withNextButton)
         {
             Owner = Application.Current.MainWindow;
             this.browserService = browserService;
-            ViewModel = new CredentialsViewModel(connection);
+            ViewModel = new CredentialsViewModel(connectionInfo);
             InitializeComponent();
 
             ConfirmationBtn.Content = withNextButton ? UiResources.NextButton : UiResources.OkButton;

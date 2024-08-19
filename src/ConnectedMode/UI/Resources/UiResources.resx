@@ -330,4 +330,7 @@
   <data name="ExistingProjectsLabel" xml:space="preserve">
     <value>Existing Projects</value>
   </data>
+  <data name="SharedBindingConfigurationTooltip" xml:space="preserve">
+    <value>No shared binding configuration was detected</value>
+  </data>
 </root>

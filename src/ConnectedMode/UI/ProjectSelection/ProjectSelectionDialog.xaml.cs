@@ -28,10 +28,9 @@ public partial class ProjectSelectionDialog
 {
     public ProjectSelectionViewModel ViewModel { get; }
 
-    public ProjectSelectionDialog(ConnectionInfo.Connection connection)
+    public ProjectSelectionDialog(ConnectionInfo connectionInfo)
     {
-        Owner = Application.Current.MainWindow;
-        ViewModel = new ProjectSelectionViewModel(connection);
+        ViewModel = new ProjectSelectionViewModel(connectionInfo);
         InitializeComponent();
     }
 

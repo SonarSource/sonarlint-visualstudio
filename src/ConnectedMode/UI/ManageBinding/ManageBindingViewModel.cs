@@ -22,16 +22,16 @@ using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
-using static SonarLint.VisualStudio.ConnectedMode.ConnectionInfo;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
 public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelBase
 {
     private ServerProject boundProject;
-    private Connection selectedConnection;
+    private ConnectionInfo selectedConnectionInfo;
     private ServerProject selectedProject;
     private string progressStatus;
+    private bool isSharedBindingConfigurationDetected;
 
     public SolutionInfoModel SolutionInfo { get; } = solutionInfo;
 
@@ -49,16 +49,16 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
         }
     }
 
-    public Connection SelectedConnection    
+    public ConnectionInfo SelectedConnectionInfo    
     {
-        get => selectedConnection;
+        get => selectedConnectionInfo;
         set
         {
-            if(value == selectedConnection)
+            if(value == selectedConnectionInfo)
             {
                 return;
             }
-            selectedConnection = value;
+            selectedConnectionInfo = value;
             SelectedProject = null;
             RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsConnectionSelected));
@@ -66,7 +66,7 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
         }
     }
 
-    public ObservableCollection<Connection> Connections { get; } = [];
+    public ObservableCollection<ConnectionInfo> Connections { get; } = [];
 
     public ServerProject SelectedProject   
     {
@@ -98,25 +98,36 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
         }
     }
 
+    public bool IsSharedBindingConfigurationDetected    
+    {
+        get => isSharedBindingConfigurationDetected;
+        set
+        {
+            isSharedBindingConfigurationDetected = value;
+            RaisePropertyChanged();
+            RaisePropertyChanged(nameof(IsUseSharedBindingButtonEnabled));
+        }
+    }
+
     public bool IsCurrentProjectBound => BoundProject != null;
     public bool IsProjectSelected => SelectedProject != null;
-    public bool IsConnectionSelected => SelectedConnection != null;
+    public bool IsConnectionSelected => SelectedConnectionInfo != null;
     public bool IsConnectionSelectionEnabled => !IsOperationInProgress && !IsCurrentProjectBound;
     public bool IsOperationInProgress => !string.IsNullOrEmpty(ProgressStatus);
     public bool IsBindButtonEnabled => IsProjectSelected && !IsOperationInProgress;
     public bool IsSelectProjectButtonEnabled => IsConnectionSelected && !IsOperationInProgress && !IsCurrentProjectBound;
     public bool IsUnbindButtonEnabled => !IsOperationInProgress;
     public bool IsManageConnectionsButtonEnabled => !IsOperationInProgress;
-    public bool IsUseSharedBindingButtonEnabled => !IsOperationInProgress;
+    public bool IsUseSharedBindingButtonEnabled => !IsOperationInProgress && IsSharedBindingConfigurationDetected;
     public bool IsExportButtonEnabled => !IsOperationInProgress && IsCurrentProjectBound;
 
     public void InitializeConnections()
     {
        Connections.Clear();
-       List<Connection> slCoreConnections =
+       List<ConnectionInfo> slCoreConnections =
        [
-           new Connection("http://localhost:9000", ServerType.SonarQube, true),
-           new Connection("https://sonarcloud.io/myOrg", ServerType.SonarCloud, false)
+           new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube),
+           new ConnectionInfo("https://sonarcloud.io/myOrg", ConnectionServerType.SonarCloud)
        ];
        slCoreConnections.ForEach(conn => Connections.Add(conn));
     }
@@ -139,14 +150,14 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
     public void Unbind()
     {
         BoundProject = null;
-        SelectedConnection = null;
+        SelectedConnectionInfo = null;
         SelectedProject = null;
     }
 
     public async Task UseSharedBindingAsync()
     {
         // this is only for demo purposes. It should be replaced with real SlCore binding logic
-        SelectedConnection = Connections.FirstOrDefault();
+        SelectedConnectionInfo = Connections.FirstOrDefault();
         SelectedProject = new ServerProject("Myproj", "My proj");
         await BindAsync();
     }

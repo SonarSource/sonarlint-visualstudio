@@ -57,11 +57,20 @@
                         </TextBlock>
                     </Grid>
 
-                    <Button Grid.Column="1" HorizontalAlignment="Right" Content="{x:Static res:UiResources.UseSharedBindingButton}" 
-                            IsEnabled="{Binding Path=IsUseSharedBindingButtonEnabled}"
-                            Click="UseSharedBinding_OnClick" VerticalAlignment="Center"
-                            Margin="10,0"/>
-                </Grid>
+            <Button Grid.Column="1" HorizontalAlignment="Right" Content="{x:Static res:UiResources.UseSharedBindingButton}" Padding="5,0" 
+                    IsEnabled="{Binding Path=IsUseSharedBindingButtonEnabled}" ToolTipService.ShowOnDisabled="True"
+                    Click="UseSharedBinding_OnClick">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=IsSharedBindingConfigurationDetected}" Value="False">
+                                <Setter Property="ToolTip" Value="{x:Static res:UiResources.SharedBindingConfigurationTooltip}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </Grid>
 
                 <Grid VerticalAlignment="Center" Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToVisibleConverter}}">
                     <Grid.ColumnDefinitions>
@@ -116,9 +125,8 @@
 
 
             <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="{x:Static res:UiResources.ConnectionToBindLabel}" Margin="0,15,0,5"/>
-            <ComboBox x:Name="ConnectionsCombobox" Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Path=Connections}" 
-                      SelectedItem="{Binding Path=SelectedConnection}" IsEnabled="{Binding Path=IsConnectionSelectionEnabled}"
-                      VerticalContentAlignment="Center">
+            <ComboBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Path=Connections}" 
+                      SelectedItem="{Binding Path=SelectedConnectionInfo}" IsEnabled="{Binding Path=IsConnectionSelectionEnabled}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <ui:ConnectionInfoComponent ConnectionInfo="{Binding Path=.}" TextFontWeight="Normal" ImageMargin="0" TextAndIconVerticalAlignment="Center"/>
