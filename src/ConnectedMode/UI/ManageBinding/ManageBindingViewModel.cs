@@ -32,6 +32,7 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
     private Connection selectedConnection;
     private ServerProject selectedProject;
     private string progressStatus;
+    private bool isSharedBindingConfigurationDetected;
 
     public SolutionInfoModel SolutionInfo { get; } = solutionInfo;
 
@@ -98,6 +99,17 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
         }
     }
 
+    public bool IsSharedBindingConfigurationDetected    
+    {
+        get => isSharedBindingConfigurationDetected;
+        set
+        {
+            isSharedBindingConfigurationDetected = value;
+            RaisePropertyChanged();
+            RaisePropertyChanged(nameof(IsUseSharedBindingButtonEnabled));
+        }
+    }
+
     public bool IsCurrentProjectBound => BoundProject != null;
     public bool IsProjectSelected => SelectedProject != null;
     public bool IsConnectionSelected => SelectedConnection != null;
@@ -107,7 +119,7 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
     public bool IsSelectProjectButtonEnabled => IsConnectionSelected && !IsOperationInProgress && !IsCurrentProjectBound;
     public bool IsUnbindButtonEnabled => !IsOperationInProgress;
     public bool IsManageConnectionsButtonEnabled => !IsOperationInProgress;
-    public bool IsUseSharedBindingButtonEnabled => !IsOperationInProgress;
+    public bool IsUseSharedBindingButtonEnabled => !IsOperationInProgress && IsSharedBindingConfigurationDetected;
     public bool IsExportButtonEnabled => !IsOperationInProgress && IsCurrentProjectBound;
 
     public void InitializeConnections()
