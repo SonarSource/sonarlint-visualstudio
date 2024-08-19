@@ -18,20 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
+using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
 
-public class DeleteConnectionDialogViewModel : ViewModelBase
-{
-    public DeleteConnectionDialogViewModel(IReadOnlyList<ProjectInfo> projectsToUnbind, ConnectionInfo connectionInfo)
-    {
-        ProjectsToUnbind = projectsToUnbind;
-        ConnectionInfo = connectionInfo;
-    }
-
-    public IReadOnlyList<ProjectInfo> ProjectsToUnbind { get; }
-    public ConnectionInfo ConnectionInfo { get; }
-
-    public bool DisplayProjectList => ProjectsToUnbind is not null && ProjectsToUnbind.Count > 0;
-}
+public record ProjectInfo(ServerProject ServerProject, SolutionInfoModel SolutionInfo);

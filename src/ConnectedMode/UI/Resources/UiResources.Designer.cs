@@ -124,6 +124,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to bound to.
+        /// </summary>
+        public static string BoundToLabel {
+            get {
+                return ResourceManager.GetString("BoundToLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string CancelButton {

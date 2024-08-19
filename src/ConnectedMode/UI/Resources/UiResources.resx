@@ -318,4 +318,7 @@
   <data name="SharedBindingConfigurationTooltip" xml:space="preserve">
     <value>No shared binding configuration was detected</value>
   </data>
+  <data name="BoundToLabel" xml:space="preserve">
+    <value>bound to</value>
+  </data>
 </root>
