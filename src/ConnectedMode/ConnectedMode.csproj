@@ -40,20 +40,13 @@
     <None Remove="UI\Credentials\CredentialsWnd.xaml" />
     <None Remove="UI\ManageBinding\ManageBindingDialog.xaml" />
     <None Remove="UI\Credentials\CredentialsDialog.xaml" />
-    <None Remove="UI\Resources\SonarCloud.png" />
-    <None Remove="UI\Resources\SonarCloudIcon.png" />
+    <None Remove="UI\Resources\LogoImages.xaml" />
     <None Remove="UI\Resources\sonarlint_32px.ico" />
-    <None Remove="UI\Resources\SonarQube.png" />
-    <None Remove="UI\Resources\SonarQubeIcon.png" />
     <None Remove="UI\Resources\Styles.xaml" />
     <None Remove="UI\ServerSelection\ServerSelectionDialog.xaml" />
-    <Resource Include="UI\Resources\SonarCloud.png" />
-    <Resource Include="UI\Resources\SonarCloudIcon.png" />
     <Resource Include="UI\Resources\sonarlint_32px.ico">
       <CopyToOutputDirectory></CopyToOutputDirectory>
     </Resource>
-    <Resource Include="UI\Resources\SonarQube.png" />
-    <Resource Include="UI\Resources\SonarQubeIcon.png" />
     <EmbeddedResource Include="Install\SonarLintTargets.xml" />
   </ItemGroup>
 
@@ -67,6 +60,7 @@
     <Page Include="UI\Resources\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UI\Resources\LogoImages.xaml" />
     <Page Include="UI\WarningMessage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
