@@ -239,11 +239,38 @@ public class ManageBindingViewModelTests
     [TestMethod]
     [DataRow("binding...", false)]
     [DataRow(null, true)]
-    public void IsUseSharedBindingButtonEnabled_ReturnsTrueOnlyWhenNoBindingIsInProgress(string bindingStatus, bool expectedResult)
+    public void IsUseSharedBindingButtonEnabled_SharedBindingConfigurationIsDetected_ReturnsTrueOnlyWhenNoBindingIsInProgress(string bindingStatus, bool expectedResult)
     {
+        testSubject.IsSharedBindingConfigurationDetected = true;
         testSubject.ProgressStatus = bindingStatus;
 
         testSubject.IsUseSharedBindingButtonEnabled.Should().Be(expectedResult);
+    }
+
+    [TestMethod]
+    [DataRow("binding...")]
+    [DataRow(null)]
+    public void IsUseSharedBindingButtonEnabled_SharedBindingConfigurationIsNotDetected_ReturnsFalse(string bindingStatus)
+    {
+        testSubject.IsSharedBindingConfigurationDetected = false;
+        testSubject.ProgressStatus = bindingStatus;
+
+        testSubject.IsUseSharedBindingButtonEnabled.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void IsSharedBindingConfigurationDetected_Set_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        eventHandler.ReceivedCalls().Should().BeEmpty();
+
+        testSubject.IsSharedBindingConfigurationDetected = true;
+
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSharedBindingConfigurationDetected)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsUseSharedBindingButtonEnabled)));
     }
 
     [TestMethod]
