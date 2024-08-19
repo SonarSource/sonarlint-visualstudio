@@ -28,9 +28,9 @@ public partial class ProjectSelectionDialog
 {
     public ProjectSelectionViewModel ViewModel { get; }
 
-    public ProjectSelectionDialog(ConnectionInfo.Connection connection)
+    public ProjectSelectionDialog(ConnectionInfo connectionInfo)
     {
-        ViewModel = new ProjectSelectionViewModel(connection);
+        ViewModel = new ProjectSelectionViewModel(connectionInfo);
         InitializeComponent();
     }
 
