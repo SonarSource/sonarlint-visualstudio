@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         private ConnectionInfo GetNewConnection()
         {
             var serverSelectionDialog = new ServerSelectionDialog(browserService);
-            return serverSelectionDialog.ShowDialog(this) != true ? null : serverSelectionDialog.ViewModel.CreateConnection();
+            return serverSelectionDialog.ShowDialog(this) != true ? null : serverSelectionDialog.ViewModel.CreateConnectionInfo();
         }
 
         private bool CredentialsDialogSucceeded(ConnectionInfo newConnectionInfo)

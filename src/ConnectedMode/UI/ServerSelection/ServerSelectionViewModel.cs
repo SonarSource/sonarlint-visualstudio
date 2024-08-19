@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
         private bool IsSonarQubeUrlProvided => !string.IsNullOrWhiteSpace(SonarQubeUrl);
         public bool ShowSecurityWarning => Uri.TryCreate(SonarQubeUrl, UriKind.Absolute, out Uri uriResult) && uriResult.Scheme != Uri.UriSchemeHttps;
 
-        public ConnectionInfo CreateConnection()
+        public ConnectionInfo CreateConnectionInfo()
         {
             var url = IsSonarQubeSelected ? SonarQubeUrl : UiResources.SonarCloudUrl;
             var serverType = IsSonarQubeSelected ? ConnectionServerType.SonarQube : ConnectionServerType.SonarCloud;
