@@ -114,7 +114,7 @@
 
             <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="{x:Static res:UiResources.ConnectionToBindLabel}" Margin="0,15,0,5"/>
             <ComboBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding Path=Connections}" 
-                      SelectedItem="{Binding Path=SelectedConnection}" IsEnabled="{Binding Path=IsConnectionSelectionEnabled}">
+                      SelectedItem="{Binding Path=SelectedConnectionInfo}" IsEnabled="{Binding Path=IsConnectionSelectionEnabled}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <ui:ConnectionInfoComponent ConnectionInfo="{Binding Path=.}" TextFontWeight="Normal"/>
