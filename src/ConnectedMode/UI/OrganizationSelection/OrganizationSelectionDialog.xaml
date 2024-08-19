@@ -54,7 +54,7 @@
                      Margin="0, 10, 0, 10"
                      ItemsSource="{Binding Organizations}"
                      SelectedItem="{Binding SelectedOrganization, Mode=TwoWay}"
-                     ItemTemplate="{StaticResource NameAndKeyListBoxItem}" />
+                     ItemTemplate="{StaticResource NameAndKeyListBoxItem}"/>
 
             <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{x:Static ui:UiResources.NoOrganizationExistsLabel}" 
                                    Visibility="{Binding Path=NoOrganizationExists, Converter={StaticResource TrueToVisibleConverter}}"/>

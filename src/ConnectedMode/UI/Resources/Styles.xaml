@@ -4,6 +4,8 @@
              xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0">
 
+    <SolidColorBrush x:Key="Border" Color="#FFD5DFE5"/>
+
     <Style TargetType="Window">
         <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}" />
         <Setter Property="FontSize" Value="{DynamicResource {x:Static vsShell:VsFonts.Environment133PercentFontSizeKey}}" />
@@ -18,6 +20,7 @@
         <Setter Property="Height" Value="600" />
         <Setter Property="Width" Value="750" />
         <Setter Property="MinWidth" Value="750" />
+        <Setter Property="MinHeight" Value="600" />
     </Style>
 
     <Style TargetType="Button">
@@ -105,7 +108,7 @@
     </Style>
 
     <Style TargetType="TextBlock">
-        <Setter Property="TextWrapping" Value="WrapWithOverflow" />
+        <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="TextTrimming" Value="None" />
         <Setter Property="LineStackingStrategy" Value="MaxHeight" />
     </Style>
@@ -129,7 +132,7 @@
     <Style TargetType="ListBox">
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
         <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.ActiveBorderKey}}"></Setter>
+        <Setter Property="BorderBrush" Value="{StaticResource Border}" />
     </Style>
 
     <Style TargetType="ComboBox">
@@ -176,7 +179,7 @@
     </Style>
 
     <DataTemplate x:Key="NameAndKeyListBoxItem">
-        <TextBlock>
+        <TextBlock VerticalAlignment="Center">
                 <Run Text="{Binding Name}" 
                      FontWeight="Bold"
                      FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment133PercentFontSizeKey}}"
@@ -194,6 +197,7 @@
     </DataTemplate>
 
     <Style TargetType="GroupBox">
+        <Setter Property="BorderBrush" Value="{StaticResource Border}"></Setter>
         <Setter Property="HeaderTemplate">
             <Setter.Value>
                 <DataTemplate>
@@ -203,4 +207,5 @@
         </Setter>
         <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}" />
     </Style>
+
 </ResourceDictionary>
