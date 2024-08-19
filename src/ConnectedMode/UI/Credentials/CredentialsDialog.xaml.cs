@@ -35,7 +35,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
 
         public CredentialsDialog(IBrowserService browserService, ConnectionInfo connectionInfo, bool withNextButton)
         {
-            Owner = Application.Current.MainWindow;
             this.browserService = browserService;
             ViewModel = new CredentialsViewModel(connectionInfo);
             InitializeComponent();

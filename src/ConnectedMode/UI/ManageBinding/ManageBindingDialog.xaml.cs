@@ -35,7 +35,6 @@ public partial class ManageBindingDialog : Window
 
     public ManageBindingDialog(IBrowserService browserService, SolutionInfoModel solutionInfoModel)
     {
-        Owner = Application.Current.MainWindow;
         this.browserService = browserService;
         ViewModel = new ManageBindingViewModel(solutionInfoModel);
         InitializeComponent();
