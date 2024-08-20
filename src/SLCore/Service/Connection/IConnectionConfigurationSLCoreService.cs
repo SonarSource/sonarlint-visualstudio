@@ -37,4 +37,15 @@ public interface IConnectionConfigurationSLCoreService : ISLCoreService
     /// </summary>
     /// <param name="parameters"></param>
     void DidChangeCredentials(DidChangeCredentialsParams parameters);
+
+    /// <summary>
+    ///  Validate that connection is valid:
+    ///  - check that the server is reachable
+    ///  - check that the server minimal version is satisfied
+    ///  - check that the credentials are valid
+    ///  - check that the organization exists (for SonarCloud)
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    Task<ValidateConnectionResponse> ValidateConnectionAsync(ValidateConnectionParams parameters);
 }
