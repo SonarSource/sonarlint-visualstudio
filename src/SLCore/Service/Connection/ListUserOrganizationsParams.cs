@@ -18,25 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Connection;
 
-[JsonRpcClass("connection")]
-public interface IConnectionConfigurationSLCoreService : ISLCoreService
+public record ListUserOrganizationsParams
 {
-    /// <summary>
-    /// Changes Connection Configuration
-    /// </summary>
-    /// <param name="parameters"></param>
-    void DidUpdateConnections(DidUpdateConnectionsParams parameters);
+    public UsernamePasswordDto UsernamePasswordDto { get; }
+    public TokenDto TokenDto { get; }
 
-    /// <summary>
-    /// Connection credentials have been changed
-    /// </summary>
-    /// <param name="parameters"></param>
-    void DidChangeCredentials(DidChangeCredentialsParams parameters);
+    public ListUserOrganizationsParams(TokenDto tokenDto)
+    {
+        TokenDto = tokenDto;
+    }
 
-    Task<ListUserOrganizationsResponse> ListUserOrganizations(ListUserOrganizationsParams parameters);
-}
+    public ListUserOrganizationsParams(UsernamePasswordDto usernamePasswordDto)
+    {
+        UsernamePasswordDto = usernamePasswordDto;
+    }
+};
