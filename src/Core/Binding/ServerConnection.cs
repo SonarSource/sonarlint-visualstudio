@@ -60,13 +60,3 @@ public static class ServerConnectionExtensions
             ? connection.Id
             : null;
 }
-
-public class ServerConnectionSettings
-{
-    public ServerConnectionSettings(bool isSmartNotificationsEnabled)
-    {
-        IsSmartNotificationsEnabled = isSmartNotificationsEnabled;
-    }
-
-    public bool IsSmartNotificationsEnabled { get; }
-}
