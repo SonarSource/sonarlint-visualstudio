@@ -26,4 +26,4 @@ namespace SonarLint.VisualStudio.SLCore.Service.Connection;
 
 public record ListUserOrganizationsParams(
     [property: JsonConverter(typeof(EitherJsonConverter<TokenDto, UsernamePasswordDto>))]
-    Either<TokenDto, UsernamePasswordDto> Credentials);
+    Either<TokenDto, UsernamePasswordDto> credentials);

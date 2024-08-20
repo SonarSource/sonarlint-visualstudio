@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
+[ExcludeFromCodeCoverage]
 public record OrganizationDto(string Key, string Name, string Description);
