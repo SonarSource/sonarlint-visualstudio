@@ -1,0 +1,72 @@
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2024 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using Newtonsoft.Json;
+
+namespace SonarLint.VisualStudio.Core.Binding;
+
+public enum ServerConnectionType
+{
+    SonarCloud,
+    SonarQube
+}
+
+public class ServerConnection
+{
+    public string Id { get; }
+    public ServerConnectionType Type { get; }
+    
+    [JsonIgnore]
+    public ICredentials Credentials { get; set; }
+
+    public ServerConnection(Uri sonarQubeUri) : this(sonarQubeUri.ToString(), ServerConnectionType.SonarQube) { }
+
+    public ServerConnection(string sonarCloudOrganizationKey) : this(sonarCloudOrganizationKey, ServerConnectionType.SonarCloud) { }
+
+    [JsonConstructor]
+    internal ServerConnection(string id, ServerConnectionType type)
+    {
+        Id = id ?? throw new ArgumentNullException(nameof(id));
+        Type = type;
+    }
+}
+
+public static class ServerConnectionExtensions
+{
+    public static Uri GetSonarQubeUri(this ServerConnection connection) =>
+        connection.Type == ServerConnectionType.SonarQube
+            ? new Uri(connection.Id)
+            : null;
+
+    public static string GetSonarCloudOrganization(this ServerConnection connection) =>
+        connection.Type == ServerConnectionType.SonarCloud
+            ? connection.Id
+            : null;
+}
+
+public class ServerConnectionSettings
+{
+    public ServerConnectionSettings(bool isSmartNotificationsEnabled)
+    {
+        IsSmartNotificationsEnabled = isSmartNotificationsEnabled;
+    }
+
+    public bool IsSmartNotificationsEnabled { get; }
+}
