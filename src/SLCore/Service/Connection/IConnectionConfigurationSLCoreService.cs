@@ -38,5 +38,5 @@ public interface IConnectionConfigurationSLCoreService : ISLCoreService
     /// <param name="parameters"></param>
     void DidChangeCredentials(DidChangeCredentialsParams parameters);
 
-    Task<ListUserOrganizationsResponse> ListUserOrganizations(ListUserOrganizationsParams parameters);
+    Task<ListUserOrganizationsResponse> ListUserOrganizationsAsync(ListUserOrganizationsParams parameters);
 }

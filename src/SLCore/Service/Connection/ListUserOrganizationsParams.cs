@@ -18,22 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.SLCore.Protocol;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Connection;
 
-public record ListUserOrganizationsParams
-{
-    public UsernamePasswordDto UsernamePasswordDto { get; }
-    public TokenDto TokenDto { get; }
-
-    public ListUserOrganizationsParams(TokenDto tokenDto)
-    {
-        TokenDto = tokenDto;
-    }
-
-    public ListUserOrganizationsParams(UsernamePasswordDto usernamePasswordDto)
-    {
-        UsernamePasswordDto = usernamePasswordDto;
-    }
-};
+public record ListUserOrganizationsParams(
+    [property: JsonConverter(typeof(EitherJsonConverter<TokenDto, UsernamePasswordDto>))]
+    Either<TokenDto, UsernamePasswordDto> Credentials);
