@@ -56,4 +56,12 @@ public interface IConnectionConfigurationSLCoreService : ISLCoreService
     /// </summary>
     /// <param name="parameters"></param>
     Task<FuzzySearchProjectsResponse> FuzzySearchProjectsAsync(FuzzySearchProjectsParams parameters);
+    
+    /// <summary>
+    /// Get all Sonar projects existing on SonarQube or in a SonarCloud organization.
+    /// As this data might be needed during connection creation, it accepts a transient connection.
+    /// The number of returned projects is limited to 10000.
+    /// </summary>
+    /// <param name="parameters"></param>
+    Task<GetAllProjectsResponse> GetAllProjectsAsync(GetAllProjectsParams parameters);
 }
