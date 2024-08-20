@@ -50,4 +50,10 @@ public interface IConnectionConfigurationSLCoreService : ISLCoreService
     Task<ValidateConnectionResponse> ValidateConnectionAsync(ValidateConnectionParams parameters);
 
     Task<ListUserOrganizationsResponse> ListUserOrganizationsAsync(ListUserOrganizationsParams parameters);
+    
+    /// <summary>
+    /// Fuzzy search among Sonar projects existing on SonarQube or in a SonarCloud organization.
+    /// </summary>
+    /// <param name="parameters"></param>
+    Task<FuzzySearchProjectsResponse> FuzzySearchProjectsAsync(FuzzySearchProjectsParams parameters);
 }
