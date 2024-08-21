@@ -11,7 +11,7 @@ env:
 
 ec2_instance_definition: &INSTANCE_DEFINITION
   region: eu-central-1
-  type: t3.medium
+  type: t3a.xlarge
   image: base-windows-dotnet-v*
   platform: windows
 
@@ -23,13 +23,13 @@ build_dotnet_task:
     ARTIFACTORY_PASSWORD: ${ARTIFACTORY_PRIVATE_PASSWORD}
     PATH: ${PATH}:${HOME}/.dotnet/tools
     SOLUTION_PATH: .\sonarlint-visualstudio\SonarLint.VisualStudio.Integration.sln
-  
+    CIRRUS_WORKING_DIR: C:\sonar-ci
+    APPDATA: C:\sonar-ci\AppData\Roaming
+    LOCALAPPDATA: C:\sonar-ci\AppData\Local
+    USERPROFILE: C:\sonar-ci
+
   download_jar_dependencies_script:
-    msbuild.exe build\DownloadDependencies /p:VsVersion=17.0 /p:VsTargetVersion=2022
-  
-  dotnet_restore_script:
+    - msbuild.exe build\DownloadDependencies /p:VsVersion=17.0 /p:VsTargetVersion=2022
     # Restore the .NET projects using Repox as source feed
-    dotnet.exe restore "${SOLUTION_PATH}" --locked-mode
-    
-  build_solution_script:
-    msbuild.exe "${SOLUTION_PATH}" /p:VsVersion=17.0 /p:VsTargetVersion=2022 /p:AssemblyOriginatorKeyFile=${SONARSOURCE_SNK_PATH} /p:DeployExtension=false /p:Sha1=${CI_COMMIT_SHA} /p:BuildNumber=${CIRRUS_BUILD_ID} 
+    - dotnet.exe restore "${SOLUTION_PATH}" --locked-mode
+    - msbuild.exe "${SOLUTION_PATH}" /p:VsVersion=17.0 /p:VsTargetVersion=2022 /p:AssemblyOriginatorKeyFile=${SONARSOURCE_SNK_PATH} /p:DeployExtension=false /p:Sha1=${CI_COMMIT_SHA} /p:BuildNumber=${CIRRUS_BUILD_ID}
