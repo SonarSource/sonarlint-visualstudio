@@ -24,18 +24,17 @@ using System.Windows.Navigation;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
-using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 public partial class ManageBindingDialog : Window
 {
-    private readonly IBrowserService browserService;
+    private readonly ConnectedModeServices connectedModeServices;
 
-    public ManageBindingDialog(IBrowserService browserService, SolutionInfoModel solutionInfoModel)
+    public ManageBindingDialog(ConnectedModeServices connectedModeServices, SolutionInfoModel solutionInfoModel)
     {
-        this.browserService = browserService;
+        this.connectedModeServices = connectedModeServices;
         ViewModel = new ManageBindingViewModel(solutionInfoModel);
         InitializeComponent();
     }
@@ -44,7 +43,7 @@ public partial class ManageBindingDialog : Window
 
     private void ManageConnections_OnClick(object sender, RoutedEventArgs e)
     {
-        new ManageConnectionsDialog(browserService).ShowDialog(this);
+        new ManageConnectionsDialog(connectedModeServices).ShowDialog(this);
     }
 
     private void Binding_OnClick(object sender, RoutedEventArgs e)
@@ -83,7 +82,7 @@ public partial class ManageBindingDialog : Window
 
     private void ViewWebsite(object sender, RequestNavigateEventArgs e)
     {
-        browserService.Navigate(e.Uri.AbsoluteUri);
+        connectedModeServices.BrowserService.Navigate(e.Uri.AbsoluteUri);
     }
 
 }

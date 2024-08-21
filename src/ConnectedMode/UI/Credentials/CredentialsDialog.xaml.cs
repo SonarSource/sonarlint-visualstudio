@@ -21,6 +21,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
@@ -31,12 +32,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public partial class CredentialsDialog : Window
     {
-        private readonly IBrowserService browserService;
+        private readonly ConnectedModeServices connectedModeServices;
 
-        public CredentialsDialog(IBrowserService browserService, ConnectionInfo connectionInfo, bool withNextButton)
+        public CredentialsDialog(ConnectedModeServices connectedModeServices, ConnectionInfo connectionInfo, bool withNextButton)
         {
-            this.browserService = browserService;
-            ViewModel = new CredentialsViewModel(connectionInfo);
+            this.connectedModeServices = connectedModeServices;
+            ViewModel = new CredentialsViewModel(connectionInfo, connectedModeServices.SlCoreConnectionAdapter);
             InitializeComponent();
 
             ConfirmationBtn.Content = withNextButton ? UiResources.NextButton : UiResources.OkButton;
@@ -51,7 +52,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
 
         private void NavigateToAccountSecurityUrl()
         {
-            browserService.Navigate(ViewModel.AccountSecurityUrl);
+            connectedModeServices.BrowserService.Navigate(ViewModel.AccountSecurityUrl);
         }
 
         private void GenerateLinkIcon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -82,10 +83,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
             }
         }
 
-        private void OkButton_OnClick(object sender, RoutedEventArgs e)
+        private async void OkButton_OnClick(object sender, RoutedEventArgs e)
         {
+            var isConnectionValid = await IsConnectionValidAsync();
+            if(!isConnectionValid)
+            {
+                return;
+            }
             DialogResult = true;
             Close();
+        }
+
+        private async Task<bool> IsConnectionValidAsync()
+        {
+            try
+            {
+                return await ViewModel.ValidateConnectionAsync();
+            }
+            catch(Exception _)
+            {
+                return false;
+            }
         }
     }
 }

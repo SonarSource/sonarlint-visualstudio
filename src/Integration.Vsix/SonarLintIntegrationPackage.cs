@@ -18,20 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Design;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
+using SonarLint.VisualStudio.SLCore.Configuration;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -89,16 +89,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger.WriteLine(Resources.Strings.SL_Initializing);
 
                 IServiceProvider serviceProvider = this;
-
+             
+             
                 this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
+
                 this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
                     serviceProvider.GetMefService<IOutputWindowService>(),
                     serviceProvider.GetMefService<IShowInBrowserService>(),
                     serviceProvider.GetMefService<IBrowserService>(),
                     ShowOptionPage,
-                    serviceProvider.GetMefService<IConfigurationProvider>(),
-                    serviceProvider.GetMefService<ISharedBindingConfigProvider>());
+                    GetConnectedModeServices(serviceProvider));
 
                 this.roslynSettingsFileSynchronizer = await this.GetMefServiceAsync<IRoslynSettingsFileSynchronizer>();
                 roslynSettingsFileSynchronizer.UpdateFileStorageAsync().Forget(); // don't wait for it to finish
@@ -111,6 +112,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // Suppress non-critical exceptions
                 logger.WriteLine(Resources.Strings.SL_ERROR, ex.Message);
             }
+        }
+
+        private static ConnectedModeServices GetConnectedModeServices(IServiceProvider serviceProvider)
+        {
+            return new ConnectedModeServices(serviceProvider.GetMefService<IBrowserService>(),
+                serviceProvider.GetMefService<IThreadHandling>(),
+                serviceProvider.GetMefService<ISlCoreConnectionAdapter>(),
+                serviceProvider.GetMefService<IConfigurationProvider>(),
+                serviceProvider.GetMefService<ISharedBindingConfigProvider>());
         }
 
         protected override void Dispose(bool disposing)

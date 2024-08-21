@@ -26,20 +26,19 @@ using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
-using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public partial class ManageConnectionsDialog : Window
     {
-        private readonly IBrowserService browserService;
+        private readonly ConnectedModeServices connectedModeServices;
 
         public ManageConnectionsViewModel ViewModel { get; } = new();
 
-        public ManageConnectionsDialog(IBrowserService browserService)
+        public ManageConnectionsDialog(ConnectedModeServices connectedModeServices)
         {
-            this.browserService = browserService;
+            this.connectedModeServices = connectedModeServices;
             InitializeComponent();
         }
 
@@ -47,7 +46,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         {
             if(sender is System.Windows.Controls.Button button && button.DataContext is ConnectionViewModel connectionViewModel)
             {
-                new CredentialsDialog(browserService, connectionViewModel.Connection.Info, false).ShowDialog(this);
+                new CredentialsDialog(connectedModeServices, connectionViewModel.Connection.Info, false).ShowDialog(this);
             }
         }
 
@@ -61,14 +60,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private ConnectionInfo GetNewConnection()
         {
-            var serverSelectionDialog = new ServerSelectionDialog(browserService);
+            var serverSelectionDialog = new ServerSelectionDialog(connectedModeServices.BrowserService);
             return serverSelectionDialog.ShowDialog(this) != true ? null : serverSelectionDialog.ViewModel.CreateConnectionInfo();
         }
 
         private bool CredentialsDialogSucceeded(ConnectionInfo newConnectionInfo)
         {
             var isAnyDialogFollowing = newConnectionInfo.ServerType == ConnectionServerType.SonarCloud; 
-            var credentialsDialog = new CredentialsDialog(browserService, newConnectionInfo, withNextButton: isAnyDialogFollowing);
+            var credentialsDialog = new CredentialsDialog(connectedModeServices, newConnectionInfo, withNextButton: isAnyDialogFollowing);
             return credentialsDialog.ShowDialog(this) == true;
         }
 

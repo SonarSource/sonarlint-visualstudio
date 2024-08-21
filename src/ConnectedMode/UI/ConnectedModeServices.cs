@@ -18,26 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows;
-using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
-using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
-{
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public class NewConnectedModeCommand : VsCommandBase
-    {
-        private readonly ConnectedModeServices connectedModeServices;
-        internal const int Id = 0x104;
+namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
-        public NewConnectedModeCommand(ConnectedModeServices connectedModeServices)
-        {
-            this.connectedModeServices = connectedModeServices;
-        }
-
-        protected override void InvokeInternal()
-        {
-           new ManageBindingDialog(connectedModeServices, new SolutionInfoModel("Sample Project VS 2022", SolutionType.Solution)).ShowDialog(Application.Current.MainWindow);
-        }
-    }
-}
+public record ConnectedModeServices(
+    IBrowserService BrowserService,
+    IThreadHandling ThreadHandling,
+    ISlCoreConnectionAdapter SlCoreConnectionAdapter,
+    IConfigurationProvider ConfigurationProvider,
+    ISharedBindingConfigProvider SharedBindingConfigProvider);
