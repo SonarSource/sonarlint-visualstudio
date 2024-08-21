@@ -30,21 +30,31 @@ public enum ServerConnectionType
 
 public class ServerConnection
 {
+    public static readonly ServerConnectionSettings DefaultSettings = new(true);
+
     public string Id { get; }
     public ServerConnectionType Type { get; }
-    
-    [JsonIgnore]
-    public ICredentials Credentials { get; set; }
 
-    public ServerConnection(Uri sonarQubeUri) : this(sonarQubeUri.ToString(), ServerConnectionType.SonarQube) { }
+    public ServerConnectionSettings Settings { get; }
 
-    public ServerConnection(string sonarCloudOrganizationKey) : this(sonarCloudOrganizationKey, ServerConnectionType.SonarCloud) { }
+    [JsonIgnore] public ICredentials Credentials { get; set; }
+
+    public ServerConnection(Uri sonarQubeUri, ServerConnectionSettings settings = null) 
+        : this(sonarQubeUri.ToString(), ServerConnectionType.SonarQube, settings ?? DefaultSettings)
+    {
+    }
+
+    public ServerConnection(string sonarCloudOrganizationKey, ServerConnectionSettings settings = null) 
+        : this(sonarCloudOrganizationKey, ServerConnectionType.SonarCloud, settings ?? DefaultSettings)
+    {
+    }
 
     [JsonConstructor]
-    internal ServerConnection(string id, ServerConnectionType type)
+    internal ServerConnection(string id, ServerConnectionType type, ServerConnectionSettings settings)
     {
         Id = id ?? throw new ArgumentNullException(nameof(id));
         Type = type;
+        Settings = settings ?? throw new ArgumentNullException(nameof(settings));
     }
 }
 

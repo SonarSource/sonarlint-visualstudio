@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Net;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Binding;
 using ICredentials = SonarLint.VisualStudio.Core.Binding.ICredentials;
@@ -29,24 +28,60 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding;
 public class ServerConnectionTests
 {
     [TestMethod]
-    public void Ctor_SonarCloudOrg_HasCorrectType()
+    public void Ctor_SonarCloudOrg_HasCorrectTypeAndDefaultSettings()
     {
-        new ServerConnection("Sonar Cloud Org").Type.Should().Be(ServerConnectionType.SonarCloud);
+        var serverConnection = new ServerConnection("Sonar Cloud Org");
+        
+        serverConnection.Type.Should().Be(ServerConnectionType.SonarCloud);
+        serverConnection.Settings.Should().BeSameAs(ServerConnection.DefaultSettings);
+    }
+    
+    [TestMethod]
+    public void Ctor_SonarCloudOrg_NonDefaultSettingsSet()
+    {
+        var serverConnectionSettings = new ServerConnectionSettings(false);
+        var serverConnection = new ServerConnection("Sonar Cloud Org", serverConnectionSettings);
+        
+        serverConnection.Type.Should().Be(ServerConnectionType.SonarCloud);
+        serverConnection.Settings.Should().BeSameAs(serverConnectionSettings);
     }
     
     [TestMethod]
     public void Ctor_SonarQubeUri_HasCorrectType()
     {
-        new ServerConnection(new Uri("http://localhost")).Type.Should().Be(ServerConnectionType.SonarQube);
+        var serverConnection = new ServerConnection(new Uri("http://localhost"));
+        
+        serverConnection.Type.Should().Be(ServerConnectionType.SonarQube);
+        serverConnection.Settings.Should().BeSameAs(ServerConnection.DefaultSettings);
+    }
+    
+    [TestMethod]
+    public void Ctor_SonarQubeUri_NonDefaultSettingsSet()
+    {
+        var serverConnectionSettings = new ServerConnectionSettings(false);
+        var serverConnection = new ServerConnection(new Uri("http://localhost"), serverConnectionSettings);
+        
+        serverConnection.Type.Should().Be(ServerConnectionType.SonarQube);
+        serverConnection.Settings.Should().BeSameAs(serverConnectionSettings);
+    }
+
+    [TestMethod]
+    public void JsonCtor_ArgumentNull_Throws()
+    {
+        Action act1 = () => new ServerConnection(null, default, new ServerConnectionSettings(default));
+        Action act2 = () => new ServerConnection("id", default, null);
+
+        act1.Should().Throw<ArgumentNullException>();
+        act2.Should().Throw<ArgumentNullException>();
     }
     
     [DataTestMethod]
-    [DataRow("http://localhost:8080/")]
-    [DataRow("https://next.sonarqube.com/next")]
-    [DataRow("http://sonarqube")]
-    public void SonarQubeConnection_SerializeDeserialize_AsExpected(string sonarQubeUri)
+    [DataRow("http://localhost:8080/", true)]
+    [DataRow("https://next.sonarqube.com/next", false)]
+    [DataRow("http://sonarqube", true)]
+    public void SonarQubeConnection_SerializeDeserialize_AsExpected(string sonarQubeUri, bool isNotificationsEnabled)
     {
-        var serverConnection = new ServerConnection(new Uri(sonarQubeUri));
+        var serverConnection = new ServerConnection(new Uri(sonarQubeUri), new ServerConnectionSettings(isNotificationsEnabled));
         
         var deserializedServerConnection = JsonConvert.DeserializeObject<ServerConnection>(JsonConvert.SerializeObject(serverConnection));
         
@@ -64,12 +99,12 @@ public class ServerConnectionTests
     }
     
     [DataTestMethod]
-    [DataRow("ORGANIZATION")]
-    [DataRow("MY ORGANIZATION")]
-    [DataRow("MY_favourite_ORGANIZATION")]
-    public void SonarCloudConnection_SerializeDeserialize_AsExpected(string sonarCloudOrganization)
+    [DataRow("ORGANIZATION", true)]
+    [DataRow("MY ORGANIZATION", false)]
+    [DataRow("MY_favourite_ORGANIZATION", true)]
+    public void SonarCloudConnection_SerializeDeserialize_AsExpected(string sonarCloudOrganization, bool isNotificationsEnabled)
     {
-        var serverConnection = new ServerConnection(sonarCloudOrganization);
+        var serverConnection = new ServerConnection(sonarCloudOrganization, new ServerConnectionSettings(isNotificationsEnabled));
         
         var deserializedServerConnection = JsonConvert.DeserializeObject<ServerConnection>(JsonConvert.SerializeObject(serverConnection));
         
