@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
             {
                 return await ViewModel.ValidateConnectionAsync();
             }
-            catch(Exception _)
+            catch(Exception)
             {
                 return false;
             }
