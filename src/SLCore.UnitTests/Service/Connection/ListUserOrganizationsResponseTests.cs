@@ -56,14 +56,14 @@ public class ListUserOrganizationsResponseTests
                                       {
                                         "userOrganizations": [
                                           {
-                                            "Key": "myKey",
-                                            "Name": "myName",
-                                            "Description": "myDesc"
+                                            "key": "myKey",
+                                            "name": "myName",
+                                            "description": "myDesc"
                                           },
                                           {
-                                            "Key": "myKey2",
-                                            "Name": "myName2",
-                                            "Description": "myDesc2"
+                                            "key": "myKey2",
+                                            "name": "myName2",
+                                            "description": "myDesc2"
                                           }
                                         ]
                                       }
