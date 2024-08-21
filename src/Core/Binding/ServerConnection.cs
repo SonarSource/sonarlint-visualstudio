@@ -33,40 +33,71 @@ public class ServerConnection
     public static readonly ServerConnectionSettings DefaultSettings = new(true);
 
     public string Id { get; }
+    
+    [JsonIgnore]
     public ServerConnectionType Type { get; }
+    
+    /// <returns>
+    /// SonarQube Uri if this is a SonarQube connection, null otherwise
+    /// </returns>
+    public Uri SonarQubeUri { get; }
+    
+    /// <returns>
+    /// SonarCloud Organization if this is a SonarCloud connection, null otherwise
+    /// </returns>
+    public string SonarCloudOrganization { get; }
 
     public ServerConnectionSettings Settings { get; }
 
-    [JsonIgnore] public ICredentials Credentials { get; set; }
+    [JsonIgnore] 
+    public ICredentials Credentials { get; init; }
 
     public ServerConnection(Uri sonarQubeUri, ServerConnectionSettings settings = null) 
-        : this(sonarQubeUri.ToString(), ServerConnectionType.SonarQube, settings ?? DefaultSettings)
+        : this(sonarQubeUri?.ToString(), 
+            sonarQubeUri, 
+            null, 
+            settings ?? DefaultSettings)
     {
     }
 
     public ServerConnection(string sonarCloudOrganizationKey, ServerConnectionSettings settings = null) 
-        : this(sonarCloudOrganizationKey, ServerConnectionType.SonarCloud, settings ?? DefaultSettings)
+        : this(sonarCloudOrganizationKey, 
+            null, 
+            sonarCloudOrganizationKey, 
+            settings ?? DefaultSettings)
     {
     }
 
     [JsonConstructor]
-    internal ServerConnection(string id, ServerConnectionType type, ServerConnectionSettings settings)
+    internal ServerConnection(string id,
+        Uri sonarQubeUri,
+        string sonarCloudOrganization,
+        ServerConnectionSettings settings)
     {
         Id = id ?? throw new ArgumentNullException(nameof(id));
-        Type = type;
+        Type = GetConnectionType();
         Settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        SonarQubeUri = sonarQubeUri;
+        SonarCloudOrganization = sonarCloudOrganization;
+
+        ServerConnectionType GetConnectionType()
+        {
+            if (sonarQubeUri is not null && sonarCloudOrganization is not null)
+            {
+                throw new ArgumentException($"{nameof(SonarQubeUri)} and {nameof(SonarCloudOrganization)} cannot be not null at the same time");
+            }
+
+            if (sonarQubeUri is not null)
+            {
+                return ServerConnectionType.SonarQube;
+            }
+
+            if (sonarCloudOrganization is not null)
+            {
+                return ServerConnectionType.SonarCloud;
+            }
+            
+            throw new ArgumentException($"{nameof(SonarQubeUri)} and {nameof(SonarCloudOrganization)} cannot be null at the same time");
+        }
     }
-}
-
-public static class ServerConnectionExtensions
-{
-    public static Uri GetSonarQubeUri(this ServerConnection connection) =>
-        connection.Type == ServerConnectionType.SonarQube
-            ? new Uri(connection.Id)
-            : null;
-
-    public static string GetSonarCloudOrganization(this ServerConnection connection) =>
-        connection.Type == ServerConnectionType.SonarCloud
-            ? connection.Id
-            : null;
 }

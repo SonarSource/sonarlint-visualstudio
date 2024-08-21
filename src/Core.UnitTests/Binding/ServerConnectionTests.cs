@@ -30,8 +30,10 @@ public class ServerConnectionTests
     [TestMethod]
     public void Ctor_SonarCloudOrg_HasCorrectTypeAndDefaultSettings()
     {
-        var serverConnection = new ServerConnection("Sonar Cloud Org");
+        var sonarCloudOrganizationKey = "Sonar Cloud Org";
+        var serverConnection = new ServerConnection(sonarCloudOrganizationKey);
         
+        serverConnection.Id.Should().Be(sonarCloudOrganizationKey);
         serverConnection.Type.Should().Be(ServerConnectionType.SonarCloud);
         serverConnection.Settings.Should().BeSameAs(ServerConnection.DefaultSettings);
     }
@@ -47,10 +49,20 @@ public class ServerConnectionTests
     }
     
     [TestMethod]
-    public void Ctor_SonarQubeUri_HasCorrectType()
+    public void Ctor_NullSonarCloudOrganization_Throws()
     {
-        var serverConnection = new ServerConnection(new Uri("http://localhost"));
-        
+        Action act = () => new ServerConnection((string)null);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+    
+    [TestMethod]
+    public void Ctor_SonarQubeUri_HasCorrectTypeAndDefaultSettings()
+    {
+        var sonarQubeUri = new Uri("http://localhost");
+        var serverConnection = new ServerConnection(sonarQubeUri);
+
+        serverConnection.Id.Should().Be(sonarQubeUri.ToString());
         serverConnection.Type.Should().Be(ServerConnectionType.SonarQube);
         serverConnection.Settings.Should().BeSameAs(ServerConnection.DefaultSettings);
     }
@@ -64,15 +76,43 @@ public class ServerConnectionTests
         serverConnection.Type.Should().Be(ServerConnectionType.SonarQube);
         serverConnection.Settings.Should().BeSameAs(serverConnectionSettings);
     }
+    
+    [TestMethod]
+    public void Ctor_NullSonarQubeUri_Throws()
+    {
+        Action act = () => new ServerConnection((Uri)null);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
 
     [TestMethod]
     public void JsonCtor_ArgumentNull_Throws()
     {
-        Action act1 = () => new ServerConnection(null, default, new ServerConnectionSettings(default));
-        Action act2 = () => new ServerConnection("id", default, null);
-
+        Action act1 = () => new ServerConnection(null, new Uri("http://localhost"), null, new ServerConnectionSettings(default));
+        Action act2 = () => new ServerConnection(null, null, "org", new ServerConnectionSettings(default));
+        Action act3 = () => new ServerConnection("id", new Uri("http://localhost"), null, null);
+        Action act4 = () => new ServerConnection("id", null, "org", null);
+        
         act1.Should().Throw<ArgumentNullException>();
         act2.Should().Throw<ArgumentNullException>();
+        act3.Should().Throw<ArgumentNullException>();
+        act4.Should().Throw<ArgumentNullException>();
+    }
+    
+    [TestMethod]
+    public void JsonCtor_UriAndOrgAtTheSameTime_Throws()
+    {
+        Action act = () => new ServerConnection("id", new Uri("http://localhost"), "organization", ServerConnection.DefaultSettings);
+
+        act.Should().Throw<ArgumentException>();
+    }
+    
+    [TestMethod]
+    public void JsonCtor_UriAndOrgNull_Throws()
+    {
+        Action act = () => new ServerConnection("id", null, null, ServerConnection.DefaultSettings);
+
+        act.Should().Throw<ArgumentException>();
     }
     
     [DataTestMethod]
@@ -124,26 +164,26 @@ public class ServerConnectionTests
     [TestMethod]
     public void GetSonarCloudOrganization_SonarQubeConnection_ReturnsNull()
     {
-        new ServerConnection(new Uri("http://localhost")).GetSonarCloudOrganization().Should().BeNull();
+        new ServerConnection(new Uri("http://localhost")).SonarCloudOrganization.Should().BeNull();
     }
     
     [TestMethod]
     public void GetSonarCloudOrganization_SonarCloudConnection_ReturnsId()
     {
         var organization = "organization is id";
-        new ServerConnection(organization).GetSonarCloudOrganization().Should().BeSameAs(organization);
+        new ServerConnection(organization).SonarCloudOrganization.Should().BeSameAs(organization);
     }
     
     [TestMethod]
     public void GetSonarQubeUri_SonarCloudConnection_ReturnsNull()
     {
-        new ServerConnection("id").GetSonarQubeUri().Should().BeNull();
+        new ServerConnection("id").SonarQubeUri.Should().BeNull();
     }
     
     [TestMethod]
     public void GetSonarQubeUri_SonarQubeConnection_ReturnsId()
     {
         var sonarQubeUri = new Uri("http://uri_is_id");
-        new ServerConnection(sonarQubeUri).GetSonarQubeUri().Should().Be(sonarQubeUri);
+        new ServerConnection(sonarQubeUri).SonarQubeUri.Should().Be(sonarQubeUri);
     }
 }
