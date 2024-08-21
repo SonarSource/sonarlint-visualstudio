@@ -50,7 +50,7 @@ public class ServerConnection
     public ServerConnectionSettings Settings { get; }
 
     [JsonIgnore] 
-    public ICredentials Credentials { get; init; }
+    public ICredentials Credentials { get; set; }
 
     public ServerConnection(Uri sonarQubeUri, ServerConnectionSettings settings = null) 
         : this(sonarQubeUri?.ToString(), 
