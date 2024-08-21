@@ -75,29 +75,20 @@ public class ServerConnection
         ServerConnectionSettings settings)
     {
         Id = id ?? throw new ArgumentNullException(nameof(id));
-        Type = GetConnectionType();
+        
+        if (sonarQubeUri is not null && sonarCloudOrganization is not null)
+        {
+            throw new ArgumentException($"{nameof(SonarQubeUri)} and {nameof(SonarCloudOrganization)} cannot be not null at the same time");
+        }
+
+        if (sonarQubeUri is null && sonarCloudOrganization is null)
+        {
+            throw new ArgumentException($"{nameof(SonarQubeUri)} and {nameof(SonarCloudOrganization)} cannot be null at the same time");
+        }
+        
+        Type = sonarQubeUri is not null ? ServerConnectionType.SonarQube : ServerConnectionType.SonarCloud;
         Settings = settings ?? throw new ArgumentNullException(nameof(settings));
         SonarQubeUri = sonarQubeUri;
         SonarCloudOrganization = sonarCloudOrganization;
-
-        ServerConnectionType GetConnectionType()
-        {
-            if (sonarQubeUri is not null && sonarCloudOrganization is not null)
-            {
-                throw new ArgumentException($"{nameof(SonarQubeUri)} and {nameof(SonarCloudOrganization)} cannot be not null at the same time");
-            }
-
-            if (sonarQubeUri is not null)
-            {
-                return ServerConnectionType.SonarQube;
-            }
-
-            if (sonarCloudOrganization is not null)
-            {
-                return ServerConnectionType.SonarCloud;
-            }
-            
-            throw new ArgumentException($"{nameof(SonarQubeUri)} and {nameof(SonarCloudOrganization)} cannot be null at the same time");
-        }
     }
 }
