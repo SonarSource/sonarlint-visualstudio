@@ -48,4 +48,6 @@ public interface IConnectionConfigurationSLCoreService : ISLCoreService
     /// <param name="parameters"></param>
     /// <returns></returns>
     Task<ValidateConnectionResponse> ValidateConnectionAsync(ValidateConnectionParams parameters);
+
+    Task<ListUserOrganizationsResponse> ListUserOrganizationsAsync(ListUserOrganizationsParams parameters);
 }
