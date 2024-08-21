@@ -26,8 +26,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding;
 [TestClass]
 public class ServerConnectionSettingsTests
 {
-
-    [TestMethod]
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
     public void SerializeDeserialize_AsExpected(bool isNotificationsEnabled)
     {
         var connectionSettings = new ServerConnectionSettings(isNotificationsEnabled);
