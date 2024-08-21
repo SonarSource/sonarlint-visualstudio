@@ -20,4 +20,4 @@
 
 namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
-public record OrganizationDto(string Key, string Name, string Description);
+public record OrganizationDto(string key, string name, string description);
