@@ -22,8 +22,8 @@ namespace SonarLint.VisualStudio.Core.Binding;
 
 public class BoundServerProject
 {
-    string ProjectKey { get; }
-    ServerConnection ServerConnection { get; }
+    public string ProjectKey { get; }
+    public ServerConnection ServerConnection { get; }
     public Dictionary<Language, ApplicableQualityProfile> Profiles { get; set; }
         
     public BoundServerProject(string projectKey, ServerConnection serverConnection)
