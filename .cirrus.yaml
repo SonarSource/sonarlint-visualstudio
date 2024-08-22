@@ -27,11 +27,12 @@ build_dotnet_task:
     LOCALAPPDATA: C:\sonar-ci\AppData\Local
     USERPROFILE: C:\sonar-ci
     MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\msbuild.exe
-    PATH: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin:${PATH}
+    PATH: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin;${PATH}
 
   create_directories_script:
-    - New-Item -ItemType Directory -Path $env:APPDATA -Force
-    - New-Item -ItemType Directory -Path $env:LOCALAPPDATA -Force
+    - $env:PATH
+    # - New-Item -ItemType Directory -Path $env:APPDATA -Force
+    # - New-Item -ItemType Directory -Path $env:LOCALAPPDATA -Force
 
   download_jar_dependencies_script:
     - msbuild.exe build\DownloadDependencies /p:VsVersion=17.0 /p:VsTargetVersion=2022

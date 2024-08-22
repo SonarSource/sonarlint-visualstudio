@@ -49,7 +49,7 @@
   </Target>
 
   <Target Name="UnzipSloop">
-    <Unzip SourceFiles="$(SloopBinaryDownloadPath)" DestinationFolder="$(SloopExtractDir)" OverwriteReadOnlyFiles="true" ContinueOnError="true" />
+    <Unzip SourceFiles="$(SloopBinaryDownloadPath)" DestinationFolder="$(SloopExtractDir)" OverwriteReadOnlyFiles="true" />
   </Target>
 
   <Target Name="WriteOutputFile">
