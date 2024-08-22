@@ -27,6 +27,7 @@ build_dotnet_task:
     APPDATA: C:\sonar-ci\AppData\Roaming
     LOCALAPPDATA: C:\sonar-ci\AppData\Local
     USERPROFILE: C:\sonar-ci
+    MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\msbuild.exe
 
   create_directories_script:
     - New-Item -ItemType Directory -Path $env:APPDATA -Force
