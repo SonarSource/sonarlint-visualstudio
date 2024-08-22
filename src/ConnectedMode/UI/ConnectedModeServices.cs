@@ -42,7 +42,8 @@ public class ConnectedModeServices(
     IThreadHandling threadHandling,
     ISlCoreConnectionAdapter slCoreConnectionAdapter,
     IConfigurationProvider configurationProvider,
-    ISharedBindingConfigProvider sharedBindingConfigProvider, ILogger logger)
+    ISharedBindingConfigProvider sharedBindingConfigProvider, 
+    ILogger logger)
     : IConnectedModeServices
 {
     public ISharedBindingConfigProvider SharedBindingConfigProvider { get; } = sharedBindingConfigProvider;
