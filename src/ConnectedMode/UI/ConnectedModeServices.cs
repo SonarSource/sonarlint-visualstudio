@@ -36,6 +36,7 @@ public interface IConnectedModeServices
 }
 
 [Export(typeof(IConnectedModeServices))]
+[PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 public class ConnectedModeServices(
     IBrowserService browserService,
