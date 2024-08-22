@@ -76,9 +76,9 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         {
             return await connectionConfigurationSlCoreService.ValidateConnectionAsync(validateConnectionParams);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return new ValidateConnectionResponse(false, Resources.ValidateCredentials_Fails);
+            return new ValidateConnectionResponse(false, ex.Message);
         }
     }
 

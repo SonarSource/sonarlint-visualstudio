@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
         public CredentialsDialog(ConnectedModeServices connectedModeServices, ConnectionInfo connectionInfo, bool withNextButton)
         {
             this.connectedModeServices = connectedModeServices;
-            ViewModel = new CredentialsViewModel(connectionInfo, connectedModeServices.SlCoreConnectionAdapter);
+            ViewModel = new CredentialsViewModel(connectionInfo, connectedModeServices.SlCoreConnectionAdapter, new ProgressReporterViewModel());
             InitializeComponent();
 
             ConfirmationBtn.Content = withNextButton ? UiResources.NextButton : UiResources.OkButton;
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
             {
                 return await ViewModel.ValidateConnectionAsync();
             }
-            catch(Exception _)
+            catch(Exception)
             {
                 return false;
             }

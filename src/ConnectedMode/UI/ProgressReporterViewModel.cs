@@ -22,7 +22,15 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
-public class ProgressReporterViewModel : ViewModelBase
+public interface IProgressReporterViewModel
+{
+    string ProgressStatus { get; set; }
+    string Warning { get; set; }
+    bool IsOperationInProgress { get; }
+    bool HasWarning { get; }
+}
+
+public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewModel
 {
     private string progressStatus;
     private string warning;

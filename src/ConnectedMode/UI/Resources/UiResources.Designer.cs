@@ -716,5 +716,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
                 return ResourceManager.GetString("UseSharedBindingButton", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Validating connection....
+        /// </summary>
+        public static string ValidatingConnectionProgressText {
+            get {
+                return ResourceManager.GetString("ValidatingConnectionProgressText", resourceCulture);
+            }
+        }
     }
 }

@@ -336,4 +336,7 @@
   <data name="BoundToLabel" xml:space="preserve">
     <value>bound to</value>
   </data>
+  <data name="ValidatingConnectionProgressText" xml:space="preserve">
+    <value>Validating connection...</value>
+  </data>
 </root>
