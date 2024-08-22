@@ -590,5 +590,14 @@ namespace SonarLint.VisualStudio.ConnectedMode {
                 return ResourceManager.GetString("TimedUpdateTriggered", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode] Validating credentials failed.
+        /// </summary>
+        internal static string ValidateCredentials_Fails {
+            get {
+                return ResourceManager.GetString("ValidateCredentials_Fails", resourceCulture);
+            }
+        }
     }
 }

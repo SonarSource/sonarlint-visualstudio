@@ -301,4 +301,7 @@
   <data name="MuteIssuesService_Error_InsufficientPermissions" xml:space="preserve">
     <value>Credentials you have provided do not have enough permission to resolve issues. It requires the permission 'Administer Issues'.</value>
   </data>
+  <data name="ValidateCredentials_Fails" xml:space="preserve">
+    <value>[ConnectedMode] Validating credentials failed</value>
+  </data>
 </root>
