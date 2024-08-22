@@ -7,7 +7,7 @@ variables:
 - name: BuildParameters.solution
   value: SonarLint.VisualStudio.Integration.sln
 - name: buildName
-  value: 'sonarlint-visualstudio-2022'
+  value: 'sonarlint-visualstudio'
 
 name: $(Build.BuildId)
 
@@ -302,7 +302,7 @@ jobs:
     inputs:
       jfrogPlatformConnection: 'jfrog_platform_qa_deployer_access_token'
       command: |
-        jf rt upload $(Build.ArtifactStagingDirectory)\(*) sonarsource-public-qa/org/sonarsource/sonarlint/visualstudio/$(buildName)/$(SONAR_PROJECT_VERSION).$(Build.BuildId)/{1} --flat --build-name $(buildName) --build-number $(Build.BuildId)
+        jf rt upload $(Build.ArtifactStagingDirectory)\(*) sonarsource-public-qa/org/sonarsource/sonarlint/visualstudio/$(buildName)/$(SONAR_PROJECT_VERSION).$(Build.BuildId)/{1} --flat --build-name $(buildName) --build-number $(Build.BuildId) --module="org.sonarsource.sonarlint.visualstudio:$(buildName):$(SONAR_PROJECT_VERSION).$(Build.BuildId)"
         jf rt bp $(buildName) $(Build.BuildId)
     condition: succeededOrFailed()  # always publish artifacts - helps with diagnosing failures
 
