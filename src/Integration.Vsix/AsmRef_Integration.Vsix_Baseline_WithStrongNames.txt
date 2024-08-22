@@ -171,6 +171,7 @@ Referenced assemblies:
 - 'SonarLint.VisualStudio.Core, Version=8.4.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarLint.VisualStudio.Infrastructure.VS, Version=8.4.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarLint.VisualStudio.IssueVisualization, Version=8.4.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
+- 'SonarLint.VisualStudio.SLCore, Version=8.4.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarQube.Client, Version=8.4.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
@@ -179,7 +180,7 @@ Referenced assemblies:
 - 'System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
-# Number of references: 25
+# Number of references: 26
 
 ---
 Assembly: 'SonarLint.VisualStudio.Core, Version=8.4.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'

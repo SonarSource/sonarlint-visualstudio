@@ -21,6 +21,7 @@
 using System.IO;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.SLCore.Service.Connection;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
 {
@@ -28,13 +29,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
     public class CredentialsViewModelTests
     {
         private CredentialsViewModel testSubject;
-        private ConnectionInfo connectionInfo;
+        private ConnectionInfo sonarQubeConnectionInfo; 
+        private ConnectionInfo sonarCloudConnectionInfo;
+        private ISlCoreConnectionAdapter slCoreConnectionAdapter;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            connectionInfo = new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube);
-            testSubject = new CredentialsViewModel(connectionInfo);
+            sonarQubeConnectionInfo = new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube);
+            sonarCloudConnectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud);
+            slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
+            testSubject = new CredentialsViewModel(sonarQubeConnectionInfo, slCoreConnectionAdapter);
         }
 
         [TestMethod]
@@ -216,7 +221,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void AccountSecurityUrl_ConnectionIsSonarCloud_ReturnsSonarCloudUrl()
         {
-            var viewModel = new CredentialsViewModel(new ConnectionInfo("http://sonarcloud.io/myorg", ConnectionServerType.SonarCloud));
+            var viewModel = new CredentialsViewModel(sonarCloudConnectionInfo, slCoreConnectionAdapter);
 
             viewModel.AccountSecurityUrl.Should().Be(UiResources.SonarCloudAccountSecurityUrl);
         }
@@ -225,10 +230,55 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         public void AccountSecurityUrl_ConnectionIsSonarQube_ReturnsSonarQubeUrl()
         {
             var qubeUrl = "http://localhost:9000/";
-            var viewModel = new CredentialsViewModel(new ConnectionInfo(qubeUrl, ConnectionServerType.SonarQube));
+            var viewModel = new CredentialsViewModel(new ConnectionInfo(qubeUrl, ConnectionServerType.SonarQube), slCoreConnectionAdapter);
             var expectedUrl = Path.Combine(qubeUrl, UiResources.SonarQubeAccountSecurityUrl);
 
             viewModel.AccountSecurityUrl.Should().Be(expectedUrl);
+        }
+
+        [TestMethod]
+        public async Task ValidateConnectionAsync_TokenIsProvided_ShouldValidateConnectionWithToken()
+        {
+            MockAdapterValidateConnectionAsync();
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationTypeOptionToken;
+            testSubject.Token = "dummyToken";
+
+            await testSubject.ValidateConnectionAsync();
+
+            await slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(testSubject.ConnectionInfo, testSubject.Token);
+        }
+
+        [TestMethod]
+        public async Task ValidateConnectionAsync_CredentialsAreProvided_ShouldValidateConnectionWithToken()
+        {
+            MockAdapterValidateConnectionAsync();
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationTypeOptionCredentials;
+            testSubject.Username = "username";
+            testSubject.Password = "password";
+
+            await testSubject.ValidateConnectionAsync();
+
+            await slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(testSubject.ConnectionInfo, testSubject.Username, testSubject.Password);
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task ValidateConnectionAsync_ReturnsResponseFromSlCore(bool success)
+        {
+            MockAdapterValidateConnectionAsync(success);
+
+            var response = await testSubject.ValidateConnectionAsync();
+
+            response.Should().Be(success);
+        }
+
+        private void MockAdapterValidateConnectionAsync(bool success = true)
+        {
+            slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>())
+                .Returns(new ValidateConnectionResponse(success, string.Empty));
+            slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>(), Arg.Any<string>())
+                .Returns(new ValidateConnectionResponse(success, string.Empty));
         }
     }
 }
