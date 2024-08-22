@@ -21,13 +21,13 @@ build_dotnet_task:
   env:
     ARTIFACTORY_USER: ${ARTIFACTORY_PRIVATE_USERNAME}
     ARTIFACTORY_PASSWORD: ${ARTIFACTORY_PRIVATE_PASSWORD}
-    PATH: ${PATH}:${HOME}/.dotnet/tools
     SOLUTION_PATH: .\sonarlint-visualstudio\SonarLint.VisualStudio.Integration.sln
     CIRRUS_WORKING_DIR: C:\sonar-ci
     APPDATA: C:\sonar-ci\AppData\Roaming
     LOCALAPPDATA: C:\sonar-ci\AppData\Local
     USERPROFILE: C:\sonar-ci
     MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\msbuild.exe
+    PATH: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin:${PATH}
 
   create_directories_script:
     - New-Item -ItemType Directory -Path $env:APPDATA -Force
