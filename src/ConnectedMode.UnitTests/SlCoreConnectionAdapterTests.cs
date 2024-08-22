@@ -137,13 +137,14 @@ public class SlCoreConnectionAdapterTests
     [TestMethod]
     public async Task ValidateConnectionAsync_SlCoreValidationThrowsException_ReturnsUnsuccessfulResponse()
     {
+        var exceptionMessage = "validation failed";
         connectionConfigurationSlCoreService.When(x => x.ValidateConnectionAsync(Arg.Any<ValidateConnectionParams>()))
-            .Do(x => throw new Exception("test"));
+            .Do(x => throw new Exception(exceptionMessage));
 
         var response = await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, "token");
 
         response.success.Should().BeFalse();
-        response.message.Should().Be(Resources.ValidateCredentials_Fails);
+        response.message.Should().Be(exceptionMessage);
     }
 
     private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string token)
