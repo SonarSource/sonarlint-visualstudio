@@ -28,7 +28,7 @@ public interface IServerConnectionsRepository
     bool TryGet(string connectionId, out ServerConnection serverConnection);
     List<ServerConnection> GetAll();
     bool TryAdd(ServerConnection connection);
-    void Delete(string connectionId);
+    bool TryDelete(string connectionId);
     Task<bool> TryUpdateSettingsById(string connectionId, ServerConnectionSettings connectionSettings);
     Task<bool> TryUpdateCredentialsById(string connectionId, ICredentials credentials);
 }
@@ -53,7 +53,7 @@ public class DummyServerConnectionsRepository : IServerConnectionsRepository
         throw new NotImplementedException();
     }
 
-    public void Delete(string connectionId)
+    public bool TryDelete(string connectionId)
     {
         throw new NotImplementedException();
     }
