@@ -1,3 +1,4 @@
+
 # SonarLint for Visual Studio
 
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=sonarlint-visualstudio&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=sonarlint-visualstudio)
