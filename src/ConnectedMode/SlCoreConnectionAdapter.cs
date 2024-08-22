@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Models;
@@ -64,22 +65,24 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
 
     private async Task<ValidateConnectionResponse> ValidateConnectionAsync(ValidateConnectionParams validateConnectionParams)
     {
-        await threadHandling.SwitchToBackgroundThread();
+        return await threadHandling.RunOnBackgroundThread(async () =>
+        {
+            if (!serviceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService connectionConfigurationSlCoreService))
+            {
+                logger.LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
+                return new ValidateConnectionResponse(false, UiResources.ValidatingConnectionFailedText);
+            }
 
-        if (!serviceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService connectionConfigurationSlCoreService))
-        {
-            logger.LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
-            return new ValidateConnectionResponse(false, Resources.ValidateCredentials_Fails);
-        }
-
-        try
-        {
-            return await connectionConfigurationSlCoreService.ValidateConnectionAsync(validateConnectionParams);
-        }
-        catch (Exception ex)
-        {
-            return new ValidateConnectionResponse(false, ex.Message);
-        }
+            try
+            {
+                return await connectionConfigurationSlCoreService.ValidateConnectionAsync(validateConnectionParams);
+            }
+            catch (Exception ex)
+            {
+                logger.LogVerbose($"{Resources.ValidateCredentials_Fails}: {ex.Message}");
+                return new ValidateConnectionResponse(false, ex.Message);
+            }
+        });
     }
 
     private static ValidateConnectionParams GetValidateConnectionParams(ConnectionInfo connectionInfo, Either<TokenDto, UsernamePasswordDto> credentials)

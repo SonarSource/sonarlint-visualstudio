@@ -718,6 +718,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Validating the connection failed. Please see the Output window for more information..
+        /// </summary>
+        public static string ValidatingConnectionFailedText {
+            get {
+                return ResourceManager.GetString("ValidatingConnectionFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Validating connection....
         /// </summary>
         public static string ValidatingConnectionProgressText {

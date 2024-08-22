@@ -20,11 +20,8 @@
 
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.ConnectedMode;
-using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix.Commands;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
@@ -50,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IShowInBrowserService showInBrowserService,
             IBrowserService browserService,
             ShowOptionsPage showOptionsPage,
-            ConnectedModeServices connectedModeServices)
+            IConnectedModeServices connectedModeServices)
         {
             RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(projectPropertyManager));
             RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, null));

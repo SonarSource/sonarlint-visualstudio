@@ -32,11 +32,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public partial class ManageConnectionsDialog : Window
     {
-        private readonly ConnectedModeServices connectedModeServices;
+        private readonly IConnectedModeServices connectedModeServices;
 
         public ManageConnectionsViewModel ViewModel { get; } = new();
 
-        public ManageConnectionsDialog(ConnectedModeServices connectedModeServices)
+        public ManageConnectionsDialog(IConnectedModeServices connectedModeServices)
         {
             this.connectedModeServices = connectedModeServices;
             InitializeComponent();

@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     serviceProvider.GetMefService<IShowInBrowserService>(),
                     serviceProvider.GetMefService<IBrowserService>(),
                     ShowOptionPage,
-                    GetConnectedModeServices(serviceProvider));
+                    serviceProvider.GetMefService<IConnectedModeServices>());
 
                 this.roslynSettingsFileSynchronizer = await this.GetMefServiceAsync<IRoslynSettingsFileSynchronizer>();
                 roslynSettingsFileSynchronizer.UpdateFileStorageAsync().Forget(); // don't wait for it to finish
@@ -112,15 +112,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // Suppress non-critical exceptions
                 logger.WriteLine(Resources.Strings.SL_ERROR, ex.Message);
             }
-        }
-
-        private static ConnectedModeServices GetConnectedModeServices(IServiceProvider serviceProvider)
-        {
-            return new ConnectedModeServices(serviceProvider.GetMefService<IBrowserService>(),
-                serviceProvider.GetMefService<IThreadHandling>(),
-                serviceProvider.GetMefService<ISlCoreConnectionAdapter>(),
-                serviceProvider.GetMefService<IConfigurationProvider>(),
-                serviceProvider.GetMefService<ISharedBindingConfigProvider>());
         }
 
         protected override void Dispose(bool disposing)

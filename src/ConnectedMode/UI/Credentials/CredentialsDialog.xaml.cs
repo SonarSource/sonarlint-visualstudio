@@ -21,7 +21,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
@@ -32,9 +31,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
     [ExcludeFromCodeCoverage] // UI, not really unit-testable
     public partial class CredentialsDialog : Window
     {
-        private readonly ConnectedModeServices connectedModeServices;
+        private readonly IConnectedModeServices connectedModeServices;
 
-        public CredentialsDialog(ConnectedModeServices connectedModeServices, ConnectionInfo connectionInfo, bool withNextButton)
+        public CredentialsDialog(IConnectedModeServices connectedModeServices, ConnectionInfo connectionInfo, bool withNextButton)
         {
             this.connectedModeServices = connectedModeServices;
             ViewModel = new CredentialsViewModel(connectionInfo, connectedModeServices.SlCoreConnectionAdapter, new ProgressReporterViewModel());
@@ -100,8 +99,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
             {
                 return await ViewModel.ValidateConnectionAsync();
             }
-            catch(Exception)
+            catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
             {
+                connectedModeServices.Logger.WriteLine(e.ToString());
                 return false;
             }
         }
