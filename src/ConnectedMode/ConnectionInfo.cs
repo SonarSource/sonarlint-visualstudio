@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+
 namespace SonarLint.VisualStudio.ConnectedMode;
 
 public enum ConnectionServerType
@@ -32,4 +34,17 @@ public class Connection(ConnectionInfo info, bool enableSmartNotifications = tru
 {
     public ConnectionInfo Info { get; } = info;
     public bool EnableSmartNotifications { get; set; } = enableSmartNotifications;
+}
+
+public static class ConnectionInfoExtensions
+{
+    public static string GetIdForTransientConnection(this ConnectionInfo connection)
+    {
+        if (connection.Id == null && connection.ServerType == ConnectionServerType.SonarCloud)
+        {
+            return UiResources.SonarCloudUrl;
+        }
+        return connection.Id;
+    }
+    
 }
