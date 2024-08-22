@@ -27,10 +27,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class NewConnectedModeCommand : VsCommandBase
     {
-        private readonly ConnectedModeServices connectedModeServices;
+        private readonly IConnectedModeServices connectedModeServices;
         internal const int Id = 0x104;
 
-        public NewConnectedModeCommand(ConnectedModeServices connectedModeServices)
+        public NewConnectedModeCommand(IConnectedModeServices connectedModeServices)
         {
             this.connectedModeServices = connectedModeServices;
         }

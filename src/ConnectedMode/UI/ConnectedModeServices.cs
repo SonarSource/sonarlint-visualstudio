@@ -18,15 +18,37 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
-public record ConnectedModeServices(
-    IBrowserService BrowserService,
-    IThreadHandling ThreadHandling,
-    ISlCoreConnectionAdapter SlCoreConnectionAdapter,
-    IConfigurationProvider ConfigurationProvider,
-    ISharedBindingConfigProvider SharedBindingConfigProvider);
+public interface IConnectedModeServices
+{
+    public ISharedBindingConfigProvider SharedBindingConfigProvider { get; } 
+    public IBrowserService BrowserService { get; } 
+    public IThreadHandling ThreadHandling { get; } 
+    public ILogger Logger { get; } 
+    public ISlCoreConnectionAdapter SlCoreConnectionAdapter { get; } 
+    public IConfigurationProvider ConfigurationProvider { get; } 
+}
+
+[Export(typeof(IConnectedModeServices))]
+[method: ImportingConstructor]
+public class ConnectedModeServices(
+    IBrowserService browserService,
+    IThreadHandling threadHandling,
+    ISlCoreConnectionAdapter slCoreConnectionAdapter,
+    IConfigurationProvider configurationProvider,
+    ISharedBindingConfigProvider sharedBindingConfigProvider, ILogger logger)
+    : IConnectedModeServices
+{
+    public ISharedBindingConfigProvider SharedBindingConfigProvider { get; } = sharedBindingConfigProvider;
+    public IBrowserService BrowserService { get; } = browserService;
+    public IThreadHandling ThreadHandling { get; } = threadHandling;
+    public ILogger Logger { get; } = logger;
+    public ISlCoreConnectionAdapter SlCoreConnectionAdapter { get; } = slCoreConnectionAdapter;
+    public IConfigurationProvider ConfigurationProvider { get; } = configurationProvider;
+}

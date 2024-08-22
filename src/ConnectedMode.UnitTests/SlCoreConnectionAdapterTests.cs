@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Models;
@@ -43,7 +44,7 @@ public class SlCoreConnectionAdapterTests
     public void TestInitialize()
     {
         slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
-        threadHandling = Substitute.For<IThreadHandling>();
+        threadHandling = new NoOpThreadHandler();
         logger = Substitute.For<ILogger>();
         connectionConfigurationSlCoreService = Substitute.For<IConnectionConfigurationSLCoreService>();
         testSubject = new SlCoreConnectionAdapter(slCoreServiceProvider, threadHandling, logger);
@@ -54,13 +55,12 @@ public class SlCoreConnectionAdapterTests
     [TestMethod]
     public async Task ValidateConnectionAsync_SwitchesToBackgroundThread()
     {
-        await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, "myToken");
+        var threadHandlingMock = Substitute.For<IThreadHandling>();
+        var slCoreConnectionAdapter = new SlCoreConnectionAdapter(slCoreServiceProvider, threadHandlingMock, logger);
 
-        Received.InOrder(() =>
-        {
-            threadHandling.SwitchToBackgroundThread();
-            slCoreServiceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService _);
-        });
+        await slCoreConnectionAdapter.ValidateConnectionAsync(sonarQubeConnectionInfo, "myToken");
+
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ValidateConnectionResponse>>>());
     }
 
     [TestMethod]
@@ -72,7 +72,7 @@ public class SlCoreConnectionAdapterTests
 
         logger.Received(1).LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
         response.success.Should().BeFalse();
-        response.message.Should().Be(Resources.ValidateCredentials_Fails);
+        response.message.Should().Be(UiResources.ValidatingConnectionFailedText);
     }
 
     [TestMethod]
@@ -137,13 +137,15 @@ public class SlCoreConnectionAdapterTests
     [TestMethod]
     public async Task ValidateConnectionAsync_SlCoreValidationThrowsException_ReturnsUnsuccessfulResponse()
     {
+        var exceptionMessage = "slCore not reachable";
         connectionConfigurationSlCoreService.When(x => x.ValidateConnectionAsync(Arg.Any<ValidateConnectionParams>()))
-            .Do(x => throw new Exception("test"));
+            .Do(x => throw new Exception(exceptionMessage));
 
         var response = await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, "token");
 
+        logger.Received(1).LogVerbose($"{Resources.ValidateCredentials_Fails}: {exceptionMessage}");
         response.success.Should().BeFalse();
-        response.message.Should().Be(Resources.ValidateCredentials_Fails);
+        response.message.Should().Be(UiResources.ValidatingConnectionFailedText);
     }
 
     private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string token)
@@ -184,7 +186,6 @@ public class SlCoreConnectionAdapterTests
     {
         sonarCloudConnectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud);
         sonarQubeConnectionInfo = new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube);
-        threadHandling.SwitchToBackgroundThread().Returns(new NoOpThreadHandler.NoOpAwaitable());
         slCoreServiceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService _).Returns(x =>
         {
             x[0] = connectionConfigurationSlCoreService;

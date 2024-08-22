@@ -30,9 +30,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 public partial class ManageBindingDialog : Window
 {
-    private readonly ConnectedModeServices connectedModeServices;
+    private readonly IConnectedModeServices connectedModeServices;
 
-    public ManageBindingDialog(ConnectedModeServices connectedModeServices, SolutionInfoModel solutionInfoModel)
+    public ManageBindingDialog(IConnectedModeServices connectedModeServices, SolutionInfoModel solutionInfoModel)
     {
         this.connectedModeServices = connectedModeServices;
         ViewModel = new ManageBindingViewModel(solutionInfoModel);
