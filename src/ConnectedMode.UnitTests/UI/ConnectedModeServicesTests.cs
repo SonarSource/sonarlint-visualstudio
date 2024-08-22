@@ -18,26 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows;
-using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
+
+[TestClass]
+public class ConnectedModeServicesTests
 {
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public class NewConnectedModeCommand : VsCommandBase
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
     {
-        private readonly IConnectedModeServices connectedModeServices;
-        internal const int Id = 0x104;
-
-        public NewConnectedModeCommand(IConnectedModeServices connectedModeServices)
-        {
-            this.connectedModeServices = connectedModeServices;
-        }
-
-        protected override void InvokeInternal()
-        {
-           new ManageBindingDialog(connectedModeServices, new SolutionInfoModel("Sample Project VS 2022", SolutionType.Solution)).ShowDialog(Application.Current.MainWindow);
-        }
+        MefTestHelpers.CheckTypeCanBeImported<ConnectedModeServices, IConnectedModeServices>(
+            MefTestHelpers.CreateExport<IBrowserService>(),
+            MefTestHelpers.CreateExport<IThreadHandling>(),
+            MefTestHelpers.CreateExport<ISlCoreConnectionAdapter>(),
+            MefTestHelpers.CreateExport<IConfigurationProvider>(),
+            MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
+            MefTestHelpers.CreateExport<ILogger>());
     }
 }
