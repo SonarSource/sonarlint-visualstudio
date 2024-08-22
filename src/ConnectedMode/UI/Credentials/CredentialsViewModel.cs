@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
-public class CredentialsViewModel(ConnectionInfo connectionInfo) : ViewModelBase
+public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnectionAdapter slCoreConnectionAdapter) : ViewModelBase
 {
     private string token;
     private string selectedAuthenticationType = UiResources.AuthenticationTypeOptionToken;
@@ -98,8 +98,14 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo) : ViewModelBase
     private bool IsPasswordProvided => IsValueFilled(Password);
     public string AccountSecurityUrl => ConnectionInfo.ServerType == ConnectionServerType.SonarCloud ? UiResources.SonarCloudAccountSecurityUrl : Path.Combine(ConnectionInfo.Id, UiResources.SonarQubeAccountSecurityUrl);
 
-    private bool IsValueFilled(string value)
+    private static bool IsValueFilled(string value)
     {
         return !string.IsNullOrWhiteSpace(value);
+    }
+
+    internal async Task<bool> ValidateConnectionAsync()
+    {
+        var response = IsTokenAuthentication ? await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, Token) : await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, Username, Password);
+        return response.success;
     }
 }
