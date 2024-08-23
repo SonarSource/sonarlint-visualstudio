@@ -1,13 +1,17 @@
 env:
-  ARTIFACTORY_URL: VAULT[development/kv/data/repox data.url]
-  ARTIFACTORY_PRIVATE_USERNAME: vault-${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-private-reader
-  ARTIFACTORY_PRIVATE_PASSWORD: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-private-reader access_token]
-  ARTIFACTORY_DEPLOY_USERNAME: vault-${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-qa-deployer
+  APPDATA: C:\sonar-ci\AppData\Roaming
+  ARTIFACTORY_ACCESS_TOKEN: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-private-reader access_token]
   ARTIFACTORY_DEPLOY_PASSWORD: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-qa-deployer access_token]
   ARTIFACTORY_DEPLOY_REPO: sonarsource-public-qa
-  ARTIFACTORY_ACCESS_TOKEN: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-private-reader access_token]
-  # Use bash (instead of sh on linux or cmd.exe on windows)
-  CIRRUS_SHELL: powershell
+  ARTIFACTORY_DEPLOY_USERNAME: vault-${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-qa-deployer
+  ARTIFACTORY_PRIVATE_PASSWORD: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-private-reader access_token]
+  ARTIFACTORY_PRIVATE_USERNAME: vault-${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-private-reader
+  ARTIFACTORY_URL: VAULT[development/kv/data/repox data.url]
+  CIRRUS_SHELL: bash
+  CIRRUS_WORKING_DIR: C:\sonar-ci
+  LOCALAPPDATA: C:\sonar-ci\AppData\Local
+  TMP_DIR: C:\sonar-ci\temp
+  USERPROFILE: C:\sonar-ci
 
 ec2_instance_definition: &INSTANCE_DEFINITION
   region: eu-central-1
@@ -19,54 +23,57 @@ build_dotnet_task:
   ec2_instance:
     <<: *INSTANCE_DEFINITION
   env:
-    APPDATA: C:\sonar-ci\AppData\Roaming
     ARTIFACTORY_PASSWORD: ${ARTIFACTORY_PRIVATE_PASSWORD}
     ARTIFACTORY_USER: ${ARTIFACTORY_PRIVATE_USERNAME}
-    CIRRUS_WORKING_DIR: C:\sonar-ci
-    LOCALAPPDATA: C:\sonar-ci\AppData\Local
-    PATH: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin;${PATH}
-    SOLUTION_PATH: SonarLint.VisualStudio.Integration.sln
-    SONARSOURCE_SNK_PATH: ${CIRRUS_WORKING_DIR}/SonarSource.snk
-    SONARSOURCE_SNK: VAULT[development/team/languages/kv/data/strong_named_key data.SonarSourceSecret_snk]
-    USERPROFILE: C:\sonar-ci
+    PATH: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin;C:\Program Files (x86)\Microsoft SDKs\ClickOnce\SignTool;C:\Program Files\DigiCert\DigiCert One Signing Manager Tools;${PATH}
     SM_API_KEY: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.apikey]
-    SM_CERT: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert]
     SM_CERT_FP: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert_fp]
+    SM_CERT: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert]
     SM_CLIENT_CERT_FILE_BASE64: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.client_cert_file_base64]
-    SM_CLIENT_CERT_FILE: ${CIRRUS_WORKING_DIR}/Certificate.pkcs12.p12
+    SM_CLIENT_CERT_FILE: ${TMP_DIR}\digicert_signing_certificate.p12
     SM_CLIENT_CERT_PASSWORD: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.client_cert_password]
+    SM_CLIENT_CRT_FILE: ${TMP_DIR}\digicert_signing_certificate.crt
+    SM_CLIENT_CRT: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert]
     SM_HOST: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.host]
-    SHOULD_SIGN: >
-      if ($env:CIRRUS_BRANCH -eq "vn/cirrus-sign") {
-        echo "true"
-      } else {
-        echo "false"
-      }
+    SM_KP: key_525594307
+    SOLUTION_PATH: SonarLint.VisualStudio.Integration.sln
+    SONARSOURCE_SNK_FILE: ${TMP_DIR}\SonarSource.snk
+    SONARSOURCE_SNK: VAULT[development/team/languages/kv/data/strong_named_key data.SonarSourceSecret_snk]
 
-  restore_snk_script: |
-    # Restore SNK file from Vault
-    echo "${SONARSOURCE_SNK}" | base64 -d > "${SONARSOURCE_SNK_PATH}"
-
-  restore_codesigning_file_script: |
-    # Restore sign cert file from Vault
-    echo "${SM_CLIENT_CERT_FILE_BASE64}" | base64 -d > "${SM_CLIENT_CERT_FILE}"
+  prepare_signing_script: |
+    if [[ "${CIRRUS_BRANCH}" == "vn/cirrus-sign" ]]; then
+      mkdir -p "${TMP_DIR}"
+      echo "${SONARSOURCE_SNK}" | base64 -d > "${SONARSOURCE_SNK_FILE}"
+      echo "${SM_CLIENT_CERT_FILE_BASE64}" | base64 -d > "${SM_CLIENT_CERT_FILE}"
+      echo "${SM_CLIENT_CRT}" > "${SM_CLIENT_CRT_FILE}"
+      curl -L -o "${TMP_DIR}\smtools.msi" -H "x-api-key: ${SM_API_KEY}" https://one.digicert.com/signingmanager/api-ui/v1/releases/smtools-windows-x64.msi/download
+      powershell -Command "Start-Process msiexec -ArgumentList '/i ${TMP_DIR}\smtools.msi /quiet /qn /norestart' -Wait"
+      smctl windows certsync
+      echo "SHOULD_SIGN=true" >> $CIRRUS_ENV
+    else
+      echo "SHOULD_SIGN=false" >> $CIRRUS_ENV
+    fi
 
   calculate_version_script: |
-    [xml]$versionProps = Get-Content .\build\Version.props
-    $sonarProjectVersion = $versionProps.Project.PropertyGroup.MainVersion
-    $env:SONAR_PROJECT_VERSION=$sonarProjectVersion
+    versionProps=$(cat ./build/Version.props)
+    sonarProjectVersion=$(echo "$versionProps" | sed -n 's:.*<MainVersion>\(.*\)</MainVersion>.*:\1:p')
+    echo "SONAR_PROJECT_VERSION=${sonarProjectVersion}" >> $CIRRUS_ENV
 
-  download_jar_dependencies_script:
-    - msbuild.exe build\DownloadDependencies /p:VsVersion=17.0 /p:VsTargetVersion=2022
+  download_jar_dependencies_script: |
+    msbuild.exe build/DownloadDependencies -p:VsVersion=17.0 -p:VsTargetVersion=2022
 
-  dotnet_restore_script:
-    - dotnet.exe restore "${SOLUTION_PATH}" --locked-mode
+  dotnet_restore_script: |
+    dotnet restore "${SOLUTION_PATH}" --locked-mode
 
-  build_solution_script:
-    - msbuild.exe "${SOLUTION_PATH}" /p:VsVersion=17.0 /p:VsTargetVersion=2022 /p:SignArtifacts=${SHOULD_SIGN} /p:AssemblyOriginatorKeyFile=${SONARSOURCE_SNK_PATH} /p:DeployExtension=false /p:Sha1=${CI_COMMIT_SHA} /p:BuildNumber=${CIRRUS_BUILD_ID}
+  build_solution_script: |
+    msbuild.exe "${SOLUTION_PATH}" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=${SHOULD_SIGN} -p:AssemblyOriginatorKeyFile=${SONARSOURCE_SNK_FILE} -p:DeployExtension=false -p:Sha1=asd -p:BuildNumber=${CIRRUS_BUILD_ID}
 
-  sign_artifact_script:
-    - nuget.exe sign "${CIRRUS_WORKING_DIR}\sonarlint-visualstudio\binaries\SonarLint.VSIX-${SONAR_PROJECT_VERSION}-2022.vsix" -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
+  sign_artifact_script: |
+    if [[ "${SHOULD_SIGN}" == "true" ]]; then
+        nuget sign "binaries/SonarLint.VSIX-${SONAR_PROJECT_VERSION}.${CIRRUS_BUILD_ID}-2022.vsix" -HashAlgorithm SHA256 -CertificateFingerprint ${SM_CERT_FP} -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
+    else
+        echo "Artifact not signed"
+    fi
 
 dogfood_task:
   depends_on:
