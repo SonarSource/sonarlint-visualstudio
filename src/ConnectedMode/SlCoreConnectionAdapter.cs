@@ -47,6 +47,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
+    private static readonly AdapterResponse<List<OrganizationDisplay>> FailedResponse = new(false, []);
 
     [ImportingConstructor]
     public SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling, ILogger logger)
@@ -70,13 +71,11 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
 
     public async Task<AdapterResponse<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel)
     {
-        var failedResponse = new AdapterResponse<List<OrganizationDisplay>>(false, []);
-
         return await threadHandling.RunOnBackgroundThread(async () =>
         {
-            if (TryGetConnectionConfigurationSlCoreService() is not { } connectionConfigurationSlCoreService)
+            if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
             {
-                return failedResponse;
+                return FailedResponse;
             }
 
             try
@@ -90,7 +89,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
             catch (Exception ex)
             {
                 logger.LogVerbose($"{Resources.ListUserOrganizations_Fails}: {ex.Message}");
-                return failedResponse;
+                return FailedResponse;
             }
         });
     }
@@ -99,7 +98,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     {
         return await threadHandling.RunOnBackgroundThread(async () =>
         {
-            if (TryGetConnectionConfigurationSlCoreService() is not {} connectionConfigurationSlCoreService)
+            if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
             {
                 return new ValidateConnectionResponse(false, UiResources.ValidatingConnectionFailedText);
             }
@@ -116,15 +115,17 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         });
     }
 
-    private IConnectionConfigurationSLCoreService TryGetConnectionConfigurationSlCoreService()
+    private bool TryGetConnectionConfigurationSlCoreService(out IConnectionConfigurationSLCoreService connectionConfigurationSlCoreService)
     {
-        if (serviceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService connectionConfigurationSlCoreService))
+        if (serviceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService slCoreService))
         {
-            return connectionConfigurationSlCoreService;
+            connectionConfigurationSlCoreService = slCoreService;
+            return true;
         }
 
+        connectionConfigurationSlCoreService = null;
         logger.LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
-        return null;
+        return false;
     }
 
     private static ValidateConnectionParams GetValidateConnectionParams(ConnectionInfo connectionInfo, Either<TokenDto, UsernamePasswordDto> credentials)
