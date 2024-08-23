@@ -22,18 +22,25 @@ namespace SonarLint.VisualStudio.Core.Binding;
 
 public class BoundServerProject
 {
-    public string ProjectKey { get; }
+    public string LocalBindingKey { get; }
+    public string ServerProjectKey { get; }
     public ServerConnection ServerConnection { get; }
     public Dictionary<Language, ApplicableQualityProfile> Profiles { get; set; }
         
-    public BoundServerProject(string projectKey, ServerConnection serverConnection)
+    public BoundServerProject(string localBindingKey, string serverProjectKey, ServerConnection serverConnection)
     {
-        if (string.IsNullOrWhiteSpace(projectKey))
+        if (string.IsNullOrWhiteSpace(localBindingKey))
         {
-            throw new ArgumentNullException(nameof(projectKey));
+            throw new ArgumentNullException(nameof(localBindingKey));
         }
         
-        ProjectKey = projectKey;
+        if (string.IsNullOrWhiteSpace(serverProjectKey))
+        {
+            throw new ArgumentNullException(nameof(serverProjectKey));
+        }
+        
+        ServerProjectKey = serverProjectKey;
         ServerConnection = serverConnection ?? throw new ArgumentNullException(nameof(serverConnection));
+        LocalBindingKey = localBindingKey;
     }
 }

@@ -29,9 +29,20 @@ public class BoundServerProjectTests
     [DataRow(null)]
     [DataRow("")]
     [DataRow(" ")]
-    public void Ctor_InvalidProject_ThrowsArgumentNullException(string projectName)
+    public void Ctor_InvalidLocalBinding_ThrowsArgumentNullException(string bindingName)
     {
-        var act = () => new BoundServerProject(projectName, new ServerConnection.SonarCloud("org"));
+        var act = () => new BoundServerProject(bindingName, "projectName", new ServerConnection.SonarCloud("org"));
+        
+        act.Should().Throw<ArgumentNullException>();
+    }
+    
+    [DataTestMethod]
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow(" ")]
+    public void Ctor_InvalidServerProject_ThrowsArgumentNullException(string projectName)
+    {
+        var act = () => new BoundServerProject("binding", projectName, new ServerConnection.SonarCloud("org"));
         
         act.Should().Throw<ArgumentNullException>();
     }
@@ -39,7 +50,7 @@ public class BoundServerProjectTests
     [TestMethod]
     public void Ctor_NullConnection_ThrowsArgumentNullException()
     {
-        var act = () => new BoundServerProject("projectName", null);
+        var act = () => new BoundServerProject("bindingName", "projectName", null);
         
         act.Should().Throw<ArgumentNullException>();
     }
@@ -47,11 +58,13 @@ public class BoundServerProjectTests
     [TestMethod]
     public void Ctor_SetsValues()
     {
-        var projectKey = "projectName";
+        var localBindingKey = "bindingName";
+        var serverProjectKey = "projectName";
         var serverConnection = new ServerConnection.SonarCloud("org");
-        var boundServerProject = new BoundServerProject(projectKey, serverConnection);
+        var boundServerProject = new BoundServerProject(localBindingKey, serverProjectKey, serverConnection);
 
-        boundServerProject.ProjectKey.Should().BeSameAs(projectKey);
+        boundServerProject.LocalBindingKey.Should().BeSameAs(localBindingKey);
+        boundServerProject.ServerProjectKey.Should().BeSameAs(serverProjectKey);
         boundServerProject.ServerConnection.Should().BeSameAs(serverConnection);
         boundServerProject.Profiles.Should().BeNull();
     }
