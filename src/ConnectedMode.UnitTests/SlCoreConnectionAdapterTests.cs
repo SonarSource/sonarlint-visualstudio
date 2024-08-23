@@ -160,7 +160,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.GetOrganizationsAsync(new TokenCredentialsModel("token"));
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponse<List<OrganizationDisplay>>>>>());
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<OrganizationDisplay>>>>>());
     }
 
     [TestMethod]

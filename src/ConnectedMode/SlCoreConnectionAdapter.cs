@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
@@ -36,10 +37,14 @@ public interface ISlCoreConnectionAdapter
 {
     Task<ValidateConnectionResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string token);
     Task<ValidateConnectionResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string username, string password);
-    Task<AdapterResponse<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel);
+    Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel);
 }
 
-public record AdapterResponse<T>(bool Success, T ResponseData);
+public class AdapterResponseWithData<T>(bool success, T responseData) : IResponseStatus
+{
+    public bool Success { get; init; } = success;
+    public T ResponseData { get; } = responseData;
+} 
 
 [Export(typeof(ISlCoreConnectionAdapter))]
 public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
@@ -47,7 +52,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
-    private static readonly AdapterResponse<List<OrganizationDisplay>> FailedResponse = new(false, []);
+    private static readonly AdapterResponseWithData<List<OrganizationDisplay>> FailedResponseWithData = new(false, []);
 
     [ImportingConstructor]
     public SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling, ILogger logger)
@@ -69,13 +74,13 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         return await ValidateConnectionAsync(validateConnectionParams);
     }
 
-    public async Task<AdapterResponse<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel)
+    public async Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel)
     {
         return await threadHandling.RunOnBackgroundThread(async () =>
         {
             if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
             {
-                return FailedResponse;
+                return FailedResponseWithData;
             }
 
             try
@@ -84,12 +89,12 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
                 var response = await connectionConfigurationSlCoreService.ListUserOrganizationsAsync(new ListUserOrganizationsParams(credentials));
                 var organizationDisplays = response.userOrganizations.Select(o => new OrganizationDisplay(o.key, o.name)).ToList();
 
-                return new AdapterResponse<List<OrganizationDisplay>>(true, organizationDisplays);
+                return new AdapterResponseWithData<List<OrganizationDisplay>>(true, organizationDisplays);
             }
             catch (Exception ex)
             {
                 logger.LogVerbose($"{Resources.ListUserOrganizations_Fails}: {ex.Message}");
-                return FailedResponse;
+                return FailedResponseWithData;
             }
         });
     }

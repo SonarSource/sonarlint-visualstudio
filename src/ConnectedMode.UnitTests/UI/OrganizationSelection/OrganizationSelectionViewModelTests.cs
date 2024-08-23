@@ -164,119 +164,53 @@ public class OrganizationSelectionViewModelTests
     }
 
     [TestMethod]
-    public async Task LoadOrganizationsAsync_UpdatesProgress()
+    public async Task LoadOrganizationsAsync_AddsOrganization()
     {
-        MockAdapterLoadOrganizationsAsync();
-
         await testSubject.LoadOrganizationsAsync();
 
-        Received.InOrder(() =>
-        {
-            progressReporterViewModel.ProgressStatus = UiResources.LoadingOrganizationsProgressText;
-            slCoreConnectionAdapter.GetOrganizationsAsync(Arg.Any<ICredentialsModel>());
-            progressReporterViewModel.ProgressStatus = null;
-        });
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponseWithData<List<OrganizationDisplay>>>>(x =>
+                    x.TaskToPerform == testSubject.AdapterLoadOrganizationsAsync &&
+                    x.ProgressStatus == UiResources.LoadingOrganizationsProgressText &&
+                    x.WarningText == UiResources.LoadingOrganizationsFailedText &&
+                    x.AfterSuccess == testSubject.UpdateOrganizations));
     }
 
     [TestMethod]
-    public async Task LoadOrganizationsAsync_AdapterThrowsException_SetsProgressToNull()
-    {
-        testSubject.ProgressReporterViewModel.ProgressStatus.Returns(UiResources.LoadingOrganizationsProgressText);
-
-        await ExecuteLoadOrganizationsAsyncThrowingException();
-
-        testSubject.ProgressReporterViewModel.Received(1).ProgressStatus = null;
-    }
-
-    [TestMethod]
-    public async Task LoadOrganizationsAsync_AdapterReturnsFailedResponse_UpdatesWarning()
-    {
-        MockAdapterLoadOrganizationsAsync(success: false);
-
-        await testSubject.LoadOrganizationsAsync();
-
-        progressReporterViewModel.Received(1).Warning = UiResources.LoadingOrganizationsFailedText;
-    }
-
-    [TestMethod]
-    public async Task LoadOrganizationsAsync_AdapterSucceeds_DoesNotUpdateWarning()
-    {
-        MockAdapterLoadOrganizationsAsync(success: true);
-
-        await testSubject.LoadOrganizationsAsync();
-
-        progressReporterViewModel.DidNotReceive().Warning = UiResources.LoadingOrganizationsFailedText;
-    }
-
-    [TestMethod]
-    public async Task LoadOrganizationsAsync_ResetsPreviousWarningBeforeCallingAdapter()
-    {
-        MockAdapterLoadOrganizationsAsync(success: false);
-
-        await testSubject.LoadOrganizationsAsync();
-
-        Received.InOrder(() =>
-        {
-            progressReporterViewModel.Warning = null;
-            slCoreConnectionAdapter.GetOrganizationsAsync(Arg.Any<ICredentialsModel>());
-            progressReporterViewModel.Warning = UiResources.LoadingOrganizationsFailedText;
-        });
-    }
-
-    [TestMethod]
-    public async Task LoadOrganizationsAsync_AdapterSucceeds_AddsOrganization()
+    public void UpdateOrganizations_AddsOrganization()
     {
         var loadedOrganizations = new List<OrganizationDisplay> { new("key", "name") };
-        MockAdapterLoadOrganizationsAsync(success: true, organizations: loadedOrganizations);
+        var response = new AdapterResponseWithData<List<OrganizationDisplay>>(true, loadedOrganizations);
 
-        await testSubject.LoadOrganizationsAsync();
+        testSubject.UpdateOrganizations(response);
        
         testSubject.Organizations.Should().BeEquivalentTo(loadedOrganizations);
     }
 
     [TestMethod]
-    public async Task LoadOrganizationsAsync_AdapterSucceeds_ClearsPreviousOrganizations()
+    public void UpdateOrganizations_ClearsPreviousOrganizations()
     {
         testSubject.Organizations.Add(new("key", "name"));
         var loadedOrganizations = new List<OrganizationDisplay> { new("new_key", "new_name") };
-        MockAdapterLoadOrganizationsAsync(success: true, organizations: loadedOrganizations);
+        var response = new AdapterResponseWithData<List<OrganizationDisplay>>(true, loadedOrganizations);
 
-        await testSubject.LoadOrganizationsAsync();
+        testSubject.UpdateOrganizations(response);
 
         testSubject.Organizations.Should().BeEquivalentTo(loadedOrganizations);
     }
 
     [TestMethod]
-    public async Task LoadOrganizationsAsync_AdapterSucceeds_RaisesEvents()
+    public void UpdateOrganizations_RaisesEvents()
     {
-        MockAdapterLoadOrganizationsAsync(success: true);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
         eventHandler.ReceivedCalls().Should().BeEmpty();
+        var response = new AdapterResponseWithData<List<OrganizationDisplay>>(true, []);
 
-        await testSubject.LoadOrganizationsAsync();
+        testSubject.UpdateOrganizations(response);
 
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoOrganizationExists)));
-    }
-
-    private void MockAdapterLoadOrganizationsAsync(bool success = true, List<OrganizationDisplay> organizations = null)
-    {
-        slCoreConnectionAdapter.GetOrganizationsAsync(Arg.Any<ICredentialsModel>())
-            .Returns(new AdapterResponse<List<OrganizationDisplay>>(success, organizations ?? []));
-    }
-
-    private async Task ExecuteLoadOrganizationsAsyncThrowingException()
-    {
-        slCoreConnectionAdapter.When(x => x.GetOrganizationsAsync(Arg.Any<ICredentialsModel>()))
-            .Do(x => throw new Exception("testing"));
-        try
-        {
-            await testSubject.LoadOrganizationsAsync();
-        }
-        catch (Exception)
-        {
-            // this is only for testing purposes
-        }
     }
 }
