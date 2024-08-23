@@ -19,6 +19,8 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore;
@@ -34,7 +36,10 @@ public interface ISlCoreConnectionAdapter
 {
     Task<ValidateConnectionResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string token);
     Task<ValidateConnectionResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string username, string password);
+    Task<AdapterResponse<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel);
 }
+
+public record AdapterResponse<T>(bool Success, T ResponseData);
 
 [Export(typeof(ISlCoreConnectionAdapter))]
 public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
@@ -63,13 +68,39 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         return await ValidateConnectionAsync(validateConnectionParams);
     }
 
+    public async Task<AdapterResponse<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel)
+    {
+        var failedResponse = new AdapterResponse<List<OrganizationDisplay>>(false, []);
+
+        return await threadHandling.RunOnBackgroundThread(async () =>
+        {
+            if (TryGetConnectionConfigurationSlCoreService() is not { } connectionConfigurationSlCoreService)
+            {
+                return failedResponse;
+            }
+
+            try
+            {
+                var credentials = GetCredentialsDto(credentialsModel);
+                var response = await connectionConfigurationSlCoreService.ListUserOrganizationsAsync(new ListUserOrganizationsParams(credentials));
+                var organizationDisplays = response.userOrganizations.Select(o => new OrganizationDisplay(o.key, o.name)).ToList();
+
+                return new AdapterResponse<List<OrganizationDisplay>>(true, organizationDisplays);
+            }
+            catch (Exception ex)
+            {
+                logger.LogVerbose($"{Resources.ListUserOrganizations_Fails}: {ex.Message}");
+                return failedResponse;
+            }
+        });
+    }
+
     private async Task<ValidateConnectionResponse> ValidateConnectionAsync(ValidateConnectionParams validateConnectionParams)
     {
         return await threadHandling.RunOnBackgroundThread(async () =>
         {
-            if (!serviceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService connectionConfigurationSlCoreService))
+            if (TryGetConnectionConfigurationSlCoreService() is not {} connectionConfigurationSlCoreService)
             {
-                logger.LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
                 return new ValidateConnectionResponse(false, UiResources.ValidatingConnectionFailedText);
             }
 
@@ -83,6 +114,17 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
                 return new ValidateConnectionResponse(false, ex.Message);
             }
         });
+    }
+
+    private IConnectionConfigurationSLCoreService TryGetConnectionConfigurationSlCoreService()
+    {
+        if (serviceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService connectionConfigurationSlCoreService))
+        {
+            return connectionConfigurationSlCoreService;
+        }
+
+        logger.LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
+        return null;
     }
 
     private static ValidateConnectionParams GetValidateConnectionParams(ConnectionInfo connectionInfo, Either<TokenDto, UsernamePasswordDto> credentials)
@@ -105,5 +147,15 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     private static Either<TokenDto, UsernamePasswordDto> GetEitherForUsernamePassword(string username, string password)
     {
         return Either<TokenDto, UsernamePasswordDto>.CreateRight(new UsernamePasswordDto(username, password));
+    }
+
+    private static Either<TokenDto, UsernamePasswordDto> GetCredentialsDto(ICredentialsModel credentialsModel)
+    {
+        return credentialsModel switch
+        {
+            TokenCredentialsModel tokenCredentialsModel => GetEitherForToken(tokenCredentialsModel.Token),
+            UsernamePasswordModel usernamePasswordModel => GetEitherForUsernamePassword(usernamePasswordModel.Username, usernamePasswordModel.Password),
+            _ => throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument")
+        };
     }
 }

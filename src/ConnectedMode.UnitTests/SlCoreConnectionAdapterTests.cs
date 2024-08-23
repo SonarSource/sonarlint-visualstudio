@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute.ExceptionExtensions;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore;
@@ -25,6 +28,7 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection;
+using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
@@ -146,6 +150,102 @@ public class SlCoreConnectionAdapterTests
         logger.Received(1).LogVerbose($"{Resources.ValidateCredentials_Fails}: {exceptionMessage}");
         response.success.Should().BeFalse();
         response.message.Should().Be(exceptionMessage);
+    }
+
+    [TestMethod]
+    public async Task GetOrganizationsAsync_SwitchesToBackgroundThread()
+    {
+        var threadHandlingMock = Substitute.For<IThreadHandling>();
+        var slCoreConnectionAdapter = new SlCoreConnectionAdapter(slCoreServiceProvider, threadHandlingMock, logger);
+
+        await slCoreConnectionAdapter.GetOrganizationsAsync(new TokenCredentialsModel("token"));
+
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponse<List<OrganizationDisplay>>>>>());
+    }
+
+    [TestMethod]
+    public async Task GetOrganizationsAsync_GettingConnectionConfigurationSLCoreServiceFails_ReturnsFailedResponseAndShouldLog()
+    {
+        slCoreServiceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService _).Returns(false);
+
+        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token"));
+
+        logger.Received(1).LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
+        response.Success.Should().BeFalse();
+        response.ResponseData.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public async Task GetOrganizationsAsync_SlCoreThrowsException_ReturnsFailedResponseAndShouldLog()
+    {
+        var exceptionMessage = "validation failed";
+        connectionConfigurationSlCoreService.When(x => x.ListUserOrganizationsAsync(Arg.Any<ListUserOrganizationsParams>()))
+            .Do(x => throw new Exception(exceptionMessage));
+
+        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token"));
+
+        logger.Received(1).LogVerbose($"{Resources.ListUserOrganizations_Fails}: {exceptionMessage}");
+        response.Success.Should().BeFalse();
+        response.ResponseData.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public async Task GetOrganizationsAsync_TokenIsProvided_CallsSlCoreListUserOrganizationsWithToken()
+    {
+        var token = "token";
+
+        await testSubject.GetOrganizationsAsync(new TokenCredentialsModel(token));
+
+        await connectionConfigurationSlCoreService.Received(1).ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x=> IsExpectedCredentials(x.credentials, token)));
+    }
+
+    [TestMethod]
+    public async Task GetOrganizationsAsync_UsernameAndPasswordIsProvided_CallsSlCoreListUserOrganizationsWithUsernameAndPassword()
+    {
+        var username = "username";
+        var password = "password";
+
+        await testSubject.GetOrganizationsAsync(new UsernamePasswordModel(username, password));
+
+        await connectionConfigurationSlCoreService.Received(1).ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x => IsExpectedCredentials(x.credentials, username, password)));
+    }
+
+    [TestMethod]
+    public async Task GetOrganizationsAsync_CredentialsIsNull_ReturnsFailedResponseAndShouldLog()
+    {
+        var response = await testSubject.GetOrganizationsAsync(null);
+
+        logger.Received(1).LogVerbose($"{Resources.ListUserOrganizations_Fails}: Unexpected {nameof(ICredentialsModel)} argument");
+        response.Success.Should().BeFalse();
+        response.ResponseData.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public async Task GetOrganizationsAsync_NoOrganizationExists_ReturnsSuccessResponseAndEmptyOrganizations()
+    {
+        connectionConfigurationSlCoreService.ListUserOrganizationsAsync(Arg.Any<ListUserOrganizationsParams>())
+            .Returns(new ListUserOrganizationsResponse([]));
+
+        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token"));
+
+        response.Success.Should().BeTrue();
+        response.ResponseData.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public async Task GetOrganizationsAsync_OrganizationExists_ReturnsSuccessResponseAndMappedOrganizations()
+    {
+        List<OrganizationDto> serverOrganizations = [new OrganizationDto("key", "name", "desc"), new OrganizationDto("key2", "name2", "desc2")];
+        connectionConfigurationSlCoreService.ListUserOrganizationsAsync(Arg.Any<ListUserOrganizationsParams>())
+            .Returns(new ListUserOrganizationsResponse(serverOrganizations));
+
+        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token"));
+
+        response.Success.Should().BeTrue();
+        response.ResponseData.Should().BeEquivalentTo([
+            new OrganizationDisplay("key", "name"),
+            new OrganizationDisplay("key2", "name2")
+        ]);
     }
 
     private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string token)
