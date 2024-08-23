@@ -36,7 +36,10 @@
                 </Style>
             </Image.Style>
         </Image>
-        <TextBlock Grid.Column="1" Text="{Binding Path=Id}" VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path=TextAndIconVerticalAlignment}" FontWeight="{Binding ElementName=ConnectionInfoUc, Path=TextFontWeight}" />
+        <TextBlock x:Name="IdTextBlock" Grid.Column="1" Text="{Binding Path=Id}"
+                   VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path=TextAndIconVerticalAlignment}"
+                   FontWeight="{Binding ElementName=ConnectionInfoUc, Path=TextFontWeight}" >
+        </TextBlock>
     </Grid>
 
 </UserControl>
