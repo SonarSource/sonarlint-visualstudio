@@ -34,6 +34,8 @@ public class OrganizationSelectionViewModelTests
     [TestInitialize]
     public void TestInitialize()
     {
+        slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
+        credentialsModel = Substitute.For<ICredentialsModel>();
         testSubject = new(credentialsModel, slCoreConnectionAdapter);
     }
 
