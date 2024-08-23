@@ -22,6 +22,7 @@ using System.ComponentModel;
 using System.IO;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.SLCore.Service.Connection;
 
@@ -275,26 +276,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         }
 
         [TestMethod]
-        public async Task ValidateConnectionAsync_TokenIsProvided_ShouldValidateConnectionWithToken()
+        public async Task AdapterValidateConnectionAsync_TokenIsProvided_ShouldValidateConnectionWithToken()
         {
             MockAdapterValidateConnectionAsync();
             testSubject.SelectedAuthenticationType = UiResources.AuthenticationTypeOptionToken;
             testSubject.Token = "dummyToken";
 
-            await testSubject.ValidateConnectionAsync();
+            await testSubject.AdapterValidateConnectionAsync();
 
             await slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(testSubject.ConnectionInfo, testSubject.Token);
         }
 
         [TestMethod]
-        public async Task ValidateConnectionAsync_CredentialsAreProvided_ShouldValidateConnectionWithToken()
+        public async Task AdapterValidateConnectionAsync_CredentialsAreProvided_ShouldValidateConnectionWithToken()
         {
             MockAdapterValidateConnectionAsync();
             testSubject.SelectedAuthenticationType = UiResources.AuthenticationTypeOptionCredentials;
             testSubject.Username = "username";
             testSubject.Password = "password";
 
-            await testSubject.ValidateConnectionAsync();
+            await testSubject.AdapterValidateConnectionAsync();
 
             await slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(testSubject.ConnectionInfo, testSubject.Username, testSubject.Password);
         }
@@ -304,7 +305,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [DataRow(false)]
         public async Task ValidateConnectionAsync_ReturnsResponseFromSlCore(bool success)
         {
-            MockAdapterValidateConnectionAsync(success);
+            progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponse>>()).Returns(new AdapterResponse(success));
 
             var response = await testSubject.ValidateConnectionAsync();
 
@@ -312,66 +313,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         }
 
         [TestMethod]
-        public async Task ValidateConnectionAsync_UpdatesProgress()
+        public async Task ValidateConnectionAsync_ReturnsResponseFromSlCore()
         {
-            MockAdapterValidateConnectionAsync();
-
             await testSubject.ValidateConnectionAsync();
 
-            Received.InOrder(() =>
-            {
-                progressReporterViewModel.ProgressStatus = UiResources.ValidatingConnectionProgressText;
-                slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>());
-                progressReporterViewModel.ProgressStatus = null;
-            });
-        }
-
-        [TestMethod]
-        public async Task ValidateConnectionAsync_AdapterValidationThrowsException_SetsProgressToNull()
-        {
-            testSubject.ProgressReporterViewModel.ProgressStatus.Returns(UiResources.ValidatingConnectionProgressText);
-
-            await RunAdapterValidationThrowingException();
-
-            testSubject.ProgressReporterViewModel.Received(1).ProgressStatus = null;
-        }
-
-        [TestMethod]
-        public async Task ValidateConnectionAsync_AdapterValidationFails_UpdatesWarning()
-        {
-            var warning = "wrong credentials";
-            MockAdapterValidateConnectionAsync(success:false, message: warning);
-
-            await testSubject.ValidateConnectionAsync();
-
-            progressReporterViewModel.Received(1).Warning = warning;
-        }
-
-        [TestMethod]
-        public async Task ValidateConnectionAsync_AdapterValidationSucceeds_DoesNotUpdateWarning()
-        {
-            var warning = "correct credentials";
-            MockAdapterValidateConnectionAsync(success: true, message: warning);
-
-            await testSubject.ValidateConnectionAsync();
-
-            progressReporterViewModel.DidNotReceive().Warning = warning;
-        }
-
-        [TestMethod]
-        public async Task ValidateConnectionAsync_ResetsPreviousWarningBeforeValidation()
-        {
-            var warning = "correct credentials";
-            MockAdapterValidateConnectionAsync(success: false, message: warning);
-
-            await testSubject.ValidateConnectionAsync();
-
-            Received.InOrder(() =>
-            {
-                progressReporterViewModel.Warning = null;
-                slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>());
-                progressReporterViewModel.Warning = warning;
-            });
+            await progressReporterViewModel.Received(1)
+                .ExecuteTaskWithProgressAsync(Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.TaskToPerform == testSubject.AdapterValidateConnectionAsync &&
+                    x.ProgressStatus == UiResources.ValidatingConnectionProgressText &&
+                    x.WarningText == UiResources.ValidatingConnectionFailedText &&
+                    x.AfterProgressUpdated == testSubject.AfterProgressStatusUpdated));
         }
 
         [TestMethod]
@@ -381,7 +332,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
             testSubject.PropertyChanged += eventHandler;
             eventHandler.ReceivedCalls().Should().BeEmpty();
 
-            testSubject.UpdateProgressStatus(null);
+            testSubject.AfterProgressStatusUpdated();
 
             eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsConfirmationEnabled)));
         }
@@ -415,26 +366,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
             ((UsernamePasswordModel)credentialsModel).Password.Should().Be(testSubject.Password);
         }
 
-        private void MockAdapterValidateConnectionAsync(bool success = true, string message = null)
+        private void MockAdapterValidateConnectionAsync(bool success = true)
         {
             slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>())
-                .Returns(new ValidateConnectionResponse(success, message));
+                .Returns(new AdapterResponse(success));
             slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>(), Arg.Any<string>())
-                .Returns(new ValidateConnectionResponse(success, message));
-        }
-
-        private async Task RunAdapterValidationThrowingException()
-        {
-            slCoreConnectionAdapter.When(x => x.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>()))
-                .Do(x => throw new Exception("testing"));
-            try
-            {
-                await testSubject.ValidateConnectionAsync();
-            }
-            catch (Exception)
-            {
-                // this is only for testing purposes
-            }
+                .Returns(new AdapterResponse(success));
         }
     }
 }

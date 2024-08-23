@@ -35,8 +35,8 @@ namespace SonarLint.VisualStudio.ConnectedMode;
 
 public interface ISlCoreConnectionAdapter
 {
-    Task<ValidateConnectionResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string token);
-    Task<ValidateConnectionResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string username, string password);
+    Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string token);
+    Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string username, string password);
     Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel);
 }
 
@@ -44,7 +44,12 @@ public class AdapterResponseWithData<T>(bool success, T responseData) : IRespons
 {
     public bool Success { get; init; } = success;
     public T ResponseData { get; } = responseData;
-} 
+}
+
+public class AdapterResponse(bool success) : IResponseStatus
+{
+    public bool Success { get; } = success;
+}
 
 [Export(typeof(ISlCoreConnectionAdapter))]
 public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
@@ -53,6 +58,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
     private static readonly AdapterResponseWithData<List<OrganizationDisplay>> FailedResponseWithData = new(false, []);
+    private static readonly AdapterResponse FailedResponse = new(false);
 
     [ImportingConstructor]
     public SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling, ILogger logger)
@@ -62,13 +68,13 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         this.logger = logger;
     }
 
-    public async Task<ValidateConnectionResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string token)
+    public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string token)
     {
         var validateConnectionParams = GetValidateConnectionParams(connectionInfo, GetEitherForToken(token));
         return await ValidateConnectionAsync(validateConnectionParams);
     }
 
-    public async Task<ValidateConnectionResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string username, string password)
+    public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string username, string password)
     {
         var validateConnectionParams = GetValidateConnectionParams(connectionInfo, GetEitherForUsernamePassword(username, password));
         return await ValidateConnectionAsync(validateConnectionParams);
@@ -99,23 +105,24 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         });
     }
 
-    private async Task<ValidateConnectionResponse> ValidateConnectionAsync(ValidateConnectionParams validateConnectionParams)
+    private async Task<AdapterResponse> ValidateConnectionAsync(ValidateConnectionParams validateConnectionParams)
     {
         return await threadHandling.RunOnBackgroundThread(async () =>
         {
             if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
             {
-                return new ValidateConnectionResponse(false, UiResources.ValidatingConnectionFailedText);
+                return FailedResponse;
             }
 
             try
             {
-                return await connectionConfigurationSlCoreService.ValidateConnectionAsync(validateConnectionParams);
+                var slCoreResponse = await connectionConfigurationSlCoreService.ValidateConnectionAsync(validateConnectionParams);
+                return new AdapterResponse(slCoreResponse.success);
             }
             catch (Exception ex)
             {
                 logger.LogVerbose($"{Resources.ValidateCredentials_Fails}: {ex.Message}");
-                return new ValidateConnectionResponse(false, ex.Message);
+                return FailedResponse;
             }
         });
     }

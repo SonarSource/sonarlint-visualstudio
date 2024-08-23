@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
-using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Models;
@@ -64,7 +62,7 @@ public class SlCoreConnectionAdapterTests
 
         await slCoreConnectionAdapter.ValidateConnectionAsync(sonarQubeConnectionInfo, "myToken");
 
-        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ValidateConnectionResponse>>>());
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponse>>>());
     }
 
     [TestMethod]
@@ -75,8 +73,7 @@ public class SlCoreConnectionAdapterTests
         var response = await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, "myToken");
 
         logger.Received(1).LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
-        response.success.Should().BeFalse();
-        response.message.Should().Be(UiResources.ValidatingConnectionFailedText);
+        response.Success.Should().BeFalse();
     }
 
     [TestMethod]
@@ -135,7 +132,7 @@ public class SlCoreConnectionAdapterTests
 
         var response = await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, "token");
 
-        response.Should().BeEquivalentTo(expectedResponse);
+        response.Success.Should().Be(success);
     }
 
     [TestMethod]
@@ -148,8 +145,7 @@ public class SlCoreConnectionAdapterTests
         var response = await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, "token");
 
         logger.Received(1).LogVerbose($"{Resources.ValidateCredentials_Fails}: {exceptionMessage}");
-        response.success.Should().BeFalse();
-        response.message.Should().Be(exceptionMessage);
+        response.Success.Should().BeFalse();
     }
 
     [TestMethod]
