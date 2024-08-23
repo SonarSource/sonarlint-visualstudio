@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
@@ -39,12 +40,11 @@ public class OrganizationSelectionViewModel : ViewModelBase
 
     public bool IsValidSelectedOrganization => SelectedOrganization is { Key: var key } && !string.IsNullOrWhiteSpace(key);
 
-    public IReadOnlyList<OrganizationDisplay> Organizations { get; }
+    public ObservableCollection<OrganizationDisplay> Organizations { get; } = [];
     public bool NoOrganizationExists => Organizations.Count == 0;
 
-    public OrganizationSelectionViewModel(IReadOnlyList<OrganizationDisplay> organizations)
+    public void AddOrganization(OrganizationDisplay organization)
     {
-        Organizations = organizations ?? [];
-        RaisePropertyChanged(nameof(NoOrganizationExists));
+        Organizations.Add(organization);
     }
 }

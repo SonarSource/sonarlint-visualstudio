@@ -31,34 +31,24 @@ public class OrganizationSelectionViewModelTests
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new([]);
+        testSubject = new();
     }
 
     [TestMethod]
-    public void Ctor_NullList_SetsEmptyAsDefault()
+    public void Ctor_Organizations_SetsEmptyAsDefault()
     {
-        new OrganizationSelectionViewModel(null).Organizations.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void Ctor_EmptyList_SetsEmptyAsDefault()
-    {
-        new OrganizationSelectionViewModel([]).Organizations.Should().BeEmpty();
+        new OrganizationSelectionViewModel().Organizations.Should().BeEmpty();
     }
 
     [TestMethod]
     public void Ctor_OrganizationList_SetsPropertyValue()
-    {
-        IReadOnlyList<OrganizationDisplay> organizations = [
-            new("key1", "name1"),
-            new("key2", "name2"),
-            new("key3", "name3"),
-        ];
-        new OrganizationSelectionViewModel(
-            organizations)
-            .Organizations
-            .Should()
-            .BeSameAs(organizations);
+    { 
+        var organization = new OrganizationDisplay("key", "name");
+
+        testSubject.AddOrganization(organization);
+
+        testSubject.Organizations.Count.Should().Be(1);
+        testSubject.Organizations[0].Should().Be(organization);
     }
 
     [TestMethod]
@@ -127,17 +117,15 @@ public class OrganizationSelectionViewModelTests
 
     [TestMethod]
     public void NoOrganizationExists_NoOrganizations_ReturnsTrue()
-    {
-        var viewModel = new OrganizationSelectionViewModel([]);
-
-        viewModel.NoOrganizationExists.Should().BeTrue();
+    { 
+        testSubject.NoOrganizationExists.Should().BeTrue();
     }
 
     [TestMethod]
     public void NoOrganizationExists_HasOrganizations_ReturnsFalse()
     {
-        var viewModel = new OrganizationSelectionViewModel([new OrganizationDisplay("my org", "my org")]);
+        testSubject.AddOrganization(new OrganizationDisplay("key", "name"));
 
-        viewModel.NoOrganizationExists.Should().BeFalse();
+        testSubject.NoOrganizationExists.Should().BeFalse();
     }
 }

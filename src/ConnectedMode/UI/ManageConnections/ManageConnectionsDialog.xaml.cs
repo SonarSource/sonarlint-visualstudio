@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 return newConnectionInfo;
             }
             
-            var organizationSelectionDialog = new OrganizationSelectionDialog([new OrganizationDisplay("a", "a"), new OrganizationDisplay("b", "b")]);
+            var organizationSelectionDialog = new OrganizationSelectionDialog();
             if (organizationSelectionDialog.ShowDialog(this) == true)
             {
                 return newConnectionInfo with { Id = organizationSelectionDialog.ViewModel.SelectedOrganization.Key };
