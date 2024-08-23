@@ -52,16 +52,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private void NewConnection_Clicked(object sender, RoutedEventArgs e)
         {
-            if (GetNewConnection() is {} partialConnection && CredentialsDialogSucceeded(partialConnection) && GetCompleteConnection(partialConnection) is {} completeConnection)
+            if (GetTransientConnection() is {} transientConnection && CredentialsDialogSucceeded(transientConnection) && GetCompleteConnection(transientConnection) is {} completeConnection)
             {
                ViewModel.AddConnection(new Connection(completeConnection));
             }
         }
 
-        private ConnectionInfo GetNewConnection()
+        private ConnectionInfo GetTransientConnection()
         {
             var serverSelectionDialog = new ServerSelectionDialog(connectedModeServices.BrowserService);
-            return serverSelectionDialog.ShowDialog(this) != true ? null : serverSelectionDialog.ViewModel.CreateConnectionInfo();
+            return serverSelectionDialog.ShowDialog(this) != true ? null : serverSelectionDialog.ViewModel.CreateTransientConnectionInfo();
         }
 
         private bool CredentialsDialogSucceeded(ConnectionInfo newConnectionInfo)

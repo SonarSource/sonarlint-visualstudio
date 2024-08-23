@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
-public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnectionAdapter slCoreConnectionAdapter) : ViewModelBase
+public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnectionAdapter slCoreConnectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
     private string token;
     private string selectedAuthenticationType = UiResources.AuthenticationTypeOptionToken;
@@ -33,6 +33,7 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
     private string password;
 
     public ConnectionInfo ConnectionInfo { get; } = connectionInfo;
+    public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
     public ObservableCollection<string> AuthenticationType { get; } = [UiResources.AuthenticationTypeOptionToken, UiResources.AuthenticationTypeOptionCredentials];
 
     public string SelectedAuthenticationType
@@ -41,6 +42,7 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
         set
         {
             selectedAuthenticationType = value;
+            UpdateWarning(null);
             RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsTokenAuthentication));
             RaisePropertyChanged(nameof(IsCredentialsAuthentication));
@@ -90,7 +92,8 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
     public bool ShouldTokenBeFilled => IsTokenAuthentication && !IsTokenProvided;
     public bool ShouldUsernameBeFilled => IsCredentialsAuthentication && !IsUsernameProvided;
     public bool ShouldPasswordBeFilled => IsCredentialsAuthentication && !IsPasswordProvided;
-    public bool IsConfirmationEnabled => (IsTokenAuthentication && IsTokenProvided) || (IsCredentialsAuthentication && AreCredentialsProvided);
+    public bool IsConfirmationEnabled => !ProgressReporterViewModel.IsOperationInProgress &&
+                                         ( (IsTokenAuthentication && IsTokenProvided) || (IsCredentialsAuthentication && AreCredentialsProvided) );
 
     private bool IsTokenProvided => IsValueFilled(Token);
     private bool AreCredentialsProvided => IsPasswordProvided && IsUsernameProvided;
@@ -105,7 +108,33 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
 
     internal async Task<bool> ValidateConnectionAsync()
     {
-        var response = IsTokenAuthentication ? await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, Token) : await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, Username, Password);
-        return response.success;
+        try
+        {
+            UpdateWarning(null);
+            UpdateProgressStatus(UiResources.ValidatingConnectionProgressText);
+            var response = IsTokenAuthentication ? await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, Token) : await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, Username, Password);
+            
+            if(!response.success)
+            {
+                UpdateWarning(response.message);
+            }
+
+            return response.success;
+        }
+        finally
+        {
+            UpdateProgressStatus(null);
+        }
+    }
+
+    internal void UpdateProgressStatus(string status)
+    {
+        ProgressReporterViewModel.ProgressStatus = status;
+        RaisePropertyChanged(nameof(IsConfirmationEnabled));
+    }
+
+    private void UpdateWarning(string warning)
+    {
+        ProgressReporterViewModel.Warning = warning;
     }
 }
