@@ -42,3 +42,25 @@ build_dotnet_task:
 
   build_solution_script:
     - msbuild.exe "${SOLUTION_PATH}" /p:VsVersion=17.0 /p:VsTargetVersion=2022 /p:AssemblyOriginatorKeyFile=${SONARSOURCE_SNK_PATH} /p:DeployExtension=false /p:Sha1=${CI_COMMIT_SHA} /p:BuildNumber=${CIRRUS_BUILD_ID}
+
+dogfood_task:
+  depends_on:
+    - build_dotnet
+  only_if: $CIRRUS_USER_COLLABORATOR == 'true' && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "dogfood-on-.*")
+  ec2_instance:
+    <<: *INSTANCE_DEFINITION
+  env:
+    AWS_ACCESS_KEY_ID: VAULT[development/aws/sts/downloads access_key]
+    AWS_SECRET_ACCESS_KEY: VAULT[development/aws/sts/downloads secret_key]
+    AWS_SESSION_TOKEN: VAULT[development/aws/sts/downloads security_token]
+    AWS_DEFAULT_REGION: eu-central-1
+    CIRRUS_SHELL: bash
+    VERSION: 8.3.0.98093
+  dogfood_script: |
+    curl -L0 "https://github.com/madskristensen/PrivateGalleryCreator/releases/download/1.0.64/PrivateGalleryCreator.zip" -o PrivateGalleryCreator.zip
+    unzip PrivateGalleryCreator.zip
+    curl -u$ARTIFACTORY_PRIVATE_USERNAME:$ARTIFACTORY_PRIVATE_PASSWORD https://repox.jfrog.io/artifactory/sonarsource-public-builds/org/sonarsource/sonarlint/visualstudio/sonarlint-visualstudio/$VERSION/SonarLint.VSIX-$VERSION-2022.vsix -o SonarLint.VSIX-$VERSION-2022.vsix
+    mkdir -p /tmp/dogfood/$VERSION
+    ./PrivateGalleryCreator.exe --input=. --terminate --source="https://binaries.sonarsource.com/SonarLint-for-VisualStudio/dogfood/$VERSION/" --output=/tmp/dogfood/feed.xml
+    cp SonarLint.VSIX-$VERSION-2022.vsix /tmp/dogfood/$VERSION/
+    .cirrus/publish-dogfood-site.sh /tmp/dogfood
