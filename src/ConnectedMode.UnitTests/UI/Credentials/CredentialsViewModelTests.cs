@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using System.IO;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.SLCore.Service.Connection;
@@ -32,6 +34,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         private ConnectionInfo sonarQubeConnectionInfo; 
         private ConnectionInfo sonarCloudConnectionInfo;
         private ISlCoreConnectionAdapter slCoreConnectionAdapter;
+        private IProgressReporterViewModel progressReporterViewModel;
 
         [TestInitialize]
         public void TestInitialize()
@@ -39,7 +42,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
             sonarQubeConnectionInfo = new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube);
             sonarCloudConnectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud);
             slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
-            testSubject = new CredentialsViewModel(sonarQubeConnectionInfo, slCoreConnectionAdapter);
+            progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
+
+            testSubject = new CredentialsViewModel(sonarQubeConnectionInfo, slCoreConnectionAdapter, progressReporterViewModel);
         }
 
         [TestMethod]
@@ -47,6 +52,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         {
             testSubject.SelectedAuthenticationType.Should().Be(UiResources.AuthenticationTypeOptionToken);
             testSubject.IsTokenAuthentication.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void SelectedAuthenticationType_ClearsWarning()
+        {
+            testSubject.ProgressReporterViewModel.Warning = "credentials warning";
+
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationTypeOptionCredentials;
+
+            testSubject.ProgressReporterViewModel.Received(1).Warning = null;
         }
 
         [TestMethod]
@@ -91,6 +106,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         }
 
         [TestMethod]
+        public void IsConfirmationEnabled_CorrectTokenIsProvidedAndValidationIsInProgress_ReturnsFalse()
+        {
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationTypeOptionToken;
+            testSubject.Token = "dummy token";
+
+            testSubject.ProgressReporterViewModel.IsOperationInProgress.Returns(true);
+
+            testSubject.IsConfirmationEnabled.Should().BeFalse();
+        }
+
+        [TestMethod]
         [DataRow(null)]
         [DataRow("")]
         [DataRow("  ")]
@@ -112,6 +138,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
             testSubject.Password = "dummy password";
 
             testSubject.IsConfirmationEnabled.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void IsConfirmationEnabled_CorrectCredentialsProvidedAndValidationIsInProgress_ReturnsFalse()
+        {
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationTypeOptionCredentials;
+            testSubject.Username = "dummy username";
+            testSubject.Password = "dummy password";
+
+            testSubject.ProgressReporterViewModel.IsOperationInProgress.Returns(true);
+
+            testSubject.IsConfirmationEnabled.Should().BeFalse();
         }
 
         [TestMethod]
@@ -221,7 +259,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         [TestMethod]
         public void AccountSecurityUrl_ConnectionIsSonarCloud_ReturnsSonarCloudUrl()
         {
-            var viewModel = new CredentialsViewModel(sonarCloudConnectionInfo, slCoreConnectionAdapter);
+            var viewModel = new CredentialsViewModel(sonarCloudConnectionInfo, slCoreConnectionAdapter, progressReporterViewModel);
 
             viewModel.AccountSecurityUrl.Should().Be(UiResources.SonarCloudAccountSecurityUrl);
         }
@@ -230,7 +268,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         public void AccountSecurityUrl_ConnectionIsSonarQube_ReturnsSonarQubeUrl()
         {
             var qubeUrl = "http://localhost:9000/";
-            var viewModel = new CredentialsViewModel(new ConnectionInfo(qubeUrl, ConnectionServerType.SonarQube), slCoreConnectionAdapter);
+            var viewModel = new CredentialsViewModel(new ConnectionInfo(qubeUrl, ConnectionServerType.SonarQube), slCoreConnectionAdapter, progressReporterViewModel);
             var expectedUrl = Path.Combine(qubeUrl, UiResources.SonarQubeAccountSecurityUrl);
 
             viewModel.AccountSecurityUrl.Should().Be(expectedUrl);
@@ -273,12 +311,101 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
             response.Should().Be(success);
         }
 
-        private void MockAdapterValidateConnectionAsync(bool success = true)
+        [TestMethod]
+        public async Task ValidateConnectionAsync_UpdatesProgress()
+        {
+            MockAdapterValidateConnectionAsync();
+
+            await testSubject.ValidateConnectionAsync();
+
+            Received.InOrder(() =>
+            {
+                progressReporterViewModel.ProgressStatus = UiResources.ValidatingConnectionProgressText;
+                slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>());
+                progressReporterViewModel.ProgressStatus = null;
+            });
+        }
+
+        [TestMethod]
+        public async Task ValidateConnectionAsync_AdapterValidationThrowsException_SetsProgressToNull()
+        {
+            testSubject.ProgressReporterViewModel.ProgressStatus.Returns(UiResources.ValidatingConnectionProgressText);
+
+            await RunAdapterValidationThrowingException();
+
+            testSubject.ProgressReporterViewModel.Received(1).ProgressStatus = null;
+        }
+
+        [TestMethod]
+        public async Task ValidateConnectionAsync_AdapterValidationFails_UpdatesWarning()
+        {
+            var warning = "wrong credentials";
+            MockAdapterValidateConnectionAsync(success:false, message: warning);
+
+            await testSubject.ValidateConnectionAsync();
+
+            progressReporterViewModel.Received(1).Warning = warning;
+        }
+
+        [TestMethod]
+        public async Task ValidateConnectionAsync_AdapterValidationSucceeds_DoesNotUpdateWarning()
+        {
+            var warning = "correct credentials";
+            MockAdapterValidateConnectionAsync(success: true, message: warning);
+
+            await testSubject.ValidateConnectionAsync();
+
+            progressReporterViewModel.DidNotReceive().Warning = warning;
+        }
+
+        [TestMethod]
+        public async Task ValidateConnectionAsync_ResetsPreviousWarningBeforeValidation()
+        {
+            var warning = "correct credentials";
+            MockAdapterValidateConnectionAsync(success: false, message: warning);
+
+            await testSubject.ValidateConnectionAsync();
+
+            Received.InOrder(() =>
+            {
+                progressReporterViewModel.Warning = null;
+                slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>());
+                progressReporterViewModel.Warning = warning;
+            });
+        }
+
+        [TestMethod]
+        public void UpdateProgressStatus_RaisesEvents()
+        {
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+            eventHandler.ReceivedCalls().Should().BeEmpty();
+
+            testSubject.UpdateProgressStatus(null);
+
+            eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsConfirmationEnabled)));
+        }
+
+        private void MockAdapterValidateConnectionAsync(bool success = true, string message = null)
         {
             slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>())
-                .Returns(new ValidateConnectionResponse(success, string.Empty));
+                .Returns(new ValidateConnectionResponse(success, message));
             slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>(), Arg.Any<string>())
-                .Returns(new ValidateConnectionResponse(success, string.Empty));
+                .Returns(new ValidateConnectionResponse(success, message));
+        }
+
+        private async Task RunAdapterValidationThrowingException()
+        {
+            slCoreConnectionAdapter.When(x => x.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>()))
+                .Do(x => throw new Exception("testing"));
+            try
+            {
+                await testSubject.ValidateConnectionAsync();
+            }
+            catch (Exception)
+            {
+                // this is only for testing purposes
+            }
         }
     }
 }
