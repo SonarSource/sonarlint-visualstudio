@@ -20,15 +20,16 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
 [ExcludeFromCodeCoverage]
 public partial class OrganizationSelectionDialog : Window
 {
-    public OrganizationSelectionDialog()
+    public OrganizationSelectionDialog(IConnectedModeServices connectedModeServices, ICredentialsModel credentialsModel)
     {
-        ViewModel = new OrganizationSelectionViewModel();
+        ViewModel = new OrganizationSelectionViewModel(credentialsModel, connectedModeServices.SlCoreConnectionAdapter);
         InitializeComponent();
     }
 

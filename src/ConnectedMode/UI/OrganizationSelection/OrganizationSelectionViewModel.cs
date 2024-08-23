@@ -19,11 +19,12 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
-public class OrganizationSelectionViewModel : ViewModelBase
+public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, ISlCoreConnectionAdapter connectionAdapter) : ViewModelBase
 {
     private OrganizationDisplay selectedOrganization;
 

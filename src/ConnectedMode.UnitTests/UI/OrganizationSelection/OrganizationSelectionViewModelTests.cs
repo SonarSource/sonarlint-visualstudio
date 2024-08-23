@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.OrganizationSelection;
@@ -27,17 +28,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.OrganizationSelectio
 public class OrganizationSelectionViewModelTests
 {
     private OrganizationSelectionViewModel testSubject;
+    private ISlCoreConnectionAdapter slCoreConnectionAdapter;
+    private ICredentialsModel credentialsModel;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new();
+        testSubject = new(credentialsModel, slCoreConnectionAdapter);
     }
 
     [TestMethod]
     public void Ctor_Organizations_SetsEmptyAsDefault()
     {
-        new OrganizationSelectionViewModel().Organizations.Should().BeEmpty();
+        new OrganizationSelectionViewModel(credentialsModel, slCoreConnectionAdapter).Organizations.Should().BeEmpty();
     }
 
     [TestMethod]

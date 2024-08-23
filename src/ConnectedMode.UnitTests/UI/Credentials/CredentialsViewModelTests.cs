@@ -386,6 +386,35 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
             eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsConfirmationEnabled)));
         }
 
+        [TestMethod]
+        public void GetCredentialsModel_SelectedAuthenticationTypeIsToken_ReturnsModelWithToken()
+        {
+            testSubject.Token = "token";
+            testSubject.Username = "username";
+            testSubject.Password = "password";
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationTypeOptionToken;
+
+            var credentialsModel = testSubject.GetCredentialsModel();
+
+            credentialsModel.Should().BeOfType<TokenCredentialsModel>();
+            ((TokenCredentialsModel)credentialsModel).Token.Should().Be(testSubject.Token);
+        }
+
+        [TestMethod]
+        public void GetCredentialsModel_SelectedAuthenticationTypeIsCredentials_ReturnsModelWithUsernameAndPassword()
+        {
+            testSubject.Token = "token";
+            testSubject.Username = "username";
+            testSubject.Password = "password";
+            testSubject.SelectedAuthenticationType = UiResources.AuthenticationTypeOptionCredentials;
+
+            var credentialsModel = testSubject.GetCredentialsModel();
+
+            credentialsModel.Should().BeOfType<UsernamePasswordModel>();
+            ((UsernamePasswordModel)credentialsModel).Username.Should().Be(testSubject.Username);
+            ((UsernamePasswordModel)credentialsModel).Password.Should().Be(testSubject.Password);
+        }
+
         private void MockAdapterValidateConnectionAsync(bool success = true, string message = null)
         {
             slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>())

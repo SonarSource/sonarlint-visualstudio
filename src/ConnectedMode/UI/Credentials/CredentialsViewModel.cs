@@ -137,4 +137,9 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
     {
         ProgressReporterViewModel.Warning = warning;
     }
+
+    public ICredentialsModel GetCredentialsModel()
+    {
+       return IsTokenAuthentication ? new TokenCredentialsModel(Token) : new UsernamePasswordModel(Username, Password);
+    }
 }
