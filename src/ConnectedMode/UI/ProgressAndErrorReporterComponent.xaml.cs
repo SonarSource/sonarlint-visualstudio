@@ -18,33 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using System.Diagnostics.CodeAnalysis;
+using System.Windows;
+using System.Windows.Controls;
 
-namespace SonarLint.VisualStudio.ConnectedMode;
+namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
-public enum ConnectionServerType
+[ExcludeFromCodeCoverage] // UI, not really unit-testable
+public sealed partial class ProgressAndErrorHandlerComponent : UserControl
 {
-    SonarQube,
-    SonarCloud
-}
+    public static readonly DependencyProperty BrowserServiceDependencyProp = DependencyProperty.Register(nameof(ProgressReporterViewModel), typeof(ProgressReporterViewModel), typeof(ProgressAndErrorHandlerComponent));
 
-public record ConnectionInfo(string Id, ConnectionServerType ServerType);
-
-public class Connection(ConnectionInfo info, bool enableSmartNotifications = true)
-{
-    public ConnectionInfo Info { get; } = info;
-    public bool EnableSmartNotifications { get; set; } = enableSmartNotifications;
-}
-
-public static class ConnectionInfoExtensions
-{
-    public static string GetIdForTransientConnection(this ConnectionInfo connection)
+    public ProgressAndErrorHandlerComponent()
     {
-        if (connection.Id == null && connection.ServerType == ConnectionServerType.SonarCloud)
-        {
-            return UiResources.SonarCloudUrl;
-        }
-        return connection.Id;
+        InitializeComponent();
     }
-    
+
+    public ProgressReporterViewModel ProgressReporterViewModel
+    {
+        get => (ProgressReporterViewModel)GetValue(BrowserServiceDependencyProp);
+        set => SetValue(BrowserServiceDependencyProp, value);
+    }
+
 }

@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI;
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 public sealed partial class ConnectionInfoComponent : UserControl
 {
-    public static readonly DependencyProperty ConnectionInfoProp = DependencyProperty.Register(nameof(ConnectionInfo), typeof(ConnectionInfo), typeof(ConnectionInfoComponent));
+    public static readonly DependencyProperty ConnectionInfoProp = DependencyProperty.Register(nameof(ConnectionInfo), typeof(ConnectionInfo), typeof(ConnectionInfoComponent), new PropertyMetadata(OnConnectionInfoSet));
     public static readonly DependencyProperty FontWeightProp = DependencyProperty.Register(nameof(TextFontWeight), typeof(FontWeight), typeof(ConnectionInfoComponent), new PropertyMetadata(FontWeights.DemiBold));
     public static readonly DependencyProperty TextAndIconVerticalAlignmentProp = DependencyProperty.Register(nameof(TextAndIconVerticalAlignment), typeof(VerticalAlignment), typeof(ConnectionInfoComponent), new PropertyMetadata(VerticalAlignment.Bottom));
     public static readonly DependencyProperty ImageMarginProp = DependencyProperty.Register(nameof(ImageMargin), typeof(Thickness), typeof(ConnectionInfoComponent), new PropertyMetadata(new Thickness(-5,-5,0,-5)));
@@ -59,5 +59,14 @@ public sealed partial class ConnectionInfoComponent : UserControl
     {
         get => (Thickness)GetValue(ImageMarginProp);
         set => SetValue(ImageMarginProp, value);
+    }
+
+
+    private static void OnConnectionInfoSet(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is ConnectionInfoComponent component && e.NewValue is ConnectionInfo connectionInfo)
+        {
+            component.IdTextBlock.Text = connectionInfo.GetIdForTransientConnection();
+        }
     }
 }

@@ -137,7 +137,7 @@ public class SlCoreConnectionAdapterTests
     [TestMethod]
     public async Task ValidateConnectionAsync_SlCoreValidationThrowsException_ReturnsUnsuccessfulResponse()
     {
-        var exceptionMessage = "slCore not reachable";
+        var exceptionMessage = "validation failed";
         connectionConfigurationSlCoreService.When(x => x.ValidateConnectionAsync(Arg.Any<ValidateConnectionParams>()))
             .Do(x => throw new Exception(exceptionMessage));
 
@@ -145,7 +145,7 @@ public class SlCoreConnectionAdapterTests
 
         logger.Received(1).LogVerbose($"{Resources.ValidateCredentials_Fails}: {exceptionMessage}");
         response.success.Should().BeFalse();
-        response.message.Should().Be(UiResources.ValidatingConnectionFailedText);
+        response.message.Should().Be(exceptionMessage);
     }
 
     private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string token)

@@ -17,7 +17,6 @@
                 <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
-            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleFalseToHiddenConverter" FalseValue="Hidden" TrueValue="Visible"/>
             <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed"/>
         </ResourceDictionary>
     </Window.Resources>
@@ -165,9 +164,8 @@
                     IsEnabled="{Binding  Path=IsSelectProjectButtonEnabled}"/>
         </Grid>
 
-        <Grid Grid.Row="2" Margin="0,10" Visibility="{Binding Path=IsOperationInProgress, Converter={StaticResource TrueToVisibleFalseToHiddenConverter}}">
-            <ProgressBar IsIndeterminate="True" />
-            <TextBlock Text="{Binding Path=ProgressStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic"/>
+        <Grid Grid.Row="2" Margin="0,10">
+            <ui:ProgressAndErrorHandlerComponent ProgressReporterViewModel="{Binding Path=ProgressReporter}" />
         </Grid>
 
         <TextBlock Grid.Row="3" Text="{x:Static res:UiResources.ConnectedModeExplanationText}" Margin="0,20">

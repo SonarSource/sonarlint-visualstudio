@@ -80,7 +80,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
             catch (Exception ex)
             {
                 logger.LogVerbose($"{Resources.ValidateCredentials_Fails}: {ex.Message}");
-                return new ValidateConnectionResponse(false, UiResources.ValidatingConnectionFailedText);
+                return new ValidateConnectionResponse(false, ex.Message);
             }
         });
     }

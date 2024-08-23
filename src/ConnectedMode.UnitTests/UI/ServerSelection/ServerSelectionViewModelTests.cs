@@ -156,27 +156,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
         }
 
         [TestMethod]
-        public void CreateConnectionInfo_SonarQubeIsSelected_ReturnsConnectionWithSmartNotificationsEnabled()
+        public void CreateTransientConnectionInfo_SonarQubeIsSelected_ReturnsConnectionWithSmartNotificationsEnabled()
         {
             testSubject.IsSonarCloudSelected = false;
             testSubject.IsSonarQubeSelected = true;
             testSubject.SonarQubeUrl = "http://localhost:90";
 
-            var createdConnection = testSubject.CreateConnectionInfo();
+            var createdConnection = testSubject.CreateTransientConnectionInfo();
 
             createdConnection.Id.Should().Be(testSubject.SonarQubeUrl);
             createdConnection.ServerType.Should().Be(ConnectionServerType.SonarQube);
         }
 
         [TestMethod]
-        public void CreateConnectionInfo_SonarCloudIsSelected_ReturnsConnectionWithSmartNotificationsEnabled()
+        public void CreateTransientConnectionInfo_SonarCloudIsSelected_ReturnsConnectionWithSmartNotificationsEnabled()
         {
             testSubject.IsSonarCloudSelected = true;
             testSubject.IsSonarQubeSelected = false;
 
-            var createdConnection = testSubject.CreateConnectionInfo();
+            var createdConnection = testSubject.CreateTransientConnectionInfo();
 
-            createdConnection.Id.Should().Be(UiResources.SonarCloudUrl);
+            createdConnection.Id.Should().BeNull();
             createdConnection.ServerType.Should().Be(ConnectionServerType.SonarCloud);
         }
     }

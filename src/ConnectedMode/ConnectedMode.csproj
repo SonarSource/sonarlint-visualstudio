@@ -40,6 +40,7 @@
     <None Remove="UI\Credentials\CredentialsWnd.xaml" />
     <None Remove="UI\ManageBinding\ManageBindingDialog.xaml" />
     <None Remove="UI\Credentials\CredentialsDialog.xaml" />
+    <None Remove="UI\ProgressAndErrorReporterComponent.xaml" />
     <None Remove="UI\Resources\LogoImages.xaml" />
     <None Remove="UI\Resources\sonarlint_32px.ico" />
     <None Remove="UI\Resources\Styles.xaml" />
@@ -52,6 +53,9 @@
 
   <ItemGroup>
     <Page Include="Migration\Wizard\MigrationWizardWindow.xaml" />
+    <Page Include="UI\ProgressAndErrorReporterComponent.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\Credentials\CredentialsDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

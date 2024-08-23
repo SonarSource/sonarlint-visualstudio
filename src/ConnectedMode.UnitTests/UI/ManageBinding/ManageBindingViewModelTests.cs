@@ -201,7 +201,7 @@ public class ManageBindingViewModelTests
     public void IsBindButtonEnabled_ProjectIsSelectedAndBindingIsNotInProgress_ReturnsTrue()
     {
         testSubject.SelectedProject = serverProject;
-        testSubject.ProgressStatus = null;
+        testSubject.ProgressReporter.ProgressStatus = null;
 
         testSubject.IsBindButtonEnabled.Should().BeTrue();
     }
@@ -210,7 +210,7 @@ public class ManageBindingViewModelTests
     public void IsBindButtonEnabled_ProjectIsSelectedAndBindingIsInProgress_ReturnsFalse()
     {
         testSubject.SelectedProject = serverProject;
-        testSubject.ProgressStatus = "in progress";
+        testSubject.ProgressReporter.ProgressStatus = "in progress";
 
         testSubject.IsBindButtonEnabled.Should().BeFalse();
     }
@@ -221,7 +221,7 @@ public class ManageBindingViewModelTests
     public void IsBindButtonEnabled_ProjectIsNotSelected_ReturnsFalse(string bindingStatus)
     {
         testSubject.SelectedProject = null;
-        testSubject.ProgressStatus = bindingStatus;
+        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
 
         testSubject.IsBindButtonEnabled.Should().BeFalse();
     }
@@ -231,7 +231,7 @@ public class ManageBindingViewModelTests
     [DataRow(null, true)]
     public void IsManageConnectionsButtonEnabled_ReturnsTrueOnlyWhenNoBindingIsInProgress(string bindingStatus, bool expectedResult)
     {
-        testSubject.ProgressStatus = bindingStatus;
+        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
 
         testSubject.IsManageConnectionsButtonEnabled.Should().Be(expectedResult);
     }
@@ -242,7 +242,7 @@ public class ManageBindingViewModelTests
     public void IsUseSharedBindingButtonEnabled_SharedBindingConfigurationIsDetected_ReturnsTrueOnlyWhenNoBindingIsInProgress(string bindingStatus, bool expectedResult)
     {
         testSubject.IsSharedBindingConfigurationDetected = true;
-        testSubject.ProgressStatus = bindingStatus;
+        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
 
         testSubject.IsUseSharedBindingButtonEnabled.Should().Be(expectedResult);
     }
@@ -253,7 +253,7 @@ public class ManageBindingViewModelTests
     public void IsUseSharedBindingButtonEnabled_SharedBindingConfigurationIsNotDetected_ReturnsFalse(string bindingStatus)
     {
         testSubject.IsSharedBindingConfigurationDetected = false;
-        testSubject.ProgressStatus = bindingStatus;
+        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
 
         testSubject.IsUseSharedBindingButtonEnabled.Should().BeFalse();
     }
@@ -278,7 +278,7 @@ public class ManageBindingViewModelTests
     [DataRow(null, true)]
     public void IsUnbindButtonEnabled_ReturnsTrueOnlyWhenNoBindingIsInProgress(string bindingStatus, bool expectedResult)
     {
-        testSubject.ProgressStatus = bindingStatus;
+        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
 
         testSubject.IsUnbindButtonEnabled.Should().Be(expectedResult);
     }
@@ -287,7 +287,7 @@ public class ManageBindingViewModelTests
     public void IsSelectProjectButtonEnabled_ConnectionIsSelectedAndNoBindingIsInProgressAndProjectIsNotBound_ReturnsTrue()
     {
         testSubject.BoundProject = null;
-        testSubject.ProgressStatus = null;
+        testSubject.ProgressReporter.ProgressStatus = null;
         testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
 
         testSubject.IsSelectProjectButtonEnabled.Should().BeTrue();
@@ -297,7 +297,7 @@ public class ManageBindingViewModelTests
     public void IsSelectProjectButtonEnabled_BindingIsInProgress_ReturnsFalse()
     {
         testSubject.BoundProject = null;
-        testSubject.ProgressStatus = "in progress";
+        testSubject.ProgressReporter.ProgressStatus = "in progress";
         testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
 
         testSubject.IsSelectProjectButtonEnabled.Should().BeFalse();
@@ -308,7 +308,7 @@ public class ManageBindingViewModelTests
     [DataRow(null)]
     public void IsSelectProjectButtonEnabled_ConnectionIsNotSelected_ReturnsFalse(string bindingStatus)
     {
-        testSubject.ProgressStatus = bindingStatus;
+        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
         testSubject.SelectedConnectionInfo = null;
 
         testSubject.IsSelectProjectButtonEnabled.Should().BeFalse();
@@ -318,7 +318,7 @@ public class ManageBindingViewModelTests
     public void IsSelectProjectButtonEnabled_ProjectIsAlreadyBound_ReturnsFalse()
     {
         testSubject.BoundProject = serverProject;
-        testSubject.ProgressStatus = null;
+        testSubject.ProgressReporter.ProgressStatus = null;
         testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
 
         testSubject.IsSelectProjectButtonEnabled.Should().BeFalse();
@@ -328,7 +328,7 @@ public class ManageBindingViewModelTests
     public void IsConnectionSelectionEnabled_BindingIsInProgress_ReturnsFalse()
     {
         testSubject.BoundProject = null;
-        testSubject.ProgressStatus = "in progress";
+        testSubject.ProgressReporter.ProgressStatus = "in progress";
 
         testSubject.IsConnectionSelectionEnabled.Should().BeFalse();
     }
@@ -339,7 +339,7 @@ public class ManageBindingViewModelTests
     public void IsConnectionSelectionEnabled_ProjectIsBound_ReturnsFalse(string bindingStatus)
     {
         testSubject.BoundProject = serverProject;
-        testSubject.ProgressStatus = bindingStatus;
+        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
 
         testSubject.IsConnectionSelectionEnabled.Should().BeFalse();
     }
@@ -348,7 +348,7 @@ public class ManageBindingViewModelTests
     public void IsConnectionSelectionEnabled_ProjectIsNotBoundAndBindingIsNotInProgress_ReturnsTrue()
     {
         testSubject.BoundProject = null;
-        testSubject.ProgressStatus = null;
+        testSubject.ProgressReporter.ProgressStatus = null;
 
         testSubject.IsConnectionSelectionEnabled.Should().BeTrue();
     }
@@ -360,12 +360,8 @@ public class ManageBindingViewModelTests
         testSubject.PropertyChanged += eventHandler;
         eventHandler.ReceivedCalls().Should().BeEmpty();
 
-        testSubject.ProgressStatus = "In progress...";
+        testSubject.UpdateProgress("In progress...");
 
-        eventHandler.Received().Invoke(testSubject,
-            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.ProgressStatus)));
-        eventHandler.Received().Invoke(testSubject,
-            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsOperationInProgress)));
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsUseSharedBindingButtonEnabled)));
         eventHandler.Received().Invoke(testSubject,
@@ -383,28 +379,10 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void IsOperationInProgress_ProgressStatusIsSet_ReturnsTrue()
-    {
-        testSubject.ProgressStatus = "In progres...";
-
-        testSubject.IsOperationInProgress.Should().BeTrue();
-    }
-
-    [TestMethod]
-    [DataRow(null)]
-    [DataRow("")]
-    public void IsOperationInProgress_ProgressStatusIsNull_ReturnsFalse(string status)
-    {
-        testSubject.ProgressStatus = status;
-
-        testSubject.IsOperationInProgress.Should().BeFalse();
-    }
-
-    [TestMethod]
     public void IsExportButtonEnabled_BindingIsInProgress_ReturnsFalse()
     {
         testSubject.BoundProject = serverProject;
-        testSubject.ProgressStatus = "in progress";
+        testSubject.ProgressReporter.ProgressStatus = "in progress";
 
         testSubject.IsExportButtonEnabled.Should().BeFalse();
     }
@@ -415,7 +393,7 @@ public class ManageBindingViewModelTests
     public void IsExportButtonEnabled_ProjectIsNotBound_ReturnsFalse(string bindingStatus)
     {
         testSubject.BoundProject = null;
-        testSubject.ProgressStatus = bindingStatus;
+        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
 
         testSubject.IsExportButtonEnabled.Should().BeFalse();
     }
@@ -424,7 +402,7 @@ public class ManageBindingViewModelTests
     public void IsExportButtonEnabled_ProjectIsBoundAndBindingIsNotInProgress_ReturnsTrue()
     {
         testSubject.BoundProject = serverProject;
-        testSubject.ProgressStatus = null;
+        testSubject.ProgressReporter.ProgressStatus = null;
 
         testSubject.IsExportButtonEnabled.Should().BeTrue();
     }
