@@ -29,11 +29,11 @@ public partial class OrganizationSelectionDialog : Window
 {
     public OrganizationSelectionDialog(IConnectedModeServices connectedModeServices, ICredentialsModel credentialsModel)
     {
-        ViewModel = new OrganizationSelectionViewModel(credentialsModel, connectedModeServices.SlCoreConnectionAdapter);
+        ViewModel = new OrganizationSelectionViewModel(credentialsModel, connectedModeServices.SlCoreConnectionAdapter, new ProgressReporterViewModel());
         InitializeComponent();
     }
 
-    public OrganizationSelectionViewModel ViewModel { get; private set; }
+    public OrganizationSelectionViewModel ViewModel { get; }
 
     private void OkButton_OnClick(object sender, RoutedEventArgs e)
     {
@@ -51,6 +51,11 @@ public partial class OrganizationSelectionDialog : Window
         {
             DialogResult = true;
         }
+    }
+
+    private async void OrganizationSelectionDialog_OnLoaded(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.LoadOrganizationsAsync();
     }
 }
 

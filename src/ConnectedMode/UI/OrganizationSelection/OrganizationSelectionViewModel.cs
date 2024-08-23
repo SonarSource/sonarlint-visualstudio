@@ -20,12 +20,14 @@
 
 using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
-public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, ISlCoreConnectionAdapter connectionAdapter) : ViewModelBase
+public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, ISlCoreConnectionAdapter connectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
+    public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
     private OrganizationDisplay selectedOrganization;
 
     public OrganizationDisplay SelectedOrganization
@@ -47,5 +49,41 @@ public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, 
     public void AddOrganization(OrganizationDisplay organization)
     {
         Organizations.Add(organization);
+        RaisePropertyChanged(nameof(NoOrganizationExists));
+    }
+
+    public async Task LoadOrganizationsAsync()
+    {
+        try
+        {
+            UpdateWarning(null);
+            UpdateProgressStatus(UiResources.LoadingOrganizationsProgressText);
+            var response = await connectionAdapter.GetOrganizationsAsync(credentialsModel);
+
+            if (response.Success)
+            {
+                Organizations.Clear();
+                response.ResponseData.ForEach(AddOrganization);
+                RaisePropertyChanged(nameof(NoOrganizationExists));
+            }
+            else
+            {
+                UpdateWarning(UiResources.LoadingOrganizationsFailedText);
+            }
+        }
+        finally
+        {
+            UpdateProgressStatus(null);
+        }
+    }
+
+    private void UpdateProgressStatus(string status)
+    {
+        ProgressReporterViewModel.ProgressStatus = status;
+    }
+
+    private void UpdateWarning(string warning)
+    {
+        ProgressReporterViewModel.Warning = warning;
     }
 }

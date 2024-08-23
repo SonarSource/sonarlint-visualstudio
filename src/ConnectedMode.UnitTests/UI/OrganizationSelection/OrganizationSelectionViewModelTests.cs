@@ -19,8 +19,10 @@
  */
 
 using System.ComponentModel;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.OrganizationSelection;
 
@@ -30,17 +32,22 @@ public class OrganizationSelectionViewModelTests
     private OrganizationSelectionViewModel testSubject;
     private ISlCoreConnectionAdapter slCoreConnectionAdapter;
     private ICredentialsModel credentialsModel;
+    private IProgressReporterViewModel progressReporterViewModel;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new(credentialsModel, slCoreConnectionAdapter);
+        credentialsModel = Substitute.For<ICredentialsModel>();
+        slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
+        progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
+
+        testSubject = new(credentialsModel, slCoreConnectionAdapter, progressReporterViewModel);
     }
 
     [TestMethod]
     public void Ctor_Organizations_SetsEmptyAsDefault()
     {
-        new OrganizationSelectionViewModel(credentialsModel, slCoreConnectionAdapter).Organizations.Should().BeEmpty();
+        new OrganizationSelectionViewModel(credentialsModel, slCoreConnectionAdapter, progressReporterViewModel).Organizations.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -130,5 +137,146 @@ public class OrganizationSelectionViewModelTests
         testSubject.AddOrganization(new OrganizationDisplay("key", "name"));
 
         testSubject.NoOrganizationExists.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void AddOrganization_RaisesEvent()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        eventHandler.ReceivedCalls().Should().BeEmpty();
+
+        testSubject.AddOrganization(new OrganizationDisplay("key", "name"));
+
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoOrganizationExists)));
+    }
+
+    [TestMethod]
+    public void AddOrganization_AddsToList()
+    {
+        testSubject.Organizations.Should().BeEmpty();
+        var newOrganization = new OrganizationDisplay("key", "name");
+
+        testSubject.AddOrganization(newOrganization);
+
+        testSubject.Organizations.Should().BeEquivalentTo(newOrganization);
+    }
+
+    [TestMethod]
+    public async Task LoadOrganizationsAsync_UpdatesProgress()
+    {
+        MockAdapterLoadOrganizationsAsync();
+
+        await testSubject.LoadOrganizationsAsync();
+
+        Received.InOrder(() =>
+        {
+            progressReporterViewModel.ProgressStatus = UiResources.LoadingOrganizationsProgressText;
+            slCoreConnectionAdapter.GetOrganizationsAsync(Arg.Any<ICredentialsModel>());
+            progressReporterViewModel.ProgressStatus = null;
+        });
+    }
+
+    [TestMethod]
+    public async Task LoadOrganizationsAsync_AdapterThrowsException_SetsProgressToNull()
+    {
+        testSubject.ProgressReporterViewModel.ProgressStatus.Returns(UiResources.LoadingOrganizationsProgressText);
+
+        await ExecuteLoadOrganizationsAsyncThrowingException();
+
+        testSubject.ProgressReporterViewModel.Received(1).ProgressStatus = null;
+    }
+
+    [TestMethod]
+    public async Task LoadOrganizationsAsync_AdapterReturnsFailedResponse_UpdatesWarning()
+    {
+        MockAdapterLoadOrganizationsAsync(success: false);
+
+        await testSubject.LoadOrganizationsAsync();
+
+        progressReporterViewModel.Received(1).Warning = UiResources.LoadingOrganizationsFailedText;
+    }
+
+    [TestMethod]
+    public async Task LoadOrganizationsAsync_AdapterSucceeds_DoesNotUpdateWarning()
+    {
+        MockAdapterLoadOrganizationsAsync(success: true);
+
+        await testSubject.LoadOrganizationsAsync();
+
+        progressReporterViewModel.DidNotReceive().Warning = UiResources.LoadingOrganizationsFailedText;
+    }
+
+    [TestMethod]
+    public async Task LoadOrganizationsAsync_ResetsPreviousWarningBeforeCallingAdapter()
+    {
+        MockAdapterLoadOrganizationsAsync(success: false);
+
+        await testSubject.LoadOrganizationsAsync();
+
+        Received.InOrder(() =>
+        {
+            progressReporterViewModel.Warning = null;
+            slCoreConnectionAdapter.GetOrganizationsAsync(Arg.Any<ICredentialsModel>());
+            progressReporterViewModel.Warning = UiResources.LoadingOrganizationsFailedText;
+        });
+    }
+
+    [TestMethod]
+    public async Task LoadOrganizationsAsync_AdapterSucceeds_AddsOrganization()
+    {
+        var loadedOrganizations = new List<OrganizationDisplay> { new("key", "name") };
+        MockAdapterLoadOrganizationsAsync(success: true, organizations: loadedOrganizations);
+
+        await testSubject.LoadOrganizationsAsync();
+       
+        testSubject.Organizations.Should().BeEquivalentTo(loadedOrganizations);
+    }
+
+    [TestMethod]
+    public async Task LoadOrganizationsAsync_AdapterSucceeds_ClearsPreviousOrganizations()
+    {
+        testSubject.Organizations.Add(new("key", "name"));
+        var loadedOrganizations = new List<OrganizationDisplay> { new("new_key", "new_name") };
+        MockAdapterLoadOrganizationsAsync(success: true, organizations: loadedOrganizations);
+
+        await testSubject.LoadOrganizationsAsync();
+
+        testSubject.Organizations.Should().BeEquivalentTo(loadedOrganizations);
+    }
+
+    [TestMethod]
+    public async Task LoadOrganizationsAsync_AdapterSucceeds_RaisesEvents()
+    {
+        MockAdapterLoadOrganizationsAsync(success: true);
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        eventHandler.ReceivedCalls().Should().BeEmpty();
+
+        await testSubject.LoadOrganizationsAsync();
+
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoOrganizationExists)));
+    }
+
+    private void MockAdapterLoadOrganizationsAsync(bool success = true, List<OrganizationDisplay> organizations = null)
+    {
+        slCoreConnectionAdapter.GetOrganizationsAsync(Arg.Any<ICredentialsModel>())
+            .Returns(new AdapterResponse<List<OrganizationDisplay>>(success, organizations ?? []));
+    }
+
+    private async Task ExecuteLoadOrganizationsAsyncThrowingException()
+    {
+        slCoreConnectionAdapter.When(x => x.GetOrganizationsAsync(Arg.Any<ICredentialsModel>()))
+            .Do(x => throw new Exception("testing"));
+        try
+        {
+            await testSubject.LoadOrganizationsAsync();
+        }
+        catch (Exception)
+        {
+            // this is only for testing purposes
+        }
     }
 }
