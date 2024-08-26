@@ -201,7 +201,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private void SetBoundSolutionUIContext()
         {
-            var isContextActive = !CurrentConfiguration.Equals(LegacyBindingConfiguration.Standalone);
+            var isContextActive = !CurrentConfiguration.Equals(BindingConfiguration.Standalone);
             vsMonitorSelection.SetCmdUIContext(boundSolutionContextCookie, isContextActive ? 1 : 0);
         }
 

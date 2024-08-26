@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
                 // Assert
-                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Bound solution should report true activation");
+                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected, "Bound solution should report true activation");
             }
         }
 
