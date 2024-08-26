@@ -19,7 +19,10 @@
  */
 
 using System.ComponentModel;
+using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.OrganizationSelection;
 
@@ -27,38 +30,35 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.OrganizationSelectio
 public class OrganizationSelectionViewModelTests
 {
     private OrganizationSelectionViewModel testSubject;
+    private ISlCoreConnectionAdapter slCoreConnectionAdapter;
+    private ICredentialsModel credentialsModel;
+    private IProgressReporterViewModel progressReporterViewModel;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new([]);
+        credentialsModel = Substitute.For<ICredentialsModel>();
+        slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
+        progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
+
+        testSubject = new(credentialsModel, slCoreConnectionAdapter, progressReporterViewModel);
     }
 
     [TestMethod]
-    public void Ctor_NullList_SetsEmptyAsDefault()
+    public void Ctor_Organizations_SetsEmptyAsDefault()
     {
-        new OrganizationSelectionViewModel(null).Organizations.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void Ctor_EmptyList_SetsEmptyAsDefault()
-    {
-        new OrganizationSelectionViewModel([]).Organizations.Should().BeEmpty();
+        new OrganizationSelectionViewModel(credentialsModel, slCoreConnectionAdapter, progressReporterViewModel).Organizations.Should().BeEmpty();
     }
 
     [TestMethod]
     public void Ctor_OrganizationList_SetsPropertyValue()
-    {
-        IReadOnlyList<OrganizationDisplay> organizations = [
-            new("key1", "name1"),
-            new("key2", "name2"),
-            new("key3", "name3"),
-        ];
-        new OrganizationSelectionViewModel(
-            organizations)
-            .Organizations
-            .Should()
-            .BeSameAs(organizations);
+    { 
+        var organization = new OrganizationDisplay("key", "name");
+
+        testSubject.AddOrganization(organization);
+
+        testSubject.Organizations.Count.Should().Be(1);
+        testSubject.Organizations[0].Should().Be(organization);
     }
 
     [TestMethod]
@@ -127,17 +127,90 @@ public class OrganizationSelectionViewModelTests
 
     [TestMethod]
     public void NoOrganizationExists_NoOrganizations_ReturnsTrue()
-    {
-        var viewModel = new OrganizationSelectionViewModel([]);
-
-        viewModel.NoOrganizationExists.Should().BeTrue();
+    { 
+        testSubject.NoOrganizationExists.Should().BeTrue();
     }
 
     [TestMethod]
     public void NoOrganizationExists_HasOrganizations_ReturnsFalse()
     {
-        var viewModel = new OrganizationSelectionViewModel([new OrganizationDisplay("my org", "my org")]);
+        testSubject.AddOrganization(new OrganizationDisplay("key", "name"));
 
-        viewModel.NoOrganizationExists.Should().BeFalse();
+        testSubject.NoOrganizationExists.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void AddOrganization_RaisesEvent()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        eventHandler.ReceivedCalls().Should().BeEmpty();
+
+        testSubject.AddOrganization(new OrganizationDisplay("key", "name"));
+
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoOrganizationExists)));
+    }
+
+    [TestMethod]
+    public void AddOrganization_AddsToList()
+    {
+        testSubject.Organizations.Should().BeEmpty();
+        var newOrganization = new OrganizationDisplay("key", "name");
+
+        testSubject.AddOrganization(newOrganization);
+
+        testSubject.Organizations.Should().BeEquivalentTo(newOrganization);
+    }
+
+    [TestMethod]
+    public async Task LoadOrganizationsAsync_AddsOrganization()
+    {
+        await testSubject.LoadOrganizationsAsync();
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponseWithData<List<OrganizationDisplay>>>>(x =>
+                    x.TaskToPerform == testSubject.AdapterLoadOrganizationsAsync &&
+                    x.ProgressStatus == UiResources.LoadingOrganizationsProgressText &&
+                    x.WarningText == UiResources.LoadingOrganizationsFailedText &&
+                    x.AfterSuccess == testSubject.UpdateOrganizations));
+    }
+
+    [TestMethod]
+    public void UpdateOrganizations_AddsOrganization()
+    {
+        var loadedOrganizations = new List<OrganizationDisplay> { new("key", "name") };
+        var response = new AdapterResponseWithData<List<OrganizationDisplay>>(true, loadedOrganizations);
+
+        testSubject.UpdateOrganizations(response);
+       
+        testSubject.Organizations.Should().BeEquivalentTo(loadedOrganizations);
+    }
+
+    [TestMethod]
+    public void UpdateOrganizations_ClearsPreviousOrganizations()
+    {
+        testSubject.Organizations.Add(new("key", "name"));
+        var loadedOrganizations = new List<OrganizationDisplay> { new("new_key", "new_name") };
+        var response = new AdapterResponseWithData<List<OrganizationDisplay>>(true, loadedOrganizations);
+
+        testSubject.UpdateOrganizations(response);
+
+        testSubject.Organizations.Should().BeEquivalentTo(loadedOrganizations);
+    }
+
+    [TestMethod]
+    public void UpdateOrganizations_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        eventHandler.ReceivedCalls().Should().BeEmpty();
+        var response = new AdapterResponseWithData<List<OrganizationDisplay>>(true, []);
+
+        testSubject.UpdateOrganizations(response);
+
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoOrganizationExists)));
     }
 }
