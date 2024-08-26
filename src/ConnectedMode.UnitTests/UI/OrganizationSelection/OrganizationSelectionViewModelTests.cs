@@ -244,6 +244,20 @@ public class OrganizationSelectionViewModelTests
     }
 
     [TestMethod]
+    public async Task ValidateConnectionAsync_CallsExecuteTaskWithProgressAsync()
+    {
+        testSubject.SelectedOrganization = new OrganizationDisplay("myKey", "myName");
+
+        await testSubject.ValidateConnectionAsync();
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(Arg.Is<ITaskToPerformParams<AdapterResponse>>(x =>
+                IsExpectedSlCoreAdapterValidateConnectionAsync(x.TaskToPerform, testSubject.SelectedOrganization.Key) &&
+                x.ProgressStatus == UiResources.ValidatingConnectionProgressText &&
+                x.WarningText == UiResources.ValidatingConnectionFailedText));
+    }
+
+    [TestMethod]
     public void CreateConnectionInfo_OrganizationIsSelected_ReturnsSonarCloudConnectionWithOrganizationKey()
     {
         var organizationKey = "key";

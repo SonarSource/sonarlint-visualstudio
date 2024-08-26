@@ -64,6 +64,11 @@ public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, 
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(organizationLoadingParams);
     }
 
+    public async Task<bool> ValidateConnectionAsync()
+    {
+        return await ValidateConnectionForOrganizationAsync(SelectedOrganization.Key, UiResources.ValidatingConnectionFailedText);
+    }
+
     internal async Task<AdapterResponseWithData<List<OrganizationDisplay>>> AdapterLoadOrganizationsAsync()
     {
        return await connectionAdapter.GetOrganizationsAsync(credentialsModel);

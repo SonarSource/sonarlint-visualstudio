@@ -40,9 +40,13 @@ public partial class OrganizationSelectionDialog : Window
 
     public OrganizationSelectionViewModel ViewModel { get; }
 
-    private void OkButton_OnClick(object sender, RoutedEventArgs e)
+    private async void OkButton_OnClick(object sender, RoutedEventArgs e)
     {
-        DialogResult = true;
+        var isConnectionValid = await ViewModel.ValidateConnectionAsync();
+        if(isConnectionValid)
+        {
+            DialogResult = true;
+        }
     }
 
     private async void ChooseAnotherOrganizationButton_OnClick(object sender, RoutedEventArgs e)
