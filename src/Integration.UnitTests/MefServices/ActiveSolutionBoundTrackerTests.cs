@@ -645,7 +645,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private void ConfigureSolutionBinding(BoundSonarQubeProject boundProject)
         {
             configProvider.ProjectToReturn = boundProject;
-            configProvider.ModeToReturn = boundProject == null ? SonarLintMode.Standalone : SonarLintMode.LegacyConnected;
+            configProvider.ModeToReturn = boundProject == null ? SonarLintMode.Standalone : SonarLintMode.Connected;
             configProvider.FolderPathToReturn = "c:\\test";
         }
 
