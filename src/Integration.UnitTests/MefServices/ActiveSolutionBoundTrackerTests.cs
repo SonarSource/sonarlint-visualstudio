@@ -207,7 +207,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var eventCounter = new EventCounter(testSubject);
 
                 // Sanity
-                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Initially bound");
+                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected, "Initially bound");
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(0, "no events raised during construction");
                 eventCounter.SolutionBindingChangedCount.Should().Be(0, "no events raised during construction");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "no events raised during construction");
@@ -238,7 +238,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 host.VisualStateManager.SetBoundProject(new Uri("http://localhost"), null, "project123");
 
                 // Assert
-                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Bound solution should report true activation");
+                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected, "Bound solution should report true activation");
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(2, "Bind should trigger reanalysis");
                 eventCounter.SolutionBindingChangedCount.Should().Be(2, "Bind should trigger reanalysis");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Bind should not trigger update event");
@@ -274,7 +274,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
 
                 // Assert
-                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.LegacyConnected, "Bound respond to solution change event and report bound");
+                testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected, "Bound respond to solution change event and report bound");
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(4, "Solution change should trigger reanalysis");
                 eventCounter.SolutionBindingChangedCount.Should().Be(4, "Solution change should trigger reanalysis");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Bind should not trigger update event");
