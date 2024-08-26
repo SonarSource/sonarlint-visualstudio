@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             SetTimerStatus(activeSolutionBindingEventArgs.Configuration);
         }
 
-        private void SetTimerStatus(BindingConfiguration bindingConfiguration)
+        private void SetTimerStatus(BindingConfiguration2 bindingConfiguration)
         {
             if (bindingConfiguration?.Mode != SonarLintMode.Standalone)
             {

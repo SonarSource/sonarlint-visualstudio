@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Core.UserRuleSettings
             return settings;
         }
 
-        private RulesSettings FindConnectedModeSettings(BindingConfiguration binding)
+        private RulesSettings FindConnectedModeSettings(BindingConfiguration2 binding)
         {
             var filePath = binding.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
             var settings = serializer.SafeLoad(filePath);

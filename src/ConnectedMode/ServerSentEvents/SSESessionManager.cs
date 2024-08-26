@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
         /// Creates a new session if in connected mode. If no binding configuration is provided the
         /// ActiveSolutionBoundTracker.CurrentConfiguration will be used.
         /// </summary>
-        public void CreateSessionIfInConnectedMode(BindingConfiguration bindingConfiguration = null)
+        public void CreateSessionIfInConnectedMode(BindingConfiguration2 bindingConfiguration = null)
         {
             if (bindingConfiguration == null) { bindingConfiguration = activeSolutionBoundTracker.CurrentConfiguration; }
 
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             {
                 EndCurrentSession();
                 
-                var isInConnectedMode = !bindingConfiguration.Equals(BindingConfiguration.Standalone);
+                var isInConnectedMode = !bindingConfiguration.Equals(BindingConfiguration2.Standalone);
 
                 if (!isInConnectedMode)
                 {
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
                 logger.LogVerbose("[SSESessionManager] In connected mode, creating session...");
 
-                currentSession = sseSessionFactory.Create(bindingConfiguration.Project.ProjectKey, OnSessionFailedAsync);
+                currentSession = sseSessionFactory.Create(bindingConfiguration.Project.ServerProjectKey, OnSessionFailedAsync);
 
                 logger.LogVerbose("[SSESessionManager] Created session: {0}", currentSession.GetHashCode());
 

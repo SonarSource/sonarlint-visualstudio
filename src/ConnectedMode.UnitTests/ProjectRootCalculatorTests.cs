@@ -49,7 +49,7 @@ public class ProjectRootCalculatorTests
     public async Task CalculateBasedOnLocalPathAsync_StandaloneMode_ReturnsNull()
     {
         var testSubject = CreateTestSubject(out _, out var configurationProviderMock, out _);
-        configurationProviderMock.SetupGet(x => x.CurrentConfiguration).Returns(BindingConfiguration.Standalone);
+        configurationProviderMock.SetupGet(x => x.CurrentConfiguration).Returns(BindingConfiguration2.Standalone);
 
         var result = await testSubject.CalculateBasedOnLocalPathAsync(@"c:\somepath", CancellationToken.None);
 
@@ -65,8 +65,8 @@ public class ProjectRootCalculatorTests
         var testSubject = CreateTestSubject(out var sonarQubeServiceMock, out var configurationProviderMock, out var branchProviderMock);
         configurationProviderMock
             .SetupGet(x => x.CurrentConfiguration)
-            .Returns(BindingConfiguration.CreateBoundConfiguration(
-                new BoundSonarQubeProject(){ProjectKey = projectKey},
+            .Returns(BindingConfiguration2.CreateBoundConfiguration(
+                new BoundServerProject("solution", projectKey, new ServerConnection.SonarQube(new Uri("http://localhost"))),
                 SonarLintMode.Connected,
                 "somedir"));
         branchProviderMock

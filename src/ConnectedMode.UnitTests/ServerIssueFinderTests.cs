@@ -157,8 +157,8 @@ public class ServerIssueFinderTests
     {
         activeSolutionBoundTrackerMock.SetupGet(x => x.CurrentConfiguration)
             .Returns(projectKey == null
-                ? BindingConfiguration.Standalone
-                : new BindingConfiguration(new BoundSonarQubeProject { ProjectKey = projectKey }, SonarLintMode.Connected, default));
+                ? BindingConfiguration2.Standalone
+                : new BindingConfiguration2(new BoundServerProject("solution", projectKey, new ServerConnection.SonarQube(new Uri("http://localhost"))), SonarLintMode.Connected, default));
     }
     
     private ServerIssueFinder CreateTestSubject(out Mock<IProjectRootCalculator> projectRootCalculatorMock,

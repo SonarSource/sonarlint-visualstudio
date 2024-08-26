@@ -110,7 +110,7 @@ public sealed class SLCoreTestRunner : IDisposable
             compatibleNodeLocator.Get().Returns((string)null);
 
             var noOpActiveSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
-            noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
+            noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration2.Standalone);
             var noOpConfigScopeUpdater = Substitute.For<IConfigScopeUpdater>();
 
             slCoreInstanceHandle = new SLCoreInstanceHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,

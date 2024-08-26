@@ -25,5 +25,5 @@ namespace SonarLint.VisualStudio.Core.Binding;
 /// </summary>
 public interface IConfigScopeUpdater
 {
-    void UpdateConfigScopeForCurrentSolution(BoundSonarQubeProject currentBinding);
+    void UpdateConfigScopeForCurrentSolution(BoundServerProject currentBinding);
 }

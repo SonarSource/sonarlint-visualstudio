@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.SLCore.Common.Helpers
 {
@@ -27,7 +28,7 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
     {
         Uri GetUriFromConnectionId(string connectionId);
 
-        string GetConnectionIdFromUri(Uri uri, string organisation);
+        string GetConnectionIdFromServerConnection(ServerConnection serverConnection);
     }
 
     [Export(typeof(IConnectionIdHelper))]
@@ -38,27 +39,13 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
         private const string SonarQubePrefix = "sq|";
         public static readonly Uri SonarCloudUri = new Uri("https://sonarcloud.io");
 
-        public string GetConnectionIdFromUri(Uri uri, string organisation)
-        {
-            if (uri is null)
-            {
-                return null;
-            }
-
-            if (uri == SonarCloudUri)
-            {
-                if (!string.IsNullOrWhiteSpace(organisation))
-                {
-                    return SonarCloudPrefix + organisation;
-                }
-            }
-            else
-            {
-                return SonarQubePrefix + uri.ToString();
-            }
-
-            return null;
-        }
+        public string GetConnectionIdFromServerConnection(ServerConnection serverConnection) =>
+            serverConnection switch
+            { // todo create jira task to remove this prefix
+                ServerConnection.SonarQube sonarQube => SonarQubePrefix + sonarQube.Id,
+                ServerConnection.SonarCloud sonarCloud => SonarCloudPrefix + sonarCloud.Id,
+                _ => null
+            };
 
         public Uri GetUriFromConnectionId(string connectionId)
         {

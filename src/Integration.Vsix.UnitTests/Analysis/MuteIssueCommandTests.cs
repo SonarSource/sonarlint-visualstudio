@@ -40,8 +40,8 @@ public class MuteIssueCommandTests
     private const int VisibleButDisabled = (int)(OLECMDF.OLECMDF_SUPPORTED);
     private const int InvisibleAndDisabled = (int)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_INVISIBLE);
 
-    private static readonly BindingConfiguration ConnectedModeBinding =
-        new BindingConfiguration(default, SonarLintMode.Connected, default);
+    private static readonly BindingConfiguration2 ConnectedModeBinding =
+        new BindingConfiguration2(default, SonarLintMode.Connected, default);
 
     [TestMethod]
     public void CommandRegistration()
@@ -139,7 +139,7 @@ public class MuteIssueCommandTests
         errorListHelperMock.Setup(x => x.TryGetRuleIdAndSuppressionStateFromSelectedRow(out ruleId, out suppressionState)).Returns(true);
         activeSolutionBoundTrackerMock
             .SetupGet(x => x.CurrentConfiguration)
-            .Returns(BindingConfiguration.Standalone);
+            .Returns(BindingConfiguration2.Standalone);
 
         ThreadHelper.SetCurrentThreadAsUIThread();
         var oleStatus = testSubject.OleStatus;

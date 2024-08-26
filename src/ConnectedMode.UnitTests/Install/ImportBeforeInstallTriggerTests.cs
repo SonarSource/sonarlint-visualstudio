@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Install
 
             _ = CreateTestSubject(activeSolutionTracker.Object, importBeforeFileGenerator.Object);
 
-            activeSolutionTracker.Raise(x => x.PreSolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
+            activeSolutionTracker.Raise(x => x.PreSolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(BindingConfiguration2.Standalone));
             importBeforeFileGenerator.Verify(x => x.WriteTargetsFileToDiskIfNotExists(), Times.Never);
         }
 
@@ -175,9 +175,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Install
             return activeSolutionTracker;
         }
 
-        private BindingConfiguration CreateBindingConfiguration(SonarLintMode mode)
+        private BindingConfiguration2 CreateBindingConfiguration(SonarLintMode mode)
         {
-            return new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://localhost"), "test", ""), mode, "");
+            return new BindingConfiguration2(new BoundServerProject("test", "test", new ServerConnection.SonarQube(new Uri("http://localhost"))), mode, "");
         }
 
         private ImportBeforeInstallTrigger CreateTestSubject(IActiveSolutionBoundTracker activeSolutionBoundTracker, IImportBeforeFileGenerator importBeforeFileGenerator = null, IThreadHandling threadHandling = null)

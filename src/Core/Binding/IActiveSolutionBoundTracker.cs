@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Core.Binding
         /// <remarks>
         /// This is never null.
         /// </remarks>
-        BindingConfiguration CurrentConfiguration { get; }
+        BindingConfiguration2 CurrentConfiguration { get; }
 
         /// <summary>
         /// Raised after the binding has been updated, and before the <see cref="SolutionBindingUpdated"/> event
@@ -66,11 +66,11 @@ namespace SonarLint.VisualStudio.Core.Binding
 
     public class ActiveSolutionBindingEventArgs : EventArgs
     {
-        public ActiveSolutionBindingEventArgs(BindingConfiguration configuration)
+        public ActiveSolutionBindingEventArgs(BindingConfiguration2 configuration)
         {
             Configuration = configuration;
         }
 
-        public BindingConfiguration Configuration { get; }
+        public BindingConfiguration2 Configuration { get; }
     }
 }

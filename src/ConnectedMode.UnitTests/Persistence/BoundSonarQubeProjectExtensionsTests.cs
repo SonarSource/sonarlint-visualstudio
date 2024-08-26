@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void CreateConnectionInformation_ArgCheck()
         {
-            Exceptions.Expect<ArgumentNullException>(() => BoundSonarQubeProjectExtensions.CreateConnectionInformation(null));
+            Exceptions.Expect<ArgumentNullException>(() => BoundSonarQubeProjectExtensions.CreateConnectionInformation((BoundSonarQubeProject)null));
         }
 
         [TestMethod]
@@ -90,5 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             conn.Password.Should().BeNull();
             conn.Organization.Should().BeNull();
         }
+        
+        // todo tests for other model
     }
 }

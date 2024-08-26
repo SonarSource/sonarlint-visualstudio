@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration
         public event EventHandler PreSolutionBindingUpdated;
         public event EventHandler SolutionBindingUpdated;
 
-        public BindingConfiguration CurrentConfiguration { get; private set; }
+        public BindingConfiguration2 CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
         public ActiveSolutionBoundTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
@@ -87,12 +87,31 @@ namespace SonarLint.VisualStudio.Integration
 
             // The solution changed inside the IDE
             solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
-
-            CurrentConfiguration = configurationProvider.GetConfiguration();
+            
+            CurrentConfiguration = GetConfig();
 
             SetBoundSolutionUIContext();
 
             this.gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
+        }
+
+        private BindingConfiguration2 GetConfig()
+        {
+            var oldConfig = configurationProvider.GetConfiguration();
+
+            if (oldConfig.Mode == SonarLintMode.Standalone)
+            {
+                return BindingConfiguration2.Standalone;
+            }
+
+            ServerConnection connection = oldConfig.Project?.Organization is not null
+                ? new ServerConnection.SonarCloud(oldConfig.Project.Organization.Key, credentials: oldConfig.Project.Credentials)
+                : oldConfig.Project?.ServerUri is not null
+                    ? new ServerConnection.SonarQube(oldConfig.Project.ServerUri, credentials: oldConfig.Project.Credentials)
+                    : null;
+            return new BindingConfiguration2(
+                    new BoundServerProject("placeholder", oldConfig.Project?.ProjectKey, connection) { Profiles = oldConfig.Project?.Profiles },
+                    oldConfig.Mode, oldConfig.BindingConfigDirectory);
         }
 
         private void GitEventsMonitor_HeadChanged(object sender, EventArgs e)
@@ -111,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration
             // An exception here will crash VS
             try
             {
-                var newBindingConfiguration = configurationProvider.GetConfiguration();
+                var newBindingConfiguration = GetConfig();
                 
                 await UpdateConnectionAsync(newBindingConfiguration);
 
@@ -125,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private async Task UpdateConnectionAsync(BindingConfiguration bindingConfiguration)
+        private async Task UpdateConnectionAsync(BindingConfiguration2 bindingConfiguration)
         {
             ISonarQubeService sonarQubeService = this.extensionHost.SonarQubeService;
 
@@ -156,10 +175,10 @@ namespace SonarLint.VisualStudio.Integration
 
         private void OnBindingStateChanged(object sender, BindingStateEventArgs e)
         {
-            this.RaiseAnalyzersChangedIfBindingChanged(configurationProvider.GetConfiguration(), e.IsBindingCleared);
+            this.RaiseAnalyzersChangedIfBindingChanged(GetConfig(), e.IsBindingCleared);
         }
 
-        private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration, bool? isBindingCleared = null)
+        private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration2 newBindingConfiguration, bool? isBindingCleared = null)
         {
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project);
             
@@ -190,7 +209,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public async void OnImportsSatisfied()
         {
-            await UpdateConnectionAsync(configurationProvider.GetConfiguration());
+            await UpdateConnectionAsync(GetConfig());
         }
 
         #endregion
