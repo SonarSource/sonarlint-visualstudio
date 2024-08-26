@@ -193,7 +193,7 @@ public class ProgressReporterViewModelTests
         {
             await testSubject.ExecuteTaskWithProgressAsync(parameters);
         }
-        catch (Exception e)
+        catch (Exception)
         {
            // this is for testing only
         }
