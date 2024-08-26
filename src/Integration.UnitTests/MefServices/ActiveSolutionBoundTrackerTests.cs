@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ActiveSolutionBoundTracker_Initialisation_Bound()
         {
             // Arrange
-            this.ConfigureSolutionBinding(new BoundSonarQubeProject());
+            this.ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://localhost"), "projectKey", "projectName"));
 
             // Act
             using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
