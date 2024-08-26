@@ -42,7 +42,7 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
         set
         {
             selectedAuthenticationType = value;
-            UpdateWarning(null);
+            ProgressReporterViewModel.Warning = null;
             RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsTokenAuthentication));
             RaisePropertyChanged(nameof(IsCredentialsAuthentication));
@@ -108,36 +108,28 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
 
     internal async Task<bool> ValidateConnectionAsync()
     {
-        try
+        var validationParams = new TaskToPerformParams<AdapterResponse>(AdapterValidateConnectionAsync, UiResources.ValidatingConnectionProgressText, UiResources.ValidatingConnectionFailedText)
         {
-            UpdateWarning(null);
-            UpdateProgressStatus(UiResources.ValidatingConnectionProgressText);
-            var response = IsTokenAuthentication ? await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, Token) : await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, Username, Password);
-            
-            if(!response.success)
-            {
-                UpdateWarning(response.message);
-            }
-
-            return response.success;
-        }
-        finally
-        {
-            UpdateProgressStatus(null);
-        }
+            AfterProgressUpdated = AfterProgressStatusUpdated
+        };
+        var adapterResponse = await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
+        return adapterResponse.Success;
     }
 
-    internal void UpdateProgressStatus(string status)
+    internal async Task<AdapterResponse> AdapterValidateConnectionAsync()
     {
-        ProgressReporterViewModel.ProgressStatus = status;
+        if (IsTokenAuthentication)
+        {
+            return await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, Token);
+        }
+        return await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, Username, Password);
+    }
+
+    internal void AfterProgressStatusUpdated()
+    {
         RaisePropertyChanged(nameof(IsConfirmationEnabled));
     }
-
-    private void UpdateWarning(string warning)
-    {
-        ProgressReporterViewModel.Warning = warning;
-    }
-
+ 
     public ICredentialsModel GetCredentialsModel()
     {
        return IsTokenAuthentication ? new TokenCredentialsModel(Token) : new UsernamePasswordModel(Username, Password);

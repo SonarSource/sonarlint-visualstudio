@@ -22,6 +22,7 @@ using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
+using static SonarLint.VisualStudio.ConnectedMode.UI.ProgressReporterViewModel;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
@@ -54,36 +55,25 @@ public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, 
 
     public async Task LoadOrganizationsAsync()
     {
-        try
+        var organizationLoadingParams = new TaskToPerformParams<AdapterResponseWithData<List<OrganizationDisplay>>>(
+            AdapterLoadOrganizationsAsync,
+            UiResources.LoadingOrganizationsProgressText, 
+            UiResources.LoadingOrganizationsFailedText)
         {
-            UpdateWarning(null);
-            UpdateProgressStatus(UiResources.LoadingOrganizationsProgressText);
-            var response = await connectionAdapter.GetOrganizationsAsync(credentialsModel);
-
-            if (response.Success)
-            {
-                Organizations.Clear();
-                response.ResponseData.ForEach(AddOrganization);
-                RaisePropertyChanged(nameof(NoOrganizationExists));
-            }
-            else
-            {
-                UpdateWarning(UiResources.LoadingOrganizationsFailedText);
-            }
-        }
-        finally
-        {
-            UpdateProgressStatus(null);
-        }
+            AfterSuccess = UpdateOrganizations
+        };
+        await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(organizationLoadingParams);
     }
 
-    private void UpdateProgressStatus(string status)
+    internal async Task<AdapterResponseWithData<List<OrganizationDisplay>>> AdapterLoadOrganizationsAsync()
     {
-        ProgressReporterViewModel.ProgressStatus = status;
+       return await connectionAdapter.GetOrganizationsAsync(credentialsModel);
     }
 
-    private void UpdateWarning(string warning)
+    internal void UpdateOrganizations(AdapterResponseWithData<List<OrganizationDisplay>> responseWithData)
     {
-        ProgressReporterViewModel.Warning = warning;
+        Organizations.Clear();
+        responseWithData.ResponseData.ForEach(AddOrganization);
+        RaisePropertyChanged(nameof(NoOrganizationExists));
     }
 }
