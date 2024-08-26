@@ -75,7 +75,8 @@ public sealed class BindingConfiguration : IEquatable<BindingConfiguration>
 
         return other.Mode == this.Mode &&
                other.Project?.ServerConnection?.Id == this.Project?.ServerConnection?.Id
-               && other.Project?.ServerProjectKey == this.Project?.ServerProjectKey;
+               && other.Project?.ServerProjectKey == this.Project?.ServerProjectKey
+               && other.Project?.LocalBindingKey == this.Project?.LocalBindingKey;
     }
 
     public override int GetHashCode()

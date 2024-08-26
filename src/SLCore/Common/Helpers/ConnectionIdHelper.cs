@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
 
         public string GetConnectionIdFromServerConnection(ServerConnection serverConnection) =>
             serverConnection switch
-            { // todo create jira task to remove this prefix
+            { // todo https://sonarsource.atlassian.net/browse/SLVS-1419
                 ServerConnection.SonarQube sonarQube => SonarQubePrefix + sonarQube.Id,
                 ServerConnection.SonarCloud sonarCloud => SonarCloudPrefix + sonarCloud.Id,
                 _ => null
