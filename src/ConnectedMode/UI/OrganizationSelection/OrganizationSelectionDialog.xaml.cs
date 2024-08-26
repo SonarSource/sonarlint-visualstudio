@@ -20,19 +20,20 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
 [ExcludeFromCodeCoverage]
 public partial class OrganizationSelectionDialog : Window
 {
-    public OrganizationSelectionDialog(IReadOnlyList<OrganizationDisplay> organizations)
+    public OrganizationSelectionDialog(IConnectedModeServices connectedModeServices, ICredentialsModel credentialsModel)
     {
-        ViewModel = new OrganizationSelectionViewModel(organizations);
+        ViewModel = new OrganizationSelectionViewModel(credentialsModel, connectedModeServices.SlCoreConnectionAdapter, new ProgressReporterViewModel());
         InitializeComponent();
     }
 
-    public OrganizationSelectionViewModel ViewModel { get; private set; }
+    public OrganizationSelectionViewModel ViewModel { get; }
 
     private void OkButton_OnClick(object sender, RoutedEventArgs e)
     {
@@ -50,6 +51,11 @@ public partial class OrganizationSelectionDialog : Window
         {
             DialogResult = true;
         }
+    }
+
+    private async void OrganizationSelectionDialog_OnLoaded(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.LoadOrganizationsAsync();
     }
 }
 
