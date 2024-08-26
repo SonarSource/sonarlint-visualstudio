@@ -52,10 +52,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private void NewConnection_Clicked(object sender, RoutedEventArgs e)
         {
-            if (GetTransientConnection() is {} transientConnection && CredentialsDialogSucceeded(transientConnection) && GetCompleteConnection(transientConnection) is {} completeConnection)
+            if (GetTransientConnection() is not {} transientConnection)
             {
-               ViewModel.AddConnection(new Connection(completeConnection));
+                return;
             }
+
+            var credentialsDialog = GetCredentialsDialog(transientConnection);
+            if (!CredentialsDialogSucceeded(credentialsDialog) || FinalizeConnection(transientConnection, credentialsDialog) is not { } completeConnection)
+            {
+                return;
+            }
+
+            ViewModel.AddConnection(new Connection(completeConnection));
         }
 
         private ConnectionInfo GetTransientConnection()
@@ -64,21 +72,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return serverSelectionDialog.ShowDialog(this) != true ? null : serverSelectionDialog.ViewModel.CreateTransientConnectionInfo();
         }
 
-        private bool CredentialsDialogSucceeded(ConnectionInfo newConnectionInfo)
+        private CredentialsDialog GetCredentialsDialog(ConnectionInfo newConnectionInfo)
         {
             var isAnyDialogFollowing = newConnectionInfo.ServerType == ConnectionServerType.SonarCloud; 
-            var credentialsDialog = new CredentialsDialog(connectedModeServices, newConnectionInfo, withNextButton: isAnyDialogFollowing);
+            return new CredentialsDialog(connectedModeServices, newConnectionInfo, withNextButton: isAnyDialogFollowing);
+        }
+
+        private bool CredentialsDialogSucceeded(CredentialsDialog credentialsDialog)
+        {
             return credentialsDialog.ShowDialog(this) == true;
         }
 
-        private ConnectionInfo GetCompleteConnection(ConnectionInfo newConnectionInfo)
+        private ConnectionInfo FinalizeConnection(ConnectionInfo newConnectionInfo, CredentialsDialog credentialsDialog)
         {
             if (newConnectionInfo.ServerType == ConnectionServerType.SonarQube)
             {
                 return newConnectionInfo;
             }
             
-            var organizationSelectionDialog = new OrganizationSelectionDialog([new OrganizationDisplay("a", "a"), new OrganizationDisplay("b", "b")]);
+            var organizationSelectionDialog = new OrganizationSelectionDialog(connectedModeServices, credentialsDialog.ViewModel.GetCredentialsModel());
             if (organizationSelectionDialog.ShowDialog(this) == true)
             {
                 return newConnectionInfo with { Id = organizationSelectionDialog.ViewModel.SelectedOrganization.Key };

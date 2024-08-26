@@ -19,6 +19,9 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore;
@@ -32,8 +35,20 @@ namespace SonarLint.VisualStudio.ConnectedMode;
 
 public interface ISlCoreConnectionAdapter
 {
-    Task<ValidateConnectionResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string token);
-    Task<ValidateConnectionResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string username, string password);
+    Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string token);
+    Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string username, string password);
+    Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel);
+}
+
+public class AdapterResponseWithData<T>(bool success, T responseData) : IResponseStatus
+{
+    public bool Success { get; init; } = success;
+    public T ResponseData { get; } = responseData;
+}
+
+public class AdapterResponse(bool success) : IResponseStatus
+{
+    public bool Success { get; } = success;
 }
 
 [Export(typeof(ISlCoreConnectionAdapter))]
@@ -42,6 +57,8 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
+    private static readonly AdapterResponseWithData<List<OrganizationDisplay>> FailedResponseWithData = new(false, []);
+    private static readonly AdapterResponse FailedResponse = new(false);
 
     [ImportingConstructor]
     public SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling, ILogger logger)
@@ -51,38 +68,76 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         this.logger = logger;
     }
 
-    public async Task<ValidateConnectionResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string token)
+    public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string token)
     {
         var validateConnectionParams = GetValidateConnectionParams(connectionInfo, GetEitherForToken(token));
         return await ValidateConnectionAsync(validateConnectionParams);
     }
 
-    public async Task<ValidateConnectionResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string username, string password)
+    public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string username, string password)
     {
         var validateConnectionParams = GetValidateConnectionParams(connectionInfo, GetEitherForUsernamePassword(username, password));
         return await ValidateConnectionAsync(validateConnectionParams);
     }
 
-    private async Task<ValidateConnectionResponse> ValidateConnectionAsync(ValidateConnectionParams validateConnectionParams)
+    public Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel)
     {
-        return await threadHandling.RunOnBackgroundThread(async () =>
+        return threadHandling.RunOnBackgroundThread(async () =>
         {
-            if (!serviceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService connectionConfigurationSlCoreService))
+            if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
             {
-                logger.LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
-                return new ValidateConnectionResponse(false, UiResources.ValidatingConnectionFailedText);
+                return FailedResponseWithData;
             }
 
             try
             {
-                return await connectionConfigurationSlCoreService.ValidateConnectionAsync(validateConnectionParams);
+                var credentials = GetCredentialsDto(credentialsModel);
+                var response = await connectionConfigurationSlCoreService.ListUserOrganizationsAsync(new ListUserOrganizationsParams(credentials));
+                var organizationDisplays = response.userOrganizations.Select(o => new OrganizationDisplay(o.key, o.name)).ToList();
+
+                return new AdapterResponseWithData<List<OrganizationDisplay>>(true, organizationDisplays);
+            }
+            catch (Exception ex)
+            {
+                logger.LogVerbose($"{Resources.ListUserOrganizations_Fails}: {ex.Message}");
+                return FailedResponseWithData;
+            }
+        });
+    }
+
+    private async Task<AdapterResponse> ValidateConnectionAsync(ValidateConnectionParams validateConnectionParams)
+    {
+        return await threadHandling.RunOnBackgroundThread(async () =>
+        {
+            if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
+            {
+                return FailedResponse;
+            }
+
+            try
+            {
+                var slCoreResponse = await connectionConfigurationSlCoreService.ValidateConnectionAsync(validateConnectionParams);
+                return new AdapterResponse(slCoreResponse.success);
             }
             catch (Exception ex)
             {
                 logger.LogVerbose($"{Resources.ValidateCredentials_Fails}: {ex.Message}");
-                return new ValidateConnectionResponse(false, ex.Message);
+                return FailedResponse;
             }
         });
+    }
+
+    private bool TryGetConnectionConfigurationSlCoreService(out IConnectionConfigurationSLCoreService connectionConfigurationSlCoreService)
+    {
+        if (serviceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService slCoreService))
+        {
+            connectionConfigurationSlCoreService = slCoreService;
+            return true;
+        }
+
+        connectionConfigurationSlCoreService = null;
+        logger.LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
+        return false;
     }
 
     private static ValidateConnectionParams GetValidateConnectionParams(ConnectionInfo connectionInfo, Either<TokenDto, UsernamePasswordDto> credentials)
@@ -105,5 +160,15 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     private static Either<TokenDto, UsernamePasswordDto> GetEitherForUsernamePassword(string username, string password)
     {
         return Either<TokenDto, UsernamePasswordDto>.CreateRight(new UsernamePasswordDto(username, password));
+    }
+
+    private static Either<TokenDto, UsernamePasswordDto> GetCredentialsDto(ICredentialsModel credentialsModel)
+    {
+        return credentialsModel switch
+        {
+            TokenCredentialsModel tokenCredentialsModel => GetEitherForToken(tokenCredentialsModel.Token),
+            UsernamePasswordModel usernamePasswordModel => GetEitherForUsernamePassword(usernamePasswordModel.Username, usernamePasswordModel.Password),
+            _ => throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument")
+        };
     }
 }

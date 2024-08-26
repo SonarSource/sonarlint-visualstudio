@@ -99,4 +99,103 @@ public class ProgressReporterViewModelTests
 
         testSubject.HasWarning.Should().BeFalse();
     }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task ExecuteTaskWithProgressAsync_ReturnsReceivedResponse(bool success)
+    {
+        var parameters = GetTaskWithResponse(success);
+        var taskResponse = new AdapterResponseWithData<IResponseStatus>(true, null);
+        parameters.TaskToPerform().Returns(taskResponse);
+
+        var response = await testSubject.ExecuteTaskWithProgressAsync(parameters);
+
+        response.Should().Be(taskResponse);
+    }
+
+    [TestMethod]
+    public async Task ExecuteTaskWithProgressAsync_TaskWithSuccessResponse_WorkflowIsCorrect()
+    {
+        var parameters = GetTaskWithResponse(true);
+
+        await testSubject.ExecuteTaskWithProgressAsync(parameters);
+
+        Received.InOrder(() =>
+        {
+            _ = parameters.ProgressStatus;
+            parameters.AfterProgressUpdated();
+            parameters.TaskToPerform();
+            parameters.AfterSuccess(Arg.Any<IResponseStatus>());
+        });
+        testSubject.ProgressStatus.Should().BeNull();
+        _ = parameters.DidNotReceive().WarningText;
+    }
+
+    [TestMethod]
+    public async Task ExecuteTaskWithProgressAsync_TaskWithSuccessResponse_ClearsPreviousWarning()
+    {
+        var parameters = GetTaskWithResponse(true);
+        testSubject.Warning = "warning";
+
+        await testSubject.ExecuteTaskWithProgressAsync(parameters);
+
+        testSubject.Warning.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task ExecuteTaskWithProgressAsync_TaskWithFailureResponse_WorkflowIsCorrect()
+    {
+        var warningText = "warning";
+        var parameters = GetTaskWithResponse(false);
+        parameters.WarningText.Returns(warningText);
+
+        await testSubject.ExecuteTaskWithProgressAsync(parameters);
+
+        Received.InOrder(() =>
+        {
+            _ = parameters.ProgressStatus;
+            parameters.AfterProgressUpdated();
+            parameters.TaskToPerform();
+            _ = parameters.WarningText;
+            parameters.AfterFailure(Arg.Any<IResponseStatus>());
+        });
+        testSubject.Warning.Should().Be(warningText);
+        testSubject.ProgressStatus.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task ExecuteTaskWithProgressAsync_TaskThrowsException_SetsProgressToNull()
+    {
+        testSubject.ProgressStatus = "In progress...";
+
+        await ExecuteTaskThatThrows();
+
+        testSubject.ProgressStatus.Should().BeNull();
+    }
+
+    private static ITaskToPerformParams<IResponseStatus> GetTaskWithResponse(bool success)
+    {
+        var parameters = Substitute.For<ITaskToPerformParams<IResponseStatus>>();
+        var taskResponse = Substitute.For<IResponseStatus>();
+        parameters.TaskToPerform().Returns(taskResponse);
+        taskResponse.Success.Returns(success);
+
+        return parameters;
+    }
+
+    private async Task ExecuteTaskThatThrows()
+    {
+        var parameters = Substitute.For<ITaskToPerformParams<IResponseStatus>>();
+        parameters.TaskToPerform.Returns(x => throw new Exception("test"));
+
+        try
+        {
+            await testSubject.ExecuteTaskWithProgressAsync(parameters);
+        }
+        catch (Exception)
+        {
+           // this is for testing only
+        }
+    }
 }

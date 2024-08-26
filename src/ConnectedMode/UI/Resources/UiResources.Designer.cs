@@ -403,6 +403,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Loading the organizations from the server failed. Please see the Output window for more information..
+        /// </summary>
+        public static string LoadingOrganizationsFailedText {
+            get {
+                return ResourceManager.GetString("LoadingOrganizationsFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading organizations....
+        /// </summary>
+        public static string LoadingOrganizationsProgressText {
+            get {
+                return ResourceManager.GetString("LoadingOrganizationsProgressText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Manage Project Binding.
         /// </summary>
         public static string ManageBindingDialogTitle {

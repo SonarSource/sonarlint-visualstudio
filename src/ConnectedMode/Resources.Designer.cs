@@ -322,6 +322,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode] Listing user organizations failed.
+        /// </summary>
+        internal static string ListUserOrganizations_Fails {
+            get {
+                return ResourceManager.GetString("ListUserOrganizations_Fails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error.
         /// </summary>
         internal static string MuteIssuesService_Error_Caption {

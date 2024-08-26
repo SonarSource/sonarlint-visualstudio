@@ -18,12 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
+using static SonarLint.VisualStudio.ConnectedMode.UI.ProgressReporterViewModel;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
-public class OrganizationSelectionViewModel : ViewModelBase
+public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, ISlCoreConnectionAdapter connectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
+    public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
     private OrganizationDisplay selectedOrganization;
 
     public OrganizationDisplay SelectedOrganization
@@ -39,12 +44,36 @@ public class OrganizationSelectionViewModel : ViewModelBase
 
     public bool IsValidSelectedOrganization => SelectedOrganization is { Key: var key } && !string.IsNullOrWhiteSpace(key);
 
-    public IReadOnlyList<OrganizationDisplay> Organizations { get; }
+    public ObservableCollection<OrganizationDisplay> Organizations { get; } = [];
     public bool NoOrganizationExists => Organizations.Count == 0;
 
-    public OrganizationSelectionViewModel(IReadOnlyList<OrganizationDisplay> organizations)
+    public void AddOrganization(OrganizationDisplay organization)
     {
-        Organizations = organizations ?? [];
+        Organizations.Add(organization);
+        RaisePropertyChanged(nameof(NoOrganizationExists));
+    }
+
+    public async Task LoadOrganizationsAsync()
+    {
+        var organizationLoadingParams = new TaskToPerformParams<AdapterResponseWithData<List<OrganizationDisplay>>>(
+            AdapterLoadOrganizationsAsync,
+            UiResources.LoadingOrganizationsProgressText, 
+            UiResources.LoadingOrganizationsFailedText)
+        {
+            AfterSuccess = UpdateOrganizations
+        };
+        await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(organizationLoadingParams);
+    }
+
+    internal async Task<AdapterResponseWithData<List<OrganizationDisplay>>> AdapterLoadOrganizationsAsync()
+    {
+       return await connectionAdapter.GetOrganizationsAsync(credentialsModel);
+    }
+
+    internal void UpdateOrganizations(AdapterResponseWithData<List<OrganizationDisplay>> responseWithData)
+    {
+        Organizations.Clear();
+        responseWithData.ResponseData.ForEach(AddOrganization);
         RaisePropertyChanged(nameof(NoOrganizationExists));
     }
 }

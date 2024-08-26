@@ -28,6 +28,22 @@ public interface IProgressReporterViewModel
     string Warning { get; set; }
     bool IsOperationInProgress { get; }
     bool HasWarning { get; }
+    Task<T> ExecuteTaskWithProgressAsync<T>(ITaskToPerformParams<T> parameters) where T : IResponseStatus;
+}
+
+public interface IResponseStatus
+{
+    bool Success { get; }
+}
+
+public interface ITaskToPerformParams<T> where T : IResponseStatus
+{
+    public Action AfterProgressUpdated { get; }
+    public Action<T> AfterSuccess { get; }
+    public Action<T> AfterFailure { get; }
+    public Func<Task<T>> TaskToPerform { get; }
+    public string ProgressStatus { get; }
+    public string WarningText { get; }
 }
 
 public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewModel
@@ -59,4 +75,42 @@ public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewMod
 
     public bool IsOperationInProgress => !string.IsNullOrEmpty(ProgressStatus);
     public bool HasWarning => !string.IsNullOrEmpty(Warning);
+
+    public async Task<T> ExecuteTaskWithProgressAsync<T>(ITaskToPerformParams<T> parameters) where T: IResponseStatus
+    {
+        try
+        {
+            Warning = null;
+            ProgressStatus = parameters.ProgressStatus;
+            parameters.AfterProgressUpdated?.Invoke();
+            var response = await parameters.TaskToPerform();
+
+            if (response.Success)
+            {
+                parameters.AfterSuccess?.Invoke(response);
+            }
+            else
+            {
+                Warning = parameters.WarningText;
+                parameters.AfterFailure?.Invoke(response);
+            }
+
+            return response;
+        }
+        finally
+        {
+            ProgressStatus = null;
+        }
+    }
+}
+
+public class TaskToPerformParams<T>(Func<Task<T>> taskToPerform, string progressStatus, string warningText) : ITaskToPerformParams<T>
+    where T : IResponseStatus
+{
+    public Action AfterProgressUpdated { get; init; }
+    public Action<T> AfterSuccess { get; init; }
+    public Action<T> AfterFailure { get; init; }
+    public Func<Task<T>> TaskToPerform { get; } = taskToPerform;
+    public string ProgressStatus { get; } = progressStatus;
+    public string WarningText { get; } = warningText;
 }

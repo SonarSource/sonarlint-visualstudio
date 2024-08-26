@@ -304,4 +304,7 @@
   <data name="ValidateCredentials_Fails" xml:space="preserve">
     <value>[ConnectedMode] Validating credentials failed</value>
   </data>
+  <data name="ListUserOrganizations_Fails" xml:space="preserve">
+    <value>[ConnectedMode] Listing user organizations failed</value>
+  </data>
 </root>
