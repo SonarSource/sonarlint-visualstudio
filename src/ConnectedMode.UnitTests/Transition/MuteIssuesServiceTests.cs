@@ -194,7 +194,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
         private IActiveSolutionBoundTracker CreateActiveSolutionBoundTracker(bool isConnectedMode = true)
         {
             var modeToReturn = isConnectedMode ? SonarLintMode.Connected : SonarLintMode.Standalone;
-            var configuration = new BindingConfiguration2(null, modeToReturn, null);
+            var configuration = new BindingConfiguration(null, modeToReturn, null);
 
             var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
             activeSolutionBoundTracker.SetupGet(x => x.CurrentConfiguration).Returns(configuration);

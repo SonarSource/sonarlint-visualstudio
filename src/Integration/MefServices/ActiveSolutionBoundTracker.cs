@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration
         public event EventHandler PreSolutionBindingUpdated;
         public event EventHandler SolutionBindingUpdated;
 
-        public BindingConfiguration2 CurrentConfiguration { get; private set; }
+        public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
         public ActiveSolutionBoundTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
@@ -95,13 +95,13 @@ namespace SonarLint.VisualStudio.Integration
             this.gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
         }
 
-        private BindingConfiguration2 GetConfig()
+        private BindingConfiguration GetConfig()
         {
             var oldConfig = configurationProvider.GetConfiguration();
 
             if (oldConfig.Mode == SonarLintMode.Standalone)
             {
-                return BindingConfiguration2.Standalone;
+                return BindingConfiguration.Standalone;
             }
 
             ServerConnection connection = oldConfig.Project?.Organization is not null
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration
                 : oldConfig.Project?.ServerUri is not null
                     ? new ServerConnection.SonarQube(oldConfig.Project.ServerUri, credentials: oldConfig.Project.Credentials)
                     : null;
-            return new BindingConfiguration2(
+            return new BindingConfiguration(
                     new BoundServerProject("placeholder", oldConfig.Project?.ProjectKey, connection) { Profiles = oldConfig.Project?.Profiles },
                     oldConfig.Mode, oldConfig.BindingConfigDirectory);
         }
@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private async Task UpdateConnectionAsync(BindingConfiguration2 bindingConfiguration)
+        private async Task UpdateConnectionAsync(BindingConfiguration bindingConfiguration)
         {
             ISonarQubeService sonarQubeService = this.extensionHost.SonarQubeService;
 
@@ -178,7 +178,7 @@ namespace SonarLint.VisualStudio.Integration
             this.RaiseAnalyzersChangedIfBindingChanged(GetConfig(), e.IsBindingCleared);
         }
 
-        private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration2 newBindingConfiguration, bool? isBindingCleared = null)
+        private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration, bool? isBindingCleared = null)
         {
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project);
             
@@ -201,7 +201,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private void SetBoundSolutionUIContext()
         {
-            var isContextActive = !CurrentConfiguration.Equals(BindingConfiguration.Standalone);
+            var isContextActive = !CurrentConfiguration.Equals(LegacyBindingConfiguration.Standalone);
             vsMonitorSelection.SetCmdUIContext(boundSolutionContextCookie, isContextActive ? 1 : 0);
         }
 

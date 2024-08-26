@@ -310,7 +310,7 @@ public class SLCoreInstanceHandleTests
             { SonarCloudConnection.connectionId, SonarCloudConnection }
         });
         jarLocator.ListJarFiles().Returns(JarList);
-        activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration2(Binding, SonarLintMode.Connected, "dir"));
+        activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(Binding, SonarLintMode.Connected, "dir"));
         slCoreRuleSettingsProvider.GetSLCoreRuleSettings().Returns(new Dictionary<string, StandaloneRuleConfigDto>());
     }
 

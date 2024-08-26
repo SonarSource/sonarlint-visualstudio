@@ -37,7 +37,7 @@ public class SSESessionManagerTests
     {
         var activeSolutionBoundTrackerMock = new Mock<IActiveSolutionBoundTracker>();
         activeSolutionBoundTrackerMock.SetupGet(tracker => tracker.CurrentConfiguration)
-            .Returns(BindingConfiguration2.Standalone);
+            .Returns(BindingConfiguration.Standalone);
 
         MefTestHelpers.CheckTypeCanBeImported<SSESessionManager, SSESessionManager>(
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(activeSolutionBoundTrackerMock.Object),
@@ -78,7 +78,7 @@ public class SSESessionManagerTests
     [TestMethod]
     public void CreateSessionIfInConnectedMode_WhenInStandaloneModeOnCreation_DoesNotCreateSession()
     {
-        var bindingConfig = BindingConfiguration2.Standalone;
+        var bindingConfig = BindingConfiguration.Standalone;
         var testScope = new TestScope(bindingConfig);
 
         var _ = testScope.CreateTestSubject();
@@ -232,7 +232,7 @@ public class SSESessionManagerTests
         private readonly MockRepository mockRepository;
         private readonly MockSequence callOrder = new();
 
-        public TestScope(BindingConfiguration2 initialBindingState = null)
+        public TestScope(BindingConfiguration initialBindingState = null)
         {
             mockRepository = new MockRepository(MockBehavior.Strict);
             ActiveSolutionBoundTrackerMock = mockRepository.Create<IActiveSolutionBoundTracker>();
@@ -241,7 +241,7 @@ public class SSESessionManagerTests
             // This is not in a sequence so we can call it multiple times
             ActiveSolutionBoundTrackerMock
                 .SetupGet(tracker => tracker.CurrentConfiguration)
-                .Returns(initialBindingState ?? BindingConfiguration2.Standalone);
+                .Returns(initialBindingState ?? BindingConfiguration.Standalone);
         }
 
         public Mock<IActiveSolutionBoundTracker> ActiveSolutionBoundTrackerMock { get; }
@@ -256,10 +256,10 @@ public class SSESessionManagerTests
                 Mock.Of<ILogger>());
         }
 
-        public static BindingConfiguration2 CreateConnectedModeBindingConfiguration(string projectKey)
+        public static BindingConfiguration CreateConnectedModeBindingConfiguration(string projectKey)
         {
             var randomString = Guid.NewGuid().ToString();
-            var bindingConfiguration = new BindingConfiguration2(
+            var bindingConfiguration = new BindingConfiguration(
                 new BoundServerProject(randomString, projectKey, new ServerConnection.SonarQube(new Uri("http://localhost"))),
                 SonarLintMode.Connected,
                 randomString);
@@ -304,10 +304,10 @@ public class SSESessionManagerTests
 
         public void RaiseInStandaloneModeEvent()
         {
-            RaiseSolutionBindingEvent(BindingConfiguration2.Standalone);
+            RaiseSolutionBindingEvent(BindingConfiguration.Standalone);
         }
 
-        private void RaiseSolutionBindingEvent(BindingConfiguration2 bindingConfiguration)
+        private void RaiseSolutionBindingEvent(BindingConfiguration bindingConfiguration)
         {
             ActiveSolutionBoundTrackerMock.Raise(tracker => tracker.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(bindingConfiguration));
         }

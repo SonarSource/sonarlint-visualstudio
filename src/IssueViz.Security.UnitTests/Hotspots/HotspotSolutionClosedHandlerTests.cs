@@ -107,7 +107,7 @@ public class HotspotSolutionClosedHandlerTests
     private static void RaiseSolutionEvent(Mock<IActiveSolutionBoundTracker> activeSolutionBoundTrackerMock, SonarLintMode mode)
         => activeSolutionBoundTrackerMock
             .Raise(x => x.SolutionBindingChanged += null,
-                new ActiveSolutionBindingEventArgs(new BindingConfiguration2(null, mode, null)));
+                new ActiveSolutionBindingEventArgs(new BindingConfiguration(null, mode, null)));
 
     private static HotspotSolutionClosedHandler CreateTestSubject(ILocalHotspotsStoreUpdater localHotspotsStoreUpdater = null,
         IActiveSolutionBoundTracker activeSolutionBoundTracker = null,

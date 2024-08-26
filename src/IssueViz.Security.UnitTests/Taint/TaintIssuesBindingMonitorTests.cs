@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             new TaintIssuesBindingMonitor(activeSolutionBoundTracker.Object, folderWorkspaceInitialized.Object, synchronizer.Object);
             synchronizer.Invocations.Clear();
             
-            activeSolutionBoundTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(BindingConfiguration2.Standalone));
+            activeSolutionBoundTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
 
             synchronizer.Verify(x => x.SynchronizeWithServer(), Times.Once);
         }
@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             folderWorkspaceInitialized.Raise(x => x.FolderWorkspaceInitialized += null, EventArgs.Empty);
             activeSolutionBoundTracker.Raise(x => x.SolutionBindingUpdated += null, EventArgs.Empty);
-            activeSolutionBoundTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(BindingConfiguration2.Standalone));
+            activeSolutionBoundTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
 
             synchronizer.Invocations.Count.Should().Be(0);
         }

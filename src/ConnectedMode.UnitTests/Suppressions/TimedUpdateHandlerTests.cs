@@ -168,9 +168,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
                 timerFactory ?? Mock.Of<ITimerFactory>());
         }
 
-        private BindingConfiguration2 CreateBindingConfiguration(SonarLintMode mode)
+        private BindingConfiguration CreateBindingConfiguration(SonarLintMode mode)
         {
-            return new BindingConfiguration2(new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://localhost"))), mode, "");
+            return new BindingConfiguration(new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://localhost"))), mode, "");
         }
 
         private Mock<IActiveSolutionBoundTracker> CreateActiveSolutionBoundTrackerWihtBindingConfig(SonarLintMode mode)

@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var userSettingsProvider = CreateUserSettingsProvider(standaloneSettings);
             var ruleSettingsSerializer = new Mock<IRulesSettingsSerializer>();
 
-            var testSubject = CreateTestSubject(BindingConfiguration2.Standalone, userSettingsProvider.Object, ruleSettingsSerializer.Object);
+            var testSubject = CreateTestSubject(BindingConfiguration.Standalone, userSettingsProvider.Object, ruleSettingsSerializer.Object);
 
             var result = testSubject.Get();
 
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             ruleSettingsSerializer.VerifyNoOtherCalls();
         }
 
-        private RuleSettingsProvider CreateTestSubject(BindingConfiguration2 configuration, 
+        private RuleSettingsProvider CreateTestSubject(BindingConfiguration configuration, 
             IUserSettingsProvider userSettingsProvider,
             IRulesSettingsSerializer rulesSettingsSerializer)
         {
@@ -128,15 +128,15 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             return userSettingsProvider;
         }
 
-        private BindingConfiguration2 GetConnectedModeConfiguration()
+        private BindingConfiguration GetConnectedModeConfiguration()
         {
-            return BindingConfiguration2.CreateBoundConfiguration(
+            return BindingConfiguration.CreateBoundConfiguration(
                 new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://localhost:2000"))),
                 SonarLintMode.Connected,
                 "some directory");
         }
 
-        private Mock<IRulesSettingsSerializer> CreateRulesSettingsSerializer(BindingConfiguration2 bindingConfiguration, RulesSettings settings)
+        private Mock<IRulesSettingsSerializer> CreateRulesSettingsSerializer(BindingConfiguration bindingConfiguration, RulesSettings settings)
         {
             var serializer = new Mock<IRulesSettingsSerializer>();
             serializer.Setup(x => x.SafeLoad(ConnectedModeFilePath(bindingConfiguration))).Returns(settings);
@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             return serializer;
         }
 
-        private string ConnectedModeFilePath(BindingConfiguration2 bindingConfiguration)
+        private string ConnectedModeFilePath(BindingConfiguration bindingConfiguration)
         {
             return bindingConfiguration.BuildPathUnderConfigDirectory(validLanguage.FileSuffixAndExtension);
         }

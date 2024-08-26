@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         private void SimulateUserSettingsChanged()
             => userSettingsUpdaterMock.SettingsChanged += Raise.EventWith(null, EventArgs.Empty);
 
-        private void SimulateBindingChanged(BindingConfiguration2 config = null)
+        private void SimulateBindingChanged(BindingConfiguration config = null)
             => activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(null, new ActiveSolutionBindingEventArgs(config));
 
         private void SimulateQualityProfilesChanged()

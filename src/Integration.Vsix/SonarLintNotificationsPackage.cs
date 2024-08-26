@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             SafePerformOpOnUIThread(() => Refresh(binding.Configuration));
         }
 
-        private void Refresh(BindingConfiguration2 bindingConfiguration)
+        private void Refresh(BindingConfiguration bindingConfiguration)
         {
             Debug.Assert(ThreadHelper.CheckAccess());
 

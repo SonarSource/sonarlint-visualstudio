@@ -23,11 +23,11 @@ using System.IO;
 
 namespace SonarLint.VisualStudio.Core.Binding
 {
-    public sealed class BindingConfiguration : IEquatable<BindingConfiguration>
+    public sealed class LegacyBindingConfiguration : IEquatable<LegacyBindingConfiguration>
     {
-        public static readonly BindingConfiguration Standalone = new BindingConfiguration(null, SonarLintMode.Standalone, null);
+        public static readonly LegacyBindingConfiguration Standalone = new LegacyBindingConfiguration(null, SonarLintMode.Standalone, null);
     
-        public static BindingConfiguration CreateBoundConfiguration(BoundSonarQubeProject project, SonarLintMode sonarLintMode, string bindingConfigDirectory)
+        public static LegacyBindingConfiguration CreateBoundConfiguration(BoundSonarQubeProject project, SonarLintMode sonarLintMode, string bindingConfigDirectory)
         {
             if (project == null)
             {
@@ -39,10 +39,10 @@ namespace SonarLint.VisualStudio.Core.Binding
                 throw new ArgumentNullException(nameof(bindingConfigDirectory));
             }
     
-            return new BindingConfiguration(project, sonarLintMode, bindingConfigDirectory);
+            return new LegacyBindingConfiguration(project, sonarLintMode, bindingConfigDirectory);
         }
     
-        public BindingConfiguration(BoundSonarQubeProject project, SonarLintMode mode, string bindingConfigDirectory)
+        public LegacyBindingConfiguration(BoundSonarQubeProject project, SonarLintMode mode, string bindingConfigDirectory)
         {
             Project = project;
             Mode = mode;
@@ -59,10 +59,10 @@ namespace SonarLint.VisualStudio.Core.Binding
     
         public override bool Equals(object obj)
         {
-            return Equals(obj as BindingConfiguration);
+            return Equals(obj as LegacyBindingConfiguration);
         }
     
-        public bool Equals(BindingConfiguration other)
+        public bool Equals(LegacyBindingConfiguration other)
         {
             if (other == null)
             {
@@ -98,11 +98,11 @@ namespace SonarLint.VisualStudio.Core.Binding
         }
     }
     
-    public sealed class BindingConfiguration2 : IEquatable<BindingConfiguration2>
+    public sealed class BindingConfiguration : IEquatable<BindingConfiguration>
     {
-        public static readonly BindingConfiguration2 Standalone = new BindingConfiguration2(null, SonarLintMode.Standalone, null);
+        public static readonly BindingConfiguration Standalone = new BindingConfiguration(null, SonarLintMode.Standalone, null);
 
-        public static BindingConfiguration2 CreateBoundConfiguration(BoundServerProject project, SonarLintMode sonarLintMode, string bindingConfigDirectory)
+        public static BindingConfiguration CreateBoundConfiguration(BoundServerProject project, SonarLintMode sonarLintMode, string bindingConfigDirectory)
         {
             if (project == null)
             {
@@ -114,10 +114,10 @@ namespace SonarLint.VisualStudio.Core.Binding
                 throw new ArgumentNullException(nameof(bindingConfigDirectory));
             }
 
-            return new BindingConfiguration2(project, sonarLintMode, bindingConfigDirectory);
+            return new BindingConfiguration(project, sonarLintMode, bindingConfigDirectory);
         }
 
-        public BindingConfiguration2(BoundServerProject project, SonarLintMode mode, string bindingConfigDirectory)
+        public BindingConfiguration(BoundServerProject project, SonarLintMode mode, string bindingConfigDirectory)
         {
             Project = project;
             Mode = mode;
@@ -134,10 +134,10 @@ namespace SonarLint.VisualStudio.Core.Binding
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as BindingConfiguration2);
+            return Equals(obj as BindingConfiguration);
         }
 
-        public bool Equals(BindingConfiguration2 other)
+        public bool Equals(BindingConfiguration other)
         {
             if (other == null)
             {
