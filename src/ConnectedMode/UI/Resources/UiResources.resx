@@ -342,4 +342,10 @@
   <data name="ValidatingConnectionFailedText" xml:space="preserve">
     <value>Validating the connection failed. Please see the Output window for more information.</value>
   </data>
+  <data name="LoadingOrganizationsFailedText" xml:space="preserve">
+    <value>Loading the organizations from the server failed. Please see the Output window for more information.</value>
+  </data>
+  <data name="LoadingOrganizationsProgressText" xml:space="preserve">
+    <value>Loading organizations...</value>
+  </data>
 </root>
