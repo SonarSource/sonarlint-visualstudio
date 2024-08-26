@@ -80,9 +80,9 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         return await ValidateConnectionAsync(validateConnectionParams);
     }
 
-    public async Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel)
+    public Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel)
     {
-        return await threadHandling.RunOnBackgroundThread(async () =>
+        return threadHandling.RunOnBackgroundThread(async () =>
         {
             if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
             {

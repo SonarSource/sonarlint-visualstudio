@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             }
 
             var credentialsDialog = GetCredentialsDialog(transientConnection);
-            if (!CredentialsDialogSucceeded(credentialsDialog) || GetCompleteConnection(transientConnection, credentialsDialog) is not { } completeConnection)
+            if (!CredentialsDialogSucceeded(credentialsDialog) || FinalizeConnection(transientConnection, credentialsDialog) is not { } completeConnection)
             {
                 return;
             }
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return credentialsDialog.ShowDialog(this) == true;
         }
 
-        private ConnectionInfo GetCompleteConnection(ConnectionInfo newConnectionInfo, CredentialsDialog credentialsDialog)
+        private ConnectionInfo FinalizeConnection(ConnectionInfo newConnectionInfo, CredentialsDialog credentialsDialog)
         {
             if (newConnectionInfo.ServerType == ConnectionServerType.SonarQube)
             {
