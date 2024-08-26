@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
@@ -40,6 +41,7 @@ public class OrganizationSelectionViewModelTests
         credentialsModel = Substitute.For<ICredentialsModel>();
         slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<ITaskToPerformParams<AdapterResponse>>()).Returns(new AdapterResponse(true));
 
         testSubject = new(credentialsModel, slCoreConnectionAdapter, progressReporterViewModel);
     }
@@ -212,5 +214,57 @@ public class OrganizationSelectionViewModelTests
 
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoOrganizationExists)));
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task ValidateConnectionForOrganizationAsync_ReturnsResponseFromSlCore(bool success)
+    {
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<ITaskToPerformParams<AdapterResponse>>()).Returns(new AdapterResponse(success));
+
+        var response = await testSubject.ValidateConnectionForOrganizationAsync("key","warning");
+
+        response.Should().Be(success);
+    }
+
+    [TestMethod]
+    public async Task ValidateConnectionForOrganizationAsync_CallsExecuteTaskWithProgressAsync()
+    {
+        var organizationKey = "key";
+        var warningText = "warning";
+
+        await testSubject.ValidateConnectionForOrganizationAsync(organizationKey, warningText);
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(Arg.Is<ITaskToPerformParams<AdapterResponse>>(x =>
+                IsExpectedSlCoreAdapterValidateConnectionAsync(x.TaskToPerform, organizationKey) &&
+                x.ProgressStatus == UiResources.ValidatingConnectionProgressText &&
+                x.WarningText == warningText));
+    }
+
+    [TestMethod]
+    public void CreateConnectionInfo_OrganizationIsSelected_ReturnsSonarCloudConnectionWithOrganizationKey()
+    {
+        var organizationKey = "key";
+
+        var connectionInfo = OrganizationSelectionViewModel.CreateConnectionInfo(organizationKey);
+
+        connectionInfo.Should().NotBeNull();
+        connectionInfo.Id.Should().Be(organizationKey);
+        connectionInfo.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+    }
+
+    [TestMethod]
+    public void CreateConnectionInfo_OrganizationIsNotSelected_ThrowsException()
+    {
+        Assert.ThrowsException<ArgumentException>(() => OrganizationSelectionViewModel.CreateConnectionInfo(null));
+    }
+
+    private bool IsExpectedSlCoreAdapterValidateConnectionAsync(Func<Task<AdapterResponse>> xTaskToPerform, string organizationKey)
+    {
+        xTaskToPerform().Forget();
+        slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(Arg.Is<ConnectionInfo>(x=> x.Id == organizationKey), Arg.Any<ICredentialsModel>());
+        return true;
     }
 }
