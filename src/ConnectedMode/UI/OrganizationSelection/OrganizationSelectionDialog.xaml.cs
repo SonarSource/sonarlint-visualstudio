@@ -20,42 +20,71 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
 [ExcludeFromCodeCoverage]
 public partial class OrganizationSelectionDialog : Window
 {
+    private readonly IConnectedModeServices connectedModeServices;
+
     public OrganizationSelectionDialog(IConnectedModeServices connectedModeServices, ICredentialsModel credentialsModel)
     {
+        this.connectedModeServices = connectedModeServices;
         ViewModel = new OrganizationSelectionViewModel(credentialsModel, connectedModeServices.SlCoreConnectionAdapter, new ProgressReporterViewModel());
         InitializeComponent();
     }
 
     public OrganizationSelectionViewModel ViewModel { get; }
 
-    private void OkButton_OnClick(object sender, RoutedEventArgs e)
+    private async void OkButton_OnClick(object sender, RoutedEventArgs e)
     {
-        DialogResult = true;
+        await UpdateFinalConnectionInfoAsync(ViewModel.SelectedOrganization.Key);
     }
 
-    private void ChooseAnotherOrganizationButton_OnClick(object sender, RoutedEventArgs e)
+    private async void ChooseAnotherOrganizationButton_OnClick(object sender, RoutedEventArgs e)
     {
         ViewModel.SelectedOrganization = null;
         var manualOrganizationSelectionDialog = new ManualOrganizationSelectionDialog();
-        manualOrganizationSelectionDialog.Owner = this;
-        var manualSelection = manualOrganizationSelectionDialog.ShowDialog(this);
-        ViewModel.SelectedOrganization =new OrganizationDisplay(manualOrganizationSelectionDialog.ViewModel.OrganizationKey, null);
-        if (manualSelection is true)
+        var manualSelectionDialogSucceeded = manualOrganizationSelectionDialog.ShowDialog(this);
+        if(manualSelectionDialogSucceeded is not true)
         {
-            DialogResult = true;
+            return;
+        }
+
+        await UpdateFinalConnectionInfoAsync(manualOrganizationSelectionDialog.ViewModel.OrganizationKey);
+    }
+
+    private async Task<bool> ValidateConnectionForSelectedOrganizationAsync(string selectedOrganizationKey)
+    {
+        try
+        {
+            var organizationSelectionInvalidMsg = string.Format(UiResources.ValidatingOrganziationSelectionFailedText, selectedOrganizationKey);
+            return await ViewModel.ValidateConnectionForOrganizationAsync(selectedOrganizationKey, organizationSelectionInvalidMsg);
+        }
+        catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+        {
+            connectedModeServices.Logger.WriteLine(e.ToString());
+            return false;
         }
     }
 
     private async void OrganizationSelectionDialog_OnLoaded(object sender, RoutedEventArgs e)
     {
         await ViewModel.LoadOrganizationsAsync();
+    }
+
+    private async Task UpdateFinalConnectionInfoAsync(string organizationKey)
+    {
+        var isConnectionValid = await ValidateConnectionForSelectedOrganizationAsync(organizationKey);
+        if (isConnectionValid)
+        {
+            ViewModel.UpdateFinalConnectionInfo(organizationKey);
+            DialogResult = true; 
+        }
     }
 }
 

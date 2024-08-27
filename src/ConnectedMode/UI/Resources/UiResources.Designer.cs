@@ -752,5 +752,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
                 return ResourceManager.GetString("ValidatingConnectionProgressText", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The connection is not valid for the chosen organization &quot;{0}&quot;. Make sure the entered key matches exactly your organization&apos;s key..
+        /// </summary>
+        public static string ValidatingOrganziationSelectionFailedText {
+            get {
+                return ResourceManager.GetString("ValidatingOrganziationSelectionFailedText", resourceCulture);
+            }
+        }
     }
 }

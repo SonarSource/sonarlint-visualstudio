@@ -284,7 +284,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
 
             await testSubject.AdapterValidateConnectionAsync();
 
-            await slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(testSubject.ConnectionInfo, testSubject.Token);
+            await slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(testSubject.ConnectionInfo,
+                Arg.Is<TokenCredentialsModel>(x => x.Token == testSubject.Token));
         }
 
         [TestMethod]
@@ -297,7 +298,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
 
             await testSubject.AdapterValidateConnectionAsync();
 
-            await slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(testSubject.ConnectionInfo, testSubject.Username, testSubject.Password);
+            await slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(testSubject.ConnectionInfo,
+                Arg.Is<UsernamePasswordModel>(x => x.Username == testSubject.Username && x.Password == testSubject.Password));
         }
 
         [TestMethod]
@@ -368,9 +370,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
 
         private void MockAdapterValidateConnectionAsync(bool success = true)
         {
-            slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>())
-                .Returns(new AdapterResponse(success));
-            slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<string>(), Arg.Any<string>())
+            slCoreConnectionAdapter.ValidateConnectionAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentialsModel>())
                 .Returns(new AdapterResponse(success));
         }
     }

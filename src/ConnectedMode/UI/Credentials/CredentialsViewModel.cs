@@ -118,11 +118,7 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
 
     internal async Task<AdapterResponse> AdapterValidateConnectionAsync()
     {
-        if (IsTokenAuthentication)
-        {
-            return await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, Token);
-        }
-        return await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, Username, Password);
+        return await slCoreConnectionAdapter.ValidateConnectionAsync(ConnectionInfo, GetCredentialsModel());
     }
 
     internal void AfterProgressStatusUpdated()
