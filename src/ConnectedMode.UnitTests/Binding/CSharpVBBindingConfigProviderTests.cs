@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             var testSubject = builder.CreateTestSubject();
 
             // Act
-            Action act = () => testSubject.GetConfigurationAsync(validQualityProfile, Language.Cpp, BindingConfiguration.Standalone, CancellationToken.None).Wait();
+            Action act = () => testSubject.GetConfigurationAsync(validQualityProfile, Language.Cpp, LegacyBindingConfiguration.Standalone, CancellationToken.None).Wait();
 
             // Assert
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
@@ -296,7 +296,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
                 PropertiesResponse = new List<SonarQubeProperty>();
             }
 
-            public BindingConfiguration BindingConfiguration { get; private set; }
+            public LegacyBindingConfiguration BindingConfiguration { get; private set; }
             public SonarLintConfiguration SonarLintConfigurationResponse { get; set; }
             public IList<SonarQubeRule> ActiveRulesResponse { get; set; }
             public IList<SonarQubeRule> InactiveRulesResponse { get; set; }
@@ -342,7 +342,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
                         CapturedRulesPassedToGlobalConfigGenerator = rules;
                     });
 
-                BindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), ExpectedProjectKey, projectName),
+                BindingConfiguration = new LegacyBindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), ExpectedProjectKey, projectName),
                     SonarLintMode.Connected, "c:\\test\\");
 
                 var sonarProperties = PropertiesResponse.ToDictionary(x => x.Key, y => y.Value);

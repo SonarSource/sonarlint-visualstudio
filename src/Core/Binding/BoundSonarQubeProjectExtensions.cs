@@ -39,5 +39,20 @@ namespace SonarLint.VisualStudio.Core.Binding
             connection.Organization = binding.Organization;
             return connection;
         }
+        
+        public static ConnectionInformation CreateConnectionInformation(this BoundServerProject binding)
+        {
+            if (binding == null)
+            {
+                throw new ArgumentNullException(nameof(binding));
+            }
+
+            var connection = binding.ServerConnection.Credentials == null ?
+                new ConnectionInformation(binding.ServerConnection.ServerUri)
+                : binding.ServerConnection.Credentials.CreateConnectionInformation(binding.ServerConnection.ServerUri);
+
+            connection.Organization = binding.ServerConnection is ServerConnection.SonarCloud sc ? new SonarQubeOrganization(sc.OrganizationKey, null) : null;
+            return connection;
+        }
     }
 }
