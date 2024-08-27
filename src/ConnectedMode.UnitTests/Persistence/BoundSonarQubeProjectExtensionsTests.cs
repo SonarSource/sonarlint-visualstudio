@@ -18,77 +18,129 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration.UnitTests;
+
+[TestClass]
+public class BoundSonarQubeProjectExtensionsTests
 {
-    [TestClass]
-    public class BoundSonarQubeProjectExtensionsTests
+    [TestMethod]
+    public void BoundSonarQubeProject_CreateConnectionInformation_ArgCheck()
     {
-        [TestMethod]
-        public void CreateConnectionInformation_ArgCheck()
-        {
-            Exceptions.Expect<ArgumentNullException>(() => BoundSonarQubeProjectExtensions.CreateConnectionInformation(null));
-        }
+        Exceptions.Expect<ArgumentNullException>(() => BoundSonarQubeProjectExtensions.CreateConnectionInformation((BoundSonarQubeProject)null));
+    }
 
-        [TestMethod]
-        public void CreateConnectionInformation_NoCredentials()
-        {
-            // Arrange
-            var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", "projectName",
-                organization: new SonarQubeOrganization("org_key", "org_name"));
+    [TestMethod]
+    public void BoundSonarQubeProject_CreateConnectionInformation_NoCredentials()
+    {
+        // Arrange
+        var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", "projectName",
+            organization: new SonarQubeOrganization("org_key", "org_name"));
 
-            // Act
-            ConnectionInformation conn = input.CreateConnectionInformation();
+        // Act
+        ConnectionInformation conn = input.CreateConnectionInformation();
 
-            // Assert
-            conn.ServerUri.Should().Be(input.ServerUri);
-            conn.UserName.Should().BeNull();
-            conn.Password.Should().BeNull();
-            conn.Organization.Key.Should().Be("org_key");
-            conn.Organization.Name.Should().Be("org_name");
-        }
+        // Assert
+        conn.ServerUri.Should().Be(input.ServerUri);
+        conn.UserName.Should().BeNull();
+        conn.Password.Should().BeNull();
+        conn.Organization.Key.Should().Be("org_key");
+        conn.Organization.Name.Should().Be("org_name");
+    }
 
-        [TestMethod]
-        public void CreateConnectionInformation_BasicAuthCredentials()
-        {
-            // Arrange
-            var creds = new BasicAuthCredentials("UserName", "password".ToSecureString());
-            var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", "projectName", creds,
-                new SonarQubeOrganization("org_key", "org_name"));
+    [TestMethod]
+    public void BoundSonarQubeProject_CreateConnectionInformation_BasicAuthCredentials()
+    {
+        // Arrange
+        var creds = new BasicAuthCredentials("UserName", "password".ToSecureString());
+        var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", "projectName", creds,
+            new SonarQubeOrganization("org_key", "org_name"));
 
-            // Act
-            ConnectionInformation conn = input.CreateConnectionInformation();
+        // Act
+        ConnectionInformation conn = input.CreateConnectionInformation();
 
-            // Assert
-            conn.ServerUri.Should().Be(input.ServerUri);
-            conn.UserName.Should().Be(creds.UserName);
-            conn.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
-            conn.Organization.Key.Should().Be("org_key");
-            conn.Organization.Name.Should().Be("org_name");
-        }
+        // Assert
+        conn.ServerUri.Should().Be(input.ServerUri);
+        conn.UserName.Should().Be(creds.UserName);
+        conn.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
+        conn.Organization.Key.Should().Be("org_key");
+        conn.Organization.Name.Should().Be("org_name");
+    }
 
-        [TestMethod]
-        public void CreateConnectionInformation_NoOrganizationNoAuth()
-        {
-            // Arrange
-            var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", "projectName");
+    [TestMethod]
+    public void BoundSonarQubeProject_CreateConnectionInformation_NoOrganizationNoAuth()
+    {
+        // Arrange
+        var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", "projectName");
 
-            // Act
-            ConnectionInformation conn = input.CreateConnectionInformation();
+        // Act
+        ConnectionInformation conn = input.CreateConnectionInformation();
 
-            // Assert
-            conn.ServerUri.Should().Be(input.ServerUri);
-            conn.UserName.Should().BeNull();
-            conn.Password.Should().BeNull();
-            conn.Organization.Should().BeNull();
-        }
+        // Assert
+        conn.ServerUri.Should().Be(input.ServerUri);
+        conn.UserName.Should().BeNull();
+        conn.Password.Should().BeNull();
+        conn.Organization.Should().BeNull();
+    }
+        
+    [TestMethod]
+    public void BoundServerProject_CreateConnectionInformation_ArgCheck()
+    {
+        Exceptions.Expect<ArgumentNullException>(() => BoundSonarQubeProjectExtensions.CreateConnectionInformation((BoundServerProject)null));
+    }
+
+    [TestMethod]
+    public void BoundServerProject_CreateConnectionInformation_NoCredentials()
+    {
+        // Arrange
+        var input = new BoundServerProject("solution", "ProjectKey", new ServerConnection.SonarCloud("org_key"));
+
+        // Act
+        ConnectionInformation conn = input.CreateConnectionInformation();
+
+        // Assert
+        conn.ServerUri.Should().Be(input.ServerConnection.ServerUri);
+        conn.UserName.Should().BeNull();
+        conn.Password.Should().BeNull();
+        conn.Organization.Key.Should().Be("org_key");
+    }
+        
+
+    [TestMethod]
+    public void BoundServerProject_CreateConnectionInformation_BasicAuthCredentials()
+    {
+        // Arrange
+        var creds = new BasicAuthCredentials("UserName", "password".ToSecureString());
+        var input = new BoundServerProject("solution", "ProjectKey", new ServerConnection.SonarCloud("org_key", credentials: creds));
+
+        // Act
+        ConnectionInformation conn = input.CreateConnectionInformation();
+
+        // Assert
+        conn.ServerUri.Should().Be(input.ServerConnection.ServerUri);
+        conn.UserName.Should().Be(creds.UserName);
+        conn.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
+        conn.Organization.Key.Should().Be("org_key");
+    }
+
+    [TestMethod]
+    public void BoundServerProject_CreateConnectionInformation_NoOrganizationNoAuth()
+    {
+        // Arrange
+        var input = new BoundServerProject("solution", "ProjectKey", new ServerConnection.SonarQube(new Uri("http://localhost")));
+
+        // Act
+        ConnectionInformation conn = input.CreateConnectionInformation();
+
+        // Assert
+        conn.ServerUri.Should().Be(input.ServerConnection.ServerUri);
+        conn.UserName.Should().BeNull();
+        conn.Password.Should().BeNull();
+        conn.Organization.Should().BeNull();
     }
 }

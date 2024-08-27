@@ -44,8 +44,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
     [TestClass]
     public class TaintIssuesSynchronizerTests
     {
-        private static readonly BindingConfiguration BindingConfig_Standalone = CreateBindingConfig(SonarLintMode.Standalone, null);
-        private static readonly BindingConfiguration BindingConfig_Connected = CreateBindingConfig(SonarLintMode.Connected, "any project key");
+        private static readonly LegacyBindingConfiguration BindingConfig_Standalone = CreateBindingConfig(SonarLintMode.Standalone, null);
+        private static readonly LegacyBindingConfiguration BindingConfig_Connected = CreateBindingConfig(SonarLintMode.Connected, "any project key");
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -455,11 +455,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             CheckStoreIsCleared(taintStore);
         }
 
-        private static BindingConfiguration CreateBindingConfig(SonarLintMode mode = SonarLintMode.Connected, string projectKey = "any")
+        private static LegacyBindingConfiguration CreateBindingConfig(SonarLintMode mode = SonarLintMode.Connected, string projectKey = "any")
             => new(new BoundSonarQubeProject { ProjectKey = projectKey }, mode, "any dir");
 
         private static TaintIssuesSynchronizer CreateTestSubject(
-            BindingConfiguration bindingConfig = null,
+            LegacyBindingConfiguration bindingConfig = null,
             ITaintStore taintStore = null,
             ITaintIssueToIssueVisualizationConverter converter = null,
             ILogger logger = null,

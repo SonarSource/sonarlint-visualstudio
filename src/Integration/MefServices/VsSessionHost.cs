@@ -266,7 +266,7 @@ namespace SonarLint.VisualStudio.Integration
             this.VisualStateManager.ClearBoundProject();
         }
 
-        private void ApplyBindingInformation(BindingConfiguration bindingConfig)
+        private void ApplyBindingInformation(LegacyBindingConfiguration bindingConfig)
         {
             SharedBindingConfig = null;
 
@@ -286,9 +286,9 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private BindingConfiguration SafeGetBindingConfig()
+        private LegacyBindingConfiguration SafeGetBindingConfig()
         {
-            BindingConfiguration bindingConfig = null;
+            LegacyBindingConfiguration bindingConfig = null;
             try
             {
                 bindingConfig = configurationProvider.GetConfiguration();

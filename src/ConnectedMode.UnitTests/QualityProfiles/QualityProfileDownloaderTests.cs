@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             bindingConfigProviderMock.Setup(x =>
                     x.GetConfigurationAsync(It.IsAny<SonarQubeQualityProfile>(),
                         It.IsAny<Language>(),
-                        It.IsAny<BindingConfiguration>(),
+                        It.IsAny<LegacyBindingConfiguration>(),
                         It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Mock.Of<IBindingConfig>());
 
@@ -241,7 +241,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             var configProviderMock = new Mock<IBindingConfigProvider>();
             configProviderMock.Setup(x => x.GetConfigurationAsync(qp,
                     language,
-                    It.IsAny<BindingConfiguration>(), CancellationToken.None))
+                    It.IsAny<LegacyBindingConfiguration>(), CancellationToken.None))
                 .ReturnsAsync(bindingConfig);
 
             var testSubject = CreateTestSubject(
@@ -315,7 +315,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             bindingConfigProvider.Setup(x => x.GetConfigurationAsync(
                     It.IsAny<SonarQubeQualityProfile>(),
                     language, 
-                    It.IsAny<BindingConfiguration>(), 
+                    It.IsAny<LegacyBindingConfiguration>(), 
                     CancellationToken.None))
                 .ReturnsAsync(bindingConfig.Object);
             return bindingConfig;
@@ -340,10 +340,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
         {
             public BoundSonarQubeProject SavedProject { get; private set; }
 
-            BindingConfiguration IConfigurationPersister.Persist(BoundSonarQubeProject project)
+            LegacyBindingConfiguration IConfigurationPersister.Persist(BoundSonarQubeProject project)
             {
                 SavedProject = project;
-                return new BindingConfiguration(new BoundSonarQubeProject(), SonarLintMode.Connected, "c:\\any");
+                return new LegacyBindingConfiguration(new BoundSonarQubeProject(), SonarLintMode.Connected, "c:\\any");
             }
         }
 

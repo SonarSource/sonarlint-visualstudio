@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Install
 
         private BindingConfiguration CreateBindingConfiguration(SonarLintMode mode)
         {
-            return new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://localhost"), "test", ""), mode, "");
+            return new BindingConfiguration(new BoundServerProject("test", "test", new ServerConnection.SonarQube(new Uri("http://localhost"))), mode, "");
         }
 
         private ImportBeforeInstallTrigger CreateTestSubject(IActiveSolutionBoundTracker activeSolutionBoundTracker, IImportBeforeFileGenerator importBeforeFileGenerator = null, IThreadHandling threadHandling = null)
