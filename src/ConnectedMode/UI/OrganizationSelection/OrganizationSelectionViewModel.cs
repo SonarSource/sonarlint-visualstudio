@@ -27,11 +27,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
 public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, ISlCoreConnectionAdapter connectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
-    /// <summary>
-    /// The <see cref="ConnectionInfo"/> that is used to connect to the server, whose <see cref="ConnectionInfo.Id"/> can be different from the <see cref="SelectedOrganization"/>
-    /// due to the fact that an organization key can also be entered manually rather than selected form the list of <see cref="Organizations"/>.
-    /// </summary>
-    public ConnectionInfo ConnectionInfo { get; private set; } = new(null, ConnectionServerType.SonarCloud);
+    public ConnectionInfo FinalConnectionInfo { get; private set; } 
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
 
     public OrganizationDisplay SelectedOrganization
@@ -40,7 +36,6 @@ public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, 
         set
         {
             selectedOrganization = value;
-            UpdateConnectionInfo(selectedOrganization?.Key);
             RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsValidSelectedOrganization));
         }
@@ -84,7 +79,7 @@ public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, 
 
     internal async Task<bool> ValidateConnectionForOrganizationAsync(string organizationKey, string warningText)
     {
-        var connectionInfoToValidate = ConnectionInfo with { Id = organizationKey };
+        var connectionInfoToValidate = new ConnectionInfo(organizationKey, ConnectionServerType.SonarCloud);
         var validationParams = new TaskToPerformParams<AdapterResponse>(
             async () => await connectionAdapter.ValidateConnectionAsync(connectionInfoToValidate, credentialsModel),
             UiResources.ValidatingConnectionProgressText, 
@@ -93,8 +88,8 @@ public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, 
         return adapterResponse.Success;
     }
 
-    public void UpdateConnectionInfo(string organizationKey)
+    public void UpdateFinalConnectionInfo(string organizationKey)
     {
-        ConnectionInfo = ConnectionInfo with { Id = organizationKey };
+        FinalConnectionInfo = new ConnectionInfo(organizationKey, ConnectionServerType.SonarCloud);
     }
 }

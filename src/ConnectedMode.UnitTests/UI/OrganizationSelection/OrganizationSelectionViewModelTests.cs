@@ -64,10 +64,9 @@ public class OrganizationSelectionViewModelTests
     }
 
     [TestMethod]
-    public void ConnectionInfo_SetByDefaultToSonarCloudWithIdToNull()
+    public void FinalConnectionInfo_SetByDefaultToNull()
     {
-        testSubject.ConnectionInfo.Id.Should().BeNull();
-        testSubject.ConnectionInfo.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+        testSubject.FinalConnectionInfo.Should().BeNull();
     }
 
     [TestMethod]
@@ -75,17 +74,6 @@ public class OrganizationSelectionViewModelTests
     {
         testSubject.SelectedOrganization.Should().BeNull();
         testSubject.IsValidSelectedOrganization.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public void SelectedOrganization_ValueChanges_UpdatesConnectionInfo()
-    {
-        testSubject.SelectedOrganization = null;
-        testSubject.ConnectionInfo.Id.Should().BeNull();
-
-        testSubject.SelectedOrganization  = new OrganizationDisplay("key", "name");
-        testSubject.ConnectionInfo.Id.Should().Be(testSubject.SelectedOrganization.Key);
-        testSubject.ConnectionInfo.ServerType.Should().Be(ConnectionServerType.SonarCloud);
     }
 
     [TestMethod]
@@ -262,14 +250,13 @@ public class OrganizationSelectionViewModelTests
     }
 
     [TestMethod]
-    public void UpdateConnectionInfo_ValueChanges_UpdatesConnectionInfo()
+    public void UpdateFinalConnectionInfo_ValueChanges_UpdatesConnectionInfo()
     {
-        testSubject.ConnectionInfo.Id.Should().BeNull();
+        testSubject.UpdateFinalConnectionInfo("newKey");
 
-        testSubject.UpdateConnectionInfo("newKey");
-
-        testSubject.ConnectionInfo.Id.Should().Be("newKey");
-        testSubject.ConnectionInfo.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+        testSubject.FinalConnectionInfo.Should().NotBeNull();
+        testSubject.FinalConnectionInfo.Id.Should().Be("newKey");
+        testSubject.FinalConnectionInfo.ServerType.Should().Be(ConnectionServerType.SonarCloud);
     }
 
     private bool IsExpectedSlCoreAdapterValidateConnectionAsync(Func<Task<AdapterResponse>> xTaskToPerform, string organizationKey)

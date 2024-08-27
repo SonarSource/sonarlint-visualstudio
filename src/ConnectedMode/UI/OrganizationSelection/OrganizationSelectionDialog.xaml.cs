@@ -42,11 +42,7 @@ public partial class OrganizationSelectionDialog : Window
 
     private async void OkButton_OnClick(object sender, RoutedEventArgs e)
     {
-        var isConnectionValid = await ValidateConnectionForSelectedOrganizationAsync(ViewModel.SelectedOrganization.Key);
-        if(isConnectionValid)
-        {
-            OnConnectionValidationSucceeded(ViewModel.SelectedOrganization.Key);
-        }
+        await UpdateFinalConnectionInfoAsync(ViewModel.SelectedOrganization.Key);
     }
 
     private async void ChooseAnotherOrganizationButton_OnClick(object sender, RoutedEventArgs e)
@@ -59,11 +55,7 @@ public partial class OrganizationSelectionDialog : Window
             return;
         }
 
-        var isSelectedManualOrganizationValid = await ValidateConnectionForSelectedOrganizationAsync(manualOrganizationSelectionDialog.ViewModel.OrganizationKey);
-        if (isSelectedManualOrganizationValid)
-        {
-            OnConnectionValidationSucceeded(manualOrganizationSelectionDialog.ViewModel.OrganizationKey);
-        }
+        await UpdateFinalConnectionInfoAsync(manualOrganizationSelectionDialog.ViewModel.OrganizationKey);
     }
 
     private async Task<bool> ValidateConnectionForSelectedOrganizationAsync(string selectedOrganizationKey)
@@ -85,10 +77,14 @@ public partial class OrganizationSelectionDialog : Window
         await ViewModel.LoadOrganizationsAsync();
     }
 
-    private void OnConnectionValidationSucceeded(string organizationKey)
+    private async Task UpdateFinalConnectionInfoAsync(string organizationKey)
     {
-        ViewModel.UpdateConnectionInfo(organizationKey);
-        DialogResult = true;
+        var isConnectionValid = await ValidateConnectionForSelectedOrganizationAsync(organizationKey);
+        if (isConnectionValid)
+        {
+            ViewModel.UpdateFinalConnectionInfo(organizationKey);
+            DialogResult = true; 
+        }
     }
 }
 

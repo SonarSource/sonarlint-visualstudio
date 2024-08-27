@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             
             var organizationSelectionDialog = new OrganizationSelectionDialog(connectedModeServices, credentialsDialog.ViewModel.GetCredentialsModel());
 
-            return organizationSelectionDialog.ShowDialog(this) == true ? organizationSelectionDialog.ViewModel.ConnectionInfo : null;
+            return organizationSelectionDialog.ShowDialog(this) == true ? organizationSelectionDialog.ViewModel.FinalConnectionInfo : null;
         }
 
         private void ManageConnectionsWindow_OnInitialized(object sender, EventArgs e)
