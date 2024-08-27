@@ -45,16 +45,15 @@ internal class ConfigScopeUpdater : IConfigScopeUpdater
         this.threadHandling = threadHandling;
     }
 
-    public void UpdateConfigScopeForCurrentSolution(BoundSonarQubeProject currentBinding)
+    public void UpdateConfigScopeForCurrentSolution(BoundServerProject currentBinding)
     {
         var solutionName = solutionInfoProvider.GetSolutionName();
 
         threadHandling.RunOnBackgroundThread(() =>
         {
             HandleConfigScopeUpdateInternal(solutionName,
-                connectionIdHelper.GetConnectionIdFromUri(currentBinding?.ServerUri,
-                    currentBinding?.Organization?.Key),
-                currentBinding?.ProjectKey);
+                connectionIdHelper.GetConnectionIdFromServerConnection(currentBinding?.ServerConnection),
+                currentBinding?.ServerProjectKey);
             return Task.FromResult(0);
         }).Forget();
     }

@@ -66,7 +66,7 @@ public class ProjectRootCalculatorTests
         configurationProviderMock
             .SetupGet(x => x.CurrentConfiguration)
             .Returns(BindingConfiguration.CreateBoundConfiguration(
-                new BoundSonarQubeProject(){ProjectKey = projectKey},
+                new BoundServerProject("solution", projectKey, new ServerConnection.SonarQube(new Uri("http://localhost"))),
                 SonarLintMode.Connected,
                 "somedir"));
         branchProviderMock
