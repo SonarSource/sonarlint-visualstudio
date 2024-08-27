@@ -23,6 +23,7 @@ using System.IO;
 
 namespace SonarLint.VisualStudio.Core.Binding
 {
+    [Obsolete("Use BindingConfiguration instead. This class is kept for backwards compatibility with binding formats that don't support ServerConnection as a separate entity")]
     public sealed class LegacyBindingConfiguration : IEquatable<LegacyBindingConfiguration>
     {
         public static readonly LegacyBindingConfiguration Standalone = new LegacyBindingConfiguration(null, SonarLintMode.Standalone, null);

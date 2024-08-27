@@ -160,7 +160,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             if (configurationProvider == null)
             {
-                var configurationProviderMock = new Mock<IObsoleteConfigurationProvider>();
+                var configurationProviderMock = new Mock<IConfigurationProvider>();
                 configurationProviderMock.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(SonarLintMode.Standalone));
 
                 configurationProvider = configurationProviderMock.Object;

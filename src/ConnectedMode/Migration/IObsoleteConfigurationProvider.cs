@@ -31,7 +31,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     /// new format.
     /// See https://github.com/SonarSource/sonarlint-visualstudio/issues/4171
     /// </remarks>
-    public interface IObsoleteConfigurationProvider : IConfigurationProvider
+    public interface IObsoleteConfigurationProvider
     {
+        /// <summary>
+        /// Returns the binding configuration for the current solution
+        /// </summary>
+        LegacyBindingConfiguration GetConfiguration();
     }
 }
