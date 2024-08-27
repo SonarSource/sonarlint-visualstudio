@@ -22,7 +22,6 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
-using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Models;
@@ -35,8 +34,7 @@ namespace SonarLint.VisualStudio.ConnectedMode;
 
 public interface ISlCoreConnectionAdapter
 {
-    Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string token);
-    Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string username, string password);
+    Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel);
     Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel);
 }
 
@@ -68,15 +66,10 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         this.logger = logger;
     }
 
-    public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string token)
+    public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel)
     {
-        var validateConnectionParams = GetValidateConnectionParams(connectionInfo, GetEitherForToken(token));
-        return await ValidateConnectionAsync(validateConnectionParams);
-    }
-
-    public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, string username, string password)
-    {
-        var validateConnectionParams = GetValidateConnectionParams(connectionInfo, GetEitherForUsernamePassword(username, password));
+        var credentials = GetCredentialsDto(credentialsModel);
+        var validateConnectionParams = GetValidateConnectionParams(connectionInfo, credentials);
         return await ValidateConnectionAsync(validateConnectionParams);
     }
 

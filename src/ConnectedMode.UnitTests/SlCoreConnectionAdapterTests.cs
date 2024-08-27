@@ -60,7 +60,7 @@ public class SlCoreConnectionAdapterTests
         var threadHandlingMock = Substitute.For<IThreadHandling>();
         var slCoreConnectionAdapter = new SlCoreConnectionAdapter(slCoreServiceProvider, threadHandlingMock, logger);
 
-        await slCoreConnectionAdapter.ValidateConnectionAsync(sonarQubeConnectionInfo, "myToken");
+        await slCoreConnectionAdapter.ValidateConnectionAsync(sonarQubeConnectionInfo, new TokenCredentialsModel("myToken"));
 
         await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponse>>>());
     }
@@ -70,7 +70,7 @@ public class SlCoreConnectionAdapterTests
     {
         slCoreServiceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService _).Returns(false);
 
-        var response = await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, "myToken");
+        var response = await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, new TokenCredentialsModel("myToken"));
 
         logger.Received(1).LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
         response.Success.Should().BeFalse();
@@ -81,7 +81,7 @@ public class SlCoreConnectionAdapterTests
     {
         var token = "myToken";
 
-        await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, token);
+        await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, new TokenCredentialsModel(token));
 
         await connectionConfigurationSlCoreService.Received(1)
             .ValidateConnectionAsync(Arg.Is<ValidateConnectionParams>(x => IsExpectedSonarQubeConnectionParams(x, token)));
@@ -93,7 +93,7 @@ public class SlCoreConnectionAdapterTests
         var username = "username";
         var password = "password";
 
-        await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, username, password);
+        await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, new UsernamePasswordModel(username, password));
 
         await connectionConfigurationSlCoreService.Received(1)
             .ValidateConnectionAsync(Arg.Is<ValidateConnectionParams>(x => IsExpectedSonarQubeConnectionParams(x, username, password)));
@@ -104,7 +104,7 @@ public class SlCoreConnectionAdapterTests
     {
         var token = "myToken";
 
-        await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, token);
+        await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new TokenCredentialsModel(token));
 
         await connectionConfigurationSlCoreService.Received(1)
             .ValidateConnectionAsync(Arg.Is<ValidateConnectionParams>(x => IsExpectedSonarCloudConnectionParams(x, token)));
@@ -116,7 +116,7 @@ public class SlCoreConnectionAdapterTests
         var username = "username";
         var password = "password";
 
-        await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, username, password);
+        await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new UsernamePasswordModel(username, password));
 
         await connectionConfigurationSlCoreService.Received(1)
             .ValidateConnectionAsync(Arg.Is<ValidateConnectionParams>(x => IsExpectedSonarCloudConnectionParams(x, username, password)));
@@ -130,7 +130,7 @@ public class SlCoreConnectionAdapterTests
         var expectedResponse = new ValidateConnectionResponse(success, message);
         connectionConfigurationSlCoreService.ValidateConnectionAsync(Arg.Any<ValidateConnectionParams>()).Returns(expectedResponse);
 
-        var response = await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, "token");
+        var response = await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new TokenCredentialsModel("myToken"));
 
         response.Success.Should().Be(success);
     }
@@ -142,7 +142,7 @@ public class SlCoreConnectionAdapterTests
         connectionConfigurationSlCoreService.When(x => x.ValidateConnectionAsync(Arg.Any<ValidateConnectionParams>()))
             .Do(x => throw new Exception(exceptionMessage));
 
-        var response = await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, "token");
+        var response = await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new TokenCredentialsModel("token"));
 
         logger.Received(1).LogVerbose($"{Resources.ValidateCredentials_Fails}: {exceptionMessage}");
         response.Success.Should().BeFalse();

@@ -22,14 +22,13 @@ using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
-using static SonarLint.VisualStudio.ConnectedMode.UI.ProgressReporterViewModel;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
 public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, ISlCoreConnectionAdapter connectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
+    public ConnectionInfo FinalConnectionInfo { get; private set; } 
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
-    private OrganizationDisplay selectedOrganization;
 
     public OrganizationDisplay SelectedOrganization
     {
@@ -43,9 +42,10 @@ public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, 
     }
 
     public bool IsValidSelectedOrganization => SelectedOrganization is { Key: var key } && !string.IsNullOrWhiteSpace(key);
-
     public ObservableCollection<OrganizationDisplay> Organizations { get; } = [];
     public bool NoOrganizationExists => Organizations.Count == 0;
+
+    private OrganizationDisplay selectedOrganization;
 
     public void AddOrganization(OrganizationDisplay organization)
     {
@@ -75,5 +75,21 @@ public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, 
         Organizations.Clear();
         responseWithData.ResponseData.ForEach(AddOrganization);
         RaisePropertyChanged(nameof(NoOrganizationExists));
+    }
+
+    internal async Task<bool> ValidateConnectionForOrganizationAsync(string organizationKey, string warningText)
+    {
+        var connectionInfoToValidate = new ConnectionInfo(organizationKey, ConnectionServerType.SonarCloud);
+        var validationParams = new TaskToPerformParams<AdapterResponse>(
+            async () => await connectionAdapter.ValidateConnectionAsync(connectionInfoToValidate, credentialsModel),
+            UiResources.ValidatingConnectionProgressText, 
+            warningText);
+        var adapterResponse = await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
+        return adapterResponse.Success;
+    }
+
+    public void UpdateFinalConnectionInfo(string organizationKey)
+    {
+        FinalConnectionInfo = new ConnectionInfo(organizationKey, ConnectionServerType.SonarCloud);
     }
 }
