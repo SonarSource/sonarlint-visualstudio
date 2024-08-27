@@ -1,4 +1,5 @@
-﻿/*
+﻿
+/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,6 +19,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers;
@@ -36,7 +38,6 @@ public class ConnectionIdHelperTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<ConnectionIdHelper>();
     }
-
     
     [DataTestMethod]
     [DataRow(null, null)]
@@ -62,54 +63,49 @@ public class ConnectionIdHelperTests
 
     [TestMethod]
     [DataRow("http://someuri.com", null, "sq|http://someuri.com/")]
-    [DataRow("http://someuri.com", "something", "sq|http://someuri.com/")]
     [DataRow("https://sonarcloud.io", "something", "sc|something")]
-    [DataRow("https://sonarcloud.io", "", null)]
-    [DataRow("https://sonarcloud.io", null, null)]
-    public void GetConnectionIdFromUri_PassUri_ReturnsAsExpected(string uriString, string organisation, string expectedConnectionId)
+    public void GetConnectionIdFromServerConnection_PassUri_ReturnsAsExpected(string uriString, string organisation, string expectedConnectionId)
     {
         var uri = new Uri(uriString);
 
         var testSubject = new ConnectionIdHelper();
 
-        var actualConnectionId = testSubject.GetConnectionIdFromUri(uri, organisation);
+        var actualConnectionId = testSubject.GetConnectionIdFromServerConnection(organisation is null ? new ServerConnection.SonarQube(new Uri(uriString)) : new ServerConnection.SonarCloud(organisation));
 
         actualConnectionId.Should().Be(expectedConnectionId);
     }
 
     [TestMethod]
-    public void GetConnectionIdFromUri_UriIsNull_ReturnsNull()
+    public void GetConnectionIdFromServerConnection_ConnectionIsNull_ReturnsNull()
     {
         var testSubject = new ConnectionIdHelper();
 
-        var actualConnectionId = testSubject.GetConnectionIdFromUri(null, "something");
+        var actualConnectionId = testSubject.GetConnectionIdFromServerConnection(null);
 
         actualConnectionId.Should().BeNull();
     }
 
     [TestMethod]
-    [DataRow("http://someuri.com")]
-    [DataRow("https://sonarcloud.io")]
-    public void MethodsBackToBack_ShouldCreateSameUri(string uriString)
+    public void MethodsBackToBack_SonarQube_ShouldCreateSameUri()
     {
-        var uri = new Uri(uriString);
+        var uri = new Uri("http://someuri.com");
 
         var testSubject = new ConnectionIdHelper();
 
-        var resultUri = testSubject.GetUriFromConnectionId(testSubject.GetConnectionIdFromUri(uri, "something"));
+        var resultUri = testSubject.GetUriFromConnectionId(testSubject.GetConnectionIdFromServerConnection(new ServerConnection.SonarQube(uri)));
 
         resultUri.Should().Be(uri);
     }
-
+    
     [TestMethod]
-    [DataRow("sq|http://someuri.com/")]
-    [DataRow("sc|something")]
-    public void MethodsBackToBack_ShouldCreateSameConnectionId(string connectionId)
+    public void MethodsBackToBack_SonarCloud_ShouldCreateSameUri()
     {
+        var uri = new Uri("https://sonarcloud.io");
+
         var testSubject = new ConnectionIdHelper();
 
-        var resultConnectionId = testSubject.GetConnectionIdFromUri(testSubject.GetUriFromConnectionId(connectionId), "something");
+        var resultUri = testSubject.GetUriFromConnectionId(testSubject.GetConnectionIdFromServerConnection(new ServerConnection.SonarCloud("my org")));
 
-        resultConnectionId.Should().Be(connectionId);
+        resultUri.Should().Be(uri);
     }
 }

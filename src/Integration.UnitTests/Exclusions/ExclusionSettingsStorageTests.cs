@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             file.Setup(f => f.ReadAllText(ExpectedExclusionsFilePath)).Returns(SerializedExclusions);
             file.Setup(f => f.Exists(ExpectedExclusionsFilePath)).Returns(true);
 
-            var bindingConfiguration = BindingConfiguration.Standalone;
+            var bindingConfiguration = LegacyBindingConfiguration.Standalone;
 
             var testSubject = CreateTestSubject(file.Object, bindingConfiguration);
 
@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
         public void SaveSettings_StandAloneMode_ThrowsInvalidOperationException()
         {
             var file = new Mock<IFile>();
-            var bindingConfiguration = BindingConfiguration.Standalone;
+            var bindingConfiguration = LegacyBindingConfiguration.Standalone;
 
             var testSubject = CreateTestSubject(file.Object, bindingConfiguration);
 
@@ -204,17 +204,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Exclusions
             file.Verify(f => f.WriteAllText(ExpectedExclusionsFilePath, expectedSerializedSettings));
         }
 
-        private ExclusionSettingsStorage CreateTestSubject(IFile file, BindingConfiguration bindingConfiguration = null)
+        private ExclusionSettingsStorage CreateTestSubject(IFile file, LegacyBindingConfiguration bindingConfiguration = null)
         {
             var fileSystem = CreateFileSystem(file);
 
-            bindingConfiguration ??= new BindingConfiguration(null, SonarLintMode.Connected, BindingFolder);
+            bindingConfiguration ??= new LegacyBindingConfiguration(null, SonarLintMode.Connected, BindingFolder);
             var configurationProviderService = CreateConfigurationProvider(bindingConfiguration);
 
             return new ExclusionSettingsStorage(configurationProviderService, Mock.Of<ILogger>(), fileSystem);
         }
 
-        private static IConfigurationProvider CreateConfigurationProvider(BindingConfiguration bindingConfiguration)
+        private static IConfigurationProvider CreateConfigurationProvider(LegacyBindingConfiguration bindingConfiguration)
         {
             var configurationProviderService = new Mock<IConfigurationProvider>();
             configurationProviderService.Setup(c => c.GetConfiguration()).Returns(bindingConfiguration);

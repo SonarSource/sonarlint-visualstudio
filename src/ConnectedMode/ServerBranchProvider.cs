@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             return matchingBranchName;
         }
 
-        private async Task<string> CalculateMatchingBranchAsync(BindingConfiguration config, CancellationToken token)
+        private async Task<string> CalculateMatchingBranchAsync(LegacyBindingConfiguration config, CancellationToken token)
         {
             var gitRepoRoot = gitWorkspaceService.GetRepoRoot();
 

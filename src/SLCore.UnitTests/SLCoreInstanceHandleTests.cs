@@ -51,7 +51,7 @@ public class SLCoreInstanceHandleTests
     private static readonly SonarQubeConnectionConfigurationDto SonarQubeConnection2 = new("sq2", true, "https://next.sonarqube.org/");
     private static readonly SonarCloudConnectionConfigurationDto SonarCloudConnection = new("sc", true, "https://sonarcloud.io/");
 
-    private static readonly BoundSonarQubeProject Binding = new();
+    private static readonly BoundServerProject Binding = new("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://localhost")));
     
     private static readonly List<string> JarList = new() { "jar1" };
     private ISLCoreRpcFactory slCoreRpcFactory;

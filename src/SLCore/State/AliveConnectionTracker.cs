@@ -37,10 +37,7 @@ namespace SonarLint.VisualStudio.SLCore.State;
 /// <summary>
 /// Handles connection list refreshing integration with SLCore
 /// </summary>
-public interface IAliveConnectionTracker : IDisposable
-{
-    void RefreshConnectionList();
-}
+public interface IAliveConnectionTracker : IDisposable;
 
 [Export(typeof(IAliveConnectionTracker))]
 [PartCreationPolicy(CreationPolicy.Shared)]
@@ -67,7 +64,7 @@ internal sealed class AliveConnectionTracker : IAliveConnectionTracker
         asyncLock = asyncLockFactory.Create();
     }
 
-    public void RefreshConnectionList()
+    internal void RefreshConnectionList()
     {
         threadHandling.ThrowIfOnUIThread();
 

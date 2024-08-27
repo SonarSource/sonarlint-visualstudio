@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
 
             var bindingConfiguration = configurationProvider.GetConfiguration();
 
-            if (bindingConfiguration.Equals(BindingConfiguration.Standalone))
+            if (bindingConfiguration.Equals(LegacyBindingConfiguration.Standalone))
             {
                 return;
             }

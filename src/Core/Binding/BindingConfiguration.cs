@@ -18,83 +18,81 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
 
-namespace SonarLint.VisualStudio.Core.Binding
+namespace SonarLint.VisualStudio.Core.Binding;
+
+public sealed class BindingConfiguration : IEquatable<BindingConfiguration>
 {
-    public sealed class BindingConfiguration : IEquatable<BindingConfiguration>
+    public static readonly BindingConfiguration Standalone = new BindingConfiguration(null, SonarLintMode.Standalone, null);
+
+    public static BindingConfiguration CreateBoundConfiguration(BoundServerProject project, SonarLintMode sonarLintMode, string bindingConfigDirectory)
     {
-        public static readonly BindingConfiguration Standalone = new BindingConfiguration(null, SonarLintMode.Standalone, null);
-
-        public static BindingConfiguration CreateBoundConfiguration(BoundSonarQubeProject project, SonarLintMode sonarLintMode, string bindingConfigDirectory)
+        if (project == null)
         {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (string.IsNullOrEmpty(bindingConfigDirectory))
-            {
-                throw new ArgumentNullException(nameof(bindingConfigDirectory));
-            }
-
-            return new BindingConfiguration(project, sonarLintMode, bindingConfigDirectory);
+            throw new ArgumentNullException(nameof(project));
         }
 
-        public BindingConfiguration(BoundSonarQubeProject project, SonarLintMode mode, string bindingConfigDirectory)
+        if (string.IsNullOrEmpty(bindingConfigDirectory))
         {
-            Project = project;
-            Mode = mode;
-            BindingConfigDirectory = bindingConfigDirectory;
+            throw new ArgumentNullException(nameof(bindingConfigDirectory));
         }
 
-        public BoundSonarQubeProject Project { get; }
+        return new BindingConfiguration(project, sonarLintMode, bindingConfigDirectory);
+    }
 
-        public SonarLintMode Mode { get; }
+    public BindingConfiguration(BoundServerProject project, SonarLintMode mode, string bindingConfigDirectory)
+    {
+        Project = project;
+        Mode = mode;
+        BindingConfigDirectory = bindingConfigDirectory;
+    }
 
-        public string BindingConfigDirectory { get; }
+    public BoundServerProject Project { get; }
 
-        #region IEquatable<BindingConfiguration> and Equals
+    public SonarLintMode Mode { get; }
 
-        public override bool Equals(object obj)
+    public string BindingConfigDirectory { get; }
+
+    #region IEquatable<BindingConfiguration> and Equals
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as BindingConfiguration);
+    }
+
+    public bool Equals(BindingConfiguration other)
+    {
+        if (other == null)
         {
-            return Equals(obj as BindingConfiguration);
+            return false;
         }
 
-        public bool Equals(BindingConfiguration other)
+        if (ReferenceEquals(other, this))
         {
-            if (other == null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(other, this))
-            {
-                return true;
-            }
-
-            return other.Mode == this.Mode &&
-                other.Project?.Organization?.Key == this.Project?.Organization?.Key &&
-                other.Project?.ProjectKey == this.Project?.ProjectKey &&
-                other.Project?.ServerUri == this.Project?.ServerUri;
+            return true;
         }
 
-        public override int GetHashCode()
-        {
-            // The only immutable field is Mode.
-            // We don't really expect this type to be used a dictionary key, but we have
-            // to override GetHashCode since we have overridden Equals
-            return this.Mode.GetHashCode();
-        }
+        return other.Mode == this.Mode &&
+               other.Project?.ServerConnection?.Id == this.Project?.ServerConnection?.Id
+               && other.Project?.ServerProjectKey == this.Project?.ServerProjectKey
+               && other.Project?.LocalBindingKey == this.Project?.LocalBindingKey;
+    }
 
-        #endregion
+    public override int GetHashCode()
+    {
+        // The only immutable field is Mode.
+        // We don't really expect this type to be used a dictionary key, but we have
+        // to override GetHashCode since we have overridden Equals
+        return this.Mode.GetHashCode();
+    }
 
-        public string BuildPathUnderConfigDirectory(string fileSuffix = "")
-        {
-            var escapedFileName = Helpers.PathHelper.EscapeFileName(fileSuffix).ToLowerInvariant(); // Must be lower case - see https://github.com/SonarSource/sonarlint-visualstudio/issues/1068;
+    #endregion
+
+    public string BuildPathUnderConfigDirectory(string fileSuffix = "")
+    {
+        var escapedFileName = Helpers.PathHelper.EscapeFileName(fileSuffix).ToLowerInvariant(); // Must be lower case - see https://github.com/SonarSource/sonarlint-visualstudio/issues/1068;
             
-            return Path.Combine(BindingConfigDirectory, escapedFileName);
-        }
+        return Path.Combine(BindingConfigDirectory, escapedFileName);
     }
 }

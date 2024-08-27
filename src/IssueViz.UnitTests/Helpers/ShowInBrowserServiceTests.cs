@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
         public void ShowIssue_NotInConnectedMode_BrowserNotOpened()
         {
             var configurationProvider = new Mock<IConfigurationProvider>();
-            configurationProvider.Setup(x => x.GetConfiguration()).Returns(BindingConfiguration.Standalone);
+            configurationProvider.Setup(x => x.GetConfiguration()).Returns(LegacyBindingConfiguration.Standalone);
 
             var sonarQubeService = new Mock<ISonarQubeService>();
             var browserService = new Mock<IBrowserService>();
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
             var configurationProvider = new Mock<IConfigurationProvider>();
             configurationProvider
                 .Setup(x => x.GetConfiguration())
-                .Returns(new BindingConfiguration(new BoundSonarQubeProject{ProjectKey = projectKey}, SonarLintMode.Connected, null));
+                .Returns(new LegacyBindingConfiguration(new BoundSonarQubeProject{ProjectKey = projectKey}, SonarLintMode.Connected, null));
 
             var sonarQubeService = new Mock<ISonarQubeService>();
             sonarQubeService

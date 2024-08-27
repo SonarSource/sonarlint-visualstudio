@@ -131,7 +131,7 @@ public class BindingSuggestionHandlerTests
         teamExplorerController ??= Substitute.For<ITeamExplorerController>();
         browserService ??= Substitute.For<IBrowserService>();
 
-        activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(new BoundSonarQubeProject(), sonarLintMode, "a-directory"));
+        activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(new BoundServerProject("solution", "server project", new ServerConnection.SonarCloud("org")), sonarLintMode, "a-directory"));
 
         return new BindingSuggestionHandler(notificationService, activeSolutionBoundTracker, ideWindowService, teamExplorerController, browserService);
     }

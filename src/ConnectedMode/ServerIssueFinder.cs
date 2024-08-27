@@ -80,10 +80,10 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
             var componentKey = ComponentKeyGenerator.GetComponentKey(localIssue.FilePath,
                 projectRoot,
-                bindingConfiguration.Project.ProjectKey);
+                bindingConfiguration.Project.ServerProjectKey);
 
             var serverIssues = await sonarQubeService.GetIssuesForComponentAsync(
-                bindingConfiguration.Project.ProjectKey,
+                bindingConfiguration.Project.ServerProjectKey,
                 await serverBranchProvider.GetServerBranchNameAsync(token),
                 componentKey,
                 localIssue.RuleId,

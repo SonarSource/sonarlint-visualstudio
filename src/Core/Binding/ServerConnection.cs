@@ -27,6 +27,8 @@ public abstract class ServerConnection
     public string Id { get; }
     public ServerConnectionSettings Settings { get; }
     public ICredentials Credentials { get; set; }
+    
+    public abstract Uri ServerUri { get; }
 
     private ServerConnection(string id, ServerConnectionSettings settings = null, ICredentials credentials = null)
     {
@@ -39,11 +41,13 @@ public abstract class ServerConnection
         : ServerConnection(organizationKey, settings, credentials)
     {
         public string OrganizationKey { get; } = organizationKey;
+        
+        public override Uri ServerUri { get; } = new Uri("https://sonarcloud.io");
     }
     
     public sealed class SonarQube(Uri serverUri, ServerConnectionSettings settings = null, ICredentials credentials = null)
         : ServerConnection(serverUri?.ToString(), settings, credentials)
     {
-        public Uri ServerUri { get; } = serverUri;
+        public override Uri ServerUri { get; } = serverUri;
     }
 }

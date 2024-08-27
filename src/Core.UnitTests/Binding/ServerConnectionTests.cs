@@ -62,6 +62,7 @@ public class ServerConnectionTests
 
         sonarCloud.Id.Should().BeSameAs(org);
         sonarCloud.OrganizationKey.Should().BeSameAs(org);
+        sonarCloud.ServerUri.Should().Be(new Uri("https://sonarcloud.io"));
         sonarCloud.Settings.Should().BeSameAs(serverConnectionSettings);
         sonarCloud.Credentials.Should().BeSameAs(credentials);
     }

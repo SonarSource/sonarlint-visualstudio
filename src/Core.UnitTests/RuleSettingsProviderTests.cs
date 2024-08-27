@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         private BindingConfiguration GetConnectedModeConfiguration()
         {
             return BindingConfiguration.CreateBoundConfiguration(
-                new BoundSonarQubeProject(new Uri("http://localhost:2000/"), "some project", "some project"),
+                new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://localhost:2000"))),
                 SonarLintMode.Connected,
                 "some directory");
         }

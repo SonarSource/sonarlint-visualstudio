@@ -87,12 +87,39 @@ namespace SonarLint.VisualStudio.Integration
 
             // The solution changed inside the IDE
             solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
-
-            CurrentConfiguration = configurationProvider.GetConfiguration();
+            
+            CurrentConfiguration = GetBindingConfiguration();
 
             SetBoundSolutionUIContext();
 
             this.gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
+        }
+
+        private BindingConfiguration GetBindingConfiguration()
+        {
+            var oldConfig = configurationProvider.GetConfiguration();
+
+            if (oldConfig.Mode == SonarLintMode.Standalone)
+            {
+                return BindingConfiguration.Standalone;
+            }
+
+            ServerConnection connection = oldConfig.Project switch
+            {
+                { Organization: not null } => new ServerConnection.SonarCloud(oldConfig.Project.Organization.Key, credentials: oldConfig.Project.Credentials),
+                { ServerUri: not null } => new ServerConnection.SonarQube(oldConfig.Project.ServerUri, credentials: oldConfig.Project.Credentials),
+                _ => null
+            };
+            
+            return new BindingConfiguration(
+                new BoundServerProject("Solution Name Placeholder", // todo https://sonarsource.atlassian.net/browse/SLVS-1402
+                    oldConfig.Project?.ProjectKey,
+                    connection)
+                {
+                    Profiles = oldConfig.Project?.Profiles
+                },
+                oldConfig.Mode,
+                oldConfig.BindingConfigDirectory);
         }
 
         private void GitEventsMonitor_HeadChanged(object sender, EventArgs e)
@@ -111,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration
             // An exception here will crash VS
             try
             {
-                var newBindingConfiguration = configurationProvider.GetConfiguration();
+                var newBindingConfiguration = GetBindingConfiguration();
                 
                 await UpdateConnectionAsync(newBindingConfiguration);
 
@@ -156,7 +183,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private void OnBindingStateChanged(object sender, BindingStateEventArgs e)
         {
-            this.RaiseAnalyzersChangedIfBindingChanged(configurationProvider.GetConfiguration(), e.IsBindingCleared);
+            this.RaiseAnalyzersChangedIfBindingChanged(GetBindingConfiguration(), e.IsBindingCleared);
         }
 
         private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration, bool? isBindingCleared = null)
@@ -190,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public async void OnImportsSatisfied()
         {
-            await UpdateConnectionAsync(configurationProvider.GetConfiguration());
+            await UpdateConnectionAsync(GetBindingConfiguration());
         }
 
         #endregion

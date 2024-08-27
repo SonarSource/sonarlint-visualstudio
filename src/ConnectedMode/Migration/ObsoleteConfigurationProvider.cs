@@ -55,16 +55,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.solutionBindingRepository = solutionBindingRepository ?? throw new ArgumentNullException(nameof(solutionBindingRepository));
         }
 
-        public BindingConfiguration GetConfiguration()
+        public LegacyBindingConfiguration GetConfiguration()
         {
             var bindingConfiguration =
                 TryGetBindingConfiguration(legacyPathProvider.Get(), SonarLintMode.LegacyConnected) ??
                 TryGetBindingConfiguration(connectedModePathProvider.Get(), SonarLintMode.Connected);
 
-            return bindingConfiguration ?? BindingConfiguration.Standalone;
+            return bindingConfiguration ?? LegacyBindingConfiguration.Standalone;
         }
 
-        private BindingConfiguration TryGetBindingConfiguration(string bindingPath, SonarLintMode sonarLintMode)
+        private LegacyBindingConfiguration TryGetBindingConfiguration(string bindingPath, SonarLintMode sonarLintMode)
         {
             if (bindingPath == null)
             {
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             var bindingConfigDirectory = Path.GetDirectoryName(bindingPath);
 
-            return BindingConfiguration.CreateBoundConfiguration(boundProject, sonarLintMode, bindingConfigDirectory);
+            return LegacyBindingConfiguration.CreateBoundConfiguration(boundProject, sonarLintMode, bindingConfigDirectory);
         }
     }
 }

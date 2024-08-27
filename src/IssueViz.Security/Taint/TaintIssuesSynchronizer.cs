@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
         }
 
-        private bool IsStandalone(BindingConfiguration bindingConfiguration)
+        private bool IsStandalone(LegacyBindingConfiguration bindingConfiguration)
         {
             if (bindingConfiguration.Mode == SonarLintMode.Standalone)
             {

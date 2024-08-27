@@ -58,7 +58,7 @@ internal class ServerConnectionsProvider : IServerConnectionsProvider
         {
             var serverUri = binding.ServerUri;
             var organization = binding.Organization?.Key;
-            var connectionId = connectionIdHelper.GetConnectionIdFromUri(serverUri, organization);
+            var connectionId = connectionIdHelper.GetConnectionIdFromServerConnection(GetServerConnection(serverUri, organization));
 
             connections[connectionId] = serverUri == ConnectionIdHelper.SonarCloudUri
                 ? new SonarCloudConnectionConfigurationDto(connectionId, true, organization)
@@ -66,5 +66,20 @@ internal class ServerConnectionsProvider : IServerConnectionsProvider
         }
 
         return connections;
+    }
+
+    private static ServerConnection GetServerConnection(Uri serverUri, string organization)
+    {
+        if (organization is not null)
+        {
+            return new ServerConnection.SonarCloud(organization);
+        }
+
+        if (serverUri is not null)
+        {
+            return new ServerConnection.SonarQube(serverUri);
+        }
+
+        return null;
     }
 }

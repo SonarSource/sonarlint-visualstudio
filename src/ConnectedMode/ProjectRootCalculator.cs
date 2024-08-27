@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             }
 
             return PathHelper.CalculateServerRoot(localPath,
-                await sonarQubeService.SearchFilesByNameAsync(bindingConfiguration.Project.ProjectKey,
+                await sonarQubeService.SearchFilesByNameAsync(bindingConfiguration.Project.ServerProjectKey,
                     await branchProvider.GetServerBranchNameAsync(token),
                     Path.GetFileName(localPath),
                     token));

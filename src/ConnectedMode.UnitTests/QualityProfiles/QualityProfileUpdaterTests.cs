@@ -199,7 +199,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 
         private Mock<IConfigurationProvider> CreateConfigProvider(SonarLintMode mode, BoundSonarQubeProject boundProject = null)
         {
-            var config = new BindingConfiguration(boundProject ?? new BoundSonarQubeProject(), mode, "any directory");
+            var config = new LegacyBindingConfiguration(boundProject ?? new BoundSonarQubeProject(), mode, "any directory");
 
             var configProvider = new Mock<IConfigurationProvider>();
             configProvider.Setup(x => x.GetConfiguration()).Returns(config);

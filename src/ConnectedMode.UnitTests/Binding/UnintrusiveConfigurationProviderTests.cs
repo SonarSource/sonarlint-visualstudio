@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
             // Assert
             CheckExpectedFileRead(configReader, "c:\\users\\foo\\bindings\\xxx.config");
-            actual.Should().BeSameAs(BindingConfiguration.Standalone);
+            actual.Should().BeSameAs(LegacyBindingConfiguration.Standalone);
         }
 
         private static UnintrusiveConfigurationProvider CreateTestSubject(IUnintrusiveBindingPathProvider pathProvider,

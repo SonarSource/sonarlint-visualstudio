@@ -53,7 +53,7 @@ public class ServerConnectionsProviderTests
         var binding = new BoundSonarQubeProject(serverUri, "project", default);
         var solutionBindingRepository = SetUpBindingRepository(binding);
         var connectionIdHelper = Substitute.For<IConnectionIdHelper>();
-        connectionIdHelper.GetConnectionIdFromUri(serverUri, null).Returns(connectionId);
+        connectionIdHelper.GetConnectionIdFromServerConnection(Arg.Is<ServerConnection>(s => s.ServerUri == serverUri)).Returns(connectionId);
         var testSubject = CreateTestSubject(solutionBindingRepository, connectionIdHelper);
 
         var serverConnections = testSubject.GetServerConnections();
@@ -71,7 +71,7 @@ public class ServerConnectionsProviderTests
         var binding = new BoundSonarQubeProject(serverUri, "project", default, organization: new SonarQubeOrganization(organizationKey, organizationKey));
         var solutionBindingRepository = SetUpBindingRepository(binding);
         var connectionIdHelper = Substitute.For<IConnectionIdHelper>();
-        connectionIdHelper.GetConnectionIdFromUri(serverUri, organizationKey).Returns(connectionId);
+        connectionIdHelper.GetConnectionIdFromServerConnection(Arg.Is<ServerConnection>(s => s.ServerUri.Equals(serverUri) && s.Id == organizationKey)).Returns(connectionId);
         var testSubject = CreateTestSubject(solutionBindingRepository, connectionIdHelper);
 
         var serverConnections = testSubject.GetServerConnections();

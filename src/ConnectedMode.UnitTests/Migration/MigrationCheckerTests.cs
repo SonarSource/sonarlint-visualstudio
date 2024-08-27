@@ -136,11 +136,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             return provider;
         }
 
-        private static BindingConfiguration CreateBindingConfiguration(SonarLintMode? mode)
+        private static LegacyBindingConfiguration CreateBindingConfiguration(SonarLintMode? mode)
         {
             if (mode.HasValue)
             {
-                return new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://localhost"), "test", ""), mode.Value, "");
+                return new LegacyBindingConfiguration(new BoundSonarQubeProject(new Uri("http://localhost"), "test", ""), mode.Value, "");
             }
             return null;
         }

@@ -260,7 +260,7 @@ public class SSESessionManagerTests
         {
             var randomString = Guid.NewGuid().ToString();
             var bindingConfiguration = new BindingConfiguration(
-                new BoundSonarQubeProject(new Uri("http://localhost"), projectKey, randomString),
+                new BoundServerProject(randomString, projectKey, new ServerConnection.SonarQube(new Uri("http://localhost"))),
                 SonarLintMode.Connected,
                 randomString);
             return bindingConfiguration;
