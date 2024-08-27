@@ -86,34 +86,34 @@ public class ConfigScopeUpdaterTests
     [TestMethod]
     public void UpdateConfigScopeForCurrentSolution_BoundSolutionOpen_SetsCurrentConfigScope()
     {
-        var binding = new BoundSonarQubeProject(new Uri("http://localhost"), "projectkey", default);
+        var binding = new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://localhost")));
         var activeConfigScopeTrackerMock = new Mock<IActiveConfigScopeTracker>();
         var solutionInfoProviderMock = new Mock<ISolutionInfoProvider>();
         solutionInfoProviderMock.Setup(x => x.GetSolutionName()).Returns("sln");
         var connectionIdHelperMock = new Mock<IConnectionIdHelper>();
-        connectionIdHelperMock.Setup(x => x.GetConnectionIdFromUri(binding.ServerUri, null)).Returns("conid");
+        connectionIdHelperMock.Setup(x => x.GetConnectionIdFromServerConnection(binding.ServerConnection)).Returns("conid");
         var testSubject = CreateTestSubject(activeConfigScopeTrackerMock.Object, solutionInfoProviderMock.Object, connectionIdHelperMock.Object);
         
         testSubject.UpdateConfigScopeForCurrentSolution(binding);
         
-        activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScope("sln", "conid", binding.ProjectKey));
+        activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScope("sln", "conid", binding.ServerProjectKey));
         activeConfigScopeTrackerMock.VerifyNoOtherCalls();
     }
     
     [TestMethod]
     public void UpdateConfigScopeForCurrentSolution_BoundSolutionWithOrganizationOpen_SetsCurrentConfigScope()
     {
-        var binding = new BoundSonarQubeProject(new Uri("http://localhost"), "projectkey", default, default, new SonarQubeOrganization("org", default));
+        var binding = new BoundServerProject("solution", "projectKey", new ServerConnection.SonarCloud("org"));
         var activeConfigScopeTrackerMock = new Mock<IActiveConfigScopeTracker>();
         var solutionInfoProviderMock = new Mock<ISolutionInfoProvider>();
         solutionInfoProviderMock.Setup(x => x.GetSolutionName()).Returns("sln");
         var connectionIdHelperMock = new Mock<IConnectionIdHelper>();
-        connectionIdHelperMock.Setup(x => x.GetConnectionIdFromUri(binding.ServerUri, binding.Organization.Key)).Returns("conid");
+        connectionIdHelperMock.Setup(x => x.GetConnectionIdFromServerConnection(binding.ServerConnection)).Returns("conid");
         var testSubject = CreateTestSubject(activeConfigScopeTrackerMock.Object, solutionInfoProviderMock.Object, connectionIdHelperMock.Object);
         
         testSubject.UpdateConfigScopeForCurrentSolution(binding);
         
-        activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScope("sln", "conid", binding.ProjectKey));
+        activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScope("sln", "conid", binding.ServerProjectKey));
         activeConfigScopeTrackerMock.VerifyNoOtherCalls();
     }
     

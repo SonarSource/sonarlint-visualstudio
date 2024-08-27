@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
 
                 logger.LogVerbose("[SSESessionManager] In connected mode, creating session...");
 
-                currentSession = sseSessionFactory.Create(bindingConfiguration.Project.ProjectKey, OnSessionFailedAsync);
+                currentSession = sseSessionFactory.Create(bindingConfiguration.Project.ServerProjectKey, OnSessionFailedAsync);
 
                 logger.LogVerbose("[SSESessionManager] Created session: {0}", currentSession.GetHashCode());
 

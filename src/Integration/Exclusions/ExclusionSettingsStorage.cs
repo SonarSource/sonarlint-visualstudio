@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Exclusions
             return null;
         }
 
-        private static string GetFilePath(BindingConfiguration bindingConfiguration) => 
+        private static string GetFilePath(LegacyBindingConfiguration bindingConfiguration) => 
             Path.Combine(bindingConfiguration.BindingConfigDirectory, "sonar.settings.json");
     }
 }

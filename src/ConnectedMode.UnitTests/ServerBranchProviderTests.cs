@@ -183,10 +183,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             return testSubject;
         }
 
-        private static BindingConfiguration CreateBindingConfig(SonarLintMode mode = SonarLintMode.Connected, string projectKey = "any")
+        private static LegacyBindingConfiguration CreateBindingConfig(SonarLintMode mode = SonarLintMode.Connected, string projectKey = "any")
             => new(new BoundSonarQubeProject { ProjectKey = projectKey }, mode, "any dir");
 
-        private static Mock<IConfigurationProvider> CreateConfigProvider(BindingConfiguration config = null)
+        private static Mock<IConfigurationProvider> CreateConfigProvider(LegacyBindingConfiguration config = null)
         {
             config ??= CreateBindingConfig();
 
