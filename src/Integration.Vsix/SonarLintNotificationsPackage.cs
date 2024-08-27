@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 logger.WriteLine(Resources.Strings.Notifications_Connected);
                 VisualStudioStatusBarHelper.AddStatusBarIcon(notificationIcon);
-                notifications.StartAsync(bindingConfiguration.Project.ProjectKey, notificationData);
+                notifications.StartAsync(bindingConfiguration.Project.ServerProjectKey, notificationData);
             }
             else
             {

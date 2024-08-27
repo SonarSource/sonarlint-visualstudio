@@ -28,13 +28,13 @@ namespace SonarLint.VisualStudio.TestInfrastructure
     /// </summary>
     public class ConfigurableConfigurationProvider : IConfigurationProvider
     {
-        public BindingConfiguration GetConfiguration()
+        public LegacyBindingConfiguration GetConfiguration()
         {
             GetConfigurationAction?.Invoke();
 
             return ModeToReturn == SonarLintMode.Standalone
-                ? BindingConfiguration.Standalone
-                : BindingConfiguration.CreateBoundConfiguration(ProjectToReturn, ModeToReturn, FolderPathToReturn);
+                ? LegacyBindingConfiguration.Standalone
+                : LegacyBindingConfiguration.CreateBoundConfiguration(ProjectToReturn, ModeToReturn, FolderPathToReturn);
         }
 
         #region Test helpers

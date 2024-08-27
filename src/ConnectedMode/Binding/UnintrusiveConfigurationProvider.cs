@@ -41,14 +41,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             this.solutionBindingRepository = solutionBindingRepository;
         }
 
-        public BindingConfiguration GetConfiguration()
+        public LegacyBindingConfiguration GetConfiguration()
         {
             var bindingConfiguration = TryGetBindingConfiguration(pathProvider.GetCurrentBindingPath());
 
-            return bindingConfiguration ?? BindingConfiguration.Standalone;
+            return bindingConfiguration ?? LegacyBindingConfiguration.Standalone;
         }
 
-        private BindingConfiguration TryGetBindingConfiguration(string bindingPath)
+        private LegacyBindingConfiguration TryGetBindingConfiguration(string bindingPath)
         {
             if (bindingPath == null)
             {
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
             var bindingConfigDirectory = Path.GetDirectoryName(bindingPath);
 
-            return BindingConfiguration.CreateBoundConfiguration(boundProject, SonarLintMode.Connected, bindingConfigDirectory);
+            return LegacyBindingConfiguration.CreateBoundConfiguration(boundProject, SonarLintMode.Connected, bindingConfigDirectory);
         }
     }
 }

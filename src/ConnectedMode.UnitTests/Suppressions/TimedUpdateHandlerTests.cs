@@ -170,7 +170,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
         private BindingConfiguration CreateBindingConfiguration(SonarLintMode mode)
         {
-            return new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://localhost"), "test", ""), mode, "");
+            return new BindingConfiguration(new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://localhost"))), mode, "");
         }
 
         private Mock<IActiveSolutionBoundTracker> CreateActiveSolutionBoundTrackerWihtBindingConfig(SonarLintMode mode)
