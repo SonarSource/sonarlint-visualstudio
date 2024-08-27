@@ -64,10 +64,28 @@ public class OrganizationSelectionViewModelTests
     }
 
     [TestMethod]
+    public void ConnectionInfo_SetByDefaultToSonarCloudWithIdToNull()
+    {
+        testSubject.ConnectionInfo.Id.Should().BeNull();
+        testSubject.ConnectionInfo.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+    }
+
+    [TestMethod]
     public void SelectedOrganization_NotSet_ValueIsNull()
     {
         testSubject.SelectedOrganization.Should().BeNull();
         testSubject.IsValidSelectedOrganization.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void SelectedOrganization_ValueChanges_UpdatesConnectionInfo()
+    {
+        testSubject.SelectedOrganization = null;
+        testSubject.ConnectionInfo.Id.Should().BeNull();
+
+        testSubject.SelectedOrganization  = new OrganizationDisplay("key", "name");
+        testSubject.ConnectionInfo.Id.Should().Be(testSubject.SelectedOrganization.Key);
+        testSubject.ConnectionInfo.ServerType.Should().Be(ConnectionServerType.SonarCloud);
     }
 
     [TestMethod]
@@ -244,35 +262,14 @@ public class OrganizationSelectionViewModelTests
     }
 
     [TestMethod]
-    public async Task ValidateConnectionAsync_CallsExecuteTaskWithProgressAsync()
+    public void UpdateConnectionInfo_ValueChanges_UpdatesConnectionInfo()
     {
-        testSubject.SelectedOrganization = new OrganizationDisplay("myKey", "myName");
+        testSubject.ConnectionInfo.Id.Should().BeNull();
 
-        await testSubject.ValidateConnectionAsync();
+        testSubject.UpdateConnectionInfo("newKey");
 
-        await progressReporterViewModel.Received(1)
-            .ExecuteTaskWithProgressAsync(Arg.Is<ITaskToPerformParams<AdapterResponse>>(x =>
-                IsExpectedSlCoreAdapterValidateConnectionAsync(x.TaskToPerform, testSubject.SelectedOrganization.Key) &&
-                x.ProgressStatus == UiResources.ValidatingConnectionProgressText &&
-                x.WarningText == UiResources.ValidatingConnectionFailedText));
-    }
-
-    [TestMethod]
-    public void CreateConnectionInfo_OrganizationIsSelected_ReturnsSonarCloudConnectionWithOrganizationKey()
-    {
-        var organizationKey = "key";
-
-        var connectionInfo = OrganizationSelectionViewModel.CreateConnectionInfo(organizationKey);
-
-        connectionInfo.Should().NotBeNull();
-        connectionInfo.Id.Should().Be(organizationKey);
-        connectionInfo.ServerType.Should().Be(ConnectionServerType.SonarCloud);
-    }
-
-    [TestMethod]
-    public void CreateConnectionInfo_OrganizationIsNotSelected_ThrowsException()
-    {
-        Assert.ThrowsException<ArgumentException>(() => OrganizationSelectionViewModel.CreateConnectionInfo(null));
+        testSubject.ConnectionInfo.Id.Should().Be("newKey");
+        testSubject.ConnectionInfo.ServerType.Should().Be(ConnectionServerType.SonarCloud);
     }
 
     private bool IsExpectedSlCoreAdapterValidateConnectionAsync(Func<Task<AdapterResponse>> xTaskToPerform, string organizationKey)

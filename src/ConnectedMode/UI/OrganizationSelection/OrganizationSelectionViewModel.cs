@@ -27,6 +27,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
 public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, ISlCoreConnectionAdapter connectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
+    /// <summary>
+    /// The <see cref="ConnectionInfo"/> that is used to connect to the server, whose <see cref="ConnectionInfo.Id"/> can be different from the <see cref="SelectedOrganization"/>
+    /// due to the fact that an organization key can also be entered manually rather than selected form the list of <see cref="Organizations"/>.
+    /// </summary>
+    public ConnectionInfo ConnectionInfo { get; private set; } = new(null, ConnectionServerType.SonarCloud);
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
 
     public OrganizationDisplay SelectedOrganization
@@ -35,6 +40,7 @@ public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, 
         set
         {
             selectedOrganization = value;
+            UpdateConnectionInfo(selectedOrganization?.Key);
             RaisePropertyChanged();
             RaisePropertyChanged(nameof(IsValidSelectedOrganization));
         }
@@ -64,11 +70,6 @@ public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, 
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(organizationLoadingParams);
     }
 
-    public async Task<bool> ValidateConnectionAsync()
-    {
-        return await ValidateConnectionForOrganizationAsync(SelectedOrganization.Key, UiResources.ValidatingConnectionFailedText);
-    }
-
     internal async Task<AdapterResponseWithData<List<OrganizationDisplay>>> AdapterLoadOrganizationsAsync()
     {
        return await connectionAdapter.GetOrganizationsAsync(credentialsModel);
@@ -83,21 +84,17 @@ public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, 
 
     internal async Task<bool> ValidateConnectionForOrganizationAsync(string organizationKey, string warningText)
     {
-        var connectionInfo = CreateConnectionInfo(organizationKey);
+        var connectionInfoToValidate = ConnectionInfo with { Id = organizationKey };
         var validationParams = new TaskToPerformParams<AdapterResponse>(
-            async () => await connectionAdapter.ValidateConnectionAsync(connectionInfo, credentialsModel),
+            async () => await connectionAdapter.ValidateConnectionAsync(connectionInfoToValidate, credentialsModel),
             UiResources.ValidatingConnectionProgressText, 
             warningText);
         var adapterResponse = await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         return adapterResponse.Success;
     }
 
-    internal static ConnectionInfo CreateConnectionInfo(string organizationKey)
+    public void UpdateConnectionInfo(string organizationKey)
     {
-        if(organizationKey is null)
-        {
-            throw new ArgumentException($"{nameof(organizationKey)} must be set.");
-        }
-        return new ConnectionInfo(organizationKey, ConnectionServerType.SonarCloud);
+        ConnectionInfo = ConnectionInfo with { Id = organizationKey };
     }
 }

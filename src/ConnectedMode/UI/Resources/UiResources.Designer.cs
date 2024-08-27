@@ -466,15 +466,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The connection is not valid for the chosen organization &quot;{0}&quot;. Make sure the entered key matches exactly your organization&apos;s key..
-        /// </summary>
-        public static string ManualOrganziationSelectionFailedText {
-            get {
-                return ResourceManager.GetString("ManualOrganziationSelectionFailedText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to New Connection.
         /// </summary>
         public static string NewConnectionButton {
@@ -759,6 +750,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string ValidatingConnectionProgressText {
             get {
                 return ResourceManager.GetString("ValidatingConnectionProgressText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The connection is not valid for the chosen organization &quot;{0}&quot;. Make sure the entered key matches exactly your organization&apos;s key..
+        /// </summary>
+        public static string ValidatingOrganziationSelectionFailedText {
+            get {
+                return ResourceManager.GetString("ValidatingOrganziationSelectionFailedText", resourceCulture);
             }
         }
     }
