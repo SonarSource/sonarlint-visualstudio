@@ -19,6 +19,11 @@ trigger:
     - feature/*
   batch: True
 
+pr:
+  branches:
+    exclude:
+      - "feature/cirrus-ci-migration"
+
 jobs:
 - job: Phase_1
   strategy:
