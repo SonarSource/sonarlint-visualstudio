@@ -36,11 +36,18 @@ public interface IJsonSerializer
 public class JsonSerializer : IJsonSerializer
 {
     private readonly ILogger logger;
+    private readonly Func<object, Formatting, JsonSerializerSettings, string> serializeFunc;
 
     [ImportingConstructor]
-    public JsonSerializer(ILogger logger)
+    public JsonSerializer(ILogger logger) : this(logger, JsonConvert.SerializeObject)
     {
         this.logger = logger;
+    }
+
+    internal /* for testing */ JsonSerializer(ILogger logger, Func<object, Formatting, JsonSerializerSettings, string> serializeFunc)
+    {
+        this.logger = logger;
+        this.serializeFunc = serializeFunc;
     }
 
     public bool TryDeserialize<T>(string json, out T deserializedObj, JsonSerializerSettings serializerSettings = null) where T : class
@@ -63,13 +70,13 @@ public class JsonSerializer : IJsonSerializer
         serializedObj = null;
         try
         {
-            serializedObj = JsonConvert.SerializeObject(objectToSerialize, formatting, serializerSettings);
+            serializedObj = serializeFunc(objectToSerialize, formatting, serializerSettings);
             return true;
         }
         catch (Exception)
         {
             logger.WriteLine(string.Format(PersistenceStrings.FailedToSerializeObject, typeof(T).Name));
-            throw;
+            return false;
         }
     }
 }
