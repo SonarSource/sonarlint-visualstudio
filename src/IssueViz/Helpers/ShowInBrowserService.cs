@@ -62,12 +62,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
 
             var bindingConfiguration = configurationProvider.GetConfiguration();
 
-            if (bindingConfiguration.Equals(LegacyBindingConfiguration.Standalone))
+            if (bindingConfiguration.Equals(BindingConfiguration.Standalone))
             {
                 return;
             }
 
-            var projectKey = bindingConfiguration.Project.ProjectKey;
+            var projectKey = bindingConfiguration.Project.ServerProjectKey;
             var viewIssueUrl = sonarQubeService.GetViewIssueUrl(projectKey, issueKey);
 
             vsBrowserService.Navigate(viewIssueUrl.ToString());

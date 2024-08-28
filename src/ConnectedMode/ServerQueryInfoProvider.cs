@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             }
 
             var branchName = await serverBranchProvider.GetServerBranchNameAsync(token);
-            return (config.Project.ProjectKey, branchName);
+            return (config.Project.ServerProjectKey, branchName);
         }
     }
 }

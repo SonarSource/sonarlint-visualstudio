@@ -266,13 +266,13 @@ namespace SonarLint.VisualStudio.Integration
             this.VisualStateManager.ClearBoundProject();
         }
 
-        private void ApplyBindingInformation(LegacyBindingConfiguration bindingConfig)
+        private void ApplyBindingInformation(BindingConfiguration bindingConfig)
         {
             SharedBindingConfig = null;
 
             // Set the project key that should become bound once the connection workflow has completed
-            this.VisualStateManager.BoundProjectKey = bindingConfig.Project.ProjectKey;
-            this.VisualStateManager.BoundProjectName = bindingConfig.Project.ProjectName;
+            this.VisualStateManager.BoundProjectKey = bindingConfig.Project.ServerProjectKey;
+            this.VisualStateManager.BoundProjectName = bindingConfig.Project.ServerProjectKey;
 
             Debug.Assert(this.ActiveSection != null, "Expected ActiveSection to be set");
             Debug.Assert(this.ActiveSection?.RefreshCommand != null, "Refresh command is not set");
@@ -286,9 +286,9 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private LegacyBindingConfiguration SafeGetBindingConfig()
+        private BindingConfiguration SafeGetBindingConfig()
         {
-            LegacyBindingConfiguration bindingConfig = null;
+            BindingConfiguration bindingConfig = null;
             try
             {
                 bindingConfig = configurationProvider.GetConfiguration();

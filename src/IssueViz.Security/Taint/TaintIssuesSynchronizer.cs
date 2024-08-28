@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                     return;
                 }
 
-                var projectKey = bindingConfiguration.Project.ProjectKey;
+                var projectKey = bindingConfiguration.Project.ServerProjectKey;
                 var serverBranch = await serverBranchProvider.GetServerBranchNameAsync(CancellationToken.None);
 
                 var taintVulnerabilities = await sonarQubeService.GetTaintVulnerabilitiesAsync(projectKey,
@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
         }
 
-        private bool IsStandalone(LegacyBindingConfiguration bindingConfiguration)
+        private bool IsStandalone(BindingConfiguration bindingConfiguration)
         {
             if (bindingConfiguration.Mode == SonarLintMode.Standalone)
             {

@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             {
                 logger.LogVerbose(Resources.BranchProvider_FailedToCalculateMatchingBranch);
 
-                var remoteBranches = await sonarQubeService.GetProjectBranchesAsync(config.Project.ProjectKey, token);
+                var remoteBranches = await sonarQubeService.GetProjectBranchesAsync(config.Project.ServerProjectKey, token);
                 matchingBranchName = remoteBranches.First(rb => rb.IsMain).Name;
             }
 
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             return matchingBranchName;
         }
 
-        private async Task<string> CalculateMatchingBranchAsync(LegacyBindingConfiguration config, CancellationToken token)
+        private async Task<string> CalculateMatchingBranchAsync(BindingConfiguration config, CancellationToken token)
         {
             var gitRepoRoot = gitWorkspaceService.GetRepoRoot();
 
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             }
 
             var repo = createRepo(gitRepoRoot);
-            var branchName = await branchMatcher.GetMatchingBranch(config.Project.ProjectKey, repo, token);
+            var branchName = await branchMatcher.GetMatchingBranch(config.Project.ServerProjectKey, repo, token);
 
             return branchName;
         }

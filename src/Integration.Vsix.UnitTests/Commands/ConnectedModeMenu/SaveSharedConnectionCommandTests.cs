@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
         {
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var bindingConfiguration = new LegacyBindingConfiguration(null, mode, null);
+            var bindingConfiguration = new BindingConfiguration(null, mode, null);
 
             var configurationProvider = CreateConfigurationProvider(bindingConfiguration);
             SaveSharedConnectionCommand testSubject = CreateTestSubject(configurationProvider);
@@ -60,14 +60,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
         {
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var organisation = new SonarQubeOrganization("organisationKey", "organisationName");
-
-            var serverUri = new Uri("http://127.0.0.1:9000");
-            var project = new BoundSonarQubeProject(serverUri, "projectKey", null, organization: organisation);
-            var bindingConfiguration = new LegacyBindingConfiguration(project, SonarLintMode.Connected, null);
+            var serverConnection = new ServerConnection.SonarCloud("organisationKey");
+            var sonarCloudUri = serverConnection.ServerUri;
+            var project = new BoundServerProject("solution", "projectKey", serverConnection);
+            var bindingConfiguration = new BindingConfiguration(project, SonarLintMode.Connected, null);
 
             var sharedBindingConfigProvider = new Mock<ISharedBindingConfigProvider>();
-            sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == serverUri && y.ProjectKey == "projectKey" && y.Organization == "organisationKey"))).Returns("some Path");
+            sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == sonarCloudUri && y.ProjectKey == "projectKey" && y.Organization == "organisationKey"))).Returns("some Path");
 
             var messageBox = new Mock<IMessageBox>();
 
@@ -76,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
 
             testSubject.Invoke(command, null);
 
-            sharedBindingConfigProvider.Verify(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == serverUri && y.ProjectKey == "projectKey" && y.Organization == "organisationKey")), Times.Once);
+            sharedBindingConfigProvider.Verify(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == sonarCloudUri && y.ProjectKey == "projectKey" && y.Organization == "organisationKey")), Times.Once);
             messageBox.Verify(mb => mb.Show(string.Format(Strings.SaveSharedConnectionCommand_SaveSuccess_Message, "some Path"), Strings.SaveSharedConnectionCommand_SaveSuccess_Caption, MessageBoxButton.OK, MessageBoxImage.Information), Times.Once);
         }
 
@@ -85,8 +84,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
         {
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var project = new BoundSonarQubeProject(new Uri("http://127.0.0.1:9000"), "projectKey", null);
-            var bindingConfiguration = new LegacyBindingConfiguration(project, SonarLintMode.Connected, null);
+            var project = new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://localhost")));
+            var bindingConfiguration = new BindingConfiguration(project, SonarLintMode.Connected, null);
 
             var sharedBindingConfigProvider = new Mock<ISharedBindingConfigProvider>();
             sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.IsAny<SharedBindingConfigModel>())).Returns((string)null);
@@ -109,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
             return new SaveSharedConnectionCommand(configurationProvider, sharedBindingConfigProvider, messageBox);
         }
 
-        private static IConfigurationProvider CreateConfigurationProvider(LegacyBindingConfiguration bindingConfiguration)
+        private static IConfigurationProvider CreateConfigurationProvider(BindingConfiguration bindingConfiguration)
         {
             var configurationProvider = new Mock<IConfigurationProvider>();
             configurationProvider.Setup(cp => cp.GetConfiguration()).Returns(bindingConfiguration);

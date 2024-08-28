@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             {
                 await runner.RunAsync(async token =>
                 {
-                    if (await qualityProfileDownloader.UpdateAsync(config.Project, null, token))
+                    if (await qualityProfileDownloader.UpdateAsync(config.Project.ToBoundSonarQubeProject(), null, token))
                     {
                         QualityProfilesChanged?.Invoke(this, EventArgs.Empty);
                     }

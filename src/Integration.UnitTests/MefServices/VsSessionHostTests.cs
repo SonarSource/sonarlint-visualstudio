@@ -283,7 +283,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Arrange
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
-            SetConfiguration(new BoundSonarQubeProject(new Uri("http://bound"), "bla", "projectName"), SonarLintMode.LegacyConnected);
+            SetConfiguration(new BoundServerProject("solution", "bla", new ServerConnection.SonarQube(new Uri("http://bound"))), SonarLintMode.LegacyConnected);
             this.stateManager.SetBoundProject(new Uri("http://bound"), null, "bla");
 
             // Sanity
@@ -318,7 +318,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var tracker = new ConfigurableActiveSolutionTracker();
             var testSubject = this.CreateTestSubject(tracker);
             this.stateManager.SetBoundProject(new Uri("http://bound"), "org1", "bla");
-            SetConfiguration(new BoundSonarQubeProject(new Uri("http://bound"), "bla", "projectName"), SonarLintMode.LegacyConnected);
+            SetConfiguration(new BoundServerProject("solution", "bla", new ServerConnection.SonarQube(new Uri("http://bound"))), SonarLintMode.LegacyConnected);
             var section = ConfigurableSectionController.CreateDefault();
             bool refreshCalled = false;
             section.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refreshCalled = true);
@@ -346,7 +346,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var testSubject = this.CreateTestSubject(tracker);
 
             this.stateManager.SetBoundProject(new Uri("http://bound"), null, "bla");
-            SetConfiguration(new BoundSonarQubeProject(new Uri("http://bound"), "bla", "projectName"), SonarLintMode.LegacyConnected);
+            SetConfiguration(new BoundServerProject("solution", "bla", new ServerConnection.SonarQube(new Uri("http://bound"))), SonarLintMode.LegacyConnected);
             var section = ConfigurableSectionController.CreateDefault();
             testSubject.SetActiveSection(section);
 
@@ -450,7 +450,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             sharedBindingSuggestionService.Invocations.Clear();
             
             this.stateManager.SetBoundProject(new Uri("http://bound"), null, "bla");
-            SetConfiguration(new BoundSonarQubeProject(new Uri("http://bound"), "bla", "projectName"), SonarLintMode.Connected);
+            SetConfiguration(new BoundServerProject("solution", "bla", new ServerConnection.SonarQube(new Uri("http://bound"))), SonarLintMode.Connected);
             
             tracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
 
@@ -511,7 +511,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             return host;
         }
 
-        private void SetConfiguration(BoundSonarQubeProject project, SonarLintMode mode)
+        private void SetConfiguration(BoundServerProject project, SonarLintMode mode)
         {
             this.configProvider.ProjectToReturn = project;
             this.configProvider.ModeToReturn = mode;

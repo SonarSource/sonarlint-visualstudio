@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var configurationProvider = CreateNewConfigProvider(SonarLintMode.Standalone);
 
             var obsoleteConfigurationProvider = new Mock<IObsoleteConfigurationProvider>();
-            var oldConfiguration = CreateBindingConfiguration(SonarLintMode.Connected);
+            var oldConfiguration = CreateLegacyBindingConfiguration(SonarLintMode.Connected);
             obsoleteConfigurationProvider.Setup(x => x.GetConfiguration()).Returns(oldConfiguration);
 
             var testSubject = CreateTestSubject(Mock.Of<IActiveSolutionTracker>(), migrationPrompt.Object, configurationProvider.Object, obsoleteConfigurationProvider.Object);
@@ -131,16 +131,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         private static Mock<IObsoleteConfigurationProvider> CreateObsoleteConfigProvider(SonarLintMode? sonarLintMode)
         {
             var provider = new Mock<IObsoleteConfigurationProvider>();
-            provider.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(sonarLintMode));
+            provider.Setup(x => x.GetConfiguration()).Returns(CreateLegacyBindingConfiguration(sonarLintMode));
 
             return provider;
         }
 
-        private static LegacyBindingConfiguration CreateBindingConfiguration(SonarLintMode? mode)
+        private static LegacyBindingConfiguration CreateLegacyBindingConfiguration(SonarLintMode? mode)
         {
             if (mode.HasValue)
             {
                 return new LegacyBindingConfiguration(new BoundSonarQubeProject(new Uri("http://localhost"), "test", ""), mode.Value, "");
+            }
+            return null;
+        }
+        
+        private static BindingConfiguration CreateBindingConfiguration(SonarLintMode? mode)
+        {
+            if (mode.HasValue)
+            {
+                return new BindingConfiguration(new BoundServerProject("solution", "project", new ServerConnection.SonarCloud("org")), mode.Value, "");
             }
             return null;
         }
@@ -169,7 +178,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             if (obsoleteConfigurationProvider == null)
             {
                 var obsoleteConfigurationProviderMock = new Mock<IObsoleteConfigurationProvider>();
-                obsoleteConfigurationProviderMock.Setup(x => x.GetConfiguration()).Returns(CreateBindingConfiguration(SonarLintMode.Connected));
+                obsoleteConfigurationProviderMock.Setup(x => x.GetConfiguration()).Returns(CreateLegacyBindingConfiguration(SonarLintMode.Connected));
 
                 obsoleteConfigurationProvider = obsoleteConfigurationProviderMock.Object;
             }

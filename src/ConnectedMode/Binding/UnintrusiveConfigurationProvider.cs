@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using System.IO;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
@@ -33,22 +34,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private readonly ISolutionBindingRepository solutionBindingRepository;
 
         [ImportingConstructor]
-        public UnintrusiveConfigurationProvider(
-            IUnintrusiveBindingPathProvider pathProvider,
-            ISolutionBindingRepository solutionBindingRepository)
+        public UnintrusiveConfigurationProvider(IUnintrusiveBindingPathProvider pathProvider, ISolutionBindingRepository solutionBindingRepository)
         {
             this.pathProvider = pathProvider;
             this.solutionBindingRepository = solutionBindingRepository;
         }
 
-        public LegacyBindingConfiguration GetConfiguration()
+        public BindingConfiguration GetConfiguration()
         {
             var bindingConfiguration = TryGetBindingConfiguration(pathProvider.GetCurrentBindingPath());
 
-            return bindingConfiguration ?? LegacyBindingConfiguration.Standalone;
+            return bindingConfiguration ?? BindingConfiguration.Standalone;
         }
 
-        private LegacyBindingConfiguration TryGetBindingConfiguration(string bindingPath)
+        private BindingConfiguration TryGetBindingConfiguration(string bindingPath)
         {
             if (bindingPath == null)
             {
@@ -64,7 +63,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
             var bindingConfigDirectory = Path.GetDirectoryName(bindingPath);
 
-            return LegacyBindingConfiguration.CreateBoundConfiguration(boundProject, SonarLintMode.Connected, bindingConfigDirectory);
+            return BindingConfiguration.CreateBoundConfiguration(BoundServerProject.FromBoundSonarQubeProject(boundProject),
+                SonarLintMode.Connected,
+                bindingConfigDirectory);
         }
     }
 }

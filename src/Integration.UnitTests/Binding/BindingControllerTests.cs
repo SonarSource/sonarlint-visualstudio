@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private Mock<IFolderWorkspaceService> folderWorkspaceServiceMock;
         private TestLogger logger;
 
-        private readonly BoundSonarQubeProject ValidProject = new BoundSonarQubeProject(new Uri("http://any"), "projectKey", "Project Name");
+        private readonly BoundServerProject ValidProject = new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://any")));
         private readonly BindCommandArgs ValidBindingArgs = new BindCommandArgs("any key", "any name", new ConnectionInformation(new Uri("http://anyXXX")));
 
         [TestInitialize]

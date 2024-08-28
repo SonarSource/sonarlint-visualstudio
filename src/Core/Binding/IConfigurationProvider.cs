@@ -25,6 +25,6 @@ namespace SonarLint.VisualStudio.Core.Binding
         /// <summary>
         /// Returns the binding configuration for the current solution
         /// </summary>
-            LegacyBindingConfiguration GetConfiguration();
+        BindingConfiguration GetConfiguration();
     }
 }
