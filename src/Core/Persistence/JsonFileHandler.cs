@@ -80,28 +80,24 @@ public class JsonFileHandler : IJsonFileHandler
             try
             {
                 var directoryName = Path.GetDirectoryName(filePath);
-
                 if (!fileSystem.Directory.Exists(directoryName))
                 {
                     fileSystem.Directory.CreateDirectory(directoryName);
                 }
 
                 var wasContentDeserialized = jsonSerializer.TrySerialize(model, out string serializedObj, Formatting.Indented);
-                if (!wasContentDeserialized)
+                if (wasContentDeserialized)
                 {
-                    return false;
+                    fileSystem.File.WriteAllText(filePath, serializedObj);
+                    return true;
                 }
-
-                fileSystem.File.WriteAllText(filePath, serializedObj);
-
-                return true;
-
             }
             catch (Exception e)
             {
                 logger.WriteLine(e.Message);
-                return false;
             }
+
+            return false;
         }
     }
 }
