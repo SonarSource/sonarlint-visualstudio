@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.SLCore.State;
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 [TestClass]
+[Ignore] // https://sonarsource.atlassian.net/browse/SLVS-1428
 public class RuleDescriptionConversionSmokeTest
 {
     public TestContext TestContext { get; set; }

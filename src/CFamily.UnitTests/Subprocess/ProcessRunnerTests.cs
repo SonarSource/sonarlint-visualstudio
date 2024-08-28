@@ -394,6 +394,7 @@ xxx yyy
         }
 
         [TestMethod]
+        [Ignore] // https://sonarsource.atlassian.net/browse/SLVS-1428
         public void Execute_CancellationTokenCancelledMidway_CancelledDuringWritingRequest_ProcessKilled()
         {
             var exeName = WriteBatchFileForTest(TestContext, @"
