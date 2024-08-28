@@ -33,12 +33,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     {
         private readonly ISolutionBindingPathProvider legacyPathProvider;
         private readonly ISolutionBindingPathProvider connectedModePathProvider;
-        private readonly ISolutionBindingRepository solutionBindingRepository;
+        private readonly ILegacySolutionBindingRepository solutionBindingRepository;
 
         [ImportingConstructor]
         public ObsoleteConfigurationProvider(
             ISolutionInfoProvider solutionInfoProvider,
-            ISolutionBindingRepository solutionBindingRepository)
+            ILegacySolutionBindingRepository solutionBindingRepository)
             : this(
                 new LegacySolutionBindingPathProvider(solutionInfoProvider),
                 new ObsoleteConnectedModeSolutionBindingPathProvider(solutionInfoProvider),
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         internal /* for testing */ ObsoleteConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
             ISolutionBindingPathProvider connectedModePathProvider,
-            ISolutionBindingRepository solutionBindingRepository)
+            ILegacySolutionBindingRepository solutionBindingRepository)
         {
             this.legacyPathProvider = legacyPathProvider ?? throw new ArgumentNullException(nameof(legacyPathProvider));
             this.connectedModePathProvider = connectedModePathProvider ?? throw new ArgumentNullException(nameof(connectedModePathProvider));
