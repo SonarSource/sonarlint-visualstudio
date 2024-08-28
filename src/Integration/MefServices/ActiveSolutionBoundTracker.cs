@@ -97,29 +97,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private BindingConfiguration GetBindingConfiguration()
         {
-            var oldConfig = configurationProvider.GetConfiguration();
-
-            if (oldConfig.Mode == SonarLintMode.Standalone)
-            {
-                return BindingConfiguration.Standalone;
-            }
-
-            ServerConnection connection = oldConfig.Project switch
-            {
-                { Organization: not null } => new ServerConnection.SonarCloud(oldConfig.Project.Organization.Key, credentials: oldConfig.Project.Credentials),
-                { ServerUri: not null } => new ServerConnection.SonarQube(oldConfig.Project.ServerUri, credentials: oldConfig.Project.Credentials),
-                _ => null
-            };
-            
-            return new BindingConfiguration(
-                new BoundServerProject("Solution Name Placeholder", // todo https://sonarsource.atlassian.net/browse/SLVS-1402
-                    oldConfig.Project?.ProjectKey,
-                    connection)
-                {
-                    Profiles = oldConfig.Project?.Profiles
-                },
-                oldConfig.Mode,
-                oldConfig.BindingConfigDirectory);
+            return configurationProvider.GetConfiguration();
         }
 
         private void GitEventsMonitor_HeadChanged(object sender, EventArgs e)

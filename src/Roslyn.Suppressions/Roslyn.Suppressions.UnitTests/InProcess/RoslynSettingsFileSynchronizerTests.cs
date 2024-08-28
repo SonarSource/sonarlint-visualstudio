@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         {
             var serverIssuesStore = new Mock<IServerIssuesStore>();
             var roslynSettingsFileStorage = new Mock<IRoslynSettingsFileStorage>();
-            var configProvider = CreateConfigProvider(LegacyBindingConfiguration.Standalone);
+            var configProvider = CreateConfigProvider(BindingConfiguration.Standalone);
             
             CreateTestSubject(serverIssuesStore: serverIssuesStore.Object,
                 configProvider: configProvider.Object,
@@ -239,7 +239,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             actualSuppressions[1].RoslynRuleId.Should().Be("S333");
         }
 
-        private static Mock<IConfigurationProvider> CreateConfigProvider(LegacyBindingConfiguration configuration)
+        private static Mock<IConfigurationProvider> CreateConfigProvider(BindingConfiguration configuration)
         {
             var configProvider = new Mock<IConfigurationProvider>();
             configProvider.Setup(x => x.GetConfiguration()).Returns(configuration);
@@ -255,11 +255,11 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
             return serverIssuesStore;
         }
 
-        private static LegacyBindingConfiguration CreateConnectedConfiguration(string projectKey)
+        private static BindingConfiguration CreateConnectedConfiguration(string projectKey)
         {
-            var project = new BoundSonarQubeProject(new Uri("http://localhost"), projectKey, "project name");
+            var project = new BoundServerProject("solution", projectKey, new ServerConnection.SonarQube(new Uri("http://bound")));
             
-            return LegacyBindingConfiguration.CreateBoundConfiguration(project, SonarLintMode.Connected, "some directory");
+            return BindingConfiguration.CreateBoundConfiguration(project, SonarLintMode.Connected, "some directory");
         }
 
         private static Mock<ISolutionInfoProvider> CreateSolutionInfoProvider(string fullSolutionNameToReturn)
