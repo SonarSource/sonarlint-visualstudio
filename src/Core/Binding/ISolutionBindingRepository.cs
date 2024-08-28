@@ -18,10 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-
 namespace SonarLint.VisualStudio.Core.Binding;
+
+public interface ILegacySolutionBindingRepository
+{
+    /// <summary>
+    /// Retrieves solution binding information
+    /// </summary>
+    /// <returns>Can be null if not bound</returns>
+    BoundSonarQubeProject Read(string configFilePath);
+}
 
 public interface ISolutionBindingRepository
 {
