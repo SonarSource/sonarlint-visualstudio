@@ -66,9 +66,9 @@ public class JsonFileHandler : IJsonFileHandler
             return wasContentDeserialized;
           
         }
-        catch (Exception e)
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            logger.WriteLine(e.Message);
+            logger.WriteLine(ex.Message);
             return false;
         }
     }
@@ -92,9 +92,9 @@ public class JsonFileHandler : IJsonFileHandler
                     return true;
                 }
             }
-            catch (Exception e)
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(e.Message);
+                logger.WriteLine(ex.Message);
             }
 
             return false;
