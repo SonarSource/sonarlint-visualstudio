@@ -38,6 +38,8 @@ build_task:
     SOLUTION_PATH: SonarLint.VisualStudio.Integration.sln
     SONARSOURCE_SNK_FILE: ${TMP_DIR}\SonarSource.snk
     SONARSOURCE_SNK: VAULT[development/team/languages/kv/data/strong_named_key data.SonarSourceSecret_snk]
+    SIGN_KEY: VAULT[development/kv/data/sign data.key]
+    SIGN_PASSPHRASE: VAULT[development/kv/data/sign data.passphrase]
   calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
   prepare_signing_script: |
     if [[ "${CIRRUS_BRANCH}" == "${CIRRUS_DEFAULT_BRANCH}" || "${CIRRUS_BRANCH}" =~ "branch-.*"  || "${CIRRUS_BRANCH}" =~ "sign-.*" ]]; then
@@ -63,6 +65,11 @@ build_task:
         nuget sign "binaries/SonarLint.VSIX-${SONAR_PROJECT_VERSION}.${CIRRUS_BUILD_ID}-2022.vsix" -HashAlgorithm SHA256 -CertificateFingerprint ${SM_CERT_FP} -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
     else
         echo "Artifact not signed"
+    fi
+  sbom_generation_script: |
+    if [[ "${SHOULD_SIGN}" == "true" ]]; then
+      dotnet tool install --global CycloneDX
+      dotnet CycloneDX SonarLint.VisualStudio.Integration.sln -t -j -o binaries
     fi
 
 dogfood_task:
