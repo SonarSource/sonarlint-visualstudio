@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ActiveSolutionBoundTracker_Initialisation_Bound()
         {
             // Arrange
-            this.ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://localhost"), "projectKey", "projectName"));
+            this.ConfigureSolutionBinding(new BoundServerProject("solution", "key", new ServerConnection.SonarQube(new Uri("http://localhost:9000"))));
 
             // Act
             using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 // We want to directly jump to Connect
                 sonarQubeServiceMock.SetupGet(x => x.IsConnected).Returns(false);
-                ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://test"), "projectkey", "projectName"));
+                ConfigureSolutionBinding(new BoundServerProject("solution", "key", new ServerConnection.SonarQube(new Uri("http://localhost:9000"))));
 
                 // ConnectAsync should throw
                 sonarQubeServiceMock
@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ActiveSolutionBoundTracker_BoundProject_PassedToConfigScopeUpdater()
         {
-            var boundProject = new BoundSonarQubeProject(new Uri("http://localhost:9000"), "key", "projectName");
+            var boundProject = new BoundServerProject("solution", "key", new ServerConnection.SonarQube(new Uri("http://localhost:9000")));
 
             var configScopeUpdaterMock = new Mock<IConfigScopeUpdater>();
 
@@ -170,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
                 
-                configScopeUpdaterMock.Verify(x => x.UpdateConfigScopeForCurrentSolution(It.Is<BoundServerProject>(s => s.ServerProjectKey == boundProject.ProjectKey && s.ServerConnection.ServerUri == boundProject.ServerUri)));
+                configScopeUpdaterMock.Verify(x => x.UpdateConfigScopeForCurrentSolution(It.Is<BoundServerProject>(s => s.ServerProjectKey == boundProject.ServerProjectKey && s.ServerConnection.ServerUri == boundProject.ServerConnection.ServerUri)));
                 configScopeUpdaterMock.VerifyNoOtherCalls();
             }
         }
@@ -195,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ActiveSolutionBoundTracker_Changes()
         {
-            var boundProject = new BoundSonarQubeProject(new Uri("http://localhost:9000"), "key", "projectName");
+            var boundProject = new BoundServerProject("solution", "key", new ServerConnection.SonarQube(new Uri("http://localhost:9000")));
 
             var configScopeUpdaterMock = new Mock<IConfigScopeUpdater>();
 
@@ -323,10 +323,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void OnBindingStateChanged_NewConfiguration_EventsRaisedInCorrectOrder()
         {
             // Arrange
-            var initialProject = new BoundSonarQubeProject(
-                new Uri("http://localhost:9000"),
-                "projectKey", "projectName",
-                organization: new SonarQubeOrganization("myOrgKey", "myOrgName"));
+            var initialProject = new BoundServerProject(
+                "solution",
+                "projectKey",
+                new ServerConnection.SonarCloud("myOrgKey"));
 
             // Set the current configuration used by the tracker
             ConfigureSolutionBinding(initialProject);
@@ -335,10 +335,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var eventCounter = new EventCounter(testSubject);
 
                 // Now configure the provider to return a different configuration
-                var newProject = new BoundSonarQubeProject(
-                    new Uri("http://localhost:9000"),
-                    "projectKey", "projectName",
-                    organization: new SonarQubeOrganization("myOrgKey_DIFFERENT", "myOrgName"));
+                var newProject = new BoundServerProject(
+                    "solution",
+                    "projectKey",
+                    new ServerConnection.SonarCloud("myOrgKey_DIFFERENT"));
                 ConfigureSolutionBinding(newProject);
 
                 // Act - simulate the binding state changing in the Team explorer section.
@@ -385,7 +385,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using (CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
                 ConfigureService(isConnected: false);
-                ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey", "projectName"));
+                ConfigureSolutionBinding(new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://foo"))));
 
                 // Act
                 activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
@@ -428,7 +428,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using (CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
                 ConfigureService(isConnected: true);
-                ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey", "projectName"));
+                ConfigureSolutionBinding(new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://foo"))));
 
                 // Act
                 activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
@@ -556,7 +556,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var eventCounter = new EventCounter(testSubject);
 
                 // Act
-                ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey", "projectName"));
+                ConfigureSolutionBinding(new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://foo"))));
                 gitEventsMonitor.Raise(x => x.HeadChanged += null, null, null);
 
                 // Assert
@@ -602,7 +602,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Act
                 ConfigureService(true);
-                ConfigureSolutionBinding(new BoundSonarQubeProject(new Uri("http://foo"), "projectKey", "projectName"));
+                ConfigureSolutionBinding(new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://foo"))));
                 this.activeSolutionTracker.SimulateActiveSolutionChanged(true);
 
                 // Assert
@@ -642,7 +642,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.host.SonarQubeService = sonarQubeServiceMock.Object;
         }
 
-        private void ConfigureSolutionBinding(BoundSonarQubeProject boundProject)
+        private void ConfigureSolutionBinding(BoundServerProject boundProject)
         {
             configProvider.ProjectToReturn = boundProject;
             configProvider.ModeToReturn = boundProject == null ? SonarLintMode.Standalone : SonarLintMode.Connected;
