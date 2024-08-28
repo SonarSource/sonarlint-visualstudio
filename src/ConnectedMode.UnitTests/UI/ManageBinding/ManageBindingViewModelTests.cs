@@ -32,11 +32,13 @@ public class ManageBindingViewModelTests
     private readonly ServerProject serverProject = new ("a-project", "A Project");
     private readonly ConnectionInfo sonarQubeConnectionInfo = new ("http://localhost:9000", ConnectionServerType.SonarQube);
     private readonly ConnectionInfo sonarCloudConnectionInfo = new ("http://sonarcloud.io", ConnectionServerType.SonarCloud);
+    private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new ManageBindingViewModel(solutionInfoModel);
+        serverConnectionsRepositoryAdapter = Substitute.For<IServerConnectionsRepositoryAdapter>();
+        testSubject = new ManageBindingViewModel(serverConnectionsRepositoryAdapter, solutionInfoModel);
     }
 
     [TestMethod]
@@ -405,5 +407,17 @@ public class ManageBindingViewModelTests
         testSubject.ProgressReporter.ProgressStatus = null;
 
         testSubject.IsExportButtonEnabled.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void InitializeConnections_FillsConnections()
+    {
+        List<ConnectionInfo> existingConnections = [sonarQubeConnectionInfo, sonarCloudConnectionInfo];
+        serverConnectionsRepositoryAdapter.GetAllConnectionsInfo().Returns(existingConnections);
+
+        testSubject.InitializeConnections();
+
+        serverConnectionsRepositoryAdapter.Received(1).GetAllConnectionsInfo();
+        testSubject.Connections.Should().BeEquivalentTo(existingConnections);
     }
 }

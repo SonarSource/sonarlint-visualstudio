@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
-public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelBase
+public class ManageBindingViewModel(IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter, SolutionInfoModel solutionInfo) : ViewModelBase
 {
     private ServerProject boundProject;
     private ConnectionInfo selectedConnectionInfo;
@@ -105,11 +105,7 @@ public class ManageBindingViewModel(SolutionInfoModel solutionInfo) : ViewModelB
     public void InitializeConnections()
     {
        Connections.Clear();
-       List<ConnectionInfo> slCoreConnections =
-       [
-           new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube),
-           new ConnectionInfo("https://sonarcloud.io/myOrg", ConnectionServerType.SonarCloud)
-       ];
+       var slCoreConnections = serverConnectionsRepositoryAdapter.GetAllConnectionsInfo();
        slCoreConnections.ForEach(conn => Connections.Add(conn));
     }
 

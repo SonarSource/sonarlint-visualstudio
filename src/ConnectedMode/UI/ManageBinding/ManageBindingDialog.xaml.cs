@@ -35,7 +35,7 @@ public partial class ManageBindingDialog : Window
     public ManageBindingDialog(IConnectedModeServices connectedModeServices, SolutionInfoModel solutionInfoModel)
     {
         this.connectedModeServices = connectedModeServices;
-        ViewModel = new ManageBindingViewModel(solutionInfoModel);
+        ViewModel = new ManageBindingViewModel(connectedModeServices.ServerConnectionsRepositoryAdapter, solutionInfoModel);
         InitializeComponent();
     }
 
