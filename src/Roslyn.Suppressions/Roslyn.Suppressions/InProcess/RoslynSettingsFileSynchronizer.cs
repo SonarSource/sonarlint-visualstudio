@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
             {
                 await threadHandling.SwitchToBackgroundThread();
 
-                var sonarProjectKey = configurationProvider.GetConfiguration().Project?.ProjectKey;
+                var sonarProjectKey = configurationProvider.GetConfiguration().Project?.ServerProjectKey;
 
                 if (!string.IsNullOrEmpty(sonarProjectKey))
                 {
