@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Persistence;
 using SonarLint.VisualStudio.TestInfrastructure;
+using JsonSerializer = SonarLint.VisualStudio.Core.Persistence.JsonSerializer;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.Persistence;
 
@@ -58,6 +60,18 @@ public class JsonSerializerTests
 
         result.Should().BeTrue();
         serializedObj.Should().Be(expectedString);
+    }
+
+    [TestMethod]
+    public void TrySerialize_Fails_LogsAndReturnsFalse()
+    {
+        var serializer = new JsonSerializer(logger, (_, _, _) => throw new Exception());
+
+        var result = serializer.TrySerialize(new TestType("abc"), out string serializedObj);
+
+        result.Should().BeFalse();
+        serializedObj.Should().BeNull();
+        logger.Received(1).WriteLine(string.Format(PersistenceStrings.FailedToSerializeObject, nameof(TestType)));
     }
 
     [TestMethod]
