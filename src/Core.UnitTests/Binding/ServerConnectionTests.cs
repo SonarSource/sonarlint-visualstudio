@@ -65,6 +65,7 @@ public class ServerConnectionTests
         sonarCloud.ServerUri.Should().Be(new Uri("https://sonarcloud.io"));
         sonarCloud.Settings.Should().BeSameAs(serverConnectionSettings);
         sonarCloud.Credentials.Should().BeSameAs(credentials);
+        sonarCloud.CredentialsUri.Should().Be(new Uri(sonarCloud.ServerUri, sonarCloud.OrganizationKey));
     }
     
     [TestMethod]
@@ -102,5 +103,6 @@ public class ServerConnectionTests
         sonarQube.ServerUri.Should().BeSameAs(localhost);
         sonarQube.Settings.Should().BeSameAs(serverConnectionSettings);
         sonarQube.Credentials.Should().BeSameAs(credentials);
+        sonarQube.CredentialsUri.Should().BeSameAs(sonarQube.ServerUri);
     }
 }
