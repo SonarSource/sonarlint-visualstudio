@@ -61,10 +61,8 @@ public class JsonFileHandler : IJsonFileHandler
         try
         {
             var jsonContent = fileSystem.File.ReadAllText(filePath);
-            var wasContentDeserialized = jsonSerializer.TryDeserialize(jsonContent, out T deserializedObj);
-            content = deserializedObj;
-            return wasContentDeserialized;
-          
+            return jsonSerializer.TryDeserialize(jsonContent, out content);
+
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
