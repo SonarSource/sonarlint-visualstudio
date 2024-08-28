@@ -31,6 +31,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>CoreStrings.resx</DependentUpon>
     </Compile>
+    <Compile Update="Persistence\PersistenceStrings.Designer.cs">
+      <DependentUpon>PersistenceStrings.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Update="Resources\Strings.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -39,6 +44,11 @@
     <EmbeddedResource Update="CoreStrings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Persistence\PersistenceStrings.resx">
+      <SubType>Designer</SubType>
+      <LastGenOutput>PersistenceStrings.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
     </EmbeddedResource>
     <EmbeddedResource Update="Resources\Strings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
