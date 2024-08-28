@@ -41,8 +41,9 @@ namespace SonarLint.VisualStudio.Integration
     /// UIContext.
     /// </remarks>
     [Export(typeof(IActiveSolutionBoundTracker))]
+    [Export(typeof(IActiveSolutionChangedHandler))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class ActiveSolutionBoundTracker : IActiveSolutionBoundTracker, IDisposable, IPartImportsSatisfiedNotification
+    internal sealed class ActiveSolutionBoundTracker : IActiveSolutionBoundTracker, IActiveSolutionChangedHandler, IDisposable, IPartImportsSatisfiedNotification
     {
         private readonly IHost extensionHost;
         private readonly IActiveSolutionTracker solutionTracker;
@@ -52,6 +53,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IConfigScopeUpdater configScopeUpdater;
         private readonly ILogger logger;
         private readonly uint boundSolutionContextCookie;
+        private bool disposed;
 
         public event EventHandler<ActiveSolutionBindingEventArgs> PreSolutionBindingChanged;
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
@@ -93,6 +95,21 @@ namespace SonarLint.VisualStudio.Integration
             SetBoundSolutionUIContext();
 
             this.gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
+        }
+
+        public void HandleBindingChange(bool isBindingCleared)
+        {
+            if (disposed)
+            {
+                return;
+            }
+            
+            this.RaiseAnalyzersChangedIfBindingChanged(GetBindingConfiguration(), isBindingCleared);
+        }
+        
+        private void OnBindingStateChanged(object sender, BindingStateEventArgs e)
+        {
+            HandleBindingChange(e.IsBindingCleared);
         }
 
         private BindingConfiguration GetBindingConfiguration()
@@ -159,11 +176,6 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private void OnBindingStateChanged(object sender, BindingStateEventArgs e)
-        {
-            this.RaiseAnalyzersChangedIfBindingChanged(GetBindingConfiguration(), e.IsBindingCleared);
-        }
-
         private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration, bool? isBindingCleared = null)
         {
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project);
@@ -206,6 +218,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             if (disposing)
             {
+                this.disposed = true;
                 this.solutionTracker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
                 this.extensionHost.VisualStateManager.BindingStateChanged -= this.OnBindingStateChanged;
                 this.gitEventsMonitor.HeadChanged -= GitEventsMonitor_HeadChanged;
