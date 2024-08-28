@@ -38,6 +38,12 @@ build_task:
     SOLUTION_PATH: SonarLint.VisualStudio.Integration.sln
     SONARSOURCE_SNK_FILE: ${TMP_DIR}\SonarSource.snk
     SONARSOURCE_SNK: VAULT[development/team/languages/kv/data/strong_named_key data.SonarSourceSecret_snk]
+  clone_script: |
+    git config --global core.autocrlf true
+    git init
+    git remote add origin https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git
+    git fetch origin
+    git reset --hard $CIRRUS_CHANGE_IN_REPO
   calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
   prepare_signing_script: |
     if [[ "${CIRRUS_BRANCH}" == "${CIRRUS_DEFAULT_BRANCH}" || "${CIRRUS_BRANCH}" =~ "branch-.*"  || "${CIRRUS_BRANCH}" =~ "sign-.*" ]]; then
