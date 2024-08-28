@@ -18,53 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-
 namespace SonarLint.VisualStudio.Core.Binding;
 
 public interface IServerConnectionsRepository
 {
     bool TryGet(string connectionId, out ServerConnection serverConnection);
-    List<ServerConnection> GetAll();
+    IReadOnlyList<ServerConnection> GetAll();
     bool TryAdd(ServerConnection connection);
     bool TryDelete(string connectionId);
-    Task<bool> TryUpdateSettingsById(string connectionId, ServerConnectionSettings connectionSettings);
-    Task<bool> TryUpdateCredentialsById(string connectionId, ICredentials credentials);
-}
-
-[ExcludeFromCodeCoverage] // todo: remove this class in https://sonarsource.atlassian.net/browse/SLVS-1399
-[Export(typeof(IServerConnectionsRepository))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-public class DummyServerConnectionsRepository : IServerConnectionsRepository
-{
-    public bool TryGet(string connectionId, out ServerConnection serverConnection)
-    {
-        throw new NotImplementedException();
-    }
-
-    public List<ServerConnection> GetAll()
-    {
-        return [new ServerConnection.SonarCloud("a")];
-    }
-
-    public bool TryAdd(ServerConnection connection)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool TryDelete(string connectionId)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<bool> TryUpdateSettingsById(string connectionId, ServerConnectionSettings connectionSettings)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<bool> TryUpdateCredentialsById(string connectionId, ICredentials credentials)
-    {
-        throw new NotImplementedException();
-    }
+    bool TryUpdateSettingsById(string connectionId, ServerConnectionSettings connectionSettings);
+    bool TryUpdateCredentialsById(string connectionId, ICredentials credentials);
 }
