@@ -36,6 +36,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
             this.store = store ?? throw new ArgumentNullException(nameof(store));
         }
 
+        public void DeleteCredentials(Uri boundServerUri)
+        {
+            if(boundServerUri == null)
+            {
+                return;
+            }
+            store.DeleteCredentials(boundServerUri);
+        }
+
         public ICredentials Load(Uri boundServerUri)
         {
             if (boundServerUri == null)
