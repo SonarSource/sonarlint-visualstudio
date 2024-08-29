@@ -44,7 +44,7 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         return GetAllConnections().Select(conn => conn.Info).ToList();
     }
 
-    private Connection MapServerConnectionModel(ServerConnection serverConnection)
+    private static Connection MapServerConnectionModel(ServerConnection serverConnection)
     {
         var serverType = serverConnection is ServerConnection.SonarCloud ? ConnectionServerType.SonarCloud : ConnectionServerType.SonarQube;
         var connectionInfo = new ConnectionInfo(serverConnection.Id, serverType);
