@@ -105,11 +105,10 @@ public class ManageBindingViewModel(
     public bool IsUseSharedBindingButtonEnabled => !ProgressReporter.IsOperationInProgress && IsSharedBindingConfigurationDetected;
     public bool IsExportButtonEnabled => !ProgressReporter.IsOperationInProgress && IsCurrentProjectBound;
 
-    public void InitializeConnections()
+    public async Task InitializeDataAsync()
     {
-       Connections.Clear();
-       var slCoreConnections = connectedModeServices.ServerConnectionsRepositoryAdapter.GetAllConnectionsInfo();
-       slCoreConnections.ForEach(conn => Connections.Add(conn));
+        var validationParams = new TaskToPerformParams<AdapterResponse>(LoadDataAsync, UiResources.LoadingConnectionsText, UiResources.LoadingConnectionsFailedText);
+        await ProgressReporter.ExecuteTaskWithProgressAsync(validationParams);
     }
 
     public async Task BindAsync()
@@ -166,5 +165,27 @@ public class ManageBindingViewModel(
         RaisePropertyChanged(nameof(IsSelectProjectButtonEnabled));
         RaisePropertyChanged(nameof(IsConnectionSelectionEnabled));
         RaisePropertyChanged(nameof(IsExportButtonEnabled));
+    }
+
+    internal async Task<AdapterResponse> LoadDataAsync()
+    {
+        try
+        {
+            await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(LoadConnections);
+            return new AdapterResponse(true);
+        }
+        catch (Exception ex)
+        {
+            connectedModeServices.Logger.WriteLine(ex.Message);
+        }
+
+        return new AdapterResponse(false);
+    }
+
+    internal void LoadConnections()
+    {
+        Connections.Clear();
+        var slCoreConnections = connectedModeServices.ServerConnectionsRepositoryAdapter.GetAllConnectionsInfo();
+        slCoreConnections.ForEach(conn => Connections.Add(conn));
     }
 }

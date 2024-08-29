@@ -60,9 +60,9 @@ public partial class ManageBindingDialog : Window
         }
     }
 
-    private void ManageBindingDialog_OnInitialized(object sender, EventArgs e)
+    private async void ManageBindingDialog_OnInitialized(object sender, EventArgs e)
     {
-        ViewModel.InitializeConnections();
+        await ViewModel.InitializeDataAsync();
     }
 
     private void Unbind_OnClick(object sender, RoutedEventArgs e)
@@ -84,5 +84,4 @@ public partial class ManageBindingDialog : Window
     {
         connectedModeServices.BrowserService.Navigate(e.Uri.AbsoluteUri);
     }
-
 }

@@ -22,6 +22,7 @@ using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageBinding;
@@ -359,7 +360,7 @@ public class ManageBindingViewModelTests
     public void IsConnectionSelectionEnabled_ProjectIsNotBoundAndBindingIsNotInProgress_ReturnsTrue()
     {
         testSubject.BoundProject = null;
-        progressReporterViewModel.IsOperationInProgress.Returns(false); ;
+        progressReporterViewModel.IsOperationInProgress.Returns(false);
 
         testSubject.IsConnectionSelectionEnabled.Should().BeTrue();
     }
@@ -416,6 +417,71 @@ public class ManageBindingViewModelTests
         progressReporterViewModel.IsOperationInProgress.Returns(false);
 
         testSubject.IsExportButtonEnabled.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void LoadConnections_FillsConnections()
+    {
+        List<ConnectionInfo> existingConnections = [sonarQubeConnectionInfo, sonarCloudConnectionInfo];
+        serverConnectionsRepositoryAdapter.GetAllConnectionsInfo().Returns(existingConnections);
+
+        testSubject.LoadConnections();
+
+        testSubject.Connections.Should().BeEquivalentTo(existingConnections);
+    }
+
+    [TestMethod]
+    public void LoadConnections_ClearsPreviousConnections()
+    {
+        serverConnectionsRepositoryAdapter.GetAllConnectionsInfo().Returns([sonarQubeConnectionInfo]);
+        testSubject.Connections.Add(sonarCloudConnectionInfo);
+
+        testSubject.LoadConnections();
+
+        testSubject.Connections.Should().BeEquivalentTo([sonarQubeConnectionInfo]);
+    }
+
+    [TestMethod]
+    public async Task InitializeDataAsync_InitializesDataAndReportsProgress()
+    {
+        await testSubject.InitializeDataAsync();
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.TaskToPerform == testSubject.LoadDataAsync &&
+                    x.ProgressStatus == UiResources.LoadingConnectionsText &&
+                    x.WarningText == UiResources.LoadingConnectionsFailedText));
+    }
+
+    [TestMethod]
+    public async Task LoadDataAsync_LoadsConnections()
+    {
+        await testSubject.LoadDataAsync();
+
+        await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Is<Action>(op => op == testSubject.LoadConnections));
+    }
+
+    [TestMethod]
+    public async Task LoadDataAsync_ConnectionsLoadedSuccessfully_ReturnsTrue()
+    {
+        var adapterResponse = await testSubject.LoadDataAsync();
+
+        adapterResponse.Success.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public async Task LoadDataAsync_LoadingConnectionsThrows_ReturnsFalse()
+    {
+        var exceptionMsg = "Failed to load connections";
+        var mockedThreadHandling = Substitute.For<IThreadHandling>();
+        connectedModeServices.ThreadHandling.Returns(mockedThreadHandling);
+        mockedThreadHandling.When(x => x.RunOnUIThreadAsync(Arg.Any<Action>())).Do(callInfo=> throw new Exception(exceptionMsg));
+
+        var adapterResponse = await testSubject.LoadDataAsync();
+
+        adapterResponse.Success.Should().BeFalse();
+        logger.Received(1).WriteLine(exceptionMsg);
     }
 
     private void MockServices()
