@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         public ManageConnectionsDialog(IConnectedModeServices connectedModeServices)
         {
             this.connectedModeServices = connectedModeServices;
-            ViewModel = new ManageConnectionsViewModel(new ProgressReporterViewModel());
+            ViewModel = new ManageConnectionsViewModel(connectedModeServices, new ProgressReporterViewModel());
             InitializeComponent();
         }
 
@@ -96,9 +96,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return organizationSelectionDialog.ShowDialog(this) == true ? organizationSelectionDialog.ViewModel.FinalConnectionInfo : null;
         }
 
-        private void ManageConnectionsWindow_OnInitialized(object sender, EventArgs e)
+        private async void ManageConnectionsWindow_OnInitialized(object sender, EventArgs e)
         {
-            ViewModel.InitializeConnections([]);
+            await ViewModel.LoadConnectionsWithProgressAsync();
         }
 
         private void RemoveConnectionButton_OnClick(object sender, RoutedEventArgs e)
