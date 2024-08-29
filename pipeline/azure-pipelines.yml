@@ -21,8 +21,7 @@ trigger:
 
 pr:
   branches:
-    exclude:
-      - "feature/cirrus-ci-migration"
+    exclude: []
 
 jobs:
 - job: Phase_1
