@@ -25,7 +25,10 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
-public class ManageBindingViewModel(IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter, SolutionInfoModel solutionInfo) : ViewModelBase
+public class ManageBindingViewModel(
+    IConnectedModeServices connectedModeServices,
+    SolutionInfoModel solutionInfo,
+    IProgressReporterViewModel progretssReporterViewModel) : ViewModelBase
 {
     private ServerProject boundProject;
     private ConnectionInfo selectedConnectionInfo;
@@ -33,7 +36,7 @@ public class ManageBindingViewModel(IServerConnectionsRepositoryAdapter serverCo
     private bool isSharedBindingConfigurationDetected;
 
     public SolutionInfoModel SolutionInfo { get; } = solutionInfo;
-    public ProgressReporterViewModel ProgressReporter { get; } = new();
+    public IProgressReporterViewModel ProgressReporter { get; } = progretssReporterViewModel;
 
     public ServerProject BoundProject      
     {
@@ -105,7 +108,7 @@ public class ManageBindingViewModel(IServerConnectionsRepositoryAdapter serverCo
     public void InitializeConnections()
     {
        Connections.Clear();
-       var slCoreConnections = serverConnectionsRepositoryAdapter.GetAllConnectionsInfo();
+       var slCoreConnections = connectedModeServices.ServerConnectionsRepositoryAdapter.GetAllConnectionsInfo();
        slCoreConnections.ForEach(conn => Connections.Add(conn));
     }
 
