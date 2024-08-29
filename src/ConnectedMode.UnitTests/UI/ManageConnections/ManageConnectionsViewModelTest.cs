@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageConnections;
 public class ManageConnectionsViewModelTest
 {
     private ManageConnectionsViewModel testSubject;
-    private IEnumerable<Connection> connections;
+    private List<Connection> connections;
     private IProgressReporterViewModel progressReporterViewModel;
     private IConnectedModeServices connectedModeServices;
     private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
@@ -101,9 +101,8 @@ public class ManageConnectionsViewModelTest
 
         testSubject.AddConnection(connectionToAdd);
 
-        var viewModelsCount = testSubject.ConnectionViewModels.Count;
-        viewModelsCount.Should().Be(connections.Count() + 1);
-        testSubject.ConnectionViewModels[viewModelsCount - 1].Connection.Should().Be(connectionToAdd);
+        testSubject.ConnectionViewModels.Count.Should().Be( 1);
+        testSubject.ConnectionViewModels[0].Connection.Should().Be(connectionToAdd);
     }
 
     [TestMethod]
