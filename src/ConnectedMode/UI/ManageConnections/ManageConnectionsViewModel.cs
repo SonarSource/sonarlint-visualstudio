@@ -23,8 +23,9 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
-    public class ManageConnectionsViewModel : ViewModelBase
+    public class ManageConnectionsViewModel(IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
     {
+        public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
         public ObservableCollection<ConnectionViewModel> ConnectionViewModels { get; } = [];
         public bool NoConnectionExists => ConnectionViewModels.Count == 0;
 

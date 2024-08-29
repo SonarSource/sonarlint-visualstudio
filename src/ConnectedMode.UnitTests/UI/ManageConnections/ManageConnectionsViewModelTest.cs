@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageConnections;
@@ -28,6 +29,7 @@ public class ManageConnectionsViewModelTest
 {
     private ManageConnectionsViewModel testSubject;
     private IEnumerable<Connection> connections;
+    private IProgressReporterViewModel progressReporterViewModel;
 
     [TestInitialize]
     public void TestInitialize()
@@ -37,7 +39,8 @@ public class ManageConnectionsViewModelTest
             new Connection(new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube), true),
             new Connection(new ConnectionInfo("https://sonarcloud.io/myOrg", ConnectionServerType.SonarCloud), false)
         ];
-        testSubject = new ManageConnectionsViewModel();
+        progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
+        testSubject = new ManageConnectionsViewModel(progressReporterViewModel);
     }
 
     [TestMethod]
