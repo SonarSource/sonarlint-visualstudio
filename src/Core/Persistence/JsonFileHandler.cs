@@ -61,14 +61,12 @@ public class JsonFileHandler : IJsonFileHandler
         try
         {
             var jsonContent = fileSystem.File.ReadAllText(filePath);
-            var wasContentDeserialized = jsonSerializer.TryDeserialize(jsonContent, out T deserializedObj);
-            content = deserializedObj;
-            return wasContentDeserialized;
-          
+            return jsonSerializer.TryDeserialize(jsonContent, out content);
+
         }
-        catch (Exception e)
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            logger.WriteLine(e.Message);
+            logger.WriteLine(ex.Message);
             return false;
         }
     }
@@ -87,21 +85,18 @@ public class JsonFileHandler : IJsonFileHandler
                 }
 
                 var wasContentDeserialized = jsonSerializer.TrySerialize(model, out string serializedObj, Formatting.Indented);
-                if (!wasContentDeserialized)
+                if (wasContentDeserialized)
                 {
-                    return false;
+                    fileSystem.File.WriteAllText(filePath, serializedObj);
+                    return true;
                 }
-
-                fileSystem.File.WriteAllText(filePath, serializedObj);
-
-                return true;
-
             }
-            catch (Exception e)
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(e.Message);
-                return false;
+                logger.WriteLine(ex.Message);
             }
+
+            return false;
         }
     }
 }
