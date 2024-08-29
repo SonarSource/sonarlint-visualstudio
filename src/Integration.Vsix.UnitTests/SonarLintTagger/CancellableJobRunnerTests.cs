@@ -114,6 +114,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         [TestMethod]
+        [Ignore] // https://sonarsource.atlassian.net/browse/SLVS-1428
         public void CancelAfterFirstOperation()
         {
             // Arrange
