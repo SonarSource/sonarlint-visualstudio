@@ -1,0 +1,76 @@
+name: sonar-release
+# This workflow is triggered when publishing a new github release
+on:
+  release:
+    types:
+      - published
+
+env:
+  PYTHONUNBUFFERED: 1
+
+jobs:
+  release:
+    permissions:
+      id-token: write
+      contents: write
+    uses: SonarSource/gh-action_release/.github/workflows/main.yaml@v5
+    with:
+      publishToBinaries: false
+      mavenCentralSync: false
+      slackChannel: squad-ide-visualstudio
+
+  deploy_to_microsoft_marketplace:
+    permissions:
+      id-token: write
+      contents: write
+    runs-on: windows-latest
+    name: Deploy to Visual Studio marketplace
+    # TODO: Uncomment this once releasability checks are confirmed to be working
+    # needs: release
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get vault secrets
+        id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_ACCESS_TOKEN;
+            development/kv/data/visualstudio VSCE_TOKEN | VCSE_TOKEN
+
+      - name: Setup JFrog
+        uses: SonarSource/jfrog-setup-wrapper@907e87c3d2081a98d2ab8cb03284ee6711f1ee83 # tag=3.2.3
+        with:
+          jfrogAccessToken: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_ACCESS_TOKEN }}
+
+      - name: Create local directory
+        id: local_repo
+        shell: bash
+        run: echo "dir=$(mktemp -d repo.XXXXXXXX)" >> $GITHUB_OUTPUT
+
+      - name: Get the version
+        id: get_version
+        shell: bash
+        run: |
+          IFS=. read -r major minor patch build <<< "$RELEASE_TAG"
+          echo "build=${build}" >> $GITHUB_OUTPUT
+          echo "version=${major}.${minor}.${patch}" >> $GITHUB_OUTPUT
+
+      - name: Download Artifacts
+        uses: SonarSource/gh-action_release/download-build@master
+        with:
+          build-number: ${{ steps.get_version.outputs.build }}
+          local-repo-dir: ${{ steps.local_repo.outputs.dir }}
+          # TODO: Change this to sonarsource-public-releases once releasability checks are confirmed to be working
+          remote-repo: sonarsource-public-builds
+          flat-download: true
+          download-checksums: false
+
+      - name: Publish extension to Marketplace
+        uses: cezarypiatek/VsixPublisherAction@1.1
+        with:
+          extension-file: ${{ steps.local_repo.outputs.dir }}\SonarLint.VSIX-${{env.RELEASE_TAG}}-2022.vsix
+          # TODO: Rename VS2022Test to VS20202 when doing actual release
+          publish-manifest-file: MarketPlaceFiles\VS2022Test\manifest-2022.json
+          personal-access-code: ${{ fromJSON(steps.secrets.outputs.vault).VCSE_TOKEN }}
