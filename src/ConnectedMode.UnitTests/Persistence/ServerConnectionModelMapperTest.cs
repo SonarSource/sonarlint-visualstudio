@@ -21,6 +21,7 @@
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
+using static SonarLint.VisualStudio.ConnectedMode.Persistence.ServerConnectionModelMapper;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
 
@@ -72,13 +73,55 @@ public class ServerConnectionModelMapperTest
     }
 
     [TestMethod]
-    public void GetServerConnection_InvalidServerType_ThrowsException()
+    public void GetServerConnection_BothOrganizationKeyAndServerUriAreSet_ThrowsException()
     {
-        var connectionsModel = new ServerConnectionJsonModel { ServerType = (ConnectionServerType)66 };
+        var connectionsModel = GetSonarCloudJsonModel("myOrg");
+        connectionsModel.ServerUri = "http://localhost:9000";
 
         Action act = () => testSubject.GetServerConnection(connectionsModel);
-        
-        act.Should().Throw<InvalidOperationException>($"Invalid {nameof(ConnectionServerType)} {connectionsModel.ServerType}");
+
+        act.Should().Throw<InvalidOperationException>($"Invalid {nameof(ServerConnectionJsonModel)}. {nameof(ServerConnection)} could not be created");
+    }
+
+    [TestMethod]
+    public void GetServerConnection_BothOrganizationKeyAndServerUriAreNull_ThrowsException()
+    {
+        var connectionsModel = GetSonarCloudJsonModel("myOrg");
+        connectionsModel.OrganizationKey = null;
+
+        Action act = () => testSubject.GetServerConnection(connectionsModel);
+
+        act.Should().Throw<InvalidOperationException>($"Invalid {nameof(ServerConnectionJsonModel)}. {nameof(ServerConnection)} could not be created");
+    }
+
+    [TestMethod]
+    [DataRow("org", null, true)]
+    [DataRow(null, "http://localhost", false)]
+    [DataRow(null, null, false)]
+    [DataRow("org", "http://localhost", false)]
+    public void IsServerConnectionForSonarCloud_OrganizationKeySetAndServerUriNotSet_ReturnsTrue(string organizationKey, string serverUi, bool expectedResult)
+    {
+        var connectionsModel = GetSonarCloudJsonModel(organizationKey);
+        connectionsModel.ServerUri = serverUi;
+
+        var isSonarCloud = IsServerConnectionForSonarCloud(connectionsModel);
+
+        isSonarCloud.Should().Be(expectedResult);
+    }
+
+    [TestMethod]
+    [DataRow("org", null, false)]
+    [DataRow(null, "http://localhost", true)]
+    [DataRow(null, null, false)]
+    [DataRow("org", "http://localhost", false)]
+    public void IsServerConnectionForSonarCloud_OrganizationKeyNotSetAndServerUriSet_ReturnsTrue(string organizationKey, string serverUi, bool expectedResult)
+    {
+        var connectionsModel = GetSonarCloudJsonModel(organizationKey);
+        connectionsModel.ServerUri = serverUi;
+
+        var isSonarQube = IsServerConnectionForSonarQube(connectionsModel);
+
+        isSonarQube.Should().Be(expectedResult);
     }
 
     [TestMethod]
@@ -96,7 +139,6 @@ public class ServerConnectionModelMapperTest
         {
             Id = sonarCloud.Id,
             OrganizationKey = sonarCloud.OrganizationKey,
-            ServerType = ConnectionServerType.SonarCloud,
             Settings = sonarCloud.Settings,
             ServerUri = null
         });
@@ -131,7 +173,6 @@ public class ServerConnectionModelMapperTest
             Id = sonarQube.Id,
             OrganizationKey = null,
             ServerUri = sonarQube.ServerUri.ToString(),
-            ServerType = ConnectionServerType.SonarQube,
             Settings = sonarQube.Settings
         });
     }
@@ -164,7 +205,6 @@ public class ServerConnectionModelMapperTest
         {
             Id = id,
             OrganizationKey = id,
-            ServerType = ConnectionServerType.SonarCloud,
             Settings = new ServerConnectionSettings(isSmartNotificationsEnabled)
         };
     }
@@ -175,7 +215,6 @@ public class ServerConnectionModelMapperTest
         {
             Id = id,
             ServerUri = id,
-            ServerType = ConnectionServerType.SonarQube,
             Settings = new ServerConnectionSettings(isSmartNotificationsEnabled)
         };
     }

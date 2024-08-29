@@ -71,7 +71,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         serverConnection = null;
         if (ServerConnectionsCache == null)
         {
-            ReadServerConnectionsFile();
+            PopulateServerConnectionsCache();
         }
 
         if (ServerConnectionsCache != null && ServerConnectionsCache.TryGetValue(connectionId, out ServerConnection foundConnection))
@@ -89,7 +89,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
     {
         if (ServerConnectionsCache == null)
         {
-            ReadServerConnectionsFile();
+            PopulateServerConnectionsCache();
         }
 
         return ServerConnectionsCache?.Values.ToList() ?? [];
@@ -159,24 +159,23 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
     {
         try
         {
-            ReadServerConnectionsFile();
+            PopulateServerConnectionsCache();
             ServerConnectionsCache ??= new ConcurrentDictionary<string, ServerConnection>();
 
             var wasUpdated = updateConnectionsCache();
-            if (!wasUpdated)
+            if (wasUpdated)
             {
-                return false;
+                var model = serverConnectionModelMapper.GetServerConnectionsListJsonModel(ServerConnectionsCache.Values);
+
+                return jsonFileHandle.TryWriteToFile(storageFilePath, model);
             }
-
-            var model = serverConnectionModelMapper.GetServerConnectionsListJsonModel(ServerConnectionsCache.Values);
-
-            return jsonFileHandle.TryWriteToFile(storageFilePath, model);
         }
         catch (Exception ex)
         {
             logger.WriteLine(ex.Message);
-            return false;
         }
+
+        return false;
     }
 
     private static string GetStorageFilePath(IEnvironmentVariableProvider environmentVariables)
@@ -185,7 +184,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         return Path.Combine(appDataFolder, ConnectionsFileName);
     }
 
-    private void ReadServerConnectionsFile()
+    private void PopulateServerConnectionsCache()
     {
         try
         {
@@ -203,5 +202,3 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         }
     }
 }
-
-

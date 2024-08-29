@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
@@ -39,30 +38,47 @@ public class ServerConnectionModelMapper : IServerConnectionModelMapper
 
     public ServerConnection GetServerConnection(ServerConnectionJsonModel jsonModel)
     {
-        return jsonModel.ServerType switch
+        if (IsServerConnectionForSonarCloud(jsonModel))
         {
-            ConnectionServerType.SonarCloud => new ServerConnection.SonarCloud(jsonModel.OrganizationKey, jsonModel.Settings),
-            ConnectionServerType.SonarQube => new ServerConnection.SonarQube(new Uri(jsonModel.ServerUri), jsonModel.Settings),
-            _ => throw new InvalidOperationException($"Invalid {nameof(ConnectionServerType)} {jsonModel.ServerType}")
-        };
+            return new ServerConnection.SonarCloud(jsonModel.OrganizationKey, jsonModel.Settings);
+        }
+        if (IsServerConnectionForSonarQube(jsonModel))
+        {
+            return new ServerConnection.SonarQube(new Uri(jsonModel.ServerUri), jsonModel.Settings);
+        }
+
+        throw new InvalidOperationException($"Invalid {nameof(ServerConnectionJsonModel)}. {nameof(ServerConnection)} could not be created");
     }
 
     public ServerConnectionsListJsonModel GetServerConnectionsListJsonModel(IEnumerable<ServerConnection> serverConnections)
     {
-        var model = new ServerConnectionsListJsonModel();
-        foreach (var serverConnection in serverConnections)
+        var model = new ServerConnectionsListJsonModel
         {
-            model.ServerConnections.Add(new ServerConnectionJsonModel
-            {
-                Id = serverConnection.Id,
-                ServerType = serverConnection is ServerConnection.SonarCloud ? ConnectionServerType.SonarCloud : ConnectionServerType.SonarQube,
-                Settings = serverConnection.Settings ?? throw new InvalidOperationException($"{nameof(ServerConnection.Settings)} can not be null"),
-                OrganizationKey = GetOrganizationKey(serverConnection),
-                ServerUri = GetServerUri(serverConnection)
-            });
-        }
+            ServerConnections = serverConnections.Select(GetServerConnectionJsonModel).ToList()
+        };
 
         return model;
+    }
+
+    internal static bool IsServerConnectionForSonarCloud(ServerConnectionJsonModel jsonModel)
+    {
+        return IsOrganizationKeyFilled(jsonModel) && !IsServerUriFilled(jsonModel);
+    }
+
+    internal static bool IsServerConnectionForSonarQube(ServerConnectionJsonModel jsonModel)
+    {
+        return IsServerUriFilled(jsonModel) && !IsOrganizationKeyFilled(jsonModel);
+    }
+
+    private static ServerConnectionJsonModel GetServerConnectionJsonModel(ServerConnection serverConnection)
+    {
+        return new ServerConnectionJsonModel
+        {
+            Id = serverConnection.Id,
+            Settings = serverConnection.Settings ?? throw new InvalidOperationException($"{nameof(ServerConnection.Settings)} can not be null"),
+            OrganizationKey = GetOrganizationKey(serverConnection),
+            ServerUri = GetServerUri(serverConnection)
+        };
     }
 
     private static string GetOrganizationKey(ServerConnection serverConnection)
@@ -93,5 +109,15 @@ public class ServerConnectionModelMapper : IServerConnectionModelMapper
         }
 
         return sonarQube.ServerUri.ToString();
+    }
+
+    private static bool IsServerUriFilled(ServerConnectionJsonModel jsonModel)
+    {
+        return !string.IsNullOrWhiteSpace(jsonModel.ServerUri);
+    }
+
+    private static bool IsOrganizationKeyFilled(ServerConnectionJsonModel jsonModel)
+    {
+        return !string.IsNullOrWhiteSpace(jsonModel.OrganizationKey);
     }
 }

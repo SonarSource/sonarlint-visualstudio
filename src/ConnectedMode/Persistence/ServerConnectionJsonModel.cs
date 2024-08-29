@@ -41,10 +41,6 @@ public record ServerConnectionJsonModel
     [JsonProperty("organizationKey")]
     public string OrganizationKey { get; set; }
 
-    [JsonConverter(typeof(StringEnumConverter))]
-    [JsonProperty("serverType")]
-    public ConnectionServerType ServerType { get; set; }
-
     [JsonProperty("serverUri")]
     public string ServerUri { get; set; }
 }

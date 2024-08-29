@@ -611,7 +611,6 @@ public class ServerConnectionsRepositoryTests
         {
             Id = id,
             OrganizationKey = id,
-            ServerType = ConnectionServerType.SonarCloud,
             Settings = new ServerConnectionSettings(isSmartNotificationsEnabled)
         };
     }
@@ -622,7 +621,6 @@ public class ServerConnectionsRepositoryTests
         {
             Id = id.ToString(),
             ServerUri = id.ToString(),
-            ServerType = ConnectionServerType.SonarQube,
             Settings = new ServerConnectionSettings(isSmartNotificationsEnabled)
         };
     }
