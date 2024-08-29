@@ -18,97 +18,94 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Persistence
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
+
+[Export(typeof(ISolutionBindingRepository))]
+[Export(typeof(ILegacySolutionBindingRepository))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySolutionBindingRepository
 {
-    [Export(typeof(ISolutionBindingRepository))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class SolutionBindingRepository : ISolutionBindingRepository
+    private readonly ISolutionBindingFileLoader solutionBindingFileLoader;
+    private readonly ISolutionBindingCredentialsLoader credentialsLoader;
+    private readonly IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider;
+
+    [ImportingConstructor]
+    public SolutionBindingRepository(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ICredentialStoreService credentialStoreService, ILogger logger)
+        : this(unintrusiveBindingPathProvider, new SolutionBindingFileLoader(logger), new SolutionBindingCredentialsLoader(credentialStoreService))
     {
-        private readonly ISolutionBindingFileLoader solutionBindingFileLoader;
-        private readonly ISolutionBindingCredentialsLoader credentialsLoader;
-        private readonly IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider;
+    }
 
-        [ImportingConstructor]
-        public SolutionBindingRepository(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ICredentialStoreService credentialStoreService, ILogger logger)
-            : this(unintrusiveBindingPathProvider, new SolutionBindingFileLoader(logger), new SolutionBindingCredentialsLoader(credentialStoreService))
+    internal /* for testing */ SolutionBindingRepository(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ISolutionBindingFileLoader solutionBindingFileLoader, ISolutionBindingCredentialsLoader credentialsLoader)
+    {
+        this.solutionBindingFileLoader = solutionBindingFileLoader ?? throw new ArgumentNullException(nameof(solutionBindingFileLoader));
+        this.credentialsLoader = credentialsLoader ?? throw new ArgumentNullException(nameof(credentialsLoader));
+        this.unintrusiveBindingPathProvider = unintrusiveBindingPathProvider;
+    }
+
+    public BoundSonarQubeProject Read(string configFilePath)
+    {
+        return Read(configFilePath, true);
+    }
+
+    public bool Write(string configFilePath, BoundSonarQubeProject binding)
+    {
+        _ = binding ?? throw new ArgumentNullException(nameof(binding));
+
+        if (string.IsNullOrEmpty(configFilePath))
         {
+            return false;
         }
 
-        internal /* for testing */ SolutionBindingRepository(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ISolutionBindingFileLoader solutionBindingFileLoader, ISolutionBindingCredentialsLoader credentialsLoader)
+        if (!solutionBindingFileLoader.Save(configFilePath, binding))
         {
-            this.solutionBindingFileLoader = solutionBindingFileLoader ?? throw new ArgumentNullException(nameof(solutionBindingFileLoader));
-            this.credentialsLoader = credentialsLoader ?? throw new ArgumentNullException(nameof(credentialsLoader));
-            this.unintrusiveBindingPathProvider = unintrusiveBindingPathProvider;
+            return false;
         }
 
-        public BoundSonarQubeProject Read(string configFilePath)
-        {
-            return Read(configFilePath, true);
-        }
+        credentialsLoader.Save(binding.Credentials, binding.ServerUri);
 
-        public bool Write(string configFilePath, BoundSonarQubeProject binding)
-        {
-            _ = binding ?? throw new ArgumentNullException(nameof(binding));
-
-            if (string.IsNullOrEmpty(configFilePath))
-            {
-                return false;
-            }
-
-            if (!solutionBindingFileLoader.Save(configFilePath, binding))
-            {
-                return false;
-            }
-
-            credentialsLoader.Save(binding.Credentials, binding.ServerUri);
-
-            BindingUpdated?.Invoke(this, EventArgs.Empty);
+        BindingUpdated?.Invoke(this, EventArgs.Empty);
             
-            return true;
-        }
+        return true;
+    }
 
-        public event EventHandler BindingUpdated;
+    public event EventHandler BindingUpdated;
 
-        public IEnumerable<BoundSonarQubeProject> List()
+    public IEnumerable<BoundSonarQubeProject> List()
+    {
+        var bindingConfigPaths = unintrusiveBindingPathProvider.GetBindingPaths();
+
+        foreach (var bindingConfigPath in bindingConfigPaths)
         {
-            var bindingConfigPaths = unintrusiveBindingPathProvider.GetBindingPaths();
+            var boundSonarQubeProject = Read(bindingConfigPath, false);
 
-            foreach (var bindingConfigPath in bindingConfigPaths)
-            {
-                var boundSonarQubeProject = Read(bindingConfigPath, false);
+            if (boundSonarQubeProject == null) { continue; }
 
-                if (boundSonarQubeProject == null) { continue; }
-
-                yield return boundSonarQubeProject;
-            }
+            yield return boundSonarQubeProject;
         }
+    }
 
-        private BoundSonarQubeProject Read(string configFilePath, bool loadCredentials)
+    private BoundSonarQubeProject Read(string configFilePath, bool loadCredentials)
+    {
+        var bound = solutionBindingFileLoader.Load(configFilePath);
+
+        if (bound is null)
         {
-            var bound = solutionBindingFileLoader.Load(configFilePath);
-
-            if (bound is null)
-            {
-                return null;
-            }
-
-            if (loadCredentials)
-            {
-                bound.Credentials = credentialsLoader.Load(bound.ServerUri);
-            }
-
-            Debug.Assert(!bound.Profiles?.ContainsKey(Core.Language.Unknown) ?? true,
-                "Not expecting the deserialized binding config to contain the profile for an unknown language");
-
-            return bound;
+            return null;
         }
+
+        if (loadCredentials)
+        {
+            bound.Credentials = credentialsLoader.Load(bound.ServerUri);
+        }
+
+        Debug.Assert(!bound.Profiles?.ContainsKey(Core.Language.Unknown) ?? true,
+            "Not expecting the deserialized binding config to contain the profile for an unknown language");
+
+        return bound;
     }
 }

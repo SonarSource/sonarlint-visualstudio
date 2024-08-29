@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         public void GetConfig_Bound_ReturnsExpectedConfig()
         {
             // Arrange
-            var expectedProject = new BoundSonarQubeProject();
+            var expectedProject = new BoundSonarQubeProject(new Uri("http://localhost"), "any project", null);
 
             var pathProvider = CreatePathProvider("c:\\users\\foo\\bindings\\xxx.config");
             var configReader = CreateRepo(expectedProject);
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             // Assert
             CheckExpectedFileRead(configReader, "c:\\users\\foo\\bindings\\xxx.config");
             actual.Should().NotBeNull();
-            actual.Project.Should().BeSameAs(expectedProject);
+            actual.Project.Should().BeEquivalentTo(BoundServerProject.FromBoundSonarQubeProject(expectedProject));
             actual.Mode.Should().Be(SonarLintMode.Connected);
             actual.BindingConfigDirectory.Should().Be("c:\\users\\foo\\bindings");
         }
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
             // Assert
             CheckExpectedFileRead(configReader, "c:\\users\\foo\\bindings\\xxx.config");
-            actual.Should().BeSameAs(LegacyBindingConfiguration.Standalone);
+            actual.Should().BeSameAs(BindingConfiguration.Standalone);
         }
 
         private static UnintrusiveConfigurationProvider CreateTestSubject(IUnintrusiveBindingPathProvider pathProvider,
