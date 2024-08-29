@@ -32,14 +32,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class ServerConnectionsRepository : IServerConnectionsRepository
 {
+    private const string ConnectionsFileName = "connections.json";
+
     private readonly ISolutionBindingCredentialsLoader credentialsLoader;
     private readonly ILogger logger;
     private readonly IJsonFileHandler jsonFileHandle;
     private readonly IServerConnectionModelMapper serverConnectionModelMapper;
     private readonly string storageFilePath;
-    private const string ConnectionsFileName = "connections.json";
+    private static readonly object CacheLock = new();
+    private bool isCachedPopulated;
 
-    private ConcurrentDictionary<string, ServerConnection> ServerConnectionsCache { get; set; }
+    private ConcurrentDictionary<string, ServerConnection> ServerConnectionsCache { get; } = new();
 
     [ImportingConstructor]
     public ServerConnectionsRepository(
@@ -68,31 +71,22 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
 
     public bool TryGet(string connectionId, out ServerConnection serverConnection)
     {
-        serverConnection = null;
-        if (ServerConnectionsCache == null)
+        PopulateServerConnectionsCache();
+        if (!ServerConnectionsCache.TryGetValue(connectionId, out serverConnection))
         {
-            PopulateServerConnectionsCache();
+            return false;
         }
 
-        if (ServerConnectionsCache != null && ServerConnectionsCache.TryGetValue(connectionId, out ServerConnection foundConnection))
-        {
-            serverConnection = foundConnection;
-            serverConnection.Credentials = credentialsLoader.Load(serverConnection.CredentialsUri);
-            return true;
-        }
-
-        return false;
+        serverConnection.Credentials = credentialsLoader.Load(serverConnection.CredentialsUri);
+        return true;
 
     }
 
     public IReadOnlyList<ServerConnection> GetAll()
     {
-        if (ServerConnectionsCache == null)
-        {
-            PopulateServerConnectionsCache();
-        }
+        PopulateServerConnectionsCache();
 
-        return ServerConnectionsCache?.Values.ToList() ?? [];
+        return ServerConnectionsCache.Values.ToList();
     }
 
     public bool TryAdd(ServerConnection connection)
@@ -155,18 +149,15 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         return true;
     }
 
-    private bool SafeUpdateConnectionsFile(Func<bool> updateConnectionsCache)
+    private bool SafeUpdateConnectionsFile(Func<bool> tryUpdateConnectionsCache)
     {
         try
         {
             PopulateServerConnectionsCache();
-            ServerConnectionsCache ??= new ConcurrentDictionary<string, ServerConnection>();
 
-            var wasUpdated = updateConnectionsCache();
-            if (wasUpdated)
+            if (tryUpdateConnectionsCache())
             {
                 var model = serverConnectionModelMapper.GetServerConnectionsListJsonModel(ServerConnectionsCache.Values);
-
                 return jsonFileHandle.TryWriteToFile(storageFilePath, model);
             }
         }
@@ -186,19 +177,23 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
 
     private void PopulateServerConnectionsCache()
     {
-        try
+        lock (CacheLock)
         {
-            if (!jsonFileHandle.TryReadFile(storageFilePath, out ServerConnectionsListJsonModel model))
+            try
             {
-                return;
-            }
+                if (isCachedPopulated || !jsonFileHandle.TryReadFile(storageFilePath, out ServerConnectionsListJsonModel model))
+                {
+                    return;
+                }
 
-            ServerConnectionsCache = new ConcurrentDictionary<string, ServerConnection>();
-            model.ServerConnections.ForEach(c => ServerConnectionsCache.TryAdd(c.Id, serverConnectionModelMapper.GetServerConnection(c)));
-        }
-        catch (Exception ex)
-        {
-            logger.WriteLine(ex.Message);
+                model.ServerConnections.ForEach(c => ServerConnectionsCache.TryAdd(c.Id, serverConnectionModelMapper.GetServerConnection(c)));
+                isCachedPopulated = true;
+            }
+            catch (Exception ex)
+            {
+                isCachedPopulated = false;
+                logger.WriteLine(ex.Message);
+            }
         }
     }
 }
