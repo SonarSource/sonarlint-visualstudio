@@ -354,8 +354,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0);
 
                 eventCounter.RaisedEventNames.Should().HaveCount(2);
-                eventCounter.RaisedEventNames[0].Should().Be("PreSolutionBindingChanged");
-                eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingChanged");                    
+                eventCounter.RaisedEventNames[0].Should().Be(nameof(testSubject.PreSolutionBindingChanged));
+                eventCounter.RaisedEventNames[1].Should().Be(nameof(testSubject.SolutionBindingChanged));                    
             }
         }
         
@@ -394,8 +394,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0);
 
                 eventCounter.RaisedEventNames.Should().HaveCount(2);
-                eventCounter.RaisedEventNames[0].Should().Be("PreSolutionBindingChanged");
-                eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingChanged");                    
+                eventCounter.RaisedEventNames[0].Should().Be(nameof(testSubject.PreSolutionBindingChanged));
+                eventCounter.RaisedEventNames[1].Should().Be(nameof(testSubject.SolutionBindingChanged));                    
             }
         }
 
@@ -599,8 +599,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.SolutionBindingChangedCount.Should().Be(0);
 
                 eventCounter.RaisedEventNames.Should().HaveCount(2);
-                eventCounter.RaisedEventNames[0].Should().Be("PreSolutionBindingUpdated");
-                eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingUpdated");
+                eventCounter.RaisedEventNames[0].Should().Be(nameof(testSubject.PreSolutionBindingUpdated));
+                eventCounter.RaisedEventNames[1].Should().Be(nameof(testSubject.SolutionBindingUpdated));
             }
         }
         
@@ -622,8 +622,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.SolutionBindingChangedCount.Should().Be(0);
 
                 eventCounter.RaisedEventNames.Should().HaveCount(2);
-                eventCounter.RaisedEventNames[0].Should().Be("PreSolutionBindingUpdated");
-                eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingUpdated");
+                eventCounter.RaisedEventNames[0].Should().Be(nameof(testSubject.PreSolutionBindingUpdated));
+                eventCounter.RaisedEventNames[1].Should().Be(nameof(testSubject.SolutionBindingUpdated));
             }
         }
 
@@ -648,8 +648,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.SolutionBindingChangedCount.Should().Be(0);
 
                 eventCounter.RaisedEventNames.Should().HaveCount(2);
-                eventCounter.RaisedEventNames[0].Should().Be("PreSolutionBindingUpdated");
-                eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingUpdated");
+                eventCounter.RaisedEventNames[0].Should().Be(nameof(testSubject.PreSolutionBindingUpdated));
+                eventCounter.RaisedEventNames[1].Should().Be(nameof(testSubject.SolutionBindingUpdated));
             }
         }
 
