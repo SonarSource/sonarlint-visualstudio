@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Task = System.Threading.Tasks.Task;
@@ -30,8 +31,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
     [TestClass]
     public class UnintrusiveBindingControllerTests
     {
-        private static readonly BoundSonarQubeProject AnyBoundProject = new BoundSonarQubeProject(new Uri("http://localhost:9000"), "any-key", "any-name");
-
+        private static readonly BoundServerProject AnyBoundProject = new BoundServerProject("any", "any", new ServerConnection.SonarCloud("any"));
+        
         [TestMethod]
         public void MefCtor_CheckTypeIsNonShared()
             => MefTestHelpers.CheckIsNonSharedMefComponent<UnintrusiveBindingController>();
@@ -48,16 +49,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         {
             var bindingProcessFactory = CreateBindingProcessFactory();
 
-            var testSubject = CreateTestSubject(bindingProcessFactory: bindingProcessFactory.Object);
+            var testSubject = CreateTestSubject(bindingProcessFactory: bindingProcessFactory);
             await testSubject.BindAsync(AnyBoundProject, null, CancellationToken.None);
             
-            var args = bindingProcessFactory.Invocations[0].Arguments[0] as BindCommandArgs;
+            var args = bindingProcessFactory.ReceivedCalls().First().GetArguments()[0] as BindCommandArgs;
 
-            args.ProjectName.Should().Be(AnyBoundProject.ProjectName);
-            args.ProjectKey.Should().Be(AnyBoundProject.ProjectKey);
-            args.Connection.ServerUri.Should().Be(AnyBoundProject.ServerUri);
+            args.ProjectToBind.Should().BeSameAs(AnyBoundProject);
 
-            bindingProcessFactory.Verify(x => x.Create(It.IsAny<BindCommandArgs>()), Times.Once);
+            bindingProcessFactory.Received().Create(Arg.Any<BindCommandArgs>());
         }
 
         [TestMethod]
@@ -70,27 +69,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             bindingProcess.Setup(x => x.DownloadQualityProfileAsync(null, cancellationToken)).Callback(() => calls.Add("DownloadQualityProfiles"));
             bindingProcess.Setup(x => x.SaveServerExclusionsAsync(cancellationToken)).Callback(() => calls.Add("SaveServerExclusionsAsync"));
 
-            var testSubject = CreateTestSubject(bindingProcessFactory: CreateBindingProcessFactory(bindingProcess.Object).Object);
+            var testSubject = CreateTestSubject(bindingProcessFactory: CreateBindingProcessFactory(bindingProcess.Object));
             await testSubject.BindAsync(AnyBoundProject, null, cancellationToken);
 
             calls.Should().ContainInOrder("DownloadQualityProfiles", "SaveServerExclusionsAsync");
         }
 
-        private UnintrusiveBindingController CreateTestSubject(IBindingProcessFactory bindingProcessFactory = null)
+        private UnintrusiveBindingController CreateTestSubject(IBindingProcessFactory bindingProcessFactory = null,
+            IServerConnectionsRepository serverConnectionsRepository = null,
+            ISolutionInfoProvider solutionInfoProvider = null)
         {
-            bindingProcessFactory ??= CreateBindingProcessFactory().Object;
-
-            var testSubject = new UnintrusiveBindingController(bindingProcessFactory);
+            var testSubject = new UnintrusiveBindingController(bindingProcessFactory ?? CreateBindingProcessFactory(),
+                serverConnectionsRepository ?? Substitute.For<IServerConnectionsRepository>(),
+                solutionInfoProvider ?? Substitute.For<ISolutionInfoProvider>());
 
             return testSubject;
         }
 
-        private Mock<IBindingProcessFactory> CreateBindingProcessFactory(IBindingProcess bindingProcess = null)
+        private IBindingProcessFactory CreateBindingProcessFactory(IBindingProcess bindingProcess = null)
         {
-            bindingProcess ??= Mock.Of<IBindingProcess>();
+            bindingProcess ??= Substitute.For<IBindingProcess>();
 
-            var bindingProcessFactory = new Mock<IBindingProcessFactory>();
-            bindingProcessFactory.Setup(x => x.Create(It.IsAny<BindCommandArgs>())).Returns(bindingProcess);
+            var bindingProcessFactory = Substitute.For<IBindingProcessFactory>();
+            bindingProcessFactory.Create(It.IsAny<BindCommandArgs>()).Returns(bindingProcess);
 
             return bindingProcessFactory;
         }

@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarQube.Client.Models;
+
 namespace SonarLint.VisualStudio.Core.Binding;
 
 public abstract class ServerConnection
@@ -29,6 +31,14 @@ public abstract class ServerConnection
     public ICredentials Credentials { get; set; }
     
     public abstract Uri ServerUri { get; }
+
+    public static ServerConnection FromBoundSonarQubeProject(BoundSonarQubeProject boundProject) =>
+        boundProject switch
+        {
+            { Organization: not null } => new SonarCloud(boundProject.Organization.Key, credentials: boundProject.Credentials),
+            { ServerUri: not null } => new SonarQube(boundProject.ServerUri, credentials: boundProject.Credentials),
+            _ => null
+        };
 
     private ServerConnection(string id, ServerConnectionSettings settings = null, ICredentials credentials = null)
     {

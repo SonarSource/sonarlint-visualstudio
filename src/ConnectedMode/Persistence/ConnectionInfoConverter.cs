@@ -21,18 +21,16 @@
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Binding
-{
-    /// <summary>
-    /// Data class containing the arguments required by the bind command
-    /// </summary>
-    public class BindCommandArgs
-    {
-        public BoundServerProject ProjectToBind { get; }
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
-        public BindCommandArgs(BoundServerProject projectToBind)
+public static class ConnectionInfoConverter
+{
+    public static ServerConnection ToServerConnection(this ConnectionInformation connectionInformation) =>
+        connectionInformation switch
         {
-            ProjectToBind = projectToBind;
-        }
-    }
+            { Organization.Key: { } organization } => new ServerConnection.SonarCloud(organization,
+                credentials: new BasicAuthCredentials(connectionInformation.UserName, connectionInformation.Password)),
+            _ => new ServerConnection.SonarQube(connectionInformation.ServerUri,
+                credentials: new BasicAuthCredentials(connectionInformation.UserName, connectionInformation.Password))
+        };
 }

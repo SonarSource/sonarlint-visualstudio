@@ -24,6 +24,7 @@ using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -97,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private bool OnBindStatus(BindCommandArgs args)
         {
             return args != null
-                   && args.ProjectKey != null
+                   && args.ProjectToBind != null
                    && host.VisualStateManager.IsConnected
                    && !host.VisualStateManager.IsBusy
                    && (folderWorkspaceService.IsFolderWorkspace()
@@ -163,7 +164,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             if (isFinishedSuccessfully)
             {
-                this.host.VisualStateManager.SetBoundProject(bindingArgs.Connection.ServerUri, bindingArgs.Connection.Organization?.Key, bindingArgs.ProjectKey);
+                this.host.VisualStateManager.SetBoundProject(bindingArgs.ProjectToBind.ServerConnection.ServerUri, (bindingArgs.ProjectToBind.ServerConnection as ServerConnection.SonarCloud)?.OrganizationKey, bindingArgs.ProjectToBind.ServerProjectKey);
 
                 VsShellUtils.ActivateSolutionExplorer(serviceProvider);
             }

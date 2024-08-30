@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using Task = System.Threading.Tasks.Task;
 
@@ -29,6 +30,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     internal interface IUnintrusiveBindingController
     {
         Task BindAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
+        Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
     }
 
     [Export(typeof(IUnintrusiveBindingController))]
@@ -36,25 +38,49 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     internal class UnintrusiveBindingController : IUnintrusiveBindingController
     {
         private readonly IBindingProcessFactory bindingProcessFactory;
+        private readonly IServerConnectionsRepository serverConnectionsRepository;
+        private readonly ISolutionInfoProvider solutionInfoProvider;
 
         [ImportingConstructor]
-        public UnintrusiveBindingController(IBindingProcessFactory bindingProcessFactory)
+        public UnintrusiveBindingController(IBindingProcessFactory bindingProcessFactory, IServerConnectionsRepository serverConnectionsRepository, ISolutionInfoProvider solutionInfoProvider)
         {
             this.bindingProcessFactory = bindingProcessFactory;
+            this.serverConnectionsRepository = serverConnectionsRepository;
+            this.solutionInfoProvider = solutionInfoProvider;
         }
 
-        public async Task BindAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
+        public async Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
         {
             var bindingProcess = CreateBindingProcess(project);
-
             await bindingProcess.DownloadQualityProfileAsync(progress, token);
             await bindingProcess.SaveServerExclusionsAsync(token);
         }
 
-        private IBindingProcess CreateBindingProcess(BoundSonarQubeProject project)
+        public async Task BindAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
         {
-            var commandArgs = new BindCommandArgs(project.ProjectKey, project.ProjectName, project.CreateConnectionInformation());
-            var bindingProcess = bindingProcessFactory.Create(commandArgs);
+            var proposedConnection = ServerConnection.FromBoundSonarQubeProject(project);
+
+            if (proposedConnection is null)
+            {
+                throw new NotImplementedException();
+            }
+            
+            if (!serverConnectionsRepository.TryGet(proposedConnection.Id, out var connection))
+            {
+                if (!serverConnectionsRepository.TryAdd(proposedConnection))
+                {
+                    throw new NotImplementedException();
+                }
+
+                connection = proposedConnection;
+            }
+
+            await BindAsync(new BoundServerProject(await solutionInfoProvider.GetSolutionNameAsync(), project.ProjectKey, connection), progress, token);
+        }
+
+        private IBindingProcess CreateBindingProcess(BoundServerProject project)
+        {
+            var bindingProcess = bindingProcessFactory.Create(new BindCommandArgs(project));
 
             return bindingProcess;
         }
