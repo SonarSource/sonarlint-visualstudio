@@ -24,9 +24,9 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
+[ExcludeFromCodeCoverage] // todo remove https://sonarsource.atlassian.net/browse/SLVS-1408 
 public static class ConnectionInfoConverter
 {
-    [ExcludeFromCodeCoverage]
     public static ServerConnection ToServerConnection(this ConnectionInformation connectionInformation) =>
         connectionInformation switch
         {
