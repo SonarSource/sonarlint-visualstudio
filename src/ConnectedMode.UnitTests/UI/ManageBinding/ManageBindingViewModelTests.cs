@@ -357,10 +357,21 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void IsConnectionSelectionEnabled_ProjectIsNotBoundAndBindingIsNotInProgress_ReturnsTrue()
+    public void IsConnectionSelectionEnabled_NoConnectionsExist_ReturnsFalse()
     {
         testSubject.BoundProject = null;
         progressReporterViewModel.IsOperationInProgress.Returns(false);
+
+        testSubject.IsConnectionSelectionEnabled.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void IsConnectionSelectionEnabled_ProjectIsNotBoundAndBindingIsNotInProgressAndConnectionsExist_ReturnsTrue()
+    {
+        testSubject.BoundProject = null;
+        progressReporterViewModel.IsOperationInProgress.Returns(false);
+        connectedModeServices.ServerConnectionsRepositoryAdapter.GetAllConnectionsInfo().Returns([sonarCloudConnectionInfo]);
+        testSubject.LoadConnections();
 
         testSubject.IsConnectionSelectionEnabled.Should().BeTrue();
     }
@@ -442,6 +453,21 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
+    public void LoadConnections_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        eventHandler.ReceivedCalls().Should().BeEmpty();
+
+        testSubject.LoadConnections();
+
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsConnectionSelectionEnabled)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.ConnectionSelectionCaptionText)));
+    }
+
+    [TestMethod]
     public async Task InitializeDataAsync_InitializesDataAndReportsProgress()
     {
         await testSubject.InitializeDataAsync();
@@ -451,7 +477,8 @@ public class ManageBindingViewModelTests
                 Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
                     x.TaskToPerform == testSubject.LoadDataAsync &&
                     x.ProgressStatus == UiResources.LoadingConnectionsText &&
-                    x.WarningText == UiResources.LoadingConnectionsFailedText));
+                    x.WarningText == UiResources.LoadingConnectionsFailedText &&
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
 
     [TestMethod]
@@ -484,6 +511,22 @@ public class ManageBindingViewModelTests
         logger.Received(1).WriteLine(exceptionMsg);
     }
 
+    [TestMethod]
+    public void ConnectionSelectionCaptionText_ConnectionsExists_ReturnsSelectConnectionToBindDescription()
+    {
+        testSubject.Connections.Add(sonarCloudConnectionInfo);
+
+        testSubject.ConnectionSelectionCaptionText.Should().Be(UiResources.SelectConnectionToBindDescription);
+    }
+
+    [TestMethod]
+    public void ConnectionSelectionCaptionText_NoConnectionExists_ReturnsNoConnectionExistsLabel()
+    {
+        testSubject.SelectedConnectionInfo = null;
+
+        testSubject.ConnectionSelectionCaptionText.Should().Be(UiResources.NoConnectionExistsLabel);
+    }
+
     private void MockServices()
     {
         serverConnectionsRepositoryAdapter = Substitute.For<IServerConnectionsRepositoryAdapter>();
@@ -493,5 +536,7 @@ public class ManageBindingViewModelTests
         connectedModeServices.ServerConnectionsRepositoryAdapter.Returns(serverConnectionsRepositoryAdapter);
         connectedModeServices.ThreadHandling.Returns(threadHandling);
         connectedModeServices.Logger.Returns(logger);
+
+        serverConnectionsRepositoryAdapter.GetAllConnectionsInfo().Returns([]);
     }
 }

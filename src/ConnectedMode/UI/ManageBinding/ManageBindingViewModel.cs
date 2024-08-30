@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 public class ManageBindingViewModel(
     IConnectedModeServices connectedModeServices,
     SolutionInfoModel solutionInfo,
-    IProgressReporterViewModel progretssReporterViewModel) : ViewModelBase
+    IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
     private ServerProject boundProject;
     private ConnectionInfo selectedConnectionInfo;
@@ -36,7 +36,7 @@ public class ManageBindingViewModel(
     private bool isSharedBindingConfigurationDetected;
 
     public SolutionInfoModel SolutionInfo { get; } = solutionInfo;
-    public IProgressReporterViewModel ProgressReporter { get; } = progretssReporterViewModel;
+    public IProgressReporterViewModel ProgressReporter { get; } = progressReporterViewModel;
 
     public ServerProject BoundProject      
     {
@@ -97,17 +97,18 @@ public class ManageBindingViewModel(
     public bool IsCurrentProjectBound => BoundProject != null;
     public bool IsProjectSelected => SelectedProject != null;
     public bool IsConnectionSelected => SelectedConnectionInfo != null;
-    public bool IsConnectionSelectionEnabled => !ProgressReporter.IsOperationInProgress && !IsCurrentProjectBound;
+    public bool IsConnectionSelectionEnabled => !ProgressReporter.IsOperationInProgress && !IsCurrentProjectBound && Connections.Any();
     public bool IsBindButtonEnabled => IsProjectSelected && !ProgressReporter.IsOperationInProgress;
     public bool IsSelectProjectButtonEnabled => IsConnectionSelected && !ProgressReporter.IsOperationInProgress && !IsCurrentProjectBound;
     public bool IsUnbindButtonEnabled => !ProgressReporter.IsOperationInProgress;
     public bool IsManageConnectionsButtonEnabled => !ProgressReporter.IsOperationInProgress;
     public bool IsUseSharedBindingButtonEnabled => !ProgressReporter.IsOperationInProgress && IsSharedBindingConfigurationDetected;
     public bool IsExportButtonEnabled => !ProgressReporter.IsOperationInProgress && IsCurrentProjectBound;
+    public string ConnectionSelectionCaptionText => Connections.Any() ? UiResources.SelectConnectionToBindDescription : UiResources.NoConnectionExistsLabel;
 
     public async Task InitializeDataAsync()
     {
-        var validationParams = new TaskToPerformParams<AdapterResponse>(LoadDataAsync, UiResources.LoadingConnectionsText, UiResources.LoadingConnectionsFailedText);
+        var validationParams = new TaskToPerformParams<AdapterResponse>(LoadDataAsync, UiResources.LoadingConnectionsText, UiResources.LoadingConnectionsFailedText){AfterProgressUpdated = OnProgressUpdated};
         await ProgressReporter.ExecuteTaskWithProgressAsync(validationParams);
     }
 
@@ -158,6 +159,11 @@ public class ManageBindingViewModel(
     internal void UpdateProgress(string status)
     {
         ProgressReporter.ProgressStatus = status;
+        OnProgressUpdated();
+    }
+
+    internal void OnProgressUpdated()
+    {
         RaisePropertyChanged(nameof(IsBindButtonEnabled));
         RaisePropertyChanged(nameof(IsUnbindButtonEnabled));
         RaisePropertyChanged(nameof(IsUseSharedBindingButtonEnabled));
@@ -186,6 +192,9 @@ public class ManageBindingViewModel(
     {
         Connections.Clear();
         var slCoreConnections = connectedModeServices.ServerConnectionsRepositoryAdapter.GetAllConnectionsInfo();
-        slCoreConnections.ForEach(conn => Connections.Add(conn));
+        slCoreConnections.ForEach(Connections.Add);
+
+        RaisePropertyChanged(nameof(IsConnectionSelectionEnabled));
+        RaisePropertyChanged(nameof(ConnectionSelectionCaptionText));
     }
 }
