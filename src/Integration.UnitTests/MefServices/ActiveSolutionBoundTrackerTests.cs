@@ -218,7 +218,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ConfigureSolutionBinding(null);
 
                 // Act
-                host.VisualStateManager.ClearBoundProject();
+                testSubject.HandleBindingChange(true);
 
                 // Assert
                 testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Unbound solution should report false activation");
@@ -235,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Case 2: Set bound project
                 ConfigureSolutionBinding(boundProject);
                 // Act
-                host.VisualStateManager.SetBoundProject(new Uri("http://localhost"), null, "project123");
+                testSubject.HandleBindingChange(false);
 
                 // Assert
                 testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected, "Bound solution should report true activation");
@@ -307,7 +307,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 testSubject.Dispose();
                 ConfigureSolutionBinding(boundProject);
-                host.VisualStateManager.ClearBoundProject();
+                testSubject.HandleBindingChange(true);
 
                 // Assert
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(5, "Once disposed should stop raising the event");
@@ -349,13 +349,53 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Assert
                 // Different config so event should be raised
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(1);
-                eventCounter.SolutionBindingUpdatedCount.Should().Be(0);
-                eventCounter.PreSolutionBindingChangedCount.Should().Be(1);
+                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0);
+                eventCounter.SolutionBindingChangedCount.Should().Be(1);
                 eventCounter.SolutionBindingUpdatedCount.Should().Be(0);
 
                 eventCounter.RaisedEventNames.Should().HaveCount(2);
-                eventCounter.RaisedEventNames[0].Should().Be("PreSolutionBindingChanged");
-                eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingChanged");                    
+                eventCounter.RaisedEventNames[0].Should().Be(nameof(testSubject.PreSolutionBindingChanged));
+                eventCounter.RaisedEventNames[1].Should().Be(nameof(testSubject.SolutionBindingChanged));                    
+            }
+        }
+        
+        [TestMethod]
+        public void HandleBindingChange_NewConfiguration_EventsRaisedInCorrectOrder()
+        {
+            // Arrange
+            var initialProject = new BoundServerProject(
+                "solution",
+                "projectKey",
+                new ServerConnection.SonarCloud("myOrgKey"));
+
+            // Set the current configuration used by the tracker
+            ConfigureSolutionBinding(initialProject);
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
+            {
+                var eventCounter = new EventCounter(testSubject);
+
+                // Now configure the provider to return a different configuration
+                var newProject = new BoundServerProject(
+                    "solution",
+                    "projectKey",
+                    new ServerConnection.SonarCloud("myOrgKey_DIFFERENT"));
+                ConfigureSolutionBinding(newProject);
+
+                // Act - simulate the binding state changing in the Team explorer section.
+                // The project configuration hasn't changed (it doesn't matter what properties
+                // we pass here; they aren't used when raising the event.)
+                testSubject.HandleBindingChange(false);
+
+                // Assert
+                // Different config so event should be raised
+                eventCounter.PreSolutionBindingChangedCount.Should().Be(1);
+                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0);
+                eventCounter.SolutionBindingChangedCount.Should().Be(1);
+                eventCounter.SolutionBindingUpdatedCount.Should().Be(0);
+
+                eventCounter.RaisedEventNames.Should().HaveCount(2);
+                eventCounter.RaisedEventNames[0].Should().Be(nameof(testSubject.PreSolutionBindingChanged));
+                eventCounter.RaisedEventNames[1].Should().Be(nameof(testSubject.SolutionBindingChanged));                    
             }
         }
 
@@ -521,6 +561,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.SolutionBindingChangedCount.Should().Be(0);
             }
         }
+        
+        [TestMethod]
+        public void HandleBindingChange_WhenClearBoundProject_NotRaised()
+        {
+            // Arrange
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
+            {
+                var eventCounter = new EventCounter(testSubject);
+
+                // Act
+                testSubject.HandleBindingChange(true);
+
+                // Assert
+                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0);
+                eventCounter.SolutionBindingUpdatedCount.Should().Be(0);
+                eventCounter.PreSolutionBindingChangedCount.Should().Be(0);
+                eventCounter.SolutionBindingChangedCount.Should().Be(0);
+            }
+        }
 
         [TestMethod]
         public void SolutionBindingUpdated_WhenSetBoundProject_EventsRaisedInExpectedOrder()
@@ -540,8 +599,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.SolutionBindingChangedCount.Should().Be(0);
 
                 eventCounter.RaisedEventNames.Should().HaveCount(2);
-                eventCounter.RaisedEventNames[0].Should().Be("PreSolutionBindingUpdated");
-                eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingUpdated");
+                eventCounter.RaisedEventNames[0].Should().Be(nameof(testSubject.PreSolutionBindingUpdated));
+                eventCounter.RaisedEventNames[1].Should().Be(nameof(testSubject.SolutionBindingUpdated));
+            }
+        }
+        
+        [TestMethod]
+        public void HandleBindingChange_WhenSetBoundProject_EventsRaisedInExpectedOrder()
+        {
+            // Arrange
+            using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
+            {
+                var eventCounter = new EventCounter(testSubject);
+
+                // Act
+                testSubject.HandleBindingChange(false);
+                
+                // Assert
+                eventCounter.PreSolutionBindingUpdatedCount.Should().Be(1);
+                eventCounter.SolutionBindingUpdatedCount.Should().Be(1);
+                eventCounter.PreSolutionBindingChangedCount.Should().Be(0);
+                eventCounter.SolutionBindingChangedCount.Should().Be(0);
+
+                eventCounter.RaisedEventNames.Should().HaveCount(2);
+                eventCounter.RaisedEventNames[0].Should().Be(nameof(testSubject.PreSolutionBindingUpdated));
+                eventCounter.RaisedEventNames[1].Should().Be(nameof(testSubject.SolutionBindingUpdated));
             }
         }
 
@@ -566,8 +648,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 eventCounter.SolutionBindingChangedCount.Should().Be(0);
 
                 eventCounter.RaisedEventNames.Should().HaveCount(2);
-                eventCounter.RaisedEventNames[0].Should().Be("PreSolutionBindingUpdated");
-                eventCounter.RaisedEventNames[1].Should().Be("SolutionBindingUpdated");
+                eventCounter.RaisedEventNames[0].Should().Be(nameof(testSubject.PreSolutionBindingUpdated));
+                eventCounter.RaisedEventNames[1].Should().Be(nameof(testSubject.SolutionBindingUpdated));
             }
         }
 
