@@ -127,6 +127,7 @@ public class ProgressReporterViewModelTests
             parameters.AfterProgressUpdated();
             parameters.TaskToPerform();
             parameters.AfterSuccess(Arg.Any<IResponseStatus>());
+            parameters.AfterProgressUpdated();
         });
         testSubject.ProgressStatus.Should().BeNull();
         _ = parameters.DidNotReceive().WarningText;
@@ -159,6 +160,7 @@ public class ProgressReporterViewModelTests
             parameters.TaskToPerform();
             _ = parameters.WarningText;
             parameters.AfterFailure(Arg.Any<IResponseStatus>());
+            parameters.AfterProgressUpdated();
         });
         testSubject.Warning.Should().Be(warningText);
         testSubject.ProgressStatus.Should().BeNull();

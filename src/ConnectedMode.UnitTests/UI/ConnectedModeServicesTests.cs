@@ -38,6 +38,7 @@ public class ConnectedModeServicesTests
             MefTestHelpers.CreateExport<ISlCoreConnectionAdapter>(),
             MefTestHelpers.CreateExport<IConfigurationProvider>(),
             MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
+            MefTestHelpers.CreateExport<IServerConnectionsRepositoryAdapter>(),
             MefTestHelpers.CreateExport<ILogger>());
     }
 }

@@ -100,6 +100,7 @@ public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewMod
         finally
         {
             ProgressStatus = null;
+            parameters.AfterProgressUpdated?.Invoke();
         }
     }
 }
