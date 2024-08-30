@@ -138,4 +138,10 @@
   <data name="SharedBindingSuggestionInfoOptionText" xml:space="preserve">
     <value>Learn more</value>
   </data>
+  <data name="UnintrusiveController_InvalidConnection" xml:space="preserve">
+    <value>Could not convert connection information for the binding</value>
+  </data>
+  <data name="UnintrusiveController_CantAddConnection" xml:space="preserve">
+    <value>Could not add converted connection</value>
+  </data>
 </root>

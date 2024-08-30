@@ -62,20 +62,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
             if (proposedConnection is null)
             {
-                throw new NotImplementedException();
+                throw new InvalidOperationException(BindingStrings.UnintrusiveController_InvalidConnection);
             }
             
             if (!serverConnectionsRepository.TryGet(proposedConnection.Id, out var connection))
             {
                 if (!serverConnectionsRepository.TryAdd(proposedConnection))
                 {
-                    throw new NotImplementedException();
+                    throw new InvalidOperationException(BindingStrings.UnintrusiveController_CantAddConnection);
                 }
 
                 connection = proposedConnection;
             }
 
-            await BindAsync(new BoundServerProject(await solutionInfoProvider.GetSolutionNameAsync(), project.ProjectKey, connection), progress, token);
+            await BindAsync(BoundServerProject.FromBoundSonarQubeProject(project, await solutionInfoProvider.GetSolutionNameAsync(), connection), progress, token);
         }
 
         private IBindingProcess CreateBindingProcess(BoundServerProject project)

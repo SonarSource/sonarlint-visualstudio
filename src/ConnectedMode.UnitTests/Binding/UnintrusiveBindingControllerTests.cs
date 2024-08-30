@@ -18,82 +18,159 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Task = System.Threading.Tasks.Task;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
+
+[TestClass]
+public class UnintrusiveBindingControllerTests
 {
-    [TestClass]
-    public class UnintrusiveBindingControllerTests
-    {
-        private static readonly BoundServerProject AnyBoundProject = new BoundServerProject("any", "any", new ServerConnection.SonarCloud("any"));
+    private static readonly BoundSonarQubeProject OldBoundProject = new BoundSonarQubeProject(new Uri("http://any"), "any", "any");
+    private static readonly BoundServerProject AnyBoundProject = new BoundServerProject("any", "any", new ServerConnection.SonarCloud("any"));
         
-        [TestMethod]
-        public void MefCtor_CheckTypeIsNonShared()
-            => MefTestHelpers.CheckIsNonSharedMefComponent<UnintrusiveBindingController>();
+    [TestMethod]
+    public void MefCtor_CheckTypeIsNonShared()
+        => MefTestHelpers.CheckIsNonSharedMefComponent<UnintrusiveBindingController>();
 
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingController, IUnintrusiveBindingController>(
-                MefTestHelpers.CreateExport<IBindingProcessFactory>());
-        }
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
+    {
+        MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingController, IUnintrusiveBindingController>(
+            MefTestHelpers.CreateExport<IBindingProcessFactory>(),
+            MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
+            MefTestHelpers.CreateExport<ISolutionInfoProvider>());
+    }
 
-        [TestMethod]
-        public async Task BindAsnyc_GetsBindingProcessFromFactory()
-        {
-            var bindingProcessFactory = CreateBindingProcessFactory();
-
-            var testSubject = CreateTestSubject(bindingProcessFactory: bindingProcessFactory);
-            await testSubject.BindAsync(AnyBoundProject, null, CancellationToken.None);
+    [TestMethod]
+    public async Task BindAsync_CallsBindingProcessInOrder()
+    {
+        var cancellationToken = CancellationToken.None;
+        var bindingProcess = Substitute.For<IBindingProcess>();
+        var bindingProcessFactory = CreateBindingProcessFactory(bindingProcess);
+        var testSubject = CreateTestSubject(bindingProcessFactory);
             
-            var args = bindingProcessFactory.ReceivedCalls().First().GetArguments()[0] as BindCommandArgs;
+        await testSubject.BindAsync(AnyBoundProject, null, cancellationToken);
 
-            args.ProjectToBind.Should().BeSameAs(AnyBoundProject);
-
-            bindingProcessFactory.Received().Create(Arg.Any<BindCommandArgs>());
-        }
-
-        [TestMethod]
-        public async Task BindAsnyc_CallsBindingProcessInOrder()
+        Received.InOrder(() =>
         {
-            var calls = new List<string>();
-            var cancellationToken = CancellationToken.None;
+            bindingProcessFactory.Create(Arg.Is<BindCommandArgs>(b => b.ProjectToBind == AnyBoundProject));
+            bindingProcess.DownloadQualityProfileAsync(null, cancellationToken);
+            bindingProcess.SaveServerExclusionsAsync(cancellationToken);
+        });
+    }
+        
+    [TestMethod]
+    public async Task BindAsync_OldProject_ConnectionExists_EstablishesBinding()
+    {
+        var cancellationToken = CancellationToken.None;
+        var bindingProcess = Substitute.For<IBindingProcess>();
+        var bindingProcessFactory = CreateBindingProcessFactory(bindingProcess);
+        var convertedConnection = ServerConnection.FromBoundSonarQubeProject(OldBoundProject);
+        var storedConnection = new ServerConnection.SonarQube(new Uri("http://any"));
+        var serverConnectionsRepository = CreateServerConnectionsRepository(convertedConnection.Id, storedConnection);
+        var solutionInfoProvider = CreateSolutionInfoProvider();
+        var testSubject = CreateTestSubject(bindingProcessFactory, serverConnectionsRepository, solutionInfoProvider);
+            
+        await testSubject.BindAsync(OldBoundProject, null, cancellationToken);
 
-            var bindingProcess = new Mock<IBindingProcess>();
-            bindingProcess.Setup(x => x.DownloadQualityProfileAsync(null, cancellationToken)).Callback(() => calls.Add("DownloadQualityProfiles"));
-            bindingProcess.Setup(x => x.SaveServerExclusionsAsync(cancellationToken)).Callback(() => calls.Add("SaveServerExclusionsAsync"));
-
-            var testSubject = CreateTestSubject(bindingProcessFactory: CreateBindingProcessFactory(bindingProcess.Object));
-            await testSubject.BindAsync(AnyBoundProject, null, cancellationToken);
-
-            calls.Should().ContainInOrder("DownloadQualityProfiles", "SaveServerExclusionsAsync");
-        }
-
-        private UnintrusiveBindingController CreateTestSubject(IBindingProcessFactory bindingProcessFactory = null,
-            IServerConnectionsRepository serverConnectionsRepository = null,
-            ISolutionInfoProvider solutionInfoProvider = null)
+        Received.InOrder(() =>
         {
-            var testSubject = new UnintrusiveBindingController(bindingProcessFactory ?? CreateBindingProcessFactory(),
-                serverConnectionsRepository ?? Substitute.For<IServerConnectionsRepository>(),
-                solutionInfoProvider ?? Substitute.For<ISolutionInfoProvider>());
+            serverConnectionsRepository.TryGet(convertedConnection.Id, out Arg.Any<ServerConnection>());
+            solutionInfoProvider.GetSolutionNameAsync();
+            bindingProcessFactory.Create(Arg.Is<BindCommandArgs>(b => b.ProjectToBind.ServerProjectKey == OldBoundProject.ProjectKey && b.ProjectToBind.ServerConnection == storedConnection));
+            bindingProcess.DownloadQualityProfileAsync(null, cancellationToken);
+            bindingProcess.SaveServerExclusionsAsync(cancellationToken);
+        });
+    }
 
-            return testSubject;
-        }
+    [TestMethod]
+    public async Task BindAsync_OldProject_ConnectionDoesNotExist_AddsConnectionAndEstablishesBinding()
+    {
+        var cancellationToken = CancellationToken.None;
+        var bindingProcess = Substitute.For<IBindingProcess>();
+        var bindingProcessFactory = CreateBindingProcessFactory(bindingProcess);
+        var convertedConnection = ServerConnection.FromBoundSonarQubeProject(OldBoundProject);
+        var serverConnectionsRepository = CreateServerConnectionsRepository();
+        serverConnectionsRepository.TryAdd(Arg.Is<ServerConnection>(s => s.Id == convertedConnection.Id)).Returns(true);
+        var solutionInfoProvider = CreateSolutionInfoProvider();
+        var testSubject = CreateTestSubject(bindingProcessFactory, serverConnectionsRepository, solutionInfoProvider);
+            
+        await testSubject.BindAsync(OldBoundProject, null, cancellationToken);
 
-        private IBindingProcessFactory CreateBindingProcessFactory(IBindingProcess bindingProcess = null)
+        Received.InOrder(() =>
         {
-            bindingProcess ??= Substitute.For<IBindingProcess>();
+            serverConnectionsRepository.TryGet(convertedConnection.Id, out Arg.Any<ServerConnection>());
+            serverConnectionsRepository.TryAdd(Arg.Is<ServerConnection>(c => c.Id == convertedConnection.Id));
+            solutionInfoProvider.GetSolutionNameAsync();
+            bindingProcessFactory.Create(Arg.Is<BindCommandArgs>(b => b.ProjectToBind.ServerProjectKey == OldBoundProject.ProjectKey && b.ProjectToBind.ServerConnection.Id == convertedConnection.Id));
+            bindingProcess.DownloadQualityProfileAsync(null, cancellationToken);
+            bindingProcess.SaveServerExclusionsAsync(cancellationToken);
+        });
+    }
+    
+    [TestMethod]
+    public void BindAsync_OldProject_ConnectionDoesNotExist_CannotAdd_Throws()
+    {
+        var convertedConnection = ServerConnection.FromBoundSonarQubeProject(OldBoundProject);
+        var serverConnectionsRepository = CreateServerConnectionsRepository(convertedConnection.Id);
+        var testSubject = CreateTestSubject(serverConnectionsRepository: serverConnectionsRepository);
+            
+        Func<Task> act = async () => await testSubject.BindAsync(OldBoundProject, null, CancellationToken.None);
 
-            var bindingProcessFactory = Substitute.For<IBindingProcessFactory>();
-            bindingProcessFactory.Create(It.IsAny<BindCommandArgs>()).Returns(bindingProcess);
+        act.Should().Throw<InvalidOperationException>().WithMessage(BindingStrings.UnintrusiveController_CantAddConnection);
+    }
+    
+    [TestMethod]
+    public void BindAsync_OldProject_InvalidServerInformation_Throws()
+    {
+        var testSubject = CreateTestSubject();
+            
+        Func<Task> act = async () => await testSubject.BindAsync(new BoundSonarQubeProject(), null, CancellationToken.None);
 
-            return bindingProcessFactory;
-        }
+        act.Should().Throw<InvalidOperationException>().WithMessage(BindingStrings.UnintrusiveController_InvalidConnection);
+    }
+
+    private UnintrusiveBindingController CreateTestSubject(IBindingProcessFactory bindingProcessFactory = null,
+        IServerConnectionsRepository serverConnectionsRepository = null,
+        ISolutionInfoProvider solutionInfoProvider = null)
+    {
+        var testSubject = new UnintrusiveBindingController(bindingProcessFactory ?? CreateBindingProcessFactory(),
+            serverConnectionsRepository ?? Substitute.For<IServerConnectionsRepository>(),
+            solutionInfoProvider ?? Substitute.For<ISolutionInfoProvider>());
+
+        return testSubject;
+    }
+
+    private IBindingProcessFactory CreateBindingProcessFactory(IBindingProcess bindingProcess = null)
+    {
+        bindingProcess ??= Substitute.For<IBindingProcess>();
+
+        var bindingProcessFactory = Substitute.For<IBindingProcessFactory>();
+        bindingProcessFactory.Create(Arg.Any<BindCommandArgs>()).Returns(bindingProcess);
+
+        return bindingProcessFactory;
+    }
+    
+    private static IServerConnectionsRepository CreateServerConnectionsRepository(string id = null, ServerConnection.SonarQube storedConnection = null)
+    {
+        var serverConnectionsRepository = Substitute.For<IServerConnectionsRepository>();
+        serverConnectionsRepository.TryGet(id ?? Arg.Any<string>(), out Arg.Any<ServerConnection>())
+            .Returns(info =>
+            {
+                info[1] = storedConnection;
+                return storedConnection != null;
+            });
+        return serverConnectionsRepository;
+    }
+    
+    private static ISolutionInfoProvider CreateSolutionInfoProvider()
+    {
+        var solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
+        solutionInfoProvider.GetSolutionNameAsync().Returns("solution");
+        return solutionInfoProvider;
     }
 }
