@@ -22,6 +22,11 @@ using System;
 
 namespace SonarLint.VisualStudio.Core.Binding
 {
+    public interface IActiveSolutionChangedHandler
+    {
+        void HandleBindingChange(bool isBindingCleared);
+    }
+    
     /// <summary>
     /// Allows checking if the current Visual Studio solution is bound to a SonarQube project or not
     /// </summary>
