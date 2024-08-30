@@ -25,8 +25,7 @@ jobs:
       contents: write
     runs-on: windows-latest
     name: Deploy to Visual Studio marketplace
-    # TODO: Uncomment this once releasability checks are confirmed to be working
-    # needs: release
+    needs: release
     env:
       RELEASE_TAG: ${{ github.event.release.tag_name }}
     steps:
@@ -62,8 +61,7 @@ jobs:
         with:
           build-number: ${{ steps.get_version.outputs.build }}
           local-repo-dir: ${{ steps.local_repo.outputs.dir }}
-          # TODO: Change this to sonarsource-public-releases once releasability checks are confirmed to be working
-          remote-repo: sonarsource-public-builds
+          remote-repo: sonarsource-public-releases
           flat-download: true
           download-checksums: false
 
@@ -71,6 +69,5 @@ jobs:
         uses: cezarypiatek/VsixPublisherAction@1.1
         with:
           extension-file: ${{ steps.local_repo.outputs.dir }}\SonarLint.VSIX-${{env.RELEASE_TAG}}-2022.vsix
-          # TODO: Rename VS2022Test to VS20202 when doing actual release
-          publish-manifest-file: MarketPlaceFiles\VS2022Test\manifest-2022.json
+          publish-manifest-file: MarketPlaceFiles\VS2022\manifest-2022.json
           personal-access-code: ${{ fromJSON(steps.secrets.outputs.vault).VCSE_TOKEN }}
