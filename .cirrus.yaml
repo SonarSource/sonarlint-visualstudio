@@ -55,7 +55,7 @@ build_task:
     git reset --hard $CIRRUS_CHANGE_IN_REPO
   calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
   prepare_signing_script: |
-    if [[ "${CIRRUS_BRANCH}" == "${CIRRUS_DEFAULT_BRANCH}" ]] || echo "${CIRRUS_BRANCH}" | grep -qE "^branch-.*" || echo "${CIRRUS_BRANCH}" | grep -qE "^sign-.*"; then
+    if [[ "${CIRRUS_BRANCH}" == "${CIRRUS_DEFAULT_BRANCH}" ]] || echo "${CIRRUS_BRANCH}" | grep -qE "^branch-.*" || echo "${CIRRUS_BRANCH}" | grep -qE "^sign-.*" || [[ "${CIRRUS_BRANCH}" == "feature/cirrus-ci-migration" ]]; then
       mkdir -p "${TMP_DIR}"
       echo "${SONARSOURCE_SNK}" | base64 -d > "${SONARSOURCE_SNK_FILE}"
       echo "${SM_CLIENT_CERT_FILE_BASE64}" | base64 -d > "${SM_CLIENT_CERT_FILE}"
@@ -136,7 +136,7 @@ dogfood_task:
 
 mend_scan_task:
   ec2_instance: *INSTANCE_DEFINITION
-  only_if: $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "mend-.*")
+  only_if: $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "mend-.*" || $CIRRUS_BRANCH == "feature/cirrus-ci-migration")
   env:
     WS_APIKEY: VAULT[development/kv/data/mend data.apikey]
   calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
@@ -154,7 +154,7 @@ mend_scan_task:
 
 promote_task:
   ec2_instance: *INSTANCE_DEFINITION
-  only_if: $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH || $CIRRUS_BRANCH =~ "branch-.*")
+  only_if: $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH == "feature/cirrus-ci-migration")
   depends_on:
     - build
   env:
