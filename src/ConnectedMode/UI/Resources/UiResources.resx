@@ -351,4 +351,10 @@
   <data name="ValidatingOrganziationSelectionFailedText" xml:space="preserve">
     <value>The connection is not valid for the chosen organization "{0}". Make sure the entered key matches exactly your organization's key.</value>
   </data>
+  <data name="LoadingConnectionsFailedText" xml:space="preserve">
+    <value>Could not load existing connections</value>
+  </data>
+  <data name="LoadingConnectionsText" xml:space="preserve">
+    <value>Loading connections...</value>
+  </data>
 </root>
