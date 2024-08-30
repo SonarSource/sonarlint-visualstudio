@@ -19,8 +19,11 @@
  */
 
 using System.ComponentModel;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageBinding;
 
@@ -32,11 +35,20 @@ public class ManageBindingViewModelTests
     private readonly ServerProject serverProject = new ("a-project", "A Project");
     private readonly ConnectionInfo sonarQubeConnectionInfo = new ("http://localhost:9000", ConnectionServerType.SonarQube);
     private readonly ConnectionInfo sonarCloudConnectionInfo = new ("http://sonarcloud.io", ConnectionServerType.SonarCloud);
+    private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
+    private IConnectedModeServices connectedModeServices;
+    private IProgressReporterViewModel progressReporterViewModel;
+    private IThreadHandling threadHandling;
+    private ILogger logger;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new ManageBindingViewModel(solutionInfoModel);
+        connectedModeServices = Substitute.For<IConnectedModeServices>();
+        progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
+        testSubject = new ManageBindingViewModel(connectedModeServices, solutionInfoModel, progressReporterViewModel);
+
+        MockServices();
     }
 
     [TestMethod]
@@ -201,7 +213,7 @@ public class ManageBindingViewModelTests
     public void IsBindButtonEnabled_ProjectIsSelectedAndBindingIsNotInProgress_ReturnsTrue()
     {
         testSubject.SelectedProject = serverProject;
-        testSubject.ProgressReporter.ProgressStatus = null;
+        progressReporterViewModel.IsOperationInProgress.Returns(false);
 
         testSubject.IsBindButtonEnabled.Should().BeTrue();
     }
@@ -210,50 +222,50 @@ public class ManageBindingViewModelTests
     public void IsBindButtonEnabled_ProjectIsSelectedAndBindingIsInProgress_ReturnsFalse()
     {
         testSubject.SelectedProject = serverProject;
-        testSubject.ProgressReporter.ProgressStatus = "in progress";
+        progressReporterViewModel.IsOperationInProgress.Returns(true);
 
         testSubject.IsBindButtonEnabled.Should().BeFalse();
     }
 
     [TestMethod]
-    [DataRow("binding...")]
-    [DataRow(null)]
-    public void IsBindButtonEnabled_ProjectIsNotSelected_ReturnsFalse(string bindingStatus)
+    [DataRow(true)]
+    [DataRow(false)]
+    public void IsBindButtonEnabled_ProjectIsNotSelected_ReturnsFalse(bool isBindingInProgress)
     {
         testSubject.SelectedProject = null;
-        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
+        progressReporterViewModel.IsOperationInProgress.Returns(isBindingInProgress);
 
         testSubject.IsBindButtonEnabled.Should().BeFalse();
     }
 
     [TestMethod]
-    [DataRow("binding...", false)]
-    [DataRow(null, true)]
-    public void IsManageConnectionsButtonEnabled_ReturnsTrueOnlyWhenNoBindingIsInProgress(string bindingStatus, bool expectedResult)
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    public void IsManageConnectionsButtonEnabled_ReturnsTrueOnlyWhenNoBindingIsInProgress(bool isBindingInProgress, bool expectedResult)
     {
-        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
+        progressReporterViewModel.IsOperationInProgress.Returns(isBindingInProgress);
 
         testSubject.IsManageConnectionsButtonEnabled.Should().Be(expectedResult);
     }
 
     [TestMethod]
-    [DataRow("binding...", false)]
-    [DataRow(null, true)]
-    public void IsUseSharedBindingButtonEnabled_SharedBindingConfigurationIsDetected_ReturnsTrueOnlyWhenNoBindingIsInProgress(string bindingStatus, bool expectedResult)
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    public void IsUseSharedBindingButtonEnabled_SharedBindingConfigurationIsDetected_ReturnsTrueOnlyWhenNoBindingIsInProgress(bool isBindingInProgress, bool expectedResult)
     {
         testSubject.IsSharedBindingConfigurationDetected = true;
-        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
+        progressReporterViewModel.IsOperationInProgress.Returns(isBindingInProgress);
 
         testSubject.IsUseSharedBindingButtonEnabled.Should().Be(expectedResult);
     }
 
     [TestMethod]
-    [DataRow("binding...")]
+    [DataRow(true)]
     [DataRow(null)]
-    public void IsUseSharedBindingButtonEnabled_SharedBindingConfigurationIsNotDetected_ReturnsFalse(string bindingStatus)
+    public void IsUseSharedBindingButtonEnabled_SharedBindingConfigurationIsNotDetected_ReturnsFalse(bool isBindingInProgress)
     {
         testSubject.IsSharedBindingConfigurationDetected = false;
-        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
+        progressReporterViewModel.IsOperationInProgress.Returns(isBindingInProgress);
 
         testSubject.IsUseSharedBindingButtonEnabled.Should().BeFalse();
     }
@@ -274,11 +286,11 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    [DataRow("binding...", false)]
-    [DataRow(null, true)]
-    public void IsUnbindButtonEnabled_ReturnsTrueOnlyWhenNoBindingIsInProgress(string bindingStatus, bool expectedResult)
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    public void IsUnbindButtonEnabled_ReturnsTrueOnlyWhenNoBindingIsInProgress(bool isBindingInProgress, bool expectedResult)
     {
-        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
+        progressReporterViewModel.IsOperationInProgress.Returns(isBindingInProgress);
 
         testSubject.IsUnbindButtonEnabled.Should().Be(expectedResult);
     }
@@ -287,7 +299,7 @@ public class ManageBindingViewModelTests
     public void IsSelectProjectButtonEnabled_ConnectionIsSelectedAndNoBindingIsInProgressAndProjectIsNotBound_ReturnsTrue()
     {
         testSubject.BoundProject = null;
-        testSubject.ProgressReporter.ProgressStatus = null;
+        progressReporterViewModel.IsOperationInProgress.Returns(false);
         testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
 
         testSubject.IsSelectProjectButtonEnabled.Should().BeTrue();
@@ -297,18 +309,18 @@ public class ManageBindingViewModelTests
     public void IsSelectProjectButtonEnabled_BindingIsInProgress_ReturnsFalse()
     {
         testSubject.BoundProject = null;
-        testSubject.ProgressReporter.ProgressStatus = "in progress";
+        progressReporterViewModel.IsOperationInProgress.Returns(true);
         testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
 
         testSubject.IsSelectProjectButtonEnabled.Should().BeFalse();
     }
 
     [TestMethod]
-    [DataRow("binding...")]
-    [DataRow(null)]
-    public void IsSelectProjectButtonEnabled_ConnectionIsNotSelected_ReturnsFalse(string bindingStatus)
+    [DataRow(true)]
+    [DataRow(false)]
+    public void IsSelectProjectButtonEnabled_ConnectionIsNotSelected_ReturnsFalse(bool isBindingInProgress)
     {
-        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
+        progressReporterViewModel.IsOperationInProgress.Returns(isBindingInProgress);
         testSubject.SelectedConnectionInfo = null;
 
         testSubject.IsSelectProjectButtonEnabled.Should().BeFalse();
@@ -318,7 +330,7 @@ public class ManageBindingViewModelTests
     public void IsSelectProjectButtonEnabled_ProjectIsAlreadyBound_ReturnsFalse()
     {
         testSubject.BoundProject = serverProject;
-        testSubject.ProgressReporter.ProgressStatus = null;
+        progressReporterViewModel.IsOperationInProgress.Returns(false);
         testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
 
         testSubject.IsSelectProjectButtonEnabled.Should().BeFalse();
@@ -328,33 +340,44 @@ public class ManageBindingViewModelTests
     public void IsConnectionSelectionEnabled_BindingIsInProgress_ReturnsFalse()
     {
         testSubject.BoundProject = null;
-        testSubject.ProgressReporter.ProgressStatus = "in progress";
+        progressReporterViewModel.IsOperationInProgress.Returns(true);
 
         testSubject.IsConnectionSelectionEnabled.Should().BeFalse();
     }
 
     [TestMethod]
-    [DataRow(null)]
-    [DataRow("binding...")]
-    public void IsConnectionSelectionEnabled_ProjectIsBound_ReturnsFalse(string bindingStatus)
+    [DataRow(false)]
+    [DataRow(true)]
+    public void IsConnectionSelectionEnabled_ProjectIsBound_ReturnsFalse(bool isBindingInProgress)
     {
         testSubject.BoundProject = serverProject;
-        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
+        progressReporterViewModel.IsOperationInProgress.Returns(isBindingInProgress);
 
         testSubject.IsConnectionSelectionEnabled.Should().BeFalse();
     }
 
     [TestMethod]
-    public void IsConnectionSelectionEnabled_ProjectIsNotBoundAndBindingIsNotInProgress_ReturnsTrue()
+    public void IsConnectionSelectionEnabled_NoConnectionsExist_ReturnsFalse()
     {
         testSubject.BoundProject = null;
-        testSubject.ProgressReporter.ProgressStatus = null;
+        progressReporterViewModel.IsOperationInProgress.Returns(false);
+
+        testSubject.IsConnectionSelectionEnabled.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void IsConnectionSelectionEnabled_ProjectIsNotBoundAndBindingIsNotInProgressAndConnectionsExist_ReturnsTrue()
+    {
+        testSubject.BoundProject = null;
+        progressReporterViewModel.IsOperationInProgress.Returns(false);
+        connectedModeServices.ServerConnectionsRepositoryAdapter.GetAllConnectionsInfo().Returns([sonarCloudConnectionInfo]);
+        testSubject.LoadConnections();
 
         testSubject.IsConnectionSelectionEnabled.Should().BeTrue();
     }
 
     [TestMethod]
-    public void ProgressStatus_Set_RaisesEvents()
+    public void UpdateProgress_RaisesEvents()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
@@ -382,18 +405,18 @@ public class ManageBindingViewModelTests
     public void IsExportButtonEnabled_BindingIsInProgress_ReturnsFalse()
     {
         testSubject.BoundProject = serverProject;
-        testSubject.ProgressReporter.ProgressStatus = "in progress";
+        progressReporterViewModel.IsOperationInProgress.Returns(true);
 
         testSubject.IsExportButtonEnabled.Should().BeFalse();
     }
 
     [TestMethod]
-    [DataRow(null)]
-    [DataRow("binding...")]
-    public void IsExportButtonEnabled_ProjectIsNotBound_ReturnsFalse(string bindingStatus)
+    [DataRow(false)]
+    [DataRow(true)]
+    public void IsExportButtonEnabled_ProjectIsNotBound_ReturnsFalse(bool isBindingInProgress)
     {
         testSubject.BoundProject = null;
-        testSubject.ProgressReporter.ProgressStatus = bindingStatus;
+        progressReporterViewModel.IsOperationInProgress.Returns(isBindingInProgress);
 
         testSubject.IsExportButtonEnabled.Should().BeFalse();
     }
@@ -402,8 +425,118 @@ public class ManageBindingViewModelTests
     public void IsExportButtonEnabled_ProjectIsBoundAndBindingIsNotInProgress_ReturnsTrue()
     {
         testSubject.BoundProject = serverProject;
-        testSubject.ProgressReporter.ProgressStatus = null;
+        progressReporterViewModel.IsOperationInProgress.Returns(false);
 
         testSubject.IsExportButtonEnabled.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void LoadConnections_FillsConnections()
+    {
+        List<ConnectionInfo> existingConnections = [sonarQubeConnectionInfo, sonarCloudConnectionInfo];
+        serverConnectionsRepositoryAdapter.GetAllConnectionsInfo().Returns(existingConnections);
+
+        testSubject.LoadConnections();
+
+        testSubject.Connections.Should().BeEquivalentTo(existingConnections);
+    }
+
+    [TestMethod]
+    public void LoadConnections_ClearsPreviousConnections()
+    {
+        serverConnectionsRepositoryAdapter.GetAllConnectionsInfo().Returns([sonarQubeConnectionInfo]);
+        testSubject.Connections.Add(sonarCloudConnectionInfo);
+
+        testSubject.LoadConnections();
+
+        testSubject.Connections.Should().BeEquivalentTo([sonarQubeConnectionInfo]);
+    }
+
+    [TestMethod]
+    public void LoadConnections_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        eventHandler.ReceivedCalls().Should().BeEmpty();
+
+        testSubject.LoadConnections();
+
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsConnectionSelectionEnabled)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.ConnectionSelectionCaptionText)));
+    }
+
+    [TestMethod]
+    public async Task InitializeDataAsync_InitializesDataAndReportsProgress()
+    {
+        await testSubject.InitializeDataAsync();
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.TaskToPerform == testSubject.LoadDataAsync &&
+                    x.ProgressStatus == UiResources.LoadingConnectionsText &&
+                    x.WarningText == UiResources.LoadingConnectionsFailedText &&
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+    }
+
+    [TestMethod]
+    public async Task LoadDataAsync_LoadsConnections()
+    {
+        await testSubject.LoadDataAsync();
+
+        await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Is<Action>(op => op == testSubject.LoadConnections));
+    }
+
+    [TestMethod]
+    public async Task LoadDataAsync_ConnectionsLoadedSuccessfully_ReturnsTrue()
+    {
+        var adapterResponse = await testSubject.LoadDataAsync();
+
+        adapterResponse.Success.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public async Task LoadDataAsync_LoadingConnectionsThrows_ReturnsFalse()
+    {
+        var exceptionMsg = "Failed to load connections";
+        var mockedThreadHandling = Substitute.For<IThreadHandling>();
+        connectedModeServices.ThreadHandling.Returns(mockedThreadHandling);
+        mockedThreadHandling.When(x => x.RunOnUIThreadAsync(Arg.Any<Action>())).Do(callInfo=> throw new Exception(exceptionMsg));
+
+        var adapterResponse = await testSubject.LoadDataAsync();
+
+        adapterResponse.Success.Should().BeFalse();
+        logger.Received(1).WriteLine(exceptionMsg);
+    }
+
+    [TestMethod]
+    public void ConnectionSelectionCaptionText_ConnectionsExists_ReturnsSelectConnectionToBindDescription()
+    {
+        testSubject.Connections.Add(sonarCloudConnectionInfo);
+
+        testSubject.ConnectionSelectionCaptionText.Should().Be(UiResources.SelectConnectionToBindDescription);
+    }
+
+    [TestMethod]
+    public void ConnectionSelectionCaptionText_NoConnectionExists_ReturnsNoConnectionExistsLabel()
+    {
+        testSubject.SelectedConnectionInfo = null;
+
+        testSubject.ConnectionSelectionCaptionText.Should().Be(UiResources.NoConnectionExistsLabel);
+    }
+
+    private void MockServices()
+    {
+        serverConnectionsRepositoryAdapter = Substitute.For<IServerConnectionsRepositoryAdapter>();
+        threadHandling = Substitute.For<IThreadHandling>();
+        logger = Substitute.For<ILogger>();
+
+        connectedModeServices.ServerConnectionsRepositoryAdapter.Returns(serverConnectionsRepositoryAdapter);
+        connectedModeServices.ThreadHandling.Returns(threadHandling);
+        connectedModeServices.Logger.Returns(logger);
+
+        serverConnectionsRepositoryAdapter.GetAllConnectionsInfo().Returns([]);
     }
 }

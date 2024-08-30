@@ -403,6 +403,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not load existing connections.
+        /// </summary>
+        public static string LoadingConnectionsFailedText {
+            get {
+                return ResourceManager.GetString("LoadingConnectionsFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading connections....
+        /// </summary>
+        public static string LoadingConnectionsText {
+            get {
+                return ResourceManager.GetString("LoadingConnectionsText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loading the organizations from the server failed. Please see the Output window for more information..
         /// </summary>
         public static string LoadingOrganizationsFailedText {
