@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
@@ -36,6 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// <summary>
     /// A dedicated controller for the <see cref="BindCommand"/>
     /// </summary>
+    [ExcludeFromCodeCoverage] // todo https://sonarsource.atlassian.net/browse/SLVS-1408
     internal class BindingController : HostedCommandControllerBase, IBindingWorkflowExecutor
     {
         private readonly System.IServiceProvider serviceProvider;

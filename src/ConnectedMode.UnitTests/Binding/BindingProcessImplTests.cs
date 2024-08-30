@@ -171,50 +171,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             actualProject.ServerProjectKey.Should().Be("the project key");
         }
 
-        [TestMethod]
-        [DataRow("the user name", null)]
-        [DataRow("the user name", "a password")]
-        [DataRow(null, null)]
-        [DataRow(null, "should be ignored")]
-        public async Task DownloadQualityProfile_HandlesBoundProjectCredentialsCorrectly(string userName, string rawPassword)
-        {
-            // todo move test to Unintrusive controller
-            // var qpDownloader = new Mock<IQualityProfileDownloader>();
-            // var password = rawPassword == null ?  null : rawPassword.ToSecureString();
-            //
-            // var connectionInfo = new Conne ctionInformation(new Uri("http://any"), userName, password);
-            // var bindingArgs = CreateBindCommandArgs();
-            //
-            // var testSubject = CreateTestSubject(bindingArgs,
-            //     qpDownloader: qpDownloader.Object);
-            //
-            // // Act
-            // var result = await testSubject.DownloadQualityProfileAsync(Mock.Of<IProgress<FixedStepsProgress>>(), CancellationToken.None);
-            //
-            // result.Should().BeTrue();
-            //
-            // qpDownloader.Verify(x => x.UpdateAsync(It.IsAny<BoundServerProject>(),
-            //     It.IsAny<IProgress<FixedStepsProgress>>(),
-            //     It.IsAny<CancellationToken>()),
-            //     Times.Once);
-            //
-            // var actualProject = (BoundSonarQubeProject)qpDownloader.Invocations[0].Arguments[0];
-            //
-            // // Check the credentials were handled correctly
-            // if (userName == null)
-            // {
-            //     actualProject.Credentials.Should().BeNull();
-            // }
-            // else
-            // {
-            //     actualProject.Credentials.Should().BeOfType<BasicAuthCredentials>();
-            //     var actualCreds = (BasicAuthCredentials)actualProject.Credentials;
-            //
-            //     actualCreds.UserName.Should().Be(userName);
-            //     CheckIsExpectedPassword(rawPassword, actualCreds.Password);
-            // }
-        }
-
         [TestMethod] 
         public async Task DownloadQualityProfile_HandlesInvalidOperationException()
         {

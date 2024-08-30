@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Windows.Data;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
@@ -28,6 +29,7 @@ using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.WPF
 {
+    [ExcludeFromCodeCoverage] // todo https://sonarsource.atlassian.net/browse/SLVS-1408
     [ValueConversion(typeof(ProjectViewModel), typeof(BindCommandArgs))]
     public class ProjectViewModelToBindingArgsConverter : IValueConverter
     {

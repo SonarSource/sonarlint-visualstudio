@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
 
@@ -25,6 +26,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
 public static class ConnectionInfoConverter
 {
+    [ExcludeFromCodeCoverage]
     public static ServerConnection ToServerConnection(this ConnectionInformation connectionInformation) =>
         connectionInformation switch
         {
