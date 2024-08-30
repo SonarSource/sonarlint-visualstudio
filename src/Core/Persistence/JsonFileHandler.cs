@@ -27,7 +27,31 @@ namespace SonarLint.VisualStudio.Core.Persistence;
 
 public interface IJsonFileHandler
 {
+    /// <summary>
+    /// Tries to read the json file and to deserialize the model.
+    /// </summary>
+    /// <typeparam name="T">The type of the model that will be serialized</typeparam>
+    /// <param name="filePath">The path to the file</param>
+    /// <param name="content">The content of the file deserialized to the provided type</param>
+    /// <returns>True if the file could be read and the model could be serialized successfully. False otherwise</returns>
     bool TryReadFile<T>(string filePath, out T content) where T : class;
+
+    /// <summary>
+    /// Reads the json file and deserializes its content to the provided type.
+    /// </summary>
+    /// <typeparam name="T">The type of the model that will be serialized</typeparam>
+    /// <param name="filePath">The path to the file</param>
+    /// <returns>Returns the content of the json file deserialized to the provided type.</returns>
+    T ReadFile<T>(string filePath) where T : class;
+    
+    /// <summary>
+    /// Tries to deserialize the model and write it to the json file in a thread safe manner.
+    /// If the file does not exist, it will be created.
+    /// </summary>
+    /// <typeparam name="T">The type of the model that will be deserialized</typeparam>
+    /// <param name="filePath">The path to the file</param>
+    /// <param name="model">The model that will be deserialized</param>
+    /// <returns>True if the model was deserialized successfully and written to the file. False otherwise</returns>
     bool TryWriteToFile<T>(string filePath, T model) where T : class;
 }
 
@@ -69,6 +93,12 @@ public class JsonFileHandler : IJsonFileHandler
             logger.WriteLine(ex.Message);
             return false;
         }
+    }
+
+    public T ReadFile<T>(string filePath) where T : class
+    {
+        var jsonContent = fileSystem.File.ReadAllText(filePath);
+        return jsonSerializer.Deserialize<T>(jsonContent);
     }
 
     public bool TryWriteToFile<T>(string filePath, T model) where T : class

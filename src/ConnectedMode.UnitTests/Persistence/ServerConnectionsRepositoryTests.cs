@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -66,15 +67,29 @@ public class ServerConnectionsRepositoryTests
     }
 
     [TestMethod]
-    public void TryGet_FileCanNotBeRead_ReturnsFalse()
+    public void TryGet_FileDoesNotExist_ReturnsFalse()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success:false);
+        MockReadingFile(new ServerConnectionsListJsonModel());
+        jsonFileHandler.When(x => x.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>())).Do(x => throw new FileNotFoundException());
 
         var succeeded = testSubject.TryGet("myId", out ServerConnection serverConnection);
 
         succeeded.Should().BeFalse();
         serverConnection.Should().BeNull();
-        jsonFileHandler.Received(1).TryReadFile(Arg.Any<string>(), out Arg.Any<ServerConnectionsListJsonModel>());
+        jsonFileHandler.Received(1).ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>());
+    }
+
+    [TestMethod]
+    public void TryGet_FileCanNotBeRead_ReturnsFalse()
+    {
+        MockReadingFile(new ServerConnectionsListJsonModel());
+        jsonFileHandler.When(x => x.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>())).Do(x => throw new Exception());
+
+        var succeeded = testSubject.TryGet("myId", out ServerConnection serverConnection);
+
+        succeeded.Should().BeFalse();
+        serverConnection.Should().BeNull();
+        jsonFileHandler.Received(1).ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>());
     }
 
     [TestMethod]
@@ -148,20 +163,6 @@ public class ServerConnectionsRepositoryTests
     }
 
     [TestMethod]
-    public void TryGet_ThrowsException_ReturnsFalse()
-    {
-        var exceptionMsg = "failed";
-        MockReadingFile(new ServerConnectionsListJsonModel());
-        jsonFileHandler.When(x => x.TryReadFile(Arg.Any<string>(), out Arg.Any<ServerConnectionsListJsonModel>())).Do(x => throw new Exception(exceptionMsg));
-
-        var succeeded = testSubject.TryGet("myOrg", out ServerConnection serverConnection);
-
-        succeeded.Should().BeFalse();
-        serverConnection.Should().BeNull();
-        logger.Received(1).WriteLine(exceptionMsg);
-    }
-
-    [TestMethod]
     public void TryGet_MultipleCalls_ShouldCacheReadFile()
     {
         var sonarQubeModel = GetSonarQubeJsonModel(new Uri("http://localhost:9000"));
@@ -172,17 +173,30 @@ public class ServerConnectionsRepositoryTests
         testSubject.TryGet(sonarQubeModel.Id, out _);
         testSubject.TryGet(sonarQubeModel.Id, out _);
 
-        jsonFileHandler.Received(1).TryReadFile(Arg.Any<string>(), out Arg.Any<ServerConnectionsListJsonModel>());
+        jsonFileHandler.Received(1).ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>());
     }
 
     [TestMethod]
-    public void GetAll_FileCouldNotBeRead_ReturnsEmptyList()
+    public void GetAll_FileDoesNotExist_ReturnsEmptyList()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: false);
+        MockReadingFile(new ServerConnectionsListJsonModel());
+        jsonFileHandler.When(x => x.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>())).Do(x => throw new FileNotFoundException());
 
         var connections = testSubject.GetAll();
 
         connections.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void GetAll_FileCouldNotBeRead_ThrowsException()
+    {
+        var exceptionMsg = "failed";
+        MockReadingFile(new ServerConnectionsListJsonModel());
+        jsonFileHandler.When(x => x.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>())).Do(x => throw new Exception(exceptionMsg));
+
+        Action act = ()  => testSubject.GetAll();
+
+        act.Should().Throw<Exception>().WithMessage(exceptionMsg);
     }
 
     [TestMethod]
@@ -207,19 +221,6 @@ public class ServerConnectionsRepositoryTests
     }
 
     [TestMethod]
-    public void GetAll_ThrowsException_ReturnsEmptyList()
-    {
-        var exceptionMsg = "failed";
-        MockReadingFile(new ServerConnectionsListJsonModel());
-        jsonFileHandler.When(x => x.TryReadFile(Arg.Any<string>(), out Arg.Any<ServerConnectionsListJsonModel>())).Do(x => throw new Exception(exceptionMsg));
-
-        var connections = testSubject.GetAll();
-
-        connections.Should().BeEmpty();
-        logger.Received(1).WriteLine(exceptionMsg);
-    }
-
-    [TestMethod]
     public void GetAll_MultipleCalls_ShouldCacheReadFile()
     {
         MockReadingFile(new ServerConnectionsListJsonModel());
@@ -228,7 +229,7 @@ public class ServerConnectionsRepositoryTests
         testSubject.GetAll();
         testSubject.GetAll();
 
-        jsonFileHandler.Received(1).TryReadFile(Arg.Any<string>(), out Arg.Any<ServerConnectionsListJsonModel>());
+        jsonFileHandler.Received(1).ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>());
     }
 
     [TestMethod]
@@ -244,7 +245,7 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     public void TryAdd_FileCouldNotBeRead_DoesNotAddConnection()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: false);
+        MockReadingFile(new ServerConnectionsListJsonModel());
         var sonarCloud =  new SonarCloud("myOrg");
 
         var succeeded = testSubject.TryAdd(sonarCloud);
@@ -252,7 +253,7 @@ public class ServerConnectionsRepositoryTests
         succeeded.Should().BeFalse();
         Received.InOrder(() =>
         {
-            jsonFileHandler.TryReadFile(Arg.Any<string>(), out Arg.Any<ServerConnectionsListJsonModel>());
+            jsonFileHandler.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>());
             serverConnectionModelMapper.GetServerConnectionsListJsonModel(Arg.Is<IEnumerable<ServerConnection>>(x => x.Contains(sonarCloud)));
             jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>());
         });
@@ -261,7 +262,7 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     public void TryAdd_FileExistsAndConnectionIsNew_AddsConnection()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: true);
+        MockReadingFile(new ServerConnectionsListJsonModel());
         var sonarCloud = new SonarCloud("myOrg");
         jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(true);
 
@@ -270,7 +271,7 @@ public class ServerConnectionsRepositoryTests
         succeeded.Should().BeTrue();
         Received.InOrder(() =>
         {
-            jsonFileHandler.TryReadFile(Arg.Any<string>(), out Arg.Any<ServerConnectionsListJsonModel>());
+            jsonFileHandler.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>());
             serverConnectionModelMapper.GetServerConnectionsListJsonModel(Arg.Is<IEnumerable<ServerConnection>>(x => x.Contains(sonarCloud)));
             jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>());
         });
@@ -279,7 +280,7 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     public void TryAdd_SonarCloudConnectionIsAddedAndCredentialsAreNotNull_SavesCredentials()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: true);
+        MockReadingFile(new ServerConnectionsListJsonModel());
         jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(true);
         var sonarCloud = new SonarCloud("myOrg") { Credentials = Substitute.For<ICredentials>() };
 
@@ -292,20 +293,20 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     public void TryAdd_SonarQubeConnectionIsAddedAndCredentialsAreNotNull_SavesCredentials()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: true);
+        MockReadingFile(new ServerConnectionsListJsonModel());
         jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(true);
-        var sonarCloud = new SonarCloud("myOrg") { Credentials = Substitute.For<ICredentials>() };
+        var sonarQube = new ServerConnection.SonarQube(new Uri("http://localhost")) { Credentials = Substitute.For<ICredentials>() };
 
-        var succeeded = testSubject.TryAdd(sonarCloud);
+        var succeeded = testSubject.TryAdd(sonarQube);
 
         succeeded.Should().BeTrue();
-        credentialsLoader.Received(1).Save(sonarCloud.Credentials, sonarCloud.CredentialsUri);
+        credentialsLoader.Received(1).Save(sonarQube.Credentials, sonarQube.CredentialsUri);
     }
 
     [TestMethod]
     public void TryAdd_ConnectionIsAddedAndCredentialsAreNull_DoesNotSaveCredentials()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: true);
+        MockReadingFile(new ServerConnectionsListJsonModel());
         jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(true);
         var sonarCloud = new SonarCloud("myOrg");
 
@@ -340,7 +341,7 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     public void TryAdd_WritingToFileFails_DoesNotAddConnection()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: true);
+        MockReadingFile(new ServerConnectionsListJsonModel());
         jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(false);
         var sonarCloud = new SonarCloud("myOrg");
 
@@ -353,7 +354,7 @@ public class ServerConnectionsRepositoryTests
     public void TryAdd_WritingThrowsException_DoesNotUpdateConnectionAndWritesLog()
     {
         var exceptionMsg = "IO exception";
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: true);
+        MockReadingFile(new ServerConnectionsListJsonModel());
         var sonarCloud = new SonarCloud("myOrg");
         jsonFileHandler.When(x => x.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>())).Do(x => throw new Exception(exceptionMsg));
 
@@ -366,7 +367,8 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     public void TryDelete_FileCouldNotBeRead_ReturnsFalse()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: false);
+        MockReadingFile(new ServerConnectionsListJsonModel());
+        jsonFileHandler.When(x => x.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>())).Do(x => throw new Exception());
 
         var succeeded = testSubject.TryDelete("myOrg");
 
@@ -377,7 +379,7 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     public void TryDelete_FileExistsAndHasNoConnection_ReturnsFalse()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: true);
+        MockReadingFile(new ServerConnectionsListJsonModel());
 
         var succeeded = testSubject.TryDelete("myOrg");
 
@@ -396,7 +398,7 @@ public class ServerConnectionsRepositoryTests
         succeeded.Should().BeTrue();
         Received.InOrder(() =>
         {
-            jsonFileHandler.TryReadFile(Arg.Any<string>(), out Arg.Any<ServerConnectionsListJsonModel>());
+            jsonFileHandler.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>());
             serverConnectionModelMapper.GetServerConnectionsListJsonModel(Arg.Is<IEnumerable<ServerConnection>>(x => !x.Any()));
             jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>());
             credentialsLoader.DeleteCredentials(sonarCloud.CredentialsUri);
@@ -442,7 +444,7 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     public void TryDelete_WritingToFileFails_ReturnsFalse()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: true);
+        MockReadingFile(new ServerConnectionsListJsonModel());
         jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(false);
 
         var succeeded = testSubject.TryDelete("myOrg");
@@ -466,7 +468,8 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     public void TryUpdateSettingsById_FileCouldNotBeRead_ReturnsFalse()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: false);
+        MockReadingFile(new ServerConnectionsListJsonModel());
+        jsonFileHandler.When(x => x.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>())).Do(x => throw new Exception());
 
         var succeeded = testSubject.TryUpdateSettingsById("myOrg", new ServerConnectionSettings(true));
 
@@ -477,7 +480,7 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     public void TryUpdateSettingsById_FileExistsAndHasNoConnection_ReturnsFalse()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: true);
+        MockReadingFile(new ServerConnectionsListJsonModel());
 
         var succeeded = testSubject.TryUpdateSettingsById("myOrg", new ServerConnectionSettings(true));
 
@@ -498,7 +501,7 @@ public class ServerConnectionsRepositoryTests
         succeeded.Should().BeTrue();
         Received.InOrder(() =>
         {
-            jsonFileHandler.TryReadFile(Arg.Any<string>(), out Arg.Any<ServerConnectionsListJsonModel>());
+            jsonFileHandler.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>());
             serverConnectionModelMapper.GetServerConnectionsListJsonModel(Arg.Is<IEnumerable<ServerConnection>>(x => x.Count() == 1 && x.Single().Settings.IsSmartNotificationsEnabled == newSmartNotifications));
             jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>());
         });
@@ -507,7 +510,7 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     public void TryUpdateSettingsById_WritingToFileFails_DoesNotUpdateConnection()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: true);
+        MockReadingFile(new ServerConnectionsListJsonModel());
         jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(false);
 
         var succeeded = testSubject.TryUpdateSettingsById("myOrg", new ServerConnectionSettings(true));
@@ -531,7 +534,7 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     public void TryUpdateCredentialsById_ConnectionDoesNotExist_DoesNotUpdateCredentials()
     {
-        MockReadingFile(new ServerConnectionsListJsonModel(), success: true);
+        MockReadingFile(new ServerConnectionsListJsonModel());
 
         var succeeded = testSubject.TryUpdateCredentialsById("myConn", Substitute.For<ICredentials>());
 
@@ -580,7 +583,7 @@ public class ServerConnectionsRepositoryTests
     {
         var sonarCloudModel = GetSonarCloudJsonModel("myOrg", isSmartNotificationsEnabled);
         var sonarCloud = new SonarCloud(sonarCloudModel.Id, sonarCloudModel.Settings, Substitute.For<ICredentials>());
-        MockReadingFile(new ServerConnectionsListJsonModel { ServerConnections = [sonarCloudModel] }, success: true);
+        MockReadingFile(new ServerConnectionsListJsonModel { ServerConnections = [sonarCloudModel] });
         serverConnectionModelMapper.GetServerConnection(sonarCloudModel).Returns(sonarCloud);
         
         return sonarCloud;
@@ -590,19 +593,15 @@ public class ServerConnectionsRepositoryTests
     {
         var sonarQubeModel = GetSonarQubeJsonModel(new Uri("http://localhost"), isSmartNotificationsEnabled);
         var sonarQube = new ServerConnection.SonarQube(new Uri(sonarQubeModel.ServerUri), sonarQubeModel.Settings, Substitute.For<ICredentials>());
-        MockReadingFile(new ServerConnectionsListJsonModel { ServerConnections = [sonarQubeModel] }, success: true);
+        MockReadingFile(new ServerConnectionsListJsonModel { ServerConnections = [sonarQubeModel] });
         serverConnectionModelMapper.GetServerConnection(sonarQubeModel).Returns(sonarQube);
 
         return sonarQube;
     }
 
-    private void MockReadingFile(ServerConnectionsListJsonModel modelToReturn, bool success = true)
+    private void MockReadingFile(ServerConnectionsListJsonModel modelToReturn)
     {
-        jsonFileHandler.TryReadFile(Arg.Any<string>(), out Arg.Any<ServerConnectionsListJsonModel>()).Returns(info =>
-        {
-            info[1] = modelToReturn;
-            return success;
-        });
+        jsonFileHandler.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>()).Returns(modelToReturn);
     }
 
     private static ServerConnectionJsonModel GetSonarCloudJsonModel(string id, bool isSmartNotificationsEnabled = false)
