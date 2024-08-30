@@ -71,15 +71,22 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
 
     public bool TryGet(string connectionId, out ServerConnection serverConnection)
     {
-        PopulateServerConnectionsCache();
-        if (!ServerConnectionsCache.TryGetValue(connectionId, out serverConnection))
+        serverConnection = null;
+        try
         {
-            return false;
+            PopulateServerConnectionsCache();
+            if (ServerConnectionsCache.TryGetValue(connectionId, out serverConnection))
+            {
+                serverConnection.Credentials = credentialsLoader.Load(serverConnection.CredentialsUri);
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.WriteLine(ex.Message);
         }
 
-        serverConnection.Credentials = credentialsLoader.Load(serverConnection.CredentialsUri);
-        return true;
-
+        return false;
     }
 
     public IReadOnlyList<ServerConnection> GetAll()
@@ -177,22 +184,23 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
 
     private void PopulateServerConnectionsCache()
     {
+        if (isCachedPopulated)
+        {
+            return;
+        }
+
         lock (CacheLock)
         {
             try
-            {
-                if (isCachedPopulated || !jsonFileHandle.TryReadFile(storageFilePath, out ServerConnectionsListJsonModel model))
-                {
-                    return;
-                }
-
+            {   
+                var model = jsonFileHandle.ReadFile<ServerConnectionsListJsonModel>(storageFilePath);
                 model.ServerConnections.ForEach(c => ServerConnectionsCache.TryAdd(c.Id, serverConnectionModelMapper.GetServerConnection(c)));
                 isCachedPopulated = true;
             }
-            catch (Exception ex)
+            catch (FileNotFoundException)
             {
-                isCachedPopulated = false;
-                logger.WriteLine(ex.Message);
+                // file not existing should not be treated as an error, as it will be created at the first write
+                isCachedPopulated = true;
             }
         }
     }

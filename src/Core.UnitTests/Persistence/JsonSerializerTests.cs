@@ -96,4 +96,24 @@ public class JsonSerializerTests
         deserializedObj.Should().BeNull();
         logger.Received(1).WriteLine(string.Format(PersistenceStrings.FailedToDeserializeObject, nameof(TestType)));
     }
+
+    [TestMethod]
+    public void Deserialize_Succeeds_ReturnsString()
+    {
+        var serializedString = "{\"PropName\":\"abc\"}";
+
+        var deserializedObj = testSubject.Deserialize<TestType>(serializedString);
+
+        deserializedObj.Should().BeEquivalentTo(new TestType("abc"));
+    }
+
+    [TestMethod]
+    public void Deserialize_Fails_ThrowsException()
+    {
+        var serializedString = "invalid";
+
+        Action act = () => testSubject.Deserialize<TestType>(serializedString);
+
+        act.Should().Throw<Exception>();
+    }
 }
