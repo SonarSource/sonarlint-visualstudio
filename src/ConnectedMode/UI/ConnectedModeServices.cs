@@ -33,6 +33,7 @@ public interface IConnectedModeServices
     public ILogger Logger { get; } 
     public ISlCoreConnectionAdapter SlCoreConnectionAdapter { get; } 
     public IConfigurationProvider ConfigurationProvider { get; } 
+    public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; }
 }
 
 [Export(typeof(IConnectedModeServices))]
@@ -43,11 +44,13 @@ public class ConnectedModeServices(
     IThreadHandling threadHandling,
     ISlCoreConnectionAdapter slCoreConnectionAdapter,
     IConfigurationProvider configurationProvider,
-    ISharedBindingConfigProvider sharedBindingConfigProvider, 
+    ISharedBindingConfigProvider sharedBindingConfigProvider,
+    IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter,
     ILogger logger)
     : IConnectedModeServices
 {
     public ISharedBindingConfigProvider SharedBindingConfigProvider { get; } = sharedBindingConfigProvider;
+    public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; } = serverConnectionsRepositoryAdapter;
     public IBrowserService BrowserService { get; } = browserService;
     public IThreadHandling ThreadHandling { get; } = threadHandling;
     public ILogger Logger { get; } = logger;

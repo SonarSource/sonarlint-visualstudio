@@ -132,7 +132,7 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Padding="5,0" Text="{x:Static res:UiResources.SelectConnectionToBindDescription}"
+            <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Padding="5,0" Text="{Binding Path=ConnectionSelectionCaptionText}"
                        Style="{StaticResource CaptionTextBlock}"
                        Visibility="{Binding  Path=IsConnectionSelected, Converter={StaticResource TrueToCollapsedConverter}}"/>
             <Button Grid.Row="1" Grid.Column="1" Content="{x:Static res:UiResources.ManageConnectionsButton}" HorizontalAlignment="Right"
