@@ -19,18 +19,42 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
-    public class ManageConnectionsViewModel : ViewModelBase
+    public class ManageConnectionsViewModel(IConnectedModeServices connectedModeServices, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
     {
+        public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
         public ObservableCollection<ConnectionViewModel> ConnectionViewModels { get; } = [];
         public bool NoConnectionExists => ConnectionViewModels.Count == 0;
 
-        public void InitializeConnections(IEnumerable<Connection> connections)
+        public async Task LoadConnectionsWithProgressAsync()
+        {
+            var validationParams = new TaskToPerformParams<AdapterResponse>(LoadConnectionsAsync, UiResources.LoadingConnectionsText, UiResources.LoadingConnectionsFailedText);
+            await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
+        }
+
+        internal async Task<AdapterResponse> LoadConnectionsAsync()
+        {
+            try
+            {
+                await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(InitializeConnections);
+                return new AdapterResponse(true);
+            }
+            catch (Exception ex)
+            {
+                connectedModeServices.Logger.WriteLine(ex.Message);
+            }
+
+            return new AdapterResponse(false);
+        }
+
+        internal void InitializeConnections()
         {
             ConnectionViewModels.Clear();
+            var connections = connectedModeServices.ServerConnectionsRepositoryAdapter.GetAllConnections();
             connections.ToList().ForEach(AddConnection);
         }
 

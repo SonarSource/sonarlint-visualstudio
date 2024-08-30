@@ -45,7 +45,7 @@ public class DummyServerConnectionsRepository : IServerConnectionsRepository
 
     public List<ServerConnection> GetAll()
     {
-        throw new NotImplementedException();
+        return [new ServerConnection.SonarCloud("a")];
     }
 
     public bool TryAdd(ServerConnection connection)
