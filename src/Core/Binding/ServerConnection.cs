@@ -40,11 +40,10 @@ public abstract class ServerConnection
 
     public sealed class SonarCloud : ServerConnection
     {
-        public const string Organizations = "organizations";
         public SonarCloud(string organizationKey, ServerConnectionSettings settings = null, ICredentials credentials = null) : base(organizationKey, settings, credentials)
         {
             OrganizationKey = organizationKey ?? throw new ArgumentNullException(nameof(organizationKey));
-            CredentialsUri = new Uri(ServerUri, $"{Organizations}/{organizationKey}");
+            CredentialsUri = new Uri(ServerUri, $"organizations/{organizationKey}");
         }
 
         public string OrganizationKey { get; } 
