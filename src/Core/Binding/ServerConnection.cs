@@ -29,6 +29,7 @@ public abstract class ServerConnection
     public ICredentials Credentials { get; set; }
     
     public abstract Uri ServerUri { get; }
+    public abstract Uri CredentialsUri { get; }
 
     private ServerConnection(string id, ServerConnectionSettings settings = null, ICredentials credentials = null)
     {
@@ -36,18 +37,26 @@ public abstract class ServerConnection
         Settings = settings ?? DefaultSettings;
         Credentials = credentials;
     }
-    
-    public sealed class SonarCloud(string organizationKey, ServerConnectionSettings settings = null, ICredentials credentials = null)
-        : ServerConnection(organizationKey, settings, credentials)
+
+    public sealed class SonarCloud : ServerConnection
     {
-        public string OrganizationKey { get; } = organizationKey;
+        public const string Organizations = "organizations";
+        public SonarCloud(string organizationKey, ServerConnectionSettings settings = null, ICredentials credentials = null) : base(organizationKey, settings, credentials)
+        {
+            OrganizationKey = organizationKey ?? throw new ArgumentNullException(nameof(organizationKey));
+            CredentialsUri = new Uri(ServerUri, $"{Organizations}/{organizationKey}");
+        }
+
+        public string OrganizationKey { get; } 
         
-        public override Uri ServerUri { get; } = new Uri("https://sonarcloud.io");
+        public override Uri ServerUri { get; } = new("https://sonarcloud.io");
+        public override Uri CredentialsUri { get; }
     }
     
     public sealed class SonarQube(Uri serverUri, ServerConnectionSettings settings = null, ICredentials credentials = null)
         : ServerConnection(serverUri?.ToString(), settings, credentials)
     {
         public override Uri ServerUri { get; } = serverUri;
+        public override Uri CredentialsUri { get; } = serverUri;
     }
 }
