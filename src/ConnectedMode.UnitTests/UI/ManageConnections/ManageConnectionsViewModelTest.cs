@@ -62,7 +62,7 @@ public class ManageConnectionsViewModelTest
 
     [TestMethod]
     public void InitializeConnections_InitializesConnectionsCorrectly()
-    {
+    { 
         serverConnectionsRepositoryAdapter.GetAllConnections().Returns(connections);
 
         testSubject.InitializeConnections();

@@ -44,7 +44,7 @@ public class ConnectedModeServices(
     IThreadHandling threadHandling,
     ISlCoreConnectionAdapter slCoreConnectionAdapter,
     IConfigurationProvider configurationProvider,
-    ISharedBindingConfigProvider sharedBindingConfigProvider,
+    ISharedBindingConfigProvider sharedBindingConfigProvider, 
     IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter,
     ILogger logger)
     : IConnectedModeServices
