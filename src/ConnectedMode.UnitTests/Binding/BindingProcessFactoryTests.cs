@@ -47,6 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         {
             var bindingArgs = new BindCommandArgs("proj key", "proj name", new ConnectionInformation(new Uri("http://localhost")));
 
+
             var testSubject = CreateTestSubject();
 
             var actual = testSubject.Create(bindingArgs);
