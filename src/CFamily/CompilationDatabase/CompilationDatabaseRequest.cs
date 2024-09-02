@@ -130,12 +130,12 @@ namespace SonarLint.VisualStudio.CFamily.CompilationDatabase
             writer.Write(data);
         }
 
-        private void WriteQualityProfile(BinaryWriter writer, string qualityProfile)
+        private static void WriteQualityProfile(BinaryWriter writer, string qualityProfile)
         {
             WriteSetting(writer, "QualityProfile", qualityProfile);
         }
 
-        private void WriteRuleSettings(BinaryWriter writer, Dictionary<string, string> ruleParameters)
+        private static void WriteRuleSettings(BinaryWriter writer, Dictionary<string, string> ruleParameters)
         {
             foreach (var ruleParameter in ruleParameters)
             {
