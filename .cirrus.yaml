@@ -30,6 +30,7 @@ build_task:
   only_if: *ONLY_SONARSOURCE_QA
   env:
     ARTIFACTORY_DEPLOY_TOKEN: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-qa-deployer access_token]
+    COVERAGE_FILE: coverage.xml
     SM_API_KEY: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.apikey]
     SM_CERT_FP: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert_fp]
     SM_CERT: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert]
@@ -76,7 +77,7 @@ build_task:
   prepare_analysis_script: |
     dotnet tool install --global dotnet-sonarscanner
     dotnet tool install --global dotnet-coverage
-    dotnet sonarscanner begin -d:sonar.token=${SONAR_TOKEN} -d:sonar.host.url="${SONAR_URL}" -k:"${CIRRUS_REPO_NAME}" -o:"sonarsource"
+    dotnet sonarscanner begin -d:sonar.token=${SONAR_TOKEN} -d:sonar.host.url="${SONAR_URL}" -k:"${CIRRUS_REPO_NAME}" -o:"sonarsource" -d:sonar.cs.vscoveragexml.reportsPaths="${COVERAGE_FILE}" -d:sonar.scanner.scanAll=false
   build_solution_script: |
     msbuild.exe "${SOLUTION_PATH}" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=${SHOULD_SIGN} -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:DeployExtension=false -p:Sha1="${CIRRUS_CHANGE_IN_REPO}" -p:BuildNumber="${CI_BUILD_NUMBER}" -p:Configuration=Release
   sign_artifact_script: |
@@ -106,6 +107,8 @@ build_task:
     jf rt bp ${CIRRUS_REPO_NAME} ${CI_BUILD_NUMBER}
   tests_script: |
     vstest.console.exe --EnableCodeCoverage --Logger:trx --ResultsDirectory:"TestResults" src/**/bin/**/Sonar*.*Tests.dll
+  collect_coverage_script: |
+    dotnet-coverage merge -o "${COVERAGE_FILE}" -f xml "**\*.coverage"
   sonarcloud_analysis_script: |
     dotnet sonarscanner end -d:sonar.token="${SONAR_TOKEN}"
   on_failure:
