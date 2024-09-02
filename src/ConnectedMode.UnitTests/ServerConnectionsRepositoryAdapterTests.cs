@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.Core.Binding.ServerConnection;
@@ -45,11 +44,11 @@ public class ServerConnectionsRepositoryAdapterTests
     [TestMethod]
     public void GetAllConnections_CallServerConnectionsRepository()
     {
-        serverConnectionsRepository.GetAll().Returns([]);
+        MockServerConnections([]);
 
         var connections = testSubject.GetAllConnections();
 
-        serverConnectionsRepository.Received(1).GetAll();
+        serverConnectionsRepository.Received(1).TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>());
         connections.Should().BeEmpty();
     }
 
@@ -59,7 +58,7 @@ public class ServerConnectionsRepositoryAdapterTests
     public void GetAllConnections_HasOneSonarCloudConnection_ReturnsOneMappedConnection(bool isSmartNotificationsEnabled)
     {
         var sonarCloud = CreateSonarCloudServerConnection(isSmartNotificationsEnabled);
-        serverConnectionsRepository.GetAll().Returns([sonarCloud]);
+        MockServerConnections([sonarCloud]);
 
         var connections = testSubject.GetAllConnections();
 
@@ -72,7 +71,7 @@ public class ServerConnectionsRepositoryAdapterTests
     public void GetAllConnections_HasOneSonarQubeConnection_ReturnsOneMappedConnection(bool isSmartNotificationsEnabled)
     {
         var sonarQube = CreateSonarQubeServerConnection(isSmartNotificationsEnabled);
-        serverConnectionsRepository.GetAll().Returns([sonarQube]);
+        MockServerConnections([sonarQube]);
 
         var connections = testSubject.GetAllConnections();
 
@@ -82,11 +81,11 @@ public class ServerConnectionsRepositoryAdapterTests
     [TestMethod]
     public void GetAllConnectionsInfo_CallServerConnectionsRepository()
     {
-        serverConnectionsRepository.GetAll().Returns([]);
+        MockServerConnections([]);
 
         var connections = testSubject.GetAllConnectionsInfo();
 
-        serverConnectionsRepository.Received(1).GetAll();
+        serverConnectionsRepository.Received(1).TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>());
         connections.Should().BeEmpty();
     }
 
@@ -94,7 +93,7 @@ public class ServerConnectionsRepositoryAdapterTests
     public void GetAllConnectionsInfo_HasOneSonarCloudConnection_ReturnsOneMappedConnection()
     {
         var sonarCloud = CreateSonarCloudServerConnection();
-        serverConnectionsRepository.GetAll().Returns([sonarCloud]);
+        MockServerConnections([sonarCloud]);
 
         var connections = testSubject.GetAllConnectionsInfo();
 
@@ -105,7 +104,7 @@ public class ServerConnectionsRepositoryAdapterTests
     public void GetAllConnectionsInfo_HasOneSonarQubeConnection_ReturnsOneMappedConnection()
     {
         var sonarQube = CreateSonarQubeServerConnection();
-        serverConnectionsRepository.GetAll().Returns([sonarQube]);
+        MockServerConnections([sonarQube]);
 
         var connections = testSubject.GetAllConnectionsInfo();
 
@@ -121,5 +120,14 @@ public class ServerConnectionsRepositoryAdapterTests
     {
         var sonarQube = new ServerConnection.SonarQube(new Uri("http://localhost"), new ServerConnectionSettings(isSmartNotificationsEnabled), Substitute.For<ICredentials>());
         return sonarQube;
+    }
+
+    private void MockServerConnections(List<ServerConnection> connections)
+    {
+        serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(callInfo =>
+        {
+            callInfo[0] = connections;
+            return true;
+        });
     }
 }

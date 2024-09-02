@@ -35,7 +35,7 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
 {
     public List<Connection> GetAllConnections()
     {
-        var connections = serverConnectionsRepository.GetAll();
+        serverConnectionsRepository.TryGetAll(out var connections);
         return connections.Select(MapServerConnectionModel).ToList();
     }
 
