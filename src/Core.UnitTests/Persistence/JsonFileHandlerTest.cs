@@ -55,7 +55,7 @@ public class JsonFileHandlerTest
     [TestMethod]
     public void Mef_CheckIsSingleton()
     {
-        MefTestHelpers.CheckIsSingletonMefComponent<JsonFileHandler>();
+        MefTestHelpers.CheckIsNonSharedMefComponent<JsonFileHandler>();
     }
 
     [TestMethod]
@@ -125,6 +125,28 @@ public class JsonFileHandlerTest
         var succeeded = testSubject.TryReadFile(FilePath, out TestType _);
 
         succeeded.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void ReadFile_ReadingFileThrowsException_TrowsException()
+    {
+        var exceptionMsg = "IO failed";
+        fileSystem.File.When(x => x.ReadAllText(FilePath)).Do(x => throw new Exception(exceptionMsg));
+
+        Action act  = () => testSubject.ReadFile<TestType>(FilePath);
+
+        act.Should().Throw<Exception>().WithMessage(exceptionMsg);
+    }
+
+    [TestMethod]
+    public void ReadFile_DeserializationThrowsException_TrowsException()
+    {
+        var exceptionMsg = "IO failed";
+        serializer.When(x => x.Deserialize<TestType>(Arg.Any<string>())).Do(x => throw new Exception(exceptionMsg));
+
+        Action act = () => testSubject.ReadFile<TestType>(FilePath);
+
+        act.Should().Throw<Exception>().WithMessage(exceptionMsg);
     }
 
     [TestMethod]

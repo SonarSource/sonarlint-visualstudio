@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.Core.Persistence;
 public interface IJsonSerializer
 {
     bool TryDeserialize<T>(string json, out T deserializedObj, JsonSerializerSettings serializerSettings = null) where T : class;
+    T Deserialize<T>(string json, JsonSerializerSettings serializerSettings = null) where T : class;
     bool TrySerialize<T>(T objectToSerialize, out string serializedObj, Formatting formatting = Formatting.None,
         JsonSerializerSettings serializerSettings = null) where T : class;
 }
@@ -55,7 +56,7 @@ public class JsonSerializer : IJsonSerializer
         deserializedObj = null;
         try
         {
-            deserializedObj = JsonConvert.DeserializeObject<T>(json, serializerSettings);
+            deserializedObj = Deserialize<T>(json, serializerSettings);
             return true;
         }
         catch (Exception)
@@ -63,6 +64,11 @@ public class JsonSerializer : IJsonSerializer
             logger.WriteLine(string.Format(PersistenceStrings.FailedToDeserializeObject, typeof(T).Name));
             return false;
         }
+    }
+
+    public T Deserialize<T>(string json, JsonSerializerSettings serializerSettings = null) where T : class
+    {
+       return JsonConvert.DeserializeObject<T>(json, serializerSettings);
     }
 
     public bool TrySerialize<T>(T objectToSerialize, out string serializedObj, Formatting formatting = Formatting.None, JsonSerializerSettings serializerSettings = null) where T: class
