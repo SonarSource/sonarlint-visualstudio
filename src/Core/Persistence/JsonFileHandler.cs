@@ -28,15 +28,6 @@ namespace SonarLint.VisualStudio.Core.Persistence;
 public interface IJsonFileHandler
 {
     /// <summary>
-    /// Tries to read the json file and to deserialize the model.
-    /// </summary>
-    /// <typeparam name="T">The type of the model that will be serialized</typeparam>
-    /// <param name="filePath">The path to the file</param>
-    /// <param name="content">The content of the file deserialized to the provided type</param>
-    /// <returns>True if the file could be read and the model could be serialized successfully. False otherwise</returns>
-    bool TryReadFile<T>(string filePath, out T content) where T : class;
-
-    /// <summary>
     /// Reads the json file and deserializes its content to the provided type.
     /// </summary>
     /// <typeparam name="T">The type of the model that will be serialized</typeparam>
@@ -71,27 +62,6 @@ public class JsonFileHandler : IJsonFileHandler
         this.fileSystem = fileSystem;
         this.jsonSerializer = jsonSerializer;
         this.logger = logger;
-    }
-
-    public bool TryReadFile<T>(string filePath, out T content) where T: class
-    {
-        content = null;
-        if (!fileSystem.File.Exists(filePath))
-        {
-            return false;
-        }
-
-        try
-        {
-            var jsonContent = fileSystem.File.ReadAllText(filePath);
-            return jsonSerializer.TryDeserialize(jsonContent, out content);
-
-        }
-        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        {
-            logger.WriteLine(ex.Message);
-            return false;
-        }
     }
 
     public T ReadFile<T>(string filePath) where T : class
