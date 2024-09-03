@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             serviceMock.Setup(x => x.GetRulesAsync(true, It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => rules);
 
-            var bindingConfiguration = new LegacyBindingConfiguration(new BoundSonarQubeProject { ProjectKey = "test" }, SonarLintMode.Connected, "c:\\");
+            var bindingConfiguration = new BindingConfiguration(new BoundServerProject("any", "any", new ServerConnection.SonarCloud("any")), SonarLintMode.Connected, "c:\\");
 
             var testSubject = CreateTestSubject(serviceMock, testLogger);
 
@@ -176,7 +176,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             serviceMock.Setup(x => x.GetRulesAsync(It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new List<SonarQubeRule>());
 
-            var bindingConfiguration = new LegacyBindingConfiguration(new BoundSonarQubeProject { ProjectKey = "test" }, SonarLintMode.Connected, "c:\\");
+            var bindingConfiguration = new BindingConfiguration(new BoundServerProject("any", "any", new ServerConnection.SonarCloud("any")), SonarLintMode.Connected, "c:\\");
 
             var testSubject = CreateTestSubject(serviceMock, testLogger);
 
@@ -208,7 +208,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             var testSubject = CreateTestSubject(serviceMock, testLogger);
 
             // Act
-            var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, LegacyBindingConfiguration.Standalone, CancellationToken.None);
+            var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, BindingConfiguration.Standalone, CancellationToken.None);
 
             // Assert
             result.Should().BeNull();
@@ -227,7 +227,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             var testSubject = CreateTestSubject(serviceMock, testLogger);
 
             // Act
-            Action act = () => testSubject.GetConfigurationAsync(CreateQp(), Language.VBNET, LegacyBindingConfiguration.Standalone, cts.Token).Wait();
+            Action act = () => testSubject.GetConfigurationAsync(CreateQp(), Language.VBNET, BindingConfiguration.Standalone, cts.Token).Wait();
 
             // Assert
             act.Should().ThrowExactly<AggregateException>().WithInnerException<ArgumentOutOfRangeException>();

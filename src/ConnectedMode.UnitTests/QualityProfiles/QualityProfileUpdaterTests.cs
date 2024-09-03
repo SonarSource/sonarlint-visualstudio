@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 
             configProvider.Verify(x => x.GetConfiguration(), Times.Once);
             runner.Verify(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()), Times.Once);
-            qpDownloader.Verify(x => x.UpdateAsync(It.Is<BoundSonarQubeProject>(y => y.ProjectKey == boundProject.ProjectKey), null, cancellationToken), Times.Once);
+            qpDownloader.Verify(x => x.UpdateAsync(boundProject, null, cancellationToken), Times.Once);
             eventListener.EventCount.Should().Be(1);
         }
 
@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 
             configProvider.Verify(x => x.GetConfiguration(), Times.Once);
             runner.Verify(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()), Times.Once);
-            qpDownloader.Verify(x => x.UpdateAsync(It.Is<BoundSonarQubeProject>(y => y.ProjectKey == boundProject.ProjectKey), null, It.IsAny<CancellationToken>()), Times.Once);
+            qpDownloader.Verify(x => x.UpdateAsync(boundProject, null, It.IsAny<CancellationToken>()), Times.Once);
             eventListener.EventCount.Should().Be(0);
         }
         
@@ -188,20 +188,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
         {
             qpDownloader
                 .Setup(x =>
-                    x.UpdateAsync(It.IsAny<BoundSonarQubeProject>(),
+                    x.UpdateAsync(It.IsAny<BoundServerProject>(),
                         It.IsAny<IProgress<FixedStepsProgress>>(),
                         It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
         }
 
-        private BoundSonarQubeProject CreateDefaultProject()
+        private BoundServerProject CreateDefaultProject()
         {
-            return new BoundSonarQubeProject(new Uri("http://any"), Guid.NewGuid().ToString(), null);
+            return new BoundServerProject("solution", "project", new ServerConnection.SonarCloud("org"));
         }
 
-        private Mock<IConfigurationProvider> CreateConfigProvider(SonarLintMode mode, BoundSonarQubeProject boundProject)
+        private Mock<IConfigurationProvider> CreateConfigProvider(SonarLintMode mode, BoundServerProject boundProject)
         {
-            var config = new BindingConfiguration(BoundServerProject.FromBoundSonarQubeProject(boundProject), mode, "any directory");
+            var config = new BindingConfiguration(boundProject, mode, "any directory");
 
             var configProvider = new Mock<IConfigurationProvider>();
             configProvider.Setup(x => x.GetConfiguration()).Returns(config);
