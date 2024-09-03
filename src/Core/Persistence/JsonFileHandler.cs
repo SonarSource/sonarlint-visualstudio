@@ -27,18 +27,32 @@ namespace SonarLint.VisualStudio.Core.Persistence;
 
 public interface IJsonFileHandler
 {
-    bool TryReadFile<T>(string filePath, out T content) where T : class;
+    /// <summary>
+    /// Reads the json file and deserializes its content to the provided type.
+    /// </summary>
+    /// <typeparam name="T">The type of the model that will be serialized</typeparam>
+    /// <param name="filePath">The path to the file</param>
+    /// <returns>Returns the content of the json file deserialized to the provided type.</returns>
+    T ReadFile<T>(string filePath) where T : class;
+    
+    /// <summary>
+    /// Tries to deserialize the model and write it to the json file.
+    /// If the file does not exist, it will be created.
+    /// </summary>
+    /// <typeparam name="T">The type of the model that will be deserialized</typeparam>
+    /// <param name="filePath">The path to the file</param>
+    /// <param name="model">The model that will be deserialized</param>
+    /// <returns>True if the model was deserialized successfully and written to the file. False otherwise</returns>
     bool TryWriteToFile<T>(string filePath, T model) where T : class;
 }
 
 [Export(typeof(IJsonFileHandler))]
-[PartCreationPolicy(CreationPolicy.Shared)]
+[PartCreationPolicy(CreationPolicy.NonShared)]
 public class JsonFileHandler : IJsonFileHandler
 {
     private readonly ILogger logger;
     private readonly IFileSystem fileSystem;
     private readonly IJsonSerializer jsonSerializer;
-    private static readonly object Locker = new();
 
     [ImportingConstructor]
     public JsonFileHandler(IJsonSerializer jsonSerializer, ILogger logger) : this(new FileSystem(), jsonSerializer, logger) { }
@@ -50,52 +64,34 @@ public class JsonFileHandler : IJsonFileHandler
         this.logger = logger;
     }
 
-    public bool TryReadFile<T>(string filePath, out T content) where T: class
+    public T ReadFile<T>(string filePath) where T : class
     {
-        content = null;
-        if (!fileSystem.File.Exists(filePath))
-        {
-            return false;
-        }
-
-        try
-        {
-            var jsonContent = fileSystem.File.ReadAllText(filePath);
-            return jsonSerializer.TryDeserialize(jsonContent, out content);
-
-        }
-        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        {
-            logger.WriteLine(ex.Message);
-            return false;
-        }
+        var jsonContent = fileSystem.File.ReadAllText(filePath);
+        return jsonSerializer.Deserialize<T>(jsonContent);
     }
 
     public bool TryWriteToFile<T>(string filePath, T model) where T : class
     {
-        lock (Locker)
+        try
         {
-            try
+            var directoryName = Path.GetDirectoryName(filePath);
+            if (!fileSystem.Directory.Exists(directoryName))
             {
-                var directoryName = Path.GetDirectoryName(filePath);
-                if (!fileSystem.Directory.Exists(directoryName))
-                {
-                    fileSystem.Directory.CreateDirectory(directoryName);
-                }
-
-                var wasContentDeserialized = jsonSerializer.TrySerialize(model, out string serializedObj, Formatting.Indented);
-                if (wasContentDeserialized)
-                {
-                    fileSystem.File.WriteAllText(filePath, serializedObj);
-                    return true;
-                }
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(ex.Message);
+                fileSystem.Directory.CreateDirectory(directoryName);
             }
 
-            return false;
+            var wasContentDeserialized = jsonSerializer.TrySerialize(model, out string serializedObj, Formatting.Indented);
+            if (wasContentDeserialized)
+            {
+                fileSystem.File.WriteAllText(filePath, serializedObj);
+                return true;
+            }
         }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.WriteLine(ex.Message);
+        }
+
+        return false;
     }
 }
