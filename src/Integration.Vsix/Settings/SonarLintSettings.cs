@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public SonarLintSettings(IWritableSettingsStoreFactory storeFactory)
         {
             // Called from MEF constructor -> must be free-threaded
-            writableSettingsStore = new Lazy<WritableSettingsStore>(() => storeFactory.Create(SettingsRoot));
+            writableSettingsStore = new Lazy<WritableSettingsStore>(() => storeFactory.Create(SettingsRoot), LazyThreadSafetyMode.PublicationOnly);
         }
 
         internal /* testing purposes */ bool GetValueOrDefault(string key, bool defaultValue)

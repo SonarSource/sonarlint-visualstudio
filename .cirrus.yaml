@@ -1,0 +1,171 @@
+env:
+  ARTIFACTORY_URL: VAULT[development/kv/data/repox data.url]
+  ARTIFACTORY_PASSWORD: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-private-reader access_token]
+  ARTIFACTORY_USER: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-private-reader username]
+  CIRRUS_SHELL: bash
+  APPDATA: C:\sonar-ci\AppData\Roaming
+  LOCALAPPDATA: C:\sonar-ci\AppData\Local
+  TMP_DIR: C:\sonar-ci\temp
+  USERPROFILE: C:\sonar-ci
+  PATH: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin;C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\TestWindow;C:\Program Files (x86)\Microsoft SDKs\ClickOnce\SignTool;C:\Program Files\DigiCert\DigiCert One Signing Manager Tools;C:\sonar-ci\.dotnet\tools;${PATH}
+  CIRRUS_WORKING_DIR: C:\sonar-ci
+
+ec2_instance_definition: &INSTANCE_DEFINITION
+  region: eu-central-1
+  type: c6i.xlarge
+  image: base-windows-dotnet-v20240523071308
+  platform: windows
+
+calculate_version_script_definition: &CALCULATE_VERSION_SCRIPT_DEFINITION |
+    versionProps=$(cat build/Version.props)
+    sonarProjectVersion=$(echo "$versionProps" | sed -n 's:.*<MainVersion>\(.*\)</MainVersion>.*:\1:p')
+    echo "SHORT_VERSION=${sonarProjectVersion}" >> $CIRRUS_ENV
+    echo "PROJECT_VERSION=${sonarProjectVersion}.${CI_BUILD_NUMBER}" >> $CIRRUS_ENV
+
+only_sonarsource_qa: &ONLY_SONARSOURCE_QA
+  $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_PR != "" || $CIRRUS_BRANCH == "master" || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "dogfood-on-.*")
+
+build_task:
+  ec2_instance: *INSTANCE_DEFINITION
+  only_if: *ONLY_SONARSOURCE_QA
+  env:
+    ARTIFACTORY_DEPLOY_TOKEN: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-qa-deployer access_token]
+    COVERAGE_FILE: coverage.xml
+    SM_API_KEY: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.apikey]
+    SM_CERT_FP: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert_fp]
+    SM_CERT: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert]
+    SM_CLIENT_CERT_FILE_BASE64: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.client_cert_file_base64]
+    SM_CLIENT_CERT_FILE: ${TMP_DIR}\digicert_signing_certificate.p12
+    SM_CLIENT_CERT_PASSWORD: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.client_cert_password]
+    SM_CLIENT_CRT_FILE: ${TMP_DIR}\digicert_signing_certificate.crt
+    SM_CLIENT_CRT: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert]
+    SM_HOST: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.host]
+    SM_KP: key_525594307
+    SOLUTION_PATH: SonarLint.VisualStudio.Integration.sln
+    SONARSOURCE_SNK_FILE: ${TMP_DIR}\SonarSource.snk
+    SONARSOURCE_SNK: VAULT[development/team/languages/kv/data/strong_named_key data.SonarSourceSecret_snk]
+    SONAR_TOKEN: VAULT[development/kv/data/sonarcloud data.token]
+    SONAR_URL: VAULT[development/kv/data/sonarcloud data.url]
+    SIGN_KEY: VAULT[development/kv/data/sign data.key]
+    SIGN_PASSPHRASE: VAULT[development/kv/data/sign data.passphrase]
+  clone_script: |
+    git config --global core.autocrlf true
+    git init
+    git remote add origin https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git
+    git fetch origin
+    git reset --hard $CIRRUS_CHANGE_IN_REPO
+  calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
+  prepare_signing_script: |
+    if [[ "${CIRRUS_BRANCH}" == "${CIRRUS_DEFAULT_BRANCH}" ]] || echo "${CIRRUS_BRANCH}" | grep -qE "^branch-.*" || echo "${CIRRUS_BRANCH}" | grep -qE "^sign-.*"; then
+      mkdir -p "${TMP_DIR}"
+      echo "${SONARSOURCE_SNK}" | base64 -d > "${SONARSOURCE_SNK_FILE}"
+      echo "${SM_CLIENT_CERT_FILE_BASE64}" | base64 -d > "${SM_CLIENT_CERT_FILE}"
+      echo "${SM_CLIENT_CRT}" > "${SM_CLIENT_CRT_FILE}"
+      curl -L -o "${TMP_DIR}\smtools.msi" -H "x-api-key: ${SM_API_KEY}" https://one.digicert.com/signingmanager/api-ui/v1/releases/smtools-windows-x64.msi/download
+      powershell -Command "Start-Process msiexec -ArgumentList '/i ${TMP_DIR}\smtools.msi /quiet /qn /norestart' -Wait"
+      smctl windows certsync
+      echo "SHOULD_SIGN=true" >> $CIRRUS_ENV
+    else
+      echo "SHOULD_SIGN=false" >> $CIRRUS_ENV
+    fi
+  set_project_version_script: |
+    msbuild.exe build/ChangeVersion.proj -p:Sha1=${CIRRUS_CHANGE_IN_REPO} -p:BranchName=${CIRRUS_BRANCH} -p:BuildNumber=${CI_BUILD_NUMBER} -p:BuildConfiguration=Release
+  download_jar_dependencies_script: |
+    msbuild.exe build/DownloadDependencies -p:VsVersion=17.0 -p:VsTargetVersion=2022
+  dotnet_restore_script: |
+    dotnet restore "${SOLUTION_PATH}" --locked-mode
+  prepare_analysis_script: |
+    dotnet tool install --global dotnet-sonarscanner
+    dotnet tool install --global dotnet-coverage
+    dotnet sonarscanner begin -d:sonar.token=${SONAR_TOKEN} -d:sonar.host.url="${SONAR_URL}" -k:"${CIRRUS_REPO_NAME}" -o:"sonarsource" -d:sonar.cs.vscoveragexml.reportsPaths="${COVERAGE_FILE}" -d:sonar.scanner.scanAll=false
+  build_solution_script: |
+    msbuild.exe "${SOLUTION_PATH}" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=${SHOULD_SIGN} -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:DeployExtension=false -p:Sha1="${CIRRUS_CHANGE_IN_REPO}" -p:BuildNumber="${CI_BUILD_NUMBER}" -p:Configuration=Release
+  sign_artifact_script: |
+    if [[ "${SHOULD_SIGN}" == "true" ]]; then
+        nuget sign "binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix" -HashAlgorithm SHA256 -CertificateFingerprint ${SM_CERT_FP} -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
+    else
+        echo "Artifact not signed"
+    fi
+  generate_sbom_script: |
+    if [[ "${SHOULD_SIGN}" == "true" ]]; then
+      sbomname="SonarLint.visualstudio.sbom-${PROJECT_VERSION}-2022.json"
+      gpg --batch --passphrase "$SIGN_PASSPHRASE" --allow-secret-key-import --import <(echo "$SIGN_KEY")
+      gpg --list-secret-keys
+      dotnet tool install --global CycloneDX
+      dotnet CycloneDX SonarLint.VisualStudio.Integration.sln -t -j -o binaries
+      cd binaries
+      mv bom.json $sbomname
+      gpg --pinentry-mode loopback --passphrase "$SIGN_PASSPHRASE" --armor --detach-sig --default-key infra@sonarsource.com "$sbomname"
+      echo "signed $sbomname"
+      ls -al
+    fi
+  binaries_artifacts:
+    path: "binaries/*"
+  publish_to_repox_script: |
+    jf config add repox --artifactory-url ${ARTIFACTORY_URL} --access-token "${ARTIFACTORY_DEPLOY_TOKEN}"
+    jf rt upload "binaries/*" sonarsource-public-qa/org/sonarsource/sonarlint/visualstudio/${CIRRUS_REPO_NAME}/${PROJECT_VERSION}/ --flat --build-name ${CIRRUS_REPO_NAME} --build-number ${CI_BUILD_NUMBER} --module="org.sonarsource.sonarlint.visualstudio:${CIRRUS_REPO_NAME}:${PROJECT_VERSION}"
+    jf rt bp ${CIRRUS_REPO_NAME} ${CI_BUILD_NUMBER}
+  tests_script: |
+    vstest.console.exe --EnableCodeCoverage --Logger:trx --ResultsDirectory:"TestResults" src/**/bin/**/Sonar*.*Tests.dll
+  collect_coverage_script: |
+    dotnet-coverage merge -o "${COVERAGE_FILE}" -f xml "**\*.coverage"
+  sonarcloud_analysis_script: |
+    dotnet sonarscanner end -d:sonar.token="${SONAR_TOKEN}"
+  on_failure:
+    asmref_artifacts:
+      path: "src/Integration.Vsix/**/AsmRef_*.txt"
+
+dogfood_task:
+  depends_on:
+    - build
+  only_if: $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "dogfood-on-.*")
+  ec2_instance: *INSTANCE_DEFINITION
+  env:
+    AWS_ACCESS_KEY_ID: VAULT[development/aws/sts/downloads access_key]
+    AWS_SECRET_ACCESS_KEY: VAULT[development/aws/sts/downloads secret_key]
+    AWS_SESSION_TOKEN: VAULT[development/aws/sts/downloads security_token]
+    AWS_DEFAULT_REGION: eu-central-1
+  get_binaries_script: |
+    curl -O "https://api.cirrus-ci.com/v1/artifact/build/${CIRRUS_BUILD_ID}/build/binaries.zip"
+    unzip binaries.zip
+  calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
+  dogfood_script: |
+    curl -L0 "https://github.com/madskristensen/PrivateGalleryCreator/releases/download/1.0.64/PrivateGalleryCreator.zip" -o PrivateGalleryCreator.zip
+    unzip PrivateGalleryCreator.zip
+    mkdir -p /tmp/dogfood/${PROJECT_VERSION}
+    ./PrivateGalleryCreator.exe --input=. --terminate --source="https://binaries.sonarsource.com/SonarLint-for-VisualStudio/dogfood/${PROJECT_VERSION}/" --output=/tmp/dogfood/feed.xml
+    cp binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix /tmp/dogfood/${PROJECT_VERSION}/
+    .cirrus/publish-dogfood-site.sh /tmp/dogfood
+
+mend_scan_task:
+  ec2_instance: *INSTANCE_DEFINITION
+  only_if: $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH || $CIRRUS_BRANCH =~ "branch-.*" || $CIRRUS_BRANCH =~ "mend-.*")
+  env:
+    WS_APIKEY: VAULT[development/kv/data/mend data.apikey]
+  calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
+  mend_scan_script: |
+    curl -L -o /usr/bin/wss-unified-agent.jar https://unified-agent.s3.amazonaws.com/wss-unified-agent-23.11.3.jar
+    source cirrus-env QA
+    export WS_PRODUCTNAME="SonarLint/VisualStudio"
+    export WS_PROJECTNAME="${CIRRUS_REPO_FULL_NAME} ${SHORT_VERSION}"
+    export WS_PROJECTVERSION=${SHORT_VERSION}
+    ws_scan.sh -c build/whitesource/wss-unified-agent.config
+  allow_failures: true
+  always:
+    ws_artifacts:
+      path: "whitesource/**/*"
+
+promote_task:
+  ec2_instance: *INSTANCE_DEFINITION
+  only_if: $CIRRUS_USER_COLLABORATOR == "true" && $CIRRUS_TAG == "" && ($CIRRUS_BRANCH == $CIRRUS_DEFAULT_BRANCH || $CIRRUS_BRANCH =~ "branch-.*")
+  depends_on:
+    - build
+  env:
+    ARTIFACTORY_PROMOTE_ACCESS_TOKEN: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-promoter access_token]
+    GITHUB_TOKEN: VAULT[development/github/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-promotion token]
+  calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
+  promote_script: |
+    jf config add repox --artifactory-url ${ARTIFACTORY_URL} --access-token "${ARTIFACTORY_PROMOTE_ACCESS_TOKEN}"
+    jf rt bpr --status "it-passed" "${CIRRUS_REPO_NAME}" "${CI_BUILD_NUMBER}" "sonarsource-public-builds"
+    source cirrus-env PROMOTE
+    github-notify-promotion
