@@ -141,7 +141,7 @@
   <data name="UnintrusiveController_InvalidConnection" xml:space="preserve">
     <value>Could not convert connection information for the binding</value>
   </data>
-  <data name="UnintrusiveController_CantAddConnection" xml:space="preserve">
-    <value>Could not add converted connection</value>
+  <data name="UnintrusiveController_CantMigrateConnection" xml:space="preserve">
+    <value>Could not migrate server connection</value>
   </data>
 </root>

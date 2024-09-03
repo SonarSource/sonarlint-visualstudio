@@ -115,11 +115,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not add converted connection.
+        ///   Looks up a localized string similar to Could not migrate server connection.
         /// </summary>
-        internal static string UnintrusiveController_CantAddConnection {
+        internal static string UnintrusiveController_CantMigrateConnection {
             get {
-                return ResourceManager.GetString("UnintrusiveController_CantAddConnection", resourceCulture);
+                return ResourceManager.GetString("UnintrusiveController_CantMigrateConnection", resourceCulture);
             }
         }
         

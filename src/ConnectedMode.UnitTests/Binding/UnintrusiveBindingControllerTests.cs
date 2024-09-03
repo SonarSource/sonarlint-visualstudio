@@ -121,7 +121,7 @@ public class UnintrusiveBindingControllerTests
             
         Func<Task> act = async () => await testSubject.BindWithMigrationAsync(OldBoundProject, null, CancellationToken.None);
 
-        act.Should().Throw<InvalidOperationException>().WithMessage(BindingStrings.UnintrusiveController_CantAddConnection);
+        act.Should().Throw<InvalidOperationException>().WithMessage(BindingStrings.UnintrusiveController_CantMigrateConnection);
     }
     
     [TestMethod]
