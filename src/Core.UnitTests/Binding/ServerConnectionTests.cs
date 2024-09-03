@@ -57,6 +57,7 @@ public class ServerConnectionTests
     [TestMethod]
     public void Ctor_SonarCloud_SetsProperties()
     {
+        var expectedServerUri = new Uri("https://sonarcloud.io");
         var serverConnectionSettings = new ServerConnectionSettings(false);
         var credentials = Substitute.For<ICredentials>();
         var sonarCloud = new ServerConnection.SonarCloud(Org, serverConnectionSettings, credentials);

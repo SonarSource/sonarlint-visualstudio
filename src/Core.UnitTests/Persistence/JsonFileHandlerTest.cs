@@ -55,76 +55,29 @@ public class JsonFileHandlerTest
     [TestMethod]
     public void Mef_CheckIsSingleton()
     {
-        MefTestHelpers.CheckIsSingletonMefComponent<JsonFileHandler>();
+        MefTestHelpers.CheckIsNonSharedMefComponent<JsonFileHandler>();
     }
 
     [TestMethod]
-    public void TryReadFile_FileDoesNotExist_ReturnsFalse()
-    {
-        fileSystem.File.Exists(FilePath).Returns(false);
-
-        var succeeded = testSubject.TryReadFile(FilePath, out TestType deserializedContent);
-
-        succeeded.Should().BeFalse();
-        deserializedContent.Should().BeNull();
-        fileSystem.File.Received(1).Exists(FilePath);
-    }
-
-    [TestMethod]
-    public void TryReadFile_FileExists_ReturnsTrueAndDeserializeContent()
-    {
-        var expectedContent = new TestType("test");
-        var serializedContent = JsonConvert.SerializeObject(expectedContent);
-        fileSystem.File.Exists(FilePath).Returns(true);
-        fileSystem.File.ReadAllText(FilePath).Returns(serializedContent);
-        serializer.TryDeserialize(Arg.Any<string>(), out Arg.Any<TestType>()).Returns(true);
-
-        var succeeded = testSubject.TryReadFile(FilePath, out TestType _);
-
-        succeeded.Should().BeTrue();
-        Received.InOrder(() =>
-        {
-            fileSystem.File.Exists(FilePath);
-            fileSystem.File.ReadAllText(FilePath);
-            serializer.TryDeserialize(Arg.Any<string>(), out Arg.Any<TestType>());
-        });
-    }
-
-    [TestMethod]
-    public void TryReadFile_ReadingFileThrowsException_WritesLogAndReturnsFalse()
+    public void ReadFile_ReadingFileThrowsException_TrowsException()
     {
         var exceptionMsg = "IO failed";
-        fileSystem.File.Exists(FilePath).Returns(true);
         fileSystem.File.When(x => x.ReadAllText(FilePath)).Do(x => throw new Exception(exceptionMsg));
 
-        var succeeded = testSubject.TryReadFile(FilePath, out TestType _);
+        Action act  = () => testSubject.ReadFile<TestType>(FilePath);
 
-        succeeded.Should().BeFalse();
-        logger.Received(1).WriteLine(exceptionMsg);
+        act.Should().Throw<Exception>().WithMessage(exceptionMsg);
     }
 
     [TestMethod]
-    public void TryReadFile_DeserializationThrowsException_WritesLogAndReturnsFalse()
+    public void ReadFile_DeserializationThrowsException_TrowsException()
     {
-        var exceptionMsg = "deserialization failed";
-        fileSystem.File.Exists(FilePath).Returns(true);
-        serializer.When(x => x.TryDeserialize(Arg.Any<string>(), out Arg.Any<TestType>())).Do(x => throw new Exception(exceptionMsg));
+        var exceptionMsg = "IO failed";
+        serializer.When(x => x.Deserialize<TestType>(Arg.Any<string>())).Do(x => throw new Exception(exceptionMsg));
 
-        var succeeded = testSubject.TryReadFile(FilePath, out TestType _);
+        Action act = () => testSubject.ReadFile<TestType>(FilePath);
 
-        succeeded.Should().BeFalse();
-        logger.Received(1).WriteLine(exceptionMsg);
-    }
-
-    [TestMethod]
-    public void TryReadFile_DeserializationFails_WritesLogAndReturnsFalse()
-    {
-        fileSystem.File.Exists(FilePath).Returns(true);
-        serializer.TryDeserialize(Arg.Any<string>(), out Arg.Any<TestType>()).Returns(false);
-
-        var succeeded = testSubject.TryReadFile(FilePath, out TestType _);
-
-        succeeded.Should().BeFalse();
+        act.Should().Throw<Exception>().WithMessage(exceptionMsg);
     }
 
     [TestMethod]
