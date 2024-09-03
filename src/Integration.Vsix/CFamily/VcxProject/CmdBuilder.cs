@@ -145,6 +145,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             var cppStandard = GetPotentiallyUnsupportedPropertyValue(properties, "LanguageStandard", "");
             AddCmdOpt(ConvertCppStandard(cppStandard));
 
+            var cStandard = GetPotentiallyUnsupportedPropertyValue(properties, "LanguageStandard_C", "");
+            AddCmdOpt(ConvertCStandard(cStandard));
+
             var exceptionHandling = properties.GetEvaluatedPropertyValue("ExceptionHandling");
             AddCmdOpt(ConvertExceptionHandling(exceptionHandling));
 
@@ -378,6 +381,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                     return "/std:c++14";
             }
         }
+
+        internal /* for testing */ static string ConvertCStandard(string value)
+        {
+            switch (value)
+            {
+                default:
+                    throw new ArgumentException($"Unsupported LanguageStandard_C: {value}", nameof(value));
+                case null:
+                case "":
+                case "Default":
+                    return "";
+                case "stdclatest":
+                    return "/std:clatest";
+                case "stdc23":
+                    return "/std:c23";
+                case "stdc17":
+                    return "/std:c17";
+                case "stdc11":
+                    return "/std:c11";
+            }
+        }
+
         /// <summary>
         /// Returns the value of a property that might not be supported by the current version of the compiler.
         /// If the property is not supported the default value is returned.
