@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core.Binding;
@@ -34,6 +32,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
         public SolutionBindingCredentialsLoader(ICredentialStoreService store)
         {
             this.store = store ?? throw new ArgumentNullException(nameof(store));
+        }
+
+        public void DeleteCredentials(Uri boundServerUri)
+        {
+            if(boundServerUri == null)
+            {
+                return;
+            }
+            store.DeleteCredentials(boundServerUri);
         }
 
         public ICredentials Load(Uri boundServerUri)
