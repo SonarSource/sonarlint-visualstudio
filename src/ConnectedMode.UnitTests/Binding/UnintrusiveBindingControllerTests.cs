@@ -64,7 +64,7 @@ public class UnintrusiveBindingControllerTests
     }
         
     [TestMethod]
-    public async Task BindAsync_OldProject_ConnectionExists_EstablishesBinding()
+    public async Task BindWithMigrationAsync_OldProject_ConnectionExists_EstablishesBinding()
     {
         var cancellationToken = CancellationToken.None;
         var bindingProcess = Substitute.For<IBindingProcess>();
@@ -75,7 +75,7 @@ public class UnintrusiveBindingControllerTests
         var solutionInfoProvider = CreateSolutionInfoProvider();
         var testSubject = CreateTestSubject(bindingProcessFactory, serverConnectionsRepository, solutionInfoProvider);
             
-        await testSubject.BindAsync(OldBoundProject, null, cancellationToken);
+        await testSubject.BindWithMigrationAsync(OldBoundProject, null, cancellationToken);
 
         Received.InOrder(() =>
         {
@@ -88,7 +88,7 @@ public class UnintrusiveBindingControllerTests
     }
 
     [TestMethod]
-    public async Task BindAsync_OldProject_ConnectionDoesNotExist_AddsConnectionAndEstablishesBinding()
+    public async Task BindWithMigrationAsync_OldProject_ConnectionDoesNotExist_AddsConnectionAndEstablishesBinding()
     {
         var cancellationToken = CancellationToken.None;
         var bindingProcess = Substitute.For<IBindingProcess>();
@@ -99,7 +99,7 @@ public class UnintrusiveBindingControllerTests
         var solutionInfoProvider = CreateSolutionInfoProvider();
         var testSubject = CreateTestSubject(bindingProcessFactory, serverConnectionsRepository, solutionInfoProvider);
             
-        await testSubject.BindAsync(OldBoundProject, null, cancellationToken);
+        await testSubject.BindWithMigrationAsync(OldBoundProject, null, cancellationToken);
 
         Received.InOrder(() =>
         {
@@ -113,23 +113,23 @@ public class UnintrusiveBindingControllerTests
     }
     
     [TestMethod]
-    public void BindAsync_OldProject_ConnectionDoesNotExist_CannotAdd_Throws()
+    public void BindWithMigrationAsync_OldProject_ConnectionDoesNotExist_CannotAdd_Throws()
     {
         var convertedConnection = ServerConnection.FromBoundSonarQubeProject(OldBoundProject);
         var serverConnectionsRepository = CreateServerConnectionsRepository(convertedConnection.Id);
         var testSubject = CreateTestSubject(serverConnectionsRepository: serverConnectionsRepository);
             
-        Func<Task> act = async () => await testSubject.BindAsync(OldBoundProject, null, CancellationToken.None);
+        Func<Task> act = async () => await testSubject.BindWithMigrationAsync(OldBoundProject, null, CancellationToken.None);
 
         act.Should().Throw<InvalidOperationException>().WithMessage(BindingStrings.UnintrusiveController_CantAddConnection);
     }
     
     [TestMethod]
-    public void BindAsync_OldProject_InvalidServerInformation_Throws()
+    public void BindWithMigrationAsync_OldProject_InvalidServerInformation_Throws()
     {
         var testSubject = CreateTestSubject();
             
-        Func<Task> act = async () => await testSubject.BindAsync(new BoundSonarQubeProject(), null, CancellationToken.None);
+        Func<Task> act = async () => await testSubject.BindWithMigrationAsync(new BoundSonarQubeProject(), null, CancellationToken.None);
 
         act.Should().Throw<InvalidOperationException>().WithMessage(BindingStrings.UnintrusiveController_InvalidConnection);
     }

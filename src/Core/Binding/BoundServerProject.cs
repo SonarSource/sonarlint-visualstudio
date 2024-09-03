@@ -47,7 +47,7 @@ public class BoundServerProject
     }
 
     public static BoundServerProject FromBoundSonarQubeProject(BoundSonarQubeProject boundProject, string localBindingKey = null, ServerConnection connection = null) =>
-        new(localBindingKey ?? "Solution Name Placeholder", // todo https://sonarsource.atlassian.net/browse/SLVS-1422
+        new(localBindingKey ?? "Solution Name Placeholder", // todo https://sonarsource.atlassian.net/browse/SLVS-1424
             boundProject.ProjectKey,
             connection ?? ServerConnection.FromBoundSonarQubeProject(boundProject))
         {

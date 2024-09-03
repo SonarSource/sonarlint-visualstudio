@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     internal interface IUnintrusiveBindingController
     {
-        Task BindAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
+        Task BindWithMigrationAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
         Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
     }
 
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             await bindingProcess.SaveServerExclusionsAsync(token);
         }
 
-        public async Task BindAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
+        public async Task BindWithMigrationAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
         {
             var proposedConnection = ServerConnection.FromBoundSonarQubeProject(project);
 
