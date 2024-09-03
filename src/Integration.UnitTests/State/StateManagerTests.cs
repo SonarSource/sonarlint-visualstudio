@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             section.ViewModel.State = testSubject.ManagedState;
             var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
             var connection2 = new ConnectionInformation(new Uri("http://127.0.0.2"));
-            var projects = new[] { new SonarQubeProject("", ""), new SonarQubeProject("", "") };
+            var projects = new[] { new SonarQubeProject("projectKey1", ""), new SonarQubeProject("projectKey2", "") };
             host.SetActiveSection(section);
             ServerViewModel serverVM;
 
@@ -164,7 +164,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host, section);
             var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
-            var projects = new SonarQubeProject[] { new SonarQubeProject("", ""), new SonarQubeProject("", "") };
+            var projects = new SonarQubeProject[] { new SonarQubeProject("projectKey1", ""), new SonarQubeProject("projectKey2", "") };
             testSubject.SetProjects(connection1, projects);
             ServerViewModel serverVM = testSubject.ManagedState.ConnectedServers.Single();
 
@@ -198,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host, section);
             var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
-            var projects = new SonarQubeProject[] { new SonarQubeProject("", ""), new SonarQubeProject("", "") };
+            var projects = new SonarQubeProject[] { new SonarQubeProject("projectKey1", ""), new SonarQubeProject("projectKey2", "") };
             testSubject.SetProjects(connection1, projects);
             ServerViewModel serverVM = testSubject.ManagedState.ConnectedServers.Single();
             host.SetActiveSection(section);
@@ -225,7 +225,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host, section);
             var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
-            var projects = new SonarQubeProject[] { new SonarQubeProject("", "") };
+            var projects = new SonarQubeProject[] { new SonarQubeProject("projectKey", "") };
             testSubject.SetProjects(connection1, projects);
             ProjectViewModel projectVM = testSubject.ManagedState.ConnectedServers.Single().Projects.Single();
             host.SetActiveSection(section);
