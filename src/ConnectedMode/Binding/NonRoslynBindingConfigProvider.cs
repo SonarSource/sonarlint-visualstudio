@@ -63,7 +63,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         public bool IsLanguageSupported(Language language) => supportedLanguages.Contains(language);
 
-        public async Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, LegacyBindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
+        public async Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language,
+            BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
         {
             if (!IsLanguageSupported(language))
             {
