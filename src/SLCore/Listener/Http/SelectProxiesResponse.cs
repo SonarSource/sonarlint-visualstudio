@@ -18,13 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener.Proxy;
+namespace SonarLint.VisualStudio.SLCore.Listener.Http;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
-
-public interface IProxyConfigurationListener : ISLCoreListener
+public class SelectProxiesResponse
 {
-    Task<SelectProxiesResponse> SelectProxiesAsync(object parameters);
+    public List<object> proxies = new();
 }
