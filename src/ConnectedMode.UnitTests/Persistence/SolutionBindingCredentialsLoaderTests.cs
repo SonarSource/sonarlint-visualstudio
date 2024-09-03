@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
@@ -31,16 +29,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
     [TestClass]
     public class SolutionBindingCredentialsLoaderTests
     {
-        private Mock<ICredentialStoreService> store;
+        private ICredentialStoreService store;
         private Uri mockUri;
         private SolutionBindingCredentialsLoader testSubject;
 
         [TestInitialize]
         public void Setup()
         {
-            store = new Mock<ICredentialStoreService>();
+            store = Substitute.For<ICredentialStoreService>();
             mockUri = new Uri("http://sonarsource.com");
-            testSubject = new SolutionBindingCredentialsLoader(store.Object);
+            testSubject = new SolutionBindingCredentialsLoader(store);
         }
 
         [TestMethod]
@@ -61,7 +59,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Load_NoCredentials_Null()
         {
-            store.Setup(x => x.ReadCredentials(mockUri)).Returns(null as Credential);
+            store.ReadCredentials(mockUri).Returns(null as Credential);
 
             var actual = testSubject.Load(mockUri);
             actual.Should().Be(null);
@@ -72,7 +70,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             var credentials = new Credential("user", "password");
             store
-                .Setup(x => x.ReadCredentials(It.Is<TargetUri>(t => t.ActualUri == mockUri)))
+                .ReadCredentials(Arg.Is<TargetUri>(t => t.ActualUri == mockUri))
                 .Returns(credentials);
 
             var actual = testSubject.Load(mockUri);
@@ -86,7 +84,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 
             testSubject.Save(credentials, null);
 
-            store.Verify(x=> x.WriteCredentials(It.IsAny<TargetUri>(), It.IsAny<Credential>()), Times.Never);
+            store.DidNotReceive().WriteCredentials(Arg.Any<TargetUri>(), Arg.Any<Credential>());
         }
 
         [TestMethod]
@@ -94,7 +92,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             testSubject.Save(null, mockUri);
 
-            store.Verify(x => x.WriteCredentials(It.IsAny<TargetUri>(), It.IsAny<Credential>()), Times.Never);
+            store.DidNotReceive().WriteCredentials(Arg.Any<TargetUri>(), Arg.Any<Credential>());
         }
 
         [TestMethod]
@@ -103,7 +101,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             var mockCredentials = new Mock<ICredentials>();
             testSubject.Save(mockCredentials.Object, mockUri);
 
-            store.Verify(x => x.WriteCredentials(It.IsAny<TargetUri>(), It.IsAny<Credential>()), Times.Never);
+            store.DidNotReceive().WriteCredentials(Arg.Any<TargetUri>(), Arg.Any<Credential>());
         }
 
         [TestMethod]
@@ -112,11 +110,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             var credentials = new BasicAuthCredentials("user", "password".ToSecureString());
             testSubject.Save(credentials, mockUri);
 
-            store.Verify(x => 
-                x.WriteCredentials(
-                    It.Is<TargetUri>(t => t.ActualUri == mockUri), 
-                    It.Is<Credential>(c=> c.Username == "user" && c.Password == "password")), 
-                Times.Once);
+            store.Received(1)
+                .WriteCredentials(
+                    Arg.Is<TargetUri>(t => t.ActualUri == mockUri), 
+                    Arg.Is<Credential>(c=> c.Username == "user" && c.Password == "password"));
+        }
+
+        [TestMethod]
+        public void DeleteCredentials_UriNull_DoesNotCallStoreDeleteCredentials()
+        {
+            testSubject.DeleteCredentials(null);
+
+            store.DidNotReceive().DeleteCredentials(Arg.Any<TargetUri>());
+        }
+
+        [TestMethod]
+        public void DeleteCredentials_UriProvided_CallsStoreDeleteCredentials()
+        {
+            testSubject.DeleteCredentials(mockUri);
+
+            store.Received(1).DeleteCredentials(Arg.Any<TargetUri>());
         }
     }
 }

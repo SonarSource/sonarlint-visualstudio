@@ -25,6 +25,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
     interface ISolutionBindingCredentialsLoader
     {
+        void DeleteCredentials(Uri boundServerUri);
         ICredentials Load(Uri boundServerUri);
         void Save(ICredentials credentials, Uri boundServerUri);
     }
