@@ -266,7 +266,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingController.Object);
             await testSubject.MigrateAsync(AnyBoundProject, migrationProgress, false, cancellationToken);
 
-            unintrusiveBindingController.Verify(x => x.BindAsync(AnyBoundProject, It.IsAny<IProgress<FixedStepsProgress>>(), cancellationToken), Times.Once);
+            unintrusiveBindingController.Verify(x => x.BindWithMigrationAsync(AnyBoundProject, It.IsAny<IProgress<FixedStepsProgress>>(), cancellationToken), Times.Once);
         }
 
         [TestMethod]

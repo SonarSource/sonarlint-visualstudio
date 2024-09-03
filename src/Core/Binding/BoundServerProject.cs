@@ -46,22 +46,13 @@ public class BoundServerProject
         LocalBindingKey = localBindingKey;
     }
 
-    public static BoundServerProject FromBoundSonarQubeProject(BoundSonarQubeProject boundProject)
-    {
-        ServerConnection connection = boundProject switch
-        {
-            { Organization: not null } => new ServerConnection.SonarCloud(boundProject.Organization.Key, credentials: boundProject.Credentials),
-            { ServerUri: not null } => new ServerConnection.SonarQube(boundProject.ServerUri, credentials: boundProject.Credentials),
-            _ => null
-        };
-
-        return new BoundServerProject("Solution Name Placeholder", // todo https://sonarsource.atlassian.net/browse/SLVS-1422
+    public static BoundServerProject FromBoundSonarQubeProject(BoundSonarQubeProject boundProject, string localBindingKey = null, ServerConnection connection = null) =>
+        new(localBindingKey ?? "Solution Name Placeholder", // todo https://sonarsource.atlassian.net/browse/SLVS-1424
             boundProject.ProjectKey,
-            connection)
+            connection ?? ServerConnection.FromBoundSonarQubeProject(boundProject))
         {
             Profiles = boundProject.Profiles
         };
-    }
 
     public BoundSonarQubeProject ToBoundSonarQubeProject()
     {

@@ -19,13 +19,17 @@
  */
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Windows.Data;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.WPF
 {
+    [ExcludeFromCodeCoverage] // todo https://sonarsource.atlassian.net/browse/SLVS-1408
     [ValueConversion(typeof(ProjectViewModel), typeof(BindCommandArgs))]
     public class ProjectViewModelToBindingArgsConverter : IValueConverter
     {
@@ -37,8 +41,7 @@ namespace SonarLint.VisualStudio.Integration.WPF
                 return null;
             }
 
-            return new BindCommandArgs(projectViewModel.Key, projectViewModel.ProjectName,
-                projectViewModel.Owner.ConnectionInformation);
+            return new BindCommandArgs(new BoundServerProject("placeholder", projectViewModel.Key, projectViewModel.Owner.ConnectionInformation.ToServerConnection())); // todo https://sonarsource.atlassian.net/browse/SLVS-1408
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

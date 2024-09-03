@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         /// </summary>
         /// <returns>true if there were changes updated, false if everything is up to date</returns>
         /// <exception cref="InvalidOperationException">If binding failed for one of the languages</exception>
-        Task<bool> UpdateAsync(BoundSonarQubeProject boundProject, IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
+        Task<bool> UpdateAsync(BoundServerProject boundProject, IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
     }
     
     [Export(typeof(IQualityProfileDownloader))]
@@ -80,7 +80,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             this.outOfDateQualityProfileFinder = outOfDateQualityProfileFinder;
         }
 
-        public async Task<bool> UpdateAsync(BoundSonarQubeProject boundProject, IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
+        public async Task<bool> UpdateAsync(BoundServerProject boundProject, IProgress<FixedStepsProgress> progress,
+            CancellationToken cancellationToken)
         {
             var isChanged = false;
 
@@ -140,7 +141,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         /// </summary>
         /// <remarks>If we add support for new language in the future, this method will make sure it's
         /// Quality Profile is fetched next time an update is triggered</remarks>
-        private void EnsureProfilesExistForAllSupportedLanguages(BoundSonarQubeProject boundProject)
+        private void EnsureProfilesExistForAllSupportedLanguages(BoundServerProject boundProject)
         {
             if (boundProject.Profiles == null)
             {
@@ -160,7 +161,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             }
         }
 
-        private static void UpdateProfile(BoundSonarQubeProject boundSonarQubeProject, Language language, SonarQubeQualityProfile serverProfile)
+        private static void UpdateProfile(BoundServerProject boundSonarQubeProject, Language language, SonarQubeQualityProfile serverProfile)
         {
             boundSonarQubeProject.Profiles[language] = new ApplicableQualityProfile
             {

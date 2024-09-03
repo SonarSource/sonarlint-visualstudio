@@ -65,7 +65,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return Language.CSharp.Equals(language) || Language.VBNET.Equals(language);
         }
 
-        public Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, LegacyBindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
+        public Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language,
+            BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
         {
             if (!IsLanguageSupported(language))
             {
@@ -75,7 +76,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return DoGetConfigurationAsync(qualityProfile, language, bindingConfiguration, cancellationToken);
         }
 
-        private async Task<IBindingConfig> DoGetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, LegacyBindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
+        private async Task<IBindingConfig> DoGetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
         {
             var serverLanguage = language.ServerLanguage;
             Debug.Assert(serverLanguage != null,
@@ -93,11 +94,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             }
 
             // Now fetch the data required for the NuGet configuration
-            var sonarProperties = await FetchPropertiesAsync(bindingConfiguration.Project.ProjectKey, cancellationToken);
+            var sonarProperties = await FetchPropertiesAsync(bindingConfiguration.Project.ServerProjectKey, cancellationToken);
 
             // Finally, fetch the remaining data needed to build the globalconfig
             var inactiveRules = await FetchSupportedRulesAsync(false, qualityProfile.Key, cancellationToken);
-            var exclusions = await FetchInclusionsExclusionsAsync(bindingConfiguration.Project.ProjectKey, cancellationToken);
+            var exclusions = await FetchInclusionsExclusionsAsync(bindingConfiguration.Project.ServerProjectKey, cancellationToken);
 
             var globalConfig = GetGlobalConfig(language, bindingConfiguration, activeRules, inactiveRules);
             var additionalFile = GetAdditionalFile(language, bindingConfiguration, activeRules, sonarProperties, exclusions);
@@ -114,7 +115,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return exclusions;
         }
 
-        private FilePathAndContent<string> GetGlobalConfig(Language language, LegacyBindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules)
+        private FilePathAndContent<string> GetGlobalConfig(Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules)
         {
             var globalConfig = globalConfigGenerator.Generate(activeRules.Union(inactiveRules));
 
@@ -124,7 +125,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         }
 
         private FilePathAndContent<SonarLintConfiguration> GetAdditionalFile(Language language,
-            LegacyBindingConfiguration bindingConfiguration, 
+            BindingConfiguration bindingConfiguration, 
             IEnumerable<SonarQubeRule> activeRules,
             IDictionary<string, string> sonarProperties,
             ServerExclusions serverExclusions)
@@ -169,12 +170,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             issueType == SonarQubeIssueType.Bug ||
             issueType == SonarQubeIssueType.Vulnerability;
 
-        internal static string GetSolutionGlobalConfigFilePath(Language language, LegacyBindingConfiguration bindingConfiguration)
+        internal static string GetSolutionGlobalConfigFilePath(Language language, BindingConfiguration bindingConfiguration)
         {
             return bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
         }
 
-        internal static string GetSolutionAdditionalFilePath(Language language, LegacyBindingConfiguration bindingConfiguration)
+        internal static string GetSolutionAdditionalFilePath(Language language, BindingConfiguration bindingConfiguration)
         {
             var additionalFilePathDirectory = bindingConfiguration.BuildPathUnderConfigDirectory();
 

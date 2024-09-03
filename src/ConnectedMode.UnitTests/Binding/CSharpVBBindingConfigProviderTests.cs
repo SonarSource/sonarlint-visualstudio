@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             var testSubject = builder.CreateTestSubject();
 
             // Act
-            Action act = () => testSubject.GetConfigurationAsync(validQualityProfile, Language.Cpp, LegacyBindingConfiguration.Standalone, CancellationToken.None).Wait();
+            Action act = () => testSubject.GetConfigurationAsync(validQualityProfile, Language.Cpp, BindingConfiguration.Standalone, CancellationToken.None).Wait();
 
             // Assert
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
@@ -185,7 +185,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         public async Task GetConfig_HasActiveInactiveAndUnsupportedRules_ReturnsValidBindingConfig()
         {
             // Arrange
-            const string expectedProjectName = "my project";
             const string expectedServerUrl = "http://myhost:123/";
 
             var properties = new SonarQubeProperty[]
@@ -207,7 +206,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
                     InactiveRuleWithUnsupportedSeverity
                 };
 
-            var builder = new TestEnvironmentBuilder(validQualityProfile, Language.CSharp, expectedProjectName, expectedServerUrl)
+            var builder = new TestEnvironmentBuilder(validQualityProfile, Language.CSharp, expectedServerUrl)
             {
                 ActiveRulesResponse = activeRules,
                 InactiveRulesResponse = inactiveRules,
@@ -278,17 +277,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 
             private readonly SonarQubeQualityProfile profile;
             private readonly Language language;
-            private readonly string projectName;
             private readonly string serverUrl;
 
             private const string ExpectedProjectKey = "fixed.project.key";
 
-            public TestEnvironmentBuilder(SonarQubeQualityProfile profile, Language language,
-                string projectName = "any", string serverUrl = "http://any")
+            public TestEnvironmentBuilder(SonarQubeQualityProfile profile, Language language, string serverUrl = "http://any")
             {
                 this.profile = profile;
                 this.language = language;
-                this.projectName = projectName;
                 this.serverUrl = serverUrl;
 
                 Logger = new TestLogger();
@@ -296,7 +292,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
                 PropertiesResponse = new List<SonarQubeProperty>();
             }
 
-            public LegacyBindingConfiguration BindingConfiguration { get; private set; }
+            public BindingConfiguration BindingConfiguration { get; private set; }
             public SonarLintConfiguration SonarLintConfigurationResponse { get; set; }
             public IList<SonarQubeRule> ActiveRulesResponse { get; set; }
             public IList<SonarQubeRule> InactiveRulesResponse { get; set; }
@@ -342,8 +338,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
                         CapturedRulesPassedToGlobalConfigGenerator = rules;
                     });
 
-                BindingConfiguration = new LegacyBindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), ExpectedProjectKey, projectName),
-                    SonarLintMode.Connected, "c:\\test\\");
+                BindingConfiguration = new BindingConfiguration(
+                    new BoundServerProject("solution", ExpectedProjectKey, new ServerConnection.SonarQube(new Uri(serverUrl))),
+                    SonarLintMode.Connected, 
+                    "c:\\test\\");
 
                 var sonarProperties = PropertiesResponse.ToDictionary(x => x.Key, y => y.Value);
                 sonarLintConfigGeneratorMock

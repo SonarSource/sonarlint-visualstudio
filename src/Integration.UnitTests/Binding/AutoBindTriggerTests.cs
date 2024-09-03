@@ -88,8 +88,7 @@ public class AutoBindTriggerTests
         
         bindCommandMock.Verify(
             x => x.Execute(It.Is<BindCommandArgs>(args =>
-                args.ProjectKey == "project" && args.Connection == ConnectionInformation &&
-                args.ProjectName == string.Empty)), Times.Once);
+                args.ProjectToBind.ServerProjectKey == "project" && args.ProjectToBind.ServerConnection.ServerUri == ConnectionInformation.ServerUri)), Times.Once);
     }
 
     private static (Mock<IHost> hostMock, Mock<ICommand<BindCommandArgs>> bindCommandMock) CreateHostMock()

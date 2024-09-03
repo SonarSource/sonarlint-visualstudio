@@ -113,5 +113,23 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
                 return ResourceManager.GetString("SubTextPaddingFormat", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not migrate server connection.
+        /// </summary>
+        internal static string UnintrusiveController_CantMigrateConnection {
+            get {
+                return ResourceManager.GetString("UnintrusiveController_CantMigrateConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not convert connection information for the binding.
+        /// </summary>
+        internal static string UnintrusiveController_InvalidConnection {
+            get {
+                return ResourceManager.GetString("UnintrusiveController_InvalidConnection", resourceCulture);
+            }
+        }
     }
 }

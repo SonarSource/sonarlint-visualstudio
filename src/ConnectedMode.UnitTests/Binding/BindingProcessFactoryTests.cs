@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
@@ -45,7 +46,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         [TestMethod]
         public void Create_ReturnsProcessImpl()
         {
-            var bindingArgs = new BindCommandArgs("proj key", "proj name", new ConnectionInformation(new Uri("http://localhost")));
+            var bindingArgs = new BindCommandArgs(new BoundServerProject("any", "any", new ServerConnection.SonarCloud("any")));
 
             var testSubject = CreateTestSubject();
 

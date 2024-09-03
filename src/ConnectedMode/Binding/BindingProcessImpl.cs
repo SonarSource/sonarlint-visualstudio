@@ -54,21 +54,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.qualityProfileDownloader = qualityProfileDownloader ?? throw new ArgumentNullException(nameof(qualityProfileDownloader));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            Debug.Assert(bindingArgs.ProjectKey != null);
-            Debug.Assert(bindingArgs.ProjectName != null);
-            Debug.Assert(bindingArgs.Connection != null);
         }
 
         #region IBindingTemplate methods
 
         public async Task<bool> DownloadQualityProfileAsync(IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken)
         {
-            var boundProject = CreateNewBindingConfig();
-
             try
             {
-                await qualityProfileDownloader.UpdateAsync(boundProject, progress, cancellationToken);
+                await qualityProfileDownloader.UpdateAsync(bindingArgs.ProjectToBind, progress, cancellationToken);
                 // ignore the UpdateAsync result, as the return value of false indicates error, rather than lack of changes
                 return true;
             }
@@ -80,24 +74,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return false;
         }
 
-        private BoundSonarQubeProject CreateNewBindingConfig()
-        {
-            BasicAuthCredentials credentials = bindingArgs.Connection.UserName == null ? null : new BasicAuthCredentials(bindingArgs.Connection.UserName, bindingArgs.Connection.Password);
-
-            var boundProject = new BoundSonarQubeProject(bindingArgs.Connection.ServerUri,
-                bindingArgs.ProjectKey,
-                bindingArgs.ProjectName,
-                credentials,
-                bindingArgs.Connection.Organization);
-
-            return boundProject;
-        }
-
         public async Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken)
         {
             try
             {
-                var exclusions = await sonarQubeService.GetServerExclusions(bindingArgs.ProjectKey, cancellationToken);
+                var exclusions = await sonarQubeService.GetServerExclusions(bindingArgs.ProjectToBind.ServerProjectKey, cancellationToken);
                 exclusionSettingsStorage.SaveSettings(exclusions);
             }
             catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))

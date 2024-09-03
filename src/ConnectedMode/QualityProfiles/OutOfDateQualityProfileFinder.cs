@@ -37,8 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         /// <summary>
         /// Gives the list of outdated quality profiles based on the existing ones from <see cref="BoundSonarQubeProject.Profiles"/>
         /// </summary>
-        Task<IReadOnlyCollection<(Language language, SonarQubeQualityProfile qualityProfile)>> GetAsync(
-            BoundSonarQubeProject sonarQubeProject,
+        Task<IReadOnlyCollection<(Language language, SonarQubeQualityProfile qualityProfile)>> GetAsync(BoundServerProject sonarQubeProject,
             CancellationToken cancellationToken);
     }
 
@@ -55,12 +54,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         }
 
         public async Task<IReadOnlyCollection<(Language language, SonarQubeQualityProfile qualityProfile)>> GetAsync(
-            BoundSonarQubeProject sonarQubeProject,
+            BoundServerProject sonarQubeProject,
             CancellationToken cancellationToken)
         {
             var sonarQubeQualityProfiles =
-                await sonarQubeService.GetAllQualityProfilesAsync(sonarQubeProject.ProjectKey,
-                    sonarQubeProject.Organization?.Key,
+                await sonarQubeService.GetAllQualityProfilesAsync(sonarQubeProject.ServerProjectKey,
+                    (sonarQubeProject.ServerConnection as ServerConnection.SonarCloud)?.OrganizationKey,
                     cancellationToken);
 
             return sonarQubeQualityProfiles
@@ -72,7 +71,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                 .ToArray();
         }
 
-        private static bool IsLocalQPOutOfDate(BoundSonarQubeProject sonarQubeProject, Language language,
+        private static bool IsLocalQPOutOfDate(BoundServerProject sonarQubeProject, Language language,
             SonarQubeQualityProfile serverQualityProfile)
         {
             if (language == default)

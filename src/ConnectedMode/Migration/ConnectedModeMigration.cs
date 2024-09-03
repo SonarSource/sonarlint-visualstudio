@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             logger.WriteLine(MigrationStrings.Process_ProcessingNewBinding);
 
             var progressAdapter = new FixedStepsProgressToMigrationProgressAdapter(progress);
-            await unintrusiveBindingController.BindAsync(oldBinding, progressAdapter, token);
+            await unintrusiveBindingController.BindWithMigrationAsync(oldBinding, progressAdapter, token);
 
             // Now make all of the files changes required to remove the legacy settings
             // i.e. update project files and delete .sonarlint folder

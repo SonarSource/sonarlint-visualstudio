@@ -36,7 +36,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         /// <summary>
         /// Returns a configuration file for the specified language
         /// </summary>
-        Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, LegacyBindingConfiguration bindingConfiguration, CancellationToken cancellationToken);
+        Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language,
+            BindingConfiguration bindingConfiguration, CancellationToken cancellationToken);
     }
 
     /// <summary>

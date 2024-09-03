@@ -20,6 +20,8 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarQube.Client.Models;
 
@@ -59,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             if (result == ProgressControllerResult.Succeeded && !string.IsNullOrEmpty(autoBindProjectKey))
             {
                 host.ActiveSection.BindCommand.Execute(
-                    new BindCommandArgs(autoBindProjectKey, string.Empty, connectionInformation));
+                    new BindCommandArgs(new BoundServerProject("placeholder", autoBindProjectKey, connectionInformation.ToServerConnection()))); // todo https://sonarsource.atlassian.net/browse/SLVS-1408
             }
         }
     }

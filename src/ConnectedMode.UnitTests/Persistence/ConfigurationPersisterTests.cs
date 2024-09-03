@@ -65,11 +65,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Persist_SaveNewConfig()
         {
-            var projectToWrite = new BoundSonarQubeProject();
+            var projectToWrite = new BoundServerProject("solution", "projectKey", new ServerConnection.SonarCloud("org"));
             configFilePathProvider.Setup(x => x.GetCurrentBindingPath()).Returns("c:\\new.txt");
 
             solutionBindingRepository
-                .Setup(x => x.Write("c:\\new.txt", projectToWrite))
+                .Setup(x => x.Write("c:\\new.txt", It.Is<BoundSonarQubeProject>(p => p.ProjectKey == projectToWrite.ToBoundSonarQubeProject().ProjectKey)))
                 .Returns(true);
 
             // Act
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             actual.Should().NotBe(null);
 
             solutionBindingRepository.Verify(x =>
-                    x.Write("c:\\new.txt", projectToWrite),
+                    x.Write("c:\\new.txt", It.Is<BoundSonarQubeProject>(p => p.ProjectKey == projectToWrite.ToBoundSonarQubeProject().ProjectKey)),
                 Times.Once);
         }
     }
