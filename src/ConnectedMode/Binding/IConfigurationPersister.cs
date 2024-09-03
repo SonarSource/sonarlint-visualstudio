@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     public interface IConfigurationPersister
     {
-        LegacyBindingConfiguration Persist(BoundSonarQubeProject project);
+        BindingConfiguration Persist(BoundServerProject project);
     }
 
     [Export(typeof(IConfigurationPersister))]
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             this.solutionBindingRepository = solutionBindingRepository;
         }
 
-        public LegacyBindingConfiguration Persist(BoundSonarQubeProject project)
+        public BindingConfiguration Persist(BoundServerProject project)
         {
             if (project == null)
             {
@@ -58,12 +58,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             var configFilePath = configFilePathProvider.GetCurrentBindingPath();
 
             var success = configFilePath != null &&
-                          solutionBindingRepository.Write(configFilePath, project);
+                          solutionBindingRepository.Write(configFilePath, project.ToBoundSonarQubeProject());
 
             // The binding directory is the folder containing the binding config file
             var bindingConfigDirectory = Path.GetDirectoryName(configFilePath);
             return success ?
-                LegacyBindingConfiguration.CreateBoundConfiguration(project, SonarLintMode.Connected, bindingConfigDirectory) : null;
+                BindingConfiguration.CreateBoundConfiguration(project, SonarLintMode.Connected, bindingConfigDirectory) : null;
         }
     }
 }
