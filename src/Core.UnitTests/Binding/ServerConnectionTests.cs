@@ -27,9 +27,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding;
 [TestClass]
 public class ServerConnectionTests
 {
-    private static readonly Uri Localhost = new Uri("http://localhost:5000");
+    private static readonly Uri Localhost = new("http://localhost:5000");
     private const string Org = "myOrg";
-
+    
     [TestMethod]
     public void Ctor_SonarCloud_NullOrganization_Throws()
     {
@@ -66,6 +66,7 @@ public class ServerConnectionTests
         sonarCloud.ServerUri.Should().Be(new Uri("https://sonarcloud.io"));
         sonarCloud.Settings.Should().BeSameAs(serverConnectionSettings);
         sonarCloud.Credentials.Should().BeSameAs(credentials);
+        sonarCloud.CredentialsUri.Should().Be(new Uri($"https://sonarcloud.io/organizations/{sonarCloud.OrganizationKey}"));
     }
     
     [TestMethod]
@@ -103,6 +104,7 @@ public class ServerConnectionTests
         sonarQube.ServerUri.Should().BeSameAs(Localhost);
         sonarQube.Settings.Should().BeSameAs(serverConnectionSettings);
         sonarQube.Credentials.Should().BeSameAs(credentials);
+        sonarQube.CredentialsUri.Should().BeSameAs(sonarQube.ServerUri);
     }
 
     [TestMethod]
