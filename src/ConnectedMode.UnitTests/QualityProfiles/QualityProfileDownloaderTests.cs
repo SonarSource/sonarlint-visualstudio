@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             bindingConfigProviderMock.Setup(x =>
                     x.GetConfigurationAsync(It.IsAny<SonarQubeQualityProfile>(),
                         It.IsAny<Language>(),
-                        It.IsAny<LegacyBindingConfiguration>(),
+                        It.IsAny<BindingConfiguration>(),
                         It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Mock.Of<IBindingConfig>());
 
@@ -241,7 +241,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             var configProviderMock = new Mock<IBindingConfigProvider>();
             configProviderMock.Setup(x => x.GetConfigurationAsync(qp,
                     language,
-                    It.IsAny<LegacyBindingConfiguration>(), CancellationToken.None))
+                    It.IsAny<BindingConfiguration>(), CancellationToken.None))
                 .ReturnsAsync(bindingConfig);
 
             var testSubject = CreateTestSubject(
@@ -257,7 +257,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             configPersister.SavedProject.Should().NotBeNull();
 
             var savedProject = configPersister.SavedProject;
-            savedProject.ServerUri.Should().Be(boundProject.ServerUri);
+            savedProject.ServerConnection.Id.Should().Be(boundProject.ServerConnection.Id);
             savedProject.Profiles.Should().HaveCount(1);
             savedProject.Profiles[Language.VBNET].ProfileKey.Should().Be(myProfileKey);
             savedProject.Profiles[Language.VBNET].ProfileTimestamp.Should().Be(serverQpTimestamp);
@@ -287,7 +287,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 
         private static void SetupLanguagesToUpdate(
             out Mock<IOutOfDateQualityProfileFinder> outOfDateQualityProfileFinderMock,
-            BoundSonarQubeProject boundProject,
+            BoundServerProject boundProject,
             params Language[] languages)
         {
             SetupLanguagesToUpdate(out outOfDateQualityProfileFinderMock, 
@@ -297,7 +297,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 
         private static void SetupLanguagesToUpdate(
             out Mock<IOutOfDateQualityProfileFinder> outOfDateQualityProfileFinderMock,
-            BoundSonarQubeProject boundProject,
+            BoundServerProject boundProject,
             params (Language language, SonarQubeQualityProfile qualityProfile)[] qps)
         {
             outOfDateQualityProfileFinderMock = new Mock<IOutOfDateQualityProfileFinder>();
@@ -315,20 +315,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             bindingConfigProvider.Setup(x => x.GetConfigurationAsync(
                     It.IsAny<SonarQubeQualityProfile>(),
                     language, 
-                    It.IsAny<LegacyBindingConfiguration>(), 
+                    It.IsAny<BindingConfiguration>(), 
                     CancellationToken.None))
                 .ReturnsAsync(bindingConfig.Object);
             return bindingConfig;
         }
 
-        private static BoundSonarQubeProject CreateBoundProject(string projectKey = "key", string projectName = "name",
+        private static BoundServerProject CreateBoundProject(string projectKey = "key",
             Uri uri = null)
-            => new BoundSonarQubeProject(
-                uri ?? new Uri("http://any"),
+            => new BoundServerProject(
+                "solution",
                 projectKey,
-                projectName,
-                null,
-                null);
+                new ServerConnection.SonarQube(uri ?? new Uri("http://localhost/")));
 
         private static void CheckRuleConfigSaved(Mock<IBindingConfig> bindingConfig)
             => bindingConfig.Verify(x => x.Save(), Times.Once);
@@ -338,12 +336,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 
         private class DummyConfigPersister : IConfigurationPersister
         {
-            public BoundSonarQubeProject SavedProject { get; private set; }
+            public BoundServerProject SavedProject { get; private set; }
 
-            LegacyBindingConfiguration IConfigurationPersister.Persist(BoundSonarQubeProject project)
+            BindingConfiguration IConfigurationPersister.Persist(BoundServerProject project)
             {
                 SavedProject = project;
-                return new LegacyBindingConfiguration(new BoundSonarQubeProject(), SonarLintMode.Connected, "c:\\any");
+                return new BindingConfiguration(project, SonarLintMode.Connected, "c:\\any");
             }
         }
 

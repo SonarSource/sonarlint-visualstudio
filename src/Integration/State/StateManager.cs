@@ -25,7 +25,9 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.VisualStudio.Imaging;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -324,7 +326,7 @@ namespace SonarLint.VisualStudio.Integration.State
 
                 var bindContextCommand = new ContextualCommandViewModel(projectVM,
                     this.Host.ActiveSection.BindCommand,
-                    new BindCommandArgs(projectVM.Key, projectVM.ProjectName, serverVM.ConnectionInformation));
+                    new BindCommandArgs(new BoundServerProject("placeholder", projectVM.Key, serverVM.ConnectionInformation.ToServerConnection())));
                 bindContextCommand.SetDynamicDisplayText(x =>
                 {
                     var ctx = x as ProjectViewModel;
