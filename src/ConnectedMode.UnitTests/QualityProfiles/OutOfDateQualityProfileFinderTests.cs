@@ -202,14 +202,12 @@ public class OutOfDateQualityProfileFinderTests
         sonarQubeServiceMock.Verify(x => x.GetAllQualityProfilesAsync(Project, Organization, CancellationToken.None), Times.Once);
     }
     
-    private static BoundSonarQubeProject CreateArgument(string project,
+    private static BoundServerProject CreateArgument(string project,
         string organization,
         Dictionary<Language, ApplicableQualityProfile> profiles) =>
-        new(AnyUri, 
+        new("solution", 
             project,
-            null, 
-            null,
-            organization == null ? null : new(organization, null))
+            organization == null ? new ServerConnection.SonarQube(AnyUri) : new ServerConnection.SonarCloud(organization))
         {
             Profiles = profiles
         };
