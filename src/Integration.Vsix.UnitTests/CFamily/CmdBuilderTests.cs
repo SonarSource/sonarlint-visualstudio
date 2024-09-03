@@ -188,6 +188,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         [DataRow("", "")]
         [DataRow("Default", "")]
+        [DataRow(null, "")]
+        [DataRow("stdclatest", "/std:clatest")]
+        [DataRow("stdc23", "/std:c23")]
+        [DataRow("stdc17", "/std:c17")]
+        [DataRow("stdc11", "/std:c11")]
+        [DataRow("Invalid", "Unsupported LanguageStandard_C: Invalid")]
+        public void ConvertCStandard(string input, string output)
+        {
+            if ("Invalid".Equals(input))
+            {
+                Action action = () => CmdBuilder.ConvertCStandard(input);
+                action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
+                    .StartWith(output);
+            }
+            else
+            {
+                CmdBuilder.ConvertCStandard(input).Should().Be(output);
+            }
+        }
+
+        [TestMethod]
+        [DataRow("", "")]
+        [DataRow("Default", "")]
         [DataRow("16Bytes", "/Zp16")]
         [DataRow("8Bytes", "/Zp8")]
         [DataRow("4Bytes", "/Zp4")]
@@ -237,6 +260,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [DataRow("LanguageStandard", "stdcpp17", "/std:c++17 ")]
         [DataRow("LanguageStandard", "stdcpp14", "/std:c++14 ")]
         [DataRow("LanguageStandard", "Default", "")]
+        [DataRow("LanguageStandard_C", "stdclatest", "/std:clatest ")]
+        [DataRow("LanguageStandard_C", "stdc23", "/std:c23 ")]
+        [DataRow("LanguageStandard_C", "stdc17", "/std:c17 ")]
+        [DataRow("LanguageStandard_C", "stdc11", "/std:c11 ")]
+        [DataRow("LanguageStandard_C", "Default", "")]
         [DataRow("ExceptionHandling", "Sync", "/EHsc ")]
         [DataRow("ExceptionHandling", "SyncCThrow", "/EHs ")]
         [DataRow("ExceptionHandling", "Async", "/EHa ")]
