@@ -25,7 +25,7 @@ public abstract class ServerConnection
     internal static readonly ServerConnectionSettings DefaultSettings = new(true);
     
     public string Id { get; }
-    public ServerConnectionSettings Settings { get; }
+    public ServerConnectionSettings Settings { get; set; }
     public ICredentials Credentials { get; set; }
     
     public abstract Uri ServerUri { get; }
