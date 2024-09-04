@@ -299,4 +299,15 @@ Please commit this file to share it with other contributors. See documentation f
   <data name="SlCoreLocator_CustomJreLocationNotFound" xml:space="preserve">
     <value>Unable to detect java installation provided in the settings "{0}". Embedded JRE will be used.</value>
   </data>
+  <data name="JreLocationDescriptionText" xml:space="preserve">
+    <value>SonarLint provides its own JRE to launch SonarLint Core out of process. You can provide an explicit Java installation (17 or more recent) to be used instead.
+
+E.g. C:\Program Files\Java\jdk-17</value>
+  </data>
+  <data name="JreLocationLabel" xml:space="preserve">
+    <value>JRE Location</value>
+  </data>
+  <data name="RestartIdeToApplyOptionLabel" xml:space="preserve">
+    <value>Note: The IDE must be restarted for this setting to be applied.</value>
+  </data>
 </root>

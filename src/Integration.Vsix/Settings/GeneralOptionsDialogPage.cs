@@ -63,6 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             dialogControl.DaemonVerbosity.ItemsSource = Enum.GetValues(typeof(DaemonLogLevel)).Cast<DaemonLogLevel>();
             dialogControl.DaemonVerbosity.SelectedItem = Settings.DaemonLogLevel;
+            dialogControl.JreLocationTextBox.Text = Settings.JreLocation;
         }
 
         protected override void OnApply(PageApplyEventArgs e)
@@ -70,6 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (e.ApplyBehavior == ApplyKind.Apply)
             {
                 Settings.DaemonLogLevel = (DaemonLogLevel)dialogControl.DaemonVerbosity.SelectedItem;
+                Settings.JreLocation = dialogControl.JreLocationTextBox.Text;
             }
 
             base.OnApply(e);
