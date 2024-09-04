@@ -18,35 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
+using System.ComponentModel.Composition;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using SonarLint.VisualStudio.SLCore.Listener.Http.Model;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests;
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation.Http;
 
-[TestClass]
-public class HttpConfigurationListenerTests
+internal interface ICertificateDtoConverter
 {
-    [TestMethod]
-    public void MefCtor_CheckIsExported()
-    {
-        MefTestHelpers.CheckTypeCanBeImported<HttpConfigurationListener, ISLCoreListener>();
-    }
+    X509Certificate2 Convert(X509CertificateDto dto);
+}
 
-    [TestMethod]
-    public void Mef_CheckIsSingleton()
-    {
-        MefTestHelpers.CheckIsSingletonMefComponent<HttpConfigurationListener>();
-    }
-
-    [TestMethod]
-    [DataRow(null)]
-    [DataRow(5)]
-    [DataRow("something")]
-    public async Task SelectProxiesAsync_ReturnsEmptyList(object parameter)
-    {
-        var testSubject = new HttpConfigurationListener(new TestLogger());
-
-        var result = await testSubject.SelectProxiesAsync(parameter);
-
-        result.proxies.Should().BeEmpty();
-    }
+[Export(typeof(ICertificateDtoConverter))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal class CertificateDtoConverter : ICertificateDtoConverter
+{
+    public X509Certificate2 Convert(X509CertificateDto dto) =>
+        new(Encoding.UTF8.GetBytes(dto.pem));
 }

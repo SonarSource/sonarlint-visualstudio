@@ -27,18 +27,22 @@ using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Http;
 using SonarLint.VisualStudio.SLCore.Listener.Http.Model;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation.Http;
 
 [Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class HttpConfigurationListener : IHttpConfigurationListener
+internal class HttpConfigurationListener : IHttpConfigurationListener
 {
     private readonly ILogger logger;
+    private readonly ICertificateChainValidator chainValidator;
+    private readonly ICertificateDtoConverter certificateDtoConverter;
 
     [ImportingConstructor]
-    public HttpConfigurationListener(ILogger logger)
+    public HttpConfigurationListener(ILogger logger, ICertificateChainValidator chainValidator, ICertificateDtoConverter certificateDtoConverter)
     {
         this.logger = logger;
+        this.chainValidator = chainValidator;
+        this.certificateDtoConverter = certificateDtoConverter;
     }
 
     public Task<SelectProxiesResponse> SelectProxiesAsync(object parameters)
@@ -48,37 +52,31 @@ public class HttpConfigurationListener : IHttpConfigurationListener
 
     public Task<CheckServerTrustedResponse> CheckServerTrustedAsync(CheckServerTrustedParams parameters)
     {
-        logger.WriteLine($"[{nameof(HttpConfigurationListener)}] Received server trust verification request...");
+        logger.WriteLine(SLCoreStrings.HttpConfiguration_ServerTrustVerificationRequest);
         var verificationResult = VerifyChain(parameters.chain);
-        logger.WriteLine($"[{nameof(HttpConfigurationListener)}] Server verification result: {verificationResult}");
-        
+        logger.WriteLine(SLCoreStrings.HttpConfiguration_ServerTrustVerificationResult, verificationResult);
+
         return Task.FromResult(new CheckServerTrustedResponse(verificationResult));
     }
-
-    [ExcludeFromCodeCoverage] // can't easily unit test X509Chain
+    
     private bool VerifyChain(List<X509CertificateDto> chain)
     {
         try
         {
-            var primaryCertificate = CreateCertificate(chain.First());
-            logger.WriteLine($"[{nameof(HttpConfigurationListener)}] Validating certificate: " + primaryCertificate);
-            var certificateChain = new X509Chain();
-            foreach (var certificate in chain.Skip(1).Select(CreateCertificate))
+            var primaryCertificate = certificateDtoConverter.Convert(chain.First());
+            
+            var additionalCertificates = chain.Skip(1).Select(dto =>
             {
-                logger.WriteLine($"[{nameof(HttpConfigurationListener)}] Using intermediate certificate: " + certificate);
-                certificateChain.ChainPolicy.ExtraStore.Add(certificate);
-            }
-
-            return certificateChain.Build(primaryCertificate);
+                var certificate = certificateDtoConverter.Convert(dto);
+                return certificate;
+            });
+            
+            return chainValidator.ValidateChain(primaryCertificate, additionalCertificates);
         }
-        catch (Exception e)
+        catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
         {
             logger.WriteLine(e.ToString());
             return false;
         }
     }
-
-    [ExcludeFromCodeCoverage] // can't easily unit test X509Chain
-    private static X509Certificate2 CreateCertificate(X509CertificateDto dto) =>
-        new(Encoding.UTF8.GetBytes(dto.pem));
 }
