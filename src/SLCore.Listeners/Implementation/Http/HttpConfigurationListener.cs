@@ -63,7 +63,7 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
     {
         try
         {
-            var primaryCertificate = certificateDtoConverter.Convert(chain.First());
+            var primaryCertificate = certificateDtoConverter.Convert(chain[0]);
             
             var additionalCertificates = chain.Skip(1).Select(dto =>
             {
