@@ -368,6 +368,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to detect java installation provided in the settings &quot;{0}&quot;. Embedded JRE will be used..
+        /// </summary>
+        internal static string SlCoreLocator_CustomJreLocationNotFound {
+            get {
+                return ResourceManager.GetString("SlCoreLocator_CustomJreLocationNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using JRE location provided in the settings &quot;{0}&quot;.
+        /// </summary>
+        internal static string SlCoreLocator_UsingCustomJreLocation {
+            get {
+                return ResourceManager.GetString("SlCoreLocator_UsingCustomJreLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Telemetry: error occurred: {0}.
         /// </summary>
         internal static string Telemetry_ERROR {

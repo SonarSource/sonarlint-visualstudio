@@ -293,4 +293,10 @@ Please commit this file to share it with other contributors. See documentation f
   <data name="Analysis_NotSupported" xml:space="preserve">
     <value>[Analysis] Unable to analyze: {0}</value>
   </data>
+  <data name="SlCoreLocator_UsingCustomJreLocation" xml:space="preserve">
+    <value>Using JRE location provided in the settings "{0}"</value>
+  </data>
+  <data name="SlCoreLocator_CustomJreLocationNotFound" xml:space="preserve">
+    <value>Unable to detect java installation provided in the settings "{0}". Embedded JRE will be used.</value>
+  </data>
 </root>

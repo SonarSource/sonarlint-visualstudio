@@ -135,5 +135,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             get { return (DaemonLogLevel)this.GetValueOrDefault(nameof(DaemonLogLevel), (int)DaemonLogLevel.Minimal); }
             set { this.SetValue(nameof(DaemonLogLevel), (int)value); }
         }
+
+        public string JreLocation
+        {
+            get => this.GetValueOrDefault(nameof(JreLocation), null);
+            set => this.SetValue(nameof(JreLocation), value);
+        }
     }
 }

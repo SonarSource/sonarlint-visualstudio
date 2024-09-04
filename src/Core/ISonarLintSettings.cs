@@ -33,5 +33,6 @@ namespace SonarLint.VisualStudio.Integration
         /// </remarks>
         bool IsActivateMoreEnabled { get; set; }
         DaemonLogLevel DaemonLogLevel { get; set; }
+        string JreLocation { get; set; }
     }
 }
