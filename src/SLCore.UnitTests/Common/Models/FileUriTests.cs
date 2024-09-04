@@ -135,6 +135,47 @@ public class FileUriTests
     }
 
     [TestMethod]
+    [DataRow("[", "%5B")]
+    [DataRow("]", "%5D")]
+    [DataRow("#", "%2523")]
+    [DataRow("@", "%40")]
+    [DataRow(" ", "%20")]
+    [DataRow("`", "%60")]
+    public void LocalPath_UnescapesEncodesCharacters(string reservedChar, string expectedEncoding)
+    {
+        var expectedFilePath = @$"C:\filewithRfc3986ReservedChar{reservedChar}.cs";
+        var encodedFilePath = @$"file:///C:/filewithRfc3986ReservedChar{expectedEncoding}.cs";
+
+        new FileUri(encodedFilePath).LocalPath.Should().Be(expectedFilePath);
+    }
+
+    [TestMethod]
+    [DataRow("[")]
+    [DataRow("]")]
+    [DataRow("@")]
+    [DataRow(" ")]
+    [DataRow("`")]
+    public void LocalPath_PathDoesNotHaveEncodedChars_ReturnsCorrectLocalPath(string reservedChar)
+    {
+        var notEncodedFilePath = @$"file:///C:/filewithRfc3986ReservedChar{reservedChar}.cs";
+        var expectedFilePath = @$"C:\filewithRfc3986ReservedChar{reservedChar}.cs";
+
+        new FileUri(notEncodedFilePath).LocalPath.Should().Be(expectedFilePath);
+    }
+
+    /// <summary>
+    ///  The # character as the beginning of a fragment, so <see cref="Uri.LocalPath"/> will return the path without the fragment.
+    /// </summary>
+    [TestMethod]
+    public void LocalPath_PathWithHashCharacter_ReturnsLocalPathWithoutHash()
+    {
+        var notEncodedFilePath = @$"file:///C:/filewithRfc3986ReservedChar#.cs";
+        var expectedFilePath = @$"C:\filewithRfc3986ReservedChar";
+
+        new FileUri(notEncodedFilePath).LocalPath.Should().Be(expectedFilePath);
+    }
+
+    [TestMethod]
     public void SerializeDeserializeToEqualObject()
     {
         var fileUri = new FileUri(@"C:\file with  4 spaces and a back`tick");
