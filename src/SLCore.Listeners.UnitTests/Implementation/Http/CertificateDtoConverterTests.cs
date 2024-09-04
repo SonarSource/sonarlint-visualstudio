@@ -85,6 +85,6 @@ public class CertificateDtoConverterTests
         x509Certificate2.Issuer.Should().Be("CN=slvs.unit.test, O=Test Organization, L=Vernier, S=Geneva, C=CH");
         x509Certificate2.SerialNumber.Should().Be("3183E2A726F121B4767F45E08E4DB9469DE34AE8");
         x509Certificate2.Thumbprint.Should().Be("9AF0EAE02632A1E46DD03D817A084B2CA477B495");
-        x509Certificate2.NotAfter.Should().Be(DateTime.Parse("2034-09-02 12:50:06"));
+        x509Certificate2.NotAfter.ToUniversalTime().Should().Be(DateTime.Parse("2034-09-02 10:50:06"));
     }
 }
