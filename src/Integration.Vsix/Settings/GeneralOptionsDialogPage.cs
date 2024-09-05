@@ -18,16 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
 using System.Windows;
+using System.Windows.Input;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
-using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration.WPF;
+using SonarLint.VisualStudio.Integration.Vsix.Settings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -37,41 +33,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private GeneralOptionsDialogControl dialogControl;
         private ISonarLintSettings settings;
+        private GeneralOptionsDialogControlViewModel viewModel;
 
-        protected override UIElement Child
+        protected override UIElement Child => dialogControl ??= new GeneralOptionsDialogControl(ViewModel);
+
+        private GeneralOptionsDialogControlViewModel ViewModel
         {
             get
             {
-                if (dialogControl == null)
+                if (viewModel == null)
                 {
                     Debug.Assert(this.Site != null, "Expecting the page to be sited");
-                    var userSettingsProvider = this.Site.GetMefService<IUserSettingsProvider>();
                     var browserService = this.Site.GetMefService<IBrowserService>();
-                    var logger = this.Site.GetMefService<ILogger>();
-
-                    var openSettingsFileCmd = new OpenSettingsFileWpfCommand(this.Site, userSettingsProvider, this, logger);
-                    var showWikiInBrowserCmd = new RelayCommand(() => browserService.Navigate(DocumentationLinks.DisablingARule));
-                    dialogControl = new GeneralOptionsDialogControl(openSettingsFileCmd, showWikiInBrowserCmd);
+                    viewModel = new GeneralOptionsDialogControlViewModel(Settings, browserService, GetOpenSettingsFileWpfCommand());
                 }
-                return dialogControl;
+                return viewModel;
             }
-        }
-
-        protected override void OnActivate(CancelEventArgs e)
-        {
-            base.OnActivate(e);
-
-            dialogControl.DaemonVerbosity.ItemsSource = Enum.GetValues(typeof(DaemonLogLevel)).Cast<DaemonLogLevel>();
-            dialogControl.DaemonVerbosity.SelectedItem = Settings.DaemonLogLevel;
-            dialogControl.JreLocationTextBox.Text = Settings.JreLocation;
         }
 
         protected override void OnApply(PageApplyEventArgs e)
         {
             if (e.ApplyBehavior == ApplyKind.Apply)
             {
-                Settings.DaemonLogLevel = (DaemonLogLevel)dialogControl.DaemonVerbosity.SelectedItem;
-                Settings.JreLocation = dialogControl.JreLocationTextBox.Text;
+                ViewModel.SaveSettings();
             }
 
             base.OnApply(e);
@@ -89,6 +73,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 return this.settings;
             }
+        }
+
+        private ICommand GetOpenSettingsFileWpfCommand()
+        {
+            var userSettingsProvider = this.Site.GetMefService<IUserSettingsProvider>();
+            var logger = this.Site.GetMefService<ILogger>();
+            return new OpenSettingsFileWpfCommand(this.Site, userSettingsProvider, this, logger);
         }
     }
 }
