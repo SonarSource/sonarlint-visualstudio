@@ -18,18 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.Vsix.Settings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(ISonarLintSettings))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class SonarLintSettings : ISonarLintSettings, IProfileManager
+    internal class SonarLintSettings : ISonarLintSettings
     {
         public const string SettingsRoot = "SonarLintForVisualStudio";
 
@@ -96,33 +93,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             writableSettingsStore.Value?.SetInt32(SettingsRoot, key, value);
         }
-
-        #region IProfileManager
-        public void SaveSettingsToXml(IVsSettingsWriter writer)
-        {
-            // We do not support import/export
-        }
-
-        public void LoadSettingsFromXml(IVsSettingsReader reader)
-        {
-            // We do not support import/export
-        }
-
-        public void SaveSettingsToStorage()
-        {
-            // No-op; settings are live
-        }
-
-        public void LoadSettingsFromStorage()
-        {
-            // No-op; settings are live
-        }
-
-        public void ResetSettings()
-        {
-            // Not supported
-        }
-        #endregion // IProfileManager
 
         public bool IsActivateMoreEnabled
         {

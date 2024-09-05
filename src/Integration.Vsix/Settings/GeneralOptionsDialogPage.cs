@@ -18,19 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    [ExcludeFromCodeCoverage]
     internal class GeneralOptionsDialogPage : UIElementDialogPage
     {
         public const string PageName = "General";
