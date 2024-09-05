@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.VisualStudio.Shell;
@@ -27,6 +28,7 @@ using SonarLint.VisualStudio.Integration.Vsix.Settings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    [ExcludeFromCodeCoverage]
     internal class GeneralOptionsDialogPage : UIElementDialogPage
     {
         public const string PageName = "General";
@@ -51,16 +53,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        protected override void OnApply(PageApplyEventArgs e)
-        {
-            if (e.ApplyBehavior == ApplyKind.Apply)
-            {
-                ViewModel.SaveSettings();
-            }
-
-            base.OnApply(e);
-        }
-
         private ISonarLintSettings Settings
         {
             get
@@ -73,6 +65,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 return this.settings;
             }
+        }
+
+        protected override void OnApply(PageApplyEventArgs e)
+        {
+            if (e.ApplyBehavior == ApplyKind.Apply)
+            {
+                ViewModel.SaveSettings();
+            }
+
+            base.OnApply(e);
         }
 
         private ICommand GetOpenSettingsFileWpfCommand()
