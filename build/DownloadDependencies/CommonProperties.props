@@ -25,7 +25,6 @@
   <!-- ************************************************************** -->
   <!-- Information about the individual language plugins we need to download -->
   <!-- ************************************************************** -->
-
   <ItemGroup Label="PluginJars">
     <PluginJars Include="CPP">
       <JarName>sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar</JarName>
@@ -43,21 +42,21 @@
 
     <PluginJars Include="JavaScript">
       <JarName>sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</JarName>
-      <URL>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/%(JarName)</URL>
-      <LanguageKey>ts</LanguageKey>
-      <RepoKey>typescript</RepoKey>
-    </PluginJars>
-
-    <PluginJars Include="TypeScript">
-      <JarName>sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</JarName>
-      <URL>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/%(JarName)</URL>
+      <URL>https://repox.jfrog.io/ui/native/sonarsource/org/sonarsource/javascript/sonar-javascript-plugin/$(EmbeddedSonarJSAnalyzerVersion)/%(JarName)</URL>
       <LanguageKey>js</LanguageKey>
       <RepoKey>javascript</RepoKey>
     </PluginJars>
 
+    <PluginJars Include="TypeScript">
+      <JarName>sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</JarName>
+      <URL>https://repox.jfrog.io/ui/native/sonarsource/org/sonarsource/javascript/sonar-javascript-plugin/$(EmbeddedSonarJSAnalyzerVersion)/%(JarName)</URL>
+      <LanguageKey>ts</LanguageKey>
+      <RepoKey>typescript</RepoKey>
+    </PluginJars>
+
     <PluginJars Include="CSS">
       <JarName>sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</JarName>
-      <URL>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/%(JarName)</URL>
+      <URL>https://repox.jfrog.io/ui/native/sonarsource/org/sonarsource/javascript/sonar-javascript-plugin/$(EmbeddedSonarJSAnalyzerVersion)/%(JarName)</URL>
       <LanguageKey>css</LanguageKey>
       <RepoKey>css</RepoKey>
     </PluginJars>
@@ -78,7 +77,7 @@
 
     <PluginJars Include="Secrets">
       <JarName>sonar-text-plugin-$(EmbeddedSonarSecretsJarVersion).jar</JarName>
-      <URL>https://binaries.sonarsource.com/Distribution/sonar-text-plugin/%(JarName)</URL>
+      <URL>https://repox.jfrog.io/ui/native/sonarsource/org/sonarsource/text/sonar-text-plugin/$(EmbeddedSonarSecretsJarVersion)/%(JarName)</URL>
       <LanguageKey>secrets</LanguageKey>
       <RepoKey>secrets</RepoKey>
     </PluginJars>
