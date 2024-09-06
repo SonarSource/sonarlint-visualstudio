@@ -56,7 +56,8 @@ public class RuleDescriptionConversionSmokeTest
         // no hotspots are returned from ListAllStandaloneRulesDefinitionsAsync
         var ruleDescriptions = await GetAllRuleDescriptions(await rulesSlCoreService.ListAllStandaloneRulesDefinitionsAsync(), slCoreRuleMetaDataProvider);
         CheckRuleDescriptionsOnSTAThread(ruleDescriptions, ruleHelpXamlBuilder, failedRuleDescriptions);
-
+        TraceTest($"Number of rules: {ruleDescriptions.Count}");
+        TraceTest($"Any jave: {ruleDescriptions.Any(r => r.FullRuleKey.Contains("javascript") || r.FullRuleKey.Contains("js"))}");
         failedRuleDescriptions.Should().BeEquivalentTo(
             new List<string>
             {
@@ -154,5 +155,11 @@ public class RuleDescriptionConversionSmokeTest
                 ruleHelpXamlTranslatorFactory,
                 xamlGeneratorHelperFactory,
                 xamlWriterFactory));
+    }
+
+    private static void TraceTest(string message)
+    {
+        Debug.WriteLine(message);
+        Console.WriteLine(message);
     }
 }
