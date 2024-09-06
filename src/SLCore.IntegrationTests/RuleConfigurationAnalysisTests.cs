@@ -24,7 +24,6 @@ using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 [TestClass]
-[Ignore] // https://sonarsource.atlassian.net/browse/SLVS-1428
 public class RuleConfigurationAnalysisTests
 {
     private static FileAnalysisTestsRunner sharedFileAnalysisTestsRunner;
