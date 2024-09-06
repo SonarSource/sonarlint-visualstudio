@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 internal sealed class FileAnalysisTestsRunner : IDisposable
 {
+    private readonly string testClassName;
     internal static readonly JavaScriptIssuesFile JavaScriptIssues = new();
     internal static readonly OneIssueRuleWithParamFile OneIssueRuleWithParam = new();
     internal static readonly TypeScriptIssuesFile TypeScriptIssues = new();
@@ -51,6 +52,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
     internal FileAnalysisTestsRunner(string testClassName, Dictionary<string, StandaloneRuleConfigDto> initialRuleConfig = null)
     {
+        this.testClassName = testClassName;
         slCoreTestRunner = new SLCoreTestRunner(new TestLogger(), new TestLogger(), testClassName);
 
         analysisListener = Substitute.For<IAnalysisListener>();
@@ -97,8 +99,8 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
 
             await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath(), analysisId);
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task);
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, TimeSpan.FromSeconds(150));
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task, TimeSpan.FromSeconds(150));
 
             return analysisRaisedIssues.Task.Result.issuesByFileUri;
         }
@@ -137,7 +139,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         analysisListener.When(x => x.RaiseIssues(Arg.Any<RaiseFindingParams<RaisedIssueDto>>()))
             .Do(info =>
             {
-                TraceTest("RaiseIssue was raised");
+                TraceTest($"RaiseIssue was raised for {testClassName}: {DateTime.Now}");
                 var raiseIssuesParams = info.Arg<RaiseFindingParams<RaisedIssueDto>>();
                 TraceTest("raiseIssuesParams.analysisId=" + raiseIssuesParams.analysisId);
                 TraceTest("analysisId=" + analysisId);

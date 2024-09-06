@@ -47,16 +47,15 @@ public class RuleConfigurationAnalysisTests
     [TestMethod]
     public async Task StandaloneRuleConfig_JavaScriptAnalysisShouldIgnoreOneIssueOfInactiveRule()
     {
-        TraceTest($"{nameof(TestContext.TestName)} Start  {DateTime.Now}");
+        TraceTest($"{TestContext.TestName} Start  {DateTime.Now}");
         var ruleToDisable = FileAnalysisTestsRunner.JavaScriptIssues.ExpectedIssues[0];
         var ruleConfig = CreateInactiveRuleConfig(ruleToDisable.ruleKey);
         sharedFileAnalysisTestsRunner.SetRuleConfiguration(ruleConfig);
 
-        TraceTest($"{nameof(TestContext.TestName)} Run Analysis  {DateTime.Now}");
+        TraceTest($"{TestContext.TestName} Run Analysis  {DateTime.Now}");
         var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(FileAnalysisTestsRunner.JavaScriptIssues, TestContext.TestName);
 
-        TraceTest($"{nameof(TestContext.TestName)} Asserts  {DateTime.Now}");
-        TraceTest($"{nameof(TestContext.TestName)} Start  {DateTime.Now}");
+        TraceTest($"{TestContext.TestName} Asserts  {DateTime.Now}");
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.JavaScriptIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.JavaScriptIssues.ExpectedIssues.Count - 1);
     }
@@ -77,12 +76,15 @@ public class RuleConfigurationAnalysisTests
     [TestMethod]
     public async Task StandaloneRuleConfig_JsLetRuleIsDisableInSettingsFile_JavaScriptAnalysisShouldIgnoreIssueOnInitialization()
     {
+        TraceTest($"{TestContext.TestName} Start  {DateTime.Now}");
         var ruleToDisable = FileAnalysisTestsRunner.JavaScriptIssues.ExpectedIssues[0];
         var ruleConfig = CreateInactiveRuleConfig(ruleToDisable.ruleKey);
         using var customTestRunner = new FileAnalysisTestsRunner(TestContext.TestName, ruleConfig);
 
+        TraceTest($"{TestContext.TestName} Run Analysis  {DateTime.Now}");
         var issuesByFileUri = await customTestRunner.RunFileAnalysis(FileAnalysisTestsRunner.JavaScriptIssues, TestContext.TestName);
 
+        TraceTest($"{TestContext.TestName} Asserts  {DateTime.Now}");
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.JavaScriptIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.JavaScriptIssues.ExpectedIssues.Count - 1);
     }
