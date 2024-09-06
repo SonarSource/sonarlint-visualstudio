@@ -26,21 +26,23 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 public class DependencyLocator // this might be reused in the product code in the future
 {
+    private static readonly XmlDocument dependencyProps;
+    private static readonly string localAppData;
     public static List<string> AnalyzerPlugins { get; private set; }
     public static string SloopBasePath { get; private set; }
 
     static DependencyLocator()
     {
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         
-        var dependencyProps = new XmlDocument();
+        dependencyProps = new XmlDocument();
         dependencyProps.Load("EmbeddedSonarAnalyzer.props");
         
         EnsureSloopIsAvailable(localAppData, dependencyProps);
-        EnsurePluginsAreAvailable(localAppData, dependencyProps);
+        EnsurePluginsAreAvailable();
     }
 
-    private static void EnsurePluginsAreAvailable(string localAppData, XmlDocument dependencyProps)
+    internal static void EnsurePluginsAreAvailable()
     {
         var jarDirectoryPath = Path.Combine(localAppData, "SLVS_Build_DownloadedJars");
         var availablePluginJars = Directory.GetFiles(jarDirectoryPath);

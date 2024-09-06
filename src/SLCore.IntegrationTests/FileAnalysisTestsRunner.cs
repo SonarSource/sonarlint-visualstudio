@@ -71,7 +71,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
         activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
             new AsyncLockFactory(),
-            new ThreadHandling());
+            new NoOpThreadHandler());
     }
 
     public void SetRuleConfiguration(Dictionary<string, StandaloneRuleConfigDto> ruleConfig)

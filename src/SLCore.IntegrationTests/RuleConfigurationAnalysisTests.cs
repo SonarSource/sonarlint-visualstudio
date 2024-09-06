@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
+using Microsoft.Build.Framework.XamlTypes;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
@@ -53,6 +55,7 @@ public class RuleConfigurationAnalysisTests
         sharedFileAnalysisTestsRunner.SetRuleConfiguration(ruleConfig);
 
         TraceTest($"{TestContext.TestName} Run Analysis  {DateTime.Now}");
+        DependencyLocator.EnsurePluginsAreAvailable();
         var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(FileAnalysisTestsRunner.JavaScriptIssues, TestContext.TestName);
 
         TraceTest($"{TestContext.TestName} Asserts  {DateTime.Now}");
