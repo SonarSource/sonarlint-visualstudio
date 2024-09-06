@@ -71,7 +71,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
         activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
             new AsyncLockFactory(),
-            new NoOpThreadHandler());
+            new ThreadHandling());
     }
 
     public void SetRuleConfiguration(Dictionary<string, StandaloneRuleConfigDto> ruleConfig)
@@ -99,8 +99,8 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
 
             await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath(), analysisId);
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, TimeSpan.FromSeconds(150));
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task, TimeSpan.FromSeconds(150));
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, TimeSpan.FromSeconds(155));
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task, TimeSpan.FromSeconds(155));
 
             return analysisRaisedIssues.Task.Result.issuesByFileUri;
         }

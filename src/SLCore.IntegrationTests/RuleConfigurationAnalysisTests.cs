@@ -117,11 +117,14 @@ public class RuleConfigurationAnalysisTests
     [TestMethod]
     public async Task StandaloneRuleConfig_CtorParamsAboveThreshold_JavaScriptActiveRuleShouldHaveOneIssue()
     {
+        TraceTest($"{TestContext.TestName} Start  {DateTime.Now}");
         var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfig(threshold: FileAnalysisTestsRunner.OneIssueRuleWithParam.ActualCtorParams - 1);
         sharedFileAnalysisTestsRunner.SetRuleConfiguration(ctorParamsRuleConfig);
-        
+
+        TraceTest($"{TestContext.TestName} Run Analysis  {DateTime.Now}");
         var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(FileAnalysisTestsRunner.OneIssueRuleWithParam, TestContext.TestName);
-    
+
+        TraceTest($"{TestContext.TestName} Asserts  {DateTime.Now}");
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.OneIssueRuleWithParam.GetFullPath())].Should().HaveCount(1);
     }
