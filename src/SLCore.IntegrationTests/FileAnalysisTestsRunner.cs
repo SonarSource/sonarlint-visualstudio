@@ -128,22 +128,38 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         analysisListener.When(l =>
                 l.DidChangeAnalysisReadiness(Arg.Is<DidChangeAnalysisReadinessParams>(a =>
                     a.areReadyForAnalysis && a.configurationScopeIds.Contains(configScopeId))))
-            .Do(info => analysisReadyCompletionSource.SetResult(info.Arg<DidChangeAnalysisReadinessParams>()));
+            .Do(info =>
+            {
+                TraceTest("Readiness was raised");
+                analysisReadyCompletionSource.SetResult(info.Arg<DidChangeAnalysisReadinessParams>());
+            });
 
         analysisListener.When(x => x.RaiseIssues(Arg.Any<RaiseFindingParams<RaisedIssueDto>>()))
             .Do(info =>
             {
+                TraceTest("RaiseIssue was raised");
                 var raiseIssuesParams = info.Arg<RaiseFindingParams<RaisedIssueDto>>();
+                TraceTest("raiseIssuesParams.analysisId=" + raiseIssuesParams.analysisId);
+                TraceTest("analysisId=" + analysisId);
                 if (raiseIssuesParams.analysisId == analysisId && !raiseIssuesParams.isIntermediatePublication)
                 {
+                    TraceTest("analysisRaisedIssues was set");
                     analysisRaisedIssues.SetResult(raiseIssuesParams);
                 }
             });
     }
 
+    private static void TraceTest(string message)
+    {
+        Debug.WriteLine(message);
+        Console.WriteLine(message);
+    }
+
     private async Task RunSlCoreFileAnalysis(string configScopeId, string fileToAnalyzeAbsolutePath, Guid analysisId)
     {
         slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService).Should().BeTrue();
+
+        TraceTest($"Content of file {fileToAnalyzeAbsolutePath} being analyzed: {File.ReadAllText(fileToAnalyzeAbsolutePath)}");
 
         var (failedAnalysisFiles, _) = await analysisService.AnalyzeFilesAndTrackAsync(
             new AnalyzeFilesAndTrackParams(configScopeId, analysisId,
