@@ -95,9 +95,9 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
                 analysisRaisedIssues);
             activeConfigScopeTracker.SetCurrentConfigScope(configScope);
 
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
 
             await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath(), analysisId);
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
             await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task);
 
             return analysisRaisedIssues.Task.Result.issuesByFileUri;
