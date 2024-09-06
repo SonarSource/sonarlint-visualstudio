@@ -143,7 +143,11 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
                 TraceTest("analysisId=" + analysisId);
                 if (raiseIssuesParams.analysisId == analysisId && !raiseIssuesParams.isIntermediatePublication)
                 {
-                    TraceTest("analysisRaisedIssues was set");
+                    TraceTest($"analysisRaisedIssues was set");
+                    if (raiseIssuesParams.issuesByFileUri.Any())
+                    {
+                        TraceTest($"issues: {raiseIssuesParams.issuesByFileUri.First().Value.Count}");
+                    }
                     analysisRaisedIssues.SetResult(raiseIssuesParams);
                 }
             });

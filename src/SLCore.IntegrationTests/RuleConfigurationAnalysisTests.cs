@@ -33,24 +33,30 @@ public class RuleConfigurationAnalysisTests
     [ClassInitialize]
     public static void ClassInitialize(TestContext context)
     {
+        TraceTest($"{nameof(RuleConfigurationAnalysisTests)} ClassInitialize {DateTime.Now}");
         sharedFileAnalysisTestsRunner = new FileAnalysisTestsRunner(nameof(RuleConfigurationAnalysisTests));
     }
     
     [ClassCleanup]
     public static void ClassCleanup()
     {
+        TraceTest($"{nameof(RuleConfigurationAnalysisTests)} ClassCleanup {DateTime.Now}");
         sharedFileAnalysisTestsRunner.Dispose();
     }
 
     [TestMethod]
     public async Task StandaloneRuleConfig_JavaScriptAnalysisShouldIgnoreOneIssueOfInactiveRule()
     {
+        TraceTest($"{nameof(TestContext.TestName)} Start  {DateTime.Now}");
         var ruleToDisable = FileAnalysisTestsRunner.JavaScriptIssues.ExpectedIssues[0];
         var ruleConfig = CreateInactiveRuleConfig(ruleToDisable.ruleKey);
         sharedFileAnalysisTestsRunner.SetRuleConfiguration(ruleConfig);
-        
+
+        TraceTest($"{nameof(TestContext.TestName)} Run Analysis  {DateTime.Now}");
         var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(FileAnalysisTestsRunner.JavaScriptIssues, TestContext.TestName);
 
+        TraceTest($"{nameof(TestContext.TestName)} Asserts  {DateTime.Now}");
+        TraceTest($"{nameof(TestContext.TestName)} Start  {DateTime.Now}");
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.JavaScriptIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.JavaScriptIssues.ExpectedIssues.Count - 1);
     }
@@ -132,5 +138,11 @@ public class RuleConfigurationAnalysisTests
         {
             { ruleId, new StandaloneRuleConfigDto(isActive: false, []) }
         };
+    }
+
+    private static void TraceTest(string message)
+    {
+        Debug.WriteLine(message);
+        Console.WriteLine(message);
     }
 }
