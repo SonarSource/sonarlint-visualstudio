@@ -91,6 +91,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     /// </summary>
     public enum SoftwareQuality
     {
+        // make sure when new values are added, they have appropriate int values (the higher the severity, the higher the int value)
         Maintainability,
         Reliability,
         Security

@@ -55,6 +55,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 SoftwareQualityBubblesStyles =
                     new()
                     {
+                        // update for new values
                         { SoftwareQualitySeverity.High, StyleResourceNames.HighSoftwareQualitySeverityBubble },
                         { SoftwareQualitySeverity.Medium, StyleResourceNames.MediumSoftwareQualitySeverityBubble },
                         { SoftwareQualitySeverity.Low, StyleResourceNames.LowSoftwareQualitySeverityBubble },

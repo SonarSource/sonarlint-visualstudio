@@ -221,6 +221,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 {
                     switch (sqSeverity)
                     {
+                        // update for new values
                         case SonarQubeSoftwareQualitySeverity.Low:
                             return SoftwareQualitySeverity.Low;
                         case SonarQubeSoftwareQualitySeverity.Medium:

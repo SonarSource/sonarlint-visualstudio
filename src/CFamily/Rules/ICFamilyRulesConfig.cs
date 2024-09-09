@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules
 
     public class Code
     {
-        [JsonProperty("impacts")]
+        [JsonProperty("impacts")] // make sure cfamily analyzer returns all new impacts
         public Dictionary<SoftwareQuality, SoftwareQualitySeverity> Impacts { get; set; } = new Dictionary<SoftwareQuality, SoftwareQualitySeverity>();
     }
 

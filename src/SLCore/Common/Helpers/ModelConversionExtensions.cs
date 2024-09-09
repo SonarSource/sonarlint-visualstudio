@@ -54,6 +54,7 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
         {
             return impactSeverity switch
             {
+                // update for new values
                 ImpactSeverity.LOW => SoftwareQualitySeverity.Low,
                 ImpactSeverity.MEDIUM => SoftwareQualitySeverity.Medium,
                 ImpactSeverity.HIGH => SoftwareQualitySeverity.High,

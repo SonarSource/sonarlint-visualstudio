@@ -6,7 +6,7 @@
     <!-- ***********************************************************************************
          Auto-generated from the SVG files by SvgToXaml. See Readme.txt for more information.    
          *********************************************************************************** -->
-    
+    <!-- update for new values -->
     <DrawingImage x:Key="HighSoftwareQualitySeverity">
         <DrawingImage.Drawing>
             <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">

@@ -48,6 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
         {
             switch (severity)
             {
+                // update for new values
                 case SoftwareQualitySeverity.Medium:
                 case SoftwareQualitySeverity.High:
                     return __VSERRORCATEGORY.EC_WARNING;

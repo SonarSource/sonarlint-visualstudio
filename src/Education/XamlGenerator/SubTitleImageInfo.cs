@@ -52,6 +52,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         public static readonly IReadOnlyDictionary<SoftwareQualitySeverity, SubTitleImageInfo>
             SoftwareQualitySeveritiesImages = new Dictionary<SoftwareQualitySeverity, SubTitleImageInfo>()
             {
+                // update for new values
                 // note: display text for these icons is dynamic and is set in XamlGeneratorHelper
                 { SoftwareQualitySeverity.High , new SubTitleImageInfo("HighSoftwareQualitySeverity", string.Empty)},
                 { SoftwareQualitySeverity.Medium , new SubTitleImageInfo("MediumSoftwareQualitySeverity", string.Empty)},
