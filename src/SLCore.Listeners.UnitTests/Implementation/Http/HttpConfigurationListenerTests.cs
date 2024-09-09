@@ -115,11 +115,11 @@ public class HttpConfigurationListenerTests
         testLogger.AssertPartialOutputStringExists(exceptionReason);
     }
     
-    private (X509CertificateDto primaryCertificateDto, X509Certificate2 primaryCertificate) SetUpCertificate(string certificateName)
+    private (X509CertificateDto certificateDto, X509Certificate2 certificate) SetUpCertificate(string certificateName)
     {
-        var primaryCertificateDto = new X509CertificateDto(certificateName);
-        var primaryCertificate = new X509Certificate2();
-        certificateDtoConverter.Convert(primaryCertificateDto).Returns(primaryCertificate);
-        return (primaryCertificateDto, primaryCertificate);
+        var certificateDto = new X509CertificateDto(certificateName);
+        var certificate = new X509Certificate2();
+        certificateDtoConverter.Convert(certificateDto).Returns(certificate);
+        return (certificateDto, certificate);
     }
 }
