@@ -63,20 +63,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
         public SLCoreLaunchParameters LocateExecutable()
         {
             var vsixRoot = vsixRootLocator.GetVsixRoot();
-
-            //This will be changed later to jre call
-            return new (GetJrePath(vsixRoot), 
+            
+            return new (GetCustomJrePathFromSettings() ?? GetEmbeddedJrePath(vsixRoot), 
                 $"-classpath \"{Path.Combine(vsixRoot, basePathInsideVsix, LibSubPath)}\" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli");
         }
 
-        private string GetJrePath(string vsixRoot)
+        private string GetEmbeddedJrePath(string vsixRoot)
         {
-            if (GetCustomJrePathFromSettings() is { } customJrePath)
-            {
-                logger.LogVerbose(string.Format(Resources.Strings.SlCoreLocator_UsingCustomJreLocation, customJrePath));
-                return customJrePath;
-            }
-
             return Path.Combine(vsixRoot, basePathInsideVsix, SlCoreJreSubPath);
         }
 
@@ -90,6 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
             var customJrePath = Path.Combine(slSettings.JreLocation, WindowsJreSubPath);
             if (fileSystem.File.Exists(customJrePath))
             {
+                logger.LogVerbose(string.Format(Resources.Strings.SlCoreLocator_UsingCustomJreLocation, customJrePath));
                 return customJrePath;
             }
 
