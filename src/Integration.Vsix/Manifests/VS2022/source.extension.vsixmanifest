@@ -35,6 +35,8 @@
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="SonarAnalyzer.VisualBasic.dll" />
         <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="SonarAnalyzer.CFG.dll" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="SonarAnalyzer.CFG.dll" />
+        <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="SonarAnalyzer.ShimLayer.dll" />
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="SonarAnalyzer.ShimLayer.dll" />
         <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="Google.Protobuf.dll" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="Google.Protobuf.dll" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Integration.TeamExplorer" Path="|Integration.TeamExplorer|" />
