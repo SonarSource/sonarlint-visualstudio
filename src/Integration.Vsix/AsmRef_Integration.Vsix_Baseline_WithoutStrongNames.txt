@@ -118,6 +118,7 @@ Referenced assemblies:
 - 'SonarLint.VisualStudio.Integration, Version=8.3.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarLint.VisualStudio.IssueVisualization, Version=8.3.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarLint.VisualStudio.IssueVisualization.Security, Version=8.3.0.0, Culture=neutral, PublicKeyToken=null'
+- 'SonarLint.VisualStudio.Progress, Version=8.3.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarLint.VisualStudio.Roslyn.Suppressions, Version=8.3.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarLint.VisualStudio.SLCore, Version=8.3.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarQube.Client, Version=8.3.0.0, Culture=neutral, PublicKeyToken=null'
@@ -127,7 +128,7 @@ Referenced assemblies:
 - 'System.IO.Abstractions, Version=9.0.0.0, Culture=neutral, PublicKeyToken=96bf224d23c43e59'
 - 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-# Number of references: 29
+# Number of references: 30
 
 ---
 Assembly: 'SonarLint.VisualStudio.CFamily, Version=8.3.0.0, Culture=neutral, PublicKeyToken=null'

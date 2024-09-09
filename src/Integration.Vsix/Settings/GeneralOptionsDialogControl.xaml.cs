@@ -18,32 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows.Controls;
-using System.Windows.Input;
+using SonarLint.VisualStudio.Integration.Vsix.Settings;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     /// <summary>
     /// Interaction logic for GeneralOptionsDialogControl.xaml
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public partial class GeneralOptionsDialogControl : UserControl
     {
-        public GeneralOptionsDialogControl(ICommand openSettingsFileCommand, ICommand showWikiCommand)
+        public GeneralOptionsDialogControlViewModel ViewModel { get; }
+
+        public GeneralOptionsDialogControl(GeneralOptionsDialogControlViewModel viewModel)
         {
-            if (openSettingsFileCommand == null)
-            {
-                throw new ArgumentNullException(nameof(openSettingsFileCommand));
-            }
-            if (showWikiCommand == null)
-            {
-                throw new ArgumentNullException(nameof(showWikiCommand));
-            }
-
+            ViewModel = viewModel;
             InitializeComponent();
-
-            this.OpenSettingsButton.Command = openSettingsFileCommand;
-            this.ShowWikiHyperLink.Command = showWikiCommand;
         }
     }
 }
