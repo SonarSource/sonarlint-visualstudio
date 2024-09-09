@@ -55,7 +55,7 @@ public class RuleConfigurationAnalysisTests
         sharedFileAnalysisTestsRunner.SetRuleConfiguration(ruleConfig);
 
         TraceTest($"{TestContext.TestName} Run Analysis  {DateTime.Now}");
-        DependencyLocator.EnsurePluginsAreAvailable();
+        CheckNodeJs();
         var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(FileAnalysisTestsRunner.JavaScriptIssues, TestContext.TestName);
 
         TraceTest($"{TestContext.TestName} Asserts  {DateTime.Now}");
@@ -146,6 +146,38 @@ public class RuleConfigurationAnalysisTests
         {
             { ruleId, new StandaloneRuleConfigDto(isActive: false, []) }
         };
+    }
+
+    static void CheckNodeJs()
+    {
+        try
+        {
+            Process process = new Process();
+            process.StartInfo.FileName = "node";
+            process.StartInfo.Arguments = "-v";
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+
+            process.Start();
+
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+
+            if (!string.IsNullOrEmpty(output))
+            {
+                TraceTest($"Node.js is installed. Version: {output.Trim()}");
+            }
+            else
+            {
+                TraceTest("Node.js is not installed.");
+            }
+        }
+        catch (Exception ex)
+        {
+            TraceTest("Node.js is not installed.");
+            TraceTest($"Node.js rror: {ex.Message}");
+        }
     }
 
     private static void TraceTest(string message)
