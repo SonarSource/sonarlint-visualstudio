@@ -75,9 +75,7 @@ public class HttpConfigurationListenerTests
     [DataRow(false)]
     public async Task CheckServerTrustedAsync_SingleCertificate_ConvertsAndValidates(bool validationResult)
     {
-        var primaryCertificateDto = new X509CertificateDto("some certificate");
-        var primaryCertificate = new X509Certificate2();
-        certificateDtoConverter.Convert(primaryCertificateDto).Returns(primaryCertificate);
+        var (primaryCertificateDto, primaryCertificate) = SetUpCertificate("some certificate");
         certificateChainValidator.ValidateChain(primaryCertificate, Arg.Is<IEnumerable<X509Certificate2>>(x => !x.Any())).Returns(validationResult);
 
         var response = await testSubject.CheckServerTrustedAsync(new([primaryCertificateDto], "ignored"));
@@ -90,15 +88,9 @@ public class HttpConfigurationListenerTests
     [DataRow(false)]
     public async Task CheckServerTrustedAsync_MultipleCertificates_ConvertsAndValidates(bool validationResult)
     {
-        var primaryCertificateDto = new X509CertificateDto("some certificate");
-        var additionalCertificateDto1 = new X509CertificateDto("some other certificate 1");
-        var additionalCertificateDto2 = new X509CertificateDto("some other certificate 2");
-        var primaryCertificate = new X509Certificate2();
-        var additionalCertificate1 = new X509Certificate2();
-        var additionalCertificate2 = new X509Certificate2();
-        certificateDtoConverter.Convert(primaryCertificateDto).Returns(primaryCertificate);
-        certificateDtoConverter.Convert(additionalCertificateDto1).Returns(additionalCertificate1);
-        certificateDtoConverter.Convert(additionalCertificateDto2).Returns(additionalCertificate2);
+        var (primaryCertificateDto, primaryCertificate) = SetUpCertificate("some certificate");
+        var (additionalCertificateDto1, additionalCertificate1) = SetUpCertificate("some other certificate 1");
+        var (additionalCertificateDto2, additionalCertificate2) = SetUpCertificate("some other certificate 2");
         IEnumerable<X509Certificate2> additionalCertificates = [additionalCertificate1, additionalCertificate2];
         certificateChainValidator
             .ValidateChain(
@@ -121,5 +113,13 @@ public class HttpConfigurationListenerTests
 
         response.trusted.Should().Be(false);
         testLogger.AssertPartialOutputStringExists(exceptionReason);
+    }
+    
+    private (X509CertificateDto primaryCertificateDto, X509Certificate2 primaryCertificate) SetUpCertificate(string certificateName)
+    {
+        var primaryCertificateDto = new X509CertificateDto(certificateName);
+        var primaryCertificate = new X509Certificate2();
+        certificateDtoConverter.Convert(primaryCertificateDto).Returns(primaryCertificate);
+        return (primaryCertificateDto, primaryCertificate);
     }
 }

@@ -46,7 +46,7 @@ internal class CertificateChainValidator : ICertificateChainValidator
     public bool ValidateChain(X509Certificate2 primaryCertificate, IEnumerable<X509Certificate2> additionalCertificates)
     {
         logger.LogVerbose($"[{nameof(CertificateChainValidator)}] Validating certificate: " + primaryCertificate);
-        var x509Chain = new X509Chain();
+        using var x509Chain = new X509Chain();
 
         foreach (var additionalCertificate in additionalCertificates)
         {
