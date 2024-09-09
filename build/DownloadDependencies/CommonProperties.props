@@ -25,7 +25,6 @@
   <!-- ************************************************************** -->
   <!-- Information about the individual language plugins we need to download -->
   <!-- ************************************************************** -->
-
   <ItemGroup Label="PluginJars">
     <PluginJars Include="CPP">
       <JarName>sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar</JarName>
@@ -41,27 +40,6 @@
       <RepoKey>c</RepoKey>
     </PluginJars>
 
-    <PluginJars Include="JavaScript">
-      <JarName>sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</JarName>
-      <URL>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/%(JarName)</URL>
-      <LanguageKey>ts</LanguageKey>
-      <RepoKey>typescript</RepoKey>
-    </PluginJars>
-
-    <PluginJars Include="TypeScript">
-      <JarName>sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</JarName>
-      <URL>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/%(JarName)</URL>
-      <LanguageKey>js</LanguageKey>
-      <RepoKey>javascript</RepoKey>
-    </PluginJars>
-
-    <PluginJars Include="CSS">
-      <JarName>sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</JarName>
-      <URL>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/%(JarName)</URL>
-      <LanguageKey>css</LanguageKey>
-      <RepoKey>css</RepoKey>
-    </PluginJars>
-
     <PluginJars Include="C#">
       <JarName>sonar-csharp-plugin-$(EmbeddedSonarAnalyzerVersion).jar</JarName>
       <URL>https://binaries.sonarsource.com/Distribution/sonar-csharp-plugin/%(JarName)</URL>
@@ -75,12 +53,17 @@
       <LanguageKey>vbnet</LanguageKey>
       <RepoKey>vbnet</RepoKey>
     </PluginJars>
-
-    <PluginJars Include="Secrets">
-      <JarName>sonar-text-plugin-$(EmbeddedSonarSecretsJarVersion).jar</JarName>
-      <URL>https://binaries.sonarsource.com/Distribution/sonar-text-plugin/%(JarName)</URL>
-      <LanguageKey>secrets</LanguageKey>
-      <RepoKey>secrets</RepoKey>
-    </PluginJars>
   </ItemGroup>
+
+  <PropertyGroup>
+    <JavascriptPluginFileName>sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</JavascriptPluginFileName>
+    <JavaScriptPluginDownloadPath>$(JarDownloadDir)\$(JavascriptPluginFileName)</JavaScriptPluginDownloadPath>
+    <JavascriptPluginRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/javascript/sonar-javascript-plugin/$(EmbeddedSonarJSAnalyzerVersion)/$(JavascriptPluginFileName)</JavascriptPluginRemoteUrl>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SonarTextPluginFileName>sonar-text-plugin-$(EmbeddedSonarSecretsJarVersion).jar</SonarTextPluginFileName>
+    <SonarTextPluginDownloadPath>$(JarDownloadDir)\$(SonarTextPluginFileName)</SonarTextPluginDownloadPath>
+    <SonarTextPluginRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/text/sonar-text-plugin/$(EmbeddedSonarSecretsJarVersion)/$(SonarTextPluginFileName)</SonarTextPluginRemoteUrl>
+  </PropertyGroup>
 </Project>

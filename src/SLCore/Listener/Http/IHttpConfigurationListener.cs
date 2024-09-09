@@ -18,37 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
+namespace SonarLint.VisualStudio.SLCore.Listener.Http;
+
+public interface IHttpConfigurationListener : ISLCoreListener
 {
-    [TestClass]
-    public class HttpConfigurationListenerTests
-    {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<ProxyConfigurationListener, ISLCoreListener>();
-        }
-
-        [TestMethod]
-        public void Mef_CheckIsSingleton()
-        {
-            MefTestHelpers.CheckIsSingletonMefComponent<ProxyConfigurationListener>();
-        }
-
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow(5)]
-        [DataRow("something")]
-        public async Task SelectProxiesAsync_ReturnsEmptyList(object parameter)
-        {
-            var testSubject = new ProxyConfigurationListener();
-
-            var result = await testSubject.SelectProxiesAsync(parameter);
-
-            result.proxies.Should().BeEmpty();
-        }
-    }
+    Task<SelectProxiesResponse> SelectProxiesAsync(object parameters);
+    Task<CheckServerTrustedResponse> CheckServerTrustedAsync(CheckServerTrustedParams parameters);
 }

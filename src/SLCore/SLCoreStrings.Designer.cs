@@ -96,6 +96,24 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [SLCore.Http] Received server trust verification request....
+        /// </summary>
+        public static string HttpConfiguration_ServerTrustVerificationRequest {
+            get {
+                return ResourceManager.GetString("HttpConfiguration_ServerTrustVerificationRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [SLCore.Http] Server verification result: {0}.
+        /// </summary>
+        public static string HttpConfiguration_ServerTrustVerificationResult {
+            get {
+                return ResourceManager.GetString("HttpConfiguration_ServerTrustVerificationResult", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unexpected enum value.
         /// </summary>
         public static string ModelExtensions_UnexpectedValue {

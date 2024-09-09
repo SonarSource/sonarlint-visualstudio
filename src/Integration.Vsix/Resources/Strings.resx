@@ -305,7 +305,7 @@ Please commit this file to share it with other contributors. See documentation f
 E.g. C:\Program Files\Java\jdk-17</value>
   </data>
   <data name="JreLocationLabel" xml:space="preserve">
-    <value>JRE Location</value>
+    <value>Java Home</value>
   </data>
   <data name="RestartIdeToApplyOptionLabel" xml:space="preserve">
     <value>Note: The IDE must be restarted for this setting to be applied.</value>

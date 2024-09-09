@@ -252,7 +252,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JRE Location.
+        ///   Looks up a localized string similar to Java Home.
         /// </summary>
         public static string JreLocationLabel {
             get {

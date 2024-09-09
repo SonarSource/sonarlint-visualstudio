@@ -26,6 +26,7 @@
     <Message Importance="high" Text="Processing analyzer jar files..." />
     <CallTarget Targets="PrepareDirectories" />
     <CallTarget Targets="DownloadIndividualJars" />
+    <CallTarget Targets="DownloadRepoxJars" />
     <CallTarget Targets="DownloadSloop" />
     <CallTarget Targets="UnzipSloop" />
     <CallTarget Targets="WriteOutputFile" />
@@ -42,6 +43,11 @@
 
   <Target Name="DownloadIndividualJars">
     <DownloadFile SourceUrl="%(PluginJars.URL)" DestinationFolder="$(JarDownloadDir)" SkipUnchangedFiles="true" Retries="3" />
+  </Target>
+
+  <Target Name="DownloadRepoxJars">
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(JavaScriptPluginDownloadPath) --url $(JavascriptPluginRemoteUrl)" />
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(SonarTextPluginDownloadPath) --url $(SonarTextPluginRemoteUrl)" />
   </Target>
 
   <Target Name ="DownloadSloop">

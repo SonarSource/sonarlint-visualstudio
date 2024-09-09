@@ -115,10 +115,64 @@ public class FileUriTests
     }
 
     [TestMethod]
+    [DataRow("[", "%5B")]
+    [DataRow("]", "%5D")]
+    [DataRow("#", "%2523")]
+    [DataRow("@", "%40")]
+    public void ToString_PercentEncodesReservedRfc3986Characters(string reservedChar, string expectedEncoding)
+    {
+        var actualString = @$"C:\filewithRfc3986ReservedChar{reservedChar}.cs";
+        var expectedString = @$"file:///C:/filewithRfc3986ReservedChar{expectedEncoding}.cs";
+
+        new FileUri(actualString).ToString().Should().Be(expectedString);
+    }
+
+    [TestMethod]
     public void LocalPath_ReturnsCorrectPath()
     {
         var filePath = @"C:\file\path\with some spaces\and with some backticks`1`2`3";
         new FileUri(filePath).LocalPath.Should().Be(filePath);
+    }
+
+    [TestMethod]
+    [DataRow("[", "%5B")]
+    [DataRow("]", "%5D")]
+    [DataRow("#", "%2523")]
+    [DataRow("@", "%40")]
+    [DataRow(" ", "%20")]
+    [DataRow("`", "%60")]
+    public void LocalPath_UnescapesEncodesCharacters(string reservedChar, string expectedEncoding)
+    {
+        var expectedFilePath = @$"C:\filewithRfc3986ReservedChar{reservedChar}.cs";
+        var encodedFilePath = @$"file:///C:/filewithRfc3986ReservedChar{expectedEncoding}.cs";
+
+        new FileUri(encodedFilePath).LocalPath.Should().Be(expectedFilePath);
+    }
+
+    [TestMethod]
+    [DataRow("[")]
+    [DataRow("]")]
+    [DataRow("@")]
+    [DataRow(" ")]
+    [DataRow("`")]
+    public void LocalPath_PathDoesNotHaveEncodedChars_ReturnsCorrectLocalPath(string reservedChar)
+    {
+        var notEncodedFilePath = @$"file:///C:/filewithRfc3986ReservedChar{reservedChar}.cs";
+        var expectedFilePath = @$"C:\filewithRfc3986ReservedChar{reservedChar}.cs";
+
+        new FileUri(notEncodedFilePath).LocalPath.Should().Be(expectedFilePath);
+    }
+
+    /// <summary>
+    ///  The # character as the beginning of a fragment, so <see cref="Uri.LocalPath"/> will return the path without the fragment.
+    /// </summary>
+    [TestMethod]
+    public void LocalPath_PathWithHashCharacter_ReturnsLocalPathWithoutHash()
+    {
+        var notEncodedFilePath = @$"file:///C:/filewithRfc3986ReservedChar#.cs";
+        var expectedFilePath = @$"C:\filewithRfc3986ReservedChar";
+
+        new FileUri(notEncodedFilePath).LocalPath.Should().Be(expectedFilePath);
     }
 
     [TestMethod]
@@ -151,5 +205,16 @@ public class FileUriTests
 
         fileUri.ToString().Should().Be("file:///C:/file%20with%20%204%20spaces%20and%20a%20back%60tick");
         fileUri.LocalPath.Should().Be(@"C:\file with  4 spaces and a back`tick");
+    }
+
+    [TestMethod]
+    public void Deserialize_ReservedRfc3986Characters_ProducesCorrectUri()
+    {
+        var serialized = @"""file:///C:/file%5B%5Dand%2523and%40""";
+
+        var fileUri = JsonConvert.DeserializeObject<FileUri>(serialized);
+
+        fileUri.ToString().Should().Be("file:///C:/file%5B%5Dand%2523and%40");
+        fileUri.LocalPath.Should().Be(@"C:\file[]and#and@");
     }
 }
