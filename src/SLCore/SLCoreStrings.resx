@@ -162,4 +162,10 @@
   <data name="AnalysisReadinessUpdate" xml:space="preserve">
     <value>Updated analysis readiness: {0}</value>
   </data>
+  <data name="HttpConfiguration_ServerTrustVerificationRequest" xml:space="preserve">
+    <value>[SLCore.Http] Received server trust verification request...</value>
+  </data>
+  <data name="HttpConfiguration_ServerTrustVerificationResult" xml:space="preserve">
+    <value>[SLCore.Http] Server verification result: {0}</value>
+  </data>
 </root>

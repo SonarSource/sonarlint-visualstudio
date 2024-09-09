@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
+namespace SonarLint.VisualStudio.SLCore.Listener.Http;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Proxy;
-
-public class SelectProxiesResponse
-{
-    public List<object> proxies = new();
-}
+public record CheckServerTrustedResponse(bool trusted);
