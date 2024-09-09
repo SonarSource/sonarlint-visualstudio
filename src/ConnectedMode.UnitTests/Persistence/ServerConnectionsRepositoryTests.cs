@@ -332,7 +332,7 @@ public class ServerConnectionsRepositoryTests
         var succeeded = testSubject.TryAdd(sonarCloudServerConnection);
 
         succeeded.Should().BeFalse();
-        logger.Received(1).WriteLine(exceptionMsg);
+        logger.Received(1).WriteLine($"Failed updating the {ServerConnectionsRepository.ConnectionsFileName}: {exceptionMsg}");
     }
 
     [TestMethod]
@@ -433,7 +433,7 @@ public class ServerConnectionsRepositoryTests
         var succeeded = testSubject.TryDelete(sonarCloud.Id);
 
         succeeded.Should().BeFalse();
-        logger.Received(1).WriteLine(exceptionMsg);
+        logger.Received(1).WriteLine($"Failed updating the {ServerConnectionsRepository.ConnectionsFileName}: {exceptionMsg}");
     }
 
     [TestMethod]
@@ -499,7 +499,7 @@ public class ServerConnectionsRepositoryTests
         var succeeded = testSubject.TryUpdateSettingsById(sonarCloud.Id, new ServerConnectionSettings(true));
 
         succeeded.Should().BeFalse();
-        logger.Received(1).WriteLine(exceptionMsg);
+        logger.Received(1).WriteLine($"Failed updating the {ServerConnectionsRepository.ConnectionsFileName}: {exceptionMsg}");
     }
 
     [TestMethod]
@@ -547,7 +547,7 @@ public class ServerConnectionsRepositoryTests
         var succeeded = testSubject.TryUpdateCredentialsById(connection.Id, Substitute.For<ICredentials>());
 
         succeeded.Should().BeFalse();
-        logger.Received(1).WriteLine(exceptionMsg);
+        logger.Received(1).WriteLine($"Failed updating credentials: {exceptionMsg}");
     }
 
     private SonarCloud MockFileWithOneSonarCloudConnection(bool isSmartNotificationsEnabled = true)

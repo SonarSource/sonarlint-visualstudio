@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class ServerConnectionsRepository : IServerConnectionsRepository
 {
-    private const string ConnectionsFileName = "connections.json";
+    internal const string ConnectionsFileName = "connections.json";
 
     private readonly ISolutionBindingCredentialsLoader credentialsLoader;
     private readonly ILogger logger;
@@ -127,7 +127,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            logger.WriteLine(ex.Message);
+            logger.WriteLine($"Failed updating credentials: {ex.Message}");
         }
         return false;
     }
@@ -154,7 +154,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            logger.WriteLine(ex.Message);
+            logger.WriteLine($"Failed adding server connection: {ex.Message}");
         }
 
         return false;
@@ -169,7 +169,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            logger.WriteLine(ex.Message);
+            logger.WriteLine($"Failed deleting credentials: {ex.Message}");
         }
     }
 
@@ -205,7 +205,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         }
         catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            logger.WriteLine(ex.Message);
+            logger.WriteLine($"Failed reading the {ConnectionsFileName}: {ex.Message}");
         }
 
         return null;
@@ -227,7 +227,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(ex.Message);
+                logger.WriteLine($"Failed updating the {ConnectionsFileName}: {ex.Message}");
             }
 
             return false;
