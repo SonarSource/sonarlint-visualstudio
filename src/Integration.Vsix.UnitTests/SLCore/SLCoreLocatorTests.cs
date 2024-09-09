@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO.Abstractions;
+using Org.BouncyCastle.Utilities;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.SLCore;
 using SonarLint.VisualStudio.SLCore.Configuration;
@@ -27,10 +30,32 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
     [TestClass]
     public class SLCoreLocatorTests
     {
+        private IVsixRootLocator vsixRootLocator;
+        private ISonarLintSettings settings;
+        private SLCoreLocator testSubject;
+        private ILogger logger;
+        private IFileSystem fileSystem;
+        private const string VsixRoot = "C:\\SomePath";
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            vsixRootLocator = Substitute.For<IVsixRootLocator>();
+            settings = Substitute.For<ISonarLintSettings>();
+            logger = Substitute.For<ILogger>();
+            fileSystem = Substitute.For<IFileSystem>();
+            testSubject = new SLCoreLocator(vsixRootLocator, string.Empty, settings, logger, fileSystem);
+
+            vsixRootLocator.GetVsixRoot().Returns(VsixRoot);
+        }
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<SLCoreLocator, ISLCoreLocator>(MefTestHelpers.CreateExport<IVsixRootLocator>());
+            MefTestHelpers.CheckTypeCanBeImported<SLCoreLocator, ISLCoreLocator>(
+                MefTestHelpers.CreateExport<IVsixRootLocator>(),
+                MefTestHelpers.CreateExport<ISonarLintSettings>(),
+                MefTestHelpers.CreateExport<ILogger>());
         }
 
         [TestMethod]
@@ -42,46 +67,81 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         [TestMethod]
         public void LocateExecutable_ReturnsLaunchParameters()
         {
-            var vsixRootLocator = Substitute.For<IVsixRootLocator>();
-            vsixRootLocator.GetVsixRoot().Returns("C:\\SomePath");
-
-            var testSubject = new SLCoreLocator(vsixRootLocator);
-
             var result = testSubject.LocateExecutable();
 
             result.Should().NotBeNull();
-            result.PathToExecutable.Should().Be("""C:\SomePath\Sloop\jre\bin\java.exe""");
-            result.LaunchArguments.Should().Be("""-classpath "C:\SomePath\Sloop\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+            result.PathToExecutable.Should().Be($"""{VsixRoot}\jre\bin\java.exe""");
+            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
         }
         
         [TestMethod]
         public void LocateExecutable_CustomVsixFoler_IsIncludedInPath()
         {
-            var vsixRootLocator = Substitute.For<IVsixRootLocator>();
-            vsixRootLocator.GetVsixRoot().Returns("C:\\SomePath");
+            var slCoreLocator = new SLCoreLocator(vsixRootLocator, "Custom\\VsixSubpath\\", settings, logger, fileSystem);
 
-            var testSubject = new SLCoreLocator(vsixRootLocator, "Custom\\VsixSubpath\\");
-
-            var result = testSubject.LocateExecutable();
+            var result = slCoreLocator.LocateExecutable();
 
             result.Should().NotBeNull();
-            result.PathToExecutable.Should().Be("""C:\SomePath\Custom\VsixSubpath\jre\bin\java.exe""");
-            result.LaunchArguments.Should().Be("""-classpath "C:\SomePath\Custom\VsixSubpath\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+            result.PathToExecutable.Should().Be($"""{VsixRoot}\Custom\VsixSubpath\jre\bin\java.exe""");
+            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\Custom\VsixSubpath\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
         }
         
         [TestMethod]
         public void LocateExecutable_EmptyVsixSubPath_UsesVsixRootDirectly()
         {
-            var vsixRootLocator = Substitute.For<IVsixRootLocator>();
             vsixRootLocator.GetVsixRoot().Returns("C:\\SomePath");
+            var slCoreLocator = new SLCoreLocator(vsixRootLocator, string.Empty, settings, logger, fileSystem);
 
-            var testSubject = new SLCoreLocator(vsixRootLocator, string.Empty);
+            var result = slCoreLocator.LocateExecutable();
+
+            result.Should().NotBeNull();
+            result.PathToExecutable.Should().Be($"""{VsixRoot}\jre\bin\java.exe""");
+            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+        }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("  ")]
+        public void LocateExecutable_JreLocationIsNotProvided_UsesBundledJre(string emptyJreLocation)
+        {
+            settings.JreLocation.Returns(emptyJreLocation);
 
             var result = testSubject.LocateExecutable();
 
             result.Should().NotBeNull();
-            result.PathToExecutable.Should().Be("""C:\SomePath\jre\bin\java.exe""");
-            result.LaunchArguments.Should().Be("""-classpath "C:\SomePath\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+            result.PathToExecutable.Should().Be($"""{VsixRoot}\jre\bin\java.exe""");
+            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+        }
+
+        [TestMethod]
+        public void LocateExecutable_JreLocationIsProvidedAndExeCanNotBeDetected_UsesBundledJreAndLogs()
+        {
+            settings.JreLocation.Returns("C:\\jrePath");
+            var customPathToExecutable = """C:\jrePath\bin\java.exe""";
+            fileSystem.File.Exists(customPathToExecutable).Returns(false);
+
+            var result = testSubject.LocateExecutable();
+
+            result.Should().NotBeNull();
+            result.PathToExecutable.Should().Be($"""{VsixRoot}\jre\bin\java.exe""");
+            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+            logger.Received(1).LogVerbose(string.Format(Resources.Strings.SlCoreLocator_CustomJreLocationNotFound, customPathToExecutable));
+        }
+
+        [TestMethod]
+        public void LocateExecutable_JreLocationIsProvidedAndExeCanBeDetected_UsesProvidedJreLocationAndLogs()
+        {
+            settings.JreLocation.Returns("C:\\jrePath");
+            var expectedPathToExecutable = """C:\jrePath\bin\java.exe""";
+            fileSystem.File.Exists(expectedPathToExecutable).Returns(true);
+
+            var result = testSubject.LocateExecutable();
+
+            result.Should().NotBeNull();
+            result.PathToExecutable.Should().Be(expectedPathToExecutable);
+            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+            logger.Received(1).LogVerbose(string.Format(Resources.Strings.SlCoreLocator_UsingCustomJreLocation, expectedPathToExecutable));
         }
     }
 }

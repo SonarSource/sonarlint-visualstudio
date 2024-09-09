@@ -23,6 +23,7 @@ using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.VsInfo;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.SLCore;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
@@ -87,7 +88,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
             var rootLocator = Substitute.For<IVsixRootLocator>();
             rootLocator.GetVsixRoot().Returns(DependencyLocator.SloopBasePath);
-            var slCoreLocator = new SLCoreLocator(rootLocator, string.Empty);
+            var slCoreLocator = new SLCoreLocator(rootLocator, string.Empty, Substitute.For<ISonarLintSettings>(), logger, Substitute.For<IFileSystem>());
 
             var constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
             constantsProvider.ClientConstants.Returns(new ClientConstantsDto("SLVS_Integration_Tests",

@@ -20,6 +20,7 @@
 
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using SonarLint.VisualStudio.SLCore.Protocol;
 
 namespace SonarLint.VisualStudio.SLCore.Common.Models;
@@ -28,15 +29,38 @@ namespace SonarLint.VisualStudio.SLCore.Common.Models;
 public sealed class FileUri
 {
     private readonly Uri uri;
+    private static readonly char[] Rfc3986ReservedCharsToEncode = ['#', '[', ']', '@'];
 
     public FileUri(string uriString)
     {
-        uri = new Uri(uriString);
+        var unescapedUri = Uri.UnescapeDataString(uriString);
+        uri = new Uri(unescapedUri);
     }
 
     public string LocalPath => uri.LocalPath;
 
-    public override string ToString() => Uri.EscapeUriString(uri.ToString());
+    public override string ToString()
+    {
+        var escapedUri = Uri.EscapeUriString(uri.ToString());
+
+        return EscapeRfc3986ReservedCharacters(escapedUri);
+    }
+
+    /// <summary>
+    /// The backend (SlCore) uses java, in which the Uri follows the RFC 3986 protocol.
+    /// The <see cref="Uri.EscapeUriString"/> does not escape the reserved characters, that's why they are escaped here.
+    /// See https://learn.microsoft.com/en-us/dotnet/api/system.uri.escapeuristring?view=netframework-4.7.2
+    /// </summary>
+    /// <param name="stringToEscape"></param>
+    /// <returns></returns>
+    private static string EscapeRfc3986ReservedCharacters(string stringToEscape)
+    {
+        var stringBuilderToEscape = new StringBuilder(stringToEscape);
+        
+        return Rfc3986ReservedCharsToEncode.Aggregate(stringBuilderToEscape,
+                (current, charToEscape) => current.Replace(charToEscape.ToString(), Uri.HexEscape(charToEscape)))
+                .ToString();
+    }
 
     [ExcludeFromCodeCoverage]
     public override bool Equals(object obj)
