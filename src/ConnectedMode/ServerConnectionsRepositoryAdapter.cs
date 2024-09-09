@@ -25,23 +25,26 @@ namespace SonarLint.VisualStudio.ConnectedMode;
 
 public interface IServerConnectionsRepositoryAdapter
 {
-    List<Connection> GetAllConnections();
-    List<ConnectionInfo> GetAllConnectionsInfo();
+    bool TryGetAllConnections(out List<Connection> connections);
+    bool TryGetAllConnectionsInfo(out List<ConnectionInfo> connectionInfos);
 }
 
 [Export(typeof(IServerConnectionsRepositoryAdapter))]
 [method: ImportingConstructor]
 internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository serverConnectionsRepository) : IServerConnectionsRepositoryAdapter
 {
-    public List<Connection> GetAllConnections()
+    public bool TryGetAllConnections(out List<Connection> connections)
     {
-        serverConnectionsRepository.TryGetAll(out var connections);
-        return connections.Select(MapServerConnectionModel).ToList();
+        var succeeded = serverConnectionsRepository.TryGetAll(out var serverConnections);
+        connections = serverConnections?.Select(MapServerConnectionModel).ToList();
+        return succeeded;
     }
 
-    public List<ConnectionInfo> GetAllConnectionsInfo()
+    public bool TryGetAllConnectionsInfo(out List<ConnectionInfo> connectionInfos)
     {
-        return GetAllConnections().Select(conn => conn.Info).ToList();
+        var succeeded = TryGetAllConnections(out var connections);
+        connectionInfos = connections?.Select(conn => conn.Info).ToList();
+        return succeeded;
     }
 
     private static Connection MapServerConnectionModel(ServerConnection serverConnection)

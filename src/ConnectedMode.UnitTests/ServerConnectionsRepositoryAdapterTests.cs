@@ -42,11 +42,11 @@ public class ServerConnectionsRepositoryAdapterTests
         => MefTestHelpers.CheckTypeCanBeImported<ServerConnectionsRepositoryAdapter, IServerConnectionsRepositoryAdapter>(MefTestHelpers.CreateExport<IServerConnectionsRepository>());
 
     [TestMethod]
-    public void GetAllConnections_CallServerConnectionsRepository()
+    public void TryGetAllConnections_CallServerConnectionsRepository()
     {
         MockServerConnections([]);
 
-        var connections = testSubject.GetAllConnections();
+        testSubject.TryGetAllConnections(out var connections);
 
         serverConnectionsRepository.Received(1).TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>());
         connections.Should().BeEmpty();
@@ -55,12 +55,12 @@ public class ServerConnectionsRepositoryAdapterTests
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void GetAllConnections_HasOneSonarCloudConnection_ReturnsOneMappedConnection(bool isSmartNotificationsEnabled)
+    public void TryGetAllConnections_HasOneSonarCloudConnection_ReturnsOneMappedConnection(bool isSmartNotificationsEnabled)
     {
         var sonarCloud = CreateSonarCloudServerConnection(isSmartNotificationsEnabled);
         MockServerConnections([sonarCloud]);
 
-        var connections = testSubject.GetAllConnections();
+        testSubject.TryGetAllConnections(out var connections);
 
         connections.Should().BeEquivalentTo([new Connection(new ConnectionInfo(sonarCloud.Id, ConnectionServerType.SonarCloud), isSmartNotificationsEnabled)]);
     }
@@ -68,47 +68,73 @@ public class ServerConnectionsRepositoryAdapterTests
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void GetAllConnections_HasOneSonarQubeConnection_ReturnsOneMappedConnection(bool isSmartNotificationsEnabled)
+    public void TryGetAllConnections_HasOneSonarQubeConnection_ReturnsOneMappedConnection(bool isSmartNotificationsEnabled)
     {
         var sonarQube = CreateSonarQubeServerConnection(isSmartNotificationsEnabled);
         MockServerConnections([sonarQube]);
 
-        var connections = testSubject.GetAllConnections();
+        testSubject.TryGetAllConnections(out var connections);
 
         connections.Should().BeEquivalentTo([new Connection(new ConnectionInfo(sonarQube.Id, ConnectionServerType.SonarQube), isSmartNotificationsEnabled)]);
     }
 
     [TestMethod]
-    public void GetAllConnectionsInfo_CallServerConnectionsRepository()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void TryGetAllConnections_ReturnsStatusFromSlCore(bool expectedStatus)
+    {
+        var sonarCloud = CreateSonarCloudServerConnection();
+        MockServerConnections([sonarCloud], succeeded:expectedStatus);
+
+        var succeeded = testSubject.TryGetAllConnections(out _);
+
+        succeeded.Should().Be(expectedStatus);
+    }
+
+    [TestMethod]
+    public void TryGetAllConnectionsInfo_CallServerConnectionsRepository()
     {
         MockServerConnections([]);
 
-        var connections = testSubject.GetAllConnectionsInfo();
+        testSubject.TryGetAllConnectionsInfo(out var connections);
 
         serverConnectionsRepository.Received(1).TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>());
         connections.Should().BeEmpty();
     }
 
     [TestMethod]
-    public void GetAllConnectionsInfo_HasOneSonarCloudConnection_ReturnsOneMappedConnection()
+    public void TryGetAllConnectionsInfo_HasOneSonarCloudConnection_ReturnsOneMappedConnection()
     {
         var sonarCloud = CreateSonarCloudServerConnection();
         MockServerConnections([sonarCloud]);
 
-        var connections = testSubject.GetAllConnectionsInfo();
+        testSubject.TryGetAllConnectionsInfo(out var connections);
 
         connections.Should().BeEquivalentTo([new ConnectionInfo(sonarCloud.Id, ConnectionServerType.SonarCloud)]);
     }
 
     [TestMethod]
-    public void GetAllConnectionsInfo_HasOneSonarQubeConnection_ReturnsOneMappedConnection()
+    public void TryGetAllConnectionsInfo_HasOneSonarQubeConnection_ReturnsOneMappedConnection()
     {
         var sonarQube = CreateSonarQubeServerConnection();
         MockServerConnections([sonarQube]);
 
-        var connections = testSubject.GetAllConnectionsInfo();
+        testSubject.TryGetAllConnectionsInfo(out var connections);
 
         connections.Should().BeEquivalentTo([new ConnectionInfo(sonarQube.Id, ConnectionServerType.SonarQube)]);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void TryGetAllConnectionsInfo_ReturnsStatusFromSlCore(bool expectedStatus)
+    {
+        var sonarQube = CreateSonarQubeServerConnection();
+        MockServerConnections([sonarQube], succeeded: expectedStatus);
+
+        var succeeded = testSubject.TryGetAllConnectionsInfo(out _);
+
+        succeeded.Should().Be(expectedStatus);
     }
 
     private static SonarCloud CreateSonarCloudServerConnection(bool isSmartNotificationsEnabled = true)
@@ -122,12 +148,12 @@ public class ServerConnectionsRepositoryAdapterTests
         return sonarQube;
     }
 
-    private void MockServerConnections(List<ServerConnection> connections)
+    private void MockServerConnections(List<ServerConnection> connections, bool succeeded = true)
     {
         serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(callInfo =>
         {
             callInfo[0] = connections;
-            return true;
+            return succeeded;
         });
     }
 }
