@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public string JreLocation
         {
-            get => this.GetValueOrDefault(nameof(JreLocation), null);
+            get => this.GetValueOrDefault(nameof(JreLocation), string.Empty);
             set => this.SetValue(nameof(JreLocation), value);
         }
     }
