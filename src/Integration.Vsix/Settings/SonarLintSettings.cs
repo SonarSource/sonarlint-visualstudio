@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal /* testing purposes */ void SetValue(string key, string value)
         {
-            writableSettingsStore.Value?.SetString(SettingsRoot, key, value);
+            writableSettingsStore.Value?.SetString(SettingsRoot, key, value ?? string.Empty);
         }
 
         internal /* testing purposes */ int GetValueOrDefault(string key, int defaultValue)
