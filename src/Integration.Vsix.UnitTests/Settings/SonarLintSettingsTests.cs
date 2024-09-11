@@ -77,6 +77,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             store.Invocations.Should().HaveCount(3);
         }
 
+        [TestMethod]
+        public void JreLocation_DefaultValue_ShouldBeEmpty()
+        {
+            var store = new Mock<WritableSettingsStore>();
+
+            var testSubject = CreateTestSubject(store.Object);
+
+            testSubject.JreLocation.Should().BeEmpty();
+            store.Verify(x => x.GetString(SonarLintSettings.SettingsRoot, nameof(testSubject.JreLocation), string.Empty), Times.AtLeastOnce);
+        }
+
         #region Boolean method tests
 
         [TestMethod]
@@ -211,6 +222,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             Action act = () => testSubject.SetValue("key1", "a value");
 
             act.Should().NotThrow();
+        }
+
+        [TestMethod]
+        public void SetValue_Null_SetsEmptyString()
+        {
+            var settingsStore = new Mock<WritableSettingsStore>();
+            var testSubject = CreateTestSubject(settingsStore.Object);
+
+            testSubject.SetValue("key1", null);
+
+            settingsStore.Verify(x => x.SetString(SonarLintSettings.SettingsRoot, "key1", string.Empty), Times.Once);
         }
 
         #endregion
