@@ -69,7 +69,7 @@
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Text="{x:Static res:Strings.JreLocationDescriptionText}" />
-                <TextBox Grid.Row="1" Margin="0,5" Text="{Binding Path=JreLocation}"/>
+                <TextBox Grid.Row="1" Margin="0,5" Text="{Binding Path=JreLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 <TextBlock Grid.Row="2" Text="{x:Static res:Strings.RestartIdeToApplyOptionLabel}" />
             </Grid>
         </GroupBox>
