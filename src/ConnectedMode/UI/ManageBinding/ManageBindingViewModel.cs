@@ -38,7 +38,7 @@ public class ManageBindingViewModel(
     public SolutionInfoModel SolutionInfo { get; } = solutionInfo;
     public IProgressReporterViewModel ProgressReporter { get; } = progressReporterViewModel;
 
-    public ServerProject BoundProject      
+    public ServerProject BoundProject
     {
         get => boundProject;
         set
@@ -110,6 +110,12 @@ public class ManageBindingViewModel(
     {
         var validationParams = new TaskToPerformParams<AdapterResponse>(LoadDataAsync, UiResources.LoadingConnectionsText, UiResources.LoadingConnectionsFailedText){AfterProgressUpdated = OnProgressUpdated};
         await ProgressReporter.ExecuteTaskWithProgressAsync(validationParams);
+
+        var boundServerProject = connectedModeServices.ConfigurationProvider.GetConfiguration()?.Project;
+        if (boundServerProject != null)
+        {
+            BoundProject = new ServerProject(boundServerProject.ServerProjectKey, "Fetch name from server");
+        }
     }
 
     public async Task BindAsync()
