@@ -38,24 +38,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         internal async Task<AdapterResponse> LoadConnectionsAsync()
         {
+            var succeeded = false;
             try
             {
-                await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(InitializeConnections);
-                return new AdapterResponse(true);
+                await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => succeeded = InitializeConnections());
             }
             catch (Exception ex)
             {
                 connectedModeServices.Logger.WriteLine(ex.Message);
+                succeeded = false;
             }
 
-            return new AdapterResponse(false);
+            return new AdapterResponse(succeeded);
         }
 
-        internal void InitializeConnections()
+        internal bool InitializeConnections()
         {
             ConnectionViewModels.Clear();
-            var connections = connectedModeServices.ServerConnectionsRepositoryAdapter.GetAllConnections();
-            connections.ToList().ForEach(AddConnection);
+            var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGetAllConnections(out var connections);
+            connections?.ForEach(AddConnection);
+            return succeeded;
         }
 
         public void RemoveConnection(ConnectionViewModel connectionViewModel)

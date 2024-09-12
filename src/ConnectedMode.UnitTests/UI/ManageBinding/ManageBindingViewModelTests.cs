@@ -370,7 +370,7 @@ public class ManageBindingViewModelTests
     {
         testSubject.BoundProject = null;
         progressReporterViewModel.IsOperationInProgress.Returns(false);
-        connectedModeServices.ServerConnectionsRepositoryAdapter.GetAllConnectionsInfo().Returns([sonarCloudConnectionInfo]);
+        MockTryGetAllConnectionsInfo([sonarCloudConnectionInfo]);
         testSubject.LoadConnections();
 
         testSubject.IsConnectionSelectionEnabled.Should().BeTrue();
@@ -434,7 +434,7 @@ public class ManageBindingViewModelTests
     public void LoadConnections_FillsConnections()
     {
         List<ConnectionInfo> existingConnections = [sonarQubeConnectionInfo, sonarCloudConnectionInfo];
-        serverConnectionsRepositoryAdapter.GetAllConnectionsInfo().Returns(existingConnections);
+        MockTryGetAllConnectionsInfo(existingConnections);
 
         testSubject.LoadConnections();
 
@@ -444,7 +444,7 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public void LoadConnections_ClearsPreviousConnections()
     {
-        serverConnectionsRepositoryAdapter.GetAllConnectionsInfo().Returns([sonarQubeConnectionInfo]);
+        MockTryGetAllConnectionsInfo([sonarQubeConnectionInfo]);
         testSubject.Connections.Add(sonarCloudConnectionInfo);
 
         testSubject.LoadConnections();
@@ -468,6 +468,18 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void LoadConnectionsAsync_ReturnsResponseFromAdapter(bool expectedStatus)
+    {
+        serverConnectionsRepositoryAdapter.TryGetAllConnectionsInfo(out Arg.Any<List<ConnectionInfo>>()).Returns(expectedStatus);
+
+        var succeeded = testSubject.LoadConnections();
+
+        succeeded.Should().Be(expectedStatus);
+    }
+
+    [TestMethod]
     public async Task InitializeDataAsync_InitializesDataAndReportsProgress()
     {
         await testSubject.InitializeDataAsync();
@@ -482,19 +494,11 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public async Task LoadDataAsync_LoadsConnections()
+    public async Task LoadDataAsync_LoadsConnectionsOnUIThread()
     {
         await testSubject.LoadDataAsync();
 
-        await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Is<Action>(op => op == testSubject.LoadConnections));
-    }
-
-    [TestMethod]
-    public async Task LoadDataAsync_ConnectionsLoadedSuccessfully_ReturnsTrue()
-    {
-        var adapterResponse = await testSubject.LoadDataAsync();
-
-        adapterResponse.Success.Should().BeTrue();
+        await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
     }
 
     [TestMethod]
@@ -537,6 +541,15 @@ public class ManageBindingViewModelTests
         connectedModeServices.ThreadHandling.Returns(threadHandling);
         connectedModeServices.Logger.Returns(logger);
 
-        serverConnectionsRepositoryAdapter.GetAllConnectionsInfo().Returns([]);
+        MockTryGetAllConnectionsInfo([]);
+    }
+
+    private void MockTryGetAllConnectionsInfo(List<ConnectionInfo> connectionInfos)
+    {
+        connectedModeServices.ServerConnectionsRepositoryAdapter.TryGetAllConnectionsInfo(out _).Returns(callInfo =>
+        {
+            callInfo[0] = connectionInfos;
+            return true;
+        });
     }
 }
