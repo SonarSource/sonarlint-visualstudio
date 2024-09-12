@@ -175,26 +175,28 @@ public class ManageBindingViewModel(
 
     internal async Task<AdapterResponse> LoadDataAsync()
     {
+        var succeeded = false;
         try
         {
-            await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(LoadConnections);
-            return new AdapterResponse(true);
+            await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => succeeded = LoadConnections());
         }
         catch (Exception ex)
         {
             connectedModeServices.Logger.WriteLine(ex.Message);
+            succeeded = false;
         }
 
-        return new AdapterResponse(false);
+        return new AdapterResponse(succeeded);
     }
 
-    internal void LoadConnections()
+    internal bool LoadConnections()
     {
         Connections.Clear();
-        var slCoreConnections = connectedModeServices.ServerConnectionsRepositoryAdapter.GetAllConnectionsInfo();
-        slCoreConnections.ForEach(Connections.Add);
+        var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGetAllConnectionsInfo(out var slCoreConnections);
+        slCoreConnections?.ForEach(Connections.Add);
 
         RaisePropertyChanged(nameof(IsConnectionSelectionEnabled));
         RaisePropertyChanged(nameof(ConnectionSelectionCaptionText));
+        return succeeded;
     }
 }
