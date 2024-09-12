@@ -113,13 +113,7 @@ public class ManageBindingViewModel(
         await ProgressReporter.ExecuteTaskWithProgressAsync(validationParams);
 
         var boundServerProject = connectedModeServices.ConfigurationProvider.GetConfiguration()?.Project;
-        if (boundServerProject == null)
-        {
-            return;
-        }
-        BoundProject = new ServerProject(boundServerProject.ServerProjectKey, "Fetch name from server");
-        
-        var connection = boundServerProject.ServerConnection;
+        var connection = boundServerProject?.ServerConnection;
         if (connection == null)
         {
             return;
@@ -129,7 +123,9 @@ public class ManageBindingViewModel(
             connection is ServerConnection.SonarCloud
                 ? ConnectionServerType.SonarCloud
                 : ConnectionServerType.SonarQube);
-            
+        
+        SelectedProject = new ServerProject(boundServerProject.ServerProjectKey, "Fetch name from server");
+        BoundProject = SelectedProject;
     }
 
     public async Task BindAsync()
