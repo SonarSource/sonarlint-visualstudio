@@ -21,6 +21,7 @@
 using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
@@ -112,10 +113,23 @@ public class ManageBindingViewModel(
         await ProgressReporter.ExecuteTaskWithProgressAsync(validationParams);
 
         var boundServerProject = connectedModeServices.ConfigurationProvider.GetConfiguration()?.Project;
-        if (boundServerProject != null)
+        if (boundServerProject == null)
         {
-            BoundProject = new ServerProject(boundServerProject.ServerProjectKey, "Fetch name from server");
+            return;
         }
+        BoundProject = new ServerProject(boundServerProject.ServerProjectKey, "Fetch name from server");
+        
+        var connection = boundServerProject.ServerConnection;
+        if (connection == null)
+        {
+            return;
+        }
+        SelectedConnectionInfo = new ConnectionInfo(
+            connection.Id,
+            connection is ServerConnection.SonarCloud
+                ? ConnectionServerType.SonarCloud
+                : ConnectionServerType.SonarQube);
+            
     }
 
     public async Task BindAsync()
