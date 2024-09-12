@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageConnections;
 public class ManageConnectionsViewModelTest
 {
     private ManageConnectionsViewModel testSubject;
-    private List<Connection> connections;
+    private List<Connection> twoConnections;
     private IProgressReporterViewModel progressReporterViewModel;
     private IConnectedModeServices connectedModeServices;
     private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
@@ -40,7 +40,7 @@ public class ManageConnectionsViewModelTest
     [TestInitialize]
     public void TestInitialize()
     {
-        connections =
+        twoConnections =
         [
             new Connection(new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube), true),
             new Connection(new ConnectionInfo("https://sonarcloud.io/myOrg", ConnectionServerType.SonarCloud), false)
@@ -63,11 +63,11 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     public void InitializeConnections_InitializesConnectionsCorrectly()
     {
-        serverConnectionsRepositoryAdapter.GetAllConnections().Returns(connections);
+        MockTryGetConnections(twoConnections);
 
         testSubject.InitializeConnections();
 
-        HasExpectedConnections(connections);
+        HasExpectedConnections(twoConnections);
     }
 
     [TestMethod]
@@ -78,7 +78,7 @@ public class ManageConnectionsViewModelTest
 
         testSubject.RemoveConnection(connectionToRemove);
 
-        testSubject.ConnectionViewModels.Count.Should().Be(connections.Count() - 1);
+        testSubject.ConnectionViewModels.Count.Should().Be(twoConnections.Count - 1);
         testSubject.ConnectionViewModels.Should().NotContain(connectionToRemove);
     }
 
@@ -119,6 +119,8 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     public void NoConnectionExists_NoConnections_ReturnsTrue()
     {
+        MockTryGetConnections([]);
+
         testSubject.InitializeConnections();
 
         testSubject.NoConnectionExists.Should().BeTrue();
@@ -146,19 +148,11 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public async Task LoadConnectionsAsync_LoadsConnections()
+    public async Task LoadConnectionsAsync_LoadsConnectionsOnUIThread()
     {
         await testSubject.LoadConnectionsAsync();
 
-        await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Is<Action>(op => op == testSubject.InitializeConnections));
-    }
-
-    [TestMethod]
-    public async Task LoadConnectionsAsync_ConnectionsLoadedSuccessfully_ReturnsTrue()
-    {
-        var adapterResponse = await testSubject.LoadConnectionsAsync();
-
-        adapterResponse.Success.Should().BeTrue();
+        await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
     }
 
     [TestMethod]
@@ -175,10 +169,22 @@ public class ManageConnectionsViewModelTest
         logger.Received(1).WriteLine(exceptionMsg);
     }
 
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void InitializeConnections_ReturnsResponseFromAdapter(bool expectedStatus)
+    {
+        serverConnectionsRepositoryAdapter.TryGetAllConnections(out _).Returns(expectedStatus);
+
+        var adapterResponse = testSubject.InitializeConnections();
+
+        adapterResponse.Should().Be(expectedStatus);
+    }
+
     private void HasExpectedConnections(IEnumerable<Connection> expectedConnections)
     {
         testSubject.ConnectionViewModels.Should().NotBeNull();
-        testSubject.ConnectionViewModels.Count.Should().Be(connections.Count());
+        testSubject.ConnectionViewModels.Count.Should().Be(twoConnections.Count);
         foreach (var connection in expectedConnections)
         {
             var connectionViewModel = testSubject.ConnectionViewModels.SingleOrDefault(c => c.Name == connection.Info.Id);
@@ -190,7 +196,11 @@ public class ManageConnectionsViewModelTest
 
     private void InitializeTwoConnections()
     {
-        serverConnectionsRepositoryAdapter.GetAllConnections().Returns(connections);
+        serverConnectionsRepositoryAdapter.TryGetAllConnections(out _).Returns(callInfo =>
+        {
+            callInfo[0] = twoConnections;
+            return true;
+        });
         testSubject.InitializeConnections();
     }
 
@@ -203,6 +213,15 @@ public class ManageConnectionsViewModelTest
         connectedModeServices.ServerConnectionsRepositoryAdapter.Returns(serverConnectionsRepositoryAdapter);
         connectedModeServices.ThreadHandling.Returns(threadHandling);
         connectedModeServices.Logger.Returns(logger);
-        serverConnectionsRepositoryAdapter.GetAllConnections().Returns([]);
+        MockTryGetConnections(twoConnections);
+    }
+
+    private void MockTryGetConnections(List<Connection> connections)
+    {
+        serverConnectionsRepositoryAdapter.TryGetAllConnections(out _).Returns(callInfo =>
+        {
+            callInfo[0] = connections;
+            return true;
+        });
     }
 }
