@@ -19,6 +19,9 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Security;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode;
@@ -27,7 +30,7 @@ public interface IServerConnectionsRepositoryAdapter
 {
     bool TryGetAllConnections(out List<Connection> connections);
     bool TryGetAllConnectionsInfo(out List<ConnectionInfo> connectionInfos);
-    bool TryAddConnection(Connection connection);
+    bool TryAddConnection(Connection connection, ICredentialsModel credentialsModel);
 }
 
 [Export(typeof(IServerConnectionsRepositoryAdapter))]
@@ -48,9 +51,11 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         return succeeded;
     }
 
-    public bool TryAddConnection(Connection connection)
+    public bool TryAddConnection(Connection connection, ICredentialsModel credentialsModel)
     {
-        return serverConnectionsRepository.TryAdd(MapConnection(connection));
+        var serverConnection = MapConnection(connection);
+        serverConnection.Credentials = MapCredentials(credentialsModel);
+        return serverConnectionsRepository.TryAdd(serverConnection);
     }
 
     private static Connection MapServerConnectionModel(ServerConnection serverConnection)
@@ -60,7 +65,7 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         return new Connection(connectionInfo, serverConnection.Settings.IsSmartNotificationsEnabled);
     }
 
-    private ServerConnection MapConnection(Connection connection)
+    private static ServerConnection MapConnection(Connection connection)
     {
         if (connection.Info.ServerType == ConnectionServerType.SonarCloud)
         {
@@ -68,5 +73,25 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         }
 
         return new ServerConnection.SonarQube(new Uri(connection.Info.Id), new ServerConnectionSettings(connection.EnableSmartNotifications));
+    }
+
+    private static ICredentials MapCredentials(ICredentialsModel credentialsModel)
+    {
+        var securePassword = new SecureString();
+        switch (credentialsModel)
+        {
+            case TokenCredentialsModel tokenCredentialsModel:
+                return new BasicAuthCredentials(tokenCredentialsModel.Token, securePassword);
+            case UsernamePasswordModel usernameCredentialsModel:
+            {
+                foreach (var c in usernameCredentialsModel.Password)
+                {
+                    securePassword.AppendChar(c);
+                }
+                return new BasicAuthCredentials(usernameCredentialsModel.Username, securePassword);
+            }
+            default:
+                return null;
+        }
     }
 }

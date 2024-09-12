@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 return;
             }
 
-            await ViewModel.CreateConnectionsWithProgressAsync(new Connection(completeConnection));
+            await ViewModel.CreateConnectionsWithProgressAsync(new Connection(completeConnection), credentialsDialog.ViewModel.GetCredentialsModel());
         }
 
         private ConnectionInfo GetTransientConnection()

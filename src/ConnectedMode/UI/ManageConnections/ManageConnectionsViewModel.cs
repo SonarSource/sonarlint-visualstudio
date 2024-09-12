@@ -19,6 +19,7 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
 
@@ -39,10 +40,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         }
 
-        public async Task CreateConnectionsWithProgressAsync(Connection connection)
+        public async Task CreateConnectionsWithProgressAsync(Connection connection, ICredentialsModel credentialsModel)
         {
             var validationParams = new TaskToPerformParams<AdapterResponse>(
-                async () => await SafeExecuteActionAsync(() => CreateNewConnection(connection)),
+                async () => await SafeExecuteActionAsync(() => CreateNewConnection(connection, credentialsModel)),
                 UiResources.CreatingConnectionProgressText,
                 UiResources.CreatingConnectionFailedText);
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
@@ -78,9 +79,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             RaisePropertyChanged(nameof(NoConnectionExists));
         }
 
-        internal bool CreateNewConnection(Connection connection)
+        internal bool CreateNewConnection(Connection connection, ICredentialsModel credentialsModel)
         {
-            var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryAddConnection(connection);
+            var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryAddConnection(connection, credentialsModel);
             if (succeeded)
             {
                 AddConnectionViewModel(connection);
