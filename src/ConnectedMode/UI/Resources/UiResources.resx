@@ -357,4 +357,10 @@
   <data name="LoadingConnectionsText" xml:space="preserve">
     <value>Loading connections...</value>
   </data>
+  <data name="CreatingConnectionFailedText" xml:space="preserve">
+    <value>Creating a connection failed</value>
+  </data>
+  <data name="CreatingConnectionProgressText" xml:space="preserve">
+    <value>Creating connection...</value>
+  </data>
 </root>

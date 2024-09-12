@@ -95,23 +95,23 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void AddConnection_AddsProvidedConnection()
+    public void AddConnectionViewModel_AddsProvidedConnection()
     {
         var connectionToAdd = new Connection(new ConnectionInfo("https://sonarcloud.io/mySecondOrg", ConnectionServerType.SonarCloud), false);
 
-        testSubject.AddConnection(connectionToAdd);
+        testSubject.AddConnectionViewModel(connectionToAdd);
 
         testSubject.ConnectionViewModels.Count.Should().Be( 1);
         testSubject.ConnectionViewModels[0].Connection.Should().Be(connectionToAdd);
     }
 
     [TestMethod]
-    public void AddConnection_RaisesEvents()
+    public void AddConnectionViewModel_RaisesEvents()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
-        testSubject.AddConnection(new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false));
+        testSubject.AddConnectionViewModel(new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false));
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoConnectionExists)));
     }
@@ -142,28 +142,27 @@ public class ManageConnectionsViewModelTest
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
-                    x.TaskToPerform == testSubject.LoadConnectionsAsync &&
                     x.ProgressStatus == UiResources.LoadingConnectionsText &&
                 x.WarningText == UiResources.LoadingConnectionsFailedText));
     }
 
     [TestMethod]
-    public async Task LoadConnectionsAsync_LoadsConnectionsOnUIThread()
+    public async Task SafeExecuteActionAsync_LoadsConnectionsOnUIThread()
     {
-        await testSubject.LoadConnectionsAsync();
+        await testSubject.SafeExecuteActionAsync(() => true);
 
         await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
     }
 
     [TestMethod]
-    public async Task LoadConnectionsAsync_LoadingConnectionsThrows_ReturnsFalse()
+    public async Task SafeExecuteActionAsync_LoadingConnectionsThrows_ReturnsFalse()
     {
         var exceptionMsg = "Failed to load connections";
         var mockedThreadHandling = Substitute.For<IThreadHandling>();
         connectedModeServices.ThreadHandling.Returns(mockedThreadHandling);
         mockedThreadHandling.When(x => x.RunOnUIThreadAsync(Arg.Any<Action>())).Do(callInfo => throw new Exception(exceptionMsg));
 
-        var adapterResponse = await testSubject.LoadConnectionsAsync();
+        var adapterResponse = await testSubject.SafeExecuteActionAsync(() => true);
 
         adapterResponse.Success.Should().BeFalse();
         logger.Received(1).WriteLine(exceptionMsg);
@@ -179,6 +178,47 @@ public class ManageConnectionsViewModelTest
         var adapterResponse = testSubject.InitializeConnections();
 
         adapterResponse.Should().Be(expectedStatus);
+    }
+
+    [TestMethod]
+    public async Task CreateConnectionsWithProgressAsync_InitializesDataAndReportsProgress()
+    {
+        var connectionToAdd = CreateSonarCloudConnection();
+
+        await testSubject.CreateConnectionsWithProgressAsync(connectionToAdd);
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.ProgressStatus == UiResources.CreatingConnectionProgressText &&
+                    x.WarningText == UiResources.CreatingConnectionFailedText));
+    }
+
+    [TestMethod]
+    public void CreateNewConnection_ConnectionWasAddedToRepository_AddsProvidedConnection()
+    {
+        var connectionToAdd = new Connection(new ConnectionInfo("https://sonarcloud.io/mySecondOrg", ConnectionServerType.SonarCloud), false);
+        serverConnectionsRepositoryAdapter.TryAddConnection(connectionToAdd).Returns(true);
+
+        var succeeded = testSubject.CreateNewConnection(connectionToAdd);
+
+        succeeded.Should().BeTrue();
+        testSubject.ConnectionViewModels.Count.Should().Be(1);
+        testSubject.ConnectionViewModels[0].Connection.Should().Be(connectionToAdd);
+        serverConnectionsRepositoryAdapter.Received(1).TryAddConnection(connectionToAdd);
+    }
+
+    [TestMethod]
+    public void CreateNewConnection_ConnectionWasNotAddedToRepository_DoesNotAddConnection()
+    {
+        var connectionToAdd = new Connection(new ConnectionInfo("https://sonarcloud.io/mySecondOrg", ConnectionServerType.SonarCloud), false);
+        serverConnectionsRepositoryAdapter.TryAddConnection(connectionToAdd).Returns(false);
+
+        var succeeded = testSubject.CreateNewConnection(connectionToAdd);
+
+        succeeded.Should().BeFalse();
+        testSubject.ConnectionViewModels.Should().BeEmpty();
+        serverConnectionsRepositoryAdapter.Received(1).TryAddConnection(connectionToAdd);
     }
 
     private void HasExpectedConnections(IEnumerable<Connection> expectedConnections)
@@ -223,5 +263,10 @@ public class ManageConnectionsViewModelTest
             callInfo[0] = connections;
             return true;
         });
+    }
+
+    private static Connection CreateSonarCloudConnection()
+    {
+        return new Connection(new ConnectionInfo("https://sonarcloud.io/mySecondOrg", ConnectionServerType.SonarCloud), false);
     }
 }

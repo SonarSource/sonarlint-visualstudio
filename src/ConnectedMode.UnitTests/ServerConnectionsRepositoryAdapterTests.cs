@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.Core.Binding.ServerConnection;
@@ -137,6 +138,51 @@ public class ServerConnectionsRepositoryAdapterTests
         succeeded.Should().Be(expectedStatus);
     }
 
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void TryAddConnection_ReturnsStatusFromSlCore(bool expectedStatus)
+    {
+        var sonarCloud = CreateSonarCloudConnection();
+        serverConnectionsRepository.TryAdd(Arg.Any<ServerConnection>()).Returns(expectedStatus);
+
+        var succeeded = testSubject.TryAddConnection(sonarCloud);
+
+        succeeded.Should().Be(expectedStatus);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]    
+    public void TryAddConnection_AddsSonarCloudConnection_CallsSlCoreWithMappedConnection(bool enableSmartNotifications)
+    {
+        var sonarCloud = CreateSonarCloudConnection(enableSmartNotifications);
+
+        testSubject.TryAddConnection(sonarCloud);
+
+        serverConnectionsRepository.Received(1)
+            .TryAdd(Arg.Is<SonarCloud>(sc =>
+                sc.Id == sonarCloud.Info.Id &&
+                sc.OrganizationKey == sonarCloud.Info.Id &&
+                sc.Settings.IsSmartNotificationsEnabled == sonarCloud.EnableSmartNotifications));
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void TryAddConnection_AddsSonarQubeConnection_CallsSlCoreWithMappedConnection(bool enableSmartNotifications)
+    {
+        var sonarQube = CreateSonarQubeConnection(enableSmartNotifications);
+
+        testSubject.TryAddConnection(sonarQube);
+
+        serverConnectionsRepository.Received(1)
+            .TryAdd(Arg.Is<ServerConnection.SonarQube>(sc =>
+                sc.Id == new Uri(sonarQube.Info.Id).ToString() &&
+                sc.ServerUri == new Uri(sonarQube.Info.Id) &&
+                sc.Settings.IsSmartNotificationsEnabled == sonarQube.EnableSmartNotifications));
+    }
+
     private static SonarCloud CreateSonarCloudServerConnection(bool isSmartNotificationsEnabled = true)
     {
         return new SonarCloud("myOrg", new ServerConnectionSettings(isSmartNotificationsEnabled), Substitute.For<ICredentials>());
@@ -155,5 +201,15 @@ public class ServerConnectionsRepositoryAdapterTests
             callInfo[0] = connections;
             return succeeded;
         });
+    }
+
+    private static Connection CreateSonarCloudConnection(bool enableSmartNotifications = true)
+    {
+        return new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), enableSmartNotifications);
+    }
+
+    private static Connection CreateSonarQubeConnection(bool enableSmartNotifications = true)
+    {
+        return new Connection(new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube), enableSmartNotifications);
     }
 }

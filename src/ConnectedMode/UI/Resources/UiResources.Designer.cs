@@ -205,6 +205,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Creating a connection failed.
+        /// </summary>
+        public static string CreatingConnectionFailedText {
+            get {
+                return ResourceManager.GetString("CreatingConnectionFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creating connection....
+        /// </summary>
+        public static string CreatingConnectionProgressText {
+            get {
+                return ResourceManager.GetString("CreatingConnectionProgressText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit Authentication Details.
         /// </summary>
         public static string CredentialsDialogTitle {

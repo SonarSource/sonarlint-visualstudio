@@ -27,6 +27,7 @@ public interface IServerConnectionsRepositoryAdapter
 {
     bool TryGetAllConnections(out List<Connection> connections);
     bool TryGetAllConnectionsInfo(out List<ConnectionInfo> connectionInfos);
+    bool TryAddConnection(Connection connection);
 }
 
 [Export(typeof(IServerConnectionsRepositoryAdapter))]
@@ -47,10 +48,25 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         return succeeded;
     }
 
+    public bool TryAddConnection(Connection connection)
+    {
+        return serverConnectionsRepository.TryAdd(MapConnection(connection));
+    }
+
     private static Connection MapServerConnectionModel(ServerConnection serverConnection)
     {
         var serverType = serverConnection is ServerConnection.SonarCloud ? ConnectionServerType.SonarCloud : ConnectionServerType.SonarQube;
         var connectionInfo = new ConnectionInfo(serverConnection.Id, serverType);
         return new Connection(connectionInfo, serverConnection.Settings.IsSmartNotificationsEnabled);
+    }
+
+    private ServerConnection MapConnection(Connection connection)
+    {
+        if (connection.Info.ServerType == ConnectionServerType.SonarCloud)
+        {
+            return new ServerConnection.SonarCloud(connection.Info.Id, new ServerConnectionSettings(connection.EnableSmartNotifications));
+        }
+
+        return new ServerConnection.SonarQube(new Uri(connection.Info.Id), new ServerConnectionSettings(connection.EnableSmartNotifications));
     }
 }

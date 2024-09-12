@@ -32,16 +32,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         public async Task LoadConnectionsWithProgressAsync()
         {
-            var validationParams = new TaskToPerformParams<AdapterResponse>(LoadConnectionsAsync, UiResources.LoadingConnectionsText, UiResources.LoadingConnectionsFailedText);
+            var validationParams = new TaskToPerformParams<AdapterResponse>(
+                async () => await SafeExecuteActionAsync(InitializeConnections),
+                UiResources.LoadingConnectionsText,
+                UiResources.LoadingConnectionsFailedText);
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         }
 
-        internal async Task<AdapterResponse> LoadConnectionsAsync()
+        public async Task CreateConnectionsWithProgressAsync(Connection connection)
+        {
+            var validationParams = new TaskToPerformParams<AdapterResponse>(
+                async () => await SafeExecuteActionAsync(() => CreateNewConnection(connection)),
+                UiResources.CreatingConnectionProgressText,
+                UiResources.CreatingConnectionFailedText);
+            await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
+        }
+
+        internal async Task<AdapterResponse> SafeExecuteActionAsync(Func<bool> funcToExecute)
         {
             var succeeded = false;
             try
             {
-                await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => succeeded = InitializeConnections());
+                await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => succeeded = funcToExecute());
             }
             catch (Exception ex)
             {
@@ -56,17 +68,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         {
             ConnectionViewModels.Clear();
             var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGetAllConnections(out var connections);
-            connections?.ForEach(AddConnection);
+            connections?.ForEach(AddConnectionViewModel);
             return succeeded;
         }
 
-        public void RemoveConnection(ConnectionViewModel connectionViewModel)
+        internal void RemoveConnection(ConnectionViewModel connectionViewModel)
         {
             ConnectionViewModels.Remove(connectionViewModel);
             RaisePropertyChanged(nameof(NoConnectionExists));
         }
 
-        public void AddConnection(Connection connection)
+        internal bool CreateNewConnection(Connection connection)
+        {
+            var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryAddConnection(connection);
+            if (succeeded)
+            {
+                AddConnectionViewModel(connection);
+            }
+            return succeeded;
+        }
+
+        internal void AddConnectionViewModel(Connection connection)
         {
            ConnectionViewModels.Add(new ConnectionViewModel(connection));
            RaisePropertyChanged(nameof(NoConnectionExists));
