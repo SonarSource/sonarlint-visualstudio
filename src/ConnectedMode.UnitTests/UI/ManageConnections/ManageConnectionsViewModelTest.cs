@@ -71,10 +71,38 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void RemoveConnection_RemovesProvidedConnection()
+    public async Task DeleteConnectionWithProgressAsync_InitializesDataAndReportsProgress()
+    {
+        await testSubject.DeleteConnectionWithProgressAsync(new ConnectionViewModel(new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud))));
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.ProgressStatus == UiResources.DeletingConnectionText &&
+                    x.WarningText == UiResources.DeletingConnectionFailedText));
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void RemoveConnection_ReturnsStatusFromSlCore(bool expectedStatus)
     {
         InitializeTwoConnections();
         var connectionToRemove = testSubject.ConnectionViewModels[0];
+        serverConnectionsRepositoryAdapter.TryDeleteConnection(connectionToRemove.Connection.Info.Id).Returns(expectedStatus);
+
+        var succeeded = testSubject.RemoveConnection(connectionToRemove);
+
+        succeeded.Should().Be(expectedStatus);
+        serverConnectionsRepositoryAdapter.Received(1).TryDeleteConnection(connectionToRemove.Connection.Info.Id);
+    }
+
+    [TestMethod]
+    public void RemoveConnection_ConnectionWasDeleted_RemovesProvidedConnectionViewModel()
+    {
+        InitializeTwoConnections();
+        var connectionToRemove = testSubject.ConnectionViewModels[0];
+        serverConnectionsRepositoryAdapter.TryDeleteConnection(connectionToRemove.Connection.Info.Id).Returns(true);
 
         testSubject.RemoveConnection(connectionToRemove);
 
@@ -83,15 +111,42 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void RemoveConnection_RaisesEvents()
+    public void RemoveConnection_ConnectionWasNotDeleted_DoesNotRemoveProvidedConnectionViewModel()
     {
         InitializeTwoConnections();
+        var connectionToRemove = testSubject.ConnectionViewModels[0];
+        serverConnectionsRepositoryAdapter.TryDeleteConnection(connectionToRemove.Connection.Info.Id).Returns(false);
+
+        testSubject.RemoveConnection(connectionToRemove);
+
+        testSubject.ConnectionViewModels.Count.Should().Be(twoConnections.Count);
+        testSubject.ConnectionViewModels.Should().Contain(connectionToRemove);
+    }
+
+    [TestMethod]
+    public void RemoveConnection_ConnectionWasDeleted_RaisesEvents()
+    {
+        InitializeTwoConnections();
+        serverConnectionsRepositoryAdapter.TryDeleteConnection(Arg.Any<string>()).Returns(true);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
         testSubject.RemoveConnection(testSubject.ConnectionViewModels[0]);
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoConnectionExists)));
+    }
+
+    [TestMethod]
+    public void RemoveConnection_ConnectionWasNotDeleted_DoesNotRaiseEvents()
+    {
+        InitializeTwoConnections();
+        serverConnectionsRepositoryAdapter.TryDeleteConnection(Arg.Any<string>()).Returns(false);
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        testSubject.RemoveConnection(testSubject.ConnectionViewModels[0]);
+
+        eventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<PropertyChangedEventArgs>());
     }
 
     [TestMethod]

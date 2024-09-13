@@ -277,6 +277,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deleting the connection failed.
+        /// </summary>
+        public static string DeletingConnectionFailedText {
+            get {
+                return ResourceManager.GetString("DeletingConnectionFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deleting connection....
+        /// </summary>
+        public static string DeletingConnectionText {
+            get {
+                return ResourceManager.GetString("DeletingConnectionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Authentication via username and password is deprecated and will be removed in the future. Please use a token instead..
         /// </summary>
         public static string DeprecatedAuthenticationTypeDescription {
