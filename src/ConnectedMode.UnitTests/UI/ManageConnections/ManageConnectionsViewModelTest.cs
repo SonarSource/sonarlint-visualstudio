@@ -150,6 +150,28 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
+    public async Task SafeExecuteActionAsync_LoadsConnectionsOnUIThread()
+    {
+        await testSubject.SafeExecuteActionAsync(() => true);
+
+        await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
+    }
+
+    [TestMethod]
+    public async Task SafeExecuteActionAsync_LoadingConnectionsThrows_ReturnsFalse()
+    {
+        var exceptionMsg = "Failed to load connections";
+        var mockedThreadHandling = Substitute.For<IThreadHandling>();
+        connectedModeServices.ThreadHandling.Returns(mockedThreadHandling);
+        mockedThreadHandling.When(x => x.RunOnUIThreadAsync(Arg.Any<Action>())).Do(callInfo => throw new Exception(exceptionMsg));
+
+        var adapterResponse = await testSubject.SafeExecuteActionAsync(() => true);
+
+        adapterResponse.Success.Should().BeFalse();
+        logger.Received(1).WriteLine(exceptionMsg);
+    }
+
+    [TestMethod]
     public void AddConnection_AddsProvidedConnection()
     {
         var connectionToAdd = new Connection(new ConnectionInfo("https://sonarcloud.io/mySecondOrg", ConnectionServerType.SonarCloud), false);
