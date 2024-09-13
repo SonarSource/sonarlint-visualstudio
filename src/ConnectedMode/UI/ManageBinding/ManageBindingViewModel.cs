@@ -111,21 +111,7 @@ public class ManageBindingViewModel(
     {
         var validationParams = new TaskToPerformParams<AdapterResponse>(LoadDataAsync, UiResources.LoadingConnectionsText, UiResources.LoadingConnectionsFailedText){AfterProgressUpdated = OnProgressUpdated};
         await ProgressReporter.ExecuteTaskWithProgressAsync(validationParams);
-
-        var boundServerProject = connectedModeServices.ConfigurationProvider.GetConfiguration()?.Project;
-        var connection = boundServerProject?.ServerConnection;
-        if (connection == null)
-        {
-            return;
-        }
-        SelectedConnectionInfo = new ConnectionInfo(
-            connection.Id,
-            connection is ServerConnection.SonarCloud
-                ? ConnectionServerType.SonarCloud
-                : ConnectionServerType.SonarQube);
-        
-        SelectedProject = new ServerProject(boundServerProject.ServerProjectKey, "Fetch name from server");
-        BoundProject = SelectedProject;
+        await DisplayBindStatusAsync();
     }
 
     public async Task BindAsync()
@@ -214,5 +200,25 @@ public class ManageBindingViewModel(
         RaisePropertyChanged(nameof(IsConnectionSelectionEnabled));
         RaisePropertyChanged(nameof(ConnectionSelectionCaptionText));
         return succeeded;
+    }
+    
+    private async Task DisplayBindStatusAsync()
+    {
+        var boundServerProject = connectedModeServices.ConfigurationProvider.GetConfiguration()?.Project;
+        var connection = boundServerProject?.ServerConnection;
+        if (connection == null)
+        {
+            return;
+        }
+        
+        SelectedConnectionInfo = new ConnectionInfo(
+            connection.Id,
+            connection is ServerConnection.SonarCloud
+                ? ConnectionServerType.SonarCloud
+                : ConnectionServerType.SonarQube);
+
+        var response = await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(connection, SelectedConnectionInfo, boundServerProject.ServerProjectKey);
+        SelectedProject = response.ResponseData;
+        BoundProject = SelectedProject;
     }
 }

@@ -19,11 +19,14 @@
  */
 
 using System.ComponentModel;
+using System.Security;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageBinding;
 
@@ -491,6 +494,24 @@ public class ManageBindingViewModelTests
                     x.ProgressStatus == UiResources.LoadingConnectionsText &&
                     x.WarningText == UiResources.LoadingConnectionsFailedText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+    }
+    
+    [TestMethod]
+    public async Task InitializeDataAsync_PopulatesFieldsAccordingToBindStatus()
+    {
+        var serverConnection = new ServerConnection.SonarCloud("organization", credentials: new BasicAuthCredentials("TOKEN", new SecureString()));
+        var boundServerProject = new BoundServerProject("local-project-key", "server-project-key", serverConnection);
+        var configurationProvider = Substitute.For<IConfigurationProvider>();
+        configurationProvider.GetConfiguration().Returns(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));
+        connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
+        var slcoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
+        slcoreConnectionAdapter.GetServerProjectByKeyAsync(serverConnection, new ConnectionInfo("organization", ConnectionServerType.SonarCloud),"server-project-key")
+            .Returns(Task.FromResult(new AdapterResponseWithData<ServerProject>(true, new ServerProject("server-project-key", "server-project-name"))));
+        connectedModeServices.SlCoreConnectionAdapter.Returns(slcoreConnectionAdapter);
+        
+        await testSubject.InitializeDataAsync();
+
+        testSubject.SelectedProject.Should().BeEquivalentTo(new ServerProject("server-project-key", "server-project-name"));
     }
 
     [TestMethod]
