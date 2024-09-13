@@ -50,14 +50,14 @@ internal class ServerConnectionsProvider : IServerConnectionsProvider
         return GetUniqueConnections(solutionBindingRepository.List());
     }
 
-    private Dictionary<string, ServerConnectionConfiguration> GetUniqueConnections(IEnumerable<BoundSonarQubeProject> bindings)
+    private Dictionary<string, ServerConnectionConfiguration> GetUniqueConnections(IEnumerable<BoundServerProject> bindings)
     {
         var connections = new Dictionary<string, ServerConnectionConfiguration>();
 
         foreach (var binding in bindings)
         {
-            var serverUri = binding.ServerUri;
-            var organization = binding.Organization?.Key;
+            var serverUri = binding.ServerConnection.ServerUri;
+            var organization = (binding.ServerConnection as ServerConnection.SonarCloud)?.OrganizationKey;
             var connectionId = connectionIdHelper.GetConnectionIdFromServerConnection(GetServerConnection(serverUri, organization));
 
             connections[connectionId] = serverUri == ConnectionIdHelper.SonarCloudUri

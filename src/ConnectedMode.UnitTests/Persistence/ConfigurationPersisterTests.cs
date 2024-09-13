@@ -21,33 +21,34 @@
 using System;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 {
     [TestClass]
-    public class ConfigurationPersisterTests
+    public class UnintrusiveConfigurationPersisterTests
     {
-        private Mock<IUnintrusiveBindingPathProvider> configFilePathProvider;
-        private Mock<ISolutionBindingRepository> solutionBindingRepository;
-        private ConfigurationPersister testSubject;
+        private IUnintrusiveBindingPathProvider configFilePathProvider;
+        private ISolutionBindingRepository solutionBindingRepository;
+        private UnintrusiveConfigurationPersister testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            configFilePathProvider = new Mock<IUnintrusiveBindingPathProvider>();
-            solutionBindingRepository = new Mock<ISolutionBindingRepository>();
+            configFilePathProvider = Substitute.For<IUnintrusiveBindingPathProvider>();
+            solutionBindingRepository = Substitute.For<ISolutionBindingRepository>();
 
-            testSubject = new ConfigurationPersister(
-                configFilePathProvider.Object,
-                solutionBindingRepository.Object);
+            testSubject = new UnintrusiveConfigurationPersister(
+                configFilePathProvider,
+                solutionBindingRepository);
         }
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ConfigurationPersister, IConfigurationPersister>(
+            MefTestHelpers.CheckTypeCanBeImported<UnintrusiveConfigurationPersister, IConfigurationPersister>(
                 MefTestHelpers.CreateExport<IUnintrusiveBindingPathProvider>(),
                 MefTestHelpers.CreateExport<ISolutionBindingRepository>());
         }
@@ -65,11 +66,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Persist_SaveNewConfig()
         {
-            var projectToWrite = new BoundServerProject("solution", "projectKey", new ServerConnection.SonarCloud("org"));
-            configFilePathProvider.Setup(x => x.GetCurrentBindingPath()).Returns("c:\\new.txt");
+            var localBindingKey = "solution123";
+            var projectToWrite = new BoundServerProject(localBindingKey, "project", new ServerConnection.SonarCloud("org"));
+            configFilePathProvider.GetBindingPath(localBindingKey).Returns("c:\\new.txt");
 
-            solutionBindingRepository
-                .Setup(x => x.Write("c:\\new.txt", It.Is<BoundSonarQubeProject>(p => p.ProjectKey == projectToWrite.ToBoundSonarQubeProject().ProjectKey)))
+            solutionBindingRepository.Write("c:\\new.txt", projectToWrite)
                 .Returns(true);
 
             // Act
@@ -78,9 +79,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             // Assert
             actual.Should().NotBe(null);
 
-            solutionBindingRepository.Verify(x =>
-                    x.Write("c:\\new.txt", It.Is<BoundSonarQubeProject>(p => p.ProjectKey == projectToWrite.ToBoundSonarQubeProject().ProjectKey)),
-                Times.Once);
+            solutionBindingRepository.Received().Write("c:\\new.txt", projectToWrite);
         }
     }
 }

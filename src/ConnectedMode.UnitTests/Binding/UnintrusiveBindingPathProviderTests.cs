@@ -31,32 +31,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
-            => MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingPathProvider, IUnintrusiveBindingPathProvider>(
-                    MefTestHelpers.CreateExport<ISolutionInfoProvider>());
+            => MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingPathProvider, IUnintrusiveBindingPathProvider>();
 
         [TestMethod]
         public void MefCtor_CheckIsNonSharedMefComponent()
             => MefTestHelpers.CheckIsNonSharedMefComponent<UnintrusiveBindingController>();
 
         [TestMethod]
-        public void Ctor_DoesNotCallServices()
-        {
-            // The constructor should be free-threaded i.e. run entirely on the calling thread
-            // -> should not call services that swtich threads
-            var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
-
-            _ = CreateTestSubject(solutionInfoProvider.Object);
-
-            solutionInfoProvider.Invocations.Should().BeEmpty();
-        }
-
-        [TestMethod]
         public void Get_NoOpenSolution_ReturnsNull()
         {
-            var serviceProvider = CreateSolutionInfoProvider(null);
-            var testSubject = CreateTestSubject(serviceProvider.Object);
+            var testSubject = CreateTestSubject();
 
-            var actual = testSubject.GetCurrentBindingPath();
+            var actual = testSubject.GetBindingPath(null);
             actual.Should().BeNull();
         }
 
@@ -66,12 +52,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             const string solutionName = "mysolutionName";
             const string rootFolderName = @"x:\users\foo\";
 
-            var solutionInfoProvider = CreateSolutionInfoProvider(solutionName);
             var envVars = CreateEnvVars(rootFolderName);
 
-            var testSubject = CreateTestSubject(solutionInfoProvider.Object, envVars);
+            var testSubject = CreateTestSubject(envVars);
 
-            var actual = testSubject.GetCurrentBindingPath();
+            var actual = testSubject.GetBindingPath(solutionName);
 
             actual.Should().Be($@"{rootFolderName}SonarLint for Visual Studio\Bindings\{solutionName}\binding.config");
         }
@@ -79,13 +64,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         [TestMethod]
         public void GetBindingFolders_NoBindingFolder_ReturnsEmpy()
         {
-            const string solutionName = "mysolutionName";
             const string rootFolderName = @"x:\users\foo\";
 
-            var solutionInfoProvider = CreateSolutionInfoProvider(solutionName);
             var envVars = CreateEnvVars(rootFolderName);
 
-            var testSubject = CreateTestSubject(solutionInfoProvider.Object, envVars);
+            var testSubject = CreateTestSubject(envVars);
 
             var actual = testSubject.GetBindingPaths();
 
@@ -133,21 +116,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             actual.Should().BeEquivalentTo(bindingFolders);
         }
 
-        private static UnintrusiveBindingPathProvider CreateTestSubject(ISolutionInfoProvider solutionInfoProvider = null,
-            IEnvironmentVariableProvider envVars = null, IFileSystem fileSystem = null)
+        private static UnintrusiveBindingPathProvider CreateTestSubject(IEnvironmentVariableProvider envVars = null, IFileSystem fileSystem = null)
         {
-            solutionInfoProvider ??= CreateSolutionInfoProvider(null).Object;
             fileSystem ??= new MockFileSystem();
             envVars ??= CreateEnvVars("any");
-            return new UnintrusiveBindingPathProvider(solutionInfoProvider, envVars, fileSystem);
-        }
-
-        private static Mock<ISolutionInfoProvider> CreateSolutionInfoProvider(string solutionName = null)
-        {
-            var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
-            solutionInfoProvider.Setup(x => x.GetSolutionName()).Returns(solutionName);
-
-            return solutionInfoProvider;
+            return new UnintrusiveBindingPathProvider(envVars, fileSystem);
         }
 
         private static IEnvironmentVariableProvider CreateEnvVars(string rootInstallPath)
