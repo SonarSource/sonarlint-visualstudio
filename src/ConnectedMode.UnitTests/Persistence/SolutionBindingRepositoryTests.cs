@@ -258,6 +258,16 @@ public class SolutionBindingRepositoryTests
 
         result.Should().BeEquivalentTo(boundServerProject1);
     }
+    
+    [TestMethod]
+    public void List_CannotGetConnections_EmptyList()
+    {
+        serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(false);
+    
+        var act = () => testSubject.List().ToList();
+
+        act.Should().Throw<InvalidOperationException>();
+    }
 
     [TestMethod]
     public void LegacyRead_NoFile_ReturnsNull()

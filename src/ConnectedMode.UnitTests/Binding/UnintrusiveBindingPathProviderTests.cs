@@ -62,6 +62,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         }
 
         [TestMethod]
+        public void GetBindingKeyFromPath_ReturnsBindingFolderName()
+        {
+            const string solutionName = "mysolutionName";
+            const string rootFolderName = @"x:\users\foo\";
+
+            var envVars = CreateEnvVars(rootFolderName);
+
+            var testSubject = CreateTestSubject(envVars);
+
+            var actual = testSubject.GetBindingKeyFromPath($@"{rootFolderName}SonarLint for Visual Studio\Bindings\{solutionName}\binding.config");
+
+            actual.Should().Be(solutionName);
+        }
+
+        [TestMethod]
         public void GetBindingFolders_NoBindingFolder_ReturnsEmpy()
         {
             const string rootFolderName = @"x:\users\foo\";

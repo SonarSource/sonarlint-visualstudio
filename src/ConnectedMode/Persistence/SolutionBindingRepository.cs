@@ -108,7 +108,7 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
     {
         if (!serverConnectionsRepository.TryGetAll(out var connections))
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("Could not retrieve all connections.");
         }
         
         var serverConnections = connections.ToDictionary(k => k.Id, v => v);
