@@ -13,7 +13,7 @@ env:
 ec2_instance_definition: &INSTANCE_DEFINITION
   region: eu-central-1
   type: c6i.xlarge
-  image: base-windows-dotnet-v20240523071308
+  image: pr-46-base-windows-dotnet-v20240910165507
   platform: windows
 
 calculate_version_script_definition: &CALCULATE_VERSION_SCRIPT_DEFINITION |
