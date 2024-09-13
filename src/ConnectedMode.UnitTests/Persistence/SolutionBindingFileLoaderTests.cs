@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
@@ -34,7 +32,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         private Mock<ILogger> logger;
         private Mock<IFileSystem> fileSystem;
         private SolutionBindingFileLoader testSubject;
-        private BoundSonarQubeProject boundProject;
         private BindingDto bindingDto;
         private string serializedProject;
 
@@ -50,23 +47,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             testSubject = new SolutionBindingFileLoader(logger.Object, fileSystem.Object);
 
             fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(true);
-
-            boundProject = new BoundSonarQubeProject(
-                new Uri("http://xxx.www.zzz/yyy:9000"),
-                "MyProject Key",
-                "projectName")
-            {
-                Profiles = new Dictionary<Language, ApplicableQualityProfile>
-                {
-                    {
-                        Language.CSharp,
-                        new ApplicableQualityProfile
-                        {
-                            ProfileKey = "sonar way", ProfileTimestamp = DateTime.Parse("2020-02-25T08:57:54+0000")
-                        }
-                    }
-                }
-            };
+            
             bindingDto = new BindingDto
             {
                 ServerUri = new Uri("http://xxx.www.zzz/yyy:9000"),
@@ -88,7 +69,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 
             serializedProject = @"{
   ""ServerUri"": ""http://xxx.www.zzz/yyy:9000"",
-  ""Organization"": null,
   ""ProjectKey"": ""MyProject Key"",
   ""ProjectName"": ""projectName"",
   ""Profiles"": {
