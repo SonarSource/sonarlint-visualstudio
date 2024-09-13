@@ -60,7 +60,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Mock.Of<IShowInBrowserService>(),
                 Mock.Of<IBrowserService>(),
                 Mock.Of<PackageCommandManager.ShowOptionsPage>(),
-                Mock.Of<IConnectedModeServices>());
+                Mock.Of<IConnectedModeServices>(),
+                Mock.Of<ISolutionInfoProvider>());
 
             // Assert
             menuService.Commands.Should().HaveCountGreaterOrEqualTo(allCommands.Count, "Unexpected number of commands");

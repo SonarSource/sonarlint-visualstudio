@@ -34,12 +34,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageBinding;
 public class ManageBindingViewModelTests
 {
     private ManageBindingViewModel testSubject;
-    private readonly SolutionInfoModel solutionInfoModel = new("VS Sample 2022", SolutionType.Solution);
     private readonly ServerProject serverProject = new ("a-project", "A Project");
     private readonly ConnectionInfo sonarQubeConnectionInfo = new ("http://localhost:9000", ConnectionServerType.SonarQube);
     private readonly ConnectionInfo sonarCloudConnectionInfo = new ("http://sonarcloud.io", ConnectionServerType.SonarCloud);
     private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
     private IConnectedModeServices connectedModeServices;
+    private ISolutionInfoProvider solutionInfoProvider;
     private IProgressReporterViewModel progressReporterViewModel;
     private IThreadHandling threadHandling;
     private ILogger logger;
@@ -48,8 +48,9 @@ public class ManageBindingViewModelTests
     public void TestInitialize()
     {
         connectedModeServices = Substitute.For<IConnectedModeServices>();
+        solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
-        testSubject = new ManageBindingViewModel(connectedModeServices, solutionInfoModel, progressReporterViewModel);
+        testSubject = new ManageBindingViewModel(connectedModeServices, solutionInfoProvider, progressReporterViewModel);
 
         MockServices();
     }
@@ -499,6 +500,8 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public async Task InitializeDataAsync_PopulatesFieldsAccordingToBindStatus()
     {
+        solutionInfoProvider.GetSolutionNameAsync().Returns("Local solution name");
+        solutionInfoProvider.IsFolderWorkspaceAsync().Returns(false);
         var serverConnection = new ServerConnection.SonarCloud("organization", credentials: new BasicAuthCredentials("TOKEN", new SecureString()));
         var boundServerProject = new BoundServerProject("local-project-key", "server-project-key", serverConnection);
         var configurationProvider = Substitute.For<IConfigurationProvider>();
@@ -512,6 +515,9 @@ public class ManageBindingViewModelTests
         await testSubject.InitializeDataAsync();
 
         testSubject.SelectedProject.Should().BeEquivalentTo(new ServerProject("server-project-key", "server-project-name"));
+        testSubject.BoundProject.Should().BeEquivalentTo(testSubject.SelectedProject);
+        testSubject.SelectedConnectionInfo.Should().BeEquivalentTo(new ConnectionInfo("organization", ConnectionServerType.SonarCloud));
+        testSubject.SolutionInfo.Should().BeEquivalentTo(new SolutionInfoModel("Local solution name", SolutionType.Solution));
     }
 
     [TestMethod]

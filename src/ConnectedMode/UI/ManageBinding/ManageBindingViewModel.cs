@@ -19,25 +19,35 @@
  */
 
 using System.Collections.ObjectModel;
+using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
-public class ManageBindingViewModel(
-    IConnectedModeServices connectedModeServices,
-    SolutionInfoModel solutionInfo,
-    IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
+public class ManageBindingViewModel : ViewModelBase
 {
+    private SolutionInfoModel solutionInfo;
     private ServerProject boundProject;
     private ConnectionInfo selectedConnectionInfo;
     private ServerProject selectedProject;
     private bool isSharedBindingConfigurationDetected;
+    private readonly IConnectedModeServices connectedModeServices;
+    private readonly ISolutionInfoProvider solutionInfoProvider;
 
-    public SolutionInfoModel SolutionInfo { get; } = solutionInfo;
-    public IProgressReporterViewModel ProgressReporter { get; } = progressReporterViewModel;
+    public SolutionInfoModel SolutionInfo
+    {
+        get => solutionInfo;
+        private set
+        {
+            solutionInfo = value;
+            RaisePropertyChanged();
+        }
+    }
+    public IProgressReporterViewModel ProgressReporter { get; }
 
     public ServerProject BoundProject
     {
@@ -107,6 +117,16 @@ public class ManageBindingViewModel(
     public bool IsExportButtonEnabled => !ProgressReporter.IsOperationInProgress && IsCurrentProjectBound;
     public string ConnectionSelectionCaptionText => Connections.Any() ? UiResources.SelectConnectionToBindDescription : UiResources.NoConnectionExistsLabel;
 
+     public ManageBindingViewModel(
+         IConnectedModeServices connectedModeServices, 
+         ISolutionInfoProvider solutionInfoProvider,
+         IProgressReporterViewModel progressReporterViewModel)
+    {
+        this.connectedModeServices = connectedModeServices;
+        this.solutionInfoProvider = solutionInfoProvider;
+        ProgressReporter = progressReporterViewModel;
+    }
+    
     public async Task InitializeDataAsync()
     {
         var validationParams = new TaskToPerformParams<AdapterResponse>(LoadDataAsync, UiResources.LoadingConnectionsText, UiResources.LoadingConnectionsFailedText){AfterProgressUpdated = OnProgressUpdated};
@@ -204,6 +224,10 @@ public class ManageBindingViewModel(
     
     private async Task DisplayBindStatusAsync()
     {
+        var solutionName = await solutionInfoProvider.GetSolutionNameAsync();
+        var isFolderWorkspace = await solutionInfoProvider.IsFolderWorkspaceAsync();
+        SolutionInfo = new SolutionInfoModel(solutionName, isFolderWorkspace ? SolutionType.Folder : SolutionType.Solution);
+        
         var boundServerProject = connectedModeServices.ConfigurationProvider.GetConfiguration()?.Project;
         var connection = boundServerProject?.ServerConnection;
         if (connection == null)
