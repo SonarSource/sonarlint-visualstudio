@@ -56,7 +56,7 @@ build_task:
     git reset --hard $CIRRUS_CHANGE_IN_REPO
   calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
   prepare_signing_script: |
-    if [[ "${CIRRUS_BRANCH}" == "${CIRRUS_DEFAULT_BRANCH}" ]] || echo "${CIRRUS_BRANCH}" | grep -qE "^branch-.*" || echo "${CIRRUS_BRANCH}" | grep -qE "^sign-.*"; then
+    if [[ "${CIRRUS_BRANCH}" == "${CIRRUS_DEFAULT_BRANCH}" ]] || echo "${CIRRUS_BRANCH}" | grep -qE "^branch-.*" || echo "${CIRRUS_BRANCH}" | grep -qE "^sign-.*" || [[ "${CIRRUS_BRANCH}" == "test/mm/test-signing" ]]; then
       mkdir -p "${TMP_DIR}"
       echo "${SONARSOURCE_SNK}" | base64 -d > "${SONARSOURCE_SNK_FILE}"
       echo "${SM_CLIENT_CERT_FILE_BASE64}" | base64 -d > "${SM_CLIENT_CERT_FILE}"
