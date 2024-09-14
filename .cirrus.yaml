@@ -64,6 +64,7 @@ build_task:
       curl -L -o "${TMP_DIR}\smtools.msi" -H "x-api-key: ${SM_API_KEY}" https://one.digicert.com/signingmanager/api-ui/v1/releases/smtools-windows-x64.msi/download
       powershell -Command "Start-Process msiexec -ArgumentList '/i ${TMP_DIR}\smtools.msi /quiet /qn /norestart' -Wait"
       smctl windows certsync
+      smctl healthcheck --all
       echo "SHOULD_SIGN=true" >> $CIRRUS_ENV
     else
       echo "SHOULD_SIGN=false" >> $CIRRUS_ENV
