@@ -27,7 +27,7 @@ public interface IServerConnectionsRepositoryAdapter
 {
     bool TryGetAllConnections(out List<Connection> connections);
     bool TryGetAllConnectionsInfo(out List<ConnectionInfo> connectionInfos);
-    bool TryDeleteConnection(string connectionInfoId);
+    bool TryRemoveConnection(string connectionInfoId);
 }
 
 [Export(typeof(IServerConnectionsRepositoryAdapter))]
@@ -48,7 +48,7 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         return succeeded;
     }
 
-    public bool TryDeleteConnection(string connectionInfoId)
+    public bool TryRemoveConnection(string connectionInfoId)
     {
        return serverConnectionsRepository.TryDelete(connectionInfoId);
     }

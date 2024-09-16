@@ -71,15 +71,15 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public async Task DeleteConnectionWithProgressAsync_InitializesDataAndReportsProgress()
+    public async Task RemoveConnectionWithProgressAsync_InitializesDataAndReportsProgress()
     {
-        await testSubject.DeleteConnectionWithProgressAsync(new ConnectionViewModel(new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud))));
+        await testSubject.RemoveConnectionWithProgressAsync(new ConnectionViewModel(new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud))));
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
-                    x.ProgressStatus == UiResources.DeletingConnectionText &&
-                    x.WarningText == UiResources.DeletingConnectionFailedText));
+                    x.ProgressStatus == UiResources.RemovingConnectionText &&
+                    x.WarningText == UiResources.RemovingConnectionFailedText));
     }
 
     [TestMethod]
@@ -89,20 +89,20 @@ public class ManageConnectionsViewModelTest
     {
         InitializeTwoConnections();
         var connectionToRemove = testSubject.ConnectionViewModels[0];
-        serverConnectionsRepositoryAdapter.TryDeleteConnection(connectionToRemove.Connection.Info.Id).Returns(expectedStatus);
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info.Id).Returns(expectedStatus);
 
         var succeeded = testSubject.RemoveConnection(connectionToRemove);
 
         succeeded.Should().Be(expectedStatus);
-        serverConnectionsRepositoryAdapter.Received(1).TryDeleteConnection(connectionToRemove.Connection.Info.Id);
+        serverConnectionsRepositoryAdapter.Received(1).TryRemoveConnection(connectionToRemove.Connection.Info.Id);
     }
 
     [TestMethod]
-    public void RemoveConnection_ConnectionWasDeleted_RemovesProvidedConnectionViewModel()
+    public void RemoveConnection_ConnectionWasRemoved_RemovesProvidedConnectionViewModel()
     {
         InitializeTwoConnections();
         var connectionToRemove = testSubject.ConnectionViewModels[0];
-        serverConnectionsRepositoryAdapter.TryDeleteConnection(connectionToRemove.Connection.Info.Id).Returns(true);
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info.Id).Returns(true);
 
         testSubject.RemoveConnection(connectionToRemove);
 
@@ -111,11 +111,11 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void RemoveConnection_ConnectionWasNotDeleted_DoesNotRemoveProvidedConnectionViewModel()
+    public void RemoveConnection_ConnectionWasNotRemoved_DoesNotRemoveProvidedConnectionViewModel()
     {
         InitializeTwoConnections();
         var connectionToRemove = testSubject.ConnectionViewModels[0];
-        serverConnectionsRepositoryAdapter.TryDeleteConnection(connectionToRemove.Connection.Info.Id).Returns(false);
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info.Id).Returns(false);
 
         testSubject.RemoveConnection(connectionToRemove);
 
@@ -124,10 +124,10 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void RemoveConnection_ConnectionWasDeleted_RaisesEvents()
+    public void RemoveConnection_ConnectionWasRemoved_RaisesEvents()
     {
         InitializeTwoConnections();
-        serverConnectionsRepositoryAdapter.TryDeleteConnection(Arg.Any<string>()).Returns(true);
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(Arg.Any<string>()).Returns(true);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
@@ -137,10 +137,10 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void RemoveConnection_ConnectionWasNotDeleted_DoesNotRaiseEvents()
+    public void RemoveConnection_ConnectionWasNotRemoved_DoesNotRaiseEvents()
     {
         InitializeTwoConnections();
-        serverConnectionsRepositoryAdapter.TryDeleteConnection(Arg.Any<string>()).Returns(false);
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(Arg.Any<string>()).Returns(false);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 

@@ -36,12 +36,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         }
 
-        public async Task DeleteConnectionWithProgressAsync(ConnectionViewModel connectionViewModel)
+        public async Task RemoveConnectionWithProgressAsync(ConnectionViewModel connectionViewModel)
         {
             var validationParams = new TaskToPerformParams<AdapterResponse>(
                 async () => await SafeExecuteActionAsync(() => RemoveConnection(connectionViewModel)),
-                UiResources.DeletingConnectionText,
-                UiResources.DeletingConnectionFailedText);
+                UiResources.RemovingConnectionText,
+                UiResources.RemovingConnectionFailedText);
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         }
 
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         internal bool RemoveConnection(ConnectionViewModel connectionViewModel)
         {
-            var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryDeleteConnection(connectionViewModel.Connection.Info.Id);
+            var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryRemoveConnection(connectionViewModel.Connection.Info.Id);
             if (succeeded)
             {
                 ConnectionViewModels.Remove(connectionViewModel);

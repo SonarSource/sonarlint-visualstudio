@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             var deleteConnectionDialog = new DeleteConnectionDialog([], connectionViewModel.Connection.Info);
             if(deleteConnectionDialog.ShowDialog(this) == true)
             {
-                await ViewModel.DeleteConnectionWithProgressAsync(connectionViewModel);
+                await ViewModel.RemoveConnectionWithProgressAsync(connectionViewModel);
             }
         }
     }

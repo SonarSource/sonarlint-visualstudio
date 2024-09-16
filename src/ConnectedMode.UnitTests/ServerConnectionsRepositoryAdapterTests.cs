@@ -145,7 +145,7 @@ public class ServerConnectionsRepositoryAdapterTests
         var connectionInfoId = "http://localhost:9000";
         serverConnectionsRepository.TryDelete(connectionInfoId).Returns(expectedStatus);
 
-        var succeeded = testSubject.TryDeleteConnection(connectionInfoId);
+        var succeeded = testSubject.TryRemoveConnection(connectionInfoId);
 
         succeeded.Should().Be(expectedStatus);
     }
