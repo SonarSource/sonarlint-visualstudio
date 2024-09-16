@@ -54,10 +54,10 @@ internal class ServerConnectionsProvider : IServerConnectionsProvider
     {
         var connections = new Dictionary<string, ServerConnectionConfiguration>();
 
-        foreach (var binding in bindings)
+        foreach (var serverConnection in bindings.Select(b => b.ServerConnection))
         {
-            var serverUri = binding.ServerConnection.ServerUri;
-            var organization = (binding.ServerConnection as ServerConnection.SonarCloud)?.OrganizationKey;
+            var serverUri = serverConnection.ServerUri;
+            var organization = (serverConnection as ServerConnection.SonarCloud)?.OrganizationKey;
             var connectionId = connectionIdHelper.GetConnectionIdFromServerConnection(GetServerConnection(serverUri, organization));
 
             connections[connectionId] = serverUri == ConnectionIdHelper.SonarCloudUri
