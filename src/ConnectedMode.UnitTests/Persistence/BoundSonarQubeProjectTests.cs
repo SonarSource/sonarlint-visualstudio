@@ -48,5 +48,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             deserialized.ServerUri.Should().Be(testSubject.ServerUri);
             deserialized.Credentials.Should().BeNull();
         }
+        
+        [TestMethod]
+        public void BoundProject_BindingDto_Serialization()
+        {
+            // Arrange
+            var serverUri = new Uri("https://finding-nemo.org");
+            var projectKey = "MyProject Key";
+            var testSubject = new BoundSonarQubeProject(serverUri, projectKey, "projectName", new BasicAuthCredentials("used", "pwd".ToSecureString()));
+
+            // Act (serialize + de-serialize)
+            string data = JsonHelper.Serialize(testSubject);
+            BindingDto deserialized = JsonHelper.Deserialize<BindingDto>(data);
+
+            // Assert
+            deserialized.Should().NotBe(testSubject);
+            deserialized.ProjectKey.Should().Be(testSubject.ProjectKey);
+            deserialized.ServerUri.Should().Be(testSubject.ServerUri);
+        }
     }
 }
