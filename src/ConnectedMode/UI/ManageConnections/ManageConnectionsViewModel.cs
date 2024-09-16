@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return succeeded;
         }
 
-        internal void RemoveConnection(ConnectionViewModel connectionViewModel)
+        internal void RemoveConnectionViewModel(ConnectionViewModel connectionViewModel)
         {
             ConnectionViewModels.Remove(connectionViewModel);
             RaisePropertyChanged(nameof(NoConnectionExists));

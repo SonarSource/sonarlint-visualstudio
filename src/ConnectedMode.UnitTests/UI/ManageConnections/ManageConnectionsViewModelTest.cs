@@ -77,7 +77,7 @@ public class ManageConnectionsViewModelTest
         InitializeTwoConnections();
         var connectionToRemove = testSubject.ConnectionViewModels[0];
 
-        testSubject.RemoveConnection(connectionToRemove);
+        testSubject.RemoveConnectionViewModel(connectionToRemove);
 
         testSubject.ConnectionViewModels.Count.Should().Be(twoConnections.Count - 1);
         testSubject.ConnectionViewModels.Should().NotContain(connectionToRemove);
@@ -90,7 +90,7 @@ public class ManageConnectionsViewModelTest
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
-        testSubject.RemoveConnection(testSubject.ConnectionViewModels[0]);
+        testSubject.RemoveConnectionViewModel(testSubject.ConnectionViewModels[0]);
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoConnectionExists)));
     }
