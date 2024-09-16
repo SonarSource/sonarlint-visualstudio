@@ -29,6 +29,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
 [TestClass]
 public class BindingDtoConverterTests
 {
+    private BindingDtoConverter testSubject;
+
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        testSubject = new BindingDtoConverter();
+    }
+
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
@@ -56,7 +64,7 @@ public class BindingDtoConverterTests
         };
         var connection = new ServerConnection.SonarCloud("myorg");
 
-        var boundServerProject = new BindingDtoConverter().ConvertFromDto(bindingDto, connection, localBindingKey);
+        var boundServerProject = testSubject.ConvertFromDto(bindingDto, connection, localBindingKey);
 
         boundServerProject.ServerConnection.Should().BeSameAs(connection);
         boundServerProject.LocalBindingKey.Should().BeSameAs(localBindingKey);
@@ -72,7 +80,7 @@ public class BindingDtoConverterTests
             Profiles = new Dictionary<Language, ApplicableQualityProfile>()
         };
 
-        var bindingDto = new BindingDtoConverter().ConvertToDto(boundServerProject);
+        var bindingDto = testSubject.ConvertToDto(boundServerProject);
 
         bindingDto.ProjectKey.Should().BeSameAs(boundServerProject.ServerProjectKey);
         bindingDto.ProjectName.Should().BeNull();
@@ -90,7 +98,7 @@ public class BindingDtoConverterTests
             Profiles = new Dictionary<Language, ApplicableQualityProfile>()
         };
 
-        var bindingDto = new BindingDtoConverter().ConvertToDto(boundServerProject);
+        var bindingDto = testSubject.ConvertToDto(boundServerProject);
 
         bindingDto.ProjectKey.Should().BeSameAs(boundServerProject.ServerProjectKey);
         bindingDto.ProjectName.Should().BeNull();
@@ -114,7 +122,7 @@ public class BindingDtoConverterTests
             ServerConnectionId = "ignored",
         };
 
-        var legacyBinding = new BindingDtoConverter().ConvertFromDtoToLegacy(bindingDto, credentials);
+        var legacyBinding = testSubject.ConvertFromDtoToLegacy(bindingDto, credentials);
 
         legacyBinding.ProjectKey.Should().BeSameAs(bindingDto.ProjectKey);
         legacyBinding.ProjectName.Should().BeSameAs(bindingDto.ProjectName);

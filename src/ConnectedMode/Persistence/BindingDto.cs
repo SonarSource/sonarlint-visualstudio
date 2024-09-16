@@ -25,13 +25,16 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
+/// <summary>
+/// The information for the connection related properties are now stored in a separate file, but they are needed here for backward compatibility with previous binding formats
+/// </summary>
 [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
 internal class BindingDto
 {
     public string ServerConnectionId { get; set; }
-    public Uri ServerUri { get; set; } // left here for compatibility reasons
-    public SonarQubeOrganization Organization { get; set; } // left here for compatibility reasons
+    public Uri ServerUri { get; set; } // left here for backward compatibility reasons
+    public SonarQubeOrganization Organization { get; set; } // left here for backward compatibility reasons
     public string ProjectKey { get; set; }
-    public string ProjectName { get; set; } // left here for compatibility reasons
+    public string ProjectName { get; set; } // left here for backward compatibility reasons
     public Dictionary<Language, ApplicableQualityProfile> Profiles { get; set; }
 }
