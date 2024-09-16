@@ -44,7 +44,7 @@ public class ManageConnectionsViewModelTest
         twoConnections =
         [
             new Connection(new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube), true),
-            new Connection(new ConnectionInfo("https://sonarcloud.io/myOrg", ConnectionServerType.SonarCloud), false)
+            new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud), false)
         ];
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
         connectedModeServices = Substitute.For<IConnectedModeServices>();
@@ -98,7 +98,7 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     public void AddConnectionViewModel_AddsProvidedConnection()
     {
-        var connectionToAdd = new Connection(new ConnectionInfo("https://sonarcloud.io/mySecondOrg", ConnectionServerType.SonarCloud), false);
+        var connectionToAdd = new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
 
         testSubject.AddConnectionViewModel(connectionToAdd);
 
@@ -198,7 +198,7 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     public void CreateNewConnection_ConnectionWasAddedToRepository_AddsProvidedConnection()
     {
-        var connectionToAdd = new Connection(new ConnectionInfo("https://sonarcloud.io/mySecondOrg", ConnectionServerType.SonarCloud), false);
+        var connectionToAdd = new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
         serverConnectionsRepositoryAdapter.TryAddConnection(connectionToAdd, Arg.Any<ICredentialsModel>()).Returns(true);
 
         var succeeded = testSubject.CreateNewConnection(connectionToAdd, Substitute.For<ICredentialsModel>());
@@ -212,7 +212,7 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     public void CreateNewConnection_ConnectionWasNotAddedToRepository_DoesNotAddConnection()
     {
-        var connectionToAdd = new Connection(new ConnectionInfo("https://sonarcloud.io/mySecondOrg", ConnectionServerType.SonarCloud), false);
+        var connectionToAdd = new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
         serverConnectionsRepositoryAdapter.TryAddConnection(connectionToAdd, Arg.Any<ICredentialsModel>()).Returns(false);
 
         var succeeded = testSubject.CreateNewConnection(connectionToAdd, Substitute.For<ICredentialsModel>());
@@ -268,6 +268,6 @@ public class ManageConnectionsViewModelTest
 
     private static Connection CreateSonarCloudConnection()
     {
-        return new Connection(new ConnectionInfo("https://sonarcloud.io/mySecondOrg", ConnectionServerType.SonarCloud), false);
+        return new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
     }
 }
