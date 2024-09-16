@@ -55,14 +55,12 @@ internal class BindingDtoConverter : IBindingDtoConverter
         };
 
     public BoundSonarQubeProject ConvertFromDtoToLegacy(BindingDto bindingDto, ICredentials credentials) =>
-        bindingDto is not null
-            ? new BoundSonarQubeProject(bindingDto.ServerUri,
+            new(bindingDto.ServerUri,
                 bindingDto.ProjectKey,
                 bindingDto.ProjectName,
                 credentials,
                 bindingDto.Organization)
             {
                 Profiles = bindingDto.Profiles
-            }
-            : null;
+            };
 }
