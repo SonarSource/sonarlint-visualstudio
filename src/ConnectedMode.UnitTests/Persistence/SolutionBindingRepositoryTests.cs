@@ -233,7 +233,7 @@ public class SolutionBindingRepositoryTests
         var solution2 = "solution2";
         SetUpUnintrusiveBindingPathProvider(bindingConfig1, bindingConfig2);
         SetUpConnections(connection2); // only one connection
-        _ = SetUpBinding(solution1, connection1, bindingConfig1);
+        _ = SetUpBinding(solution1, null, bindingConfig1);
         var boundServerProject2 = SetUpBinding(solution2, connection2, bindingConfig2);
     
         var result = testSubject.List();
@@ -293,9 +293,13 @@ public class SolutionBindingRepositoryTests
 
     private BoundServerProject SetUpBinding(string solution, ServerConnection connection, string bindingConfig)
     {
-        var dto = new BindingDto{ServerConnectionId = connection.Id};
-        var bound = new BoundServerProject(solution, "any", connection);
+        var dto = new BindingDto{ServerConnectionId = connection?.Id};
         solutionBindingFileLoader.Load(bindingConfig).Returns(dto);
+        if (connection == null)
+        {
+            return null;
+        }
+        var bound = new BoundServerProject(solution, "any", connection);
         unintrusiveBindingPathProvider.GetBindingKeyFromPath(bindingConfig).Returns(solution);
         bindingDtoConverter.ConvertFromDto(dto, connection, solution).Returns(bound);
         return bound;

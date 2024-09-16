@@ -111,8 +111,6 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
             throw new InvalidOperationException("Could not retrieve all connections.");
         }
         
-        var serverConnections = connections.ToDictionary(k => k.Id, v => v);
-        
         var bindingConfigPaths = unintrusiveBindingPathProvider.GetBindingPaths();
 
         foreach (var bindingConfigPath in bindingConfigPaths)
@@ -125,7 +123,7 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
                 continue;
             }
 
-            if (!serverConnections.TryGetValue(bindingDto.ServerConnectionId, out var serverConnection))
+            if (connections.FirstOrDefault(c => c.Id == bindingDto.ServerConnectionId) is not {} serverConnection)
             {
                 logger.LogVerbose($"Skipped {bindingConfigPath} because connection {bindingDto.ServerConnectionId} doesn't exist");
                 continue;
