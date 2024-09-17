@@ -287,9 +287,9 @@ public class SlCoreConnectionAdapterTests
     }
     
     [TestMethod]
-    public async Task GetServerProjectByKeyAsync_ProjectNotFound_ReturnsSuccessResponseAndMappedOrganizations()
+    public async Task GetServerProjectByKeyAsync_ProjectNotFound_ReturnsFailedResponse()
     {
-        var slCoreResponse = new Dictionary<string, string>();
+        var slCoreResponse = new Dictionary<string, string> { {"project-key", null} };
         connectionConfigurationSlCoreService.GetProjectNamesByKeyAsync(Arg.Any<GetProjectNamesByKeyParams>())
             .Returns(new GetProjectNamesByKeyResponse(slCoreResponse));
         
