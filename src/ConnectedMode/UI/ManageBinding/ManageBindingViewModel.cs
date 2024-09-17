@@ -232,7 +232,6 @@ public class ManageBindingViewModel : ViewModelBase
         {
             return;
         }
-
         SelectedConnectionInfo = ConnectionInfo.From(serverConnection);
 
         var response = await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(serverConnection.Credentials, SelectedConnectionInfo, boundServerProject.ServerProjectKey);

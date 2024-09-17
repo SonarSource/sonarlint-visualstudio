@@ -33,10 +33,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageBinding;
 [TestClass]
 public class ManageBindingViewModelTests
 {
-    private ManageBindingViewModel testSubject;
     private readonly ServerProject serverProject = new ("a-project", "A Project");
     private readonly ConnectionInfo sonarQubeConnectionInfo = new ("http://localhost:9000", ConnectionServerType.SonarQube);
     private readonly ConnectionInfo sonarCloudConnectionInfo = new ("http://sonarcloud.io", ConnectionServerType.SonarCloud);
+    private readonly BasicAuthCredentials validCredentials = new ("TOKEN", new SecureString());
+    
+    private ManageBindingViewModel testSubject;
     private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
     private IConnectedModeServices connectedModeServices;
     private ISolutionInfoProvider solutionInfoProvider;
@@ -496,31 +498,86 @@ public class ManageBindingViewModelTests
                     x.WarningText == UiResources.LoadingConnectionsFailedText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
-    
+
     [TestMethod]
-    public async Task InitializeDataAsync_PopulatesFieldsAccordingToBindStatus()
+    public async Task InitializeDataAsync_WhenSolutionIsOpen_FetchesSolutionInfo()
     {
         solutionInfoProvider.GetSolutionNameAsync().Returns("Local solution name");
         solutionInfoProvider.IsFolderWorkspaceAsync().Returns(false);
-        var credentials = new BasicAuthCredentials("TOKEN", new SecureString());
-        var serverConnection = new ServerConnection.SonarCloud("organization", credentials: credentials);
-        var boundServerProject = new BoundServerProject("local-project-key", "server-project-key", serverConnection);
-        var configurationProvider = Substitute.For<IConfigurationProvider>();
-        configurationProvider.GetConfiguration().Returns(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));
-        connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
-        var slcoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
-        slcoreConnectionAdapter.GetServerProjectByKeyAsync(credentials, new ConnectionInfo("organization", ConnectionServerType.SonarCloud),"server-project-key")
-            .Returns(Task.FromResult(new AdapterResponseWithData<ServerProject>(true, new ServerProject("server-project-key", "server-project-name"))));
-        connectedModeServices.SlCoreConnectionAdapter.Returns(slcoreConnectionAdapter);
+        
+        await testSubject.InitializeDataAsync();
+        
+        testSubject.SolutionInfo.Should().BeEquivalentTo(new SolutionInfoModel("Local solution name", SolutionType.Solution));
+    }
+    
+    [TestMethod]
+    public async Task InitializeDataAsync_WhenFolderIsOpen_FetchesSolutionInfo()
+    {
+        solutionInfoProvider.GetSolutionNameAsync().Returns("Local folder name");
+        solutionInfoProvider.IsFolderWorkspaceAsync().Returns(true);
+        
+        await testSubject.InitializeDataAsync();
+        
+        testSubject.SolutionInfo.Should().BeEquivalentTo(new SolutionInfoModel("Local folder name", SolutionType.Folder));
+    }
+    
+    [TestMethod]
+    public async Task InitializeDataAsync_WhenProjectIsBoundToSonarCloud_SelectsBoundSonarCloudConnection()
+    {
+        var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
+        SetupBoundProject(sonarCloudConnection);
+
+        await testSubject.InitializeDataAsync();
+        
+        testSubject.SelectedConnectionInfo.Should().BeEquivalentTo(new ConnectionInfo("organization", ConnectionServerType.SonarCloud));
+    }
+
+    [TestMethod]
+    public async Task InitializeDataAsync_WhenProjectIsBoundToSonarQube_SelectsBoundSonarQubeConnection()
+    {
+        var sonarQubeConnection = new ServerConnection.SonarQube(new Uri("http://localhost:9000/"), credentials: validCredentials);
+        SetupBoundProject(sonarQubeConnection);
+        
+        await testSubject.InitializeDataAsync();
+        
+        testSubject.SelectedConnectionInfo.Should().BeEquivalentTo(new ConnectionInfo("http://localhost:9000/", ConnectionServerType.SonarQube));
+    }
+    
+    [TestMethod]
+    public async Task InitializeDataAsync_WhenProjectIsNotBound_SelectedConnectionShouldBeEmpty()
+    {
+        SetupUnboundProject();
         
         await testSubject.InitializeDataAsync();
 
-        testSubject.SelectedProject.Should().BeEquivalentTo(new ServerProject("server-project-key", "server-project-name"));
-        testSubject.BoundProject.Should().BeEquivalentTo(testSubject.SelectedProject);
-        testSubject.SelectedConnectionInfo.Should().BeEquivalentTo(new ConnectionInfo("organization", ConnectionServerType.SonarCloud));
-        testSubject.SolutionInfo.Should().BeEquivalentTo(new SolutionInfoModel("Local solution name", SolutionType.Solution));
+        testSubject.SelectedConnectionInfo.Should().BeNull();
     }
 
+    [TestMethod]
+    public async Task InitializeDataAsync_WhenProjectIsBound_SelectsServerProject()
+    {
+        var expectedServerProject = new ServerProject("server-project-key", "server-project-name");
+        var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
+        SetupBoundProject(sonarCloudConnection, expectedServerProject);
+        
+        await testSubject.InitializeDataAsync();
+        
+        testSubject.SelectedProject.Should().BeEquivalentTo(expectedServerProject);
+        testSubject.BoundProject.Should().BeEquivalentTo(testSubject.SelectedProject);
+    }
+
+    [TestMethod]
+    public async Task InitializeDataAsync_WhenProjectIsBoundButProjectNotFoundOnServer_SelectedProjectShouldBeEmpty()
+    {
+        var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
+        SetupBoundProjectThatDoesNotExistOnServer(sonarCloudConnection);
+        
+        await testSubject.InitializeDataAsync();
+        
+        testSubject.SelectedProject.Should().BeNull();
+        testSubject.BoundProject.Should().BeNull();
+    }
+    
     [TestMethod]
     public async Task LoadDataAsync_LoadsConnectionsOnUIThread()
     {
@@ -579,5 +636,44 @@ public class ManageBindingViewModelTests
             callInfo[0] = connectionInfos;
             return true;
         });
+    }
+    
+    private void SetupBoundProject(ServerConnection serverConnection, ServerProject expectedServerProject = null)
+    {
+        expectedServerProject ??= serverProject;
+        
+        var boundServerProject = new BoundServerProject("local-project-key", expectedServerProject.Key, serverConnection);
+        var configurationProvider = Substitute.For<IConfigurationProvider>();
+        configurationProvider.GetConfiguration().Returns(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));
+        connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
+        
+        MockGetServerProjectByKey(true, expectedServerProject);
+    }
+    
+    private void SetupUnboundProject()
+    {
+        var configurationProvider = Substitute.For<IConfigurationProvider>();
+        configurationProvider.GetConfiguration().Returns(new BindingConfiguration(null, SonarLintMode.Standalone, null));
+        connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
+        
+        MockGetServerProjectByKey(false, null);
+    }
+    
+    private void SetupBoundProjectThatDoesNotExistOnServer(ServerConnection serverConnection)
+    {
+        var boundServerProject = new BoundServerProject("local-project-key", "a-server-project", serverConnection);
+        var configurationProvider = Substitute.For<IConfigurationProvider>();
+        configurationProvider.GetConfiguration().Returns(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));
+        connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
+        
+        MockGetServerProjectByKey(false, null);
+    }
+
+    private void MockGetServerProjectByKey(bool success, ServerProject responseData)
+    {
+        var slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
+        slCoreConnectionAdapter.GetServerProjectByKeyAsync(Arg.Any<ICredentials>(), Arg.Any<ConnectionInfo>(),Arg.Any<string>())
+            .Returns(Task.FromResult(new AdapterResponseWithData<ServerProject>(success, responseData)));
+        connectedModeServices.SlCoreConnectionAdapter.Returns(slCoreConnectionAdapter);
     }
 }
