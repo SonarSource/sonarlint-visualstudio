@@ -19,15 +19,21 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 
-public class ProjectSelectionViewModel : ViewModelBase
+public class ProjectSelectionViewModel(
+    ConnectionInfo connectionInfo,
+    IConnectedModeServices connectedModeServices,
+    IProgressReporterViewModel progressReporterViewModel)
+    : ViewModelBase
 {
+
     public ObservableCollection<ServerProject> ProjectResults { get; } = [];
 
-    public ConnectionInfo ConnectionInfo { get; }
+    public ConnectionInfo ConnectionInfo { get; } = connectionInfo;
 
     public bool NoProjectExists => ProjectResults.Count == 0;
 
@@ -58,15 +64,34 @@ public class ProjectSelectionViewModel : ViewModelBase
     private string projectSearchTerm;
     private ServerProject selectedProject;
 
-    public ProjectSelectionViewModel(ConnectionInfo connectionInfo)
+    public async Task InitializeProjectWithProgressAsync()
     {
-        ConnectionInfo = connectionInfo;
+        var initializeProjectsParams = new TaskToPerformParams<AdapterResponseWithData<List<ServerProject>>>(
+            AdapterGetAllProjectsAsync,
+            UiResources.LoadingProjectsProgressText,
+            UiResources.LoadingProjectsFailedText)
+        {
+            AfterSuccess = InitProjects
+        };
+        await progressReporterViewModel.ExecuteTaskWithProgressAsync(initializeProjectsParams);
     }
 
-    public void InitProjects(List<ServerProject> projects)
+    internal async Task<AdapterResponseWithData<List<ServerProject>>> AdapterGetAllProjectsAsync()
+    {
+        var serverConnectionCredentials = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(ConnectionInfo.Id, out var serverConnection);
+        if (!serverConnectionCredentials)
+        {
+            connectedModeServices.Logger.WriteLine(UiResources.LoadingProjectsFailedTextForNotFoundServerConnection);
+            return new AdapterResponseWithData<List<ServerProject>>(false, null);
+        }
+
+        return await connectedModeServices.SlCoreConnectionAdapter.GetAllProjectsAsync(ConnectionInfo, serverConnection.Credentials);
+    }
+
+    internal void InitProjects(AdapterResponseWithData<List<ServerProject>> responseData)
     {
         ProjectResults.Clear();
-        projects.ForEach(x => ProjectResults.Add(x));
+        responseData.ResponseData.ForEach(x => ProjectResults.Add(x));
         RaisePropertyChanged(nameof(NoProjectExists));
     }
 

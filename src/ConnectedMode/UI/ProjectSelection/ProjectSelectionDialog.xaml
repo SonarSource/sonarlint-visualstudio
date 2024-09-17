@@ -1,12 +1,12 @@
 <Window x:Class="SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection.ProjectSelectionDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
         xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
         Title="{x:Static res:UiResources.ProjectSelectionDialogTitle}"
         WindowStartupLocation="CenterOwner"
+        Loaded="ProjectSelectionDialog_OnLoaded"
         x:Name="This">
     <Window.Resources>
         <ResourceDictionary>

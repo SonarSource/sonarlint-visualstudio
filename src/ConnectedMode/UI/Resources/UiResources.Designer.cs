@@ -474,6 +474,33 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Loading the projects from the server failed. .
+        /// </summary>
+        public static string LoadingProjectsFailedText {
+            get {
+                return ResourceManager.GetString("LoadingProjectsFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server connection was not found. Projects could not be loaded..
+        /// </summary>
+        public static string LoadingProjectsFailedTextForNotFoundServerConnection {
+            get {
+                return ResourceManager.GetString("LoadingProjectsFailedTextForNotFoundServerConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading projects....
+        /// </summary>
+        public static string LoadingProjectsProgressText {
+            get {
+                return ResourceManager.GetString("LoadingProjectsProgressText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Manage Project Binding.
         /// </summary>
         public static string ManageBindingDialogTitle {
