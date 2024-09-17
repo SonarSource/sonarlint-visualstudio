@@ -64,4 +64,11 @@ public interface IConnectionConfigurationSLCoreService : ISLCoreService
     /// </summary>
     /// <param name="parameters"></param>
     Task<GetAllProjectsResponse> GetAllProjectsAsync(GetAllProjectsParams parameters);
+
+    /// <summary>
+    /// Returns a map of project names by project key; project name is null if it wasn't found
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    Task<GetProjectNamesByKeyResponse> GetProjectNamesByKeyAsync(GetProjectNamesByKeyParams parameters);
 }

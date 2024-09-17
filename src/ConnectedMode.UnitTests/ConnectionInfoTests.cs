@@ -19,12 +19,43 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
 
 [TestClass]
 public class ConnectionInfoTests
 {
+    [TestMethod]
+    public void FromServerConnection_ShouldReturnConnectionInfoWithSameId()
+    {
+        var sonarCloudServerConnection = new ServerConnection.SonarCloud("id");
+
+        var connectionInfo = ConnectionInfo.From(sonarCloudServerConnection);
+        
+        connectionInfo.Id.Should().Be("id");
+    }
+    
+    [TestMethod]
+    public void FromServerConnection_WithSonarCloud_ShouldReturnConnectionInfo()
+    {
+        var sonarCloudServerConnection = new ServerConnection.SonarCloud("organization");
+
+        var connectionInfo = ConnectionInfo.From(sonarCloudServerConnection);
+        
+        connectionInfo.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+    }
+    
+    [TestMethod]
+    public void FromServerConnection_WithSonarQube_ShouldReturnConnectionInfo()
+    {
+        var sonarQubeServerConnection = new ServerConnection.SonarQube(new Uri("http://localhost:9000"));
+
+        var connectionInfo = ConnectionInfo.From(sonarQubeServerConnection);
+        
+        connectionInfo.ServerType.Should().Be(ConnectionServerType.SonarQube);
+    }
+    
     [TestMethod]
     public void GetIdForTransientConnection_SonarCloudWithNullId_ReturnsSonarCloudUrl()
     {

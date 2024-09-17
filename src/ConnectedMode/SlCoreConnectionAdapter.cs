@@ -19,10 +19,13 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
+using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -37,6 +40,7 @@ public interface ISlCoreConnectionAdapter
 {
     Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel);
     Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel);
+    Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ICredentials credentials, ConnectionInfo connectionInfo, string serverProjectKey);
 }
 
 public class AdapterResponseWithData<T>(bool success, T responseData) : IResponseStatus
@@ -95,6 +99,39 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
             {
                 logger.LogVerbose($"{Resources.ListUserOrganizations_Fails}: {ex.Message}");
                 return FailedResponseWithData;
+            }
+        });
+    }
+
+    public Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ICredentials credentials, ConnectionInfo connectionInfo, string serverProjectKey)
+    {
+        var failedResponse = new AdapterResponseWithData<ServerProject>(false, null);
+        
+        return threadHandling.RunOnBackgroundThread(async () =>
+        {
+            if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
+            {
+                return failedResponse;
+            }
+
+            try
+            {
+                var credentialsSlCoreFormat = MapCredentials(credentials);
+                var transientConnection = GetTransientConnectionDto(connectionInfo, credentialsSlCoreFormat);
+                var response = await connectionConfigurationSlCoreService.GetProjectNamesByKeyAsync(new GetProjectNamesByKeyParams(transientConnection, [serverProjectKey]));
+
+                if (response.projectNamesByKey.TryGetValue(serverProjectKey, out var projectName) && projectName == null)
+                {
+                    logger.LogVerbose(Resources.GetServerProjectByKey_ProjectNotFound, serverProjectKey);
+                    return failedResponse;
+                }
+                
+                return new AdapterResponseWithData<ServerProject>(true, new ServerProject(serverProjectKey, response.projectNamesByKey[serverProjectKey]));
+            }
+            catch (Exception ex)
+            {
+                logger.LogVerbose($"{Resources.GetServerProjectByKey_Fails}: {ex.Message}");
+                return failedResponse;
             }
         });
     }
@@ -164,5 +201,18 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
             UsernamePasswordModel usernamePasswordModel => GetEitherForUsernamePassword(usernamePasswordModel.Username, usernamePasswordModel.Password.ToUnsecureString()),
             _ => throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument")
         };
+    }
+    
+    private static Either<TokenDto, UsernamePasswordDto> MapCredentials(ICredentials credentials)
+    {
+        if (credentials == null)
+        {
+            throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument");
+        }
+        
+        var basicAuthCredentials = (BasicAuthCredentials) credentials;
+        return basicAuthCredentials.Password?.Length > 0
+            ? GetEitherForUsernamePassword(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString())
+            : GetEitherForToken(basicAuthCredentials.UserName);
     }
 }
