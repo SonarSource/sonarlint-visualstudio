@@ -177,6 +177,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Server did not return a project name.
+        /// </summary>
+        internal static string GetServerProjectByKey_ProjectNotFound {
+            get {
+                return ResourceManager.GetString("GetServerProjectByKey_ProjectNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [ConnectedMode] Error handling repo change notification: {0}.
         /// </summary>
         internal static string GitMonitor_EventError {

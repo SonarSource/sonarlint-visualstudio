@@ -310,4 +310,7 @@
   <data name="GetServerProjectByKey_Fails" xml:space="preserve">
     <value>[ConnectedMode] Failed to get project name by key</value>
   </data>
+  <data name="GetServerProjectByKey_ProjectNotFound" xml:space="preserve">
+    <value>Server did not return a project name</value>
+  </data>
 </root>

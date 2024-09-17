@@ -116,16 +116,15 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
 
             try
             {
-                if (credentials == null)
-                {
-                    return failedResponse;
-                }
-                var basicAuthCredentials = (BasicAuthCredentials) credentials;
-                var credentialsSlCoreFormat = basicAuthCredentials.Password?.Length > 0
-                    ? GetEitherForUsernamePassword(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString())
-                    : GetEitherForToken(basicAuthCredentials.UserName);
+                var credentialsSlCoreFormat = MapCredentials(credentials);
                 var transientConnection = GetTransientConnectionDto(connectionInfo, credentialsSlCoreFormat);
                 var response = await connectionConfigurationSlCoreService.GetProjectNamesByKeyAsync(new GetProjectNamesByKeyParams(transientConnection, [serverProjectKey]));
+
+                if (response.projectNamesByKey.TryGetValue(serverProjectKey, out var projectName) && projectName == null)
+                {
+                    throw new ArgumentNullException(nameof(projectName), Resources.GetServerProjectByKey_ProjectNotFound);
+                }
+                
                 return new AdapterResponseWithData<ServerProject>(true, new ServerProject(serverProjectKey, response.projectNamesByKey[serverProjectKey]));
             }
             catch (Exception ex)
@@ -201,5 +200,18 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
             UsernamePasswordModel usernamePasswordModel => GetEitherForUsernamePassword(usernamePasswordModel.Username, usernamePasswordModel.Password.ToUnsecureString()),
             _ => throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument")
         };
+    }
+    
+    private static Either<TokenDto, UsernamePasswordDto> MapCredentials(ICredentials credentials)
+    {
+        if (credentials == null)
+        {
+            throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument");
+        }
+        
+        var basicAuthCredentials = (BasicAuthCredentials) credentials;
+        return basicAuthCredentials.Password?.Length > 0
+            ? GetEitherForUsernamePassword(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString())
+            : GetEitherForToken(basicAuthCredentials.UserName);
     }
 }
