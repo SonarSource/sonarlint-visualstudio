@@ -20,17 +20,22 @@
 
 using System.Security;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
 
-public interface ICredentialsModel {}
-
-public class TokenCredentialsModel(SecureString token) : ICredentialsModel
+internal static class StringExtensions
 {
-    public SecureString Token { get; } = token;
-}
+    public static SecureString CreateSecureString(this string stringValue)
+    {
+        if(stringValue == null)
+        {
+            return null;
+        }
 
-public class UsernamePasswordModel(string username, SecureString password) : ICredentialsModel
-{
-    public string Username { get; } = username;
-    public SecureString Password { get; } = password;
+        SecureString secureString = new();
+        foreach (char character in stringValue)
+        {
+            secureString.AppendChar(character);
+        }
+        return secureString;
+    }
 }
