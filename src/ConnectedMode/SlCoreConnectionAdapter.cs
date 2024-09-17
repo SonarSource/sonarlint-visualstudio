@@ -122,7 +122,8 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
 
                 if (response.projectNamesByKey.TryGetValue(serverProjectKey, out var projectName) && projectName == null)
                 {
-                    throw new ArgumentNullException(nameof(projectName), Resources.GetServerProjectByKey_ProjectNotFound);
+                    logger.LogVerbose(Resources.GetServerProjectByKey_ProjectNotFound, serverProjectKey);
+                    return failedResponse;
                 }
                 
                 return new AdapterResponseWithData<ServerProject>(true, new ServerProject(serverProjectKey, response.projectNamesByKey[serverProjectKey]));

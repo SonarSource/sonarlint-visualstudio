@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Server did not return a project name.
+        ///   Looks up a localized string similar to [ConnectedMode] Server did not return a project name for the specified project key {0}.
         /// </summary>
         internal static string GetServerProjectByKey_ProjectNotFound {
             get {
