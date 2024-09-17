@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             }
         }
 
-        private void NewConnection_Clicked(object sender, RoutedEventArgs e)
+        private async void NewConnection_Clicked(object sender, RoutedEventArgs e)
         {
             if (GetTransientConnection() is not {} transientConnection)
             {
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 return;
             }
 
-            ViewModel.AddConnection(new Connection(completeConnection));
+            await ViewModel.CreateConnectionsWithProgressAsync(new Connection(completeConnection), credentialsDialog.ViewModel.GetCredentialsModel());
         }
 
         private ConnectionInfo GetTransientConnection()

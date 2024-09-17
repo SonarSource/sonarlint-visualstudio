@@ -18,8 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
+using SonarQube.Client.Helpers;
 using static SonarLint.VisualStudio.Core.Binding.ServerConnection;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
@@ -140,6 +143,86 @@ public class ServerConnectionsRepositoryAdapterTests
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
+    public void TryAddConnection_ReturnsStatusFromSlCore(bool expectedStatus)
+    {
+        var sonarCloud = CreateSonarCloudConnection();
+        serverConnectionsRepository.TryAdd(Arg.Any<ServerConnection>()).Returns(expectedStatus);
+
+        var succeeded = testSubject.TryAddConnection(sonarCloud, Substitute.For<ICredentialsModel>());
+
+        succeeded.Should().Be(expectedStatus);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]    
+    public void TryAddConnection_AddsSonarCloudConnection_CallsSlCoreWithMappedConnection(bool enableSmartNotifications)
+    {
+        var sonarCloud = CreateSonarCloudConnection(enableSmartNotifications);
+
+        testSubject.TryAddConnection(sonarCloud, Substitute.For<ICredentialsModel>());
+
+        serverConnectionsRepository.Received(1)
+            .TryAdd(Arg.Is<SonarCloud>(sc =>
+                sc.Id == sonarCloud.Info.Id &&
+                sc.OrganizationKey == sonarCloud.Info.Id &&
+                sc.Settings.IsSmartNotificationsEnabled == sonarCloud.EnableSmartNotifications));
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void TryAddConnection_AddsSonarQubeConnection_CallsSlCoreWithMappedConnection(bool enableSmartNotifications)
+    {
+        var sonarQube = CreateSonarQubeConnection(enableSmartNotifications);
+
+        testSubject.TryAddConnection(sonarQube, Substitute.For<ICredentialsModel>());
+
+        serverConnectionsRepository.Received(1)
+            .TryAdd(Arg.Is<ServerConnection.SonarQube>(sc =>
+                sc.Id == new Uri(sonarQube.Info.Id).ToString() &&
+                sc.ServerUri == new Uri(sonarQube.Info.Id) &&
+                sc.Settings.IsSmartNotificationsEnabled == sonarQube.EnableSmartNotifications));
+    }
+
+    [TestMethod]
+    public void TryAddConnection_TokenCredentialsModel_MapsCredentials()
+    {
+        var sonarQube = CreateSonarQubeConnection();
+        var token = "myToken";
+
+        testSubject.TryAddConnection(sonarQube, new TokenCredentialsModel(token));
+
+        serverConnectionsRepository.Received(1)
+            .TryAdd(Arg.Is<ServerConnection.SonarQube>(sc => IsExpectedCredentials(sc, token, string.Empty)));
+    }
+
+    [TestMethod]
+    public void TryAddConnection_UsernamePasswordModel_MapsCredentials()
+    {
+        var sonarQube = CreateSonarQubeConnection();
+        var username = "username";
+        var password = "password";
+
+        testSubject.TryAddConnection(sonarQube, new UsernamePasswordModel(username, password));
+
+        serverConnectionsRepository.Received(1)
+            .TryAdd(Arg.Is<ServerConnection.SonarQube>(sc => IsExpectedCredentials(sc, username, password)));
+    }
+
+    [TestMethod]
+    public void TryAddConnection_NullCredentials_TriesAddingAConnectionWithNoCredentials()
+    {
+        var sonarQube = CreateSonarQubeConnection();
+
+        testSubject.TryAddConnection(sonarQube, null);
+
+        serverConnectionsRepository.Received(1).TryAdd(Arg.Is<ServerConnection.SonarQube>(sc => sc.Credentials == null));
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
     public void TryDeleteConnection_ReturnsStatusFromSlCore(bool expectedStatus)
     {
         var connectionInfoId = "http://localhost:9000";
@@ -168,5 +251,20 @@ public class ServerConnectionsRepositoryAdapterTests
             callInfo[0] = connections;
             return succeeded;
         });
+    }
+
+    private static Connection CreateSonarCloudConnection(bool enableSmartNotifications = true)
+    {
+        return new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), enableSmartNotifications);
+    }
+
+    private static Connection CreateSonarQubeConnection(bool enableSmartNotifications = true)
+    {
+        return new Connection(new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube), enableSmartNotifications);
+    }
+
+    private static bool IsExpectedCredentials(ServerConnection.SonarQube sc, string expectedUsername, string expectedPassword)
+    {
+        return sc.Credentials is BasicAuthCredentials basicAuthCredentials && basicAuthCredentials.UserName == expectedUsername && basicAuthCredentials.Password?.ToUnsecureString() == expectedPassword;
     }
 }
