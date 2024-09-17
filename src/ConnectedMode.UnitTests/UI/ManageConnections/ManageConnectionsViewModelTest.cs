@@ -44,7 +44,7 @@ public class ManageConnectionsViewModelTest
         twoConnections =
         [
             new Connection(new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube), true),
-            new Connection(new ConnectionInfo("https://sonarcloud.io/myOrg", ConnectionServerType.SonarCloud), false)
+            new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud), false)
         ];
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
         connectedModeServices = Substitute.For<IConnectedModeServices>();
@@ -62,89 +62,92 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void InitializeConnections_InitializesConnectionsCorrectly()
+    public void InitializeConnectionViewModels_InitializesConnectionsCorrectly()
     {
         MockTryGetConnections(twoConnections);
 
-        testSubject.InitializeConnections();
+        testSubject.InitializeConnectionViewModels();
 
         HasExpectedConnections(twoConnections);
     }
 
     [TestMethod]
-    public void RemoveConnection_RemovesProvidedConnection()
+    public async Task RemoveConnectionWithProgressAsync_InitializesDataAndReportsProgress()
+    {
+        await testSubject.RemoveConnectionWithProgressAsync(new ConnectionViewModel(new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud))));
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.ProgressStatus == UiResources.RemovingConnectionText &&
+                    x.WarningText == UiResources.RemovingConnectionFailedText));
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void RemoveConnectionViewModel_ReturnsStatusFromSlCore(bool expectedStatus)
     {
         InitializeTwoConnections();
         var connectionToRemove = testSubject.ConnectionViewModels[0];
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info.Id).Returns(expectedStatus);
 
-        testSubject.RemoveConnection(connectionToRemove);
+        var succeeded = testSubject.RemoveConnectionViewModel(connectionToRemove);
+
+        succeeded.Should().Be(expectedStatus);
+        serverConnectionsRepositoryAdapter.Received(1).TryRemoveConnection(connectionToRemove.Connection.Info.Id);
+    }
+
+    [TestMethod]
+    public void RemoveConnection_ConnectionWasRemoved_RemovesProvidedConnectionViewModel()
+    {
+        InitializeTwoConnections();
+        var connectionToRemove = testSubject.ConnectionViewModels[0];
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info.Id).Returns(true);
+
+        testSubject.RemoveConnectionViewModel(connectionToRemove);
 
         testSubject.ConnectionViewModels.Count.Should().Be(twoConnections.Count - 1);
         testSubject.ConnectionViewModels.Should().NotContain(connectionToRemove);
     }
 
     [TestMethod]
-    public void RemoveConnection_RaisesEvents()
+    public void RemoveConnectionViewModel_ConnectionWasNotRemoved_DoesNotRemoveProvidedConnectionViewModel()
     {
         InitializeTwoConnections();
+        var connectionToRemove = testSubject.ConnectionViewModels[0];
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info.Id).Returns(false);
+
+        testSubject.RemoveConnectionViewModel(connectionToRemove);
+
+        testSubject.ConnectionViewModels.Count.Should().Be(twoConnections.Count);
+        testSubject.ConnectionViewModels.Should().Contain(connectionToRemove);
+    }
+
+    [TestMethod]
+    public void RemoveConnection_ConnectionWasRemoved_RaisesEvents()
+    {
+        InitializeTwoConnections();
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(Arg.Any<string>()).Returns(true);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
-        testSubject.RemoveConnection(testSubject.ConnectionViewModels[0]);
+        testSubject.RemoveConnectionViewModel(testSubject.ConnectionViewModels[0]);
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoConnectionExists)));
     }
 
     [TestMethod]
-    public void AddConnectionViewModel_AddsProvidedConnection()
+    public void RemoveConnectionViewModel_ConnectionWasNotRemoved_DoesNotRaiseEvents()
     {
-        var connectionToAdd = new Connection(new ConnectionInfo("https://sonarcloud.io/mySecondOrg", ConnectionServerType.SonarCloud), false);
-
-        testSubject.AddConnectionViewModel(connectionToAdd);
-
-        testSubject.ConnectionViewModels.Count.Should().Be( 1);
-        testSubject.ConnectionViewModels[0].Connection.Should().Be(connectionToAdd);
-    }
-
-    [TestMethod]
-    public void AddConnectionViewModel_RaisesEvents()
-    {
+        InitializeTwoConnections();
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(Arg.Any<string>()).Returns(false);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
-        testSubject.AddConnectionViewModel(new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false));
+        testSubject.RemoveConnectionViewModel(testSubject.ConnectionViewModels[0]);
 
-        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoConnectionExists)));
-    }
-
-    [TestMethod]
-    public void NoConnectionExists_NoConnections_ReturnsTrue()
-    {
-        MockTryGetConnections([]);
-
-        testSubject.InitializeConnections();
-
-        testSubject.NoConnectionExists.Should().BeTrue();
-    }
-
-    [TestMethod]
-    public void NoConnectionExists_HasConnections_ReturnsFalse()
-    {
-        InitializeTwoConnections();
-
-        testSubject.NoConnectionExists.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public async Task LoadConnectionsWithProgressAsync_InitializesDataAndReportsProgress()
-    {
-        await testSubject.LoadConnectionsWithProgressAsync();
-
-        await progressReporterViewModel.Received(1)
-            .ExecuteTaskWithProgressAsync(
-                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
-                    x.ProgressStatus == UiResources.LoadingConnectionsText &&
-                x.WarningText == UiResources.LoadingConnectionsFailedText));
+        eventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<PropertyChangedEventArgs>());
     }
 
     [TestMethod]
@@ -170,13 +173,65 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
+    public void AddConnectionViewModel_AddsProvidedConnection()
+    {
+        var connectionToAdd = new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
+
+        testSubject.AddConnectionViewModel(connectionToAdd);
+
+        testSubject.ConnectionViewModels.Count.Should().Be( 1);
+        testSubject.ConnectionViewModels[0].Connection.Should().Be(connectionToAdd);
+    }
+
+    [TestMethod]
+    public void AddConnectionViewModel_RaisesEvents()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        testSubject.AddConnectionViewModel(new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false));
+
+        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoConnectionExists)));
+    }
+
+    [TestMethod]
+    public void NoConnectionExists_NoConnections_ReturnsTrue()
+    {
+        MockTryGetConnections([]);
+
+        testSubject.InitializeConnectionViewModels();
+
+        testSubject.NoConnectionExists.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void NoConnectionExists_HasConnections_ReturnsFalse()
+    {
+        InitializeTwoConnections();
+
+        testSubject.NoConnectionExists.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public async Task LoadConnectionsWithProgressAsync_InitializesDataAndReportsProgress()
+    {
+        await testSubject.LoadConnectionsWithProgressAsync();
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.ProgressStatus == UiResources.LoadingConnectionsText &&
+                x.WarningText == UiResources.LoadingConnectionsFailedText));
+    }
+
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void InitializeConnections_ReturnsResponseFromAdapter(bool expectedStatus)
+    public void InitializeConnectionViewModels_ReturnsResponseFromAdapter(bool expectedStatus)
     {
         serverConnectionsRepositoryAdapter.TryGetAllConnections(out _).Returns(expectedStatus);
 
-        var adapterResponse = testSubject.InitializeConnections();
+        var adapterResponse = testSubject.InitializeConnectionViewModels();
 
         adapterResponse.Should().Be(expectedStatus);
     }
@@ -198,7 +253,7 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     public void CreateNewConnection_ConnectionWasAddedToRepository_AddsProvidedConnection()
     {
-        var connectionToAdd = new Connection(new ConnectionInfo("https://sonarcloud.io/mySecondOrg", ConnectionServerType.SonarCloud), false);
+        var connectionToAdd = new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
         serverConnectionsRepositoryAdapter.TryAddConnection(connectionToAdd, Arg.Any<ICredentialsModel>()).Returns(true);
 
         var succeeded = testSubject.CreateNewConnection(connectionToAdd, Substitute.For<ICredentialsModel>());
@@ -212,7 +267,7 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     public void CreateNewConnection_ConnectionWasNotAddedToRepository_DoesNotAddConnection()
     {
-        var connectionToAdd = new Connection(new ConnectionInfo("https://sonarcloud.io/mySecondOrg", ConnectionServerType.SonarCloud), false);
+        var connectionToAdd = new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
         serverConnectionsRepositoryAdapter.TryAddConnection(connectionToAdd, Arg.Any<ICredentialsModel>()).Returns(false);
 
         var succeeded = testSubject.CreateNewConnection(connectionToAdd, Substitute.For<ICredentialsModel>());
@@ -242,7 +297,7 @@ public class ManageConnectionsViewModelTest
             callInfo[0] = twoConnections;
             return true;
         });
-        testSubject.InitializeConnections();
+        testSubject.InitializeConnectionViewModels();
     }
 
     private void MockServices()
@@ -268,6 +323,6 @@ public class ManageConnectionsViewModelTest
 
     private static Connection CreateSonarCloudConnection()
     {
-        return new Connection(new ConnectionInfo("https://sonarcloud.io/mySecondOrg", ConnectionServerType.SonarCloud), false);
+        return new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
     }
 }

@@ -31,6 +31,7 @@ public interface IServerConnectionsRepositoryAdapter
 {
     bool TryGetAllConnections(out List<Connection> connections);
     bool TryGetAllConnectionsInfo(out List<ConnectionInfo> connectionInfos);
+    bool TryRemoveConnection(string connectionInfoId);
     bool TryAddConnection(Connection connection, ICredentialsModel credentialsModel);
 }
 
@@ -57,6 +58,11 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         var serverConnection = MapConnection(connection);
         serverConnection.Credentials = MapCredentials(credentialsModel);
         return serverConnectionsRepository.TryAdd(serverConnection);
+    }
+
+    public bool TryRemoveConnection(string connectionInfoId)
+    {
+       return serverConnectionsRepository.TryDelete(connectionInfoId);
     }
 
     private static Connection MapServerConnectionModel(ServerConnection serverConnection)

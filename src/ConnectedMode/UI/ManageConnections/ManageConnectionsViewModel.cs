@@ -31,16 +31,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         public ObservableCollection<ConnectionViewModel> ConnectionViewModels { get; } = [];
         public bool NoConnectionExists => ConnectionViewModels.Count == 0;
 
-        public async Task LoadConnectionsWithProgressAsync()
+        internal async Task LoadConnectionsWithProgressAsync()
         {
             var validationParams = new TaskToPerformParams<AdapterResponse>(
-                async () => await SafeExecuteActionAsync(InitializeConnections),
+                async () => await SafeExecuteActionAsync(InitializeConnectionViewModels),
                 UiResources.LoadingConnectionsText,
                 UiResources.LoadingConnectionsFailedText);
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         }
 
-        public async Task CreateConnectionsWithProgressAsync(Connection connection, ICredentialsModel credentialsModel)
+        public async Task RemoveConnectionWithProgressAsync(ConnectionViewModel connectionViewModel)
+        {
+            var validationParams = new TaskToPerformParams<AdapterResponse>(
+                async () => await SafeExecuteActionAsync(() => RemoveConnectionViewModel(connectionViewModel)),
+                UiResources.RemovingConnectionText,
+                UiResources.RemovingConnectionFailedText);
+            await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
+        }
+
+        internal async Task CreateConnectionsWithProgressAsync(Connection connection, ICredentialsModel credentialsModel)
         {
             var validationParams = new TaskToPerformParams<AdapterResponse>(
                 async () => await SafeExecuteActionAsync(() => CreateNewConnection(connection, credentialsModel)),
@@ -65,7 +74,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return new AdapterResponse(succeeded);
         }
 
-        internal bool InitializeConnections()
+        internal bool InitializeConnectionViewModels()
         {
             ConnectionViewModels.Clear();
             var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGetAllConnections(out var connections);
@@ -73,10 +82,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return succeeded;
         }
 
-        internal void RemoveConnection(ConnectionViewModel connectionViewModel)
+        internal bool RemoveConnectionViewModel(ConnectionViewModel connectionViewModel)
         {
-            ConnectionViewModels.Remove(connectionViewModel);
-            RaisePropertyChanged(nameof(NoConnectionExists));
+            var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryRemoveConnection(connectionViewModel.Connection.Info.Id);
+            if (succeeded)
+            {
+                ConnectionViewModels.Remove(connectionViewModel);
+                RaisePropertyChanged(nameof(NoConnectionExists));
+            }
+            return succeeded;
         }
 
         internal bool CreateNewConnection(Connection connection, ICredentialsModel credentialsModel)

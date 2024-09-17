@@ -23,7 +23,6 @@ using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Helpers;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 using static SonarLint.VisualStudio.Core.Binding.ServerConnection;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
@@ -219,6 +218,19 @@ public class ServerConnectionsRepositoryAdapterTests
         testSubject.TryAddConnection(sonarQube, null);
 
         serverConnectionsRepository.Received(1).TryAdd(Arg.Is<ServerConnection.SonarQube>(sc => sc.Credentials == null));
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void TryDeleteConnection_ReturnsStatusFromSlCore(bool expectedStatus)
+    {
+        var connectionInfoId = "http://localhost:9000";
+        serverConnectionsRepository.TryDelete(connectionInfoId).Returns(expectedStatus);
+
+        var succeeded = testSubject.TryRemoveConnection(connectionInfoId);
+
+        succeeded.Should().Be(expectedStatus);
     }
 
     private static SonarCloud CreateSonarCloudServerConnection(bool isSmartNotificationsEnabled = true)

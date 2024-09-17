@@ -18,13 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Binding;
-
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
     internal interface ISolutionBindingFileLoader
     {
-        BoundSonarQubeProject Load(string filePath);
-        bool Save(string filePath, BoundSonarQubeProject project);
+        BindingDto Load(string filePath);
+        bool Save(string filePath, BindingDto project);
     }
 }
