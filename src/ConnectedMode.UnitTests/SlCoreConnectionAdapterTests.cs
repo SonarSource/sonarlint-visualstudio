@@ -308,12 +308,7 @@ public class SlCoreConnectionAdapterTests
         };
         connectionConfigurationSlCoreService.GetProjectNamesByKeyAsync(Arg.Any<GetProjectNamesByKeyParams>())
             .Returns(new GetProjectNamesByKeyResponse(slCoreResponse));
-        var securePassword = new SecureString();
-        foreach (var c in "SHHHHH") {
-            securePassword.AppendChar(c);
-        }
-        
-        var response = await testSubject.GetServerProjectByKeyAsync(new BasicAuthCredentials("USERNAME", securePassword), sonarQubeConnectionInfo, "project-key");
+        var response = await testSubject.GetServerProjectByKeyAsync(new BasicAuthCredentials("USERNAME", "SHHHHH".CreateSecureString()), sonarQubeConnectionInfo, "project-key");
 
         response.Success.Should().BeTrue();
         response.ResponseData.Should().BeEquivalentTo(new ServerProject("project-key", "project-name"));
