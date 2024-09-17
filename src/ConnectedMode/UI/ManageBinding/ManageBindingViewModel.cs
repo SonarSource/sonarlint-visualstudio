@@ -22,6 +22,7 @@ using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
@@ -127,9 +128,10 @@ public class ManageBindingViewModel : ViewModelBase
     
     public async Task InitializeDataAsync()
     {
-        var validationParams = new TaskToPerformParams<AdapterResponse>(LoadDataAsync, UiResources.LoadingConnectionsText, UiResources.LoadingConnectionsFailedText){AfterProgressUpdated = OnProgressUpdated};
-        await ProgressReporter.ExecuteTaskWithProgressAsync(validationParams);
-        await DisplayBindStatusAsync();
+        var loadData = new TaskToPerformParams<AdapterResponse>(LoadDataAsync, UiResources.LoadingConnectionsText, UiResources.LoadingConnectionsFailedText){AfterProgressUpdated = OnProgressUpdated};
+        await ProgressReporter.ExecuteTaskWithProgressAsync(loadData);
+        var displayBindStatus = new TaskToPerformParams<AdapterResponse>(DisplayBindStatusAsync, UiResources.FetchingBindingStatusText, UiResources.FetchingBindingStatusFailedText){AfterProgressUpdated = OnProgressUpdated};
+        await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus);
     }
 
     public async Task BindAsync()
@@ -220,22 +222,29 @@ public class ManageBindingViewModel : ViewModelBase
         return succeeded;
     }
     
-    private async Task DisplayBindStatusAsync()
+    internal /* for testing */ async Task<AdapterResponse> DisplayBindStatusAsync()
     {
         var solutionName = await solutionInfoProvider.GetSolutionNameAsync();
         var isFolderWorkspace = await solutionInfoProvider.IsFolderWorkspaceAsync();
         SolutionInfo = new SolutionInfoModel(solutionName, isFolderWorkspace ? SolutionType.Folder : SolutionType.Solution);
+
+        var bindingConfiguration = connectedModeServices.ConfigurationProvider.GetConfiguration();
+        if (bindingConfiguration == null || bindingConfiguration.Mode == SonarLintMode.Standalone)
+        {
+            return new AdapterResponse(true);
+        }
         
         var boundServerProject = connectedModeServices.ConfigurationProvider.GetConfiguration()?.Project;
         var serverConnection = boundServerProject?.ServerConnection;
         if (serverConnection == null)
         {
-            return;
+            return new AdapterResponse(false);
         }
         SelectedConnectionInfo = ConnectionInfo.From(serverConnection);
 
         var response = await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(serverConnection.Credentials, SelectedConnectionInfo, boundServerProject.ServerProjectKey);
         SelectedProject = response.ResponseData;
         BoundProject = SelectedProject;
+        return new AdapterResponse(BoundProject != null);
     }
 }

@@ -35,7 +35,7 @@ public class ManageBindingViewModelTests
 {
     private readonly ServerProject serverProject = new ("a-project", "A Project");
     private readonly ConnectionInfo sonarQubeConnectionInfo = new ("http://localhost:9000", ConnectionServerType.SonarQube);
-    private readonly ConnectionInfo sonarCloudConnectionInfo = new ("http://sonarcloud.io", ConnectionServerType.SonarCloud);
+    private readonly ConnectionInfo sonarCloudConnectionInfo = new ("organization", ConnectionServerType.SonarCloud);
     private readonly BasicAuthCredentials validCredentials = new ("TOKEN", new SecureString());
     
     private ManageBindingViewModel testSubject;
@@ -498,81 +498,129 @@ public class ManageBindingViewModelTests
                     x.WarningText == UiResources.LoadingConnectionsFailedText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
+    
+    [TestMethod]
+    public async Task InitializeDataAsync_DisplaysBindStatusAndReportsProgress()
+    {
+        await testSubject.InitializeDataAsync();
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.TaskToPerform == testSubject.DisplayBindStatusAsync &&
+                    x.ProgressStatus == UiResources.FetchingBindingStatusText &&
+                    x.WarningText == UiResources.FetchingBindingStatusFailedText &&
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+    }
 
     [TestMethod]
-    public async Task InitializeDataAsync_WhenSolutionIsOpen_FetchesSolutionInfo()
+    public async Task DisplayBindStatusAsync_WhenProjectIsNotBound_Succeeds()
+    {
+        SetupUnboundProject();
+        
+        var response = await testSubject.DisplayBindStatusAsync();
+        
+        response.Should().BeEquivalentTo(new AdapterResponse(true));
+    }
+    
+    [TestMethod]
+    public async Task DisplayBindStatusAsync_WhenProjectIsBoundAndBindingStatusIsFetched_Succeeds()
+    {
+        var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
+        SetupBoundProject(sonarCloudConnection, serverProject);
+        
+        var response = await testSubject.DisplayBindStatusAsync();
+        
+        testSubject.BoundProject.Should().NotBeNull();
+        response.Should().BeEquivalentTo(new AdapterResponse(true));
+    }
+
+    [TestMethod]
+    public async Task DisplayBindStatusAsync_WhenProjectIsBoundButBindingStatusIsNotFetched_Fails()
+    {
+        var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
+        SetupBoundProjectThatDoesNotExistOnServer(sonarCloudConnection);
+        
+        var response = await testSubject.DisplayBindStatusAsync();
+        
+        testSubject.BoundProject.Should().BeNull();
+        response.Should().BeEquivalentTo(new AdapterResponse(false));
+    }
+
+    [TestMethod]
+    public async Task DisplayBindStatusAsync_WhenSolutionIsOpen_FetchesSolutionInfo()
     {
         solutionInfoProvider.GetSolutionNameAsync().Returns("Local solution name");
         solutionInfoProvider.IsFolderWorkspaceAsync().Returns(false);
         
-        await testSubject.InitializeDataAsync();
+        await testSubject.DisplayBindStatusAsync();
         
         testSubject.SolutionInfo.Should().BeEquivalentTo(new SolutionInfoModel("Local solution name", SolutionType.Solution));
     }
     
     [TestMethod]
-    public async Task InitializeDataAsync_WhenFolderIsOpen_FetchesSolutionInfo()
+    public async Task DisplayBindStatusAsync_WhenFolderIsOpen_FetchesSolutionInfo()
     {
         solutionInfoProvider.GetSolutionNameAsync().Returns("Local folder name");
         solutionInfoProvider.IsFolderWorkspaceAsync().Returns(true);
         
-        await testSubject.InitializeDataAsync();
+        await testSubject.DisplayBindStatusAsync();
         
         testSubject.SolutionInfo.Should().BeEquivalentTo(new SolutionInfoModel("Local folder name", SolutionType.Folder));
     }
     
     [TestMethod]
-    public async Task InitializeDataAsync_WhenProjectIsBoundToSonarCloud_SelectsBoundSonarCloudConnection()
+    public async Task DisplayBindStatusAsync_WhenProjectIsBoundToSonarCloud_SelectsBoundSonarCloudConnection()
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupBoundProject(sonarCloudConnection);
 
-        await testSubject.InitializeDataAsync();
+        await testSubject.DisplayBindStatusAsync();
         
         testSubject.SelectedConnectionInfo.Should().BeEquivalentTo(new ConnectionInfo("organization", ConnectionServerType.SonarCloud));
     }
 
     [TestMethod]
-    public async Task InitializeDataAsync_WhenProjectIsBoundToSonarQube_SelectsBoundSonarQubeConnection()
+    public async Task DisplayBindStatusAsync_WhenProjectIsBoundToSonarQube_SelectsBoundSonarQubeConnection()
     {
         var sonarQubeConnection = new ServerConnection.SonarQube(new Uri("http://localhost:9000/"), credentials: validCredentials);
         SetupBoundProject(sonarQubeConnection);
         
-        await testSubject.InitializeDataAsync();
+        await testSubject.DisplayBindStatusAsync();
         
         testSubject.SelectedConnectionInfo.Should().BeEquivalentTo(new ConnectionInfo("http://localhost:9000/", ConnectionServerType.SonarQube));
     }
     
     [TestMethod]
-    public async Task InitializeDataAsync_WhenProjectIsNotBound_SelectedConnectionShouldBeEmpty()
+    public async Task DisplayBindStatusAsync_WhenProjectIsNotBound_SelectedConnectionShouldBeEmpty()
     {
         SetupUnboundProject();
         
-        await testSubject.InitializeDataAsync();
+        await testSubject.DisplayBindStatusAsync();
 
         testSubject.SelectedConnectionInfo.Should().BeNull();
     }
 
     [TestMethod]
-    public async Task InitializeDataAsync_WhenProjectIsBound_SelectsServerProject()
+    public async Task DisplayBindStatusAsync_WhenProjectIsBound_SelectsServerProject()
     {
         var expectedServerProject = new ServerProject("server-project-key", "server-project-name");
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupBoundProject(sonarCloudConnection, expectedServerProject);
         
-        await testSubject.InitializeDataAsync();
+        await testSubject.DisplayBindStatusAsync();
         
         testSubject.SelectedProject.Should().BeEquivalentTo(expectedServerProject);
         testSubject.BoundProject.Should().BeEquivalentTo(testSubject.SelectedProject);
     }
 
     [TestMethod]
-    public async Task InitializeDataAsync_WhenProjectIsBoundButProjectNotFoundOnServer_SelectedProjectShouldBeEmpty()
+    public async Task DisplayBindStatusAsync_WhenProjectIsBoundButProjectNotFoundOnServer_SelectedProjectShouldBeEmpty()
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupBoundProjectThatDoesNotExistOnServer(sonarCloudConnection);
         
-        await testSubject.InitializeDataAsync();
+        await testSubject.DisplayBindStatusAsync();
         
         testSubject.SelectedProject.Should().BeNull();
         testSubject.BoundProject.Should().BeNull();
