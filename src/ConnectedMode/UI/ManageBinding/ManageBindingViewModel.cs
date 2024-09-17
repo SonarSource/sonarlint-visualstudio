@@ -19,11 +19,9 @@
  */
 
 using System.Collections.ObjectModel;
-using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
@@ -234,12 +232,8 @@ public class ManageBindingViewModel : ViewModelBase
         {
             return;
         }
-        
-        SelectedConnectionInfo = new ConnectionInfo(
-            serverConnection.Id,
-            serverConnection is ServerConnection.SonarCloud
-                ? ConnectionServerType.SonarCloud
-                : ConnectionServerType.SonarQube);
+
+        SelectedConnectionInfo = ConnectionInfo.From(serverConnection);
 
         var response = await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(serverConnection.Credentials, SelectedConnectionInfo, boundServerProject.ServerProjectKey);
         SelectedProject = response.ResponseData;
