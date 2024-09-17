@@ -41,9 +41,10 @@ public partial class ManageBindingDialog : Window
 
     public ManageBindingViewModel ViewModel { get; }
 
-    private void ManageConnections_OnClick(object sender, RoutedEventArgs e)
+    private async void ManageConnections_OnClick(object sender, RoutedEventArgs e)
     {
         new ManageConnectionsDialog(connectedModeServices).ShowDialog(this);
+        await ViewModel.InitializeDataAsync();
     }
 
     private void Binding_OnClick(object sender, RoutedEventArgs e)

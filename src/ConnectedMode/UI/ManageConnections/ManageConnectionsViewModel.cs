@@ -36,6 +36,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         }
 
+        public async Task RemoveConnectionWithProgressAsync(ConnectionViewModel connectionViewModel)
+        {
+            var validationParams = new TaskToPerformParams<AdapterResponse>(
+                async () => await SafeExecuteActionAsync(() => RemoveConnection(connectionViewModel)),
+                UiResources.RemovingConnectionText,
+                UiResources.RemovingConnectionFailedText);
+            await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
+        }
+
         internal async Task<AdapterResponse> LoadConnectionsAsync()
         {
             var succeeded = false;
@@ -52,6 +61,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return new AdapterResponse(succeeded);
         }
 
+        internal async Task<AdapterResponse> SafeExecuteActionAsync(Func<bool> funcToExecute)
+        {
+            var succeeded = false;
+            try
+            {
+                await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => succeeded = funcToExecute());
+            }
+            catch (Exception ex)
+            {
+                connectedModeServices.Logger.WriteLine(ex.Message);
+                succeeded = false;
+            }
+            return new AdapterResponse(succeeded);
+        }
+
         internal bool InitializeConnections()
         {
             ConnectionViewModels.Clear();
@@ -60,10 +84,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return succeeded;
         }
 
-        public void RemoveConnection(ConnectionViewModel connectionViewModel)
+        internal bool RemoveConnection(ConnectionViewModel connectionViewModel)
         {
-            ConnectionViewModels.Remove(connectionViewModel);
-            RaisePropertyChanged(nameof(NoConnectionExists));
+            var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryRemoveConnection(connectionViewModel.Connection.Info.Id);
+            if (succeeded)
+            {
+                ConnectionViewModels.Remove(connectionViewModel);
+                RaisePropertyChanged(nameof(NoConnectionExists));
+            }
+            return succeeded;
         }
 
         public void AddConnection(Connection connection)
