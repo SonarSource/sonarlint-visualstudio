@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
@@ -33,26 +34,56 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
     private readonly ISolutionBindingFileLoader solutionBindingFileLoader;
     private readonly ISolutionBindingCredentialsLoader credentialsLoader;
     private readonly IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider;
+    private readonly IServerConnectionsRepository serverConnectionsRepository;
+    private readonly IBindingDtoConverter bindingDtoConverter;
+    private readonly ILogger logger;
 
     [ImportingConstructor]
-    public SolutionBindingRepository(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ICredentialStoreService credentialStoreService, ILogger logger)
-        : this(unintrusiveBindingPathProvider, new SolutionBindingFileLoader(logger), new SolutionBindingCredentialsLoader(credentialStoreService))
+    public SolutionBindingRepository(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider,
+        IBindingDtoConverter bindingDtoConverter,
+        IServerConnectionsRepository serverConnectionsRepository,
+        ICredentialStoreService credentialStoreService,
+        ILogger logger)
+        : this(unintrusiveBindingPathProvider,
+            bindingDtoConverter,
+            serverConnectionsRepository,
+            new SolutionBindingFileLoader(logger),
+            new SolutionBindingCredentialsLoader(credentialStoreService),
+            logger)
     {
     }
 
-    internal /* for testing */ SolutionBindingRepository(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider, ISolutionBindingFileLoader solutionBindingFileLoader, ISolutionBindingCredentialsLoader credentialsLoader)
+    internal /* for testing */ SolutionBindingRepository(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider,
+        IBindingDtoConverter bindingDtoConverter,
+        IServerConnectionsRepository serverConnectionsRepository,
+        ISolutionBindingFileLoader solutionBindingFileLoader,
+        ISolutionBindingCredentialsLoader credentialsLoader,
+        ILogger logger)
     {
+        this.unintrusiveBindingPathProvider = unintrusiveBindingPathProvider;
+        this.serverConnectionsRepository = serverConnectionsRepository;
+        this.bindingDtoConverter = bindingDtoConverter;
         this.solutionBindingFileLoader = solutionBindingFileLoader ?? throw new ArgumentNullException(nameof(solutionBindingFileLoader));
         this.credentialsLoader = credentialsLoader ?? throw new ArgumentNullException(nameof(credentialsLoader));
-        this.unintrusiveBindingPathProvider = unintrusiveBindingPathProvider;
+        this.logger = logger;
     }
 
-    public BoundSonarQubeProject Read(string configFilePath)
+    BoundSonarQubeProject ILegacySolutionBindingRepository.Read(string configFilePath)
     {
-        return Read(configFilePath, true);
+        var bindingDto = ReadBindingFile(configFilePath);
+        return bindingDto switch
+        {
+            null => null,
+            not null => bindingDtoConverter.ConvertFromDtoToLegacy(bindingDto, credentialsLoader.Load(bindingDto.ServerUri))
+        };
     }
 
-    public bool Write(string configFilePath, BoundSonarQubeProject binding)
+    public BoundServerProject Read(string configFilePath)
+    {
+        return Convert(ReadBindingFile(configFilePath), configFilePath);
+    }
+
+    public bool Write(string configFilePath, BoundServerProject binding)
     {
         _ = binding ?? throw new ArgumentNullException(nameof(binding));
 
@@ -61,12 +92,10 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
             return false;
         }
 
-        if (!solutionBindingFileLoader.Save(configFilePath, binding))
+        if (!solutionBindingFileLoader.Save(configFilePath, bindingDtoConverter.ConvertToDto(binding)))
         {
             return false;
         }
-
-        credentialsLoader.Save(binding.Credentials, binding.ServerUri);
 
         BindingUpdated?.Invoke(this, EventArgs.Empty);
             
@@ -75,21 +104,38 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
 
     public event EventHandler BindingUpdated;
 
-    public IEnumerable<BoundSonarQubeProject> List()
+    public IEnumerable<BoundServerProject> List()
     {
+        if (!serverConnectionsRepository.TryGetAll(out var connections))
+        {
+            throw new InvalidOperationException("Could not retrieve all connections.");
+        }
+        
         var bindingConfigPaths = unintrusiveBindingPathProvider.GetBindingPaths();
 
         foreach (var bindingConfigPath in bindingConfigPaths)
         {
-            var boundSonarQubeProject = Read(bindingConfigPath, false);
+            var bindingDto = ReadBindingFile(bindingConfigPath);
 
-            if (boundSonarQubeProject == null) { continue; }
+            if (bindingDto == null)
+            {
+                logger.LogVerbose($"Skipped {bindingConfigPath} because it could not be read");
+                continue;
+            }
 
-            yield return boundSonarQubeProject;
+            if (connections.FirstOrDefault(c => c.Id == bindingDto.ServerConnectionId) is not {} serverConnection)
+            {
+                logger.LogVerbose($"Skipped {bindingConfigPath} because connection {bindingDto.ServerConnectionId} doesn't exist");
+                continue;
+            }
+
+            var boundServerProject = Convert(bindingDto, serverConnection, bindingConfigPath);
+
+            yield return boundServerProject;
         }
     }
-
-    private BoundSonarQubeProject Read(string configFilePath, bool loadCredentials)
+    
+    private BindingDto ReadBindingFile(string configFilePath)
     {
         var bound = solutionBindingFileLoader.Load(configFilePath);
 
@@ -98,14 +144,18 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
             return null;
         }
 
-        if (loadCredentials)
-        {
-            bound.Credentials = credentialsLoader.Load(bound.ServerUri);
-        }
-
         Debug.Assert(!bound.Profiles?.ContainsKey(Core.Language.Unknown) ?? true,
             "Not expecting the deserialized binding config to contain the profile for an unknown language");
 
         return bound;
+
     }
+
+    private BoundServerProject Convert(BindingDto bindingDto, string configFilePath) =>
+        bindingDto is not null && serverConnectionsRepository.TryGet(bindingDto.ServerConnectionId, out var connection)
+            ? Convert(bindingDto, connection, configFilePath)
+            : null;
+
+    private BoundServerProject Convert(BindingDto bindingDto, ServerConnection connection, string configFilePath) => 
+        bindingDtoConverter.ConvertFromDto(bindingDto, connection, unintrusiveBindingPathProvider.GetBindingKeyFromPath(configFilePath));
 }

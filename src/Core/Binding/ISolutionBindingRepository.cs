@@ -35,13 +35,13 @@ public interface ISolutionBindingRepository
     /// Retrieves solution binding information
     /// </summary>
     /// <returns>Can be null if not bound</returns>
-    BoundSonarQubeProject Read(string configFilePath);
+    BoundServerProject Read(string configFilePath);
 
     /// <summary>
     /// Writes the binding information
     /// </summary>
     /// <returns>Has file been saved</returns>
-    bool Write(string configFilePath, BoundSonarQubeProject binding);
+    bool Write(string configFilePath, BoundServerProject binding);
 
     /// <summary>
     /// Raises when <see cref="Write"/> operation completes successfully
@@ -52,5 +52,5 @@ public interface ISolutionBindingRepository
     /// Lists all the binding information
     /// </summary>
     /// <returns></returns>
-    IEnumerable<BoundSonarQubeProject> List();
+    IEnumerable<BoundServerProject> List();
 }
