@@ -67,8 +67,7 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
 
     private static Connection MapServerConnectionModel(ServerConnection serverConnection)
     {
-        var serverType = serverConnection is ServerConnection.SonarCloud ? ConnectionServerType.SonarCloud : ConnectionServerType.SonarQube;
-        var connectionInfo = new ConnectionInfo(serverConnection.Id, serverType);
+        var connectionInfo = ConnectionInfo.From(serverConnection);
         return new Connection(connectionInfo, serverConnection.Settings.IsSmartNotificationsEnabled);
     }
 
