@@ -40,7 +40,7 @@ public interface ISlCoreConnectionAdapter
 {
     Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel);
     Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel);
-    Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, ConnectionInfo connectionInfo, string serverProjectKey);
+    Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ICredentials credentials, ConnectionInfo connectionInfo, string serverProjectKey);
 }
 
 public class AdapterResponseWithData<T>(bool success, T responseData) : IResponseStatus
@@ -103,7 +103,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         });
     }
 
-    public Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, ConnectionInfo connectionInfo, string serverProjectKey)
+    public Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ICredentials credentials, ConnectionInfo connectionInfo, string serverProjectKey)
     {
         var failedResponse = new AdapterResponseWithData<ServerProject>(false, null);
         
@@ -116,14 +116,14 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
 
             try
             {
-                var credentials = (BasicAuthCredentials) serverConnection.Credentials;
                 if (credentials == null)
                 {
                     return failedResponse;
                 }
-                var credentialsSlCoreFormat = credentials.Password?.Length > 0
-                    ? Either<TokenDto, UsernamePasswordDto>.CreateRight(new UsernamePasswordDto(credentials.UserName, credentials.Password.ToString()))
-                    : Either<TokenDto, UsernamePasswordDto>.CreateLeft(new TokenDto(credentials.UserName));
+                var basicAuthCredentials = (BasicAuthCredentials) credentials;
+                var credentialsSlCoreFormat = basicAuthCredentials.Password?.Length > 0
+                    ? Either<TokenDto, UsernamePasswordDto>.CreateRight(new UsernamePasswordDto(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString()))
+                    : Either<TokenDto, UsernamePasswordDto>.CreateLeft(new TokenDto(basicAuthCredentials.UserName));
                 var transientConnection = GetTransientConnectionDto(connectionInfo, credentialsSlCoreFormat);
                 var response = await connectionConfigurationSlCoreService.GetProjectNamesByKeyAsync(new GetProjectNamesByKeyParams(transientConnection, [serverProjectKey]));
                 return new AdapterResponseWithData<ServerProject>(true, new ServerProject(serverProjectKey, response.projectNamesByKey[serverProjectKey]));

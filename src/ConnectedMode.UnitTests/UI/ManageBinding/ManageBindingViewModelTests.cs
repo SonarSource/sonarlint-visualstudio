@@ -502,13 +502,14 @@ public class ManageBindingViewModelTests
     {
         solutionInfoProvider.GetSolutionNameAsync().Returns("Local solution name");
         solutionInfoProvider.IsFolderWorkspaceAsync().Returns(false);
-        var serverConnection = new ServerConnection.SonarCloud("organization", credentials: new BasicAuthCredentials("TOKEN", new SecureString()));
+        var credentials = new BasicAuthCredentials("TOKEN", new SecureString());
+        var serverConnection = new ServerConnection.SonarCloud("organization", credentials: credentials);
         var boundServerProject = new BoundServerProject("local-project-key", "server-project-key", serverConnection);
         var configurationProvider = Substitute.For<IConfigurationProvider>();
         configurationProvider.GetConfiguration().Returns(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));
         connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
         var slcoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
-        slcoreConnectionAdapter.GetServerProjectByKeyAsync(serverConnection, new ConnectionInfo("organization", ConnectionServerType.SonarCloud),"server-project-key")
+        slcoreConnectionAdapter.GetServerProjectByKeyAsync(credentials, new ConnectionInfo("organization", ConnectionServerType.SonarCloud),"server-project-key")
             .Returns(Task.FromResult(new AdapterResponseWithData<ServerProject>(true, new ServerProject("server-project-key", "server-project-name"))));
         connectedModeServices.SlCoreConnectionAdapter.Returns(slcoreConnectionAdapter);
         

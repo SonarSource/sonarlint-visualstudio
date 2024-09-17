@@ -229,19 +229,19 @@ public class ManageBindingViewModel : ViewModelBase
         SolutionInfo = new SolutionInfoModel(solutionName, isFolderWorkspace ? SolutionType.Folder : SolutionType.Solution);
         
         var boundServerProject = connectedModeServices.ConfigurationProvider.GetConfiguration()?.Project;
-        var connection = boundServerProject?.ServerConnection;
-        if (connection == null)
+        var serverConnection = boundServerProject?.ServerConnection;
+        if (serverConnection == null)
         {
             return;
         }
         
         SelectedConnectionInfo = new ConnectionInfo(
-            connection.Id,
-            connection is ServerConnection.SonarCloud
+            serverConnection.Id,
+            serverConnection is ServerConnection.SonarCloud
                 ? ConnectionServerType.SonarCloud
                 : ConnectionServerType.SonarQube);
 
-        var response = await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(connection, SelectedConnectionInfo, boundServerProject.ServerProjectKey);
+        var response = await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(serverConnection.Credentials, SelectedConnectionInfo, boundServerProject.ServerProjectKey);
         SelectedProject = response.ResponseData;
         BoundProject = SelectedProject;
     }
