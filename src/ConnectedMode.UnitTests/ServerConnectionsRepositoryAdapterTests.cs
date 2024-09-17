@@ -233,6 +233,21 @@ public class ServerConnectionsRepositoryAdapterTests
         succeeded.Should().Be(expectedStatus);
     }
 
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void TryGet_ReturnsStatusFromSlCore(bool expectedStatus)
+    {
+        var connectionId = "myOrg";
+        var expectedServerConnection = new SonarCloud("myOrg");
+        MockTryGet(connectionId, expectedStatus, expectedServerConnection);
+
+        var succeeded = testSubject.TryGet(connectionId, out var receivedServerConnection);
+
+        succeeded.Should().Be(expectedStatus);
+        receivedServerConnection.Should().Be(expectedServerConnection);
+    }
+
     private static SonarCloud CreateSonarCloudServerConnection(bool isSmartNotificationsEnabled = true)
     {
         return new SonarCloud("myOrg", new ServerConnectionSettings(isSmartNotificationsEnabled), Substitute.For<ICredentials>());
@@ -266,5 +281,14 @@ public class ServerConnectionsRepositoryAdapterTests
     private static bool IsExpectedCredentials(ServerConnection.SonarQube sc, string expectedUsername, string expectedPassword)
     {
         return sc.Credentials is BasicAuthCredentials basicAuthCredentials && basicAuthCredentials.UserName == expectedUsername && basicAuthCredentials.Password?.ToUnsecureString() == expectedPassword;
+    }
+
+    private void MockTryGet(string connectionId, bool expectedResponse, ServerConnection expectedServerConnection)
+    {
+        serverConnectionsRepository.TryGet(connectionId, out _).Returns(callInfo =>
+        {
+            callInfo[1] = expectedServerConnection;
+            return expectedResponse;
+        });
     }
 }

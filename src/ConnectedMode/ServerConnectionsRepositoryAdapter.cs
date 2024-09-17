@@ -33,6 +33,7 @@ public interface IServerConnectionsRepositoryAdapter
     bool TryGetAllConnectionsInfo(out List<ConnectionInfo> connectionInfos);
     bool TryRemoveConnection(string connectionInfoId);
     bool TryAddConnection(Connection connection, ICredentialsModel credentialsModel);
+    bool TryGet(string connectionId, out ServerConnection serverConnection);
 }
 
 [Export(typeof(IServerConnectionsRepositoryAdapter))]
@@ -58,6 +59,11 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         var serverConnection = MapConnection(connection);
         serverConnection.Credentials = MapCredentials(credentialsModel);
         return serverConnectionsRepository.TryAdd(serverConnection);
+    }
+
+    public bool TryGet(string connectionId, out ServerConnection serverConnection)
+    {
+        return serverConnectionsRepository.TryGet(connectionId, out serverConnection);
     }
 
     public bool TryRemoveConnection(string connectionInfoId)
