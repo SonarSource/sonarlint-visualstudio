@@ -19,6 +19,9 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Security;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode;
@@ -28,6 +31,7 @@ public interface IServerConnectionsRepositoryAdapter
     bool TryGetAllConnections(out List<Connection> connections);
     bool TryGetAllConnectionsInfo(out List<ConnectionInfo> connectionInfos);
     bool TryRemoveConnection(string connectionInfoId);
+    bool TryAddConnection(Connection connection, ICredentialsModel credentialsModel);
 }
 
 [Export(typeof(IServerConnectionsRepositoryAdapter))]
@@ -48,6 +52,13 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         return succeeded;
     }
 
+    public bool TryAddConnection(Connection connection, ICredentialsModel credentialsModel)
+    {
+        var serverConnection = MapConnection(connection);
+        serverConnection.Credentials = MapCredentials(credentialsModel);
+        return serverConnectionsRepository.TryAdd(serverConnection);
+    }
+
     public bool TryRemoveConnection(string connectionInfoId)
     {
        return serverConnectionsRepository.TryDelete(connectionInfoId);
@@ -58,5 +69,35 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         var serverType = serverConnection is ServerConnection.SonarCloud ? ConnectionServerType.SonarCloud : ConnectionServerType.SonarQube;
         var connectionInfo = new ConnectionInfo(serverConnection.Id, serverType);
         return new Connection(connectionInfo, serverConnection.Settings.IsSmartNotificationsEnabled);
+    }
+
+    private static ServerConnection MapConnection(Connection connection)
+    {
+        if (connection.Info.ServerType == ConnectionServerType.SonarCloud)
+        {
+            return new ServerConnection.SonarCloud(connection.Info.Id, new ServerConnectionSettings(connection.EnableSmartNotifications));
+        }
+
+        return new ServerConnection.SonarQube(new Uri(connection.Info.Id), new ServerConnectionSettings(connection.EnableSmartNotifications));
+    }
+
+    private static ICredentials MapCredentials(ICredentialsModel credentialsModel)
+    {
+        var securePassword = new SecureString();
+        switch (credentialsModel)
+        {
+            case TokenCredentialsModel tokenCredentialsModel:
+                return new BasicAuthCredentials(tokenCredentialsModel.Token, securePassword);
+            case UsernamePasswordModel usernameCredentialsModel:
+            {
+                foreach (var c in usernameCredentialsModel.Password)
+                {
+                    securePassword.AppendChar(c);
+                }
+                return new BasicAuthCredentials(usernameCredentialsModel.Username, securePassword);
+            }
+            default:
+                return null;
+        }
     }
 }
