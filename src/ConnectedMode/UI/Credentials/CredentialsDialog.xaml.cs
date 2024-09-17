@@ -61,12 +61,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
 
         private void PasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
         {
-            ViewModel.Password = PasswordBox.Password;
+            ViewModel.Password = PasswordBox.SecurePassword;
         }
 
         private void TokenPasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
         {
-            ViewModel.Token = TokenBox.Password;
+            ViewModel.Token = TokenBox.SecurePassword;
         }
 
         private void AuthenticationTypeCombobox_OnSourceUpdated(object sender, DataTransferEventArgs dataTransferEventArgs)

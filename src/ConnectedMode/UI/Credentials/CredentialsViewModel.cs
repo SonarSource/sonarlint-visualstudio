@@ -20,17 +20,19 @@
 
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Security;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
 public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnectionAdapter slCoreConnectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
-    private string token;
+    private SecureString token = new();
     private string selectedAuthenticationType = UiResources.AuthenticationTypeOptionToken;
     private string username;
-    private string password;
+    private SecureString password = new();
 
     public ConnectionInfo ConnectionInfo { get; } = connectionInfo;
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
@@ -53,7 +55,7 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
         }
     }
 
-    public string Token
+    public SecureString Token
     {
         get => token;
         set
@@ -75,7 +77,7 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
         }
     }
 
-    public string Password
+    public SecureString Password
     {
         get => password;
         set
@@ -95,15 +97,20 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
     public bool IsConfirmationEnabled => !ProgressReporterViewModel.IsOperationInProgress &&
                                          ( (IsTokenAuthentication && IsTokenProvided) || (IsCredentialsAuthentication && AreCredentialsProvided) );
 
-    private bool IsTokenProvided => IsValueFilled(Token);
+    private bool IsTokenProvided => IsSecureStringFilled(Token);
     private bool AreCredentialsProvided => IsPasswordProvided && IsUsernameProvided;
     private bool IsUsernameProvided => IsValueFilled(Username);
-    private bool IsPasswordProvided => IsValueFilled(Password);
+    private bool IsPasswordProvided => IsSecureStringFilled(Password);
     public string AccountSecurityUrl => ConnectionInfo.ServerType == ConnectionServerType.SonarCloud ? UiResources.SonarCloudAccountSecurityUrl : Path.Combine(ConnectionInfo.Id, UiResources.SonarQubeAccountSecurityUrl);
 
     private static bool IsValueFilled(string value)
     {
         return !string.IsNullOrWhiteSpace(value);
+    }
+
+    private static bool IsSecureStringFilled(SecureString secureString)
+    {
+        return !string.IsNullOrWhiteSpace(secureString?.ToUnsecureString());
     }
 
     internal async Task<bool> ValidateConnectionAsync()

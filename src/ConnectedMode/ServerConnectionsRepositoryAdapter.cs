@@ -23,6 +23,7 @@ using System.Security;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode;
 
@@ -83,18 +84,13 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
 
     private static ICredentials MapCredentials(ICredentialsModel credentialsModel)
     {
-        var securePassword = new SecureString();
         switch (credentialsModel)
         {
             case TokenCredentialsModel tokenCredentialsModel:
-                return new BasicAuthCredentials(tokenCredentialsModel.Token, securePassword);
+                return new BasicAuthCredentials(tokenCredentialsModel.Token.ToUnsecureString(), new SecureString());
             case UsernamePasswordModel usernameCredentialsModel:
             {
-                foreach (var c in usernameCredentialsModel.Password)
-                {
-                    securePassword.AppendChar(c);
-                }
-                return new BasicAuthCredentials(usernameCredentialsModel.Username, securePassword);
+                return new BasicAuthCredentials(usernameCredentialsModel.Username, usernameCredentialsModel.Password);
             }
             default:
                 return null;

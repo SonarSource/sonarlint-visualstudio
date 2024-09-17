@@ -60,7 +60,7 @@ public class SlCoreConnectionAdapterTests
         var threadHandlingMock = Substitute.For<IThreadHandling>();
         var slCoreConnectionAdapter = new SlCoreConnectionAdapter(slCoreServiceProvider, threadHandlingMock, logger);
 
-        await slCoreConnectionAdapter.ValidateConnectionAsync(sonarQubeConnectionInfo, new TokenCredentialsModel("myToken"));
+        await slCoreConnectionAdapter.ValidateConnectionAsync(sonarQubeConnectionInfo, new TokenCredentialsModel("myToken".CreateSecureString()));
 
         await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponse>>>());
     }
@@ -70,7 +70,7 @@ public class SlCoreConnectionAdapterTests
     {
         slCoreServiceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService _).Returns(false);
 
-        var response = await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, new TokenCredentialsModel("myToken"));
+        var response = await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, new TokenCredentialsModel("myToken".CreateSecureString()));
 
         logger.Received(1).LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
         response.Success.Should().BeFalse();
@@ -81,7 +81,7 @@ public class SlCoreConnectionAdapterTests
     {
         var token = "myToken";
 
-        await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, new TokenCredentialsModel(token));
+        await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, new TokenCredentialsModel(token.CreateSecureString()));
 
         await connectionConfigurationSlCoreService.Received(1)
             .ValidateConnectionAsync(Arg.Is<ValidateConnectionParams>(x => IsExpectedSonarQubeConnectionParams(x, token)));
@@ -93,7 +93,7 @@ public class SlCoreConnectionAdapterTests
         var username = "username";
         var password = "password";
 
-        await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, new UsernamePasswordModel(username, password));
+        await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, new UsernamePasswordModel(username, password.CreateSecureString()));
 
         await connectionConfigurationSlCoreService.Received(1)
             .ValidateConnectionAsync(Arg.Is<ValidateConnectionParams>(x => IsExpectedSonarQubeConnectionParams(x, username, password)));
@@ -104,7 +104,7 @@ public class SlCoreConnectionAdapterTests
     {
         var token = "myToken";
 
-        await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new TokenCredentialsModel(token));
+        await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new TokenCredentialsModel(token.CreateSecureString()));
 
         await connectionConfigurationSlCoreService.Received(1)
             .ValidateConnectionAsync(Arg.Is<ValidateConnectionParams>(x => IsExpectedSonarCloudConnectionParams(x, token)));
@@ -116,7 +116,7 @@ public class SlCoreConnectionAdapterTests
         var username = "username";
         var password = "password";
 
-        await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new UsernamePasswordModel(username, password));
+        await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new UsernamePasswordModel(username, password.CreateSecureString()));
 
         await connectionConfigurationSlCoreService.Received(1)
             .ValidateConnectionAsync(Arg.Is<ValidateConnectionParams>(x => IsExpectedSonarCloudConnectionParams(x, username, password)));
@@ -130,7 +130,7 @@ public class SlCoreConnectionAdapterTests
         var expectedResponse = new ValidateConnectionResponse(success, message);
         connectionConfigurationSlCoreService.ValidateConnectionAsync(Arg.Any<ValidateConnectionParams>()).Returns(expectedResponse);
 
-        var response = await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new TokenCredentialsModel("myToken"));
+        var response = await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new TokenCredentialsModel("myToken".CreateSecureString()));
 
         response.Success.Should().Be(success);
     }
@@ -142,7 +142,7 @@ public class SlCoreConnectionAdapterTests
         connectionConfigurationSlCoreService.When(x => x.ValidateConnectionAsync(Arg.Any<ValidateConnectionParams>()))
             .Do(x => throw new Exception(exceptionMessage));
 
-        var response = await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new TokenCredentialsModel("token"));
+        var response = await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new TokenCredentialsModel("token".CreateSecureString()));
 
         logger.Received(1).LogVerbose($"{Resources.ValidateCredentials_Fails}: {exceptionMessage}");
         response.Success.Should().BeFalse();
@@ -154,7 +154,7 @@ public class SlCoreConnectionAdapterTests
         var threadHandlingMock = Substitute.For<IThreadHandling>();
         var slCoreConnectionAdapter = new SlCoreConnectionAdapter(slCoreServiceProvider, threadHandlingMock, logger);
 
-        await slCoreConnectionAdapter.GetOrganizationsAsync(new TokenCredentialsModel("token"));
+        await slCoreConnectionAdapter.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()));
 
         await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<OrganizationDisplay>>>>>());
     }
@@ -164,7 +164,7 @@ public class SlCoreConnectionAdapterTests
     {
         slCoreServiceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService _).Returns(false);
 
-        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token"));
+        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()));
 
         logger.Received(1).LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
         response.Success.Should().BeFalse();
@@ -178,7 +178,7 @@ public class SlCoreConnectionAdapterTests
         connectionConfigurationSlCoreService.When(x => x.ListUserOrganizationsAsync(Arg.Any<ListUserOrganizationsParams>()))
             .Do(x => throw new Exception(exceptionMessage));
 
-        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token"));
+        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()));
 
         logger.Received(1).LogVerbose($"{Resources.ListUserOrganizations_Fails}: {exceptionMessage}");
         response.Success.Should().BeFalse();
@@ -190,7 +190,7 @@ public class SlCoreConnectionAdapterTests
     {
         var token = "token";
 
-        await testSubject.GetOrganizationsAsync(new TokenCredentialsModel(token));
+        await testSubject.GetOrganizationsAsync(new TokenCredentialsModel(token.CreateSecureString()));
 
         await connectionConfigurationSlCoreService.Received(1).ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x=> IsExpectedCredentials(x.credentials, token)));
     }
@@ -201,7 +201,7 @@ public class SlCoreConnectionAdapterTests
         var username = "username";
         var password = "password";
 
-        await testSubject.GetOrganizationsAsync(new UsernamePasswordModel(username, password));
+        await testSubject.GetOrganizationsAsync(new UsernamePasswordModel(username, password.CreateSecureString()));
 
         await connectionConfigurationSlCoreService.Received(1).ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x => IsExpectedCredentials(x.credentials, username, password)));
     }
@@ -222,7 +222,7 @@ public class SlCoreConnectionAdapterTests
         connectionConfigurationSlCoreService.ListUserOrganizationsAsync(Arg.Any<ListUserOrganizationsParams>())
             .Returns(new ListUserOrganizationsResponse([]));
 
-        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token"));
+        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()));
 
         response.Success.Should().BeTrue();
         response.ResponseData.Should().BeEmpty();
@@ -235,7 +235,7 @@ public class SlCoreConnectionAdapterTests
         connectionConfigurationSlCoreService.ListUserOrganizationsAsync(Arg.Any<ListUserOrganizationsParams>())
             .Returns(new ListUserOrganizationsResponse(serverOrganizations));
 
-        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token"));
+        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()));
 
         response.Success.Should().BeTrue();
         response.ResponseData.Should().BeEquivalentTo([

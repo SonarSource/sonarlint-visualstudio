@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode;
 
@@ -159,8 +160,8 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     {
         return credentialsModel switch
         {
-            TokenCredentialsModel tokenCredentialsModel => GetEitherForToken(tokenCredentialsModel.Token),
-            UsernamePasswordModel usernamePasswordModel => GetEitherForUsernamePassword(usernamePasswordModel.Username, usernamePasswordModel.Password),
+            TokenCredentialsModel tokenCredentialsModel => GetEitherForToken(tokenCredentialsModel.Token.ToUnsecureString()),
+            UsernamePasswordModel usernamePasswordModel => GetEitherForUsernamePassword(usernamePasswordModel.Username, usernamePasswordModel.Password.ToUnsecureString()),
             _ => throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument")
         };
     }

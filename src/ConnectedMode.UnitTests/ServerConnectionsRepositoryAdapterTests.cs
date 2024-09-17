@@ -191,7 +191,7 @@ public class ServerConnectionsRepositoryAdapterTests
         var sonarQube = CreateSonarQubeConnection();
         var token = "myToken";
 
-        testSubject.TryAddConnection(sonarQube, new TokenCredentialsModel(token));
+        testSubject.TryAddConnection(sonarQube, new TokenCredentialsModel(token.CreateSecureString()));
 
         serverConnectionsRepository.Received(1)
             .TryAdd(Arg.Is<ServerConnection.SonarQube>(sc => IsExpectedCredentials(sc, token, string.Empty)));
@@ -204,7 +204,7 @@ public class ServerConnectionsRepositoryAdapterTests
         var username = "username";
         var password = "password";
 
-        testSubject.TryAddConnection(sonarQube, new UsernamePasswordModel(username, password));
+        testSubject.TryAddConnection(sonarQube, new UsernamePasswordModel(username, password.CreateSecureString()));
 
         serverConnectionsRepository.Received(1)
             .TryAdd(Arg.Is<ServerConnection.SonarQube>(sc => IsExpectedCredentials(sc, username, password)));
