@@ -18,11 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 {
     [TestClass]
     public class UnintrusiveConfigurationProviderTests
@@ -32,16 +33,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         {
             MefTestHelpers.CheckTypeCanBeImported<UnintrusiveConfigurationProvider, IConfigurationProvider>(
                 MefTestHelpers.CreateExport<IUnintrusiveBindingPathProvider>(),
-                MefTestHelpers.CreateExport<ISolutionBindingRepository>());
+                MefTestHelpers.CreateExport<ISolutionBindingRepository>(),
+                MefTestHelpers.CreateExport<ISolutionInfoProvider>());
         }
-
+        
         [TestMethod]
-        public void GetConfig_NoConfig_ReturnsStandalone()
+        public void GetConfig_NoActiveSolution_ReturnsStandalone()
         {
             // Arrange
-            var pathProvider = CreatePathProvider(null);
-            var configRepository = new Mock<ISolutionBindingRepository>();
-            var testSubject = CreateTestSubject(pathProvider, configRepository.Object);
+            var (pathProvider, solutionInfoProvider) = SetUpConfiguration(null,null);
+            var configRepository = Substitute.For<ISolutionBindingRepository>();
+            var testSubject = CreateTestSubject(pathProvider, solutionInfoProvider, configRepository);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -50,68 +52,100 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             actual.Should().NotBeNull();
             actual.Project.Should().BeNull();
             actual.Mode.Should().Be(SonarLintMode.Standalone);
-            configRepository.Invocations.Should().BeEmpty();
+            configRepository.ReceivedCalls().Should().BeEmpty();
+            pathProvider.ReceivedCalls().Should().BeEmpty();
+            solutionInfoProvider.Received().GetSolutionName();
+        }
+
+        [TestMethod]
+        public void GetConfig_NoConfig_ReturnsStandalone()
+        {
+            // Arrange
+            var (pathProvider, solutionInfoProvider) = SetUpConfiguration("solution123",null);
+            var configRepository = Substitute.For<ISolutionBindingRepository>();
+            var testSubject = CreateTestSubject(pathProvider, solutionInfoProvider, configRepository);
+
+            // Act
+            var actual = testSubject.GetConfiguration();
+
+            // Assert
+            actual.Should().NotBeNull();
+            actual.Project.Should().BeNull();
+            actual.Mode.Should().Be(SonarLintMode.Standalone);
+            configRepository.ReceivedCalls().Should().BeEmpty();
+            solutionInfoProvider.Received().GetSolutionName();
+            pathProvider.Received().GetBindingPath("solution123");
         }
 
         [TestMethod]
         public void GetConfig_Bound_ReturnsExpectedConfig()
         {
             // Arrange
-            var expectedProject = new BoundSonarQubeProject(new Uri("http://localhost"), "any project", null);
+            var expectedProject = new BoundServerProject("solution123", "project123", new ServerConnection.SonarCloud("org"));
 
-            var pathProvider = CreatePathProvider("c:\\users\\foo\\bindings\\xxx.config");
-            var configReader = CreateRepo(expectedProject);
-            var testSubject = CreateTestSubject(pathProvider, configReader.Object);
+            var (pathProvider, solutionInfoProvider) = SetUpConfiguration("solution123", "c:\\users\\foo\\bindings\\xxx.config");
+            var bindingRepository = CreateRepo(expectedProject);
+            var testSubject = CreateTestSubject(pathProvider, solutionInfoProvider, bindingRepository);
 
             // Act
             var actual = testSubject.GetConfiguration();
 
             // Assert
-            CheckExpectedFileRead(configReader, "c:\\users\\foo\\bindings\\xxx.config");
+            CheckExpectedFileRead(bindingRepository, "c:\\users\\foo\\bindings\\xxx.config");
             actual.Should().NotBeNull();
-            actual.Project.Should().BeEquivalentTo(BoundServerProject.FromBoundSonarQubeProject(expectedProject));
+            actual.Project.Should().BeEquivalentTo(expectedProject);
             actual.Mode.Should().Be(SonarLintMode.Connected);
             actual.BindingConfigDirectory.Should().Be("c:\\users\\foo\\bindings");
+            Received.InOrder(() =>
+            {
+                solutionInfoProvider.GetSolutionName();
+                pathProvider.GetBindingPath("solution123");
+                bindingRepository.Read("c:\\users\\foo\\bindings\\xxx.config");
+            });
         }
 
         [TestMethod]
         public void GetConfig_ConfigReaderReturnsNull_ReturnsStandalone()
         {
             // Arrange
-            var pathProvider = CreatePathProvider("c:\\users\\foo\\bindings\\xxx.config");
-            var configReader = CreateRepo(null);
-            var testSubject = CreateTestSubject(pathProvider, configReader.Object);
+            var expectedProject = new BoundServerProject("solution123", "project123", new ServerConnection.SonarCloud("org"));
+
+            var (pathProvider, solutionInfoProvider) = SetUpConfiguration("solution123", "c:\\users\\foo\\bindings\\xxx.config");
+            var bindingRepository = CreateRepo(null);
+            var testSubject = CreateTestSubject(pathProvider, solutionInfoProvider, bindingRepository);
 
             // Act
             var actual = testSubject.GetConfiguration();
 
             // Assert
-            CheckExpectedFileRead(configReader, "c:\\users\\foo\\bindings\\xxx.config");
+            CheckExpectedFileRead(bindingRepository, "c:\\users\\foo\\bindings\\xxx.config");
             actual.Should().BeSameAs(BindingConfiguration.Standalone);
         }
 
         private static UnintrusiveConfigurationProvider CreateTestSubject(IUnintrusiveBindingPathProvider pathProvider,
-            ISolutionBindingRepository configRepo = null)
+            ISolutionInfoProvider solutionInfoProvider = null,
+            ISolutionBindingRepository configRepo = null) =>
+            new(pathProvider,
+                solutionInfoProvider ?? Substitute.For<ISolutionInfoProvider>(),
+                configRepo ?? Substitute.For<ISolutionBindingRepository>());
+
+        private static (IUnintrusiveBindingPathProvider, ISolutionInfoProvider) SetUpConfiguration(string localBindingKey, string pathToReturn)
         {
-            configRepo ??= Mock.Of<ISolutionBindingRepository>();
-            return new UnintrusiveConfigurationProvider(pathProvider, configRepo);
+            var solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
+            solutionInfoProvider.GetSolutionName().Returns(localBindingKey);
+            var pathProvider = Substitute.For<IUnintrusiveBindingPathProvider>();
+            pathProvider.GetBindingPath(localBindingKey).Returns(pathToReturn);
+            return (pathProvider, solutionInfoProvider);
         }
 
-        private static IUnintrusiveBindingPathProvider CreatePathProvider(string pathToReturn)
+        private static ISolutionBindingRepository CreateRepo(BoundServerProject projectToReturn)
         {
-            var pathProvider = new Mock<IUnintrusiveBindingPathProvider>();
-            pathProvider.Setup(x => x.GetCurrentBindingPath()).Returns(() => pathToReturn);
-            return pathProvider.Object;
-        }
-
-        private static Mock<ISolutionBindingRepository> CreateRepo(BoundSonarQubeProject projectToReturn)
-        {
-            var repo = new Mock<ISolutionBindingRepository>();
-            repo.Setup(x => x.Read(It.IsAny<string>())).Returns(projectToReturn);
+            var repo = Substitute.For<ISolutionBindingRepository>();
+            repo.Read(Arg.Any<string>()).Returns(projectToReturn);
             return repo;
         }
 
-        private static void CheckExpectedFileRead(Mock<ISolutionBindingRepository> configReader, string expectedFilePath)
-            => configReader.Verify(x => x.Read(expectedFilePath), Times.Once);
+        private static void CheckExpectedFileRead(ISolutionBindingRepository configReader, string expectedFilePath)
+            => configReader.Received().Read(expectedFilePath);
     }
 }

@@ -610,6 +610,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Removing the connection failed.
+        /// </summary>
+        public static string RemovingConnectionFailedText {
+            get {
+                return ResourceManager.GetString("RemovingConnectionFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removing connection....
+        /// </summary>
+        public static string RemovingConnectionText {
+            get {
+                return ResourceManager.GetString("RemovingConnectionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search for project....
         /// </summary>
         public static string SearchForProjectPlaceholder {

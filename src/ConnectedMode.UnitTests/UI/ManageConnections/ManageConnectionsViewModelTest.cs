@@ -62,7 +62,7 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void InitializeConnections_InitializesConnectionsCorrectly()
+    public void InitializeConnectionViewModels_InitializesConnectionsCorrectly()
     {
         MockTryGetConnections(twoConnections);
 
@@ -72,10 +72,38 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void RemoveConnection_RemovesProvidedConnection()
+    public async Task RemoveConnectionWithProgressAsync_InitializesDataAndReportsProgress()
+    {
+        await testSubject.RemoveConnectionWithProgressAsync(new ConnectionViewModel(new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud))));
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.ProgressStatus == UiResources.RemovingConnectionText &&
+                    x.WarningText == UiResources.RemovingConnectionFailedText));
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void RemoveConnectionViewModel_ReturnsStatusFromSlCore(bool expectedStatus)
     {
         InitializeTwoConnections();
         var connectionToRemove = testSubject.ConnectionViewModels[0];
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info.Id).Returns(expectedStatus);
+
+        var succeeded = testSubject.RemoveConnectionViewModel(connectionToRemove);
+
+        succeeded.Should().Be(expectedStatus);
+        serverConnectionsRepositoryAdapter.Received(1).TryRemoveConnection(connectionToRemove.Connection.Info.Id);
+    }
+
+    [TestMethod]
+    public void RemoveConnection_ConnectionWasRemoved_RemovesProvidedConnectionViewModel()
+    {
+        InitializeTwoConnections();
+        var connectionToRemove = testSubject.ConnectionViewModels[0];
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info.Id).Returns(true);
 
         testSubject.RemoveConnectionViewModel(connectionToRemove);
 
@@ -84,15 +112,64 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public void RemoveConnection_RaisesEvents()
+    public void RemoveConnectionViewModel_ConnectionWasNotRemoved_DoesNotRemoveProvidedConnectionViewModel()
     {
         InitializeTwoConnections();
+        var connectionToRemove = testSubject.ConnectionViewModels[0];
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info.Id).Returns(false);
+
+        testSubject.RemoveConnectionViewModel(connectionToRemove);
+
+        testSubject.ConnectionViewModels.Count.Should().Be(twoConnections.Count);
+        testSubject.ConnectionViewModels.Should().Contain(connectionToRemove);
+    }
+
+    [TestMethod]
+    public void RemoveConnection_ConnectionWasRemoved_RaisesEvents()
+    {
+        InitializeTwoConnections();
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(Arg.Any<string>()).Returns(true);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
         testSubject.RemoveConnectionViewModel(testSubject.ConnectionViewModels[0]);
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoConnectionExists)));
+    }
+
+    [TestMethod]
+    public void RemoveConnectionViewModel_ConnectionWasNotRemoved_DoesNotRaiseEvents()
+    {
+        InitializeTwoConnections();
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(Arg.Any<string>()).Returns(false);
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        testSubject.RemoveConnectionViewModel(testSubject.ConnectionViewModels[0]);
+
+        eventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<PropertyChangedEventArgs>());
+    }
+
+    [TestMethod]
+    public async Task SafeExecuteActionAsync_LoadsConnectionsOnUIThread()
+    {
+        await testSubject.SafeExecuteActionAsync(() => true);
+
+        await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
+    }
+
+    [TestMethod]
+    public async Task SafeExecuteActionAsync_LoadingConnectionsThrows_ReturnsFalse()
+    {
+        var exceptionMsg = "Failed to load connections";
+        var mockedThreadHandling = Substitute.For<IThreadHandling>();
+        connectedModeServices.ThreadHandling.Returns(mockedThreadHandling);
+        mockedThreadHandling.When(x => x.RunOnUIThreadAsync(Arg.Any<Action>())).Do(callInfo => throw new Exception(exceptionMsg));
+
+        var adapterResponse = await testSubject.SafeExecuteActionAsync(() => true);
+
+        adapterResponse.Success.Should().BeFalse();
+        logger.Received(1).WriteLine(exceptionMsg);
     }
 
     [TestMethod]
@@ -148,31 +225,9 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public async Task SafeExecuteActionAsync_LoadsConnectionsOnUIThread()
-    {
-        await testSubject.SafeExecuteActionAsync(() => true);
-
-        await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
-    }
-
-    [TestMethod]
-    public async Task SafeExecuteActionAsync_LoadingConnectionsThrows_ReturnsFalse()
-    {
-        var exceptionMsg = "Failed to load connections";
-        var mockedThreadHandling = Substitute.For<IThreadHandling>();
-        connectedModeServices.ThreadHandling.Returns(mockedThreadHandling);
-        mockedThreadHandling.When(x => x.RunOnUIThreadAsync(Arg.Any<Action>())).Do(callInfo => throw new Exception(exceptionMsg));
-
-        var adapterResponse = await testSubject.SafeExecuteActionAsync(() => true);
-
-        adapterResponse.Success.Should().BeFalse();
-        logger.Received(1).WriteLine(exceptionMsg);
-    }
-
-    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void InitializeConnections_ReturnsResponseFromAdapter(bool expectedStatus)
+    public void InitializeConnectionViewModels_ReturnsResponseFromAdapter(bool expectedStatus)
     {
         serverConnectionsRepositoryAdapter.TryGetAllConnections(out _).Returns(expectedStatus);
 

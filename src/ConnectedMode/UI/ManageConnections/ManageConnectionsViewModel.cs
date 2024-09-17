@@ -40,6 +40,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         }
 
+        public async Task RemoveConnectionWithProgressAsync(ConnectionViewModel connectionViewModel)
+        {
+            var validationParams = new TaskToPerformParams<AdapterResponse>(
+                async () => await SafeExecuteActionAsync(() => RemoveConnectionViewModel(connectionViewModel)),
+                UiResources.RemovingConnectionText,
+                UiResources.RemovingConnectionFailedText);
+            await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
+        }
+
         internal async Task CreateConnectionsWithProgressAsync(Connection connection, ICredentialsModel credentialsModel)
         {
             var validationParams = new TaskToPerformParams<AdapterResponse>(
@@ -73,10 +82,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return succeeded;
         }
 
-        internal void RemoveConnectionViewModel(ConnectionViewModel connectionViewModel)
+        internal bool RemoveConnectionViewModel(ConnectionViewModel connectionViewModel)
         {
-            ConnectionViewModels.Remove(connectionViewModel);
-            RaisePropertyChanged(nameof(NoConnectionExists));
+            var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryRemoveConnection(connectionViewModel.Connection.Info.Id);
+            if (succeeded)
+            {
+                ConnectionViewModels.Remove(connectionViewModel);
+                RaisePropertyChanged(nameof(NoConnectionExists));
+            }
+            return succeeded;
         }
 
         internal bool CreateNewConnection(Connection connection, ICredentialsModel credentialsModel)

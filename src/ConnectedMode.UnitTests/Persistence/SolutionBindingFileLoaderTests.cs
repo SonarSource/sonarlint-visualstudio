@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
@@ -34,7 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         private Mock<ILogger> logger;
         private Mock<IFileSystem> fileSystem;
         private SolutionBindingFileLoader testSubject;
-        private BoundSonarQubeProject boundProject;
+        private BindingDto bindingDto;
         private string serializedProject;
 
         private const string MockFilePath = "c:\\test.txt";
@@ -49,12 +47,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             testSubject = new SolutionBindingFileLoader(logger.Object, fileSystem.Object);
 
             fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(true);
-
-            boundProject = new BoundSonarQubeProject(
-                new Uri("http://xxx.www.zzz/yyy:9000"),
-                "MyProject Key",
-                "projectName")
+            
+            bindingDto = new BindingDto
             {
+                ServerUri = new Uri("http://xxx.www.zzz/yyy:9000"),
+                Organization = null,
+                ProjectKey = "MyProject Key",
+                ProjectName = "projectName",
+                ServerConnectionId = null,
                 Profiles = new Dictionary<Language, ApplicableQualityProfile>
                 {
                     {
@@ -69,7 +69,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 
             serializedProject = @"{
   ""ServerUri"": ""http://xxx.www.zzz/yyy:9000"",
-  ""Organization"": null,
   ""ProjectKey"": ""MyProject Key"",
   ""ProjectName"": ""projectName"",
   ""Profiles"": {
@@ -102,7 +101,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(false);
 
-            testSubject.Save(MockFilePath, boundProject);
+            testSubject.Save(MockFilePath, bindingDto);
 
             fileSystem.Verify(x => x.Directory.CreateDirectory(MockDirectory), Times.Once);
         }
@@ -112,7 +111,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(true);
 
-            testSubject.Save(MockFilePath, boundProject);
+            testSubject.Save(MockFilePath, bindingDto);
 
             fileSystem.Verify(x => x.Directory.CreateDirectory(It.IsAny<string>()), Times.Never);
         }
@@ -122,7 +121,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, serializedProject));
 
-            var actual = testSubject.Save(MockFilePath, boundProject);
+            var actual = testSubject.Save(MockFilePath, bindingDto);
             actual.Should().BeTrue();
         }
 
@@ -131,7 +130,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, serializedProject));
 
-            testSubject.Save(MockFilePath, boundProject);
+            testSubject.Save(MockFilePath, bindingDto);
 
             fileSystem.Verify(x => x.File.WriteAllText(MockFilePath, serializedProject), Times.Once);
         }
@@ -141,7 +140,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, It.IsAny<string>())).Throws<PathTooLongException>();
 
-            var actual = testSubject.Save(MockFilePath, boundProject);
+            var actual = testSubject.Save(MockFilePath, bindingDto);
             actual.Should().BeFalse();
         }
 
@@ -150,7 +149,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, It.IsAny<string>())).Throws<StackOverflowException>();
 
-            Action act = () => testSubject.Save(MockFilePath, boundProject);
+            Action act = () => testSubject.Save(MockFilePath, bindingDto);
 
             act.Should().ThrowExactly<StackOverflowException>();
         }
@@ -211,7 +210,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns(serializedProject);
 
             var actual = testSubject.Load(MockFilePath);
-            actual.Should().BeEquivalentTo(boundProject);
+            actual.Should().BeEquivalentTo(bindingDto);
         }
 
         [TestMethod]
@@ -225,7 +224,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns(serializedProject);
 
             var actual = testSubject.Load(MockFilePath);
-            actual.Should().BeEquivalentTo(boundProject);
+            actual.Should().BeEquivalentTo(bindingDto);
 
             var deserializedTimestamp = actual.Profiles[Language.CSharp].ProfileTimestamp.Value.ToUniversalTime();
             deserializedTimestamp.Should().Be(new DateTime(2020, 2, 25, 8, 57, 54));

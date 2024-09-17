@@ -101,20 +101,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             await ViewModel.LoadConnectionsWithProgressAsync();
         }
 
-        private void RemoveConnectionButton_OnClick(object sender, RoutedEventArgs e)
+        private async void RemoveConnectionButton_OnClick(object sender, RoutedEventArgs e)
         {
             if (sender is not System.Windows.Controls.Button { DataContext: ConnectionViewModel connectionViewModel })
             {
                 return;
             }
 
-            var deleteConnectionDialog = new DeleteConnectionDialog([
-                new ConnectedModeProject(new ServerProject("my proj key", "my proj name"), new SolutionInfoModel("my sol", SolutionType.Solution)),
-                new ConnectedModeProject(new ServerProject("my folder key", "my folder name"), new SolutionInfoModel("my folder", SolutionType.Folder))
-            ], connectionViewModel.Connection.Info);
+            var deleteConnectionDialog = new DeleteConnectionDialog([], connectionViewModel.Connection.Info);
             if(deleteConnectionDialog.ShowDialog(this) == true)
             {
-                ViewModel.RemoveConnectionViewModel(connectionViewModel);
+                await ViewModel.RemoveConnectionWithProgressAsync(connectionViewModel);
             }
         }
     }
