@@ -34,6 +34,7 @@ public class ProjectSelectionViewModel(
     public ObservableCollection<ServerProject> ProjectResults { get; } = [];
 
     public ConnectionInfo ConnectionInfo { get; } = connectionInfo;
+    public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
 
     public bool NoProjectExists => ProjectResults.Count == 0;
 
