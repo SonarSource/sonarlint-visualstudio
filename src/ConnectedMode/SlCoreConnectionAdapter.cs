@@ -122,8 +122,8 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
                 }
                 var basicAuthCredentials = (BasicAuthCredentials) credentials;
                 var credentialsSlCoreFormat = basicAuthCredentials.Password?.Length > 0
-                    ? Either<TokenDto, UsernamePasswordDto>.CreateRight(new UsernamePasswordDto(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString()))
-                    : Either<TokenDto, UsernamePasswordDto>.CreateLeft(new TokenDto(basicAuthCredentials.UserName));
+                    ? GetEitherForUsernamePassword(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString())
+                    : GetEitherForToken(basicAuthCredentials.UserName);
                 var transientConnection = GetTransientConnectionDto(connectionInfo, credentialsSlCoreFormat);
                 var response = await connectionConfigurationSlCoreService.GetProjectNamesByKeyAsync(new GetProjectNamesByKeyParams(transientConnection, [serverProjectKey]));
                 return new AdapterResponseWithData<ServerProject>(true, new ServerProject(serverProjectKey, response.projectNamesByKey[serverProjectKey]));
