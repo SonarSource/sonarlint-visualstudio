@@ -18,10 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.IO;
-using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
@@ -33,13 +32,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
     [Export(typeof(IConfigurationPersister))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ConfigurationPersister : IConfigurationPersister
+    internal class UnintrusiveConfigurationPersister : IConfigurationPersister
     {
         private readonly IUnintrusiveBindingPathProvider configFilePathProvider;
         private readonly ISolutionBindingRepository solutionBindingRepository;
 
         [ImportingConstructor]
-        public ConfigurationPersister(
+        public UnintrusiveConfigurationPersister(
             IUnintrusiveBindingPathProvider configFilePathProvider,
             ISolutionBindingRepository solutionBindingRepository)
         {
@@ -55,15 +54,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                 throw new ArgumentNullException(nameof(project));
             }
 
-            var configFilePath = configFilePathProvider.GetCurrentBindingPath();
+            var configFilePath = configFilePathProvider.GetBindingPath(project.LocalBindingKey);
 
-            var success = configFilePath != null &&
-                          solutionBindingRepository.Write(configFilePath, project.ToBoundSonarQubeProject());
+            var success = configFilePath != null && solutionBindingRepository.Write(configFilePath, project);
 
             // The binding directory is the folder containing the binding config file
             var bindingConfigDirectory = Path.GetDirectoryName(configFilePath);
-            return success ?
-                BindingConfiguration.CreateBoundConfiguration(project, SonarLintMode.Connected, bindingConfigDirectory) : null;
+            return success 
+                ? BindingConfiguration.CreateBoundConfiguration(project, SonarLintMode.Connected, bindingConfigDirectory) 
+                : null;
         }
     }
 }

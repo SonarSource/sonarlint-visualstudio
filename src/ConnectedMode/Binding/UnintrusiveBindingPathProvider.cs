@@ -31,7 +31,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     /// </summary>
     internal interface IUnintrusiveBindingPathProvider
     {
-        string GetCurrentBindingPath();
+        string GetBindingPath(string localBindingKey);
+        
+        string GetBindingKeyFromPath(string path);
 
         IEnumerable<string> GetBindingPaths();
     }
@@ -41,32 +43,32 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     {
         private const string configFile = "binding.config";
 
-        private readonly ISolutionInfoProvider solutionInfoProvider;
-
         private readonly string SLVSRootBindingFolder;
         private readonly IFileSystem fileSystem;
 
         [ImportingConstructor]
-        public UnintrusiveBindingPathProvider(ISolutionInfoProvider solutionInfoProvider)
-            : this(solutionInfoProvider, EnvironmentVariableProvider.Instance, new FileSystem())
+        public UnintrusiveBindingPathProvider()
+            : this(EnvironmentVariableProvider.Instance, new FileSystem())
         {
         }
 
-        internal /* for testing */ UnintrusiveBindingPathProvider(ISolutionInfoProvider solutionInfoProvider,
-            IEnvironmentVariableProvider environmentVariables, IFileSystem fileSystem)
+        internal /* for testing */ UnintrusiveBindingPathProvider(IEnvironmentVariableProvider environmentVariables, IFileSystem fileSystem)
         {
             SLVSRootBindingFolder = Path.Combine(environmentVariables.GetSLVSAppDataRootPath(), "Bindings");
-            this.solutionInfoProvider = solutionInfoProvider;
             this.fileSystem = fileSystem;
         }
 
-        public string GetCurrentBindingPath()
+        public string GetBindingPath(string localBindingKey)
         {
             // The path must match the one in the SonarLintTargets.xml file that is dropped in
             // the MSBuild ImportBefore folder i.e.
-            //   $(APPDATA)\SonarLint for Visual Studio\\Bindings\\$(SolutionName)\binding.config
-            var solutionName = solutionInfoProvider.GetSolutionName();
-            return solutionName != null ? Path.Combine(SLVSRootBindingFolder, $"{solutionName}", configFile) : null;
+            //   $(APPDATA)\SonarLint for Visual Studio\\Bindings\\$(localBindingKey)\binding.config
+            return localBindingKey != null ? Path.Combine(SLVSRootBindingFolder, localBindingKey, configFile) : null;
+        }
+
+        public string GetBindingKeyFromPath(string path)
+        {
+            return Path.GetFileName(Path.GetDirectoryName(path));
         }
 
         public IEnumerable<string> GetBindingPaths()

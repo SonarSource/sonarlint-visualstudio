@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using NSubstitute;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.State;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.State;
 
@@ -50,7 +48,7 @@ public class ServerConnectionsProviderTests
         const string connectionId = "connectionId";
         const string servierUriString = "http://localhost/";
         var serverUri = new Uri(servierUriString);
-        var binding = new BoundSonarQubeProject(serverUri, "project", default);
+        var binding = new BoundServerProject("solution", "project", new ServerConnection.SonarQube(serverUri));
         var solutionBindingRepository = SetUpBindingRepository(binding);
         var connectionIdHelper = Substitute.For<IConnectionIdHelper>();
         connectionIdHelper.GetConnectionIdFromServerConnection(Arg.Is<ServerConnection>(s => s.ServerUri == serverUri)).Returns(connectionId);
@@ -68,7 +66,7 @@ public class ServerConnectionsProviderTests
         const string connectionId = "connectionId";
         var serverUri = new Uri("https://sonarcloud.io/");
         const string organizationKey = "org";
-        var binding = new BoundSonarQubeProject(serverUri, "project", default, organization: new SonarQubeOrganization(organizationKey, organizationKey));
+        var binding = new BoundServerProject("solution", "project", new ServerConnection.SonarCloud(organizationKey));
         var solutionBindingRepository = SetUpBindingRepository(binding);
         var connectionIdHelper = Substitute.For<IConnectionIdHelper>();
         connectionIdHelper.GetConnectionIdFromServerConnection(Arg.Is<ServerConnection>(s => s.ServerUri.Equals(serverUri) && s.Id == organizationKey)).Returns(connectionId);
@@ -83,10 +81,9 @@ public class ServerConnectionsProviderTests
     [TestMethod]
     public void GetServerConnections_CorrectlyHandlesMultipleConnections()
     {
-        var bindingSQ1 = new BoundSonarQubeProject(new Uri("http://localhost/"), "project1", default);
-        var bindingSQ2 = new BoundSonarQubeProject(new Uri("https://next.sonarqube.org/"), "project2", default);
-        var bindingSC = new BoundSonarQubeProject(new Uri("https://sonarcloud.io/"), "project3", default,
-            organization: new SonarQubeOrganization("myorg", "myorg"));
+        var bindingSQ1 = new BoundServerProject("solution1", "project1", new ServerConnection.SonarQube(new Uri("http://localhost/")));
+        var bindingSQ2 = new BoundServerProject("solution2", "project2", new ServerConnection.SonarQube(new Uri("https://next.sonarqube.org/sonarqube/")));
+        var bindingSC = new BoundServerProject("solution3", "project3", new ServerConnection.SonarCloud("myorg"));
         var solutionBindingRepository = SetUpBindingRepository(bindingSQ1, bindingSQ2, bindingSC);
         var connectionIdHelper = Substitute.ForPartsOf<ConnectionIdHelper>();
         var testSubject = CreateTestSubject(solutionBindingRepository, connectionIdHelper);
@@ -96,7 +93,7 @@ public class ServerConnectionsProviderTests
         serverConnections.Should().HaveCount(3);
         serverConnections["sc|myorg"].Should().BeOfType<SonarCloudConnectionConfigurationDto>();
         serverConnections["sq|http://localhost/"].Should().BeOfType<SonarQubeConnectionConfigurationDto>();
-        serverConnections["sq|https://next.sonarqube.org/"].Should().BeOfType<SonarQubeConnectionConfigurationDto>();
+        serverConnections["sq|https://next.sonarqube.org/sonarqube/"].Should().BeOfType<SonarQubeConnectionConfigurationDto>();
     }
     
     [TestMethod]
@@ -112,7 +109,7 @@ public class ServerConnectionsProviderTests
     }
 
     private static ISolutionBindingRepository SetUpBindingRepository(
-        params BoundSonarQubeProject[] bindings)
+        params BoundServerProject[] bindings)
     {
         var bindingRepository = Substitute.For<ISolutionBindingRepository>();
         bindingRepository.List().Returns(bindings);

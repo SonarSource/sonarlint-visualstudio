@@ -20,52 +20,51 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
-using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding;
+
+[Export(typeof(IConfigurationProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal class UnintrusiveConfigurationProvider : IConfigurationProvider
 {
-    [Export(typeof(IConfigurationProvider))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class UnintrusiveConfigurationProvider : IConfigurationProvider
+    private readonly IUnintrusiveBindingPathProvider pathProvider;
+    private readonly ISolutionBindingRepository solutionBindingRepository;
+    private readonly ISolutionInfoProvider solutionInfoProvider;
+
+    [ImportingConstructor]
+    public UnintrusiveConfigurationProvider(IUnintrusiveBindingPathProvider pathProvider, ISolutionInfoProvider solutionInfoProvider,
+        ISolutionBindingRepository solutionBindingRepository)
     {
-        private readonly IUnintrusiveBindingPathProvider pathProvider;
-        private readonly ISolutionBindingRepository solutionBindingRepository;
+        this.pathProvider = pathProvider;
+        this.solutionBindingRepository = solutionBindingRepository;
+        this.solutionInfoProvider = solutionInfoProvider;
+    }
 
-        [ImportingConstructor]
-        public UnintrusiveConfigurationProvider(IUnintrusiveBindingPathProvider pathProvider, ISolutionBindingRepository solutionBindingRepository)
+    public BindingConfiguration GetConfiguration() => 
+        TryGetBindingConfiguration() ?? BindingConfiguration.Standalone;
+
+    private BindingConfiguration TryGetBindingConfiguration()
+    {
+        if (solutionInfoProvider.GetSolutionName() is not { } localBindingKey 
+            || pathProvider.GetBindingPath(localBindingKey) is not { } bindingPath)
         {
-            this.pathProvider = pathProvider;
-            this.solutionBindingRepository = solutionBindingRepository;
+            return null;
         }
 
-        public BindingConfiguration GetConfiguration()
-        {
-            var bindingConfiguration = TryGetBindingConfiguration(pathProvider.GetCurrentBindingPath());
+        var boundProject = solutionBindingRepository.Read(bindingPath);
 
-            return bindingConfiguration ?? BindingConfiguration.Standalone;
+        if (boundProject == null)
+        {
+            return null;
         }
 
-        private BindingConfiguration TryGetBindingConfiguration(string bindingPath)
-        {
-            if (bindingPath == null)
-            {
-                return null;
-            }
+        var bindingConfigDirectory = Path.GetDirectoryName(bindingPath);
 
-            var boundProject = solutionBindingRepository.Read(bindingPath);
+        return BindingConfiguration.CreateBoundConfiguration(boundProject,
+            SonarLintMode.Connected,
+            bindingConfigDirectory);
 
-            if (boundProject == null)
-            {
-                return null;
-            }
-
-            var bindingConfigDirectory = Path.GetDirectoryName(bindingPath);
-
-            return BindingConfiguration.CreateBoundConfiguration(BoundServerProject.FromBoundSonarQubeProject(boundProject),
-                SonarLintMode.Connected,
-                bindingConfigDirectory);
-        }
     }
 }

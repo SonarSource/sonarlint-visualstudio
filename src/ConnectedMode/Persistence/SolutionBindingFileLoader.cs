@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
-        public bool Save(string filePath, BoundSonarQubeProject project)
+        public bool Save(string filePath, BindingDto project)
         {
             var serializedProject = Serialize(project);
 
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
             fileSystem.File.WriteAllText(configFile, serializedProject);
         }
 
-        public BoundSonarQubeProject Load(string filePath)
+        public BindingDto Load(string filePath)
         {
             if (string.IsNullOrEmpty(filePath) || !fileSystem.File.Exists(filePath))
             {
@@ -110,9 +110,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
             }
         }
 
-        private BoundSonarQubeProject Deserialize(string projectJson)
+        private BindingDto Deserialize(string projectJson)
         {
-            return JsonConvert.DeserializeObject<BoundSonarQubeProject>(projectJson, new JsonSerializerSettings
+            return JsonConvert.DeserializeObject<BindingDto>(projectJson, new JsonSerializerSettings
             {
                 DateFormatHandling = DateFormatHandling.IsoDateFormat,
                 DateTimeZoneHandling = DateTimeZoneHandling.Local,
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
             });
         }
 
-        private string Serialize(BoundSonarQubeProject project)
+        private string Serialize(BindingDto project)
         {
             return JsonConvert.SerializeObject(project, Formatting.Indented, new JsonSerializerSettings
             {

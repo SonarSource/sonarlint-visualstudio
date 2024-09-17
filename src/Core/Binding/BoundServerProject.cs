@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarQube.Client.Models;
-
 namespace SonarLint.VisualStudio.Core.Binding;
 
 public class BoundServerProject
@@ -46,25 +44,11 @@ public class BoundServerProject
         LocalBindingKey = localBindingKey;
     }
 
-    public static BoundServerProject FromBoundSonarQubeProject(BoundSonarQubeProject boundProject, string localBindingKey = null, ServerConnection connection = null) =>
-        new(localBindingKey ?? "Solution Name Placeholder", // todo https://sonarsource.atlassian.net/browse/SLVS-1424
-            boundProject.ProjectKey,
-            connection ?? ServerConnection.FromBoundSonarQubeProject(boundProject))
+    public static BoundServerProject FromBoundSonarQubeProject(BoundSonarQubeProject boundProject, string localBindingKey, ServerConnection connection) =>
+        new(localBindingKey ?? throw new ArgumentNullException(nameof(localBindingKey)),
+            boundProject?.ProjectKey ?? throw new ArgumentNullException(nameof(boundProject)),
+            connection ?? throw new ArgumentNullException(nameof(connection)))
         {
             Profiles = boundProject.Profiles
         };
-
-    public BoundSonarQubeProject ToBoundSonarQubeProject()
-    {
-        return new BoundSonarQubeProject(ServerConnection.ServerUri,
-            ServerProjectKey,
-            null,
-            ServerConnection.Credentials,
-            ServerConnection is ServerConnection.SonarCloud sc
-                ? new SonarQubeOrganization(sc.OrganizationKey, null)
-                : null)
-        {
-            Profiles = Profiles
-        };
-    }
 }
