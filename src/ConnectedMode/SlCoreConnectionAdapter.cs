@@ -41,6 +41,7 @@ public interface ISlCoreConnectionAdapter
     Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel);
     Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel);
     Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ICredentials credentials, ConnectionInfo connectionInfo, string serverProjectKey);
+    Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(ConnectionInfo connectionInfo, ICredentials credentials);
 }
 
 public class AdapterResponseWithData<T>(bool success, T responseData) : IResponseStatus
@@ -136,6 +137,13 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         });
     }
 
+    public async Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(ConnectionInfo connectionInfo, ICredentials credentials)
+    {
+        var credentialsDto = MapCredentials(credentials);
+        var validateConnectionParams = GetAllProjectsParams(connectionInfo, credentialsDto);
+        return await GetAllProjectsAsync(validateConnectionParams);
+    }
+
     private async Task<AdapterResponse> ValidateConnectionAsync(ValidateConnectionParams validateConnectionParams)
     {
         return await threadHandling.RunOnBackgroundThread(async () =>
@@ -158,6 +166,30 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         });
     }
 
+    private async Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(GetAllProjectsParams getAllProjectsParams)
+    {
+        var failedResponse = new AdapterResponseWithData<List<ServerProject>>(false, []);
+        return await threadHandling.RunOnBackgroundThread(async () =>
+        {
+            if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
+            {
+                return failedResponse;
+            }
+
+            try
+            {
+                var slCoreResponse = await connectionConfigurationSlCoreService.GetAllProjectsAsync(getAllProjectsParams);
+                var serverProjects = slCoreResponse.sonarProjects.Select(proj => new ServerProject(proj.key, proj.name)).ToList();
+                return new AdapterResponseWithData<List<ServerProject>>(true, serverProjects);
+            }
+            catch (Exception ex)
+            {
+                logger.LogVerbose($"{Resources.GetAllProjects_Fails}: {ex.Message}");
+                return failedResponse;
+            }
+        });
+    }
+
     private bool TryGetConnectionConfigurationSlCoreService(out IConnectionConfigurationSLCoreService connectionConfigurationSlCoreService)
     {
         if (serviceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService slCoreService))
@@ -174,6 +206,11 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     private static ValidateConnectionParams GetValidateConnectionParams(ConnectionInfo connectionInfo, Either<TokenDto, UsernamePasswordDto> credentials)
     {
         return new ValidateConnectionParams(GetTransientConnectionDto(connectionInfo, credentials));
+    }
+
+    private static GetAllProjectsParams GetAllProjectsParams(ConnectionInfo connectionInfo, Either<TokenDto, UsernamePasswordDto> credentials)
+    {
+        return new GetAllProjectsParams(GetTransientConnectionDto(connectionInfo, credentials));
     }
 
     private static Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ConnectionInfo connectionInfo, Either<TokenDto, UsernamePasswordDto> credentials)

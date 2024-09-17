@@ -248,6 +248,90 @@ public class SlCoreConnectionAdapterTests
             new OrganizationDisplay("key2", "name2")
         ]);
     }
+
+    [TestMethod]
+    public async Task GetAllProjectsAsync_SwitchesToBackgroundThread()
+    {
+        var threadHandlingMock = Substitute.For<IThreadHandling>();
+        var slCoreConnectionAdapter = new SlCoreConnectionAdapter(slCoreServiceProvider, threadHandlingMock, logger);
+
+        await slCoreConnectionAdapter.GetAllProjectsAsync(sonarQubeConnectionInfo, new BasicAuthCredentials("myToken", null));
+
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<ServerProject>>>>>());
+    }
+
+    [TestMethod]
+    public async Task GetAllProjectsAsync_GettingConnectionConfigurationSLCoreServiceFails_ReturnsUnsuccessfulResponseAndLogs()
+    {
+        slCoreServiceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService _).Returns(false);
+
+        var response = await testSubject.GetAllProjectsAsync(sonarQubeConnectionInfo, new BasicAuthCredentials("myToken", null));
+
+        logger.Received(1).LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
+        response.Success.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public async Task GetAllProjectsAsync_ConnectionToSonarQubeWithToken_CallsGetAllProjectsAsyncWithCorrectParams()
+    {
+        var token = "myToken";
+
+        await testSubject.GetAllProjectsAsync(sonarQubeConnectionInfo, new BasicAuthCredentials(token, null));
+
+        await connectionConfigurationSlCoreService.Received(1)
+            .GetAllProjectsAsync(Arg.Is<GetAllProjectsParams>(x => IsExpectedSonarQubeConnectionParams(x.transientConnection, token)));
+    }
+
+    [TestMethod]
+    public async Task GetAllProjectsAsync_ConnectionToSonarQubeWithCredentials_CallsGetAllProjectsAsyncWithCorrectParams()
+    {
+        var username = "username";
+        var password = "password";
+
+        await testSubject.GetAllProjectsAsync(sonarQubeConnectionInfo, new BasicAuthCredentials(username, password.CreateSecureString()));
+
+        await connectionConfigurationSlCoreService.Received(1)
+            .GetAllProjectsAsync(Arg.Is<GetAllProjectsParams>(x => IsExpectedSonarQubeConnectionParams(x.transientConnection, username, password)));
+    }
+
+    [TestMethod]
+    public async Task GetAllProjectsAsync_ConnectionToSonarCloudWithToken_CallsGetAllProjectsAsyncWithCorrectParams()
+    {
+        var token = "myToken";
+
+        await testSubject.GetAllProjectsAsync(sonarCloudConnectionInfo, new BasicAuthCredentials(token, null));
+
+        await connectionConfigurationSlCoreService.Received(1)
+            .GetAllProjectsAsync(Arg.Is<GetAllProjectsParams>(x => IsExpectedSonarCloudConnectionParams(x.transientConnection, token)));
+    }
+
+    [TestMethod]
+    public async Task GetAllProjectsAsync_ConnectionToSonarCloudWithCredentials_CallsGetAllProjectsAsyncWithCorrectParams()
+    {
+        var username = "username";
+        var password = "password";
+
+        await testSubject.GetAllProjectsAsync(sonarCloudConnectionInfo, new BasicAuthCredentials(username, password.CreateSecureString()));
+
+        await connectionConfigurationSlCoreService.Received(1)
+            .GetAllProjectsAsync(Arg.Is<GetAllProjectsParams>(x => IsExpectedSonarCloudConnectionParams(x.transientConnection, username, password)));
+    }
+
+    [TestMethod]
+    public async Task GetAllProjectsAsync_ReturnsResponseFromSlCore()
+    {
+        List<SonarProjectDto> expectedServerProjects = [CreateSonarProjectDto("projKey1", "projName1"), CreateSonarProjectDto("projKey2", "projName2")];
+        connectionConfigurationSlCoreService.GetAllProjectsAsync(Arg.Any<GetAllProjectsParams>()).Returns(new GetAllProjectsResponse(expectedServerProjects));
+
+        var response = await testSubject.GetAllProjectsAsync(sonarCloudConnectionInfo, new BasicAuthCredentials("myToken", null));
+
+        response.Success.Should().BeTrue();
+        response.ResponseData.Count.Should().Be(expectedServerProjects.Count);
+        response.ResponseData.Should().BeEquivalentTo([
+            new ServerProject("projKey1", "projName1"),
+            new ServerProject("projKey2", "projName2")
+        ]);
+    }
     
     [TestMethod]
     public async Task GetServerProjectByKeyAsync_SwitchesToBackgroundThread()
@@ -314,15 +398,39 @@ public class SlCoreConnectionAdapterTests
         response.ResponseData.Should().BeEquivalentTo(new ServerProject("project-key", "project-name"));
     }
 
+
+    [TestMethod]
+    public async Task GetAllProjectsAsync_SlCoreValidationThrowsException_ReturnsUnsuccessfulResponse()
+    {
+        var exceptionMessage = "validation failed";
+        connectionConfigurationSlCoreService.When(x => x.GetAllProjectsAsync(Arg.Any<GetAllProjectsParams>()))
+            .Do(x => throw new Exception(exceptionMessage));
+
+        var response = await testSubject.GetAllProjectsAsync(sonarCloudConnectionInfo, new BasicAuthCredentials("token", null));
+
+        logger.Received(1).LogVerbose($"{Resources.GetAllProjects_Fails}: {exceptionMessage}");
+        response.Success.Should().BeFalse();
+    }
+
     private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string token)
     {
-        var transientSonarQubeDto = receivedParams.transientConnection.Left;
+        return IsExpectedSonarQubeConnectionParams(receivedParams.transientConnection, token);
+    }
+
+    private bool IsExpectedSonarQubeConnectionParams(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection, string token)
+    {
+        var transientSonarQubeDto = transientConnection.Left;
         return transientSonarQubeDto.serverUrl == sonarQubeConnectionInfo.Id && IsExpectedCredentials(transientSonarQubeDto.credentials, token);
     }
 
     private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string username, string password)
     {
-        var transientSonarQubeDto = receivedParams.transientConnection.Left;
+        return IsExpectedSonarQubeConnectionParams(receivedParams.transientConnection, username, password);
+    }
+
+    private bool IsExpectedSonarQubeConnectionParams(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection, string username, string password)
+    {
+        var transientSonarQubeDto = transientConnection.Left;
         return transientSonarQubeDto.serverUrl == sonarQubeConnectionInfo.Id && IsExpectedCredentials(transientSonarQubeDto.credentials, username, password);
     }
 
@@ -338,13 +446,23 @@ public class SlCoreConnectionAdapterTests
 
     private bool IsExpectedSonarCloudConnectionParams(ValidateConnectionParams receivedParams, string token)
     {
-        var transientSonarCloudDto = receivedParams.transientConnection.Right;
+        return IsExpectedSonarCloudConnectionParams(receivedParams.transientConnection, token);
+    }
+
+    private bool IsExpectedSonarCloudConnectionParams(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection, string token)
+    {
+        var transientSonarCloudDto = transientConnection.Right;
         return transientSonarCloudDto.organization == sonarCloudConnectionInfo.Id && IsExpectedCredentials(transientSonarCloudDto.credentials, token);
     }
 
     private bool IsExpectedSonarCloudConnectionParams(ValidateConnectionParams receivedParams, string username, string password)
     {
-        var transientSonarCloudDto = receivedParams.transientConnection.Right;
+        return IsExpectedSonarCloudConnectionParams(receivedParams.transientConnection, username, password);
+    }
+
+    private bool IsExpectedSonarCloudConnectionParams(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection, string username, string password)
+    {
+        var transientSonarCloudDto = transientConnection.Right;
         return transientSonarCloudDto.organization == sonarCloudConnectionInfo.Id && IsExpectedCredentials(transientSonarCloudDto.credentials, username, password);
     }
 
@@ -357,5 +475,10 @@ public class SlCoreConnectionAdapterTests
             x[0] = connectionConfigurationSlCoreService;
             return true;
         });
+    }
+
+    private static SonarProjectDto CreateSonarProjectDto(string key, string name)
+    {
+        return new SonarProjectDto(key, name);
     }
 }
