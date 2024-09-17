@@ -307,4 +307,10 @@
   <data name="ListUserOrganizations_Fails" xml:space="preserve">
     <value>[ConnectedMode] Listing user organizations failed</value>
   </data>
+  <data name="GetServerProjectByKey_Fails" xml:space="preserve">
+    <value>[ConnectedMode] Failed to get project name by key</value>
+  </data>
+  <data name="GetServerProjectByKey_ProjectNotFound" xml:space="preserve">
+    <value>[ConnectedMode] Server did not return a project name for the specified project key {0}</value>
+  </data>
 </root>

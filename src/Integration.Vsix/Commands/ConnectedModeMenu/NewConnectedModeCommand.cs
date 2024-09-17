@@ -21,6 +21,7 @@
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 {
@@ -28,16 +29,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
     public class NewConnectedModeCommand : VsCommandBase
     {
         private readonly IConnectedModeServices connectedModeServices;
+        private readonly ISolutionInfoProvider solutionInfoProvider;
         internal const int Id = 0x104;
 
-        public NewConnectedModeCommand(IConnectedModeServices connectedModeServices)
+        public NewConnectedModeCommand(IConnectedModeServices connectedModeServices, ISolutionInfoProvider solutionInfoProvider)
         {
             this.connectedModeServices = connectedModeServices;
+            this.solutionInfoProvider = solutionInfoProvider;
         }
 
         protected override void InvokeInternal()
         {
-           new ManageBindingDialog(connectedModeServices, new SolutionInfoModel("Sample Project VS 2022", SolutionType.Solution)).ShowDialog(Application.Current.MainWindow);
+           new ManageBindingDialog(connectedModeServices, solutionInfoProvider).ShowDialog(Application.Current.MainWindow);
         }
     }
 }

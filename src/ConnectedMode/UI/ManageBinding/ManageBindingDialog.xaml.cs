@@ -24,6 +24,7 @@ using System.Windows.Navigation;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
@@ -32,10 +33,10 @@ public partial class ManageBindingDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
 
-    public ManageBindingDialog(IConnectedModeServices connectedModeServices, SolutionInfoModel solutionInfoModel)
+    public ManageBindingDialog(IConnectedModeServices connectedModeServices, ISolutionInfoProvider solutionInfoProvider)
     {
         this.connectedModeServices = connectedModeServices;
-        ViewModel = new ManageBindingViewModel(connectedModeServices, solutionInfoModel, new ProgressReporterViewModel());
+        ViewModel = new ManageBindingViewModel(connectedModeServices, solutionInfoProvider, new ProgressReporterViewModel());
         InitializeComponent();
     }
 

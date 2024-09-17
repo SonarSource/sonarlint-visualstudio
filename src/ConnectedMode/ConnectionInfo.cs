@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode;
 
@@ -28,7 +29,17 @@ public enum ConnectionServerType
     SonarCloud
 }
 
-public record ConnectionInfo(string Id, ConnectionServerType ServerType);
+public record ConnectionInfo(string Id, ConnectionServerType ServerType)
+{
+    public static ConnectionInfo From(ServerConnection serverConnection)
+    {
+        return new ConnectionInfo(
+            serverConnection.Id,
+            serverConnection is ServerConnection.SonarCloud
+                ? ConnectionServerType.SonarCloud
+                : ConnectionServerType.SonarQube);
+    }
+}
 
 public class Connection(ConnectionInfo info, bool enableSmartNotifications = true)
 {

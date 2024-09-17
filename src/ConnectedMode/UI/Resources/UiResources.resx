@@ -357,6 +357,12 @@
   <data name="LoadingConnectionsText" xml:space="preserve">
     <value>Loading connections...</value>
   </data>
+  <data name="FetchingBindingStatusFailedText" xml:space="preserve">
+    <value>Binding could not be established. Please check the SonarLint logs for more details.</value>
+  </data>
+  <data name="FetchingBindingStatusText" xml:space="preserve">
+    <value>Fetching binding status...</value>
+  </data>
   <data name="CreatingConnectionFailedText" xml:space="preserve">
     <value>Creating a connection failed</value>
   </data>
