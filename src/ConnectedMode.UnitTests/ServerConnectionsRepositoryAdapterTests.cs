@@ -137,6 +137,19 @@ public class ServerConnectionsRepositoryAdapterTests
         succeeded.Should().Be(expectedStatus);
     }
 
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void TryDeleteConnection_ReturnsStatusFromSlCore(bool expectedStatus)
+    {
+        var connectionInfoId = "http://localhost:9000";
+        serverConnectionsRepository.TryDelete(connectionInfoId).Returns(expectedStatus);
+
+        var succeeded = testSubject.TryRemoveConnection(connectionInfoId);
+
+        succeeded.Should().Be(expectedStatus);
+    }
+
     private static SonarCloud CreateSonarCloudServerConnection(bool isSmartNotificationsEnabled = true)
     {
         return new SonarCloud("myOrg", new ServerConnectionSettings(isSmartNotificationsEnabled), Substitute.For<ICredentials>());
