@@ -66,7 +66,7 @@ public class ManageConnectionsViewModelTest
     {
         MockTryGetConnections(twoConnections);
 
-        testSubject.InitializeConnections();
+        testSubject.InitializeConnectionViewModels();
 
         HasExpectedConnections(twoConnections);
     }
@@ -122,7 +122,7 @@ public class ManageConnectionsViewModelTest
     {
         MockTryGetConnections([]);
 
-        testSubject.InitializeConnections();
+        testSubject.InitializeConnectionViewModels();
 
         testSubject.NoConnectionExists.Should().BeTrue();
     }
@@ -176,7 +176,7 @@ public class ManageConnectionsViewModelTest
     {
         serverConnectionsRepositoryAdapter.TryGetAllConnections(out _).Returns(expectedStatus);
 
-        var adapterResponse = testSubject.InitializeConnections();
+        var adapterResponse = testSubject.InitializeConnectionViewModels();
 
         adapterResponse.Should().Be(expectedStatus);
     }
@@ -242,7 +242,7 @@ public class ManageConnectionsViewModelTest
             callInfo[0] = twoConnections;
             return true;
         });
-        testSubject.InitializeConnections();
+        testSubject.InitializeConnectionViewModels();
     }
 
     private void MockServices()
