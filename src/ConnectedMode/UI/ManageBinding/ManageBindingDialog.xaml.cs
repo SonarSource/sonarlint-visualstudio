@@ -55,7 +55,7 @@ public partial class ManageBindingDialog : Window
 
     private void SelectProject_OnClick(object sender, RoutedEventArgs e)
     {
-        var projectSelection = new ProjectSelectionDialog(ViewModel.SelectedConnectionInfo);
+        var projectSelection = new ProjectSelectionDialog(ViewModel.SelectedConnectionInfo, connectedModeServices);
         if(projectSelection.ShowDialog(this) == true)
         {
             ViewModel.SelectedProject = projectSelection.ViewModel.SelectedProject;

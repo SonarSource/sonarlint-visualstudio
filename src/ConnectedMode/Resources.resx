@@ -313,4 +313,7 @@
   <data name="GetServerProjectByKey_ProjectNotFound" xml:space="preserve">
     <value>[ConnectedMode] Server did not return a project name for the specified project key {0}</value>
   </data>
+  <data name="GetAllProjects_Fails" xml:space="preserve">
+    <value>[ConnectedMode] Getting all projects failed</value>
+  </data>
 </root>
