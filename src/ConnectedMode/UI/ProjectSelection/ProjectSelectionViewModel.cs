@@ -74,7 +74,7 @@ public class ProjectSelectionViewModel(
         {
             AfterSuccess = InitProjects
         };
-        await progressReporterViewModel.ExecuteTaskWithProgressAsync(initializeProjectsParams);
+        await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(initializeProjectsParams);
     }
 
     internal async Task<AdapterResponseWithData<List<ServerProject>>> AdapterGetAllProjectsAsync()
