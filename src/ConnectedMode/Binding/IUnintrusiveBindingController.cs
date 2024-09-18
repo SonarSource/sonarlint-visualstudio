@@ -18,24 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
+    public interface IBindingController
+    {
+        Task BindAsync(BoundServerProject project, CancellationToken token);
+    }
+    
     internal interface IUnintrusiveBindingController
     {
         Task BindWithMigrationAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
         Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
     }
 
+    [Export(typeof(IBindingController))]
     [Export(typeof(IUnintrusiveBindingController))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    internal class UnintrusiveBindingController : IUnintrusiveBindingController
+    internal class UnintrusiveBindingController : IUnintrusiveBindingController, IBindingController
     {
         private readonly IBindingProcessFactory bindingProcessFactory;
         private readonly IServerConnectionsRepository serverConnectionsRepository;
@@ -47,6 +51,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             this.bindingProcessFactory = bindingProcessFactory;
             this.serverConnectionsRepository = serverConnectionsRepository;
             this.solutionInfoProvider = solutionInfoProvider;
+        }
+
+        public async Task BindAsync(BoundServerProject project, CancellationToken token)
+        {
+            await BindAsync(project, null, token);
         }
 
         public async Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
