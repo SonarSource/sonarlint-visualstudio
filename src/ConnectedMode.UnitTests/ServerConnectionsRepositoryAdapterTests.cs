@@ -45,6 +45,21 @@ public class ServerConnectionsRepositoryAdapterTests
         => MefTestHelpers.CheckTypeCanBeImported<ServerConnectionsRepositoryAdapter, IServerConnectionsRepositoryAdapter>(MefTestHelpers.CreateExport<IServerConnectionsRepository>());
 
     [TestMethod]
+    public void TryGetServerConnectionById_CallServerConnectionsRepository()
+    {
+        var expectedServerConnection = new SonarCloud("connection-id");
+        serverConnectionsRepository.TryGet("connection-id", out _).Returns(callInfo =>
+        {
+            callInfo[1] = expectedServerConnection;
+            return true;
+        });
+
+        testSubject.TryGetServerConnectionById("connection-id", out var serverConnection);
+        
+        serverConnection.Should().Be(expectedServerConnection);
+    }
+    
+    [TestMethod]
     public void TryGetAllConnections_CallServerConnectionsRepository()
     {
         MockServerConnections([]);

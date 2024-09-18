@@ -51,7 +51,7 @@ public partial class ManageBindingDialog : Window
 
     private void Binding_OnClick(object sender, RoutedEventArgs e)
     { 
-        ViewModel.BindAsync().Forget();
+        ViewModel.BindWithProgressAsync().Forget();
     }
 
     private void SelectProject_OnClick(object sender, RoutedEventArgs e)
