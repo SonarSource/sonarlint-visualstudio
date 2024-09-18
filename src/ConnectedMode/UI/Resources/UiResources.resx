@@ -376,7 +376,7 @@
     <value>Removing connection...</value>
   </data>
   <data name="LoadingProjectsFailedText" xml:space="preserve">
-    <value>Loading the projects from the server failed. </value>
+    <value>Loading the projects from the server failed.</value>
   </data>
   <data name="LoadingProjectsProgressText" xml:space="preserve">
     <value>Loading projects...</value>

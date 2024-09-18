@@ -89,10 +89,13 @@ public class ProjectSelectionViewModel(
         return await connectedModeServices.SlCoreConnectionAdapter.GetAllProjectsAsync(ConnectionInfo, serverConnection.Credentials);
     }
 
-    internal void InitProjects(AdapterResponseWithData<List<ServerProject>> responseData)
+    internal void InitProjects(AdapterResponseWithData<List<ServerProject>> response)
     {
         ProjectResults.Clear();
-        responseData.ResponseData.ForEach(x => ProjectResults.Add(x));
+        foreach (var serverProject in response.ResponseData.OrderBy(p => p.Name))
+        {
+            ProjectResults.Add(serverProject);
+        }
         RaisePropertyChanged(nameof(NoProjectExists));
     }
 

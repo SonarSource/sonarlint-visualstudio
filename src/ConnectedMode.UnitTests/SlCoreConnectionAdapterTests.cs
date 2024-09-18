@@ -255,7 +255,7 @@ public class SlCoreConnectionAdapterTests
         var threadHandlingMock = Substitute.For<IThreadHandling>();
         var slCoreConnectionAdapter = new SlCoreConnectionAdapter(slCoreServiceProvider, threadHandlingMock, logger);
 
-        await slCoreConnectionAdapter.GetAllProjectsAsync(sonarQubeConnectionInfo, new BasicAuthCredentials("myToken", null));
+        await slCoreConnectionAdapter.GetAllProjectsAsync(sonarQubeConnectionInfo, validToken);
 
         await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<ServerProject>>>>>());
     }
@@ -265,7 +265,7 @@ public class SlCoreConnectionAdapterTests
     {
         slCoreServiceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService _).Returns(false);
 
-        var response = await testSubject.GetAllProjectsAsync(sonarQubeConnectionInfo, new BasicAuthCredentials("myToken", null));
+        var response = await testSubject.GetAllProjectsAsync(sonarQubeConnectionInfo, validToken);
 
         logger.Received(1).LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
         response.Success.Should().BeFalse();
@@ -274,12 +274,10 @@ public class SlCoreConnectionAdapterTests
     [TestMethod]
     public async Task GetAllProjectsAsync_ConnectionToSonarQubeWithToken_CallsGetAllProjectsAsyncWithCorrectParams()
     {
-        var token = "myToken";
-
-        await testSubject.GetAllProjectsAsync(sonarQubeConnectionInfo, new BasicAuthCredentials(token, null));
+        await testSubject.GetAllProjectsAsync(sonarQubeConnectionInfo, validToken);
 
         await connectionConfigurationSlCoreService.Received(1)
-            .GetAllProjectsAsync(Arg.Is<GetAllProjectsParams>(x => IsExpectedSonarQubeConnectionParams(x.transientConnection, token)));
+            .GetAllProjectsAsync(Arg.Is<GetAllProjectsParams>(x => IsExpectedSonarQubeConnectionParams(x.transientConnection, validToken.UserName)));
     }
 
     [TestMethod]
@@ -297,12 +295,10 @@ public class SlCoreConnectionAdapterTests
     [TestMethod]
     public async Task GetAllProjectsAsync_ConnectionToSonarCloudWithToken_CallsGetAllProjectsAsyncWithCorrectParams()
     {
-        var token = "myToken";
-
-        await testSubject.GetAllProjectsAsync(sonarCloudConnectionInfo, new BasicAuthCredentials(token, null));
+        await testSubject.GetAllProjectsAsync(sonarCloudConnectionInfo, validToken);
 
         await connectionConfigurationSlCoreService.Received(1)
-            .GetAllProjectsAsync(Arg.Is<GetAllProjectsParams>(x => IsExpectedSonarCloudConnectionParams(x.transientConnection, token)));
+            .GetAllProjectsAsync(Arg.Is<GetAllProjectsParams>(x => IsExpectedSonarCloudConnectionParams(x.transientConnection, validToken.UserName)));
     }
 
     [TestMethod]

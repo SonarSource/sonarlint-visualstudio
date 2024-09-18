@@ -89,6 +89,23 @@ public class ProjectSelectionViewModelTests
     }
 
     [TestMethod]
+    public void InitProjects_SortsTheProjectResultsByName()
+    {
+        var unsortedListOfProjects = new List<ServerProject>
+        {
+            new("a-project", "Y Project"),
+            new("b-project", "X Project"),
+            new("c-project", "Z Project")
+        };
+
+        MockInitializedProjects(unsortedListOfProjects);
+
+        testSubject.ProjectResults[0].Name.Should().Be("X Project");
+        testSubject.ProjectResults[1].Name.Should().Be("Y Project");
+        testSubject.ProjectResults[2].Name.Should().Be("Z Project");
+    }
+
+    [TestMethod]
     public void InitProjects_RaisesEvents()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
