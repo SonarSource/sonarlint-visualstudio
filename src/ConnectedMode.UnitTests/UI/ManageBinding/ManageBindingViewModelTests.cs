@@ -20,6 +20,7 @@
 
 using System.ComponentModel;
 using System.Security;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
@@ -41,6 +42,7 @@ public class ManageBindingViewModelTests
     private ManageBindingViewModel testSubject;
     private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
     private IConnectedModeServices connectedModeServices;
+    private IBindingController bindingController;
     private ISolutionInfoProvider solutionInfoProvider;
     private IProgressReporterViewModel progressReporterViewModel;
     private IThreadHandling threadHandling;
@@ -50,9 +52,10 @@ public class ManageBindingViewModelTests
     public void TestInitialize()
     {
         connectedModeServices = Substitute.For<IConnectedModeServices>();
+        bindingController = Substitute.For<IBindingController>();
         solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
-        testSubject = new ManageBindingViewModel(connectedModeServices, solutionInfoProvider, progressReporterViewModel);
+        testSubject = new ManageBindingViewModel(connectedModeServices, bindingController, solutionInfoProvider, progressReporterViewModel);
 
         MockServices();
     }

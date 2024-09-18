@@ -19,11 +19,9 @@
  */
 
 using System.ComponentModel.Design;
-using SonarLint.VisualStudio.ConnectedMode;
-using SonarLint.VisualStudio.ConnectedMode.Shared;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
@@ -61,7 +59,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Mock.Of<IBrowserService>(),
                 Mock.Of<PackageCommandManager.ShowOptionsPage>(),
                 Mock.Of<IConnectedModeServices>(),
-                Mock.Of<ISolutionInfoProvider>());
+                Mock.Of<ISolutionInfoProvider>(),
+                Mock.Of<IBindingController>());
 
             // Assert
             menuService.Commands.Should().HaveCountGreaterOrEqualTo(allCommands.Count, "Unexpected number of commands");

@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -48,7 +49,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IBrowserService browserService,
             ShowOptionsPage showOptionsPage,
             IConnectedModeServices connectedModeServices,
-            ISolutionInfoProvider solutionInfoProvider)
+            ISolutionInfoProvider solutionInfoProvider,
+            IBindingController bindingController)
         {
             RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(projectPropertyManager));
             RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, null));
@@ -69,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Connected mode buttons
             RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(teamExplorerController));
-            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, NewConnectedModeCommand.Id, new NewConnectedModeCommand(connectedModeServices, solutionInfoProvider));
+            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, NewConnectedModeCommand.Id, new NewConnectedModeCommand(connectedModeServices, bindingController, solutionInfoProvider));
             RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, SaveSharedConnectionCommand.Id, new SaveSharedConnectionCommand(connectedModeServices.ConfigurationProvider, connectedModeServices.SharedBindingConfigProvider));
         }
 

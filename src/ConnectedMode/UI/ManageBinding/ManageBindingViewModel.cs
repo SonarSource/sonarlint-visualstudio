@@ -19,6 +19,9 @@
  */
 
 using System.Collections.ObjectModel;
+using System.Security;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
@@ -35,6 +38,7 @@ public class ManageBindingViewModel : ViewModelBase
     private ServerProject selectedProject;
     private bool isSharedBindingConfigurationDetected;
     private readonly IConnectedModeServices connectedModeServices;
+    private readonly IBindingController bindingController;
     private readonly ISolutionInfoProvider solutionInfoProvider;
 
     public SolutionInfoModel SolutionInfo
@@ -117,11 +121,13 @@ public class ManageBindingViewModel : ViewModelBase
     public string ConnectionSelectionCaptionText => Connections.Any() ? UiResources.SelectConnectionToBindDescription : UiResources.NoConnectionExistsLabel;
 
      public ManageBindingViewModel(
-         IConnectedModeServices connectedModeServices, 
+         IConnectedModeServices connectedModeServices,
+         IBindingController bindingController,
          ISolutionInfoProvider solutionInfoProvider,
          IProgressReporterViewModel progressReporterViewModel)
     {
         this.connectedModeServices = connectedModeServices;
+        this.bindingController = bindingController;
         this.solutionInfoProvider = solutionInfoProvider;
         ProgressReporter = progressReporterViewModel;
     }
