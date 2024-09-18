@@ -20,6 +20,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 
@@ -28,27 +29,21 @@ public partial class ProjectSelectionDialog
 {
     public ProjectSelectionViewModel ViewModel { get; }
 
-    public ProjectSelectionDialog(ConnectionInfo connectionInfo)
+    public ProjectSelectionDialog(ConnectionInfo connectionInfo, IConnectedModeServices connectedModeServices)
     {
-        ViewModel = new ProjectSelectionViewModel(connectionInfo);
+        ViewModel = new ProjectSelectionViewModel(connectionInfo, connectedModeServices, new ProgressReporterViewModel());
         InitializeComponent();
-    }
-
-    protected override void OnInitialized(EventArgs e)
-    {
-        base.OnInitialized(e);
-        
-        ViewModel.InitProjects([
-            new ServerProject(Key: "my_project", Name: "My Project"),
-            new ServerProject(Key: "your_project", Name: "Your Project"),
-            new ServerProject(Key: "our_project", Name: "Our Project"),
-        ]);
     }
 
     private void BindButton_OnClick(object sender, RoutedEventArgs e)
     {
         DialogResult = true;
         Close();
+    }
+
+    private async void ProjectSelectionDialog_OnLoaded(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.InitializeProjectWithProgressAsync();
     }
 }
 

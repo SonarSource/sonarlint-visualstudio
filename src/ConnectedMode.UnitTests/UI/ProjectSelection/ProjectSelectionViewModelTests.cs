@@ -19,7 +19,11 @@
  */
 
 using System.ComponentModel;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
+using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ProjectSelection;
 
@@ -35,11 +39,25 @@ public class ProjectSelectionViewModelTests
     private static readonly ConnectionInfo AConnectionInfo = new("http://localhost:9000", ConnectionServerType.SonarQube);
     
     private ProjectSelectionViewModel testSubject;
+    private ISlCoreConnectionAdapter slCoreConnectionAdapter;
+    private IProgressReporterViewModel progressReporterViewModel;
+    private IConnectedModeServices connectedModeServices;
+    private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
+    private ILogger logger;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new ProjectSelectionViewModel(AConnectionInfo);
+        slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
+        progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
+        serverConnectionsRepositoryAdapter = Substitute.For<IServerConnectionsRepositoryAdapter>();
+        connectedModeServices = Substitute.For<IConnectedModeServices>();
+        logger = Substitute.For<ILogger>();
+        connectedModeServices.SlCoreConnectionAdapter.Returns(slCoreConnectionAdapter);
+        connectedModeServices.ServerConnectionsRepositoryAdapter.Returns(serverConnectionsRepositoryAdapter);
+        connectedModeServices.Logger.Returns(logger);
+
+        testSubject = new ProjectSelectionViewModel(AConnectionInfo, connectedModeServices, progressReporterViewModel);
     }
 
     [TestMethod]
@@ -59,15 +77,32 @@ public class ProjectSelectionViewModelTests
     [TestMethod]
     public void InitProjects_ResetsTheProjectResults()
     {
-        testSubject.InitProjects(AnInitialListOfProjects);
+        MockInitializedProjects(AnInitialListOfProjects);
         testSubject.ProjectResults.Should().BeEquivalentTo(AnInitialListOfProjects);
         
         var updatedListOfProjects = new List<ServerProject>
         {
             new("new-project", "New Project")
         };
-        testSubject.InitProjects(updatedListOfProjects);
+        MockInitializedProjects(updatedListOfProjects);
         testSubject.ProjectResults.Should().BeEquivalentTo(updatedListOfProjects);
+    }
+
+    [TestMethod]
+    public void InitProjects_SortsTheProjectResultsByName()
+    {
+        var unsortedListOfProjects = new List<ServerProject>
+        {
+            new("a-project", "Y Project"),
+            new("b-project", "X Project"),
+            new("c-project", "Z Project")
+        };
+
+        MockInitializedProjects(unsortedListOfProjects);
+
+        testSubject.ProjectResults[0].Name.Should().Be("X Project");
+        testSubject.ProjectResults[1].Name.Should().Be("Y Project");
+        testSubject.ProjectResults[2].Name.Should().Be("Z Project");
     }
 
     [TestMethod]
@@ -76,7 +111,7 @@ public class ProjectSelectionViewModelTests
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
-        testSubject.InitProjects(AnInitialListOfProjects);
+        MockInitializedProjects(AnInitialListOfProjects);
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoProjectExists)));
     }
@@ -84,7 +119,7 @@ public class ProjectSelectionViewModelTests
     [TestMethod]
     public void ProjectSearchTerm_WithEmptyTerm_ShouldNotUpdateSearchResult()
     {
-        testSubject.InitProjects(AnInitialListOfProjects);
+        MockInitializedProjects(AnInitialListOfProjects);
 
         testSubject.ProjectSearchTerm = "";
 
@@ -94,7 +129,7 @@ public class ProjectSelectionViewModelTests
     [TestMethod]
     public void ProjectSearchTerm_WithTerm_ShouldUpdateSearchResult()
     {
-        testSubject.InitProjects(AnInitialListOfProjects);
+        MockInitializedProjects(AnInitialListOfProjects);
 
         testSubject.ProjectSearchTerm = "My Project";
 
@@ -115,7 +150,7 @@ public class ProjectSelectionViewModelTests
     [TestMethod]
     public void NoProjectExists_NoProjects_ReturnsTrue()
     {
-        testSubject.InitProjects([]);
+        MockInitializedProjects([]);
 
         testSubject.NoProjectExists.Should().BeTrue();
     }
@@ -123,8 +158,77 @@ public class ProjectSelectionViewModelTests
     [TestMethod]
     public void NoProjectExists_HasProjects_ReturnsFalse()
     {
-        testSubject.InitProjects(AnInitialListOfProjects);
+        MockInitializedProjects(AnInitialListOfProjects); 
 
         testSubject.NoProjectExists.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public async Task InitializeProjectWithProgressAsync_ExecutesInitializationWithProgress()
+    {
+        await testSubject.InitializeProjectWithProgressAsync();
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponseWithData<List<ServerProject>>>>(x =>
+                    x.TaskToPerform == testSubject.AdapterGetAllProjectsAsync &&
+                    x.ProgressStatus == UiResources.LoadingProjectsProgressText &&
+                    x.WarningText == UiResources.LoadingProjectsFailedText &&
+                    x.AfterSuccess == testSubject.InitProjects));
+    }
+
+    [TestMethod]
+    public async Task AdapterGetAllProjectsAsync_GettingServerConnectionSucceeded_CallsAdapterWithCredentialsForServerConnection()
+    {
+        var expectedCredentials = Substitute.For<ICredentials>();
+        MockTrySonarQubeConnection(AConnectionInfo, success:true, expectedCredentials);
+
+        await testSubject.AdapterGetAllProjectsAsync();
+
+        serverConnectionsRepositoryAdapter.Received(1).TryGet(AConnectionInfo.Id, out Arg.Any<ServerConnection>());
+        await slCoreConnectionAdapter.Received(1).GetAllProjectsAsync(AConnectionInfo, expectedCredentials);
+    }
+
+    [TestMethod]
+    public async Task AdapterGetAllProjectsAsync_GettingServerConnectionFailed_ReturnsFailure()
+    {
+        MockTrySonarQubeConnection(AConnectionInfo, success:false);
+
+        var response = await testSubject.AdapterGetAllProjectsAsync();
+
+        response.Success.Should().BeFalse();
+        response.ResponseData.Should().BeNull();
+        logger.Received(1).WriteLine(Arg.Any<string>());
+        await slCoreConnectionAdapter.DidNotReceive().GetAllProjectsAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentials>());
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task AdapterGetAllProjectsAsync_ReturnsResponseFromAdapter(bool expectedResponse)
+    {
+        MockTrySonarQubeConnection(AConnectionInfo, success: true);
+        var expectedServerProjects = new List<ServerProject>{new("proj1", "name1"), new("proj2", "name2") };
+        slCoreConnectionAdapter.GetAllProjectsAsync(AConnectionInfo, Arg.Any<ICredentials>())
+            .Returns(new AdapterResponseWithData<List<ServerProject>>(expectedResponse, expectedServerProjects));
+
+        var response = await testSubject.AdapterGetAllProjectsAsync();
+
+        response.Success.Should().Be(expectedResponse);
+        response.ResponseData.Should().BeEquivalentTo(expectedServerProjects);
+    }
+
+    private void MockInitializedProjects(List<ServerProject> serverProjects)
+    {
+        testSubject.InitProjects(new AdapterResponseWithData<List<ServerProject>>(true, serverProjects));
+    }
+
+    private void MockTrySonarQubeConnection(ConnectionInfo connectionInfo, bool success = true, ICredentials expectedCredentials = null)
+    {
+        serverConnectionsRepositoryAdapter.TryGet(connectionInfo.Id, out _).Returns(callInfo =>
+        {
+            callInfo[1] = new ServerConnection.SonarQube(new Uri(connectionInfo.Id), credentials: expectedCredentials);
+            return success;
+        });
     }
 }

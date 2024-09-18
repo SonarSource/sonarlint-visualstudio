@@ -375,4 +375,13 @@
   <data name="RemovingConnectionText" xml:space="preserve">
     <value>Removing connection...</value>
   </data>
+  <data name="LoadingProjectsFailedText" xml:space="preserve">
+    <value>Loading the projects from the server failed.</value>
+  </data>
+  <data name="LoadingProjectsProgressText" xml:space="preserve">
+    <value>Loading projects...</value>
+  </data>
+  <data name="LoadingProjectsFailedTextForNotFoundServerConnection" xml:space="preserve">
+    <value>Server connection was not found. Projects could not be loaded.</value>
+  </data>
 </root>
