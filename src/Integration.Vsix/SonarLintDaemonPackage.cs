@@ -23,6 +23,7 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.CFamily.PreCompiledHeaders;
+using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
@@ -78,16 +79,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #region Package Members
 
-        protected override Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            JoinableTaskFactory.RunAsync(InitAsync);
-            return Task.CompletedTask;
+            await JoinableTaskFactory.RunAsync(InitAsync);
         }
 
         private async Task InitAsync()
         {
             try
             {
+                await MigrateBindingsToServerConnectionsIfNeededAsync();
+
                 logger = await this.GetMefServiceAsync<ILogger>();
                 logger.WriteLine(Strings.Daemon_Initializing);
 
@@ -110,6 +112,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger?.WriteLine(Strings.ERROR_InitializingDaemon, ex);
             }
             logger?.WriteLine(Strings.Daemon_InitializationComplete);
+        }
+
+        /// <summary>
+        /// This migration should be performed before initializing other services, independent if a solution or a folder is opened.
+        /// </summary>
+        private async Task MigrateBindingsToServerConnectionsIfNeededAsync()
+        {
+            var bindingToConnectionMigration = await this.GetMefServiceAsync<IBindingToConnectionMigration>();
+            await bindingToConnectionMigration.MigrateBindingToServerConnectionIfNeededAsync();
         }
 
         protected override void Dispose(bool disposing)
