@@ -18,10 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Security;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
+using SonarQube.Client;
+using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
@@ -42,7 +47,31 @@ public class UnintrusiveBindingControllerTests
         MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingController, IUnintrusiveBindingController>(
             MefTestHelpers.CreateExport<IBindingProcessFactory>(),
             MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
-            MefTestHelpers.CreateExport<ISolutionInfoProvider>());
+            MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
+            MefTestHelpers.CreateExport<ISonarQubeService>());
+    }
+
+    [TestMethod]
+    public async Task BindAsync_EstablishesConnection()
+    {
+        var cancellationToken = CancellationToken.None;
+        var sonarQubeService = Substitute.For<ISonarQubeService>();
+        var credentials = new BasicAuthCredentials("TOKEN", new SecureString());
+        var projectToBind = new BoundServerProject(
+            "local-key", 
+            "server-key",
+            new ServerConnection.SonarCloud("organization", credentials: credentials));
+        var testSubject = CreateTestSubject(sonarQubeService: sonarQubeService);
+        
+        await testSubject.BindAsync(projectToBind, cancellationToken);
+
+        await sonarQubeService
+            .Received()
+            .ConnectAsync(Arg.Is<ConnectionInformation>(
+                x => x.ServerUri.Equals("https://sonarcloud.io/")
+                     && x.UserName.Equals("TOKEN") 
+                     && string.IsNullOrEmpty(x.Password.ToUnsecureString())),
+                cancellationToken);
     }
 
     [TestMethod]
@@ -136,11 +165,13 @@ public class UnintrusiveBindingControllerTests
 
     private UnintrusiveBindingController CreateTestSubject(IBindingProcessFactory bindingProcessFactory = null,
         IServerConnectionsRepository serverConnectionsRepository = null,
-        ISolutionInfoProvider solutionInfoProvider = null)
+        ISolutionInfoProvider solutionInfoProvider = null,
+        ISonarQubeService sonarQubeService = null)
     {
         var testSubject = new UnintrusiveBindingController(bindingProcessFactory ?? CreateBindingProcessFactory(),
             serverConnectionsRepository ?? Substitute.For<IServerConnectionsRepository>(),
-            solutionInfoProvider ?? Substitute.For<ISolutionInfoProvider>());
+            solutionInfoProvider ?? Substitute.For<ISolutionInfoProvider>(),
+            sonarQubeService ?? Substitute.For<ISonarQubeService>());
 
         return testSubject;
     }

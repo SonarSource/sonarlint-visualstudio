@@ -19,15 +19,18 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarQube.Client;
+using SonarQube.Client.Models;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     public interface IBindingController
     {
-        Task BindAsync(BoundServerProject project, CancellationToken token);
+        Task BindAsync(BoundServerProject project, CancellationToken cancellationToken);
     }
     
     internal interface IUnintrusiveBindingController
@@ -44,18 +47,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private readonly IBindingProcessFactory bindingProcessFactory;
         private readonly IServerConnectionsRepository serverConnectionsRepository;
         private readonly ISolutionInfoProvider solutionInfoProvider;
+        private readonly ISonarQubeService sonarQubeService;
 
         [ImportingConstructor]
-        public UnintrusiveBindingController(IBindingProcessFactory bindingProcessFactory, IServerConnectionsRepository serverConnectionsRepository, ISolutionInfoProvider solutionInfoProvider)
+        public UnintrusiveBindingController(IBindingProcessFactory bindingProcessFactory, IServerConnectionsRepository serverConnectionsRepository, ISolutionInfoProvider solutionInfoProvider, ISonarQubeService sonarQubeService)
         {
             this.bindingProcessFactory = bindingProcessFactory;
             this.serverConnectionsRepository = serverConnectionsRepository;
             this.solutionInfoProvider = solutionInfoProvider;
+            this.sonarQubeService = sonarQubeService;
         }
 
-        public async Task BindAsync(BoundServerProject project, CancellationToken token)
+        public async Task BindAsync(BoundServerProject project, CancellationToken cancellationToken)
         {
-            await BindAsync(project, null, token);
+            var credentials = (BasicAuthCredentials) project.ServerConnection.Credentials;
+            await sonarQubeService.ConnectAsync(
+                new ConnectionInformation(
+                    project.ServerConnection.ServerUri,
+                    credentials.UserName,
+                    credentials.Password),
+                cancellationToken);
+            await BindAsync(project, null, cancellationToken);
         }
 
         public async Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
