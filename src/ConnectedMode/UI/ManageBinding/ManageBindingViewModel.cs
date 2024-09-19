@@ -133,7 +133,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         var loadData = new TaskToPerformParams<AdapterResponse>(LoadDataAsync, UiResources.LoadingConnectionsText,
                 UiResources.LoadingConnectionsFailedText) { AfterProgressUpdated = OnProgressUpdated };
         await ProgressReporter.ExecuteTaskWithProgressAsync(loadData);
-        
+
         var displayBindStatus = new TaskToPerformParams<AdapterResponse>(DisplayBindStatusAsync, UiResources.FetchingBindingStatusText,
                 UiResources.FetchingBindingStatusFailedText) { AfterProgressUpdated = OnProgressUpdated};
         await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus);
@@ -146,19 +146,17 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
     }
 
+    public async Task UseSharedBindingWithProgressAsync()
+    {
+        var bind = new TaskToPerformParams<AdapterResponse>(UseSharedBindingAsync, UiResources.BindingInProgressText, UiResources.BindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
+        await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
+    }
+
     public void Unbind()
     {
         BoundProject = null;
         SelectedConnectionInfo = null;
         SelectedProject = null;
-    }
-
-    public async Task UseSharedBindingAsync()
-    {
-        // this is only for demo purposes. It should be replaced with real SlCore binding logic
-        SelectedConnectionInfo = Connections.FirstOrDefault();
-        SelectedProject = new ServerProject("Myproj", "My proj");
-        await BindWithProgressAsync();
     }
 
     public async Task ExportBindingConfigurationAsync()
@@ -173,6 +171,19 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         {
             UpdateProgress(null);
         }
+    }
+
+    internal async Task<AdapterResponse> UseSharedBindingAsync()
+    {
+        var connectionId = GetConnectionIdFromSharedBindingConfig();
+        if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGetServerConnectionById(connectionId, out var serverConnection))
+        {
+            connectedModeServices.Logger.WriteLine(ConnectedMode.Resources.UseSharedBinding_ConnectionNotFound, connectionId);
+            return new AdapterResponse(false);
+        }
+
+        var response = await BindAsync(serverConnection, SharedBindingConfigModel.ProjectKey);
+        return new AdapterResponse(response.Success);
     }
 
     internal void UpdateProgress(string status)
@@ -251,18 +262,26 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         {
             return new AdapterResponse(false);
         }
-        
+        return await BindAsync(serverConnection, SelectedProject?.Key);
+    }
+
+    private string GetConnectionIdFromSharedBindingConfig()
+    {
+        return SharedBindingConfigModel.IsSonarCloud() ? new ServerConnection.SonarCloud(SharedBindingConfigModel.Organization).Id : new ServerConnection.SonarQube(SharedBindingConfigModel.Uri).Id;
+    }
+
+    private async Task<AdapterResponse> BindAsync(ServerConnection serverConnection, string serverProjectKey)
+    {
         try
         {
             var localBindingKey = await connectedModeBindingServices.SolutionInfoProvider.GetSolutionNameAsync();
-            var serverBindingKey = SelectedProject.Key;
-            var boundServerProject = new BoundServerProject(localBindingKey, serverBindingKey, serverConnection);
+            var boundServerProject = new BoundServerProject(localBindingKey, serverProjectKey, serverConnection);
             await connectedModeBindingServices.BindingController.BindAsync(boundServerProject, cancellationTokenSource.Token);
             return await DisplayBindStatusAsync();
         }
         catch (Exception ex)
         {
-            connectedModeServices.Logger.WriteLine($"{SonarLint.VisualStudio.ConnectedMode.Resources.Binding_Fails}", ex.Message);
+            connectedModeServices.Logger.WriteLine($"{ConnectedMode.Resources.Binding_Fails}", ex.Message);
             return new AdapterResponse(false);
         }
     }

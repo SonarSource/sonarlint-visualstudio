@@ -601,6 +601,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Connection not foud.
+        /// </summary>
+        public static string NotFoundConnectionForSharedBindingMessageBoxCaption {
+            get {
+                return ResourceManager.GetString("NotFoundConnectionForSharedBindingMessageBoxCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The shared binding could not be executed, because the connection to the server could not be found. 
+        ///Please manually add the connection through &quot;Manage Connections&quot; and then try again..
+        /// </summary>
+        public static string NotFoundConnectionForSharedBindingMessageBoxText {
+            get {
+                return ResourceManager.GetString("NotFoundConnectionForSharedBindingMessageBoxText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to OK.
         /// </summary>
         public static string OkButton {

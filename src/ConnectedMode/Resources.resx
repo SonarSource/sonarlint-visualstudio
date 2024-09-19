@@ -319,4 +319,7 @@
   <data name="Binding_Fails" xml:space="preserve">
     <value>[ConnectedMode] Binding failed due to: {0}</value>
   </data>
+  <data name="UseSharedBinding_ConnectionNotFound" xml:space="preserve">
+    <value>[ConnectedMode/UseSharedBinding] Connection to server {0} could not be found</value>
+  </data>
 </root>

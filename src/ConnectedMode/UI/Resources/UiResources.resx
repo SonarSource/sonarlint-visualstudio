@@ -387,4 +387,11 @@
   <data name="LoadingProjectsFailedTextForNotFoundServerConnection" xml:space="preserve">
     <value>Server connection was not found. Projects could not be loaded.</value>
   </data>
+  <data name="NotFoundConnectionForSharedBindingMessageBoxText" xml:space="preserve">
+    <value>The shared binding could not be executed, because the connection to the server could not be found. 
+Please manually add the connection through "Manage Connections" and then try again.</value>
+  </data>
+  <data name="NotFoundConnectionForSharedBindingMessageBoxCaption" xml:space="preserve">
+    <value>Connection not foud</value>
+  </data>
 </root>

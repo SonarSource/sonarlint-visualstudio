@@ -20,6 +20,7 @@
 
 using System.ComponentModel;
 using System.Security;
+using System.Windows;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
@@ -42,7 +43,9 @@ public class ManageBindingViewModelTests
     private readonly ConnectionInfo sonarQubeConnectionInfo = new ("http://localhost:9000", ConnectionServerType.SonarQube);
     private readonly ConnectionInfo sonarCloudConnectionInfo = new ("organization", ConnectionServerType.SonarCloud);
     private readonly BasicAuthCredentials validCredentials = new ("TOKEN", new SecureString());
-    
+    private readonly SharedBindingConfigModel sonarQubeSharedBindingConfigModel = new() { Uri = new Uri("http://localhost:9000"), ProjectKey = "myProj" };
+    private readonly SharedBindingConfigModel sonarCloudSharedBindingConfigModel = new() { Organization = "myOrg", ProjectKey = "myProj" };
+
     private ManageBindingViewModel testSubject;
     private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
     private IConnectedModeServices connectedModeServices;
@@ -737,6 +740,127 @@ public class ManageBindingViewModelTests
         testSubject.SharedBindingConfigModel.Should().Be(sharedBindingModel);
     }
 
+    [TestMethod]
+    public async Task UseSharedBindingWithProgressAsync_SharedBindingExistsAndValid_BindsProjectAndReportsProgress()
+    {
+        testSubject.SharedBindingConfigModel = sonarQubeSharedBindingConfigModel;
+
+        await testSubject.UseSharedBindingWithProgressAsync();
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.TaskToPerform == testSubject.UseSharedBindingAsync &&
+                    x.ProgressStatus == UiResources.BindingInProgressText &&
+                    x.WarningText == UiResources.BindingFailedText &&
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+    }
+
+    [TestMethod]
+    public async Task UseSharedBindingAsync_SharedBindingForSonarQubeConnection_BindsWithTheCorrectProjectKey()
+    {
+        testSubject.SelectedProject = serverProject; // this is to make sure the SelectedProject is ignored and the shared config is used instead
+        testSubject.SharedBindingConfigModel = sonarQubeSharedBindingConfigModel;
+        SetupBoundProject(new ServerConnection.SonarQube(testSubject.SharedBindingConfigModel.Uri));
+
+        var response = await testSubject.UseSharedBindingAsync();
+
+        response.Success.Should().BeTrue();
+        await bindingController.Received(1)
+            .BindAsync(Arg.Is<BoundServerProject>(proj =>
+                    proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task UseSharedBindingAsync_SharedBindingForSonarCloudConnection_BindsWithTheCorrectProjectKey()
+    {
+        testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo; // this is to make sure the SelectedConnectionInfo is ignored and the shared config is used instead
+        testSubject.SharedBindingConfigModel = sonarCloudSharedBindingConfigModel;
+        SetupBoundProject(new ServerConnection.SonarCloud(testSubject.SharedBindingConfigModel.Organization));
+
+        var response = await testSubject.UseSharedBindingAsync();
+
+        response.Success.Should().BeTrue();
+        await bindingController.Received(1)
+            .BindAsync(Arg.Is<BoundServerProject>(proj =>
+                proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task UseSharedBindingAsync_SharedBindingForExistSonarQubeConnection_BindsWithTheCorrectConnectionId()
+    {
+        testSubject.SelectedConnectionInfo = sonarCloudConnectionInfo; // this is to make sure the SelectedConnectionInfo is ignored and the shared config is used instead
+        testSubject.SharedBindingConfigModel = sonarQubeSharedBindingConfigModel;
+        var expectedServerConnection = new ServerConnection.SonarQube(testSubject.SharedBindingConfigModel.Uri);
+        SetupBoundProject(expectedServerConnection);
+
+        var response = await testSubject.UseSharedBindingAsync();
+
+        response.Success.Should().BeTrue();
+        serverConnectionsRepositoryAdapter.Received(1).TryGetServerConnectionById(testSubject.SharedBindingConfigModel.Uri.ToString(), out _);
+        await bindingController.Received(1)
+            .BindAsync(Arg.Is<BoundServerProject>(proj => proj.ServerConnection == expectedServerConnection), Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task UseSharedBindingAsync_SharedBindingForExistingSonarCloudConnection_BindsWithTheCorrectConnectionId()
+    {
+        testSubject.SelectedProject = serverProject; // this is to make sure the SelectedProject is ignored and the shared config is used instead
+        testSubject.SharedBindingConfigModel = sonarCloudSharedBindingConfigModel;
+        var expectedServerConnection  = new ServerConnection.SonarCloud(testSubject.SharedBindingConfigModel.Organization);
+        SetupBoundProject(expectedServerConnection);
+
+        var response = await testSubject.UseSharedBindingAsync();
+
+        response.Success.Should().BeTrue();
+        serverConnectionsRepositoryAdapter.Received(1).TryGetServerConnectionById(testSubject.SharedBindingConfigModel.Organization, out _);
+        await bindingController.Received(1)
+            .BindAsync(Arg.Is<BoundServerProject>(proj => proj.ServerConnection == expectedServerConnection), Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task UseSharedBindingAsync_SharedBindingForNonExistingSonarQubeConnection_ReturnsFalseAndLogsAndInformsUser()
+    {
+        testSubject.SelectedProject = serverProject; // this is to make sure the SelectedProject is ignored and the shared config is used instead
+        testSubject.SharedBindingConfigModel = sonarQubeSharedBindingConfigModel;
+
+        var response = await testSubject.UseSharedBindingAsync();
+
+        response.Success.Should().BeFalse();
+        logger.WriteLine(Resources.UseSharedBinding_ConnectionNotFound, testSubject.SharedBindingConfigModel.Uri);
+        await bindingController.DidNotReceive()
+            .BindAsync(Arg.Is<BoundServerProject>(proj =>
+                proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task UseSharedBindingAsync_SharedBindingForNonExistingSonarCloudConnection_ReturnsFalseAndLogsAndInformsUser()
+    {
+        testSubject.SelectedProject = serverProject; // this is to make sure the SelectedProject is ignored and the shared config is used instead
+        testSubject.SharedBindingConfigModel = sonarCloudSharedBindingConfigModel;
+
+        var response = await testSubject.UseSharedBindingAsync();
+
+        response.Success.Should().BeFalse();
+        logger.WriteLine(Resources.UseSharedBinding_ConnectionNotFound, testSubject.SharedBindingConfigModel.Organization);
+        await bindingController.DidNotReceive()
+            .BindAsync(Arg.Is<BoundServerProject>(proj =>
+                proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public async Task UseSharedBindingAsync_BindingFails_ReturnsFalse()
+    {
+        MockTryGetServerConnectionId();
+        bindingController.When(x => x.BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>()))
+            .Do(_ => throw new Exception());
+        testSubject.SharedBindingConfigModel = sonarCloudSharedBindingConfigModel;
+
+        var response = await testSubject.UseSharedBindingAsync();
+
+        response.Success.Should().BeFalse();
+    }
+
     private void MockServices()
     {
         serverConnectionsRepositoryAdapter = Substitute.For<IServerConnectionsRepositoryAdapter>();
@@ -781,16 +905,21 @@ public class ManageBindingViewModelTests
         var configurationProvider = Substitute.For<IConfigurationProvider>();
         configurationProvider.GetConfiguration().Returns(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));
         connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
-        serverConnectionsRepositoryAdapter.TryGetServerConnectionById(serverConnection.Id, out _).Returns(callInfo =>
-        {
-            callInfo[1] = serverConnection;
-            return true;
-        });
+        MockTryGetServerConnectionId(serverConnection);
         solutionInfoProvider.GetSolutionNameAsync().Returns(ALocalProjectKey);
         
         MockGetServerProjectByKey(true, expectedServerProject);
     }
-    
+
+    private void MockTryGetServerConnectionId(ServerConnection serverConnection = null)
+    {
+        serverConnectionsRepositoryAdapter.TryGetServerConnectionById(serverConnection?.Id ?? Arg.Any<string>(), out _).Returns(callInfo =>
+        {
+            callInfo[1] = serverConnection;
+            return true;
+        });
+    }
+
     private void SetupUnboundProject()
     {
         var configurationProvider = Substitute.For<IConfigurationProvider>();
