@@ -44,9 +44,20 @@ public class UnintrusiveBindingControllerTests
         => MefTestHelpers.CheckIsNonSharedMefComponent<UnintrusiveBindingController>();
 
     [TestMethod]
-    public void MefCtor_CheckIsExported()
+    public void MefCtor_IUnintrusiveBindingController_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingController, IUnintrusiveBindingController>(
+            MefTestHelpers.CreateExport<IBindingProcessFactory>(),
+            MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
+            MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
+            MefTestHelpers.CreateExport<ISonarQubeService>(),
+            MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>());
+    }
+    
+    [TestMethod]
+    public void MefCtor_IBindingController_CheckIsExported()
+    {
+        MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingController, IBindingController>(
             MefTestHelpers.CreateExport<IBindingProcessFactory>(),
             MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
             MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
