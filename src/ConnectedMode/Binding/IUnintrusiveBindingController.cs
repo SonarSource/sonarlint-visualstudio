@@ -18,35 +18,54 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarQube.Client;
+using SonarQube.Client.Models;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
+    public interface IBindingController
+    {
+        Task BindAsync(BoundServerProject project, CancellationToken cancellationToken);
+    }
+    
     internal interface IUnintrusiveBindingController
     {
         Task BindWithMigrationAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
         Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
     }
 
+    [Export(typeof(IBindingController))]
     [Export(typeof(IUnintrusiveBindingController))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    internal class UnintrusiveBindingController : IUnintrusiveBindingController
+    internal class UnintrusiveBindingController : IUnintrusiveBindingController, IBindingController
     {
         private readonly IBindingProcessFactory bindingProcessFactory;
         private readonly IServerConnectionsRepository serverConnectionsRepository;
         private readonly ISolutionInfoProvider solutionInfoProvider;
+        private readonly ISonarQubeService sonarQubeService;
+        private readonly IActiveSolutionChangedHandler activeSolutionChangedHandler;
 
         [ImportingConstructor]
-        public UnintrusiveBindingController(IBindingProcessFactory bindingProcessFactory, IServerConnectionsRepository serverConnectionsRepository, ISolutionInfoProvider solutionInfoProvider)
+        public UnintrusiveBindingController(IBindingProcessFactory bindingProcessFactory, IServerConnectionsRepository serverConnectionsRepository, ISolutionInfoProvider solutionInfoProvider, ISonarQubeService sonarQubeService, IActiveSolutionChangedHandler activeSolutionChangedHandler)
         {
             this.bindingProcessFactory = bindingProcessFactory;
             this.serverConnectionsRepository = serverConnectionsRepository;
             this.solutionInfoProvider = solutionInfoProvider;
+            this.sonarQubeService = sonarQubeService;
+            this.activeSolutionChangedHandler = activeSolutionChangedHandler;
+        }
+
+        public async Task BindAsync(BoundServerProject project, CancellationToken cancellationToken)
+        {
+            var connectionInformation = project.ServerConnection.Credentials.CreateConnectionInformation(project.ServerConnection.ServerUri);
+            await sonarQubeService.ConnectAsync(connectionInformation, cancellationToken);
+            await BindAsync(project, null, cancellationToken);
+            activeSolutionChangedHandler.HandleBindingChange(false);
         }
 
         public async Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)

@@ -261,6 +261,9 @@
   <data name="BindingInProgressText" xml:space="preserve">
     <value>Binding in progress...</value>
   </data>
+  <data name="BindingFailedText" xml:space="preserve">
+    <value>Binding could not be established. Please check the SonarLint logs for more details.</value>
+  </data>
   <data name="SelectConnectionToBindDescription" xml:space="preserve">
     <value>Select a connection to bind...</value>
   </data>

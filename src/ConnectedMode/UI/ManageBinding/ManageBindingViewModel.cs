@@ -19,6 +19,7 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
@@ -27,7 +28,7 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
-public class ManageBindingViewModel : ViewModelBase
+public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 {
     private SolutionInfoModel solutionInfo;
     private ServerProject boundProject;
@@ -35,7 +36,9 @@ public class ManageBindingViewModel : ViewModelBase
     private ServerProject selectedProject;
     private bool isSharedBindingConfigurationDetected;
     private readonly IConnectedModeServices connectedModeServices;
+    private readonly IBindingController bindingController;
     private readonly ISolutionInfoProvider solutionInfoProvider;
+    private readonly CancellationTokenSource cancellationTokenSource = new();
 
     public SolutionInfoModel SolutionInfo
     {
@@ -117,11 +120,13 @@ public class ManageBindingViewModel : ViewModelBase
     public string ConnectionSelectionCaptionText => Connections.Any() ? UiResources.SelectConnectionToBindDescription : UiResources.NoConnectionExistsLabel;
 
      public ManageBindingViewModel(
-         IConnectedModeServices connectedModeServices, 
+         IConnectedModeServices connectedModeServices,
+         IBindingController bindingController,
          ISolutionInfoProvider solutionInfoProvider,
          IProgressReporterViewModel progressReporterViewModel)
     {
         this.connectedModeServices = connectedModeServices;
+        this.bindingController = bindingController;
         this.solutionInfoProvider = solutionInfoProvider;
         ProgressReporter = progressReporterViewModel;
     }
@@ -134,19 +139,10 @@ public class ManageBindingViewModel : ViewModelBase
         await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus);
     }
 
-    public async Task BindAsync()
+    public async Task BindWithProgressAsync()
     {
-        try
-        {
-            UpdateProgress(UiResources.BindingInProgressText);
-            // this is only for demo purposes. When it will be replaced with real SlCore binding logic, it can be removed
-            await Task.Delay(3000);
-            BoundProject = SelectedProject;
-        }
-        finally
-        {
-            UpdateProgress(null);
-        }
+        var bind = new TaskToPerformParams<AdapterResponse>(BindAsync, UiResources.BindingInProgressText, UiResources.BindingFailedText){AfterProgressUpdated = OnProgressUpdated};
+        await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
     }
 
     public void Unbind()
@@ -161,7 +157,7 @@ public class ManageBindingViewModel : ViewModelBase
         // this is only for demo purposes. It should be replaced with real SlCore binding logic
         SelectedConnectionInfo = Connections.FirstOrDefault();
         SelectedProject = new ServerProject("Myproj", "My proj");
-        await BindAsync();
+        await BindWithProgressAsync();
     }
 
     public async Task ExportBindingConfigurationAsync()
@@ -246,5 +242,32 @@ public class ManageBindingViewModel : ViewModelBase
         SelectedProject = response.ResponseData;
         BoundProject = SelectedProject;
         return new AdapterResponse(BoundProject != null);
+    }
+
+    internal /* for testing */ async Task<AdapterResponse> BindAsync()
+    {
+        if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGetServerConnectionById(SelectedConnectionInfo?.Id, out var serverConnection))
+        {
+            return new AdapterResponse(false);
+        }
+        
+        try
+        {
+            var localBindingKey = await solutionInfoProvider.GetSolutionNameAsync();
+            var serverBindingKey = SelectedProject.Key;
+            var boundServerProject = new BoundServerProject(localBindingKey, serverBindingKey, serverConnection);
+            await bindingController.BindAsync(boundServerProject, cancellationTokenSource.Token);
+            return await DisplayBindStatusAsync();
+        }
+        catch (Exception ex)
+        {
+            connectedModeServices.Logger.WriteLine($"{SonarLint.VisualStudio.ConnectedMode.Resources.Binding_Fails}", ex.Message);
+            return new AdapterResponse(false);
+        }
+    }
+
+    public void Dispose()
+    {
+        cancellationTokenSource?.Dispose();
     }
 }

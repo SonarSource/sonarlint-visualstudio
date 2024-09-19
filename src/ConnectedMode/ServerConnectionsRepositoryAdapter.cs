@@ -29,6 +29,7 @@ namespace SonarLint.VisualStudio.ConnectedMode;
 
 public interface IServerConnectionsRepositoryAdapter
 {
+    bool TryGetServerConnectionById(string connectionId, out ServerConnection serverConnection);
     bool TryGetAllConnections(out List<Connection> connections);
     bool TryGetAllConnectionsInfo(out List<ConnectionInfo> connectionInfos);
     bool TryRemoveConnection(string connectionInfoId);
@@ -40,6 +41,11 @@ public interface IServerConnectionsRepositoryAdapter
 [method: ImportingConstructor]
 internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository serverConnectionsRepository) : IServerConnectionsRepositoryAdapter
 {
+    public bool TryGetServerConnectionById(string connectionId, out ServerConnection serverConnection)
+    {
+        return serverConnectionsRepository.TryGet(connectionId, out serverConnection);
+    }
+
     public bool TryGetAllConnections(out List<Connection> connections)
     {
         var succeeded = serverConnectionsRepository.TryGetAll(out var serverConnections);
