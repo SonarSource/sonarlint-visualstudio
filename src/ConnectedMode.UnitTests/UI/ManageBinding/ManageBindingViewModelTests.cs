@@ -23,6 +23,7 @@ using System.Security;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
@@ -51,6 +52,7 @@ public class ManageBindingViewModelTests
     private IThreadHandling threadHandling;
     private ILogger logger;
     private IConnectedModeBindingServices connectedModeBindingServices;
+    private ISharedBindingConfigProvider sharedBindingConfigProvider;
 
     [TestInitialize]
     public void TestInitialize()
@@ -99,6 +101,8 @@ public class ManageBindingViewModelTests
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSelectProjectButtonEnabled)));
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsExportButtonEnabled)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsUseSharedBindingButtonVisible)));
     }
 
     [TestMethod]
@@ -253,38 +257,24 @@ public class ManageBindingViewModelTests
     [TestMethod]
     [DataRow(true, false)]
     [DataRow(false, true)]
-    public void IsUseSharedBindingButtonEnabled_SharedBindingConfigurationIsDetected_ReturnsTrueOnlyWhenNoBindingIsInProgress(bool isBindingInProgress, bool expectedResult)
+    public void IsUseSharedBindingButtonEnabled_ReturnsTrueOnlyWhenNoBindingIsInProgress(bool isBindingInProgress, bool expectedResult)
     {
-        testSubject.IsSharedBindingConfigurationDetected = true;
         progressReporterViewModel.IsOperationInProgress.Returns(isBindingInProgress);
 
         testSubject.IsUseSharedBindingButtonEnabled.Should().Be(expectedResult);
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(null)]
-    public void IsUseSharedBindingButtonEnabled_SharedBindingConfigurationIsNotDetected_ReturnsFalse(bool isBindingInProgress)
-    {
-        testSubject.IsSharedBindingConfigurationDetected = false;
-        progressReporterViewModel.IsOperationInProgress.Returns(isBindingInProgress);
-
-        testSubject.IsUseSharedBindingButtonEnabled.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public void IsSharedBindingConfigurationDetected_Set_RaisesEvents()
+    public void SharedBindingConfigModel_Set_RaisesEvents()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
         eventHandler.ReceivedCalls().Should().BeEmpty();
 
-        testSubject.IsSharedBindingConfigurationDetected = true;
+        testSubject.SharedBindingConfigModel = new SharedBindingConfigModel();
 
         eventHandler.Received().Invoke(testSubject,
-            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSharedBindingConfigurationDetected)));
-        eventHandler.Received().Invoke(testSubject,
-            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsUseSharedBindingButtonEnabled)));
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsUseSharedBindingButtonVisible)));
     }
 
     [TestMethod]
@@ -724,6 +714,29 @@ public class ManageBindingViewModelTests
         testSubject.BoundProject.Should().BeEquivalentTo(serverProject);
     }
 
+    [TestMethod]
+    public void DetectSharedBinding_CurrentProjectBound_DoesNothing()
+    {
+        testSubject.BoundProject = serverProject;
+
+        testSubject.DetectSharedBinding();
+
+        sharedBindingConfigProvider.DidNotReceive().GetSharedBinding();
+    }
+
+    [TestMethod]
+    public void DetectSharedBinding_CurrentProjectNotBound_UpdatesSharedBindingConfigModel()
+    {
+        testSubject.BoundProject = null;
+        var sharedBindingModel = new SharedBindingConfigModel();
+        sharedBindingConfigProvider.GetSharedBinding().Returns(sharedBindingModel);
+
+        testSubject.DetectSharedBinding();
+
+        sharedBindingConfigProvider.Received(1).GetSharedBinding();
+        testSubject.SharedBindingConfigModel.Should().Be(sharedBindingModel);
+    }
+
     private void MockServices()
     {
         serverConnectionsRepositoryAdapter = Substitute.For<IServerConnectionsRepositoryAdapter>();
@@ -736,8 +749,10 @@ public class ManageBindingViewModelTests
 
         bindingController = Substitute.For<IBindingController>();
         solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
+        sharedBindingConfigProvider = Substitute.For<ISharedBindingConfigProvider>();
         connectedModeBindingServices.BindingController.Returns(bindingController);
         connectedModeBindingServices.SolutionInfoProvider.Returns(solutionInfoProvider);
+        connectedModeBindingServices.SharedBindingConfigProvider.Returns(sharedBindingConfigProvider);
 
         MockTryGetAllConnectionsInfo([]);
     }

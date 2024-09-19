@@ -19,6 +19,7 @@
  */
 
 using System.Collections.ObjectModel;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.Binding;
@@ -32,7 +33,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
     private ServerProject boundProject;
     private ConnectionInfo selectedConnectionInfo;
     private ServerProject selectedProject;
-    private bool isSharedBindingConfigurationDetected;
+    private SharedBindingConfigModel sharedBindingConfigModel;
     private readonly IConnectedModeServices connectedModeServices;
     private readonly IConnectedModeBindingServices connectedModeBindingServices;
     private readonly CancellationTokenSource cancellationTokenSource = new();
@@ -59,6 +60,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
             RaisePropertyChanged(nameof(IsSelectProjectButtonEnabled));
             RaisePropertyChanged(nameof(IsConnectionSelectionEnabled));
             RaisePropertyChanged(nameof(IsExportButtonEnabled));
+            RaisePropertyChanged(nameof(IsUseSharedBindingButtonVisible));
         }
     }
 
@@ -93,14 +95,13 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
     }
 
-    public bool IsSharedBindingConfigurationDetected    
+    internal SharedBindingConfigModel SharedBindingConfigModel
     {
-        get => isSharedBindingConfigurationDetected;
+        get => sharedBindingConfigModel;
         set
         {
-            isSharedBindingConfigurationDetected = value;
-            RaisePropertyChanged();
-            RaisePropertyChanged(nameof(IsUseSharedBindingButtonEnabled));
+            sharedBindingConfigModel = value;
+            RaisePropertyChanged(nameof(IsUseSharedBindingButtonVisible));
         }
     }
 
@@ -112,7 +113,8 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
     public bool IsSelectProjectButtonEnabled => IsConnectionSelected && !ProgressReporter.IsOperationInProgress && !IsCurrentProjectBound;
     public bool IsUnbindButtonEnabled => !ProgressReporter.IsOperationInProgress;
     public bool IsManageConnectionsButtonEnabled => !ProgressReporter.IsOperationInProgress;
-    public bool IsUseSharedBindingButtonEnabled => !ProgressReporter.IsOperationInProgress && IsSharedBindingConfigurationDetected;
+    public bool IsUseSharedBindingButtonEnabled => !ProgressReporter.IsOperationInProgress;
+    public bool IsUseSharedBindingButtonVisible => SharedBindingConfigModel != null && !IsCurrentProjectBound;
     public bool IsExportButtonEnabled => !ProgressReporter.IsOperationInProgress && IsCurrentProjectBound;
     public string ConnectionSelectionCaptionText => Connections.Any() ? UiResources.SelectConnectionToBindDescription : UiResources.NoConnectionExistsLabel;
 
@@ -128,10 +130,14 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
     
     public async Task InitializeDataAsync()
     {
-        var loadData = new TaskToPerformParams<AdapterResponse>(LoadDataAsync, UiResources.LoadingConnectionsText, UiResources.LoadingConnectionsFailedText){AfterProgressUpdated = OnProgressUpdated};
+        var loadData = new TaskToPerformParams<AdapterResponse>(LoadDataAsync, UiResources.LoadingConnectionsText,
+                UiResources.LoadingConnectionsFailedText) { AfterProgressUpdated = OnProgressUpdated };
         await ProgressReporter.ExecuteTaskWithProgressAsync(loadData);
-        var displayBindStatus = new TaskToPerformParams<AdapterResponse>(DisplayBindStatusAsync, UiResources.FetchingBindingStatusText, UiResources.FetchingBindingStatusFailedText){AfterProgressUpdated = OnProgressUpdated};
+        
+        var displayBindStatus = new TaskToPerformParams<AdapterResponse>(DisplayBindStatusAsync, UiResources.FetchingBindingStatusText,
+                UiResources.FetchingBindingStatusFailedText) { AfterProgressUpdated = OnProgressUpdated};
         await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus);
+        DetectSharedBinding();
     }
 
     public async Task BindWithProgressAsync()
@@ -259,6 +265,15 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
             connectedModeServices.Logger.WriteLine($"{SonarLint.VisualStudio.ConnectedMode.Resources.Binding_Fails}", ex.Message);
             return new AdapterResponse(false);
         }
+    }
+
+    internal void DetectSharedBinding()
+    {
+        if (IsCurrentProjectBound)
+        {
+            return;
+        }
+        SharedBindingConfigModel = connectedModeBindingServices.SharedBindingConfigProvider.GetSharedBinding();
     }
 
     public void Dispose()
