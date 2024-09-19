@@ -34,9 +34,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
 [TestClass]
 public class UnintrusiveBindingControllerTests
 {
-    private static readonly BoundSonarQubeProject OldBoundProject = new BoundSonarQubeProject(new Uri("http://any"), "any", "any");
-    private static readonly BoundServerProject AnyBoundProject = new BoundServerProject("any", "any", new ServerConnection.SonarCloud("any"));
-        
+    private static readonly CancellationToken ACancellationToken = CancellationToken.None;
+    private static readonly BasicAuthCredentials ValidToken = new ("TOKEN", new SecureString());
+    private static readonly BoundSonarQubeProject OldBoundProject = new (new Uri("http://any"), "any", "any");
+    private static readonly BoundServerProject AnyBoundProject = new ("any", "any", new ServerConnection.SonarCloud("any", credentials: ValidToken));
+
     [TestMethod]
     public void MefCtor_CheckTypeIsNonShared()
         => MefTestHelpers.CheckIsNonSharedMefComponent<UnintrusiveBindingController>();
@@ -48,30 +50,42 @@ public class UnintrusiveBindingControllerTests
             MefTestHelpers.CreateExport<IBindingProcessFactory>(),
             MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
             MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
-            MefTestHelpers.CreateExport<ISonarQubeService>());
+            MefTestHelpers.CreateExport<ISonarQubeService>(),
+            MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>());
     }
 
     [TestMethod]
     public async Task BindAsync_EstablishesConnection()
     {
-        var cancellationToken = CancellationToken.None;
         var sonarQubeService = Substitute.For<ISonarQubeService>();
-        var credentials = new BasicAuthCredentials("TOKEN", new SecureString());
         var projectToBind = new BoundServerProject(
             "local-key", 
             "server-key",
-            new ServerConnection.SonarCloud("organization", credentials: credentials));
+            new ServerConnection.SonarCloud("organization", credentials: ValidToken));
         var testSubject = CreateTestSubject(sonarQubeService: sonarQubeService);
         
-        await testSubject.BindAsync(projectToBind, cancellationToken);
+        await testSubject.BindAsync(projectToBind, ACancellationToken);
 
         await sonarQubeService
             .Received()
-            .ConnectAsync(Arg.Is<ConnectionInformation>(
-                x => x.ServerUri.Equals("https://sonarcloud.io/")
-                     && x.UserName.Equals("TOKEN") 
-                     && string.IsNullOrEmpty(x.Password.ToUnsecureString())),
-                cancellationToken);
+            .ConnectAsync(
+                Arg.Is<ConnectionInformation>(x => x.ServerUri.Equals("https://sonarcloud.io/") 
+                                                   && x.UserName.Equals(ValidToken.UserName)
+                                                   && string.IsNullOrEmpty(x.Password.ToUnsecureString())),
+                ACancellationToken);
+    }
+    
+    [TestMethod]
+    public async Task BindAsync_NotifiesBindingChanged()
+    {
+        var activeSolutionChangedHandler = Substitute.For<IActiveSolutionChangedHandler>();
+        var testSubject = CreateTestSubject(activeSolutionChangedHandler: activeSolutionChangedHandler);
+        
+        await testSubject.BindAsync(AnyBoundProject, ACancellationToken);
+
+        activeSolutionChangedHandler
+            .Received(1)
+            .HandleBindingChange(false);
     }
 
     [TestMethod]
@@ -166,17 +180,19 @@ public class UnintrusiveBindingControllerTests
     private UnintrusiveBindingController CreateTestSubject(IBindingProcessFactory bindingProcessFactory = null,
         IServerConnectionsRepository serverConnectionsRepository = null,
         ISolutionInfoProvider solutionInfoProvider = null,
-        ISonarQubeService sonarQubeService = null)
+        ISonarQubeService sonarQubeService = null,
+        IActiveSolutionChangedHandler activeSolutionChangedHandler = null)
     {
         var testSubject = new UnintrusiveBindingController(bindingProcessFactory ?? CreateBindingProcessFactory(),
             serverConnectionsRepository ?? Substitute.For<IServerConnectionsRepository>(),
             solutionInfoProvider ?? Substitute.For<ISolutionInfoProvider>(),
-            sonarQubeService ?? Substitute.For<ISonarQubeService>());
+            sonarQubeService ?? Substitute.For<ISonarQubeService>(),
+            activeSolutionChangedHandler ?? Substitute.For<IActiveSolutionChangedHandler>());
 
         return testSubject;
     }
 
-    private IBindingProcessFactory CreateBindingProcessFactory(IBindingProcess bindingProcess = null)
+    private static IBindingProcessFactory CreateBindingProcessFactory(IBindingProcess bindingProcess = null)
     {
         bindingProcess ??= Substitute.For<IBindingProcess>();
 

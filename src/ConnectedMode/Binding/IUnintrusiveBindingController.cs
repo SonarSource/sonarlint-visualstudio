@@ -48,14 +48,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private readonly IServerConnectionsRepository serverConnectionsRepository;
         private readonly ISolutionInfoProvider solutionInfoProvider;
         private readonly ISonarQubeService sonarQubeService;
+        private readonly IActiveSolutionChangedHandler activeSolutionChangedHandler;
 
         [ImportingConstructor]
-        public UnintrusiveBindingController(IBindingProcessFactory bindingProcessFactory, IServerConnectionsRepository serverConnectionsRepository, ISolutionInfoProvider solutionInfoProvider, ISonarQubeService sonarQubeService)
+        public UnintrusiveBindingController(IBindingProcessFactory bindingProcessFactory, IServerConnectionsRepository serverConnectionsRepository, ISolutionInfoProvider solutionInfoProvider, ISonarQubeService sonarQubeService, IActiveSolutionChangedHandler activeSolutionChangedHandler)
         {
             this.bindingProcessFactory = bindingProcessFactory;
             this.serverConnectionsRepository = serverConnectionsRepository;
             this.solutionInfoProvider = solutionInfoProvider;
             this.sonarQubeService = sonarQubeService;
+            this.activeSolutionChangedHandler = activeSolutionChangedHandler;
         }
 
         public async Task BindAsync(BoundServerProject project, CancellationToken cancellationToken)
@@ -68,6 +70,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                     credentials.Password),
                 cancellationToken);
             await BindAsync(project, null, cancellationToken);
+            activeSolutionChangedHandler.HandleBindingChange(false);
         }
 
         public async Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
