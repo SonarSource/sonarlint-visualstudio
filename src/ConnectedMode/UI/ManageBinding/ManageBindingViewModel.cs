@@ -19,10 +19,8 @@
  */
 
 using System.Collections.ObjectModel;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 
@@ -36,8 +34,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
     private ServerProject selectedProject;
     private bool isSharedBindingConfigurationDetected;
     private readonly IConnectedModeServices connectedModeServices;
-    private readonly IBindingController bindingController;
-    private readonly ISolutionInfoProvider solutionInfoProvider;
+    private readonly IConnectedModeBindingServices connectedModeBindingServices;
     private readonly CancellationTokenSource cancellationTokenSource = new();
 
     public SolutionInfoModel SolutionInfo
@@ -120,14 +117,12 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
     public string ConnectionSelectionCaptionText => Connections.Any() ? UiResources.SelectConnectionToBindDescription : UiResources.NoConnectionExistsLabel;
 
      public ManageBindingViewModel(
-         IConnectedModeServices connectedModeServices,
-         IBindingController bindingController,
-         ISolutionInfoProvider solutionInfoProvider,
+         IConnectedModeServices connectedModeServices, 
+         IConnectedModeBindingServices connectedModeBindingServices,
          IProgressReporterViewModel progressReporterViewModel)
     {
         this.connectedModeServices = connectedModeServices;
-        this.bindingController = bindingController;
-        this.solutionInfoProvider = solutionInfoProvider;
+        this.connectedModeBindingServices = connectedModeBindingServices;
         ProgressReporter = progressReporterViewModel;
     }
     
@@ -220,8 +215,8 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
     
     internal /* for testing */ async Task<AdapterResponse> DisplayBindStatusAsync()
     {
-        var solutionName = await solutionInfoProvider.GetSolutionNameAsync();
-        var isFolderWorkspace = await solutionInfoProvider.IsFolderWorkspaceAsync();
+        var solutionName = await connectedModeBindingServices.SolutionInfoProvider.GetSolutionNameAsync();
+        var isFolderWorkspace = await connectedModeBindingServices.SolutionInfoProvider.IsFolderWorkspaceAsync();
         SolutionInfo = new SolutionInfoModel(solutionName, isFolderWorkspace ? SolutionType.Folder : SolutionType.Solution);
 
         var bindingConfiguration = connectedModeServices.ConfigurationProvider.GetConfiguration();
@@ -253,10 +248,10 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         
         try
         {
-            var localBindingKey = await solutionInfoProvider.GetSolutionNameAsync();
+            var localBindingKey = await connectedModeBindingServices.SolutionInfoProvider.GetSolutionNameAsync();
             var serverBindingKey = SelectedProject.Key;
             var boundServerProject = new BoundServerProject(localBindingKey, serverBindingKey, serverConnection);
-            await bindingController.BindAsync(boundServerProject, cancellationTokenSource.Token);
+            await connectedModeBindingServices.BindingController.BindAsync(boundServerProject, cancellationTokenSource.Token);
             return await DisplayBindStatusAsync();
         }
         catch (Exception ex)

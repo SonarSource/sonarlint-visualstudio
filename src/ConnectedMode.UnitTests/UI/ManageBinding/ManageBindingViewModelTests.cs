@@ -50,15 +50,16 @@ public class ManageBindingViewModelTests
     private IProgressReporterViewModel progressReporterViewModel;
     private IThreadHandling threadHandling;
     private ILogger logger;
+    private IConnectedModeBindingServices connectedModeBindingServices;
 
     [TestInitialize]
     public void TestInitialize()
     {
         connectedModeServices = Substitute.For<IConnectedModeServices>();
-        bindingController = Substitute.For<IBindingController>();
-        solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
-        testSubject = new ManageBindingViewModel(connectedModeServices, bindingController, solutionInfoProvider, progressReporterViewModel);
+        connectedModeBindingServices = Substitute.For<IConnectedModeBindingServices>();
+
+        testSubject = new ManageBindingViewModel(connectedModeServices, connectedModeBindingServices, progressReporterViewModel);
 
         MockServices();
     }
@@ -732,6 +733,11 @@ public class ManageBindingViewModelTests
         connectedModeServices.ServerConnectionsRepositoryAdapter.Returns(serverConnectionsRepositoryAdapter);
         connectedModeServices.ThreadHandling.Returns(threadHandling);
         connectedModeServices.Logger.Returns(logger);
+
+        bindingController = Substitute.For<IBindingController>();
+        solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
+        connectedModeBindingServices.BindingController.Returns(bindingController);
+        connectedModeBindingServices.SolutionInfoProvider.Returns(solutionInfoProvider);
 
         MockTryGetAllConnectionsInfo([]);
     }

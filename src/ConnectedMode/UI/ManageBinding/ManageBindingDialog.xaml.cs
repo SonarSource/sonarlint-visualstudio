@@ -34,10 +34,10 @@ public partial class ManageBindingDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
 
-    public ManageBindingDialog(IConnectedModeServices connectedModeServices, IBindingController bindingController, ISolutionInfoProvider solutionInfoProvider)
+    public ManageBindingDialog(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
     {
         this.connectedModeServices = connectedModeServices;
-        ViewModel = new ManageBindingViewModel(connectedModeServices, bindingController, solutionInfoProvider, new ProgressReporterViewModel());
+        ViewModel = new ManageBindingViewModel(connectedModeServices, connectedModeBindingServices, new ProgressReporterViewModel());
         InitializeComponent();
     }
 
