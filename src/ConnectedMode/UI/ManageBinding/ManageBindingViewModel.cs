@@ -261,7 +261,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            connectedModeServices.Logger.WriteLine(ex.Message);
+            connectedModeServices.Logger.WriteLine($"{SonarLint.VisualStudio.ConnectedMode.Resources.Binding_Fails}", ex.Message);
             return new AdapterResponse(false);
         }
     }

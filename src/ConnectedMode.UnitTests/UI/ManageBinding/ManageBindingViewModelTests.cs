@@ -698,7 +698,7 @@ public class ManageBindingViewModelTests
         var response = await testSubject.BindAsync();
         
         response.Success.Should().BeFalse();
-        logger.Received(1).WriteLine("Failed unexpectedly");
+        logger.Received(1).WriteLine(Resources.Binding_Fails, "Failed unexpectedly");
     }
 
     [TestMethod]
