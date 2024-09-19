@@ -106,6 +106,42 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Connection Migration] The binding {0} could not be migrated due to: {1}.
+        /// </summary>
+        internal static string ConnectionMigration_BindingNotMigrated {
+            get {
+                return ResourceManager.GetString("ConnectionMigration_BindingNotMigrated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Connection Migration] The server connection with the id {0} was not migrated as it already exists..
+        /// </summary>
+        internal static string ConnectionMigration_ExistingServerConnectionNotMigrated {
+            get {
+                return ResourceManager.GetString("ConnectionMigration_ExistingServerConnectionNotMigrated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Connection Migration] The binding with the id {0} could not be migrated.
+        /// </summary>
+        internal static string ConnectionMigration_ServerConnectionNotMigrated {
+            get {
+                return ResourceManager.GetString("ConnectionMigration_ServerConnectionNotMigrated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Connection Migration] Start migrating connections from existing bindings.
+        /// </summary>
+        internal static string ConnectionMigration_StartMigration {
+            get {
+                return ResourceManager.GetString("ConnectionMigration_StartMigration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Migration] Error during migration: {0}
         ///  Run migration again with verbose logging enabled for more information..
         /// </summary>

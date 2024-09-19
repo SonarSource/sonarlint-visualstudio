@@ -38,8 +38,9 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
     private readonly ILogger logger;
     private readonly IJsonFileHandler jsonFileHandle;
     private readonly IServerConnectionModelMapper serverConnectionModelMapper;
-    private readonly string storageFilePath;
     private static readonly object LockObject = new();
+
+    public string ConnectionsStorageFilePath { get; }
 
     [ImportingConstructor]
     public ServerConnectionsRepository(
@@ -63,7 +64,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         this.serverConnectionModelMapper = serverConnectionModelMapper;
         this.credentialsLoader = credentialsLoader;
         this.logger = logger;
-        storageFilePath = GetStorageFilePath(environmentVariables);
+        ConnectionsStorageFilePath = GetStorageFilePath(environmentVariables);
     }
 
     public bool TryGet(string connectionId, out ServerConnection serverConnection)
@@ -195,7 +196,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
     {
         try
         {
-            var model = jsonFileHandle.ReadFile<ServerConnectionsListJsonModel>(storageFilePath);
+            var model = jsonFileHandle.ReadFile<ServerConnectionsListJsonModel>(ConnectionsStorageFilePath);
             return model.ServerConnections.Select(serverConnectionModelMapper.GetServerConnection).ToList();
         }
         catch (FileNotFoundException)
@@ -222,7 +223,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
                 if (tryUpdateConnectionModels(serverConnections))
                 {
                     var model = serverConnectionModelMapper.GetServerConnectionsListJsonModel(serverConnections);
-                    return jsonFileHandle.TryWriteToFile(storageFilePath, model);
+                    return jsonFileHandle.TryWriteToFile(ConnectionsStorageFilePath, model);
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))

@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-
 namespace SonarLint.VisualStudio.Core.Binding;
 
 public interface IServerConnectionsRepository
@@ -31,4 +28,5 @@ public interface IServerConnectionsRepository
     bool TryDelete(string connectionId);
     bool TryUpdateSettingsById(string connectionId, ServerConnectionSettings connectionSettings);
     bool TryUpdateCredentialsById(string connectionId, ICredentials credentials);
+    string ConnectionsStorageFilePath { get; }
 }

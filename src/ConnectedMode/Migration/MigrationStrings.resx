@@ -215,4 +215,16 @@
   <data name="Cleaner_Unchanged" xml:space="preserve">
     <value>[Migration] No settings to remove from the file</value>
   </data>
+  <data name="ConnectionMigration_BindingNotMigrated" xml:space="preserve">
+    <value>[Connection Migration] The binding {0} could not be migrated due to: {1}</value>
+  </data>
+  <data name="ConnectionMigration_ServerConnectionNotMigrated" xml:space="preserve">
+    <value>[Connection Migration] The binding with the id {0} could not be migrated</value>
+  </data>
+  <data name="ConnectionMigration_StartMigration" xml:space="preserve">
+    <value>[Connection Migration] Start migrating connections from existing bindings</value>
+  </data>
+  <data name="ConnectionMigration_ExistingServerConnectionNotMigrated" xml:space="preserve">
+    <value>[Connection Migration] The server connection with the id {0} was not migrated as it already exists.</value>
+  </data>
 </root>
