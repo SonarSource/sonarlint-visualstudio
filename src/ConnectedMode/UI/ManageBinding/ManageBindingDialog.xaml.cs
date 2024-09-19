@@ -22,6 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Navigation;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.Core;
@@ -33,10 +34,10 @@ public partial class ManageBindingDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
 
-    public ManageBindingDialog(IConnectedModeServices connectedModeServices, ISolutionInfoProvider solutionInfoProvider)
+    public ManageBindingDialog(IConnectedModeServices connectedModeServices, IBindingController bindingController, ISolutionInfoProvider solutionInfoProvider)
     {
         this.connectedModeServices = connectedModeServices;
-        ViewModel = new ManageBindingViewModel(connectedModeServices, solutionInfoProvider, new ProgressReporterViewModel());
+        ViewModel = new ManageBindingViewModel(connectedModeServices, bindingController, solutionInfoProvider, new ProgressReporterViewModel());
         InitializeComponent();
     }
 
@@ -48,9 +49,9 @@ public partial class ManageBindingDialog : Window
         await ViewModel.InitializeDataAsync();
     }
 
-    private void Binding_OnClick(object sender, RoutedEventArgs e)
-    { 
-        ViewModel.BindAsync().Forget();
+    private async void Binding_OnClick(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.BindWithProgressAsync();
     }
 
     private void SelectProject_OnClick(object sender, RoutedEventArgs e)

@@ -18,10 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Security;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
+using SonarQube.Client;
+using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
@@ -29,20 +34,69 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
 [TestClass]
 public class UnintrusiveBindingControllerTests
 {
-    private static readonly BoundSonarQubeProject OldBoundProject = new BoundSonarQubeProject(new Uri("http://any"), "any", "any");
-    private static readonly BoundServerProject AnyBoundProject = new BoundServerProject("any", "any", new ServerConnection.SonarCloud("any"));
-        
+    private static readonly CancellationToken ACancellationToken = CancellationToken.None;
+    private static readonly BasicAuthCredentials ValidToken = new ("TOKEN", new SecureString());
+    private static readonly BoundSonarQubeProject OldBoundProject = new (new Uri("http://any"), "any", "any");
+    private static readonly BoundServerProject AnyBoundProject = new ("any", "any", new ServerConnection.SonarCloud("any", credentials: ValidToken));
+
     [TestMethod]
     public void MefCtor_CheckTypeIsNonShared()
         => MefTestHelpers.CheckIsNonSharedMefComponent<UnintrusiveBindingController>();
 
     [TestMethod]
-    public void MefCtor_CheckIsExported()
+    public void MefCtor_IUnintrusiveBindingController_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingController, IUnintrusiveBindingController>(
             MefTestHelpers.CreateExport<IBindingProcessFactory>(),
             MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
-            MefTestHelpers.CreateExport<ISolutionInfoProvider>());
+            MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
+            MefTestHelpers.CreateExport<ISonarQubeService>(),
+            MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>());
+    }
+    
+    [TestMethod]
+    public void MefCtor_IBindingController_CheckIsExported()
+    {
+        MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingController, IBindingController>(
+            MefTestHelpers.CreateExport<IBindingProcessFactory>(),
+            MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
+            MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
+            MefTestHelpers.CreateExport<ISonarQubeService>(),
+            MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>());
+    }
+
+    [TestMethod]
+    public async Task BindAsync_EstablishesConnection()
+    {
+        var sonarQubeService = Substitute.For<ISonarQubeService>();
+        var projectToBind = new BoundServerProject(
+            "local-key", 
+            "server-key",
+            new ServerConnection.SonarCloud("organization", credentials: ValidToken));
+        var testSubject = CreateTestSubject(sonarQubeService: sonarQubeService);
+        
+        await testSubject.BindAsync(projectToBind, ACancellationToken);
+
+        await sonarQubeService
+            .Received()
+            .ConnectAsync(
+                Arg.Is<ConnectionInformation>(x => x.ServerUri.Equals("https://sonarcloud.io/") 
+                                                   && x.UserName.Equals(ValidToken.UserName)
+                                                   && string.IsNullOrEmpty(x.Password.ToUnsecureString())),
+                ACancellationToken);
+    }
+    
+    [TestMethod]
+    public async Task BindAsync_NotifiesBindingChanged()
+    {
+        var activeSolutionChangedHandler = Substitute.For<IActiveSolutionChangedHandler>();
+        var testSubject = CreateTestSubject(activeSolutionChangedHandler: activeSolutionChangedHandler);
+        
+        await testSubject.BindAsync(AnyBoundProject, ACancellationToken);
+
+        activeSolutionChangedHandler
+            .Received(1)
+            .HandleBindingChange(false);
     }
 
     [TestMethod]
@@ -136,16 +190,20 @@ public class UnintrusiveBindingControllerTests
 
     private UnintrusiveBindingController CreateTestSubject(IBindingProcessFactory bindingProcessFactory = null,
         IServerConnectionsRepository serverConnectionsRepository = null,
-        ISolutionInfoProvider solutionInfoProvider = null)
+        ISolutionInfoProvider solutionInfoProvider = null,
+        ISonarQubeService sonarQubeService = null,
+        IActiveSolutionChangedHandler activeSolutionChangedHandler = null)
     {
         var testSubject = new UnintrusiveBindingController(bindingProcessFactory ?? CreateBindingProcessFactory(),
             serverConnectionsRepository ?? Substitute.For<IServerConnectionsRepository>(),
-            solutionInfoProvider ?? Substitute.For<ISolutionInfoProvider>());
+            solutionInfoProvider ?? Substitute.For<ISolutionInfoProvider>(),
+            sonarQubeService ?? Substitute.For<ISonarQubeService>(),
+            activeSolutionChangedHandler ?? Substitute.For<IActiveSolutionChangedHandler>());
 
         return testSubject;
     }
 
-    private IBindingProcessFactory CreateBindingProcessFactory(IBindingProcess bindingProcess = null)
+    private static IBindingProcessFactory CreateBindingProcessFactory(IBindingProcess bindingProcess = null)
     {
         bindingProcess ??= Substitute.For<IBindingProcess>();
 

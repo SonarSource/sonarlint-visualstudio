@@ -316,4 +316,7 @@
   <data name="GetAllProjects_Fails" xml:space="preserve">
     <value>[ConnectedMode] Getting all projects failed</value>
   </data>
+  <data name="Binding_Fails" xml:space="preserve">
+    <value>[ConnectedMode] Binding failed due to: {0}</value>
+  </data>
 </root>
