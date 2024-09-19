@@ -62,13 +62,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         public async Task BindAsync(BoundServerProject project, CancellationToken cancellationToken)
         {
-            var credentials = (BasicAuthCredentials) project.ServerConnection.Credentials;
-            await sonarQubeService.ConnectAsync(
-                new ConnectionInformation(
-                    project.ServerConnection.ServerUri,
-                    credentials.UserName,
-                    credentials.Password),
-                cancellationToken);
+            var connectionInformation = project.ServerConnection.Credentials.CreateConnectionInformation(project.ServerConnection.ServerUri);
+            await sonarQubeService.ConnectAsync(connectionInformation, cancellationToken);
             await BindAsync(project, null, cancellationToken);
             activeSolutionChangedHandler.HandleBindingChange(false);
         }
