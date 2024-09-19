@@ -49,9 +49,9 @@ public partial class ManageBindingDialog : Window
         await ViewModel.InitializeDataAsync();
     }
 
-    private void Binding_OnClick(object sender, RoutedEventArgs e)
-    { 
-        ViewModel.BindWithProgressAsync().Forget();
+    private async void Binding_OnClick(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.BindWithProgressAsync();
     }
 
     private void SelectProject_OnClick(object sender, RoutedEventArgs e)
