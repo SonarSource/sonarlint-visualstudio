@@ -88,10 +88,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             try
             {
-                await MigrateBindingsToServerConnectionsIfNeededAsync();
-
                 logger = await this.GetMefServiceAsync<ILogger>();
                 logger.WriteLine(Strings.Daemon_Initializing);
+
+                // This migration should be performed before initializing other services, independent if a solution or a folder is opened.
+                await MigrateBindingsToServerConnectionsIfNeededAsync();
 
                 await MuteIssueCommand.InitializeAsync(this, logger);
                 await DisableRuleCommand.InitializeAsync(this, logger);
@@ -113,10 +114,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             logger?.WriteLine(Strings.Daemon_InitializationComplete);
         }
-
-        /// <summary>
-        /// This migration should be performed before initializing other services, independent if a solution or a folder is opened.
-        /// </summary>
+        
         private async Task MigrateBindingsToServerConnectionsIfNeededAsync()
         {
             var bindingToConnectionMigration = await this.GetMefServiceAsync<IBindingToConnectionMigration>();
