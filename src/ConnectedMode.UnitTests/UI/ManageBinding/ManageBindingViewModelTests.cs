@@ -35,6 +35,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageBinding;
 [TestClass]
 public class ManageBindingViewModelTests
 {
+    private const string ALocalProjectKey = "local-project-key";
+    
     private readonly ServerProject serverProject = new ("a-project", "A Project");
     private readonly ConnectionInfo sonarQubeConnectionInfo = new ("http://localhost:9000", ConnectionServerType.SonarQube);
     private readonly ConnectionInfo sonarCloudConnectionInfo = new ("organization", ConnectionServerType.SonarCloud);
@@ -754,7 +756,7 @@ public class ManageBindingViewModelTests
     {
         expectedServerProject ??= serverProject;
         
-        var boundServerProject = new BoundServerProject("local-project-key", expectedServerProject.Key, serverConnection);
+        var boundServerProject = new BoundServerProject(ALocalProjectKey, expectedServerProject.Key, serverConnection);
         var configurationProvider = Substitute.For<IConfigurationProvider>();
         configurationProvider.GetConfiguration().Returns(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));
         connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
@@ -763,7 +765,7 @@ public class ManageBindingViewModelTests
             callInfo[1] = serverConnection;
             return true;
         });
-        solutionInfoProvider.GetSolutionNameAsync().Returns("local-project-key");
+        solutionInfoProvider.GetSolutionNameAsync().Returns(ALocalProjectKey);
         
         MockGetServerProjectByKey(true, expectedServerProject);
     }
@@ -779,7 +781,7 @@ public class ManageBindingViewModelTests
     
     private void SetupBoundProjectThatDoesNotExistOnServer(ServerConnection serverConnection)
     {
-        var boundServerProject = new BoundServerProject("local-project-key", "a-server-project", serverConnection);
+        var boundServerProject = new BoundServerProject(ALocalProjectKey, "a-server-project", serverConnection);
         var configurationProvider = Substitute.For<IConfigurationProvider>();
         configurationProvider.GetConfiguration().Returns(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));
         connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
