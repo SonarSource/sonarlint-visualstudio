@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
+
 namespace SonarLint.VisualStudio.Core.Binding;
 
 public abstract class ServerConnection
@@ -48,16 +50,29 @@ public abstract class ServerConnection
 
     public sealed class SonarCloud : ServerConnection
     {
-        public SonarCloud(string organizationKey, ServerConnectionSettings settings = null, ICredentials credentials = null) : base(organizationKey, settings, credentials)
+        private const string SonarCloudUrl = "https://sonarcloud.io";
+        
+        public SonarCloud(string organizationKey, ServerConnectionSettings settings = null, ICredentials credentials = null)
+            : base(OrganizationKeyToId(organizationKey), settings, credentials)
         {
-            OrganizationKey = organizationKey ?? throw new ArgumentNullException(nameof(organizationKey));
-            CredentialsUri = new Uri(ServerUri, $"organizations/{organizationKey}");
+            OrganizationKey = organizationKey;
+            CredentialsUri = new Uri(Id);
         }
 
-        public string OrganizationKey { get; } 
+        public string OrganizationKey { get; }
         
-        public override Uri ServerUri { get; } = new("https://sonarcloud.io");
+        public override Uri ServerUri => new (SonarCloudUrl);
         public override Uri CredentialsUri { get; }
+
+        private static string OrganizationKeyToId(string organizationKey)
+        {
+            if (string.IsNullOrWhiteSpace(organizationKey))
+            {
+                throw new ArgumentNullException(nameof(organizationKey));
+            }
+
+            return $"{SonarCloudUrl}/organizations/{organizationKey}";
+        }
     }
     
     public sealed class SonarQube(Uri serverUri, ServerConnectionSettings settings = null, ICredentials credentials = null)
