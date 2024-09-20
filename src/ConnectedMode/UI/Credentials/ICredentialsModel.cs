@@ -19,18 +19,34 @@
  */
 
 using System.Security;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 
-public interface ICredentialsModel {}
+public interface ICredentialsModel
+{
+    ICredentials ToICredentials();
+}
 
 public class TokenCredentialsModel(SecureString token) : ICredentialsModel
 {
     public SecureString Token { get; } = token;
+
+    public ICredentials ToICredentials()
+    {
+        return new BasicAuthCredentials(Token.ToUnsecureString(), new SecureString());
+    }
 }
 
 public class UsernamePasswordModel(string username, SecureString password) : ICredentialsModel
 {
     public string Username { get; } = username;
     public SecureString Password { get; } = password;
+    
+    public ICredentials ToICredentials()
+    {
+        return new BasicAuthCredentials(Username, Password);
+    }
 }

@@ -86,7 +86,7 @@ public class ProjectSelectionViewModel(
             return new AdapterResponseWithData<List<ServerProject>>(false, null);
         }
 
-        return await connectedModeServices.SlCoreConnectionAdapter.GetAllProjectsAsync(ConnectionInfo, serverConnection.Credentials);
+        return await connectedModeServices.SlCoreConnectionAdapter.GetAllProjectsAsync(serverConnection);
     }
 
     internal void InitProjects(AdapterResponseWithData<List<ServerProject>> response)

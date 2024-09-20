@@ -250,9 +250,10 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         {
             return new AdapterResponse(false);
         }
+        
+        var response = await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(serverConnection, boundServerProject.ServerProjectKey);
+        
         SelectedConnectionInfo = ConnectionInfo.From(serverConnection);
-
-        var response = await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(serverConnection.Credentials, SelectedConnectionInfo, boundServerProject.ServerProjectKey);
         SelectedProject = response.ResponseData;
         BoundProject = SelectedProject;
         return new AdapterResponse(BoundProject != null);
