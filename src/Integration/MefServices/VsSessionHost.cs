@@ -102,16 +102,8 @@ namespace SonarLint.VisualStudio.Integration
         public event EventHandler ActiveSectionChanged;
 
         public IStateManager VisualStateManager { get; }
-        public SharedBindingConfigModel SharedBindingConfig { get; private set; }
 
         public ISonarQubeService SonarQubeService { get; }
-
-        public Credential GetCredentialsForSharedConfig()
-        {
-            return SharedBindingConfig == null 
-                ? null 
-                : credentialStoreService.ReadCredentials(SharedBindingConfig.Uri);
-        }
 
         public ISectionController ActiveSection { get; private set; }
 
@@ -233,8 +225,6 @@ namespace SonarLint.VisualStudio.Integration
 
         private void ApplyBindingInformation(BindingConfiguration bindingConfig)
         {
-            SharedBindingConfig = null;
-
             // Set the project key that should become bound once the connection workflow has completed
             this.VisualStateManager.BoundProjectKey = bindingConfig.Project.ServerProjectKey;
             this.VisualStateManager.BoundProjectName = bindingConfig.Project.ServerProjectKey;
