@@ -19,7 +19,10 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.MefServices;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
@@ -33,6 +36,7 @@ public class SharedBindingSuggestionServiceTests
     private ISuggestSharedBindingGoldBar suggestSharedBindingGoldBar;
     private IConnectedModeServices connectedModeServices;
     private IConnectedModeBindingServices connectedModeBindingServices;
+    private IActiveSolutionTracker activeSolutionTracker;
 
     [TestInitialize]
     public void TestInitialize()
@@ -40,8 +44,9 @@ public class SharedBindingSuggestionServiceTests
         suggestSharedBindingGoldBar = Substitute.For<ISuggestSharedBindingGoldBar>();
         connectedModeServices = Substitute.For<IConnectedModeServices>();
         connectedModeBindingServices = Substitute.For<IConnectedModeBindingServices>();
+        activeSolutionTracker = Substitute.For<IActiveSolutionTracker>();
 
-        testSubject = new SharedBindingSuggestionService(suggestSharedBindingGoldBar, connectedModeServices, connectedModeBindingServices);
+        testSubject = new SharedBindingSuggestionService(suggestSharedBindingGoldBar, connectedModeServices, connectedModeBindingServices, activeSolutionTracker);
     }
 
     [TestMethod]
@@ -50,7 +55,8 @@ public class SharedBindingSuggestionServiceTests
         MefTestHelpers.CheckTypeCanBeImported<SharedBindingSuggestionService, ISharedBindingSuggestionService>(
             MefTestHelpers.CreateExport<ISuggestSharedBindingGoldBar>(),
             MefTestHelpers.CreateExport<IConnectedModeServices>(),
-            MefTestHelpers.CreateExport<IConnectedModeBindingServices>());
+            MefTestHelpers.CreateExport<IConnectedModeBindingServices>(),
+            MefTestHelpers.CreateExport<IActiveSolutionTracker>());
     }
 
     [TestMethod]
@@ -60,26 +66,74 @@ public class SharedBindingSuggestionServiceTests
     }
 
     [TestMethod]
-    public void Suggest_HasServerType_ShowsGoldBar()
+    public void Suggest_SharedBindingExistsAndIsStandalone_ShowsGoldBar()
     {
-        testSubject.Suggest(ServerType.SonarQube);
+        MockSharedBindingConfigExists();
+        MockSolutionMode(SonarLintMode.Standalone);
+
+        testSubject.Suggest();
         
         suggestSharedBindingGoldBar.Received(1).Show(ServerType.SonarQube, Arg.Any<Action>());
     }
 
     [TestMethod]
-    public void Suggest_NoServerType_DoesNotCallGoldBar()
+    public void Suggest_SharedBindingExistsAndIsConnected_DoesNotShowGoldBar()
     {
-        testSubject.Suggest(null);
-        
-        suggestSharedBindingGoldBar.DidNotReceive().Show(Arg.Any<ServerType>(), Arg.Any<Action>());
+        MockSharedBindingConfigExists();
+        MockSolutionMode(SonarLintMode.Connected);
+
+        testSubject.Suggest();
+
+        suggestSharedBindingGoldBar.DidNotReceive().Show(ServerType.SonarQube, Arg.Any<Action>());
     }
 
     [TestMethod]
-    public void Close_ClosesGoldBar()
+    public void Suggest_SharedBindingDoesNotExistAndIsStandAlone_DoesNotShowGoldBar()
     {
-        testSubject.Close();
+        MockSolutionMode(SonarLintMode.Standalone);
 
-        suggestSharedBindingGoldBar.Received(1).Close();
+        testSubject.Suggest();
+
+        suggestSharedBindingGoldBar.DidNotReceive().Show(ServerType.SonarQube, Arg.Any<Action>());
     }
+
+    [TestMethod]
+    public void ActiveSolutionChanged_SolutionIsOpened_ShowsGoldBar()
+    {
+        MockSharedBindingConfigExists();
+        MockSolutionMode(SonarLintMode.Standalone);
+        
+        RaiseActiveSolutionChanged(true);
+
+        suggestSharedBindingGoldBar.Received(1).Show(ServerType.SonarQube, Arg.Any<Action>());
+    }
+
+    [TestMethod]
+    public void ActiveSolutionChanged_SolutionIsOpened_DoesNotShowGoldBar()
+    {
+        MockSharedBindingConfigExists();
+        MockSolutionMode(SonarLintMode.Standalone);
+        
+        RaiseActiveSolutionChanged(false);
+
+        suggestSharedBindingGoldBar.DidNotReceive().Show(ServerType.SonarQube, Arg.Any<Action>());
+    }
+
+    private void RaiseActiveSolutionChanged(bool isSolutionOpened)
+    {
+        activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(isSolutionOpened));
+    }
+
+    private void MockSolutionMode(SonarLintMode mode)
+    {
+        connectedModeServices.ConfigurationProvider.GetConfiguration().Returns(new BindingConfiguration(null, mode, string.Empty));
+    }
+
+    private void MockSharedBindingConfigExists()
+    {
+        connectedModeBindingServices.SharedBindingConfigProvider.GetSharedBinding().Returns(new SharedBindingConfigModel());
+    }
+
+
+
 }

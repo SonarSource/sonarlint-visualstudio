@@ -21,17 +21,18 @@
 using System.ComponentModel.Composition;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.MefServices
 {
-    internal interface ISharedBindingSuggestionService
+    public interface ISharedBindingSuggestionService : IDisposable
     {
-        void Suggest(ServerType? serverType);
-
-        void Close();
+        void Suggest();
     }
     
     [Export(typeof(ISharedBindingSuggestionService))]
@@ -41,35 +42,67 @@ namespace SonarLint.VisualStudio.Integration.MefServices
         private readonly ISuggestSharedBindingGoldBar suggestSharedBindingGoldBar;
         private readonly IConnectedModeServices connectedModeServices;
         private readonly IConnectedModeBindingServices connectedModeBindingServices;
+        private readonly IActiveSolutionTracker activeSolutionTracker;
+        private bool disposed;
 
         [ImportingConstructor]
-        public SharedBindingSuggestionService(ISuggestSharedBindingGoldBar suggestSharedBindingGoldBar,
+        public SharedBindingSuggestionService(
+            ISuggestSharedBindingGoldBar suggestSharedBindingGoldBar,
             IConnectedModeServices connectedModeServices,
-            IConnectedModeBindingServices connectedModeBindingServices)
+            IConnectedModeBindingServices connectedModeBindingServices,
+            IActiveSolutionTracker activeSolutionTracker)
         {
             this.suggestSharedBindingGoldBar = suggestSharedBindingGoldBar;
             this.connectedModeServices = connectedModeServices;
             this.connectedModeBindingServices = connectedModeBindingServices;
+            this.activeSolutionTracker = activeSolutionTracker;
+
+            this.activeSolutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
         }
-        
-        public void Suggest(ServerType? serverType)
+
+        public void Suggest()
         {
-            if (serverType == null)
+            var sharedBindingConfig = connectedModeBindingServices.SharedBindingConfigProvider.GetSharedBinding();
+            var isStandalone = connectedModeServices.ConfigurationProvider.GetConfiguration().Mode == SonarLintMode.Standalone;
+
+            if (sharedBindingConfig?.GetServerType() is { } serverType && isStandalone)
+            {
+                suggestSharedBindingGoldBar.Show(serverType, ShowManageBindingDialog);
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void ShowManageBindingDialog()
+        {
+            var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices);
+            manageBindingDialog.ShowDialog(Application.Current.MainWindow);
+        }
+
+        private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
+        {
+            if (e.IsSolutionOpen)
+            {
+                Suggest();
+            }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed)
             {
                 return;
             }
-            
-            suggestSharedBindingGoldBar.Show(serverType.Value, AutoBind);
-        }
 
-        public void Close()
-        {
-            suggestSharedBindingGoldBar.Close();
-        }
-
-        private void AutoBind()
-        {
-            new ManageBindingDialog(connectedModeServices, connectedModeBindingServices).ShowDialog(Application.Current.MainWindow);
+            disposed = true;
+            if (disposing)
+            {
+                activeSolutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
+            }
         }
     }
 }
