@@ -19,6 +19,7 @@
  */
 
 using System.Collections.ObjectModel;
+using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
@@ -179,6 +180,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGetServerConnectionById(connectionId, out var serverConnection))
         {
             connectedModeServices.Logger.WriteLine(ConnectedMode.Resources.UseSharedBinding_ConnectionNotFound, connectionId);
+            connectedModeServices.MessageBox.Show(UiResources.NotFoundConnectionForSharedBindingMessageBoxText, UiResources.NotFoundConnectionForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
             return new AdapterResponse(false);
         }
 

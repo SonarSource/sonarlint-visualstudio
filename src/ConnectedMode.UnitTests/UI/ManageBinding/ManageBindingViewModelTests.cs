@@ -56,6 +56,7 @@ public class ManageBindingViewModelTests
     private ILogger logger;
     private IConnectedModeBindingServices connectedModeBindingServices;
     private ISharedBindingConfigProvider sharedBindingConfigProvider;
+    private IMessageBox messageBox;
 
     [TestInitialize]
     public void TestInitialize()
@@ -827,6 +828,7 @@ public class ManageBindingViewModelTests
         var response = await testSubject.UseSharedBindingAsync();
 
         response.Success.Should().BeFalse();
+        messageBox.Received(1).Show(UiResources.NotFoundConnectionForSharedBindingMessageBoxText, UiResources.NotFoundConnectionForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
         logger.WriteLine(Resources.UseSharedBinding_ConnectionNotFound, testSubject.SharedBindingConfigModel.Uri);
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
@@ -843,6 +845,7 @@ public class ManageBindingViewModelTests
 
         response.Success.Should().BeFalse();
         logger.WriteLine(Resources.UseSharedBinding_ConnectionNotFound, testSubject.SharedBindingConfigModel.Organization);
+        messageBox.Received(1).Show(UiResources.NotFoundConnectionForSharedBindingMessageBoxText, UiResources.NotFoundConnectionForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
@@ -866,10 +869,12 @@ public class ManageBindingViewModelTests
         serverConnectionsRepositoryAdapter = Substitute.For<IServerConnectionsRepositoryAdapter>();
         threadHandling = Substitute.For<IThreadHandling>();
         logger = Substitute.For<ILogger>();
+        messageBox = Substitute.For<IMessageBox>();
 
         connectedModeServices.ServerConnectionsRepositoryAdapter.Returns(serverConnectionsRepositoryAdapter);
         connectedModeServices.ThreadHandling.Returns(threadHandling);
         connectedModeServices.Logger.Returns(logger);
+        connectedModeServices.MessageBox.Returns(messageBox);
 
         bindingController = Substitute.For<IBindingController>();
         solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
