@@ -525,8 +525,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         
         private void CheckSuggestionShowCalledTimes(int count, ServerType? serverType = ServerType.SonarQube)
         {
-            sharedBindingSuggestionService.Verify(x => x.Suggest(serverType ?? It.IsAny<ServerType?>(),
-                    It.IsAny<Func<ICommand<ConnectConfiguration>>>()),
+            sharedBindingSuggestionService.Verify(x => x.Suggest(serverType ?? It.IsAny<ServerType?>()),
                 Times.Exactly(count));
             sharedBindingSuggestionService.VerifyNoOtherCalls();
         }

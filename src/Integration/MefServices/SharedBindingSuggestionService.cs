@@ -18,20 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
+using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
-using SonarLint.VisualStudio.ConnectedMode.Shared;
-using SonarLint.VisualStudio.Integration.Connection;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.WPF;
+using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.MefServices
 {
     internal interface ISharedBindingSuggestionService
     {
-        void Suggest(ServerType? serverType, Func<ICommand<ConnectConfiguration>> connectCommandProvider);
+        void Suggest(ServerType? serverType);
 
         void Close();
     }
@@ -40,31 +38,28 @@ namespace SonarLint.VisualStudio.Integration.MefServices
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class SharedBindingSuggestionService : ISharedBindingSuggestionService
     {
-        internal /* for testing */ readonly ConnectConfiguration autobindEnabledConfiguration =
-            new ConnectConfiguration { UseSharedBinding = true };
-
         private readonly ISuggestSharedBindingGoldBar suggestSharedBindingGoldBar;
-        private readonly ITeamExplorerController teamExplorerController;
-        private readonly IConnectedModeWindowEventBasedScheduler connectedModeWindowEventBasedScheduler;
+        private readonly IConnectedModeServices connectedModeServices;
+        private readonly IConnectedModeBindingServices connectedModeBindingServices;
 
         [ImportingConstructor]
         public SharedBindingSuggestionService(ISuggestSharedBindingGoldBar suggestSharedBindingGoldBar,
-            ITeamExplorerController teamExplorerController,
-            IConnectedModeWindowEventBasedScheduler connectedModeWindowEventBasedScheduler)
+            IConnectedModeServices connectedModeServices,
+            IConnectedModeBindingServices connectedModeBindingServices)
         {
             this.suggestSharedBindingGoldBar = suggestSharedBindingGoldBar;
-            this.teamExplorerController = teamExplorerController;
-            this.connectedModeWindowEventBasedScheduler = connectedModeWindowEventBasedScheduler;
+            this.connectedModeServices = connectedModeServices;
+            this.connectedModeBindingServices = connectedModeBindingServices;
         }
         
-        public void Suggest(ServerType? serverType, Func<ICommand<ConnectConfiguration>> connectCommandProvider)
+        public void Suggest(ServerType? serverType)
         {
             if (serverType == null)
             {
                 return;
             }
             
-            suggestSharedBindingGoldBar.Show(serverType.Value, () => ConnectAfterTeamExplorerInitialized(connectCommandProvider));
+            suggestSharedBindingGoldBar.Show(serverType.Value, AutoBind);
         }
 
         public void Close()
@@ -72,33 +67,9 @@ namespace SonarLint.VisualStudio.Integration.MefServices
             suggestSharedBindingGoldBar.Close();
         }
 
-        private void ConnectAfterTeamExplorerInitialized(Func<ICommand<ConnectConfiguration>> connectCommandProvider)
+        private void AutoBind()
         {
-            if (IsConnectedModeWindowLoaded(connectCommandProvider, out var connectCommand))
-            {
-                teamExplorerController.ShowSonarQubePage();
-                Autobind(connectCommand);
-            }
-            else
-            {
-                connectedModeWindowEventBasedScheduler.ScheduleActionOnNextEvent(() => Autobind(connectCommandProvider()));
-                teamExplorerController.ShowSonarQubePage();
-            }
-        }
-
-        private bool IsConnectedModeWindowLoaded(Func<ICommand<ConnectConfiguration>> connectCommandProvider,
-            out ICommand<ConnectConfiguration> connectCommand)
-        {
-            connectCommand = connectCommandProvider();
-            return connectCommand != null;
-        }
-        
-        private void Autobind(ICommand<ConnectConfiguration> connectCommand)
-        {
-            if (connectCommand?.CanExecute(autobindEnabledConfiguration) ?? false)
-            {
-                connectCommand.Execute(autobindEnabledConfiguration);
-            }
+            new ManageBindingDialog(connectedModeServices, connectedModeBindingServices).ShowDialog(Application.Current.MainWindow);
         }
     }
 }

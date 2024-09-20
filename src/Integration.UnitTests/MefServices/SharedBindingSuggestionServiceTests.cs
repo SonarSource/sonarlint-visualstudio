@@ -18,15 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
-using SonarLint.VisualStudio.Integration.Connection;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Integration.MefServices;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 
@@ -35,13 +29,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.MefServices;
 [TestClass]
 public class SharedBindingSuggestionServiceTests
 {
+    private SharedBindingSuggestionService testSubject;
+    private ISuggestSharedBindingGoldBar suggestSharedBindingGoldBar;
+    private IConnectedModeServices connectedModeServices;
+    private IConnectedModeBindingServices connectedModeBindingServices;
+
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        suggestSharedBindingGoldBar = Substitute.For<ISuggestSharedBindingGoldBar>();
+        connectedModeServices = Substitute.For<IConnectedModeServices>();
+        connectedModeBindingServices = Substitute.For<IConnectedModeBindingServices>();
+
+        testSubject = new SharedBindingSuggestionService(suggestSharedBindingGoldBar, connectedModeServices, connectedModeBindingServices);
+    }
+
     [TestMethod]
     public void MefCtor_CheckExports()
     {
         MefTestHelpers.CheckTypeCanBeImported<SharedBindingSuggestionService, ISharedBindingSuggestionService>(
             MefTestHelpers.CreateExport<ISuggestSharedBindingGoldBar>(),
-            MefTestHelpers.CreateExport<ITeamExplorerController>(),
-            MefTestHelpers.CreateExport<IConnectedModeWindowEventBasedScheduler>());
+            MefTestHelpers.CreateExport<IConnectedModeServices>(),
+            MefTestHelpers.CreateExport<IConnectedModeBindingServices>());
     }
 
     [TestMethod]
@@ -51,97 +60,26 @@ public class SharedBindingSuggestionServiceTests
     }
 
     [TestMethod]
-    public void ConnectAfterTeamExplorerInitialized_ConnectedModeWindowLoaded_NotLoaded_ConnectScheduledForLater()
-    {
-        var testSubject = CreateTestSubject(out var bindingGoldBar, out var teamExplorerController, out var scheduler);
-        testSubject.Suggest(ServerType.SonarQube, () => null);
-
-        var callSequence = new MockSequence();
-
-        scheduler.InSequence(callSequence).Setup(x => x.ScheduleActionOnNextEvent(It.IsAny<Action>()));
-        teamExplorerController.InSequence(callSequence).Setup(x => x.ShowSonarQubePage());
-        
-        CallConnectHandler(bindingGoldBar);
-        
-        scheduler.Verify(x => x.ScheduleActionOnNextEvent(It.IsAny<Action>()), Times.Once);
-        scheduler.VerifyNoOtherCalls();
-        teamExplorerController.Verify(x => x.ShowSonarQubePage(), Times.Once);
-        teamExplorerController.VerifyNoOtherCalls();
-    }
-
-    [TestMethod]
-    public void ConnectAfterTeamExplorerInitialized_ConnectedModeWindowLoaded_CallsConnectCommand()
-    {
-        var testSubject = CreateTestSubject(out var bindingGoldBar, out var teamExplorerController, out var scheduler);
-        testSubject.Suggest(ServerType.SonarQube, CreateConnectCommandProvider(out var connectCommand));
-
-        var callSequence = new MockSequence();
-
-        teamExplorerController.InSequence(callSequence).Setup(x => x.ShowSonarQubePage());
-        connectCommand.InSequence(callSequence)
-            .Setup(x => x.CanExecute(testSubject.autobindEnabledConfiguration))
-            .Returns(true);
-        connectCommand.InSequence(callSequence)
-            .Setup(x => x.Execute(testSubject.autobindEnabledConfiguration));
-        
-        CallConnectHandler(bindingGoldBar);
-        
-        scheduler.VerifyNoOtherCalls();
-        teamExplorerController.Verify(x => x.ShowSonarQubePage(), Times.Once);
-        teamExplorerController.VerifyNoOtherCalls();
-        connectCommand.Verify(x => x.CanExecute(testSubject.autobindEnabledConfiguration), Times.Once);
-        connectCommand.Verify(x => x.Execute(testSubject.autobindEnabledConfiguration), Times.Once);
-        connectCommand.VerifyNoOtherCalls();
-    }
-
-    [TestMethod]
     public void Suggest_HasServerType_ShowsGoldBar()
     {
-        var testSubject = CreateTestSubject(out var bindingGoldBar, out _, out _);
+        testSubject.Suggest(ServerType.SonarQube);
         
-        testSubject.Suggest(ServerType.SonarQube, CreateConnectCommandProvider(out _));
-        
-        bindingGoldBar.Verify(x => x.Show(ServerType.SonarQube, It.IsAny<Action>()), Times.Once);
+        suggestSharedBindingGoldBar.Received(1).Show(ServerType.SonarQube, Arg.Any<Action>());
     }
 
     [TestMethod]
     public void Suggest_NoServerType_DoesNotCallGoldBar()
     {
-        var testSubject = CreateTestSubject(out var bindingGoldBar, out _, out _);
+        testSubject.Suggest(null);
         
-        testSubject.Suggest(null, CreateConnectCommandProvider(out _));
-        
-        bindingGoldBar.Verify(x => x.Show(It.IsAny<ServerType>(), It.IsAny<Action>()), Times.Never);
+        suggestSharedBindingGoldBar.DidNotReceive().Show(Arg.Any<ServerType>(), Arg.Any<Action>());
     }
 
     [TestMethod]
     public void Close_ClosesGoldBar()
     {
-        var testSubject = CreateTestSubject(out var bindingGoldBar, out _, out _);
-        
         testSubject.Close();
 
-        bindingGoldBar.Verify(x => x.Close());
-    }
-
-    private void CallConnectHandler(Mock<ISuggestSharedBindingGoldBar> mock)
-    {
-        ((Action)mock.Invocations.Single().Arguments[1])();
-    }
-    
-    private Func<ICommand<ConnectConfiguration>> CreateConnectCommandProvider(out Mock<ICommand<ConnectConfiguration>> connectCommandMock)
-    {
-        var commandMock = new Mock<ICommand<ConnectConfiguration>>();
-        connectCommandMock = commandMock;
-        return () => commandMock.Object;
-    }
-    
-    private SharedBindingSuggestionService CreateTestSubject(out Mock<ISuggestSharedBindingGoldBar> bindingGoldBar, 
-        out Mock<ITeamExplorerController> teamExplorerController,
-        out Mock<IConnectedModeWindowEventBasedScheduler> connectedModeWindowEventBasedScheduler)
-    {
-        return new SharedBindingSuggestionService((bindingGoldBar = new Mock<ISuggestSharedBindingGoldBar>()).Object,
-            (teamExplorerController = new Mock<ITeamExplorerController>()).Object,
-            (connectedModeWindowEventBasedScheduler = new Mock<IConnectedModeWindowEventBasedScheduler>()).Object);
+        suggestSharedBindingGoldBar.Received(1).Close();
     }
 }

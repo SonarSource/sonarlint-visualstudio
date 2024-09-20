@@ -255,7 +255,7 @@ namespace SonarLint.VisualStudio.Integration
             VisualStateManager.HasSharedBinding = SharedBindingConfig != null;
             VisualStateManager.ResetConnectionConfiguration();
 
-            sharedBindingSuggestionService.Suggest(SharedBindingConfig.GetServerType(),() => this.ActiveSection?.ConnectCommand);
+            sharedBindingSuggestionService.Suggest(SharedBindingConfig.GetServerType());
         }
 
         private void ClearCurrentBinding()
