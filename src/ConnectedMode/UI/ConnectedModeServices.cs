@@ -33,6 +33,7 @@ public interface IConnectedModeServices
     public ISlCoreConnectionAdapter SlCoreConnectionAdapter { get; } 
     public IConfigurationProvider ConfigurationProvider { get; } 
     public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; }
+    public IMessageBox MessageBox { get; }
 }
 
 [Export(typeof(IConnectedModeServices))]
@@ -44,10 +45,12 @@ public class ConnectedModeServices(
     ISlCoreConnectionAdapter slCoreConnectionAdapter,
     IConfigurationProvider configurationProvider,
     IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter,
+    IMessageBox messageBox,
     ILogger logger)
     : IConnectedModeServices
 {
     public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; } = serverConnectionsRepositoryAdapter;
+    public IMessageBox MessageBox { get; } = messageBox;
     public IBrowserService BrowserService { get; } = browserService;
     public IThreadHandling ThreadHandling { get; } = threadHandling;
     public ILogger Logger { get; } = logger;

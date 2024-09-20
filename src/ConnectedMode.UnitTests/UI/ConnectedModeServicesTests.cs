@@ -22,7 +22,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.ConnectedMode.Shared;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 
@@ -38,6 +37,7 @@ public class ConnectedModeServicesTests
             MefTestHelpers.CreateExport<ISlCoreConnectionAdapter>(),
             MefTestHelpers.CreateExport<IConfigurationProvider>(),
             MefTestHelpers.CreateExport<IServerConnectionsRepositoryAdapter>(),
+            MefTestHelpers.CreateExport<IMessageBox>(),
             MefTestHelpers.CreateExport<ILogger>());
     }
 }
