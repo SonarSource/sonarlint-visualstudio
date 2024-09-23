@@ -40,7 +40,6 @@ public interface IBindingToConnectionMigration
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class BindingToConnectionMigration : IBindingToConnectionMigration
 {
-    private readonly IFileSystem fileSystem;
     private readonly IServerConnectionsRepository serverConnectionsRepository;
     private readonly ILegacySolutionBindingRepository legacyBindingRepository;
     private readonly ISolutionBindingRepository solutionBindingRepository;
