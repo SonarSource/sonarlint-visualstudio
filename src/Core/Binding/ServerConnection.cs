@@ -50,7 +50,7 @@ public abstract class ServerConnection
 
     public sealed class SonarCloud : ServerConnection
     {
-        private const string SonarCloudUrl = "https://sonarcloud.io";
+        private static readonly string SonarCloudUrl = CoreStrings.SonarCloudUrl;
         
         public SonarCloud(string organizationKey, ServerConnectionSettings settings = null, ICredentials credentials = null)
             : base(OrganizationKeyToId(organizationKey), settings, credentials)
