@@ -228,6 +228,6 @@
     <value>[Connection Migration] The server connection with the id {0} was not migrated as it already exists.</value>
   </data>
   <data name="ConnectionsJson_DoesNotExist" xml:space="preserve">
-    <value>[Migration]   - Connections.json file does not exist. The new migration has to be performed first.</value>
+    <value>[Migration] Connections.json file does not exist. The new migration has to be performed first.</value>
   </data>
 </root>
