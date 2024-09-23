@@ -24,13 +24,12 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.ConnectedMode.Persistence;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration;
 
 public interface IBindingToConnectionMigration
 {
-    Task MigrateBindingToServerConnectionIfNeededAsync();
+    Task MigrateAllBindingsToServerConnectionsIfNeededAsync();
 }
 
 /// <summary>
@@ -84,7 +83,7 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
         this.logger = logger;
     }
 
-    public Task MigrateBindingToServerConnectionIfNeededAsync()
+    public Task MigrateAllBindingsToServerConnectionsIfNeededAsync()
     {
         return threadHandling.RunOnBackgroundThread(MigrateBindingToServerConnectionIfNeeded);
     }
