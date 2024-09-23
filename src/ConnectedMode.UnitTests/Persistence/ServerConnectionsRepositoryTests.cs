@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using System.IO.Abstractions;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
@@ -40,6 +41,7 @@ public class ServerConnectionsRepositoryTests
     private ISolutionBindingCredentialsLoader credentialsLoader;
     private readonly SonarCloud sonarCloudServerConnection = new("myOrganization", new ServerConnectionSettings(true), Substitute.For<ICredentials>());
     private readonly ServerConnection.SonarQube sonarQubeServerConnection = new(new Uri("http://localhost"), new ServerConnectionSettings(true), Substitute.For<ICredentials>());
+    private IFileSystem fileSystem;
 
     [TestInitialize]
     public void TestInitialize()
@@ -49,8 +51,9 @@ public class ServerConnectionsRepositoryTests
         credentialsLoader = Substitute.For<ISolutionBindingCredentialsLoader>();
         environmentVariableProvider = Substitute.For<IEnvironmentVariableProvider>();
         logger = Substitute.For<ILogger>();
+        fileSystem = Substitute.For<IFileSystem>();
 
-        testSubject = new ServerConnectionsRepository(jsonFileHandler, serverConnectionModelMapper, credentialsLoader, environmentVariableProvider, logger);
+        testSubject = new ServerConnectionsRepository(jsonFileHandler, serverConnectionModelMapper, credentialsLoader, environmentVariableProvider, fileSystem, logger);
     }
 
     [TestMethod]
@@ -535,6 +538,18 @@ public class ServerConnectionsRepositoryTests
 
         succeeded.Should().BeTrue();
         credentialsLoader.Received(1).Save(newCredentials, sonarQube.ServerUri);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void IsConnectionsFileExisting_ReturnsTrueOnlyIfTheConnectionsFileExists(bool fileExists)
+    {
+        fileSystem.File.Exists(Arg.Any<string>()).Returns(fileExists);
+
+        var result = testSubject.IsConnectionsFileExisting();
+
+        result.Should().Be(fileExists);
     }
 
     [TestMethod]

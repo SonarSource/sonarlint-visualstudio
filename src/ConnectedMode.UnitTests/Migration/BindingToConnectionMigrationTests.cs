@@ -18,13 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO.Abstractions;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Helpers;
 
@@ -34,7 +32,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration;
 public class BindingToConnectionMigrationTests
 {
     private BindingToConnectionMigration testSubject;
-    private IFileSystem fileSystem;
     private IServerConnectionsRepository serverConnectionsRepository;
     private ILegacySolutionBindingRepository legacyBindingRepository;
     private IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider;
@@ -45,7 +42,6 @@ public class BindingToConnectionMigrationTests
     [TestInitialize]
     public void TestInitialize()
     {
-        fileSystem = Substitute.For<IFileSystem>();
         serverConnectionsRepository = Substitute.For<IServerConnectionsRepository>();
         legacyBindingRepository = Substitute.For<ILegacySolutionBindingRepository>();
         solutionBindingRepository = Substitute.For<ISolutionBindingRepository>();
@@ -54,7 +50,6 @@ public class BindingToConnectionMigrationTests
         threadHandling = new NoOpThreadHandler();
 
         testSubject = new BindingToConnectionMigration(
-            fileSystem,
             serverConnectionsRepository,
             legacyBindingRepository,
             solutionBindingRepository,
@@ -85,7 +80,6 @@ public class BindingToConnectionMigrationTests
     {
         var mockedThreadHandling = Substitute.For<IThreadHandling>();
         var migrateBindingToServer = new BindingToConnectionMigration(
-            fileSystem,
             serverConnectionsRepository,
             legacyBindingRepository,
             solutionBindingRepository,
@@ -101,11 +95,11 @@ public class BindingToConnectionMigrationTests
     [TestMethod]
     public async Task MigrateBindingToServerConnectionIfNeeded_ConnectionsStorageFileExists_ShouldNotMigrate()
     {
-        fileSystem.File.Exists(serverConnectionsRepository.ConnectionsStorageFilePath).Returns(true);
+        serverConnectionsRepository.IsConnectionsFileExisting().Returns(true);
 
         await testSubject.MigrateAllBindingsToServerConnectionsIfNeededAsync();
 
-        fileSystem.File.Received(1).Exists(serverConnectionsRepository.ConnectionsStorageFilePath);
+        serverConnectionsRepository.Received(1).IsConnectionsFileExisting();
         serverConnectionsRepository.DidNotReceiveWithAnyArgs().TryAdd(default);
         unintrusiveBindingPathProvider.DidNotReceive().GetBindingPaths();
     }
@@ -119,7 +113,7 @@ public class BindingToConnectionMigrationTests
 
         Received.InOrder(() =>
         {
-            fileSystem.File.Exists(serverConnectionsRepository.ConnectionsStorageFilePath);
+            serverConnectionsRepository.IsConnectionsFileExisting();
             logger.WriteLine(MigrationStrings.ConnectionMigration_StartMigration);
             unintrusiveBindingPathProvider.GetBindingPaths();
             serverConnectionsRepository.TryAdd(Arg.Any<ServerConnection>());

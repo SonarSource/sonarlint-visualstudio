@@ -56,7 +56,6 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
         IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider,
         ILogger logger) : 
         this(
-            new FileSystem(),
             serverConnectionsRepository,
             legacyBindingRepository,
             solutionBindingRepository,
@@ -66,7 +65,6 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
     { }
 
     internal /* for testing */ BindingToConnectionMigration(
-        IFileSystem fileSystem,
         IServerConnectionsRepository serverConnectionsRepository,
         ILegacySolutionBindingRepository legacyBindingRepository,
         ISolutionBindingRepository solutionBindingRepository,
@@ -74,7 +72,6 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
         IThreadHandling threadHandling, 
         ILogger logger) 
     {
-        this.fileSystem = fileSystem;
         this.serverConnectionsRepository = serverConnectionsRepository;
         this.legacyBindingRepository = legacyBindingRepository;
         this.solutionBindingRepository = solutionBindingRepository;
@@ -90,7 +87,7 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
 
     private void MigrateBindingToServerConnectionIfNeeded()
     {
-        if (fileSystem.File.Exists(serverConnectionsRepository.ConnectionsStorageFilePath))
+        if (serverConnectionsRepository.IsConnectionsFileExisting())
         {
             return;
         }

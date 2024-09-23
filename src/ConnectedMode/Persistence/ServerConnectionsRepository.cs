@@ -22,6 +22,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 
@@ -35,12 +36,12 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
     internal const string ConnectionsFileName = "connections.json";
 
     private readonly ISolutionBindingCredentialsLoader credentialsLoader;
+    private readonly IFileSystem fileSystem;
     private readonly ILogger logger;
     private readonly IJsonFileHandler jsonFileHandle;
     private readonly IServerConnectionModelMapper serverConnectionModelMapper;
+    private readonly string connectionsStorageFilePath;
     private static readonly object LockObject = new();
-
-    public string ConnectionsStorageFilePath { get; }
 
     [ImportingConstructor]
     public ServerConnectionsRepository(
@@ -51,6 +52,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         serverConnectionModelMapper,
         new SolutionBindingCredentialsLoader(credentialStoreService),
         EnvironmentVariableProvider.Instance,
+        new FileSystem(),
         logger) { }
 
     internal /* for testing */ ServerConnectionsRepository(
@@ -58,13 +60,15 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         IServerConnectionModelMapper serverConnectionModelMapper,
         ISolutionBindingCredentialsLoader credentialsLoader,
         IEnvironmentVariableProvider environmentVariables,
+        IFileSystem fileSystem,
         ILogger logger)
     {
         this.jsonFileHandle = jsonFileHandle;
         this.serverConnectionModelMapper = serverConnectionModelMapper;
         this.credentialsLoader = credentialsLoader;
+        this.fileSystem = fileSystem;
         this.logger = logger;
-        ConnectionsStorageFilePath = GetStorageFilePath(environmentVariables);
+        connectionsStorageFilePath = GetStorageFilePath(environmentVariables);
     }
 
     public bool TryGet(string connectionId, out ServerConnection serverConnection)
@@ -133,6 +137,8 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         return false;
     }
 
+    public bool IsConnectionsFileExisting() => fileSystem.File.Exists(connectionsStorageFilePath);
+
     private bool TryAddConnection(List<ServerConnection> connections, ServerConnection connection)
     {
         if (connection.Credentials is null)
@@ -196,7 +202,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
     {
         try
         {
-            var model = jsonFileHandle.ReadFile<ServerConnectionsListJsonModel>(ConnectionsStorageFilePath);
+            var model = jsonFileHandle.ReadFile<ServerConnectionsListJsonModel>(connectionsStorageFilePath);
             return model.ServerConnections.Select(serverConnectionModelMapper.GetServerConnection).ToList();
         }
         catch (FileNotFoundException)
@@ -223,7 +229,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
                 if (tryUpdateConnectionModels(serverConnections))
                 {
                     var model = serverConnectionModelMapper.GetServerConnectionsListJsonModel(serverConnections);
-                    return jsonFileHandle.TryWriteToFile(ConnectionsStorageFilePath, model);
+                    return jsonFileHandle.TryWriteToFile(connectionsStorageFilePath, model);
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
