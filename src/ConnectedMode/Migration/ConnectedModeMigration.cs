@@ -267,13 +267,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private async Task BindWithMigrationAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
         {
+            // at this point we expect that the connections file exist, meaning that all the existing bindings are already migrated to the newer format
+            // if the file doesn't exist, creating it now will prevent the migration of all existing bindings.
+            // The order being important, we throw an exception. For more info see IBindingToConnectionMigration
+            if (!serverConnectionsRepository.IsConnectionsFileExisting())
+            {
+                throw new InvalidOperationException(MigrationStrings.ConnectionsJson_DoesNotExist);
+            }
+
             var proposedConnection = ServerConnection.FromBoundSonarQubeProject(project);
             if (proposedConnection is null)
             {
                 throw new InvalidOperationException(BindingStrings.UnintrusiveController_InvalidConnection);
             }
 
-            // at this point we expect that the connections were already migrated to the newer format. See IBindingToConnectionMigration
             var connection = GetExistingConnection(proposedConnection) ?? MigrateConnection(proposedConnection);
 
             await unintrusiveBindingController.BindAsync(BoundServerProject.FromBoundSonarQubeProject(project, await solutionInfoProvider.GetSolutionNameAsync(), connection), progress, token);

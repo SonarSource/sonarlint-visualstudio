@@ -319,6 +319,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var unintrusiveBindingController = new Mock<IUnintrusiveBindingController>();
             var convertedConnection = ServerConnection.FromBoundSonarQubeProject(AnyBoundProject);
             var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
+            serverConnectionsRepositoryMock.Setup(x => x.IsConnectionsFileExisting()).Returns(true);
             serverConnectionsRepositoryMock.Setup(x => x.TryAdd(convertedConnection)).Throws(new Exception());
 
             var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingController.Object, serverConnectionsRepository: serverConnectionsRepositoryMock.Object);
@@ -326,6 +327,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             Func<Task> act = async () => await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
 
             act.Should().Throw<InvalidOperationException>().WithMessage(BindingStrings.UnintrusiveController_CantMigrateConnection);
+        }
+
+        [TestMethod]
+        public void Migrate_ConnectionsJsonFileDoesNotExist_Throws()
+        {
+            var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
+            serverConnectionsRepositoryMock.Setup(mock => mock.IsConnectionsFileExisting()).Returns(false);
+            var testSubject = CreateTestSubject(serverConnectionsRepository: serverConnectionsRepositoryMock.Object);
+
+            Func<Task> act = async () => await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
+
+            act.Should().Throw<InvalidOperationException>().WithMessage(MigrationStrings.ConnectionsJson_DoesNotExist);
         }
 
         [TestMethod]
@@ -434,6 +447,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         {
             var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
             serverConnectionsRepositoryMock.Setup(x => x.TryAdd(It.IsAny<ServerConnection>())).Returns(true);
+            serverConnectionsRepositoryMock.Setup(x => x.IsConnectionsFileExisting()).Returns(true);
 
             return serverConnectionsRepositoryMock;
         }

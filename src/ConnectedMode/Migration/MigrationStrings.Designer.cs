@@ -142,6 +142,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Migration]   - Connections.json file does not exist. The new migration has to be performed first..
+        /// </summary>
+        internal static string ConnectionsJson_DoesNotExist {
+            get {
+                return ResourceManager.GetString("ConnectionsJson_DoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Migration] Error during migration: {0}
         ///  Run migration again with verbose logging enabled for more information..
         /// </summary>
