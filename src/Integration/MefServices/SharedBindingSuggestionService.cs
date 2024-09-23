@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
 
         private void ShowManageBindingDialog()
         {
-            var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices);
+            var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, useSharedBindingOnInitialization:true);
             manageBindingDialog.ShowDialog(Application.Current.MainWindow);
         }
 
