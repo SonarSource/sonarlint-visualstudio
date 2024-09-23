@@ -18,12 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
@@ -51,6 +46,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly ISharedBindingConfigProvider sharedBindingConfigProvider;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
+        private readonly ISolutionInfoProvider solutionInfoProvider;
+        private readonly IServerConnectionsRepository serverConnectionsRepository;
 
         // The user can have both the legacy and new connected mode files. In that case, we expect the SonarQubeService to already be connected.
         private bool isAlreadyConnectedToServer;
@@ -65,7 +62,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
             ISharedBindingConfigProvider sharedBindingConfigProvider,
             ILogger logger,
-            IThreadHandling threadHandling)
+            IThreadHandling threadHandling, 
+            ISolutionInfoProvider solutionInfoProvider,
+            IServerConnectionsRepository serverConnectionsRepository)
         {
             this.settingsProvider = settingsProvider;
             this.fileProvider = fileProvider;
@@ -78,6 +77,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             this.logger = logger;
             this.threadHandling = threadHandling;
+            this.solutionInfoProvider = solutionInfoProvider;
+            this.serverConnectionsRepository = serverConnectionsRepository;
         }
 
         public async Task MigrateAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, bool shareBinding, CancellationToken token)
@@ -136,7 +137,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             logger.WriteLine(MigrationStrings.Process_ProcessingNewBinding);
 
             var progressAdapter = new FixedStepsProgressToMigrationProgressAdapter(progress);
-            await unintrusiveBindingController.BindWithMigrationAsync(oldBinding, progressAdapter, token);
+            await BindWithMigrationAsync(oldBinding, progressAdapter, token);
 
             // Now make all of the files changes required to remove the legacy settings
             // i.e. update project files and delete .sonarlint folder
@@ -263,5 +264,30 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 await fileSystem.SaveAsync(file.Path, file.Content);
             }
         }
+
+        private async Task BindWithMigrationAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
+        {
+            var proposedConnection = ServerConnection.FromBoundSonarQubeProject(project);
+            if (proposedConnection is null)
+            {
+                throw new InvalidOperationException(BindingStrings.UnintrusiveController_InvalidConnection);
+            }
+
+            // at this point we expect that the connections were already migrated to the newer format. See IBindingToConnectionMigration
+            var connection = GetExistingConnection(proposedConnection) ?? MigrateConnection(proposedConnection);
+
+            await unintrusiveBindingController.BindAsync(BoundServerProject.FromBoundSonarQubeProject(project, await solutionInfoProvider.GetSolutionNameAsync(), connection), progress, token);
+        }
+
+        private ServerConnection GetExistingConnection(ServerConnection proposedConnection) =>
+            serverConnectionsRepository.TryGet(proposedConnection.Id, out var connection)
+                ? connection
+                : null;
+
+        private ServerConnection MigrateConnection(ServerConnection proposedConnection) =>
+            serverConnectionsRepository.TryAdd(proposedConnection)
+                ? proposedConnection
+                : throw new InvalidOperationException(BindingStrings.UnintrusiveController_CantMigrateConnection);
+
     }
 }

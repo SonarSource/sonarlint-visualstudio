@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
@@ -59,7 +55,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 MefTestHelpers.CreateExport<ISuppressionIssueStoreUpdater>(),
                 MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
                 MefTestHelpers.CreateExport<ILogger>(),
-                MefTestHelpers.CreateExport<IThreadHandling>());
+                MefTestHelpers.CreateExport<IThreadHandling>(),
+                MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
+                MefTestHelpers.CreateExport<IServerConnectionsRepository>());
         }
 
         [TestMethod]
@@ -261,12 +259,83 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         {
             var unintrusiveBindingController = new Mock<IUnintrusiveBindingController>();
             var cancellationToken = CancellationToken.None;
-            var migrationProgress = Mock.Of<IProgress<MigrationProgress>>();
-
             var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingController.Object);
-            await testSubject.MigrateAsync(AnyBoundProject, migrationProgress, false, cancellationToken);
 
-            unintrusiveBindingController.Verify(x => x.BindWithMigrationAsync(AnyBoundProject, It.IsAny<IProgress<FixedStepsProgress>>(), cancellationToken), Times.Once);
+            await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, cancellationToken);
+
+            unintrusiveBindingController.Verify(
+                x => x.BindAsync(
+                    It.Is<BoundServerProject>(proj => IsExpectedBoundServerProject(proj)), 
+                    It.IsAny<IProgress<FixedStepsProgress>>(), cancellationToken), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Migrate_ConnectionExists_EstablishesBinding()
+        {
+            var storedConnection = new ServerConnection.SonarQube(AnyBoundProject.ServerUri);
+            var unintrusiveBindingControllerMock = new Mock<IUnintrusiveBindingController>();
+            var serverConnectionsRepositoryMock = CreateServerConnectionsRepositoryMock();
+            MockIServerConnectionsRepositoryTryGet(serverConnectionsRepositoryMock, storedConnection.Id, storedConnection);
+            var solutionInfoProviderMock = CreateSolutionInfoProviderMock();
+            var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingControllerMock.Object,
+                serverConnectionsRepository: serverConnectionsRepositoryMock.Object, solutionInfoProvider: solutionInfoProviderMock.Object);
+
+            await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
+
+            serverConnectionsRepositoryMock.Verify(mock => mock.TryGet(storedConnection.Id, out It.Ref<ServerConnection>.IsAny), Times.Once);
+            serverConnectionsRepositoryMock.Verify(mock => mock.TryAdd(IsExpectedServerConnection(It.IsAny<ServerConnection>())), Times.Never);
+            solutionInfoProviderMock.Verify(mock => mock.GetSolutionNameAsync(), Times.Once);
+            unintrusiveBindingControllerMock.Verify(
+                x => x.BindAsync(
+                    It.Is<BoundServerProject>(proj => IsExpectedBoundServerProject(proj)),
+                    It.IsAny<IProgress<FixedStepsProgress>>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task Migrate_ConnectionDoesNotExist_AddsConnectionAndEstablishesBinding()
+        {
+            var unintrusiveBindingControllerMock = new Mock<IUnintrusiveBindingController>();
+            var convertedConnection = ServerConnection.FromBoundSonarQubeProject(AnyBoundProject);
+            var serverConnectionsRepositoryMock = CreateServerConnectionsRepositoryMock();
+            var solutionInfoProviderMock = CreateSolutionInfoProviderMock();
+            var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingControllerMock.Object,
+                serverConnectionsRepository: serverConnectionsRepositoryMock.Object, solutionInfoProvider: solutionInfoProviderMock.Object);
+            serverConnectionsRepositoryMock.Setup(x => x.TryAdd(IsExpectedServerConnection(convertedConnection))).Returns(true);
+
+            await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
+
+            serverConnectionsRepositoryMock.Verify(mock => mock.TryGet(convertedConnection.Id, out It.Ref<ServerConnection>.IsAny), Times.Once);
+            serverConnectionsRepositoryMock.Verify(mock => mock.TryAdd(IsExpectedServerConnection(convertedConnection)), Times.Once);
+            solutionInfoProviderMock.Verify(mock => mock.GetSolutionNameAsync(), Times.Once);
+            unintrusiveBindingControllerMock.Verify(
+                x => x.BindAsync(
+                    It.Is<BoundServerProject>(proj => IsExpectedBoundServerProject(proj)),
+                    It.IsAny<IProgress<FixedStepsProgress>>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void Migrate_ConnectionDoesNotExist_CannotAdd_Throws()
+        {
+            var unintrusiveBindingController = new Mock<IUnintrusiveBindingController>();
+            var convertedConnection = ServerConnection.FromBoundSonarQubeProject(AnyBoundProject);
+            var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
+            serverConnectionsRepositoryMock.Setup(x => x.TryAdd(convertedConnection)).Throws(new Exception());
+
+            var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingController.Object, serverConnectionsRepository: serverConnectionsRepositoryMock.Object);
+            
+            Func<Task> act = async () => await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
+
+            act.Should().Throw<InvalidOperationException>().WithMessage(BindingStrings.UnintrusiveController_CantMigrateConnection);
+        }
+
+        [TestMethod]
+        public void Migrate_InvalidServerInformation_Throws()
+        {
+            var testSubject = CreateTestSubject();
+
+            Func<Task> act = async () => await testSubject.MigrateAsync(new BoundSonarQubeProject(), Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
+
+            act.Should().Throw<Exception>();
         }
 
         [TestMethod]
@@ -303,7 +372,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater = null,
             ISharedBindingConfigProvider sharedBindingConfigProvider = null,
             ILogger logger = null,
-            IThreadHandling threadHandling = null)
+            IThreadHandling threadHandling = null, 
+            ISolutionInfoProvider solutionInfoProvider = null, 
+            IServerConnectionsRepository serverConnectionsRepository = null)
         {
             fileProvider ??= Mock.Of<IFileProvider>();
             fileCleaner ??= Mock.Of<IFileCleaner>();
@@ -313,11 +384,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             suppressionIssueStoreUpdater ??= Mock.Of<ISuppressionIssueStoreUpdater>();
             settingsProvider ??= CreateSettingsProvider(DefaultTestLegacySettings).Object;
             sharedBindingConfigProvider ??= Mock.Of<ISharedBindingConfigProvider>();
+            solutionInfoProvider ??= CreateSolutionInfoProviderMock().Object;
+            serverConnectionsRepository ??= CreateServerConnectionsRepositoryMock().Object;
 
             logger ??= new TestLogger(logToConsole: true);
             threadHandling ??= new NoOpThreadHandler();
 
-            return new ConnectedModeMigration(settingsProvider, fileProvider, fileCleaner, fileSystem, sonarQubeService, unintrusiveBindingController, suppressionIssueStoreUpdater, sharedBindingConfigProvider, logger, threadHandling);
+            return new ConnectedModeMigration(settingsProvider,
+                fileProvider,
+                fileCleaner,
+                fileSystem,
+                sonarQubeService,
+                unintrusiveBindingController,
+                suppressionIssueStoreUpdater,
+                sharedBindingConfigProvider,
+                logger,
+                threadHandling,
+                solutionInfoProvider,
+                serverConnectionsRepository);
         }
 
         private static Mock<IFileProvider> CreateFileProvider(params string[] filesToReturn)
@@ -344,6 +428,41 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var settingsProvider = new Mock<IMigrationSettingsProvider>();
             settingsProvider.Setup(x => x.GetAsync(It.IsAny<string>())).Returns(Task.FromResult(settingsToReturn));
             return settingsProvider;
+        }
+
+        private static Mock<IServerConnectionsRepository> CreateServerConnectionsRepositoryMock()
+        {
+            var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
+            serverConnectionsRepositoryMock.Setup(x => x.TryAdd(It.IsAny<ServerConnection>())).Returns(true);
+
+            return serverConnectionsRepositoryMock;
+        }
+
+        private static void MockIServerConnectionsRepositoryTryGet(Mock<IServerConnectionsRepository> serverConnectionsRepositoryMock, string id = null, ServerConnection.SonarQube storedConnection = null)
+        {
+            serverConnectionsRepositoryMock.Setup(service => service.TryGet(id ?? It.IsAny<string>(), out It.Ref<ServerConnection>.IsAny))
+                .Returns((string _, out ServerConnection value) =>
+                {
+                    value = storedConnection;
+                    return storedConnection != null;
+                });
+        }
+
+        private static Mock<ISolutionInfoProvider> CreateSolutionInfoProviderMock()
+        {
+            var createSolutionInfoProviderMock = new Mock<ISolutionInfoProvider>();
+            createSolutionInfoProviderMock.Setup(mock => mock.GetSolutionNameAsync()).ReturnsAsync("solution");
+            return createSolutionInfoProviderMock;
+        }
+
+        private static bool IsExpectedBoundServerProject(BoundServerProject proj)
+        {
+            return proj.ServerProjectKey == AnyBoundProject.ProjectKey && proj.ServerConnection.ServerUri == AnyBoundProject.ServerUri;
+        }
+
+        private static ServerConnection IsExpectedServerConnection(ServerConnection convertedConnection)
+        {
+            return It.Is<ServerConnection>(conn => conn.Id == convertedConnection.Id);
         }
     }
 
