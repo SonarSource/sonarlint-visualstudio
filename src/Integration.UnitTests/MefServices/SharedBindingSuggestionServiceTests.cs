@@ -119,6 +119,14 @@ public class SharedBindingSuggestionServiceTests
         suggestSharedBindingGoldBar.DidNotReceive().Show(ServerType.SonarQube, Arg.Any<Action>());
     }
 
+    [TestMethod]
+    public void Dispose_UnsubscribesFromActiveSolutionChanged()
+    {
+        testSubject.Dispose();
+
+        activeSolutionTracker.Received(1).ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
+    }
+
     private void RaiseActiveSolutionChanged(bool isSolutionOpened)
     {
         activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(isSolutionOpened));
