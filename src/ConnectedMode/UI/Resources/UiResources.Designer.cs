@@ -259,6 +259,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to To manually delete a binding, please follow the &quot;Unbinding a project&quot; documentation .
+        /// </summary>
+        public static string DeleteBindingHelpText {
+            get {
+                return ResourceManager.GetString("DeleteBindingHelpText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete.
         /// </summary>
         public static string DeleteButton {
@@ -273,6 +282,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string DeleteConnectionBindingListLabel {
             get {
                 return ResourceManager.GetString("DeleteConnectionBindingListLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The following project bindings must first be manually removed:.
+        /// </summary>
+        public static string DeleteConnectionBindingListToUnbindLabel {
+            get {
+                return ResourceManager.GetString("DeleteConnectionBindingListToUnbindLabel", resourceCulture);
             }
         }
         
@@ -309,6 +327,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string DeleteConnectionNoProjectsLabel {
             get {
                 return ResourceManager.GetString("DeleteConnectionNoProjectsLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The following connection can not be deleted:.
+        /// </summary>
+        public static string DeleteConnectionNotPossibleDescription {
+            get {
+                return ResourceManager.GetString("DeleteConnectionNotPossibleDescription", resourceCulture);
             }
         }
         

@@ -391,6 +391,21 @@ Please manually add the connection through "Manage Connections" and then try aga
   <data name="NotFoundConnectionForSharedBindingMessageBoxCaption" xml:space="preserve">
     <value>Connection not found</value>
   </data>
+  <data name="DeleteBindingHelpText" xml:space="preserve">
+    <value>To manually delete a binding, please follow the "Unbinding a project" documentation </value>
+  </data>
+  <data name="DeleteConnectionBindingListToUnbindLabel" xml:space="preserve">
+    <value>The following project bindings must first be manually removed:</value>
+  </data>
+  <data name="DeleteConnectionNotPossibleDescription" xml:space="preserve">
+    <value>The following connection can not be deleted:</value>
+  </data>
+  <data name="CalculatingConnectionReferencesFailedText" xml:space="preserve">
+    <value>Calculating the connection references failed</value>
+  </data>
+  <data name="CalculatingConnectionReferencesText" xml:space="preserve">
+    <value>Calculating connection references...</value>
+  </data>
   <data name="CalculatingConnectionReferencesFailedText" xml:space="preserve">
     <value>Calculating the connection references failed</value>
   </data>
