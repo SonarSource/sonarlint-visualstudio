@@ -601,7 +601,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connection not foud.
+        ///   Looks up a localized string similar to Connection not found.
         /// </summary>
         public static string NotFoundConnectionForSharedBindingMessageBoxCaption {
             get {

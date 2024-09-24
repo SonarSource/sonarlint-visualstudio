@@ -392,6 +392,6 @@
 Please manually add the connection through "Manage Connections" and then try again.</value>
   </data>
   <data name="NotFoundConnectionForSharedBindingMessageBoxCaption" xml:space="preserve">
-    <value>Connection not foud</value>
+    <value>Connection not found</value>
   </data>
 </root>
