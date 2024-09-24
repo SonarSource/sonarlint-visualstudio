@@ -75,10 +75,8 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel)
     {
         var credentials = credentialsModel.ToICredentials();
-        ServerConnection serverConnection = connectionInfo.ServerType == ConnectionServerType.SonarCloud
-            ? new ServerConnection.SonarCloud(connectionInfo.Id, credentials: credentials)
-            : new ServerConnection.SonarQube(new Uri(connectionInfo.Id), credentials: credentials);
-        var validateConnectionParams = new ValidateConnectionParams(GetTransientConnectionDto(serverConnection));
+        
+        var validateConnectionParams = new ValidateConnectionParams(GetTransientConnectionDto(connectionInfo, credentials));
         return await ValidateConnectionAsync(validateConnectionParams);
     }
 
@@ -202,6 +200,20 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         connectionConfigurationSlCoreService = null;
         logger.LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
         return false;
+    }
+    
+    private static Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ConnectionInfo connectionInfo, ICredentials credentials)
+    {
+        var credentialsDto = MapCredentials(credentials);
+        
+        return connectionInfo.ServerType switch
+        {
+            ConnectionServerType.SonarQube => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateLeft(
+                new TransientSonarQubeConnectionDto(connectionInfo.Id, credentialsDto)),
+            ConnectionServerType.SonarCloud => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateRight(
+                new TransientSonarCloudConnectionDto(connectionInfo.Id, credentialsDto)),
+            _ => null
+        };
     }
 
     private static Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ServerConnection serverConnection)
