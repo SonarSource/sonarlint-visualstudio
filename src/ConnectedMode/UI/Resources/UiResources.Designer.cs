@@ -61,15 +61,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Are you sure?.
-        /// </summary>
-        public static string AreYouSureConfirmationLabel {
-            get {
-                return ResourceManager.GetString("AreYouSureConfirmationLabel", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Please fill the authentication details for.
         /// </summary>
         public static string AuthenticationDescription {
@@ -277,7 +268,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You are about to delete the connection to.
+        ///   Looks up a localized string similar to Are you sure you want to delete the connection to.
         /// </summary>
         public static string DeleteConnectionDescription {
             get {

@@ -285,14 +285,11 @@
   <data name="DeleteConnectionBindingListLabel" xml:space="preserve">
     <value>It is used in the following project bindings:</value>
   </data>
-  <data name="AreYouSureConfirmationLabel" xml:space="preserve">
-    <value>Are you sure?</value>
-  </data>
   <data name="DeleteConnectionNoProjectsLabel" xml:space="preserve">
     <value>It has no associated project bindings</value>
   </data>
   <data name="DeleteConnectionDescription" xml:space="preserve">
-    <value>You are about to delete the connection to</value>
+    <value>Are you sure you want to delete the connection to</value>
   </data>
   <data name="DeleteButton" xml:space="preserve">
     <value>Delete</value>

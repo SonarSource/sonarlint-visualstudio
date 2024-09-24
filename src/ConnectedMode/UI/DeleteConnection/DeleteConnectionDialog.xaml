@@ -42,6 +42,7 @@
             <InlineUIContainer Style="{StaticResource ConnectionInfoInlineWrapper}">
                 <ui:ConnectionInfoComponent ConnectionInfo="{Binding ConnectionInfo}" />
             </InlineUIContainer>
+            <Run Text="?" />
         </TextBlock>
         <TextBlock Grid.Row="1"
                    Text="{x:Static res:UiResources.DeleteConnectionNoProjectsLabel}"
@@ -75,7 +76,6 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" HorizontalAlignment="Left" Text="{x:Static res:UiResources.AreYouSureConfirmationLabel}" />
             <StackPanel Grid.Column="1" Style="{StaticResource DialogButtonsPanel}">
                 <Button Content="{x:Static res:UiResources.DeleteButton}"
                                    IsDefault="True"
