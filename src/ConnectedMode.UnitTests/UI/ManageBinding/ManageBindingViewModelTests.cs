@@ -799,7 +799,7 @@ public class ManageBindingViewModelTests
         var response = await testSubject.UseSharedBindingAsync();
 
         response.Success.Should().BeTrue();
-        serverConnectionsRepositoryAdapter.Received(1).TryGetServerConnectionById(testSubject.SharedBindingConfigModel.Uri.ToString(), out _);
+        serverConnectionsRepositoryAdapter.Received(1).TryGet(new ConnectionInfo(testSubject.SharedBindingConfigModel.Uri.ToString(), ConnectionServerType.SonarQube), out _);
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj => proj.ServerConnection == expectedServerConnection), Arg.Any<CancellationToken>());
     }
@@ -815,7 +815,7 @@ public class ManageBindingViewModelTests
         var response = await testSubject.UseSharedBindingAsync();
 
         response.Success.Should().BeTrue();
-        serverConnectionsRepositoryAdapter.Received(1).TryGetServerConnectionById(testSubject.SharedBindingConfigModel.Organization, out _);
+        serverConnectionsRepositoryAdapter.Received(1).TryGet(new ConnectionInfo(testSubject.SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud), out _);
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj => proj.ServerConnection == expectedServerConnection), Arg.Any<CancellationToken>());
     }

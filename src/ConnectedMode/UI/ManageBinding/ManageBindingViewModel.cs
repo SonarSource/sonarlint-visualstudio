@@ -176,10 +176,12 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
     internal async Task<AdapterResponse> UseSharedBindingAsync()
     {
-        var connectionId = GetConnectionIdFromSharedBindingConfig();
-        if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGetServerConnectionById(connectionId, out var serverConnection))
+        var connection = SharedBindingConfigModel.IsSonarCloud()
+            ? new ConnectionInfo(SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud)
+            : new ConnectionInfo(SharedBindingConfigModel.Uri.ToString(), ConnectionServerType.SonarQube);
+        if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(connection, out var serverConnection))
         {
-            connectedModeServices.Logger.WriteLine(ConnectedMode.Resources.UseSharedBinding_ConnectionNotFound, connectionId);
+            connectedModeServices.Logger.WriteLine(ConnectedMode.Resources.UseSharedBinding_ConnectionNotFound, connection.Id);
             connectedModeServices.MessageBox.Show(UiResources.NotFoundConnectionForSharedBindingMessageBoxText, UiResources.NotFoundConnectionForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
             return new AdapterResponse(false);
         }
@@ -266,11 +268,6 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
             return new AdapterResponse(false);
         }
         return await BindAsync(serverConnection, SelectedProject?.Key);
-    }
-
-    private string GetConnectionIdFromSharedBindingConfig()
-    {
-        return SharedBindingConfigModel.IsSonarCloud() ? new ServerConnection.SonarCloud(SharedBindingConfigModel.Organization).Id : new ServerConnection.SonarQube(SharedBindingConfigModel.Uri).Id;
     }
 
     private async Task<AdapterResponse> BindAsync(ServerConnection serverConnection, string serverProjectKey)
