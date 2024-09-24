@@ -22,9 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
-using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
-using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
@@ -36,10 +34,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         public ManageConnectionsViewModel ViewModel { get; }
 
-        public ManageConnectionsDialog(IConnectedModeServices connectedModeServices)
+        public ManageConnectionsDialog(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
         {
             this.connectedModeServices = connectedModeServices;
-            ViewModel = new ManageConnectionsViewModel(connectedModeServices, new ProgressReporterViewModel());
+            ViewModel = new ManageConnectionsViewModel(connectedModeServices, connectedModeBindingServices, new ProgressReporterViewModel());
             InitializeComponent();
         }
 
@@ -108,11 +106,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 return;
             }
 
-            var deleteConnectionDialog = new DeleteConnectionDialog([], connectionViewModel.Connection.Info);
-            if(deleteConnectionDialog.ShowDialog(this) == true)
+            var connectionReferences = await ViewModel.GetConnectionReferencesWithProgressAsync(connectionViewModel);
+            if (connectionReferences.Count > 0)
             {
-                await ViewModel.RemoveConnectionWithProgressAsync(connectionViewModel);
+                var preventConnectionDeleteDialog = new PreventDeleteConnectionDialog(connectionReferences, connectionViewModel.Connection.Info, connectedModeServices.BrowserService);
+                preventConnectionDeleteDialog.ShowDialog(this);
             }
+            else
+            {
+                var deleteConnectionDialog = new DeleteConnectionDialog([], connectionViewModel.Connection.Info);
+                if (deleteConnectionDialog.ShowDialog(this) == true)
+                {
+                    await ViewModel.RemoveConnectionWithProgressAsync(connectionViewModel);
+                }
+            }
+           
         }
     }
 }

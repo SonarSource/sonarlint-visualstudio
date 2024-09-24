@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 public partial class ManageBindingDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
+    private readonly IConnectedModeBindingServices connectedModeBindingServices;
     private readonly bool useSharedBindingOnInitialization;
 
     public ManageBindingDialog(
@@ -39,6 +40,7 @@ public partial class ManageBindingDialog : Window
         bool useSharedBindingOnInitialization = false)
     {
         this.connectedModeServices = connectedModeServices;
+        this.connectedModeBindingServices = connectedModeBindingServices;
         this.useSharedBindingOnInitialization = useSharedBindingOnInitialization;
         ViewModel = new ManageBindingViewModel(connectedModeServices, connectedModeBindingServices, new ProgressReporterViewModel());
         InitializeComponent();
@@ -48,7 +50,7 @@ public partial class ManageBindingDialog : Window
 
     private async void ManageConnections_OnClick(object sender, RoutedEventArgs e)
     {
-        new ManageConnectionsDialog(connectedModeServices).ShowDialog(this);
+        new ManageConnectionsDialog(connectedModeServices, connectedModeBindingServices).ShowDialog(this);
         await ViewModel.InitializeDataAsync();
     }
 
