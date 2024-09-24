@@ -33,11 +33,12 @@ public record ConnectionInfo(string Id, ConnectionServerType ServerType)
 {
     public static ConnectionInfo From(ServerConnection serverConnection)
     {
-        return new ConnectionInfo(
-            serverConnection.Id,
-            serverConnection is ServerConnection.SonarCloud
-                ? ConnectionServerType.SonarCloud
-                : ConnectionServerType.SonarQube);
+        return serverConnection switch
+        {
+            ServerConnection.SonarQube sonarQubeConnection => new ConnectionInfo(sonarQubeConnection.Id, ConnectionServerType.SonarQube),
+            ServerConnection.SonarCloud sonarCloudConnection => new ConnectionInfo(sonarCloudConnection.OrganizationKey, ConnectionServerType.SonarCloud),
+            _ => null
+        };
     }
 }
 

@@ -29,11 +29,11 @@ public class ConnectionInfoTests
     [TestMethod]
     public void FromServerConnection_ShouldReturnConnectionInfoWithSameId()
     {
-        var sonarCloudServerConnection = new ServerConnection.SonarCloud("id");
+        var sonarCloudServerConnection = new ServerConnection.SonarCloud("organization");
 
         var connectionInfo = ConnectionInfo.From(sonarCloudServerConnection);
         
-        connectionInfo.Id.Should().Be("id");
+        connectionInfo.Id.Should().Be("organization");
     }
     
     [TestMethod]

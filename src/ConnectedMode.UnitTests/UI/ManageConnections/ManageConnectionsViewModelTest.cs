@@ -44,7 +44,7 @@ public class ManageConnectionsViewModelTest
         twoConnections =
         [
             new Connection(new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube), true),
-            new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud), false)
+            new Connection(new ConnectionInfo("https://sonarcloud.io/organizations/myOrg", ConnectionServerType.SonarCloud), false)
         ];
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
         connectedModeServices = Substitute.For<IConnectedModeServices>();
@@ -90,12 +90,12 @@ public class ManageConnectionsViewModelTest
     {
         InitializeTwoConnections();
         var connectionToRemove = testSubject.ConnectionViewModels[0];
-        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info.Id).Returns(expectedStatus);
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info).Returns(expectedStatus);
 
         var succeeded = testSubject.RemoveConnectionViewModel(connectionToRemove);
 
         succeeded.Should().Be(expectedStatus);
-        serverConnectionsRepositoryAdapter.Received(1).TryRemoveConnection(connectionToRemove.Connection.Info.Id);
+        serverConnectionsRepositoryAdapter.Received(1).TryRemoveConnection(connectionToRemove.Connection.Info);
     }
 
     [TestMethod]
@@ -103,7 +103,7 @@ public class ManageConnectionsViewModelTest
     {
         InitializeTwoConnections();
         var connectionToRemove = testSubject.ConnectionViewModels[0];
-        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info.Id).Returns(true);
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info).Returns(true);
 
         testSubject.RemoveConnectionViewModel(connectionToRemove);
 
@@ -116,7 +116,7 @@ public class ManageConnectionsViewModelTest
     {
         InitializeTwoConnections();
         var connectionToRemove = testSubject.ConnectionViewModels[0];
-        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info.Id).Returns(false);
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info).Returns(false);
 
         testSubject.RemoveConnectionViewModel(connectionToRemove);
 
@@ -128,7 +128,7 @@ public class ManageConnectionsViewModelTest
     public void RemoveConnection_ConnectionWasRemoved_RaisesEvents()
     {
         InitializeTwoConnections();
-        serverConnectionsRepositoryAdapter.TryRemoveConnection(Arg.Any<string>()).Returns(true);
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(Arg.Any<ConnectionInfo>()).Returns(true);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
@@ -141,7 +141,7 @@ public class ManageConnectionsViewModelTest
     public void RemoveConnectionViewModel_ConnectionWasNotRemoved_DoesNotRaiseEvents()
     {
         InitializeTwoConnections();
-        serverConnectionsRepositoryAdapter.TryRemoveConnection(Arg.Any<string>()).Returns(false);
+        serverConnectionsRepositoryAdapter.TryRemoveConnection(Arg.Any<ConnectionInfo>()).Returns(false);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 

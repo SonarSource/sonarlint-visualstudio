@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         internal bool RemoveConnectionViewModel(ConnectionViewModel connectionViewModel)
         {
-            var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryRemoveConnection(connectionViewModel.Connection.Info.Id);
+            var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryRemoveConnection(connectionViewModel.Connection.Info);
             if (succeeded)
             {
                 ConnectionViewModels.Remove(connectionViewModel);

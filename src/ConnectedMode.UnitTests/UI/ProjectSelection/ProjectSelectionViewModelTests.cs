@@ -185,8 +185,8 @@ public class ProjectSelectionViewModelTests
 
         await testSubject.AdapterGetAllProjectsAsync();
 
-        serverConnectionsRepositoryAdapter.Received(1).TryGet(AConnectionInfo.Id, out Arg.Any<ServerConnection>());
-        await slCoreConnectionAdapter.Received(1).GetAllProjectsAsync(AConnectionInfo, expectedCredentials);
+        serverConnectionsRepositoryAdapter.Received(1).TryGet(AConnectionInfo, out Arg.Any<ServerConnection>());
+        await slCoreConnectionAdapter.Received(1).GetAllProjectsAsync(Arg.Is<ServerConnection>(x => x.Credentials == expectedCredentials));
     }
 
     [TestMethod]
@@ -199,7 +199,7 @@ public class ProjectSelectionViewModelTests
         response.Success.Should().BeFalse();
         response.ResponseData.Should().BeNull();
         logger.Received(1).WriteLine(Arg.Any<string>());
-        await slCoreConnectionAdapter.DidNotReceive().GetAllProjectsAsync(Arg.Any<ConnectionInfo>(), Arg.Any<ICredentials>());
+        await slCoreConnectionAdapter.DidNotReceive().GetAllProjectsAsync(Arg.Any<ServerConnection>());
     }
 
     [TestMethod]
@@ -209,7 +209,7 @@ public class ProjectSelectionViewModelTests
     {
         MockTrySonarQubeConnection(AConnectionInfo, success: true);
         var expectedServerProjects = new List<ServerProject>{new("proj1", "name1"), new("proj2", "name2") };
-        slCoreConnectionAdapter.GetAllProjectsAsync(AConnectionInfo, Arg.Any<ICredentials>())
+        slCoreConnectionAdapter.GetAllProjectsAsync(Arg.Any<ServerConnection>())
             .Returns(new AdapterResponseWithData<List<ServerProject>>(expectedResponse, expectedServerProjects));
 
         var response = await testSubject.AdapterGetAllProjectsAsync();
@@ -225,7 +225,7 @@ public class ProjectSelectionViewModelTests
 
     private void MockTrySonarQubeConnection(ConnectionInfo connectionInfo, bool success = true, ICredentials expectedCredentials = null)
     {
-        serverConnectionsRepositoryAdapter.TryGet(connectionInfo.Id, out _).Returns(callInfo =>
+        serverConnectionsRepositoryAdapter.TryGet(connectionInfo, out _).Returns(callInfo =>
         {
             callInfo[1] = new ServerConnection.SonarQube(new Uri(connectionInfo.Id), credentials: expectedCredentials);
             return success;

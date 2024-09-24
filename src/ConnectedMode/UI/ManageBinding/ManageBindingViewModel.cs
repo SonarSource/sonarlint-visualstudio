@@ -261,7 +261,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
     internal /* for testing */ async Task<AdapterResponse> BindAsync()
     {
-        if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGetServerConnectionById(SelectedConnectionInfo?.Id, out var serverConnection))
+        if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(SelectedConnectionInfo, out var serverConnection))
         {
             return new AdapterResponse(false);
         }

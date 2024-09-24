@@ -671,8 +671,9 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public async Task BindAsync_WhenConnectionNotFound_Fails()
     {
-        testSubject.SelectedConnectionInfo = new ConnectionInfo("organization", ConnectionServerType.SonarCloud);
-        serverConnectionsRepositoryAdapter.TryGetServerConnectionById("organization", out _).Returns(callInfo =>
+        var connectionInfo = new ConnectionInfo("organization", ConnectionServerType.SonarCloud);
+        testSubject.SelectedConnectionInfo = connectionInfo;
+        serverConnectionsRepositoryAdapter.TryGet(connectionInfo, out _).Returns(callInfo =>
         {
             callInfo[1] = null;
             return false;
@@ -918,7 +919,7 @@ public class ManageBindingViewModelTests
 
     private void MockTryGetServerConnectionId(ServerConnection serverConnection = null)
     {
-        serverConnectionsRepositoryAdapter.TryGetServerConnectionById(serverConnection?.Id ?? Arg.Any<string>(), out _).Returns(callInfo =>
+        serverConnectionsRepositoryAdapter.TryGet(ConnectionInfo.From(serverConnection) ?? Arg.Any<ConnectionInfo>(), out _).Returns(callInfo =>
         {
             callInfo[1] = serverConnection;
             return true;
@@ -947,7 +948,7 @@ public class ManageBindingViewModelTests
     private void MockGetServerProjectByKey(bool success, ServerProject responseData)
     {
         var slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
-        slCoreConnectionAdapter.GetServerProjectByKeyAsync(Arg.Any<ICredentials>(), Arg.Any<ConnectionInfo>(),Arg.Any<string>())
+        slCoreConnectionAdapter.GetServerProjectByKeyAsync(Arg.Any<ServerConnection>(),Arg.Any<string>())
             .Returns(Task.FromResult(new AdapterResponseWithData<ServerProject>(success, responseData)));
         connectedModeServices.SlCoreConnectionAdapter.Returns(slCoreConnectionAdapter);
     }

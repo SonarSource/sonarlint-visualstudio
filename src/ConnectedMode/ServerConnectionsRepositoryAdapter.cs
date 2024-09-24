@@ -29,21 +29,21 @@ namespace SonarLint.VisualStudio.ConnectedMode;
 
 public interface IServerConnectionsRepositoryAdapter
 {
-    bool TryGetServerConnectionById(string connectionId, out ServerConnection serverConnection);
+    bool TryGetServerConnectionById(ConnectionInfo connectionInfo, out ServerConnection serverConnection);
     bool TryGetAllConnections(out List<Connection> connections);
     bool TryGetAllConnectionsInfo(out List<ConnectionInfo> connectionInfos);
-    bool TryRemoveConnection(string connectionInfoId);
+    bool TryRemoveConnection(ConnectionInfo connectionInfo);
     bool TryAddConnection(Connection connection, ICredentialsModel credentialsModel);
-    bool TryGet(string connectionId, out ServerConnection serverConnection);
+    bool TryGet(ConnectionInfo connectionInfo, out ServerConnection serverConnection);
 }
 
 [Export(typeof(IServerConnectionsRepositoryAdapter))]
 [method: ImportingConstructor]
 internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository serverConnectionsRepository) : IServerConnectionsRepositoryAdapter
 {
-    public bool TryGetServerConnectionById(string connectionId, out ServerConnection serverConnection)
+    public bool TryGetServerConnectionById(ConnectionInfo connectionInfo, out ServerConnection serverConnection)
     {
-        return serverConnectionsRepository.TryGet(connectionId, out serverConnection);
+        return TryGet(connectionInfo, out serverConnection);
     }
 
     public bool TryGetAllConnections(out List<Connection> connections)
@@ -67,14 +67,16 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         return serverConnectionsRepository.TryAdd(serverConnection);
     }
 
-    public bool TryGet(string connectionId, out ServerConnection serverConnection)
+    public bool TryGet(ConnectionInfo connectionInfo, out ServerConnection serverConnection)
     {
+        var connectionId = GetServerIdFromConnectionInfo(connectionInfo);
         return serverConnectionsRepository.TryGet(connectionId, out serverConnection);
     }
 
-    public bool TryRemoveConnection(string connectionInfoId)
+    public bool TryRemoveConnection(ConnectionInfo connectionInfo)
     {
-       return serverConnectionsRepository.TryDelete(connectionInfoId);
+        var connectionId = GetServerIdFromConnectionInfo(connectionInfo);
+        return serverConnectionsRepository.TryDelete(connectionId);
     }
 
     private static Connection MapServerConnectionModel(ServerConnection serverConnection)
@@ -106,5 +108,14 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
             default:
                 return null;
         }
+    }
+
+    private static string GetServerIdFromConnectionInfo(ConnectionInfo connectionInfo)
+    {
+        ServerConnection partialServerConnection = connectionInfo.ServerType == ConnectionServerType.SonarCloud
+            ? new ServerConnection.SonarCloud(connectionInfo.Id)
+            : new ServerConnection.SonarQube(new Uri(connectionInfo.Id));
+
+        return partialServerConnection.Id;
     }
 }
