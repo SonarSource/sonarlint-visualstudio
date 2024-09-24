@@ -25,6 +25,7 @@ using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Binding;
@@ -48,6 +49,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableSonarLintSettings settings;
         private Mock<ISolutionInfoProvider> solutionInfoProvider;
         private TestLogger logger;
+        private Mock<ISharedBindingConfigProvider> sharedBindingConfigProvider;
+        private Mock<ICredentialStoreService> credentialsStore;
 
         [TestInitialize]
         public void TestInit()
@@ -66,6 +69,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 SonarQubeService = this.sonarQubeServiceMock.Object,
                 Logger = logger
             };
+            this.sharedBindingConfigProvider = new Mock<ISharedBindingConfigProvider>();
+            this.credentialsStore = new Mock<ICredentialStoreService>();
 
             IComponentModel componentModel = ConfigurableComponentModel.CreateWithExports(
                 new []
@@ -81,9 +86,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         [TestMethod]
         public void ConnectionController_Ctor_ArgumentChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(null, Mock.Of<IHost>(), Mock.Of<IAutoBindTrigger>()));
-            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(Mock.Of<IServiceProvider>(), null, Mock.Of<IAutoBindTrigger>()));
-            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(Mock.Of<IServiceProvider>(), Mock.Of<IHost>(), null));
+            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(null, Mock.Of<IHost>(), Mock.Of<IAutoBindTrigger>(), sharedBindingConfigProvider.Object, credentialsStore.Object));
+            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(Mock.Of<IServiceProvider>(), null, Mock.Of<IAutoBindTrigger>(), sharedBindingConfigProvider.Object, credentialsStore.Object));
+            Exceptions.Expect<ArgumentNullException>(() => new ConnectionController(Mock.Of<IServiceProvider>(), Mock.Of<IHost>(), null, sharedBindingConfigProvider.Object, credentialsStore.Object));
         }
 
         [TestMethod]
@@ -184,7 +189,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var connectionWorkflowMock = CreateWorkflow();
             connectionWorkflowMock.Setup(x => x.EstablishConnection(It.IsAny<ConnectionInformation>(), It.IsAny<string>()));
             ConnectionController testSubject = new ConnectionController(this.serviceProvider, this.host, null,
-                this.connectionProvider, connectionWorkflowMock.Object);
+                this.connectionProvider, connectionWorkflowMock.Object, sharedBindingConfigProvider.Object, credentialsStore.Object);
             this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
 
             // Case 1: connection provider return null connection
@@ -232,9 +237,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             SetUpOpenSolution();
             var connectionProviderMock = new Mock<IConnectionInformationProvider>();
             var testSubject = new ConnectionController(this.serviceProvider, this.host, null, connectionProviderMock.Object,
-                connectionWorkflowMock.Object);
-            host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloudi.io"), Organization = "Org"};
-            host.CredentialsForSharedConfig = new Credential("user", "pwd");
+                connectionWorkflowMock.Object, sharedBindingConfigProvider.Object, credentialsStore.Object);
+            var sharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloud.io"), Organization = "Org" };
+            sharedBindingConfigProvider.Setup(mock => mock.GetSharedBinding()).Returns(sharedBindingConfig);
+            credentialsStore.Setup(mock => mock.ReadCredentials(It.IsAny<TargetUri>())).Returns(new Credential("user", "pwd"));
+            
             
             testSubject.ConnectCommand.Execute(new ConnectConfiguration(){UseSharedBinding = true});
             
@@ -253,12 +260,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             SetUpOpenSolution();
             var connectionProviderMock = new Mock<IConnectionInformationProvider>();
             var testSubject = new ConnectionController(this.serviceProvider, this.host, null, connectionProviderMock.Object,
-                connectionWorkflowMock.Object);
-            host.SharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloudi.io"), Organization = "Org"};
+                connectionWorkflowMock.Object, sharedBindingConfigProvider.Object, credentialsStore.Object);
+            var sharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloud.io"), Organization = "Org" };
+            sharedBindingConfigProvider.Setup(mock => mock.GetSharedBinding()).Returns(sharedBindingConfig);
             var connectionInformation =
-                new ConnectionInformation(host.SharedBindingConfig.Uri, "user", "pwd".ToSecureString())
+                new ConnectionInformation(sharedBindingConfig.Uri, "user", "pwd".ToSecureString())
                 {
-                    Organization = new SonarQubeOrganization(host.SharedBindingConfig.Organization, string.Empty)
+                    Organization = new SonarQubeOrganization(sharedBindingConfig.Organization, string.Empty)
                 };
             SetupConnectionProvider(connectionProviderMock, connectionInformation);
             
@@ -269,7 +277,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Times.Once);
             connectionProviderMock.Verify(x => 
                     x.GetConnectionInformation(It.Is<ConnectionInformation>(c => 
-                        c.ServerUri == host.SharedBindingConfig.Uri && c.Organization.Key == host.SharedBindingConfig.Organization)),
+                        c.ServerUri == sharedBindingConfig.Uri && c.Organization.Key == sharedBindingConfig.Organization)),
                 Times.Once);
         }
 
@@ -291,14 +299,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             SetupConnectionWorkflow(connectionWorkflowMock);
             SetUpOpenSolution();
             var connectionProviderMock = new Mock<IConnectionInformationProvider>();
-            host.SharedBindingConfig = new SharedBindingConfigModel
-                { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloudi.io"), Organization = "Org" };
-            host.CredentialsForSharedConfig = new Credential("user", "pwd");
+            var sharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloud.io"), Organization = "Org" };
+            sharedBindingConfigProvider.Setup(mock => mock.GetSharedBinding()).Returns(sharedBindingConfig);
+            credentialsStore.Setup(mock => mock.ReadCredentials(It.IsAny<TargetUri>())).Returns(new Credential("user", "pwd"));
             var expectedConnection = new ConnectionInformation(new Uri("https://127.0.0.0"));
             SetupConnectionProvider(connectionProviderMock, expectedConnection);
 
             var testSubject = new ConnectionController(this.serviceProvider, this.host, null,
-                connectionProviderMock.Object, connectionWorkflowMock.Object);
+                connectionProviderMock.Object, connectionWorkflowMock.Object, sharedBindingConfigProvider.Object, credentialsStore.Object);
 
             testSubject.ConnectCommand.Execute(config);
 
@@ -321,7 +329,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             SetupConnectionProvider(connectionProviderMock, expectedConnection);
             
             var testSubject = new ConnectionController(this.serviceProvider, this.host, null,
-                connectionProviderMock.Object, connectionWorkflowMock.Object);
+                connectionProviderMock.Object, connectionWorkflowMock.Object, sharedBindingConfigProvider.Object, credentialsStore.Object);
             
             testSubject.ConnectCommand.Execute(new ConnectConfiguration() { UseSharedBinding = true });
             
@@ -381,7 +389,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Arrange
             var connectionWorkflowMock = CreateWorkflow();
             ConnectionController testSubject = new ConnectionController(serviceProvider, host, null, connectionProvider,
-                connectionWorkflowMock.Object);
+                connectionWorkflowMock.Object, sharedBindingConfigProvider.Object, credentialsStore.Object);
             this.connectionProvider.ConnectionInformationToReturn = new ConnectionInformation(new Uri("http://notExpected"));
             var connection = new ConnectionInformation(new Uri("http://Expected"));
             // Sanity
@@ -405,7 +413,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             // Arrange
             var connectionWorkflowMock = CreateWorkflow();
             ConnectionController testSubject = new ConnectionController(serviceProvider, host, null, connectionProvider,
-                connectionWorkflowMock.Object);
+                connectionWorkflowMock.Object, sharedBindingConfigProvider.Object, credentialsStore.Object);
             this.solutionInfoProvider.Setup(x => x.IsSolutionFullyOpened()).Returns(true);
             this.connectionProvider.ConnectionInformationToReturn = null;
             var progressEvents = new ConfigurableProgressEvents();
@@ -463,6 +471,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
         
         private ConnectionController CreateTestSubject() =>
-            new ConnectionController(serviceProvider, host, Mock.Of<IAutoBindTrigger>());
+            new ConnectionController(serviceProvider, host, Mock.Of<IAutoBindTrigger>(), sharedBindingConfigProvider.Object, credentialsStore.Object);
     }
 }

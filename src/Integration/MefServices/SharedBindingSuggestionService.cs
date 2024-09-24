@@ -18,86 +18,73 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
+using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
-using SonarLint.VisualStudio.Integration.Connection;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.WPF;
-using SonarQube.Client;
+using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.MefServices
 {
-    internal interface ISharedBindingSuggestionService
+    public interface ISharedBindingSuggestionService : IDisposable
     {
-        void Suggest(ServerType? serverType, Func<ICommand<ConnectConfiguration>> connectCommandProvider);
-
-        void Close();
+        void Suggest();
     }
     
     [Export(typeof(ISharedBindingSuggestionService))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class SharedBindingSuggestionService : ISharedBindingSuggestionService
+    internal sealed class SharedBindingSuggestionService : ISharedBindingSuggestionService
     {
-        internal /* for testing */ readonly ConnectConfiguration autobindEnabledConfiguration =
-            new ConnectConfiguration { UseSharedBinding = true };
-
         private readonly ISuggestSharedBindingGoldBar suggestSharedBindingGoldBar;
-        private readonly ITeamExplorerController teamExplorerController;
-        private readonly IConnectedModeWindowEventBasedScheduler connectedModeWindowEventBasedScheduler;
+        private readonly IConnectedModeServices connectedModeServices;
+        private readonly IConnectedModeBindingServices connectedModeBindingServices;
+        private readonly IActiveSolutionTracker activeSolutionTracker;
 
         [ImportingConstructor]
-        public SharedBindingSuggestionService(ISuggestSharedBindingGoldBar suggestSharedBindingGoldBar,
-            ITeamExplorerController teamExplorerController,
-            IConnectedModeWindowEventBasedScheduler connectedModeWindowEventBasedScheduler)
+        public SharedBindingSuggestionService(
+            ISuggestSharedBindingGoldBar suggestSharedBindingGoldBar,
+            IConnectedModeServices connectedModeServices,
+            IConnectedModeBindingServices connectedModeBindingServices,
+            IActiveSolutionTracker activeSolutionTracker)
         {
             this.suggestSharedBindingGoldBar = suggestSharedBindingGoldBar;
-            this.teamExplorerController = teamExplorerController;
-            this.connectedModeWindowEventBasedScheduler = connectedModeWindowEventBasedScheduler;
-        }
-        
-        public void Suggest(ServerType? serverType, Func<ICommand<ConnectConfiguration>> connectCommandProvider)
-        {
-            if (serverType == null)
-            {
-                return;
-            }
-            
-            suggestSharedBindingGoldBar.Show(serverType.Value, () => ConnectAfterTeamExplorerInitialized(connectCommandProvider));
+            this.connectedModeServices = connectedModeServices;
+            this.connectedModeBindingServices = connectedModeBindingServices;
+            this.activeSolutionTracker = activeSolutionTracker;
+
+            this.activeSolutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
         }
 
-        public void Close()
+        public void Suggest()
         {
-            suggestSharedBindingGoldBar.Close();
-        }
+            var sharedBindingConfig = connectedModeBindingServices.SharedBindingConfigProvider.GetSharedBinding();
+            var isStandalone = connectedModeServices.ConfigurationProvider.GetConfiguration().Mode == SonarLintMode.Standalone;
 
-        private void ConnectAfterTeamExplorerInitialized(Func<ICommand<ConnectConfiguration>> connectCommandProvider)
-        {
-            if (IsConnectedModeWindowLoaded(connectCommandProvider, out var connectCommand))
+            if (sharedBindingConfig?.GetServerType() is { } serverType && isStandalone)
             {
-                teamExplorerController.ShowSonarQubePage();
-                Autobind(connectCommand);
-            }
-            else
-            {
-                connectedModeWindowEventBasedScheduler.ScheduleActionOnNextEvent(() => Autobind(connectCommandProvider()));
-                teamExplorerController.ShowSonarQubePage();
+                suggestSharedBindingGoldBar.Show(serverType, ShowManageBindingDialog);
             }
         }
 
-        private bool IsConnectedModeWindowLoaded(Func<ICommand<ConnectConfiguration>> connectCommandProvider,
-            out ICommand<ConnectConfiguration> connectCommand)
+        public void Dispose()
         {
-            connectCommand = connectCommandProvider();
-            return connectCommand != null;
+            activeSolutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
         }
-        
-        private void Autobind(ICommand<ConnectConfiguration> connectCommand)
+
+        private void ShowManageBindingDialog()
         {
-            if (connectCommand?.CanExecute(autobindEnabledConfiguration) ?? false)
+            var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, useSharedBindingOnInitialization:true);
+            manageBindingDialog.ShowDialog(Application.Current.MainWindow);
+        }
+
+        private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
+        {
+            if (e.IsSolutionOpen)
             {
-                connectCommand.Execute(autobindEnabledConfiguration);
+                Suggest();
             }
         }
     }

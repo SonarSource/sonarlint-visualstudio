@@ -19,10 +19,8 @@
  */
 
 using System.Windows;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.ConnectedMode.UI;
-using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 {
@@ -30,20 +28,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
     public class NewConnectedModeCommand : VsCommandBase
     {
         private readonly IConnectedModeServices connectedModeServices;
-        private readonly IBindingController bindingController;
-        private readonly ISolutionInfoProvider solutionInfoProvider;
+        private readonly IConnectedModeBindingServices connectedModeBindingServices;
         internal const int Id = 0x104;
 
-        public NewConnectedModeCommand(IConnectedModeServices connectedModeServices, IBindingController bindingController, ISolutionInfoProvider solutionInfoProvider)
+        public NewConnectedModeCommand(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
         {
             this.connectedModeServices = connectedModeServices;
-            this.bindingController = bindingController;
-            this.solutionInfoProvider = solutionInfoProvider;
+            this.connectedModeBindingServices = connectedModeBindingServices;
         }
 
         protected override void InvokeInternal()
         {
-           new ManageBindingDialog(connectedModeServices, bindingController, solutionInfoProvider).ShowDialog(Application.Current.MainWindow);
+           new ManageBindingDialog(connectedModeServices, connectedModeBindingServices).ShowDialog(Application.Current.MainWindow);
         }
     }
 }

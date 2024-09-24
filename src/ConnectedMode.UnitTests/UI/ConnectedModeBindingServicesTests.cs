@@ -21,23 +21,20 @@
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.ConnectedMode.UI;
-using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 
 [TestClass]
-public class ConnectedModeServicesTests
+public class ConnectedModeBindingServicesTests
 {
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<ConnectedModeServices, IConnectedModeServices>(
-            MefTestHelpers.CreateExport<IBrowserService>(),
-            MefTestHelpers.CreateExport<IThreadHandling>(),
-            MefTestHelpers.CreateExport<ISlCoreConnectionAdapter>(),
-            MefTestHelpers.CreateExport<IConfigurationProvider>(),
-            MefTestHelpers.CreateExport<IServerConnectionsRepositoryAdapter>(),
-            MefTestHelpers.CreateExport<IMessageBox>(),
-            MefTestHelpers.CreateExport<ILogger>());
+        MefTestHelpers.CheckTypeCanBeImported<ConnectedModeBindingServices, IConnectedModeBindingServices>(
+            MefTestHelpers.CreateExport<IBindingController>(),
+            MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
+            MefTestHelpers.CreateExport<ISharedBindingConfigProvider>());
     }
 }

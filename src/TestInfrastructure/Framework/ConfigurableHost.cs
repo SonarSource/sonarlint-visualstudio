@@ -42,13 +42,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public event EventHandler ActiveSectionChanged;
 
-        public SharedBindingConfigModel SharedBindingConfig { get; set; }
-
-        public Credential GetCredentialsForSharedConfig()
-        {
-            return CredentialsForSharedConfig;
-        }
-
         public ISectionController ActiveSection
         {
             get;
@@ -90,8 +83,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         #endregion IHost
 
         #region Test helpers
-
-        public Credential CredentialsForSharedConfig { get; set; }
         
         public void SimulateActiveSectionChanged()
         {

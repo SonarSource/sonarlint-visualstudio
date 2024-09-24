@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
@@ -45,11 +46,13 @@ namespace SonarLint.VisualStudio.Integration.Connection
     {
         private readonly IAutoBindTrigger autoBindTrigger;
         private readonly IHost host;
+        private readonly ISharedBindingConfigProvider sharedBindingConfigProvider;
+        private readonly ICredentialStoreService credentialStoreService;
         private readonly IConnectionInformationProvider connectionProvider;
         private readonly ISolutionInfoProvider solutionInfoProvider;
 
-        public ConnectionController(IServiceProvider serviceProvider, IHost host, IAutoBindTrigger autoBindTrigger)
-            : this(serviceProvider, host, autoBindTrigger, null, null)
+        public ConnectionController(IServiceProvider serviceProvider, IHost host, IAutoBindTrigger autoBindTrigger, ISharedBindingConfigProvider sharedBindingConfigProvider, ICredentialStoreService credentialStoreService)
+            : this(serviceProvider, host, autoBindTrigger, null, null, sharedBindingConfigProvider, credentialStoreService)
         {
             if (autoBindTrigger == null)
             {
@@ -61,10 +64,14 @@ namespace SonarLint.VisualStudio.Integration.Connection
             IHost host,
             IAutoBindTrigger autoBindTrigger,
             IConnectionInformationProvider connectionProvider,
-            IConnectionWorkflowExecutor workflowExecutor)
+            IConnectionWorkflowExecutor workflowExecutor, 
+            ISharedBindingConfigProvider sharedBindingConfigProvider, 
+            ICredentialStoreService credentialStoreService)
             : base(serviceProvider)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
+            this.sharedBindingConfigProvider = sharedBindingConfigProvider;
+            this.credentialStoreService = credentialStoreService;
             this.autoBindTrigger = workflowExecutor == null ? autoBindTrigger : null;
             this.WorkflowExecutor = workflowExecutor ?? this;
             this.connectionProvider = connectionProvider ?? this;
@@ -116,8 +123,8 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             ConnectionInformation connectionInfo;
 
-            var sharedConfig = host.SharedBindingConfig;
-            var credentials = host.GetCredentialsForSharedConfig();
+            var sharedConfig = sharedBindingConfigProvider.GetSharedBinding();
+            var credentials = sharedConfig == null ? null : credentialStoreService.ReadCredentials(sharedConfig.Uri);
             var useSharedConfig = configuration?.UseSharedBinding ?? false;
 
             if (useSharedConfig && sharedConfig != null)
