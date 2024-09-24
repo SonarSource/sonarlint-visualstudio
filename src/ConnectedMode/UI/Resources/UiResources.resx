@@ -391,4 +391,10 @@ Please manually add the connection through "Manage Connections" and then try aga
   <data name="NotFoundConnectionForSharedBindingMessageBoxCaption" xml:space="preserve">
     <value>Connection not found</value>
   </data>
+  <data name="CalculatingConnectionReferencesFailedText" xml:space="preserve">
+    <value>Calculating the connection references failed</value>
+  </data>
+  <data name="CalculatingConnectionReferencesText" xml:space="preserve">
+    <value>Calculating connection references...</value>
+  </data>
 </root>

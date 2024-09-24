@@ -151,6 +151,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Calculating the connection references failed.
+        /// </summary>
+        public static string CalculatingConnectionReferencesFailedText {
+            get {
+                return ResourceManager.GetString("CalculatingConnectionReferencesFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Calculating connection references....
+        /// </summary>
+        public static string CalculatingConnectionReferencesText {
+            get {
+                return ResourceManager.GetString("CalculatingConnectionReferencesText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string CancelButton {

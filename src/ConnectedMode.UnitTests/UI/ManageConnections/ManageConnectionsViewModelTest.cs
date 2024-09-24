@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageConnections;
 
@@ -37,19 +38,22 @@ public class ManageConnectionsViewModelTest
     private IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter;
     private IThreadHandling threadHandling;
     private ILogger logger;
+    private IConnectedModeBindingServices connectedModeBindingServices;
+    private ISolutionBindingRepository solutionBindingRepository;
 
     [TestInitialize]
     public void TestInitialize()
     {
         twoConnections =
         [
-            new Connection(new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube), true),
+            new Connection(new ConnectionInfo("http://localhost:9000/", ConnectionServerType.SonarQube), true),
             new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud), false)
         ];
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
         connectedModeServices = Substitute.For<IConnectedModeServices>();
+        connectedModeBindingServices = Substitute.For<IConnectedModeBindingServices>();
 
-        testSubject = new ManageConnectionsViewModel(connectedModeServices, progressReporterViewModel);
+        testSubject = new ManageConnectionsViewModel(connectedModeServices, connectedModeBindingServices, progressReporterViewModel);
 
         MockServices();
     }
@@ -277,6 +281,98 @@ public class ManageConnectionsViewModelTest
         serverConnectionsRepositoryAdapter.Received(1).TryAddConnection(connectionToAdd, Arg.Any<ICredentialsModel>());
     }
 
+    [TestMethod]
+    public async Task GetConnectionReferencesWithProgressAsync_InitializesDataAndReportsProgress()
+    {
+        await testSubject.GetConnectionReferencesWithProgressAsync(new ConnectionViewModel(new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud))));
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponseWithData<List<string>>>>(x =>
+                    x.ProgressStatus == UiResources.CalculatingConnectionReferencesText &&
+                    x.WarningText == UiResources.CalculatingConnectionReferencesFailedText));
+    }
+
+    [TestMethod]
+    public void GetConnectionReferences_NoBindingReferencesConnection_ReturnsEmptyList()
+    {
+        var response = testSubject.GetConnectionReferences(new ConnectionViewModel(new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud))));
+
+        response.Success.Should().BeTrue();
+        response.ResponseData.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void GetConnectionReferences_OneBindingReferencesSonarCloudConnection_ReturnsOneBinding()
+    {
+        var bindingKey = "localBindingKey";
+        var sonarCloud = twoConnections.First(conn => conn.Info.ServerType == ConnectionServerType.SonarCloud);
+        solutionBindingRepository.List().Returns([new BoundServerProject(bindingKey, "myProject", CreateSonarCloudServerConnection(sonarCloud))]);
+
+        var response = testSubject.GetConnectionReferences(new ConnectionViewModel(sonarCloud));
+
+        response.Success.Should().BeTrue();
+        response.ResponseData.Should().Contain(bindingKey);
+    }
+
+    [TestMethod]
+    public void GetConnectionReferences_OneBindingReferencesSonarQubeConnection_ReturnsOneBinding()
+    {
+        var bindingKey = "localBindingKey";
+        var sonarQube = twoConnections.First(conn => conn.Info.ServerType == ConnectionServerType.SonarQube);
+        solutionBindingRepository.List().Returns([new BoundServerProject(bindingKey, "myProject", CreateSonarQubeServerConnection(sonarQube))]);
+
+        var response = testSubject.GetConnectionReferences(new ConnectionViewModel(sonarQube));
+
+        response.Success.Should().BeTrue();
+        response.ResponseData.Should().Contain(bindingKey);
+    }
+
+    [TestMethod]
+    public void GetConnectionReferences_TwoBindingsReferencesSonarQubeConnection_ReturnsTwoBindings()
+    {
+        var sonarQube = twoConnections.First(conn => conn.Info.ServerType == ConnectionServerType.SonarQube);
+        var serverConnectionToBeRemoved = CreateSonarQubeServerConnection(sonarQube);
+        solutionBindingRepository.List().Returns([
+            new BoundServerProject("binding1", "myProject", serverConnectionToBeRemoved),
+            new BoundServerProject("binding2", "myProject2", serverConnectionToBeRemoved)
+        ]);
+
+        var response = testSubject.GetConnectionReferences(new ConnectionViewModel(sonarQube));
+
+        response.Success.Should().BeTrue();
+        response.ResponseData.Should().BeEquivalentTo(["binding1", "binding2"]);
+    }
+
+    [TestMethod]
+    public void GetConnectionReferences_TwoBindingsReferencesSonarCloudConnection_ReturnsTwoBindings()
+    {
+        var sonarCloud = twoConnections.First(conn => conn.Info.ServerType == ConnectionServerType.SonarQube);
+        var serverConnectionToBeRemoved = CreateSonarCloudServerConnection(sonarCloud);
+        solutionBindingRepository.List().Returns([
+            new BoundServerProject("binding1", "myProject", serverConnectionToBeRemoved),
+            new BoundServerProject("binding2", "myProject2", serverConnectionToBeRemoved)
+        ]);
+
+        var response = testSubject.GetConnectionReferences(new ConnectionViewModel(sonarCloud));
+
+        response.Success.Should().BeTrue();
+        response.ResponseData.Should().BeEquivalentTo(["binding1", "binding2"]);
+    }
+
+    [TestMethod]
+    public void GetConnectionReferences_BindingRepositoryThrowsException_ReturnsEmptyList()
+    {
+        var exceptionMsg = "Failed to retrieve bindings";
+        solutionBindingRepository.When(repo => repo.List()).Do(_ => throw new Exception(exceptionMsg));
+
+        var response = testSubject.GetConnectionReferences(new ConnectionViewModel(twoConnections.First()));
+
+        response.Success.Should().BeFalse(); 
+        response.ResponseData.Should().BeEmpty();
+        logger.Received(1).WriteLine(nameof(testSubject.GetConnectionReferences), exceptionMsg);
+    }
+
     private void HasExpectedConnections(IEnumerable<Connection> expectedConnections)
     {
         testSubject.ConnectionViewModels.Should().NotBeNull();
@@ -310,6 +406,9 @@ public class ManageConnectionsViewModelTest
         connectedModeServices.ThreadHandling.Returns(threadHandling);
         connectedModeServices.Logger.Returns(logger);
         MockTryGetConnections(twoConnections);
+
+        solutionBindingRepository = Substitute.For<ISolutionBindingRepository>();
+        connectedModeBindingServices.SolutionBindingRepository.Returns(solutionBindingRepository);
     }
 
     private void MockTryGetConnections(List<Connection> connections)
@@ -324,5 +423,15 @@ public class ManageConnectionsViewModelTest
     private static Connection CreateSonarCloudConnection()
     {
         return new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), false);
+    }
+
+    private static ServerConnection.SonarCloud CreateSonarCloudServerConnection(Connection sonarCloud)
+    {
+        return new ServerConnection.SonarCloud(sonarCloud.Info.Id);
+    }
+
+    private static ServerConnection.SonarQube CreateSonarQubeServerConnection(Connection sonarQube)
+    {
+        return new ServerConnection.SonarQube(new Uri(sonarQube.Info.Id));
     }
 }
