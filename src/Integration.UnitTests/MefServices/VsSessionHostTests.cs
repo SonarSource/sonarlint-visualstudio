@@ -18,16 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.Alm.Authentication;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.MefServices;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -44,8 +38,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         private ConfigurableStateManager stateManager;
         private ConfigurableProgressStepRunner stepRunner;
         private ConfigurableConfigurationProvider configProvider;
-        private Mock<ISharedBindingConfigProvider> sharedBindingConfigProviderMock;
-        private Mock<ICredentialStoreService> credentialStoreServiceMock;
         private Mock<ISharedBindingSuggestionService> sharedBindingSuggestionService;
         private Mock<IConnectedModeWindowEventListener> connectedModeWindowEventListener;
 
@@ -57,8 +49,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.stepRunner = new ConfigurableProgressStepRunner();
             this.configProvider = new ConfigurableConfigurationProvider();
-            sharedBindingConfigProviderMock = new Mock<ISharedBindingConfigProvider>();
-            credentialStoreServiceMock = new Mock<ICredentialStoreService>();
             sharedBindingSuggestionService = new Mock<ISharedBindingSuggestionService>();
             connectedModeWindowEventListener = new Mock<IConnectedModeWindowEventListener>();
         }
@@ -72,9 +62,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
-                MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
-                MefTestHelpers.CreateExport<ICredentialStoreService>(),
-                MefTestHelpers.CreateExport<ISharedBindingSuggestionService>(),
                 MefTestHelpers.CreateExport<IConnectedModeWindowEventListener>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
@@ -100,7 +87,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             trackerMock.VerifyRemove(x => x.ActiveSolutionChanged -= It.IsAny<EventHandler<ActiveSolutionChangedEventArgs>>(), Times.Once);
             connectedModeWindowEventListener.Verify(x => x.Dispose(), Times.Once);
-            sharedBindingSuggestionService.Verify(x => x.Close(), Times.Once);
         }
 
         [TestMethod]
@@ -367,127 +353,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.stateManager.AssignedProjectKey.Should().BeNull();
         }
 
-        [TestMethod]
-        public void ResetBinding_SharedConfigSetWhenUnbound()
-        {
-            var tracker = new ConfigurableActiveSolutionTracker();
-            var testSubject = CreateTestSubject(tracker);
-            var sharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "abcd" };
-            sharedBindingConfigProviderMock.Setup(x => x.GetSharedBinding())
-                .Returns(sharedBindingConfig);
-            
-            tracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
-            
-            testSubject.SharedBindingConfig.Should().BeSameAs(sharedBindingConfig);
-            testSubject.VisualStateManager.HasSharedBinding.Should().BeTrue();
-            CheckSuggestionShowCalledTimes(1);
-            CheckResetConnectionCalledTimes(testSubject, 1);
-        }
-        
-        [TestMethod]
-        public void ResetBinding_SharedConfigNotSetWhenNull()
-        {
-            var tracker = new ConfigurableActiveSolutionTracker();
-            var testSubject = CreateTestSubject(tracker);
-            sharedBindingSuggestionService.Invocations.Clear();
-            sharedBindingConfigProviderMock.Setup(x => x.GetSharedBinding())
-                .Returns((SharedBindingConfigModel)null);
-            
-            tracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
-            
-            testSubject.SharedBindingConfig.Should().BeNull();
-            testSubject.VisualStateManager.HasSharedBinding.Should().BeFalse();
-            CheckSuggestionShowCalledTimes(1, serverType: null);
-            CheckResetConnectionCalledTimes(testSubject, 1);
-        }
-
-        [TestMethod]
-        public void ResetBinding_ClosedSolution_DoesNotSuggestSharedBinding()
-        {
-            var tracker = new ConfigurableActiveSolutionTracker();
-            var testSubject = CreateTestSubject(tracker);
-            sharedBindingSuggestionService.Invocations.Clear();
-            sharedBindingConfigProviderMock.Setup(x => x.GetSharedBinding())
-                .Returns((SharedBindingConfigModel)null);
-            
-            tracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
-            
-            testSubject.SharedBindingConfig.Should().BeNull();
-            testSubject.VisualStateManager.HasSharedBinding.Should().BeFalse();
-            CheckSuggestionClosed();
-            CheckSuggestionShowCalledTimes(0);
-            CheckResetConnectionCalledTimes(testSubject, 0);
-        }
-        
-        [TestMethod]
-        public void InitializeBinding_SharedConfigSetWhenUnbound()
-        {
-            var testSubject = CreateTestSubject();
-            var section = ConfigurableSectionController.CreateDefault();
-            sharedBindingConfigProviderMock.Setup(x => x.GetSharedBinding())
-                .Returns(new SharedBindingConfigModel { ProjectKey = "abcd" });
-            
-            testSubject.SetActiveSection(section);
-            
-            testSubject.SharedBindingConfig.Should().NotBeNull();
-            testSubject.VisualStateManager.HasSharedBinding.Should().BeTrue();
-            CheckSuggestionShowCalledTimes(1);
-            CheckResetConnectionCalledTimes(testSubject, 1);
-        }
-
-        [TestMethod]
-        public void ResetBinding_SharedConfigRemovedWhenBound()
-        {
-            var tracker = new ConfigurableActiveSolutionTracker();
-            var testSubject = CreateTestSubject(tracker);
-            var section = ConfigurableSectionController.CreateDefault();
-            sharedBindingConfigProviderMock.Setup(x => x.GetSharedBinding())
-                .Returns(new SharedBindingConfigModel { ProjectKey = "abcd" });
-            testSubject.SetActiveSection(section);
-            ((ConfigurableStateManager)testSubject.VisualStateManager).ResetConnectionConfigCalled = 0;
-
-            testSubject.SharedBindingConfig.Should().NotBeNull();
-            sharedBindingSuggestionService.Invocations.Clear();
-            
-            this.stateManager.SetBoundProject(new Uri("http://bound"), null, "bla");
-            SetConfiguration(new BoundServerProject("solution", "bla", new ServerConnection.SonarQube(new Uri("http://bound"))), SonarLintMode.Connected);
-            
-            tracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
-
-            testSubject.SharedBindingConfig.Should().BeNull();
-            this.stateManager.BoundProjectKey.Should().Be("bla");
-            CheckSuggestionShowCalledTimes(0);
-            CheckResetConnectionCalledTimes(testSubject, 0);
-        }
-
-        [DataRow(null)]
-        [DataRow("http://localhost:9000")]
-        [DataRow("https://sonarqube.io")]
-        [DataTestMethod]
-        public void GetCredentialsForSharedConfig_CallsCredentialServiceOnlyWhenSharedConfigExists(string serverUri)
-        {
-            var testSubject = CreateTestSubject();
-            var section = ConfigurableSectionController.CreateDefault();
-            sharedBindingConfigProviderMock.Setup(x => x.GetSharedBinding())
-                .Returns(serverUri != null ? new SharedBindingConfigModel { Uri = new Uri(serverUri)} : null);
-            testSubject.SetActiveSection(section);
-            var credential = new Credential("a");
-            credentialStoreServiceMock.Setup(x => x.ReadCredentials(It.IsAny<TargetUri>())).Returns(credential);
-
-            var result = testSubject.GetCredentialsForSharedConfig();
-            
-            if (serverUri == null)
-            {
-                credentialStoreServiceMock.Verify(x => x.ReadCredentials(It.IsAny<TargetUri>()), Times.Never);
-                result.Should().BeNull();
-            }
-            else
-            {
-                credentialStoreServiceMock.Verify(x => x.ReadCredentials(It.IsAny<TargetUri>()), Times.Once);
-                result.Should().BeSameAs(credential);
-            }
-        }
-
         #endregion Tests
 
         #region Helpers
@@ -500,10 +365,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 this.sonarQubeServiceMock.Object,
                 tracker ?? new ConfigurableActiveSolutionTracker(),
                 this.configProvider,
-                sharedBindingConfigProviderMock.Object,
-                credentialStoreServiceMock.Object,
                 connectedModeWindowEventListener.Object,
-                sharedBindingSuggestionService.Object,
                 Mock.Of<ILogger>());
 
             this.stateManager.Host = host;
@@ -516,24 +378,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.configProvider.ProjectToReturn = project;
             this.configProvider.ModeToReturn = mode;
             this.configProvider.FolderPathToReturn = "c:\\test\\";
-        }
-        
-        private static void CheckResetConnectionCalledTimes(VsSessionHost testSubject, int count)
-        {
-            ((ConfigurableStateManager)testSubject.VisualStateManager).ResetConnectionConfigCalled.Should().Be(count);
-        }
-        
-        private void CheckSuggestionShowCalledTimes(int count, ServerType? serverType = ServerType.SonarQube)
-        {
-            sharedBindingSuggestionService.Verify(x => x.Suggest(serverType ?? It.IsAny<ServerType?>(),
-                    It.IsAny<Func<ICommand<ConnectConfiguration>>>()),
-                Times.Exactly(count));
-            sharedBindingSuggestionService.VerifyNoOtherCalls();
-        }
-
-        private void CheckSuggestionClosed()
-        {
-            sharedBindingSuggestionService.Verify(x => x.Close());
         }
 
         #endregion Helpers

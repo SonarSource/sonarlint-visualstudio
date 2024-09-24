@@ -27,13 +27,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
 public interface IConnectedModeServices
 {
-    public ISharedBindingConfigProvider SharedBindingConfigProvider { get; } 
     public IBrowserService BrowserService { get; } 
     public IThreadHandling ThreadHandling { get; } 
     public ILogger Logger { get; } 
     public ISlCoreConnectionAdapter SlCoreConnectionAdapter { get; } 
     public IConfigurationProvider ConfigurationProvider { get; } 
     public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; }
+    public IMessageBox MessageBox { get; }
 }
 
 [Export(typeof(IConnectedModeServices))]
@@ -44,13 +44,13 @@ public class ConnectedModeServices(
     IThreadHandling threadHandling,
     ISlCoreConnectionAdapter slCoreConnectionAdapter,
     IConfigurationProvider configurationProvider,
-    ISharedBindingConfigProvider sharedBindingConfigProvider,
     IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter,
+    IMessageBox messageBox,
     ILogger logger)
     : IConnectedModeServices
 {
-    public ISharedBindingConfigProvider SharedBindingConfigProvider { get; } = sharedBindingConfigProvider;
     public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; } = serverConnectionsRepositoryAdapter;
+    public IMessageBox MessageBox { get; } = messageBox;
     public IBrowserService BrowserService { get; } = browserService;
     public IThreadHandling ThreadHandling { get; } = threadHandling;
     public ILogger Logger { get; } = logger;

@@ -57,7 +57,9 @@
                     </Grid>
 
             <Button Grid.Column="1" HorizontalAlignment="Right" Content="{x:Static res:UiResources.UseSharedBindingButton}" Padding="5,0" 
-                    IsEnabled="{Binding Path=IsUseSharedBindingButtonEnabled}" ToolTipService.ShowOnDisabled="True"
+                    IsEnabled="{Binding Path=IsUseSharedBindingButtonEnabled}"
+                    Visibility="{Binding Path=IsUseSharedBindingButtonVisible, Converter={StaticResource TrueToVisibleConverter}}"
+                    ToolTipService.ShowOnDisabled="True"
                     Click="UseSharedBinding_OnClick">
                 <Button.Style>
                     <Style TargetType="Button">

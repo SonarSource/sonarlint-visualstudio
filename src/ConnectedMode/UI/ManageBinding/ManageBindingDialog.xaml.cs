@@ -22,10 +22,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Navigation;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
-using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
@@ -33,11 +31,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 public partial class ManageBindingDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
+    private readonly bool useSharedBindingOnInitialization;
 
-    public ManageBindingDialog(IConnectedModeServices connectedModeServices, IBindingController bindingController, ISolutionInfoProvider solutionInfoProvider)
+    public ManageBindingDialog(
+        IConnectedModeServices connectedModeServices,
+        IConnectedModeBindingServices connectedModeBindingServices,
+        bool useSharedBindingOnInitialization = false)
     {
         this.connectedModeServices = connectedModeServices;
-        ViewModel = new ManageBindingViewModel(connectedModeServices, bindingController, solutionInfoProvider, new ProgressReporterViewModel());
+        this.useSharedBindingOnInitialization = useSharedBindingOnInitialization;
+        ViewModel = new ManageBindingViewModel(connectedModeServices, connectedModeBindingServices, new ProgressReporterViewModel());
         InitializeComponent();
     }
 
@@ -66,6 +69,10 @@ public partial class ManageBindingDialog : Window
     private async void ManageBindingDialog_OnInitialized(object sender, EventArgs e)
     {
         await ViewModel.InitializeDataAsync();
+        if (useSharedBindingOnInitialization)
+        {
+            await ViewModel.UseSharedBindingWithProgressAsync();
+        }
     }
 
     private void Unbind_OnClick(object sender, RoutedEventArgs e)
@@ -73,9 +80,9 @@ public partial class ManageBindingDialog : Window
         ViewModel.Unbind();
     }
 
-    private void UseSharedBinding_OnClick(object sender, RoutedEventArgs e)
+    private async void UseSharedBinding_OnClick(object sender, RoutedEventArgs e)
     {
-        ViewModel.UseSharedBindingAsync().Forget();
+        await ViewModel.UseSharedBindingWithProgressAsync();
     }
 
     private void ExportBindingConfigurationButton_OnClick(object sender, RoutedEventArgs e)
