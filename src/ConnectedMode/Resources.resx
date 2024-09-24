@@ -322,4 +322,7 @@
   <data name="UseSharedBinding_ConnectionNotFound" xml:space="preserve">
     <value>[ConnectedMode/UseSharedBinding] Connection to server {0} could not be found</value>
   </data>
+  <data name="UnexpectedConnectionType" xml:space="preserve">
+    <value>Unexpected server connection type</value>
+  </data>
 </root>

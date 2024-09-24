@@ -37,7 +37,7 @@ public record ConnectionInfo(string Id, ConnectionServerType ServerType)
         {
             ServerConnection.SonarQube sonarQubeConnection => new ConnectionInfo(sonarQubeConnection.Id, ConnectionServerType.SonarQube),
             ServerConnection.SonarCloud sonarCloudConnection => new ConnectionInfo(sonarCloudConnection.OrganizationKey, ConnectionServerType.SonarCloud),
-            _ => null
+            _ => throw new ArgumentException(Resources.UnexpectedConnectionType)
         };
     }
 }

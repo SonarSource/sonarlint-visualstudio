@@ -216,7 +216,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
                 new TransientSonarQubeConnectionDto(connectionInfo.Id, credentialsDto)),
             ConnectionServerType.SonarCloud => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateRight(
                 new TransientSonarCloudConnectionDto(connectionInfo.Id, credentialsDto)),
-            _ => null
+            _ => throw new ArgumentException(Resources.UnexpectedConnectionType)
         };
     }
 
@@ -230,7 +230,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
                 new TransientSonarQubeConnectionDto(sonarQubeConnection.Id, credentials)),
             ServerConnection.SonarCloud sonarCloudConnection => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateRight(
                 new TransientSonarCloudConnectionDto(sonarCloudConnection.OrganizationKey, credentials)),
-            _ => null
+            _ => throw new ArgumentException(Resources.UnexpectedConnectionType)
         };
     }
 
