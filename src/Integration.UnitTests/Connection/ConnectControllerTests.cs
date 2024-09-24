@@ -238,7 +238,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var connectionProviderMock = new Mock<IConnectionInformationProvider>();
             var testSubject = new ConnectionController(this.serviceProvider, this.host, null, connectionProviderMock.Object,
                 connectionWorkflowMock.Object, sharedBindingConfigProvider.Object, credentialsStore.Object);
-            var sharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloudi.io"), Organization = "Org" };
+            var sharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloud.io"), Organization = "Org" };
             sharedBindingConfigProvider.Setup(mock => mock.GetSharedBinding()).Returns(sharedBindingConfig);
             credentialsStore.Setup(mock => mock.ReadCredentials(It.IsAny<TargetUri>())).Returns(new Credential("user", "pwd"));
             
@@ -261,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             var connectionProviderMock = new Mock<IConnectionInformationProvider>();
             var testSubject = new ConnectionController(this.serviceProvider, this.host, null, connectionProviderMock.Object,
                 connectionWorkflowMock.Object, sharedBindingConfigProvider.Object, credentialsStore.Object);
-            var sharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloudi.io"), Organization = "Org" };
+            var sharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloud.io"), Organization = "Org" };
             sharedBindingConfigProvider.Setup(mock => mock.GetSharedBinding()).Returns(sharedBindingConfig);
             var connectionInformation =
                 new ConnectionInformation(sharedBindingConfig.Uri, "user", "pwd".ToSecureString())
@@ -299,7 +299,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             SetupConnectionWorkflow(connectionWorkflowMock);
             SetUpOpenSolution();
             var connectionProviderMock = new Mock<IConnectionInformationProvider>();
-            var sharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloudi.io"), Organization = "Org" };
+            var sharedBindingConfig = new SharedBindingConfigModel { ProjectKey = "projectKey", Uri = new Uri("https://sonarcloud.io"), Organization = "Org" };
             sharedBindingConfigProvider.Setup(mock => mock.GetSharedBinding()).Returns(sharedBindingConfig);
             credentialsStore.Setup(mock => mock.ReadCredentials(It.IsAny<TargetUri>())).Returns(new Credential("user", "pwd"));
             var expectedConnection = new ConnectionInformation(new Uri("https://127.0.0.0"));
