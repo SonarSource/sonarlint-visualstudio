@@ -26,7 +26,6 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.MefServices
 {
@@ -37,13 +36,12 @@ namespace SonarLint.VisualStudio.Integration.MefServices
     
     [Export(typeof(ISharedBindingSuggestionService))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class SharedBindingSuggestionService : ISharedBindingSuggestionService
+    internal sealed class SharedBindingSuggestionService : ISharedBindingSuggestionService
     {
         private readonly ISuggestSharedBindingGoldBar suggestSharedBindingGoldBar;
         private readonly IConnectedModeServices connectedModeServices;
         private readonly IConnectedModeBindingServices connectedModeBindingServices;
         private readonly IActiveSolutionTracker activeSolutionTracker;
-        private bool disposed;
 
         [ImportingConstructor]
         public SharedBindingSuggestionService(
@@ -73,8 +71,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            activeSolutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
         }
 
         private void ShowManageBindingDialog()
@@ -88,20 +85,6 @@ namespace SonarLint.VisualStudio.Integration.MefServices
             if (e.IsSolutionOpen)
             {
                 Suggest();
-            }
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposed)
-            {
-                return;
-            }
-
-            disposed = true;
-            if (disposing)
-            {
-                activeSolutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
             }
         }
     }
