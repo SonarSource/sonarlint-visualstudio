@@ -40,10 +40,6 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         IStateManager VisualStateManager { get; }
 
-        SharedBindingConfigModel SharedBindingConfig { get; }
-
-        Credential GetCredentialsForSharedConfig();
-
         /// <summary>
         /// The currently active section. Null when no active section.
         /// </summary>

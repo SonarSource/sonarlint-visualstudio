@@ -22,10 +22,11 @@ using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.MefServices;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
@@ -69,6 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private ILogger logger;
         private IRoslynSettingsFileSynchronizer roslynSettingsFileSynchronizer;
+        private ISharedBindingSuggestionService suggestSharedBindingGoldBar;
 
         protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -103,6 +105,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 roslynSettingsFileSynchronizer.UpdateFileStorageAsync().Forget(); // don't wait for it to finish
                 Debug.Assert(threadHandling.CheckAccess(), "Still expecting to be on the UI thread");
 
+                suggestSharedBindingGoldBar = serviceProvider.GetMefService<ISharedBindingSuggestionService>();
+                suggestSharedBindingGoldBar.Suggest();
+
                 logger.WriteLine(Resources.Strings.SL_InitializationComplete);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -118,6 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (disposing)
             {
                 this.roslynSettingsFileSynchronizer?.Dispose();
+                suggestSharedBindingGoldBar?.Dispose();
                 this.roslynSettingsFileSynchronizer = null;
             }
         }

@@ -25,6 +25,8 @@ using Microsoft.TeamFoundation.Controls;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -70,7 +72,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 MefTestHelpers.CreateExport<SVsServiceProvider>(),
                 MefTestHelpers.CreateExport<IHost>(new ConfigurableHost()),
                 MefTestHelpers.CreateExport<IWebBrowser>(),
-                MefTestHelpers.CreateExport<IAutoBindTrigger>());
+                MefTestHelpers.CreateExport<IAutoBindTrigger>(),
+                MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
+                MefTestHelpers.CreateExport<ICredentialStoreService>());
         }
 
         [TestMethod]
@@ -475,7 +479,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
         private SectionController CreateTestSubject(IWebBrowser webBrowser = null)
         {
-            var controller = new SectionController(serviceProvider, host, webBrowser ?? new ConfigurableWebBrowser(), Mock.Of<IAutoBindTrigger>());
+            var controller = new SectionController(serviceProvider, host, webBrowser ?? new ConfigurableWebBrowser(), Mock.Of<IAutoBindTrigger>(), Mock.Of<ISharedBindingConfigProvider>(), Mock.Of<ICredentialStoreService>());
             controller.Initialize(null, new SectionInitializeEventArgs(new ServiceContainer(), null));
             return controller;
         }
