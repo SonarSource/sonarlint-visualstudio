@@ -38,7 +38,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         private ConfigurableStateManager stateManager;
         private ConfigurableProgressStepRunner stepRunner;
         private ConfigurableConfigurationProvider configProvider;
-        private Mock<ICredentialStoreService> credentialStoreServiceMock;
         private Mock<ISharedBindingSuggestionService> sharedBindingSuggestionService;
         private Mock<IConnectedModeWindowEventListener> connectedModeWindowEventListener;
 
@@ -50,7 +49,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.stepRunner = new ConfigurableProgressStepRunner();
             this.configProvider = new ConfigurableConfigurationProvider();
-            credentialStoreServiceMock = new Mock<ICredentialStoreService>();
             sharedBindingSuggestionService = new Mock<ISharedBindingSuggestionService>();
             connectedModeWindowEventListener = new Mock<IConnectedModeWindowEventListener>();
         }
@@ -64,7 +62,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
-                MefTestHelpers.CreateExport<ICredentialStoreService>(),
                 MefTestHelpers.CreateExport<IConnectedModeWindowEventListener>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
@@ -368,7 +365,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 this.sonarQubeServiceMock.Object,
                 tracker ?? new ConfigurableActiveSolutionTracker(),
                 this.configProvider,
-                credentialStoreServiceMock.Object,
                 connectedModeWindowEventListener.Object,
                 Mock.Of<ILogger>());
 

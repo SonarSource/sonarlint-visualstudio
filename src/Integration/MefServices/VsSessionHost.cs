@@ -19,9 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using Microsoft.Alm.Authentication;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.MefServices;
@@ -39,7 +36,6 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IConfigurationProvider configurationProvider;
-        private readonly ICredentialStoreService credentialStoreService;
         private readonly IConnectedModeWindowEventListener connectedModeWindowEventListener;
         private readonly IProgressStepRunnerWrapper progressStepRunner;
 
@@ -50,7 +46,6 @@ namespace SonarLint.VisualStudio.Integration
         public VsSessionHost(ISonarQubeService sonarQubeService,
             IActiveSolutionTracker solutionTracker,
             IConfigurationProvider configurationProvider,
-            ICredentialStoreService credentialStoreService,
             IConnectedModeWindowEventListener connectedModeWindowEventListener,
             ILogger logger)
             : this(
@@ -59,7 +54,6 @@ namespace SonarLint.VisualStudio.Integration
                 sonarQubeService,
                 solutionTracker,
                 configurationProvider,
-                credentialStoreService,
                 connectedModeWindowEventListener,
                 logger)
         {
@@ -70,7 +64,6 @@ namespace SonarLint.VisualStudio.Integration
             ISonarQubeService sonarQubeService,
             IActiveSolutionTracker solutionTracker,
             IConfigurationProvider configurationProvider,
-            ICredentialStoreService credentialStoreService,
             IConnectedModeWindowEventListener connectedModeWindowEventListener,
             ILogger logger)
         {
@@ -79,7 +72,6 @@ namespace SonarLint.VisualStudio.Integration
             this.SonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.solutionTracker = solutionTracker ?? throw new ArgumentNullException(nameof(solutionTracker));
             this.configurationProvider = configurationProvider ?? throw new ArgumentNullException(nameof(configurationProvider));
-            this.credentialStoreService = credentialStoreService;
             this.connectedModeWindowEventListener = connectedModeWindowEventListener;
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
             this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
