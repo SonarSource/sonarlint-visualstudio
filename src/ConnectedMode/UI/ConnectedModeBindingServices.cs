@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
@@ -30,6 +31,7 @@ public interface IConnectedModeBindingServices
     public IBindingController BindingController { get; }
     public ISolutionInfoProvider SolutionInfoProvider { get; }
     public ISharedBindingConfigProvider SharedBindingConfigProvider { get; }
+    public ISolutionBindingRepository SolutionBindingRepository { get; }
 }
 
 [Export(typeof(IConnectedModeBindingServices))]
@@ -38,10 +40,12 @@ public interface IConnectedModeBindingServices
 public class ConnectedModeBindingServices(
     IBindingController bindingController,
     ISolutionInfoProvider solutionInfoProvider,
-    ISharedBindingConfigProvider sharedBindingConfigProvider)
+    ISharedBindingConfigProvider sharedBindingConfigProvider, 
+    ISolutionBindingRepository solutionBindingRepository)
     : IConnectedModeBindingServices
 {
     public IBindingController BindingController { get; } = bindingController;
     public ISolutionInfoProvider SolutionInfoProvider { get; } = solutionInfoProvider;
     public ISharedBindingConfigProvider SharedBindingConfigProvider { get; } = sharedBindingConfigProvider;
+    public ISolutionBindingRepository SolutionBindingRepository { get; } = solutionBindingRepository;
 }

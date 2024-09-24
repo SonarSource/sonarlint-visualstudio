@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 
@@ -35,6 +36,7 @@ public class ConnectedModeBindingServicesTests
         MefTestHelpers.CheckTypeCanBeImported<ConnectedModeBindingServices, IConnectedModeBindingServices>(
             MefTestHelpers.CreateExport<IBindingController>(),
             MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
-            MefTestHelpers.CreateExport<ISharedBindingConfigProvider>());
+            MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
+            MefTestHelpers.CreateExport<ISolutionBindingRepository>());
     }
 }
