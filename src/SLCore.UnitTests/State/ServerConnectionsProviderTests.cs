@@ -63,13 +63,13 @@ public class ServerConnectionsProviderTests
     [TestMethod]
     public void GetServerConnections_CorrectlyReturnsSonarCloudConnection()
     {
-        const string connectionId = "connectionId";
+        const string connectionId = "https://sonarcloud.io/organizations/org";
         var serverUri = new Uri("https://sonarcloud.io/");
         const string organizationKey = "org";
         var binding = new BoundServerProject("solution", "project", new ServerConnection.SonarCloud(organizationKey));
         var solutionBindingRepository = SetUpBindingRepository(binding);
         var connectionIdHelper = Substitute.For<IConnectionIdHelper>();
-        connectionIdHelper.GetConnectionIdFromServerConnection(Arg.Is<ServerConnection>(s => s.ServerUri.Equals(serverUri) && s.Id == organizationKey)).Returns(connectionId);
+        connectionIdHelper.GetConnectionIdFromServerConnection(Arg.Is<ServerConnection>(s => s.ServerUri.Equals(serverUri) && s.Id == connectionId)).Returns(connectionId);
         var testSubject = CreateTestSubject(solutionBindingRepository, connectionIdHelper);
 
         var serverConnections = testSubject.GetServerConnections();
@@ -91,7 +91,7 @@ public class ServerConnectionsProviderTests
         var serverConnections = testSubject.GetServerConnections();
 
         serverConnections.Should().HaveCount(3);
-        serverConnections["sc|myorg"].Should().BeOfType<SonarCloudConnectionConfigurationDto>();
+        serverConnections["sc|https://sonarcloud.io/organizations/myorg"].Should().BeOfType<SonarCloudConnectionConfigurationDto>();
         serverConnections["sq|http://localhost/"].Should().BeOfType<SonarQubeConnectionConfigurationDto>();
         serverConnections["sq|https://next.sonarqube.org/sonarqube/"].Should().BeOfType<SonarQubeConnectionConfigurationDto>();
     }

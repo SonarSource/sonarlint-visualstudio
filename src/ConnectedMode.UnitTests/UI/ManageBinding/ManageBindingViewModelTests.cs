@@ -671,8 +671,9 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public async Task BindAsync_WhenConnectionNotFound_Fails()
     {
-        testSubject.SelectedConnectionInfo = new ConnectionInfo("organization", ConnectionServerType.SonarCloud);
-        serverConnectionsRepositoryAdapter.TryGetServerConnectionById("organization", out _).Returns(callInfo =>
+        var connectionInfo = new ConnectionInfo("organization", ConnectionServerType.SonarCloud);
+        testSubject.SelectedConnectionInfo = connectionInfo;
+        serverConnectionsRepositoryAdapter.TryGet(connectionInfo, out _).Returns(callInfo =>
         {
             callInfo[1] = null;
             return false;
@@ -798,7 +799,7 @@ public class ManageBindingViewModelTests
         var response = await testSubject.UseSharedBindingAsync();
 
         response.Success.Should().BeTrue();
-        serverConnectionsRepositoryAdapter.Received(1).TryGetServerConnectionById(testSubject.SharedBindingConfigModel.Uri.ToString(), out _);
+        serverConnectionsRepositoryAdapter.Received(1).TryGet(new ConnectionInfo(testSubject.SharedBindingConfigModel.Uri.ToString(), ConnectionServerType.SonarQube), out _);
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj => proj.ServerConnection == expectedServerConnection), Arg.Any<CancellationToken>());
     }
@@ -814,7 +815,7 @@ public class ManageBindingViewModelTests
         var response = await testSubject.UseSharedBindingAsync();
 
         response.Success.Should().BeTrue();
-        serverConnectionsRepositoryAdapter.Received(1).TryGetServerConnectionById(testSubject.SharedBindingConfigModel.Organization, out _);
+        serverConnectionsRepositoryAdapter.Received(1).TryGet(new ConnectionInfo(testSubject.SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud), out _);
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj => proj.ServerConnection == expectedServerConnection), Arg.Any<CancellationToken>());
     }
@@ -854,7 +855,8 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public async Task UseSharedBindingAsync_BindingFails_ReturnsFalse()
     {
-        MockTryGetServerConnectionId();
+        var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
+        MockTryGetServerConnection(sonarCloudConnection);
         bindingController.When(x => x.BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>()))
             .Do(_ => throw new Exception());
         testSubject.SharedBindingConfigModel = sonarCloudSharedBindingConfigModel;
@@ -910,17 +912,17 @@ public class ManageBindingViewModelTests
         var configurationProvider = Substitute.For<IConfigurationProvider>();
         configurationProvider.GetConfiguration().Returns(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));
         connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
-        MockTryGetServerConnectionId(serverConnection);
+        MockTryGetServerConnection(serverConnection);
         solutionInfoProvider.GetSolutionNameAsync().Returns(ALocalProjectKey);
         
         MockGetServerProjectByKey(true, expectedServerProject);
     }
 
-    private void MockTryGetServerConnectionId(ServerConnection serverConnection = null)
+    private void MockTryGetServerConnection(ServerConnection expectedServerConnection = null)
     {
-        serverConnectionsRepositoryAdapter.TryGetServerConnectionById(serverConnection?.Id ?? Arg.Any<string>(), out _).Returns(callInfo =>
+        serverConnectionsRepositoryAdapter.TryGet(Arg.Any<ConnectionInfo>(), out _).Returns(callInfo =>
         {
-            callInfo[1] = serverConnection;
+            callInfo[1] = expectedServerConnection;
             return true;
         });
     }
@@ -947,7 +949,7 @@ public class ManageBindingViewModelTests
     private void MockGetServerProjectByKey(bool success, ServerProject responseData)
     {
         var slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
-        slCoreConnectionAdapter.GetServerProjectByKeyAsync(Arg.Any<ICredentials>(), Arg.Any<ConnectionInfo>(),Arg.Any<string>())
+        slCoreConnectionAdapter.GetServerProjectByKeyAsync(Arg.Any<ServerConnection>(),Arg.Any<string>())
             .Returns(Task.FromResult(new AdapterResponseWithData<ServerProject>(success, responseData)));
         connectedModeServices.SlCoreConnectionAdapter.Returns(slCoreConnectionAdapter);
     }

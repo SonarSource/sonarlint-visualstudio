@@ -40,8 +40,8 @@ public interface ISlCoreConnectionAdapter
 {
     Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel);
     Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel);
-    Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ICredentials credentials, ConnectionInfo connectionInfo, string serverProjectKey);
-    Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(ConnectionInfo connectionInfo, ICredentials credentials);
+    Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, string serverProjectKey);
+    Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(ServerConnection serverConnection);
 }
 
 public class AdapterResponseWithData<T>(bool success, T responseData) : IResponseStatus
@@ -74,8 +74,9 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
 
     public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel)
     {
-        var credentials = GetCredentialsDto(credentialsModel);
-        var validateConnectionParams = GetValidateConnectionParams(connectionInfo, credentials);
+        var credentials = credentialsModel.ToICredentials();
+        
+        var validateConnectionParams = new ValidateConnectionParams(GetTransientConnectionDto(connectionInfo, credentials));
         return await ValidateConnectionAsync(validateConnectionParams);
     }
 
@@ -90,7 +91,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
 
             try
             {
-                var credentials = GetCredentialsDto(credentialsModel);
+                var credentials = MapCredentials(credentialsModel?.ToICredentials());
                 var response = await connectionConfigurationSlCoreService.ListUserOrganizationsAsync(new ListUserOrganizationsParams(credentials));
                 var organizationDisplays = response.userOrganizations.Select(o => new OrganizationDisplay(o.key, o.name)).ToList();
 
@@ -104,7 +105,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         });
     }
 
-    public Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ICredentials credentials, ConnectionInfo connectionInfo, string serverProjectKey)
+    public Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, string serverProjectKey)
     {
         var failedResponse = new AdapterResponseWithData<ServerProject>(false, null);
         
@@ -117,8 +118,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
 
             try
             {
-                var credentialsSlCoreFormat = MapCredentials(credentials);
-                var transientConnection = GetTransientConnectionDto(connectionInfo, credentialsSlCoreFormat);
+                var transientConnection = GetTransientConnectionDto(serverConnection);
                 var response = await connectionConfigurationSlCoreService.GetProjectNamesByKeyAsync(new GetProjectNamesByKeyParams(transientConnection, [serverProjectKey]));
 
                 if (response.projectNamesByKey.TryGetValue(serverProjectKey, out var projectName) && projectName == null)
@@ -137,10 +137,9 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         });
     }
 
-    public async Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(ConnectionInfo connectionInfo, ICredentials credentials)
+    public async Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(ServerConnection serverConnection)
     {
-        var credentialsDto = MapCredentials(credentials);
-        var validateConnectionParams = GetAllProjectsParams(connectionInfo, credentialsDto);
+        var validateConnectionParams = new GetAllProjectsParams(GetTransientConnectionDto(serverConnection));
         return await GetAllProjectsAsync(validateConnectionParams);
     }
 
@@ -202,22 +201,33 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         logger.LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
         return false;
     }
-
-    private static ValidateConnectionParams GetValidateConnectionParams(ConnectionInfo connectionInfo, Either<TokenDto, UsernamePasswordDto> credentials)
+    
+    private static Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ConnectionInfo connectionInfo, ICredentials credentials)
     {
-        return new ValidateConnectionParams(GetTransientConnectionDto(connectionInfo, credentials));
+        var credentialsDto = MapCredentials(credentials);
+        
+        return connectionInfo.ServerType switch
+        {
+            ConnectionServerType.SonarQube => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateLeft(
+                new TransientSonarQubeConnectionDto(connectionInfo.Id, credentialsDto)),
+            ConnectionServerType.SonarCloud => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateRight(
+                new TransientSonarCloudConnectionDto(connectionInfo.Id, credentialsDto)),
+            _ => throw new ArgumentException(Resources.UnexpectedConnectionType)
+        };
     }
 
-    private static GetAllProjectsParams GetAllProjectsParams(ConnectionInfo connectionInfo, Either<TokenDto, UsernamePasswordDto> credentials)
+    private static Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ServerConnection serverConnection)
     {
-        return new GetAllProjectsParams(GetTransientConnectionDto(connectionInfo, credentials));
-    }
-
-    private static Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ConnectionInfo connectionInfo, Either<TokenDto, UsernamePasswordDto> credentials)
-    {
-        return connectionInfo.ServerType == ConnectionServerType.SonarQube
-            ? Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateLeft(new TransientSonarQubeConnectionDto(connectionInfo.Id, credentials))
-            : Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateRight(new TransientSonarCloudConnectionDto(connectionInfo.Id, credentials));
+        var credentials = MapCredentials(serverConnection.Credentials);
+        
+        return serverConnection switch
+        {
+            ServerConnection.SonarQube sonarQubeConnection => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateLeft(
+                new TransientSonarQubeConnectionDto(sonarQubeConnection.Id, credentials)),
+            ServerConnection.SonarCloud sonarCloudConnection => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateRight(
+                new TransientSonarCloudConnectionDto(sonarCloudConnection.OrganizationKey, credentials)),
+            _ => throw new ArgumentException(Resources.UnexpectedConnectionType)
+        };
     }
 
     private static Either<TokenDto, UsernamePasswordDto> GetEitherForToken(string token)
@@ -228,16 +238,6 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     private static Either<TokenDto, UsernamePasswordDto> GetEitherForUsernamePassword(string username, string password)
     {
         return Either<TokenDto, UsernamePasswordDto>.CreateRight(new UsernamePasswordDto(username, password));
-    }
-
-    private static Either<TokenDto, UsernamePasswordDto> GetCredentialsDto(ICredentialsModel credentialsModel)
-    {
-        return credentialsModel switch
-        {
-            TokenCredentialsModel tokenCredentialsModel => GetEitherForToken(tokenCredentialsModel.Token.ToUnsecureString()),
-            UsernamePasswordModel usernamePasswordModel => GetEitherForUsernamePassword(usernamePasswordModel.Username, usernamePasswordModel.Password.ToUnsecureString()),
-            _ => throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument")
-        };
     }
     
     private static Either<TokenDto, UsernamePasswordDto> MapCredentials(ICredentials credentials)

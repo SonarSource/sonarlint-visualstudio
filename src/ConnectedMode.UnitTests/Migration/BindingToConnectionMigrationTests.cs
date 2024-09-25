@@ -18,13 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO.Abstractions;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Helpers;
 
@@ -34,7 +32,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration;
 public class BindingToConnectionMigrationTests
 {
     private BindingToConnectionMigration testSubject;
-    private IFileSystem fileSystem;
     private IServerConnectionsRepository serverConnectionsRepository;
     private ILegacySolutionBindingRepository legacyBindingRepository;
     private IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider;
@@ -45,7 +42,6 @@ public class BindingToConnectionMigrationTests
     [TestInitialize]
     public void TestInitialize()
     {
-        fileSystem = Substitute.For<IFileSystem>();
         serverConnectionsRepository = Substitute.For<IServerConnectionsRepository>();
         legacyBindingRepository = Substitute.For<ILegacySolutionBindingRepository>();
         solutionBindingRepository = Substitute.For<ISolutionBindingRepository>();
@@ -54,7 +50,6 @@ public class BindingToConnectionMigrationTests
         threadHandling = new NoOpThreadHandler();
 
         testSubject = new BindingToConnectionMigration(
-            fileSystem,
             serverConnectionsRepository,
             legacyBindingRepository,
             solutionBindingRepository,
@@ -85,7 +80,6 @@ public class BindingToConnectionMigrationTests
     {
         var mockedThreadHandling = Substitute.For<IThreadHandling>();
         var migrateBindingToServer = new BindingToConnectionMigration(
-            fileSystem,
             serverConnectionsRepository,
             legacyBindingRepository,
             solutionBindingRepository,
@@ -93,7 +87,7 @@ public class BindingToConnectionMigrationTests
             mockedThreadHandling,
             logger);
 
-        await migrateBindingToServer.MigrateBindingToServerConnectionIfNeededAsync();
+        await migrateBindingToServer.MigrateAllBindingsToServerConnectionsIfNeededAsync();
 
         mockedThreadHandling.ReceivedCalls().Should().Contain(call => call.GetMethodInfo().Name == nameof(IThreadHandling.RunOnBackgroundThread));
     }
@@ -101,11 +95,11 @@ public class BindingToConnectionMigrationTests
     [TestMethod]
     public async Task MigrateBindingToServerConnectionIfNeeded_ConnectionsStorageFileExists_ShouldNotMigrate()
     {
-        fileSystem.File.Exists(serverConnectionsRepository.ConnectionsStorageFilePath).Returns(true);
+        serverConnectionsRepository.ConnectionsFileExists().Returns(true);
 
-        await testSubject.MigrateBindingToServerConnectionIfNeededAsync();
+        await testSubject.MigrateAllBindingsToServerConnectionsIfNeededAsync();
 
-        fileSystem.File.Received(1).Exists(serverConnectionsRepository.ConnectionsStorageFilePath);
+        serverConnectionsRepository.Received(1).ConnectionsFileExists();
         serverConnectionsRepository.DidNotReceiveWithAnyArgs().TryAdd(default);
         unintrusiveBindingPathProvider.DidNotReceive().GetBindingPaths();
     }
@@ -115,11 +109,11 @@ public class BindingToConnectionMigrationTests
     {
         CreateTwoBindingPathsToMockedBoundProject();
 
-        await testSubject.MigrateBindingToServerConnectionIfNeededAsync();
+        await testSubject.MigrateAllBindingsToServerConnectionsIfNeededAsync();
 
         Received.InOrder(() =>
         {
-            fileSystem.File.Exists(serverConnectionsRepository.ConnectionsStorageFilePath);
+            serverConnectionsRepository.ConnectionsFileExists();
             logger.WriteLine(MigrationStrings.ConnectionMigration_StartMigration);
             unintrusiveBindingPathProvider.GetBindingPaths();
             serverConnectionsRepository.TryAdd(Arg.Any<ServerConnection>());
@@ -132,7 +126,7 @@ public class BindingToConnectionMigrationTests
     {
         var boundProjects = CreateTwoBindingPathsToMockedBoundProject().Values.ToList();
 
-        await testSubject.MigrateBindingToServerConnectionIfNeededAsync();
+        await testSubject.MigrateAllBindingsToServerConnectionsIfNeededAsync();
 
         serverConnectionsRepository.Received(1).TryAdd(Arg.Is<ServerConnection>(conn => conn.Id == boundProjects[0].ServerUri.ToString()));
         serverConnectionsRepository.Received(1).TryAdd(Arg.Is<ServerConnection>(conn => conn.Id == boundProjects[1].ServerUri.ToString()));
@@ -143,7 +137,7 @@ public class BindingToConnectionMigrationTests
     {
         var bindingPathToBoundProjectDictionary = CreateTwoBindingPathsToMockedBoundProject();
 
-        await testSubject.MigrateBindingToServerConnectionIfNeededAsync();
+        await testSubject.MigrateAllBindingsToServerConnectionsIfNeededAsync();
 
         CheckBindingsWereMigrated(bindingPathToBoundProjectDictionary);
     }
@@ -157,7 +151,7 @@ public class BindingToConnectionMigrationTests
         serverConnectionsRepository.TryGet(expectedServerConnectionId, out _).Returns(true);
         
 
-        await testSubject.MigrateBindingToServerConnectionIfNeededAsync();
+        await testSubject.MigrateAllBindingsToServerConnectionsIfNeededAsync();
 
         logger.Received(1).WriteLine(string.Format(MigrationStrings.ConnectionMigration_ExistingServerConnectionNotMigrated, expectedServerConnectionId));
         serverConnectionsRepository.DidNotReceive().TryAdd(Arg.Is<ServerConnection>(conn => conn.Id == expectedServerConnectionId));
@@ -171,7 +165,7 @@ public class BindingToConnectionMigrationTests
         var bindingPathToExclude = boundProjects.Keys.First();
         legacyBindingRepository.Read(Arg.Is<string>(path => path == bindingPathToExclude)).Returns((BoundSonarQubeProject)null);
 
-        await testSubject.MigrateBindingToServerConnectionIfNeededAsync();
+        await testSubject.MigrateAllBindingsToServerConnectionsIfNeededAsync();
 
         logger.Received(1).WriteLine(string.Format(MigrationStrings.ConnectionMigration_BindingNotMigrated, bindingPathToExclude, "legacyBoundProject was not found"));
         serverConnectionsRepository.DidNotReceive().TryAdd(Arg.Is<ServerConnection>(conn => IsExpectedServerConnection(conn, boundProjects.First().Value)));
@@ -184,7 +178,7 @@ public class BindingToConnectionMigrationTests
         var boundPathToBoundProject = CreateTwoBindingPathsToMockedBoundProject().First();
         serverConnectionsRepository.TryAdd(Arg.Is<ServerConnection>(conn => IsExpectedServerConnection(conn, boundPathToBoundProject.Value))).Returns(false);
 
-        await testSubject.MigrateBindingToServerConnectionIfNeededAsync();
+        await testSubject.MigrateAllBindingsToServerConnectionsIfNeededAsync();
 
         logger.Received(1).WriteLine(string.Format(MigrationStrings.ConnectionMigration_ServerConnectionNotMigrated, boundPathToBoundProject.Value.ServerUri));
         serverConnectionsRepository.Received(1).TryAdd(Arg.Is<ServerConnection>(conn => IsExpectedServerConnection(conn, boundPathToBoundProject.Value)));
@@ -196,7 +190,7 @@ public class BindingToConnectionMigrationTests
     {
         var boundProjects = CreateTwoBindingPathsToMockedBoundProject().Values.ToList();
 
-        await testSubject.MigrateBindingToServerConnectionIfNeededAsync();
+        await testSubject.MigrateAllBindingsToServerConnectionsIfNeededAsync();
 
         CheckCredentialsAreLoaded(boundProjects[0]);
         CheckCredentialsAreLoaded(boundProjects[1]);
@@ -209,7 +203,7 @@ public class BindingToConnectionMigrationTests
         var errorMessage = "loading failed";
         solutionBindingRepository.When(repo => repo.Write(Arg.Any<string>(), Arg.Any<BoundServerProject>())).Throw(new Exception(errorMessage));
 
-        await testSubject.MigrateBindingToServerConnectionIfNeededAsync();
+        await testSubject.MigrateAllBindingsToServerConnectionsIfNeededAsync();
 
         logger.Received(1).WriteLine(string.Format(MigrationStrings.ConnectionMigration_BindingNotMigrated, boundProjects.First().Key, errorMessage));
         logger.Received(1).WriteLine(string.Format(MigrationStrings.ConnectionMigration_BindingNotMigrated, boundProjects.Last().Key, errorMessage));
