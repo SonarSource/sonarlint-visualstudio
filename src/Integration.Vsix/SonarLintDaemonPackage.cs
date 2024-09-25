@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private async Task MigrateBindingsToServerConnectionsIfNeededAsync()
         {
             var bindingToConnectionMigration = await this.GetMefServiceAsync<IBindingToConnectionMigration>();
-            await bindingToConnectionMigration.MigrateBindingToServerConnectionIfNeededAsync();
+            await bindingToConnectionMigration.MigrateAllBindingsToServerConnectionsIfNeededAsync();
         }
 
         protected override void Dispose(bool disposing)

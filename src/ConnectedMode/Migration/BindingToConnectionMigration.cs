@@ -24,13 +24,12 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.ConnectedMode.Persistence;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration;
 
 public interface IBindingToConnectionMigration
 {
-    Task MigrateBindingToServerConnectionIfNeededAsync();
+    Task MigrateAllBindingsToServerConnectionsIfNeededAsync();
 }
 
 /// <summary>
@@ -41,7 +40,6 @@ public interface IBindingToConnectionMigration
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class BindingToConnectionMigration : IBindingToConnectionMigration
 {
-    private readonly IFileSystem fileSystem;
     private readonly IServerConnectionsRepository serverConnectionsRepository;
     private readonly ILegacySolutionBindingRepository legacyBindingRepository;
     private readonly ISolutionBindingRepository solutionBindingRepository;
@@ -57,7 +55,6 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
         IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider,
         ILogger logger) : 
         this(
-            new FileSystem(),
             serverConnectionsRepository,
             legacyBindingRepository,
             solutionBindingRepository,
@@ -67,7 +64,6 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
     { }
 
     internal /* for testing */ BindingToConnectionMigration(
-        IFileSystem fileSystem,
         IServerConnectionsRepository serverConnectionsRepository,
         ILegacySolutionBindingRepository legacyBindingRepository,
         ISolutionBindingRepository solutionBindingRepository,
@@ -75,7 +71,6 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
         IThreadHandling threadHandling, 
         ILogger logger) 
     {
-        this.fileSystem = fileSystem;
         this.serverConnectionsRepository = serverConnectionsRepository;
         this.legacyBindingRepository = legacyBindingRepository;
         this.solutionBindingRepository = solutionBindingRepository;
@@ -84,14 +79,14 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
         this.logger = logger;
     }
 
-    public Task MigrateBindingToServerConnectionIfNeededAsync()
+    public Task MigrateAllBindingsToServerConnectionsIfNeededAsync()
     {
         return threadHandling.RunOnBackgroundThread(MigrateBindingToServerConnectionIfNeeded);
     }
 
     private void MigrateBindingToServerConnectionIfNeeded()
     {
-        if (fileSystem.File.Exists(serverConnectionsRepository.ConnectionsStorageFilePath))
+        if (serverConnectionsRepository.ConnectionsFileExists())
         {
             return;
         }
