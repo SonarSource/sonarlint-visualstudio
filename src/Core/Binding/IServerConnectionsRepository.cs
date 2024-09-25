@@ -28,5 +28,5 @@ public interface IServerConnectionsRepository
     bool TryDelete(string connectionId);
     bool TryUpdateSettingsById(string connectionId, ServerConnectionSettings connectionSettings);
     bool TryUpdateCredentialsById(string connectionId, ICredentials credentials);
-    bool IsConnectionsFileExisting();
+    bool ConnectionsFileExists();
 }

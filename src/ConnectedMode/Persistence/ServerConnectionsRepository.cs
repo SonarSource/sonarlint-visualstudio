@@ -137,7 +137,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         return false;
     }
 
-    public bool IsConnectionsFileExisting() => fileSystem.File.Exists(connectionsStorageFilePath);
+    public bool ConnectionsFileExists() => fileSystem.File.Exists(connectionsStorageFilePath);
 
     private bool TryAddConnection(List<ServerConnection> connections, ServerConnection connection)
     {

@@ -283,7 +283,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             // if the file doesn't exist, creating it now will prevent the migration of all existing bindings.
             // The order being important, we throw an exception. For more info see IBindingToConnectionMigration
             // But if there are no bindings in the new format, then creating the connections file is safe, because the new migration did not do anything in this case
-            if (!serverConnectionsRepository.IsConnectionsFileExisting() && unintrusiveBindingPathProvider.GetBindingPaths().Any())
+            if (!serverConnectionsRepository.ConnectionsFileExists() && unintrusiveBindingPathProvider.GetBindingPaths().Any())
             {
                 logger.WriteLine(MigrationStrings.ConnectionsJson_DoesNotExist);
                 return proposedConnection;

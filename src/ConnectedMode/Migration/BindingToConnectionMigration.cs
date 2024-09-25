@@ -86,7 +86,7 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
 
     private void MigrateBindingToServerConnectionIfNeeded()
     {
-        if (serverConnectionsRepository.IsConnectionsFileExisting())
+        if (serverConnectionsRepository.ConnectionsFileExists())
         {
             return;
         }

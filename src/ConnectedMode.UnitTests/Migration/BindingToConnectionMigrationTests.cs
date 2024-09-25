@@ -95,11 +95,11 @@ public class BindingToConnectionMigrationTests
     [TestMethod]
     public async Task MigrateBindingToServerConnectionIfNeeded_ConnectionsStorageFileExists_ShouldNotMigrate()
     {
-        serverConnectionsRepository.IsConnectionsFileExisting().Returns(true);
+        serverConnectionsRepository.ConnectionsFileExists().Returns(true);
 
         await testSubject.MigrateAllBindingsToServerConnectionsIfNeededAsync();
 
-        serverConnectionsRepository.Received(1).IsConnectionsFileExisting();
+        serverConnectionsRepository.Received(1).ConnectionsFileExists();
         serverConnectionsRepository.DidNotReceiveWithAnyArgs().TryAdd(default);
         unintrusiveBindingPathProvider.DidNotReceive().GetBindingPaths();
     }
@@ -113,7 +113,7 @@ public class BindingToConnectionMigrationTests
 
         Received.InOrder(() =>
         {
-            serverConnectionsRepository.IsConnectionsFileExisting();
+            serverConnectionsRepository.ConnectionsFileExists();
             logger.WriteLine(MigrationStrings.ConnectionMigration_StartMigration);
             unintrusiveBindingPathProvider.GetBindingPaths();
             serverConnectionsRepository.TryAdd(Arg.Any<ServerConnection>());

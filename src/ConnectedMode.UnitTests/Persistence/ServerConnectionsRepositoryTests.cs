@@ -543,11 +543,11 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void IsConnectionsFileExisting_ReturnsTrueOnlyIfTheConnectionsFileExists(bool fileExists)
+    public void ConnectionsFileExists_ReturnsTrueOnlyIfTheConnectionsFileExists(bool fileExists)
     {
         fileSystem.File.Exists(Arg.Any<string>()).Returns(fileExists);
 
-        var result = testSubject.IsConnectionsFileExisting();
+        var result = testSubject.ConnectionsFileExists();
 
         result.Should().Be(fileExists);
     }

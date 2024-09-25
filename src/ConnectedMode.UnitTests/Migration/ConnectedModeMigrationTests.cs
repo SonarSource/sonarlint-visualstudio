@@ -347,7 +347,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var unintrusiveBindingController = new Mock<IUnintrusiveBindingController>();
             var convertedConnection = ServerConnection.FromBoundSonarQubeProject(AnyBoundProject);
             var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
-            serverConnectionsRepositoryMock.Setup(x => x.IsConnectionsFileExisting()).Returns(true);
+            serverConnectionsRepositoryMock.Setup(x => x.ConnectionsFileExists()).Returns(true);
             serverConnectionsRepositoryMock.Setup(x => x.TryAdd(convertedConnection)).Returns(false);
             var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingController.Object, serverConnectionsRepository: serverConnectionsRepositoryMock.Object);
 
@@ -371,7 +371,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var unintrusiveBindingController = new Mock<IUnintrusiveBindingController>();
             var convertedConnection = ServerConnection.FromBoundSonarQubeProject(AnyBoundProject);
             var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
-            serverConnectionsRepositoryMock.Setup(x => x.IsConnectionsFileExisting()).Returns(true);
+            serverConnectionsRepositoryMock.Setup(x => x.ConnectionsFileExists()).Returns(true);
             serverConnectionsRepositoryMock.Setup(x => x.TryAdd(convertedConnection)).Throws(new Exception());
             var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingController.Object, serverConnectionsRepository: serverConnectionsRepositoryMock.Object);
 
@@ -400,7 +400,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 unintrusiveBindingController: unintrusiveBindingControllerMock.Object,
                 unintrusiveBindingPathProvider: bindingPathProvider.Object,
                 logger:logger.Object);
-            serverConnectionsRepositoryMock.Setup(mock => mock.IsConnectionsFileExisting()).Returns(false);
+            serverConnectionsRepositoryMock.Setup(mock => mock.ConnectionsFileExists()).Returns(false);
             bindingPathProvider.Setup(mock => mock.GetBindingPaths()).Returns(["binding1"]);
 
             await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
@@ -428,7 +428,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 unintrusiveBindingController: unintrusiveBindingControllerMock.Object,
                 unintrusiveBindingPathProvider:bindingPathProvider.Object,
                 logger: logger.Object);
-            serverConnectionsRepositoryMock.Setup(mock => mock.IsConnectionsFileExisting()).Returns(false);
+            serverConnectionsRepositoryMock.Setup(mock => mock.ConnectionsFileExists()).Returns(false);
             bindingPathProvider.Setup(mock => mock.GetBindingPaths()).Returns([]);
 
             await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
@@ -550,7 +550,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         {
             var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
             serverConnectionsRepositoryMock.Setup(x => x.TryAdd(It.IsAny<ServerConnection>())).Returns(true);
-            serverConnectionsRepositoryMock.Setup(x => x.IsConnectionsFileExisting()).Returns(true);
+            serverConnectionsRepositoryMock.Setup(x => x.ConnectionsFileExists()).Returns(true);
 
             return serverConnectionsRepositoryMock;
         }
