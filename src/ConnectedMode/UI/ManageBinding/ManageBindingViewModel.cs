@@ -174,21 +174,25 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
     }
 
+    public void Dispose()
+    {
+        cancellationTokenSource?.Dispose();
+    }
+    
+    internal void DetectSharedBinding()
+    {
+        if (IsCurrentProjectBound)
+        {
+            return;
+        }
+        SharedBindingConfigModel = connectedModeBindingServices.SharedBindingConfigProvider.GetSharedBinding();
+    }
+
     internal async Task<AdapterResponse> UseSharedBindingAsync()
     {
-        var connection = SharedBindingConfigModel.IsSonarCloud()
-            ? new ConnectionInfo(SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud)
-            : new ConnectionInfo(SharedBindingConfigModel.Uri.ToString(), ConnectionServerType.SonarQube);
-        if (!connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(connection, out var serverConnection))
+        var connectionInfo = CreteConnectionInfoFromSharedBinding();
+        if (!ConnectionExists(connectionInfo, out var serverConnection) || !CredentialsExists(connectionInfo, serverConnection))
         {
-            connectedModeServices.Logger.WriteLine(ConnectedMode.Resources.UseSharedBinding_ConnectionNotFound, connection.Id);
-            connectedModeServices.MessageBox.Show(UiResources.NotFoundConnectionForSharedBindingMessageBoxText, UiResources.NotFoundConnectionForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
-            return new AdapterResponse(false);
-        }
-        if (serverConnection.Credentials == null)
-        {
-            connectedModeServices.Logger.WriteLine(ConnectedMode.Resources.UseSharedBinding_CredentiasNotFound, connection.Id);
-            connectedModeServices.MessageBox.Show(UiResources.NotFoundCredentialsForSharedBindingMessageBoxText, UiResources.NotFoundCredentialsForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
             return new AdapterResponse(false);
         }
 
@@ -292,17 +296,34 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
     }
 
-    internal void DetectSharedBinding()
+    private bool ConnectionExists(ConnectionInfo connectionInfo, out ServerConnection serverConnection)
     {
-        if (IsCurrentProjectBound)
+        if (connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(connectionInfo, out serverConnection))
         {
-            return;
+            return true;
         }
-        SharedBindingConfigModel = connectedModeBindingServices.SharedBindingConfigProvider.GetSharedBinding();
+
+        connectedModeServices.Logger.WriteLine(ConnectedMode.Resources.UseSharedBinding_ConnectionNotFound, connectionInfo.Id);
+        connectedModeServices.MessageBox.Show(UiResources.NotFoundConnectionForSharedBindingMessageBoxText, UiResources.NotFoundConnectionForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
+        return false;
     }
 
-    public void Dispose()
+    private bool CredentialsExists(ConnectionInfo connectionInfo, ServerConnection serverConnection)
     {
-        cancellationTokenSource?.Dispose();
+        if (serverConnection.Credentials != null)
+        {
+            return true;
+        }
+        connectedModeServices.Logger.WriteLine(ConnectedMode.Resources.UseSharedBinding_CredentiasNotFound, connectionInfo.Id);
+        connectedModeServices.MessageBox.Show(UiResources.NotFoundCredentialsForSharedBindingMessageBoxText, UiResources.NotFoundCredentialsForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
+        return false;
+
+    }
+
+    private ConnectionInfo CreteConnectionInfoFromSharedBinding()
+    {
+        return SharedBindingConfigModel.IsSonarCloud()
+            ? new ConnectionInfo(SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud)
+            : new ConnectionInfo(SharedBindingConfigModel.Uri.ToString(), ConnectionServerType.SonarQube);
     }
 }
