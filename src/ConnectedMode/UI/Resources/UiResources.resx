@@ -306,9 +306,6 @@
   <data name="ExportButton" xml:space="preserve">
     <value>Export</value>
   </data>
-  <data name="SonarCloudUrl" xml:space="preserve">
-    <value>https://sonarcloud.io/</value>
-  </data>
   <data name="NoConnectionExistsLabel" xml:space="preserve">
     <value>No connection exists</value>
   </data>

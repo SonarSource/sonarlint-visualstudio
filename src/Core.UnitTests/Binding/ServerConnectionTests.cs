@@ -57,17 +57,16 @@ public class ServerConnectionTests
     [TestMethod]
     public void Ctor_SonarCloud_SetsProperties()
     {
-        var expectedServerUri = new Uri("https://sonarcloud.io");
         var serverConnectionSettings = new ServerConnectionSettings(false);
         var credentials = Substitute.For<ICredentials>();
         var sonarCloud = new ServerConnection.SonarCloud(Org, serverConnectionSettings, credentials);
 
-        sonarCloud.Id.Should().BeSameAs(Org);
+        sonarCloud.Id.Should().Be($"https://sonarcloud.io/organizations/{Org}");
         sonarCloud.OrganizationKey.Should().BeSameAs(Org);
         sonarCloud.ServerUri.Should().Be(new Uri("https://sonarcloud.io"));
         sonarCloud.Settings.Should().BeSameAs(serverConnectionSettings);
         sonarCloud.Credentials.Should().BeSameAs(credentials);
-        sonarCloud.CredentialsUri.Should().Be(new Uri($"https://sonarcloud.io/organizations/{sonarCloud.OrganizationKey}"));
+        sonarCloud.CredentialsUri.Should().Be(new Uri($"https://sonarcloud.io/organizations/{Org}"));
     }
     
     [TestMethod]

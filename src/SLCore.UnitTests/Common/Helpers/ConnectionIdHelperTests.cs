@@ -63,7 +63,7 @@ public class ConnectionIdHelperTests
 
     [TestMethod]
     [DataRow("http://someuri.com", null, "sq|http://someuri.com/")]
-    [DataRow("https://sonarcloud.io", "something", "sc|something")]
+    [DataRow("https://sonarcloud.io", "something", "sc|https://sonarcloud.io/organizations/something")]
     public void GetConnectionIdFromServerConnection_PassUri_ReturnsAsExpected(string uriString, string organisation, string expectedConnectionId)
     {
         var uri = new Uri(uriString);

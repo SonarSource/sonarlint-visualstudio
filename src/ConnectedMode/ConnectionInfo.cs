@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode;
@@ -29,15 +29,21 @@ public enum ConnectionServerType
     SonarCloud
 }
 
+/// <summary>
+/// Model containing connection information, intended to be used by UI components
+/// </summary>
+/// <param name="Id">The organization key for SonarCloud or the server uri for SonarQube</param>
+/// <param name="ServerType">The type of server (SonarCloud, SonarQube)</param>
 public record ConnectionInfo(string Id, ConnectionServerType ServerType)
 {
     public static ConnectionInfo From(ServerConnection serverConnection)
     {
-        return new ConnectionInfo(
-            serverConnection.Id,
-            serverConnection is ServerConnection.SonarCloud
-                ? ConnectionServerType.SonarCloud
-                : ConnectionServerType.SonarQube);
+        return serverConnection switch
+        {
+            ServerConnection.SonarQube sonarQubeConnection => new ConnectionInfo(sonarQubeConnection.Id, ConnectionServerType.SonarQube),
+            ServerConnection.SonarCloud sonarCloudConnection => new ConnectionInfo(sonarCloudConnection.OrganizationKey, ConnectionServerType.SonarCloud),
+            _ => throw new ArgumentException(Resources.UnexpectedConnectionType)
+        };
     }
 }
 
@@ -53,7 +59,7 @@ public static class ConnectionInfoExtensions
     {
         if (connection.Id == null && connection.ServerType == ConnectionServerType.SonarCloud)
         {
-            return UiResources.SonarCloudUrl;
+            return CoreStrings.SonarCloudUrl;
         }
         return connection.Id;
     }
