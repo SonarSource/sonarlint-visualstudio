@@ -18,25 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
-using SonarLint.VisualStudio.ConnectedMode.UI;
-using SonarLint.VisualStudio.ConnectedMode.Shared;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.WPF;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
+namespace SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
 
-[TestClass]
-public class ConnectedModeBindingServicesTests
+public class PreventDeleteConnectionViewModel : ViewModelBase
 {
-    [TestMethod]
-    public void MefCtor_CheckIsExported()
+    public PreventDeleteConnectionViewModel(IReadOnlyList<string> projectsToUnbind, ConnectionInfo connectionInfo)
     {
-        MefTestHelpers.CheckTypeCanBeImported<ConnectedModeBindingServices, IConnectedModeBindingServices>(
-            MefTestHelpers.CreateExport<IBindingController>(),
-            MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
-            MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
-            MefTestHelpers.CreateExport<ISolutionBindingRepository>());
+        ProjectsToUnbind = projectsToUnbind;
+        ConnectionInfo = connectionInfo;
     }
+
+    public IReadOnlyList<string> ProjectsToUnbind { get; }
+    public ConnectionInfo ConnectionInfo { get; }
+
+    public bool DisplayProjectList => ProjectsToUnbind is not null && ProjectsToUnbind.Count > 0;
 }

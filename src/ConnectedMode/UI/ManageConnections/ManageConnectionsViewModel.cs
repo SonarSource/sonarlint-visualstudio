@@ -25,8 +25,9 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
-    public class ManageConnectionsViewModel(IConnectedModeServices connectedModeServices, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
+    public class ManageConnectionsViewModel(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
     {
+        public IConnectedModeBindingServices ConnectedModeBindingServices { get; } = connectedModeBindingServices;
         public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
         public ObservableCollection<ConnectionViewModel> ConnectionViewModels { get; } = [];
         public bool NoConnectionExists => ConnectionViewModels.Count == 0;
@@ -40,13 +41,50 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         }
 
-        public async Task RemoveConnectionWithProgressAsync(ConnectionViewModel connectionViewModel)
+        internal async Task RemoveConnectionWithProgressAsync(ConnectionViewModel connectionViewModel)
         {
             var validationParams = new TaskToPerformParams<AdapterResponse>(
                 async () => await SafeExecuteActionAsync(() => RemoveConnectionViewModel(connectionViewModel)),
                 UiResources.RemovingConnectionText,
                 UiResources.RemovingConnectionFailedText);
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
+        }
+
+        internal async Task<List<string>> GetConnectionReferencesWithProgressAsync(ConnectionViewModel connectionViewModel)
+        {
+            var validationParams = new TaskToPerformParams<AdapterResponseWithData<List<string>>>(
+                async () => await GetConnectionReferencesOnBackgroundThreadAsync(connectionViewModel),
+                UiResources.CalculatingConnectionReferencesText,
+                UiResources.CalculatingConnectionReferencesFailedText);
+            var response = await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
+
+            return response.ResponseData;
+        }
+
+        internal async Task<AdapterResponseWithData<List<string>>> GetConnectionReferencesOnBackgroundThreadAsync(ConnectionViewModel connectionViewModel)
+        {
+            return await connectedModeServices.ThreadHandling.RunOnBackgroundThread(() =>
+            {
+                var adapterResponse = GetConnectionReferences(connectionViewModel);
+                return Task.FromResult(adapterResponse);
+            });
+        }
+
+        internal AdapterResponseWithData<List<string>> GetConnectionReferences(ConnectionViewModel connectionViewModel)
+        {
+            try
+            {
+                var bindings = ConnectedModeBindingServices.SolutionBindingRepository.List();
+                var references = bindings
+                    .Where(x => ConnectionInfo.From(x.ServerConnection).Id == connectionViewModel.Connection.Info.Id)
+                    .Select(x => x.LocalBindingKey).ToList();
+                return new AdapterResponseWithData<List<string>>(true, references);
+            }
+            catch (Exception ex)
+            {
+                connectedModeServices.Logger.WriteLine(nameof(GetConnectionReferences), ex.Message);
+                return new AdapterResponseWithData<List<string>>(false, []);
+            }
         }
 
         internal async Task CreateConnectionsWithProgressAsync(Connection connection, ICredentialsModel credentialsModel)

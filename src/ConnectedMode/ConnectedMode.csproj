@@ -53,6 +53,9 @@
 
   <ItemGroup>
     <Page Include="Migration\Wizard\MigrationWizardWindow.xaml" />
+    <Page Include="UI\DeleteConnection\PreventDeleteConnectionDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\ProgressAndErrorReporterComponent.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
