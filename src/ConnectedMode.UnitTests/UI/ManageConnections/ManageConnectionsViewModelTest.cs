@@ -47,7 +47,7 @@ public class ManageConnectionsViewModelTest
         twoConnections =
         [
             new Connection(new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube), true),
-            new Connection(new ConnectionInfo("https://sonarcloud.io/organizations/myOrg", ConnectionServerType.SonarCloud), false)
+            new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud), false)
         ];
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
         connectedModeServices = Substitute.For<IConnectedModeServices>();
