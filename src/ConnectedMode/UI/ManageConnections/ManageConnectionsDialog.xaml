@@ -80,8 +80,8 @@
                                    <RowDefinition Height="*"/>
                                </Grid.RowDefinitions>
 
-                               <TextBlock Grid.Row="0" Text="{Binding Path=Name, Mode=OneWay}" VerticalAlignment="Center" />
-                               <CheckBox Grid.Row="1" Content="{x:Static res:UiResources.SmartNotificationsCheckboxLabel}" IsChecked="{Binding Path=EnableSmartNotifications}"
+                               <TextBlock Grid.Row="0" Grid.RowSpan="2" Text="{Binding Path=Name, Mode=OneWay}" VerticalAlignment="Center" />
+                               <CheckBox Visibility="Collapsed" Grid.Row="1" Content="{x:Static res:UiResources.SmartNotificationsCheckboxLabel}" IsChecked="{Binding Path=EnableSmartNotifications}"
                                          VerticalContentAlignment="Center"/>
                             </Grid>
 
@@ -91,7 +91,7 @@
                                    <ColumnDefinition Width="Auto"/>
                                </Grid.ColumnDefinitions>
 
-                               <Button Grid.Column="0" Style="{StaticResource IconButtonStyle}" ToolTip="{x:Static res:UiResources.EditConnectionToolTip}" Click="EditConnection_Clicked">
+                               <Button Grid.Column="0" Style="{StaticResource IconButtonStyle}" ToolTip="{x:Static res:UiResources.EditConnectionToolTip}" Click="EditConnection_Clicked" Visibility="Collapsed">
                                    <imaging:CrispImage Width="20" Height="20" VerticalAlignment="Center" Cursor="Hand" Moniker="{x:Static vsimagecatalog:KnownMonikers.Settings}"
                                                        Margin="10,0" />
                                 </Button>
