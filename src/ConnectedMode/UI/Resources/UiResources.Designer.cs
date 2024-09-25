@@ -60,15 +60,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Are you sure?.
-        /// </summary>
-        public static string AreYouSureConfirmationLabel {
-            get {
-                return ResourceManager.GetString("AreYouSureConfirmationLabel", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Please fill the authentication details for.
         /// </summary>
         public static string AuthenticationDescription {
@@ -155,6 +146,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string BoundToLabel {
             get {
                 return ResourceManager.GetString("BoundToLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Calculating the connection references failed.
+        /// </summary>
+        public static string CalculatingConnectionReferencesFailedText {
+            get {
+                return ResourceManager.GetString("CalculatingConnectionReferencesFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Calculating connection references....
+        /// </summary>
+        public static string CalculatingConnectionReferencesText {
+            get {
+                return ResourceManager.GetString("CalculatingConnectionReferencesText", resourceCulture);
             }
         }
         
@@ -249,6 +258,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to To manually delete a binding, please follow the &quot;Unbinding a project&quot; documentation .
+        /// </summary>
+        public static string DeleteBindingHelpText {
+            get {
+                return ResourceManager.GetString("DeleteBindingHelpText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete.
         /// </summary>
         public static string DeleteButton {
@@ -267,6 +285,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The following project bindings must first be manually removed:.
+        /// </summary>
+        public static string DeleteConnectionBindingListToUnbindLabel {
+            get {
+                return ResourceManager.GetString("DeleteConnectionBindingListToUnbindLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to These projects bindings will no longer be in connected mode!.
         /// </summary>
         public static string DeleteConnectionBindingsWarningText {
@@ -276,7 +303,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You are about to delete the connection to.
+        ///   Looks up a localized string similar to Are you sure you want to delete the connection to.
         /// </summary>
         public static string DeleteConnectionDescription {
             get {
@@ -299,6 +326,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string DeleteConnectionNoProjectsLabel {
             get {
                 return ResourceManager.GetString("DeleteConnectionNoProjectsLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The following connection can not be deleted:.
+        /// </summary>
+        public static string DeleteConnectionNotPossibleDescription {
+            get {
+                return ResourceManager.GetString("DeleteConnectionNotPossibleDescription", resourceCulture);
             }
         }
         
