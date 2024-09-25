@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
@@ -57,7 +58,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IThreadHandling>(),
                 MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
-                MefTestHelpers.CreateExport<IServerConnectionsRepository>());
+                MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
+                MefTestHelpers.CreateExport<IUnintrusiveBindingPathProvider>());
         }
 
         [TestMethod]
@@ -383,22 +385,56 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                     It.IsAny<IProgress<FixedStepsProgress>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        /// <summary>
+        /// If bindings exist in the new format (in the Bindings folder), it means that the old migration is being executed before the new migration. But we expect it the other way around
+        /// </summary>
         [TestMethod]
-        public async Task Migrate_ConnectionsJsonFileDoesNotExist_DoesNotCreateServerConnection()
+        public async Task Migrate_ConnectionsJsonFileDoesNotExistAndNewBindingsExist_DoesNotMigrateServerConnection()
         {
-            var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
             var unintrusiveBindingControllerMock = new Mock<IUnintrusiveBindingController>();
+            var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
+            var bindingPathProvider = new Mock<IUnintrusiveBindingPathProvider>();
             var logger = new Mock<ILogger>();
-            serverConnectionsRepositoryMock.Setup(mock => mock.IsConnectionsFileExisting()).Returns(false);
             var testSubject = CreateTestSubject(
                 serverConnectionsRepository: serverConnectionsRepositoryMock.Object,
                 unintrusiveBindingController: unintrusiveBindingControllerMock.Object,
+                unintrusiveBindingPathProvider: bindingPathProvider.Object,
                 logger:logger.Object);
+            serverConnectionsRepositoryMock.Setup(mock => mock.IsConnectionsFileExisting()).Returns(false);
+            bindingPathProvider.Setup(mock => mock.GetBindingPaths()).Returns(["binding1"]);
 
             await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
 
-            logger.Verify(x=> x.WriteLine(MigrationStrings.ConnectionsJson_DoesNotExist));
+            logger.Verify(x=> x.WriteLine(MigrationStrings.ConnectionsJson_DoesNotExist), Times.Once);
             serverConnectionsRepositoryMock.Verify(mock => mock.TryAdd(It.IsAny<ServerConnection>()), Times.Never);
+            unintrusiveBindingControllerMock.Verify(
+                x => x.BindAsync(
+                    It.Is<BoundServerProject>(proj => IsExpectedBoundServerProject(proj)),
+                    It.IsAny<IProgress<FixedStepsProgress>>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// If no bindings exist in the new format (in the Bindings folder), even if the new migration is executed first no connections.json will be created, so we can safely proceed with the old migration
+        /// </summary>
+        [TestMethod]
+        public async Task Migrate_ConnectionsJsonFileDoesNotExistAndNoNewBindingsExist_MigratesConnection()
+        {
+            var unintrusiveBindingControllerMock = new Mock<IUnintrusiveBindingController>();
+            var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
+            var bindingPathProvider = new Mock<IUnintrusiveBindingPathProvider>();
+            var logger = new Mock<ILogger>();
+            var testSubject = CreateTestSubject(
+                serverConnectionsRepository: serverConnectionsRepositoryMock.Object,
+                unintrusiveBindingController: unintrusiveBindingControllerMock.Object,
+                unintrusiveBindingPathProvider:bindingPathProvider.Object,
+                logger: logger.Object);
+            serverConnectionsRepositoryMock.Setup(mock => mock.IsConnectionsFileExisting()).Returns(false);
+            bindingPathProvider.Setup(mock => mock.GetBindingPaths()).Returns([]);
+
+            await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
+
+            logger.Verify(x => x.WriteLine(MigrationStrings.ConnectionsJson_DoesNotExist), Times.Never);
+            serverConnectionsRepositoryMock.Verify(mock => mock.TryAdd(It.IsAny<ServerConnection>()), Times.Once);
             unintrusiveBindingControllerMock.Verify(
                 x => x.BindAsync(
                     It.Is<BoundServerProject>(proj => IsExpectedBoundServerProject(proj)),
@@ -451,7 +487,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             ILogger logger = null,
             IThreadHandling threadHandling = null, 
             ISolutionInfoProvider solutionInfoProvider = null, 
-            IServerConnectionsRepository serverConnectionsRepository = null)
+            IServerConnectionsRepository serverConnectionsRepository = null,
+            IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider = null)
         {
             fileProvider ??= Mock.Of<IFileProvider>();
             fileCleaner ??= Mock.Of<IFileCleaner>();
@@ -463,6 +500,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             sharedBindingConfigProvider ??= Mock.Of<ISharedBindingConfigProvider>();
             solutionInfoProvider ??= CreateSolutionInfoProviderMock().Object;
             serverConnectionsRepository ??= CreateServerConnectionsRepositoryMock().Object;
+            unintrusiveBindingPathProvider ??= Mock.Of<IUnintrusiveBindingPathProvider>();
 
             logger ??= new TestLogger(logToConsole: true);
             threadHandling ??= new NoOpThreadHandler();
@@ -478,7 +516,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 logger,
                 threadHandling,
                 solutionInfoProvider,
-                serverConnectionsRepository);
+                serverConnectionsRepository, 
+                unintrusiveBindingPathProvider);
         }
 
         private static Mock<IFileProvider> CreateFileProvider(params string[] filesToReturn)

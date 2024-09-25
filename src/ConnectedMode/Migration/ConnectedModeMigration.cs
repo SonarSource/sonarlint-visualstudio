@@ -51,6 +51,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly IThreadHandling threadHandling;
         private readonly ISolutionInfoProvider solutionInfoProvider;
         private readonly IServerConnectionsRepository serverConnectionsRepository;
+        private readonly IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider;
 
         // The user can have both the legacy and new connected mode files. In that case, we expect the SonarQubeService to already be connected.
         private bool isAlreadyConnectedToServer;
@@ -65,9 +66,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
             ISharedBindingConfigProvider sharedBindingConfigProvider,
             ILogger logger,
-            IThreadHandling threadHandling, 
+            IThreadHandling threadHandling,
             ISolutionInfoProvider solutionInfoProvider,
-            IServerConnectionsRepository serverConnectionsRepository)
+            IServerConnectionsRepository serverConnectionsRepository,
+            IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider)
         {
             this.settingsProvider = settingsProvider;
             this.fileProvider = fileProvider;
@@ -82,6 +84,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.threadHandling = threadHandling;
             this.solutionInfoProvider = solutionInfoProvider;
             this.serverConnectionsRepository = serverConnectionsRepository;
+            this.unintrusiveBindingPathProvider = unintrusiveBindingPathProvider;
         }
 
         public async Task MigrateAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, bool shareBinding, CancellationToken token)
@@ -276,10 +279,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 throw new InvalidOperationException(BindingStrings.UnintrusiveController_InvalidConnection);
             }
 
-            // at this point we expect that the connections file exist, meaning that all the existing bindings are already migrated to the newer format
+            // at this point we expect that the connections file exist if there are bindings in new format, meaning that all the existing bindings are already migrated to the newer format
             // if the file doesn't exist, creating it now will prevent the migration of all existing bindings.
             // The order being important, we throw an exception. For more info see IBindingToConnectionMigration
-            if (!serverConnectionsRepository.IsConnectionsFileExisting())
+            // But if there are no bindings in the new format, then creating the connections file is safe, because the new migration did not do anything in this case
+            if (!serverConnectionsRepository.IsConnectionsFileExisting() && unintrusiveBindingPathProvider.GetBindingPaths().Any())
             {
                 logger.WriteLine(MigrationStrings.ConnectionsJson_DoesNotExist);
                 return proposedConnection;
