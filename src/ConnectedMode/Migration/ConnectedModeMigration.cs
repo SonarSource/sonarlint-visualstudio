@@ -18,7 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
+using Microsoft.Alm.Authentication;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
@@ -137,7 +140,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             logger.WriteLine(MigrationStrings.Process_ProcessingNewBinding);
 
             var progressAdapter = new FixedStepsProgressToMigrationProgressAdapter(progress);
-            await BindWithMigrationAsync(oldBinding, progressAdapter, token);
+            var serverConnection = GetServerConnectionWithMigration(oldBinding);
+            await unintrusiveBindingController.BindAsync(BoundServerProject.FromBoundSonarQubeProject(oldBinding, await solutionInfoProvider.GetSolutionNameAsync(), serverConnection), progressAdapter, token);
 
             // Now make all of the files changes required to remove the legacy settings
             // i.e. update project files and delete .sonarlint folder
@@ -265,36 +269,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             }
         }
 
-        private async Task BindWithMigrationAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
+        private ServerConnection GetServerConnectionWithMigration(BoundSonarQubeProject project)
         {
+            if (ServerConnection.FromBoundSonarQubeProject(project) is not {} proposedConnection)
+            {
+                throw new InvalidOperationException(BindingStrings.UnintrusiveController_InvalidConnection);
+            }
+
             // at this point we expect that the connections file exist, meaning that all the existing bindings are already migrated to the newer format
             // if the file doesn't exist, creating it now will prevent the migration of all existing bindings.
             // The order being important, we throw an exception. For more info see IBindingToConnectionMigration
             if (!serverConnectionsRepository.IsConnectionsFileExisting())
             {
-                throw new InvalidOperationException(MigrationStrings.ConnectionsJson_DoesNotExist);
+                logger.WriteLine(MigrationStrings.ConnectionsJson_DoesNotExist);
+                return proposedConnection;
             }
 
-            var proposedConnection = ServerConnection.FromBoundSonarQubeProject(project);
-            if (proposedConnection is null)
+            if(!serverConnectionsRepository.TryGet(proposedConnection.Id, out _))
             {
-                throw new InvalidOperationException(BindingStrings.UnintrusiveController_InvalidConnection);
+                serverConnectionsRepository.TryAdd(proposedConnection);
             }
 
-            var connection = GetExistingConnection(proposedConnection) ?? MigrateConnection(proposedConnection);
-
-            await unintrusiveBindingController.BindAsync(BoundServerProject.FromBoundSonarQubeProject(project, await solutionInfoProvider.GetSolutionNameAsync(), connection), progress, token);
+            return proposedConnection;
         }
-
-        private ServerConnection GetExistingConnection(ServerConnection proposedConnection) =>
-            serverConnectionsRepository.TryGet(proposedConnection.Id, out var connection)
-                ? connection
-                : null;
-
-        private ServerConnection MigrateConnection(ServerConnection proposedConnection) =>
-            serverConnectionsRepository.TryAdd(proposedConnection)
-                ? proposedConnection
-                : throw new InvalidOperationException(BindingStrings.UnintrusiveController_CantMigrateConnection);
-
     }
 }

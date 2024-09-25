@@ -270,6 +270,28 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         }
 
         [TestMethod]
+        public async Task Migrate_BoundProjectCanNotBeConvertedToServerConnection_LogsAndDoesB()
+        {
+            var storedConnection = new ServerConnection.SonarQube(AnyBoundProject.ServerUri);
+            var unintrusiveBindingControllerMock = new Mock<IUnintrusiveBindingController>();
+            var serverConnectionsRepositoryMock = CreateServerConnectionsRepositoryMock();
+            MockIServerConnectionsRepositoryTryGet(serverConnectionsRepositoryMock, storedConnection.Id, storedConnection);
+            var solutionInfoProviderMock = CreateSolutionInfoProviderMock();
+            var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingControllerMock.Object,
+                serverConnectionsRepository: serverConnectionsRepositoryMock.Object, solutionInfoProvider: solutionInfoProviderMock.Object);
+
+            await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
+
+            serverConnectionsRepositoryMock.Verify(mock => mock.TryGet(storedConnection.Id, out It.Ref<ServerConnection>.IsAny), Times.Once);
+            serverConnectionsRepositoryMock.Verify(mock => mock.TryAdd(IsExpectedServerConnection(It.IsAny<ServerConnection>())), Times.Never);
+            solutionInfoProviderMock.Verify(mock => mock.GetSolutionNameAsync(), Times.Once);
+            unintrusiveBindingControllerMock.Verify(
+                x => x.BindAsync(
+                    It.Is<BoundServerProject>(proj => IsExpectedBoundServerProject(proj)),
+                    It.IsAny<IProgress<FixedStepsProgress>>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
         public async Task Migrate_ConnectionExists_EstablishesBinding()
         {
             var storedConnection = new ServerConnection.SonarQube(AnyBoundProject.ServerUri);
@@ -313,32 +335,74 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                     It.IsAny<IProgress<FixedStepsProgress>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        /// <summary>
+        /// If the connection can not be added in the new format (for example, credentials do not exist or are invalid), the old migration should still succeed.
+        /// The user can add manually add the connection at a later time.
+        /// </summary>
         [TestMethod]
-        public void Migrate_ConnectionDoesNotExist_CannotAdd_Throws()
+        public async Task Migrate_ConnectionDoesNotExist_CannotAdd_DoesNotCreateConnection()
+        {
+            var unintrusiveBindingController = new Mock<IUnintrusiveBindingController>();
+            var convertedConnection = ServerConnection.FromBoundSonarQubeProject(AnyBoundProject);
+            var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
+            serverConnectionsRepositoryMock.Setup(x => x.IsConnectionsFileExisting()).Returns(true);
+            serverConnectionsRepositoryMock.Setup(x => x.TryAdd(convertedConnection)).Returns(false);
+            var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingController.Object, serverConnectionsRepository: serverConnectionsRepositoryMock.Object);
+
+            await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
+
+            serverConnectionsRepositoryMock.Verify(mock => mock.TryGet(convertedConnection.Id, out It.Ref<ServerConnection>.IsAny), Times.Once);
+            serverConnectionsRepositoryMock.Verify(mock => mock.TryAdd(IsExpectedServerConnection(convertedConnection)), Times.Once);
+            unintrusiveBindingController.Verify(
+                x => x.BindAsync(
+                    It.Is<BoundServerProject>(proj => IsExpectedBoundServerProject(proj)),
+                    It.IsAny<IProgress<FixedStepsProgress>>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// If the connection can not be added in the new format for whatever reason, the old migration should still succeed.
+        /// The user can add manually add the connection at a later time.
+        /// </summary>
+        [TestMethod]
+        public async Task Migrate_ConnectionDoesNotExist_Throws_DoesNotCreateConnection()
         {
             var unintrusiveBindingController = new Mock<IUnintrusiveBindingController>();
             var convertedConnection = ServerConnection.FromBoundSonarQubeProject(AnyBoundProject);
             var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
             serverConnectionsRepositoryMock.Setup(x => x.IsConnectionsFileExisting()).Returns(true);
             serverConnectionsRepositoryMock.Setup(x => x.TryAdd(convertedConnection)).Throws(new Exception());
-
             var testSubject = CreateTestSubject(unintrusiveBindingController: unintrusiveBindingController.Object, serverConnectionsRepository: serverConnectionsRepositoryMock.Object);
-            
-            Func<Task> act = async () => await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
 
-            act.Should().Throw<InvalidOperationException>().WithMessage(BindingStrings.UnintrusiveController_CantMigrateConnection);
+            await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
+
+            serverConnectionsRepositoryMock.Verify(mock => mock.TryGet(convertedConnection.Id, out It.Ref<ServerConnection>.IsAny), Times.Once);
+            serverConnectionsRepositoryMock.Verify(mock => mock.TryAdd(IsExpectedServerConnection(convertedConnection)), Times.Once);
+            unintrusiveBindingController.Verify(
+                x => x.BindAsync(
+                    It.Is<BoundServerProject>(proj => IsExpectedBoundServerProject(proj)),
+                    It.IsAny<IProgress<FixedStepsProgress>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]
-        public void Migrate_ConnectionsJsonFileDoesNotExist_Throws()
+        public async Task Migrate_ConnectionsJsonFileDoesNotExist_DoesNotCreateServerConnection()
         {
             var serverConnectionsRepositoryMock = new Mock<IServerConnectionsRepository>();
+            var unintrusiveBindingControllerMock = new Mock<IUnintrusiveBindingController>();
+            var logger = new Mock<ILogger>();
             serverConnectionsRepositoryMock.Setup(mock => mock.IsConnectionsFileExisting()).Returns(false);
-            var testSubject = CreateTestSubject(serverConnectionsRepository: serverConnectionsRepositoryMock.Object);
+            var testSubject = CreateTestSubject(
+                serverConnectionsRepository: serverConnectionsRepositoryMock.Object,
+                unintrusiveBindingController: unintrusiveBindingControllerMock.Object,
+                logger:logger.Object);
 
-            Func<Task> act = async () => await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
+            await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
 
-            act.Should().Throw<InvalidOperationException>().WithMessage(MigrationStrings.ConnectionsJson_DoesNotExist);
+            logger.Verify(x=> x.WriteLine(MigrationStrings.ConnectionsJson_DoesNotExist));
+            serverConnectionsRepositoryMock.Verify(mock => mock.TryAdd(It.IsAny<ServerConnection>()), Times.Never);
+            unintrusiveBindingControllerMock.Verify(
+                x => x.BindAsync(
+                    It.Is<BoundServerProject>(proj => IsExpectedBoundServerProject(proj)),
+                    It.IsAny<IProgress<FixedStepsProgress>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]
