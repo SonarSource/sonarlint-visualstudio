@@ -102,9 +102,9 @@
                         </Grid.ColumnDefinitions>
 
                         <Button Grid.Column="0" Content="{x:Static res:UiResources.UnbindButton}" IsEnabled="{Binding Path=IsUnbindButtonEnabled}" 
-                           Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToVisibleConverter}}" VerticalAlignment="Center"
+                           Visibility="Collapsed" VerticalAlignment="Center"
                            Click="Unbind_OnClick"/>
-                        <Button Grid.Column="1" Content="{x:Static res:UiResources.ExportButton}" ToolTip="{x:Static res:UiResources.ExportBindingConfigurationTooltip}"
+                        <Button Grid.Column="1" Visibility="Collapsed" Content="{x:Static res:UiResources.ExportButton}" ToolTip="{x:Static res:UiResources.ExportBindingConfigurationTooltip}"
                            IsEnabled="{Binding Path=IsExportButtonEnabled}" VerticalAlignment="Center"
                            Click="ExportBindingConfigurationButton_OnClick"/>
                     </Grid>
