@@ -185,6 +185,12 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
             connectedModeServices.MessageBox.Show(UiResources.NotFoundConnectionForSharedBindingMessageBoxText, UiResources.NotFoundConnectionForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
             return new AdapterResponse(false);
         }
+        if (serverConnection.Credentials == null)
+        {
+            connectedModeServices.Logger.WriteLine(ConnectedMode.Resources.UseSharedBinding_CredentiasNotFound, connection.Id);
+            connectedModeServices.MessageBox.Show(UiResources.NotFoundCredentialsForSharedBindingMessageBoxText, UiResources.NotFoundCredentialsForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
+            return new AdapterResponse(false);
+        }
 
         var response = await BindAsync(serverConnection, SharedBindingConfigModel.ProjectKey);
         return new AdapterResponse(response.Success);
