@@ -855,7 +855,8 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public async Task UseSharedBindingAsync_BindingFails_ReturnsFalse()
     {
-        MockTryGetServerConnectionId();
+        var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
+        MockTryGetServerConnection(sonarCloudConnection);
         bindingController.When(x => x.BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>()))
             .Do(_ => throw new Exception());
         testSubject.SharedBindingConfigModel = sonarCloudSharedBindingConfigModel;
@@ -911,17 +912,17 @@ public class ManageBindingViewModelTests
         var configurationProvider = Substitute.For<IConfigurationProvider>();
         configurationProvider.GetConfiguration().Returns(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));
         connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
-        MockTryGetServerConnectionId(serverConnection);
+        MockTryGetServerConnection(serverConnection);
         solutionInfoProvider.GetSolutionNameAsync().Returns(ALocalProjectKey);
         
         MockGetServerProjectByKey(true, expectedServerProject);
     }
 
-    private void MockTryGetServerConnectionId(ServerConnection serverConnection = null)
+    private void MockTryGetServerConnection(ServerConnection expectedServerConnection = null)
     {
-        serverConnectionsRepositoryAdapter.TryGet(ConnectionInfo.From(serverConnection) ?? Arg.Any<ConnectionInfo>(), out _).Returns(callInfo =>
+        serverConnectionsRepositoryAdapter.TryGet(Arg.Any<ConnectionInfo>(), out _).Returns(callInfo =>
         {
-            callInfo[1] = serverConnection;
+            callInfo[1] = expectedServerConnection;
             return true;
         });
     }
