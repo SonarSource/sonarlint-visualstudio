@@ -47,14 +47,14 @@ public class ServerConnectionsRepositoryAdapterTests
     [TestMethod]
     public void TryGetServerConnectionById_CallServerConnectionsRepository()
     {
-        var expectedServerConnection = new SonarCloud("connection-id");
-        serverConnectionsRepository.TryGet("connection-id", out _).Returns(callInfo =>
+        var expectedServerConnection = new SonarCloud("myOrg");
+        serverConnectionsRepository.TryGet("https://sonarcloud.io/organizations/myOrg", out _).Returns(callInfo =>
         {
             callInfo[1] = expectedServerConnection;
             return true;
         });
 
-        testSubject.TryGetServerConnectionById("connection-id", out var serverConnection);
+        testSubject.TryGet(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud), out var serverConnection);
         
         serverConnection.Should().Be(expectedServerConnection);
     }
@@ -80,7 +80,7 @@ public class ServerConnectionsRepositoryAdapterTests
 
         testSubject.TryGetAllConnections(out var connections);
 
-        connections.Should().BeEquivalentTo([new Connection(new ConnectionInfo(sonarCloud.Id, ConnectionServerType.SonarCloud), isSmartNotificationsEnabled)]);
+        connections.Should().BeEquivalentTo([new Connection(new ConnectionInfo(sonarCloud.OrganizationKey, ConnectionServerType.SonarCloud), isSmartNotificationsEnabled)]);
     }
 
     [TestMethod]
@@ -128,7 +128,7 @@ public class ServerConnectionsRepositoryAdapterTests
 
         testSubject.TryGetAllConnectionsInfo(out var connections);
 
-        connections.Should().BeEquivalentTo([new ConnectionInfo(sonarCloud.Id, ConnectionServerType.SonarCloud)]);
+        connections.Should().BeEquivalentTo([new ConnectionInfo(sonarCloud.OrganizationKey, ConnectionServerType.SonarCloud)]);
     }
 
     [TestMethod]
@@ -179,7 +179,7 @@ public class ServerConnectionsRepositoryAdapterTests
 
         serverConnectionsRepository.Received(1)
             .TryAdd(Arg.Is<SonarCloud>(sc =>
-                sc.Id == sonarCloud.Info.Id &&
+                sc.Id == $"https://sonarcloud.io/organizations/{sonarCloud.Info.Id}" &&
                 sc.OrganizationKey == sonarCloud.Info.Id &&
                 sc.Settings.IsSmartNotificationsEnabled == sonarCloud.EnableSmartNotifications));
     }
@@ -240,10 +240,11 @@ public class ServerConnectionsRepositoryAdapterTests
     [DataRow(false)]
     public void TryDeleteConnection_ReturnsStatusFromSlCore(bool expectedStatus)
     {
-        var connectionInfoId = "http://localhost:9000";
+        const string connectionInfoId = "http://localhost:9000/";
+        var connectionInfo = new ConnectionInfo(connectionInfoId, ConnectionServerType.SonarQube);
         serverConnectionsRepository.TryDelete(connectionInfoId).Returns(expectedStatus);
 
-        var succeeded = testSubject.TryRemoveConnection(connectionInfoId);
+        var succeeded = testSubject.TryRemoveConnection(connectionInfo);
 
         succeeded.Should().Be(expectedStatus);
     }
@@ -253,11 +254,12 @@ public class ServerConnectionsRepositoryAdapterTests
     [DataRow(false)]
     public void TryGet_ReturnsStatusFromSlCore(bool expectedStatus)
     {
-        var connectionId = "myOrg";
+        const string connectionInfoId = "myOrg";
+        var connectionInfo = new ConnectionInfo(connectionInfoId, ConnectionServerType.SonarCloud);
         var expectedServerConnection = new SonarCloud("myOrg");
-        MockTryGet(connectionId, expectedStatus, expectedServerConnection);
+        MockTryGet("https://sonarcloud.io/organizations/myOrg", expectedStatus, expectedServerConnection);
 
-        var succeeded = testSubject.TryGet(connectionId, out var receivedServerConnection);
+        var succeeded = testSubject.TryGet(connectionInfo, out var receivedServerConnection);
 
         succeeded.Should().Be(expectedStatus);
         receivedServerConnection.Should().Be(expectedServerConnection);

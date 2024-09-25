@@ -93,7 +93,7 @@ public class BindingDtoSerializationTests
         serializeObject.Should().BeEquivalentTo(
             """
             {
-              "ServerConnectionId": "org_key_123",
+              "ServerConnectionId": "https://sonarcloud.io/organizations/org_key_123",
               "ServerUri": "https://sonarcloud.io",
               "Organization": {
                 "Key": "org_key_123",

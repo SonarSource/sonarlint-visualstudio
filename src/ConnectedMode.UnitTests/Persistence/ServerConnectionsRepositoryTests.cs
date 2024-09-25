@@ -109,8 +109,8 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     public void TryGet_FileExistsAndConnectionIsSonarCloud_ReturnsSonarCloudConnection()
     {
-        var sonarCloudModel = GetSonarCloudJsonModel("myOrg");
-        var expectedConnection = new SonarCloud(sonarCloudModel.Id);
+        var sonarCloudModel = GetSonarCloudJsonModel();
+        var expectedConnection = new SonarCloud(sonarCloudModel.OrganizationKey);
         MockReadingFile(new ServerConnectionsListJsonModel { ServerConnections = [sonarCloudModel] });
         serverConnectionModelMapper.GetServerConnection(sonarCloudModel).Returns(expectedConnection);
 
@@ -200,7 +200,7 @@ public class ServerConnectionsRepositoryTests
     [TestMethod]
     public void TryGetAll_FileExistsAndHasConnection_MapsModel()
     {
-        var cloudModel = GetSonarCloudJsonModel("myOrg");
+        var cloudModel = GetSonarCloudJsonModel();
         MockReadingFile(new ServerConnectionsListJsonModel { ServerConnections = [cloudModel] });
 
         testSubject.TryGetAll(out _);
@@ -467,7 +467,7 @@ public class ServerConnectionsRepositoryTests
         jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(true);
         MockFileWithOneSonarCloudConnection(oldSmartNotifications);
 
-        var succeeded = testSubject.TryUpdateSettingsById("myOrg", new ServerConnectionSettings(newSmartNotifications));
+        var succeeded = testSubject.TryUpdateSettingsById("https://sonarcloud.io/organizations/myOrg", new ServerConnectionSettings(newSmartNotifications));
 
         succeeded.Should().BeTrue();
         Received.InOrder(() =>
@@ -552,8 +552,8 @@ public class ServerConnectionsRepositoryTests
 
     private SonarCloud MockFileWithOneSonarCloudConnection(bool isSmartNotificationsEnabled = true)
     {
-        var sonarCloudModel = GetSonarCloudJsonModel("myOrg", isSmartNotificationsEnabled);
-        var sonarCloud = new SonarCloud(sonarCloudModel.Id, sonarCloudModel.Settings, Substitute.For<ICredentials>());
+        var sonarCloudModel = GetSonarCloudJsonModel(isSmartNotificationsEnabled);
+        var sonarCloud = new SonarCloud(sonarCloudModel.OrganizationKey, sonarCloudModel.Settings, Substitute.For<ICredentials>());
         MockReadingFile(new ServerConnectionsListJsonModel { ServerConnections = [sonarCloudModel] });
         serverConnectionModelMapper.GetServerConnection(sonarCloudModel).Returns(sonarCloud);
         
@@ -575,12 +575,12 @@ public class ServerConnectionsRepositoryTests
         jsonFileHandler.ReadFile<ServerConnectionsListJsonModel>(Arg.Any<string>()).Returns(modelToReturn);
     }
 
-    private static ServerConnectionJsonModel GetSonarCloudJsonModel(string id, bool isSmartNotificationsEnabled = false)
+    private static ServerConnectionJsonModel GetSonarCloudJsonModel(bool isSmartNotificationsEnabled = false)
     {
         return new ServerConnectionJsonModel
         {
-            Id = id,
-            OrganizationKey = id,
+            Id = "https://sonarcloud.io/organizations/myOrg",
+            OrganizationKey = "myOrg",
             Settings = new ServerConnectionSettings(isSmartNotificationsEnabled)
         };
     }

@@ -30,7 +30,6 @@ public class ProjectSelectionViewModel(
     IProgressReporterViewModel progressReporterViewModel)
     : ViewModelBase
 {
-
     public ObservableCollection<ServerProject> ProjectResults { get; } = [];
 
     public ConnectionInfo ConnectionInfo { get; } = connectionInfo;
@@ -79,14 +78,14 @@ public class ProjectSelectionViewModel(
 
     internal async Task<AdapterResponseWithData<List<ServerProject>>> AdapterGetAllProjectsAsync()
     {
-        var serverConnectionCredentials = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(ConnectionInfo.Id, out var serverConnection);
+        var serverConnectionCredentials = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(ConnectionInfo, out var serverConnection);
         if (!serverConnectionCredentials)
         {
             connectedModeServices.Logger.WriteLine(UiResources.LoadingProjectsFailedTextForNotFoundServerConnection);
             return new AdapterResponseWithData<List<ServerProject>>(false, null);
         }
 
-        return await connectedModeServices.SlCoreConnectionAdapter.GetAllProjectsAsync(ConnectionInfo, serverConnection.Credentials);
+        return await connectedModeServices.SlCoreConnectionAdapter.GetAllProjectsAsync(serverConnection);
     }
 
     internal void InitProjects(AdapterResponseWithData<List<ServerProject>> response)
@@ -96,6 +95,7 @@ public class ProjectSelectionViewModel(
         {
             ProjectResults.Add(serverProject);
         }
+
         RaisePropertyChanged(nameof(NoProjectExists));
     }
 
@@ -105,7 +105,7 @@ public class ProjectSelectionViewModel(
         {
             return;
         }
-        
+
         ProjectResults.Clear();
 
         ProjectResults.Add(new ServerProject(Key: $"{ProjectSearchTerm.ToLower().Replace(" ", "_")}_1",
