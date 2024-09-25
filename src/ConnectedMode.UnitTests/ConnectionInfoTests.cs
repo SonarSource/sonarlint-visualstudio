@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
@@ -61,7 +62,7 @@ public class ConnectionInfoTests
     {
         var connectionInfo = new ConnectionInfo(null, ConnectionServerType.SonarCloud);
 
-        connectionInfo.GetIdForTransientConnection().Should().Be(UiResources.SonarCloudUrl);
+        connectionInfo.GetIdForTransientConnection().Should().Be(CoreStrings.SonarCloudUrl);
     }
 
     [TestMethod]

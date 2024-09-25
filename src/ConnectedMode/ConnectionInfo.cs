@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode;
@@ -54,7 +54,7 @@ public static class ConnectionInfoExtensions
     {
         if (connection.Id == null && connection.ServerType == ConnectionServerType.SonarCloud)
         {
-            return UiResources.SonarCloudUrl;
+            return CoreStrings.SonarCloudUrl;
         }
         return connection.Id;
     }
