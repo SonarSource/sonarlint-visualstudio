@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2024 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -40,7 +40,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         protected virtual void HostProgressControl(ProgressControl control)
         {
-            this.progressPlacePlaceholder.Content = control;
         }
     }
 }

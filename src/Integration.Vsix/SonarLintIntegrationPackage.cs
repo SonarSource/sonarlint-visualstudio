@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
              
                 this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
 
-                this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
+                this.commandManager.Initialize(
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
                     serviceProvider.GetMefService<IOutputWindowService>(),
                     serviceProvider.GetMefService<IShowInBrowserService>(),

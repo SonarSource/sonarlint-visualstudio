@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.menuService = menuService ?? throw new ArgumentNullException(nameof(menuService));
         }
 
-        public void Initialize(ITeamExplorerController teamExplorerController,
+        public void Initialize(
             IProjectPropertyManager projectPropertyManager,
             IOutputWindowService outputWindowService,
             IShowInBrowserService showInBrowserService,
@@ -69,8 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowCommunityPageCommand.Id, new ShowCommunityPageCommand(showInBrowserService));
 
             // Connected mode buttons
-            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(teamExplorerController));
-            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, NewConnectedModeCommand.Id, new NewConnectedModeCommand(connectedModeServices, connectedModeBindingServices));
+            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(connectedModeServices, connectedModeBindingServices));
             RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, SaveSharedConnectionCommand.Id, new SaveSharedConnectionCommand(connectedModeServices.ConfigurationProvider, connectedModeBindingServices.SharedBindingConfigProvider));
         }
 
