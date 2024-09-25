@@ -18,32 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics;
-using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
+using System.Windows;
+using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     internal class ManageConnectionsCommand : VsCommandBase
     {
+        private readonly IConnectedModeServices connectedModeServices;
+        private readonly IConnectedModeBindingServices connectedModeBindingServices;
         internal const int Id = 0x102;
 
-        private readonly ITeamExplorerController teamExplorer;
-
-        public ManageConnectionsCommand(ITeamExplorerController teamExplorer)
+        public ManageConnectionsCommand(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
         {
-            this.teamExplorer = teamExplorer;
-        }
-
-        protected override void QueryStatusInternal(OleMenuCommand command)
-        {
-            command.Enabled = (this.teamExplorer != null);
+            this.connectedModeServices = connectedModeServices;
+            this.connectedModeBindingServices = connectedModeBindingServices;
         }
 
         protected override void InvokeInternal()
         {
-            Debug.Assert(this.teamExplorer != null, "Should only be invocable with a handle to the team explorer controller");
-            this.teamExplorer.ShowSonarQubePage();
+            new ManageBindingDialog(connectedModeServices, connectedModeBindingServices).ShowDialog(Application.Current.MainWindow);
         }
     }
 }

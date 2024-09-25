@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                                                .ToList();
 
             // Act
-            testSubject.Initialize(Mock.Of<ITeamExplorerController>(),
+            testSubject.Initialize(
                 Mock.Of<IProjectPropertyManager>(),
                 Mock.Of<IOutputWindowService>(),
                 Mock.Of<IShowInBrowserService>(),
