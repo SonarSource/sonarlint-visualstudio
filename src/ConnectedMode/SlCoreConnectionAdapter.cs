@@ -91,11 +91,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
 
             try
             {
-                if (credentialsModel == null)
-                {
-                    throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument");
-                }
-                var credentials = MapCredentials(credentialsModel.ToICredentials());
+                var credentials = MapCredentials(credentialsModel?.ToICredentials());
                 var response = await connectionConfigurationSlCoreService.ListUserOrganizationsAsync(new ListUserOrganizationsParams(credentials));
                 var organizationDisplays = response.userOrganizations.Select(o => new OrganizationDisplay(o.key, o.name)).ToList();
 
