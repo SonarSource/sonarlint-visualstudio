@@ -46,7 +46,7 @@ public class ManageConnectionsViewModelTest
     {
         twoConnections =
         [
-            new Connection(new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube), true),
+            new Connection(new ConnectionInfo(new Uri("http://localhost:9000").ToString(), ConnectionServerType.SonarQube), true),
             new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud), false)
         ];
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
