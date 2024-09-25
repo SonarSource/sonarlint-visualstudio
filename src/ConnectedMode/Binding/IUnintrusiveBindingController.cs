@@ -19,11 +19,8 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.ConnectedMode.Persistence;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client;
-using SonarQube.Client.Models;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
@@ -35,7 +32,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     
     internal interface IUnintrusiveBindingController
     {
-        Task BindWithMigrationAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
         Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
     }
 
@@ -45,17 +41,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     internal class UnintrusiveBindingController : IUnintrusiveBindingController, IBindingController
     {
         private readonly IBindingProcessFactory bindingProcessFactory;
-        private readonly IServerConnectionsRepository serverConnectionsRepository;
-        private readonly ISolutionInfoProvider solutionInfoProvider;
         private readonly ISonarQubeService sonarQubeService;
         private readonly IActiveSolutionChangedHandler activeSolutionChangedHandler;
 
         [ImportingConstructor]
-        public UnintrusiveBindingController(IBindingProcessFactory bindingProcessFactory, IServerConnectionsRepository serverConnectionsRepository, ISolutionInfoProvider solutionInfoProvider, ISonarQubeService sonarQubeService, IActiveSolutionChangedHandler activeSolutionChangedHandler)
+        public UnintrusiveBindingController(IBindingProcessFactory bindingProcessFactory, ISonarQubeService sonarQubeService, IActiveSolutionChangedHandler activeSolutionChangedHandler)
         {
             this.bindingProcessFactory = bindingProcessFactory;
-            this.serverConnectionsRepository = serverConnectionsRepository;
-            this.solutionInfoProvider = solutionInfoProvider;
             this.sonarQubeService = sonarQubeService;
             this.activeSolutionChangedHandler = activeSolutionChangedHandler;
         }
@@ -74,30 +66,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             await bindingProcess.DownloadQualityProfileAsync(progress, token);
             await bindingProcess.SaveServerExclusionsAsync(token);
         }
-
-        public async Task BindWithMigrationAsync(BoundSonarQubeProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
-        {
-            var proposedConnection = ServerConnection.FromBoundSonarQubeProject(project);
-
-            if (proposedConnection is null)
-            {
-                throw new InvalidOperationException(BindingStrings.UnintrusiveController_InvalidConnection);
-            }
-            
-            var connection = GetExistingConnection(proposedConnection) ?? MigrateConnection(proposedConnection);
-
-            await BindAsync(BoundServerProject.FromBoundSonarQubeProject(project, await solutionInfoProvider.GetSolutionNameAsync(), connection), progress, token);
-        }
-
-        private ServerConnection GetExistingConnection(ServerConnection proposedConnection) => 
-            serverConnectionsRepository.TryGet(proposedConnection.Id, out var connection) 
-                ? connection 
-                : null;
-
-        private ServerConnection MigrateConnection(ServerConnection proposedConnection) =>
-            serverConnectionsRepository.TryAdd(proposedConnection)
-                ? proposedConnection
-                : throw new InvalidOperationException(BindingStrings.UnintrusiveController_CantMigrateConnection);
 
         private IBindingProcess CreateBindingProcess(BoundServerProject project)
         {
