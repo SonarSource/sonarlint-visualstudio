@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
@@ -25,6 +26,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageConnections;
 
@@ -282,8 +284,10 @@ public class ManageConnectionsViewModelTest
     }
 
     [TestMethod]
-    public async Task GetConnectionReferencesWithProgressAsync_InitializesDataAndReportsProgress()
+    public async Task GetConnectionReferencesWithProgressAsync_CalculatesReferencesAndReportsProgress()
     {
+        progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<TaskToPerformParams<AdapterResponseWithData<List<string>>>>()).Returns(new AdapterResponseWithData<List<string>>(true, []));
+
         await testSubject.GetConnectionReferencesWithProgressAsync(new ConnectionViewModel(new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud))));
 
         await progressReporterViewModel.Received(1)
@@ -291,6 +295,30 @@ public class ManageConnectionsViewModelTest
                 Arg.Is<TaskToPerformParams<AdapterResponseWithData<List<string>>>>(x =>
                     x.ProgressStatus == UiResources.CalculatingConnectionReferencesText &&
                     x.WarningText == UiResources.CalculatingConnectionReferencesFailedText));
+    }
+
+    [TestMethod]
+    public async Task GetConnectionReferencesOnBackgroundThreadAsync_RunsOnBackgroundThread()
+    {
+        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<string>>>>>()).Returns(new AdapterResponseWithData<List<string>>(true, []));
+
+        await testSubject.GetConnectionReferencesOnBackgroundThreadAsync(new ConnectionViewModel(new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud))));
+
+        await threadHandling.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<string>>>>>());
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task GetConnectionReferencesOnBackgroundThreadAsync_ReturnsCalculatedReferences(bool expectedResponse)
+    {
+        var bindingKey = "localBindingKey";
+        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<string>>>>>()).Returns(new AdapterResponseWithData<List<string>>(expectedResponse, [bindingKey]));
+
+        var responses = await testSubject.GetConnectionReferencesOnBackgroundThreadAsync(new ConnectionViewModel(new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud))));
+
+        responses.Success.Should().Be(expectedResponse);
+        responses.ResponseData.Should().Contain(bindingKey);
     }
 
     [TestMethod]

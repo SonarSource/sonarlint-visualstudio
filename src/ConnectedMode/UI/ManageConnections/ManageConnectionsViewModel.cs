@@ -53,21 +53,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         internal async Task<List<string>> GetConnectionReferencesWithProgressAsync(ConnectionViewModel connectionViewModel)
         {
-            List<string> references = [];
             var validationParams = new TaskToPerformParams<AdapterResponseWithData<List<string>>>(
-                async () =>
-                {
-                    return await connectedModeServices.ThreadHandling.RunOnBackgroundThread(() =>
-                    {
-                        var adapterResponse = GetConnectionReferences(connectionViewModel);
-                        references = adapterResponse.ResponseData;
-                        return Task.FromResult(adapterResponse);
-                    });
-                },
+                async () => await GetConnectionReferencesOnBackgroundThreadAsync(connectionViewModel),
                 UiResources.CalculatingConnectionReferencesText,
                 UiResources.CalculatingConnectionReferencesFailedText);
-            await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
-            return references;
+            var response = await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
+
+            return response.ResponseData;
+        }
+
+        internal async Task<AdapterResponseWithData<List<string>>> GetConnectionReferencesOnBackgroundThreadAsync(ConnectionViewModel connectionViewModel)
+        {
+            return await connectedModeServices.ThreadHandling.RunOnBackgroundThread(() =>
+            {
+                var adapterResponse = GetConnectionReferences(connectionViewModel);
+                return Task.FromResult(adapterResponse);
+            });
         }
 
         internal AdapterResponseWithData<List<string>> GetConnectionReferences(ConnectionViewModel connectionViewModel)
