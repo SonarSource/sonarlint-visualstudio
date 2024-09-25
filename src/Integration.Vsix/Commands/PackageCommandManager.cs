@@ -70,7 +70,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Connected mode buttons
             RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(connectedModeServices, connectedModeBindingServices));
-            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, NewConnectedModeCommand.Id, new NewConnectedModeCommand(connectedModeServices, connectedModeBindingServices));
             RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, SaveSharedConnectionCommand.Id, new SaveSharedConnectionCommand(connectedModeServices.ConfigurationProvider, connectedModeBindingServices.SharedBindingConfigProvider));
         }
 
