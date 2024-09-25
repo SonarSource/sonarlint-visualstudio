@@ -29,6 +29,11 @@ public enum ConnectionServerType
     SonarCloud
 }
 
+/// <summary>
+/// Model containing connection information, intended to be used by UI components
+/// </summary>
+/// <param name="Id">The organization key for SonarCloud or the server uri for SonarQube</param>
+/// <param name="ServerType">The type of server (SonarCloud, SonarQube)</param>
 public record ConnectionInfo(string Id, ConnectionServerType ServerType)
 {
     public static ConnectionInfo From(ServerConnection serverConnection)
