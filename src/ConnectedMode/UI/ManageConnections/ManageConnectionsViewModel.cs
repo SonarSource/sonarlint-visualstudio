@@ -22,7 +22,6 @@ using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
-using VSLangProj;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 {
