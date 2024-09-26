@@ -325,4 +325,7 @@
   <data name="UnexpectedConnectionType" xml:space="preserve">
     <value>Unexpected server connection type</value>
   </data>
+  <data name="UseSharedBinding_CredentiasNotFound" xml:space="preserve">
+    <value>[ConnectedMode/UseSharedBinding] The credentials for the connection {0} could not be found</value>
+  </data>
 </root>

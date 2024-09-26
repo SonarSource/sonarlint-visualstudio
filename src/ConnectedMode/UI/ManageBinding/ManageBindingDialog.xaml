@@ -63,7 +63,7 @@
                         <Button.Style>
                             <Style TargetType="Button">
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=IsSharedBindingConfigurationDetected}" Value="False">
+                                    <DataTrigger Binding="{Binding Path=IsUseSharedBindingButtonVisible}" Value="False">
                                         <Setter Property="ToolTip" Value="{x:Static res:UiResources.SharedBindingConfigurationTooltip}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
