@@ -251,7 +251,7 @@
             </Style>
 
             <Style x:Key="CleanCodeTaxonomyBubble" TargetType="Border">
-                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="CornerRadius" Value="8"/>
                 <Setter Property="Padding" Value="4, 1, 4, 1"/>
                 <Setter Property="Margin" Value="-4, 0, 9, 5"/>
@@ -259,15 +259,50 @@
             <Style x:Key="CleanCodeAttributeBubble" BasedOn="{StaticResource CleanCodeTaxonomyBubble}" TargetType="Border">
                 <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.InactiveCaptionKey}}"/>
             </Style>
-            <!--Background values are the same color as icons, but with more transparency-->
+            <Style x:Key="BlockerSoftwareQualitySeverityBubble" BasedOn="{StaticResource CleanCodeTaxonomyBubble}" TargetType="Border">
+                <Setter Property="Background" Value="#DFFEE4E2"/>
+                <Setter Property="BorderBrush" Value="#801B14" />
+                <Style.Resources>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Foreground" Value="#801B14"/>
+                    </Style>
+                </Style.Resources>
+            </Style>
             <Style x:Key="HighSoftwareQualitySeverityBubble" BasedOn="{StaticResource CleanCodeTaxonomyBubble}" TargetType="Border">
-                <Setter Property="Background" Value="#88B42318"/>
+                <Setter Property="Background" Value="#DFFEF3F2"/>
+                <Setter Property="BorderBrush" Value="#D92D20" />
+                <Style.Resources>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Foreground" Value="#B42318"/>
+                    </Style>
+                </Style.Resources>
             </Style>
             <Style x:Key="MediumSoftwareQualitySeverityBubble" BasedOn="{StaticResource CleanCodeTaxonomyBubble}" TargetType="Border">
-                <Setter Property="Background" Value="#88AE7A29"/>
+                <Setter Property="Background" Value="#DFFFF0EB"/>
+                <Setter Property="BorderBrush" Value="#FE964B" />
+                <Style.Resources>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Foreground" Value="#93370D"/>
+                    </Style>
+                </Style.Resources>
             </Style>
             <Style x:Key="LowSoftwareQualitySeverityBubble" BasedOn="{StaticResource CleanCodeTaxonomyBubble}" TargetType="Border">
-                <Setter Property="Background" Value="#88316C92"/>
+                <Setter Property="Background" Value="#DFFCF5E4"/>
+                <Setter Property="BorderBrush" Value="#FADC79" />
+                <Style.Resources>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Foreground" Value="#8C5E1E"/>
+                    </Style>
+                </Style.Resources>
+            </Style>
+            <Style x:Key="InfoSoftwareQualitySeverityBubble" BasedOn="{StaticResource CleanCodeTaxonomyBubble}" TargetType="Border">
+                <Setter Property="Background" Value="#DFF5FBFF"/>
+                <Setter Property="BorderBrush" Value="#8FCAEA" />
+                <Style.Resources>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Foreground" Value="#316C92"/>
+                    </Style>
+                </Style.Resources>
             </Style>
             <Style x:Key="CleanCodeSpan" BasedOn="{StaticResource SubtitleElement_Span}" TargetType="Span">
                 <Setter Property="FontWeight" Value="Regular"/>
