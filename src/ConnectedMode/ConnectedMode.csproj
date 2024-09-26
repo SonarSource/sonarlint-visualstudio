@@ -44,6 +44,7 @@
     <None Remove="UI\Resources\LogoImages.xaml" />
     <None Remove="UI\Resources\sonarlint_32px.ico" />
     <None Remove="UI\Resources\Styles.xaml" />
+    <None Remove="UI\Resources\TrashCanImage.xaml" />
     <None Remove="UI\ServerSelection\ServerSelectionDialog.xaml" />
     <Resource Include="UI\Resources\sonarlint_32px.ico">
       <CopyToOutputDirectory></CopyToOutputDirectory>
@@ -68,6 +69,7 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Resources\LogoImages.xaml" />
+    <Page Include="UI\Resources\TrashCanImage.xaml" />
     <Page Include="UI\WarningMessage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
