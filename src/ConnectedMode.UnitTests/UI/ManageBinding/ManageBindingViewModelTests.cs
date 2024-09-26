@@ -853,6 +853,43 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
+    public async Task UseSharedBindingAsync_SharedBindingSonarCloudConnectionWithMissingCredentials_ReturnsFalseAndLogsAndInformsUser()
+    {
+        testSubject.SharedBindingConfigModel = sonarCloudSharedBindingConfigModel;
+        var expectedServerConnection = new ServerConnection.SonarCloud(testSubject.SharedBindingConfigModel.Organization);
+        SetupBoundProject(expectedServerConnection);
+        expectedServerConnection.Credentials = null;
+
+        var response = await testSubject.UseSharedBindingAsync();
+
+        response.Success.Should().BeFalse();
+        logger.WriteLine(Resources.UseSharedBinding_CredentiasNotFound, testSubject.SharedBindingConfigModel.Organization);
+        messageBox.Received(1).Show(UiResources.NotFoundCredentialsForSharedBindingMessageBoxText, UiResources.NotFoundCredentialsForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
+        await bindingController.DidNotReceive()
+            .BindAsync(Arg.Is<BoundServerProject>(proj =>
+                proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
+    }
+
+
+    [TestMethod]
+    public async Task UseSharedBindingAsync_SharedBindingSonarQubeConnectionWithMissingCredentials_ReturnsFalseAndLogsAndInformsUser()
+    {
+        testSubject.SharedBindingConfigModel = sonarQubeSharedBindingConfigModel;
+        var expectedServerConnection = new ServerConnection.SonarQube(testSubject.SharedBindingConfigModel.Uri);
+        SetupBoundProject(expectedServerConnection);
+        expectedServerConnection.Credentials = null;
+
+        var response = await testSubject.UseSharedBindingAsync();
+
+        response.Success.Should().BeFalse();
+        logger.WriteLine(Resources.UseSharedBinding_CredentiasNotFound, testSubject.SharedBindingConfigModel.Uri);
+        messageBox.Received(1).Show(UiResources.NotFoundCredentialsForSharedBindingMessageBoxText, UiResources.NotFoundCredentialsForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
+        await bindingController.DidNotReceive()
+            .BindAsync(Arg.Is<BoundServerProject>(proj =>
+                proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
     public async Task UseSharedBindingAsync_BindingFails_ReturnsFalse()
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
@@ -865,6 +902,7 @@ public class ManageBindingViewModelTests
 
         response.Success.Should().BeFalse();
     }
+
 
     private void MockServices()
     {
@@ -908,6 +946,7 @@ public class ManageBindingViewModelTests
     {
         expectedServerProject ??= serverProject;
         
+        serverConnection.Credentials = validCredentials;
         var boundServerProject = new BoundServerProject(ALocalProjectKey, expectedServerProject.Key, serverConnection);
         var configurationProvider = Substitute.For<IConfigurationProvider>();
         configurationProvider.GetConfiguration().Returns(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));

@@ -403,10 +403,11 @@ Please manually add the connection through "Manage Connections" and then try aga
   <data name="CalculatingConnectionReferencesText" xml:space="preserve">
     <value>Calculating connection references...</value>
   </data>
-  <data name="CalculatingConnectionReferencesFailedText" xml:space="preserve">
-    <value>Calculating the connection references failed</value>
+  <data name="NotFoundCredentialsForSharedBindingMessageBoxCaption" xml:space="preserve">
+    <value>Credentials not found</value>
   </data>
-  <data name="CalculatingConnectionReferencesText" xml:space="preserve">
-    <value>Calculating connection references...</value>
+  <data name="NotFoundCredentialsForSharedBindingMessageBoxText" xml:space="preserve">
+    <value>The shared binding could not be executed, because the credentials for the connection to the server could not be found. 
+Please manually add the credentials for the connection and then try again.</value>
   </data>
 </root>
