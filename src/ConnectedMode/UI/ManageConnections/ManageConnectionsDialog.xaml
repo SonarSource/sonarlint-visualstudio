@@ -15,6 +15,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/LogoImages.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/TrashCanImage.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
         </ResourceDictionary>
@@ -80,8 +81,8 @@
                                    <RowDefinition Height="*"/>
                                </Grid.RowDefinitions>
 
-                               <TextBlock Grid.Row="0" Text="{Binding Path=Name, Mode=OneWay}" VerticalAlignment="Center" />
-                               <CheckBox Grid.Row="1" Content="{x:Static res:UiResources.SmartNotificationsCheckboxLabel}" IsChecked="{Binding Path=EnableSmartNotifications}"
+                               <TextBlock Grid.Row="0" Grid.RowSpan="2" Text="{Binding Path=Name, Mode=OneWay}" VerticalAlignment="Center" />
+                               <CheckBox Visibility="Collapsed" Grid.Row="1" Content="{x:Static res:UiResources.SmartNotificationsCheckboxLabel}" IsChecked="{Binding Path=EnableSmartNotifications}"
                                          VerticalContentAlignment="Center"/>
                             </Grid>
 
@@ -91,12 +92,12 @@
                                    <ColumnDefinition Width="Auto"/>
                                </Grid.ColumnDefinitions>
 
-                               <Button Grid.Column="0" Style="{StaticResource IconButtonStyle}" ToolTip="{x:Static res:UiResources.EditConnectionToolTip}" Click="EditConnection_Clicked">
+                               <Button Grid.Column="0" Style="{StaticResource IconButtonStyle}" ToolTip="{x:Static res:UiResources.EditConnectionToolTip}" Click="EditConnection_Clicked" Visibility="Collapsed">
                                    <imaging:CrispImage Width="20" Height="20" VerticalAlignment="Center" Cursor="Hand" Moniker="{x:Static vsimagecatalog:KnownMonikers.Settings}"
                                                        Margin="10,0" />
                                 </Button>
                                 <Button Grid.Column="1" Style="{StaticResource IconButtonStyle}" ToolTip="{x:Static res:UiResources.RemoveConnectionToolTip}" Click="RemoveConnectionButton_OnClick">
-                                    <imaging:CrispImage Width="20" Height="20" VerticalAlignment="Center" Cursor="Hand" Moniker="{x:Static vsimagecatalog:KnownMonikers.Close}"/>
+                                    <Image VerticalAlignment="Center" Cursor="Hand" Source="{StaticResource TrashCanDrawingImage}"/>
                                 </Button>
                             </Grid>
                        </Grid>

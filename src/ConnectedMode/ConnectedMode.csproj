@@ -41,9 +41,11 @@
     <None Remove="UI\ManageBinding\ManageBindingDialog.xaml" />
     <None Remove="UI\Credentials\CredentialsDialog.xaml" />
     <None Remove="UI\ProgressAndErrorReporterComponent.xaml" />
+    <None Remove="UI\Resources\CheckImage.xaml" />
     <None Remove="UI\Resources\LogoImages.xaml" />
     <None Remove="UI\Resources\sonarlint_32px.ico" />
     <None Remove="UI\Resources\Styles.xaml" />
+    <None Remove="UI\Resources\TrashCanImage.xaml" />
     <None Remove="UI\ServerSelection\ServerSelectionDialog.xaml" />
     <Resource Include="UI\Resources\sonarlint_32px.ico">
       <CopyToOutputDirectory></CopyToOutputDirectory>
@@ -64,10 +66,14 @@
     </Page>
     <Page Include="UI\ManageBinding\ManageBindingDialog.xaml" />
     <Page Include="UI\DeleteConnection\DeleteConnectionDialog.xaml" />
+    <Page Include="UI\Resources\CheckImage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\Resources\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\Resources\LogoImages.xaml" />
+    <Page Include="UI\Resources\TrashCanImage.xaml" />
     <Page Include="UI\WarningMessage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

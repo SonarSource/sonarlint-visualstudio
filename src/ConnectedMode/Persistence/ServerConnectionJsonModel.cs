@@ -35,7 +35,7 @@ public record ServerConnectionJsonModel
     [JsonProperty("id")]
     public string Id { get; set; }
 
-    [JsonProperty("setting")]
+    [JsonProperty("settings")]
     public ServerConnectionSettings Settings { get; set; }
 
     [JsonProperty("organizationKey")]
