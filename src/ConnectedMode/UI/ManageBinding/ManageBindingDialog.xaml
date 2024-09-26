@@ -15,6 +15,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/CheckImage.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible"/>
             <wpf:BoolToVisibilityConverter x:Key="TrueToCollapsedConverter" FalseValue="Visible" TrueValue="Collapsed"/>
@@ -35,7 +36,7 @@
 
         <GroupBox Grid.Row="0" Header="{x:Static res:UiResources.BindingStatusLabel}">
             <Grid>
-                <Grid VerticalAlignment="Center" Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToCollapsedConverter}}">
+                <Grid VerticalAlignment="Center" Margin="10,0" Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToCollapsedConverter}}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
@@ -47,8 +48,6 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <imaging:CrispImage Grid.Column="0" Width="20" Height="20" VerticalAlignment="Center" Margin="10, 0" 
-                                            Moniker="{x:Static vsimagecatalog:KnownMonikers.Close}"/>
                         <TextBlock Grid.Column="1" FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment155PercentFontSizeKey}}">
                            <Run Text="{Binding Path=SolutionInfo.SolutionType, StringFormat='{}{0} '}"/>
                            <Run Text="{Binding Path=SolutionInfo.Name, StringFormat='{}&quot;{0}&quot; '}" FontWeight="DemiBold"/>
@@ -56,22 +55,22 @@
                         </TextBlock>
                     </Grid>
 
-            <Button Grid.Column="1" HorizontalAlignment="Right" Content="{x:Static res:UiResources.UseSharedBindingButton}" Padding="5,0" 
-                    IsEnabled="{Binding Path=IsUseSharedBindingButtonEnabled}"
-                    Visibility="{Binding Path=IsUseSharedBindingButtonVisible, Converter={StaticResource TrueToVisibleConverter}}"
-                    ToolTipService.ShowOnDisabled="True"
-                    Click="UseSharedBinding_OnClick">
-                <Button.Style>
-                    <Style TargetType="Button">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Path=IsSharedBindingConfigurationDetected}" Value="False">
-                                <Setter Property="ToolTip" Value="{x:Static res:UiResources.SharedBindingConfigurationTooltip}"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Button.Style>
-            </Button>
-        </Grid>
+                    <Button Grid.Column="1" HorizontalAlignment="Right" Content="{x:Static res:UiResources.UseSharedBindingButton}" Padding="5,0" 
+                            IsEnabled="{Binding Path=IsUseSharedBindingButtonEnabled}"
+                            Visibility="{Binding Path=IsUseSharedBindingButtonVisible, Converter={StaticResource TrueToVisibleConverter}}"
+                            ToolTipService.ShowOnDisabled="True"
+                            Click="UseSharedBinding_OnClick">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=IsSharedBindingConfigurationDetected}" Value="False">
+                                        <Setter Property="ToolTip" Value="{x:Static res:UiResources.SharedBindingConfigurationTooltip}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
 
                 <Grid VerticalAlignment="Center" Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToVisibleConverter}}">
                     <Grid.ColumnDefinitions>
@@ -85,8 +84,8 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <imaging:CrispImage Grid.Column="0" Width="20" Height="20" VerticalAlignment="Center" Margin="10, 0,10,-5" 
-                                            Moniker="{x:Static vsimagecatalog:KnownMonikers.Checkmark}"/>
+                        <Image Grid.Column="0" Width="20" Height="20" VerticalAlignment="Center" Margin="10, 0,10,0" 
+                                            Source="{StaticResource CheckDrawingImage}"/>
                         <TextBlock Grid.Column="1" Margin="5,0" FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment155PercentFontSizeKey}}">
                            <Run Text="{Binding Path=SolutionInfo.SolutionType, StringFormat='{}{0} '}"/>
                            <Run Text="{Binding Path=SolutionInfo.Name, StringFormat='{}&quot;{0}&quot; '}" FontWeight="DemiBold"/>
