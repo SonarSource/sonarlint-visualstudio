@@ -311,7 +311,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
         }
 
-        internal /* for testing */ static SoftwareQualitySeverity? GetHighestSoftwareQualitySeverity(RuleMetadata ruleMetadata) // make sure this works with new severity
+        internal /* for testing */ static SoftwareQualitySeverity? GetHighestSoftwareQualitySeverity(RuleMetadata ruleMetadata)
             => ruleMetadata.Code?.Impacts?.Count > 0 ? (SoftwareQualitySeverity?)ruleMetadata.Code.Impacts.Max(r => r.Value) : null;
     }
 }
