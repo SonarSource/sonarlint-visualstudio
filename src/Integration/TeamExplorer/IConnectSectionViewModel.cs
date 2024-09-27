@@ -19,7 +19,6 @@
  */
 
 using SonarLint.VisualStudio.Integration.State;
-using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
@@ -31,8 +30,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         TransferableVisualState State { get; set; }
 
         bool IsBusy { get; set; }
-
-        ICommand<string> BrowseToUrlCommand { get; set; }
 
     }
 }

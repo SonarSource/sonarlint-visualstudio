@@ -112,7 +112,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.Host.VisualStateManager.IsBusyChanged += this.OnIsBusyChanged;
 
             this.InitializeProvidedCommands();
-            this.SyncCommands();
 
             this.Host.SetActiveSection(this);
         }
@@ -122,9 +121,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.Host.ClearActiveSection();
 
             this.Host.VisualStateManager.IsBusyChanged -= this.OnIsBusyChanged;
-            this.CleanControllerCommands();
+            CommandTargets.Clear();
             this.CleanProvidedCommands();
-            this.SyncCommands();
 
             // Dispose the View & ViewModel
             base.Dispose();
@@ -163,12 +161,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         #region Commands
 
-        public ICommand<string> BrowseToUrlCommand
-        {
-            get;
-            private set;
-        }
-
         public ICommand<ProjectViewModel> BrowseToProjectDashboardCommand
         {
             get;
@@ -181,39 +173,17 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             private set;
         }
 
-        private void CleanControllerCommands()
-        {
-            this.CommandTargets.Clear();
-
-            ISectionController section = (ISectionController)this;
-            if (section.ViewModel != null)
-            {
-                section.ViewModel.BrowseToUrlCommand = null;
-            }
-        }
-
         private void InitializeProvidedCommands()
         {
             // Simple commands provided by this class directly
             this.ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(this.ToggleShowAllProjects, this.CanToggleShowAllProjects);
-            this.BrowseToUrlCommand = new RelayCommand<string>(this.ExecBrowseToUrl, this.CanExecBrowseToUrl);
             this.BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(this.ExecBrowseToProjectDashboard, this.CanExecBrowseToProjectDashboard);
         }
 
         private void CleanProvidedCommands()
         {
             this.ToggleShowAllProjectsCommand = null;
-            this.BrowseToUrlCommand = null;
             this.BrowseToProjectDashboardCommand = null;
-        }
-
-        private void SyncCommands()
-        {
-            ISectionController section = (ISectionController)this;
-            if (section.ViewModel != null)
-            {
-                section.ViewModel.BrowseToUrlCommand = this.BrowseToUrlCommand;
-            }
         }
 
         private bool CanDisconnect()

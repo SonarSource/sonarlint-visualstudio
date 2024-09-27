@@ -47,15 +47,5 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         }
 
         #endregion
-
-        #region Commands
-
-        public ICommand<string> BrowseToUrlCommand
-        {
-            get { return this.browseToUrl; }
-            set { SetAndRaisePropertyChanged(ref this.browseToUrl, value); }
-        }
-
-        #endregion
     }
 }
