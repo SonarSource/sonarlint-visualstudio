@@ -253,13 +253,6 @@ namespace SonarLint.VisualStudio.Integration.State
                 return;
             }
 
-            var browseServerContextualCommand = new ContextualCommandViewModel(serverVM.Url.ToString(), this.Host.ActiveSection.BrowseToUrlCommand)
-            {
-                DisplayText = Strings.BrowseServerMenuItemDisplayText,
-                Tooltip = Strings.BrowserServerMenuItemTooltip,
-                Icon = new IconViewModel(KnownMonikers.OpenWebSite)
-            };
-
             var toggleShowAllProjectsCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection.ToggleShowAllProjectsCommand)
             {
                 Tooltip = Strings.ToggleShowAllProjectsCommandTooltip
@@ -273,7 +266,6 @@ namespace SonarLint.VisualStudio.Integration.State
 
             // Note: the Disconnect command is not on the context menu, although it is
             // called directly from code e.g. when the solution unloads
-            serverVM.Commands.Add(browseServerContextualCommand);
             serverVM.Commands.Add(toggleShowAllProjectsCommand);
         }
 

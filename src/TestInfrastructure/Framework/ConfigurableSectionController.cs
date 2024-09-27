@@ -53,12 +53,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             set;
         }
 
-        public ICommand<string> BrowseToUrlCommand
-        {
-            get;
-            set;
-        }
-
         public ICommand<ProjectViewModel> BrowseToProjectDashboardCommand
         {
             get;
@@ -76,7 +70,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
                 ViewModel = new ConfigurableConnectSectionViewModel(),
                 View = Mock.Of<IConnectSectionView>(),
                 ProgressHost = new ConfigurableProgressControlHost(),
-                BrowseToUrlCommand = new RelayCommand<string>(url => { }),
                 BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(vm => { }),
                 ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(vm => { })
             };

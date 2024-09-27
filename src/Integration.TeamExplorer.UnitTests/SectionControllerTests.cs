@@ -75,7 +75,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             SectionController testSubject = this.CreateTestSubject();
 
             // Constructor time initialization
-            testSubject.BrowseToUrlCommand.Should().NotBeNull("BrowseToUrlCommand is not initialized");
             testSubject.BrowseToProjectDashboardCommand.Should().NotBeNull("BrowseToProjectDashboardCommand is not initialized");
             testSubject.ToggleShowAllProjectsCommand.Should().NotBeNull("ToggleShowAllProjectsCommand is not initialized");
 
@@ -90,7 +89,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             ReInitialize(testSubject, this.host);
 
             // Assert
-            AssertCommandsInSync(testSubject);
             testSubject.View.Should().NotBeNull("Failed to get the View");
             testSubject.ViewModel.Should().NotBeNull("Failed to get the ViewModel");
 
@@ -99,7 +97,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             ReInitialize(testSubject, this.host);
 
             // Assert
-            AssertCommandsInSync(testSubject);
             testSubject.View.Should().NotBeNull("Failed to get the View");
             testSubject.ViewModel.Should().NotBeNull("Failed to get the ViewModel");
 
@@ -108,7 +105,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Assert
             testSubject.ToggleShowAllProjectsCommand.Should().BeNull("ToggleShowAllProjectsCommand is not cleared");
-            testSubject.BrowseToUrlCommand.Should().BeNull("BrowseToUrlCommand is not cleared");
             testSubject.BrowseToProjectDashboardCommand.Should().BeNull("BrowseToProjectDashboardCommand is not cleared");
         }
 
@@ -276,33 +272,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         }
 
         [TestMethod]
-        public void SectionController_BrowseToUrlCommand()
-        {
-            // Arrange
-            var webBrowser = new ConfigurableWebBrowser();
-            var testSubject = this.CreateTestSubject(webBrowser);
-
-            // Case 1: Empty URL
-            // Act + Assert CanExecute
-            testSubject.BrowseToUrlCommand.CanExecute(null).Should().BeFalse();
-
-            // Case 2: Bad URL
-            // Act + Assert CanExecute
-            testSubject.BrowseToUrlCommand.CanExecute("not a Uri").Should().BeFalse();
-
-            // Case 3: Good URL
-            const string goodUrl = "http://localhost";
-
-            // Act + Assert CanExecute
-            testSubject.BrowseToUrlCommand.CanExecute(goodUrl).Should().BeTrue();
-
-            // Act + Assert Execute
-            testSubject.BrowseToUrlCommand.Execute(goodUrl);
-            webBrowser.NavigatedUrls.Should().HaveCount(1);
-            webBrowser.NavigatedUrls.Should().Contain(goodUrl);
-        }
-
-        [TestMethod]
         public void SectionController_BrowseToProjectDashboardCommand()
         {
             // Arrange
@@ -392,13 +361,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var controller = new SectionController(serviceProvider, host, webBrowser ?? new ConfigurableWebBrowser());
             controller.Initialize(null, new SectionInitializeEventArgs(new ServiceContainer(), null));
             return controller;
-        }
-
-        private void AssertCommandsInSync(SectionController section)
-        {
-            ConnectSectionViewModel viewModel = (ConnectSectionViewModel)section.ViewModel;
-            
-            viewModel.BrowseToUrlCommand.Should().Be(section.BrowseToUrlCommand, "BrowseToUrlCommand is not initialized");
         }
 
         #endregion Helpers
