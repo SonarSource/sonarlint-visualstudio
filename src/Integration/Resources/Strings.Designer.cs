@@ -1098,15 +1098,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Toggle visibility of unbound projects for this server..
-        /// </summary>
-        public static string ToggleShowAllProjectsCommandTooltip {
-            get {
-                return ResourceManager.GetString("ToggleShowAllProjectsCommandTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to {0}: Unexpected error: {1}.
         ///
         ///You can help us improve by reporting this bug at {2}.

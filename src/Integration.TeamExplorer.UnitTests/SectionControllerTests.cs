@@ -26,7 +26,6 @@ using Moq;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
-using SonarQube.Client.Models;
 using TF_IOleCommandTarget = Microsoft.TeamFoundation.Client.CommandTarget.IOleCommandTarget;
 using TF_OLECMD = Microsoft.TeamFoundation.Client.CommandTarget.OLECMD;
 using VS_IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
@@ -74,9 +73,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Act
             SectionController testSubject = this.CreateTestSubject();
 
-            // Constructor time initialization
-            testSubject.ToggleShowAllProjectsCommand.Should().NotBeNull("ToggleShowAllProjectsCommand is not initialized");
-
             // Case 1: first time initialization
             // Assert
             testSubject.View.Should().NotBeNull("Failed to get the View");
@@ -98,12 +94,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Assert
             testSubject.View.Should().NotBeNull("Failed to get the View");
             testSubject.ViewModel.Should().NotBeNull("Failed to get the ViewModel");
-
-            // Case 4: Dispose
-            testSubject.Dispose();
-
-            // Assert
-            testSubject.ToggleShowAllProjectsCommand.Should().BeNull("ToggleShowAllProjectsCommand is not cleared");
         }
 
         [TestMethod]
@@ -228,45 +218,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             OleConstants.OLECMDERR_E_CANCELED.
                 Should().Be((int)VS_OLEConstants.OLECMDERR_E_CANCELED);
-        }
-
-        [TestMethod]
-        public void SectionController_ToggleShowAllProjectsCommand()
-        {
-            // Arrange
-            var testSubject = this.CreateTestSubject();
-            var connInfo = new ConnectionInformation(new Uri("http://localhost"));
-            var projectInfo = new SonarQubeProject("p1", "proj1");
-            var server = new ServerViewModel(connInfo);
-            var project = new ProjectViewModel(server, projectInfo);
-            server.Projects.Add(project);
-
-            // Case 1: No bound projects
-            project.IsBound = false;
-
-            // Act + Assert CanExecute
-            testSubject.ToggleShowAllProjectsCommand.CanExecute(server).Should().BeFalse();
-
-            // Case 2: Bound
-            project.IsBound = true;
-
-            // Act + Assert
-            testSubject.ToggleShowAllProjectsCommand.CanExecute(server).Should().BeTrue();
-
-            // Assert execution
-            bool original = server.ShowAllProjects;
-
-            // Act
-            testSubject.ToggleShowAllProjectsCommand.Execute(server);
-
-            // Assert
-            server.ShowAllProjects.Should().Be(!original);
-
-            // Act
-            testSubject.ToggleShowAllProjectsCommand.Execute(server);
-
-            // Assert
-            server.ShowAllProjects.Should().Be(original);
         }
 
         #endregion Tests

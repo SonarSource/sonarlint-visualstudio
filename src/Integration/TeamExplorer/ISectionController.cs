@@ -19,7 +19,6 @@
  */
 
 using SonarLint.VisualStudio.Integration.Progress;
-using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
@@ -43,7 +42,5 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         /// <see cref="ConnectSectionViewModel"/>
         /// </summary>
         IConnectSectionViewModel ViewModel { get; }
-
-        ICommand<ServerViewModel> ToggleShowAllProjectsCommand { get; }
     }
 }

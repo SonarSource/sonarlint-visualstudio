@@ -21,9 +21,7 @@
 using System.ComponentModel;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.State
@@ -249,21 +247,6 @@ namespace SonarLint.VisualStudio.Integration.State
                 // Don't add command (which will be disabled).
                 return;
             }
-
-            var toggleShowAllProjectsCommand = new ContextualCommandViewModel(serverVM, this.Host.ActiveSection.ToggleShowAllProjectsCommand)
-            {
-                Tooltip = Strings.ToggleShowAllProjectsCommandTooltip
-            };
-            toggleShowAllProjectsCommand.SetDynamicDisplayText(x =>
-            {
-                ServerViewModel ctx = x as ServerViewModel;
-                Debug.Assert(ctx != null, "Unexpected fixed context for ToggleShowAllProjects context command");
-                return ctx?.ShowAllProjects ?? false ? Strings.HideUnboundProjectsCommandText : Strings.ShowAllProjectsCommandText;
-            });
-
-            // Note: the Disconnect command is not on the context menu, although it is
-            // called directly from code e.g. when the solution unloads
-            serverVM.Commands.Add(toggleShowAllProjectsCommand);
         }
         
         #endregion

@@ -24,7 +24,6 @@ using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Integration.Progress;
-using SonarLint.VisualStudio.Integration.WPF;
 using IVSOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
 using TF_OLECMD = Microsoft.TeamFoundation.Client.CommandTarget.OLECMD;
 using VS_OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
@@ -111,8 +110,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
             this.Host.VisualStateManager.IsBusyChanged += this.OnIsBusyChanged;
 
-            this.InitializeProvidedCommands();
-
             this.Host.SetActiveSection(this);
         }
 
@@ -122,7 +119,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
             this.Host.VisualStateManager.IsBusyChanged -= this.OnIsBusyChanged;
             CommandTargets.Clear();
-            this.CleanProvidedCommands();
 
             // Dispose the View & ViewModel
             base.Dispose();
@@ -158,37 +154,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         }
 
         #endregion
-
-        #region Commands
-
-        public ICommand<ServerViewModel> ToggleShowAllProjectsCommand
-        {
-            get;
-            private set;
-        }
-
-        private void InitializeProvidedCommands()
-        {
-            // Simple commands provided by this class directly
-            this.ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(this.ToggleShowAllProjects, this.CanToggleShowAllProjects);
-        }
-
-        private void CleanProvidedCommands()
-        {
-            this.ToggleShowAllProjectsCommand = null;
-        }
-
-        private bool CanToggleShowAllProjects(ServerViewModel server)
-        {
-            return server.Projects.Any(x => x.IsBound);
-        }
-
-        private void ToggleShowAllProjects(ServerViewModel server)
-        {
-            server.ShowAllProjects = !server.ShowAllProjects;
-        }
-
-        #endregion Commands
 
         #region VS IOleCommandTarget conversion
 
