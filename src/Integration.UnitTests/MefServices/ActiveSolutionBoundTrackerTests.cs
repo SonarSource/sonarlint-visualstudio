@@ -18,19 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Media.Animation;
-using FluentAssertions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -481,24 +473,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void UpdateConnection_Disconnect_WpfCommandIsAvailableButNotExecutable_ServiceDisconnectedIsCalled()
+        public void UpdateConnection_Disconnect_ServiceDisconnectedIsCalled()
         {
-            // If the WPF command is available then it should be used to disconnect,
-            // rather than calling service.Disconnect() directly.
-            // Here, the command exists but is not executable.
-
             // Arrange
             using (CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
             {
-
-                int commandCallCount = 0;
-                int commandCanExecuteCallCount = 0;
-                var teSection = ConfigurableSectionController.CreateDefault();
-                teSection.DisconnectCommand = new Integration.WPF.RelayCommand(
-                    () => commandCallCount++,
-                    () => { commandCanExecuteCallCount++; return false; });
-                host.SetActiveSection(teSection);
-
                 ConfigureService(isConnected: true);
                 ConfigureSolutionBinding(null);
 
@@ -508,38 +487,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Assert
                 VerifyServiceConnect(Times.Never());
                 VerifyServiceDisconnect(Times.Once());
-                commandCanExecuteCallCount.Should().Be(1);
-                commandCallCount.Should().Be(0);
-            }
-        }
-
-        [TestMethod]
-        public void UpdateConnection_Disconnect_WpfCommandIsAvailableAndExecutable_ServiceDisconnectedIsNotCalled()
-        {
-            // Wpf command is available and can be executed -> should be called instead of service.Disconnect()
-
-            // Arrange
-            using (CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider, loggerMock.Object))
-            {
-                int commandCallCount = 0;
-                int commandCanExecuteCallCount = 0;
-                var teSection = ConfigurableSectionController.CreateDefault();
-                teSection.DisconnectCommand = new Integration.WPF.RelayCommand(
-                    () => { commandCallCount++; isMockServiceConnected = false; },
-                    () => { commandCanExecuteCallCount++; return true; });
-                host.SetActiveSection(teSection);
-
-                ConfigureService(isConnected: true);
-                ConfigureSolutionBinding(null);
-
-                // Act
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
-
-                // Assert
-                VerifyServiceConnect(Times.Never());
-                VerifyServiceDisconnect(Times.Never());
-                commandCanExecuteCallCount.Should().Be(1);
-                commandCallCount.Should().Be(1);
             }
         }
 

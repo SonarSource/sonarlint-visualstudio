@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Input;
 using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
@@ -32,12 +31,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         #region ISectionController
 
         public ICommand<BindCommandArgs> BindCommand
-        {
-            get;
-            set;
-        }
-
-        public ICommand DisconnectCommand
         {
             get;
             set;
@@ -91,7 +84,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
                 View = Mock.Of<IConnectSectionView>(),
                 ProgressHost = new ConfigurableProgressControlHost(),
                 BindCommand = new RelayCommand<BindCommandArgs>(args => { }),
-                DisconnectCommand = new RelayCommand(() => { }),
                 BrowseToUrlCommand = new RelayCommand<string>(url => { }),
                 BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(vm => { }),
                 ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(vm => { })
