@@ -19,10 +19,10 @@
  */
 
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.State
@@ -33,7 +33,6 @@ namespace SonarLint.VisualStudio.Integration.State
         private readonly IThreadHandling threadHandling;
         private ProjectViewModel boundProject;
         private bool isBusy;
-        private ConnectConfiguration connectConfiguration = new ConnectConfiguration();
         private bool hasSharedBinding;
 
         public TransferableVisualState()
@@ -51,20 +50,6 @@ namespace SonarLint.VisualStudio.Integration.State
             {
                 Debug.Assert(threadHandling.CheckAccess(), $"{nameof(ConnectedServers)} should only be accessed from the UI thread");
                 return this.connectedServers;
-            }
-        }
-
-        public ConnectConfiguration ConnectConfiguration
-        {
-            get
-            {
-                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(ConnectConfiguration)} should only be accessed from the UI thread");
-                return connectConfiguration;
-            }
-            set
-            {
-                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(ConnectConfiguration)} should only be set from the UI thread");
-                SetAndRaisePropertyChanged(ref connectConfiguration, value);
             }
         }
 
@@ -130,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.State
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
+        [SuppressMessage("Reliability",
           "S3236:Methods with caller info attributes should not be invoked with explicit arguments",
           Justification = "We actually want to specify a different property to change",
           Scope = "member",

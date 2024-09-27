@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.State
@@ -55,8 +53,6 @@ namespace SonarLint.VisualStudio.Integration.State
 
         string BoundProjectKey { get; set; }
         string BoundProjectName { get; set; }
-
-        void ResetConnectionConfiguration();
 
         IEnumerable<ConnectionInformation> GetConnectedServers();
 
