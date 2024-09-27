@@ -18,20 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Windows.Input;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Connection;
+using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
     internal class ConnectSectionViewModel : TeamExplorerSectionViewModelBase,
-                                        IConnectSectionViewModel,
-                                        IUserNotification /* Most of it implemented by TeamExplorerSectionViewModelBase */
+                                        IConnectSectionViewModel
     {
         private TransferableVisualState state;
         private ICommand<ConnectConfiguration> connectCommand;
@@ -40,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         public ConnectSectionViewModel()
         {
-            this.Title = Resources.Strings.ConnectSectionTitle;
+            this.Title = Strings.ConnectSectionTitle;
             this.IsExpanded = true;
             this.IsVisible = true;
         }

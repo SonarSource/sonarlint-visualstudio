@@ -18,12 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Input;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.State;
@@ -51,7 +46,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         {
             // Arrange
             var section = ConfigurableSectionController.CreateDefault();
-            ConfigurableUserNotification notifications = (ConfigurableUserNotification)section.UserNotifications;
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host);
             host.VisualStateManager = testSubject;
@@ -67,16 +61,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Assert
             act.Should().Throw<BindingAbortedException>();
-            var message = notifications.AssertNotification(NotificationIds.FailedToFindBoundProjectKeyId);
-            message.Should().MatchRegex("\\[.+\\]\\(\\)"); // Contains the hyperlink syntax [text]()
-            notifications.AssertNotification(NotificationIds.FailedToFindBoundProjectKeyId, section.ReconnectCommand);
-
-            // Case 2 - projects contains BoundProjectKey
-            testSubject.BoundProjectKey = "project1";
-            testSubject.SetProjects(connection1, projects);
-
-            // Assert
-            notifications.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
         }
 
         [TestMethod]
@@ -84,7 +68,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         {
             // Arrange
             var section = ConfigurableSectionController.CreateDefault();
-            ConfigurableUserNotification notifications = (ConfigurableUserNotification)section.UserNotifications;
             ConfigurableHost host = new ConfigurableHost();
             StateManager testSubject = this.CreateTestSubject(host);
             host.VisualStateManager = testSubject;
@@ -97,19 +80,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Act + Assert
             // Case 1 - not connected to server (indicated by null)
-            section.UserNotifications.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             testSubject.SetProjects(connection1, null);
 
-            notifications.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
             VerifyConnectSectionViewModelIsNotConnected(section.ViewModel, connection1);
             VerifyConnectSectionViewModelIsNotConnected(section.ViewModel, connection2);
             VerifyConnectSectionViewModelHasNoBoundProjects(section.ViewModel);
 
             // Case 2 - connection1, empty project collection
-            section.UserNotifications.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             testSubject.SetProjects(connection1, new SonarQubeProject[0]);
 
-            notifications.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
             serverVM = VerifyConnectSectionViewModelIsConnectedAndHasNoProjects(section.ViewModel, connection1);
             serverVM.ShowAllProjects.Should().BeTrue("Expected show all projects");
             VerifySectionCommands(section, serverVM);
@@ -117,10 +96,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             VerifyConnectSectionViewModelHasNoBoundProjects(section.ViewModel);
 
             // Case 3 - connection1, non-empty project collection
-            section.UserNotifications.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             testSubject.SetProjects(connection1, projects);
 
-            notifications.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
             serverVM = VerifyConnectSectionViewModelIsConnectedAndHasProjects(section.ViewModel, connection1, projects);
             VerifySectionCommands(section, serverVM);
             VerifyConnectSectionViewModelIsNotConnected(section.ViewModel, connection2);
@@ -128,11 +105,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             serverVM.ShowAllProjects.Should().BeTrue("Expected show all projects to be true when adding new SonarQubeProjects");
 
             // Case 4 - connection2, change projects
-            testSubject.SetProjects(connection1, projects);
-            section.UserNotifications.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             testSubject.SetProjects(connection2, projects);
 
-            notifications.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
             serverVM = VerifyConnectSectionViewModelIsConnectedAndHasProjects(section.ViewModel, connection1, projects);
             VerifySectionCommands(section, serverVM);
             serverVM = VerifyConnectSectionViewModelIsConnectedAndHasProjects(section.ViewModel, connection2, projects);
@@ -145,10 +119,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             testSubject.SetProjects(connection1, projects);
             testSubject.SetProjects(connection2, projects);
             // Act
-            section.UserNotifications.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             host.SetActiveSection(section);
             // Assert
-            notifications.AssertNotification(NotificationIds.FailedToFindBoundProjectKeyId);
             serverVM = VerifyConnectSectionViewModelIsConnectedAndHasProjects(section.ViewModel, connection1, projects);
             VerifySectionCommands(section, serverVM);
             serverVM = VerifyConnectSectionViewModelIsConnectedAndHasProjects(section.ViewModel, connection2, projects);
@@ -249,12 +221,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         {
             // Arrange
             var section = ConfigurableSectionController.CreateDefault();
-            ConfigurableUserNotification notifications = (ConfigurableUserNotification)section.UserNotifications;
             ConfigurableHost host = new ConfigurableHost();
             host.SetActiveSection(section);
             StateManager testSubject = this.CreateTestSubject(host);
 
-            section.UserNotifications.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             testSubject.ManagedState.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz1"))));
             testSubject.ManagedState.ConnectedServers.Add(new ServerViewModel(new ConnectionInformation(new Uri("http://zzz2"))));
             testSubject.ManagedState.ConnectedServers.ToList().ForEach(s => s.Projects.Add(new ProjectViewModel(s, new SonarQubeProject(Guid.NewGuid().ToString(), ""))));
@@ -269,7 +239,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Assert
             testSubject.ManagedState.HasBoundProject.Should().BeFalse();
-            notifications.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
         }
 
         [TestMethod]
@@ -277,12 +246,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         {
             // Arrange
             var section = ConfigurableSectionController.CreateDefault();
-            ConfigurableUserNotification notifications = (ConfigurableUserNotification)section.UserNotifications;
             ConfigurableHost host = new ConfigurableHost();
             host.SetActiveSection(section);
             StateManager testSubject = this.CreateTestSubject(host);
 
-            section.UserNotifications.ShowNotificationError("message", NotificationIds.FailedToFindBoundProjectKeyId, null);
             var conn = new ConnectionInformation(new Uri("http://xyz"))
             {
                 Organization = new SonarQubeOrganization("org1", "org1 name")
@@ -301,7 +268,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             testSubject.SetBoundProject(conn.ServerUri, "org1", "222");
 
             // Assert
-            notifications.AssertNoNotification(NotificationIds.FailedToFindBoundProjectKeyId);
             var serverVM = state.ConnectedServers.Single();
             var project0VM = serverVM.Projects.Single(p => p.Project == projects[0]);
             var project1VM = serverVM.Projects.Single(p => p.Project == projects[1]);

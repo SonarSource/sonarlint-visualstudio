@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
@@ -45,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
     /// The class is responsible for view and view model creation also hosting the commands
     /// relevant during the life time of the section (initialized when activated and disposed when navigated to a different section).
     /// </summary>
-    [TeamExplorerSection(SectionController.SectionId, SonarQubePage.PageId, SectionController.Priority)]
+    [TeamExplorerSection(SectionId, SonarQubePage.PageId, Priority)]
     internal class SectionController : TeamExplorerSectionBase, ISectionController
     {
         public const string SectionId = "25AB05EF-8132-453E-A990-55587C0C5CD3";
@@ -98,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             get { return (ConnectSectionView)this.View; }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
+        [SuppressMessage("Reliability",
             "S3215:\"interface\" instances should not be cast to concrete types",
             Justification = "The base class is not defined by us, so we can't force the type to be something else",
             Scope = "member",
@@ -106,11 +103,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         IConnectSectionViewModel ISectionController.ViewModel
         {
             get { return (ConnectSectionViewModel)this.ViewModel; }
-        }
-
-        IUserNotification ISectionController.UserNotifications
-        {
-            get { return (IUserNotification)this.ViewModel; }
         }
 
         #endregion
@@ -245,8 +237,8 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             // Due to complexity of connect and bind we "outsource" the controlling part
             // to separate controllers which just expose commands
-            var connectionController = new Connection.ConnectionController(serviceProvider, Host, autoBindTrigger, sharedBindingConfigProvider, credentialStoreService);
-            var bindingController = new Binding.BindingController(serviceProvider, Host);
+            var connectionController = new ConnectionController(serviceProvider, Host, autoBindTrigger, sharedBindingConfigProvider, credentialStoreService);
+            var bindingController = new BindingController(serviceProvider, Host);
 
             this.CommandTargets.Add(connectionController);
             this.CommandTargets.Add(bindingController);

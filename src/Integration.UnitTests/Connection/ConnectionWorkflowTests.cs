@@ -19,16 +19,14 @@
  */
 
 using System.Windows.Input;
+using FluentAssertions.Execution;
 using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
@@ -157,8 +155,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.sonarQubeServiceMock.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(),
                 It.IsAny<CancellationToken>()), Times.Once());
             testSubject.ConnectedServer.Should().Be(connectionInfo);
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoShowErrorMessages();
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.FailedToConnectId);
 
             AssertCredentialsStored(connectionInfo);
         }
@@ -193,10 +189,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Times.Once());
 
             testSubject.ConnectedServer.Should().Be(null);
-
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoShowErrorMessages();
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId);
-
+            
             AssertCredentialsNotStored(); // Connection was rejected by SonarQube
         }
 
@@ -235,8 +228,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.sonarQubeServiceMock.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(),
                 It.IsAny<CancellationToken>()), Times.Once());
             testSubject.ConnectedServer.Should().Be(connectionInfo);
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoShowErrorMessages();
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.FailedToConnectId);
 
             AssertCredentialsStored(connectionInfo);
         }
@@ -274,8 +265,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.sonarQubeServiceMock.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(),
                 It.IsAny<CancellationToken>()), Times.Once());
             this.host.VisualStateManager.IsConnected.Should().BeFalse();
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
-
+            
             // Act (reconnect with same bad connection)
             executionEvents.Reset();
             projectChangedCallbackCalled = false;
@@ -292,8 +282,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.sonarQubeServiceMock.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(),
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
             this.host.VisualStateManager.IsConnected.Should().BeFalse();
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
-
+            
             // Canceled connections
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             executionEvents.Reset();
@@ -315,8 +304,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.sonarQubeServiceMock.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(),
                 It.IsAny<CancellationToken>()), Times.Exactly(3));
             this.host.VisualStateManager.IsConnected.Should().BeFalse();
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToConnectId, Strings.ConnectionFailed);
-
+            
             AssertCredentialsNotStored(); // Username and password are null
         }
 
@@ -368,9 +356,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.sonarQubeServiceMock.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(),
                 It.IsAny<CancellationToken>()), Times.Once());
             testSubject.ConnectedServer.Should().Be(connectionInfo);
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoShowErrorMessages();
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.FailedToConnectId);
-
+            
             AssertCredentialsStored(connectionInfo);
 
             logger.OutputStrings.Where(x => x.Contains("whatever-key"))
@@ -420,53 +406,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             this.sonarQubeServiceMock.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(),
                 It.IsAny<CancellationToken>()), Times.Once());
             testSubject.ConnectedServer.Should().Be(connectionInfo);
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoShowErrorMessages();
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.FailedToConnectId);
-
-            AssertCredentialsStored(connectionInfo);
-        }
-        
-        [TestMethod]
-        public async Task ConnectionWorkflow_ConnectionStep_AutoBindProjectNotFound_ShowError()
-        {
-            //this test describes a hacky way to fail an auto bind when the project is not found (by throwing), show a relevant error message, but not fail connection (by not aborting)
             
-            // Arrange
-            folderWorkspaceService.Setup(x => x.IsFolderWorkspace()).Returns(true);
-
-            var connectionInfo = new ConnectionInformation(new Uri("http://server"), "user", "pass".ToSecureString());
-            var projects = new List<SonarQubeProject> { new SonarQubeProject("project1", "") };
-            this.sonarQubeServiceMock.Setup(x => x.ConnectAsync(connectionInfo, It.IsAny<CancellationToken>()))
-                .Returns(Task.Delay(0));
-            this.sonarQubeServiceMock.Setup(x => x.GetAllProjectsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(projects);
-
-            var controller = new ConfigurableProgressController();
-            var executionEvents = new ConfigurableProgressStepExecutionEvents();
-            string connectionMessage = connectionInfo.ServerUri.ToString();
-            var testSubject = CreateTestSubject(serviceProvider, host, new RelayCommand(AssertIfCalled), "nonexistingproject");
-
-            // Act
-            Func<Task> act = async () => await testSubject.ConnectionStepAsync(connectionInfo, controller, executionEvents, CancellationToken.None);
-            await act.Should().ThrowExactlyAsync<BindingAbortedException>();
-
-            // Assert
-            controller.NumberOfAbortRequests.Should().Be(0);
-            AssertServiceDisconnectNotCalled();
-            executionEvents.AssertProgressMessages(
-                connectionMessage,
-                Strings.ConnectionStepValidatinCredentials,
-                Strings.ConnectionStepRetrievingProjects,
-                Strings.ConnectionResultSuccess);
-
-            this.sonarQubeServiceMock.Verify(x => x.ConnectAsync(It.IsAny<ConnectionInformation>(),
-                It.IsAny<CancellationToken>()), Times.Once());
-            testSubject.ConnectedServer.Should().Be(connectionInfo);
             AssertCredentialsStored(connectionInfo);
-            
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoShowErrorMessages();
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNoNotification(NotificationIds.FailedToConnectId);
-            ((ConfigurableUserNotification)this.host.ActiveSection.UserNotifications).AssertNotification(NotificationIds.FailedToFindBoundProjectKeyId);
         }
 
         #endregion Tests
@@ -475,7 +416,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
         private static void AssertIfCalled()
         {
-            FluentAssertions.Execution.Execute.Assertion.FailWith("Command not expected to be called");
+            Execute.Assertion.FailWith("Command not expected to be called");
         }
 
         public void AssertServiceDisconnectCalled()
