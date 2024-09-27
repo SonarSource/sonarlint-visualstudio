@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel;
-using Microsoft.VisualStudio.Imaging;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -136,7 +135,6 @@ namespace SonarLint.VisualStudio.Integration.State
             foreach (ServerViewModel serverVM in this.ManagedState.ConnectedServers)
             {
                 this.SetServerVMCommands(serverVM);
-                this.SetServerProjectsVMCommands(serverVM);
             }
         }
         #endregion
@@ -199,7 +197,6 @@ namespace SonarLint.VisualStudio.Integration.State
 
                 serverViewModel.SetProjects(projects);
                 Debug.Assert(serverViewModel.ShowAllProjects, "ShowAllProjects should have been set");
-                this.SetServerProjectsVMCommands(serverViewModel);
                 this.RestoreBoundProject(serverViewModel);
             }
         }
@@ -268,29 +265,7 @@ namespace SonarLint.VisualStudio.Integration.State
             // called directly from code e.g. when the solution unloads
             serverVM.Commands.Add(toggleShowAllProjectsCommand);
         }
-
-        private void SetServerProjectsVMCommands(ServerViewModel serverVM)
-        {
-            foreach (ProjectViewModel projectVM in serverVM.Projects)
-            {
-                projectVM.Commands.Clear();
-
-                if (this.Host.ActiveSection == null)
-                {
-                    // Don't add command (which will be disabled).
-                    continue;
-                }
-
-                var openProjectDashboardCommand = new ContextualCommandViewModel(projectVM, this.Host.ActiveSection.BrowseToProjectDashboardCommand)
-                {
-                    DisplayText = Strings.ViewInSonarQubeMenuItemDisplayText,
-                    Tooltip = Strings.ViewInSonarQubeMenuItemTooltip,
-                    Icon = new IconViewModel(KnownMonikers.OpenWebSite)
-                };
-
-                projectVM.Commands.Add(openProjectDashboardCommand);
-            }
-        }
+        
         #endregion
 
         #region IDisposable Support
