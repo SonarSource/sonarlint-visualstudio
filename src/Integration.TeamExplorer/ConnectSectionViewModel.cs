@@ -20,16 +20,11 @@
 
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.State;
-using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
-    internal class ConnectSectionViewModel : TeamExplorerSectionViewModelBase,
-                                        IConnectSectionViewModel
+    internal class ConnectSectionViewModel : TeamExplorerSectionViewModelBase
     {
-        private TransferableVisualState state;
-        private ICommand<string> browseToUrl;
 
         public ConnectSectionViewModel()
         {
@@ -37,15 +32,5 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.IsExpanded = true;
             this.IsVisible = true;
         }
-
-        #region Properties
-
-        public TransferableVisualState State
-        {
-            get { return this.state; }
-            set { this.SetAndRaisePropertyChanged(ref this.state, value); }
-        }
-
-        #endregion
     }
 }
