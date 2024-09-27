@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
 
@@ -44,8 +43,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         /// <see cref="ConnectSectionViewModel"/>
         /// </summary>
         IConnectSectionViewModel ViewModel { get; }
-
-        ICommand<BindCommandArgs> BindCommand { get; }
 
         ICommand<string> BrowseToUrlCommand { get; }
 

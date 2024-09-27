@@ -20,10 +20,7 @@
 
 using System.ComponentModel;
 using Microsoft.VisualStudio.Imaging;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -292,22 +289,6 @@ namespace SonarLint.VisualStudio.Integration.State
                     continue;
                 }
 
-                var bindContextCommand = new ContextualCommandViewModel(projectVM,
-                    this.Host.ActiveSection.BindCommand,
-                    new BindCommandArgs(new BoundServerProject("placeholder", projectVM.Key, serverVM.ConnectionInformation.ToServerConnection())));
-                bindContextCommand.SetDynamicDisplayText(x =>
-                {
-                    var ctx = x as ProjectViewModel;
-                    Debug.Assert(ctx != null, "Unexpected fixed context for bind context command");
-                    return ctx?.IsBound ?? false ? Strings.SyncButtonText : Strings.BindButtonText;
-                });
-                bindContextCommand.SetDynamicIcon(x =>
-                {
-                    var ctx = x as ProjectViewModel;
-                    Debug.Assert(ctx != null, "Unexpected fixed context for bind context command");
-                    return new IconViewModel(ctx?.IsBound ?? false ? KnownMonikers.Sync : KnownMonikers.Link);
-                });
-
                 var openProjectDashboardCommand = new ContextualCommandViewModel(projectVM, this.Host.ActiveSection.BrowseToProjectDashboardCommand)
                 {
                     DisplayText = Strings.ViewInSonarQubeMenuItemDisplayText,
@@ -315,7 +296,6 @@ namespace SonarLint.VisualStudio.Integration.State
                     Icon = new IconViewModel(KnownMonikers.OpenWebSite)
                 };
 
-                projectVM.Commands.Add(bindContextCommand);
                 projectVM.Commands.Add(openProjectDashboardCommand);
             }
         }

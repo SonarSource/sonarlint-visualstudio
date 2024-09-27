@@ -299,7 +299,6 @@ Referenced assemblies:
 - 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'PresentationCore, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
-- 'SonarLint.VisualStudio.ConnectedMode, Version=8.6.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarLint.VisualStudio.Infrastructure.VS, Version=8.6.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarLint.VisualStudio.Integration, Version=8.6.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarQube.Client, Version=8.6.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
@@ -307,7 +306,7 @@ Referenced assemblies:
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-# Number of references: 15
+# Number of references: 14
 
 ---
 Assembly: 'SonarLint.VisualStudio.IssueVisualization, Version=8.6.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'

@@ -19,7 +19,6 @@
  */
 
 using Moq;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -29,12 +28,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
     internal class ConfigurableSectionController : ISectionController
     {
         #region ISectionController
-
-        public ICommand<BindCommandArgs> BindCommand
-        {
-            get;
-            set;
-        }
 
         public IProgressControlHost ProgressHost
         {
@@ -83,7 +76,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
                 ViewModel = new ConfigurableConnectSectionViewModel(),
                 View = Mock.Of<IConnectSectionView>(),
                 ProgressHost = new ConfigurableProgressControlHost(),
-                BindCommand = new RelayCommand<BindCommandArgs>(args => { }),
                 BrowseToUrlCommand = new RelayCommand<string>(url => { }),
                 BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(vm => { }),
                 ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(vm => { })

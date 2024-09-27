@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.WPF;
 
@@ -32,8 +31,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         TransferableVisualState State { get; set; }
 
         bool IsBusy { get; set; }
-
-        ICommand<BindCommandArgs> BindCommand { get; set; }
 
         ICommand<string> BrowseToUrlCommand { get; set; }
 
