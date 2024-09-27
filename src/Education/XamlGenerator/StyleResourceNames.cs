@@ -56,9 +56,11 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         Sub_NonCompliant_Diff,      // non compliant element for diff highlighting
         Sub_Compliant_Diff,         // compliant element for diff highlighting
         CleanCodeAttributeBubble,   // bubble background for clean code attribute
+        BlockerSoftwareQualitySeverityBubble, // bubble for blocker software quality severity
         HighSoftwareQualitySeverityBubble, // bubble for high software quality severity
         MediumSoftwareQualitySeverityBubble, // bubble for medium software quality severity
         LowSoftwareQualitySeverityBubble, // bubble for low software quality severity
+        InfoSoftwareQualitySeverityBubble, // bubble for info software quality severity
         CleanCodeSpan,              // modification of SubtitleElement_Span with regular font weight
         CleanCodeSeverityImage,     // modification of SubtitleElement_Image with no margin
         CleanCodeCategory           // bold text for Clean Code Category

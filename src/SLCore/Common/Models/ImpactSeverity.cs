@@ -21,8 +21,10 @@
 namespace SonarLint.VisualStudio.SLCore.Common.Models
 {
     public enum ImpactSeverity {
+        INFO,
         LOW,
         MEDIUM,
-        HIGH
+        HIGH,
+        BLOCKER
     }
 }

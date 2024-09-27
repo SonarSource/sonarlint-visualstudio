@@ -53,9 +53,11 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             SoftwareQualitySeveritiesImages = new Dictionary<SoftwareQualitySeverity, SubTitleImageInfo>()
             {
                 // note: display text for these icons is dynamic and is set in XamlGeneratorHelper
+                { SoftwareQualitySeverity.Blocker , new SubTitleImageInfo("BlockerSoftwareQualitySeverity", string.Empty)},
                 { SoftwareQualitySeverity.High , new SubTitleImageInfo("HighSoftwareQualitySeverity", string.Empty)},
                 { SoftwareQualitySeverity.Medium , new SubTitleImageInfo("MediumSoftwareQualitySeverity", string.Empty)},
                 { SoftwareQualitySeverity.Low , new SubTitleImageInfo("LowSoftwareQualitySeverity", string.Empty)},
+                { SoftwareQualitySeverity.Info , new SubTitleImageInfo("InfoSoftwareQualitySeverity", string.Empty)},
             };
 
         private SubTitleImageInfo(string imageResourceName, string displayText)

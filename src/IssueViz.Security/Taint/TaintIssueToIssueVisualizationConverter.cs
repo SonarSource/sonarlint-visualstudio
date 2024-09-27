@@ -221,12 +221,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 {
                     switch (sqSeverity)
                     {
+                        case SonarQubeSoftwareQualitySeverity.Info:
+                            return SoftwareQualitySeverity.Info;
                         case SonarQubeSoftwareQualitySeverity.Low:
                             return SoftwareQualitySeverity.Low;
                         case SonarQubeSoftwareQualitySeverity.Medium:
                             return SoftwareQualitySeverity.Medium;
                         case SonarQubeSoftwareQualitySeverity.High:
                             return SoftwareQualitySeverity.High;
+                        case SonarQubeSoftwareQualitySeverity.Blocker:
+                            return SoftwareQualitySeverity.Blocker;
                         default:
                             throw new ArgumentOutOfRangeException(nameof(sqSeverity));
                     }

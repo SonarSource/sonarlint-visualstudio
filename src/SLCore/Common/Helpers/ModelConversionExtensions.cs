@@ -54,9 +54,11 @@ namespace SonarLint.VisualStudio.SLCore.Common.Helpers
         {
             return impactSeverity switch
             {
+                ImpactSeverity.INFO => SoftwareQualitySeverity.Info,
                 ImpactSeverity.LOW => SoftwareQualitySeverity.Low,
                 ImpactSeverity.MEDIUM => SoftwareQualitySeverity.Medium,
                 ImpactSeverity.HIGH => SoftwareQualitySeverity.High,
+                ImpactSeverity.BLOCKER => SoftwareQualitySeverity.Blocker,
                 _ => throw new ArgumentOutOfRangeException(nameof(impactSeverity), impactSeverity, SLCoreStrings.ModelExtensions_UnexpectedValue),
             };
         }

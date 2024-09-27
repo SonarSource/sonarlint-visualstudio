@@ -50,8 +50,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
             {
                 case SoftwareQualitySeverity.Medium:
                 case SoftwareQualitySeverity.High:
+                case SoftwareQualitySeverity.Blocker:
                     return __VSERRORCATEGORY.EC_WARNING;
 
+                case SoftwareQualitySeverity.Info:
                 case SoftwareQualitySeverity.Low:
                     return __VSERRORCATEGORY.EC_MESSAGE;
 
