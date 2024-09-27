@@ -18,19 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
+using IServiceProvider = System.IServiceProvider;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -40,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     [ExcludeFromCodeCoverage] // todo https://sonarsource.atlassian.net/browse/SLVS-1408
     internal class BindingController : HostedCommandControllerBase, IBindingWorkflowExecutor
     {
-        private readonly System.IServiceProvider serviceProvider;
+        private readonly IServiceProvider serviceProvider;
         private readonly IHost host;
         private readonly IBindingWorkflowExecutor workflowExecutor;
         private readonly IProjectSystemHelper projectSystemHelper;
@@ -48,12 +45,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IBindingProcessFactory bindingProcessFactory;
         private readonly IKnownUIContexts knownUIContexts;
 
-        public BindingController(System.IServiceProvider serviceProvider, IHost host)
+        public BindingController(IServiceProvider serviceProvider, IHost host)
             : this(serviceProvider, host, null, new KnownUIContextsWrapper())
         {
         }
 
-        internal /*for testing purposes*/ BindingController(System.IServiceProvider serviceProvider, IHost host, IBindingWorkflowExecutor workflowExecutor, IKnownUIContexts knownUIContexts)
+        internal /*for testing purposes*/ BindingController(IServiceProvider serviceProvider, IHost host, IBindingWorkflowExecutor workflowExecutor, IKnownUIContexts knownUIContexts)
             : base(serviceProvider)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
@@ -156,7 +153,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private void OnBindingStarted()
         {
             this.IsBindingInProgress = true;
-            this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToBindId);
         }
 
         private void OnBindingFinished(BindCommandArgs bindingArgs, bool isFinishedSuccessfully)
@@ -169,18 +165,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 this.host.VisualStateManager.SetBoundProject(bindingArgs.ProjectToBind.ServerConnection.ServerUri, (bindingArgs.ProjectToBind.ServerConnection as ServerConnection.SonarCloud)?.OrganizationKey, bindingArgs.ProjectToBind.ServerProjectKey);
 
                 VsShellUtils.ActivateSolutionExplorer(serviceProvider);
-            }
-            else
-            {
-                IUserNotification notifications = this.host.ActiveSection?.UserNotifications;
-                if (notifications != null)
-                {
-                    // Create a command with a fixed argument with the help of ContextualCommandViewModel that creates proxy command for the contextual (fixed) instance and the passed in ICommand that expects it
-                    var rebindCommandVM = new ContextualCommandViewModel(
-                        bindingArgs,
-                        new RelayCommand<BindCommandArgs>(this.OnBind, this.OnBindStatus));
-                    notifications.ShowNotificationError(Strings.FailedToToBindSolution, NotificationIds.FailedToBindId, rebindCommandVM.Command);
-                }
             }
         }
 

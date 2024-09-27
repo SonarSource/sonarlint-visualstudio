@@ -48,12 +48,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         /// </summary>
         IConnectSectionViewModel ViewModel { get; }
 
-        /// <summary>
-        /// The notifications service to use
-        /// </summary>
-        ///<remarks>return <see cref="ViewModel"/> when the view model specific implementation is the one to use</remarks>
-        IUserNotification UserNotifications { get; }
-
         ICommand<ConnectConfiguration> ConnectCommand { get; }
 
         ICommand ReconnectCommand { get; }

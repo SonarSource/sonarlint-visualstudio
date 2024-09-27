@@ -18,14 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
+using System.Net;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Alm.Authentication;
@@ -35,7 +30,6 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Connection.UI;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
@@ -122,9 +116,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
         internal /* for testing purposes */ async Task ConnectionStepAsync(ConnectionInformation connection, 
             IProgressController controller, IProgressStepExecutionEvents notifications, CancellationToken cancellationToken)
         {
-            this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToConnectId);
-            this.host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.BadSonarQubePluginId);
-
             notifications.ProgressChanged(connection.ServerUri.ToString());
 
             try
@@ -159,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             {
                 // For some errors we will get an inner exception which will have a more specific information
                 // that we would like to show i.e.when the host could not be resolved
-                var innerException = e.InnerException as System.Net.WebException;
+                var innerException = e.InnerException as WebException;
                 this.host.Logger.WriteLine(CoreStrings.SonarQubeRequestFailed, e.Message, innerException?.Message);
                 AbortWithMessageAndThrow(notifications, controller, cancellationToken);
             }
@@ -241,11 +232,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
         private void ShowAutobindProjectNotFoundNotificationAndThrow()
         {
-            this.host.ActiveSection?.UserNotifications?.ShowNotificationError(
-                string.Format(CultureInfo.CurrentCulture, Strings.BoundProjectNotFound, autoBindProjectKey),
-                NotificationIds.FailedToFindBoundProjectKeyId,
-                host.ActiveSection?.DisconnectCommand);
-
             throw new BindingAbortedException($"Connection succeeded, but {nameof(autoBindProjectKey)} not found");
         }
 
@@ -255,8 +241,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
             notifications.ProgressChanged(cancellationToken.IsCancellationRequested
                 ? Strings.ConnectionResultCancellation
                 : Strings.ConnectionResultFailure);
-            this.host.ActiveSection?.UserNotifications?.ShowNotificationError(Strings.ConnectionFailed,
-                NotificationIds.FailedToConnectId, this.parentCommand);
 
             AbortWorkflowAndThrow(controller, cancellationToken);
         }

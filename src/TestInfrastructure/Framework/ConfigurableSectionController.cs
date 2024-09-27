@@ -75,12 +75,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             set;
         }
 
-        public IUserNotification UserNotifications
-        {
-            get;
-            set;
-        }
-
         public IConnectSectionViewModel ViewModel
         {
             get;
@@ -116,7 +110,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
                 ViewModel = new ConfigurableConnectSectionViewModel(),
                 View = Mock.Of<IConnectSectionView>(),
                 ProgressHost = new ConfigurableProgressControlHost(),
-                UserNotifications = new ConfigurableUserNotification(),
                 BindCommand = new RelayCommand<BindCommandArgs>(args => { }),
                 ConnectCommand = new RelayCommand<ConnectConfiguration>(_ => { }),
                 DisconnectCommand = new RelayCommand(() => { }),

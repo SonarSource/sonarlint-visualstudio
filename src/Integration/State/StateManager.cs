@@ -18,11 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
+using System.ComponentModel;
 using Microsoft.VisualStudio.Imaging;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
@@ -127,8 +123,6 @@ namespace SonarLint.VisualStudio.Integration.State
 
         public void SetBoundProject(Uri serverUri, string organizationKey, string projectKey)
         {
-            this.ClearBindingErrorNotifications();
-
             var serverViewModel = this.ManagedState.ConnectedServers.FirstOrDefault(s => s.Url == serverUri && s.ConnectionInformation?.Organization?.Key == organizationKey);
             Debug.Assert(serverViewModel != null, "Expecting the connection to map to a single server");
 
@@ -140,7 +134,6 @@ namespace SonarLint.VisualStudio.Integration.State
 
         public void ClearBoundProject()
         {
-            this.ClearBindingErrorNotifications();
             this.ManagedState.ClearBoundProject();
             Debug.Assert(!this.HasBoundProject, "Expected not to have a bound project");
 
@@ -168,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.State
             this.BindingStateChanged?.Invoke(this, new BindingStateEventArgs(isCleared));
         }
 
-        private void OnStatePropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void OnStatePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(this.ManagedState.IsBusy))
             {
@@ -180,7 +173,6 @@ namespace SonarLint.VisualStudio.Integration.State
         {
             threadHandling.ThrowIfNotOnUIThread();
             Debug.Assert(connection != null);
-            this.ClearBindingErrorNotifications();
 
             // !!! Avoid using the service to detect disconnects since it's not thread safe !!!
             if (projects == null)
@@ -229,11 +221,6 @@ namespace SonarLint.VisualStudio.Integration.State
                 .ForEach(c => c.Dispose());
         }
 
-        private void ClearBindingErrorNotifications()
-        {
-            this.Host.ActiveSection?.UserNotifications?.HideNotification(NotificationIds.FailedToFindBoundProjectKeyId);
-        }
-
         private void RestoreBoundProject(ServerViewModel serverViewModel)
         {
             if (this.BoundProjectKey == null)
@@ -247,10 +234,6 @@ namespace SonarLint.VisualStudio.Integration.State
             {
                 // Defensive coding: invoked asynchronous and it's safer to assume that value could be null
                 // and just not do anything since if they are null it means that there's no solution open.
-                this.Host.ActiveSection?.UserNotifications?.ShowNotificationError(
-                    string.Format(CultureInfo.CurrentCulture, Strings.BoundProjectNotFound, this.BoundProjectKey),
-                    NotificationIds.FailedToFindBoundProjectKeyId,
-                    Host.ActiveSection?.ReconnectCommand);
                 throw new BindingAbortedException("Can't find selected project");
             }
             else
