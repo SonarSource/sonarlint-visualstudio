@@ -20,7 +20,6 @@
 
 using System.Windows.Input;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
@@ -47,10 +46,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         /// <see cref="ConnectSectionViewModel"/>
         /// </summary>
         IConnectSectionViewModel ViewModel { get; }
-
-        ICommand<ConnectConfiguration> ConnectCommand { get; }
-
-        ICommand ReconnectCommand { get; }
 
         ICommand<BindCommandArgs> BindCommand { get; }
 
