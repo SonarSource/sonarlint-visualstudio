@@ -124,7 +124,7 @@ dogfood_task:
   calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
   dogfood_script: |
     mkdir -p /tmp/dogfood/${PROJECT_VERSION}
-    PrivateGalleryCreator.exe --input=. --terminate --source="https://binaries.sonarsource.com/SonarLint-for-VisualStudio/dogfood/${PROJECT_VERSION}/" --output=/tmp/dogfood/feed.xml
+    PrivateGalleryCreator.exe --input=binaries --terminate --source="https://binaries.sonarsource.com/SonarLint-for-VisualStudio/dogfood/${PROJECT_VERSION}/" --output=/tmp/dogfood/feed.xml
     cp binaries/SonarLint.VSIX-${PROJECT_VERSION}-2022.vsix /tmp/dogfood/${PROJECT_VERSION}/
     .cirrus/publish-dogfood-site.sh /tmp/dogfood
 
