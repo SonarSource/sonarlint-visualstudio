@@ -491,7 +491,7 @@ xxx yyy
         private static string WriteBatchFileForTest(TestContext context, string content)
         {
             var testPath = CreateTestSpecificFolder(context);
-            var fileName = Path.Combine(testPath, context.TestName + ".bat");
+            var fileName = Path.Combine(testPath, "test.bat");
             File.Exists(fileName).Should().BeFalse("Not expecting a batch file to already exist: {0}", fileName);
             File.WriteAllText(fileName, content);
             return fileName;
