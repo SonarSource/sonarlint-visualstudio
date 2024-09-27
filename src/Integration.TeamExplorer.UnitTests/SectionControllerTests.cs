@@ -27,7 +27,6 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
@@ -86,7 +85,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.BrowseToUrlCommand.Should().NotBeNull("BrowseToUrlCommand is not initialized");
             testSubject.BrowseToProjectDashboardCommand.Should().NotBeNull("BrowseToProjectDashboardCommand is not initialized");
             testSubject.DisconnectCommand.Should().NotBeNull("DisconnectCommand is not initialized");
-            testSubject.RefreshCommand.Should().NotBeNull("RefreshCommand is not initialized");
             testSubject.ToggleShowAllProjectsCommand.Should().NotBeNull("ToggleShowAllProjectsCommand is not initialized");
 
             // Case 1: first time initialization
@@ -117,7 +115,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.Dispose();
 
             // Assert
-            testSubject.RefreshCommand.Should().BeNull("RefreshCommand is not cleared");
             testSubject.DisconnectCommand.Should().BeNull("DisconnectCommand is not cleared");
             testSubject.BindCommand.Should().BeNull("BindCommand is not ;");
             testSubject.ToggleShowAllProjectsCommand.Should().BeNull("ToggleShowAllProjectsCommand is not cleared");
@@ -395,7 +392,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             host.VisualStateManager.ManagedState.ConnectedServers.Clear();
             controller.Initialize(null, new SectionInitializeEventArgs(new ServiceContainer(), null));
             bool refreshCalled = false;
-            controller.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refreshCalled = true);
             controller.Refresh();
             refreshCalled.Should().BeTrue("Refresh command execution was expected");
         }

@@ -24,7 +24,6 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
@@ -51,12 +50,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         }
 
         public IProgressControlHost ProgressHost
-        {
-            get;
-            set;
-        }
-
-        public ICommand<ConnectionInformation> RefreshCommand
         {
             get;
             set;
@@ -106,7 +99,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
                 BindCommand = new RelayCommand<BindCommandArgs>(args => { }),
                 DisconnectCommand = new RelayCommand(() => { }),
                 ReconnectCommand = new RelayCommand(() => { }),
-                RefreshCommand = new RelayCommand<ConnectionInformation>(c => { }),
                 BrowseToUrlCommand = new RelayCommand<string>(url => { }),
                 BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(vm => { }),
                 ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(vm => { })

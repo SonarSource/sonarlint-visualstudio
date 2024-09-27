@@ -19,15 +19,12 @@
  */
 
 using Moq;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.MefServices;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
@@ -101,16 +98,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             // Case 2: Valid args
             var section1 = ConfigurableSectionController.CreateDefault();
             var section2 = ConfigurableSectionController.CreateDefault();
-            bool refresh1Called = false;
-            section1.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refresh1Called = true);
-            bool refresh2Called = false;
-            section2.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refresh2Called = true);
-
+            
             // Act (set section1)
             testSubject.SetActiveSection(section1);
-            refresh1Called.Should().BeFalse();
-            refresh2Called.Should().BeFalse();
-
+            
             // Assert
             testSubject.ActiveSection.Should().Be(section1);
 
@@ -120,8 +111,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Assert
             testSubject.ActiveSection.Should().Be(section2);
-            refresh1Called.Should().BeFalse();
-            refresh2Called.Should().BeFalse();
         }
 
         [TestMethod]
@@ -286,15 +275,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Act (set active section)
             var section = ConfigurableSectionController.CreateDefault();
-            bool refreshCalled = false;
-            section.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refreshCalled = true);
             testSubject.SetActiveSection(section);
 
             // Assert (section has refreshed, no further aborts were required)
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(1);
             this.stateManager.BoundProjectKey.Should().Be("bla", "Key was not set, will not be able to mark project as bound after refresh");
             this.stateManager.AssignedProjectKey.Should().Be("bla");
-            refreshCalled.Should().BeTrue("Expected the refresh command to be called");
         }
 
         [TestMethod]
@@ -306,8 +292,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.stateManager.SetBoundProject(new Uri("http://bound"), "org1", "bla");
             SetConfiguration(new BoundServerProject("solution", "bla", new ServerConnection.SonarQube(new Uri("http://bound"))), SonarLintMode.LegacyConnected);
             var section = ConfigurableSectionController.CreateDefault();
-            bool refreshCalled = false;
-            section.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refreshCalled = true);
             testSubject.SetActiveSection(section);
 
             // Sanity
@@ -321,7 +305,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             this.stepRunner.AbortAllNumberOfCalls.Should().Be(1);
             this.stateManager.BoundProjectKey.Should().Be("bla", "Key was not set, will not be able to mark project as bound after refresh");
             this.stateManager.AssignedProjectKey.Should().Be("bla");
-            refreshCalled.Should().BeTrue("Expected the refresh command to be called");
         }
 
         [TestMethod]

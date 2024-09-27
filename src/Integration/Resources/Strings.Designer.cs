@@ -702,24 +702,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Refresh.
-        /// </summary>
-        public static string RefreshCommandDisplayText {
-            get {
-                return ResourceManager.GetString("RefreshCommandDisplayText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Will refetch the SonarQube projects from the server using the existing credentials.
-        /// </summary>
-        public static string RefreshCommandTooltip {
-            get {
-                return ResourceManager.GetString("RefreshCommandTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Rule set generated from SonarQube.
         /// </summary>
         public static string RuleSetDescription {

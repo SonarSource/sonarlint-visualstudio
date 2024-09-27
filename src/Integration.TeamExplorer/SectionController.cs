@@ -27,10 +27,8 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
-using SonarQube.Client.Models;
 using IVSOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
 using TF_OLECMD = Microsoft.TeamFoundation.Client.CommandTarget.OLECMD;
 using VS_OLECMD = Microsoft.VisualStudio.OLE.Interop.OLECMD;
@@ -146,16 +144,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             base.Dispose();
         }
 
-        public override void Refresh()
-        {
-            base.Refresh();
-
-            if (this.RefreshCommand.CanExecute(null))
-            {
-                this.RefreshCommand.Execute(null);
-            }
-        }
-
         /// <summary>
         /// Delegate QueryStatus to commands
         /// </summary>
@@ -207,12 +195,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             private set;
         }
 
-        public ICommand<ConnectionInformation> RefreshCommand
-        {
-            get;
-            internal /*for test purposes*/ set;
-        }
-
         public ICommand DisconnectCommand
         {
             get;
@@ -229,13 +211,10 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             // Due to complexity of connect and bind we "outsource" the controlling part
             // to separate controllers which just expose commands
-            var connectionController = new ConnectionController(serviceProvider, Host, autoBindTrigger, sharedBindingConfigProvider, credentialStoreService);
             var bindingController = new BindingController(serviceProvider, Host);
 
-            this.CommandTargets.Add(connectionController);
             this.CommandTargets.Add(bindingController);
-
-            this.RefreshCommand = connectionController.RefreshCommand;
+            
             this.BindCommand = bindingController.BindCommand;
         }
 
@@ -243,7 +222,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             this.CommandTargets.Clear();
 
-            this.RefreshCommand = null;
             this.BindCommand = null;
 
             ISectionController section = (ISectionController)this;
