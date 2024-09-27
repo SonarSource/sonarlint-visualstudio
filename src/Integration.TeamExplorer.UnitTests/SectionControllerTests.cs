@@ -75,7 +75,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             SectionController testSubject = this.CreateTestSubject();
 
             // Constructor time initialization
-            testSubject.BrowseToProjectDashboardCommand.Should().NotBeNull("BrowseToProjectDashboardCommand is not initialized");
             testSubject.ToggleShowAllProjectsCommand.Should().NotBeNull("ToggleShowAllProjectsCommand is not initialized");
 
             // Case 1: first time initialization
@@ -105,7 +104,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Assert
             testSubject.ToggleShowAllProjectsCommand.Should().BeNull("ToggleShowAllProjectsCommand is not cleared");
-            testSubject.BrowseToProjectDashboardCommand.Should().BeNull("BrowseToProjectDashboardCommand is not cleared");
         }
 
         [TestMethod]
@@ -269,44 +267,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             // Assert
             server.ShowAllProjects.Should().Be(original);
-        }
-
-        [TestMethod]
-        public void SectionController_BrowseToProjectDashboardCommand()
-        {
-            // Arrange
-            var webBrowser = new ConfigurableWebBrowser();
-            var testSubject = this.CreateTestSubject(webBrowser);
-            var serverUrl = new Uri("http://my-sonar-server:5555");
-            var connectionInfo = new ConnectionInformation(serverUrl);
-            var projectInfo = new SonarQubeProject("p1", "");
-            var expectedUrl = new Uri(serverUrl, "/foobar");
-            this.sonarQubeServiceMock.Setup(x => x.GetProjectDashboardUrl("p1"))
-                .Returns(expectedUrl);
-
-            // Case 1: Null parameter
-            // Act + Assert CanExecute
-            testSubject.BrowseToProjectDashboardCommand.CanExecute(null).Should().BeFalse();
-
-            // Case 2: Project VM is set but SQ server is not connected
-            var serverViewModel = new ServerViewModel(connectionInfo);
-            var projectViewModel = new ProjectViewModel(serverViewModel, projectInfo);
-
-            this.sonarQubeServiceMock.Setup(x => x.IsConnected).Returns(false);
-
-            // Act + Assert CanExecute
-            testSubject.BrowseToProjectDashboardCommand.CanExecute(projectViewModel).Should().BeFalse();
-
-            // Case 3: Project VM is set and SQ server is connected
-            this.sonarQubeServiceMock.Setup(x => x.IsConnected).Returns(true);
-
-            // Act + Assert CanExecute
-            testSubject.BrowseToProjectDashboardCommand.CanExecute(projectViewModel).Should().BeTrue();
-
-            // Act + Assert Execute
-            testSubject.BrowseToProjectDashboardCommand.Execute(projectViewModel);
-            webBrowser.NavigatedUrls.Should().HaveCount(1);
-            webBrowser.NavigatedUrls.Should().Contain(expectedUrl.ToString());
         }
 
         #endregion Tests

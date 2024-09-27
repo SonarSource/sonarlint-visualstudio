@@ -44,8 +44,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         /// </summary>
         IConnectSectionViewModel ViewModel { get; }
 
-        ICommand<ProjectViewModel> BrowseToProjectDashboardCommand { get; }
-
         ICommand<ServerViewModel> ToggleShowAllProjectsCommand { get; }
     }
 }

@@ -53,12 +53,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             set;
         }
 
-        public ICommand<ProjectViewModel> BrowseToProjectDashboardCommand
-        {
-            get;
-            set;
-        }
-
         #endregion ISectionController
 
         #region Test helpers
@@ -70,7 +64,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
                 ViewModel = new ConfigurableConnectSectionViewModel(),
                 View = Mock.Of<IConnectSectionView>(),
                 ProgressHost = new ConfigurableProgressControlHost(),
-                BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(vm => { }),
                 ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(vm => { })
             };
             return section;

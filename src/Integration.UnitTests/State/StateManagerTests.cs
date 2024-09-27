@@ -90,7 +90,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             serverVM = VerifyConnectSectionViewModelIsConnectedAndHasNoProjects(section.ViewModel, connection1);
             serverVM.ShowAllProjects.Should().BeTrue("Expected show all projects");
-            VerifySectionCommands(section, serverVM);
             VerifyConnectSectionViewModelIsNotConnected(section.ViewModel, connection2);
             VerifyConnectSectionViewModelHasNoBoundProjects(section.ViewModel);
 
@@ -98,18 +97,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             testSubject.SetProjects(connection1, projects);
 
             serverVM = VerifyConnectSectionViewModelIsConnectedAndHasProjects(section.ViewModel, connection1, projects);
-            VerifySectionCommands(section, serverVM);
             VerifyConnectSectionViewModelIsNotConnected(section.ViewModel, connection2);
             VerifyConnectSectionViewModelHasNoBoundProjects(section.ViewModel);
             serverVM.ShowAllProjects.Should().BeTrue("Expected show all projects to be true when adding new SonarQubeProjects");
 
             // Case 4 - connection2, change projects
             testSubject.SetProjects(connection2, projects);
-
-            serverVM = VerifyConnectSectionViewModelIsConnectedAndHasProjects(section.ViewModel, connection1, projects);
-            VerifySectionCommands(section, serverVM);
+            
             serverVM = VerifyConnectSectionViewModelIsConnectedAndHasProjects(section.ViewModel, connection2, projects);
-            VerifySectionCommands(section, serverVM);
             VerifyConnectSectionViewModelHasNoBoundProjects(section.ViewModel);
             serverVM.ShowAllProjects.Should().BeTrue("Expected show all projects to be true when changing projects");
 
@@ -120,10 +115,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             // Act
             host.SetActiveSection(section);
             // Assert
-            serverVM = VerifyConnectSectionViewModelIsConnectedAndHasProjects(section.ViewModel, connection1, projects);
-            VerifySectionCommands(section, serverVM);
-            serverVM = VerifyConnectSectionViewModelIsConnectedAndHasProjects(section.ViewModel, connection2, projects);
-            VerifySectionCommands(section, serverVM);
             VerifyConnectSectionViewModelHasNoBoundProjects(section.ViewModel);
         }
 
@@ -144,7 +135,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Act
             testSubject.SyncCommandFromActiveSection();
-            VerifySectionCommands(section, serverVM);
 
             // Case 2: has no active section
             host.ClearActiveSection();
@@ -158,7 +148,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Act
             testSubject.SyncCommandFromActiveSection();
-            VerifySectionCommands(section, serverVM);
         }
 
         [TestMethod]
@@ -467,18 +456,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             }
 
             return testSubject;
-        }
-
-        private static void VerifySectionCommands(ISectionController section, ServerViewModel serverVM)
-        {
-            AssertExpectedNumberOfCommands(serverVM.Commands, 3);
-            VerifyServerViewModelCommand(serverVM, section.ToggleShowAllProjectsCommand, fixedContext: serverVM, hasIcon: false);
-
-            foreach (ProjectViewModel project in serverVM.Projects)
-            {
-                AssertExpectedNumberOfCommands(project.Commands, 2);
-                VerifyProjectViewModelCommand(project, section.BrowseToProjectDashboardCommand, fixedContext: project, hasIcon: true);
-            }
         }
 
         private static void VerifyNoCommands(ServerViewModel serverVM)

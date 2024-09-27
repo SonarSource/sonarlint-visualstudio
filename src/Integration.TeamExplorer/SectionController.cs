@@ -161,12 +161,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         #region Commands
 
-        public ICommand<ProjectViewModel> BrowseToProjectDashboardCommand
-        {
-            get;
-            private set;
-        }
-
         public ICommand<ServerViewModel> ToggleShowAllProjectsCommand
         {
             get;
@@ -177,29 +171,11 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             // Simple commands provided by this class directly
             this.ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(this.ToggleShowAllProjects, this.CanToggleShowAllProjects);
-            this.BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(this.ExecBrowseToProjectDashboard, this.CanExecBrowseToProjectDashboard);
         }
 
         private void CleanProvidedCommands()
         {
             this.ToggleShowAllProjectsCommand = null;
-            this.BrowseToProjectDashboardCommand = null;
-        }
-
-        private bool CanDisconnect()
-        {
-            // We just support one at the moment, will need to pass in the server as an argument to this
-            // command once we will want to support more than once connected server
-            return this.Host.VisualStateManager.GetConnectedServers().Any();
-        }
-
-        private void Disconnect()
-        {
-            Debug.Assert(this.CanDisconnect());
-
-            // Disconnect all (all being one)
-            this.Host.VisualStateManager.GetConnectedServers().ToList().ForEach(c => this.Host.VisualStateManager.SetProjects(c, null));
-            this.Host.SonarQubeService.Disconnect();
         }
 
         private bool CanToggleShowAllProjects(ServerViewModel server)
@@ -210,37 +186,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         private void ToggleShowAllProjects(ServerViewModel server)
         {
             server.ShowAllProjects = !server.ShowAllProjects;
-        }
-
-        private bool CanExecBrowseToUrl(string url)
-        {
-            return Uri.IsWellFormedUriString(url, UriKind.Absolute);
-        }
-
-        private void ExecBrowseToUrl(string url)
-        {
-            Debug.Assert(this.CanExecBrowseToUrl(url), "Should not be able to execute!");
-
-            this.webBrowser.NavigateTo(url);
-        }
-
-        private bool CanExecBrowseToProjectDashboard(ProjectViewModel project)
-        {
-            if (project != null && this.Host.SonarQubeService.IsConnected)
-            {
-                var url = this.Host.SonarQubeService.GetProjectDashboardUrl(project.Project.Key);
-                return this.CanExecBrowseToUrl(url.ToString());
-            }
-
-            return false;
-        }
-
-        private void ExecBrowseToProjectDashboard(ProjectViewModel project)
-        {
-            Debug.Assert(this.CanExecBrowseToProjectDashboard(project), $"Shouldn't be able to execute {nameof(this.BrowseToProjectDashboardCommand)}");
-
-            var url = this.Host.SonarQubeService.GetProjectDashboardUrl(project.Project.Key);
-            this.webBrowser.NavigateTo(url.ToString());
         }
 
         #endregion Commands
