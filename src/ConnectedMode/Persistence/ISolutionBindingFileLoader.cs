@@ -22,7 +22,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
     internal interface ISolutionBindingFileLoader
     {
-        BindingDto Load(string filePath);
-        bool Save(string filePath, BindingDto project);
+        BindingJsonModel Load(string filePath);
+        bool Save(string filePath, BindingJsonModel project);
     }
 }

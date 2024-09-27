@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act (serialize + de-serialize)
             string data = JsonHelper.Serialize(testSubject);
-            BindingDto deserialized = JsonHelper.Deserialize<BindingDto>(data);
+            BindingJsonModel deserialized = JsonHelper.Deserialize<BindingJsonModel>(data);
 
             // Assert
             deserialized.Should().NotBe(testSubject);

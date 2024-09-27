@@ -26,22 +26,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
 internal interface IBindingDtoConverter
 {
-    BoundServerProject ConvertFromDto(BindingDto bindingDto, ServerConnection connection, string localBindingKey);
-    BindingDto ConvertToDto(BoundServerProject binding);
-    BoundSonarQubeProject ConvertFromDtoToLegacy(BindingDto bindingDto, ICredentials credentials);
+    BoundServerProject ConvertFromDto(BindingJsonModel bindingJsonModel, ServerConnection connection, string localBindingKey);
+    BindingJsonModel ConvertToDto(BoundServerProject binding);
+    BoundSonarQubeProject ConvertFromDtoToLegacy(BindingJsonModel bindingJsonModel, ICredentials credentials);
 }
 
 [Export(typeof(IBindingDtoConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class BindingDtoConverter : IBindingDtoConverter
 {
-    public BoundServerProject ConvertFromDto(BindingDto bindingDto, ServerConnection connection, string localBindingKey) =>
-        new(localBindingKey, bindingDto.ProjectKey, connection)
+    public BoundServerProject ConvertFromDto(BindingJsonModel bindingJsonModel, ServerConnection connection, string localBindingKey) =>
+        new(localBindingKey, bindingJsonModel.ProjectKey, connection)
         {
-            Profiles = bindingDto.Profiles
+            Profiles = bindingJsonModel.Profiles
         };
 
-    public BindingDto ConvertToDto(BoundServerProject binding) =>
+    public BindingJsonModel ConvertToDto(BoundServerProject binding) =>
         new()
         {
             ProjectKey = binding.ServerProjectKey,
@@ -54,13 +54,13 @@ internal class BindingDtoConverter : IBindingDtoConverter
                 : null
         };
 
-    public BoundSonarQubeProject ConvertFromDtoToLegacy(BindingDto bindingDto, ICredentials credentials) =>
-            new(bindingDto.ServerUri,
-                bindingDto.ProjectKey,
-                bindingDto.ProjectName,
+    public BoundSonarQubeProject ConvertFromDtoToLegacy(BindingJsonModel bindingJsonModel, ICredentials credentials) =>
+            new(bindingJsonModel.ServerUri,
+                bindingJsonModel.ProjectKey,
+                bindingJsonModel.ProjectName,
                 credentials,
-                bindingDto.Organization)
+                bindingJsonModel.Organization)
             {
-                Profiles = bindingDto.Profiles
+                Profiles = bindingJsonModel.Profiles
             };
 }

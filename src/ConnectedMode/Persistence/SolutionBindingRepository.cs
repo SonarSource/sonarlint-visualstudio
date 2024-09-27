@@ -135,7 +135,7 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
         }
     }
     
-    private BindingDto ReadBindingFile(string configFilePath)
+    private BindingJsonModel ReadBindingFile(string configFilePath)
     {
         var bound = solutionBindingFileLoader.Load(configFilePath);
 
@@ -151,11 +151,11 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
 
     }
 
-    private BoundServerProject Convert(BindingDto bindingDto, string configFilePath) =>
-        bindingDto is not null && serverConnectionsRepository.TryGet(bindingDto.ServerConnectionId, out var connection)
-            ? Convert(bindingDto, connection, configFilePath)
+    private BoundServerProject Convert(BindingJsonModel bindingJsonModel, string configFilePath) =>
+        bindingJsonModel is not null && serverConnectionsRepository.TryGet(bindingJsonModel.ServerConnectionId, out var connection)
+            ? Convert(bindingJsonModel, connection, configFilePath)
             : null;
 
-    private BoundServerProject Convert(BindingDto bindingDto, ServerConnection connection, string configFilePath) => 
-        bindingDtoConverter.ConvertFromDto(bindingDto, connection, unintrusiveBindingPathProvider.GetBindingKeyFromPath(configFilePath));
+    private BoundServerProject Convert(BindingJsonModel bindingJsonModel, ServerConnection connection, string configFilePath) => 
+        bindingDtoConverter.ConvertFromDto(bindingJsonModel, connection, unintrusiveBindingPathProvider.GetBindingKeyFromPath(configFilePath));
 }

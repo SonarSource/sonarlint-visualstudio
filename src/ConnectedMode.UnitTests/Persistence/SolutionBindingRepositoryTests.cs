@@ -37,7 +37,7 @@ public class SolutionBindingRepositoryTests
     private ISolutionBindingFileLoader solutionBindingFileLoader;
     private TestLogger logger;
 
-    private BindingDto bindingDto;
+    private BindingJsonModel bindingJsonModel;
     private ServerConnection serverConnection;
     private BoundServerProject boundServerProject;
     private ISolutionBindingRepository testSubject;
@@ -61,7 +61,7 @@ public class SolutionBindingRepositoryTests
 
         serverConnection = new ServerConnection.SonarCloud("org");
         boundServerProject = new BoundServerProject("solution.123", "project_123", serverConnection);
-        bindingDto = new BindingDto
+        bindingJsonModel = new BindingJsonModel
         {
             ServerConnectionId = serverConnection.Id
         };
@@ -93,7 +93,7 @@ public class SolutionBindingRepositoryTests
     [TestMethod]
     public void Read_ProjectIsNull_Null()
     {
-        solutionBindingFileLoader.Load(MockFilePath).Returns(null as BindingDto);
+        solutionBindingFileLoader.Load(MockFilePath).Returns(null as BindingJsonModel);
 
         var actual = testSubject.Read(MockFilePath);
         actual.Should().Be(null);
@@ -102,7 +102,7 @@ public class SolutionBindingRepositoryTests
     [TestMethod]
     public void Read_ProjectIsNull_CredentialsNotRead()
     {
-        solutionBindingFileLoader.Load(MockFilePath).Returns(null as BindingDto);
+        solutionBindingFileLoader.Load(MockFilePath).Returns(null as BindingJsonModel);
 
         testSubject.Read(MockFilePath);
 
@@ -112,14 +112,14 @@ public class SolutionBindingRepositoryTests
     [TestMethod]
     public void Read_ProjectIsNotNull_ReadsConnectionRepositoryForConnection()
     {
-        serverConnectionsRepository.TryGet(bindingDto.ServerConnectionId, out Arg.Any<ServerConnection>()).Returns(call =>
+        serverConnectionsRepository.TryGet(bindingJsonModel.ServerConnectionId, out Arg.Any<ServerConnection>()).Returns(call =>
         {
             call[1] = serverConnection;
             return true;
         });
-        solutionBindingFileLoader.Load(MockFilePath).Returns(bindingDto);
+        solutionBindingFileLoader.Load(MockFilePath).Returns(bindingJsonModel);
         unintrusiveBindingPathProvider.GetBindingKeyFromPath(MockFilePath).Returns(boundServerProject.LocalBindingKey);
-        bindingDtoConverter.ConvertFromDto(bindingDto, serverConnection, boundServerProject.LocalBindingKey).Returns(boundServerProject);
+        bindingDtoConverter.ConvertFromDto(bindingJsonModel, serverConnection, boundServerProject.LocalBindingKey).Returns(boundServerProject);
 
         var actual = testSubject.Read(MockFilePath);
 
@@ -131,12 +131,12 @@ public class SolutionBindingRepositoryTests
     [TestMethod]
     public void Read_ProjectIsNotNull_NoConnection_ReturnsNull()
     {
-        serverConnectionsRepository.TryGet(bindingDto.ServerConnectionId, out Arg.Any<ServerConnection>()).Returns(call =>
+        serverConnectionsRepository.TryGet(bindingJsonModel.ServerConnectionId, out Arg.Any<ServerConnection>()).Returns(call =>
         {
             call[1] = null;
             return false;
         });
-        solutionBindingFileLoader.Load(MockFilePath).Returns(bindingDto);
+        solutionBindingFileLoader.Load(MockFilePath).Returns(bindingJsonModel);
 
         var actual = testSubject.Read(MockFilePath);
         
@@ -184,8 +184,8 @@ public class SolutionBindingRepositoryTests
     {
         var eventHandler = Substitute.For<EventHandler>();
         testSubject.BindingUpdated += eventHandler;
-        bindingDtoConverter.ConvertToDto(boundServerProject).Returns(bindingDto);
-        solutionBindingFileLoader.Save(MockFilePath, bindingDto).Returns(triggered);
+        bindingDtoConverter.ConvertToDto(boundServerProject).Returns(bindingJsonModel);
+        solutionBindingFileLoader.Save(MockFilePath, bindingJsonModel).Returns(triggered);
     
         testSubject.Write(MockFilePath, boundServerProject);
     
@@ -196,8 +196,8 @@ public class SolutionBindingRepositoryTests
     [TestMethod]
     public void Write_FileWritten_NoOnSaveCallback_NoException()
     {
-        bindingDtoConverter.ConvertToDto(boundServerProject).Returns(bindingDto);
-        solutionBindingFileLoader.Save(MockFilePath, bindingDto).Returns(true);
+        bindingDtoConverter.ConvertToDto(boundServerProject).Returns(bindingJsonModel);
+        solutionBindingFileLoader.Save(MockFilePath, bindingJsonModel).Returns(true);
     
         Action act = () => testSubject.Write(MockFilePath, boundServerProject);
         act.Should().NotThrow();
@@ -252,7 +252,7 @@ public class SolutionBindingRepositoryTests
         SetUpUnintrusiveBindingPathProvider(bindingConfig1, bindingConfig2);
         SetUpConnections(connection1, connection2);
         var boundServerProject1 = SetUpBinding(solution1, connection1, bindingConfig1);
-        solutionBindingFileLoader.Load(bindingConfig2).Returns((BindingDto)null);
+        solutionBindingFileLoader.Load(bindingConfig2).Returns((BindingJsonModel)null);
     
         var result = testSubject.List();
 
@@ -272,7 +272,7 @@ public class SolutionBindingRepositoryTests
     [TestMethod]
     public void LegacyRead_NoFile_ReturnsNull()
     {
-        solutionBindingFileLoader.Load(MockFilePath).Returns((BindingDto)null);
+        solutionBindingFileLoader.Load(MockFilePath).Returns((BindingJsonModel)null);
         
         ((ILegacySolutionBindingRepository)testSubject).Read(MockFilePath).Should().BeNull();
         credentialsLoader.DidNotReceiveWithAnyArgs().Load(default);
@@ -282,18 +282,18 @@ public class SolutionBindingRepositoryTests
     public void LegacyRead_ValidBinding_LoadsCredentials()
     {
         var boundSonarQubeProject = new BoundSonarQubeProject();
-        bindingDto.ServerUri = new Uri("http://localhost/");
-        credentialsLoader.Load(bindingDto.ServerUri).Returns(mockCredentials);
-        solutionBindingFileLoader.Load(MockFilePath).Returns(bindingDto);
-        bindingDtoConverter.ConvertFromDtoToLegacy(bindingDto, mockCredentials).Returns(boundSonarQubeProject);
+        bindingJsonModel.ServerUri = new Uri("http://localhost/");
+        credentialsLoader.Load(bindingJsonModel.ServerUri).Returns(mockCredentials);
+        solutionBindingFileLoader.Load(MockFilePath).Returns(bindingJsonModel);
+        bindingDtoConverter.ConvertFromDtoToLegacy(bindingJsonModel, mockCredentials).Returns(boundSonarQubeProject);
         
         ((ILegacySolutionBindingRepository)testSubject).Read(MockFilePath).Should().BeSameAs(boundSonarQubeProject);
-        credentialsLoader.Received().Load(bindingDto.ServerUri);
+        credentialsLoader.Received().Load(bindingJsonModel.ServerUri);
     }
 
     private BoundServerProject SetUpBinding(string solution, ServerConnection connection, string bindingConfig)
     {
-        var dto = new BindingDto{ServerConnectionId = connection?.Id};
+        var dto = new BindingJsonModel{ServerConnectionId = connection?.Id};
         solutionBindingFileLoader.Load(bindingConfig).Returns(dto);
         if (connection == null)
         {

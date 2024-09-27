@@ -53,7 +53,7 @@ public class BindingDtoConverterTests
     public void ConvertFromDto_ConvertsCorrectly()
     {
         const string localBindingKey = "solution123";
-        var bindingDto = new BindingDto
+        var bindingDto = new BindingJsonModel
         {
             ProjectKey = "project123",
             Profiles = new Dictionary<Language, ApplicableQualityProfile>(),
@@ -112,7 +112,7 @@ public class BindingDtoConverterTests
     public void ConvertFromDtoToLegacy_ConvertsCorrectly()
     {
         var credentials = Substitute.For<ICredentials>();
-        var bindingDto = new BindingDto
+        var bindingDto = new BindingJsonModel
         {
             Organization = new SonarQubeOrganization("org", "my org"),
             ServerUri = new Uri("http://localhost"),
