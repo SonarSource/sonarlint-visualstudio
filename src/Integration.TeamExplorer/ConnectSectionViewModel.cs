@@ -22,7 +22,6 @@ using System.Windows.Input;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -33,7 +32,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
                                         IConnectSectionViewModel
     {
         private TransferableVisualState state;
-        private ICommand<ConnectConfiguration> connectCommand;
         private ICommand<BindCommandArgs> bindCommand;
         private ICommand<string> browseToUrl;
 
@@ -69,12 +67,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         #endregion
 
         #region Commands
-
-        public ICommand<ConnectConfiguration> ConnectCommand
-        {
-            get { return this.connectCommand; }
-            set { SetAndRaisePropertyChanged(ref this.connectCommand, value); }
-        }
 
         public ICommand<BindCommandArgs> BindCommand
         {

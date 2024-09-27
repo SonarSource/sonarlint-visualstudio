@@ -18,19 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
-using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Connection
@@ -38,7 +33,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
     /// <summary>
     /// Connection related controller.
     /// Provides the following commands:
-    /// <see cref="ConnectCommand"/>
     /// <see cref="RefreshCommand"/>
     /// </summary>
     internal sealed class ConnectionController : HostedCommandControllerBase, IConnectionInformationProvider,
@@ -46,10 +40,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
     {
         private readonly IAutoBindTrigger autoBindTrigger;
         private readonly IHost host;
-        private readonly ISharedBindingConfigProvider sharedBindingConfigProvider;
-        private readonly ICredentialStoreService credentialStoreService;
-        private readonly IConnectionInformationProvider connectionProvider;
-        private readonly ISolutionInfoProvider solutionInfoProvider;
 
         public ConnectionController(IServiceProvider serviceProvider, IHost host, IAutoBindTrigger autoBindTrigger, ISharedBindingConfigProvider sharedBindingConfigProvider, ICredentialStoreService credentialStoreService)
             : this(serviceProvider, host, autoBindTrigger, null, null, sharedBindingConfigProvider, credentialStoreService)
@@ -70,20 +60,12 @@ namespace SonarLint.VisualStudio.Integration.Connection
             : base(serviceProvider)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
-            this.sharedBindingConfigProvider = sharedBindingConfigProvider;
-            this.credentialStoreService = credentialStoreService;
             this.autoBindTrigger = workflowExecutor == null ? autoBindTrigger : null;
             this.WorkflowExecutor = workflowExecutor ?? this;
-            this.connectionProvider = connectionProvider ?? this;
-
-            this.solutionInfoProvider = serviceProvider.GetMefService<ISolutionInfoProvider>();
-            this.ConnectCommand = new RelayCommand<ConnectConfiguration>(this.OnConnect, this.CanConnect);
             this.RefreshCommand = new RelayCommand<ConnectionInformation>(this.OnRefresh, this.CanRefresh);
         }
 
         #region Properties
-
-        public RelayCommand<ConnectConfiguration> ConnectCommand { get; }
 
         public RelayCommand<ConnectionInformation> RefreshCommand { get; }
 
@@ -99,66 +81,13 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 if (this.host.VisualStateManager.IsBusy != value)
                 {
                     this.host.VisualStateManager.IsBusy = value;
-                    this.ConnectCommand.RequeryCanExecute();
                     this.RefreshCommand.RequeryCanExecute();
                 }
             }
         }
 
         #endregion
-
-        #region Connect Command
-
-        private bool CanConnect(ConnectConfiguration configuration)
-        {
-            return solutionInfoProvider.IsSolutionFullyOpened()
-                   && !this.host.VisualStateManager.IsConnected
-                   && !this.host.VisualStateManager.IsBusy;
-        }
-
-        private void OnConnect(ConnectConfiguration configuration)
-        {
-            Debug.Assert(this.CanConnect(configuration));
-            Debug.Assert(!this.host.VisualStateManager.IsBusy, "Service is in a connecting state");
-
-            ConnectionInformation connectionInfo;
-
-            var sharedConfig = sharedBindingConfigProvider.GetSharedBinding();
-            var credentials = sharedConfig == null ? null : credentialStoreService.ReadCredentials(sharedConfig.Uri);
-            var useSharedConfig = configuration?.UseSharedBinding ?? false;
-
-            if (useSharedConfig && sharedConfig != null)
-            {
-                connectionInfo = new ConnectionInformation(sharedConfig.Uri,
-                    credentials?.Username,
-                    credentials?.Password?.ToSecureString())
-                {
-                    Organization = new SonarQubeOrganization(sharedConfig.Organization, string.Empty)
-                };
-
-                if (credentials == null)
-                {
-                    connectionInfo = this.connectionProvider.GetConnectionInformation(connectionInfo);
-                }
-
-                if (connectionInfo != null)
-                {
-                    this.EstablishConnection(connectionInfo, sharedConfig.ProjectKey);
-                }
-            }
-            else
-            {
-                connectionInfo = this.connectionProvider.GetConnectionInformation(this.LastAttemptedConnection);
-
-                if (connectionInfo != null)
-                {
-                    this.EstablishConnection(connectionInfo);
-                }
-            }
-        }
-
-        #endregion
-
+        
         #region Refresh Command
 
         private bool CanRefresh(ConnectionInformation useConnection)
@@ -210,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
         void IConnectionWorkflowExecutor.EstablishConnection(ConnectionInformation information,
             string autoBindProjectKey)
         {
-            ConnectionWorkflow workflow = new ConnectionWorkflow(this.ServiceProvider, this.host, autoBindProjectKey, this.ConnectCommand);
+            ConnectionWorkflow workflow = new ConnectionWorkflow(this.ServiceProvider, this.host, autoBindProjectKey);
             IProgressEvents progressEvents = workflow.Run(information);
             SetConnectionInProgress(progressEvents);
             autoBindTrigger.TriggerAfterSuccessfulWorkflow(progressEvents, autoBindProjectKey, information);

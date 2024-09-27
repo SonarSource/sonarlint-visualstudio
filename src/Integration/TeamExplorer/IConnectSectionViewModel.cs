@@ -21,7 +21,6 @@
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.WPF;
-using SonarLint.VisualStudio.Integration.Connection;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer
 {
@@ -33,8 +32,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         TransferableVisualState State { get; set; }
 
         bool IsBusy { get; set; }
-
-        ICommand<ConnectConfiguration> ConnectCommand { get; set; }
 
         ICommand<BindCommandArgs> BindCommand { get; set; }
 

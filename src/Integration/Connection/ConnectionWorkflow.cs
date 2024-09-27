@@ -22,7 +22,6 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Windows;
-using System.Windows.Input;
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
@@ -44,24 +43,21 @@ namespace SonarLint.VisualStudio.Integration.Connection
         private readonly IServiceProvider serviceProvider;
         private readonly IHost host;
         private readonly string autoBindProjectKey;
-        private readonly ICommand parentCommand;
         private readonly IThreadHandling threadHandling;
         private readonly ICredentialStoreService credentialStore;
 
-        public ConnectionWorkflow(IServiceProvider serviceProvider, IHost host, string autoBindProjectKey, ICommand parentCommand)
-            : this(serviceProvider, host, autoBindProjectKey, parentCommand, ThreadHandling.Instance)
+        public ConnectionWorkflow(IServiceProvider serviceProvider, IHost host, string autoBindProjectKey)
+            : this(serviceProvider, host, autoBindProjectKey, ThreadHandling.Instance)
         { }
 
         internal /* for testing */ ConnectionWorkflow(IServiceProvider serviceProvider,
             IHost host,
             string autoBindProjectKey,
-            ICommand parentCommand,
             IThreadHandling threadHandling)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             this.autoBindProjectKey = autoBindProjectKey;
-            this.parentCommand = parentCommand ?? throw new ArgumentNullException(nameof(parentCommand));
             this.threadHandling = threadHandling;
 
             credentialStore = serviceProvider.GetMefService<ICredentialStoreService>();

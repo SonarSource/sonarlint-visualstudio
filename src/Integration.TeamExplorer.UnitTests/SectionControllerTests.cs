@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Design;
-using FluentAssertions;
+using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
@@ -84,7 +82,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             SectionController testSubject = this.CreateTestSubject();
 
             // Constructor time initialization
-            testSubject.ConnectCommand.Should().NotBeNull("ConnectCommand is not initialized");
             testSubject.BindCommand.Should().NotBeNull("BindCommand is not initialized");
             testSubject.BrowseToUrlCommand.Should().NotBeNull("BrowseToUrlCommand is not initialized");
             testSubject.BrowseToProjectDashboardCommand.Should().NotBeNull("BrowseToProjectDashboardCommand is not initialized");
@@ -120,7 +117,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.Dispose();
 
             // Assert
-            testSubject.ConnectCommand.Should().BeNull("ConnectCommand is not cleared");
             testSubject.RefreshCommand.Should().BeNull("RefreshCommand is not cleared");
             testSubject.DisconnectCommand.Should().BeNull("DisconnectCommand is not cleared");
             testSubject.BindCommand.Should().BeNull("BindCommand is not ;");
@@ -242,15 +238,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         public void SectionController_IOleCommandTargetQueryStatus_OLE_Constants_SanityCheck()
         {
             // Sanity check that the TF and VS OLE constants are the same
-            Microsoft.TeamFoundation.Client.CommandTarget.OleConstants.OLECMDERR_E_UNKNOWNGROUP.
-                Should().Be((int)Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_UNKNOWNGROUP);
+            OleConstants.OLECMDERR_E_UNKNOWNGROUP.
+                Should().Be((int)VS_OLEConstants.OLECMDERR_E_UNKNOWNGROUP);
 
-            Microsoft.TeamFoundation.Client.CommandTarget.OleConstants.OLECMDERR_E_DISABLED.
-                Should().Be((int)Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_DISABLED);
+            OleConstants.OLECMDERR_E_DISABLED.
+                Should().Be((int)VS_OLEConstants.OLECMDERR_E_DISABLED);
 
 
-            Microsoft.TeamFoundation.Client.CommandTarget.OleConstants.OLECMDERR_E_CANCELED.
-                Should().Be((int)Microsoft.VisualStudio.OLE.Interop.Constants.OLECMDERR_E_CANCELED);
+            OleConstants.OLECMDERR_E_CANCELED.
+                Should().Be((int)VS_OLEConstants.OLECMDERR_E_CANCELED);
         }
 
         [TestMethod]
@@ -283,46 +279,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             sectionController.DisconnectCommand.Execute(null);
             setProjectsCalled.Should().Be(1);
             sonarQubeServiceMock.Verify(x => x.Disconnect(), Times.Once);
-        }
-
-        [TestMethod]
-        public void SectionController_ReconnectCommand()
-        {
-            // Arrange
-            var sectionController = this.CreateTestSubject();
-            var connection = new ConnectionInformation(new Uri("http://connected"));
-            int setProjectsCalled = 0;
-            this.host.TestStateManager.SetProjectsAction = (conn, projects) =>
-            {
-                setProjectsCalled++;
-                conn.Should().Be(connection);
-                projects.Should().BeNull("Expecting the project to be reset to null");
-            };
-
-            // The commands under test work only on fully loaded solution
-            var projectSystemHelper = (ConfigurableVsProjectSystemHelper)this.serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystemHelper.SetIsSolutionFullyOpened(true);
-
-            // Case 1: No connection
-            // Act + Assert CanExecute
-            sectionController.DisconnectCommand.CanExecute(null).Should().BeFalse();
-            sectionController.ReconnectCommand.CanExecute(null).Should().BeFalse(); // Same as DisconnectCommand
-            setProjectsCalled.Should().Be(0);
-
-            // Case 2: Connected
-            this.host.TestStateManager.ConnectedServers.Add(connection);
-
-            // Act + Assert CanExecute
-            sectionController.DisconnectCommand.CanExecute(null).Should().BeTrue();
-            sectionController.ReconnectCommand.CanExecute(null).Should().BeTrue(); // Same as DisconnectCommand
-            setProjectsCalled.Should().Be(0);
-
-            // Act + Assert Execute
-            // Reconnect command cannot be tested without significant refactoring
-            // because the executed code that shows UI cannot be mocked or replaced.
-            ////sectionController.ReconnectCommand.Execute(null);
-            ////setProjectsCalled.Should().Be(1);
-            ////sonarQubeServiceMock.Verify(x => x.Disconnect(), Times.Once);
         }
 
         [TestMethod]
@@ -437,7 +393,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             host.ClearActiveSection();
             host.VisualStateManager.ManagedState.ConnectedServers.Clear();
-            controller.Initialize(null, new Microsoft.TeamFoundation.Controls.SectionInitializeEventArgs(new ServiceContainer(), null));
+            controller.Initialize(null, new SectionInitializeEventArgs(new ServiceContainer(), null));
             bool refreshCalled = false;
             controller.RefreshCommand = new RelayCommand<ConnectionInformation>(c => refreshCalled = true);
             controller.Refresh();
@@ -488,7 +444,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             ConnectSectionViewModel viewModel = (ConnectSectionViewModel)section.ViewModel;
 
-            viewModel.ConnectCommand.Should().Be(section.ConnectCommand, "ConnectCommand is not initialized");
             viewModel.BindCommand.Should().Be(section.BindCommand, "BindCommand is not initialized");
             viewModel.BrowseToUrlCommand.Should().Be(section.BrowseToUrlCommand, "BrowseToUrlCommand is not initialized");
         }

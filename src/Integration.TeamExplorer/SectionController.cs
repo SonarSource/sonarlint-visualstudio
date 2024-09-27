@@ -189,12 +189,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         #region Commands
 
-        public ICommand<ConnectConfiguration> ConnectCommand
-        {
-            get;
-            private set;
-        }
-
         public ICommand<BindCommandArgs> BindCommand
         {
             get;
@@ -212,8 +206,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             get;
             private set;
         }
-
-        public ICommand ReconnectCommand { get; private set; }
 
         public ICommand<ConnectionInformation> RefreshCommand
         {
@@ -243,7 +235,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.CommandTargets.Add(connectionController);
             this.CommandTargets.Add(bindingController);
 
-            this.ConnectCommand = connectionController.ConnectCommand;
             this.RefreshCommand = connectionController.RefreshCommand;
             this.BindCommand = bindingController.BindCommand;
         }
@@ -252,14 +243,12 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             this.CommandTargets.Clear();
 
-            this.ConnectCommand = null;
             this.RefreshCommand = null;
             this.BindCommand = null;
 
             ISectionController section = (ISectionController)this;
             if (section.ViewModel != null)
             {
-                section.ViewModel.ConnectCommand = null;
                 section.ViewModel.BindCommand = null;
                 section.ViewModel.BrowseToUrlCommand = null;
             }
@@ -272,12 +261,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(this.ToggleShowAllProjects, this.CanToggleShowAllProjects);
             this.BrowseToUrlCommand = new RelayCommand<string>(this.ExecBrowseToUrl, this.CanExecBrowseToUrl);
             this.BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(this.ExecBrowseToProjectDashboard, this.CanExecBrowseToProjectDashboard);
-            this.ReconnectCommand = new RelayCommand(() =>
-                {
-                    this.Disconnect();
-                    this.ConnectCommand.Execute(null);
-                },
-                this.CanDisconnect);
         }
 
         private void CleanProvidedCommands()
@@ -293,7 +276,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             ISectionController section = (ISectionController)this;
             if (section.ViewModel != null)
             {
-                section.ViewModel.ConnectCommand = this.ConnectCommand;
                 section.ViewModel.BindCommand = this.BindCommand;
                 section.ViewModel.BrowseToUrlCommand = this.BrowseToUrlCommand;
             }
