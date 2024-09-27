@@ -19,7 +19,6 @@
  */
 
 using System.Windows.Input;
-using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -148,33 +147,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             // Act
             testSubject.SyncCommandFromActiveSection();
-        }
-
-        [TestMethod]
-        public void StateManager_ToggleShowAllProjectsCommand_DynamicText()
-        {
-            // Arrange
-            var section = ConfigurableSectionController.CreateDefault();
-            ConfigurableHost host = new ConfigurableHost();
-            StateManager testSubject = this.CreateTestSubject(host, section);
-            var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
-            var projects = new SonarQubeProject[] { new SonarQubeProject("projectKey1", ""), new SonarQubeProject("projectKey2", "") };
-            testSubject.SetProjects(connection1, projects);
-            ServerViewModel serverVM = testSubject.ManagedState.ConnectedServers.Single();
-            host.SetActiveSection(section);
-            testSubject.SyncCommandFromActiveSection();
-            ContextualCommandViewModel toggleContextCmd = serverVM.Commands.First(x => x.InternalRealCommand.Equals(section.ToggleShowAllProjectsCommand));
-
-            // Case 1: No bound projects
-            serverVM.ShowAllProjects = true;
-            // Act + Assert
-            toggleContextCmd.DisplayText.Should().Be(Strings.HideUnboundProjectsCommandText, "Unexpected disabled context command text");
-
-            // Case 2: has bound projects
-            serverVM.ShowAllProjects = false;
-
-            // Act + Assert
-            toggleContextCmd.DisplayText.Should().Be(Strings.ShowAllProjectsCommandText, "Unexpected context command text");
         }
 
         [TestMethod]

@@ -253,10 +253,6 @@ ocalization note: '[try again]()' is a special markup used to translate the text
     <value>Show All Projects</value>
     <comment>Server context menu command display text to show all projects (inc. unbound projects)</comment>
   </data>
-  <data name="ToggleShowAllProjectsCommandTooltip" xml:space="preserve">
-    <value>Toggle visibility of unbound projects for this server.</value>
-    <comment>Server context menu command tool tip text to show all projects</comment>
-  </data>
   <data name="ExpectedAbsoluteUris" xml:space="preserve">
     <value>The target URI must be an absolute URI</value>
     <comment>Exception message</comment>

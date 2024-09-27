@@ -21,7 +21,6 @@
 using Moq;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
@@ -30,12 +29,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         #region ISectionController
 
         public IProgressControlHost ProgressHost
-        {
-            get;
-            set;
-        }
-
-        public ICommand<ServerViewModel> ToggleShowAllProjectsCommand
         {
             get;
             set;
@@ -63,8 +56,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             {
                 ViewModel = new ConfigurableConnectSectionViewModel(),
                 View = Mock.Of<IConnectSectionView>(),
-                ProgressHost = new ConfigurableProgressControlHost(),
-                ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(vm => { })
+                ProgressHost = new ConfigurableProgressControlHost()
             };
             return section;
         }
