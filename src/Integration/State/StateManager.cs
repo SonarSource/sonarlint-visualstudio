@@ -25,7 +25,6 @@ using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -101,11 +100,6 @@ namespace SonarLint.VisualStudio.Integration.State
             {
                 return this.GetConnectedServers().Any();
             }
-        }
-
-        public void ResetConnectionConfiguration()
-        {
-            ManagedState.ConnectConfiguration = new ConnectConfiguration();
         }
 
         public IEnumerable<ConnectionInformation> GetConnectedServers()

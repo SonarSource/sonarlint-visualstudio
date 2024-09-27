@@ -19,7 +19,6 @@
  */
 
 using System.Windows.Input;
-using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -478,19 +477,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
 
             testSubject.ManagedState.HasSharedBinding = true;
             testSubject.HasSharedBinding.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void ResetConnectionConfiguration_CreatesNewConfiguration()
-        {
-            var host = new ConfigurableHost();
-            var testSubject = CreateTestSubject(host);
-
-            var initialConfiguration = testSubject.ManagedState.ConnectConfiguration;
-            testSubject.ResetConnectionConfiguration();
-
-            testSubject.ManagedState.ConnectConfiguration.Should().NotBeSameAs(initialConfiguration);
-            testSubject.ManagedState.ConnectConfiguration.Should().BeEquivalentTo(new ConnectConfiguration());
         }
 
         #endregion Tests
