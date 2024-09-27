@@ -222,15 +222,6 @@ namespace SonarLint.VisualStudio.Integration
             this.VisualStateManager.BoundProjectName = bindingConfig.Project.ServerProjectKey;
 
             Debug.Assert(this.ActiveSection != null, "Expected ActiveSection to be set");
-            Debug.Assert(this.ActiveSection?.RefreshCommand != null, "Refresh command is not set");
-            // Run the refresh workflow, passing the connection information
-            var refreshCmd = this.ActiveSection.RefreshCommand;
-
-            var connection = bindingConfig.Project.CreateConnectionInformation();
-            if (refreshCmd.CanExecute(connection))
-            {
-                refreshCmd.Execute(connection); // start the workflow
-            }
         }
 
         private BindingConfiguration SafeGetBindingConfig()

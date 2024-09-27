@@ -215,14 +215,6 @@ Localization note: '[try again]()' is a special markup used to translate the tex
     <value>Unexpected error during workflow execution: {0}.</value>
     <comment>Error message in case of an unexpected exception during workflow execution. {0} exception message.</comment>
   </data>
-  <data name="RefreshCommandDisplayText" xml:space="preserve">
-    <value>Refresh</value>
-    <comment>Refresh command display text</comment>
-  </data>
-  <data name="RefreshCommandTooltip" xml:space="preserve">
-    <value>Will refetch the SonarQube projects from the server using the existing credentials</value>
-    <comment>Refresh command tooltip</comment>
-  </data>
   <data name="ServerNoProjectsInlineText" xml:space="preserve">
     <value>(no projects)</value>
     <comment>Text to be displayed inline next to the connected SonarQube server in the Team Explorer tree view when there are no SonarQube Projects available under the given server</comment>
