@@ -18,111 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
-using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.State
 {
     internal class TransferableVisualState : ViewModelBase
     {
-        private readonly ObservableCollection<ServerViewModel> connectedServers = new ObservableCollection<ServerViewModel>();
-        private readonly IThreadHandling threadHandling;
-        private ProjectViewModel boundProject;
-        private bool isBusy;
-        private bool hasSharedBinding;
-
-        public TransferableVisualState()
-            : this(ThreadHandling.Instance)
-        { }
-
-        internal /* for testing */ TransferableVisualState(IThreadHandling threadHandling)
-        {
-            this.threadHandling = threadHandling;
-        }
-
-        public ObservableCollection<ServerViewModel> ConnectedServers
-        {
-            get
-            {
-                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(ConnectedServers)} should only be accessed from the UI thread");
-                return this.connectedServers;
-            }
-        }
-
-        public bool HasSharedBinding
-        {
-            get
-            {
-                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(HasSharedBinding)} should only be accessed from the UI thread");
-                return hasSharedBinding;
-            }
-            set
-            {
-                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(HasSharedBinding)} should only be set from the UI thread");
-                SetAndRaisePropertyChanged(ref hasSharedBinding, value);
-            }
-        }
-
-        public bool HasBoundProject
-        {
-            get
-            {
-                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(HasBoundProject)} should only be accessed from the UI thread");
-                return this.boundProject != null;
-            }
-        }
-
-        public bool IsBusy
-        {
-            get
-            {
-                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(IsBusy)} should only be accessed from the UI thread");
-                return this.isBusy;
-            }
-            set
-            {
-                Debug.Assert(threadHandling.CheckAccess(), $"{nameof(IsBusy)} should only be set from the UI thread");
-                this.SetAndRaisePropertyChanged(ref this.isBusy, value);
-            }
-        }
-
-        public void SetBoundProject(ProjectViewModel project)
-        {
-            Debug.Assert(threadHandling.CheckAccess(), $"{nameof(SetBoundProject)} should only be accessed from the UI thread");
-            this.ClearBoundProject();
-
-            this.boundProject = project;
-            this.boundProject.IsBound = true;
-            this.boundProject.Owner.ShowAllProjects = false;
-
-            this.OnHasBoundProjectChanged();
-        }
-
-        public void ClearBoundProject()
-        {
-            Debug.Assert(threadHandling.CheckAccess(), $"{nameof(ClearBoundProject)} should only be accessed from the UI thread");
-            if (this.boundProject != null)
-            {
-                this.boundProject.IsBound = false;
-                this.boundProject.Owner.ShowAllProjects = true;
-                this.boundProject = null;
-
-                this.OnHasBoundProjectChanged();
-            }
-        }
-
-        [SuppressMessage("Reliability",
-          "S3236:Methods with caller info attributes should not be invoked with explicit arguments",
-          Justification = "We actually want to specify a different property to change",
-          Scope = "member",
-          Target = "~M:SonarLint.VisualStudio.Integration.State.TransferableVisualState.OnHasBoundProjectChanged()")]
-        private void OnHasBoundProjectChanged()
-        {
-            this.RaisePropertyChanged(nameof(HasBoundProject));
-        }
+        public TransferableVisualState() { }
     }
 }

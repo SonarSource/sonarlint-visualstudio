@@ -23,7 +23,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.State;
 using SonarQube.Client;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 using Task = System.Threading.Tasks.Task;
@@ -43,9 +42,9 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class ActiveSolutionBoundTracker : IActiveSolutionBoundTracker, IActiveSolutionChangedHandler, IDisposable, IPartImportsSatisfiedNotification
     {
-        private readonly IHost extensionHost;
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IConfigurationProvider configurationProvider;
+        private readonly ISonarQubeService sonarQubeService;
         private readonly IVsMonitorSelection vsMonitorSelection;
         private readonly IBoundSolutionGitMonitor gitEventsMonitor;
         private readonly IConfigScopeUpdater configScopeUpdater;
@@ -62,14 +61,13 @@ namespace SonarLint.VisualStudio.Integration
 
         [ImportingConstructor]
         public ActiveSolutionBoundTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            IHost host,
             IActiveSolutionTracker activeSolutionTracker,
             IConfigScopeUpdater configScopeUpdater,
             ILogger logger,
             IBoundSolutionGitMonitor gitEventsMonitor,
-            IConfigurationProvider configurationProvider)
+            IConfigurationProvider configurationProvider,
+            ISonarQubeService sonarQubeService)
         {
-            extensionHost = host;
             solutionTracker = activeSolutionTracker;
             this.gitEventsMonitor = gitEventsMonitor;
             this.logger = logger;
@@ -80,10 +78,8 @@ namespace SonarLint.VisualStudio.Integration
             vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
 
             this.configurationProvider = configurationProvider;
+            this.sonarQubeService = sonarQubeService;
             this.configScopeUpdater = configScopeUpdater;
-
-            // The user changed the binding through the Team Explorer
-            extensionHost.VisualStateManager.BindingStateChanged += OnBindingStateChanged;
 
             // The solution changed inside the IDE
             solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
@@ -103,11 +99,6 @@ namespace SonarLint.VisualStudio.Integration
             }
             
             this.RaiseAnalyzersChangedIfBindingChanged(GetBindingConfiguration(), isBindingCleared);
-        }
-        
-        private void OnBindingStateChanged(object sender, BindingStateEventArgs e)
-        {
-            HandleBindingChange(e.IsBindingCleared);
         }
 
         private BindingConfiguration GetBindingConfiguration()
@@ -147,8 +138,6 @@ namespace SonarLint.VisualStudio.Integration
 
         private async Task UpdateConnectionAsync(BindingConfiguration bindingConfiguration)
         {
-            ISonarQubeService sonarQubeService = this.extensionHost.SonarQubeService;
-
             if (sonarQubeService.IsConnected)
             {
                 sonarQubeService.Disconnect();
@@ -211,7 +200,6 @@ namespace SonarLint.VisualStudio.Integration
             {
                 this.disposed = true;
                 this.solutionTracker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
-                this.extensionHost.VisualStateManager.BindingStateChanged -= this.OnBindingStateChanged;
                 this.gitEventsMonitor.HeadChanged -= GitEventsMonitor_HeadChanged;
             }
         }
