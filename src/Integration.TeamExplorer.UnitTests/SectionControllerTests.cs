@@ -23,9 +23,6 @@ using Microsoft.TeamFoundation.Client.CommandTarget;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.VisualStudio.Shell;
 using Moq;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.ConnectedMode.Shared;
-using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
@@ -68,10 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             MefTestHelpers.CheckTypeCanBeImported<SectionController, ITeamExplorerSection>(
                 MefTestHelpers.CreateExport<SVsServiceProvider>(),
                 MefTestHelpers.CreateExport<IHost>(new ConfigurableHost()),
-                MefTestHelpers.CreateExport<IWebBrowser>(),
-                MefTestHelpers.CreateExport<IAutoBindTrigger>(),
-                MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
-                MefTestHelpers.CreateExport<ICredentialStoreService>());
+                MefTestHelpers.CreateExport<IWebBrowser>());
         }
 
         [TestMethod]
@@ -81,7 +75,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             SectionController testSubject = this.CreateTestSubject();
 
             // Constructor time initialization
-            testSubject.BindCommand.Should().NotBeNull("BindCommand is not initialized");
             testSubject.BrowseToUrlCommand.Should().NotBeNull("BrowseToUrlCommand is not initialized");
             testSubject.BrowseToProjectDashboardCommand.Should().NotBeNull("BrowseToProjectDashboardCommand is not initialized");
             testSubject.ToggleShowAllProjectsCommand.Should().NotBeNull("ToggleShowAllProjectsCommand is not initialized");
@@ -114,7 +107,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.Dispose();
 
             // Assert
-            testSubject.BindCommand.Should().BeNull("BindCommand is not ;");
             testSubject.ToggleShowAllProjectsCommand.Should().BeNull("ToggleShowAllProjectsCommand is not cleared");
             testSubject.BrowseToUrlCommand.Should().BeNull("BrowseToUrlCommand is not cleared");
             testSubject.BrowseToProjectDashboardCommand.Should().BeNull("BrowseToProjectDashboardCommand is not cleared");
@@ -405,8 +397,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         private void AssertCommandsInSync(SectionController section)
         {
             ConnectSectionViewModel viewModel = (ConnectSectionViewModel)section.ViewModel;
-
-            viewModel.BindCommand.Should().Be(section.BindCommand, "BindCommand is not initialized");
+            
             viewModel.BrowseToUrlCommand.Should().Be(section.BrowseToUrlCommand, "BrowseToUrlCommand is not initialized");
         }
 

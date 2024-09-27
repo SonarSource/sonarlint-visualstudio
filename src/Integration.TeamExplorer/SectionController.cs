@@ -23,8 +23,6 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
 using IVSOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
@@ -113,7 +111,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
             this.Host.VisualStateManager.IsBusyChanged += this.OnIsBusyChanged;
 
-            this.InitializeControllerCommands();
             this.InitializeProvidedCommands();
             this.SyncCommands();
 
@@ -166,12 +163,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         #region Commands
 
-        public ICommand<BindCommandArgs> BindCommand
-        {
-            get;
-            private set;
-        }
-
         public ICommand<string> BrowseToUrlCommand
         {
             get;
@@ -190,27 +181,13 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             private set;
         }
 
-        private void InitializeControllerCommands()
-        {
-            // Due to complexity of connect and bind we "outsource" the controlling part
-            // to separate controllers which just expose commands
-            var bindingController = new BindingController(serviceProvider, Host);
-
-            this.CommandTargets.Add(bindingController);
-            
-            this.BindCommand = bindingController.BindCommand;
-        }
-
         private void CleanControllerCommands()
         {
             this.CommandTargets.Clear();
 
-            this.BindCommand = null;
-
             ISectionController section = (ISectionController)this;
             if (section.ViewModel != null)
             {
-                section.ViewModel.BindCommand = null;
                 section.ViewModel.BrowseToUrlCommand = null;
             }
         }
@@ -235,7 +212,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             ISectionController section = (ISectionController)this;
             if (section.ViewModel != null)
             {
-                section.ViewModel.BindCommand = this.BindCommand;
                 section.ViewModel.BrowseToUrlCommand = this.BrowseToUrlCommand;
             }
         }

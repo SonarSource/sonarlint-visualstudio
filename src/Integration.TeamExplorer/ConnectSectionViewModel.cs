@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Input;
-using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -32,7 +29,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
                                         IConnectSectionViewModel
     {
         private TransferableVisualState state;
-        private ICommand<BindCommandArgs> bindCommand;
         private ICommand<string> browseToUrl;
 
         public ConnectSectionViewModel()
@@ -41,20 +37,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             this.IsExpanded = true;
             this.IsVisible = true;
         }
-
-        #region IUserNotification
-
-        public void ShowNotificationError(string message, Guid notificationId, ICommand associatedCommand)
-        {
-            this.ShowNotification(message, NotificationType.Error, NotificationFlags.NoTooltips/*No need for them since we don't use hyperlinks*/, associatedCommand, notificationId);
-        }
-
-        public void ShowNotificationWarning(string message, Guid notificationId, ICommand associatedCommand)
-        {
-            this.ShowNotification(message, NotificationType.Warning, NotificationFlags.NoTooltips/*No need for them since we don't use hyperlinks*/, associatedCommand, notificationId);
-        }
-
-        #endregion
 
         #region Properties
 
@@ -67,12 +49,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         #endregion
 
         #region Commands
-
-        public ICommand<BindCommandArgs> BindCommand
-        {
-            get { return this.bindCommand; }
-            set { SetAndRaisePropertyChanged(ref this.bindCommand, value); }
-        }
 
         public ICommand<string> BrowseToUrlCommand
         {

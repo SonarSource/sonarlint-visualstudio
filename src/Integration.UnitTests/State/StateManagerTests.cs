@@ -189,33 +189,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
         }
 
         [TestMethod]
-        public void StateManager_BindCommand_DynamicText()
-        {
-            // Arrange
-            var section = ConfigurableSectionController.CreateDefault();
-            ConfigurableHost host = new ConfigurableHost();
-            StateManager testSubject = this.CreateTestSubject(host, section);
-            var connection1 = new ConnectionInformation(new Uri("http://127.0.0.1"));
-            var projects = new SonarQubeProject[] { new SonarQubeProject("projectKey", "") };
-            testSubject.SetProjects(connection1, projects);
-            ProjectViewModel projectVM = testSubject.ManagedState.ConnectedServers.Single().Projects.Single();
-            host.SetActiveSection(section);
-            testSubject.SyncCommandFromActiveSection();
-            ContextualCommandViewModel bindCmd = projectVM.Commands.First(x => x.InternalRealCommand.Equals(section.BindCommand));
-
-            // Case 1: Bound
-            projectVM.IsBound = true;
-            // Act + Assert
-            bindCmd.DisplayText.Should().Be(Strings.SyncButtonText, "Unexpected disabled context command text");
-
-            // Case 2: Not bound
-            projectVM.IsBound = false;
-
-            // Act + Assert
-            bindCmd.DisplayText.Should().Be(Strings.BindButtonText, "Unexpected context command text");
-        }
-
-        [TestMethod]
         public void StateManager_ClearBoundProject()
         {
             // Arrange
@@ -505,7 +478,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.State
             foreach (ProjectViewModel project in serverVM.Projects)
             {
                 AssertExpectedNumberOfCommands(project.Commands, 2);
-                VerifyProjectViewModelCommand(project, section.BindCommand, fixedContext: project, hasIcon: true);
                 VerifyProjectViewModelCommand(project, section.BrowseToProjectDashboardCommand, fixedContext: project, hasIcon: true);
             }
         }

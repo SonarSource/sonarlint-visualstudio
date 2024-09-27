@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -27,7 +26,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableConnectSectionViewModel : IConnectSectionViewModel
     {
-        public ICommand<BindCommandArgs> BindCommand { get; set; }
         public ICommand<string> BrowseToUrlCommand { get; set; }
         public bool IsBusy { get; set; }
         public TransferableVisualState State { get; set; }
