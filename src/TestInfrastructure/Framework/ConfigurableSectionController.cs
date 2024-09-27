@@ -43,12 +43,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             set;
         }
 
-        public ICommand ReconnectCommand
-        {
-            get;
-            set;
-        }
-
         public IProgressControlHost ProgressHost
         {
             get;
@@ -98,7 +92,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
                 ProgressHost = new ConfigurableProgressControlHost(),
                 BindCommand = new RelayCommand<BindCommandArgs>(args => { }),
                 DisconnectCommand = new RelayCommand(() => { }),
-                ReconnectCommand = new RelayCommand(() => { }),
                 BrowseToUrlCommand = new RelayCommand<string>(url => { }),
                 BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(vm => { }),
                 ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(vm => { })
