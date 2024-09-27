@@ -196,15 +196,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Learn more about connected mode .
-        /// </summary>
-        public static string ConnectedModeExplanationText {
-            get {
-                return ResourceManager.GetString("ConnectedModeExplanationText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Discover which connection is best for your team .
         /// </summary>
         public static string ConnectionDiscoveringText {
@@ -403,15 +394,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export.
-        /// </summary>
-        public static string ExportButton {
-            get {
-                return ResourceManager.GetString("ExportButton", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Binding configuration is being exported....
         /// </summary>
         public static string ExportingBindingConfigurationProgressText {
@@ -480,6 +462,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string IsNotBoundText {
             get {
                 return ResourceManager.GetString("IsNotBoundText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more about .
+        /// </summary>
+        public static string LearnMoreAboutText {
+            get {
+                return ResourceManager.GetString("LearnMoreAboutText", resourceCulture);
             }
         }
         
@@ -819,11 +810,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No shared binding configuration was detected.
+        ///   Looks up a localized string similar to Share configuration.
         /// </summary>
-        public static string SharedBindingConfigurationTooltip {
+        public static string ShareConfigurationButton {
             get {
-                return ResourceManager.GetString("SharedBindingConfigurationTooltip", resourceCulture);
+                return ResourceManager.GetString("ShareConfigurationButton", resourceCulture);
             }
         }
         
@@ -900,11 +891,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use shared binding.
+        ///   Looks up a localized string similar to Use shared configuration.
         /// </summary>
-        public static string UseSharedBindingButton {
+        public static string UseSharedConfiguration {
             get {
-                return ResourceManager.GetString("UseSharedBindingButton", resourceCulture);
+                return ResourceManager.GetString("UseSharedConfiguration", resourceCulture);
             }
         }
         
