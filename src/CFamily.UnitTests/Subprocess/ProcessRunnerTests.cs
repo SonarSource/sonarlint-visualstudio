@@ -18,14 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.CFamily.Helpers.UnitTests;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -491,7 +484,7 @@ xxx yyy
         private static string WriteBatchFileForTest(TestContext context, string content)
         {
             var testPath = CreateTestSpecificFolder(context);
-            var fileName = Path.Combine(testPath, context.TestName + ".bat");
+            var fileName = Path.Combine(testPath, "test.bat");
             File.Exists(fileName).Should().BeFalse("Not expecting a batch file to already exist: {0}", fileName);
             File.WriteAllText(fileName, content);
             return fileName;
