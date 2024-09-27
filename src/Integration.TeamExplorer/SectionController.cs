@@ -20,12 +20,10 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Windows.Input;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -50,25 +48,16 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private readonly IServiceProvider serviceProvider;
         private readonly IWebBrowser webBrowser;
-        private readonly IAutoBindTrigger autoBindTrigger;
-        private readonly ISharedBindingConfigProvider sharedBindingConfigProvider;
-        private readonly ICredentialStoreService credentialStoreService;
 
         [ImportingConstructor]
         public SectionController(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IHost host,
-            IWebBrowser webBrowser,
-            IAutoBindTrigger autoBindTrigger, 
-            ISharedBindingConfigProvider sharedBindingConfigProvider, 
-            ICredentialStoreService credentialStoreService)
+            IWebBrowser webBrowser)
         {
             this.serviceProvider = serviceProvider;
             this.Host = host;
             this.webBrowser = webBrowser;
-            this.autoBindTrigger = autoBindTrigger;
-            this.sharedBindingConfigProvider = sharedBindingConfigProvider;
-            this.credentialStoreService = credentialStoreService;
         }
 
         internal /*for testing purposes*/ List<IVSOleCommandTarget> CommandTargets
@@ -195,12 +184,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
             private set;
         }
 
-        public ICommand DisconnectCommand
-        {
-            get;
-            private set;
-        }
-
         public ICommand<ServerViewModel> ToggleShowAllProjectsCommand
         {
             get;
@@ -235,7 +218,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         private void InitializeProvidedCommands()
         {
             // Simple commands provided by this class directly
-            this.DisconnectCommand = new RelayCommand(this.Disconnect, this.CanDisconnect);
             this.ToggleShowAllProjectsCommand = new RelayCommand<ServerViewModel>(this.ToggleShowAllProjects, this.CanToggleShowAllProjects);
             this.BrowseToUrlCommand = new RelayCommand<string>(this.ExecBrowseToUrl, this.CanExecBrowseToUrl);
             this.BrowseToProjectDashboardCommand = new RelayCommand<ProjectViewModel>(this.ExecBrowseToProjectDashboard, this.CanExecBrowseToProjectDashboard);
@@ -243,7 +225,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private void CleanProvidedCommands()
         {
-            this.DisconnectCommand = null;
             this.ToggleShowAllProjectsCommand = null;
             this.BrowseToUrlCommand = null;
             this.BrowseToProjectDashboardCommand = null;

@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Input;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.WPF;
@@ -51,8 +50,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         ICommand<string> BrowseToUrlCommand { get; }
 
         ICommand<ProjectViewModel> BrowseToProjectDashboardCommand { get; }
-
-        ICommand DisconnectCommand { get; }
 
         ICommand<ServerViewModel> ToggleShowAllProjectsCommand { get; }
     }

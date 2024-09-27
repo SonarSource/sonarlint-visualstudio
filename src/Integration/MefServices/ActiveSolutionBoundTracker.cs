@@ -18,16 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Threading;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.State;
 using SonarQube.Client;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration
@@ -141,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 this.RaiseAnalyzersChangedIfBindingChanged(newBindingConfiguration);
             }
-            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine($"Error handling solution change: {ex.Message}");
             }
@@ -153,14 +151,7 @@ namespace SonarLint.VisualStudio.Integration
 
             if (sonarQubeService.IsConnected)
             {
-                if (this.extensionHost.ActiveSection?.DisconnectCommand.CanExecute(null) == true)
-                {
-                    this.extensionHost.ActiveSection.DisconnectCommand.Execute(null);
-                }
-                else
-                {
-                    sonarQubeService.Disconnect();
-                }
+                sonarQubeService.Disconnect();
             }
 
             Debug.Assert(!sonarQubeService.IsConnected,
@@ -171,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration
             if (boundProject != null)
             {
                 var connectionInformation = boundProject.CreateConnectionInformation();
-                await Core.WebServiceHelper.SafeServiceCallAsync(() => sonarQubeService.ConnectAsync(connectionInformation,
+                await WebServiceHelper.SafeServiceCallAsync(() => sonarQubeService.ConnectAsync(connectionInformation,
                     CancellationToken.None), this.logger);
             }
         }

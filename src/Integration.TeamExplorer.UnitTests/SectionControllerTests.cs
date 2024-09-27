@@ -84,7 +84,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.BindCommand.Should().NotBeNull("BindCommand is not initialized");
             testSubject.BrowseToUrlCommand.Should().NotBeNull("BrowseToUrlCommand is not initialized");
             testSubject.BrowseToProjectDashboardCommand.Should().NotBeNull("BrowseToProjectDashboardCommand is not initialized");
-            testSubject.DisconnectCommand.Should().NotBeNull("DisconnectCommand is not initialized");
             testSubject.ToggleShowAllProjectsCommand.Should().NotBeNull("ToggleShowAllProjectsCommand is not initialized");
 
             // Case 1: first time initialization
@@ -115,7 +114,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             testSubject.Dispose();
 
             // Assert
-            testSubject.DisconnectCommand.Should().BeNull("DisconnectCommand is not cleared");
             testSubject.BindCommand.Should().BeNull("BindCommand is not ;");
             testSubject.ToggleShowAllProjectsCommand.Should().BeNull("ToggleShowAllProjectsCommand is not cleared");
             testSubject.BrowseToUrlCommand.Should().BeNull("BrowseToUrlCommand is not cleared");
@@ -244,38 +242,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
             OleConstants.OLECMDERR_E_CANCELED.
                 Should().Be((int)VS_OLEConstants.OLECMDERR_E_CANCELED);
-        }
-
-        [TestMethod]
-        public void SectionController_DisconnectCommand()
-        {
-            // Arrange
-            var sectionController = this.CreateTestSubject();
-            var connection = new ConnectionInformation(new Uri("http://connected"));
-            int setProjectsCalled = 0;
-            this.host.TestStateManager.SetProjectsAction = (conn, projects) =>
-            {
-                setProjectsCalled++;
-                conn.Should().Be(connection);
-                projects.Should().BeNull("Expecting the project to be reset to null");
-            };
-
-            // Case 1: No connection
-            // Act + Assert CanExecute
-            sectionController.DisconnectCommand.CanExecute(null).Should().BeFalse();
-            setProjectsCalled.Should().Be(0);
-
-            // Case 2: Connected
-            this.host.TestStateManager.ConnectedServers.Add(connection);
-
-            // Act + Assert CanExecute
-            sectionController.DisconnectCommand.CanExecute(null).Should().BeTrue();
-            setProjectsCalled.Should().Be(0);
-
-            // Act + Assert Execute
-            sectionController.DisconnectCommand.Execute(null);
-            setProjectsCalled.Should().Be(1);
-            sonarQubeServiceMock.Verify(x => x.Disconnect(), Times.Once);
         }
 
         [TestMethod]
@@ -431,7 +397,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 
         private SectionController CreateTestSubject(IWebBrowser webBrowser = null)
         {
-            var controller = new SectionController(serviceProvider, host, webBrowser ?? new ConfigurableWebBrowser(), Mock.Of<IAutoBindTrigger>(), Mock.Of<ISharedBindingConfigProvider>(), Mock.Of<ICredentialStoreService>());
+            var controller = new SectionController(serviceProvider, host, webBrowser ?? new ConfigurableWebBrowser());
             controller.Initialize(null, new SectionInitializeEventArgs(new ServiceContainer(), null));
             return controller;
         }
