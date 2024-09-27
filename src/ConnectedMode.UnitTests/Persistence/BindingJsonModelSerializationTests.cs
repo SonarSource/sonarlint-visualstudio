@@ -57,7 +57,7 @@ public class BindingJsonModelSerializationTests
     private readonly BoundServerProject boundSonarCloudServerProject = new("solution123", "my_project_123", new ServerConnection.SonarCloud("org_key_123")){ Profiles = QualityProfiles };
     private readonly BoundServerProject boundSonarQubeServerProject = new("solution123", "my_project_123", new ServerConnection.SonarQube(new Uri("http://next.sonarqube.com/sonarqube"))){ Profiles = QualityProfiles };
     
-    private readonly BindingDtoConverter bindingDtoConverter = new();
+    private readonly BindingJsonModelConverter bindingJsonModelConverter = new();
 
     [TestMethod]
     public void JsonModel_SerializedAsExpected()
@@ -88,7 +88,7 @@ public class BindingJsonModelSerializationTests
     [TestMethod]
     public void JsonModel_FromSonarCloudBinding_SerializedAsExpected()
     {
-        var serializeObject = JsonConvert.SerializeObject(bindingDtoConverter.ConvertToDto(boundSonarCloudServerProject), Formatting.Indented);
+        var serializeObject = JsonConvert.SerializeObject(bindingJsonModelConverter.ConvertToModel(boundSonarCloudServerProject), Formatting.Indented);
 
         serializeObject.Should().BeEquivalentTo(
             """
@@ -113,7 +113,7 @@ public class BindingJsonModelSerializationTests
     [TestMethod]
     public void JsonModel_FromSonarQubeBinding_SerializedAsExpected()
     {
-        var serializeObject = JsonConvert.SerializeObject(bindingDtoConverter.ConvertToDto(boundSonarQubeServerProject), Formatting.Indented);
+        var serializeObject = JsonConvert.SerializeObject(bindingJsonModelConverter.ConvertToModel(boundSonarQubeServerProject), Formatting.Indented);
 
         serializeObject.Should().BeEquivalentTo(
             """
@@ -135,9 +135,9 @@ public class BindingJsonModelSerializationTests
     public void Legacy_ToJson_ToJsonModel_ToLegacy_IsCorrect()
     {
         var serialized = JsonConvert.SerializeObject(boundSonarQubeProject);
-        var deserializeBindingDto = JsonConvert.DeserializeObject<BindingJsonModel>(serialized);
+        var deserializeBindingModel = JsonConvert.DeserializeObject<BindingJsonModel>(serialized);
         
-        var convertedFromJsonToLegacy = bindingDtoConverter.ConvertFromDtoToLegacy(deserializeBindingDto, null);
+        var convertedFromJsonToLegacy = bindingJsonModelConverter.ConvertFromModelToLegacy(deserializeBindingModel, null);
         
         convertedFromJsonToLegacy.Should().BeEquivalentTo(boundSonarQubeProject);
     }
@@ -149,7 +149,7 @@ public class BindingJsonModelSerializationTests
         var legacyDirect = JsonConvert.DeserializeObject<BoundSonarQubeProject>(serializedLegacy);
         var deserializedBindingModel = JsonConvert.DeserializeObject<BindingJsonModel>(serializedLegacy);
 
-        var convertedFromJsonToLegacy = bindingDtoConverter.ConvertFromDtoToLegacy(deserializedBindingModel, null);
+        var convertedFromJsonToLegacy = bindingJsonModelConverter.ConvertFromModelToLegacy(deserializedBindingModel, null);
         
         convertedFromJsonToLegacy.Should().BeEquivalentTo(legacyDirect);
     }
@@ -169,7 +169,7 @@ public class BindingJsonModelSerializationTests
         var serializedBindingModel = JsonConvert.SerializeObject(bindingJsonModel);
         var deserializedBindingModel = JsonConvert.DeserializeObject<BindingJsonModel>(serializedBindingModel);
 
-        var convertedFromJsonToLegacy = bindingDtoConverter.ConvertFromDtoToLegacy(deserializedBindingModel, null);
+        var convertedFromJsonToLegacy = bindingJsonModelConverter.ConvertFromModelToLegacy(deserializedBindingModel, null);
         
         convertedFromJsonToLegacy.Should().BeEquivalentTo(boundSonarQubeProject);
     }
@@ -177,11 +177,11 @@ public class BindingJsonModelSerializationTests
     [TestMethod]
     public void CurrentSonarCloud_ToJsonModel_ToJson_ToJsonModel_ToLegacy_IsCorrect()
     {
-        var convertedBindingJsonFromLegacy = bindingDtoConverter.ConvertToDto(boundSonarCloudServerProject);
+        var convertedBindingJsonFromLegacy = bindingJsonModelConverter.ConvertToModel(boundSonarCloudServerProject);
         var serializedBindingModel = JsonConvert.SerializeObject(convertedBindingJsonFromLegacy);
         var deserializedBindingModel = JsonConvert.DeserializeObject<BindingJsonModel>(serializedBindingModel);
 
-        var legacyBinding = bindingDtoConverter.ConvertFromDtoToLegacy(deserializedBindingModel, null);
+        var legacyBinding = bindingJsonModelConverter.ConvertFromModelToLegacy(deserializedBindingModel, null);
         
         legacyBinding.Should().BeEquivalentTo(boundSonarQubeProject, options => options.Excluding(x => x.ProjectName).Excluding(x => x.ServerUri).Excluding(x => x.Organization.Name));
         legacyBinding.ServerUri.Should().BeEquivalentTo(boundSonarCloudServerProject.ServerConnection.ServerUri);
@@ -192,11 +192,11 @@ public class BindingJsonModelSerializationTests
     [TestMethod]
     public void CurrentSonarQube_ToJsonModel_ToJson_ToJsonModel_ToLegacy_IsCorrect()
     {
-        var convertedBindingJsonFromLegacy = bindingDtoConverter.ConvertToDto(boundSonarQubeServerProject);
+        var convertedBindingJsonFromLegacy = bindingJsonModelConverter.ConvertToModel(boundSonarQubeServerProject);
         var serializedBindingModel = JsonConvert.SerializeObject(convertedBindingJsonFromLegacy);
         var deserializedBindingModel = JsonConvert.DeserializeObject<BindingJsonModel>(serializedBindingModel);
 
-        var legacyBinding = bindingDtoConverter.ConvertFromDtoToLegacy(deserializedBindingModel, null);
+        var legacyBinding = bindingJsonModelConverter.ConvertFromModelToLegacy(deserializedBindingModel, null);
         
         legacyBinding.Should().BeEquivalentTo(boundSonarQubeProject, options => options.Excluding(x => x.ProjectName).Excluding(x => x.Organization));
         legacyBinding.ProjectName.Should().BeNull();
@@ -206,12 +206,12 @@ public class BindingJsonModelSerializationTests
     [TestMethod]
     public void CurrentSonarCloud_ToJsonModel_ToJson_ToJsonModel_ToCurrent_IsCorrect()
     {
-        var convertedBindingJsonFromLegacy = bindingDtoConverter.ConvertToDto(boundSonarCloudServerProject);
+        var convertedBindingJsonFromLegacy = bindingJsonModelConverter.ConvertToModel(boundSonarCloudServerProject);
         var serializedBindingModel = JsonConvert.SerializeObject(convertedBindingJsonFromLegacy);
         var deserializedBindingModel = JsonConvert.DeserializeObject<BindingJsonModel>(serializedBindingModel);
         deserializedBindingModel.ServerConnectionId.Should().BeEquivalentTo(boundSonarCloudServerProject.ServerConnection.Id);
         
-        var binding = bindingDtoConverter.ConvertFromDto(deserializedBindingModel, boundSonarCloudServerProject.ServerConnection, "solution123");
+        var binding = bindingJsonModelConverter.ConvertFromModel(deserializedBindingModel, boundSonarCloudServerProject.ServerConnection, "solution123");
         
         binding.Should().BeEquivalentTo(boundSonarCloudServerProject);
     }
@@ -219,12 +219,12 @@ public class BindingJsonModelSerializationTests
     [TestMethod]
     public void CurrentSonarQube_ToJsonModel_ToJson_ToJsonModel_ToCurrent_IsCorrect()
     {
-        var convertedBindingJsonFromLegacy = bindingDtoConverter.ConvertToDto(boundSonarQubeServerProject);
+        var convertedBindingJsonFromLegacy = bindingJsonModelConverter.ConvertToModel(boundSonarQubeServerProject);
         var serializedBindingModel = JsonConvert.SerializeObject(convertedBindingJsonFromLegacy);
         var deserializedBindingModel = JsonConvert.DeserializeObject<BindingJsonModel>(serializedBindingModel);
         deserializedBindingModel.ServerConnectionId.Should().BeEquivalentTo(boundSonarQubeServerProject.ServerConnection.Id);
         
-        var binding = bindingDtoConverter.ConvertFromDto(deserializedBindingModel, boundSonarQubeServerProject.ServerConnection, "solution123");
+        var binding = bindingJsonModelConverter.ConvertFromModel(deserializedBindingModel, boundSonarQubeServerProject.ServerConnection, "solution123");
         
         binding.Should().BeEquivalentTo(boundSonarQubeServerProject);
     }

@@ -35,17 +35,17 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
     private readonly ISolutionBindingCredentialsLoader credentialsLoader;
     private readonly IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider;
     private readonly IServerConnectionsRepository serverConnectionsRepository;
-    private readonly IBindingDtoConverter bindingDtoConverter;
+    private readonly IBindingJsonModelConverter bindingJsonModelConverter;
     private readonly ILogger logger;
 
     [ImportingConstructor]
     public SolutionBindingRepository(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider,
-        IBindingDtoConverter bindingDtoConverter,
+        IBindingJsonModelConverter bindingJsonModelConverter,
         IServerConnectionsRepository serverConnectionsRepository,
         ICredentialStoreService credentialStoreService,
         ILogger logger)
         : this(unintrusiveBindingPathProvider,
-            bindingDtoConverter,
+            bindingJsonModelConverter,
             serverConnectionsRepository,
             new SolutionBindingFileLoader(logger),
             new SolutionBindingCredentialsLoader(credentialStoreService),
@@ -54,7 +54,7 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
     }
 
     internal /* for testing */ SolutionBindingRepository(IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider,
-        IBindingDtoConverter bindingDtoConverter,
+        IBindingJsonModelConverter bindingJsonModelConverter,
         IServerConnectionsRepository serverConnectionsRepository,
         ISolutionBindingFileLoader solutionBindingFileLoader,
         ISolutionBindingCredentialsLoader credentialsLoader,
@@ -62,7 +62,7 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
     {
         this.unintrusiveBindingPathProvider = unintrusiveBindingPathProvider;
         this.serverConnectionsRepository = serverConnectionsRepository;
-        this.bindingDtoConverter = bindingDtoConverter;
+        this.bindingJsonModelConverter = bindingJsonModelConverter;
         this.solutionBindingFileLoader = solutionBindingFileLoader ?? throw new ArgumentNullException(nameof(solutionBindingFileLoader));
         this.credentialsLoader = credentialsLoader ?? throw new ArgumentNullException(nameof(credentialsLoader));
         this.logger = logger;
@@ -70,11 +70,11 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
 
     BoundSonarQubeProject ILegacySolutionBindingRepository.Read(string configFilePath)
     {
-        var bindingDto = ReadBindingFile(configFilePath);
-        return bindingDto switch
+        var bindingJsonModel = ReadBindingFile(configFilePath);
+        return bindingJsonModel switch
         {
             null => null,
-            not null => bindingDtoConverter.ConvertFromDtoToLegacy(bindingDto, credentialsLoader.Load(bindingDto.ServerUri))
+            not null => bindingJsonModelConverter.ConvertFromModelToLegacy(bindingJsonModel, credentialsLoader.Load(bindingJsonModel.ServerUri))
         };
     }
 
@@ -92,7 +92,7 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
             return false;
         }
 
-        if (!solutionBindingFileLoader.Save(configFilePath, bindingDtoConverter.ConvertToDto(binding)))
+        if (!solutionBindingFileLoader.Save(configFilePath, bindingJsonModelConverter.ConvertToModel(binding)))
         {
             return false;
         }
@@ -115,21 +115,21 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
 
         foreach (var bindingConfigPath in bindingConfigPaths)
         {
-            var bindingDto = ReadBindingFile(bindingConfigPath);
+            var bindingJsonModel = ReadBindingFile(bindingConfigPath);
 
-            if (bindingDto == null)
+            if (bindingJsonModel == null)
             {
                 logger.LogVerbose($"Skipped {bindingConfigPath} because it could not be read");
                 continue;
             }
 
-            if (connections.FirstOrDefault(c => c.Id == bindingDto.ServerConnectionId) is not {} serverConnection)
+            if (connections.FirstOrDefault(c => c.Id == bindingJsonModel.ServerConnectionId) is not {} serverConnection)
             {
-                logger.LogVerbose($"Skipped {bindingConfigPath} because connection {bindingDto.ServerConnectionId} doesn't exist");
+                logger.LogVerbose($"Skipped {bindingConfigPath} because connection {bindingJsonModel.ServerConnectionId} doesn't exist");
                 continue;
             }
 
-            var boundServerProject = Convert(bindingDto, serverConnection, bindingConfigPath);
+            var boundServerProject = Convert(bindingJsonModel, serverConnection, bindingConfigPath);
 
             yield return boundServerProject;
         }
@@ -157,5 +157,5 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
             : null;
 
     private BoundServerProject Convert(BindingJsonModel bindingJsonModel, ServerConnection connection, string configFilePath) => 
-        bindingDtoConverter.ConvertFromDto(bindingJsonModel, connection, unintrusiveBindingPathProvider.GetBindingKeyFromPath(configFilePath));
+        bindingJsonModelConverter.ConvertFromModel(bindingJsonModel, connection, unintrusiveBindingPathProvider.GetBindingKeyFromPath(configFilePath));
 }

@@ -27,33 +27,33 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
 
 [TestClass]
-public class BindingDtoConverterTests
+public class BindingJsonModelConverterTests
 {
-    private BindingDtoConverter testSubject;
+    private BindingJsonModelConverter testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new BindingDtoConverter();
+        testSubject = new BindingJsonModelConverter();
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<BindingDtoConverter, IBindingDtoConverter>();
+        MefTestHelpers.CheckTypeCanBeImported<BindingJsonModelConverter, IBindingJsonModelConverter>();
     }
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton()
     {
-        MefTestHelpers.CheckIsSingletonMefComponent<BindingDtoConverter>();
+        MefTestHelpers.CheckIsSingletonMefComponent<BindingJsonModelConverter>();
     }
     
     [TestMethod]
-    public void ConvertFromDto_ConvertsCorrectly()
+    public void ConvertFromModel_ConvertsCorrectly()
     {
         const string localBindingKey = "solution123";
-        var bindingDto = new BindingJsonModel
+        var bindingModel = new BindingJsonModel
         {
             ProjectKey = "project123",
             Profiles = new Dictionary<Language, ApplicableQualityProfile>(),
@@ -64,55 +64,55 @@ public class BindingDtoConverterTests
         };
         var connection = new ServerConnection.SonarCloud("myorg");
 
-        var boundServerProject = testSubject.ConvertFromDto(bindingDto, connection, localBindingKey);
+        var boundServerProject = testSubject.ConvertFromModel(bindingModel, connection, localBindingKey);
 
         boundServerProject.ServerConnection.Should().BeSameAs(connection);
         boundServerProject.LocalBindingKey.Should().BeSameAs(localBindingKey);
-        boundServerProject.ServerProjectKey.Should().BeSameAs(bindingDto.ProjectKey);
-        boundServerProject.Profiles.Should().BeSameAs(bindingDto.Profiles);
+        boundServerProject.ServerProjectKey.Should().BeSameAs(bindingModel.ProjectKey);
+        boundServerProject.Profiles.Should().BeSameAs(bindingModel.Profiles);
     }
 
     [TestMethod]
-    public void ConvertToDto_SonarCloudConnection_ConvertsCorrectly()
+    public void ConvertToModel_SonarCloudConnection_ConvertsCorrectly()
     {
         var boundServerProject = new BoundServerProject("localBinding", "serverProject", new ServerConnection.SonarCloud("myorg"))
         {
             Profiles = new Dictionary<Language, ApplicableQualityProfile>()
         };
 
-        var bindingDto = testSubject.ConvertToDto(boundServerProject);
+        var bindingModel = testSubject.ConvertToModel(boundServerProject);
 
-        bindingDto.ProjectKey.Should().BeSameAs(boundServerProject.ServerProjectKey);
-        bindingDto.ProjectName.Should().BeNull();
-        bindingDto.ServerUri.Should().BeEquivalentTo(boundServerProject.ServerConnection.ServerUri);
-        bindingDto.Organization.Key.Should().BeSameAs(((ServerConnection.SonarCloud)boundServerProject.ServerConnection).OrganizationKey);
-        bindingDto.ServerConnectionId.Should().BeSameAs(boundServerProject.ServerConnection.Id);
-        bindingDto.Profiles.Should().BeSameAs(boundServerProject.Profiles);
+        bindingModel.ProjectKey.Should().BeSameAs(boundServerProject.ServerProjectKey);
+        bindingModel.ProjectName.Should().BeNull();
+        bindingModel.ServerUri.Should().BeEquivalentTo(boundServerProject.ServerConnection.ServerUri);
+        bindingModel.Organization.Key.Should().BeSameAs(((ServerConnection.SonarCloud)boundServerProject.ServerConnection).OrganizationKey);
+        bindingModel.ServerConnectionId.Should().BeSameAs(boundServerProject.ServerConnection.Id);
+        bindingModel.Profiles.Should().BeSameAs(boundServerProject.Profiles);
     }
     
     [TestMethod]
-    public void ConvertToDto_SonarQubeConnection_ConvertsCorrectly()
+    public void ConvertToModel_SonarQubeConnection_ConvertsCorrectly()
     {
         var boundServerProject = new BoundServerProject("localBinding", "serverProject", new ServerConnection.SonarQube(new Uri("http://mysq")))
         {
             Profiles = new Dictionary<Language, ApplicableQualityProfile>()
         };
 
-        var bindingDto = testSubject.ConvertToDto(boundServerProject);
+        var bindingModel = testSubject.ConvertToModel(boundServerProject);
 
-        bindingDto.ProjectKey.Should().BeSameAs(boundServerProject.ServerProjectKey);
-        bindingDto.ProjectName.Should().BeNull();
-        bindingDto.ServerUri.Should().BeEquivalentTo(boundServerProject.ServerConnection.ServerUri);
-        bindingDto.Organization.Should().BeNull();
-        bindingDto.ServerConnectionId.Should().BeSameAs(boundServerProject.ServerConnection.Id);
-        bindingDto.Profiles.Should().BeSameAs(boundServerProject.Profiles);
+        bindingModel.ProjectKey.Should().BeSameAs(boundServerProject.ServerProjectKey);
+        bindingModel.ProjectName.Should().BeNull();
+        bindingModel.ServerUri.Should().BeEquivalentTo(boundServerProject.ServerConnection.ServerUri);
+        bindingModel.Organization.Should().BeNull();
+        bindingModel.ServerConnectionId.Should().BeSameAs(boundServerProject.ServerConnection.Id);
+        bindingModel.Profiles.Should().BeSameAs(boundServerProject.Profiles);
     }
 
     [TestMethod]
-    public void ConvertFromDtoToLegacy_ConvertsCorrectly()
+    public void ConvertFromModelToLegacy_ConvertsCorrectly()
     {
         var credentials = Substitute.For<ICredentials>();
-        var bindingDto = new BindingJsonModel
+        var bindingModel = new BindingJsonModel
         {
             Organization = new SonarQubeOrganization("org", "my org"),
             ServerUri = new Uri("http://localhost"),
@@ -122,12 +122,12 @@ public class BindingDtoConverterTests
             ServerConnectionId = "ignored",
         };
 
-        var legacyBinding = testSubject.ConvertFromDtoToLegacy(bindingDto, credentials);
+        var legacyBinding = testSubject.ConvertFromModelToLegacy(bindingModel, credentials);
 
-        legacyBinding.ProjectKey.Should().BeSameAs(bindingDto.ProjectKey);
-        legacyBinding.ProjectName.Should().BeSameAs(bindingDto.ProjectName);
-        legacyBinding.ServerUri.Should().BeSameAs(bindingDto.ServerUri);
-        legacyBinding.Organization.Should().BeSameAs(bindingDto.Organization);
+        legacyBinding.ProjectKey.Should().BeSameAs(bindingModel.ProjectKey);
+        legacyBinding.ProjectName.Should().BeSameAs(bindingModel.ProjectName);
+        legacyBinding.ServerUri.Should().BeSameAs(bindingModel.ServerUri);
+        legacyBinding.Organization.Should().BeSameAs(bindingModel.Organization);
         legacyBinding.Profiles.Should().BeSameAs(legacyBinding.Profiles);
         legacyBinding.Credentials.Should().BeSameAs(credentials);
     }

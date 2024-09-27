@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
 public class SolutionBindingRepositoryTests
 {
     private IUnintrusiveBindingPathProvider unintrusiveBindingPathProvider;
-    private IBindingDtoConverter bindingDtoConverter;
+    private IBindingJsonModelConverter bindingJsonModelConverter;
     private IServerConnectionsRepository serverConnectionsRepository;
     private ISolutionBindingCredentialsLoader credentialsLoader;
     private ISolutionBindingFileLoader solutionBindingFileLoader;
@@ -49,13 +49,13 @@ public class SolutionBindingRepositoryTests
     public void TestInitialize()
     {
         unintrusiveBindingPathProvider = Substitute.For<IUnintrusiveBindingPathProvider>();
-        bindingDtoConverter = Substitute.For<IBindingDtoConverter>();
+        bindingJsonModelConverter = Substitute.For<IBindingJsonModelConverter>();
         serverConnectionsRepository = Substitute.For<IServerConnectionsRepository>();
         credentialsLoader = Substitute.For<ISolutionBindingCredentialsLoader>();
         solutionBindingFileLoader = Substitute.For<ISolutionBindingFileLoader>();
         logger = new TestLogger();
 
-        testSubject = new SolutionBindingRepository(unintrusiveBindingPathProvider, bindingDtoConverter, serverConnectionsRepository, solutionBindingFileLoader, credentialsLoader, logger);
+        testSubject = new SolutionBindingRepository(unintrusiveBindingPathProvider, bindingJsonModelConverter, serverConnectionsRepository, solutionBindingFileLoader, credentialsLoader, logger);
 
         mockCredentials = new BasicAuthCredentials("user", "pwd".ToSecureString());
 
@@ -72,13 +72,13 @@ public class SolutionBindingRepositoryTests
     {
         MefTestHelpers.CheckTypeCanBeImported<SolutionBindingRepository, ISolutionBindingRepository>(
             MefTestHelpers.CreateExport<IUnintrusiveBindingPathProvider>(),
-            MefTestHelpers.CreateExport<IBindingDtoConverter>(),
+            MefTestHelpers.CreateExport<IBindingJsonModelConverter>(),
             MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
             MefTestHelpers.CreateExport<ICredentialStoreService>(),
             MefTestHelpers.CreateExport<ILogger>());
         MefTestHelpers.CheckTypeCanBeImported<SolutionBindingRepository, ILegacySolutionBindingRepository>(
             MefTestHelpers.CreateExport<IUnintrusiveBindingPathProvider>(),
-            MefTestHelpers.CreateExport<IBindingDtoConverter>(),
+            MefTestHelpers.CreateExport<IBindingJsonModelConverter>(),
             MefTestHelpers.CreateExport<IServerConnectionsRepository>(),
             MefTestHelpers.CreateExport<ICredentialStoreService>(),
             MefTestHelpers.CreateExport<ILogger>());
@@ -119,7 +119,7 @@ public class SolutionBindingRepositoryTests
         });
         solutionBindingFileLoader.Load(MockFilePath).Returns(bindingJsonModel);
         unintrusiveBindingPathProvider.GetBindingKeyFromPath(MockFilePath).Returns(boundServerProject.LocalBindingKey);
-        bindingDtoConverter.ConvertFromDto(bindingJsonModel, serverConnection, boundServerProject.LocalBindingKey).Returns(boundServerProject);
+        bindingJsonModelConverter.ConvertFromModel(bindingJsonModel, serverConnection, boundServerProject.LocalBindingKey).Returns(boundServerProject);
 
         var actual = testSubject.Read(MockFilePath);
 
@@ -184,7 +184,7 @@ public class SolutionBindingRepositoryTests
     {
         var eventHandler = Substitute.For<EventHandler>();
         testSubject.BindingUpdated += eventHandler;
-        bindingDtoConverter.ConvertToDto(boundServerProject).Returns(bindingJsonModel);
+        bindingJsonModelConverter.ConvertToModel(boundServerProject).Returns(bindingJsonModel);
         solutionBindingFileLoader.Save(MockFilePath, bindingJsonModel).Returns(triggered);
     
         testSubject.Write(MockFilePath, boundServerProject);
@@ -196,7 +196,7 @@ public class SolutionBindingRepositoryTests
     [TestMethod]
     public void Write_FileWritten_NoOnSaveCallback_NoException()
     {
-        bindingDtoConverter.ConvertToDto(boundServerProject).Returns(bindingJsonModel);
+        bindingJsonModelConverter.ConvertToModel(boundServerProject).Returns(bindingJsonModel);
         solutionBindingFileLoader.Save(MockFilePath, bindingJsonModel).Returns(true);
     
         Action act = () => testSubject.Write(MockFilePath, boundServerProject);
@@ -285,7 +285,7 @@ public class SolutionBindingRepositoryTests
         bindingJsonModel.ServerUri = new Uri("http://localhost/");
         credentialsLoader.Load(bindingJsonModel.ServerUri).Returns(mockCredentials);
         solutionBindingFileLoader.Load(MockFilePath).Returns(bindingJsonModel);
-        bindingDtoConverter.ConvertFromDtoToLegacy(bindingJsonModel, mockCredentials).Returns(boundSonarQubeProject);
+        bindingJsonModelConverter.ConvertFromModelToLegacy(bindingJsonModel, mockCredentials).Returns(boundSonarQubeProject);
         
         ((ILegacySolutionBindingRepository)testSubject).Read(MockFilePath).Should().BeSameAs(boundSonarQubeProject);
         credentialsLoader.Received().Load(bindingJsonModel.ServerUri);
@@ -301,7 +301,7 @@ public class SolutionBindingRepositoryTests
         }
         var bound = new BoundServerProject(solution, "any", connection);
         unintrusiveBindingPathProvider.GetBindingKeyFromPath(bindingConfig).Returns(solution);
-        bindingDtoConverter.ConvertFromDto(dto, connection, solution).Returns(bound);
+        bindingJsonModelConverter.ConvertFromModel(dto, connection, solution).Returns(bound);
         return bound;
     }
     

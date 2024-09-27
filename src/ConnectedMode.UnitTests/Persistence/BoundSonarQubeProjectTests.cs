@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
         
         [TestMethod]
-        public void BoundProject_BindingDto_Serialization()
+        public void BoundProject_BindingJsonModel_Serialization()
         {
             // Arrange
             var serverUri = new Uri("https://finding-nemo.org");

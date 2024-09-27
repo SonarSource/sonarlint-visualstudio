@@ -24,24 +24,24 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
-internal interface IBindingDtoConverter
+internal interface IBindingJsonModelConverter
 {
-    BoundServerProject ConvertFromDto(BindingJsonModel bindingJsonModel, ServerConnection connection, string localBindingKey);
-    BindingJsonModel ConvertToDto(BoundServerProject binding);
-    BoundSonarQubeProject ConvertFromDtoToLegacy(BindingJsonModel bindingJsonModel, ICredentials credentials);
+    BoundServerProject ConvertFromModel(BindingJsonModel bindingJsonModel, ServerConnection connection, string localBindingKey);
+    BindingJsonModel ConvertToModel(BoundServerProject binding);
+    BoundSonarQubeProject ConvertFromModelToLegacy(BindingJsonModel bindingJsonModel, ICredentials credentials);
 }
 
-[Export(typeof(IBindingDtoConverter))]
+[Export(typeof(IBindingJsonModelConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class BindingDtoConverter : IBindingDtoConverter
+internal class BindingJsonModelConverter : IBindingJsonModelConverter
 {
-    public BoundServerProject ConvertFromDto(BindingJsonModel bindingJsonModel, ServerConnection connection, string localBindingKey) =>
+    public BoundServerProject ConvertFromModel(BindingJsonModel bindingJsonModel, ServerConnection connection, string localBindingKey) =>
         new(localBindingKey, bindingJsonModel.ProjectKey, connection)
         {
             Profiles = bindingJsonModel.Profiles
         };
 
-    public BindingJsonModel ConvertToDto(BoundServerProject binding) =>
+    public BindingJsonModel ConvertToModel(BoundServerProject binding) =>
         new()
         {
             ProjectKey = binding.ServerProjectKey,
@@ -54,7 +54,7 @@ internal class BindingDtoConverter : IBindingDtoConverter
                 : null
         };
 
-    public BoundSonarQubeProject ConvertFromDtoToLegacy(BindingJsonModel bindingJsonModel, ICredentials credentials) =>
+    public BoundSonarQubeProject ConvertFromModelToLegacy(BindingJsonModel bindingJsonModel, ICredentials credentials) =>
             new(bindingJsonModel.ServerUri,
                 bindingJsonModel.ProjectKey,
                 bindingJsonModel.ProjectName,
