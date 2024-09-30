@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
@@ -339,6 +340,32 @@ public class ServerConnectionsRepositoryTests
     }
 
     [TestMethod]
+    public void TryAdd_DoesNotAddConnection_DoesNotInvokeConnectionChangedEvent()
+    {
+        MockReadingFile(new ServerConnectionsListJsonModel());
+        jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(false);
+        var eventHandler = Substitute.For<EventHandler>();
+        testSubject.ConnectionChanged += eventHandler;
+
+        testSubject.TryAdd(sonarCloudServerConnection);
+
+        eventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<EventArgs>());
+    }
+
+    [TestMethod]
+    public void TryAdd_AddsConnection_InvokesConnectionChangedEvent()
+    {
+        MockReadingFile(new ServerConnectionsListJsonModel());
+        jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(true);
+        var eventHandler = Substitute.For<EventHandler>();
+        testSubject.ConnectionChanged += eventHandler;
+
+        testSubject.TryAdd(sonarCloudServerConnection);
+
+        eventHandler.Received().Invoke(testSubject, Arg.Any<EventArgs>());
+    }
+
+    [TestMethod]
     public void TryDelete_FileCouldNotBeRead_ReturnsFalse()
     {
         MockReadingFile(new ServerConnectionsListJsonModel());
@@ -440,6 +467,32 @@ public class ServerConnectionsRepositoryTests
     }
 
     [TestMethod]
+    public void TryDelete_DoesNotDeleteConnection_DoesNotInvokeConnectionChangedEvent()
+    {
+        var sonarQube = MockFileWithOneSonarQubeConnection();
+        jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(false);
+        var eventHandler = Substitute.For<EventHandler>();
+        testSubject.ConnectionChanged += eventHandler;
+
+        testSubject.TryDelete(sonarQube.Id);
+
+        eventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<EventArgs>());
+    }
+
+    [TestMethod]
+    public void TryDelete_DeletesConnection_InvokesConnectionChangedEvent()
+    {
+        var sonarQube = MockFileWithOneSonarQubeConnection();
+        jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(true);
+        var eventHandler = Substitute.For<EventHandler>();
+        testSubject.ConnectionChanged += eventHandler;
+
+        testSubject.TryDelete(sonarQube.Id);
+
+        eventHandler.Received(1).Invoke(testSubject, Arg.Any<EventArgs>());
+    }
+
+    [TestMethod]
     public void TryUpdateSettingsById_FileCouldNotBeRead_ReturnsFalse()
     {
         MockReadingFile(new ServerConnectionsListJsonModel());
@@ -506,6 +559,32 @@ public class ServerConnectionsRepositoryTests
     }
 
     [TestMethod]
+    public void TryUpdateSettingsById_DoesNotUpdateConnection_DoesNotInvokeConnectionChangedEvent()
+    {
+        var sonarQube = MockFileWithOneSonarQubeConnection();
+        jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(false);
+        var eventHandler = Substitute.For<EventHandler>();
+        testSubject.ConnectionChanged += eventHandler;
+
+        testSubject.TryDelete(sonarQube.Id);
+
+        eventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<EventArgs>());
+    }
+
+    [TestMethod]
+    public void TryUpdateSettingsById_UpdatesConnection_InvokesConnectionChangedEvent()
+    {
+        var sonarQube = MockFileWithOneSonarQubeConnection();
+        jsonFileHandler.TryWriteToFile(Arg.Any<string>(), Arg.Any<ServerConnectionsListJsonModel>()).Returns(true);
+        var eventHandler = Substitute.For<EventHandler>();
+        testSubject.ConnectionChanged += eventHandler;
+
+        testSubject.TryUpdateSettingsById(sonarQube.Id, new ServerConnectionSettings(true));
+
+        eventHandler.Received(1).Invoke(testSubject, Arg.Any<EventArgs>());
+    }
+
+    [TestMethod]
     public void TryUpdateCredentialsById_ConnectionDoesNotExist_DoesNotUpdateCredentials()
     {
         MockReadingFile(new ServerConnectionsListJsonModel());
@@ -538,6 +617,30 @@ public class ServerConnectionsRepositoryTests
 
         succeeded.Should().BeTrue();
         credentialsLoader.Received(1).Save(newCredentials, sonarQube.ServerUri);
+    }
+
+    [TestMethod]
+    public void TryUpdateCredentialsById_DoesNotUpdateCredentials_DoesNotInvokeConnectionChangedEvent()
+    {
+        MockReadingFile(new ServerConnectionsListJsonModel());
+        var eventHandler = Substitute.For<EventHandler<ServerConnectionUpdatedEventArgs>>();
+        testSubject.CredentialsChanged += eventHandler;
+
+        testSubject.TryUpdateCredentialsById("non-existingConn", Substitute.For<ICredentials>());
+
+        eventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<ServerConnectionUpdatedEventArgs>());
+    }
+
+    [TestMethod]
+    public void TryUpdateCredentialsById_UpdatesCredentials_InvokesConnectionChangedEvent()
+    {
+        var sonarQube = MockFileWithOneSonarQubeConnection();
+        var eventHandler = Substitute.For<EventHandler<ServerConnectionUpdatedEventArgs>>();
+        testSubject.CredentialsChanged += eventHandler;
+
+        testSubject.TryUpdateCredentialsById(sonarQube.Id, Substitute.For<ICredentials>());
+
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<ServerConnectionUpdatedEventArgs>(args => args.ServerConnection == sonarQube));
     }
 
     [TestMethod]
