@@ -24,24 +24,24 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
-internal interface IBindingDtoConverter
+internal interface IBindingJsonModelConverter
 {
-    BoundServerProject ConvertFromDto(BindingDto bindingDto, ServerConnection connection, string localBindingKey);
-    BindingDto ConvertToDto(BoundServerProject binding);
-    BoundSonarQubeProject ConvertFromDtoToLegacy(BindingDto bindingDto, ICredentials credentials);
+    BoundServerProject ConvertFromModel(BindingJsonModel bindingJsonModel, ServerConnection connection, string localBindingKey);
+    BindingJsonModel ConvertToModel(BoundServerProject binding);
+    BoundSonarQubeProject ConvertFromModelToLegacy(BindingJsonModel bindingJsonModel, ICredentials credentials);
 }
 
-[Export(typeof(IBindingDtoConverter))]
+[Export(typeof(IBindingJsonModelConverter))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class BindingDtoConverter : IBindingDtoConverter
+internal class BindingJsonModelConverter : IBindingJsonModelConverter
 {
-    public BoundServerProject ConvertFromDto(BindingDto bindingDto, ServerConnection connection, string localBindingKey) =>
-        new(localBindingKey, bindingDto.ProjectKey, connection)
+    public BoundServerProject ConvertFromModel(BindingJsonModel bindingJsonModel, ServerConnection connection, string localBindingKey) =>
+        new(localBindingKey, bindingJsonModel.ProjectKey, connection)
         {
-            Profiles = bindingDto.Profiles
+            Profiles = bindingJsonModel.Profiles
         };
 
-    public BindingDto ConvertToDto(BoundServerProject binding) =>
+    public BindingJsonModel ConvertToModel(BoundServerProject binding) =>
         new()
         {
             ProjectKey = binding.ServerProjectKey,
@@ -54,13 +54,13 @@ internal class BindingDtoConverter : IBindingDtoConverter
                 : null
         };
 
-    public BoundSonarQubeProject ConvertFromDtoToLegacy(BindingDto bindingDto, ICredentials credentials) =>
-            new(bindingDto.ServerUri,
-                bindingDto.ProjectKey,
-                bindingDto.ProjectName,
+    public BoundSonarQubeProject ConvertFromModelToLegacy(BindingJsonModel bindingJsonModel, ICredentials credentials) =>
+            new(bindingJsonModel.ServerUri,
+                bindingJsonModel.ProjectKey,
+                bindingJsonModel.ProjectName,
                 credentials,
-                bindingDto.Organization)
+                bindingJsonModel.Organization)
             {
-                Profiles = bindingDto.Profiles
+                Profiles = bindingJsonModel.Profiles
             };
 }

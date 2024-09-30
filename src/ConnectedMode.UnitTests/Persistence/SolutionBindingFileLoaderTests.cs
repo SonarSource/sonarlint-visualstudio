@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         private Mock<ILogger> logger;
         private Mock<IFileSystem> fileSystem;
         private SolutionBindingFileLoader testSubject;
-        private BindingDto bindingDto;
+        private BindingJsonModel bindingJsonModel;
         private string serializedProject;
 
         private const string MockFilePath = "c:\\test.txt";
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 
             fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(true);
             
-            bindingDto = new BindingDto
+            bindingJsonModel = new BindingJsonModel
             {
                 ServerUri = new Uri("http://xxx.www.zzz/yyy:9000"),
                 Organization = null,
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(false);
 
-            testSubject.Save(MockFilePath, bindingDto);
+            testSubject.Save(MockFilePath, bindingJsonModel);
 
             fileSystem.Verify(x => x.Directory.CreateDirectory(MockDirectory), Times.Once);
         }
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(true);
 
-            testSubject.Save(MockFilePath, bindingDto);
+            testSubject.Save(MockFilePath, bindingJsonModel);
 
             fileSystem.Verify(x => x.Directory.CreateDirectory(It.IsAny<string>()), Times.Never);
         }
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, serializedProject));
 
-            var actual = testSubject.Save(MockFilePath, bindingDto);
+            var actual = testSubject.Save(MockFilePath, bindingJsonModel);
             actual.Should().BeTrue();
         }
 
@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, serializedProject));
 
-            testSubject.Save(MockFilePath, bindingDto);
+            testSubject.Save(MockFilePath, bindingJsonModel);
 
             fileSystem.Verify(x => x.File.WriteAllText(MockFilePath, serializedProject), Times.Once);
         }
@@ -140,7 +140,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, It.IsAny<string>())).Throws<PathTooLongException>();
 
-            var actual = testSubject.Save(MockFilePath, bindingDto);
+            var actual = testSubject.Save(MockFilePath, bindingJsonModel);
             actual.Should().BeFalse();
         }
 
@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, It.IsAny<string>())).Throws<StackOverflowException>();
 
-            Action act = () => testSubject.Save(MockFilePath, bindingDto);
+            Action act = () => testSubject.Save(MockFilePath, bindingJsonModel);
 
             act.Should().ThrowExactly<StackOverflowException>();
         }
@@ -210,7 +210,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns(serializedProject);
 
             var actual = testSubject.Load(MockFilePath);
-            actual.Should().BeEquivalentTo(bindingDto);
+            actual.Should().BeEquivalentTo(bindingJsonModel);
         }
 
         [TestMethod]
@@ -224,7 +224,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns(serializedProject);
 
             var actual = testSubject.Load(MockFilePath);
-            actual.Should().BeEquivalentTo(bindingDto);
+            actual.Should().BeEquivalentTo(bindingJsonModel);
 
             var deserializedTimestamp = actual.Profiles[Language.CSharp].ProfileTimestamp.Value.ToUniversalTime();
             deserializedTimestamp.Should().Be(new DateTime(2020, 2, 25, 8, 57, 54));
