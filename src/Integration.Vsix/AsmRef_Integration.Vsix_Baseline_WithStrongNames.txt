@@ -256,7 +256,6 @@ Assembly: 'SonarLint.VisualStudio.Integration, Version=8.6.0.0, Culture=neutral,
 Relative path: 'SonarLint.VisualStudio.Integration.dll'
 
 Referenced assemblies:
-- 'Microsoft.Alm.Authentication, Version=4.0.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'Microsoft.VisualStudio.ComponentModelHost, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'Microsoft.VisualStudio.ImageCatalog, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'Microsoft.VisualStudio.Imaging, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
@@ -286,7 +285,7 @@ Referenced assemblies:
 - 'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Xml.Linq, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
-# Number of references: 30
+# Number of references: 29
 
 ---
 Assembly: 'SonarLint.VisualStudio.Integration.TeamExplorer, Version=8.6.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
