@@ -47,7 +47,7 @@ internal class ServerConnectionsProvider : IServerConnectionsProvider
         return succeeded ? GetServerConnectionConfigurations(serverConnections).ToDictionary(conf => conf.connectionId) : [];
     }
 
-    private List<ServerConnectionConfiguration> GetServerConnectionConfigurations(IReadOnlyList<ServerConnection> serverConnections)
+    private static List<ServerConnectionConfiguration> GetServerConnectionConfigurations(IReadOnlyList<ServerConnection> serverConnections)
     {
         var serverConnectionConfigurations = new List<ServerConnectionConfiguration>();
         foreach (var serverConnection in serverConnections)
