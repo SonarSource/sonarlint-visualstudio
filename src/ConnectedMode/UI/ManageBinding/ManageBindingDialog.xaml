@@ -54,20 +54,10 @@
                         </TextBlock>
                     </Grid>
 
-                    <Button Grid.Column="1" HorizontalAlignment="Right" Content="{x:Static res:UiResources.UseSharedBindingButton}" Padding="5,0" 
+                    <Button Grid.Column="1" HorizontalAlignment="Right" Content="{x:Static res:UiResources.UseSharedConfiguration}" 
                             IsEnabled="{Binding Path=IsUseSharedBindingButtonEnabled}"
                             Visibility="{Binding Path=IsUseSharedBindingButtonVisible, Converter={StaticResource TrueToVisibleConverter}}"
-                            ToolTipService.ShowOnDisabled="True"
                             Click="UseSharedBinding_OnClick">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=IsUseSharedBindingButtonVisible}" Value="False">
-                                        <Setter Property="ToolTip" Value="{x:Static res:UiResources.SharedBindingConfigurationTooltip}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
                     </Button>
                 </Grid>
 
@@ -102,7 +92,7 @@
                         <Button Grid.Column="0" Content="{x:Static res:UiResources.UnbindButton}" IsEnabled="{Binding Path=IsUnbindButtonEnabled}" 
                            Visibility="Collapsed" VerticalAlignment="Center"
                            Click="Unbind_OnClick"/>
-                        <Button Grid.Column="1" Visibility="Collapsed" Content="{x:Static res:UiResources.ExportButton}" ToolTip="{x:Static res:UiResources.ExportBindingConfigurationTooltip}"
+                        <Button Grid.Column="1" Visibility="Collapsed" Content="{x:Static res:UiResources.ShareConfigurationButton}" ToolTip="{x:Static res:UiResources.ExportBindingConfigurationTooltip}"
                            IsEnabled="{Binding Path=IsExportButtonEnabled}" VerticalAlignment="Center"
                            Click="ExportBindingConfigurationButton_OnClick"/>
                     </Grid>
@@ -168,8 +158,8 @@
             <ui:ProgressAndErrorHandlerComponent ProgressReporterViewModel="{Binding Path=ProgressReporter}" />
         </Grid>
 
-        <TextBlock Grid.Row="3" Text="{x:Static res:UiResources.ConnectedModeExplanationText}" Margin="0,20">
-            <Hyperlink NavigateUri="{x:Static links:DocumentationLinks.ConnectedModeUri}" RequestNavigate="ViewWebsite">here</Hyperlink>
+        <TextBlock Grid.Row="3" Text="{x:Static res:UiResources.LearnMoreAboutText}" Margin="0,20">
+            <Hyperlink NavigateUri="{x:Static links:DocumentationLinks.ConnectedModeUri}" RequestNavigate="ViewWebsite">Connected Mode</Hyperlink>
         </TextBlock>
 
         <Grid Grid.Row="4" HorizontalAlignment="Right" Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToCollapsedConverter}}">
