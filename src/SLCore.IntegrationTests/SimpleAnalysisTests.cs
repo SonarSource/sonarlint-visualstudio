@@ -23,7 +23,6 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 [TestClass]
-[Ignore] // https://sonarsource.atlassian.net/browse/SLVS-1428
 public class SimpleAnalysisTests
 {
     private static FileAnalysisTestsRunner sharedFileAnalysisTestsRunner;
