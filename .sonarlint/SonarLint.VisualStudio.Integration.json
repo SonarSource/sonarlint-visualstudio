@@ -1,4 +1,4 @@
 {
-  "SonarCloudOrganization": "duncanp-sonar-test",
-  "ProjectKey": "slvs_samples_bound_vs2019"
+  "SonarCloudOrganization": "sonarsource",
+  "ProjectKey": "sonarlint-visualstudio"
 }
