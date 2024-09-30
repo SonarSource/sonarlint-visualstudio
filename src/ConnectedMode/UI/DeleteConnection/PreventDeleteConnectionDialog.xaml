@@ -4,6 +4,7 @@
         xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
         xmlns:converters="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+        xmlns:links="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
         Title="{x:Static res:UiResources.DeleteConnectionDialogTitle}"
         Width="600"
         MinHeight="200"
@@ -57,7 +58,7 @@
                      ItemsSource="{Binding ProjectsToUnbind}">
             </ListBox>
             <TextBlock Grid.Row="2" Text="{x:Static res:UiResources.DeleteBindingHelpText}" Margin="0,20">
-                <Hyperlink NavigateUri="https://docs.sonarsource.com/sonarlint/visual-studio/team-features/connected-mode-setup/#unbinding-a-project" RequestNavigate="ViewWebsite">here</Hyperlink>
+                <Hyperlink NavigateUri="{x:Static links:DocumentationLinks.UnbindingProjectUri}" RequestNavigate="ViewWebsite">here</Hyperlink>
             </TextBlock>
         </Grid>
         <Grid Grid.Row="2" Margin="0, 20, 0, 0">

@@ -5,8 +5,7 @@
                          xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
                          xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
                          xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
-                         xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
-                         xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+                         xmlns:links="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
                          Title="{x:Static res:UiResources.ManageBindingDialogTitle}" 
                          WindowStartupLocation="CenterOwner"
                          Initialized="ManageBindingDialog_OnInitialized"
@@ -170,7 +169,7 @@
         </Grid>
 
         <TextBlock Grid.Row="3" Text="{x:Static res:UiResources.ConnectedModeExplanationText}" Margin="0,20">
-            <Hyperlink NavigateUri="https://docs.sonarsource.com/sonarlint/visual-studio/team-features/connected-mode/" RequestNavigate="ViewWebsite">here</Hyperlink>
+            <Hyperlink NavigateUri="{x:Static links:DocumentationLinks.ConnectedModeUri}" RequestNavigate="ViewWebsite">here</Hyperlink>
         </TextBlock>
 
         <Grid Grid.Row="4" HorizontalAlignment="Right" Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToCollapsedConverter}}">
