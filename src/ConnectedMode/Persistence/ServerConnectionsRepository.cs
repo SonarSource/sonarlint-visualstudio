@@ -184,7 +184,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         }
     }
 
-    private bool TryUpdateConnectionSettings(List<ServerConnection> connections, string connectionId, ServerConnectionSettings connectionSettings)
+    private static bool TryUpdateConnectionSettings(List<ServerConnection> connections, string connectionId, ServerConnectionSettings connectionSettings)
     {
         var serverConnectionToUpdate = connections?.Find(c => c.Id == connectionId);
         if (serverConnectionToUpdate == null)
