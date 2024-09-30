@@ -38,5 +38,9 @@ namespace SonarLint.VisualStudio.Core
         public const string CleanCode = "https://docs.sonarsource.com/sonarlint/visual-studio/concepts/clean-code/introduction";
         public const string OpenInIdeIssueLocation = "https://docs.sonarsource.com/sonarlint/visual-studio/troubleshooting/#no-matching-issue-found";
         public const string OpenInIdeBindingSetup = "https://docs.sonarsource.com/sonarlint/visual-studio/troubleshooting/#no-matching-project-found";
+        public const string UnbindingProject = "https://docs.sonarsource.com/sonarlint/visual-studio/team-features/connected-mode-setup/#unbinding-a-project";
+        
+        public static readonly Uri UnbindingProjectUri = new(UnbindingProject);
+        public static readonly Uri ConnectedModeUri = new(ConnectedMode);
     }
 }
