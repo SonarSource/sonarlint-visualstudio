@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
         
         [TestMethod]
-        public void BoundProject_BindingDto_Serialization()
+        public void BoundProject_BindingJsonModel_Serialization()
         {
             // Arrange
             var serverUri = new Uri("https://finding-nemo.org");
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act (serialize + de-serialize)
             string data = JsonHelper.Serialize(testSubject);
-            BindingDto deserialized = JsonHelper.Deserialize<BindingDto>(data);
+            BindingJsonModel deserialized = JsonHelper.Deserialize<BindingJsonModel>(data);
 
             // Assert
             deserialized.Should().NotBe(testSubject);
