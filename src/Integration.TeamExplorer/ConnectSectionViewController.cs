@@ -18,11 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.TeamExplorer;
 
+// Exclude from coverage because it is only responsible in creating the View,
+// and it's temporary until the Team Explorer components are fully removed
+[ExcludeFromCodeCoverage]
 [TeamExplorerSection(SectionId, SonarQubePage.PageId, Priority)]
 internal class ConnectSectionViewController : TeamExplorerSectionBase
 {
