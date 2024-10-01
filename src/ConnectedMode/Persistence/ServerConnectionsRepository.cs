@@ -43,6 +43,9 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
     private readonly string connectionsStorageFilePath;
     private static readonly object LockObject = new();
 
+    public event EventHandler ConnectionChanged;
+    public event EventHandler<ServerConnectionUpdatedEventArgs> CredentialsChanged;
+
     [ImportingConstructor]
     public ServerConnectionsRepository(
         IJsonFileHandler jsonFileHandle,
@@ -127,6 +130,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
             if (wasFound)
             {
                 credentialsLoader.Save(credentials, serverConnection.CredentialsUri);
+                OnCredentialsChanged(serverConnection);
                 return true;
             }
         }
@@ -229,7 +233,12 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
                 if (tryUpdateConnectionModels(serverConnections))
                 {
                     var model = serverConnectionModelMapper.GetServerConnectionsListJsonModel(serverConnections);
-                    return jsonFileHandle.TryWriteToFile(connectionsStorageFilePath, model);
+                    var wasSaved = jsonFileHandle.TryWriteToFile(connectionsStorageFilePath, model);
+                    if (wasSaved)
+                    {
+                        OnConnectionChanged();
+                    }
+                    return wasSaved;
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -240,4 +249,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
             return false;
         }
     }
+
+    private void OnConnectionChanged() => ConnectionChanged?.Invoke(this, EventArgs.Empty);
+    private void OnCredentialsChanged(ServerConnection serverConnection) => CredentialsChanged?.Invoke(this, new ServerConnectionUpdatedEventArgs(serverConnection));
 }

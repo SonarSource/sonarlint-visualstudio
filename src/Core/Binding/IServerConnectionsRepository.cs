@@ -29,4 +29,17 @@ public interface IServerConnectionsRepository
     bool TryUpdateSettingsById(string connectionId, ServerConnectionSettings connectionSettings);
     bool TryUpdateCredentialsById(string connectionId, ICredentials credentials);
     bool ConnectionsFileExists();
+    event EventHandler ConnectionChanged;
+    event EventHandler<ServerConnectionUpdatedEventArgs> CredentialsChanged;
 }
+
+public class ServerConnectionUpdatedEventArgs : EventArgs
+{
+    public ServerConnectionUpdatedEventArgs(ServerConnection serverConnection)
+    {
+        ServerConnection = serverConnection;
+    }
+
+    public ServerConnection ServerConnection { get; }
+}
+
