@@ -102,6 +102,7 @@ public class BindingToConnectionMigrationTests
         serverConnectionsRepository.Received(1).ConnectionsFileExists();
         serverConnectionsRepository.DidNotReceiveWithAnyArgs().TryAdd(default);
         unintrusiveBindingPathProvider.DidNotReceive().GetBindingPaths();
+        logger.Received(1).WriteLine(MigrationStrings.ConnectionMigration_NoMigration);
     }
 
     [TestMethod]
@@ -118,6 +119,7 @@ public class BindingToConnectionMigrationTests
             unintrusiveBindingPathProvider.GetBindingPaths();
             serverConnectionsRepository.TryAdd(Arg.Any<ServerConnection>());
             serverConnectionsRepository.TryAdd(Arg.Any<ServerConnection>());
+            logger.WriteLine(MigrationStrings.ConnectionMigration_EndMigration);
         });
     }
 
