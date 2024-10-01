@@ -19,11 +19,9 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.SLCore.Common.Helpers;
 
 namespace SonarLint.VisualStudio.SLCore.State;
 
@@ -32,16 +30,14 @@ namespace SonarLint.VisualStudio.SLCore.State;
 internal class ConfigScopeUpdater : IConfigScopeUpdater
 {
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
-    private readonly IConnectionIdHelper connectionIdHelper;
     private readonly ISolutionInfoProvider solutionInfoProvider;
     private readonly IThreadHandling threadHandling;
 
     [ImportingConstructor]
-    public ConfigScopeUpdater(IActiveConfigScopeTracker activeConfigScopeTracker, ISolutionInfoProvider solutionInfoProvider, IConnectionIdHelper connectionIdHelper, IThreadHandling threadHandling)
+    public ConfigScopeUpdater(IActiveConfigScopeTracker activeConfigScopeTracker, ISolutionInfoProvider solutionInfoProvider, IThreadHandling threadHandling)
     {
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.solutionInfoProvider = solutionInfoProvider;
-        this.connectionIdHelper = connectionIdHelper;
         this.threadHandling = threadHandling;
     }
 
@@ -52,7 +48,7 @@ internal class ConfigScopeUpdater : IConfigScopeUpdater
         threadHandling.RunOnBackgroundThread(() =>
         {
             HandleConfigScopeUpdateInternal(solutionName,
-                connectionIdHelper.GetConnectionIdFromServerConnection(currentBinding?.ServerConnection),
+                currentBinding?.ServerConnection.Id,
                 currentBinding?.ServerProjectKey);
             return Task.FromResult(0);
         }).Forget();

@@ -168,4 +168,7 @@
   <data name="HttpConfiguration_ServerTrustVerificationResult" xml:space="preserve">
     <value>[SLCore.Http] Server verification result: {0}</value>
   </data>
+  <data name="UnexpectedServerConnectionType" xml:space="preserve">
+    <value>Unexpected server connection type</value>
+  </data>
 </root>
