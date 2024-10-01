@@ -115,11 +115,29 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Connection Migration] End migrating connections from existing bindings.
+        /// </summary>
+        internal static string ConnectionMigration_EndMigration {
+            get {
+                return ResourceManager.GetString("ConnectionMigration_EndMigration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Connection Migration] The server connection with the id {0} was not migrated as it already exists..
         /// </summary>
         internal static string ConnectionMigration_ExistingServerConnectionNotMigrated {
             get {
                 return ResourceManager.GetString("ConnectionMigration_ExistingServerConnectionNotMigrated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Connection Migration] Connections.json exists. Migrating connections from existing bindings was not performed.
+        /// </summary>
+        internal static string ConnectionMigration_NoMigration {
+            get {
+                return ResourceManager.GetString("ConnectionMigration_NoMigration", resourceCulture);
             }
         }
         

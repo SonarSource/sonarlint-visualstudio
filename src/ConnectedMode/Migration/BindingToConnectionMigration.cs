@@ -88,6 +88,7 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
     {
         if (serverConnectionsRepository.ConnectionsFileExists())
         {
+            logger.WriteLine(MigrationStrings.ConnectionMigration_NoMigration);
             return;
         }
 
@@ -96,6 +97,7 @@ internal class BindingToConnectionMigration : IBindingToConnectionMigration
         {
             MigrateBindingToServerConnection(bindingPath);
         }
+        logger.WriteLine(MigrationStrings.ConnectionMigration_EndMigration);
     }
 
     private void MigrateBindingToServerConnection(string bindingFilePath)

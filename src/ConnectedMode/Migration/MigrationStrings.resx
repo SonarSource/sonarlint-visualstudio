@@ -230,4 +230,10 @@
   <data name="ConnectionsJson_DoesNotExist" xml:space="preserve">
     <value>[Migration] Connections.json file does not exist. The new migration has to be performed first.</value>
   </data>
+  <data name="ConnectionMigration_EndMigration" xml:space="preserve">
+    <value>[Connection Migration] End migrating connections from existing bindings</value>
+  </data>
+  <data name="ConnectionMigration_NoMigration" xml:space="preserve">
+    <value>[Connection Migration] Connections.json exists. Migrating connections from existing bindings was not performed</value>
+  </data>
 </root>
