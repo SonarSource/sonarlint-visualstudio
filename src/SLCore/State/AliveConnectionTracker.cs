@@ -18,16 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Synchronization;
-using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Connection;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
@@ -47,20 +42,21 @@ internal sealed class AliveConnectionTracker : IAliveConnectionTracker
     private readonly IThreadHandling threadHandling;
     private readonly IAsyncLock asyncLock;
     private readonly IServerConnectionsProvider serverConnectionsProvider;
-    private readonly ISolutionBindingRepository solutionBindingRepository;
+    private readonly IServerConnectionsRepository serverConnectionsRepository;
 
     [ImportingConstructor]
     public AliveConnectionTracker(ISLCoreServiceProvider serviceProvider,
         IServerConnectionsProvider serverConnectionsProvider,
-        ISolutionBindingRepository solutionBindingRepository,
+        IServerConnectionsRepository serverConnectionsRepository,
         IAsyncLockFactory asyncLockFactory,
         IThreadHandling threadHandling)
     {
         this.serviceProvider = serviceProvider;
         this.serverConnectionsProvider = serverConnectionsProvider;
         this.threadHandling = threadHandling;
-        this.solutionBindingRepository = solutionBindingRepository;
-        this.solutionBindingRepository.BindingUpdated += BindingUpdateHandler;
+        this.serverConnectionsRepository = serverConnectionsRepository;
+        this.serverConnectionsRepository.ConnectionChanged += ConnectionUpdateHandler;
+        this.serverConnectionsRepository.CredentialsChanged += CredentialsUpdateHandler;
         asyncLock = asyncLockFactory.Create();
     }
 
@@ -83,14 +79,27 @@ internal sealed class AliveConnectionTracker : IAliveConnectionTracker
 
             foreach (var connectionId in serverConnections.Keys)
             {
-                // we don't manage connections as separate entities and we don't know when credentials actually change
-                connectionConfigurationService.DidChangeCredentials(
-                    new DidChangeCredentialsParams(connectionId));
+                connectionConfigurationService.DidChangeCredentials(new DidChangeCredentialsParams(connectionId));
             }
         }
     }
 
-    private void BindingUpdateHandler(object sender, EventArgs arg)
+    internal void UpdateCredentials(string connectionId)
+    {
+        threadHandling.ThrowIfOnUIThread();
+
+        if (!serviceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService connectionConfigurationService))
+        {
+            throw new InvalidOperationException(SLCoreStrings.ServiceProviderNotInitialized);
+        }
+
+        using (asyncLock.Acquire())
+        {
+            connectionConfigurationService.DidChangeCredentials(new DidChangeCredentialsParams(connectionId));
+        }
+    }
+
+    private void ConnectionUpdateHandler(object sender, EventArgs arg)
     {
         threadHandling.RunOnBackgroundThread(() =>
         {
@@ -100,9 +109,20 @@ internal sealed class AliveConnectionTracker : IAliveConnectionTracker
         }).Forget();
     }
 
+    private void CredentialsUpdateHandler(object sender, ServerConnectionUpdatedEventArgs e)
+    {
+        threadHandling.RunOnBackgroundThread(() =>
+        {
+            UpdateCredentials(e.ServerConnection.Id);
+
+            return Task.FromResult(0);
+        }).Forget();
+    }
+
     public void Dispose()
     {
-        solutionBindingRepository.BindingUpdated -= BindingUpdateHandler;
+        serverConnectionsRepository.ConnectionChanged -= ConnectionUpdateHandler;
+        serverConnectionsRepository.CredentialsChanged -= CredentialsUpdateHandler;
         asyncLock.Dispose();
     }
 }
