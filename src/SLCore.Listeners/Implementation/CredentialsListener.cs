@@ -19,9 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Credentials;
@@ -36,24 +34,21 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
     internal class CredentialsListener : ICredentialsListener
     {
         private readonly ICredentialProvider credentialProvider;
-        private readonly IConnectionIdHelper connectionIdHelper;
 
         [ImportingConstructor]
-        public CredentialsListener(ICredentialProvider credentialProvider, IConnectionIdHelper connectionIdHelper)
+        public CredentialsListener(ICredentialProvider credentialProvider)
         {
             this.credentialProvider = credentialProvider;
-            this.connectionIdHelper = connectionIdHelper;
         }
 
         public Task<GetCredentialsResponse> GetCredentialsAsync(GetCredentialsParams parameters)
         {
-            var serverUri = connectionIdHelper.GetUriFromConnectionId(parameters?.connectionId);
-
-            if (serverUri == null)
+            if (parameters?.connectionId == null)
             {
                 return Task.FromResult(GetCredentialsResponse.NoCredentials);
             }
 
+            var serverUri = new Uri(parameters.connectionId);
             var credentials = credentialProvider.GetCredentials(serverUri);
 
             if (credentials == null)

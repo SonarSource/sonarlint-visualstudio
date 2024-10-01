@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
 namespace SonarLint.VisualStudio.SLCore.State;
@@ -35,51 +33,37 @@ internal interface IServerConnectionsProvider
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class ServerConnectionsProvider : IServerConnectionsProvider
 {
-    private readonly ISolutionBindingRepository solutionBindingRepository;
-    private readonly IConnectionIdHelper connectionIdHelper;
+    private readonly IServerConnectionsRepository serverConnectionsRepository;
 
     [ImportingConstructor]
-    public ServerConnectionsProvider(ISolutionBindingRepository solutionBindingRepository, IConnectionIdHelper connectionIdHelper)
+    public ServerConnectionsProvider(IServerConnectionsRepository serverConnectionsRepository)
     {
-        this.solutionBindingRepository = solutionBindingRepository;
-        this.connectionIdHelper = connectionIdHelper;
+        this.serverConnectionsRepository = serverConnectionsRepository;
     }
 
     public Dictionary<string, ServerConnectionConfiguration> GetServerConnections()
     {
-        return GetUniqueConnections(solutionBindingRepository.List());
+        var succeeded = serverConnectionsRepository.TryGetAll(out var serverConnections);
+        return succeeded ? GetServerConnectionConfigurations(serverConnections).ToDictionary(conf => conf.connectionId) : [];
     }
 
-    private Dictionary<string, ServerConnectionConfiguration> GetUniqueConnections(IEnumerable<BoundServerProject> bindings)
+    private static List<ServerConnectionConfiguration> GetServerConnectionConfigurations(IReadOnlyList<ServerConnection> serverConnections)
     {
-        var connections = new Dictionary<string, ServerConnectionConfiguration>();
-
-        foreach (var serverConnection in bindings.Select(b => b.ServerConnection))
+        var serverConnectionConfigurations = new List<ServerConnectionConfiguration>();
+        foreach (var serverConnection in serverConnections)
         {
-            var serverUri = serverConnection.ServerUri;
-            var organization = (serverConnection as ServerConnection.SonarCloud)?.OrganizationKey;
-            var connectionId = connectionIdHelper.GetConnectionIdFromServerConnection(GetServerConnection(serverUri, organization));
-
-            connections[connectionId] = serverUri == ConnectionIdHelper.SonarCloudUri
-                ? new SonarCloudConnectionConfigurationDto(connectionId, true, organization)
-                : new SonarQubeConnectionConfigurationDto(connectionId, true, serverUri.ToString());
+            switch (serverConnection)
+            {
+                case ServerConnection.SonarQube sonarQubeConnection:
+                    serverConnectionConfigurations.Add(new SonarQubeConnectionConfigurationDto(sonarQubeConnection.Id, !sonarQubeConnection.Settings.IsSmartNotificationsEnabled, sonarQubeConnection.ServerUri.ToString()));
+                    break;
+                case ServerConnection.SonarCloud sonarCloudConnection:
+                    serverConnectionConfigurations.Add(new SonarCloudConnectionConfigurationDto(sonarCloudConnection.Id, !sonarCloudConnection.Settings.IsSmartNotificationsEnabled, sonarCloudConnection.OrganizationKey));
+                    break;
+                default:
+                    throw new InvalidOperationException(SLCoreStrings.UnexpectedServerConnectionType);
+            }
         }
-
-        return connections;
-    }
-
-    private static ServerConnection GetServerConnection(Uri serverUri, string organization)
-    {
-        if (organization is not null)
-        {
-            return new ServerConnection.SonarCloud(organization);
-        }
-
-        if (serverUri is not null)
-        {
-            return new ServerConnection.SonarQube(serverUri);
-        }
-
-        return null;
+        return serverConnectionConfigurations;
     }
 }
