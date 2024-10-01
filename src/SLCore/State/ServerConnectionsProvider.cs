@@ -55,10 +55,10 @@ internal class ServerConnectionsProvider : IServerConnectionsProvider
             switch (serverConnection)
             {
                 case ServerConnection.SonarQube sonarQubeConnection:
-                    serverConnectionConfigurations.Add(new SonarQubeConnectionConfigurationDto(sonarQubeConnection.Id, sonarQubeConnection.Settings.IsSmartNotificationsEnabled, sonarQubeConnection.ServerUri.ToString()));
+                    serverConnectionConfigurations.Add(new SonarQubeConnectionConfigurationDto(sonarQubeConnection.Id, !sonarQubeConnection.Settings.IsSmartNotificationsEnabled, sonarQubeConnection.ServerUri.ToString()));
                     break;
                 case ServerConnection.SonarCloud sonarCloudConnection:
-                    serverConnectionConfigurations.Add(new SonarCloudConnectionConfigurationDto(sonarCloudConnection.Id, sonarCloudConnection.Settings.IsSmartNotificationsEnabled, sonarCloudConnection.OrganizationKey));
+                    serverConnectionConfigurations.Add(new SonarCloudConnectionConfigurationDto(sonarCloudConnection.Id, !sonarCloudConnection.Settings.IsSmartNotificationsEnabled, sonarCloudConnection.OrganizationKey));
                     break;
                 default:
                     throw new InvalidOperationException(SLCoreStrings.UnexpectedServerConnectionType);

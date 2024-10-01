@@ -54,7 +54,24 @@ public class ServerConnectionsProviderTests
         serverConnections.Should().HaveCount(1);
         serverConnections[connection.Id].Should().BeOfType<SonarQubeConnectionConfigurationDto>().Which.serverUrl.Should().Be(servierUriString);
     }
-    
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void GetServerConnections_CorrectlyReturnsSonarQubeNotifications(bool isSmartNotificationsEnabled)
+    {
+        const string servierUriString = "http://localhost/";
+        var serverUri = new Uri(servierUriString);
+        var connection = new ServerConnection.SonarQube(serverUri, settings: new ServerConnectionSettings(isSmartNotificationsEnabled));
+        var serverConnectionsRepository = SetServerConnectionsRepository(succeeded: true, connection);
+        var testSubject = CreateTestSubject(serverConnectionsRepository);
+
+        var serverConnections = testSubject.GetServerConnections();
+
+        serverConnections.Should().HaveCount(1);
+        serverConnections[connection.Id].Should().BeOfType<SonarQubeConnectionConfigurationDto>().Which.disableNotification.Should().Be(!isSmartNotificationsEnabled);
+    }
+
     [TestMethod]
     public void GetServerConnections_CorrectlyReturnsSonarCloudConnection()
     {
@@ -68,7 +85,23 @@ public class ServerConnectionsProviderTests
         serverConnections.Should().HaveCount(1);
         serverConnections[connection.Id].Should().BeOfType<SonarCloudConnectionConfigurationDto>().Which.organization.Should().Be(organizationKey);
     }
-    
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void GetServerConnections_CorrectlyReturnsSonarCloudNotifications(bool isSmartNotificationsEnabled)
+    {
+        const string organizationKey = "org";
+        var connection = new ServerConnection.SonarCloud(organizationKey, settings: new ServerConnectionSettings(isSmartNotificationsEnabled));
+        var serverConnectionsRepository = SetServerConnectionsRepository(succeeded: true, connection);
+        var testSubject = CreateTestSubject(serverConnectionsRepository);
+
+        var serverConnections = testSubject.GetServerConnections();
+
+        serverConnections.Should().HaveCount(1);
+        serverConnections[connection.Id].Should().BeOfType<SonarCloudConnectionConfigurationDto>().Which.disableNotification.Should().Be(!isSmartNotificationsEnabled);
+    }
+
     [TestMethod]
     public void GetServerConnections_CorrectlyHandlesMultipleConnections()
     {
