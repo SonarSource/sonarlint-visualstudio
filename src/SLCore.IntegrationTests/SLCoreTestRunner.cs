@@ -93,7 +93,7 @@ public sealed class SLCoreTestRunner : IDisposable
             var constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
             constantsProvider.ClientConstants.Returns(new ClientConstantsDto("SLVS_Integration_Tests",
                 $"SLVS_Integration_Tests/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id));
-            constantsProvider.FeatureFlags.Returns(new FeatureFlagsDto(true, true, false, true, false, false, true, false));
+            constantsProvider.FeatureFlags.Returns(new FeatureFlagsDto(true, true, false, true, false, false, true, false, false));
             constantsProvider.TelemetryConstants.Returns(new TelemetryClientConstantAttributesDto("slvs_integration_tests", "SLVS Integration Tests",
                 VersionHelper.SonarLintVersion, "17.0", new()));
             SetLanguagesConfigurationToDefaults(constantsProvider);
