@@ -37,6 +37,6 @@ public class FixSuggestionHandlerTests
     {
         var testSubject = new FixSuggestionHandler();
         
-        Exceptions.Expect<NotImplementedException>(() => testSubject.ApplyFixSuggestion());
+        Exceptions.Expect<NotImplementedException>(() => testSubject.ApplyFixSuggestion(null));
     }
 }
