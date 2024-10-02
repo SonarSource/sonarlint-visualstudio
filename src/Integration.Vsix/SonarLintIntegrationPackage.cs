@@ -19,15 +19,15 @@
  */
 
 using System.ComponentModel.Design;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.MefServices;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [ProvideAutoLoad(CommonGuids.PackageActivation, PackageAutoLoadFlags.BackgroundLoad)]
     // Register the information needed to show the package in the Help/About dialog of VS.
     // NB: The version is automatically updated by the ChangeVersion.proj
-    [InstalledProductRegistration("#110", "#112", "8.4.0.0", IconResourceID = 400)]
+    [InstalledProductRegistration("#110", "#112", "8.5.0.0", IconResourceID = 400)]
     [ProvideOptionPage(typeof(GeneralOptionsDialogPage), "SonarLint", GeneralOptionsDialogPage.PageName, 901, 902, false, 903)]
     [ProvideOptionPage(typeof(OtherOptionsDialogPage), "SonarLint", OtherOptionsDialogPage.PageName, 901, 904, true)]
     [ProvideUIContextRule(CommonGuids.PackageActivation, "SonarLintIntegrationPackageActivation",
@@ -53,12 +53,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         new string[] { "SolutionHasProjectCapability:CSharp",
                        "SolutionHasProjectCapability:VB" }
     )]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
+    [SuppressMessage("Reliability",
         "S2931:Classes with \"IDisposable\" members should implement \"IDisposable\"",
         Justification = "By-Design. The base class exposes a Dispose override in which the disposable instances will be disposed",
         Scope = "type",
         Target = "~T:SonarLint.VisualStudio.Integration.Vsix.SonarLintIntegrationPackage")]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     public class SonarLintIntegrationPackage : AsyncPackage
     {
         // Note: we don't currently have any tests for this class so we don't need to inject
@@ -72,20 +72,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private IRoslynSettingsFileSynchronizer roslynSettingsFileSynchronizer;
         private ISharedBindingSuggestionService suggestSharedBindingGoldBar;
 
-        protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await base.InitializeAsync(cancellationToken, progress);
             await JoinableTaskFactory.SwitchToMainThreadAsync();
             await InitOnUIThreadAsync();
         }
 
-        private async System.Threading.Tasks.Task InitOnUIThreadAsync()
+        private async Task InitOnUIThreadAsync()
         {
             try
             {
                 logger = await this.GetMefServiceAsync<ILogger>();
                 Debug.Assert(logger != null, "MEF composition error - failed to retrieve a logger");
-                logger.WriteLine(Resources.Strings.SL_Initializing);
+                logger.WriteLine(Strings.SL_Initializing);
 
                 IServiceProvider serviceProvider = this;
              
@@ -108,12 +108,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 suggestSharedBindingGoldBar = serviceProvider.GetMefService<ISharedBindingSuggestionService>();
                 suggestSharedBindingGoldBar.Suggest();
 
-                logger.WriteLine(Resources.Strings.SL_InitializationComplete);
+                logger.WriteLine(Strings.SL_InitializationComplete);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 // Suppress non-critical exceptions
-                logger.WriteLine(Resources.Strings.SL_ERROR, ex.Message);
+                logger.WriteLine(Strings.SL_ERROR, ex.Message);
             }
         }
 
