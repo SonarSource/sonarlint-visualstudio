@@ -53,11 +53,22 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Page>
 
+    <Compile Update="FixSuggestion\FixSuggestionResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FixSuggestionResources.resx</DependentUpon>
+    </Compile>
+
     <Compile Update="Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+
+    <EmbeddedResource Update="FixSuggestion\FixSuggestionResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FixSuggestionResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
 
     <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

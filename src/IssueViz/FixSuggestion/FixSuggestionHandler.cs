@@ -19,7 +19,13 @@
  */
 
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion;
+using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 
@@ -27,8 +33,71 @@ namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class FixSuggestionHandler : IFixSuggestionHandler
 {
+    private readonly IThreadHandling threadHandling;
+    private readonly ILogger logger;
+    private readonly IDocumentNavigator documentNavigator;
+    private readonly ISpanTranslator spanTranslator;
+    private readonly IIssueSpanCalculator issueSpanCalculator;
+
+    [ImportingConstructor]
+    internal FixSuggestionHandler(ILogger logger, IDocumentNavigator documentNavigator, IIssueSpanCalculator issueSpanCalculator) : 
+        this(ThreadHandling.Instance, logger, documentNavigator, new SpanTranslator(), issueSpanCalculator)
+    {
+    }
+
+    internal FixSuggestionHandler(
+        IThreadHandling threadHandling,
+        ILogger logger,
+        IDocumentNavigator documentNavigator,
+        ISpanTranslator spanTranslator,
+        IIssueSpanCalculator issueSpanCalculator)
+    {
+        this.threadHandling = threadHandling;
+        this.logger = logger;
+        this.documentNavigator = documentNavigator;
+        this.spanTranslator = spanTranslator;
+        this.issueSpanCalculator = issueSpanCalculator;
+    }
+
     public void ApplyFixSuggestion(ShowFixSuggestionParams parameters)
     {
-        throw new NotImplementedException();
+        threadHandling.RunOnUIThread(() =>
+        {
+            ApplyFixSuggestionInternal(parameters);
+        });
+    }
+
+    private void ApplyFixSuggestionInternal(ShowFixSuggestionParams parameters)
+    {
+        try
+        {
+            logger.WriteLine(FixSuggestionResources.ProcessingRequest, parameters.configurationScopeId, parameters.fixSuggestion.suggestionId);
+
+            var textView = documentNavigator.Open(parameters.fixSuggestion.fileEdit.idePath);
+            ApplySuggestedChanges(textView, parameters.fixSuggestion);
+
+            logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, parameters.configurationScopeId, parameters.fixSuggestion.suggestionId);
+        }
+        catch (Exception exception) when (!ErrorHandler.IsCriticalException(exception))
+        {
+            logger.WriteLine(FixSuggestionResources.ProcessingRequestFailed, parameters.configurationScopeId, parameters.fixSuggestion.suggestionId, exception.Message);
+        }
+    }
+
+    private void ApplySuggestedChanges(ITextView textView, FixSuggestionDto fixSuggestion)
+    {
+        var textEdit = textView.TextBuffer.CreateEdit();
+        foreach (var changeDto in fixSuggestion.fileEdit.changes)
+        {
+            var updatedSpan = CalculateSnapshotSpan(textView, changeDto);
+            textEdit.Replace(updatedSpan, changeDto.after);
+        }
+        textEdit.Apply();
+    }
+
+    private SnapshotSpan CalculateSnapshotSpan(ITextView textView, ChangesDto changeDto)
+    {
+        var snapshotSpan = issueSpanCalculator.CalculateSpan(textView.TextSnapshot, changeDto.beforeLineRange.startLine, changeDto.beforeLineRange.endLine);
+        return spanTranslator.TranslateTo(snapshotSpan, textView.TextBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
     }
 }
