@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Common.Models;
-
 namespace SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 
-public record FileEditDto(FileUri idePath, List<ChangesDto> changes);
+public record FileEditDto(string idePath, List<ChangesDto> changes);

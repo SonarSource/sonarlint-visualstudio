@@ -19,7 +19,6 @@
  */
 
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 using FileEditDto = SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models.FileEditDto;
@@ -36,7 +35,7 @@ public class ShowFixSuggestionParamsTests
         {
             new(new LineRangeDto(10, 10), "public void test()", "private void test()")
         };
-        var fileEditDto = new FileEditDto(new FileUri(@"C:\Users\test\TestProject\AFile.cs"), listOfChanges);
+        var fileEditDto = new FileEditDto(@"C:\Users\test\TestProject\AFile.cs", listOfChanges);
         var fixSuggestionDto = new FixSuggestionDto("SUGGESTION_ID", "AN EXPLANATION", fileEditDto);
         var testSubject = new ShowFixSuggestionParams("CONFIG_SCOPE_ID", "S1234", fixSuggestionDto);
 
@@ -48,7 +47,7 @@ public class ShowFixSuggestionParamsTests
                                           "suggestionId": "SUGGESTION_ID",
                                           "explanation": "AN EXPLANATION",
                                           "fileEdit": {
-                                            "idePath": "file:///C:/Users/test/TestProject/AFile.cs",
+                                            "idePath": "C:\\Users\\test\\TestProject\\AFile.cs",
                                             "changes": [
                                               {
                                                 "beforeLineRange": {

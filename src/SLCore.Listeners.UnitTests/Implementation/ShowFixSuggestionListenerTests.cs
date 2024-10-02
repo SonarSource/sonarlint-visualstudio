@@ -19,7 +19,6 @@
  */
 
 using SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
@@ -60,7 +59,7 @@ public class ShowFixSuggestionListenerTests
         {
             new(new LineRangeDto(10, 10), "public void test()", "private void test()")
         };
-        var fileEditDto = new FileEditDto(new FileUri(@"C:\Users\test\TestProject\AFile.cs"), listOfChanges);
+        var fileEditDto = new FileEditDto(@"C:\Users\test\TestProject\AFile.cs", listOfChanges);
         var fixSuggestionDto = new FixSuggestionDto("SUGGESTION_ID", "AN EXPLANATION", fileEditDto);
         var parameters = new ShowFixSuggestionParams("CONFIG_SCOPE_ID", "S1234", fixSuggestionDto);
         
