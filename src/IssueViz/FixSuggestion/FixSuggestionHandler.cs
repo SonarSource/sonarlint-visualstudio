@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 
@@ -26,7 +27,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class FixSuggestionHandler : IFixSuggestionHandler
 {
-    public void ApplyFixSuggestion()
+    public void ApplyFixSuggestion(ShowFixSuggestionParams parameters)
     {
         throw new NotImplementedException();
     }
