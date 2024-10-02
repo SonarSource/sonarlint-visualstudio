@@ -34,6 +34,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         /// Returns null if no textRange is passed
         /// </summary>
         SnapshotSpan? CalculateSpan(ITextRange range, ITextSnapshot currentSnapshot);
+
+        SnapshotSpan CalculateSpan(ITextSnapshot snapshot, int startLine, int endLine);
     }
 
     [Export(typeof(IIssueSpanCalculator))]
@@ -103,6 +105,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             }
 
             return snapshotSpan;
+        }
+
+        public SnapshotSpan CalculateSpan(ITextSnapshot snapshot, int startLine, int endLine)
+        {
+            // TODO add into consideration all edge cases
+            var startPosition = snapshot.GetLineFromLineNumber(startLine - 1).Start.Position;
+            var endPosition = snapshot.GetLineFromLineNumber(endLine - 1).End.Position;
+            var span = Span.FromBounds(startPosition, endPosition);
+            return new SnapshotSpan(snapshot, span);
         }
 
         private static bool RangeHasHash(ITextRange range)
