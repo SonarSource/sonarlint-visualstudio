@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
@@ -37,7 +36,7 @@ public class InitializeParamsTests
         var testSubject = new InitializeParams(
             new ClientConstantsDto("TESTname", "TESTagent", 11223344),
             new HttpConfigurationDto(new SslConfigurationDto()),
-            new FeatureFlagsDto(false, true, false, true, false, true, false, false),
+            new FeatureFlagsDto(false, true, false, true, false, true, false, false, false),
             "storageRoot",
             "workDir",
             ["myplugin1", "myplugin2"],
@@ -77,7 +76,8 @@ public class InitializeParamsTests
                                     "shouldManageServerSentEvents": false,
                                     "enableDataflowBugDetection": true,
                                     "shouldManageFullSynchronization": false,
-                                    "enableTelemetry": false
+                                    "enableTelemetry": false,
+                                    "canOpenFixSuggestion": false
                                   },
                                   "storageRoot": "storageRoot",
                                   "workDir": "workDir",

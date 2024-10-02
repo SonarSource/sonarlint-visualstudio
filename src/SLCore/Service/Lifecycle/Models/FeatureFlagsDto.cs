@@ -28,5 +28,6 @@ namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models
         bool shouldManageServerSentEvents,
         bool enableDataflowBugDetection,
         bool shouldManageFullSynchronization,
-        bool enableTelemetry);
+        bool enableTelemetry,
+        bool canOpenFixSuggestion);
 }
