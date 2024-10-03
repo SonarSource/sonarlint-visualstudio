@@ -65,16 +65,6 @@ public class FixSuggestionHandler : IFixSuggestionHandler
 
     public void ApplyFixSuggestion(ShowFixSuggestionParams parameters)
     {
-        ApplyFixSuggestionInternal(parameters);
-    }
-
-    private bool ValidateConfiguration(string configurationScopeId, out string configurationScopeRoot, out string failureReason)
-    {
-        return openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(configurationScopeId, out configurationScopeRoot, out failureReason);
-    }
-    
-    private void ApplyFixSuggestionInternal(ShowFixSuggestionParams parameters)
-    {
         if (!ValidateConfiguration(parameters.configurationScopeId, out var configurationScopeRoot, out var failureReason))
         {
             logger.WriteLine(FixSuggestionResources.GetConfigScopeRootPathFailed, parameters.configurationScopeId, failureReason);
@@ -94,6 +84,11 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         {
             logger.WriteLine(FixSuggestionResources.ProcessingRequestFailed, parameters.configurationScopeId, parameters.fixSuggestion.suggestionId, exception.Message);
         }
+    }
+
+    private bool ValidateConfiguration(string configurationScopeId, out string configurationScopeRoot, out string failureReason)
+    {
+        return openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(configurationScopeId, out configurationScopeRoot, out failureReason);
     }
 
     private void ApplySuggestedChanges(string absoluteFilePath, List<ChangesDto> changes)
