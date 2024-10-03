@@ -25,6 +25,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
+using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -35,13 +36,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.FixSuggestion;
 [TestClass]
 public class FixSuggestionHandlerTests
 {
-    private readonly FixSuggestionDto suggestionDto = new("id", "refactor", new FileEditDto(@"C:\myFile.cs", [new ChangesDto(new LineRangeDto(1, 2), "var a=1;", "")]));
+    private const string ConfigurationScopeRoot = @"C:\";
+    
+    private readonly FixSuggestionDto suggestionDto = new("scopeId", "refactor", new FileEditDto(@"myFile.cs", [new ChangesDto(new LineRangeDto(1, 2), "var a=1;", "")]));
+    
     private FixSuggestionHandler testSubject;
     private IThreadHandling threadHandling;
     private ILogger logger;
     private IDocumentNavigator documentNavigator;
     private ISpanTranslator spanTranslator;
     private IIssueSpanCalculator issueSpanCalculator;
+    private IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
 
     [TestInitialize]
     public void TestInitialize()
@@ -51,8 +56,9 @@ public class FixSuggestionHandlerTests
         documentNavigator = Substitute.For<IDocumentNavigator>();
         spanTranslator = Substitute.For<ISpanTranslator>();
         issueSpanCalculator = Substitute.For<IIssueSpanCalculator>();
+        openInIdeConfigScopeValidator = Substitute.For<IOpenInIdeConfigScopeValidator>();
 
-        testSubject = new FixSuggestionHandler(threadHandling, logger, documentNavigator, spanTranslator, issueSpanCalculator);
+        testSubject = new FixSuggestionHandler(threadHandling, logger, documentNavigator, spanTranslator, issueSpanCalculator, openInIdeConfigScopeValidator);
     }
 
     [TestMethod]
@@ -64,8 +70,9 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_RunsOnUIThread()
     {
+        MockConfigScopeRoot();
         var threadHandlingMock = Substitute.For<IThreadHandling>();
-        var fixSuggestionHandler = new FixSuggestionHandler(threadHandlingMock, logger, documentNavigator, spanTranslator, issueSpanCalculator);
+        var fixSuggestionHandler = new FixSuggestionHandler(threadHandlingMock, logger, documentNavigator, spanTranslator, issueSpanCalculator, openInIdeConfigScopeValidator);
 
         fixSuggestionHandler.ApplyFixSuggestion(CreateFixSuggestionParams());
 
@@ -78,16 +85,17 @@ public class FixSuggestionHandlerTests
         var suggestionParams = CreateFixSuggestionParams();
         var suggestedChange = suggestionParams.fixSuggestion.fileEdit.changes[0];
         var affectedSnapshot = MockCalculateSpan(suggestedChange);
+        var textView = MockOpenFile();
         var edit = Substitute.For<ITextEdit>();
-        var textView = MockTextView(edit);
-        MockOpenDocument(suggestionParams, textView);
+        textView.TextBuffer.CreateEdit().Returns(edit);
+        MockConfigScopeRoot();
 
         testSubject.ApplyFixSuggestion(suggestionParams);
 
         Received.InOrder(() =>
         {
             logger.WriteLine(FixSuggestionResources.ProcessingRequest, suggestionParams.configurationScopeId, suggestionParams.fixSuggestion.suggestionId);
-            documentNavigator.Open(suggestionDto.fileEdit.idePath);
+            documentNavigator.Open(@"C:\myFile.cs");
             textView.TextBuffer.CreateEdit();
             issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), suggestedChange.beforeLineRange.startLine, suggestedChange.beforeLineRange.endLine);
             spanTranslator.TranslateTo(affectedSnapshot, Arg.Any<ITextSnapshot>(), SpanTrackingMode.EdgeExclusive);
@@ -102,6 +110,7 @@ public class FixSuggestionHandlerTests
     {
         var suggestionParams = CreateFixSuggestionParams();
         var exceptionMsg = "error";
+        MockConfigScopeRoot();
         issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>()).Throws(new Exception(exceptionMsg));
         
         testSubject.ApplyFixSuggestion(suggestionParams);
@@ -114,6 +123,45 @@ public class FixSuggestionHandlerTests
         logger.DidNotReceive().WriteLine(FixSuggestionResources.DoneProcessingRequest, suggestionParams.configurationScopeId, suggestionParams.fixSuggestion.suggestionId);
     }
 
+    [TestMethod]
+    public void ApplyFixSuggestion_WhenConfigRootScopeNotFound_ShouldLogFailure()
+    {
+        MockFailedConfigScopeRoot("Scope not found");
+        var suggestionParams = CreateFixSuggestionParams("SpecificConfigScopeId");
+        
+        testSubject.ApplyFixSuggestion(suggestionParams);
+        
+        logger.Received().WriteLine(FixSuggestionResources.GetConfigScopeRootPathFailed, "SpecificConfigScopeId", "Scope not found");
+    }
+
+    private void MockConfigScopeRoot()
+    {
+        
+        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(Arg.Any<string>(), out Arg.Any<string>(), out Arg.Any<string>()).Returns(
+            x =>
+            {
+                x[1] = ConfigurationScopeRoot;
+                return true;
+            });
+    }
+    
+    private void MockFailedConfigScopeRoot(string failureReason)
+    {
+        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(Arg.Any<string>(), out Arg.Any<string>(), out Arg.Any<string>()).Returns(
+            x =>
+            {
+                x[2] = failureReason;
+                return false;
+            });
+    }
+
+    private ITextView MockOpenFile()
+    {
+        var textView = Substitute.For<ITextView>();
+        documentNavigator.Open(Arg.Any<string>()).Returns(textView);
+        return textView;
+    }
+
     private SnapshotSpan MockCalculateSpan(ChangesDto suggestedChange)
     {
         var affectedSnapshot = new SnapshotSpan();
@@ -122,20 +170,8 @@ public class FixSuggestionHandlerTests
         return affectedSnapshot;
     }
 
-    private void MockOpenDocument(ShowFixSuggestionParams suggestionParams, ITextView textView)
+    private ShowFixSuggestionParams CreateFixSuggestionParams(string scopeId = "scopeId")
     {
-        documentNavigator.Open(suggestionParams.fixSuggestion.fileEdit.idePath).Returns(textView);
-    }
-
-    private static ITextView MockTextView(ITextEdit edit)
-    {
-        var textView = Substitute.For<ITextView>();
-        textView.TextBuffer.CreateEdit().Returns(edit);
-        return textView;
-    }
-
-    private ShowFixSuggestionParams CreateFixSuggestionParams()
-    {
-        return new ShowFixSuggestionParams("scopeId", "key", suggestionDto);
+        return new ShowFixSuggestionParams(scopeId, "key", suggestionDto);
     }
 }

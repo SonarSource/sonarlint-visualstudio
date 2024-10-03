@@ -126,4 +126,7 @@
   <data name="ProcessingRequestFailed" xml:space="preserve">
     <value>[Fix Suggestion in IDE] Fail to process request for configuration scope: {0}, SuggestionId: {1} due to {2}.</value>
   </data>
+  <data name="GetConfigScopeRootPathFailed" xml:space="preserve">
+    <value>[Fix Suggestion in IDE] Could not determine configuration scope root path for scope [{0}] due to: {1}</value>
+  </data>
 </root>
