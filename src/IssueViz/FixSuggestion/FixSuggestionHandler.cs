@@ -103,15 +103,17 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         var textEdit = textView.TextBuffer.CreateEdit();
         foreach (var changeDto in changes)
         {
-            var updatedSpan = CalculateSnapshotSpan(textView, changeDto);
-            textEdit.Replace(updatedSpan, changeDto.after);
+            var spanToUpdate = CalculateSnapshotSpan(textView, changeDto.beforeLineRange.startLine, changeDto.beforeLineRange.endLine);
+            textView.Caret.MoveTo(spanToUpdate.Start);
+            textView.ViewScroller.EnsureSpanVisible(spanToUpdate, EnsureSpanVisibleOptions.AlwaysCenter);
+            textEdit.Replace(spanToUpdate, changeDto.after);
         }
         textEdit.Apply();
     }
 
-    private SnapshotSpan CalculateSnapshotSpan(ITextView textView, ChangesDto changeDto)
+    private SnapshotSpan CalculateSnapshotSpan(ITextView textView, int startLine, int endLine)
     {
-        var snapshotSpan = issueSpanCalculator.CalculateSpan(textView.TextSnapshot, changeDto.beforeLineRange.startLine, changeDto.beforeLineRange.endLine);
+        var snapshotSpan = issueSpanCalculator.CalculateSpan(textView.TextSnapshot, startLine, endLine);
         return spanTranslator.TranslateTo(snapshotSpan, textView.TextBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
     }
 }
