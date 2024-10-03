@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 public class FixSuggestionHandler : IFixSuggestionHandler
 {
     private readonly IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
+    private readonly IIDEWindowService ideWindowService;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
     private readonly IDocumentNavigator documentNavigator;
@@ -43,8 +44,8 @@ public class FixSuggestionHandler : IFixSuggestionHandler
     private readonly IIssueSpanCalculator issueSpanCalculator;
 
     [ImportingConstructor]
-    internal FixSuggestionHandler(ILogger logger, IDocumentNavigator documentNavigator, IIssueSpanCalculator issueSpanCalculator, IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator) : 
-        this(ThreadHandling.Instance, logger, documentNavigator, new SpanTranslator(), issueSpanCalculator, openInIdeConfigScopeValidator)
+    internal FixSuggestionHandler(ILogger logger, IDocumentNavigator documentNavigator, IIssueSpanCalculator issueSpanCalculator, IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator, IIDEWindowService ideWindowService) : 
+        this(ThreadHandling.Instance, logger, documentNavigator, new SpanTranslator(), issueSpanCalculator, openInIdeConfigScopeValidator, ideWindowService)
     {
     }
 
@@ -54,7 +55,8 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         IDocumentNavigator documentNavigator,
         ISpanTranslator spanTranslator,
         IIssueSpanCalculator issueSpanCalculator,
-        IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator)
+        IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
+        IIDEWindowService ideWindowService)
     {
         this.threadHandling = threadHandling;
         this.logger = logger;
@@ -62,6 +64,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         this.spanTranslator = spanTranslator;
         this.issueSpanCalculator = issueSpanCalculator;
         this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
+        this.ideWindowService = ideWindowService;
     }
 
     public void ApplyFixSuggestion(ShowFixSuggestionParams parameters)
@@ -99,6 +102,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
 
     private void ApplySuggestedChanges(string absoluteFilePath, List<ChangesDto> changes)
     {
+        ideWindowService.BringToFront();
         var textView = documentNavigator.Open(absoluteFilePath);
         var textEdit = textView.TextBuffer.CreateEdit();
         foreach (var changeDto in changes)
