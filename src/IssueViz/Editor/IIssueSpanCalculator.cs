@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -109,7 +108,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
         public SnapshotSpan CalculateSpan(ITextSnapshot snapshot, int startLine, int endLine)
         {
-            // TODO add into consideration all edge cases
+            if (startLine < 1 || endLine < 1 || startLine > snapshot.LineCount || endLine > snapshot.LineCount || startLine > endLine)
+            {
+                throw new ArgumentOutOfRangeException(nameof(startLine), nameof(endLine));
+            }
             var startPosition = snapshot.GetLineFromLineNumber(startLine - 1).Start.Position;
             var endPosition = snapshot.GetLineFromLineNumber(endLine - 1).End.Position;
             var span = Span.FromBounds(startPosition, endPosition);

@@ -22,7 +22,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
@@ -38,13 +37,10 @@ public class FixSuggestionHandlerTests
 {
     private const string ConfigurationScopeRoot = @"C:\";
     
-    private readonly FixSuggestionDto suggestionDto = new("scopeId", "refactor", new FileEditDto(@"myFile.cs", [new ChangesDto(new LineRangeDto(1, 2), "var a=1;", "")]));
-    
     private FixSuggestionHandler testSubject;
     private IThreadHandling threadHandling;
     private ILogger logger;
     private IDocumentNavigator documentNavigator;
-    private ISpanTranslator spanTranslator;
     private IIssueSpanCalculator issueSpanCalculator;
     private IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
     private IIDEWindowService ideWindowService;
@@ -55,12 +51,11 @@ public class FixSuggestionHandlerTests
         threadHandling = new NoOpThreadHandler();
         logger = Substitute.For<ILogger>();
         documentNavigator = Substitute.For<IDocumentNavigator>();
-        spanTranslator = Substitute.For<ISpanTranslator>();
         issueSpanCalculator = Substitute.For<IIssueSpanCalculator>();
         openInIdeConfigScopeValidator = Substitute.For<IOpenInIdeConfigScopeValidator>();
         ideWindowService = Substitute.For<IIDEWindowService>();
 
-        testSubject = new FixSuggestionHandler(threadHandling, logger, documentNavigator, spanTranslator, issueSpanCalculator, openInIdeConfigScopeValidator, ideWindowService);
+        testSubject = new FixSuggestionHandler(threadHandling, logger, documentNavigator, issueSpanCalculator, openInIdeConfigScopeValidator, ideWindowService);
     }
 
     [TestMethod]
@@ -74,7 +69,7 @@ public class FixSuggestionHandlerTests
     {
         MockConfigScopeRoot();
         var threadHandlingMock = Substitute.For<IThreadHandling>();
-        var fixSuggestionHandler = new FixSuggestionHandler(threadHandlingMock, logger, documentNavigator, spanTranslator, issueSpanCalculator, openInIdeConfigScopeValidator, ideWindowService);
+        var fixSuggestionHandler = new FixSuggestionHandler(threadHandlingMock, logger, documentNavigator, issueSpanCalculator, openInIdeConfigScopeValidator, ideWindowService);
 
         fixSuggestionHandler.ApplyFixSuggestion(CreateFixSuggestionParams());
 
@@ -86,7 +81,7 @@ public class FixSuggestionHandlerTests
     {
         var suggestionParams = CreateFixSuggestionParams();
         var suggestedChange = suggestionParams.fixSuggestion.fileEdit.changes[0];
-        var affectedSnapshot = MockCalculateSpan(suggestedChange);
+        MockCalculateSpan(suggestedChange);
         var textView = MockOpenFile();
         var edit = Substitute.For<ITextEdit>();
         textView.TextBuffer.CreateEdit().Returns(edit);
@@ -100,7 +95,6 @@ public class FixSuggestionHandlerTests
             documentNavigator.Open(@"C:\myFile.cs");
             textView.TextBuffer.CreateEdit();
             issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), suggestedChange.beforeLineRange.startLine, suggestedChange.beforeLineRange.endLine);
-            spanTranslator.TranslateTo(affectedSnapshot, Arg.Any<ITextSnapshot>(), SpanTrackingMode.EdgeExclusive);
             edit.Replace(Arg.Any<Span>(), suggestedChange.after);
             edit.Apply();
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, suggestionParams.configurationScopeId, suggestionParams.fixSuggestion.suggestionId);
@@ -160,6 +154,23 @@ public class FixSuggestionHandlerTests
         
         logger.Received().WriteLine(FixSuggestionResources.GetConfigScopeRootPathFailed, "SpecificConfigScopeId", "Scope not found");
     }
+    
+    [TestMethod]
+    public void ApplyFixSuggestion_WhenLineNumbersDoNotMatch_ShouldLogFailure()
+    {
+        MockConfigScopeRoot();
+        var edit = Substitute.For<ITextEdit>();
+        var textView = MockOpenFile();
+        textView.TextBuffer.CreateEdit().Returns(edit);
+        var suggestionWithWrongLineNumbers = CreateFixSuggestionParams(scopeId: "AScopeId", suggestionKey: "key", startLine: 0, endLine: 0);
+        issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>())
+            .Throws(new Exception("Line numbers do not match"));
+        
+        testSubject.ApplyFixSuggestion(suggestionWithWrongLineNumbers);
+        
+        edit.DidNotReceiveWithAnyArgs().Replace(default, default);
+        logger.Received().WriteLine(FixSuggestionResources.ProcessingRequestFailed, "AScopeId", "key", "Line numbers do not match");
+    }
 
     private void MockConfigScopeRoot()
     {
@@ -197,8 +208,10 @@ public class FixSuggestionHandlerTests
         return affectedSnapshot;
     }
 
-    private ShowFixSuggestionParams CreateFixSuggestionParams(string scopeId = "scopeId")
+    private static ShowFixSuggestionParams CreateFixSuggestionParams(string scopeId = "scopeId", string suggestionKey = "suggestionKey", string idePath = @"myFile.cs", int startLine = 1, int endLine = 2)
     {
-        return new ShowFixSuggestionParams(scopeId, "key", suggestionDto);
+        var fixSuggestion = new FixSuggestionDto(suggestionKey, "refactor", new FileEditDto(idePath, [new ChangesDto(new LineRangeDto(startLine, endLine), "var a=1;", "")]));
+        var suggestionParams = new ShowFixSuggestionParams(scopeId, "key", fixSuggestion);
+        return suggestionParams;
     }
 }

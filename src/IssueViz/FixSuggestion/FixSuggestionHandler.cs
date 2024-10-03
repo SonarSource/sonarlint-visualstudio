@@ -20,7 +20,6 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -40,12 +39,11 @@ public class FixSuggestionHandler : IFixSuggestionHandler
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
     private readonly IDocumentNavigator documentNavigator;
-    private readonly ISpanTranslator spanTranslator;
     private readonly IIssueSpanCalculator issueSpanCalculator;
 
     [ImportingConstructor]
     internal FixSuggestionHandler(ILogger logger, IDocumentNavigator documentNavigator, IIssueSpanCalculator issueSpanCalculator, IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator, IIDEWindowService ideWindowService) : 
-        this(ThreadHandling.Instance, logger, documentNavigator, new SpanTranslator(), issueSpanCalculator, openInIdeConfigScopeValidator, ideWindowService)
+        this(ThreadHandling.Instance, logger, documentNavigator, issueSpanCalculator, openInIdeConfigScopeValidator, ideWindowService)
     {
     }
 
@@ -53,7 +51,6 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         IThreadHandling threadHandling,
         ILogger logger,
         IDocumentNavigator documentNavigator,
-        ISpanTranslator spanTranslator,
         IIssueSpanCalculator issueSpanCalculator,
         IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
         IIDEWindowService ideWindowService)
@@ -61,7 +58,6 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         this.threadHandling = threadHandling;
         this.logger = logger;
         this.documentNavigator = documentNavigator;
-        this.spanTranslator = spanTranslator;
         this.issueSpanCalculator = issueSpanCalculator;
         this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
         this.ideWindowService = ideWindowService;
@@ -107,17 +103,11 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         var textEdit = textView.TextBuffer.CreateEdit();
         foreach (var changeDto in changes)
         {
-            var spanToUpdate = CalculateSnapshotSpan(textView, changeDto.beforeLineRange.startLine, changeDto.beforeLineRange.endLine);
+            var spanToUpdate = issueSpanCalculator.CalculateSpan(textView.TextSnapshot, changeDto.beforeLineRange.startLine, changeDto.beforeLineRange.endLine);
             textView.Caret.MoveTo(spanToUpdate.Start);
             textView.ViewScroller.EnsureSpanVisible(spanToUpdate, EnsureSpanVisibleOptions.AlwaysCenter);
             textEdit.Replace(spanToUpdate, changeDto.after);
         }
         textEdit.Apply();
-    }
-
-    private SnapshotSpan CalculateSnapshotSpan(ITextView textView, int startLine, int endLine)
-    {
-        var snapshotSpan = issueSpanCalculator.CalculateSpan(textView.TextSnapshot, startLine, endLine);
-        return spanTranslator.TranslateTo(snapshotSpan, textView.TextBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
     }
 }
