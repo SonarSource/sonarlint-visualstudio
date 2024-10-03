@@ -20,8 +20,8 @@
 
 using Microsoft.VisualStudio.Text;
 using Moq;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
         private IssueSpanCalculator testSubject;
         private const int SnapshotLength = 10000;
+        private const int SnapshotLineCount = 10000;
 
         [TestInitialize]
         public void TestInitialize()
@@ -351,15 +352,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var textSnapshotMock = MockTextSnapshotForLines(startLine, endLine);
 
             var snapshotSpan = testSubject.CalculateSpan(textSnapshotMock.Object, startLine.LineNumber, endLine.LineNumber);
-
+            
             snapshotSpan.Start.Position.Should().Be(startLine.Start.Position);
             snapshotSpan.End.Position.Should().Be(endLine.End.Position);
+        }
+        
+        [TestMethod]
+        [DataRow(0, 1)]
+        [DataRow(1, 0)]
+        [DataRow(SnapshotLineCount + 1, 1)]
+        [DataRow(1, SnapshotLineCount + 1)]
+        [DataRow(4, 1)]
+        public void CalculateSpan_ForInvalidStartAndEndLines_ThrowsException(int startLineNumber, int endLineNumber)
+        {
+            var startLine = CreateLineMock(lineNumber:startLineNumber, startPos:1, endPos:2);
+            var endLine = CreateLineMock(lineNumber:endLineNumber, startPos:13, endPos:23);
+            var textSnapshotMock = MockTextSnapshotForLines(startLine, endLine);
+
+            Action act = () => testSubject.CalculateSpan(textSnapshotMock.Object, startLine.LineNumber, endLine.LineNumber);
+            
+            act.Should().Throw<ArgumentOutOfRangeException>();
         }
 
         private static Mock<ITextSnapshot> MockTextSnapshotForLines(ITextSnapshotLine startLine, ITextSnapshotLine endLine)
         {
             var textSnapshot = new Mock<ITextSnapshot>();
-            textSnapshot.SetupGet(x => x.Length).Returns(SnapshotLength); 
+            textSnapshot.SetupGet(x => x.LineCount).Returns(SnapshotLineCount);
+            textSnapshot.SetupGet(x => x.Length).Returns(SnapshotLength);
             textSnapshot.Setup(x => x.GetLineFromLineNumber(startLine.LineNumber - 1)).Returns(startLine);
             textSnapshot.Setup(x => x.GetLineFromLineNumber(endLine.LineNumber - 1)).Returns(endLine);
 
