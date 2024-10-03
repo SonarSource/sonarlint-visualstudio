@@ -47,6 +47,7 @@ public class FixSuggestionHandlerTests
     private ISpanTranslator spanTranslator;
     private IIssueSpanCalculator issueSpanCalculator;
     private IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
+    private IIDEWindowService ideWindowService;
 
     [TestInitialize]
     public void TestInitialize()
@@ -57,8 +58,9 @@ public class FixSuggestionHandlerTests
         spanTranslator = Substitute.For<ISpanTranslator>();
         issueSpanCalculator = Substitute.For<IIssueSpanCalculator>();
         openInIdeConfigScopeValidator = Substitute.For<IOpenInIdeConfigScopeValidator>();
+        ideWindowService = Substitute.For<IIDEWindowService>();
 
-        testSubject = new FixSuggestionHandler(threadHandling, logger, documentNavigator, spanTranslator, issueSpanCalculator, openInIdeConfigScopeValidator);
+        testSubject = new FixSuggestionHandler(threadHandling, logger, documentNavigator, spanTranslator, issueSpanCalculator, openInIdeConfigScopeValidator, ideWindowService);
     }
 
     [TestMethod]
@@ -72,7 +74,7 @@ public class FixSuggestionHandlerTests
     {
         MockConfigScopeRoot();
         var threadHandlingMock = Substitute.For<IThreadHandling>();
-        var fixSuggestionHandler = new FixSuggestionHandler(threadHandlingMock, logger, documentNavigator, spanTranslator, issueSpanCalculator, openInIdeConfigScopeValidator);
+        var fixSuggestionHandler = new FixSuggestionHandler(threadHandlingMock, logger, documentNavigator, spanTranslator, issueSpanCalculator, openInIdeConfigScopeValidator, ideWindowService);
 
         fixSuggestionHandler.ApplyFixSuggestion(CreateFixSuggestionParams());
 
@@ -103,6 +105,17 @@ public class FixSuggestionHandlerTests
             edit.Apply();
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, suggestionParams.configurationScopeId, suggestionParams.fixSuggestion.suggestionId);
         });
+    }
+    
+    [TestMethod]
+    public void ApplyFixSuggestion_WhenApplyingChange_BringWindowToFront()
+    {
+        var suggestionParams = CreateFixSuggestionParams();
+        MockConfigScopeRoot();
+
+        testSubject.ApplyFixSuggestion(suggestionParams);
+        
+        ideWindowService.Received().BringToFront();
     }
 
     [TestMethod]
