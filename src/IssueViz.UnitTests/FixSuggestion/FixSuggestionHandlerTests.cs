@@ -106,6 +106,20 @@ public class FixSuggestionHandlerTests
     }
 
     [TestMethod]
+    public void ApplyFixSuggestion_WhenApplyingChange_BringFocusToChangedLines()
+    {
+        var suggestionParams = CreateFixSuggestionParams();
+        var suggestedChange = suggestionParams.fixSuggestion.fileEdit.changes[0];
+        var affectedSnapshot = MockCalculateSpan(suggestedChange);
+        var textView = MockOpenFile();
+        MockConfigScopeRoot();
+
+        testSubject.ApplyFixSuggestion(suggestionParams);
+        
+        textView.ViewScroller.Received().EnsureSpanVisible(affectedSnapshot, EnsureSpanVisibleOptions.AlwaysCenter);
+    }
+
+    [TestMethod]
     public void ApplyFixSuggestion_Throws_Logs()
     {
         var suggestionParams = CreateFixSuggestionParams();
