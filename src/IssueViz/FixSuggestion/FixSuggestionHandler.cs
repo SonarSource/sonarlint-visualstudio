@@ -95,8 +95,9 @@ public class FixSuggestionHandler : IFixSuggestionHandler
     {
         ideWindowService.BringToFront();
         var textView = documentNavigator.Open(absoluteFilePath);
-        foreach (var changeDto in changes)
+        for (var i = changes.Count - 1; i >= 0; i--)
         {
+            var changeDto = changes[i];
             var textEdit = textView.TextBuffer.CreateEdit();
             try
             {

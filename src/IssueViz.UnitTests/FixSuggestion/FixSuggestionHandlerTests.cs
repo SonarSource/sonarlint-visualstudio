@@ -101,6 +101,29 @@ public class FixSuggestionHandlerTests
         });
     }
 
+    /// <summary>
+    /// The changes are applied from bottom to top to avoid changing the line numbers
+    /// of the changes that are below the current change.
+    ///
+    /// This is important when the change is more lines than the original line range.
+    /// </summary>
+    [TestMethod]
+    public void ApplyFixSuggestion_WhenMoreThanOneFixes_ApplyThemFromBottomToTop()
+    {
+        MockConfigScopeRoot();
+        MockOpenFile();
+        List<ChangesDto> changes = [CreateChangesDto(1, 1), CreateChangesDto(3, 3)];
+        var suggestionParams = CreateFixSuggestionParams(changes: changes);
+        
+        testSubject.ApplyFixSuggestion(suggestionParams);
+        
+        Received.InOrder(() =>
+        {
+            issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), 3, 3);
+            issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), 1, 1);
+        });
+    }
+
     [TestMethod]
     public void ApplyFixSuggestion_WhenApplyingChange_BringWindowToFront()
     {
