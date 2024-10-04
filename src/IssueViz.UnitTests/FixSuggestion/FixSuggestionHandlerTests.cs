@@ -100,7 +100,7 @@ public class FixSuggestionHandlerTests
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, suggestionParams.configurationScopeId, suggestionParams.fixSuggestion.suggestionId);
         });
     }
-    
+
     [TestMethod]
     public void ApplyFixSuggestion_WhenApplyingChange_BringWindowToFront()
     {
@@ -158,23 +158,39 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_WhenLineNumbersDoNotMatch_ShouldLogFailure()
     {
-        MockConfigScopeRoot();
-        var edit = Substitute.For<ITextEdit>();
-        var textView = MockOpenFile();
-        textView.TextBuffer.CreateEdit().Returns(edit);
-        var suggestionWithWrongLineNumbers = CreateFixSuggestionParams(scopeId: "AScopeId", suggestionKey: "key", startLine: 0, endLine: 0);
-        issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>())
-            .Throws(new Exception("Line numbers do not match"));
+        FailWhenApplyingEdit(out var suggestionWithWrongLineNumbers, "Line numbers do not match");
         
         testSubject.ApplyFixSuggestion(suggestionWithWrongLineNumbers);
         
-        edit.DidNotReceiveWithAnyArgs().Replace(default, default);
         logger.Received().WriteLine(FixSuggestionResources.ProcessingRequestFailed, "AScopeId", "key", "Line numbers do not match");
+    }
+    
+    [TestMethod]
+    public void ApplyFixSuggestion_WhenApplyingChangeAndExceptionIsThrown_ShouldCancelEdit()
+    {
+        var edit = FailWhenApplyingEdit(out var suggestionWithWrongLineNumbers);
+
+        testSubject.ApplyFixSuggestion(suggestionWithWrongLineNumbers);
+        
+        edit.DidNotReceiveWithAnyArgs().Replace(default, default);
+        edit.Received().Cancel();
+    }
+    
+    private static ShowFixSuggestionParams CreateFixSuggestionParams(string scopeId = "scopeId", string suggestionKey = "suggestionKey", string idePath = @"myFile.cs", List<ChangesDto> changes = null)
+    {
+        changes ??= [CreateChangesDto()];
+        var fixSuggestion = new FixSuggestionDto(suggestionKey, "refactor", new FileEditDto(idePath, changes));
+        var suggestionParams = new ShowFixSuggestionParams(scopeId, "key", fixSuggestion);
+        return suggestionParams;
+    }
+
+    private static ChangesDto CreateChangesDto(int startLine = 1, int endLine = 2)
+    {
+        return new ChangesDto(new LineRangeDto(startLine, endLine), "var a=1;", "");
     }
 
     private void MockConfigScopeRoot()
     {
-        
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(Arg.Any<string>(), out Arg.Any<string>(), out Arg.Any<string>()).Returns(
             x =>
             {
@@ -207,11 +223,16 @@ public class FixSuggestionHandlerTests
             .Returns(affectedSnapshot);
         return affectedSnapshot;
     }
-
-    private static ShowFixSuggestionParams CreateFixSuggestionParams(string scopeId = "scopeId", string suggestionKey = "suggestionKey", string idePath = @"myFile.cs", int startLine = 1, int endLine = 2)
+    
+    private ITextEdit FailWhenApplyingEdit(out ShowFixSuggestionParams suggestionWithWrongLineNumbers, string reason = "")
     {
-        var fixSuggestion = new FixSuggestionDto(suggestionKey, "refactor", new FileEditDto(idePath, [new ChangesDto(new LineRangeDto(startLine, endLine), "var a=1;", "")]));
-        var suggestionParams = new ShowFixSuggestionParams(scopeId, "key", fixSuggestion);
-        return suggestionParams;
+        MockConfigScopeRoot();
+        var edit = Substitute.For<ITextEdit>();
+        var textView = MockOpenFile();
+        textView.TextBuffer.CreateEdit().Returns(edit);
+        suggestionWithWrongLineNumbers = CreateFixSuggestionParams(scopeId: "AScopeId", suggestionKey: "key");
+        issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>())
+            .Throws(new Exception(reason));
+        return edit;
     }
 }
