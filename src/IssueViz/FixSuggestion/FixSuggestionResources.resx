@@ -129,4 +129,13 @@
   <data name="GetConfigScopeRootPathFailed" xml:space="preserve">
     <value>[Fix Suggestion in IDE] Could not determine configuration scope root path for scope [{0}] due to: {1}</value>
   </data>
+  <data name="InfoBarButtonMoreInfo" xml:space="preserve">
+    <value>Learn more</value>
+  </data>
+  <data name="InfoBarButtonShowLogs" xml:space="preserve">
+    <value>Show logs</value>
+  </data>
+  <data name="InfoBarDefaultMessage" xml:space="preserve">
+    <value>Could not handle Open in IDE request. See the Logs for more information.</value>
+  </data>
 </root>

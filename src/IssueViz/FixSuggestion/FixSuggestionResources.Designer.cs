@@ -78,6 +78,32 @@ namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Learn more.
+        /// </summary>
+        internal static string InfoBarButtonMoreInfo {
+            get {
+                return ResourceManager.GetString("InfoBarButtonMoreInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show logs.
+        /// </summary>
+        internal static string InfoBarButtonShowLogs {
+            get {
+                return ResourceManager.GetString("InfoBarButtonShowLogs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not handle Open in IDE request. See the Logs for more information..
+        /// </summary>
+        internal static string InfoBarDefaultMessage {
+            get {
+                return ResourceManager.GetString("InfoBarDefaultMessage", resourceCulture);
+            }
+        }
+        
         ///   Looks up a localized string similar to [Fix Suggestion in IDE] Processing request. Configuration scope: {0}, SuggestionId: {1}.
         /// </summary>
         internal static string ProcessingRequest {
