@@ -374,6 +374,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             act.Should().Throw<ArgumentOutOfRangeException>();
         }
 
+        [TestMethod]
+        public void IsSameHash_SnapshotIsSameAsText_ReturnsTrue()
+        {
+            var textSnapshotMock = new SnapshotSpan(CreateSnapshotMock().Object, 1, 1);
+            checksumCalculatorMock.Setup(mock => mock.Calculate(It.IsAny<string>())).Returns("sameHash");
+
+            var result = testSubject.IsSameHash(textSnapshotMock, "test");
+
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void IsSameHash_SnapshotIsSameAsText_ReturnsFalse()
+        {
+            var textSnapshotMock = new SnapshotSpan(CreateSnapshotMock().Object, 1, 1);
+            checksumCalculatorMock.SetupSequence(mock => mock.Calculate(It.IsAny<string>())).Returns("hash1").Returns("hash2");
+
+            var result = testSubject.IsSameHash(textSnapshotMock, "test");
+
+            result.Should().BeFalse();
+        }
+
         private static Mock<ITextSnapshot> MockTextSnapshotForLines(ITextSnapshotLine startLine, ITextSnapshotLine endLine)
         {
             var textSnapshot = new Mock<ITextSnapshot>();

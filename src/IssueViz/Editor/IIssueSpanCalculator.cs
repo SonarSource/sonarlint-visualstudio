@@ -35,6 +35,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         SnapshotSpan? CalculateSpan(ITextRange range, ITextSnapshot currentSnapshot);
 
         SnapshotSpan CalculateSpan(ITextSnapshot snapshot, int startLine, int endLine);
+
+        /// <summary>
+        /// Returns true only if the provided <param name="text"/> has the same hash as the text contained in the <paramref name="snapshotSpan"/>
+        /// </summary>
+        bool IsSameHash(SnapshotSpan snapshotSpan, string text);
     }
 
     [Export(typeof(IIssueSpanCalculator))]
@@ -116,6 +121,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             var endPosition = snapshot.GetLineFromLineNumber(endLine - 1).End.Position;
             var span = Span.FromBounds(startPosition, endPosition);
             return new SnapshotSpan(snapshot, span);
+        }
+
+        public bool IsSameHash(SnapshotSpan snapshotSpan, string text)
+        {
+            var snapsShotHash = checksumCalculator.Calculate(snapshotSpan.GetText());
+            var textHash = checksumCalculator.Calculate(text);
+
+            return snapsShotHash == textHash;
         }
 
         private static bool RangeHasHash(ITextRange range)
