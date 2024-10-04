@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using NSubstitute.ExceptionExtensions;
@@ -44,6 +45,7 @@ public class FixSuggestionHandlerTests
     private IIssueSpanCalculator issueSpanCalculator;
     private IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
     private IIDEWindowService ideWindowService;
+    private IFixSuggestionNotification fixSuggestionNotification;
 
     [TestInitialize]
     public void TestInitialize()
@@ -54,8 +56,16 @@ public class FixSuggestionHandlerTests
         issueSpanCalculator = Substitute.For<IIssueSpanCalculator>();
         openInIdeConfigScopeValidator = Substitute.For<IOpenInIdeConfigScopeValidator>();
         ideWindowService = Substitute.For<IIDEWindowService>();
+        fixSuggestionNotification = Substitute.For<IFixSuggestionNotification>();
 
-        testSubject = new FixSuggestionHandler(threadHandling, logger, documentNavigator, issueSpanCalculator, openInIdeConfigScopeValidator, ideWindowService);
+        testSubject = new FixSuggestionHandler(
+            threadHandling,
+            logger,
+            documentNavigator,
+            issueSpanCalculator,
+            openInIdeConfigScopeValidator,
+            ideWindowService,
+            fixSuggestionNotification);
     }
 
     [TestMethod]
@@ -69,7 +79,14 @@ public class FixSuggestionHandlerTests
     {
         MockConfigScopeRoot();
         var threadHandlingMock = Substitute.For<IThreadHandling>();
-        var fixSuggestionHandler = new FixSuggestionHandler(threadHandlingMock, logger, documentNavigator, issueSpanCalculator, openInIdeConfigScopeValidator, ideWindowService);
+        var fixSuggestionHandler = new FixSuggestionHandler(
+            threadHandlingMock,
+            logger,
+            documentNavigator,
+            issueSpanCalculator,
+            openInIdeConfigScopeValidator,
+            ideWindowService,
+            fixSuggestionNotification);
 
         fixSuggestionHandler.ApplyFixSuggestion(CreateFixSuggestionParams());
 
@@ -212,6 +229,44 @@ public class FixSuggestionHandlerTests
         return new ChangesDto(new LineRangeDto(startLine, endLine), "var a=1;", "");
     }
 
+    [TestMethod]
+    public void ApplyFixSuggestion_FileCanNotBeOpened_LogsAndShowsNotification()
+    {
+        var suggestionParams = CreateFixSuggestionParams();
+        MockConfigScopeRoot();
+        var errorMessage = "error";
+        documentNavigator.Open(Arg.Any<string>()).Throws(new Exception(errorMessage));
+
+        testSubject.ApplyFixSuggestion(suggestionParams);
+
+        logger.Received().WriteLine(Resources.ERR_OpenDocumentException, suggestionParams.fixSuggestion.fileEdit.idePath, errorMessage);
+        fixSuggestionNotification.Received(1).UnableToOpenFileAsync(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionParams)));
+    }
+
+    [TestMethod]
+    public void ApplyFixSuggestion_FileContentIsNull_LogsAndShowsNotification()
+    {
+        var suggestionParams = CreateFixSuggestionParams();
+        MockConfigScopeRoot();
+        documentNavigator.Open(Arg.Any<string>()).Returns((ITextView)null);
+
+        testSubject.ApplyFixSuggestion(suggestionParams);
+
+        logger.DidNotReceive().WriteLine(Resources.ERR_OpenDocumentException, Arg.Any<string>(), Arg.Any<string>());
+        fixSuggestionNotification.Received(1).UnableToOpenFileAsync(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionParams)));
+    }
+
+    [TestMethod]
+    public void ApplyFixSuggestion_ClearsPreviousNotification()
+    {
+        var suggestionParams = CreateFixSuggestionParams();
+        MockConfigScopeRoot();
+
+        testSubject.ApplyFixSuggestion(suggestionParams);
+
+        fixSuggestionNotification.Received(1).ClearAsync();
+    }
+
     private void MockConfigScopeRoot()
     {
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(Arg.Any<string>(), out Arg.Any<string>(), out Arg.Any<string>()).Returns(
@@ -258,4 +313,7 @@ public class FixSuggestionHandlerTests
             .Throws(new Exception(reason));
         return edit;
     }
+
+    private string GetAbsolutePathOfFile(ShowFixSuggestionParams suggestionParams) =>
+        Path.Combine(ConfigurationScopeRoot, suggestionParams.fixSuggestion.fileEdit.idePath);
 }

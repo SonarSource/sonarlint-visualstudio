@@ -21,9 +21,12 @@
 using System.ComponentModel.Composition;
 using System.IO;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
@@ -36,14 +39,28 @@ public class FixSuggestionHandler : IFixSuggestionHandler
 {
     private readonly IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
     private readonly IIDEWindowService ideWindowService;
+    private readonly IFixSuggestionNotification fixSuggestionNotification;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
     private readonly IDocumentNavigator documentNavigator;
     private readonly IIssueSpanCalculator issueSpanCalculator;
 
     [ImportingConstructor]
-    internal FixSuggestionHandler(ILogger logger, IDocumentNavigator documentNavigator, IIssueSpanCalculator issueSpanCalculator, IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator, IIDEWindowService ideWindowService) : 
-        this(ThreadHandling.Instance, logger, documentNavigator, issueSpanCalculator, openInIdeConfigScopeValidator, ideWindowService)
+    internal FixSuggestionHandler(
+        ILogger logger,
+        IDocumentNavigator documentNavigator,
+        IIssueSpanCalculator issueSpanCalculator,
+        IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
+        IIDEWindowService ideWindowService,
+        IFixSuggestionNotification fixSuggestionNotification) : 
+        this(
+            ThreadHandling.Instance,
+            logger,
+            documentNavigator,
+            issueSpanCalculator,
+            openInIdeConfigScopeValidator,
+            ideWindowService, 
+            fixSuggestionNotification)
     {
     }
 
@@ -53,7 +70,8 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         IDocumentNavigator documentNavigator,
         IIssueSpanCalculator issueSpanCalculator,
         IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
-        IIDEWindowService ideWindowService)
+        IIDEWindowService ideWindowService, 
+        IFixSuggestionNotification fixSuggestionNotification)
     {
         this.threadHandling = threadHandling;
         this.logger = logger;
@@ -61,6 +79,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         this.issueSpanCalculator = issueSpanCalculator;
         this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
         this.ideWindowService = ideWindowService;
+        this.fixSuggestionNotification = fixSuggestionNotification;
     }
 
     public void ApplyFixSuggestion(ShowFixSuggestionParams parameters)
@@ -74,10 +93,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         try
         {
             logger.WriteLine(FixSuggestionResources.ProcessingRequest, parameters.configurationScopeId, parameters.fixSuggestion.suggestionId);
-
-            var absoluteFilePath = Path.Combine(configurationScopeRoot, parameters.fixSuggestion.fileEdit.idePath);
-            threadHandling.RunOnUIThread(() => ApplySuggestedChanges(absoluteFilePath, parameters.fixSuggestion.fileEdit.changes));
-
+            threadHandling.RunOnUIThread(() => ApplyAndShowAppliedFixSuggestions(parameters, configurationScopeRoot));
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, parameters.configurationScopeId, parameters.fixSuggestion.suggestionId);
         }
         catch (Exception exception) when (!ErrorHandler.IsCriticalException(exception))
@@ -91,10 +107,21 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         return openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(configurationScopeId, out configurationScopeRoot, out failureReason);
     }
 
-    private void ApplySuggestedChanges(string absoluteFilePath, List<ChangesDto> changes)
+    private void ApplyAndShowAppliedFixSuggestions(ShowFixSuggestionParams parameters, string configurationScopeRoot)
     {
+        fixSuggestionNotification.ClearAsync().Forget();
         ideWindowService.BringToFront();
-        var textView = documentNavigator.Open(absoluteFilePath);
+        var absoluteFilePath = Path.Combine(configurationScopeRoot, parameters.fixSuggestion.fileEdit.idePath);
+        var textView = GetFileContent(parameters, absoluteFilePath);
+        if (!ValidateFileExists(textView, absoluteFilePath))
+        {
+            return;
+        }
+        ApplySuggestedChanges(textView, parameters.fixSuggestion.fileEdit.changes);
+    }
+
+    private void ApplySuggestedChanges(ITextView textView, List<ChangesDto> changes)
+    {
         for (var i = changes.Count - 1; i >= 0; i--)
         {
             var changeDto = changes[i];
@@ -112,6 +139,31 @@ public class FixSuggestionHandler : IFixSuggestionHandler
                 textEdit.Cancel();
                 throw;
             }
+        }
+    }
+
+    private bool ValidateFileExists(ITextView fileContent, string absoluteFilePath)
+    {
+        if (fileContent != null)
+        {
+            return true;
+        }
+
+        fixSuggestionNotification.UnableToOpenFileAsync(absoluteFilePath).Forget();
+        return false;
+    }
+
+    private ITextView GetFileContent(ShowFixSuggestionParams parameters, string absoluteFilePath)
+    {
+        try
+        {
+          
+            return documentNavigator.Open(absoluteFilePath);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.WriteLine(Resources.ERR_OpenDocumentException, parameters.fixSuggestion.fileEdit.idePath, ex.Message);
+            return null;
         }
     }
 }

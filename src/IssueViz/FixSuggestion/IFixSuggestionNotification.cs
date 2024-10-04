@@ -21,12 +21,13 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
-using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 
 public interface IFixSuggestionNotification
 {
+    Task UnableToOpenFileAsync(string filePath);
+
     Task ShowAsync(string text);
 
     Task ClearAsync();
@@ -53,6 +54,12 @@ internal sealed class FixSuggestionNotification : IFixSuggestionNotification, ID
         this.outputWindowService = outputWindowService;
         this.browService = browService;
         this.threadHandling = threadHandling;
+    }
+
+    public async Task UnableToOpenFileAsync(string filePath)
+    {
+        var unableToOpenFileMsg = string.Format(FixSuggestionResources.InfoBarUnableToOpenFile, filePath);
+        await ShowAsync(unableToOpenFileMsg);
     }
 
     public async Task ShowAsync(string text)

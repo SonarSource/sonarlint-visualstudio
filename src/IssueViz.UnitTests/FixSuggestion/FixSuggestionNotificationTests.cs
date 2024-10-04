@@ -211,6 +211,18 @@ public class FixSuggestionNotificationTests
         await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
     }
 
+    [TestMethod]
+    public async Task UnableToOpenFileAsync_CallsShowAsyncWithCorrectMessage()
+    {
+        var infoBar = MockInfoBar();
+        MockAttachInfoBarToMainWindow(infoBar);
+        var myPath = "c://myFile.cs";
+        
+        await testSubject.UnableToOpenFileAsync(myPath);
+
+        CheckInfoBarWithEventsAdded(infoBar, string.Format(FixSuggestionResources.InfoBarUnableToOpenFile, myPath));
+    }
+
     private async Task MockPreviousInfoBar(IInfoBar infoBar = null)
     {
         infoBar ??= MockInfoBar();
