@@ -235,6 +235,18 @@ public class FixSuggestionNotificationTests
         CheckInfoBarWithEventsAdded(infoBar, string.Format(FixSuggestionResources.InfoBarInvalidRequest, reason));
     }
 
+    [TestMethod]
+    public async Task UnableToLocateIssue_CallsShowAsyncWithCorrectMessage()
+    {
+        var infoBar = MockInfoBar();
+        MockAttachInfoBarToMainWindow(infoBar);
+        var myPath = "c://myFile.cs";
+
+        await testSubject.UnableToLocateIssue(myPath);
+
+        CheckInfoBarWithEventsAdded(infoBar, string.Format(FixSuggestionResources.InfoBarUnableToLocateFixSuggestion, myPath));
+    }
+
     private async Task MockPreviousInfoBar(IInfoBar infoBar = null)
     {
         infoBar ??= MockInfoBar();

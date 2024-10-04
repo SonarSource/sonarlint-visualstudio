@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
@@ -119,29 +120,45 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         {
             return;
         }
-        ApplySuggestedChanges(textView, parameters.fixSuggestion.fileEdit.changes);
+        ApplySuggestedChanges(textView, parameters.fixSuggestion.fileEdit.changes, absoluteFilePath);
     }
 
-    private void ApplySuggestedChanges(ITextView textView, List<ChangesDto> changes)
+    private void ApplySuggestedChanges(ITextView textView, List<ChangesDto> changes, string filePath)
     {
-        for (var i = changes.Count - 1; i >= 0; i--)
+        var textEdit = textView.TextBuffer.CreateEdit();
+        try
         {
-            var changeDto = changes[i];
-            var textEdit = textView.TextBuffer.CreateEdit();
-            try
+            for (var i = changes.Count - 1; i >= 0; i--)
             {
+                var changeDto = changes[i];
+
                 var spanToUpdate = issueSpanCalculator.CalculateSpan(textView.TextSnapshot, changeDto.beforeLineRange.startLine, changeDto.beforeLineRange.endLine);
+                if (!ValidateIssueStillExists(spanToUpdate, changeDto, filePath))
+                {
+                    return;
+                }
+
                 textView.Caret.MoveTo(spanToUpdate.Start);
                 textView.ViewScroller.EnsureSpanVisible(spanToUpdate, EnsureSpanVisibleOptions.AlwaysCenter);
                 textEdit.Replace(spanToUpdate, changeDto.after);
-                textEdit.Apply();
             }
-            catch (Exception)
-            {
-                textEdit.Cancel();
-                throw;
-            }
+            textEdit.Apply();
         }
+        finally
+        {
+            textEdit.Cancel();
+        }
+    }
+
+    private bool ValidateIssueStillExists(SnapshotSpan spanToUpdate, ChangesDto changeDto, string filePath)
+    {
+        if (issueSpanCalculator.IsSameHash(spanToUpdate, changeDto.before))
+        {
+            return true;
+        }
+
+        fixSuggestionNotification.UnableToLocateIssue(filePath).Forget();
+        return false;
     }
 
     private bool ValidateFileExists(ITextView fileContent, string absoluteFilePath)
@@ -159,7 +176,6 @@ public class FixSuggestionHandler : IFixSuggestionHandler
     {
         try
         {
-          
             return documentNavigator.Open(absoluteFilePath);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))

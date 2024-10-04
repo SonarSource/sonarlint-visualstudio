@@ -144,4 +144,7 @@
   <data name="InfoBarInvalidRequest" xml:space="preserve">
     <value>Unable to process Fix Suggestion in IDE request. Reason: {0}</value>
   </data>
+  <data name="InfoBarUnableToLocateFixSuggestion" xml:space="preserve">
+    <value>Fix Suggestion in IDE. Could not locate the issue in the file. Please ensure the file ({0}) has not been modified.</value>
+  </data>
 </root>

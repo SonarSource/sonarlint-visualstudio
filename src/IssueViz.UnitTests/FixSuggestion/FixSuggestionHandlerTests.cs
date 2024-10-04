@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.FixSuggestion;
 public class FixSuggestionHandlerTests
 {
     private const string ConfigurationScopeRoot = @"C:\";
-    
+    private readonly ShowFixSuggestionParams suggestionWithOneChange = CreateFixSuggestionParams(changes: CreateChangesDto(1, 1, "var a=1;"));
     private FixSuggestionHandler testSubject;
     private IThreadHandling threadHandling;
     private ILogger logger;
@@ -66,6 +66,8 @@ public class FixSuggestionHandlerTests
             openInIdeConfigScopeValidator,
             ideWindowService,
             fixSuggestionNotification);
+        MockConfigScopeRoot();
+        issueSpanCalculator.IsSameHash(Arg.Any<SnapshotSpan>(), Arg.Any<string>()).Returns(true);
     }
 
     [TestMethod]
@@ -77,7 +79,6 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_RunsOnUIThread()
     {
-        MockConfigScopeRoot();
         var threadHandlingMock = Substitute.For<IThreadHandling>();
         var fixSuggestionHandler = new FixSuggestionHandler(
             threadHandlingMock,
@@ -88,7 +89,7 @@ public class FixSuggestionHandlerTests
             ideWindowService,
             fixSuggestionNotification);
 
-        fixSuggestionHandler.ApplyFixSuggestion(CreateFixSuggestionParams());
+        fixSuggestionHandler.ApplyFixSuggestion(suggestionWithOneChange);
 
         threadHandlingMock.ReceivedWithAnyArgs().RunOnUIThread(default);
     }
@@ -96,19 +97,16 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_OneChange_AppliesChange()
     {
-        var suggestionParams = CreateFixSuggestionParams();
-        var suggestedChange = suggestionParams.fixSuggestion.fileEdit.changes[0];
+        var suggestedChange = suggestionWithOneChange.fixSuggestion.fileEdit.changes[0];
         MockCalculateSpan(suggestedChange);
         var textView = MockOpenFile();
-        var edit = Substitute.For<ITextEdit>();
-        textView.TextBuffer.CreateEdit().Returns(edit);
-        MockConfigScopeRoot();
+        var edit = MockTextEdit(textView);
 
-        testSubject.ApplyFixSuggestion(suggestionParams);
+        testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
         Received.InOrder(() =>
         {
-            logger.WriteLine(FixSuggestionResources.ProcessingRequest, suggestionParams.configurationScopeId, suggestionParams.fixSuggestion.suggestionId);
+            logger.WriteLine(FixSuggestionResources.ProcessingRequest, suggestionWithOneChange.configurationScopeId, suggestionWithOneChange.fixSuggestion.suggestionId);
             ideWindowService.BringToFront();
             fixSuggestionNotification.ClearAsync();
             documentNavigator.Open(@"C:\myFile.cs");
@@ -116,8 +114,22 @@ public class FixSuggestionHandlerTests
             issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), suggestedChange.beforeLineRange.startLine, suggestedChange.beforeLineRange.endLine);
             edit.Replace(Arg.Any<Span>(), suggestedChange.after);
             edit.Apply();
-            logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, suggestionParams.configurationScopeId, suggestionParams.fixSuggestion.suggestionId);
+            logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, suggestionWithOneChange.configurationScopeId, suggestionWithOneChange.fixSuggestion.suggestionId);
         });
+    }
+
+    [TestMethod]
+    public void ApplyFixSuggestion_TwoChanges_AppliesChangeOnce()
+    {
+        var suggestionWithTwoChanges = CreateFixSuggestionParams(changes: [CreateChangesDto(1, 1, "var a=1;"), CreateChangesDto(2, 2, "var b=0;")]);
+        var textView = MockOpenFile();
+        var edit = MockTextEdit(textView);
+
+        testSubject.ApplyFixSuggestion(suggestionWithTwoChanges);
+
+        issueSpanCalculator.Received(2).CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>());
+        edit.Received(2).Replace(Arg.Any<Span>(), Arg.Any<string>());
+        edit.Received(1).Apply();
     }
 
     /// <summary>
@@ -129,9 +141,8 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_WhenMoreThanOneFixes_ApplyThemFromBottomToTop()
     {
-        MockConfigScopeRoot();
         MockOpenFile();
-        List<ChangesDto> changes = [CreateChangesDto(1, 1), CreateChangesDto(3, 3)];
+        ChangesDto[] changes = [CreateChangesDto(1, 1, "var a=1;"), CreateChangesDto(3, 3, "var b=0;")];
         var suggestionParams = CreateFixSuggestionParams(changes: changes);
         
         testSubject.ApplyFixSuggestion(suggestionParams);
@@ -146,10 +157,7 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_WhenApplyingChange_BringWindowToFront()
     {
-        var suggestionParams = CreateFixSuggestionParams();
-        MockConfigScopeRoot();
-
-        testSubject.ApplyFixSuggestion(suggestionParams);
+        testSubject.ApplyFixSuggestion(suggestionWithOneChange);
         
         ideWindowService.Received().BringToFront();
     }
@@ -157,13 +165,11 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_WhenApplyingChange_BringFocusToChangedLines()
     {
-        var suggestionParams = CreateFixSuggestionParams();
-        var suggestedChange = suggestionParams.fixSuggestion.fileEdit.changes[0];
+        var suggestedChange = suggestionWithOneChange.fixSuggestion.fileEdit.changes[0];
         var affectedSnapshot = MockCalculateSpan(suggestedChange);
         var textView = MockOpenFile();
-        MockConfigScopeRoot();
-
-        testSubject.ApplyFixSuggestion(suggestionParams);
+        
+        testSubject.ApplyFixSuggestion(suggestionWithOneChange);
         
         textView.ViewScroller.Received().EnsureSpanVisible(affectedSnapshot, EnsureSpanVisibleOptions.AlwaysCenter);
     }
@@ -171,19 +177,17 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_Throws_Logs()
     {
-        var suggestionParams = CreateFixSuggestionParams();
         var exceptionMsg = "error";
-        MockConfigScopeRoot();
         issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>()).Throws(new Exception(exceptionMsg));
         
-        testSubject.ApplyFixSuggestion(suggestionParams);
+        testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
         Received.InOrder(() =>
         {
-            logger.WriteLine(FixSuggestionResources.ProcessingRequest, suggestionParams.configurationScopeId, suggestionParams.fixSuggestion.suggestionId);
-            logger.WriteLine(FixSuggestionResources.ProcessingRequestFailed, suggestionParams.configurationScopeId, suggestionParams.fixSuggestion.suggestionId, exceptionMsg);
+            logger.WriteLine(FixSuggestionResources.ProcessingRequest, suggestionWithOneChange.configurationScopeId, suggestionWithOneChange.fixSuggestion.suggestionId);
+            logger.WriteLine(FixSuggestionResources.ProcessingRequestFailed, suggestionWithOneChange.configurationScopeId, suggestionWithOneChange.fixSuggestion.suggestionId, exceptionMsg);
         });
-        logger.DidNotReceive().WriteLine(FixSuggestionResources.DoneProcessingRequest, suggestionParams.configurationScopeId, suggestionParams.fixSuggestion.suggestionId);
+        logger.DidNotReceive().WriteLine(FixSuggestionResources.DoneProcessingRequest, suggestionWithOneChange.configurationScopeId, suggestionWithOneChange.fixSuggestion.suggestionId);
     }
 
     [TestMethod]
@@ -202,73 +206,80 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_WhenLineNumbersDoNotMatch_ShouldLogFailure()
     {
-        FailWhenApplyingEdit(out var suggestionWithWrongLineNumbers, "Line numbers do not match");
+        FailWhenApplyingEdit("Line numbers do not match");
         
-        testSubject.ApplyFixSuggestion(suggestionWithWrongLineNumbers);
+        testSubject.ApplyFixSuggestion(suggestionWithOneChange);
         
-        logger.Received().WriteLine(FixSuggestionResources.ProcessingRequestFailed, "AScopeId", "key", "Line numbers do not match");
+        logger.Received().WriteLine(FixSuggestionResources.ProcessingRequestFailed,
+            suggestionWithOneChange.configurationScopeId, suggestionWithOneChange.fixSuggestion.suggestionId,
+            "Line numbers do not match");
     }
     
     [TestMethod]
     public void ApplyFixSuggestion_WhenApplyingChangeAndExceptionIsThrown_ShouldCancelEdit()
     {
-        var edit = FailWhenApplyingEdit(out var suggestionWithWrongLineNumbers);
+        var edit = FailWhenApplyingEdit();
 
-        testSubject.ApplyFixSuggestion(suggestionWithWrongLineNumbers);
+        testSubject.ApplyFixSuggestion(suggestionWithOneChange);
         
         edit.DidNotReceiveWithAnyArgs().Replace(default, default);
         edit.Received().Cancel();
-    }
-    
-    private static ShowFixSuggestionParams CreateFixSuggestionParams(string scopeId = "scopeId", string suggestionKey = "suggestionKey", string idePath = @"myFile.cs", List<ChangesDto> changes = null)
-    {
-        changes ??= [CreateChangesDto()];
-        var fixSuggestion = new FixSuggestionDto(suggestionKey, "refactor", new FileEditDto(idePath, changes));
-        var suggestionParams = new ShowFixSuggestionParams(scopeId, "key", fixSuggestion);
-        return suggestionParams;
-    }
-
-    private static ChangesDto CreateChangesDto(int startLine = 1, int endLine = 2)
-    {
-        return new ChangesDto(new LineRangeDto(startLine, endLine), "var a=1;", "");
     }
 
     [TestMethod]
     public void ApplyFixSuggestion_FileCanNotBeOpened_LogsAndShowsNotification()
     {
-        var suggestionParams = CreateFixSuggestionParams();
-        MockConfigScopeRoot();
         var errorMessage = "error";
         documentNavigator.Open(Arg.Any<string>()).Throws(new Exception(errorMessage));
 
-        testSubject.ApplyFixSuggestion(suggestionParams);
+        testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
-        logger.Received().WriteLine(Resources.ERR_OpenDocumentException, suggestionParams.fixSuggestion.fileEdit.idePath, errorMessage);
-        fixSuggestionNotification.Received(1).UnableToOpenFileAsync(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionParams)));
+        logger.Received().WriteLine(Resources.ERR_OpenDocumentException, suggestionWithOneChange.fixSuggestion.fileEdit.idePath, errorMessage);
+        fixSuggestionNotification.Received(1).UnableToOpenFileAsync(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
     }
 
     [TestMethod]
     public void ApplyFixSuggestion_FileContentIsNull_LogsAndShowsNotification()
     {
-        var suggestionParams = CreateFixSuggestionParams();
-        MockConfigScopeRoot();
         documentNavigator.Open(Arg.Any<string>()).Returns((ITextView)null);
 
-        testSubject.ApplyFixSuggestion(suggestionParams);
+        testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
         logger.DidNotReceive().WriteLine(Resources.ERR_OpenDocumentException, Arg.Any<string>(), Arg.Any<string>());
-        fixSuggestionNotification.Received(1).UnableToOpenFileAsync(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionParams)));
+        fixSuggestionNotification.Received(1).UnableToOpenFileAsync(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
     }
 
     [TestMethod]
     public void ApplyFixSuggestion_ClearsPreviousNotification()
     {
-        var suggestionParams = CreateFixSuggestionParams();
-        MockConfigScopeRoot();
+        testSubject.ApplyFixSuggestion(suggestionWithOneChange);
+
+        fixSuggestionNotification.Received(1).ClearAsync();
+    }
+
+    [TestMethod]
+    public void ApplyFixSuggestion_OneChange_IssueCanNotBeLocated_ShowsNotificationAndDoesNotApplySuggestion()
+    {
+        var edit = MockTextEdit();
+        issueSpanCalculator.IsSameHash(Arg.Any<SnapshotSpan>(), Arg.Any<string>()).Returns(false);
+
+        testSubject.ApplyFixSuggestion(suggestionWithOneChange);
+
+        VerifyFixSuggestionNotApplied(edit);
+    }
+
+    [TestMethod]
+    public void ApplyFixSuggestion_TwoChanges_OneIssueCanNotBeLocated_ShowsNotificationAndDoesNotApplySuggestion()
+    {
+        var suggestionParams = CreateFixSuggestionParams(changes: [CreateChangesDto(1, 1, "var a=1;"), CreateChangesDto(2, 2, "var b=0;")]);
+        var edit = MockTextEdit();
+        issueSpanCalculator.IsSameHash(Arg.Any<SnapshotSpan>(), Arg.Any<string>()).Returns(
+            _ => true,
+            _ => false);
 
         testSubject.ApplyFixSuggestion(suggestionParams);
 
-        fixSuggestionNotification.Received(1).ClearAsync();
+        VerifyFixSuggestionNotApplied(edit);
     }
 
     private void MockConfigScopeRoot()
@@ -300,24 +311,60 @@ public class FixSuggestionHandlerTests
 
     private SnapshotSpan MockCalculateSpan(ChangesDto suggestedChange)
     {
+        return MockCalculateSpan(suggestedChange.before, suggestedChange.beforeLineRange.startLine, suggestedChange.beforeLineRange.endLine);
+    }
+
+    private SnapshotSpan MockCalculateSpan(string text, int startLine, int endLine)
+    {
         var affectedSnapshot = new SnapshotSpan();
-        issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), suggestedChange.beforeLineRange.startLine, suggestedChange.beforeLineRange.endLine)
-            .Returns(affectedSnapshot);
+        issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), startLine, endLine).Returns(affectedSnapshot);
+        issueSpanCalculator.IsSameHash(affectedSnapshot, text).Returns(true);
         return affectedSnapshot;
     }
-    
-    private ITextEdit FailWhenApplyingEdit(out ShowFixSuggestionParams suggestionWithWrongLineNumbers, string reason = "")
+
+    private ITextEdit FailWhenApplyingEdit(string reason = "")
     {
-        MockConfigScopeRoot();
         var edit = Substitute.For<ITextEdit>();
         var textView = MockOpenFile();
         textView.TextBuffer.CreateEdit().Returns(edit);
-        suggestionWithWrongLineNumbers = CreateFixSuggestionParams(scopeId: "AScopeId", suggestionKey: "key");
         issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>())
             .Throws(new Exception(reason));
         return edit;
     }
 
-    private string GetAbsolutePathOfFile(ShowFixSuggestionParams suggestionParams) =>
+    private static ShowFixSuggestionParams CreateFixSuggestionParams(string scopeId = "scopeId",
+        string suggestionKey = "suggestionKey",
+        string idePath = @"myFile.cs",
+        params ChangesDto[] changes)
+    {
+        var fixSuggestion = new FixSuggestionDto(suggestionKey, "refactor", new FileEditDto(idePath, changes.ToList()));
+        var suggestionParams = new ShowFixSuggestionParams(scopeId, "key", fixSuggestion);
+        return suggestionParams;
+    }
+
+    private static ChangesDto CreateChangesDto(int startLine, int endLine, string before)
+    {
+        return new ChangesDto(new LineRangeDto(startLine, endLine), before, "");
+    }
+
+    private static string GetAbsolutePathOfFile(ShowFixSuggestionParams suggestionParams) =>
         Path.Combine(ConfigurationScopeRoot, suggestionParams.fixSuggestion.fileEdit.idePath);
+
+    private ITextEdit MockTextEdit(ITextView textView = null)
+    {
+        var edit = Substitute.For<ITextEdit>();
+        textView ??= MockOpenFile();
+        textView.TextBuffer.CreateEdit().Returns(edit);
+        return edit;
+    }
+
+    private void VerifyFixSuggestionNotApplied(ITextEdit edit)
+    {
+        Received.InOrder(() =>
+        {
+            fixSuggestionNotification.UnableToLocateIssue(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
+            edit.Cancel();
+        });
+        edit.DidNotReceive().Apply();
+    }
 }

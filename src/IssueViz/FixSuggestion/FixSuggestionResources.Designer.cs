@@ -115,6 +115,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix Suggestion in IDE. Could not locate the issue in the file. Please ensure the file ({0}) has not been modified..
+        /// </summary>
+        internal static string InfoBarUnableToLocateFixSuggestion {
+            get {
+                return ResourceManager.GetString("InfoBarUnableToLocateFixSuggestion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fix Suggestion in IDE. Could not open File: {0}. Please ensure that you&apos;re on the correct branch and the file has not been deleted locally..
         /// </summary>
         internal static string InfoBarUnableToOpenFile {
