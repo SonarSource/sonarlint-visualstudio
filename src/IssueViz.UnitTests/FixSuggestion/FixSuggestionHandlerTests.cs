@@ -109,6 +109,8 @@ public class FixSuggestionHandlerTests
         Received.InOrder(() =>
         {
             logger.WriteLine(FixSuggestionResources.ProcessingRequest, suggestionParams.configurationScopeId, suggestionParams.fixSuggestion.suggestionId);
+            ideWindowService.BringToFront();
+            fixSuggestionNotification.ClearAsync();
             documentNavigator.Open(@"C:\myFile.cs");
             textView.TextBuffer.CreateEdit();
             issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), suggestedChange.beforeLineRange.startLine, suggestedChange.beforeLineRange.endLine);
@@ -185,14 +187,16 @@ public class FixSuggestionHandlerTests
     }
 
     [TestMethod]
-    public void ApplyFixSuggestion_WhenConfigRootScopeNotFound_ShouldLogFailure()
+    public void ApplyFixSuggestion_WhenConfigRootScopeNotFound_ShouldLogFailureAndShowNotification()
     {
-        MockFailedConfigScopeRoot("Scope not found");
+        var reason = "Scope not found";
+        MockFailedConfigScopeRoot(reason);
         var suggestionParams = CreateFixSuggestionParams("SpecificConfigScopeId");
         
         testSubject.ApplyFixSuggestion(suggestionParams);
         
         logger.Received().WriteLine(FixSuggestionResources.GetConfigScopeRootPathFailed, "SpecificConfigScopeId", "Scope not found");
+        fixSuggestionNotification.Received(1).InvalidRequestAsync(reason);
     }
     
     [TestMethod]

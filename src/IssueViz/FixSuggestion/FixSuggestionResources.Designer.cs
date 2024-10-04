@@ -106,6 +106,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to process Fix Suggestion in IDE request. Reason: {0}.
+        /// </summary>
+        internal static string InfoBarInvalidRequest {
+            get {
+                return ResourceManager.GetString("InfoBarInvalidRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fix Suggestion in IDE. Could not open File: {0}. Please ensure that you&apos;re on the correct branch and the file has not been deleted locally..
         /// </summary>
         internal static string InfoBarUnableToOpenFile {

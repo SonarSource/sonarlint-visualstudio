@@ -84,15 +84,19 @@ public class FixSuggestionHandler : IFixSuggestionHandler
 
     public void ApplyFixSuggestion(ShowFixSuggestionParams parameters)
     {
-        if (!ValidateConfiguration(parameters.configurationScopeId, out var configurationScopeRoot, out var failureReason))
-        {
-            logger.WriteLine(FixSuggestionResources.GetConfigScopeRootPathFailed, parameters.configurationScopeId, failureReason);
-            return;
-        }
-        
         try
         {
             logger.WriteLine(FixSuggestionResources.ProcessingRequest, parameters.configurationScopeId, parameters.fixSuggestion.suggestionId);
+            ideWindowService.BringToFront();
+            fixSuggestionNotification.ClearAsync().Forget();
+
+            if (!ValidateConfiguration(parameters.configurationScopeId, out var configurationScopeRoot, out var failureReason))
+            {
+                logger.WriteLine(FixSuggestionResources.GetConfigScopeRootPathFailed, parameters.configurationScopeId, failureReason);
+                fixSuggestionNotification.InvalidRequestAsync(failureReason).Forget();
+                return;
+            }
+
             threadHandling.RunOnUIThread(() => ApplyAndShowAppliedFixSuggestions(parameters, configurationScopeRoot));
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, parameters.configurationScopeId, parameters.fixSuggestion.suggestionId);
         }
@@ -109,8 +113,6 @@ public class FixSuggestionHandler : IFixSuggestionHandler
 
     private void ApplyAndShowAppliedFixSuggestions(ShowFixSuggestionParams parameters, string configurationScopeRoot)
     {
-        fixSuggestionNotification.ClearAsync().Forget();
-        ideWindowService.BringToFront();
         var absoluteFilePath = Path.Combine(configurationScopeRoot, parameters.fixSuggestion.fileEdit.idePath);
         var textView = GetFileContent(parameters, absoluteFilePath);
         if (!ValidateFileExists(textView, absoluteFilePath))

@@ -223,6 +223,18 @@ public class FixSuggestionNotificationTests
         CheckInfoBarWithEventsAdded(infoBar, string.Format(FixSuggestionResources.InfoBarUnableToOpenFile, myPath));
     }
 
+    [TestMethod]
+    public async Task InvalidRequestAsync_CallsShowAsyncWithCorrectMessage()
+    {
+        var infoBar = MockInfoBar();
+        MockAttachInfoBarToMainWindow(infoBar);
+        var reason = "wrong config scope";
+
+        await testSubject.InvalidRequestAsync(reason);
+
+        CheckInfoBarWithEventsAdded(infoBar, string.Format(FixSuggestionResources.InfoBarInvalidRequest, reason));
+    }
+
     private async Task MockPreviousInfoBar(IInfoBar infoBar = null)
     {
         infoBar ??= MockInfoBar();

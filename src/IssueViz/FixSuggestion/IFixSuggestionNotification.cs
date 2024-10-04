@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 public interface IFixSuggestionNotification
 {
     Task UnableToOpenFileAsync(string filePath);
+    Task InvalidRequestAsync(string reason);
 
     Task ShowAsync(string text);
 
@@ -59,6 +60,12 @@ internal sealed class FixSuggestionNotification : IFixSuggestionNotification, ID
     public async Task UnableToOpenFileAsync(string filePath)
     {
         var unableToOpenFileMsg = string.Format(FixSuggestionResources.InfoBarUnableToOpenFile, filePath);
+        await ShowAsync(unableToOpenFileMsg);
+    }
+
+    public async Task InvalidRequestAsync(string reason)
+    {
+        var unableToOpenFileMsg = string.Format(FixSuggestionResources.InfoBarInvalidRequest, reason);
         await ShowAsync(unableToOpenFileMsg);
     }
 

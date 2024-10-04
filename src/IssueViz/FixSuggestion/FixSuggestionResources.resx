@@ -141,4 +141,7 @@
   <data name="InfoBarUnableToOpenFile" xml:space="preserve">
     <value>Fix Suggestion in IDE. Could not open File: {0}. Please ensure that you're on the correct branch and the file has not been deleted locally.</value>
   </data>
+  <data name="InfoBarInvalidRequest" xml:space="preserve">
+    <value>Unable to process Fix Suggestion in IDE request. Reason: {0}</value>
+  </data>
 </root>
