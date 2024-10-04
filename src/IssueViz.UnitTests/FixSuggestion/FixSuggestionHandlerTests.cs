@@ -121,6 +121,7 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_TwoChanges_AppliesChangeOnce()
     {
+        issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>()).Returns(new SnapshotSpan());
         var suggestionWithTwoChanges = CreateFixSuggestionParams(changes: [CreateChangesDto(1, 1, "var a=1;"), CreateChangesDto(2, 2, "var b=0;")]);
         var textView = MockOpenFile();
         var edit = MockTextEdit(textView);
@@ -141,6 +142,7 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_WhenMoreThanOneFixes_ApplyThemFromBottomToTop()
     {
+        issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>()).Returns(new SnapshotSpan());
         MockOpenFile();
         ChangesDto[] changes = [CreateChangesDto(1, 1, "var a=1;"), CreateChangesDto(3, 3, "var b=0;")];
         var suggestionParams = CreateFixSuggestionParams(changes: changes);

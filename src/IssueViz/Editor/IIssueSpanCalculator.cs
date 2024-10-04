@@ -34,7 +34,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         /// </summary>
         SnapshotSpan? CalculateSpan(ITextRange range, ITextSnapshot currentSnapshot);
 
-        SnapshotSpan CalculateSpan(ITextSnapshot snapshot, int startLine, int endLine);
+        /// <summary>
+        /// Returns the text span that is in the range of the provided lines
+        /// Returns null if the provided lines can not be found the snapshot
+        /// </summary>
+        SnapshotSpan? CalculateSpan(ITextSnapshot snapshot, int startLine, int endLine);
 
         /// <summary>
         /// Returns true only if the provided <param name="text"/> has the same hash as the text contained in the <paramref name="snapshotSpan"/>
@@ -111,11 +115,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             return snapshotSpan;
         }
 
-        public SnapshotSpan CalculateSpan(ITextSnapshot snapshot, int startLine, int endLine)
+        public SnapshotSpan? CalculateSpan(ITextSnapshot snapshot, int startLine, int endLine)
         {
             if (startLine < 1 || endLine < 1 || startLine > snapshot.LineCount || endLine > snapshot.LineCount || startLine > endLine)
             {
-                throw new ArgumentOutOfRangeException(nameof(startLine), nameof(endLine));
+                return null;
             }
             var startPosition = snapshot.GetLineFromLineNumber(startLine - 1).Start.Position;
             var endPosition = snapshot.GetLineFromLineNumber(endLine - 1).End.Position;

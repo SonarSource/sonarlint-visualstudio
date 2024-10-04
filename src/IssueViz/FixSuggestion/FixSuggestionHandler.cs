@@ -24,10 +24,8 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
@@ -138,9 +136,9 @@ public class FixSuggestionHandler : IFixSuggestionHandler
                     return;
                 }
 
-                textView.Caret.MoveTo(spanToUpdate.Start);
-                textView.ViewScroller.EnsureSpanVisible(spanToUpdate, EnsureSpanVisibleOptions.AlwaysCenter);
-                textEdit.Replace(spanToUpdate, changeDto.after);
+                textView.Caret.MoveTo(spanToUpdate.Value.Start);
+                textView.ViewScroller.EnsureSpanVisible(spanToUpdate.Value, EnsureSpanVisibleOptions.AlwaysCenter);
+                textEdit.Replace(spanToUpdate.Value, changeDto.after);
             }
             textEdit.Apply();
         }
@@ -150,9 +148,9 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         }
     }
 
-    private bool ValidateIssueStillExists(SnapshotSpan spanToUpdate, ChangesDto changeDto, string filePath)
+    private bool ValidateIssueStillExists(SnapshotSpan? spanToUpdate, ChangesDto changeDto, string filePath)
     {
-        if (issueSpanCalculator.IsSameHash(spanToUpdate, changeDto.before))
+        if (spanToUpdate.HasValue && issueSpanCalculator.IsSameHash(spanToUpdate.Value, changeDto.before))
         {
             return true;
         }
