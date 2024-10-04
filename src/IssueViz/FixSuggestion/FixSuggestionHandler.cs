@@ -95,14 +95,22 @@ public class FixSuggestionHandler : IFixSuggestionHandler
     {
         ideWindowService.BringToFront();
         var textView = documentNavigator.Open(absoluteFilePath);
-        var textEdit = textView.TextBuffer.CreateEdit();
         foreach (var changeDto in changes)
         {
-            var spanToUpdate = issueSpanCalculator.CalculateSpan(textView.TextSnapshot, changeDto.beforeLineRange.startLine, changeDto.beforeLineRange.endLine);
-            textView.Caret.MoveTo(spanToUpdate.Start);
-            textView.ViewScroller.EnsureSpanVisible(spanToUpdate, EnsureSpanVisibleOptions.AlwaysCenter);
-            textEdit.Replace(spanToUpdate, changeDto.after);
+            var textEdit = textView.TextBuffer.CreateEdit();
+            try
+            {
+                var spanToUpdate = issueSpanCalculator.CalculateSpan(textView.TextSnapshot, changeDto.beforeLineRange.startLine, changeDto.beforeLineRange.endLine);
+                textView.Caret.MoveTo(spanToUpdate.Start);
+                textView.ViewScroller.EnsureSpanVisible(spanToUpdate, EnsureSpanVisibleOptions.AlwaysCenter);
+                textEdit.Replace(spanToUpdate, changeDto.after);
+                textEdit.Apply();
+            }
+            catch (Exception)
+            {
+                textEdit.Cancel();
+                throw;
+            }
         }
-        textEdit.Apply();
     }
 }
