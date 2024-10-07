@@ -20,10 +20,10 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -34,20 +34,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly INotificationService notificationService;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IIDEWindowService ideWindowService;
-        private readonly ITeamExplorerController teamExplorerController;
+        private readonly IConnectedModeManager connectedModeManager;
         private readonly IBrowserService browserService;
 
         [ImportingConstructor]
         public BindingSuggestionHandler(INotificationService notificationService, 
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             IIDEWindowService ideWindowService,
-            ITeamExplorerController teamExplorerController,
+            IConnectedModeManager connectedModeManager,
             IBrowserService browserService)
         {
             this.notificationService = notificationService;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.ideWindowService = ideWindowService;
-            this.teamExplorerController = teamExplorerController;
+            this.connectedModeManager = connectedModeManager;
             this.browserService = browserService;
         }
 
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 : BindingStrings.BindingSuggetsionBindingConflict;
 
             var connectAction = new NotificationAction(BindingStrings.BindingSuggestionConnect,
-                _ => teamExplorerController.ShowSonarQubePage(),
+                _ => connectedModeManager.ShowManageBindingDialog(),
                 true);
             var learnMoreAction = new NotificationAction(BindingStrings.BindingSuggestionLearnMore,
                 _ => browserService.Navigate(DocumentationLinks.OpenInIdeBindingSetup),
