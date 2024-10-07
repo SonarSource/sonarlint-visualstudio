@@ -353,8 +353,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             var snapshotSpan = testSubject.CalculateSpan(textSnapshotMock.Object, startLine.LineNumber, endLine.LineNumber);
             
-            snapshotSpan.Start.Position.Should().Be(startLine.Start.Position);
-            snapshotSpan.End.Position.Should().Be(endLine.End.Position);
+            snapshotSpan.HasValue.Should().BeTrue();
+            snapshotSpan.Value.Start.Position.Should().Be(startLine.Start.Position);
+            snapshotSpan.Value.End.Position.Should().Be(endLine.End.Position);
         }
         
         [TestMethod]
@@ -363,15 +364,37 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [DataRow(SnapshotLineCount + 1, 1)]
         [DataRow(1, SnapshotLineCount + 1)]
         [DataRow(4, 1)]
-        public void CalculateSpan_ForInvalidStartAndEndLines_ThrowsException(int startLineNumber, int endLineNumber)
+        public void CalculateSpan_ForInvalidStartAndEndLines_ReturnsNull(int startLineNumber, int endLineNumber)
         {
             var startLine = CreateLineMock(lineNumber:startLineNumber, startPos:1, endPos:2);
             var endLine = CreateLineMock(lineNumber:endLineNumber, startPos:13, endPos:23);
             var textSnapshotMock = MockTextSnapshotForLines(startLine, endLine);
 
-            Action act = () => testSubject.CalculateSpan(textSnapshotMock.Object, startLine.LineNumber, endLine.LineNumber);
-            
-            act.Should().Throw<ArgumentOutOfRangeException>();
+            var result = testSubject.CalculateSpan(textSnapshotMock.Object, startLine.LineNumber, endLine.LineNumber);
+
+            result.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void IsSameHash_SnapshotIsSameAsText_ReturnsTrue()
+        {
+            var textSnapshotMock = new SnapshotSpan(CreateSnapshotMock().Object, 1, 1);
+            checksumCalculatorMock.Setup(mock => mock.Calculate(It.IsAny<string>())).Returns("sameHash");
+
+            var result = testSubject.IsSameHash(textSnapshotMock, "test");
+
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void IsSameHash_SnapshotIsSameAsText_ReturnsFalse()
+        {
+            var textSnapshotMock = new SnapshotSpan(CreateSnapshotMock().Object, 1, 1);
+            checksumCalculatorMock.SetupSequence(mock => mock.Calculate(It.IsAny<string>())).Returns("hash1").Returns("hash2");
+
+            var result = testSubject.IsSameHash(textSnapshotMock, "test");
+
+            result.Should().BeFalse();
         }
 
         private static Mock<ITextSnapshot> MockTextSnapshotForLines(ITextSnapshotLine startLine, ITextSnapshotLine endLine)
