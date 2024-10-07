@@ -236,7 +236,7 @@ public class FixSuggestionHandlerTests
 
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
-        logger.Received().WriteLine(Resources.ERR_OpenDocumentException, suggestionWithOneChange.fixSuggestion.fileEdit.idePath, errorMessage);
+        logger.Received().WriteLine(Resources.ERR_OpenDocumentException, GetAbsolutePathOfFile(suggestionWithOneChange), errorMessage);
         fixSuggestionNotification.Received(1).UnableToOpenFileAsync(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
     }
 

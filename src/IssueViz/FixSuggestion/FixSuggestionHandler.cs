@@ -113,7 +113,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
     private void ApplyAndShowAppliedFixSuggestions(ShowFixSuggestionParams parameters, string configurationScopeRoot)
     {
         var absoluteFilePath = Path.Combine(configurationScopeRoot, parameters.fixSuggestion.fileEdit.idePath);
-        var textView = GetFileContent(parameters, absoluteFilePath);
+        var textView = GetFileContent(absoluteFilePath);
         if (!ValidateFileExists(textView, absoluteFilePath))
         {
             return;
@@ -170,15 +170,15 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         return false;
     }
 
-    private ITextView GetFileContent(ShowFixSuggestionParams parameters, string absoluteFilePath)
+    private ITextView GetFileContent(string filePath)
     {
         try
         {
-            return documentNavigator.Open(absoluteFilePath);
+            return documentNavigator.Open(filePath);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            logger.WriteLine(Resources.ERR_OpenDocumentException, parameters.fixSuggestion.fileEdit.idePath, ex.Message);
+            logger.WriteLine(Resources.ERR_OpenDocumentException, filePath, ex.Message);
             return null;
         }
     }
