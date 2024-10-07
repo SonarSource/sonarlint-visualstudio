@@ -129,4 +129,22 @@
   <data name="GetConfigScopeRootPathFailed" xml:space="preserve">
     <value>[Fix Suggestion in IDE] Could not determine configuration scope root path for scope [{0}] due to: {1}</value>
   </data>
+  <data name="InfoBarButtonMoreInfo" xml:space="preserve">
+    <value>Learn more</value>
+  </data>
+  <data name="InfoBarButtonShowLogs" xml:space="preserve">
+    <value>Show logs</value>
+  </data>
+  <data name="InfoBarDefaultMessage" xml:space="preserve">
+    <value>Could not handle Open in IDE request. See the Logs for more information.</value>
+  </data>
+  <data name="InfoBarUnableToOpenFile" xml:space="preserve">
+    <value>Fix Suggestion in IDE. Could not open File: {0}. Please ensure that you're on the correct branch and the file has not been deleted locally.</value>
+  </data>
+  <data name="InfoBarInvalidRequest" xml:space="preserve">
+    <value>Unable to process Fix Suggestion in IDE request. Reason: {0}</value>
+  </data>
+  <data name="InfoBarUnableToLocateFixSuggestion" xml:space="preserve">
+    <value>Fix Suggestion in IDE. Could not locate the issue in the file. Please ensure the file ({0}) has not been modified.</value>
+  </data>
 </root>
