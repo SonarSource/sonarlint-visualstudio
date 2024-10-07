@@ -39,6 +39,6 @@ public class ShowFixSuggestionListener : IShowFixSuggestionListener
 
     public void ShowFixSuggestion(ShowFixSuggestionParams parameters)
     {
-        fixSuggestionHandler.ApplyFixSuggestion();
+        fixSuggestionHandler.ApplyFixSuggestion(parameters);
     }
 }

@@ -25,20 +25,20 @@ using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
-public interface IConnectedModeManager
+public interface IConnectedModeUIManager
 {
     void ShowManageBindingDialog(bool useSharedBindingOnInitialization = false);
 }
 
-[Export(typeof(IConnectedModeManager))]
+[Export(typeof(IConnectedModeUIManager))]
 [PartCreationPolicy(CreationPolicy.NonShared)]
-internal sealed class ConnectedModeManager : IConnectedModeManager
+internal sealed class ConnectedModeUIManager : IConnectedModeUIManager
 {
     private readonly IConnectedModeServices connectedModeServices;
     private readonly IConnectedModeBindingServices connectedModeBindingServices;
 
     [ImportingConstructor]
-    public ConnectedModeManager(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
+    public ConnectedModeUIManager(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
     {
         this.connectedModeServices = connectedModeServices;
         this.connectedModeBindingServices = connectedModeBindingServices;

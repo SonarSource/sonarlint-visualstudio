@@ -25,17 +25,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     internal class ManageConnectionsCommand : VsCommandBase
     {
-        private readonly IConnectedModeManager connectedModeManager;
+        private readonly IConnectedModeUIManager connectedModeUiManager;
         internal const int Id = 0x102;
 
-        public ManageConnectionsCommand(IConnectedModeManager connectedModeManager)
+        public ManageConnectionsCommand(IConnectedModeUIManager connectedModeUiManager)
         {
-            this.connectedModeManager = connectedModeManager;
+            this.connectedModeUiManager = connectedModeUiManager;
         }
 
         protected override void InvokeInternal()
         {
-            connectedModeManager.ShowManageBindingDialog();
+            connectedModeUiManager.ShowManageBindingDialog();
         }
     }
 }

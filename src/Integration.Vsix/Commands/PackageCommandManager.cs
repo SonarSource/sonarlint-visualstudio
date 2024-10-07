@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ShowOptionsPage showOptionsPage,
             IConnectedModeServices connectedModeServices,
             IConnectedModeBindingServices connectedModeBindingServices,
-            IConnectedModeManager connectedModeManager)
+            IConnectedModeUIManager connectedModeManager)
         {
             RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(projectPropertyManager));
             RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, null));
