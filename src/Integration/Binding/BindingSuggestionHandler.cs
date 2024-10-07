@@ -34,20 +34,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly INotificationService notificationService;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IIDEWindowService ideWindowService;
-        private readonly IConnectedModeManager connectedModeManager;
+        private readonly IConnectedModeUIManager connectedModeUiManager;
         private readonly IBrowserService browserService;
 
         [ImportingConstructor]
         public BindingSuggestionHandler(INotificationService notificationService, 
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             IIDEWindowService ideWindowService,
-            IConnectedModeManager connectedModeManager,
+            IConnectedModeUIManager connectedModeUiManager,
             IBrowserService browserService)
         {
             this.notificationService = notificationService;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.ideWindowService = ideWindowService;
-            this.connectedModeManager = connectedModeManager;
+            this.connectedModeUiManager = connectedModeUiManager;
             this.browserService = browserService;
         }
 
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 : BindingStrings.BindingSuggetsionBindingConflict;
 
             var connectAction = new NotificationAction(BindingStrings.BindingSuggestionConnect,
-                _ => connectedModeManager.ShowManageBindingDialog(),
+                _ => connectedModeUiManager.ShowManageBindingDialog(),
                 true);
             var learnMoreAction = new NotificationAction(BindingStrings.BindingSuggestionLearnMore,
                 _ => browserService.Navigate(DocumentationLinks.OpenInIdeBindingSetup),

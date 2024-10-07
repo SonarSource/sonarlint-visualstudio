@@ -65,6 +65,6 @@ public class ShowFixSuggestionListenerTests
         
         testSubject.ShowFixSuggestion(parameters);
         
-        fixSuggestionHandler.Received(1).ApplyFixSuggestion();
+        fixSuggestionHandler.Received(1).ApplyFixSuggestion(parameters);
     }
 }

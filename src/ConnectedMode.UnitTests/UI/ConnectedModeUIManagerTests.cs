@@ -18,27 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion;
+using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
-
-[Export(typeof(ISLCoreListener))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-public class ShowFixSuggestionListener : IShowFixSuggestionListener
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI
 {
-    private readonly IFixSuggestionHandler fixSuggestionHandler;
-
-    [ImportingConstructor]
-    public ShowFixSuggestionListener(IFixSuggestionHandler fixSuggestionHandler)
+    [TestClass]
+    public class ConnectedModeUIManagerTests
     {
-        this.fixSuggestionHandler = fixSuggestionHandler;
-    }
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<ConnectedModeUIManager, IConnectedModeUIManager>(
+                MefTestHelpers.CreateExport<IConnectedModeServices>(),
+                MefTestHelpers.CreateExport<IConnectedModeBindingServices>());
+        }
 
-    public void ShowFixSuggestion(ShowFixSuggestionParams parameters)
-    {
-        fixSuggestionHandler.ApplyFixSuggestion(parameters);
+        [TestMethod]
+        public void MefCtor_CheckIsNonShared()
+            => MefTestHelpers.CheckIsNonSharedMefComponent<ConnectedModeUIManager>();
     }
 }

@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -34,6 +33,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         /// Returns null if no textRange is passed
         /// </summary>
         SnapshotSpan? CalculateSpan(ITextRange range, ITextSnapshot currentSnapshot);
+
+        SnapshotSpan CalculateSpan(ITextSnapshot snapshot, int startLine, int endLine);
     }
 
     [Export(typeof(IIssueSpanCalculator))]
@@ -103,6 +104,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             }
 
             return snapshotSpan;
+        }
+
+        public SnapshotSpan CalculateSpan(ITextSnapshot snapshot, int startLine, int endLine)
+        {
+            if (startLine < 1 || endLine < 1 || startLine > snapshot.LineCount || endLine > snapshot.LineCount || startLine > endLine)
+            {
+                throw new ArgumentOutOfRangeException(nameof(startLine), nameof(endLine));
+            }
+            var startPosition = snapshot.GetLineFromLineNumber(startLine - 1).Start.Position;
+            var endPosition = snapshot.GetLineFromLineNumber(endLine - 1).End.Position;
+            var span = Span.FromBounds(startPosition, endPosition);
+            return new SnapshotSpan(snapshot, span);
         }
 
         private static bool RangeHasHash(ITextRange range)

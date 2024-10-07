@@ -56,7 +56,7 @@ public class BindingSuggestionHandlerTests
             MefTestHelpers.CreateExport<INotificationService>(),
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
             MefTestHelpers.CreateExport<IIDEWindowService>(),
-            MefTestHelpers.CreateExport<IConnectedModeManager>(),
+            MefTestHelpers.CreateExport<IConnectedModeUIManager>(),
             MefTestHelpers.CreateExport<IBrowserService>());
     }
 
