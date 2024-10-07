@@ -37,6 +37,7 @@ public class SharedBindingSuggestionServiceTests
     private IConnectedModeServices connectedModeServices;
     private IConnectedModeBindingServices connectedModeBindingServices;
     private IActiveSolutionTracker activeSolutionTracker;
+    private IConnectedModeUIManager connectedModeManager;
 
     [TestInitialize]
     public void TestInitialize()
@@ -45,8 +46,9 @@ public class SharedBindingSuggestionServiceTests
         connectedModeServices = Substitute.For<IConnectedModeServices>();
         connectedModeBindingServices = Substitute.For<IConnectedModeBindingServices>();
         activeSolutionTracker = Substitute.For<IActiveSolutionTracker>();
+        connectedModeManager = Substitute.For<IConnectedModeUIManager>();
 
-        testSubject = new SharedBindingSuggestionService(suggestSharedBindingGoldBar, connectedModeServices, connectedModeBindingServices, activeSolutionTracker);
+        testSubject = new SharedBindingSuggestionService(suggestSharedBindingGoldBar, connectedModeServices, connectedModeBindingServices, connectedModeManager, activeSolutionTracker);
     }
 
     [TestMethod]
@@ -56,6 +58,7 @@ public class SharedBindingSuggestionServiceTests
             MefTestHelpers.CreateExport<ISuggestSharedBindingGoldBar>(),
             MefTestHelpers.CreateExport<IConnectedModeServices>(),
             MefTestHelpers.CreateExport<IConnectedModeBindingServices>(),
+            MefTestHelpers.CreateExport<IConnectedModeUIManager>(),
             MefTestHelpers.CreateExport<IActiveSolutionTracker>());
     }
 
@@ -125,6 +128,24 @@ public class SharedBindingSuggestionServiceTests
         testSubject.Dispose();
 
         activeSolutionTracker.Received(1).ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
+    }
+
+    [TestMethod]
+    public void ActiveSolutionChanged_SolutionIsOpened_ShowsGoldBarAndShowManageBindingDialog()
+    {
+        MockSharedBindingConfigExists();
+        MockSolutionMode(SonarLintMode.Standalone);
+        Action showAction = null;
+        suggestSharedBindingGoldBar.When(x => x.Show(ServerType.SonarQube, Arg.Any<Action>())).Do(callInfo =>
+        {
+            showAction = callInfo.Arg<Action>();
+        });
+
+        RaiseActiveSolutionChanged(true);
+        showAction();
+
+        showAction.Should().NotBeNull();
+        connectedModeManager.Received(1).ShowManageBindingDialog(true);
     }
 
     private void RaiseActiveSolutionChanged(bool isSolutionOpened)
