@@ -37,6 +37,7 @@ public class SharedBindingSuggestionServiceTests
     private IConnectedModeServices connectedModeServices;
     private IConnectedModeBindingServices connectedModeBindingServices;
     private IActiveSolutionTracker activeSolutionTracker;
+    private IConnectedModeManager connectedModeManager;
 
     [TestInitialize]
     public void TestInitialize()
@@ -45,8 +46,9 @@ public class SharedBindingSuggestionServiceTests
         connectedModeServices = Substitute.For<IConnectedModeServices>();
         connectedModeBindingServices = Substitute.For<IConnectedModeBindingServices>();
         activeSolutionTracker = Substitute.For<IActiveSolutionTracker>();
+        connectedModeManager = Substitute.For<IConnectedModeManager>();
 
-        testSubject = new SharedBindingSuggestionService(suggestSharedBindingGoldBar, connectedModeServices, connectedModeBindingServices, activeSolutionTracker);
+        testSubject = new SharedBindingSuggestionService(suggestSharedBindingGoldBar, connectedModeServices, connectedModeBindingServices, connectedModeManager, activeSolutionTracker);
     }
 
     [TestMethod]
@@ -56,6 +58,7 @@ public class SharedBindingSuggestionServiceTests
             MefTestHelpers.CreateExport<ISuggestSharedBindingGoldBar>(),
             MefTestHelpers.CreateExport<IConnectedModeServices>(),
             MefTestHelpers.CreateExport<IConnectedModeBindingServices>(),
+            MefTestHelpers.CreateExport<IConnectedModeManager>(),
             MefTestHelpers.CreateExport<IActiveSolutionTracker>());
     }
 

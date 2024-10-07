@@ -18,28 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.UI;
-using SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
 {
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     internal class ManageConnectionsCommand : VsCommandBase
     {
-        private readonly IConnectedModeServices connectedModeServices;
-        private readonly IConnectedModeBindingServices connectedModeBindingServices;
+        private readonly IConnectedModeManager connectedModeManager;
         internal const int Id = 0x102;
 
-        public ManageConnectionsCommand(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
+        public ManageConnectionsCommand(IConnectedModeManager connectedModeManager)
         {
-            this.connectedModeServices = connectedModeServices;
-            this.connectedModeBindingServices = connectedModeBindingServices;
+            this.connectedModeManager = connectedModeManager;
         }
 
         protected override void InvokeInternal()
         {
-            new ManageBindingDialog(connectedModeServices, connectedModeBindingServices).ShowDialog(Application.Current.MainWindow);
+            connectedModeManager.ShowManageBindingDialog();
         }
     }
 }
