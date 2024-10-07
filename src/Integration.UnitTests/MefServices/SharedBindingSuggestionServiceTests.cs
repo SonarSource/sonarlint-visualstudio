@@ -135,13 +135,17 @@ public class SharedBindingSuggestionServiceTests
     {
         MockSharedBindingConfigExists();
         MockSolutionMode(SonarLintMode.Standalone);
+        Action showAction = null;
         suggestSharedBindingGoldBar.When(x => x.Show(ServerType.SonarQube, Arg.Any<Action>())).Do(callInfo =>
         {
-            callInfo.Arg<Action>()();
-            connectedModeManager.Received(1).ShowManageBindingDialog(true);
+            showAction = callInfo.Arg<Action>();
         });
 
         RaiseActiveSolutionChanged(true);
+        showAction();
+
+        showAction.Should().NotBeNull();
+        connectedModeManager.Received(1).ShowManageBindingDialog(true);
     }
 
     private void RaiseActiveSolutionChanged(bool isSolutionOpened)
