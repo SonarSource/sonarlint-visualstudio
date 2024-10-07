@@ -35,7 +35,7 @@ public class BindingSuggestionHandlerTests
     private INotificationService notificationService;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private IIDEWindowService ideWindowService;
-    private IConnectedModeManager connectedModeManager;
+    private IConnectedModeUIManager connectedModeManager;
     private IBrowserService browserService;
 
     [TestInitialize]
@@ -44,7 +44,7 @@ public class BindingSuggestionHandlerTests
         notificationService = Substitute.For<INotificationService>();
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         ideWindowService = Substitute.For<IIDEWindowService>();
-        connectedModeManager = Substitute.For<IConnectedModeManager>();
+        connectedModeManager = Substitute.For<IConnectedModeUIManager>();
         browserService = Substitute.For<IBrowserService>();
         testSubject = new BindingSuggestionHandler(notificationService, activeSolutionBoundTracker, ideWindowService, connectedModeManager, browserService);
     }
