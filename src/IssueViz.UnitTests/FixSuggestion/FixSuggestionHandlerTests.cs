@@ -1,22 +1,22 @@
 ﻿/*
- * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
- * mailto:info AT sonarsource DOT com
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
+* SonarLint for Visual Studio
+* Copyright (C) 2016-2024 SonarSource SA
+* mailto:info AT sonarsource DOT com
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public
+* License as published by the Free Software Foundation; either
+* version 3 of the License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* Lesser General Public License for more details.
+*
+* You should have received a copy of the GNU Lesser General Public License
+* along with this program; if not, write to the Free Software Foundation,
+* Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 
 using System.IO;
 using Microsoft.VisualStudio.Text;
@@ -146,9 +146,9 @@ public class FixSuggestionHandlerTests
         MockOpenFile();
         ChangesDto[] changes = [CreateChangesDto(1, 1, "var a=1;"), CreateChangesDto(3, 3, "var b=0;")];
         var suggestionParams = CreateFixSuggestionParams(changes: changes);
-        
+
         testSubject.ApplyFixSuggestion(suggestionParams);
-        
+
         Received.InOrder(() =>
         {
             issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), 3, 3);
@@ -160,20 +160,26 @@ public class FixSuggestionHandlerTests
     public void ApplyFixSuggestion_WhenApplyingChange_BringWindowToFront()
     {
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
-        
+
         ideWindowService.Received().BringToFront();
     }
 
+
     [TestMethod]
-    public void ApplyFixSuggestion_WhenApplyingChange_BringFocusToChangedLines()
+    public void ApplyFixSuggestion_WhenApplyingChange_BringFocusToFirstChangedLines()
     {
-        var suggestedChange = suggestionWithOneChange.fixSuggestion.fileEdit.changes[0];
-        var affectedSnapshot = MockCalculateSpan(suggestedChange);
+        issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>()).Returns(new SnapshotSpan());
+        ChangesDto[] changes = [CreateChangesDto(1, 1, "var a=1;"), CreateChangesDto(3, 3, "var a=1;")];
+        var suggestionParams = CreateFixSuggestionParams(changes: changes);
+        var firstSuggestedChange = suggestionParams.fixSuggestion.fileEdit.changes[0];
+        var firstAffectedSnapshot = MockCalculateSpan(firstSuggestedChange);
         var textView = MockOpenFile();
-        
-        testSubject.ApplyFixSuggestion(suggestionWithOneChange);
-        
-        textView.ViewScroller.Received().EnsureSpanVisible(affectedSnapshot, EnsureSpanVisibleOptions.AlwaysCenter);
+        MockConfigScopeRoot();
+
+        testSubject.ApplyFixSuggestion(suggestionParams);
+
+        textView.ViewScroller.ReceivedWithAnyArgs(1).EnsureSpanVisible(Arg.Any<SnapshotSpan>(), default);
+        textView.ViewScroller.Received(1).EnsureSpanVisible(firstAffectedSnapshot, EnsureSpanVisibleOptions.AlwaysCenter);
     }
 
     [TestMethod]
@@ -181,7 +187,7 @@ public class FixSuggestionHandlerTests
     {
         var exceptionMsg = "error";
         issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>()).Throws(new Exception(exceptionMsg));
-        
+
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
         Received.InOrder(() =>
@@ -198,32 +204,32 @@ public class FixSuggestionHandlerTests
         var reason = "Scope not found";
         MockFailedConfigScopeRoot(reason);
         var suggestionParams = CreateFixSuggestionParams("SpecificConfigScopeId");
-        
+
         testSubject.ApplyFixSuggestion(suggestionParams);
-        
+
         logger.Received().WriteLine(FixSuggestionResources.GetConfigScopeRootPathFailed, "SpecificConfigScopeId", "Scope not found");
         fixSuggestionNotification.Received(1).InvalidRequestAsync(reason);
     }
-    
+
     [TestMethod]
     public void ApplyFixSuggestion_WhenLineNumbersDoNotMatch_ShouldLogFailure()
     {
         FailWhenApplyingEdit("Line numbers do not match");
-        
+
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
-        
+
         logger.Received().WriteLine(FixSuggestionResources.ProcessingRequestFailed,
             suggestionWithOneChange.configurationScopeId, suggestionWithOneChange.fixSuggestion.suggestionId,
             "Line numbers do not match");
     }
-    
+
     [TestMethod]
     public void ApplyFixSuggestion_WhenApplyingChangeAndExceptionIsThrown_ShouldCancelEdit()
     {
         var edit = FailWhenApplyingEdit();
 
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
-        
+
         edit.DidNotReceiveWithAnyArgs().Replace(default, default);
         edit.Received().Cancel();
     }
@@ -293,7 +299,7 @@ public class FixSuggestionHandlerTests
                 return true;
             });
     }
-    
+
     private void MockFailedConfigScopeRoot(string failureReason)
     {
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(Arg.Any<string>(), out Arg.Any<string>(), out Arg.Any<string>()).Returns(

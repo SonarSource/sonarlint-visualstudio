@@ -19,23 +19,23 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI
 {
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    internal class ManageConnectionsCommand : VsCommandBase
+    [TestClass]
+    public class ConnectedModeUIManagerTests
     {
-        private readonly IConnectedModeUIManager connectedModeUiManager;
-        internal const int Id = 0x102;
-
-        public ManageConnectionsCommand(IConnectedModeUIManager connectedModeUiManager)
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
         {
-            this.connectedModeUiManager = connectedModeUiManager;
+            MefTestHelpers.CheckTypeCanBeImported<ConnectedModeUIManager, IConnectedModeUIManager>(
+                MefTestHelpers.CreateExport<IConnectedModeServices>(),
+                MefTestHelpers.CreateExport<IConnectedModeBindingServices>());
         }
 
-        protected override void InvokeInternal()
-        {
-            connectedModeUiManager.ShowManageBindingDialog();
-        }
+        [TestMethod]
+        public void MefCtor_CheckIsNonShared()
+            => MefTestHelpers.CheckIsNonSharedMefComponent<ConnectedModeUIManager>();
     }
 }

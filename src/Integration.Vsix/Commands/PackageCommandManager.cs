@@ -46,10 +46,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             IProjectPropertyManager projectPropertyManager,
             IOutputWindowService outputWindowService,
             IShowInBrowserService showInBrowserService,
-            IBrowserService browserService,
             ShowOptionsPage showOptionsPage,
             IConnectedModeServices connectedModeServices,
-            IConnectedModeBindingServices connectedModeBindingServices)
+            IConnectedModeBindingServices connectedModeBindingServices,
+            IConnectedModeUIManager connectedModeManager)
         {
             RegisterCommand((int)PackageCommandId.ProjectExcludePropertyToggle, new ProjectExcludePropertyToggleCommand(projectPropertyManager));
             RegisterCommand((int)PackageCommandId.ProjectTestPropertyAuto, new ProjectTestPropertySetCommand(projectPropertyManager, null));
@@ -65,11 +65,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // Help menu buttons
             RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowLogsCommand.Id, new ShowLogsCommand(outputWindowService));
             RegisterCommand(CommonGuids.HelpMenuCommandSet, ViewDocumentationCommand.Id, new ViewDocumentationCommand(showInBrowserService));
-            RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.Id, new AboutCommand(browserService));
+            RegisterCommand(CommonGuids.HelpMenuCommandSet, AboutCommand.Id, new AboutCommand(connectedModeServices.BrowserService));
             RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowCommunityPageCommand.Id, new ShowCommunityPageCommand(showInBrowserService));
 
             // Connected mode buttons
-            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(connectedModeServices, connectedModeBindingServices));
+            RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, ManageConnectionsCommand.Id, new ManageConnectionsCommand(connectedModeManager));
             RegisterCommand(CommonGuids.ConnectedModeMenuCommandSet, SaveSharedConnectionCommand.Id, new SaveSharedConnectionCommand(connectedModeServices.ConfigurationProvider, connectedModeBindingServices.SharedBindingConfigProvider));
         }
 

@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
         private readonly ISuggestSharedBindingGoldBar suggestSharedBindingGoldBar;
         private readonly IConnectedModeServices connectedModeServices;
         private readonly IConnectedModeBindingServices connectedModeBindingServices;
+        private readonly IConnectedModeUIManager connectedModeUiManager;
         private readonly IActiveSolutionTracker activeSolutionTracker;
 
         [ImportingConstructor]
@@ -48,11 +49,13 @@ namespace SonarLint.VisualStudio.Integration.MefServices
             ISuggestSharedBindingGoldBar suggestSharedBindingGoldBar,
             IConnectedModeServices connectedModeServices,
             IConnectedModeBindingServices connectedModeBindingServices,
+            IConnectedModeUIManager connectedModeUiManager,
             IActiveSolutionTracker activeSolutionTracker)
         {
             this.suggestSharedBindingGoldBar = suggestSharedBindingGoldBar;
             this.connectedModeServices = connectedModeServices;
             this.connectedModeBindingServices = connectedModeBindingServices;
+            this.connectedModeUiManager = connectedModeUiManager;
             this.activeSolutionTracker = activeSolutionTracker;
 
             this.activeSolutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
@@ -76,8 +79,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
 
         private void ShowManageBindingDialog()
         {
-            var manageBindingDialog = new ManageBindingDialog(connectedModeServices, connectedModeBindingServices, useSharedBindingOnInitialization:true);
-            manageBindingDialog.ShowDialog(Application.Current.MainWindow);
+            connectedModeUiManager.ShowManageBindingDialog(useSharedBindingOnInitialization:true);
         }
 
         private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)

@@ -136,8 +136,11 @@ public class FixSuggestionHandler : IFixSuggestionHandler
                     return;
                 }
 
-                textView.Caret.MoveTo(spanToUpdate.Value.Start);
-                textView.ViewScroller.EnsureSpanVisible(spanToUpdate.Value, EnsureSpanVisibleOptions.AlwaysCenter);
+                if (i == 0)
+                {
+                    textView.Caret.MoveTo(spanToUpdate.Value.Start);
+                    textView.ViewScroller.EnsureSpanVisible(spanToUpdate.Value, EnsureSpanVisibleOptions.AlwaysCenter);
+                }
                 textEdit.Replace(spanToUpdate.Value, changeDto.after);
             }
             textEdit.Apply();
