@@ -136,17 +136,19 @@ public class FixSuggestionHandlerTests
     }
 
     [TestMethod]
-    public void ApplyFixSuggestion_WhenApplyingChange_BringFocusToChangedLines()
+    public void ApplyFixSuggestion_WhenApplyingChange_BringFocusToFirstChangedLines()
     {
-        var suggestionParams = CreateFixSuggestionParams();
-        var suggestedChange = suggestionParams.fixSuggestion.fileEdit.changes[0];
-        var affectedSnapshot = MockCalculateSpan(suggestedChange);
+        List<ChangesDto> changes = [CreateChangesDto(1, 1), CreateChangesDto(3, 3)];
+        var suggestionParams = CreateFixSuggestionParams(changes: changes);
+        var firstSuggestedChange = suggestionParams.fixSuggestion.fileEdit.changes[0];
+        var firstAffectedSnapshot = MockCalculateSpan(firstSuggestedChange);
         var textView = MockOpenFile();
         MockConfigScopeRoot();
 
         testSubject.ApplyFixSuggestion(suggestionParams);
         
-        textView.ViewScroller.Received().EnsureSpanVisible(affectedSnapshot, EnsureSpanVisibleOptions.AlwaysCenter);
+        textView.ViewScroller.ReceivedWithAnyArgs(1).EnsureSpanVisible(Arg.Any<SnapshotSpan>(), default);
+        textView.ViewScroller.Received().EnsureSpanVisible(firstAffectedSnapshot, EnsureSpanVisibleOptions.AlwaysCenter);
     }
 
     [TestMethod]
