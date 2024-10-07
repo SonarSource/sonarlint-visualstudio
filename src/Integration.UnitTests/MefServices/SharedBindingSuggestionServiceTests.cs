@@ -130,6 +130,20 @@ public class SharedBindingSuggestionServiceTests
         activeSolutionTracker.Received(1).ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
     }
 
+    [TestMethod]
+    public void ActiveSolutionChanged_SolutionIsOpened_ShowsGoldBarAndShowManageBindingDialog()
+    {
+        MockSharedBindingConfigExists();
+        MockSolutionMode(SonarLintMode.Standalone);
+        suggestSharedBindingGoldBar.When(x => x.Show(ServerType.SonarQube, Arg.Any<Action>())).Do(callInfo =>
+        {
+            callInfo.Arg<Action>()();
+            connectedModeManager.Received(1).ShowManageBindingDialog(true);
+        });
+
+        RaiseActiveSolutionChanged(true);
+    }
+
     private void RaiseActiveSolutionChanged(bool isSolutionOpened)
     {
         activeSolutionTracker.ActiveSolutionChanged += Raise.EventWith(new ActiveSolutionChangedEventArgs(isSolutionOpened));
