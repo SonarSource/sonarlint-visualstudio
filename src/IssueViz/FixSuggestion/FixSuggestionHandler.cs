@@ -95,17 +95,20 @@ public class FixSuggestionHandler : IFixSuggestionHandler
     {
         ideWindowService.BringToFront();
         var textView = documentNavigator.Open(absoluteFilePath);
+        var textEdit = textView.TextBuffer.CreateEdit();
         for (var i = changes.Count - 1; i >= 0; i--)
         {
             var changeDto = changes[i];
-            var textEdit = textView.TextBuffer.CreateEdit();
+            
             try
             {
                 var spanToUpdate = issueSpanCalculator.CalculateSpan(textView.TextSnapshot, changeDto.beforeLineRange.startLine, changeDto.beforeLineRange.endLine);
-                textView.Caret.MoveTo(spanToUpdate.Start);
-                textView.ViewScroller.EnsureSpanVisible(spanToUpdate, EnsureSpanVisibleOptions.AlwaysCenter);
+                if (i == 0)
+                {
+                    textView.Caret.MoveTo(spanToUpdate.Start);
+                    textView.ViewScroller.EnsureSpanVisible(spanToUpdate, EnsureSpanVisibleOptions.AlwaysCenter);
+                }
                 textEdit.Replace(spanToUpdate, changeDto.after);
-                textEdit.Apply();
             }
             catch (Exception)
             {
@@ -113,5 +116,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
                 throw;
             }
         }
+        
+        textEdit.Apply();
     }
 }
