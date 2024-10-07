@@ -236,13 +236,13 @@ public class FixSuggestionNotificationTests
     }
 
     [TestMethod]
-    public async Task UnableToLocateIssue_CallsShowAsyncWithCorrectMessage()
+    public async Task UnableToLocateIssueAsync_CallsShowAsyncWithCorrectMessage()
     {
         var infoBar = MockInfoBar();
         MockAttachInfoBarToMainWindow(infoBar);
         var myPath = "c://myFile.cs";
 
-        await testSubject.UnableToLocateIssue(myPath);
+        await testSubject.UnableToLocateIssueAsync(myPath);
 
         CheckInfoBarWithEventsAdded(infoBar, string.Format(FixSuggestionResources.InfoBarUnableToLocateFixSuggestion, myPath));
     }

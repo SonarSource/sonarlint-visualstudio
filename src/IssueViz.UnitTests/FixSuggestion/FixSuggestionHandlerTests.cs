@@ -364,7 +364,7 @@ public class FixSuggestionHandlerTests
     {
         Received.InOrder(() =>
         {
-            fixSuggestionNotification.UnableToLocateIssue(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
+            fixSuggestionNotification.UnableToLocateIssueAsync(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
             edit.Cancel();
         });
         edit.DidNotReceive().Apply();

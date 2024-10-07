@@ -19,10 +19,8 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Drawing;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
-using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 
@@ -30,7 +28,7 @@ public interface IFixSuggestionNotification
 {
     Task UnableToOpenFileAsync(string filePath);
     Task InvalidRequestAsync(string reason);
-    Task UnableToLocateIssue(string filePath);
+    Task UnableToLocateIssueAsync(string filePath);
     Task ShowAsync(string text);
     Task ClearAsync();
 }
@@ -70,7 +68,7 @@ internal sealed class FixSuggestionNotification : IFixSuggestionNotification, ID
         await ShowAsync(unableToOpenFileMsg);
     }
 
-    public async Task UnableToLocateIssue(string filePath)
+    public async Task UnableToLocateIssueAsync(string filePath)
     {
         var unableToOpenFileMsg = string.Format(FixSuggestionResources.InfoBarUnableToLocateFixSuggestion, filePath);
         await ShowAsync(unableToOpenFileMsg);

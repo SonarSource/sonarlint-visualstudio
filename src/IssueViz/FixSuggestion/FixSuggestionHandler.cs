@@ -155,7 +155,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
             return true;
         }
 
-        fixSuggestionNotification.UnableToLocateIssue(filePath).Forget();
+        fixSuggestionNotification.UnableToLocateIssueAsync(filePath).Forget();
         return false;
     }
 
