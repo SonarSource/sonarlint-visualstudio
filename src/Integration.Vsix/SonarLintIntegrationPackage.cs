@@ -96,10 +96,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
                     serviceProvider.GetMefService<IOutputWindowService>(),
                     serviceProvider.GetMefService<IShowInBrowserService>(),
-                    serviceProvider.GetMefService<IBrowserService>(),
                     ShowOptionPage,
                     serviceProvider.GetMefService<IConnectedModeServices>(),
-                    serviceProvider.GetMefService<IConnectedModeBindingServices>());
+                    serviceProvider.GetMefService<IConnectedModeBindingServices>(),
+                    serviceProvider.GetMefService<IConnectedModeUIManager>());
 
                 this.roslynSettingsFileSynchronizer = await this.GetMefServiceAsync<IRoslynSettingsFileSynchronizer>();
                 roslynSettingsFileSynchronizer.UpdateFileStorageAsync().Forget(); // don't wait for it to finish
