@@ -31,6 +31,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding;
 [TestClass]
 public class BindingSuggestionHandlerTests
 {
+    private BindingSuggestionHandler testSubject;
+    private INotificationService notificationService;
+    private IActiveSolutionBoundTracker activeSolutionBoundTracker;
+    private IIDEWindowService ideWindowService;
+    private IConnectedModeUIManager connectedModeManager;
+    private IBrowserService browserService;
+
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        notificationService = Substitute.For<INotificationService>();
+        activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+        ideWindowService = Substitute.For<IIDEWindowService>();
+        connectedModeManager = Substitute.For<IConnectedModeUIManager>();
+        browserService = Substitute.For<IBrowserService>();
+        testSubject = new BindingSuggestionHandler(notificationService, activeSolutionBoundTracker, ideWindowService, connectedModeManager, browserService);
+    }
+
     [TestMethod]
     public void MefCtor_CheckExports()
     {
@@ -47,9 +65,8 @@ public class BindingSuggestionHandlerTests
     [DataRow(SonarLintMode.Connected)]
     public void Notify_BringsWindowToFront(SonarLintMode sonarLintMode)
     {
-        var ideWindowService = Substitute.For<IIDEWindowService>();
+        MockCurrentConfiguration(sonarLintMode);
 
-        var testSubject = CreateTestSubject(sonarLintMode: sonarLintMode, ideWindowService: ideWindowService);
         testSubject.Notify();
 
         ideWindowService.Received().BringToFront();
@@ -58,9 +75,8 @@ public class BindingSuggestionHandlerTests
     [TestMethod]
     public void Notify_WithStandaloneProject_PromptsToConnect()
     {
-        var notificationService = Substitute.For<INotificationService>();
+        MockCurrentConfiguration(SonarLintMode.Standalone);
 
-        var testSubject = CreateTestSubject(sonarLintMode: SonarLintMode.Standalone, notificationService: notificationService);
         testSubject.Notify();
 
         notificationService.Received().ShowNotification(Arg.Is<INotification>(
@@ -73,9 +89,8 @@ public class BindingSuggestionHandlerTests
     [TestMethod]
     public void Notify_WithBoundProject_ShowsConflictMessage()
     {
-        var notificationService = Substitute.For<INotificationService>();
+        MockCurrentConfiguration(SonarLintMode.Connected);
 
-        var testSubject = CreateTestSubject(sonarLintMode: SonarLintMode.Connected, notificationService: notificationService);
         testSubject.Notify();
 
         notificationService.Received().ShowNotification(Arg.Is<INotification>(
@@ -86,13 +101,12 @@ public class BindingSuggestionHandlerTests
     }
 
     [TestMethod]
-    public void Notify_ConnectAction_OpensSonarQubePage()
+    public void Notify_ConnectAction_ShowsManageBindingDialog()
     {
-        var notificationService = Substitute.For<INotificationService>();
-        var connectedModeManager = Substitute.For<IConnectedModeUIManager>();
+        MockCurrentConfiguration(SonarLintMode.Standalone);
 
-        var testSubject = CreateTestSubject(sonarLintMode: SonarLintMode.Standalone, notificationService: notificationService, connectedModeUiManager: connectedModeManager);
         testSubject.Notify();
+
         var notification = (Notification)notificationService.ReceivedCalls().Single().GetArguments().Single();
         var connectAction = notification.Actions.First(x => x.CommandText.Equals(BindingStrings.BindingSuggestionConnect));
 
@@ -105,11 +119,10 @@ public class BindingSuggestionHandlerTests
     [TestMethod]
     public void Notify_LearnMoreAction_OpensDocumentationInBrowser()
     {
-        var notificationService = Substitute.For<INotificationService>();
-        var browserService = Substitute.For<IBrowserService>();
+        MockCurrentConfiguration(SonarLintMode.Standalone);
 
-        var testSubject = CreateTestSubject(sonarLintMode: SonarLintMode.Standalone, notificationService: notificationService, browserService: browserService);
         testSubject.Notify();
+
         var notification = (Notification)notificationService.ReceivedCalls().Single().GetArguments().Single();
         var connectAction = notification.Actions.First(x => x.CommandText.Equals(BindingStrings.BindingSuggestionLearnMore));
 
@@ -119,20 +132,10 @@ public class BindingSuggestionHandlerTests
         browserService.Received().Navigate(DocumentationLinks.OpenInIdeBindingSetup);
     }
 
-    private BindingSuggestionHandler CreateTestSubject(SonarLintMode sonarLintMode,
-        INotificationService notificationService = null,
-        IIDEWindowService ideWindowService = null,
-        IConnectedModeUIManager connectedModeUiManager = null,
-        IBrowserService browserService = null)
+    private void MockCurrentConfiguration(SonarLintMode sonarLintMode)
     {
-        notificationService ??= Substitute.For<INotificationService>();
-        var activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
-        ideWindowService ??= Substitute.For<IIDEWindowService>();
-        connectedModeUiManager ??= Substitute.For<IConnectedModeUIManager>();
-        browserService ??= Substitute.For<IBrowserService>();
-
-        activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(new BoundServerProject("solution", "server project", new ServerConnection.SonarCloud("org")), sonarLintMode, "a-directory"));
-
-        return new BindingSuggestionHandler(notificationService, activeSolutionBoundTracker, ideWindowService, connectedModeUiManager, browserService);
+        activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(
+            new BoundServerProject("solution", "server project", new ServerConnection.SonarCloud("org")), sonarLintMode,
+            "a-directory"));
     }
 }
