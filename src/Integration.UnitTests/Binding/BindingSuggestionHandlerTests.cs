@@ -38,7 +38,7 @@ public class BindingSuggestionHandlerTests
             MefTestHelpers.CreateExport<INotificationService>(),
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
             MefTestHelpers.CreateExport<IIDEWindowService>(),
-            MefTestHelpers.CreateExport<IConnectedModeManager>(),
+            MefTestHelpers.CreateExport<IConnectedModeUIManager>(),
             MefTestHelpers.CreateExport<IBrowserService>());
     }
 
@@ -89,9 +89,9 @@ public class BindingSuggestionHandlerTests
     public void Notify_ConnectAction_OpensSonarQubePage()
     {
         var notificationService = Substitute.For<INotificationService>();
-        var connectedModeManager = Substitute.For<IConnectedModeManager>();
+        var connectedModeManager = Substitute.For<IConnectedModeUIManager>();
 
-        var testSubject = CreateTestSubject(sonarLintMode: SonarLintMode.Standalone, notificationService: notificationService, connectedModeManager: connectedModeManager);
+        var testSubject = CreateTestSubject(sonarLintMode: SonarLintMode.Standalone, notificationService: notificationService, connectedModeUiManager: connectedModeManager);
         testSubject.Notify();
         var notification = (Notification)notificationService.ReceivedCalls().Single().GetArguments().Single();
         var connectAction = notification.Actions.First(x => x.CommandText.Equals(BindingStrings.BindingSuggestionConnect));
@@ -122,17 +122,17 @@ public class BindingSuggestionHandlerTests
     private BindingSuggestionHandler CreateTestSubject(SonarLintMode sonarLintMode,
         INotificationService notificationService = null,
         IIDEWindowService ideWindowService = null,
-        IConnectedModeManager connectedModeManager = null,
+        IConnectedModeUIManager connectedModeUiManager = null,
         IBrowserService browserService = null)
     {
         notificationService ??= Substitute.For<INotificationService>();
         var activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         ideWindowService ??= Substitute.For<IIDEWindowService>();
-        connectedModeManager ??= Substitute.For<IConnectedModeManager>();
+        connectedModeUiManager ??= Substitute.For<IConnectedModeUIManager>();
         browserService ??= Substitute.For<IBrowserService>();
 
         activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(new BoundServerProject("solution", "server project", new ServerConnection.SonarCloud("org")), sonarLintMode, "a-directory"));
 
-        return new BindingSuggestionHandler(notificationService, activeSolutionBoundTracker, ideWindowService, connectedModeManager, browserService);
+        return new BindingSuggestionHandler(notificationService, activeSolutionBoundTracker, ideWindowService, connectedModeUiManager, browserService);
     }
 }

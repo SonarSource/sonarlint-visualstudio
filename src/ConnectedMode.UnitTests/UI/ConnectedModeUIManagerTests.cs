@@ -24,18 +24,18 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI
 {
     [TestClass]
-    public class ConnectedModeManagerTests
+    public class ConnectedModeUIManagerTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<ConnectedModeManager, IConnectedModeManager>(
+            MefTestHelpers.CheckTypeCanBeImported<ConnectedModeUIManager, IConnectedModeUIManager>(
                 MefTestHelpers.CreateExport<IConnectedModeServices>(),
                 MefTestHelpers.CreateExport<IConnectedModeBindingServices>());
         }
 
         [TestMethod]
-        public void MefCtor_CheckIsSingleton()
-            => MefTestHelpers.CheckIsNonSharedMefComponent<ConnectedModeManager>();
+        public void MefCtor_CheckIsNonShared()
+            => MefTestHelpers.CheckIsNonSharedMefComponent<ConnectedModeUIManager>();
     }
 }
