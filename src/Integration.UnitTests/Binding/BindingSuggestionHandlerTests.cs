@@ -19,11 +19,11 @@
  */
 
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
+using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding;
@@ -38,7 +38,7 @@ public class BindingSuggestionHandlerTests
             MefTestHelpers.CreateExport<INotificationService>(),
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
             MefTestHelpers.CreateExport<IIDEWindowService>(),
-            MefTestHelpers.CreateExport<ITeamExplorerController>(),
+            MefTestHelpers.CreateExport<IConnectedModeManager>(),
             MefTestHelpers.CreateExport<IBrowserService>());
     }
 
@@ -89,17 +89,17 @@ public class BindingSuggestionHandlerTests
     public void Notify_ConnectAction_OpensSonarQubePage()
     {
         var notificationService = Substitute.For<INotificationService>();
-        var teamExplorerController = Substitute.For<ITeamExplorerController>();
+        var connectedModeManager = Substitute.For<IConnectedModeManager>();
 
-        var testSubject = CreateTestSubject(sonarLintMode: SonarLintMode.Standalone, notificationService: notificationService, teamExplorerController: teamExplorerController);
+        var testSubject = CreateTestSubject(sonarLintMode: SonarLintMode.Standalone, notificationService: notificationService, connectedModeManager: connectedModeManager);
         testSubject.Notify();
         var notification = (Notification)notificationService.ReceivedCalls().Single().GetArguments().Single();
         var connectAction = notification.Actions.First(x => x.CommandText.Equals(BindingStrings.BindingSuggestionConnect));
 
-        teamExplorerController.DidNotReceive().ShowSonarQubePage();
+        connectedModeManager.DidNotReceive().ShowManageBindingDialog();
         connectAction.Action(notification);
 
-        teamExplorerController.Received().ShowSonarQubePage();
+        connectedModeManager.Received().ShowManageBindingDialog();
     }
 
     [TestMethod]
@@ -122,17 +122,17 @@ public class BindingSuggestionHandlerTests
     private BindingSuggestionHandler CreateTestSubject(SonarLintMode sonarLintMode,
         INotificationService notificationService = null,
         IIDEWindowService ideWindowService = null,
-        ITeamExplorerController teamExplorerController = null,
+        IConnectedModeManager connectedModeManager = null,
         IBrowserService browserService = null)
     {
         notificationService ??= Substitute.For<INotificationService>();
         var activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         ideWindowService ??= Substitute.For<IIDEWindowService>();
-        teamExplorerController ??= Substitute.For<ITeamExplorerController>();
+        connectedModeManager ??= Substitute.For<IConnectedModeManager>();
         browserService ??= Substitute.For<IBrowserService>();
 
         activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(new BoundServerProject("solution", "server project", new ServerConnection.SonarCloud("org")), sonarLintMode, "a-directory"));
 
-        return new BindingSuggestionHandler(notificationService, activeSolutionBoundTracker, ideWindowService, teamExplorerController, browserService);
+        return new BindingSuggestionHandler(notificationService, activeSolutionBoundTracker, ideWindowService, connectedModeManager, browserService);
     }
 }
