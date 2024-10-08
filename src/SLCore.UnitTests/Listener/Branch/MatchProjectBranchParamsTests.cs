@@ -27,19 +27,19 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Branch;
 public class MatchProjectBranchParamsTests
 {
     [TestMethod]
-    public void Serialize_AsExpected()
+    public void Deserialize_AsExpected()
     {
-        var testSubject = new MatchProjectBranchParams("CONFIG_SCOPE_ID", "remote-branch-name");
-
-        const string expectedString = """
+        var expectedObject = new MatchProjectBranchParams("CONFIG_SCOPE_ID", "remote-branch-name");
+        
+        const string serializedParams = """
                                       {
                                         "configurationScopeId": "CONFIG_SCOPE_ID",
                                         "serverBranchToMatch": "remote-branch-name"
                                       }
                                       """;
 
-        var serializedString = JsonConvert.SerializeObject(testSubject, Formatting.Indented);
+        var deserializedObject = JsonConvert.DeserializeObject<MatchProjectBranchParams>(serializedParams);
 
-        serializedString.Should().Be(expectedString);
+        deserializedObject.Should().Be(expectedObject);
     }
 }
