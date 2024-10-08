@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Branch;
 
@@ -65,6 +63,16 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
             var result = testSubject.DidChangeMatchedSonarProjectBranchAsync(parameter);
 
             result.Should().Be(Task.CompletedTask);
+        }
+
+        [TestMethod]
+        public async Task MatchProjectBranchAsync_ReturnsAlwaysTrue()
+        {
+            var testSubject = new BranchListener();
+
+            var response = await testSubject.MatchProjectBranchAsync(new MatchProjectBranchParams("my_config_scope_id", "the_branch_name"));
+
+            response.Should().BeEquivalentTo(new MatchProjectBranchResponse(true));
         }
     }
 }

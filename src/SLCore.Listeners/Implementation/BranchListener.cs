@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Branch;
 
@@ -48,6 +46,15 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
         public Task DidChangeMatchedSonarProjectBranchAsync(object parameters)
         {
             return Task.CompletedTask;
+        }
+
+        public Task<MatchProjectBranchResponse> MatchProjectBranchAsync(MatchProjectBranchParams parameters)
+        {
+            // At the moment we don't need to match the project branch as there is logic to handle the cases
+            // where there is a mismatch between the project branch and the server branch
+            // This is currently not fully supported because it depends on the showMessage method
+            // https://sonarsource.atlassian.net/browse/SLVS-1494
+            return Task.FromResult(new MatchProjectBranchResponse(true));
         }
     }
 }
