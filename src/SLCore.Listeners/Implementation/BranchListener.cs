@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Branch;
 
@@ -48,6 +46,11 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
         public Task DidChangeMatchedSonarProjectBranchAsync(object parameters)
         {
             return Task.CompletedTask;
+        }
+
+        public Task<MatchProjectBranchResponse> MatchProjectBranchAsync(MatchProjectBranchParams parameters)
+        {
+            throw new NotImplementedException();
         }
     }
 }
