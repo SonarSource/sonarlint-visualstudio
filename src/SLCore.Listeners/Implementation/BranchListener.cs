@@ -50,7 +50,11 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 
         public Task<MatchProjectBranchResponse> MatchProjectBranchAsync(MatchProjectBranchParams parameters)
         {
-            throw new NotImplementedException();
+            // At the moment we don't need to match the project branch as there is logic to handle the cases
+            // where there is a mismatch between the project branch and the server branch
+            // This is currently not fully supported because it depends on the showMessage method
+            // https://sonarsource.atlassian.net/browse/SLVS-1494
+            return Task.FromResult(new MatchProjectBranchResponse(true));
         }
     }
 }
