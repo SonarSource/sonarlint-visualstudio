@@ -18,21 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Integration.MefServices;
 using SonarLint.VisualStudio.Integration.Notifications;
-using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarQube.Client;
 
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
@@ -60,6 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private ILogger logger;
         private NotificationData notificationData;
         private bool disposed;
+        private ISharedBindingSuggestionService suggestSharedBindingGoldBar;
 
         protected override System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -101,6 +100,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 PerformUIInitialisation();
                 logger.WriteLine(Resources.Strings.Notifications_InitializationComplete);
+
+                suggestSharedBindingGoldBar = this.GetMefService<ISharedBindingSuggestionService>();
+                suggestSharedBindingGoldBar.Suggest();
             });
         }
         private void PerformUIInitialisation()
@@ -151,6 +153,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
 
+            suggestSharedBindingGoldBar?.Dispose();
             (notifications as IDisposable)?.Dispose();
             disposed = true;
         }
