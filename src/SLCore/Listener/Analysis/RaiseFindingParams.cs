@@ -24,3 +24,10 @@ using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 namespace SonarLint.VisualStudio.SLCore.Listener.Analysis;
 
 public record RaiseFindingParams<T>(string configurationScopeId, Dictionary<FileUri, List<T>> issuesByFileUri, bool isIntermediatePublication, Guid? analysisId) where T : RaisedFindingDto;
+
+public record RaiseHotspotParams(
+    string configurationScopeId,
+    Dictionary<FileUri, List<RaisedHotspotDto>> hotspotsByFileUri,
+    bool isIntermediatePublication,
+    Guid? analysisId)
+    : RaiseFindingParams<RaisedHotspotDto>(configurationScopeId, hotspotsByFileUri, isIntermediatePublication, analysisId);

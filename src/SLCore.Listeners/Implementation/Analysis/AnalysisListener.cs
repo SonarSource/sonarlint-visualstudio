@@ -72,6 +72,6 @@ internal class AnalysisListener : IAnalysisListener
     public void RaiseIssues(RaiseFindingParams<RaisedIssueDto> parameters) 
         => raisedFindingProcessor.RaiseFinding(parameters);
 
-    public void RaiseHotspots(RaiseFindingParams<RaisedHotspotDto> parameters) 
+    public void RaiseHotspots(RaiseHotspotParams parameters) 
         => raisedFindingProcessor.RaiseFinding(parameters);
 }
