@@ -98,7 +98,7 @@ public class AnalysisListenerTests
     [TestMethod]
     public void RaiseHotspots_RaisesFinding()
     {
-        var raiseIssueParams = new RaiseFindingParams<RaisedHotspotDto>(default, default, default, default);
+        var raiseIssueParams = new RaiseHotspotParams(default, default, default, default);
         var raisedFindingProcessor = Substitute.For<IRaisedFindingProcessor>();
         var testSubject = CreateTestSubject(raisedFindingProcessor: raisedFindingProcessor);
 

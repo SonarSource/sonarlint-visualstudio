@@ -29,5 +29,5 @@ internal interface IAnalysisListener : ISLCoreListener
 
     void RaiseIssues(RaiseFindingParams<RaisedIssueDto> parameters);
     
-    void RaiseHotspots(RaiseFindingParams<RaisedHotspotDto> parameters);
+    void RaiseHotspots(RaiseHotspotParams parameters);
 }
