@@ -20,7 +20,9 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -36,14 +38,28 @@ public class FixSuggestionHandler : IFixSuggestionHandler
 {
     private readonly IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
     private readonly IIDEWindowService ideWindowService;
+    private readonly IFixSuggestionNotification fixSuggestionNotification;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
     private readonly IDocumentNavigator documentNavigator;
     private readonly IIssueSpanCalculator issueSpanCalculator;
 
     [ImportingConstructor]
-    internal FixSuggestionHandler(ILogger logger, IDocumentNavigator documentNavigator, IIssueSpanCalculator issueSpanCalculator, IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator, IIDEWindowService ideWindowService) : 
-        this(ThreadHandling.Instance, logger, documentNavigator, issueSpanCalculator, openInIdeConfigScopeValidator, ideWindowService)
+    internal FixSuggestionHandler(
+        ILogger logger,
+        IDocumentNavigator documentNavigator,
+        IIssueSpanCalculator issueSpanCalculator,
+        IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
+        IIDEWindowService ideWindowService,
+        IFixSuggestionNotification fixSuggestionNotification) : 
+        this(
+            ThreadHandling.Instance,
+            logger,
+            documentNavigator,
+            issueSpanCalculator,
+            openInIdeConfigScopeValidator,
+            ideWindowService, 
+            fixSuggestionNotification)
     {
     }
 
@@ -53,7 +69,8 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         IDocumentNavigator documentNavigator,
         IIssueSpanCalculator issueSpanCalculator,
         IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
-        IIDEWindowService ideWindowService)
+        IIDEWindowService ideWindowService, 
+        IFixSuggestionNotification fixSuggestionNotification)
     {
         this.threadHandling = threadHandling;
         this.logger = logger;
@@ -61,23 +78,25 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         this.issueSpanCalculator = issueSpanCalculator;
         this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
         this.ideWindowService = ideWindowService;
+        this.fixSuggestionNotification = fixSuggestionNotification;
     }
 
     public void ApplyFixSuggestion(ShowFixSuggestionParams parameters)
     {
-        if (!ValidateConfiguration(parameters.configurationScopeId, out var configurationScopeRoot, out var failureReason))
-        {
-            logger.WriteLine(FixSuggestionResources.GetConfigScopeRootPathFailed, parameters.configurationScopeId, failureReason);
-            return;
-        }
-        
         try
         {
             logger.WriteLine(FixSuggestionResources.ProcessingRequest, parameters.configurationScopeId, parameters.fixSuggestion.suggestionId);
+            ideWindowService.BringToFront();
+            fixSuggestionNotification.ClearAsync().Forget();
 
-            var absoluteFilePath = Path.Combine(configurationScopeRoot, parameters.fixSuggestion.fileEdit.idePath);
-            threadHandling.RunOnUIThread(() => ApplySuggestedChanges(absoluteFilePath, parameters.fixSuggestion.fileEdit.changes));
+            if (!ValidateConfiguration(parameters.configurationScopeId, out var configurationScopeRoot, out var failureReason))
+            {
+                logger.WriteLine(FixSuggestionResources.GetConfigScopeRootPathFailed, parameters.configurationScopeId, failureReason);
+                fixSuggestionNotification.InvalidRequestAsync(failureReason).Forget();
+                return;
+            }
 
+            threadHandling.RunOnUIThread(() => ApplyAndShowAppliedFixSuggestions(parameters, configurationScopeRoot));
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, parameters.configurationScopeId, parameters.fixSuggestion.suggestionId);
         }
         catch (Exception exception) when (!ErrorHandler.IsCriticalException(exception))
@@ -91,32 +110,79 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         return openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(configurationScopeId, out configurationScopeRoot, out failureReason);
     }
 
-    private void ApplySuggestedChanges(string absoluteFilePath, List<ChangesDto> changes)
+    private void ApplyAndShowAppliedFixSuggestions(ShowFixSuggestionParams parameters, string configurationScopeRoot)
     {
-        ideWindowService.BringToFront();
-        var textView = documentNavigator.Open(absoluteFilePath);
-        var textEdit = textView.TextBuffer.CreateEdit();
-        for (var i = changes.Count - 1; i >= 0; i--)
+        var absoluteFilePath = Path.Combine(configurationScopeRoot, parameters.fixSuggestion.fileEdit.idePath);
+        var textView = GetFileContent(absoluteFilePath);
+        if (!ValidateFileExists(textView, absoluteFilePath))
         {
-            var changeDto = changes[i];
-            
-            try
+            return;
+        }
+        ApplySuggestedChanges(textView, parameters.fixSuggestion.fileEdit.changes, absoluteFilePath);
+    }
+
+    private void ApplySuggestedChanges(ITextView textView, List<ChangesDto> changes, string filePath)
+    {
+        var textEdit = textView.TextBuffer.CreateEdit();
+        try
+        {
+            for (var i = changes.Count - 1; i >= 0; i--)
             {
+                var changeDto = changes[i];
+
                 var spanToUpdate = issueSpanCalculator.CalculateSpan(textView.TextSnapshot, changeDto.beforeLineRange.startLine, changeDto.beforeLineRange.endLine);
+                if (!ValidateIssueStillExists(spanToUpdate, changeDto, filePath))
+                {
+                    return;
+                }
+
                 if (i == 0)
                 {
-                    textView.Caret.MoveTo(spanToUpdate.Start);
-                    textView.ViewScroller.EnsureSpanVisible(spanToUpdate, EnsureSpanVisibleOptions.AlwaysCenter);
+                    textView.Caret.MoveTo(spanToUpdate.Value.Start);
+                    textView.ViewScroller.EnsureSpanVisible(spanToUpdate.Value, EnsureSpanVisibleOptions.AlwaysCenter);
                 }
-                textEdit.Replace(spanToUpdate, changeDto.after);
+                textEdit.Replace(spanToUpdate.Value, changeDto.after);
             }
-            catch (Exception)
-            {
-                textEdit.Cancel();
-                throw;
-            }
+            textEdit.Apply();
         }
-        
-        textEdit.Apply();
+        finally
+        {
+            textEdit.Cancel();
+        }
+    }
+
+    private bool ValidateIssueStillExists(SnapshotSpan? spanToUpdate, ChangesDto changeDto, string filePath)
+    {
+        if (spanToUpdate.HasValue && issueSpanCalculator.IsSameHash(spanToUpdate.Value, changeDto.before))
+        {
+            return true;
+        }
+
+        fixSuggestionNotification.UnableToLocateIssueAsync(filePath).Forget();
+        return false;
+    }
+
+    private bool ValidateFileExists(ITextView fileContent, string absoluteFilePath)
+    {
+        if (fileContent != null)
+        {
+            return true;
+        }
+
+        fixSuggestionNotification.UnableToOpenFileAsync(absoluteFilePath).Forget();
+        return false;
+    }
+
+    private ITextView GetFileContent(string filePath)
+    {
+        try
+        {
+            return documentNavigator.Open(filePath);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.WriteLine(Resources.ERR_OpenDocumentException, filePath, ex.Message);
+            return null;
+        }
     }
 }
