@@ -720,13 +720,16 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void DetectSharedBinding_CurrentProjectBound_DoesNothing()
+    public void DetectSharedBinding_CurrentProjectBound_UpdatesSharedBindingConfigModel()
     {
         testSubject.BoundProject = serverProject;
+        var sharedBindingModel = new SharedBindingConfigModel();
+        sharedBindingConfigProvider.GetSharedBinding().Returns(sharedBindingModel);
 
         testSubject.DetectSharedBinding();
 
-        sharedBindingConfigProvider.DidNotReceive().GetSharedBinding();
+        sharedBindingConfigProvider.Received(1).GetSharedBinding();
+        testSubject.SharedBindingConfigModel.Should().Be(sharedBindingModel);
     }
 
     [TestMethod]

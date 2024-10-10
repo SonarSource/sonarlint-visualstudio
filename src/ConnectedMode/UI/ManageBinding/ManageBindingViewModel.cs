@@ -181,10 +181,6 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
     
     internal void DetectSharedBinding()
     {
-        if (IsCurrentProjectBound)
-        {
-            return;
-        }
         SharedBindingConfigModel = connectedModeBindingServices.SharedBindingConfigProvider.GetSharedBinding();
     }
 
