@@ -71,7 +71,7 @@ public partial class ManageBindingDialog : Window
     private async void ManageBindingDialog_OnInitialized(object sender, EventArgs e)
     {
         await ViewModel.InitializeDataAsync();
-        if (useSharedBindingOnInitialization)
+        if (useSharedBindingOnInitialization && !ViewModel.IsCurrentProjectBound)
         {
             await ViewModel.UseSharedBindingWithProgressAsync();
         }
