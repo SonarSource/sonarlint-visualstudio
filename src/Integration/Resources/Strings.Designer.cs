@@ -702,24 +702,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Refresh.
-        /// </summary>
-        public static string RefreshCommandDisplayText {
-            get {
-                return ResourceManager.GetString("RefreshCommandDisplayText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Will refetch the SonarQube projects from the server using the existing credentials.
-        /// </summary>
-        public static string RefreshCommandTooltip {
-            get {
-                return ResourceManager.GetString("RefreshCommandTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Rule set generated from SonarQube.
         /// </summary>
         public static string RuleSetDescription {
@@ -1112,15 +1094,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         public static string Telemetry_ERROR_SendingTelemetry {
             get {
                 return ResourceManager.GetString("Telemetry_ERROR_SendingTelemetry", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Toggle visibility of unbound projects for this server..
-        /// </summary>
-        public static string ToggleShowAllProjectsCommandTooltip {
-            get {
-                return ResourceManager.GetString("ToggleShowAllProjectsCommandTooltip", resourceCulture);
             }
         }
         

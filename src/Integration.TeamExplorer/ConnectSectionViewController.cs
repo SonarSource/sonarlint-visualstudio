@@ -18,19 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.TeamFoundation.Controls;
 using Microsoft.TeamFoundation.Controls.WPF.TeamExplorer;
-using SonarLint.VisualStudio.Integration.Resources;
 
-namespace SonarLint.VisualStudio.Integration.TeamExplorer
+namespace SonarLint.VisualStudio.Integration.TeamExplorer;
+
+// Exclude from coverage because it is only responsible in creating the View,
+// and it's temporary until the Team Explorer components are fully removed
+[ExcludeFromCodeCoverage]
+[TeamExplorerSection(SectionId, SonarQubePage.PageId, Priority)]
+internal class ConnectSectionViewController : TeamExplorerSectionBase
 {
-    internal class ConnectSectionViewModel : TeamExplorerSectionViewModelBase
-    {
+    private const string SectionId = "25AB05EF-8132-453E-A990-55587C0C5CD3";
+    private const int Priority = 300;
 
-        public ConnectSectionViewModel()
-        {
-            this.Title = Strings.ConnectSectionTitle;
-            this.IsExpanded = true;
-            this.IsVisible = true;
-        }
+    protected override object CreateView(SectionInitializeEventArgs e)
+    {
+        return new ConnectSectionView();
+    }
+
+    protected override ITeamExplorerSection CreateViewModel(SectionInitializeEventArgs e)
+    {
+        return new ConnectSectionViewModel();
     }
 }

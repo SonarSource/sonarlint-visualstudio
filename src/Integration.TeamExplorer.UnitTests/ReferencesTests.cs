@@ -18,11 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -31,19 +27,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class ReferencesTests
     {
-        [TestMethod]
-        public void MicrosoftTeamFoundationClient_EnsureCorrectVersion()
-        {
-            var expectedDllVersions = new Dictionary<string, int>
-            {
-               { "VS2022", 16 } // 2022's dll is still 16 and not 17
-            };
-
-            var tfClientAssemblyVersion = AssemblyHelper.GetVersionOfReferencedAssembly(
-                    typeof(TeamExplorerController), "Microsoft.TeamFoundation.Client");
-
-            AssertIsCorrectMajorVersion(tfClientAssemblyVersion.Major, expectedDllVersions);
-        }
 
         [TestMethod]
         public void MicrosoftTeamFoundationControls_EnsureCorrectVersion()

@@ -18,16 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Threading;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.State;
 using SonarQube.Client;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration
@@ -45,9 +42,9 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class ActiveSolutionBoundTracker : IActiveSolutionBoundTracker, IActiveSolutionChangedHandler, IDisposable, IPartImportsSatisfiedNotification
     {
-        private readonly IHost extensionHost;
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IConfigurationProvider configurationProvider;
+        private readonly ISonarQubeService sonarQubeService;
         private readonly IVsMonitorSelection vsMonitorSelection;
         private readonly IBoundSolutionGitMonitor gitEventsMonitor;
         private readonly IConfigScopeUpdater configScopeUpdater;
@@ -64,14 +61,13 @@ namespace SonarLint.VisualStudio.Integration
 
         [ImportingConstructor]
         public ActiveSolutionBoundTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            IHost host,
             IActiveSolutionTracker activeSolutionTracker,
             IConfigScopeUpdater configScopeUpdater,
             ILogger logger,
             IBoundSolutionGitMonitor gitEventsMonitor,
-            IConfigurationProvider configurationProvider)
+            IConfigurationProvider configurationProvider,
+            ISonarQubeService sonarQubeService)
         {
-            extensionHost = host;
             solutionTracker = activeSolutionTracker;
             this.gitEventsMonitor = gitEventsMonitor;
             this.logger = logger;
@@ -82,10 +78,8 @@ namespace SonarLint.VisualStudio.Integration
             vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
 
             this.configurationProvider = configurationProvider;
+            this.sonarQubeService = sonarQubeService;
             this.configScopeUpdater = configScopeUpdater;
-
-            // The user changed the binding through the Team Explorer
-            extensionHost.VisualStateManager.BindingStateChanged += OnBindingStateChanged;
 
             // The solution changed inside the IDE
             solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
@@ -105,11 +99,6 @@ namespace SonarLint.VisualStudio.Integration
             }
             
             this.RaiseAnalyzersChangedIfBindingChanged(GetBindingConfiguration(), isBindingCleared);
-        }
-        
-        private void OnBindingStateChanged(object sender, BindingStateEventArgs e)
-        {
-            HandleBindingChange(e.IsBindingCleared);
         }
 
         private BindingConfiguration GetBindingConfiguration()
@@ -141,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 this.RaiseAnalyzersChangedIfBindingChanged(newBindingConfiguration);
             }
-            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine($"Error handling solution change: {ex.Message}");
             }
@@ -149,18 +138,9 @@ namespace SonarLint.VisualStudio.Integration
 
         private async Task UpdateConnectionAsync(BindingConfiguration bindingConfiguration)
         {
-            ISonarQubeService sonarQubeService = this.extensionHost.SonarQubeService;
-
             if (sonarQubeService.IsConnected)
             {
-                if (this.extensionHost.ActiveSection?.DisconnectCommand.CanExecute(null) == true)
-                {
-                    this.extensionHost.ActiveSection.DisconnectCommand.Execute(null);
-                }
-                else
-                {
-                    sonarQubeService.Disconnect();
-                }
+                sonarQubeService.Disconnect();
             }
 
             Debug.Assert(!sonarQubeService.IsConnected,
@@ -171,7 +151,7 @@ namespace SonarLint.VisualStudio.Integration
             if (boundProject != null)
             {
                 var connectionInformation = boundProject.CreateConnectionInformation();
-                await Core.WebServiceHelper.SafeServiceCallAsync(() => sonarQubeService.ConnectAsync(connectionInformation,
+                await WebServiceHelper.SafeServiceCallAsync(() => sonarQubeService.ConnectAsync(connectionInformation,
                     CancellationToken.None), this.logger);
             }
         }
@@ -220,7 +200,6 @@ namespace SonarLint.VisualStudio.Integration
             {
                 this.disposed = true;
                 this.solutionTracker.ActiveSolutionChanged -= this.OnActiveSolutionChanged;
-                this.extensionHost.VisualStateManager.BindingStateChanged -= this.OnBindingStateChanged;
                 this.gitEventsMonitor.HeadChanged -= GitEventsMonitor_HeadChanged;
             }
         }

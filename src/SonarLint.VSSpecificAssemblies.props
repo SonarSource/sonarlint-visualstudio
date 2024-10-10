@@ -49,10 +49,6 @@
   <!-- Team foundation assemblies -->
   <!-- ******************************************************************************* -->
   <ItemGroup Label="TeamFoundation" Condition="$(RequiresTeamFoundation)=='true'">
-    <Reference Include="Microsoft.TeamFoundation.Client">
-      <HintPath>$(ThirdPartyPath)\Microsoft.TeamFoundation.Client.dll</HintPath>
-      <Private>$(CopyVSAssembliesToOutput)</Private>
-    </Reference>
     <Reference Include="Microsoft.TeamFoundation.Controls">
       <HintPath>$(ThirdPartyPath)\Microsoft.TeamFoundation.Controls.dll</HintPath>
       <Private>$(CopyVSAssembliesToOutput)</Private>
