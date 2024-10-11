@@ -45,6 +45,7 @@ public interface ITaskToPerformParams<T> where T : IResponseStatus
     public Func<Task<T>> TaskToPerform { get; }
     public string ProgressStatus { get; }
     public string WarningText { get; }
+    public T FailureResponse { get; }
 }
 
 public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewModel
@@ -98,10 +99,16 @@ public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewMod
             }
             else
             {
-                Warning = parameters.WarningText;
-                parameters.AfterFailure?.Invoke(response);
+                OnFailure(parameters, response);
             }
 
+            return response;
+        }
+        catch (Exception ex)
+        {
+            var response = parameters.FailureResponse;
+            logger.WriteLine(ex.ToString());
+            OnFailure(parameters, response);
             return response;
         }
         finally
@@ -110,10 +117,16 @@ public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewMod
             parameters.AfterProgressUpdated?.Invoke();
         }
     }
+
+    private void OnFailure<T>(ITaskToPerformParams<T> parameters, T response) where T : IResponseStatus
+    {
+        Warning = parameters.WarningText;
+        parameters.AfterFailure?.Invoke(response);
+    }
 }
 
 public class TaskToPerformParams<T>(Func<Task<T>> taskToPerform, string progressStatus, string warningText) : ITaskToPerformParams<T>
-    where T : IResponseStatus
+    where T : IResponseStatus, new()
 {
     public Action AfterProgressUpdated { get; init; }
     public Action<T> AfterSuccess { get; init; }
@@ -121,4 +134,5 @@ public class TaskToPerformParams<T>(Func<Task<T>> taskToPerform, string progress
     public Func<Task<T>> TaskToPerform { get; } = taskToPerform;
     public string ProgressStatus { get; } = progressStatus;
     public string WarningText { get; } = warningText;
+    public T FailureResponse { get; } = new T();
 }

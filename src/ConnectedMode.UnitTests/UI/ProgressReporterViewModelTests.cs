@@ -172,11 +172,25 @@ public class ProgressReporterViewModelTests
     [TestMethod]
     public async Task ExecuteTaskWithProgressAsync_TaskThrowsException_SetsProgressToNull()
     {
+        var warningText = "warning";
+        var parameters = Substitute.For<ITaskToPerformParams<IResponseStatus>>();
         testSubject.ProgressStatus = "In progress...";
+        parameters.WarningText.Returns(warningText);
 
-        await ExecuteTaskThatThrows();
+        var response = await ExecuteTaskThatThrows(parameters);
 
+        response.Success.Should().BeFalse();
+        parameters.Received(1).AfterFailure(Arg.Any<IResponseStatus>());
+        testSubject.Warning.Should().Be(warningText);
         testSubject.ProgressStatus.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task ExecuteTaskWithProgressAsync_TaskThrowsException_CatchesErrorAndLogs()
+    {
+        var act = async () => await ExecuteTaskThatThrows();
+
+        await act.Should().NotThrowAsync();
     }
 
     private static ITaskToPerformParams<IResponseStatus> GetTaskWithResponse(bool success)
@@ -189,18 +203,11 @@ public class ProgressReporterViewModelTests
         return parameters;
     }
 
-    private async Task ExecuteTaskThatThrows()
+    private async Task<IResponseStatus> ExecuteTaskThatThrows(ITaskToPerformParams<IResponseStatus> parameters = null)
     {
-        var parameters = Substitute.For<ITaskToPerformParams<IResponseStatus>>();
+        parameters ??= Substitute.For<ITaskToPerformParams<IResponseStatus>>();
         parameters.TaskToPerform.Returns(x => throw new Exception("test"));
 
-        try
-        {
-            await testSubject.ExecuteTaskWithProgressAsync(parameters);
-        }
-        catch (Exception)
-        {
-           // this is for testing only
-        }
+        return await testSubject.ExecuteTaskWithProgressAsync(parameters);
     }
 }

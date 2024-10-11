@@ -46,12 +46,14 @@ public interface ISlCoreConnectionAdapter
 
 public class AdapterResponseWithData<T>(bool success, T responseData) : IResponseStatus
 {
+    public AdapterResponseWithData() : this(false, default) { }
     public bool Success { get; init; } = success;
     public T ResponseData { get; } = responseData;
 }
 
 public class AdapterResponse(bool success) : IResponseStatus
 {
+    public AdapterResponse(): this(false){}
     public bool Success { get; } = success;
 }
 
