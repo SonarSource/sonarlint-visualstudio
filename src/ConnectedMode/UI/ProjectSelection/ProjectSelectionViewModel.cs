@@ -20,6 +20,7 @@
 
 using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
@@ -60,6 +61,7 @@ public class ProjectSelectionViewModel(
     }
 
     public bool IsProjectSelected => SelectedProject != null;
+    public ServerConnection ServerConnection { get; private set; }
 
     private string projectSearchTerm;
     private ServerProject selectedProject;
@@ -78,13 +80,14 @@ public class ProjectSelectionViewModel(
 
     internal async Task<AdapterResponseWithData<List<ServerProject>>> AdapterGetAllProjectsAsync()
     {
-        var serverConnectionCredentials = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(ConnectionInfo, out var serverConnection);
-        if (!serverConnectionCredentials)
+        var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(ConnectionInfo, out var serverConnection);
+        if (!succeeded)
         {
             connectedModeServices.Logger.WriteLine(UiResources.LoadingProjectsFailedTextForNotFoundServerConnection);
             return new AdapterResponseWithData<List<ServerProject>>(false, null);
         }
 
+        ServerConnection = serverConnection;
         return await connectedModeServices.SlCoreConnectionAdapter.GetAllProjectsAsync(serverConnection);
     }
 

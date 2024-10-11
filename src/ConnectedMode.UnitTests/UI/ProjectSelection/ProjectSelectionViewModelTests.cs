@@ -190,6 +190,16 @@ public class ProjectSelectionViewModelTests
     }
 
     [TestMethod]
+    public async Task AdapterGetAllProjectsAsync_GettingServerConnectionSucceeded_StoresServerConnection()
+    {
+        MockTrySonarQubeConnection(AConnectionInfo, success: true, Substitute.For<ICredentials>());
+
+        await testSubject.AdapterGetAllProjectsAsync();
+
+        testSubject.ServerConnection.Should().NotBeNull();
+    }
+
+    [TestMethod]
     public async Task AdapterGetAllProjectsAsync_GettingServerConnectionFailed_ReturnsFailure()
     {
         MockTrySonarQubeConnection(AConnectionInfo, success:false);
@@ -200,6 +210,7 @@ public class ProjectSelectionViewModelTests
         response.ResponseData.Should().BeNull();
         logger.Received(1).WriteLine(Arg.Any<string>());
         await slCoreConnectionAdapter.DidNotReceive().GetAllProjectsAsync(Arg.Any<ServerConnection>());
+        testSubject.ServerConnection.Should().BeNull();
     }
 
     [TestMethod]
