@@ -52,11 +52,9 @@
             <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:UiResources.ExistingProjectsLabel}" Style="{StaticResource HeaderTextBlock}"
                        Margin="0,10"/>
             <TextBox Grid.Row="1"
-                     x:Name="ProjectSearchTextBox"
-                     Visibility="Collapsed"
                      VerticalAlignment="Top"
                      Text="{Binding ProjectSearchTerm, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock Grid.Row="1" IsHitTestVisible="False" Visibility="Collapsed"
+            <TextBlock Grid.Row="1" IsHitTestVisible="False"
                        Text="{x:Static res:UiResources.SearchForProjectPlaceholder}" VerticalAlignment="Center"
                        HorizontalAlignment="Left" Margin="5,0,0,0" Foreground="DarkGray">
                 <TextBlock.Style>
