@@ -56,7 +56,7 @@
             <TextBox Grid.Row="1"
                      x:Name="ProjectSearchTextBox"
                      VerticalAlignment="Top"
-                     Text="{Binding ProjectSearchTerm, UpdateSourceTrigger=PropertyChanged}" />
+                     Text="{Binding ProjectSearchTerm, UpdateSourceTrigger=PropertyChanged, Delay=500}" />
             <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <StackPanel.Style>
                     <Style TargetType="{x:Type StackPanel}">
