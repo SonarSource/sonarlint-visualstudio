@@ -108,7 +108,7 @@ public class FixSuggestionHandlerTests
         {
             logger.WriteLine(FixSuggestionResources.ProcessingRequest, suggestionWithOneChange.configurationScopeId, suggestionWithOneChange.fixSuggestion.suggestionId);
             ideWindowService.BringToFront();
-            fixSuggestionNotification.ClearAsync();
+            fixSuggestionNotification.Clear();
             documentNavigator.Open(@"C:\myFile.cs");
             textView.TextBuffer.CreateEdit();
             issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), suggestedChange.beforeLineRange.startLine, suggestedChange.beforeLineRange.endLine);
@@ -208,7 +208,7 @@ public class FixSuggestionHandlerTests
         testSubject.ApplyFixSuggestion(suggestionParams);
 
         logger.Received().WriteLine(FixSuggestionResources.GetConfigScopeRootPathFailed, "SpecificConfigScopeId", "Scope not found");
-        fixSuggestionNotification.Received(1).InvalidRequestAsync(reason);
+        fixSuggestionNotification.Received(1).InvalidRequest(reason);
     }
 
     [TestMethod]
@@ -243,7 +243,7 @@ public class FixSuggestionHandlerTests
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
         logger.Received().WriteLine(Resources.ERR_OpenDocumentException, GetAbsolutePathOfFile(suggestionWithOneChange), errorMessage);
-        fixSuggestionNotification.Received(1).UnableToOpenFileAsync(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
+        fixSuggestionNotification.Received(1).UnableToOpenFile(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
     }
 
     [TestMethod]
@@ -254,7 +254,7 @@ public class FixSuggestionHandlerTests
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
         logger.DidNotReceive().WriteLine(Resources.ERR_OpenDocumentException, Arg.Any<string>(), Arg.Any<string>());
-        fixSuggestionNotification.Received(1).UnableToOpenFileAsync(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
+        fixSuggestionNotification.Received(1).UnableToOpenFile(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
     }
 
     [TestMethod]
@@ -262,7 +262,7 @@ public class FixSuggestionHandlerTests
     {
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
-        fixSuggestionNotification.Received(1).ClearAsync();
+        fixSuggestionNotification.Received(1).Clear();
     }
 
     [TestMethod]
@@ -370,7 +370,7 @@ public class FixSuggestionHandlerTests
     {
         Received.InOrder(() =>
         {
-            fixSuggestionNotification.UnableToLocateIssueAsync(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
+            fixSuggestionNotification.UnableToLocateIssue(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
             edit.Cancel();
         });
         edit.DidNotReceive().Apply();

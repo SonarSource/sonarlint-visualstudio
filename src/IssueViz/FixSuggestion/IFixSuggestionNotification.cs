@@ -20,131 +20,75 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.InfoBar;
+using SonarLint.VisualStudio.Core.Notifications;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 
 public interface IFixSuggestionNotification
 {
-    Task UnableToOpenFileAsync(string filePath);
-    Task InvalidRequestAsync(string reason);
-    Task UnableToLocateIssueAsync(string filePath);
-    Task ShowAsync(string text);
-    Task ClearAsync();
+    void UnableToOpenFile(string filePath);
+    void InvalidRequest(string reason);
+    void UnableToLocateIssue(string filePath);
+    void Clear();
 }
 
 [Export(typeof(IFixSuggestionNotification))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class FixSuggestionNotification : IFixSuggestionNotification, IDisposable
 {
-    private readonly IInfoBarManager infoBarManager;
+    private readonly INotificationService notificationService;
     private readonly IOutputWindowService outputWindowService;
-    private readonly IBrowserService browService;
-    private readonly IThreadHandling threadHandling;
-    private readonly object lockObject = new();
-    private IInfoBar currentInfoBar;
+    private readonly IBrowserService browserService;
 
     [ImportingConstructor]
-    public FixSuggestionNotification(IInfoBarManager infoBarManager,
+    public FixSuggestionNotification(INotificationService notificationService,
         IOutputWindowService outputWindowService,
-        IBrowserService browService,
-        IThreadHandling threadHandling)
+        IBrowserService browserService)
     {
-        this.infoBarManager = infoBarManager;
+        this.notificationService = notificationService;
         this.outputWindowService = outputWindowService;
-        this.browService = browService;
-        this.threadHandling = threadHandling;
+        this.browserService = browserService;
     }
 
-    public async Task UnableToOpenFileAsync(string filePath)
+    public void UnableToOpenFile(string filePath)
     {
         var unableToOpenFileMsg = string.Format(FixSuggestionResources.InfoBarUnableToOpenFile, filePath);
-        await ShowAsync(unableToOpenFileMsg);
+        Show(unableToOpenFileMsg);
     }
 
-    public async Task InvalidRequestAsync(string reason)
+    public void InvalidRequest(string reason)
     {
         var unableToOpenFileMsg = string.Format(FixSuggestionResources.InfoBarInvalidRequest, reason);
-        await ShowAsync(unableToOpenFileMsg);
+        Show(unableToOpenFileMsg);
     }
 
-    public async Task UnableToLocateIssueAsync(string filePath)
+    public void UnableToLocateIssue(string filePath)
     {
         var unableToOpenFileMsg = string.Format(FixSuggestionResources.InfoBarUnableToLocateFixSuggestion, filePath);
-        await ShowAsync(unableToOpenFileMsg);
+        Show(unableToOpenFileMsg);
     }
 
-    public async Task ShowAsync(string text)
+    private void Show(string text)
     {
-        await threadHandling.RunOnUIThreadAsync(() =>
-        {
-            lock (lockObject)
-            {
-                RemoveExistingInfoBar();
-                AddInfoBar(text);
-            }
-        });
+        var notification = new Notification(
+            id: "FixSuggestionNotification",
+            showOncePerSession: false,
+            message: text,
+            actions:
+            [
+                new NotificationAction(FixSuggestionResources.InfoBarButtonMoreInfo, _ => browserService.Navigate(DocumentationLinks.OpenInIdeIssueLocation), false),
+                new NotificationAction(FixSuggestionResources.InfoBarButtonShowLogs, _ => outputWindowService.Show(), false)
+            ]);
+        notificationService.ShowNotification(notification);
     }
 
-    public async Task ClearAsync()
+    public void Clear()
     {
-        await threadHandling.RunOnUIThreadAsync(() =>
-        {
-            lock (lockObject)
-            {
-                RemoveExistingInfoBar();
-            }
-        });
-    }
-
-    private void AddInfoBar(string text)
-    {
-        string[] buttonTexts = [FixSuggestionResources.InfoBarButtonMoreInfo, FixSuggestionResources.InfoBarButtonShowLogs];
-        var textToShow = text ?? FixSuggestionResources.InfoBarDefaultMessage;
-        currentInfoBar = infoBarManager.AttachInfoBarToMainWindow(textToShow, SonarLintImageMoniker.OfficialSonarLintMoniker, buttonTexts);
-        Debug.Assert(currentInfoBar != null, "currentInfoBar != null");
-
-        currentInfoBar.ButtonClick += HandleInfoBarAction;
-        currentInfoBar.Closed += CurrentInfoBar_Closed;
-    }
-
-    private void HandleInfoBarAction(object sender, InfoBarButtonClickedEventArgs e)
-    {
-        if (e.ClickedButtonText == FixSuggestionResources.InfoBarButtonMoreInfo)
-        {
-            browService.Navigate(DocumentationLinks.OpenInIdeIssueLocation);
-        }
-
-        if (e.ClickedButtonText == FixSuggestionResources.InfoBarButtonShowLogs)
-        {
-            outputWindowService.Show();
-        }
-    }
-
-    private void RemoveExistingInfoBar()
-    {
-        if (currentInfoBar != null)
-        {
-            currentInfoBar.ButtonClick -= HandleInfoBarAction;
-            currentInfoBar.Closed -= CurrentInfoBar_Closed;
-            infoBarManager.CloseInfoBar(currentInfoBar);
-            currentInfoBar = null;
-        }
-    }
-
-    private void CurrentInfoBar_Closed(object sender, EventArgs e)
-    {
-        lock (lockObject)
-        {
-            RemoveExistingInfoBar();
-        }
+        notificationService.RemoveNotification();
     }
 
     public void Dispose()
     {
-        lock (lockObject)
-        {
-            RemoveExistingInfoBar();
-        }
+        Clear();
     }
 }
