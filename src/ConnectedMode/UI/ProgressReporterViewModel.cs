@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
@@ -44,10 +45,12 @@ public interface ITaskToPerformParams<T> where T : IResponseStatus
     public Func<Task<T>> TaskToPerform { get; }
     public string ProgressStatus { get; }
     public string WarningText { get; }
+    public T FailureResponse { get; }
 }
 
 public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewModel
 {
+    private readonly ILogger logger;
     private string progressStatus;
     private string warning;
 
@@ -76,6 +79,11 @@ public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewMod
     public bool IsOperationInProgress => !string.IsNullOrEmpty(ProgressStatus);
     public bool HasWarning => !string.IsNullOrEmpty(Warning);
 
+    public ProgressReporterViewModel(ILogger logger)
+    {
+        this.logger = logger;
+    }
+
     public async Task<T> ExecuteTaskWithProgressAsync<T>(ITaskToPerformParams<T> parameters) where T: IResponseStatus
     {
         try
@@ -91,10 +99,16 @@ public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewMod
             }
             else
             {
-                Warning = parameters.WarningText;
-                parameters.AfterFailure?.Invoke(response);
+                OnFailure(parameters, response);
             }
 
+            return response;
+        }
+        catch (Exception ex)
+        {
+            var response = parameters.FailureResponse;
+            logger.WriteLine(ex.ToString());
+            OnFailure(parameters, response);
             return response;
         }
         finally
@@ -103,10 +117,16 @@ public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewMod
             parameters.AfterProgressUpdated?.Invoke();
         }
     }
+
+    private void OnFailure<T>(ITaskToPerformParams<T> parameters, T response) where T : IResponseStatus
+    {
+        Warning = parameters.WarningText;
+        parameters.AfterFailure?.Invoke(response);
+    }
 }
 
 public class TaskToPerformParams<T>(Func<Task<T>> taskToPerform, string progressStatus, string warningText) : ITaskToPerformParams<T>
-    where T : IResponseStatus
+    where T : IResponseStatus, new()
 {
     public Action AfterProgressUpdated { get; init; }
     public Action<T> AfterSuccess { get; init; }
@@ -114,4 +134,5 @@ public class TaskToPerformParams<T>(Func<Task<T>> taskToPerform, string progress
     public Func<Task<T>> TaskToPerform { get; } = taskToPerform;
     public string ProgressStatus { get; } = progressStatus;
     public string WarningText { get; } = warningText;
+    public T FailureResponse { get; } = new T();
 }

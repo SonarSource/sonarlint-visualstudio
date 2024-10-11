@@ -34,7 +34,9 @@ public partial class OrganizationSelectionDialog : Window
     public OrganizationSelectionDialog(IConnectedModeServices connectedModeServices, ICredentialsModel credentialsModel)
     {
         this.connectedModeServices = connectedModeServices;
-        ViewModel = new OrganizationSelectionViewModel(credentialsModel, connectedModeServices.SlCoreConnectionAdapter, new ProgressReporterViewModel());
+        ViewModel = new OrganizationSelectionViewModel(credentialsModel,
+            connectedModeServices.SlCoreConnectionAdapter,
+            new ProgressReporterViewModel(connectedModeServices.Logger));
         InitializeComponent();
     }
 

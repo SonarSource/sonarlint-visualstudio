@@ -42,7 +42,9 @@ public partial class ManageBindingDialog : Window
         this.connectedModeServices = connectedModeServices;
         this.connectedModeBindingServices = connectedModeBindingServices;
         this.useSharedBindingOnInitialization = useSharedBindingOnInitialization;
-        ViewModel = new ManageBindingViewModel(connectedModeServices, connectedModeBindingServices, new ProgressReporterViewModel());
+        ViewModel = new ManageBindingViewModel(connectedModeServices,
+            connectedModeBindingServices,
+            new ProgressReporterViewModel(connectedModeServices.Logger));
         InitializeComponent();
     }
 
