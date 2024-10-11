@@ -4,6 +4,8 @@
         xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
         xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+        xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+        xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
         Title="{x:Static res:UiResources.ProjectSelectionDialogTitle}"
         WindowStartupLocation="CenterOwner"
         Loaded="ProjectSelectionDialog_OnLoaded"
@@ -52,13 +54,12 @@
             <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:UiResources.ExistingProjectsLabel}" Style="{StaticResource HeaderTextBlock}"
                        Margin="0,10"/>
             <TextBox Grid.Row="1"
+                     x:Name="ProjectSearchTextBox"
                      VerticalAlignment="Top"
                      Text="{Binding ProjectSearchTerm, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock Grid.Row="1" IsHitTestVisible="False"
-                       Text="{x:Static res:UiResources.SearchForProjectPlaceholder}" VerticalAlignment="Center"
-                       HorizontalAlignment="Left" Margin="5,0,0,0" Foreground="DarkGray">
-                <TextBlock.Style>
-                    <Style TargetType="{x:Type TextBlock}">
+            <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel.Style>
+                    <Style TargetType="{x:Type StackPanel}">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Text, ElementName=ProjectSearchTextBox}" Value="">
@@ -66,8 +67,14 @@
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
-                </TextBlock.Style>
-            </TextBlock>
+                </StackPanel.Style>
+                <imaging:CrispImage IsHitTestVisible="False" 
+                                    Width="16" Height="16" Moniker="{x:Static vsimagecatalog:KnownMonikers.Search}" 
+                                    HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                <TextBlock IsHitTestVisible="False"
+                           Text="{x:Static res:UiResources.SearchForProjectPlaceholder}"
+                           HorizontalAlignment="Left" Margin="5,0,0,0" Foreground="DarkGray" />
+            </StackPanel>
 
             <ListBox Grid.Row="2"
                      Margin="0, 10, 0, 10"
