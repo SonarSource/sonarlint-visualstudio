@@ -190,7 +190,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
     internal async Task<AdapterResponse> UseSharedBindingAsync()
     {
-        var connectionInfo = CreteConnectionInfoFromSharedBinding();
+        var connectionInfo = CreateConnectionInfoFromSharedBinding();
         if (!ConnectionExists(connectionInfo, out var serverConnection) || !CredentialsExists(connectionInfo, serverConnection))
         {
             return new AdapterResponse(false);
@@ -320,7 +320,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
     }
 
-    private ConnectionInfo CreteConnectionInfoFromSharedBinding()
+    private ConnectionInfo CreateConnectionInfoFromSharedBinding()
     {
         return SharedBindingConfigModel.IsSonarCloud()
             ? new ConnectionInfo(SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud)
