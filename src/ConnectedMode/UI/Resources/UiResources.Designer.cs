@@ -756,6 +756,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Searching for project failed.
+        /// </summary>
+        public static string SearchingProjectFailedText {
+            get {
+                return ResourceManager.GetString("SearchingProjectFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Searching for project....
+        /// </summary>
+        public static string SearchingProjectInProgressText {
+            get {
+                return ResourceManager.GetString("SearchingProjectInProgressText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select.
         /// </summary>
         public static string SelectButton {

@@ -117,34 +117,53 @@ public class ProjectSelectionViewModelTests
     }
 
     [TestMethod]
-    public void ProjectSearchTerm_WithEmptyTerm_ShouldNotUpdateSearchResult()
+    public async Task ProjectSearchTerm_ExecutesInitializationWithProgress()
     {
-        MockInitializedProjects(AnInitialListOfProjects);
-
-        testSubject.ProjectSearchTerm = "";
-
-        testSubject.ProjectResults.Should().BeEquivalentTo(AnInitialListOfProjects);
-    }
-
-    [TestMethod]
-    public void ProjectSearchTerm_WithTerm_ShouldUpdateSearchResult()
-    {
-        MockInitializedProjects(AnInitialListOfProjects);
-
         testSubject.ProjectSearchTerm = "My Project";
 
-        testSubject.ProjectResults.Should().NotContain(AnInitialListOfProjects);
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponseWithData<List<ServerProject>>>>(x =>
+                    x.ProgressStatus == UiResources.SearchingProjectInProgressText &&
+                    x.WarningText == UiResources.SearchingProjectFailedText &&
+                    x.AfterSuccess == testSubject.InitProjects));
     }
 
     [TestMethod]
-    public void SearchForProject_RaisesEvents()
+    public void ProjectSearchTerm_WithEmptyTerm_ShouldNotUpdateSearchResult()
     {
+        var viewModel = CreateInitializedTestSubjectWitNotMockedProgress();
+
+        viewModel.ProjectSearchTerm = "";
+
+        viewModel.ProjectResults.Should().BeEquivalentTo(AnInitialListOfProjects);
+    }
+
+    [TestMethod]
+    public void ProjectSearchTerm_WithTerm_ReturnsProjectFromSlCore()
+    {
+        var searchTerm = "myProject";
+        var viewModel = CreateInitializedTestSubjectWitNotMockedProgress();
+        slCoreConnectionAdapter.FuzzySearchProjectsAsync(testSubject.ServerConnection, searchTerm).Returns(new AdapterResponseWithData<List<ServerProject>>(true, []));
+
+        viewModel.ProjectSearchTerm = searchTerm;
+
+        slCoreConnectionAdapter.Received(1).FuzzySearchProjectsAsync(testSubject.ServerConnection, searchTerm);
+        viewModel.ProjectResults.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void ProjectSearchTerm_RaisesEvents()
+    {
+        var searchTerm = "proj1";
+        var viewModel = CreateInitializedTestSubjectWitNotMockedProgress();
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        testSubject.PropertyChanged += eventHandler;
+        viewModel.PropertyChanged += eventHandler;
+        slCoreConnectionAdapter.FuzzySearchProjectsAsync(testSubject.ServerConnection, searchTerm).Returns(new AdapterResponseWithData<List<ServerProject>>(true, []));
 
-        testSubject.ProjectSearchTerm = "proj1";
+        viewModel.ProjectSearchTerm = searchTerm;
 
-        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoProjectExists)));
+        eventHandler.Received().Invoke(viewModel, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(viewModel.NoProjectExists)));
     }
 
     [TestMethod]
@@ -241,5 +260,12 @@ public class ProjectSelectionViewModelTests
             callInfo[1] = new ServerConnection.SonarQube(new Uri(connectionInfo.Id), credentials: expectedCredentials);
             return success;
         });
+    }
+
+    private ProjectSelectionViewModel CreateInitializedTestSubjectWitNotMockedProgress()
+    {
+        var viewModel = new ProjectSelectionViewModel(AConnectionInfo, connectedModeServices, new ProgressReporterViewModel(logger));
+        viewModel.InitProjects(new AdapterResponseWithData<List<ServerProject>>(true, AnInitialListOfProjects));
+        return viewModel;
     }
 }

@@ -19,6 +19,7 @@
  */
 
 using System.Collections.ObjectModel;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
@@ -109,14 +110,24 @@ public class ProjectSelectionViewModel(
             return;
         }
 
-        ProjectResults.Clear();
-
-        ProjectResults.Add(new ServerProject(Key: $"{ProjectSearchTerm.ToLower().Replace(" ", "_")}_1",
-            Name: $"{ProjectSearchTerm}_1"));
-        ProjectResults.Add(new ServerProject(Key: $"{ProjectSearchTerm.ToLower().Replace(" ", "_")}_2",
-            Name: $"{ProjectSearchTerm}_2"));
-        ProjectResults.Add(new ServerProject(Key: $"{ProjectSearchTerm.ToLower().Replace(" ", "_")}_3",
-            Name: $"{ProjectSearchTerm}_3"));
-        RaisePropertyChanged(nameof(NoProjectExists));
+        SearchForProjectWithProgressAsync().Forget();
     }
+
+    private async Task SearchForProjectWithProgressAsync()
+    {
+        var initializeProjectsParams = new TaskToPerformParams<AdapterResponseWithData<List<ServerProject>>>(
+            FuzzySearchProjectsAsync,
+            UiResources.SearchingProjectInProgressText,
+            UiResources.SearchingProjectFailedText)
+        {
+            AfterSuccess = InitProjects
+        };
+        await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(initializeProjectsParams);
+    }
+
+    private async Task<AdapterResponseWithData<List<ServerProject>>> FuzzySearchProjectsAsync()
+    {
+        return await connectedModeServices.SlCoreConnectionAdapter.FuzzySearchProjectsAsync(ServerConnection, ProjectSearchTerm);
+    }
+
 }
