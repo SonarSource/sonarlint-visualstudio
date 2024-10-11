@@ -127,7 +127,7 @@ internal sealed class FixSuggestionNotification : IFixSuggestionNotification, ID
         {
             currentInfoBar.ButtonClick -= HandleInfoBarAction;
             currentInfoBar.Closed -= CurrentInfoBar_Closed;
-            infoBarManager.DetachInfoBar(currentInfoBar);
+            infoBarManager.CloseInfoBar(currentInfoBar);
             currentInfoBar = null;
         }
     }

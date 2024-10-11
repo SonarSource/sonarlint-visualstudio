@@ -273,7 +273,7 @@ public class FixSuggestionNotificationTests
 
     private void CheckInfoBarWithEventsRemoved(IInfoBar infoBar)
     {
-        infoBarManager.Received(1).DetachInfoBar(infoBar);
+        infoBarManager.Received(1).CloseInfoBar(infoBar);
 
         infoBar.Received(1).Closed -= Arg.Any<EventHandler>();
         infoBar.Received(1).ButtonClick -= Arg.Any<EventHandler<InfoBarButtonClickedEventArgs>>();
@@ -281,7 +281,7 @@ public class FixSuggestionNotificationTests
 
     private void CheckInfoBarNotRemoved(IInfoBar infoBar)
     {
-        infoBarManager.DidNotReceive().DetachInfoBar(infoBar);
+        infoBarManager.DidNotReceive().CloseInfoBar(infoBar);
     }
 
     private void CheckInfoBarWithEventsAdded(IInfoBar infoBar, string text)

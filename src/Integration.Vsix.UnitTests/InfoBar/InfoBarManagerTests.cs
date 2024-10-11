@@ -18,19 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
-using FluentAssertions;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration.Vsix.InfoBar;
-using SonarLint.VisualStudio.TestInfrastructure;
+using ThreadHelper = SonarLint.VisualStudio.TestInfrastructure.ThreadHelper;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -51,11 +46,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void TestInit()
         {
-            SonarLint.VisualStudio.TestInfrastructure.ThreadHelper.SetCurrentThreadAsUIThread();
-            this.serviceProvider = new ConfigurableServiceProvider();
+            ThreadHelper.SetCurrentThreadAsUIThread();
+            serviceProvider = new ConfigurableServiceProvider();
 
-            this.shell = new ConfigurableVsUIShell();
-            this.serviceProvider.RegisterService(typeof(SVsUIShell), this.shell);
+            shell = new ConfigurableVsUIShell();
+            serviceProvider.RegisterService(typeof(SVsUIShell), shell);
         }
 
         #region Tests
@@ -204,33 +199,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void InfoBarManager_DetachInfoBar_ArgChecks()
+        public void CloseInfoBar_WhenNullInfoBar_Throws()
         {
-            // Arrange
-            var testSubject = new InfoBarManager(this.serviceProvider);
+            var testSubject = new InfoBarManager(serviceProvider);
 
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.DetachInfoBar(null));
-            Exceptions.Expect<ArgumentException>(() => testSubject.DetachInfoBar(new InvalidInfoBar()));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.CloseInfoBar(null));
         }
 
         [TestMethod]
-        public void InfoBarManager_DetachInfoBar()
+        public void CloseInfoBar_WhenInfoBarIsNotPrivateInfoBarWrapper_Throws()
+        {
+            var invalidInfoBar = Substitute.For<IInfoBar>();
+            var testSubject = new InfoBarManager(serviceProvider);
+
+            Exceptions.Expect<ArgumentException>(() => testSubject.CloseInfoBar(invalidInfoBar));
+        }
+
+        [TestMethod]
+        public void CloseInfoBar_WhenPrivateInfoBarWrapper_TriggersInfoBarCloseEvent()
         {
             // Arrange
-            Guid windowGuid = new Guid();
-            ConfigurableVsWindowFrame frame = this.shell.RegisterToolWindow(windowGuid);
+            var windowGuid = Guid.NewGuid();
+            var frame = this.shell.RegisterToolWindow(windowGuid);
             this.serviceProvider.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
-            var testSubject = new InfoBarManager(this.serviceProvider);
-            ConfigurableVsInfoBarHost host = RegisterFrameInfoBarHost(frame);
-            IInfoBar infoBarWrapper = testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", default);
-            bool closed = false;
+            var testSubject = new InfoBarManager(serviceProvider);
+            var host = RegisterFrameInfoBarHost(frame);
+            var infoBarWrapper = testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", default);
+            var closed = false;
             infoBarWrapper.Closed += (s, e) => closed = true;
 
             // Sanity
             host.AssertInfoBars(1);
 
             // Act
-            testSubject.DetachInfoBar(infoBarWrapper);
+            testSubject.CloseInfoBar(infoBarWrapper);
 
             // Assert
             closed.Should().BeTrue("Expected to auto-close");
@@ -366,7 +368,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             host.AssertInfoBars(1);
 
-            testSubject.DetachInfoBar(infoBar);
+            testSubject.CloseInfoBar(infoBar);
             host.AssertInfoBars(0);
         }
 
@@ -419,41 +421,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             shellMock.Setup(x => x.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out hostAsObject));
 
             serviceProvider.RegisterService(typeof(SVsShell), shellMock.Object);
-        }
-
-
-        private class InvalidInfoBar : IInfoBar
-        {
-            event EventHandler<InfoBarButtonClickedEventArgs> IInfoBar.ButtonClick
-            {
-                add
-                {
-                    throw new NotImplementedException();
-                }
-
-                remove
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            event EventHandler IInfoBar.Closed
-            {
-                add
-                {
-                    throw new NotImplementedException();
-                }
-
-                remove
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            void IInfoBar.Close()
-            {
-                throw new NotImplementedException();
-            }
         }
 
         #endregion Test helpers

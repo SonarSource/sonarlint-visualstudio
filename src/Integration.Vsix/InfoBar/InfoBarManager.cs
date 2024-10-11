@@ -18,12 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -111,14 +107,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             return AttachInfoBarImpl(host, message, imageMoniker, ButtonStyle.Hyperlink, buttonTexts);
         }
 
-        public void DetachInfoBar(IInfoBar currentInfoBar)
+        public void CloseInfoBar(IInfoBar currentInfoBar)
         {
             if (currentInfoBar == null)
             {
                 throw new ArgumentNullException(nameof(currentInfoBar));
             }
 
-            if (!(currentInfoBar is PrivateInfoBarWrapper))
+            if (currentInfoBar is not PrivateInfoBarWrapper)
             {
                 throw new ArgumentException(Strings.InvalidInfoBarInstance, nameof(currentInfoBar));
             }

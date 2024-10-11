@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Core.Notifications;
@@ -293,7 +288,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             callback.Verify(x => x(notification), Times.Once);
             callback.VerifyNoOtherCalls();
-            infoBarManager.Verify(ib => ib.DetachInfoBar(infoBar.Object), Times.Exactly(dismissInvocationCount));
+            infoBarManager.Verify(ib => ib.CloseInfoBar(infoBar.Object), Times.Exactly(dismissInvocationCount));
         }
 
         [TestMethod]
@@ -488,7 +483,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
             infoBarManager
-                .Setup(x => x.DetachInfoBar(infoBar.Object))
+                .Setup(x => x.CloseInfoBar(infoBar.Object))
                 .Throws(new NotImplementedException("this is a test"));
 
             var logger = new TestLogger();
@@ -510,7 +505,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
             infoBarManager
-                .Setup(x => x.DetachInfoBar(infoBar.Object))
+                .Setup(x => x.CloseInfoBar(infoBar.Object))
                 .Throws(new StackOverflowException("this is a test"));
 
             var logger = new TestLogger();
@@ -551,8 +546,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             var notification = CreateNotification();
             var infoBarManager = CreateInfoBarManager(notification, CreateInfoBar().Object);
-            infoBarManager.Setup(x => x.DetachInfoBar(It.IsAny<IInfoBar>()))
-                .Callback<IInfoBar>(x => calls.Add("DetachInfoBar"));
+            infoBarManager.Setup(x => x.CloseInfoBar(It.IsAny<IInfoBar>()))
+                .Callback<IInfoBar>(x => calls.Add("CloseInfoBar"));
 
             var threadHandling = new Mock<IThreadHandling>();
             threadHandling
@@ -572,7 +567,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             // Act
             testSubject.RemoveNotification();
 
-            calls.Should().ContainInOrder("RunOnUIThread", "DetachInfoBar");
+            calls.Should().ContainInOrder("RunOnUIThread", "CloseInfoBar");
         }
 
         [TestMethod]
@@ -583,7 +578,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
             infoBarManager
-                .Setup(x => x.DetachInfoBar(infoBar.Object))
+                .Setup(x => x.CloseInfoBar(infoBar.Object))
                 .Throws(new NotImplementedException("this is a test"));
 
             var logger = new TestLogger();
@@ -605,7 +600,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
 
             var infoBarManager = CreateInfoBarManager(notification, infoBar.Object);
             infoBarManager
-                .Setup(x => x.DetachInfoBar(infoBar.Object))
+                .Setup(x => x.CloseInfoBar(infoBar.Object))
                 .Throws(new StackOverflowException("this is a test"));
 
             var logger = new TestLogger();
@@ -713,7 +708,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         private static void VerifyInfoBarRemoved(Mock<IInfoBarManager> infoBarManager, Mock<IInfoBar> infoBar)
         {
             VerifyUnsubscribedFromInfoBarEvents(infoBar);
-            infoBarManager.Verify(x => x.DetachInfoBar(infoBar.Object), Times.Once);
+            infoBarManager.Verify(x => x.CloseInfoBar(infoBar.Object), Times.Once);
         }
 
         private static void VerifyUnsubscribedFromInfoBarEvents(Mock<IInfoBar> infoBar)
