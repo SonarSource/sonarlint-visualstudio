@@ -19,6 +19,7 @@
  */
 
 using System.Security;
+using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
@@ -411,6 +412,72 @@ public class SlCoreConnectionAdapterTests
 
         logger.Received(1).LogVerbose($"{Resources.GetAllProjects_Fails}: {exceptionMessage}");
         response.Success.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public async Task FuzzySearchProjectsAsync_SwitchesToBackgroundThread()
+    {
+        var threadHandlingMock = Substitute.For<IThreadHandling>();
+        var slCoreConnectionAdapter = new SlCoreConnectionAdapter(slCoreServiceProvider, threadHandlingMock, logger);
+
+        await slCoreConnectionAdapter.FuzzySearchProjectsAsync(sonarCloudConnection, "proj1");
+
+        await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<ServerProject>>>>>());
+    }
+
+    [TestMethod]
+    public async Task FuzzySearchProjectsAsync_GettingConnectionConfigurationSLCoreServiceFails_ReturnsUnsuccessfulResponseAndLogs()
+    {
+        slCoreServiceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService _).Returns(false);
+
+        var response = await testSubject.FuzzySearchProjectsAsync(sonarCloudConnection, "proj1");
+
+        logger.Received(1).LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
+        response.Success.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public async Task FuzzySearchProjectsAsync_CallsSlCoreWithCorrectParams()
+    {
+        var searchTerm = "proj1";
+        
+        await testSubject.FuzzySearchProjectsAsync(sonarCloudConnection, searchTerm);
+
+        await connectionConfigurationSlCoreService.Received(1).FuzzySearchProjectsAsync(
+            Arg.Is<FuzzySearchProjectsParams>(param =>
+                param.connectionId == sonarCloudConnection.Id && param.searchText == searchTerm));
+    }
+
+    [TestMethod]
+    public async Task FuzzySearchProjectsAsync_ReturnsResponseFromSlCore()
+    {
+        List<SonarProjectDto> expectedServerProjects = [CreateSonarProjectDto("projKey1", "projName1"), CreateSonarProjectDto("projKey2", "projName2")];
+        connectionConfigurationSlCoreService.FuzzySearchProjectsAsync(Arg.Any<FuzzySearchProjectsParams>()).Returns(new FuzzySearchProjectsResponse(expectedServerProjects));
+
+        var response = await testSubject.FuzzySearchProjectsAsync(sonarCloudConnection, "param");
+
+        response.Success.Should().BeTrue();
+        response.ResponseData.Count.Should().Be(expectedServerProjects.Count);
+        response.ResponseData.Should().BeEquivalentTo([
+            new ServerProject("projKey1", "projName1"),
+          new ServerProject("projKey2", "projName2")
+        ]);
+    }
+
+    [TestMethod]
+    public async Task FuzzySearchProjectsAsync_ThrowsException_ReturnsFalse()
+    {
+        var searchTerm = "proj1";
+        var exception = "error";
+        connectionConfigurationSlCoreService
+            .When(slCore => slCore.FuzzySearchProjectsAsync(Arg.Any<FuzzySearchProjectsParams>()))
+            .Do(_ => throw new Exception(exception));
+
+        var response = await testSubject.FuzzySearchProjectsAsync(sonarCloudConnection, searchTerm);
+
+        response.Success.Should().BeFalse();
+        response.ResponseData.Should().BeEmpty();
+        logger.LogVerbose(Resources.FuzzySearchProjects_Fails, sonarCloudConnection.Id, searchTerm, exception);
     }
 
     private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string token)
