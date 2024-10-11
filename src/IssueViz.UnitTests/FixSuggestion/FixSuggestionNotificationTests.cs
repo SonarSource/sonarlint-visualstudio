@@ -19,7 +19,7 @@
  */
 
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.InfoBar;
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -28,272 +28,203 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.FixSuggestion;
 [TestClass]
 public class FixSuggestionNotificationTests
 {
+    private const string AFilePath = @"C:\Data\repo\file.cs";
+    
     private FixSuggestionNotification testSubject;
-    private IInfoBarManager infoBarManager;
+    private INotificationService notificationService;
     private IOutputWindowService outputWindowService;
     private IBrowserService browserService;
-    private IThreadHandling threadHandler;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        infoBarManager = Substitute.For<IInfoBarManager>();
+        notificationService = Substitute.For<INotificationService>();
         outputWindowService = Substitute.For<IOutputWindowService>();
-        threadHandler = new NoOpThreadHandler();
         browserService = Substitute.For<IBrowserService>();
 
-        testSubject = new FixSuggestionNotification(infoBarManager, outputWindowService, browserService, threadHandler);
+        testSubject = new FixSuggestionNotification(notificationService, outputWindowService, browserService);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<FixSuggestionNotification, IFixSuggestionNotification>(
-            MefTestHelpers.CreateExport<IInfoBarManager>(),
+            MefTestHelpers.CreateExport<INotificationService>(),
             MefTestHelpers.CreateExport<IOutputWindowService>(),
-            MefTestHelpers.CreateExport<IBrowserService>(),
-            MefTestHelpers.CreateExport<IThreadHandling>());
+            MefTestHelpers.CreateExport<IBrowserService>());
     }
 
     [TestMethod]
-    public async Task Clear_NoPreviousInfoBar_NoException()
+    public void UnableToOpenFile_DisplaysNotification_WithMessage()
     {
-        await testSubject.ClearAsync();
+        testSubject.UnableToOpenFile(AFilePath);
 
-        infoBarManager.ReceivedCalls().Should().BeEmpty();
+        AssertReceivedNotificationWithMessage(string.Format(FixSuggestionResources.InfoBarUnableToOpenFile, AFilePath));
     }
-
+    
     [TestMethod]
-    public async Task Clear_HasPreviousInfoBar_InfoBarCleared()
+    public void UnableToOpenFile_ShouldNotShowOnlyOncePerSession()
     {
-        var infoBar = MockInfoBar();
-        await MockPreviousInfoBar(infoBar);
+        testSubject.UnableToOpenFile(AFilePath);
+
+        AssertNotificationNotShownOnlyOncePerSession();
+    }
+    
+    [TestMethod]
+    public void UnableToOpenFile_DisplaysNotification_WithActionToOpenDocsInBrowser()
+    {
+        testSubject.UnableToOpenFile(AFilePath);
+
+        SimulateNotificationActionInvoked(0);
         
-        await testSubject.ClearAsync();
-
-        CheckInfoBarWithEventsRemoved(infoBar);
+        AssertOpenedDocsPageInBrowser();
     }
 
     [TestMethod]
-    public async Task Show_NoPreviousInfoBar_InfoBarIsShown()
+    public void UnableToOpenFile_DisplaysNotification_WithActionToShowLogs()
     {
-        var infoBarText = "info bar text";
-        var infoBar = MockInfoBar();
-        MockAttachInfoBarToMainWindow(infoBar);
-
-        await testSubject.ShowAsync(infoBarText);
-
-        CheckInfoBarWithEventsAdded(infoBar, infoBarText);
-    }
-
-    [TestMethod]
-    public async Task Show_NoCustomText_InfoBarWithDefaultTextIsShown()
-    {
-        var infoBar = MockInfoBar(); 
-        MockAttachInfoBarToMainWindow(infoBar);
-
-        await testSubject.ShowAsync(null);
-
-        CheckInfoBarWithEventsAdded(infoBar, FixSuggestionResources.InfoBarDefaultMessage);
-    }
-
-    [TestMethod]
-    public async Task Show_HasPreviousInfoBar_InfoBarReplaced()
-    {
-        var firstInfoBar = MockInfoBar();
-        var secondInfoBar = MockInfoBar();
-        infoBarManager
-            .AttachInfoBarToMainWindow(Arg.Any<string>(), SonarLintImageMoniker.OfficialSonarLintMoniker, Arg.Any<string[]>())
-            .Returns(x => firstInfoBar, 
-                x=> secondInfoBar);
-
-        var text1 = "text1";
-        await testSubject.ShowAsync(text1); // show first bar
+        testSubject.UnableToOpenFile(AFilePath);
         
-        CheckInfoBarWithEventsAdded(firstInfoBar, text1);
-        infoBarManager.ClearReceivedCalls();
+        SimulateNotificationActionInvoked(1);
 
-        var text2 = "text2";
-        await testSubject.ShowAsync(text2); // show second bar
-
-        CheckInfoBarWithEventsRemoved(firstInfoBar);
-        CheckInfoBarWithEventsAdded(secondInfoBar, text2);
+        AssertShownLogsWindow();
     }
 
     [TestMethod]
-    public async Task Dispose_HasPreviousInfoBar_InfoBarRemoved()
+    public void UnableToOpenFile_NotificationActions_ShouldNotDismissNotification()
     {
-        var infoBar = MockInfoBar();
-        await MockPreviousInfoBar(infoBar);
+        testSubject.UnableToOpenFile(AFilePath);
 
-        testSubject.Dispose();
-
-        CheckInfoBarWithEventsRemoved(infoBar);
+        AssertActionsAreNotDismissingNotification();
     }
 
     [TestMethod]
-    public void Dispose_NoPreviousInfoBar_NoException()
+    public void InvalidRequest_DisplaysNotification_WithMessage()
     {
-        Action act = () => testSubject.Dispose();
+        testSubject.InvalidRequest(AFilePath);
 
-        act.Should().NotThrow();
+        AssertReceivedNotificationWithMessage(string.Format(FixSuggestionResources.InfoBarInvalidRequest, AFilePath));
+    }
+    
+    [TestMethod]
+    public void InvalidRequest_ShouldNotShowOnlyOncePerSession()
+    {
+        testSubject.InvalidRequest(AFilePath);
+
+        AssertNotificationNotShownOnlyOncePerSession();
+    }
+    
+    [TestMethod]
+    public void InvalidRequest_DisplaysNotification_WithActionToOpenDocsInBrowser()
+    {
+        testSubject.InvalidRequest(AFilePath);
+
+        SimulateNotificationActionInvoked(0);
+        
+        AssertOpenedDocsPageInBrowser();
     }
 
     [TestMethod]
-    public async Task InfoBarIsManuallyClosed_InfoBarDetachedFromToolWindow()
+    public void InvalidRequest_DisplaysNotification_WithActionToShowLogs()
     {
-        var infoBar = MockInfoBar();
-        await MockPreviousInfoBar(infoBar);
+        testSubject.InvalidRequest(AFilePath);
+        
+        SimulateNotificationActionInvoked(1);
 
-        infoBar.Closed += Raise.EventWith(EventArgs.Empty);
-
-        CheckInfoBarWithEventsRemoved(infoBar);
+        AssertShownLogsWindow();
     }
 
     [TestMethod]
-    public async Task InfoBarShowLogsButtonClicked_OutputWindowIsShown()
+    public void InvalidRequest_NotificationActions_ShouldNotDismissNotification()
     {
-        var infoBar = MockInfoBar();
-        await MockPreviousInfoBar(infoBar);
+        testSubject.InvalidRequest(AFilePath);
 
-        infoBar.ButtonClick += Raise.EventWith(new InfoBarButtonClickedEventArgs(FixSuggestionResources.InfoBarButtonShowLogs));
+        AssertActionsAreNotDismissingNotification();
+    }
+    
+    [TestMethod]
+    public void UnableToLocateIssue_DisplaysNotification_WithMessage()
+    {
+        testSubject.UnableToLocateIssue(AFilePath);
 
-        CheckInfoBarNotRemoved(infoBar);
-        outputWindowService.Received(1).Show();
+        AssertReceivedNotificationWithMessage(string.Format(FixSuggestionResources.InfoBarUnableToLocateFixSuggestion, AFilePath));
+    }
+    
+    [TestMethod]
+    public void UnableToLocateIssue_ShouldNotShowOnlyOncePerSession()
+    {
+        testSubject.UnableToLocateIssue(AFilePath);
+
+        AssertNotificationNotShownOnlyOncePerSession();
+    }
+    
+    [TestMethod]
+    public void UnableToLocateIssue_DisplaysNotification_WithActionToOpenDocsInBrowser()
+    {
+        testSubject.UnableToLocateIssue(AFilePath);
+
+        SimulateNotificationActionInvoked(0);
+        
+        AssertOpenedDocsPageInBrowser();
     }
 
     [TestMethod]
-    public async Task InfoBarMoreInfoButtonClicked_DocumentationOpenInBrowser()
+    public void UnableToLocateIssue_DisplaysNotification_WithActionToShowLogs()
     {
-        var infoBar = MockInfoBar();
-        await MockPreviousInfoBar(infoBar);
+        testSubject.UnableToLocateIssue(AFilePath);
+        
+        SimulateNotificationActionInvoked(1);
 
-        infoBar.ButtonClick += Raise.EventWith(new InfoBarButtonClickedEventArgs(FixSuggestionResources.InfoBarButtonMoreInfo));
+        AssertShownLogsWindow();
+    }
 
-        CheckInfoBarNotRemoved(infoBar);
+    [TestMethod]
+    public void UnableToLocateIssue_NotificationActions_ShouldNotDismissNotification()
+    {
+        testSubject.UnableToLocateIssue(AFilePath);
+
+        AssertActionsAreNotDismissingNotification();
+    }
+    
+    [TestMethod]
+    public void Clear_TriggersNotificationServiceClear()
+    {
+        testSubject.Clear();
+
+        notificationService.Received(1).RemoveNotification();
+    }
+    
+    private void AssertReceivedNotificationWithMessage(string message)
+    {
+        notificationService.Received(1).ShowNotification(Arg.Is<INotification>(x => x.Message == message));
+    }
+    
+    private void AssertNotificationNotShownOnlyOncePerSession()
+    {
+        notificationService.Received(1).ShowNotification(Arg.Is<INotification>(x => !x.ShowOncePerSession));
+    }
+    
+    private void AssertOpenedDocsPageInBrowser()
+    {
         browserService.Received(1).Navigate(DocumentationLinks.OpenInIdeIssueLocation);
     }
-
-    [TestMethod]
-    public async Task ShowAsync_VerifySwitchesToUiThreadIsCalled()
+    
+    private void AssertShownLogsWindow()
     {
-        MockAttachInfoBarToMainWindow(Substitute.For<IInfoBar>());
-        var threadHandling = Substitute.For<IThreadHandling>();
-        threadHandling
-            .When(x => x.RunOnUIThreadAsync(Arg.Any<Action>()))
-            .Do(callInfo =>
-            {
-                infoBarManager.DidNotReceive().AttachInfoBarToMainWindow(Arg.Any<string>(), SonarLintImageMoniker.OfficialSonarLintMoniker, Arg.Any<string[]>());
-                callInfo.Arg<Action>().Invoke();
-                infoBarManager.Received(1).AttachInfoBarToMainWindow(Arg.Any<string>(), SonarLintImageMoniker.OfficialSonarLintMoniker, Arg.Any<string[]>());
-            });
-        var fixSuggestionNotification = new FixSuggestionNotification(infoBarManager,
-            outputWindowService,
-            browserService,
-            threadHandling);
-
-        await fixSuggestionNotification.ShowAsync( "some text");
-        await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
+        outputWindowService.Received(1).Show();
     }
-
-    [TestMethod]
-    public async Task ClearAsync_VerifySwitchesToUiThreadIsCalled()
+    
+    private void AssertActionsAreNotDismissingNotification()
     {
-        MockAttachInfoBarToMainWindow(Substitute.For<IInfoBar>());
-        var threadHandling = Substitute.For<IThreadHandling>();
-        var fixSuggestionNotification = new FixSuggestionNotification(infoBarManager,
-            outputWindowService,
-            browserService,
-            threadHandling);
-
-        await fixSuggestionNotification.ClearAsync();
-
-        await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
+        notificationService.Received(1).ShowNotification(Arg.Is<Notification>(n =>
+            n.Actions.All(a => !a.ShouldDismissAfterAction)
+        ));
     }
-
-    [TestMethod]
-    public async Task UnableToOpenFileAsync_CallsShowAsyncWithCorrectMessage()
+    
+    private void SimulateNotificationActionInvoked(int actionIndex)
     {
-        var infoBar = MockInfoBar();
-        MockAttachInfoBarToMainWindow(infoBar);
-        var myPath = "c://myFile.cs";
-        
-        await testSubject.UnableToOpenFileAsync(myPath);
-
-        CheckInfoBarWithEventsAdded(infoBar, string.Format(FixSuggestionResources.InfoBarUnableToOpenFile, myPath));
-    }
-
-    [TestMethod]
-    public async Task InvalidRequestAsync_CallsShowAsyncWithCorrectMessage()
-    {
-        var infoBar = MockInfoBar();
-        MockAttachInfoBarToMainWindow(infoBar);
-        var reason = "wrong config scope";
-
-        await testSubject.InvalidRequestAsync(reason);
-
-        CheckInfoBarWithEventsAdded(infoBar, string.Format(FixSuggestionResources.InfoBarInvalidRequest, reason));
-    }
-
-    [TestMethod]
-    public async Task UnableToLocateIssueAsync_CallsShowAsyncWithCorrectMessage()
-    {
-        var infoBar = MockInfoBar();
-        MockAttachInfoBarToMainWindow(infoBar);
-        var myPath = "c://myFile.cs";
-
-        await testSubject.UnableToLocateIssueAsync(myPath);
-
-        CheckInfoBarWithEventsAdded(infoBar, string.Format(FixSuggestionResources.InfoBarUnableToLocateFixSuggestion, myPath));
-    }
-
-    private async Task MockPreviousInfoBar(IInfoBar infoBar = null)
-    {
-        infoBar ??= MockInfoBar();
-        MockAttachInfoBarToMainWindow(infoBar);
-        var someText = "some text";
-
-        await testSubject.ShowAsync(someText);
-
-        CheckInfoBarWithEventsAdded(infoBar, someText); 
-        outputWindowService.ReceivedCalls().Should().BeEmpty();
-    }
-
-    private void MockAttachInfoBarToMainWindow(IInfoBar infoBar)
-    {
-        infoBarManager
-            .AttachInfoBarToMainWindow(Arg.Any<string>(), SonarLintImageMoniker.OfficialSonarLintMoniker, Arg.Any<string[]>())
-            .Returns(infoBar);
-    }
-
-    private static IInfoBar MockInfoBar()
-    {
-        return Substitute.For<IInfoBar>();
-    }
-
-    private void CheckInfoBarWithEventsRemoved(IInfoBar infoBar)
-    {
-        infoBarManager.Received(1).DetachInfoBar(infoBar);
-
-        infoBar.Received(1).Closed -= Arg.Any<EventHandler>();
-        infoBar.Received(1).ButtonClick -= Arg.Any<EventHandler<InfoBarButtonClickedEventArgs>>();
-    }
-
-    private void CheckInfoBarNotRemoved(IInfoBar infoBar)
-    {
-        infoBarManager.DidNotReceive().DetachInfoBar(infoBar);
-    }
-
-    private void CheckInfoBarWithEventsAdded(IInfoBar infoBar, string text)
-    {
-        text ??= FixSuggestionResources.InfoBarDefaultMessage;
-        var buttonTexts = new[]{FixSuggestionResources.InfoBarButtonMoreInfo, FixSuggestionResources.InfoBarButtonShowLogs};
-        infoBarManager.Received(1).AttachInfoBarToMainWindow(
-                text,
-                SonarLintImageMoniker.OfficialSonarLintMoniker,
-                buttonTexts);
-
-        infoBar.Received(1).Closed += Arg.Any<EventHandler>();
-        infoBar.Received(1).ButtonClick += Arg.Any<EventHandler<InfoBarButtonClickedEventArgs>>();
+        var notification = notificationService.ReceivedCalls().Single().GetArguments()[0] as Notification;
+        notification.Should().NotBeNull();
+        notification!.Actions.ToList()[actionIndex].Action.Invoke(notification);
     }
 }

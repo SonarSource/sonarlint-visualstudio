@@ -18,11 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
 
@@ -113,7 +109,7 @@ internal sealed class OpenInIdeFailureInfoBar : IOpenInIdeFailureInfoBar, IDispo
         {
             currentInfoBar.ButtonClick -= HandleInfoBarAction;
             currentInfoBar.Closed -= CurrentInfoBar_Closed;
-            infoBarManager.DetachInfoBar(currentInfoBar);
+            infoBarManager.CloseInfoBar(currentInfoBar);
             currentInfoBar = null;
         }
     }

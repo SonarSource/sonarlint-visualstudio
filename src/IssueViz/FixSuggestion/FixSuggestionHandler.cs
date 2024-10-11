@@ -22,7 +22,6 @@ using System.ComponentModel.Composition;
 using System.IO;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -87,12 +86,12 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         {
             logger.WriteLine(FixSuggestionResources.ProcessingRequest, parameters.configurationScopeId, parameters.fixSuggestion.suggestionId);
             ideWindowService.BringToFront();
-            fixSuggestionNotification.ClearAsync().Forget();
+            fixSuggestionNotification.Clear();
 
             if (!ValidateConfiguration(parameters.configurationScopeId, out var configurationScopeRoot, out var failureReason))
             {
                 logger.WriteLine(FixSuggestionResources.GetConfigScopeRootPathFailed, parameters.configurationScopeId, failureReason);
-                fixSuggestionNotification.InvalidRequestAsync(failureReason).Forget();
+                fixSuggestionNotification.InvalidRequest(failureReason);
                 return;
             }
 
@@ -158,7 +157,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
             return true;
         }
 
-        fixSuggestionNotification.UnableToLocateIssueAsync(filePath).Forget();
+        fixSuggestionNotification.UnableToLocateIssue(filePath);
         return false;
     }
 
@@ -169,7 +168,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
             return true;
         }
 
-        fixSuggestionNotification.UnableToOpenFileAsync(absoluteFilePath).Forget();
+        fixSuggestionNotification.UnableToOpenFile(absoluteFilePath);
         return false;
     }
 

@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using SonarLint.VisualStudio.Core.InfoBar;
 
 namespace SonarLint.VisualStudio.Core.Notifications
@@ -134,7 +131,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 {
                     activeNotification.Item1.ButtonClick -= CurrentInfoBar_ButtonClick;
                     activeNotification.Item1.Closed -= CurrentInfoBar_Closed;
-                    infoBarManager.DetachInfoBar(activeNotification.Item1);
+                    infoBarManager.CloseInfoBar(activeNotification.Item1);
                     activeNotification = null;
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
