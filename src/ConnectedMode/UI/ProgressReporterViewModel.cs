@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
@@ -48,6 +49,7 @@ public interface ITaskToPerformParams<T> where T : IResponseStatus
 
 public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewModel
 {
+    private readonly ILogger logger;
     private string progressStatus;
     private string warning;
 
@@ -75,6 +77,11 @@ public class ProgressReporterViewModel : ViewModelBase, IProgressReporterViewMod
 
     public bool IsOperationInProgress => !string.IsNullOrEmpty(ProgressStatus);
     public bool HasWarning => !string.IsNullOrEmpty(Warning);
+
+    public ProgressReporterViewModel(ILogger logger)
+    {
+        this.logger = logger;
+    }
 
     public async Task<T> ExecuteTaskWithProgressAsync<T>(ITaskToPerformParams<T> parameters) where T: IResponseStatus
     {

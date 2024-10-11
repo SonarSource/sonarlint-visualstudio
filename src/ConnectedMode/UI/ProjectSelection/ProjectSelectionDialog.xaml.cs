@@ -31,7 +31,9 @@ public partial class ProjectSelectionDialog
 
     public ProjectSelectionDialog(ConnectionInfo connectionInfo, IConnectedModeServices connectedModeServices)
     {
-        ViewModel = new ProjectSelectionViewModel(connectionInfo, connectedModeServices, new ProgressReporterViewModel());
+        ViewModel = new ProjectSelectionViewModel(connectionInfo,
+            connectedModeServices,
+            new ProgressReporterViewModel(connectedModeServices.Logger));
         InitializeComponent();
     }
 

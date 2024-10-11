@@ -20,6 +20,7 @@
 
 using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 
@@ -27,11 +28,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 public class ProgressReporterViewModelTests
 {
     private ProgressReporterViewModel testSubject;
+    private ILogger logger;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new ProgressReporterViewModel();
+        logger = Substitute.For<ILogger>();
+        testSubject = new ProgressReporterViewModel(logger);
     }
 
     [TestMethod]
