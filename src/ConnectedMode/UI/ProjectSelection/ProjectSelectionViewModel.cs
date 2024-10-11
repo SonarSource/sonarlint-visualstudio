@@ -63,6 +63,7 @@ public class ProjectSelectionViewModel(
 
     public bool IsProjectSelected => SelectedProject != null;
     public ServerConnection ServerConnection { get; private set; }
+    public List<ServerProject> InitialServerProjects { get; private set; } = [];
 
     private string projectSearchTerm;
     private ServerProject selectedProject;
@@ -94,8 +95,14 @@ public class ProjectSelectionViewModel(
 
     internal void InitProjects(AdapterResponseWithData<List<ServerProject>> response)
     {
+        FillProjects(response.ResponseData);
+        InitialServerProjects = response.ResponseData;
+    }
+
+    private void FillProjects(List<ServerProject> projects)
+    {
         ProjectResults.Clear();
-        foreach (var serverProject in response.ResponseData.OrderBy(p => p.Name))
+        foreach (var serverProject in projects.OrderBy(p => p.Name))
         {
             ProjectResults.Add(serverProject);
         }
@@ -107,6 +114,7 @@ public class ProjectSelectionViewModel(
     {
         if (string.IsNullOrEmpty(ProjectSearchTerm))
         {
+            FillProjects(InitialServerProjects);
             return;
         }
 
@@ -120,7 +128,7 @@ public class ProjectSelectionViewModel(
             UiResources.SearchingProjectInProgressText,
             UiResources.SearchingProjectFailedText)
         {
-            AfterSuccess = InitProjects
+            AfterSuccess = response => FillProjects(response.ResponseData)
         };
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(initializeProjectsParams);
     }
