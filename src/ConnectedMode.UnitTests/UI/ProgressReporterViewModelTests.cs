@@ -20,6 +20,7 @@
 
 using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 
@@ -27,11 +28,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 public class ProgressReporterViewModelTests
 {
     private ProgressReporterViewModel testSubject;
+    private ILogger logger;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new ProgressReporterViewModel();
+        logger = Substitute.For<ILogger>();
+        testSubject = new ProgressReporterViewModel(logger);
     }
 
     [TestMethod]
@@ -169,11 +172,25 @@ public class ProgressReporterViewModelTests
     [TestMethod]
     public async Task ExecuteTaskWithProgressAsync_TaskThrowsException_SetsProgressToNull()
     {
+        var warningText = "warning";
+        var parameters = Substitute.For<ITaskToPerformParams<IResponseStatus>>();
         testSubject.ProgressStatus = "In progress...";
+        parameters.WarningText.Returns(warningText);
 
-        await ExecuteTaskThatThrows();
+        var response = await ExecuteTaskThatThrows(parameters);
 
+        response.Success.Should().BeFalse();
+        parameters.Received(1).AfterFailure(Arg.Any<IResponseStatus>());
+        testSubject.Warning.Should().Be(warningText);
         testSubject.ProgressStatus.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task ExecuteTaskWithProgressAsync_TaskThrowsException_CatchesErrorAndLogs()
+    {
+        var act = async () => await ExecuteTaskThatThrows();
+
+        await act.Should().NotThrowAsync();
     }
 
     private static ITaskToPerformParams<IResponseStatus> GetTaskWithResponse(bool success)
@@ -186,18 +203,11 @@ public class ProgressReporterViewModelTests
         return parameters;
     }
 
-    private async Task ExecuteTaskThatThrows()
+    private async Task<IResponseStatus> ExecuteTaskThatThrows(ITaskToPerformParams<IResponseStatus> parameters = null)
     {
-        var parameters = Substitute.For<ITaskToPerformParams<IResponseStatus>>();
+        parameters ??= Substitute.For<ITaskToPerformParams<IResponseStatus>>();
         parameters.TaskToPerform.Returns(x => throw new Exception("test"));
 
-        try
-        {
-            await testSubject.ExecuteTaskWithProgressAsync(parameters);
-        }
-        catch (Exception)
-        {
-           // this is for testing only
-        }
+        return await testSubject.ExecuteTaskWithProgressAsync(parameters);
     }
 }

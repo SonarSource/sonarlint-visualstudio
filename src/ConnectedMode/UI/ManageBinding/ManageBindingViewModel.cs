@@ -138,7 +138,6 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         var displayBindStatus = new TaskToPerformParams<AdapterResponse>(DisplayBindStatusAsync, UiResources.FetchingBindingStatusText,
                 UiResources.FetchingBindingStatusFailedText) { AfterProgressUpdated = OnProgressUpdated};
         await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus);
-        DetectSharedBinding();
     }
 
     public async Task BindWithProgressAsync()
@@ -268,6 +267,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         SelectedConnectionInfo = ConnectionInfo.From(serverConnection);
         SelectedProject = response.ResponseData;
         BoundProject = SelectedProject;
+        DetectSharedBinding();
         return new AdapterResponse(BoundProject != null);
     }
 

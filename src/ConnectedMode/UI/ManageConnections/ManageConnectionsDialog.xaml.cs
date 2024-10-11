@@ -37,7 +37,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
         public ManageConnectionsDialog(IConnectedModeServices connectedModeServices, IConnectedModeBindingServices connectedModeBindingServices)
         {
             this.connectedModeServices = connectedModeServices;
-            ViewModel = new ManageConnectionsViewModel(connectedModeServices, connectedModeBindingServices, new ProgressReporterViewModel());
+            ViewModel = new ManageConnectionsViewModel(connectedModeServices,
+                connectedModeBindingServices,
+                new ProgressReporterViewModel(connectedModeServices.Logger));
             InitializeComponent();
         }
 

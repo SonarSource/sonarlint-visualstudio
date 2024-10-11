@@ -504,6 +504,16 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
+    public async Task InitializeDataAsync_ShouldNotThrow_WhenDetectingSharedBindingConfigThrows()
+    { 
+        sharedBindingConfigProvider.GetSharedBinding().Throws(new Exception("Failed to detect shared binding"));
+
+        var act = async ()=>  await testSubject.InitializeDataAsync();
+
+        await act.Should().NotThrowAsync();
+    }
+
+    [TestMethod]
     public async Task DisplayBindStatusAsync_WhenProjectIsNotBound_Succeeds()
     {
         SetupUnboundProject();
