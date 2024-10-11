@@ -343,7 +343,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.OpenInIDE
 
         private static void CheckInfoBarWithEventsRemoved(Mock<IInfoBarManager> infoBarManager, Mock<IInfoBar> infoBar)
         {
-            infoBarManager.Verify(x => x.DetachInfoBar(infoBar.Object), Times.Once);
+            infoBarManager.Verify(x => x.CloseInfoBar(infoBar.Object), Times.Once);
 
             infoBar.VerifyRemove(x => x.Closed -= It.IsAny<EventHandler>(), Times.Once);
             infoBar.VerifyRemove(x => x.ButtonClick -= It.IsAny<EventHandler<InfoBarButtonClickedEventArgs>>(), Times.Once);
@@ -351,7 +351,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.OpenInIDE
 
         private static void CheckInfoBarNotRemoved(Mock<IInfoBarManager> infoBarManager, Mock<IInfoBar> infoBar)
         {
-            infoBarManager.Verify(x => x.DetachInfoBar(infoBar.Object), Times.Never);
+            infoBarManager.Verify(x => x.CloseInfoBar(infoBar.Object), Times.Never);
         }
 
         private static void CheckInfoBarWithEventsAdded(Mock<IInfoBarManager> infoBarManager, Mock<IInfoBar> infoBar, Guid toolWindowId, string text, List<string> buttonTexts)

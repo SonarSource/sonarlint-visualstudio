@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-
 namespace SonarLint.VisualStudio.Core.InfoBar
 {
     public interface IInfoBarManager
@@ -64,9 +61,9 @@ namespace SonarLint.VisualStudio.Core.InfoBar
         IInfoBar AttachInfoBarToMainWindow(string message, SonarLintImageMoniker imageMoniker, params string[] buttonTexts);
 
         /// <summary>
-        /// Detaches an <see cref="IInfoBar"/> from its tool window
+        /// Closes an <see cref="IInfoBar"/>
         /// </summary>
         /// <param name="currentInfoBar">Instance of <see cref="IInfoBar"/> created by <see cref="AttachInfoBar(Guid, string, SonarLintImageMoniker)"/></param>
-        void DetachInfoBar(IInfoBar currentInfoBar);
+        void CloseInfoBar(IInfoBar currentInfoBar);
     }
 }
