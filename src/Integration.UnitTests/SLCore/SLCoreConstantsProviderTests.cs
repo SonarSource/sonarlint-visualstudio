@@ -67,6 +67,7 @@ public class SLCoreConstantsProviderTests
     {
         var testSubject = CreateTestSubject();
         var expectedFeatureFlags = new FeatureFlagsDto(
+            shouldManageSmartNotifications: true,
             taintVulnerabilitiesEnabled: true,
             shouldSynchronizeProjects: true,
             shouldManageLocalServer: true,

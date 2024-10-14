@@ -21,6 +21,7 @@
 namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models
 {
     public record FeatureFlagsDto(
+        bool shouldManageSmartNotifications,
         bool taintVulnerabilitiesEnabled,
         bool shouldSynchronizeProjects,
         bool shouldManageLocalServer,

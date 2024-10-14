@@ -44,7 +44,7 @@ public class SLCoreInstanceHandleTests
     private const string UserHome = "userHomeSl";
     
     private static readonly ClientConstantsDto ClientConstants = new(default, default, default);
-    private static readonly FeatureFlagsDto FeatureFlags = new(default, default, default, default, default, default, default, default, default);
+    private static readonly FeatureFlagsDto FeatureFlags = new(default, default, default, default, default, default, default, default, default, default);
     private static readonly TelemetryClientConstantAttributesDto TelemetryConstants = new(default, default, default, default, default);
 
     private static readonly SonarQubeConnectionConfigurationDto SonarQubeConnection1 = new("sq1", true, "http://localhost/");

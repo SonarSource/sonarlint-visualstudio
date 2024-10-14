@@ -36,7 +36,7 @@ public class InitializeParamsTests
         var testSubject = new InitializeParams(
             new ClientConstantsDto("TESTname", "TESTagent", 11223344),
             new HttpConfigurationDto(new SslConfigurationDto()),
-            new FeatureFlagsDto(false, true, false, true, false, true, false, false, false),
+            new FeatureFlagsDto(true, false, true, false, true, false, true, false, false, false),
             "storageRoot",
             "workDir",
             ["myplugin1", "myplugin2"],
@@ -69,6 +69,7 @@ public class InitializeParamsTests
                                     "sslConfiguration": {}
                                   },
                                   "featureFlags": {
+                                    "shouldManageSmartNotifications": true,
                                     "taintVulnerabilitiesEnabled": false,
                                     "shouldSynchronizeProjects": true,
                                     "shouldManageLocalServer": false,

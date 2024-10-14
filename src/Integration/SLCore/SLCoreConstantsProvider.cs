@@ -42,7 +42,9 @@ namespace SonarLint.VisualStudio.Integration.SLCore
 
         public ClientConstantsDto ClientConstants => new(vsInfoProvider.Name, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
 
-        public FeatureFlagsDto FeatureFlags => new(taintVulnerabilitiesEnabled:true, 
+        public FeatureFlagsDto FeatureFlags => new(
+            shouldManageSmartNotifications:true,
+            taintVulnerabilitiesEnabled:true, 
             shouldSynchronizeProjects:true, 
             shouldManageLocalServer:true, 
             enableSecurityHotspots:true,
