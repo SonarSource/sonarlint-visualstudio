@@ -178,6 +178,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode] The search for projects for the connectionId {0} with the search term &quot;{1}&quot; failed: {2}.
+        /// </summary>
+        internal static string FuzzySearchProjects_Fails {
+            get {
+                return ResourceManager.GetString("FuzzySearchProjects_Fails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [ConnectedMode] Getting all projects failed.
         /// </summary>
         internal static string GetAllProjects_Fails {

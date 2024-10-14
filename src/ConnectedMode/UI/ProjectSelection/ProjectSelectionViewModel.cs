@@ -19,7 +19,9 @@
  */
 
 using System.Collections.ObjectModel;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
@@ -60,6 +62,8 @@ public class ProjectSelectionViewModel(
     }
 
     public bool IsProjectSelected => SelectedProject != null;
+    public ServerConnection ServerConnection { get; private set; }
+    public List<ServerProject> InitialServerProjects { get; private set; } = [];
 
     private string projectSearchTerm;
     private ServerProject selectedProject;
@@ -78,20 +82,27 @@ public class ProjectSelectionViewModel(
 
     internal async Task<AdapterResponseWithData<List<ServerProject>>> AdapterGetAllProjectsAsync()
     {
-        var serverConnectionCredentials = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(ConnectionInfo, out var serverConnection);
-        if (!serverConnectionCredentials)
+        var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryGet(ConnectionInfo, out var serverConnection);
+        if (!succeeded)
         {
             connectedModeServices.Logger.WriteLine(UiResources.LoadingProjectsFailedTextForNotFoundServerConnection);
             return new AdapterResponseWithData<List<ServerProject>>(false, null);
         }
 
+        ServerConnection = serverConnection;
         return await connectedModeServices.SlCoreConnectionAdapter.GetAllProjectsAsync(serverConnection);
     }
 
     internal void InitProjects(AdapterResponseWithData<List<ServerProject>> response)
     {
+        FillProjects(response.ResponseData);
+        InitialServerProjects = response.ResponseData;
+    }
+
+    private void FillProjects(List<ServerProject> projects)
+    {
         ProjectResults.Clear();
-        foreach (var serverProject in response.ResponseData.OrderBy(p => p.Name))
+        foreach (var serverProject in projects.OrderBy(p => p.Name))
         {
             ProjectResults.Add(serverProject);
         }
@@ -103,17 +114,28 @@ public class ProjectSelectionViewModel(
     {
         if (string.IsNullOrEmpty(ProjectSearchTerm))
         {
+            FillProjects(InitialServerProjects);
             return;
         }
 
-        ProjectResults.Clear();
-
-        ProjectResults.Add(new ServerProject(Key: $"{ProjectSearchTerm.ToLower().Replace(" ", "_")}_1",
-            Name: $"{ProjectSearchTerm}_1"));
-        ProjectResults.Add(new ServerProject(Key: $"{ProjectSearchTerm.ToLower().Replace(" ", "_")}_2",
-            Name: $"{ProjectSearchTerm}_2"));
-        ProjectResults.Add(new ServerProject(Key: $"{ProjectSearchTerm.ToLower().Replace(" ", "_")}_3",
-            Name: $"{ProjectSearchTerm}_3"));
-        RaisePropertyChanged(nameof(NoProjectExists));
+        SearchForProjectWithProgressAsync().Forget();
     }
+
+    private async Task SearchForProjectWithProgressAsync()
+    {
+        var initializeProjectsParams = new TaskToPerformParams<AdapterResponseWithData<List<ServerProject>>>(
+            FuzzySearchProjectsAsync,
+            UiResources.SearchingProjectInProgressText,
+            UiResources.SearchingProjectFailedText)
+        {
+            AfterSuccess = response => FillProjects(response.ResponseData)
+        };
+        await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(initializeProjectsParams);
+    }
+
+    private async Task<AdapterResponseWithData<List<ServerProject>>> FuzzySearchProjectsAsync()
+    {
+        return await connectedModeServices.SlCoreConnectionAdapter.FuzzySearchProjectsAsync(ServerConnection, ProjectSearchTerm);
+    }
+
 }
