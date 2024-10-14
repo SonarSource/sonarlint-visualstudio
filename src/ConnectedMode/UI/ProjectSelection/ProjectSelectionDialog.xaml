@@ -80,7 +80,9 @@
                      Margin="0, 10, 0, 10"
                      ItemsSource="{Binding ProjectResults}"
                      SelectedItem="{Binding SelectedProject}"
-                     ItemTemplate="{StaticResource NameAndKeyListBoxItem}" />
+                     ItemTemplate="{StaticResource NameAndKeyListBoxItem}" 
+                     VirtualizingPanel.IsVirtualizing="True" 
+                     ScrollViewer.CanContentScroll="True"/>
 
             <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{x:Static res:UiResources.NoProjectsExistLabel}" 
                        Visibility="{Binding Path=NoProjectExists, Converter={StaticResource TrueToVisibleConverter}}"/>
