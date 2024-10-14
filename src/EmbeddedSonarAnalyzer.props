@@ -6,7 +6,7 @@
     <!-- Note: Guide on how to update the analyzers is on the xtranet! -->
     <EmbeddedSonarAnalyzerVersion>9.32.0.97167</EmbeddedSonarAnalyzerVersion>
     <EmbeddedSonarCFamilyAnalyzerVersion>6.58.0.74356</EmbeddedSonarCFamilyAnalyzerVersion>
-    <EmbeddedSonarJSAnalyzerVersion>10.14.0.26080</EmbeddedSonarJSAnalyzerVersion>
+    <EmbeddedSonarJSAnalyzerVersion>10.16.0.27621</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedSonarSecretsJarVersion>2.15.0.3845</EmbeddedSonarSecretsJarVersion>
     <!-- SLOOP: Binaries for SonarLint Out Of Process -->
     <EmbeddedSloopVersion>10.7.1.79146</EmbeddedSloopVersion>
