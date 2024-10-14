@@ -477,7 +477,7 @@ public class SlCoreConnectionAdapterTests
 
         response.Success.Should().BeFalse();
         response.ResponseData.Should().BeEmpty();
-        logger.LogVerbose(Resources.FuzzySearchProjects_Fails, sonarCloudConnection.Id, searchTerm, exception);
+        logger.Received(1).LogVerbose(Resources.FuzzySearchProjects_Fails, sonarCloudConnection.Id, searchTerm, exception);
     }
 
     private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string token)
