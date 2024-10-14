@@ -19,7 +19,6 @@
  */
 
 using System.Security;
-using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
@@ -477,7 +476,7 @@ public class SlCoreConnectionAdapterTests
 
         response.Success.Should().BeFalse();
         response.ResponseData.Should().BeEmpty();
-        logger.LogVerbose(Resources.FuzzySearchProjects_Fails, sonarCloudConnection.Id, searchTerm, exception);
+        logger.Received(1).LogVerbose(Resources.FuzzySearchProjects_Fails, sonarCloudConnection.Id, searchTerm, exception);
     }
 
     private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string token)

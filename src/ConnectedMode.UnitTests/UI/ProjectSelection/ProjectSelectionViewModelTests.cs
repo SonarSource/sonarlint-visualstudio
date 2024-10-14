@@ -131,7 +131,7 @@ public class ProjectSelectionViewModelTests
     [TestMethod]
     public void ProjectSearchTerm_WithEmptyTerm_ShouldRestoreInitialListOfProjects()
     {
-        var viewModel = CreateInitializedTestSubjectWitNotMockedProgress();
+        var viewModel = CreateInitializedTestSubjectWithNotMockedProgress();
         slCoreConnectionAdapter.FuzzySearchProjectsAsync(testSubject.ServerConnection, Arg.Any<string>()).Returns(new AdapterResponseWithData<List<ServerProject>>(true, []));
 
         viewModel.ProjectSearchTerm = "myProject";
@@ -144,7 +144,7 @@ public class ProjectSelectionViewModelTests
     public void ProjectSearchTerm_WithTerm_ReturnsProjectFromSlCore()
     {
         var searchTerm = "myProject";
-        var viewModel = CreateInitializedTestSubjectWitNotMockedProgress();
+        var viewModel = CreateInitializedTestSubjectWithNotMockedProgress();
         slCoreConnectionAdapter.FuzzySearchProjectsAsync(testSubject.ServerConnection, searchTerm).Returns(new AdapterResponseWithData<List<ServerProject>>(true, []));
 
         viewModel.ProjectSearchTerm = searchTerm;
@@ -157,7 +157,7 @@ public class ProjectSelectionViewModelTests
     public void ProjectSearchTerm_RaisesEvents()
     {
         var searchTerm = "proj1";
-        var viewModel = CreateInitializedTestSubjectWitNotMockedProgress();
+        var viewModel = CreateInitializedTestSubjectWithNotMockedProgress();
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         viewModel.PropertyChanged += eventHandler;
         slCoreConnectionAdapter.FuzzySearchProjectsAsync(testSubject.ServerConnection, searchTerm).Returns(new AdapterResponseWithData<List<ServerProject>>(true, []));
@@ -291,7 +291,7 @@ public class ProjectSelectionViewModelTests
         });
     }
 
-    private ProjectSelectionViewModel CreateInitializedTestSubjectWitNotMockedProgress()
+    private ProjectSelectionViewModel CreateInitializedTestSubjectWithNotMockedProgress()
     {
         var viewModel = CreateTestSubjectWithNotMockedProgress();
         viewModel.InitProjects(new AdapterResponseWithData<List<ServerProject>>(true, AnInitialListOfProjects));
