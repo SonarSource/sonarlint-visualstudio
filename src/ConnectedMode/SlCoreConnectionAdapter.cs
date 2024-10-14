@@ -42,6 +42,7 @@ public interface ISlCoreConnectionAdapter
     Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel);
     Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, string serverProjectKey);
     Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(ServerConnection serverConnection);
+    Task<AdapterResponseWithData<List<ServerProject>>> FuzzySearchProjectsAsync(ServerConnection serverConnection, string searchTerm);
 }
 
 public class AdapterResponseWithData<T>(bool success, T responseData) : IResponseStatus
@@ -143,6 +144,31 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     {
         var validateConnectionParams = new GetAllProjectsParams(GetTransientConnectionDto(serverConnection));
         return await GetAllProjectsAsync(validateConnectionParams);
+    }
+
+    public async Task<AdapterResponseWithData<List<ServerProject>>> FuzzySearchProjectsAsync(ServerConnection serverConnection, string searchTerm)
+    {
+        var failedResponse = new AdapterResponseWithData<List<ServerProject>>(false, []);
+        return await threadHandling.RunOnBackgroundThread(async () =>
+        {
+            if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
+            {
+                return failedResponse;
+            }
+
+            try
+            {
+                var fuzzySearchParams = new FuzzySearchProjectsParams(serverConnection.Id, searchTerm);
+                var slCoreResponse = await connectionConfigurationSlCoreService.FuzzySearchProjectsAsync(fuzzySearchParams);
+                var serverProjects = slCoreResponse.topResults.Select(proj => new ServerProject(proj.key, proj.name)).ToList();
+                return new AdapterResponseWithData<List<ServerProject>>(true, serverProjects);
+            }
+            catch (Exception ex)
+            {
+                logger.LogVerbose(Resources.FuzzySearchProjects_Fails, serverConnection.Id, searchTerm, ex.Message);
+                return failedResponse;
+            }
+        });
     }
 
     private async Task<AdapterResponse> ValidateConnectionAsync(ValidateConnectionParams validateConnectionParams)

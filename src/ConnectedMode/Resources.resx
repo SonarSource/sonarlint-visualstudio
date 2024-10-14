@@ -328,4 +328,7 @@
   <data name="UseSharedBinding_CredentiasNotFound" xml:space="preserve">
     <value>[ConnectedMode/UseSharedBinding] The credentials for the connection {0} could not be found</value>
   </data>
+  <data name="FuzzySearchProjects_Fails" xml:space="preserve">
+    <value>[ConnectedMode] The search for projects for the connectionId {0} with the search term "{1}" failed: {2}</value>
+  </data>
 </root>

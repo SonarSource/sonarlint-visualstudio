@@ -117,34 +117,54 @@ public class ProjectSelectionViewModelTests
     }
 
     [TestMethod]
-    public void ProjectSearchTerm_WithEmptyTerm_ShouldNotUpdateSearchResult()
+    public async Task ProjectSearchTerm_ExecutesInitializationWithProgress()
     {
-        MockInitializedProjects(AnInitialListOfProjects);
-
-        testSubject.ProjectSearchTerm = "";
-
-        testSubject.ProjectResults.Should().BeEquivalentTo(AnInitialListOfProjects);
-    }
-
-    [TestMethod]
-    public void ProjectSearchTerm_WithTerm_ShouldUpdateSearchResult()
-    {
-        MockInitializedProjects(AnInitialListOfProjects);
-
         testSubject.ProjectSearchTerm = "My Project";
 
-        testSubject.ProjectResults.Should().NotContain(AnInitialListOfProjects);
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponseWithData<List<ServerProject>>>>(x =>
+                    x.ProgressStatus == UiResources.SearchingProjectInProgressText &&
+                    x.WarningText == UiResources.SearchingProjectFailedText));
     }
 
     [TestMethod]
-    public void SearchForProject_RaisesEvents()
+    public void ProjectSearchTerm_WithEmptyTerm_ShouldRestoreInitialListOfProjects()
     {
+        var viewModel = CreateInitializedTestSubjectWithNotMockedProgress();
+        slCoreConnectionAdapter.FuzzySearchProjectsAsync(testSubject.ServerConnection, Arg.Any<string>()).Returns(new AdapterResponseWithData<List<ServerProject>>(true, []));
+
+        viewModel.ProjectSearchTerm = "myProject";
+        viewModel.ProjectSearchTerm = "";
+
+        viewModel.ProjectResults.Should().BeEquivalentTo(AnInitialListOfProjects);
+    }
+
+    [TestMethod]
+    public void ProjectSearchTerm_WithTerm_ReturnsProjectFromSlCore()
+    {
+        var searchTerm = "myProject";
+        var viewModel = CreateInitializedTestSubjectWithNotMockedProgress();
+        slCoreConnectionAdapter.FuzzySearchProjectsAsync(testSubject.ServerConnection, searchTerm).Returns(new AdapterResponseWithData<List<ServerProject>>(true, []));
+
+        viewModel.ProjectSearchTerm = searchTerm;
+
+        slCoreConnectionAdapter.Received(1).FuzzySearchProjectsAsync(testSubject.ServerConnection, searchTerm);
+        viewModel.ProjectResults.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void ProjectSearchTerm_RaisesEvents()
+    {
+        var searchTerm = "proj1";
+        var viewModel = CreateInitializedTestSubjectWithNotMockedProgress();
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
-        testSubject.PropertyChanged += eventHandler;
+        viewModel.PropertyChanged += eventHandler;
+        slCoreConnectionAdapter.FuzzySearchProjectsAsync(testSubject.ServerConnection, searchTerm).Returns(new AdapterResponseWithData<List<ServerProject>>(true, []));
 
-        testSubject.ProjectSearchTerm = "proj1";
+        viewModel.ProjectSearchTerm = searchTerm;
 
-        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoProjectExists)));
+        eventHandler.Received().Invoke(viewModel, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(viewModel.NoProjectExists)));
     }
 
     [TestMethod]
@@ -178,6 +198,34 @@ public class ProjectSelectionViewModelTests
     }
 
     [TestMethod]
+    public async Task InitializeProjectWithProgressAsync_OnSuccess_CachesInitialServerProjects()
+    {
+        var viewModel = CreateTestSubjectWithNotMockedProgress();
+        MockTrySonarQubeConnection(AConnectionInfo, success: true);
+        var expectedServerProjects = new List<ServerProject> { new("proj1", "name1"), new("proj2", "name2") };
+        slCoreConnectionAdapter.GetAllProjectsAsync(Arg.Any<ServerConnection>())
+            .Returns(new AdapterResponseWithData<List<ServerProject>>(true, expectedServerProjects));
+
+        await viewModel.InitializeProjectWithProgressAsync();
+
+        viewModel.InitialServerProjects.Should().BeEquivalentTo(expectedServerProjects);
+    }
+
+    [TestMethod]
+    public async Task InitializeProjectWithProgressAsync_OnFailure_InitialServerProjectsIsEmpty()
+    {
+        var viewModel = CreateTestSubjectWithNotMockedProgress();
+        MockTrySonarQubeConnection(AConnectionInfo, success: true);
+        var expectedServerProjects = new List<ServerProject> { new("proj1", "name1"), new("proj2", "name2") };
+        slCoreConnectionAdapter.GetAllProjectsAsync(Arg.Any<ServerConnection>())
+            .Returns(new AdapterResponseWithData<List<ServerProject>>(false, expectedServerProjects));
+
+        await viewModel.InitializeProjectWithProgressAsync();
+
+        viewModel.InitialServerProjects.Should().BeEmpty();
+    }
+
+    [TestMethod]
     public async Task AdapterGetAllProjectsAsync_GettingServerConnectionSucceeded_CallsAdapterWithCredentialsForServerConnection()
     {
         var expectedCredentials = Substitute.For<ICredentials>();
@@ -187,6 +235,16 @@ public class ProjectSelectionViewModelTests
 
         serverConnectionsRepositoryAdapter.Received(1).TryGet(AConnectionInfo, out Arg.Any<ServerConnection>());
         await slCoreConnectionAdapter.Received(1).GetAllProjectsAsync(Arg.Is<ServerConnection>(x => x.Credentials == expectedCredentials));
+    }
+
+    [TestMethod]
+    public async Task AdapterGetAllProjectsAsync_GettingServerConnectionSucceeded_StoresServerConnection()
+    {
+        MockTrySonarQubeConnection(AConnectionInfo, success: true, Substitute.For<ICredentials>());
+
+        await testSubject.AdapterGetAllProjectsAsync();
+
+        testSubject.ServerConnection.Should().NotBeNull();
     }
 
     [TestMethod]
@@ -200,6 +258,7 @@ public class ProjectSelectionViewModelTests
         response.ResponseData.Should().BeNull();
         logger.Received(1).WriteLine(Arg.Any<string>());
         await slCoreConnectionAdapter.DidNotReceive().GetAllProjectsAsync(Arg.Any<ServerConnection>());
+        testSubject.ServerConnection.Should().BeNull();
     }
 
     [TestMethod]
@@ -230,5 +289,17 @@ public class ProjectSelectionViewModelTests
             callInfo[1] = new ServerConnection.SonarQube(new Uri(connectionInfo.Id), credentials: expectedCredentials);
             return success;
         });
+    }
+
+    private ProjectSelectionViewModel CreateInitializedTestSubjectWithNotMockedProgress()
+    {
+        var viewModel = CreateTestSubjectWithNotMockedProgress();
+        viewModel.InitProjects(new AdapterResponseWithData<List<ServerProject>>(true, AnInitialListOfProjects));
+        return viewModel;
+    }
+
+    private ProjectSelectionViewModel CreateTestSubjectWithNotMockedProgress()
+    { 
+        return new ProjectSelectionViewModel(AConnectionInfo, connectedModeServices, new ProgressReporterViewModel(logger));
     }
 }
