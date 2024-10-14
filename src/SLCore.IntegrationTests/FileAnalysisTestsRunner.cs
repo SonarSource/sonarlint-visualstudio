@@ -245,8 +245,8 @@ internal class SecretsIssuesFile : ITestingFile
 
     public List<ExpectedTestIssue> ExpectedIssues =>
     [
-        new ExpectedTestIssue(CloudSecretsRuleKey, new TextRangeDto(9, 1, 9, 25), RuleType.VULNERABILITY, 0),
-        new ExpectedTestIssue(CloudSecretsRuleKey, new TextRangeDto(14, 24, 14, 54), RuleType.VULNERABILITY, 0),
+        new ExpectedTestIssue(CloudSecretsRuleKey, new TextRangeDto(9, 24, 9, 40), RuleType.VULNERABILITY, 0),
+        new ExpectedTestIssue(CloudSecretsRuleKey, new TextRangeDto(14, 24, 14, 40), RuleType.VULNERABILITY, 0),
         new ExpectedTestIssue("secrets:S6337", new TextRangeDto(20, 12, 20, 56), RuleType.VULNERABILITY, 0),
     ];
 }
