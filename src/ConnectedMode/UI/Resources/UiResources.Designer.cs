@@ -628,6 +628,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No project was found for the entered search term.
+        /// </summary>
+        public static string NoProjectsFoundForSearchTermLabel {
+            get {
+                return ResourceManager.GetString("NoProjectsFoundForSearchTermLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Connection not found.
         /// </summary>
         public static string NotFoundConnectionForSharedBindingMessageBoxCaption {

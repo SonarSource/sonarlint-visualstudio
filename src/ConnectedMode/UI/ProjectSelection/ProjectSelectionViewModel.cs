@@ -38,6 +38,7 @@ public class ProjectSelectionViewModel(
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
 
     public bool NoProjectExists => ProjectResults.Count == 0;
+    public bool HasSearchTerm => !string.IsNullOrEmpty(ProjectSearchTerm);
 
     public string ProjectSearchTerm
     {
@@ -47,6 +48,7 @@ public class ProjectSelectionViewModel(
             projectSearchTerm = value;
             SearchForProject();
             RaisePropertyChanged();
+            RaisePropertyChanged(nameof(HasSearchTerm));
         }
     }
 

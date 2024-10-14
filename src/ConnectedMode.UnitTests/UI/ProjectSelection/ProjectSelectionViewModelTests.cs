@@ -165,6 +165,7 @@ public class ProjectSelectionViewModelTests
         viewModel.ProjectSearchTerm = searchTerm;
 
         eventHandler.Received().Invoke(viewModel, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(viewModel.NoProjectExists)));
+        eventHandler.Received().Invoke(viewModel, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(viewModel.HasSearchTerm)));
     }
 
     [TestMethod]
@@ -275,6 +276,27 @@ public class ProjectSelectionViewModelTests
 
         response.Success.Should().Be(expectedResponse);
         response.ResponseData.Should().BeEquivalentTo(expectedServerProjects);
+    }
+
+    [TestMethod]
+    [DataRow(null)]
+    [DataRow("")]
+    public void ProjectSearchTerm_SearchTermNullOrEmpty_ReturnsFalse(string searchTerm)
+    {
+        testSubject.ProjectSearchTerm = searchTerm;
+
+        testSubject.HasSearchTerm.Should().BeFalse();
+    }
+
+    [TestMethod]
+    [DataRow("abc")]
+    [DataRow(" ")]
+    [DataRow("\t")]
+    public void ProjectSearchTerm_SearchTermNotNullNorEmpty_ReturnsTrue(string searchTerm)
+    {
+        testSubject.ProjectSearchTerm = searchTerm;
+
+        testSubject.HasSearchTerm.Should().BeTrue();
     }
 
     private void MockInitializedProjects(List<ServerProject> serverProjects)
