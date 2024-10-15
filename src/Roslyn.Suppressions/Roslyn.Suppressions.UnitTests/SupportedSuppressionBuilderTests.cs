@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 {
     [TestClass]
@@ -66,6 +62,18 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             var result = SupportedSuppressionsBuilder.Instance.Descriptors;
 
             result.Any(x => x.Id.StartsWith("S9999")).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void SupportedSuppressors_IncludesAllRules()
+        {
+            var result = SupportedSuppressionsBuilder.Instance.Descriptors;
+            
+            result.Length.Should().Be(9999 - 100);
+            for (var i = 100; i < 9999; i++)
+            {
+                result[i - 100].SuppressedDiagnosticId.Should().Be($"S{i}");
+            }
         }
     }
 }
