@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
@@ -73,7 +72,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion
 
         public void Close()
         {
-            notificationService.RemoveNotification();
+            notificationService.CloseNotification();
         }
 
         private void OnLearnMore()

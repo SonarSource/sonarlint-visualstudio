@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
     {
         void ShowNotification(INotification notification);
 
-        void RemoveNotification();
+        void CloseNotification();
     }
 
     [Export(typeof(INotificationService))]
@@ -86,12 +86,12 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
             threadHandling.RunOnUIThreadAsync(() =>
             {
-                RemoveNotification();
+                CloseNotification();
                 ShowInfoBar(notification);
             });
         }
 
-        public void RemoveNotification()
+        public void CloseNotification()
         {
             if (activeNotification == null)
             {
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
                 if (matchingAction?.ShouldDismissAfterAction == true)
                 {
-                    RemoveNotification();
+                    CloseNotification();
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -169,7 +169,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         public void Dispose()
         {
-            RemoveNotification();
+            CloseNotification();
         }
     }
 }

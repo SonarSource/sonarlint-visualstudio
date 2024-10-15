@@ -191,7 +191,7 @@ public class FixSuggestionNotificationTests
     {
         testSubject.Clear();
 
-        notificationService.Received(1).RemoveNotification();
+        notificationService.Received(1).CloseNotification();
     }
     
     private void AssertReceivedNotificationWithMessage(string message)

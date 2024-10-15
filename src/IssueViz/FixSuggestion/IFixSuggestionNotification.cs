@@ -84,7 +84,7 @@ internal sealed class FixSuggestionNotification : IFixSuggestionNotification, ID
 
     public void Clear()
     {
-        notificationService.RemoveNotification();
+        notificationService.CloseNotification();
     }
 
     public void Dispose()

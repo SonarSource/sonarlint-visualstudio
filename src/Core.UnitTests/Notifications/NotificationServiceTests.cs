@@ -520,18 +520,18 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         }
 
         [TestMethod]
-        public void RemoveNotification_HasACurrentNotification_RemovesCurrentNotification()
+        public void CloseNotification_HasACurrentNotification_RemovesCurrentNotification()
         {
-            Check_HasACurrentNotification_RemovesCurrentNotification(x => x.RemoveNotification());
+            Check_HasACurrentNotification_RemovesCurrentNotification(x => x.CloseNotification());
         }
 
         [TestMethod]
-        public void RemoveNotification_CurrentNotificationIsNull_DoesNotThrow()
+        public void CloseNotification_CurrentNotificationIsNull_DoesNotThrow()
         {
             var infoBarManager = new Mock<IInfoBarManager>();
             var testSubject = CreateTestSubject(infoBarManager.Object);
 
-            Action act = () => testSubject.RemoveNotification();
+            Action act = () => testSubject.CloseNotification();
 
             act.Should().NotThrow();
 
@@ -539,7 +539,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         }
 
         [TestMethod]
-        public void RemoveNotification_InfoBarRemovedIsCalledOnMainThread()
+        public void CloseNotification_InfoBarRemovedIsCalledOnMainThread()
         {
             // Arrange
             var calls = new List<string>();
@@ -565,7 +565,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             calls.Clear();
 
             // Act
-            testSubject.RemoveNotification();
+            testSubject.CloseNotification();
 
             calls.Should().ContainInOrder("RunOnUIThread", "CloseInfoBar");
         }

@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Linq;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.Core;
@@ -153,7 +152,7 @@ public class SuggestSharedBindingGoldBarTests
         
         testSubject.Close();
         
-        notificationServiceMock.Verify(x => x.RemoveNotification(), Times.Once);
+        notificationServiceMock.Verify(x => x.CloseNotification(), Times.Once);
     }
 
     private SuggestSharedBindingGoldBar CreateTestSubject(INotificationService notificationServiceMock,

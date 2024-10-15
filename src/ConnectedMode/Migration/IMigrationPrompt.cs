@@ -18,13 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Migration.Wizard;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Notifications;
-
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
@@ -101,7 +99,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         
         public void Clear()
         {
-            notificationService.RemoveNotification();
+            notificationService.CloseNotification();
         }
 
         private void OnMigrate()

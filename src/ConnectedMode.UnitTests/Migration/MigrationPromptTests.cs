@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Migration.Wizard;
 using SonarLint.VisualStudio.Core;
@@ -141,7 +137,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             _ = CreateTestSubject(notificationService: notificationService.Object, migrationWizardController: migrationWizardController.Object);
 
             migrationWizardController.Raise(x => x.MigrationWizardFinished += null, EventArgs.Empty);
-            notificationService.Verify(x => x.RemoveNotification(), Times.Once);
+            notificationService.Verify(x => x.CloseNotification(), Times.Once);
         }
 
         [TestMethod]
@@ -152,7 +148,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject(notificationService: notificationService.Object);
             testSubject.Clear();
 
-            notificationService.Verify(x => x.RemoveNotification(), Times.Once);
+            notificationService.Verify(x => x.CloseNotification(), Times.Once);
         }
 
         [TestMethod]
@@ -167,7 +163,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             migrationWizardController.Raise(x => x.MigrationWizardFinished += null, EventArgs.Empty);
 
-            notificationService.Verify(x => x.RemoveNotification(), Times.Never);
+            notificationService.Verify(x => x.CloseNotification(), Times.Never);
         }
 
         private ISolutionInfoProvider CreateSolutionInfoProvider(string pathToSolution = "")
