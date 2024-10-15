@@ -413,4 +413,7 @@ Please manually add the credentials for the connection and then try again.</valu
   <data name="SearchingProjectInProgressText" xml:space="preserve">
     <value>Searching for project...</value>
   </data>
+  <data name="NoProjectsFoundForSearchTermLabel" xml:space="preserve">
+    <value>Your search did not match any project</value>
+  </data>
 </root>
