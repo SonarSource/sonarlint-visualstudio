@@ -30,9 +30,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 /// </summary>
 public interface IConnectedModeRoslynAnalyzerProvider
 {
-    ImmutableArray<AnalyzerFileReference> GetOrNull(ServerConnection connection);
+    ImmutableArray<AnalyzerFileReference>? GetOrNull(ServerConnection connection);
     event EventHandler<AnalyzerUpdatedForConnectionEventArgs> AnalyzerUpdatedForConnection;
 }
 
 [ExcludeFromCodeCoverage]
-public class AnalyzerUpdatedForConnectionEventArgs(ServerConnection Connection, ImmutableArray<AnalyzerFileReference> Analyzers) : EventArgs;
+public class AnalyzerUpdatedForConnectionEventArgs(ServerConnection Connection, ImmutableArray<AnalyzerFileReference>? Analyzers) : EventArgs;
