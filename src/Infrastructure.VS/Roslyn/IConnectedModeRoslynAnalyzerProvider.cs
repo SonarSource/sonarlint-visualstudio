@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core.Binding;
 
@@ -33,4 +34,5 @@ public interface IConnectedModeRoslynAnalyzerProvider
     event EventHandler<AnalyzerUpdatedForConnectionEventArgs> AnalyzerUpdatedForConnection;
 }
 
+[ExcludeFromCodeCoverage]
 public class AnalyzerUpdatedForConnectionEventArgs(ServerConnection Connection, ImmutableArray<AnalyzerFileReference> Analyzers) : EventArgs;
