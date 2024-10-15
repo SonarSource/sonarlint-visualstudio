@@ -628,7 +628,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No project was found for the entered search term.
+        ///   Looks up a localized string similar to Your search did not match any project.
         /// </summary>
         public static string NoProjectsFoundForSearchTermLabel {
             get {
