@@ -234,6 +234,7 @@ Assembly: 'SonarLint.VisualStudio.Infrastructure.VS, Version=8.8.0.0, Culture=ne
 Relative path: 'SonarLint.VisualStudio.Infrastructure.VS.dll'
 
 Referenced assemblies:
+- 'Microsoft.CodeAnalysis, Version=3.11.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'Microsoft.VisualStudio.CoreUtility, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'Microsoft.VisualStudio.Editor, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'Microsoft.VisualStudio.Interop, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
@@ -245,11 +246,12 @@ Referenced assemblies:
 - 'SonarLint.VisualStudio.Core, Version=8.8.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarQube.Client, Version=8.8.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+- 'System.Collections.Immutable, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'System.IO.Abstractions, Version=9.0.0.0, Culture=neutral, PublicKeyToken=96bf224d23c43e59'
-# Number of references: 15
+# Number of references: 17
 
 ---
 Assembly: 'SonarLint.VisualStudio.Integration, Version=8.8.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
