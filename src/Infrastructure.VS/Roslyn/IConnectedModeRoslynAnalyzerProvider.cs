@@ -25,12 +25,18 @@ using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
-/// <summary>
-/// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are downloaded from the server for the current binding
-/// </summary>
 public interface IConnectedModeRoslynAnalyzerProvider
 {
+    /// <summary>
+    /// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are downloaded from the server for the current binding
+    /// </summary>
     ImmutableArray<AnalyzerFileReference>? GetOrNull(ServerConnection connection);
+    /// <summary>
+    /// Provides updates about the analyzers for a given connection
+    /// </summary>
+    /// <remarks>
+    /// Internally this reacts to SLCore synchronization and updates to the cached Connected Mode analyzers
+    /// </remarks>
     event EventHandler<AnalyzerUpdatedForConnectionEventArgs> AnalyzerUpdatedForConnection;
 }
 

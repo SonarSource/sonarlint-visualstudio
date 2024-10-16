@@ -23,10 +23,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
-/// <summary>
-/// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are embedded in the VSIX
-/// </summary>
 public interface IEmbeddedRoslynAnalyzerProvider
 {
+    /// <summary>
+    /// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are embedded in the VSIX
+    /// </summary>
     ImmutableArray<AnalyzerFileReference> Get();
 }
