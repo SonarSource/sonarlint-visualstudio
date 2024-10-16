@@ -24,16 +24,19 @@ namespace SonarLint.VisualStudio.Core
 {
     public class ActiveSolutionChangedEventArgs : EventArgs
     {
-        public ActiveSolutionChangedEventArgs(bool isSolutionOpen)
+        public ActiveSolutionChangedEventArgs(bool isSolutionOpen, string solutionName)
         {
             IsSolutionOpen = isSolutionOpen;
+            SolutionName = solutionName;
         }
 
         public bool IsSolutionOpen { get; }
+        public string SolutionName { get; }
     }
 
     public interface IActiveSolutionTracker
     {
+        string CurrentSolutionName { get; }
         /// <summary>
         /// The active solution has changed (either opened or closed).
         /// </summary>

@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Threading;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
@@ -60,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration
         public event EventHandler PreSolutionBindingUpdated;
         public event EventHandler SolutionBindingUpdated;
 
+        public string CurrentSolutionName { get; private set; }
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
@@ -89,7 +87,8 @@ namespace SonarLint.VisualStudio.Integration
 
             // The solution changed inside the IDE
             solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
-            
+
+            CurrentSolutionName = activeSolutionTracker.CurrentSolutionName;
             CurrentConfiguration = GetBindingConfiguration();
 
             SetBoundSolutionUIContext();
@@ -103,6 +102,8 @@ namespace SonarLint.VisualStudio.Integration
             {
                 return;
             }
+            
+            CurrentSolutionName = solutionTracker.CurrentSolutionName;
             
             this.RaiseAnalyzersChangedIfBindingChanged(GetBindingConfiguration(), isBindingCleared);
         }
@@ -133,6 +134,8 @@ namespace SonarLint.VisualStudio.Integration
             // An exception here will crash VS
             try
             {
+                CurrentSolutionName = args.SolutionName;
+                
                 var newBindingConfiguration = GetBindingConfiguration();
                 
                 await UpdateConnectionAsync(newBindingConfiguration);

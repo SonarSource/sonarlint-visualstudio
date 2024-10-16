@@ -93,6 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ActiveSolutionBoundTracker_Initialisation_Unbound()
         {
             // Arrange
+            activeSolutionTracker.CurrentSolutionName = null;
             host.VisualStateManager.ClearBoundProject();
 
             // Act
@@ -100,6 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 // Assert
                 testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Unbound solution should report false activation");
+                testSubject.CurrentSolutionName.Should().BeNull();
             }
         }
 
@@ -107,6 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ActiveSolutionBoundTracker_Initialisation_Bound()
         {
             // Arrange
+            activeSolutionTracker.CurrentSolutionName = "solution";
             this.ConfigureSolutionBinding(new BoundServerProject("solution", "key", new ServerConnection.SonarQube(new Uri("http://localhost:9000"))));
 
             // Act
@@ -114,6 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 // Assert
                 testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected, "Bound solution should report true activation");
+                testSubject.CurrentSolutionName.Should().Be("solution");
             }
         }
 
@@ -142,9 +146,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // cause a Debug.Assert in the product code that we need to suppress
                 using (new AssertIgnoreScope())
                 {
-                    this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
-                    this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
-                    this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                    this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution");
+                    this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false, null);
+                    this.activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution");
                 }
 
                 // Assert
@@ -168,7 +172,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider,
                        loggerMock.Object, configScopeUpdater: configScopeUpdaterMock.Object))
             {
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "anysolution");
                 
                 configScopeUpdaterMock.Verify(x => x.UpdateConfigScopeForCurrentSolution(It.Is<BoundServerProject>(s => s.ServerProjectKey == boundProject.ServerProjectKey && s.ServerConnection.ServerUri == boundProject.ServerConnection.ServerUri)));
                 configScopeUpdaterMock.VerifyNoOtherCalls();
@@ -185,7 +189,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             using (var testSubject = CreateTestSubject(this.host, this.activeSolutionTracker, this.configProvider,
                        loggerMock.Object, configScopeUpdater: configScopeUpdaterMock.Object))
             {
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "anysolution");
                 
                 configScopeUpdaterMock.Verify(x => x.UpdateConfigScopeForCurrentSolution(null));
                 configScopeUpdaterMock.VerifyNoOtherCalls();
@@ -195,6 +199,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ActiveSolutionBoundTracker_Changes()
         {
+            activeSolutionTracker.CurrentSolutionName = "solution";
             var boundProject = new BoundServerProject("solution", "key", new ServerConnection.SonarQube(new Uri("http://localhost:9000")));
 
             var configScopeUpdaterMock = new Mock<IConfigScopeUpdater>();
@@ -208,6 +213,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Sanity
                 testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected, "Initially bound");
+                testSubject.CurrentSolutionName.Should().Be("solution");
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(0, "no events raised during construction");
                 eventCounter.SolutionBindingChangedCount.Should().Be(0, "no events raised during construction");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "no events raised during construction");
@@ -215,6 +221,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 VerifyAndResetBoundSolutionUIContextMock(isActive: true);
 
                 // Case 1: Clear bound project
+                activeSolutionTracker.CurrentSolutionName = null;
                 ConfigureSolutionBinding(null);
 
                 // Act
@@ -222,6 +229,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Assert
                 testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Unbound solution should report false activation");
+                testSubject.CurrentSolutionName.Should().BeNull();
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(1, "Unbind should trigger reanalysis");
                 eventCounter.SolutionBindingChangedCount.Should().Be(1, "Unbind should trigger reanalysis");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Unbind should not trigger change");
@@ -234,11 +242,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Case 2: Set bound project
                 ConfigureSolutionBinding(boundProject);
+                activeSolutionTracker.CurrentSolutionName = "solution2";
                 // Act
                 testSubject.HandleBindingChange(false);
 
                 // Assert
                 testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected, "Bound solution should report true activation");
+                testSubject.CurrentSolutionName.Should().Be("solution2");
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(2, "Bind should trigger reanalysis");
                 eventCounter.SolutionBindingChangedCount.Should().Be(2, "Bind should trigger reanalysis");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Bind should not trigger update event");
@@ -252,11 +262,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Case 3: Bound solution unloaded -> disconnect
                 ConfigureSolutionBinding(null);
+                
                 // Act
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false, null);
 
                 // Assert
                 testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Should respond to solution change event and report unbound");
+                testSubject.CurrentSolutionName.Should().BeNull();
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(3, "Solution change should trigger reanalysis");
                 eventCounter.SolutionBindingChangedCount.Should().Be(3, "Solution change should trigger reanalysis");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Solution change should not trigger update event");
@@ -271,10 +283,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Case 4: Load a bound solution
                 ConfigureSolutionBinding(boundProject);
                 // Act
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution4");
 
                 // Assert
                 testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected, "Bound respond to solution change event and report bound");
+                testSubject.CurrentSolutionName.Should().Be("solution4");
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(4, "Solution change should trigger reanalysis");
                 eventCounter.SolutionBindingChangedCount.Should().Be(4, "Solution change should trigger reanalysis");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Bind should not trigger update event");
@@ -289,9 +302,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Case 5: Close a bound solution
                 ConfigureSolutionBinding(null);
                 // Act
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false, null);
 
                 // Assert
+                testSubject.CurrentSolutionName.Should().BeNull();
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(5, "Solution change should trigger reanalysis");
                 eventCounter.SolutionBindingChangedCount.Should().Be(5, "Solution change should trigger reanalysis");
                 eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0, "Solution change should not trigger update event");
@@ -304,12 +318,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 VerifyServiceConnect(Times.Once());
 
                 // Case 6: Dispose and change
+                activeSolutionTracker.CurrentSolutionName = "solution6";
                 // Act
                 testSubject.Dispose();
                 ConfigureSolutionBinding(boundProject);
                 testSubject.HandleBindingChange(true);
 
                 // Assert
+                testSubject.CurrentSolutionName.Should().BeNull();
                 eventCounter.PreSolutionBindingChangedCount.Should().Be(5, "Once disposed should stop raising the event");
                 eventCounter.SolutionBindingChangedCount.Should().Be(5, "Once disposed should stop raising the event");
                 configScopeUpdaterMock.Verify(x => x.UpdateConfigScopeForCurrentSolution(It.IsAny<BoundServerProject>()), Times.Exactly(5));
@@ -409,7 +425,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ConfigureSolutionBinding(null);
 
                 // Act
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "newsolution");
 
                 // Assert
                 VerifyServiceConnect(Times.Never());
@@ -428,7 +444,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ConfigureSolutionBinding(new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://foo"))));
 
                 // Act
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution");
 
                 // Assert
                 VerifyServiceConnect(Times.Once());
@@ -447,7 +463,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ConfigureSolutionBinding(null);
 
                 // Act
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "newsolution");
 
                 // Assert
                 VerifyServiceConnect(Times.Never());
@@ -471,7 +487,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ConfigureSolutionBinding(new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://foo"))));
 
                 // Act
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true);
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: true, "solution");
 
                 // Assert
                 VerifyServiceConnect(Times.Once());
@@ -503,7 +519,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ConfigureSolutionBinding(null);
 
                 // Act
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false, null);
 
                 // Assert
                 VerifyServiceConnect(Times.Never());
@@ -533,7 +549,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ConfigureSolutionBinding(null);
 
                 // Act
-                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false);
+                activeSolutionTracker.SimulateActiveSolutionChanged(isSolutionOpen: false, null);
 
                 // Assert
                 VerifyServiceConnect(Times.Never());
@@ -685,7 +701,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // Act
                 ConfigureService(true);
                 ConfigureSolutionBinding(new BoundServerProject("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://foo"))));
-                this.activeSolutionTracker.SimulateActiveSolutionChanged(true);
+                this.activeSolutionTracker.SimulateActiveSolutionChanged(true, "solution");
 
                 // Assert
                 gitEventsMonitor.Verify(x => x.Refresh(), Times.Once);

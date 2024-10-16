@@ -25,11 +25,13 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 {
     internal class ConfigurableActiveSolutionTracker : IActiveSolutionTracker
     {
+        public string CurrentSolutionName { get; set; }
         public event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
 
-        public void SimulateActiveSolutionChanged(bool isSolutionOpen)
+        public void SimulateActiveSolutionChanged(bool isSolutionOpen, string solutionName)
         {
-            this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen));
+            CurrentSolutionName = solutionName;
+            this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen, solutionName));
         }
     }
 }

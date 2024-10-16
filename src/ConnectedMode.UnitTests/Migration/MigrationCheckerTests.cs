@@ -96,10 +96,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             _ = CreateTestSubject(activeSolutionTracker.Object, migrationPrompt.Object);
             migrationPrompt.Invocations.Clear();
 
-            activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(true));
+            activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(true, "anysln"));
             migrationPrompt.Verify(x => x.ShowAsync(It.IsAny<BoundSonarQubeProject>(), false), Times.Once);
 
-            activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(false));
+            activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(false, null));
             migrationPrompt.Verify(x => x.Dispose(), Times.Once);
         }
 
