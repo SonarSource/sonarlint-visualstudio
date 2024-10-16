@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
     {
         void ShowNotification(INotification notification);
 
-        void RemoveNotification();
+        void CloseNotification();
     }
 
     [Export(typeof(INotificationService))]
@@ -86,12 +86,30 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
             threadHandling.RunOnUIThreadAsync(() =>
             {
-                RemoveExistingInfoBar();
+                CloseNotification();
                 ShowInfoBar(notification);
             });
         }
 
-        public void RemoveNotification() => RemoveExistingInfoBar();
+        public void CloseNotification()
+        {
+            if (activeNotification == null)
+            {
+                return;
+            }
+            
+            threadHandling.RunOnUIThreadAsync(() =>
+            {
+                try
+                {
+                    infoBarManager.CloseInfoBar(activeNotification.Item1);
+                }
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                {
+                    logger.WriteLine(CoreStrings.Notifications_FailedToRemove, ex);
+                }
+            });
+        }
 
         private void CurrentInfoBar_ButtonClick(object sender, InfoBarButtonClickedEventArgs e)
         {
@@ -104,7 +122,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
                 if (matchingAction?.ShouldDismissAfterAction == true)
                 {
-                    RemoveExistingInfoBar();
+                    CloseNotification();
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -115,30 +133,14 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         private void CurrentInfoBar_Closed(object sender, EventArgs e)
         {
-            RemoveExistingInfoBar();
-        }
-
-        private void RemoveExistingInfoBar()
-        {
             if (activeNotification == null)
             {
                 return;
             }
 
-            threadHandling.RunOnUIThreadAsync(() =>
-            {
-                try
-                {
-                    activeNotification.Item1.ButtonClick -= CurrentInfoBar_ButtonClick;
-                    activeNotification.Item1.Closed -= CurrentInfoBar_Closed;
-                    infoBarManager.CloseInfoBar(activeNotification.Item1);
-                    activeNotification = null;
-                }
-                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-                {
-                    logger.WriteLine(CoreStrings.Notifications_FailedToRemove, ex);
-                }
-            });
+            activeNotification.Item1.ButtonClick -= CurrentInfoBar_ButtonClick;
+            activeNotification.Item1.Closed -= CurrentInfoBar_Closed;
+            activeNotification = null;
         }
 
         private void ShowInfoBar(INotification notification)
@@ -167,7 +169,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         public void Dispose()
         {
-            RemoveExistingInfoBar();
+            CloseNotification();
         }
     }
 }
