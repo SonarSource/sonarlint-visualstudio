@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Windows;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -31,12 +28,35 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.OpenInIDE;
 [TestClass]
 public class OpenInIdeNotificationTests
 {
+    private const string AFilePath = @"file\path\123.cs";
+    
+    private static readonly Guid AToolWindowId = Guid.NewGuid();
+    
+    private OpenInIdeNotification testSubject;
+    private IToolWindowService toolWindowService;
+    private INotificationService notificationService;
+    private IOutputWindowService outputWindowService;
+    private IBrowserService browserService;
+    
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        toolWindowService = Substitute.For<IToolWindowService>();
+        notificationService = Substitute.For<INotificationService>();
+        outputWindowService = Substitute.For<IOutputWindowService>();
+        browserService = Substitute.For<IBrowserService>();
+
+        testSubject = new OpenInIdeNotification(toolWindowService, notificationService, outputWindowService, browserService);
+    }
+    
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<OpenInIdeNotification, IOpenInIdeNotification>(
-            MefTestHelpers.CreateExport<IOpenInIdeFailureInfoBar>(),
-            MefTestHelpers.CreateExport<IToolWindowService>());
+            MefTestHelpers.CreateExport<IToolWindowService>(),
+            MefTestHelpers.CreateExport<INotificationService>(),
+            MefTestHelpers.CreateExport<IOutputWindowService>(),
+            MefTestHelpers.CreateExport<IBrowserService>());
     }
 
     [TestMethod]
@@ -44,52 +64,236 @@ public class OpenInIdeNotificationTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<OpenInIdeNotification>();
     }
-
+    
     [TestMethod]
-    public void UnableToLocateIssue_ShowsMessageBox()
+    public void UnableToLocateIssue_DisplaysNotification_WithMessage()
     {
-        var filePath = "file/path/123";
-        var toolWindowId = Guid.NewGuid();
-        var infoBar = Substitute.For<IOpenInIdeFailureInfoBar>();
-        var toolWindowService = Substitute.For<IToolWindowService>();
-        
-        new OpenInIdeNotification(infoBar, toolWindowService).UnableToLocateIssue(filePath, toolWindowId);
-        
-        VerifyToolWindowOpened(toolWindowService, toolWindowId);
-        VerifyInfoBarShown(infoBar, "Open in IDE. Could not locate the issue in the file. Please ensure the file (file/path/123) has not been modified.", toolWindowId, true);
+        testSubject.UnableToLocateIssue(AFilePath, AToolWindowId);
+
+        AssertReceivedNotificationWithMessage(string.Format(OpenInIdeResources.Notification_UnableToLocateIssue, AFilePath), AToolWindowId);
     }
     
     [TestMethod]
-    public void UnableToOpenFile_ShowsMessageBox()
+    public void UnableToLocateIssue_ShouldNotShowOnlyOncePerSession()
     {
-        var filePath = "file/path/123";
-        var toolWindowId = Guid.NewGuid();
-        var infoBar = Substitute.For<IOpenInIdeFailureInfoBar>();
-        var toolWindowService = Substitute.For<IToolWindowService>();
+        testSubject.UnableToLocateIssue(AFilePath, AToolWindowId);
         
-        new OpenInIdeNotification(infoBar, toolWindowService).UnableToOpenFile(filePath, toolWindowId);
-        
-        VerifyToolWindowOpened(toolWindowService, toolWindowId);
-        VerifyInfoBarShown(infoBar, "Open in IDE. Could not open File: file/path/123. Please ensure that you're on the correct branch and the file has not been deleted locally.", toolWindowId, true);
+        AssertNotificationNotShownOnlyOncePerSession(AToolWindowId);
     }
     
     [TestMethod]
-    public void InvalidConfiguration_ShowsMessageBox()
+    public void UnableToLocateIssue_DisplaysNotification_WithActionToOpenDocsInBrowser()
     {
-        var reason = "reason 123";
-        var infoBar = Substitute.For<IOpenInIdeFailureInfoBar>();
-        var toolWindowId = Guid.NewGuid();
-        var toolWindowService = Substitute.For<IToolWindowService>();
+        testSubject.UnableToLocateIssue(AFilePath, AToolWindowId);
+    
+        SimulateNotificationActionInvoked(0);
         
-        new OpenInIdeNotification(infoBar, toolWindowService).InvalidRequest(reason, toolWindowId);
-        
-        VerifyToolWindowOpened(toolWindowService, toolWindowId);
-        VerifyInfoBarShown(infoBar, $"Unable to process Open in IDE request. Reason: reason 123", toolWindowId, false);
+        AssertOpenedDocsPageInBrowser();
     }
 
-    private void VerifyToolWindowOpened(IToolWindowService toolWindowService, Guid toolWindowId) =>
+    [TestMethod]
+    public void UnableToLocateIssue_DisplaysNotification_WithActionToShowLogs()
+    {
+        testSubject.UnableToLocateIssue(AFilePath, AToolWindowId);
+        
+        SimulateNotificationActionInvoked(1);
+    
+        AssertShownLogsWindow();
+    }
+
+    [TestMethod]
+    public void UnableToLocateIssue_NotificationActions_ShouldNotDismissNotification()
+    {
+        testSubject.UnableToLocateIssue(AFilePath, AToolWindowId);
+    
+        AssertActionsAreNotDismissingNotification(AToolWindowId);
+    }
+
+    [TestMethod]
+    public void UnableToLocateIssue_NotificationActions_ShouldBeExactlyTwo()
+    {
+        testSubject.UnableToLocateIssue(AFilePath, AToolWindowId);
+
+        AssertActionButtonsAreExactly(2);
+    }
+    
+    [TestMethod]
+    public void UnableToLocateIssue_BringsToolWindowToFocus()
+    {
+        testSubject.UnableToLocateIssue(AFilePath, AToolWindowId);
+
+        AssertBroughtToolWindowToFocus(AToolWindowId);
+    }
+    
+    [TestMethod]
+    public void UnableToOpenFile_DisplaysNotification_WithMessage()
+    {
+        testSubject.UnableToOpenFile(AFilePath, AToolWindowId);
+
+        AssertReceivedNotificationWithMessage(string.Format(OpenInIdeResources.Notification_UnableToOpenFile, AFilePath), AToolWindowId);
+    }
+    
+    [TestMethod]
+    public void UnableToOpenFile_ShouldNotShowOnlyOncePerSession()
+    {
+        testSubject.UnableToOpenFile(AFilePath, AToolWindowId);
+        
+        AssertNotificationNotShownOnlyOncePerSession(AToolWindowId);
+    }
+    
+    [TestMethod]
+    public void UnableToOpenFile_DisplaysNotification_WithActionToOpenDocsInBrowser()
+    {
+        testSubject.UnableToOpenFile(AFilePath, AToolWindowId);
+    
+        SimulateNotificationActionInvoked(0);
+        
+        AssertOpenedDocsPageInBrowser();
+    }
+
+    [TestMethod]
+    public void UnableToOpenFile_DisplaysNotification_WithActionToShowLogs()
+    {
+        testSubject.UnableToOpenFile(AFilePath, AToolWindowId);
+        
+        SimulateNotificationActionInvoked(1);
+    
+        AssertShownLogsWindow();
+    }
+
+    [TestMethod]
+    public void UnableToOpenFile_NotificationActions_ShouldNotDismissNotification()
+    {
+        testSubject.UnableToOpenFile(AFilePath, AToolWindowId);
+    
+        AssertActionsAreNotDismissingNotification(AToolWindowId);
+    }
+
+    [TestMethod]
+    public void UnableToOpenFile_NotificationActions_ShouldBeExactlyTwo()
+    {
+        testSubject.UnableToOpenFile(AFilePath, AToolWindowId);
+
+        AssertActionButtonsAreExactly(2);
+    }
+    
+    [TestMethod]
+    public void UnableToOpenFile_BringsToolWindowToFocus()
+    {
+        testSubject.UnableToOpenFile(AFilePath, AToolWindowId);
+
+        AssertBroughtToolWindowToFocus(AToolWindowId);
+    }
+    
+    [TestMethod]
+    public void InvalidRequest_DisplaysNotification_WithMessage()
+    {
+        testSubject.InvalidRequest(AFilePath, AToolWindowId);
+
+        AssertReceivedNotificationWithMessage(string.Format(OpenInIdeResources.Notification_InvalidConfiguration, AFilePath), AToolWindowId);
+    }
+    
+    [TestMethod]
+    public void InvalidRequest_ShouldNotShowOnlyOncePerSession()
+    {
+        testSubject.InvalidRequest(AFilePath, AToolWindowId);
+        
+        AssertNotificationNotShownOnlyOncePerSession(AToolWindowId);
+    }
+
+    [TestMethod]
+    public void InvalidRequest_DisplaysNotification_WithActionToShowLogs()
+    {
+        testSubject.InvalidRequest(AFilePath, AToolWindowId);
+        
+        SimulateNotificationActionInvoked(0);
+    
+        AssertShownLogsWindow();
+    }
+
+    [TestMethod]
+    public void InvalidRequest_NotificationActions_ShouldNotDismissNotification()
+    {
+        testSubject.InvalidRequest(AFilePath, AToolWindowId);
+    
+        AssertActionsAreNotDismissingNotification(AToolWindowId);
+    }
+
+    [TestMethod]
+    public void InvalidRequest_NotificationActions_ShouldBeExactlyOne()
+    {
+        testSubject.InvalidRequest(AFilePath, AToolWindowId);
+
+        AssertActionButtonsAreExactly(1);
+    }
+    
+    [TestMethod]
+    public void InvalidRequest_BringsToolWindowToFocus()
+    {
+        testSubject.InvalidRequest(AFilePath, AToolWindowId);
+
+        AssertBroughtToolWindowToFocus(AToolWindowId);
+    }
+    
+    [TestMethod]
+    public void Clear_ClosesAnyOpenNotification()
+    {
+        testSubject.Clear();
+
+        notificationService.Received(1).CloseNotification();
+    }
+    
+    [TestMethod]
+    public void Dispose_ClosesAnyOpenNotification()
+    {
+        testSubject.Dispose();
+
+        notificationService.Received(1).CloseNotification();
+    }
+    
+    private void AssertReceivedNotificationWithMessage(string message, Guid toolWindowId)
+    {
+        notificationService.Received(1).ShowNotification(Arg.Is<INotification>(x => x.Message == message), toolWindowId);
+    }
+    
+    private void AssertNotificationNotShownOnlyOncePerSession(Guid toolWindowId)
+    {
+        notificationService.Received(1).ShowNotification(Arg.Is<INotification>(x => !x.ShowOncePerSession), toolWindowId);
+    }
+    
+    private void AssertOpenedDocsPageInBrowser()
+    {
+        browserService.Received(1).Navigate(DocumentationLinks.OpenInIdeIssueLocation);
+    }
+    
+    private void AssertShownLogsWindow()
+    {
+        outputWindowService.Received(1).Show();
+    }
+    
+    private void AssertActionsAreNotDismissingNotification(Guid toolWindowId)
+    {
+        notificationService.Received(1).ShowNotification(Arg.Is<Notification>(n =>
+            n.Actions.All(a => !a.ShouldDismissAfterAction)
+        ), toolWindowId);
+    }
+    
+    private void AssertActionButtonsAreExactly(int count)
+    {
+        var notification = notificationService.ReceivedCalls().Single().GetArguments()[0] as Notification;
+        notification.Should().NotBeNull();
+        notification!.Actions.Count().Should().Be(count);
+    }
+    
+    private void AssertBroughtToolWindowToFocus(Guid toolWindowId)
+    {
         toolWindowService.Show(toolWindowId);
+    }
     
-    private void VerifyInfoBarShown(IOpenInIdeFailureInfoBar infoBar, string message, Guid toolWindowId, bool hasMoreInfo) =>
-        infoBar.Received(1).ShowAsync(toolWindowId, message, hasMoreInfo);
+    private void SimulateNotificationActionInvoked(int actionIndex)
+    {
+        var notification = notificationService.ReceivedCalls().Single().GetArguments()[0] as Notification;
+        notification.Should().NotBeNull();
+        notification!.Actions.ToList()[actionIndex].Action.Invoke(notification);
+    }
 }
