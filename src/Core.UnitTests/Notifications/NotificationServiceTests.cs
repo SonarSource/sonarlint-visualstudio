@@ -349,6 +349,22 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             VerifyInfoBarCreatedCorrectly(infoBarManager, notification2);
             VerifySubscribedToInfoBarEvents(infoBar2);
         }
+        
+        [TestMethod]
+        public void ShowNotification_WithToolWindowGuid_ShowOnToolWindow()
+        {
+            var aToolWindowId = Guid.NewGuid();
+            var notification = CreateNotification();
+            var infoBar = CreateInfoBar();
+            var infoBarManager = new Mock<IInfoBarManager>();
+            SetupInfoBarManager(infoBarManager, notification, infoBar, aToolWindowId);
+            var testSubject = CreateTestSubject(infoBarManager.Object);
+
+            testSubject.ShowNotification(notification, aToolWindowId);
+
+            VerifyInfoBarCreatedCorrectly(infoBarManager, notification, aToolWindowId);
+            VerifySubscribedToInfoBarEvents(infoBar);
+        }
 
         [TestMethod]
         public void Dispose_NoExistingNotification_NoException()
@@ -628,6 +644,18 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
                 .Returns(infoBar.Object);
             infoBarManager.Setup(x => x.CloseInfoBar(infoBar.Object)).Callback(() => infoBar.Raise(x => x.Closed += null, EventArgs.Empty));
         }
+        
+        private static void SetupInfoBarManager(Mock<IInfoBarManager> infoBarManager, INotification notification, Mock<IInfoBar> infoBar, Guid toolWindowId)
+        {
+            infoBarManager
+                .Setup(x => x.AttachInfoBarWithButtons(
+                    toolWindowId,
+                    notification.Message,
+                    It.IsAny<string[]>(),
+                    SonarLintImageMoniker.OfficialSonarLintMoniker))
+                .Returns(infoBar.Object);
+            infoBarManager.Setup(x => x.CloseInfoBar(infoBar.Object)).Callback(() => infoBar.Raise(x => x.Closed += null, EventArgs.Empty));
+        }
 
         private static void VerifyInfoBarCreatedCorrectly(Mock<IInfoBarManager> infoBarManager, INotification notification)
         {
@@ -637,6 +665,23 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
                     It.IsAny<string[]>()),
                 Times.Once);
 
+            VerifyNotificationContainsActionButtons(infoBarManager, notification);
+        }
+        
+        private static void VerifyInfoBarCreatedCorrectly(Mock<IInfoBarManager> infoBarManager, INotification notification, Guid toolWindowId)
+        {
+            infoBarManager.Verify(x => x.AttachInfoBarWithButtons(
+                    toolWindowId,
+                    notification.Message,
+                    It.IsAny<string[]>(),
+                    SonarLintImageMoniker.OfficialSonarLintMoniker),
+                Times.Once);
+
+            VerifyNotificationContainsActionButtons(infoBarManager, notification);
+        }
+
+        private static void VerifyNotificationContainsActionButtons(Mock<IInfoBarManager> infoBarManager, INotification notification)
+        {
             var expectedButtonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
             var actualButtonTexts = infoBarManager.Invocations.First().Arguments[2] as IEnumerable<string>;
 

@@ -34,6 +34,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
     public interface INotificationService : IDisposable
     {
         void ShowNotification(INotification notification);
+        
+        void ShowNotification(INotification notification, Guid toolWindowId);
 
         void CloseNotification();
     }
@@ -42,6 +44,8 @@ namespace SonarLint.VisualStudio.Core.Notifications
     [PartCreationPolicy(CreationPolicy.NonShared)]
     internal sealed class NotificationService : INotificationService
     {
+        private static readonly Guid MainWindowId = Guid.Empty;
+        
         private readonly IInfoBarManager infoBarManager;
         private readonly IDisabledNotificationsStorage notificationsStorage;
         private readonly IThreadHandling threadHandling;
@@ -67,6 +71,11 @@ namespace SonarLint.VisualStudio.Core.Notifications
 
         public void ShowNotification(INotification notification)
         {
+            ShowNotification(notification, MainWindowId);
+        }
+
+        public void ShowNotification(INotification notification, Guid toolWindowId)
+        {
             if (notification == null)
             {
                 throw new ArgumentNullException(nameof(notification));
@@ -87,7 +96,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
             threadHandling.RunOnUIThreadAsync(() =>
             {
                 CloseNotification();
-                ShowInfoBar(notification);
+                ShowInfoBar(notification, toolWindowId);
             });
         }
 
@@ -143,16 +152,11 @@ namespace SonarLint.VisualStudio.Core.Notifications
             activeNotification = null;
         }
 
-        private void ShowInfoBar(INotification notification)
+        private void ShowInfoBar(INotification notification, Guid toolWindowId)
         {
             try
             {
-                var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
-
-                var infoBar = infoBarManager.AttachInfoBarToMainWindow(notification.Message,
-                    SonarLintImageMoniker.OfficialSonarLintMoniker,
-                    buttonTexts);
-
+                var infoBar = AttachInfoBar(notification, toolWindowId);
                 activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
                 activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
                 activeNotification.Item1.Closed += CurrentInfoBar_Closed;
@@ -165,6 +169,24 @@ namespace SonarLint.VisualStudio.Core.Notifications
             {
                 logger.WriteLine(CoreStrings.Notifications_FailedToDisplay, notification.Id, ex);
             }
+        }
+
+        private IInfoBar AttachInfoBar(INotification notification, Guid toolWindowId)
+        {
+            var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
+
+            if (toolWindowId == MainWindowId)
+            {
+                return infoBarManager.AttachInfoBarToMainWindow(notification.Message,
+                    SonarLintImageMoniker.OfficialSonarLintMoniker,
+                    buttonTexts);
+            }
+            
+            return infoBarManager.AttachInfoBarWithButtons(
+                toolWindowId,
+                notification.Message,
+                buttonTexts,
+                SonarLintImageMoniker.OfficialSonarLintMoniker);
         }
 
         public void Dispose()
