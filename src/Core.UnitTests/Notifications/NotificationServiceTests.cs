@@ -508,7 +508,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
         }
 
         [TestMethod]
-        public void Dispose_NonCriticalException_ExceptionCaught()
+        public void CloseNotification_NonCriticalException_ExceptionCaught()
         {
             var notification = CreateNotification();
             var infoBar = CreateInfoBar();
@@ -523,14 +523,14 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var testSubject = CreateTestSubject(infoBarManager.Object, logger: logger);
             testSubject.ShowNotification(notification);
 
-            Action act = () => testSubject.Dispose();
+            Action act = () => testSubject.CloseNotification();
             act.Should().NotThrow();
 
             logger.AssertPartialOutputStringExists("this is a test");
         }
 
         [TestMethod]
-        public void Dispose_CriticalException_ExceptionNotCaught()
+        public void CloseNotification_CriticalException_ExceptionNotCaught()
         {
             var notification = CreateNotification();
             var infoBar = CreateInfoBar();
@@ -545,7 +545,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var testSubject = CreateTestSubject(infoBarManager.Object, logger: logger);
             testSubject.ShowNotification(notification);
 
-            Action act = () => testSubject.Dispose();
+            Action act = () => testSubject.CloseNotification();
             act.Should().ThrowExactly<StackOverflowException>().WithMessage("this is a test");
 
             logger.AssertNoOutputMessages();
