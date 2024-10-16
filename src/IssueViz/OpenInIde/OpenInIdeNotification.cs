@@ -18,12 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Windows;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Core.Notifications;
 
 namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
@@ -37,35 +34,60 @@ internal interface IOpenInIdeNotification
 
 [Export(typeof(IOpenInIdeNotification))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class OpenInIdeNotification : IOpenInIdeNotification
+internal sealed class OpenInIdeNotification : IOpenInIdeNotification, IDisposable
 {
     private readonly IToolWindowService toolWindowService;
-    private readonly IOpenInIdeFailureInfoBar infoBar;
+    private readonly INotificationService notificationService;
+    private readonly IOutputWindowService outputWindowService;
+    private readonly IBrowserService browserService;
 
     [ImportingConstructor]
-    public OpenInIdeNotification(IOpenInIdeFailureInfoBar infoBar, IToolWindowService toolWindowService)
+    public OpenInIdeNotification(
+        IToolWindowService toolWindowService,
+        INotificationService notificationService,
+        IOutputWindowService outputWindowService,
+        IBrowserService browserService)
     {
         this.toolWindowService = toolWindowService;
-        this.infoBar = infoBar;
+        this.notificationService = notificationService;
+        this.outputWindowService = outputWindowService;
+        this.browserService = browserService;
     }
 
     public void UnableToLocateIssue(string filePath, Guid toolWindowId) => 
-        Show(string.Format(OpenInIdeResources.Notification_UnableToLocateIssue, filePath), toolWindowId, true);
+        Show(toolWindowId, string.Format(OpenInIdeResources.Notification_UnableToLocateIssue, filePath), true);
 
     public void UnableToOpenFile(string filePath, Guid toolWindowId) => 
-        Show(string.Format(OpenInIdeResources.Notification_UnableToOpenFile, filePath), toolWindowId, true);
+        Show(toolWindowId, string.Format(OpenInIdeResources.Notification_UnableToOpenFile, filePath), true);
     
     public void InvalidRequest(string reason, Guid toolWindowId) => 
-        Show(string.Format(OpenInIdeResources.Notification_InvalidConfiguration, reason), toolWindowId, false);
+        Show(toolWindowId, string.Format(OpenInIdeResources.Notification_InvalidConfiguration, reason), false);
 
     public void Clear()
     {
-        infoBar.ClearAsync().Forget();
+        notificationService.CloseNotification();
     }
 
-    private void Show(string message, Guid toolWindowId, bool hasMoreInfo)
+    public void Dispose()
+    {
+        Clear();
+    }
+
+    private void Show(Guid toolWindowId, string message, bool hasMoreInfo)
     {
         toolWindowService.Show(toolWindowId);
-        infoBar.ShowAsync(toolWindowId, message, hasMoreInfo).Forget();
+
+        var moreInfoAction = new NotificationAction(OpenInIdeResources.InfoBar_Button_MoreInfo, _ => browserService.Navigate(DocumentationLinks.OpenInIdeIssueLocation), false);
+        var showLogsAction = new NotificationAction(OpenInIdeResources.InfoBar_Button_ShowLogs, _ => outputWindowService.Show(), false);
+        List<INotificationAction> actions = hasMoreInfo
+            ? [moreInfoAction, showLogsAction]
+            : [showLogsAction];
+
+        var notification = new Notification(
+            id: "OpenInIdeNotification",
+            showOncePerSession: false,
+            message: message,
+            actions: actions);
+        notificationService.ShowNotification(notification, toolWindowId);
     }
 }
