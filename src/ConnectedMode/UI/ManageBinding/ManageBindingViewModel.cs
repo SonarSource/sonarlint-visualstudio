@@ -138,6 +138,13 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         var displayBindStatus = new TaskToPerformParams<AdapterResponse>(DisplayBindStatusAsync, UiResources.FetchingBindingStatusText,
                 UiResources.FetchingBindingStatusFailedText) { AfterProgressUpdated = OnProgressUpdated};
         await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus);
+
+        if (!IsCurrentProjectBound)
+        {
+            var detectSharedBinding = new TaskToPerformParams<AdapterResponse>(CheckForSharedBindingAsync, UiResources.CheckingForSharedBindingText,
+                UiResources.CheckingForSharedBindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
+            await ProgressReporter.ExecuteTaskWithProgressAsync(detectSharedBinding);
+        }
     }
 
     public async Task BindWithProgressAsync()
@@ -178,13 +185,10 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         cancellationTokenSource?.Dispose();
     }
     
-    internal void DetectSharedBinding()
+    internal Task<AdapterResponse> CheckForSharedBindingAsync()
     {
-        if (IsCurrentProjectBound)
-        {
-            return;
-        }
         SharedBindingConfigModel = connectedModeBindingServices.SharedBindingConfigProvider.GetSharedBinding();
+        return Task.FromResult(new AdapterResponse(true));
     }
 
     internal async Task<AdapterResponse> UseSharedBindingAsync()
@@ -267,7 +271,6 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         SelectedConnectionInfo = ConnectionInfo.From(serverConnection);
         SelectedProject = response.ResponseData;
         BoundProject = SelectedProject;
-        DetectSharedBinding();
         return new AdapterResponse(BoundProject != null);
     }
 
