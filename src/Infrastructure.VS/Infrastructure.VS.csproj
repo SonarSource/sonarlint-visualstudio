@@ -19,8 +19,13 @@
   
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" PrivateAssets="all"/>
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="3.11.0" PrivateAssets="all" IncludeAssets="none"/>
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="3.11.0" PrivateAssets="all"/>
   </ItemGroup>
+
+  <PropertyGroup Label="Specify which external/VS-specific refs are required">
+    <RequiresLanguageServices>true</RequiresLanguageServices>
+  </PropertyGroup>
+  <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
   
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">
