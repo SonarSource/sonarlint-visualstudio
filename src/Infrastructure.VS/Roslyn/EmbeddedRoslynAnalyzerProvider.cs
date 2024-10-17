@@ -52,13 +52,13 @@ public class EmbeddedRoslynAnalyzerProvider : IEmbeddedRoslynAnalyzerProvider
         this.fileSystem = fileSystem;
     }
 
-    public ImmutableArray<AnalyzerFileReference> Get()
+    public ImmutableArray<AnalyzerFileReference>? Get()
     {
         var analyzerPaths = fileSystem.Directory.GetFiles(locator.GetPathToParentFolder());
         if(analyzerPaths.Length == 0)
         {
             logger.WriteLine(Resources.EmbeddedRoslynAnalyzersNotFound);
-            return ImmutableArray<AnalyzerFileReference>.Empty;
+            return null;
         }
         var loader = analyzerAssemblyLoaderFactory.Create();
         return analyzerPaths.Select(path => new AnalyzerFileReference(path, loader)).ToImmutableArray();

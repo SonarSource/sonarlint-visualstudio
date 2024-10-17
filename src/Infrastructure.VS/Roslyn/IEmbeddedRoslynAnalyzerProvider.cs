@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 public interface IEmbeddedRoslynAnalyzerProvider
 {
     /// <summary>
-    /// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are embedded in the VSIX
+    /// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are embedded in the VSIX or null if no analyzers are found.
     /// </summary>
-    ImmutableArray<AnalyzerFileReference> Get();
+    ImmutableArray<AnalyzerFileReference>? Get();
 }

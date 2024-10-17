@@ -82,19 +82,20 @@ public class EmbeddedRoslynAnalyzerProviderTests
         var analyzerFileReferences = testSubject.Get();
 
         analyzerAssemblyLoaderFactory.Received(1).Create();
-        analyzerFileReferences.Length.Should().Be(2);
-        ContainsExpectedAnalyzerFileReference(analyzerFileReferences, GetAnalyzerFullPath("analyzer1.dll"));
-        ContainsExpectedAnalyzerFileReference(analyzerFileReferences, GetAnalyzerFullPath("analyzer2.dll"));
+        analyzerFileReferences.Should().NotBeNull();
+        analyzerFileReferences.Value.Length.Should().Be(2);
+        ContainsExpectedAnalyzerFileReference(analyzerFileReferences.Value, GetAnalyzerFullPath("analyzer1.dll"));
+        ContainsExpectedAnalyzerFileReference(analyzerFileReferences.Value, GetAnalyzerFullPath("analyzer2.dll"));
     }
 
     [TestMethod]
-    public void Get_AnalyzerFilesDoNotExist_ReturnsEmptyArrayAndLogs()
+    public void Get_AnalyzerFilesDoNotExist_ReturnsNullAndLogs()
     {
         fileSystem.Directory.GetFiles(AnalyzersPath).Returns([]);
 
         var analyzerFileReferences = testSubject.Get();
 
-        analyzerFileReferences.Should().BeEmpty();
+        analyzerFileReferences.Should().BeNull();
         logger.Received(1).WriteLine(Resources.EmbeddedRoslynAnalyzersNotFound);
         analyzerAssemblyLoaderFactory.DidNotReceive().Create();
     }
