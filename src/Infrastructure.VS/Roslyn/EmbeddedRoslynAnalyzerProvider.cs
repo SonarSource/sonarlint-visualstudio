@@ -32,6 +32,7 @@ public class EmbeddedRoslynAnalyzerProvider : IEmbeddedRoslynAnalyzerProvider
     private readonly IEmbeddedRoslynAnalyzersLocator locator;
     private readonly IAnalyzerAssemblyLoaderFactory analyzerAssemblyLoaderFactory;
     private readonly ILogger logger;
+    private ImmutableArray<AnalyzerFileReference>? embeddedAnalyzers;
 
     [ImportingConstructor]
     public EmbeddedRoslynAnalyzerProvider(IEmbeddedRoslynAnalyzersLocator locator, ILogger logger) :
@@ -49,6 +50,13 @@ public class EmbeddedRoslynAnalyzerProvider : IEmbeddedRoslynAnalyzerProvider
     }
 
     public ImmutableArray<AnalyzerFileReference> Get()
+    {
+        embeddedAnalyzers ??= CreateAnalyzerFileReferences();
+
+        return embeddedAnalyzers.Value;
+    }
+
+    private ImmutableArray<AnalyzerFileReference> CreateAnalyzerFileReferences()
     {
         var analyzerPaths = locator.GetAnalyzerFullPaths();
         if(analyzerPaths.Count == 0)

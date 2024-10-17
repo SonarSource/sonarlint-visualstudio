@@ -20,7 +20,6 @@
 
 using System.Collections.Immutable;
 using System.IO;
-using System.IO.Abstractions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
@@ -65,7 +64,7 @@ public class EmbeddedRoslynAnalyzerProviderTests
 
     [TestMethod]
     public void Get_GetsAnalyzersFromExpectedLocation()
-    { 
+    {
         testSubject.Get();
 
         locator.Received(1).GetAnalyzerFullPaths();
@@ -97,12 +96,24 @@ public class EmbeddedRoslynAnalyzerProviderTests
         analyzerAssemblyLoaderFactory.DidNotReceive().Create();
     }
 
+    [TestMethod]
+    public void Get_CachesAnalyzerFileReferences()
+    {
+        testSubject.Get();
+        testSubject.Get();
+
+        analyzerAssemblyLoaderFactory.Received(1).Create();
+        locator.Received(1).GetAnalyzerFullPaths();
+    }
+
     private static string GetAnalyzerFullPath(string analyzerFile)
     {
         return Path.Combine(AnalyzersPath, analyzerFile);
     }
 
-    private static void ContainsExpectedAnalyzerFileReference(ImmutableArray<AnalyzerFileReference> analyzerFileReference, string analyzerPath)
+    private static void ContainsExpectedAnalyzerFileReference(
+        ImmutableArray<AnalyzerFileReference> analyzerFileReference,
+        string analyzerPath)
     {
         analyzerFileReference.Should().Contain(analyzerFile => analyzerFile.FullPath == analyzerPath);
     }
