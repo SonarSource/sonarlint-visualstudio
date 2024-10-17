@@ -20,7 +20,6 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.IO.Abstractions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
 
@@ -49,13 +48,13 @@ public class EmbeddedRoslynAnalyzerProvider : IEmbeddedRoslynAnalyzerProvider
         this.logger = logger;
     }
 
-    public ImmutableArray<AnalyzerFileReference>? Get()
+    public ImmutableArray<AnalyzerFileReference> Get()
     {
         var analyzerPaths = locator.GetAnalyzerFullPaths();
         if(analyzerPaths.Count == 0)
         {
-            logger.WriteLine(Resources.EmbeddedRoslynAnalyzersNotFound);
-            return null;
+            logger.LogVerbose(Resources.EmbeddedRoslynAnalyzersNotFound);
+            throw new InvalidOperationException(Resources.EmbeddedRoslynAnalyzersNotFound);
         }
         var loader = analyzerAssemblyLoaderFactory.Create();
         return analyzerPaths.Select(path => new AnalyzerFileReference(path, loader)).ToImmutableArray();

@@ -80,20 +80,20 @@ public class EmbeddedRoslynAnalyzerProviderTests
 
         analyzerAssemblyLoaderFactory.Received(1).Create();
         analyzerFileReferences.Should().NotBeNull();
-        analyzerFileReferences.Value.Length.Should().Be(2);
-        ContainsExpectedAnalyzerFileReference(analyzerFileReferences.Value, GetAnalyzerFullPath("analyzer1.dll"));
-        ContainsExpectedAnalyzerFileReference(analyzerFileReferences.Value, GetAnalyzerFullPath("analyzer2.dll"));
+        analyzerFileReferences.Length.Should().Be(2);
+        ContainsExpectedAnalyzerFileReference(analyzerFileReferences, GetAnalyzerFullPath("analyzer1.dll"));
+        ContainsExpectedAnalyzerFileReference(analyzerFileReferences, GetAnalyzerFullPath("analyzer2.dll"));
     }
 
     [TestMethod]
-    public void Get_AnalyzerFilesDoNotExist_ReturnsNullAndLogs()
+    public void Get_AnalyzerFilesDoNotExist_ReturnsLogsAndThrows()
     {
         locator.GetAnalyzerFullPaths().Returns([]);
 
-        var analyzerFileReferences = testSubject.Get();
+        Action act = () => testSubject.Get();
 
-        analyzerFileReferences.Should().BeNull();
-        logger.Received(1).WriteLine(Resources.EmbeddedRoslynAnalyzersNotFound);
+        act.Should().Throw<InvalidOperationException>().WithMessage(Resources.EmbeddedRoslynAnalyzersNotFound);
+        logger.Received(1).LogVerbose(Resources.EmbeddedRoslynAnalyzersNotFound);
         analyzerAssemblyLoaderFactory.DidNotReceive().Create();
     }
 
@@ -109,7 +109,7 @@ public class EmbeddedRoslynAnalyzerProviderTests
 
     private void MockServices()
     {
-        locator.GetAnalyzerFullPaths().Returns([]);
+        locator.GetAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll")]);
         analyzerAssemblyLoaderFactory.Create().Returns(analyzerAssemblyLoader);
     }
 }
