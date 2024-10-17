@@ -35,7 +35,6 @@ public class EmbeddedRoslynAnalyzerProviderTests
     private readonly IAnalyzerAssemblyLoader analyzerAssemblyLoader = Substitute.For<IAnalyzerAssemblyLoader>();
     private EmbeddedRoslynAnalyzerProvider testSubject;
     private IEmbeddedRoslynAnalyzersLocator locator;
-    private IFileSystem fileSystem;
     private IAnalyzerAssemblyLoaderFactory analyzerAssemblyLoaderFactory;
     private ILogger logger;
 
@@ -44,10 +43,9 @@ public class EmbeddedRoslynAnalyzerProviderTests
     {
         locator = Substitute.For<IEmbeddedRoslynAnalyzersLocator>();
         analyzerAssemblyLoaderFactory = Substitute.For<IAnalyzerAssemblyLoaderFactory>();
-        fileSystem = Substitute.For<IFileSystem>();
         logger = Substitute.For<ILogger>();
 
-        testSubject = new EmbeddedRoslynAnalyzerProvider(locator, analyzerAssemblyLoaderFactory, logger, fileSystem);
+        testSubject = new EmbeddedRoslynAnalyzerProvider(locator, analyzerAssemblyLoaderFactory, logger);
         MockServices();
     }
 
@@ -70,14 +68,13 @@ public class EmbeddedRoslynAnalyzerProviderTests
     { 
         testSubject.Get();
 
-        locator.Received(1).GetPathToParentFolder();
-        fileSystem.Directory.Received(1).GetFiles(locator.GetPathToParentFolder());
+        locator.Received(1).GetAnalyzerFullPaths();
     }
 
     [TestMethod]
     public void Get_AnalyzerFilesExist_ReturnsAnalyzerFileReference()
     {
-        fileSystem.Directory.GetFiles(AnalyzersPath).Returns([GetAnalyzerFullPath("analyzer1.dll"), GetAnalyzerFullPath("analyzer2.dll")]);
+        locator.GetAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll"), GetAnalyzerFullPath("analyzer2.dll")]);
 
         var analyzerFileReferences = testSubject.Get();
 
@@ -91,7 +88,7 @@ public class EmbeddedRoslynAnalyzerProviderTests
     [TestMethod]
     public void Get_AnalyzerFilesDoNotExist_ReturnsNullAndLogs()
     {
-        fileSystem.Directory.GetFiles(AnalyzersPath).Returns([]);
+        locator.GetAnalyzerFullPaths().Returns([]);
 
         var analyzerFileReferences = testSubject.Get();
 
@@ -112,7 +109,7 @@ public class EmbeddedRoslynAnalyzerProviderTests
 
     private void MockServices()
     {
-        locator.GetPathToParentFolder().Returns(AnalyzersPath);
+        locator.GetAnalyzerFullPaths().Returns([]);
         analyzerAssemblyLoaderFactory.Create().Returns(analyzerAssemblyLoader);
     }
 }

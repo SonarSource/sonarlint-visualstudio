@@ -47,13 +47,13 @@ internal class EmbeddedRoslynAnalyzersLocator : IEmbeddedRoslynAnalyzersLocator
         this.fileSystem = fileSystem;
     }
 
-    public string GetPathToParentFolder()
-    {
-        return Path.Combine(vsixRootLocator.GetVsixRoot(), PathInsideVsix);
-    }
-
     public List<string> GetAnalyzerFullPaths()
     {
        return fileSystem.Directory.GetFiles(GetPathToParentFolder(), DllsSearchPattern).ToList();
+    }
+
+    private string GetPathToParentFolder()
+    {
+        return Path.Combine(vsixRootLocator.GetVsixRoot(), PathInsideVsix);
     }
 }

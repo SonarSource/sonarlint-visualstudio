@@ -33,29 +33,26 @@ public class EmbeddedRoslynAnalyzerProvider : IEmbeddedRoslynAnalyzerProvider
     private readonly IEmbeddedRoslynAnalyzersLocator locator;
     private readonly IAnalyzerAssemblyLoaderFactory analyzerAssemblyLoaderFactory;
     private readonly ILogger logger;
-    private readonly IFileSystem fileSystem;
 
     [ImportingConstructor]
     public EmbeddedRoslynAnalyzerProvider(IEmbeddedRoslynAnalyzersLocator locator, ILogger logger) :
-        this(locator, new AnalyzerAssemblyLoaderFactory(), logger, new FileSystem())
+        this(locator, new AnalyzerAssemblyLoaderFactory(), logger)
     {
     }
 
     internal EmbeddedRoslynAnalyzerProvider(IEmbeddedRoslynAnalyzersLocator locator,
         IAnalyzerAssemblyLoaderFactory analyzerAssemblyLoaderFactory,
-        ILogger logger,
-        IFileSystem fileSystem)
+        ILogger logger)
     {
         this.locator = locator;
         this.analyzerAssemblyLoaderFactory = analyzerAssemblyLoaderFactory;
         this.logger = logger;
-        this.fileSystem = fileSystem;
     }
 
     public ImmutableArray<AnalyzerFileReference>? Get()
     {
-        var analyzerPaths = fileSystem.Directory.GetFiles(locator.GetPathToParentFolder());
-        if(analyzerPaths.Length == 0)
+        var analyzerPaths = locator.GetAnalyzerFullPaths();
+        if(analyzerPaths.Count == 0)
         {
             logger.WriteLine(Resources.EmbeddedRoslynAnalyzersNotFound);
             return null;

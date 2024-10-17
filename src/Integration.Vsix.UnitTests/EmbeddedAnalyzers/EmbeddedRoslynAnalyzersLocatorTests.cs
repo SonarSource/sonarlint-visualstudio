@@ -57,16 +57,6 @@ public class EmbeddedRoslynAnalyzersLocatorTests
     }
 
     [TestMethod]
-    public void GetPathToParentFolder_ReturnsCorrectLocationInsideVsix()
-    {
-        vsixRootLocator.GetVsixRoot().Returns(@"C:\SomePath");
-
-        var result = testSubject.GetPathToParentFolder();
-
-        result.Should().Be(@"C:\SomePath\EmbeddedRoslynAnalyzers");
-    }
-
-    [TestMethod]
     public void GetAnalyzerPaths_AnalyzersExists_ReturnsFullPathsToAnalyzers()
     {
         string[] expectedPaths =
@@ -86,7 +76,7 @@ public class EmbeddedRoslynAnalyzersLocatorTests
     {
         vsixRootLocator.GetVsixRoot().Returns(PathInsideVsix);
 
-        var paths = testSubject.GetAnalyzerFullPaths();
+        testSubject.GetAnalyzerFullPaths();
 
         fileSystem.Directory.Received(1).GetFiles(Path.Combine(PathInsideVsix, "EmbeddedRoslynAnalyzers"), "*.dll");
     }
