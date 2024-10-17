@@ -12,6 +12,7 @@
 
   <PropertyGroup Label="Specify which external/VS-specific refs are required">
     <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
+    <RequiresLanguageServices>true</RequiresLanguageServices>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
@@ -50,6 +51,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Test framework">
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
