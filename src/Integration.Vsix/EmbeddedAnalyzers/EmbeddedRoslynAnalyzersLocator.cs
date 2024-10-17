@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
+using System.IO.Abstractions;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
@@ -29,17 +30,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix.EmbeddedAnalyzers;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class EmbeddedRoslynAnalyzersLocator : IEmbeddedRoslynAnalyzersLocator
 {
-    private readonly IVsixRootLocator vsixRootLocator;
     private const string PathInsideVsix = "EmbeddedRoslynAnalyzers";
+    private const string DllsSearchPattern = "*.dll";
+
+    private readonly IFileSystem fileSystem;
+    private readonly IVsixRootLocator vsixRootLocator;
 
     [ImportingConstructor]
-    public EmbeddedRoslynAnalyzersLocator(IVsixRootLocator vsixRootLocator)
+    public EmbeddedRoslynAnalyzersLocator(IVsixRootLocator vsixRootLocator) : this(vsixRootLocator, new FileSystem())
+    {
+    }
+
+    internal EmbeddedRoslynAnalyzersLocator(IVsixRootLocator vsixRootLocator, IFileSystem fileSystem)
     {
         this.vsixRootLocator = vsixRootLocator;
+        this.fileSystem = fileSystem;
     }
 
     public string GetPathToParentFolder()
     {
         return Path.Combine(vsixRootLocator.GetVsixRoot(), PathInsideVsix);
+    }
+
+    public List<string> GetAnalyzerFullPaths()
+    {
+       return fileSystem.Directory.GetFiles(GetPathToParentFolder(), DllsSearchPattern).ToList();
     }
 }

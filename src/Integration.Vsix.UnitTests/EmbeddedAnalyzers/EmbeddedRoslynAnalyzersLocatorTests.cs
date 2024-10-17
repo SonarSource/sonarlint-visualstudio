@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
+using System.IO.Abstractions;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.Vsix.EmbeddedAnalyzers;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
@@ -27,14 +29,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.EmbeddedAnalyzers;
 [TestClass]
 public class EmbeddedRoslynAnalyzersLocatorTests
 {
-    private IVsixRootLocator vsixRootLocator;
+    private const string PathInsideVsix = "C:\\somePath";
+
     private EmbeddedRoslynAnalyzersLocator testSubject;
+    private IVsixRootLocator vsixRootLocator;
+    private IFileSystem fileSystem;
 
     [TestInitialize]
     public void TestInitialize()
     {
         vsixRootLocator = Substitute.For<IVsixRootLocator>();
-        testSubject = new EmbeddedRoslynAnalyzersLocator(vsixRootLocator);
+        fileSystem = Substitute.For<IFileSystem>();
+        testSubject = new EmbeddedRoslynAnalyzersLocator(vsixRootLocator, fileSystem);
     }
 
     [TestMethod]
@@ -58,5 +64,35 @@ public class EmbeddedRoslynAnalyzersLocatorTests
         var result = testSubject.GetPathToParentFolder();
 
         result.Should().Be(@"C:\SomePath\EmbeddedRoslynAnalyzers");
+    }
+
+    [TestMethod]
+    public void GetAnalyzerPaths_AnalyzersExists_ReturnsFullPathsToAnalyzers()
+    {
+        string[] expectedPaths =
+        [
+            GetAnalyzerFullPath(PathInsideVsix, "analyzer1.dll"),
+            GetAnalyzerFullPath(PathInsideVsix, "analyzer2.dll")
+        ];
+        fileSystem.Directory.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns(expectedPaths);
+
+        var paths = testSubject.GetAnalyzerFullPaths();
+
+        paths.Should().BeEquivalentTo(expectedPaths);
+    }
+
+    [TestMethod]
+    public void GetAnalyzerPaths_SearchesForFilesInsideVsix()
+    {
+        vsixRootLocator.GetVsixRoot().Returns(PathInsideVsix);
+
+        var paths = testSubject.GetAnalyzerFullPaths();
+
+        fileSystem.Directory.Received(1).GetFiles(Path.Combine(PathInsideVsix, "EmbeddedRoslynAnalyzers"), "*.dll");
+    }
+
+    private static string GetAnalyzerFullPath(string pathInsideVsix, string analyzerFile)
+    {
+        return Path.Combine(pathInsideVsix, analyzerFile);
     }
 }

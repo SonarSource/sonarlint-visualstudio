@@ -23,4 +23,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 public interface IEmbeddedRoslynAnalyzersLocator
 {
     string GetPathToParentFolder();
+
+    List<string> GetAnalyzerFullPaths();
 }
