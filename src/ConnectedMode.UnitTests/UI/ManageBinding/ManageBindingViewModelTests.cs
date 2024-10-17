@@ -22,6 +22,7 @@ using System.ComponentModel;
 using System.Security;
 using System.Windows;
 using NSubstitute.ExceptionExtensions;
+using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
@@ -502,15 +503,37 @@ public class ManageBindingViewModelTests
                     x.WarningText == UiResources.FetchingBindingStatusFailedText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
-
+    
     [TestMethod]
-    public async Task InitializeDataAsync_ShouldNotThrow_WhenDetectingSharedBindingConfigThrows()
-    { 
-        sharedBindingConfigProvider.GetSharedBinding().Throws(new Exception("Failed to detect shared binding"));
+    public async Task InitializeDataAsync_WhenStandalone_ChecksForSharedBindingAndReportsProgress()
+    {
+        SetupUnboundProject();
+        
+        await testSubject.InitializeDataAsync();
 
-        var act = async ()=>  await testSubject.InitializeDataAsync();
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.TaskToPerform == testSubject.CheckForSharedBindingAsync &&
+                    x.ProgressStatus == UiResources.CheckingForSharedBindingText &&
+                    x.WarningText == UiResources.CheckingForSharedBindingFailedText &&
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
+    }
+    
+    [TestMethod]
+    public async Task InitializeDataAsync_WhenBound_DoesNotChecksForSharedBindingAndReportsProgress()
+    {
+        testSubject.BoundProject = serverProject;
+        
+        await testSubject.InitializeDataAsync();
 
-        await act.Should().NotThrowAsync();
+        await progressReporterViewModel.DidNotReceive()
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.TaskToPerform == testSubject.CheckForSharedBindingAsync &&
+                    x.ProgressStatus == UiResources.CheckingForSharedBindingText &&
+                    x.WarningText == UiResources.CheckingForSharedBindingFailedText &&
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
 
     [TestMethod]
@@ -640,7 +663,7 @@ public class ManageBindingViewModelTests
         var exceptionMsg = "Failed to load connections";
         var mockedThreadHandling = Substitute.For<IThreadHandling>();
         connectedModeServices.ThreadHandling.Returns(mockedThreadHandling);
-        mockedThreadHandling.When(x => x.RunOnUIThreadAsync(Arg.Any<Action>())).Do(callInfo=> throw new Exception(exceptionMsg));
+        mockedThreadHandling.When(x => x.RunOnUIThreadAsync(Arg.Any<Action>())).Do(_ => throw new Exception(exceptionMsg));
 
         var adapterResponse = await testSubject.LoadDataAsync();
 
@@ -730,26 +753,26 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void DetectSharedBinding_CurrentProjectBound_DoesNothing()
+    public async Task CheckForSharedBindingAsync_WhenSharedBindingExists_SetsSharedBindingConfigModel()
     {
-        testSubject.BoundProject = serverProject;
-
-        testSubject.DetectSharedBinding();
-
-        sharedBindingConfigProvider.DidNotReceive().GetSharedBinding();
-    }
-
-    [TestMethod]
-    public void DetectSharedBinding_CurrentProjectNotBound_UpdatesSharedBindingConfigModel()
-    {
-        testSubject.BoundProject = null;
         var sharedBindingModel = new SharedBindingConfigModel();
         sharedBindingConfigProvider.GetSharedBinding().Returns(sharedBindingModel);
 
-        testSubject.DetectSharedBinding();
+        await testSubject.CheckForSharedBindingAsync();
 
         sharedBindingConfigProvider.Received(1).GetSharedBinding();
         testSubject.SharedBindingConfigModel.Should().Be(sharedBindingModel);
+    }
+    
+    [TestMethod]
+    public async Task CheckForSharedBindingAsync_WhenSharedBindingDoesNotExist_SetsNullSharedBindingConfigModel()
+    {
+        sharedBindingConfigProvider.GetSharedBinding().ReturnsNull();
+
+        await testSubject.CheckForSharedBindingAsync();
+
+        sharedBindingConfigProvider.Received(1).GetSharedBinding();
+        testSubject.SharedBindingConfigModel.Should().Be(null);
     }
 
     [TestMethod]
