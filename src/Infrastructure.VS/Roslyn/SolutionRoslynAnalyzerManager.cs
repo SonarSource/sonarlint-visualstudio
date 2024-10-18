@@ -22,7 +22,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
@@ -34,12 +33,12 @@ public interface ISolutionRoslynAnalyzerManager :  IDisposable
 
 [System.ComponentModel.Composition.Export(typeof(ISolutionRoslynAnalyzerManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
+internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
 {
     private readonly IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider;
     private readonly IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider;
     private readonly object lockObject = new();
-    private readonly VisualStudioWorkspace roslynWorkspace;
+    private readonly IRoslynWorkspaceWrapper roslynWorkspace;
     private readonly IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer;
     private ImmutableArray<AnalyzerFileReference>? currentAnalyzers;
 
@@ -48,14 +47,14 @@ public class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
     [System.Composition.ImportingConstructor]
     public SolutionRoslynAnalyzerManager(IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider,
         IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider,
-        VisualStudioWorkspace roslynWorkspace)
+        IRoslynWorkspaceWrapper roslynWorkspace)
         :this(embeddedAnalyzerProvider, connectedModeAnalyzerProvider, roslynWorkspace, AnalyzerArrayComparer.Instance)
     {
     }
 
     internal SolutionRoslynAnalyzerManager(IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider,
         IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider,
-        VisualStudioWorkspace roslynWorkspace,
+        IRoslynWorkspaceWrapper roslynWorkspace,
         IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer)
     {
         this.embeddedAnalyzerProvider = embeddedAnalyzerProvider;
@@ -145,10 +144,10 @@ public class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
 
         var updatedSolution = currentAnalyzers!
             .Value
-            .Aggregate<AnalyzerFileReference, Solution>(
+            .Aggregate<AnalyzerFileReference, IRoslynSolutionWrapper>(
                 roslynWorkspace.CurrentSolution, 
                 (solution, analyzer) => 
-                    solution.AnalyzerReferences.Contains(analyzer) 
+                    solution.ContainsAnalyzerReference(analyzer) 
                         ? solution.RemoveAnalyzerReference(analyzer) 
                         : solution);
 
@@ -168,7 +167,7 @@ public class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
             return;
         }
 
-        if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.WithAnalyzerReferences(embeddedAnalyzers)))
+        if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.WithAnalyzerReferences(embeddedAnalyzers.Value)))
         {
             throw new NotImplementedException();
         }
@@ -192,9 +191,9 @@ interface IRoslynWorkspaceWrapper
 
 interface IRoslynSolutionWrapper
 {
-    bool ContainsAnalyzer(AnalyzerFileReference analyzerReference);
+    bool ContainsAnalyzerReference(AnalyzerFileReference analyzerReference);
     IRoslynSolutionWrapper RemoveAnalyzerReference(AnalyzerFileReference analyzerReference);
-    IRoslynSolutionWrapper WithAnalyzers(ImmutableArray<AnalyzerFileReference> analyzers);
+    IRoslynSolutionWrapper WithAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers);
     Solution GetRoslynSolution();
 }
 
