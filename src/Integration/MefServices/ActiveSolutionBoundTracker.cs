@@ -56,7 +56,6 @@ namespace SonarLint.VisualStudio.Integration
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
         public event EventHandler PreSolutionBindingUpdated;
         public event EventHandler SolutionBindingUpdated;
-
         public BindingConfiguration CurrentConfiguration { get; private set; }
 
         [ImportingConstructor]
@@ -169,7 +168,7 @@ namespace SonarLint.VisualStudio.Integration
                 SolutionBindingChanged?.Invoke(this, args);
             }
             else if (isBindingCleared == false)
-            {
+            { // todo remove unreachable code & cleanup https://sonarsource.atlassian.net/browse/SLVS-1532
                 PreSolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
                 SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
             }
