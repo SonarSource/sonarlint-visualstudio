@@ -112,14 +112,19 @@ public class SharedBindingSuggestionServiceTests
     }
 
     [TestMethod]
-    public void ActiveSolutionChanged_SolutionIsOpened_DoesNotShowGoldBar()
+    public void ActiveSolutionChanged_SolutionIsClosed_DoesNotShowGoldBar()
     {
-        MockSharedBindingConfigExists();
-        MockSolutionMode(SonarLintMode.Standalone);
-        
         RaiseActiveSolutionChanged(false);
 
-        suggestSharedBindingGoldBar.DidNotReceive().Show(ServerType.SonarQube, Arg.Any<Action>());
+        suggestSharedBindingGoldBar.DidNotReceive().Show(Arg.Any<ServerType>(), Arg.Any<Action>());
+    }
+    
+    [TestMethod]
+    public void ActiveSolutionChanged_SolutionIsClosed_ClosesAnyOpenGoldBar()
+    {
+        RaiseActiveSolutionChanged(false);
+
+        suggestSharedBindingGoldBar.Received(1).Close();
     }
 
     [TestMethod]

@@ -88,6 +88,10 @@ namespace SonarLint.VisualStudio.Integration.MefServices
             {
                 Suggest();
             }
+            else
+            {
+                suggestSharedBindingGoldBar.Close();
+            }
         }
     }
 }
