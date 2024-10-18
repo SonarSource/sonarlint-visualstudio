@@ -20,39 +20,38 @@
 
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
-public interface ISolutionRoslynAnalyzerManager :  IDisposable
+public interface ISolutionRoslynAnalyzerManager : IDisposable
 {
     void OnSolutionChanged(string solutionName, BindingConfiguration bindingConfiguration);
 }
 
-[System.ComponentModel.Composition.Export(typeof(ISolutionRoslynAnalyzerManager))]
+[Export(typeof(ISolutionRoslynAnalyzerManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
 {
+    private readonly IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer;
     private readonly IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider;
     private readonly IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider;
     private readonly object lockObject = new();
     private readonly IRoslynWorkspaceWrapper roslynWorkspace;
-    private readonly IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer;
     private ImmutableArray<AnalyzerFileReference>? currentAnalyzers;
 
-    private SolutionInfo? currentState;
+    private SolutionStateInfo? currentState;
 
-    [System.Composition.ImportingConstructor]
+    [ImportingConstructor]
     public SolutionRoslynAnalyzerManager(IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider,
         IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider,
         IRoslynWorkspaceWrapper roslynWorkspace)
-        :this(embeddedAnalyzerProvider, connectedModeAnalyzerProvider, roslynWorkspace, AnalyzerArrayComparer.Instance)
+        : this(embeddedAnalyzerProvider, connectedModeAnalyzerProvider, roslynWorkspace, AnalyzerArrayComparer.Instance)
     {
     }
 
-    internal SolutionRoslynAnalyzerManager(IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider,
+    internal /* for testing */ SolutionRoslynAnalyzerManager(IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider,
         IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider,
         IRoslynWorkspaceWrapper roslynWorkspace,
         IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer)
@@ -94,6 +93,11 @@ internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
         }
     }
 
+    public void Dispose()
+    {
+        connectedModeAnalyzerProvider.AnalyzerUpdatedForConnection -= HandleConnectedModeAnalyzerUpdate;
+    }
+
     internal /* for testing */ void HandleConnectedModeAnalyzerUpdate(object sender, AnalyzerUpdatedForConnectionEventArgs args)
     {
         lock (lockObject)
@@ -124,7 +128,7 @@ internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
         }
         else
         {
-            currentState = new SolutionInfo(solutionName, bindingConfiguration);
+            currentState = new SolutionStateInfo(solutionName, bindingConfiguration);
             isSameSolution = false;
         }
     }
@@ -137,22 +141,12 @@ internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
 
     private void RemoveCurrentAnalyzers()
     {
-        if (currentAnalyzers == null)
+        if (currentAnalyzers is null)
         {
             return;
         }
 
-        var updatedSolution = currentAnalyzers!
-            .Value
-            .Aggregate<AnalyzerFileReference, IRoslynSolutionWrapper>(
-                roslynWorkspace.CurrentSolution, 
-                (solution, analyzer) => 
-                    solution.ContainsAnalyzerReference(analyzer) 
-                        ? solution.RemoveAnalyzerReference(analyzer) 
-                        : solution);
-
-
-        if (!roslynWorkspace.TryApplyChanges(updatedSolution))
+        if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.RemoveAnalyzerReferences(currentAnalyzers!.Value)))
         {
             throw new NotImplementedException();
         }
@@ -160,65 +154,20 @@ internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
         currentAnalyzers = null;
     }
 
-    private void ApplyAnalyzer(ImmutableArray<AnalyzerFileReference>? embeddedAnalyzers)
+    private void ApplyAnalyzer(ImmutableArray<AnalyzerFileReference>? analyzerToUse)
     {
-        if (embeddedAnalyzers is null)
+        if (analyzerToUse is null)
         {
             return;
         }
 
-        if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.WithAnalyzerReferences(embeddedAnalyzers.Value)))
+        if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.WithAnalyzerReferences(analyzerToUse.Value)))
         {
             throw new NotImplementedException();
         }
 
-        currentAnalyzers = embeddedAnalyzers;
+        currentAnalyzers = analyzerToUse;
     }
 
-    private record struct SolutionInfo(string SolutionName, BindingConfiguration BindingConfiguration);
-
-    public void Dispose()
-    {
-        connectedModeAnalyzerProvider.AnalyzerUpdatedForConnection -= HandleConnectedModeAnalyzerUpdate;
-    }
-}
-
-interface IRoslynWorkspaceWrapper
-{
-    IRoslynSolutionWrapper CurrentSolution { get; }
-    bool TryApplyChanges(IRoslynSolutionWrapper solution);
-}
-
-interface IRoslynSolutionWrapper
-{
-    bool ContainsAnalyzerReference(AnalyzerFileReference analyzerReference);
-    IRoslynSolutionWrapper RemoveAnalyzerReference(AnalyzerFileReference analyzerReference);
-    IRoslynSolutionWrapper WithAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers);
-    Solution GetRoslynSolution();
-}
-
-internal class AnalyzerArrayComparer : IEqualityComparer<ImmutableArray<AnalyzerFileReference>?>
-{
-    public static AnalyzerArrayComparer Instance { get; } = new();
-    
-    private AnalyzerArrayComparer()
-    {
-    }
-    
-    public bool Equals(ImmutableArray<AnalyzerFileReference>? x, ImmutableArray<AnalyzerFileReference>? y)
-    {
-        if (x is null && y is null)
-        {
-            return true;
-        }
-
-        if (x is null || y is null)
-        {
-            return false;
-        }
-
-        return x.Value.SequenceEqual(y.Value);
-    }
-
-    public int GetHashCode(ImmutableArray<AnalyzerFileReference>? obj) => obj.GetHashCode();
+    private record struct SolutionStateInfo(string SolutionName, BindingConfiguration BindingConfiguration);
 }
