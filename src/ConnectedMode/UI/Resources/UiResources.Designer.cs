@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Checking for shared configuration....
+        ///   Looks up a localized string similar to Checking for shared configuration failed. Please check the SonarLint logs for more details..
         /// </summary>
         public static string CheckingForSharedBindingFailedText {
             get {
@@ -186,7 +186,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Checking for shared configuration failed. Please check the SonarLint logs for more details..
+        ///   Looks up a localized string similar to Checking for shared configuration....
         /// </summary>
         public static string CheckingForSharedBindingText {
             get {

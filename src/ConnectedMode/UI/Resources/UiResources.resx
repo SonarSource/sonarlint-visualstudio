@@ -358,10 +358,10 @@
     <value>Fetching binding status...</value>
   </data>
   <data name="CheckingForSharedBindingFailedText" xml:space="preserve">
-    <value>Checking for shared configuration...</value>
+    <value>Checking for shared configuration failed. Please check the SonarLint logs for more details.</value>
   </data>
   <data name="CheckingForSharedBindingText" xml:space="preserve">
-    <value>Checking for shared configuration failed. Please check the SonarLint logs for more details.</value>
+    <value>Checking for shared configuration...</value>
   </data>
   <data name="CreatingConnectionFailedText" xml:space="preserve">
     <value>Creating a connection failed</value>
