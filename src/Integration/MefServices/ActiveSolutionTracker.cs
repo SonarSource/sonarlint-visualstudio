@@ -36,9 +36,12 @@ namespace SonarLint.VisualStudio.Integration
     internal sealed class ActiveSolutionTracker : IActiveSolutionTracker, IFolderWorkspaceMonitor, IVsSolutionEvents, IDisposable, IVsSolutionEvents7
     {
         private readonly IFolderWorkspaceService folderWorkspaceService;
+        private readonly ISolutionInfoProvider solutionInfoProvider;
         private bool isDisposed;
         private readonly IVsSolution solution;
         private readonly uint cookie;
+
+        public string CurrentSolutionName { get; private set; }
 
         /// <summary>
         /// <see cref="IActiveSolutionTracker.ActiveSolutionChanged"/>
@@ -48,9 +51,10 @@ namespace SonarLint.VisualStudio.Integration
         public event EventHandler FolderWorkspaceInitialized;
 
         [ImportingConstructor]
-        public ActiveSolutionTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IFolderWorkspaceService folderWorkspaceService)
+        public ActiveSolutionTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IFolderWorkspaceService folderWorkspaceService, ISolutionInfoProvider solutionInfoProvider)
         {
             this.folderWorkspaceService = folderWorkspaceService;
+            this.solutionInfoProvider = solutionInfoProvider;
             this.solution = serviceProvider.GetService<SVsSolution, IVsSolution>();
             Debug.Assert(this.solution != null, "Cannot find IVsSolution");
             ErrorHandler.ThrowOnFailure(this.solution.AdviseSolutionEvents(this, out this.cookie));
@@ -170,7 +174,16 @@ namespace SonarLint.VisualStudio.Integration
         {
             // Note: if lightweight solution load is enabled then the solution might not
             // be fully opened at this point
-            ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen));
+            if (isSolutionOpen)
+            {
+                CurrentSolutionName = solutionInfoProvider.GetSolutionName();
+            }
+            else
+            {
+                CurrentSolutionName = null;
+            }
+
+            ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen, CurrentSolutionName));
         }
     }
 }
