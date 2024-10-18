@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IVsSolution solution;
         private readonly uint cookie;
 
-        public string CurrentSolutionName { get; set; }
+        public string CurrentSolutionName { get; private set; }
 
         /// <summary>
         /// <see cref="IActiveSolutionTracker.ActiveSolutionChanged"/>
