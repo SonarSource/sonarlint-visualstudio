@@ -26,7 +26,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
 internal interface IRoslynSolutionWrapper
 {
-    bool ContainsAnalyzerReference(AnalyzerFileReference analyzerReference);
     IRoslynSolutionWrapper RemoveAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers);
     IRoslynSolutionWrapper WithAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers);
     Solution GetRoslynSolution();

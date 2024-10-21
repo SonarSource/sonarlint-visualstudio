@@ -102,7 +102,7 @@ internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
     {
         lock (lockObject)
         {
-            if (args.Connection is null || currentState?.BindingConfiguration.Project?.ServerConnection != args.Connection)
+            if (args.Connection is null || currentState?.BindingConfiguration.Project?.ServerConnection.Id != args.Connection.Id)
             {
                 return;
             }
@@ -141,11 +141,8 @@ internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
 
     private void RemoveCurrentAnalyzers()
     {
-        if (currentAnalyzers is null)
-        {
-            return;
-        }
-
+        Debug.Assert(currentAnalyzers is not null);
+        
         if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.RemoveAnalyzerReferences(currentAnalyzers!.Value)))
         {
             throw new NotImplementedException();
@@ -156,11 +153,8 @@ internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
 
     private void ApplyAnalyzer(ImmutableArray<AnalyzerFileReference>? analyzerToUse)
     {
-        if (analyzerToUse is null)
-        {
-            return;
-        }
-
+        Debug.Assert(analyzerToUse is not null);
+        
         if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.WithAnalyzerReferences(analyzerToUse.Value)))
         {
             throw new NotImplementedException();
