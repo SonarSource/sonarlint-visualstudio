@@ -48,7 +48,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     public SolutionRoslynAnalyzerManager(IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider,
         IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider,
         IRoslynWorkspaceWrapper roslynWorkspace)
-        : this(embeddedAnalyzerProvider, connectedModeAnalyzerProvider, roslynWorkspace, AnalyzerArrayComparer.Instance)
+        : this(embeddedAnalyzerProvider, connectedModeAnalyzerProvider, roslynWorkspace, null /* todo add in a different PR */)
     {
     }
 
