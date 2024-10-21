@@ -21,177 +21,176 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core.InfoBar;
 
-namespace SonarLint.VisualStudio.Core.Notifications
-{
-    /// <summary>
-    /// This service can be used to display any type of user visible notification. Each instance of this service
-    /// will only show one notification at a time i.e. showing a second notification will remove the first one.
-    /// </summary>
-    /// <remarks>The caller can assume that the component follows VS threading rules
-    /// i.e. the implementing class is responsible for switching to the UI thread if necessary.
-    /// The caller doesn't need to worry about it.
-    /// </remarks>
-    public interface INotificationService : IDisposable
-    {
-        void ShowNotification(INotification notification);
-        
-        void ShowNotification(INotification notification, Guid toolWindowId);
+namespace SonarLint.VisualStudio.Core.Notifications;
 
-        void CloseNotification();
+/// <summary>
+/// This service can be used to display any type of user visible notification. Each instance of this service
+/// will only show one notification at a time i.e. showing a second notification will remove the first one.
+/// </summary>
+/// <remarks>The caller can assume that the component follows VS threading rules
+/// i.e. the implementing class is responsible for switching to the UI thread if necessary.
+/// The caller doesn't need to worry about it.
+/// </remarks>
+public interface INotificationService : IDisposable
+{
+    void ShowNotification(INotification notification);
+        
+    void ShowNotification(INotification notification, Guid toolWindowId);
+
+    void CloseNotification();
+}
+
+[Export(typeof(INotificationService))]
+[PartCreationPolicy(CreationPolicy.NonShared)]
+internal sealed class NotificationService : INotificationService
+{
+    private static readonly Guid MainWindowId = Guid.Empty;
+        
+    private readonly IInfoBarManager infoBarManager;
+    private readonly IDisabledNotificationsStorage notificationsStorage;
+    private readonly IThreadHandling threadHandling;
+    private readonly ILogger logger;
+
+    private readonly HashSet<string> oncePerSessionNotifications = new HashSet<string>();
+
+    private Tuple<IInfoBar, INotification> activeNotification;
+
+    internal /* for testing */ bool HasActiveNotification => activeNotification != null;
+
+    [ImportingConstructor]
+    public NotificationService(IInfoBarManager infoBarManager,
+        IDisabledNotificationsStorage notificationsStorage,
+        IThreadHandling threadHandling,
+        ILogger logger)
+    {
+        this.infoBarManager = infoBarManager;
+        this.notificationsStorage = notificationsStorage;
+        this.threadHandling = threadHandling;
+        this.logger = logger;
     }
 
-    [Export(typeof(INotificationService))]
-    [PartCreationPolicy(CreationPolicy.NonShared)]
-    internal sealed class NotificationService : INotificationService
+    public void ShowNotification(INotification notification)
     {
-        private static readonly Guid MainWindowId = Guid.Empty;
-        
-        private readonly IInfoBarManager infoBarManager;
-        private readonly IDisabledNotificationsStorage notificationsStorage;
-        private readonly IThreadHandling threadHandling;
-        private readonly ILogger logger;
+        ShowNotification(notification, MainWindowId);
+    }
 
-        private readonly HashSet<string> oncePerSessionNotifications = new HashSet<string>();
-
-        private Tuple<IInfoBar, INotification> activeNotification;
-
-        internal /* for testing */ bool HasActiveNotification => activeNotification != null;
-
-        [ImportingConstructor]
-        public NotificationService(IInfoBarManager infoBarManager,
-            IDisabledNotificationsStorage notificationsStorage,
-            IThreadHandling threadHandling,
-            ILogger logger)
+    public void ShowNotification(INotification notification, Guid toolWindowId)
+    {
+        if (notification == null)
         {
-            this.infoBarManager = infoBarManager;
-            this.notificationsStorage = notificationsStorage;
-            this.threadHandling = threadHandling;
-            this.logger = logger;
+            throw new ArgumentNullException(nameof(notification));
         }
 
-        public void ShowNotification(INotification notification)
+        if (notificationsStorage.IsNotificationDisabled(notification.Id))
         {
-            ShowNotification(notification, MainWindowId);
+            logger.LogVerbose($"[NotificationService] notification '{notification.Id}' will not be shown: notification is blocked.");
+            return;
         }
 
-        public void ShowNotification(INotification notification, Guid toolWindowId)
+        if (oncePerSessionNotifications.Contains(notification.Id))
         {
-            if (notification == null)
-            {
-                throw new ArgumentNullException(nameof(notification));
-            }
-
-            if (notificationsStorage.IsNotificationDisabled(notification.Id))
-            {
-                logger.LogVerbose($"[NotificationService] notification '{notification.Id}' will not be shown: notification is blocked.");
-                return;
-            }
-
-            if (oncePerSessionNotifications.Contains(notification.Id))
-            {
-                logger.LogVerbose($"[NotificationService] notification '{notification.Id}' will not be shown: notification has already been displayed.");
-                return;
-            }
-
-            threadHandling.RunOnUIThreadAsync(() =>
-            {
-                CloseNotification();
-                ShowInfoBar(notification, toolWindowId);
-            });
+            logger.LogVerbose($"[NotificationService] notification '{notification.Id}' will not be shown: notification has already been displayed.");
+            return;
         }
 
-        public void CloseNotification()
-        {
-            if (activeNotification == null)
-            {
-                return;
-            }
-            
-            threadHandling.RunOnUIThreadAsync(() =>
-            {
-                try
-                {
-                    infoBarManager.CloseInfoBar(activeNotification.Item1);
-                }
-                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-                {
-                    logger.WriteLine(CoreStrings.Notifications_FailedToRemove, ex);
-                }
-            });
-        }
-
-        private void CurrentInfoBar_ButtonClick(object sender, InfoBarButtonClickedEventArgs e)
-        {
-            try
-            {
-                var notification = activeNotification.Item2;
-                var matchingAction = notification.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
-
-                matchingAction?.Action(notification);
-
-                if (matchingAction?.ShouldDismissAfterAction == true)
-                {
-                    CloseNotification();
-                }
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(CoreStrings.Notifications_FailedToExecuteAction, ex);
-            }
-        }
-
-        private void CurrentInfoBar_Closed(object sender, EventArgs e)
-        {
-            if (activeNotification == null)
-            {
-                return;
-            }
-
-            activeNotification.Item1.ButtonClick -= CurrentInfoBar_ButtonClick;
-            activeNotification.Item1.Closed -= CurrentInfoBar_Closed;
-            activeNotification = null;
-        }
-
-        private void ShowInfoBar(INotification notification, Guid toolWindowId)
-        {
-            try
-            {
-                var infoBar = AttachInfoBar(notification, toolWindowId);
-                activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
-                activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
-                activeNotification.Item1.Closed += CurrentInfoBar_Closed;
-                if (notification.ShowOncePerSession)
-                {
-                    oncePerSessionNotifications.Add(notification.Id);
-                }
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(CoreStrings.Notifications_FailedToDisplay, notification.Id, ex);
-            }
-        }
-
-        private IInfoBar AttachInfoBar(INotification notification, Guid toolWindowId)
-        {
-            var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
-
-            if (toolWindowId == MainWindowId)
-            {
-                return infoBarManager.AttachInfoBarToMainWindow(notification.Message,
-                    SonarLintImageMoniker.OfficialSonarLintMoniker,
-                    buttonTexts);
-            }
-            
-            return infoBarManager.AttachInfoBarWithButtons(
-                toolWindowId,
-                notification.Message,
-                buttonTexts,
-                SonarLintImageMoniker.OfficialSonarLintMoniker);
-        }
-
-        public void Dispose()
+        threadHandling.RunOnUIThreadAsync(() =>
         {
             CloseNotification();
+            ShowInfoBar(notification, toolWindowId);
+        });
+    }
+
+    public void CloseNotification()
+    {
+        if (activeNotification == null)
+        {
+            return;
         }
+            
+        threadHandling.RunOnUIThreadAsync(() =>
+        {
+            try
+            {
+                infoBarManager.CloseInfoBar(activeNotification.Item1);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(CoreStrings.Notifications_FailedToRemove, ex);
+            }
+        });
+    }
+
+    private void CurrentInfoBar_ButtonClick(object sender, InfoBarButtonClickedEventArgs e)
+    {
+        try
+        {
+            var notification = activeNotification.Item2;
+            var matchingAction = notification.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
+
+            matchingAction?.Action(notification);
+
+            if (matchingAction?.ShouldDismissAfterAction == true)
+            {
+                CloseNotification();
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.WriteLine(CoreStrings.Notifications_FailedToExecuteAction, ex);
+        }
+    }
+
+    private void CurrentInfoBar_Closed(object sender, EventArgs e)
+    {
+        if (activeNotification == null)
+        {
+            return;
+        }
+
+        activeNotification.Item1.ButtonClick -= CurrentInfoBar_ButtonClick;
+        activeNotification.Item1.Closed -= CurrentInfoBar_Closed;
+        activeNotification = null;
+    }
+
+    private void ShowInfoBar(INotification notification, Guid toolWindowId)
+    {
+        try
+        {
+            var infoBar = AttachInfoBar(notification, toolWindowId);
+            activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
+            activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
+            activeNotification.Item1.Closed += CurrentInfoBar_Closed;
+            if (notification.ShowOncePerSession)
+            {
+                oncePerSessionNotifications.Add(notification.Id);
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.WriteLine(CoreStrings.Notifications_FailedToDisplay, notification.Id, ex);
+        }
+    }
+
+    private IInfoBar AttachInfoBar(INotification notification, Guid toolWindowId)
+    {
+        var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
+
+        if (toolWindowId == MainWindowId)
+        {
+            return infoBarManager.AttachInfoBarToMainWindow(notification.Message,
+                SonarLintImageMoniker.OfficialSonarLintMoniker,
+                buttonTexts);
+        }
+            
+        return infoBarManager.AttachInfoBarWithButtons(
+            toolWindowId,
+            notification.Message,
+            buttonTexts,
+            SonarLintImageMoniker.OfficialSonarLintMoniker);
+    }
+
+    public void Dispose()
+    {
+        CloseNotification();
     }
 }
