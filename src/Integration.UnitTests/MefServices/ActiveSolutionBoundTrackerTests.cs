@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
@@ -493,7 +494,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             logger ??= new TestLogger(logToConsole: true);
             gitEvents ??= Mock.Of<IBoundSolutionGitMonitor>();
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
-            return new ActiveSolutionBoundTracker(serviceProvider, solutionTracker, configScopeUpdater, logger, gitEvents, configurationProvider, sonarQubeService);
+            return new ActiveSolutionBoundTracker(serviceProvider, solutionTracker, configScopeUpdater, Substitute.For<ISolutionRoslynAnalyzerManager>(), logger, gitEvents, configurationProvider, sonarQubeService);
         }
 
         private void ConfigureService(bool isConnected)
