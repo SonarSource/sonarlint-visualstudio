@@ -18,40 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
-[Export(typeof(IAnalyzerAssemblyLoaderFactory))]
+[Export(typeof(IConnectedModeRoslynAnalyzerProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class AnalyzerAssemblyLoaderFactory : IAnalyzerAssemblyLoaderFactory
+internal class ConnectedModeRoslynAnalyzerProvider : IConnectedModeRoslynAnalyzerProvider
 {
-    private AnalyzerAssemblyLoader analyzerAssemblyLoader;
-
     [ImportingConstructor]
-    public AnalyzerAssemblyLoaderFactory()
+    public ConnectedModeRoslynAnalyzerProvider()
     {
     }
 
-    public IAnalyzerAssemblyLoader Create()
-    { 
-        analyzerAssemblyLoader ??= new AnalyzerAssemblyLoader();
-        return analyzerAssemblyLoader;
-    }
-    
-    [ExcludeFromCodeCoverage]
-    private sealed class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
+    public ImmutableArray<AnalyzerFileReference>? GetOrNull(ServerConnection connection)
     {
-        public void AddDependencyLocation(string fullPath)
-        {
-        }
-
-        public Assembly LoadFromPath(string fullPath)
-        {
-            return Assembly.Load(fullPath);
-        }
+        return null;
     }
+
+    public event EventHandler<AnalyzerUpdatedForConnectionEventArgs> AnalyzerUpdatedForConnection;
 }
