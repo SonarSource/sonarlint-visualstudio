@@ -18,20 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
+[Export(typeof(IAnalyzerAssemblyLoaderFactory))]
+[PartCreationPolicy(CreationPolicy.Shared)]
 internal class AnalyzerAssemblyLoaderFactory : IAnalyzerAssemblyLoaderFactory
 {
-    [ExcludeFromCodeCoverage]
-    public IAnalyzerAssemblyLoader Create()
+    private AnalyzerAssemblyLoader analyzerAssemblyLoader;
+
+    [ImportingConstructor]
+    public AnalyzerAssemblyLoaderFactory()
     {
-        return new AnalyzerAssemblyLoader();
     }
 
+    public IAnalyzerAssemblyLoader Create()
+    { 
+        analyzerAssemblyLoader ??= new AnalyzerAssemblyLoader();
+        return analyzerAssemblyLoader;
+    }
+    
     [ExcludeFromCodeCoverage]
     private sealed class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
     {
