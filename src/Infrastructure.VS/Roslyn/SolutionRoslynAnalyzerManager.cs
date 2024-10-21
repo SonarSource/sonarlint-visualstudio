@@ -32,8 +32,9 @@ public interface ISolutionRoslynAnalyzerManager : IDisposable
 
 [Export(typeof(ISolutionRoslynAnalyzerManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
+internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
 {
+    private bool disposed;
     private readonly IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer;
     private readonly IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider;
     private readonly IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider;
@@ -68,6 +69,8 @@ internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
     {
         lock (lockObject)
         {
+            ThrowIfDisposed();
+            
             if (solutionName is null)
             {
                 currentState = null;
@@ -90,15 +93,30 @@ internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
         }
     }
 
+    private void ThrowIfDisposed()
+    {
+        if (disposed)
+        {
+            throw new ObjectDisposedException(nameof(SolutionRoslynAnalyzerManager));
+        }
+    }
+
     public void Dispose()
     {
+        if (disposed)
+        {
+            return;
+        }
         connectedModeAnalyzerProvider.AnalyzerUpdatedForConnection -= HandleConnectedModeAnalyzerUpdate;
+        disposed = true;
     }
 
     internal /* for testing */ void HandleConnectedModeAnalyzerUpdate(object sender, AnalyzerUpdatedForConnectionEventArgs args)
     {
         lock (lockObject)
         {
+            ThrowIfDisposed();
+            
             if (args.Connection is not null && currentState?.BindingConfiguration.Project?.ServerConnection.Id == args.Connection.Id)
             {
                 UpdateAnalyzersIfChanged(ChooseAnalyzers(args.Connection));

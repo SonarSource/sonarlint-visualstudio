@@ -35,9 +35,9 @@ public class SolutionRoslynAnalyzerManagerTests
     private IRoslynWorkspaceWrapper roslynWorkspaceWrapper;
     private IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer;
     private SolutionRoslynAnalyzerManager testSubject;
-    private ImmutableArray<AnalyzerFileReference> embeddedAnalyzers = ImmutableArray.Create(new AnalyzerFileReference(@"C:\path\embedded", Substitute.For<IAnalyzerAssemblyLoader>()));
-    private ImmutableArray<AnalyzerFileReference> connectedAnalyzers = ImmutableArray.Create(new AnalyzerFileReference(@"C:\path\connected", Substitute.For<IAnalyzerAssemblyLoader>()));
-    private BindingConfiguration connectedModeConfiguration = new(
+    private readonly ImmutableArray<AnalyzerFileReference> embeddedAnalyzers = ImmutableArray.Create(new AnalyzerFileReference(@"C:\path\embedded", Substitute.For<IAnalyzerAssemblyLoader>()));
+    private readonly ImmutableArray<AnalyzerFileReference> connectedAnalyzers = ImmutableArray.Create(new AnalyzerFileReference(@"C:\path\connected", Substitute.For<IAnalyzerAssemblyLoader>()));
+    private readonly BindingConfiguration connectedModeConfiguration = new(
         new BoundServerProject(
             "local",
             "server",
@@ -300,6 +300,24 @@ public class SolutionRoslynAnalyzerManagerTests
         testSubject.Dispose();
 
         connectedModeRoslynAnalyzerProvider.Received().AnalyzerUpdatedForConnection -= Arg.Any<EventHandler<AnalyzerUpdatedForConnectionEventArgs>>();
+    }
+    
+    [TestMethod]
+    public void OnSolutionChanged_Disposed_Throws()
+    {
+        var act = () => testSubject.OnSolutionChanged("solution", BindingConfiguration.Standalone);
+        testSubject.Dispose();
+        
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [TestMethod]
+    public void HandleConnectedModeAnalyzerUpdate_Disposed_Throws()
+    {
+        var act = () => testSubject.HandleConnectedModeAnalyzerUpdate(null, new AnalyzerUpdatedForConnectionEventArgs(connectedModeConfiguration.Project.ServerConnection, embeddedAnalyzers));
+        testSubject.Dispose();
+        
+        act.Should().Throw<ObjectDisposedException>();
     }
     
     private void SetUpCurrentSolutionSequence(IRoslynSolutionWrapper solution, params IRoslynSolutionWrapper[] solutions)
