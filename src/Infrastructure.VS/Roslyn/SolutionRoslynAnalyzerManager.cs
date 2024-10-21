@@ -21,6 +21,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
@@ -38,6 +39,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     private readonly IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer;
     private readonly IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider;
     private readonly IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider;
+    private readonly ILogger logger;
     private readonly object lockObject = new();
     private readonly IRoslynWorkspaceWrapper roslynWorkspace;
     private ImmutableArray<AnalyzerFileReference>? currentAnalyzers;
@@ -45,22 +47,27 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     private SolutionStateInfo? currentState;
 
     [ImportingConstructor]
-    public SolutionRoslynAnalyzerManager(IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider,
+    public SolutionRoslynAnalyzerManager(
+        IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider,
         IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider,
-        IRoslynWorkspaceWrapper roslynWorkspace)
-        : this(embeddedAnalyzerProvider, connectedModeAnalyzerProvider, roslynWorkspace, AnalyzerArrayComparer.Instance)
+        IRoslynWorkspaceWrapper roslynWorkspace,
+        ILogger logger) 
+        : this(embeddedAnalyzerProvider, connectedModeAnalyzerProvider, roslynWorkspace, AnalyzerArrayComparer.Instance, logger)
     {
     }
 
-    internal /* for testing */ SolutionRoslynAnalyzerManager(IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider,
+    internal /* for testing */ SolutionRoslynAnalyzerManager(
+        IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider,
         IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider,
         IRoslynWorkspaceWrapper roslynWorkspace,
-        IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer)
+        IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer,
+        ILogger logger)
     {
         this.embeddedAnalyzerProvider = embeddedAnalyzerProvider;
         this.connectedModeAnalyzerProvider = connectedModeAnalyzerProvider;
         this.roslynWorkspace = roslynWorkspace;
         this.analyzerComparer = analyzerComparer;
+        this.logger = logger;
 
         connectedModeAnalyzerProvider.AnalyzerUpdatedForConnection += HandleConnectedModeAnalyzerUpdate;
     }
@@ -164,6 +171,9 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     {
         if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.RemoveAnalyzerReferences(currentAnalyzers!.Value)))
         {
+            const string message = "Failed to remove analyzer references while updating analyzers";
+            Debug.Assert(true, message);
+            logger.LogVerbose(message);
             throw new NotImplementedException();
         }
 
@@ -176,6 +186,9 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     {
         if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.WithAnalyzerReferences(analyzerToUse)))
         {
+            const string message = "Failed to add analyzer references while adding analyzers";
+            Debug.Assert(true, message);
+            logger.LogVerbose(message);
             throw new NotImplementedException();
         }
 

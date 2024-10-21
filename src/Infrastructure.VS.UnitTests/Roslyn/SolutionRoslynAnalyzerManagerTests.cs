@@ -22,6 +22,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using NSubstitute.ClearExtensions;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
@@ -34,6 +35,7 @@ public class SolutionRoslynAnalyzerManagerTests
     private IConnectedModeRoslynAnalyzerProvider connectedModeRoslynAnalyzerProvider;
     private IRoslynWorkspaceWrapper roslynWorkspaceWrapper;
     private IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer;
+    private ILogger logger;
     private SolutionRoslynAnalyzerManager testSubject;
     private readonly ImmutableArray<AnalyzerFileReference> embeddedAnalyzers = ImmutableArray.Create(new AnalyzerFileReference(@"C:\path\embedded", Substitute.For<IAnalyzerAssemblyLoader>()));
     private readonly ImmutableArray<AnalyzerFileReference> connectedAnalyzers = ImmutableArray.Create(new AnalyzerFileReference(@"C:\path\connected", Substitute.For<IAnalyzerAssemblyLoader>()));
@@ -48,14 +50,17 @@ public class SolutionRoslynAnalyzerManagerTests
     [TestInitialize]
     public void TestInitialize()
     {
+        logger = new TestLogger();
         embeddedRoslynAnalyzerProvider = Substitute.For<IEmbeddedRoslynAnalyzerProvider>();
         connectedModeRoslynAnalyzerProvider = Substitute.For<IConnectedModeRoslynAnalyzerProvider>();
         roslynWorkspaceWrapper = Substitute.For<IRoslynWorkspaceWrapper>();
         analyzerComparer = Substitute.For<IEqualityComparer<ImmutableArray<AnalyzerFileReference>?>>();
-        testSubject = new SolutionRoslynAnalyzerManager(embeddedRoslynAnalyzerProvider,
+        testSubject = new SolutionRoslynAnalyzerManager(
+            embeddedRoslynAnalyzerProvider,
             connectedModeRoslynAnalyzerProvider,
             roslynWorkspaceWrapper,
-            analyzerComparer);
+            analyzerComparer,
+            logger);
     }
     
     [TestMethod]
@@ -64,7 +69,8 @@ public class SolutionRoslynAnalyzerManagerTests
         MefTestHelpers.CheckTypeCanBeImported<SolutionRoslynAnalyzerManager, ISolutionRoslynAnalyzerManager>(
             MefTestHelpers.CreateExport<IEmbeddedRoslynAnalyzerProvider>(),
             MefTestHelpers.CreateExport<IConnectedModeRoslynAnalyzerProvider>(),
-            MefTestHelpers.CreateExport<IRoslynWorkspaceWrapper>());
+            MefTestHelpers.CreateExport<IRoslynWorkspaceWrapper>(),
+            MefTestHelpers.CreateExport<ILogger>());
     }
     
     [TestMethod]
@@ -77,10 +83,12 @@ public class SolutionRoslynAnalyzerManagerTests
     public void Ctor_SubscribesToConnectedModeAnalyzerProviderEvent()
     {
         var connectedModeAnalyzerProvider = Substitute.For<IConnectedModeRoslynAnalyzerProvider>();
-        new SolutionRoslynAnalyzerManager(embeddedRoslynAnalyzerProvider,
+        new SolutionRoslynAnalyzerManager(
+            embeddedRoslynAnalyzerProvider,
             connectedModeAnalyzerProvider,
             roslynWorkspaceWrapper,
-            analyzerComparer);
+            analyzerComparer,
+            logger);
 
         connectedModeAnalyzerProvider.Received().AnalyzerUpdatedForConnection += Arg.Any<EventHandler<AnalyzerUpdatedForConnectionEventArgs>>();
     }
