@@ -271,6 +271,37 @@ public class SolutionRoslynAnalyzerManagerTests
         });
     }
     
+    [TestMethod]
+    public void HandleConnectedModeAnalyzerUpdate_Connected_AnalyzersDidNotChange_DoesNotReRegisterConnected()
+    {
+        var connectionWithSameId = new ServerConnection.SonarCloud(((ServerConnection.SonarCloud)connectedModeConfiguration.Project.ServerConnection).OrganizationKey);
+        var sameSetOfConnectedAnalyzers = ImmutableArray.Create(new AnalyzerFileReference(@"C:\path\connected", Substitute.For<IAnalyzerAssemblyLoader>()));
+        var v1Solution = Substitute.For<IRoslynSolutionWrapper>();
+        SetUpBoundSolution(v1Solution, "solution");
+        SetUpCurrentSolutionSequence(v1Solution);
+        connectedModeRoslynAnalyzerProvider.GetOrNull(connectionWithSameId).Returns(sameSetOfConnectedAnalyzers);
+        analyzerComparer.Equals(connectedAnalyzers, sameSetOfConnectedAnalyzers).Returns(true);
+
+        testSubject.HandleConnectedModeAnalyzerUpdate(null, new AnalyzerUpdatedForConnectionEventArgs(connectionWithSameId, sameSetOfConnectedAnalyzers));
+
+        Received.InOrder(() =>
+        {
+            connectedModeRoslynAnalyzerProvider.GetOrNull(connectionWithSameId);
+            analyzerComparer.Equals(connectedAnalyzers, sameSetOfConnectedAnalyzers);
+        });
+        embeddedRoslynAnalyzerProvider.DidNotReceiveWithAnyArgs().Get();
+        v1Solution.ReceivedCalls().Should().BeEmpty();
+        roslynWorkspaceWrapper.DidNotReceiveWithAnyArgs().TryApplyChanges(default);
+    }
+    
+    [TestMethod]
+    public void Dispose_UnsubscribesToConnectedModeAnalyzerProviderEvent()
+    {
+        testSubject.Dispose();
+
+        connectedModeRoslynAnalyzerProvider.Received().AnalyzerUpdatedForConnection -= Arg.Any<EventHandler<AnalyzerUpdatedForConnectionEventArgs>>();
+    }
+    
     private void SetUpCurrentSolutionSequence(IRoslynSolutionWrapper solution, params IRoslynSolutionWrapper[] solutions)
     {
         roslynWorkspaceWrapper.CurrentSolution.Returns(solution, solutions);
