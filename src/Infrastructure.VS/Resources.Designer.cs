@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.Infrastructure.VS {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Embedded Roslyn analyzers not found.
+        /// </summary>
+        internal static string EmbeddedRoslynAnalyzersNotFound {
+            get {
+                return ResourceManager.GetString("EmbeddedRoslynAnalyzersNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to calculate VS version, error: {0}.
         /// </summary>
         internal static string FailedToCalculateVsVersion {
