@@ -19,6 +19,7 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
@@ -28,6 +29,19 @@ internal class AnalyzerAssemblyLoaderFactory : IAnalyzerAssemblyLoaderFactory
     [ExcludeFromCodeCoverage]
     public IAnalyzerAssemblyLoader Create()
     {
-        throw new NotImplementedException();
+        return new AnalyzerAssemblyLoader();
+    }
+
+    [ExcludeFromCodeCoverage]
+    private sealed class AnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
+    {
+        public void AddDependencyLocation(string fullPath)
+        {
+        }
+
+        public Assembly LoadFromPath(string fullPath)
+        {
+            return Assembly.Load(fullPath);
+        }
     }
 }
