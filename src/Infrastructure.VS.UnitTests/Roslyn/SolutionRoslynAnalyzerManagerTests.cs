@@ -22,7 +22,6 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using NSubstitute.ClearExtensions;
-using NSubstitute.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
@@ -143,10 +142,10 @@ public class SolutionRoslynAnalyzerManagerTests
         const string solutionName = "solution";
         var v1Solution = Substitute.For<IRoslynSolutionWrapper>();
         SetUpStandaloneSolution(v1Solution, solutionName);
-
         EnableDefaultEmbeddedAnalyzers();
         connectedModeRoslynAnalyzerProvider.GetOrNull(connectedModeConfiguration.Project.ServerConnection).Returns((ImmutableArray<AnalyzerFileReference>?)null);
         analyzerComparer.Equals(embeddedAnalyzers, embeddedAnalyzers).Returns(true);
+        
         testSubject.OnSolutionChanged(solutionName, connectedModeConfiguration);
 
         Received.InOrder(() =>

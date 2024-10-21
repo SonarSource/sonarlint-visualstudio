@@ -81,15 +81,12 @@ internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
 
             if (isSameSolution)
             {
-                if (analyzerComparer.Equals(currentAnalyzers, analyzersToUse))
-                {
-                    return;
-                }
-
-                RemoveCurrentAnalyzers();
+                UpdateAnalyzersIfChanged(analyzersToUse);
             }
-
-            ApplyAnalyzer(analyzersToUse);
+            else
+            {
+                AddAnalyzer(analyzersToUse);
+            }
         }
     }
 
@@ -102,20 +99,10 @@ internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
     {
         lock (lockObject)
         {
-            if (args.Connection is null || currentState?.BindingConfiguration.Project?.ServerConnection.Id != args.Connection.Id)
+            if (args.Connection is not null && currentState?.BindingConfiguration.Project?.ServerConnection.Id == args.Connection.Id)
             {
-                return;
+                UpdateAnalyzersIfChanged(ChooseAnalyzers(args.Connection));
             }
-
-            var analyzersToUse = ChooseAnalyzers(args.Connection);
-
-            if (analyzerComparer.Equals(currentAnalyzers, analyzersToUse))
-            {
-                return;
-            }
-
-            RemoveCurrentAnalyzers();
-            ApplyAnalyzer(analyzersToUse);
         }
     }
 
@@ -138,24 +125,38 @@ internal class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerManager
 
     private ImmutableArray<AnalyzerFileReference> ChooseAnalyzers(ImmutableArray<AnalyzerFileReference>? connectedModeAnalyzers) =>
         connectedModeAnalyzers ?? embeddedAnalyzerProvider.Get();
+    
+    private void UpdateAnalyzersIfChanged(ImmutableArray<AnalyzerFileReference> analyzersToUse)
+    {
+        if (!DidAnalyzerChoiceChange(analyzersToUse))
+        {
+            return;
+        }
 
-    private void RemoveCurrentAnalyzers()
+        UpdateAnalyzers(analyzersToUse);
+    }
+
+    private bool DidAnalyzerChoiceChange(ImmutableArray<AnalyzerFileReference> analyzersToUse)
     {
         Debug.Assert(currentAnalyzers is not null);
-        
+        return !analyzerComparer.Equals(currentAnalyzers, analyzersToUse);
+    }
+
+    private void UpdateAnalyzers(ImmutableArray<AnalyzerFileReference> analyzersToUse)
+    {
         if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.RemoveAnalyzerReferences(currentAnalyzers!.Value)))
         {
             throw new NotImplementedException();
         }
 
         currentAnalyzers = null;
+        
+        AddAnalyzer(analyzersToUse);
     }
 
-    private void ApplyAnalyzer(ImmutableArray<AnalyzerFileReference>? analyzerToUse)
+    private void AddAnalyzer(ImmutableArray<AnalyzerFileReference> analyzerToUse)
     {
-        Debug.Assert(analyzerToUse is not null);
-        
-        if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.WithAnalyzerReferences(analyzerToUse.Value)))
+        if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.WithAnalyzerReferences(analyzerToUse)))
         {
             throw new NotImplementedException();
         }
