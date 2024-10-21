@@ -19,6 +19,8 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
@@ -33,10 +35,15 @@ internal interface IRoslynWorkspaceWrapper
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
 {
-    private readonly VisualStudioWorkspace workspace;
+    private readonly Workspace workspace;
 
-    [System.Composition.ImportingConstructor]
-    public RoslynWorkspaceWrapper(VisualStudioWorkspace workspace)
+    [ImportingConstructor]
+    [ExcludeFromCodeCoverage] // not mef-testable
+    public RoslynWorkspaceWrapper(VisualStudioWorkspace workspace) : this(workspace as Workspace)
+    {
+    }
+
+    internal /* for testing */ RoslynWorkspaceWrapper(Workspace workspace)
     {
         this.workspace = workspace;
     }
