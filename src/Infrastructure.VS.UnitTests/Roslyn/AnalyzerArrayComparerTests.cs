@@ -109,6 +109,15 @@ public class AnalyzerArrayComparerTests
         AnalyzerArrayComparer.Instance.Equals(array2, array1).Should().BeTrue();
     }
 
+    [TestMethod]
+    public void GetHashCode_DelegatesToObject()
+    {
+        ImmutableArray<AnalyzerFileReference>? nullArray = null;
+        AnalyzerArrayComparer.Instance.GetHashCode(nullArray).Should().Be(nullArray.GetHashCode());
+        var analyzerFileReferences = ImmutableArray.Create<AnalyzerFileReference>();
+        AnalyzerArrayComparer.Instance.GetHashCode(analyzerFileReferences).Should().Be(analyzerFileReferences.GetHashCode());
+    }
+
     private AnalyzerFileReference GetAnalyzerFileReference(string filePath = @"C:\analyzer", IAnalyzerAssemblyLoader analyzerAssemblyLoader = null)
     {
         return new AnalyzerFileReference(filePath, analyzerAssemblyLoader ?? Substitute.For<IAnalyzerAssemblyLoader>());
