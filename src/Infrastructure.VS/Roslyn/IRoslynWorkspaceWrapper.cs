@@ -18,10 +18,38 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServices;
+
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
 internal interface IRoslynWorkspaceWrapper
 {
     IRoslynSolutionWrapper CurrentSolution { get; }
     bool TryApplyChanges(IRoslynSolutionWrapper solution);
+}
+
+[Export(typeof(IRoslynWorkspaceWrapper))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
+{
+    private readonly Workspace workspace;
+
+    [ImportingConstructor]
+    [ExcludeFromCodeCoverage] // not mef-testable
+    public RoslynWorkspaceWrapper(VisualStudioWorkspace workspace) : this(workspace as Workspace)
+    {
+    }
+
+    internal /* for testing */ RoslynWorkspaceWrapper(Workspace workspace)
+    {
+        this.workspace = workspace;
+    }
+
+    public IRoslynSolutionWrapper CurrentSolution => 
+        new RoslynSolutionWrapper(workspace.CurrentSolution);
+    public bool TryApplyChanges(IRoslynSolutionWrapper solution) => 
+        workspace.TryApplyChanges(solution.GetRoslynSolution());
 }
