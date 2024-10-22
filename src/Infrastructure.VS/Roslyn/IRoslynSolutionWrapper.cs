@@ -30,3 +30,21 @@ internal interface IRoslynSolutionWrapper
     IRoslynSolutionWrapper WithAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers);
     Solution GetRoslynSolution();
 }
+
+internal class RoslynSolutionWrapper(Solution solution) : IRoslynSolutionWrapper
+{
+    public IRoslynSolutionWrapper RemoveAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers) =>
+        new RoslynSolutionWrapper(
+            analyzers
+                .Aggregate<AnalyzerFileReference, Solution>(
+                    solution,
+                    (current, analyzer) =>
+                        current.AnalyzerReferences.Contains(analyzer)
+                            ? current.RemoveAnalyzerReference(analyzer)
+                            : current));
+
+    public IRoslynSolutionWrapper WithAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers) => 
+        new RoslynSolutionWrapper(solution.WithAnalyzerReferences(analyzers));
+
+    public Solution GetRoslynSolution() => solution;
+}
