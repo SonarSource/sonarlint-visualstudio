@@ -88,6 +88,7 @@ namespace SonarLint.VisualStudio.Integration
             solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
             
             CurrentConfiguration = GetBindingConfiguration();
+            solutionRoslynAnalyzerManager.OnSolutionChanged(activeSolutionTracker.CurrentSolutionName, CurrentConfiguration);
 
             SetBoundSolutionUIContext();
 
