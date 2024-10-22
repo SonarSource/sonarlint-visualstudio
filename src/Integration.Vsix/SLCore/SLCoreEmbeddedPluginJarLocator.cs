@@ -18,12 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
-using System.Linq;
+using System.Text.RegularExpressions;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.SLCore.Configuration;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SLCore;
@@ -33,16 +34,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore;
 public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
 {
     private const string JarFolderName = "DownloadedJars";
+
+    private readonly Dictionary<string, string> connectedModePluginNamePatternByPluginKey = new(){ {"text", "sonar-text-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar"}};
     private readonly IVsixRootLocator vsixRootLocator;
     private readonly IFileSystem fileSystem;
+    private readonly ILogger logger;
 
     [ImportingConstructor]
-    public SLCoreEmbeddedPluginJarLocator(IVsixRootLocator vsixRootLocator) : this(vsixRootLocator, new FileSystem()) { }
+    public SLCoreEmbeddedPluginJarLocator(IVsixRootLocator vsixRootLocator, ILogger logger) : this(vsixRootLocator, new FileSystem(), logger) { }
 
-    internal SLCoreEmbeddedPluginJarLocator(IVsixRootLocator vsixRootLocator, IFileSystem fileSystem)
+    internal SLCoreEmbeddedPluginJarLocator(IVsixRootLocator vsixRootLocator, IFileSystem fileSystem, ILogger logger)
     {
         this.vsixRootLocator = vsixRootLocator;
         this.fileSystem = fileSystem;
+        this.logger = logger;
     }
 
     public List<string> ListJarFiles()
@@ -54,5 +59,37 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
             return fileSystem.Directory.GetFiles(jarFolderPath, "*.jar").ToList();
         }
         return new List<string>();
+    }
+
+    public Dictionary<string, string> ListConnectedModeEmbeddedPluginPathsByKey()
+    {
+        var connectedModeEmbeddedPluginPathsByKey = new Dictionary<string, string>();
+        var embeddedPluginFilePaths = ListJarFiles();
+
+        foreach (var kvp in connectedModePluginNamePatternByPluginKey)
+        {
+            if (GetPathByPluginKey(embeddedPluginFilePaths, kvp.Key, kvp.Value) is {} pluginFilePath)
+            {
+                connectedModeEmbeddedPluginPathsByKey.Add(kvp.Key, pluginFilePath);
+            }
+        }
+
+        return connectedModeEmbeddedPluginPathsByKey;
+    }
+
+    private string GetPathByPluginKey(List<string> pluginFilePaths, string pluginKey, string pluginNameRegexPattern)
+    {
+        var regex = new Regex(pluginNameRegexPattern);
+        var matchedFilePaths = pluginFilePaths.Where(jar => regex.IsMatch(jar)).ToList();
+        switch (matchedFilePaths.Count)
+        {
+            case 0:
+                logger.LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_JarsNotFound);
+                break;
+            case > 1:
+                logger.LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_MultipleJars, pluginKey);
+                break;
+        }
+        return matchedFilePaths.FirstOrDefault();
     }
 }
