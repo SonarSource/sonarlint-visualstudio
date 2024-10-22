@@ -35,7 +35,7 @@ public class RoslynWrappersTests
     }
     
     [TestMethod]
-    public void AddAnalyzer_CurrentSolutionNoLongerContainsAnalyzer()
+    public void AddAnalyzer_CurrentSolutionContainsAnalyzer()
     {
         var analyzerFileReference = new AnalyzerFileReference(@"C:\abc", Substitute.For<IAnalyzerAssemblyLoader>());
         var roslynWorkspaceWrapper = CreateWorkspaceWrapper();
