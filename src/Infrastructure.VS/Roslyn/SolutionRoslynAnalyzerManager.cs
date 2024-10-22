@@ -52,7 +52,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider,
         IRoslynWorkspaceWrapper roslynWorkspace,
         ILogger logger) 
-        : this(embeddedAnalyzerProvider, connectedModeAnalyzerProvider, roslynWorkspace, null /* todo add in a different PR */, logger)
+        : this(embeddedAnalyzerProvider, connectedModeAnalyzerProvider, roslynWorkspace, AnalyzerArrayComparer.Instance, logger)
     {
     }
 
