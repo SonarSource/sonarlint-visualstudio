@@ -106,6 +106,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No embbedded plugins for connected mode found.
+        /// </summary>
+        public static string ConnectedModeEmbeddedPluginJarLocator_JarsNotFound {
+            get {
+                return ResourceManager.GetString("ConnectedModeEmbeddedPluginJarLocator_JarsNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple embbedded plugins for connected mode were found for the plugin key {0}.
+        /// </summary>
+        public static string ConnectedModeEmbeddedPluginJarLocator_MultipleJars {
+            get {
+                return ResourceManager.GetString("ConnectedModeEmbeddedPluginJarLocator_MultipleJars", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Finished initializing the daemon package..
         /// </summary>
         public static string Daemon_InitializationComplete {

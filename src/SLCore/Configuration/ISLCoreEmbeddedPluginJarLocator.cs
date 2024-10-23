@@ -25,4 +25,6 @@ namespace SonarLint.VisualStudio.SLCore.Configuration;
 public interface ISLCoreEmbeddedPluginJarLocator
 {
     List<string> ListJarFiles();
+
+    Dictionary<string, string> ListConnectedModeEmbeddedPluginPathsByKey();
 }

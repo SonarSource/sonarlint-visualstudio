@@ -102,7 +102,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             storageRoot,
             workDir,
             embeddedPluginPaths: slCoreEmbeddedPluginJarProvider.ListJarFiles(),
-            connectedModeEmbeddedPluginPathsByKey: new Dictionary<string, string>(),
+            connectedModeEmbeddedPluginPathsByKey: slCoreEmbeddedPluginJarProvider.ListConnectedModeEmbeddedPluginPathsByKey(),
             enabledLanguagesInStandaloneMode:constantsProvider.LanguagesInStandaloneMode,
             extraEnabledLanguagesInConnectedMode: [],
             disabledPluginKeysForAnalysis: constantsProvider.LanguagesInStandaloneMode.Except(constantsProvider.SLCoreAnalyzableLanguages).Select(l => l.GetPluginKey()).ToList(),
