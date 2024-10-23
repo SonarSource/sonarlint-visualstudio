@@ -31,6 +31,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
     [TestClass]
     public class SLCoreEmbeddedPluginJarLocatorTests
     {
+        private SLCoreEmbeddedPluginJarLocator testSubject;
+        private IVsixRootLocator vsixRootLocator;
+        private IFileSystem fileSystem;
+        private ILogger logger;
+        private IDirectory directory;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            vsixRootLocator = Substitute.For<IVsixRootLocator>();
+            fileSystem = Substitute.For<IFileSystem>();
+            logger = Substitute.For<ILogger>();
+            directory = Substitute.For<IDirectory>();
+            testSubject  = new SLCoreEmbeddedPluginJarLocator(vsixRootLocator, fileSystem, logger);
+
+            MockVsixLocator();
+            MockFileSystem();
+        }
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -48,10 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         [TestMethod]
         public void ListJarFiles_DirectoryNotExists_ReturnsEmpty()
         {
-            var vsixRootLocator = CreateVsixLocator();
-            var fileSystem = CreateFileSystem(false);
-
-            var testSubject = new SLCoreEmbeddedPluginJarLocator(vsixRootLocator, fileSystem, Substitute.For<ILogger>());
+            MockFileSystem(false);
 
             var result = testSubject.ListJarFiles();
 
@@ -61,10 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         [TestMethod]
         public void ListJarFiles_DirectoryExists_NoFiles_ReturnsEmpty()
         {
-            var vsixRootLocator = CreateVsixLocator();
-            var fileSystem = CreateFileSystem(true);
-
-            var testSubject = new SLCoreEmbeddedPluginJarLocator(vsixRootLocator, fileSystem, Substitute.For<ILogger>());
+            MockFileSystem(true);
 
             var result = testSubject.ListJarFiles();
 
@@ -74,10 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         [TestMethod]
         public void ListJarFiles_FilesExist_ReturnsFiles()
         {
-            var vsixRootLocator = CreateVsixLocator();
-            var fileSystem = CreateFileSystem(true, "File1", "File2", "File3", "File4");
-
-            var testSubject = new SLCoreEmbeddedPluginJarLocator(vsixRootLocator, fileSystem, Substitute.For<ILogger>());
+            MockFileSystem(true, "File1", "File2", "File3", "File4");
 
             var result = testSubject.ListJarFiles();
 
@@ -91,12 +101,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         [TestMethod]
         public void ListConnectedModeEmbeddedPluginPathsByKey_JarsExists_ContainsEntryForSecretsAndJavaScriptPlugin()
         {
-            var vsixRootLocator = CreateVsixLocator();
-            var fileSystem = CreateFileSystem(true, 
+            MockFileSystem(true, 
                 BuildJarFullPath("sonar-text-plugin-2.15.0.3845.jar"),
                 BuildJarFullPath("sonar-javascript-plugin-10.14.0.26080.jar"), 
                 BuildJarFullPath("sonar-cfamily-plugin-6.58.0.74356.jar"));
-            var testSubject = new SLCoreEmbeddedPluginJarLocator(vsixRootLocator, fileSystem, Substitute.For<ILogger>());
 
             var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();
 
@@ -110,10 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         [DataRow("javascript", "sonar-javascript-plugin-10.14.0.26080.jar", "sonar-javascript-plugin-10.15.0.0080.jar")]
         public void ListConnectedModeEmbeddedPluginPathsByKey_MultiplePluginVersionsExist_ReturnsTheFirstOneAndLogs(string pluginKey, string version1, string version2)
         {
-            var vsixRootLocator = CreateVsixLocator();
-            var logger = Substitute.For<ILogger>();
-            var fileSystem = CreateFileSystem(true, BuildJarFullPath(version1), BuildJarFullPath(version2));
-            var testSubject = new SLCoreEmbeddedPluginJarLocator(vsixRootLocator, fileSystem, logger);
+            MockFileSystem(true, BuildJarFullPath(version1), BuildJarFullPath(version2));
 
             var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();
 
@@ -126,9 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         [DataRow("javascript", "sonar-javascript-plugin-10.14.0.26080.jar", "sonar-javascript-plugin-enterprise-10.14.0.26080.jar")]
         public void ListConnectedModeEmbeddedPluginPathsByKey_PluginsWithDifferentNameExists_ReturnsCorrectOne(string pluginKey, string correct, string wrong)
         {
-            var vsixRootLocator = CreateVsixLocator();
-            var fileSystem = CreateFileSystem(true, BuildJarFullPath(wrong), BuildJarFullPath(correct));
-            var testSubject = new SLCoreEmbeddedPluginJarLocator(vsixRootLocator, fileSystem, Substitute.For<ILogger>());
+            MockFileSystem(true, BuildJarFullPath(wrong), BuildJarFullPath(correct));
 
             var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();
 
@@ -138,10 +141,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         [TestMethod]
         public void ListConnectedModeEmbeddedPluginPathsByKey_NoJars_ReturnsEmptyDictionaryAndLogs()
         {
-            var vsixRootLocator = CreateVsixLocator();
-            var fileSystem = CreateFileSystem(true);
-            var logger = Substitute.For<ILogger>();
-            var testSubject = new SLCoreEmbeddedPluginJarLocator(vsixRootLocator, fileSystem, logger);
+            MockFileSystem(true);
 
             var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();
 
@@ -149,35 +149,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             logger.Received(2).LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_JarsNotFound);
         }
 
-        private IFileSystem CreateFileSystem(bool exists, params string[] files)
+        private void MockFileSystem(bool directoryExists, params string[] files)
         {
-            var directory = CreateDirectory(exists, files);
-
-            var fileSystem = Substitute.For<IFileSystem>();
-            fileSystem.Directory.Returns(directory);
-
-            return fileSystem;
-        }
-
-        private IDirectory CreateDirectory(bool exists, params string[] files)
-        {
-            var directory = Substitute.For<IDirectory>();
             directory.Exists(default).ReturnsForAnyArgs(false);
-            directory.Exists("C:\\VsixRoot\\DownloadedJars").Returns(exists);
+            directory.Exists("C:\\VsixRoot\\DownloadedJars").Returns(directoryExists);
 
-            if (exists)
+            if (directoryExists)
             {
                 directory.GetFiles("C:\\VsixRoot\\DownloadedJars", "*.jar").Returns(files);
             }
-
-            return directory;
         }
 
-        private IVsixRootLocator CreateVsixLocator()
+        private void MockFileSystem()
         {
-            var vsixLocator = Substitute.For<IVsixRootLocator>();
-            vsixLocator.GetVsixRoot().Returns("C:\\VsixRoot");
-            return vsixLocator;
+            fileSystem.Directory.Returns(directory);
+        }
+
+        private void MockVsixLocator()
+        {
+            vsixRootLocator.GetVsixRoot().Returns("C:\\VsixRoot");
         }
 
         private static string BuildJarFullPath(string jarFileName)
