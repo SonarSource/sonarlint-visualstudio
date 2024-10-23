@@ -51,7 +51,7 @@ internal class AnalyzerAssemblyLoaderFactory : IAnalyzerAssemblyLoaderFactory
 
         public Assembly LoadFromPath(string fullPath)
         {
-            return Assembly.Load(fullPath);
+            return Assembly.LoadFrom(fullPath);
         }
     }
 }
