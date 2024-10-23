@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         }
 
         [TestMethod]
-        public void ListConnectedModeEmbeddedPluginPathsByKey_JarsExists_ContainsEntryForSecretsPlugin()
+        public void ListConnectedModeEmbeddedPluginPathsByKey_JarsExists_ContainsEntryForSecretsAndJavaScriptPlugin()
         {
             var vsixRootLocator = CreateVsixLocator();
             var fileSystem = CreateFileSystem(true, 
@@ -100,39 +100,39 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
 
             var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();
 
-            result.Count.Should().Be(1);
-            result.Keys.Should().Contain("text");
-            result["text"].Should().Contain("sonar-text-plugin-2.15.0.3845.jar");
+            result.Count.Should().Be(2);
+            VerifyContainsPlugin(result, "text", "sonar-text-plugin-2.15.0.3845.jar");
+            VerifyContainsPlugin(result, "javascript", "sonar-javascript-plugin-10.14.0.26080.jar");
         }
 
         [TestMethod]
-        public void ListConnectedModeEmbeddedPluginPathsByKey_MultipleSecretsJarsExists_ReturnsTheFirstOneAndLogs()
+        [DataRow("text", "sonar-text-plugin-2.15.0.3845.jar", "sonar-text-plugin-2.16.0.4008.jar")]
+        [DataRow("javascript", "sonar-javascript-plugin-10.14.0.26080.jar", "sonar-javascript-plugin-10.15.0.0080.jar")]
+        public void ListConnectedModeEmbeddedPluginPathsByKey_MultiplePluginVersionsExist_ReturnsTheFirstOneAndLogs(string pluginKey, string version1, string version2)
         {
             var vsixRootLocator = CreateVsixLocator();
             var logger = Substitute.For<ILogger>();
-            var fileSystem = CreateFileSystem(true, BuildJarFullPath("sonar-text-plugin-2.15.0.3845.jar"), BuildJarFullPath("sonar-text-plugin-2.16.0.4008.jar"));
+            var fileSystem = CreateFileSystem(true, BuildJarFullPath(version1), BuildJarFullPath(version2));
             var testSubject = new SLCoreEmbeddedPluginJarLocator(vsixRootLocator, fileSystem, logger);
 
             var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();
 
-            result.Count.Should().Be(1);
-            result.Keys.Should().Contain("text");
-            result["text"].Should().Contain("sonar-text-plugin-2.15.0.3845.jar");
-            logger.Received(1).LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_MultipleJars, "text");
+            VerifyContainsPlugin(result, pluginKey, version1);
+            logger.Received(1).LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_MultipleJars, pluginKey);
         }
 
         [TestMethod]
-        public void ListConnectedModeEmbeddedPluginPathsByKey_SecretsJarsWithDifferentNameExists_ReturnsCorrectOne()
+        [DataRow("text", "sonar-text-plugin-2.15.0.3845.jar", "sonar-text-plugin-enterprise-2.15.0.3845.jar")]
+        [DataRow("javascript", "sonar-javascript-plugin-10.14.0.26080.jar", "sonar-javascript-plugin-enterprise-10.14.0.26080.jar")]
+        public void ListConnectedModeEmbeddedPluginPathsByKey_PluginsWithDifferentNameExists_ReturnsCorrectOne(string pluginKey, string correct, string wrong)
         {
             var vsixRootLocator = CreateVsixLocator();
-            var fileSystem = CreateFileSystem(true, BuildJarFullPath("sonar-text-plugin-enterprise-2.15.0.3845.jar"), BuildJarFullPath("sonar-text-plugin-2.16.0.4008.jar"));
+            var fileSystem = CreateFileSystem(true, BuildJarFullPath(wrong), BuildJarFullPath(correct));
             var testSubject = new SLCoreEmbeddedPluginJarLocator(vsixRootLocator, fileSystem, Substitute.For<ILogger>());
 
             var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();
 
-            result.Count.Should().Be(1);
-            result.Keys.Should().Contain("text");
-            result["text"].Should().Contain("sonar-text-plugin-2.16.0.4008.jar");
+            VerifyContainsPlugin(result, pluginKey, correct);
         }
 
         [TestMethod]
@@ -146,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();
 
             result.Should().BeEmpty();
-            logger.Received(1).LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_JarsNotFound);
+            logger.Received(2).LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_JarsNotFound);
         }
 
         private IFileSystem CreateFileSystem(bool exists, params string[] files)
@@ -183,6 +183,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         private static string BuildJarFullPath(string jarFileName)
         {
             return Path.Combine("C:\\VsixRoot", jarFileName);
+        }
+
+        private static void VerifyContainsPlugin(Dictionary<string, string> result, string pluginKey, string pluginFileName)
+        {
+            result.Keys.Should().Contain(pluginKey);
+            result[pluginKey].Should().Contain(pluginFileName);
         }
     }
 }

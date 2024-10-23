@@ -35,7 +35,11 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
 {
     private const string JarFolderName = "DownloadedJars";
 
-    private readonly Dictionary<string, string> connectedModePluginNamePatternByPluginKey = new(){ {"text", "sonar-text-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar"}};
+    private readonly Dictionary<string, string> connectedModePluginNamePatternByPluginKey = new()
+    {
+        { "text", "sonar-text-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar" },
+        { "javascript", "sonar-javascript-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar" }
+    };
     private readonly IVsixRootLocator vsixRootLocator;
     private readonly IFileSystem fileSystem;
     private readonly ILogger logger;
