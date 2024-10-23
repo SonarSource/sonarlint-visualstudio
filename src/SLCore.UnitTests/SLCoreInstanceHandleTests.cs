@@ -54,6 +54,7 @@ public class SLCoreInstanceHandleTests
     private static readonly BoundServerProject Binding = new("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://localhost")));
     
     private static readonly List<string> JarList = new() { "jar1" };
+    private static readonly Dictionary<string, string> ConnectedModeJarList = new() { {"key", "jar1"} };
     private ISLCoreRpcFactory slCoreRpcFactory;
     private ISLCoreConstantsProvider constantsProvider;
     private ISLCoreFoldersProvider foldersProvider;
@@ -130,7 +131,7 @@ public class SLCoreInstanceHandleTests
                 && parameters.storageRoot == StorageRoot
                 && parameters.workDir == WorkDir
                 && parameters.embeddedPluginPaths == JarList
-                && parameters.connectedModeEmbeddedPluginPathsByKey.Count == 0
+                && parameters.connectedModeEmbeddedPluginPathsByKey.Count == ConnectedModeJarList.Count
                 && parameters.sonarQubeConnections.SequenceEqual(new[] { SonarQubeConnection1, SonarQubeConnection2 })
                 && parameters.sonarCloudConnections.SequenceEqual(new[] { SonarCloudConnection })
                 && parameters.sonarlintUserHome == UserHome
@@ -310,6 +311,7 @@ public class SLCoreInstanceHandleTests
             { SonarCloudConnection.connectionId, SonarCloudConnection }
         });
         jarLocator.ListJarFiles().Returns(JarList);
+        jarLocator.ListConnectedModeEmbeddedPluginPathsByKey().Returns(ConnectedModeJarList);
         activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(Binding, SonarLintMode.Connected, "dir"));
         slCoreRuleSettingsProvider.GetSLCoreRuleSettings().Returns(new Dictionary<string, StandaloneRuleConfigDto>());
     }
