@@ -73,7 +73,6 @@ dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:suggesti
 dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
 
 # CSharp code style settings:
-[*.cs]
 csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:warning
 csharp_prefer_braces = true:warning
 
@@ -157,8 +156,6 @@ csharp_preserve_single_line_blocks = true
 # ORDERING DOES MATTER!!!
 # Naming conventions should be ordered from most-specific to least-specific in the .editorconfig file.
 # The first rule encountered that can be applied is the only rule that is applied.
-
-[*.cs]
 
 # Naming rules
 
