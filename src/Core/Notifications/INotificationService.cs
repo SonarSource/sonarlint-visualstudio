@@ -51,11 +51,9 @@ internal sealed class NotificationService : INotificationService
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
 
-    private readonly HashSet<string> oncePerSessionNotifications = new HashSet<string>();
+    private readonly HashSet<string> oncePerSessionNotifications = [];
 
     private Tuple<IInfoBar, INotification> activeNotification;
-
-    internal /* for testing */ bool HasActiveNotification => activeNotification != null;
 
     [ImportingConstructor]
     public NotificationService(IInfoBarManager infoBarManager,

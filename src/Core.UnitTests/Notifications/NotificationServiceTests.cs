@@ -167,7 +167,33 @@ public class NotificationServiceTests
         
         callback.ReceivedCalls().Should().BeEmpty();
     }
+
+    [TestMethod]
+    public void ShowNotification_ButtonClicked_WhenCriticalException_ExceptionNotCaught()
+    {
+        var callback = Substitute.For<Action<string>>();
+        callback.WhenForAnyArgs(x => x.Invoke(Arg.Any<string>())).Throw(new StackOverflowException("critical exception"));
+        var infoBar = ShowNotification(actions: new NotificationAction("notification1", _ => callback("action1"), false));
+        
+        Action act = () => infoBar.ButtonClick += Raise.Event<EventHandler<InfoBarButtonClickedEventArgs>>(this, new InfoBarButtonClickedEventArgs("notification1"));
     
+        act.Should().ThrowExactly<StackOverflowException>().WithMessage("critical exception");
+    
+        logger.AssertNoOutputMessages();
+    }
+    
+    [TestMethod]
+    public void ShowNotification_ButtonClicked_WhenNonCriticalException_ExceptionCaught()
+    {
+        var callback = Substitute.For<Action<string>>();
+        callback.WhenForAnyArgs(x => x.Invoke(Arg.Any<string>())).Throw(new NotImplementedException("non critical exception"));
+        var infoBar = ShowNotification(actions: new NotificationAction("notification1", _ => callback("action1"), false));
+        
+        infoBar.ButtonClick += Raise.Event<EventHandler<InfoBarButtonClickedEventArgs>>(this, new InfoBarButtonClickedEventArgs("notification1"));
+        
+        logger.AssertPartialOutputStringExists(string.Format(CoreStrings.Notifications_FailedToExecuteAction, "System.NotImplementedException: non critical exception"));
+    }
+
     [DataRow(false, 0)]
     [DataRow(true, 1)]
     [TestMethod]
