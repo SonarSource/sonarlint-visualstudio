@@ -37,6 +37,7 @@ public class SharedBindingSuggestionServiceTests
     private IConnectedModeServices connectedModeServices;
     private IConnectedModeBindingServices connectedModeBindingServices;
     private IActiveSolutionTracker activeSolutionTracker;
+    private IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private IConnectedModeUIManager connectedModeManager;
 
     [TestInitialize]
@@ -46,9 +47,10 @@ public class SharedBindingSuggestionServiceTests
         connectedModeServices = Substitute.For<IConnectedModeServices>();
         connectedModeBindingServices = Substitute.For<IConnectedModeBindingServices>();
         activeSolutionTracker = Substitute.For<IActiveSolutionTracker>();
+        activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         connectedModeManager = Substitute.For<IConnectedModeUIManager>();
 
-        testSubject = new SharedBindingSuggestionService(suggestSharedBindingGoldBar, connectedModeServices, connectedModeBindingServices, connectedModeManager, activeSolutionTracker);
+        testSubject = new SharedBindingSuggestionService(suggestSharedBindingGoldBar, connectedModeServices, connectedModeBindingServices, connectedModeManager, activeSolutionTracker, activeSolutionBoundTracker);
     }
 
     [TestMethod]
@@ -59,7 +61,8 @@ public class SharedBindingSuggestionServiceTests
             MefTestHelpers.CreateExport<IConnectedModeServices>(),
             MefTestHelpers.CreateExport<IConnectedModeBindingServices>(),
             MefTestHelpers.CreateExport<IConnectedModeUIManager>(),
-            MefTestHelpers.CreateExport<IActiveSolutionTracker>());
+            MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
+            MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>());
     }
 
     [TestMethod]
@@ -112,22 +115,38 @@ public class SharedBindingSuggestionServiceTests
     }
 
     [TestMethod]
-    public void ActiveSolutionChanged_SolutionIsOpened_DoesNotShowGoldBar()
+    public void ActiveSolutionChanged_SolutionIsClosed_DoesNotShowGoldBar()
     {
-        MockSharedBindingConfigExists();
-        MockSolutionMode(SonarLintMode.Standalone);
-        
         RaiseActiveSolutionChanged(false);
 
-        suggestSharedBindingGoldBar.DidNotReceive().Show(ServerType.SonarQube, Arg.Any<Action>());
+        suggestSharedBindingGoldBar.DidNotReceive().Show(Arg.Any<ServerType>(), Arg.Any<Action>());
     }
 
     [TestMethod]
-    public void Dispose_UnsubscribesFromActiveSolutionChanged()
+    public void ActiveSolutionChanged_SolutionIsClosed_ClosesAnyOpenGoldBar()
+    {
+        RaiseActiveSolutionChanged(false);
+
+        suggestSharedBindingGoldBar.Received(1).Close();
+    }
+
+    [TestMethod]
+    [DataRow(SonarLintMode.Connected, true)]
+    [DataRow(SonarLintMode.Standalone, false)]
+    public void SolutionBindingChanged_WhenConnectedMode_ClosesAnyOpenGoldBar(SonarLintMode mode, bool expectedToClose)
+    {
+        RaiseSolutionBindingChanged(mode);
+
+        suggestSharedBindingGoldBar.Received(expectedToClose ? 1 : 0).Close();
+    }
+
+    [TestMethod]
+    public void Dispose_UnsubscribesFromAllEvents()
     {
         testSubject.Dispose();
 
         activeSolutionTracker.Received(1).ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
+        activeSolutionBoundTracker.Received(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
     }
 
     [TestMethod]
@@ -163,6 +182,9 @@ public class SharedBindingSuggestionServiceTests
         connectedModeBindingServices.SharedBindingConfigProvider.GetSharedBinding().Returns(new SharedBindingConfigModel());
     }
 
-
+    private void RaiseSolutionBindingChanged(SonarLintMode mode)
+    {
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(new BindingConfiguration(null, mode, string.Empty)));
+    }
 
 }
