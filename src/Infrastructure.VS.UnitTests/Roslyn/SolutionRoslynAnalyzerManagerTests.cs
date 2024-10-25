@@ -112,7 +112,7 @@ public class SolutionRoslynAnalyzerManagerTests
         SetUpStandaloneSolution(v1Solution, solutionName);
 
         analyzerComparer.Equals(embeddedAnalyzers, connectedAnalyzers).Returns(false);
-        connectedModeRoslynAnalyzerProvider.GetOrNull(connectedModeConfiguration.Project.ServerConnection).Returns(connectedAnalyzers);
+        connectedModeRoslynAnalyzerProvider.GetOrNullAsync().Returns(connectedAnalyzers);
         roslynWorkspaceWrapper.CurrentSolution.Returns(v1Solution, v2Solution);
         SetUpAnalyzerRemoval(v1Solution, v2Solution, embeddedAnalyzers);
         SetUpAnalyzerAddition(v2Solution, v3Solution, connectedAnalyzers);
@@ -137,14 +137,14 @@ public class SolutionRoslynAnalyzerManagerTests
         var v1Solution = Substitute.For<IRoslynSolutionWrapper>();
         SetUpStandaloneSolution(v1Solution, solutionName);
         EnableDefaultEmbeddedAnalyzers();
-        connectedModeRoslynAnalyzerProvider.GetOrNull(connectedModeConfiguration.Project.ServerConnection).Returns((ImmutableArray<AnalyzerFileReference>?)null);
+        connectedModeRoslynAnalyzerProvider.GetOrNullAsync().Returns((ImmutableArray<AnalyzerFileReference>?)null);
         analyzerComparer.Equals(embeddedAnalyzers, embeddedAnalyzers).Returns(true);
         
         testSubject.OnSolutionChanged(solutionName, connectedModeConfiguration);
 
         Received.InOrder(() =>
         {
-            connectedModeRoslynAnalyzerProvider.GetOrNull(connectedModeConfiguration.Project.ServerConnection);
+            connectedModeRoslynAnalyzerProvider.GetOrNullAsync();
             embeddedRoslynAnalyzerProvider.Get();
             analyzerComparer.Equals(embeddedAnalyzers, embeddedAnalyzers);
         });
@@ -179,7 +179,7 @@ public class SolutionRoslynAnalyzerManagerTests
         var v3Solution = Substitute.For<IRoslynSolutionWrapper>();
         SetUpStandaloneSolution(preCloseSolution, solutionName);
         EnableDefaultEmbeddedAnalyzers();
-        connectedModeRoslynAnalyzerProvider.GetOrNull(connectedModeConfiguration.Project.ServerConnection).Returns(connectedAnalyzers);
+        connectedModeRoslynAnalyzerProvider.GetOrNullAsync().Returns(connectedAnalyzers);
         SetUpAnalyzerAddition(v2Solution, v3Solution, connectedAnalyzers);
         
         testSubject.OnSolutionChanged(null, BindingConfiguration.Standalone);
@@ -199,7 +199,7 @@ public class SolutionRoslynAnalyzerManagerTests
         SetUpStandaloneSolution(originalSolution, "original solution");
         EnableDefaultEmbeddedAnalyzers();
 
-        connectedModeRoslynAnalyzerProvider.GetOrNull(connectedModeConfiguration.Project.ServerConnection).Returns(connectedAnalyzers);
+        connectedModeRoslynAnalyzerProvider.GetOrNullAsync().Returns(connectedAnalyzers);
         SetUpCurrentSolutionSequence(v1Solution); // different solution
         SetUpAnalyzerAddition(v1Solution, v2Solution, connectedAnalyzers);
         

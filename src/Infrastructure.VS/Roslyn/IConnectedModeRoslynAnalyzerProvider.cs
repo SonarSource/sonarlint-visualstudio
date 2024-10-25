@@ -19,9 +19,7 @@
  */
 
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
@@ -30,5 +28,5 @@ public interface IConnectedModeRoslynAnalyzerProvider
     /// <summary>
     /// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are downloaded from the server for the current binding
     /// </summary>
-    ImmutableArray<AnalyzerFileReference>? GetOrNull(ServerConnection connection);
+    Task<ImmutableArray<AnalyzerFileReference>?> GetOrNullAsync();
 }

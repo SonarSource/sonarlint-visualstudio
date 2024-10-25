@@ -21,6 +21,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
@@ -72,6 +73,13 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
 
     public void OnSolutionChanged(string solutionName, BindingConfiguration bindingConfiguration)
     {
+        UpdateAnalyzersAsync(solutionName, bindingConfiguration).Forget();
+    }
+
+    private async Task UpdateAnalyzersAsync(string solutionName, BindingConfiguration bindingConfiguration)
+    {
+        var analyzersToUse = await ChooseAnalyzersAsync(bindingConfiguration.Project?.ServerConnection);
+
         lock (lockObject)
         {
             ThrowIfDisposed();
@@ -84,8 +92,6 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
             }
 
             UpdateCurrentSolutionInfo(solutionName, bindingConfiguration, out var isSameSolution);
-
-            var analyzersToUse = ChooseAnalyzers(bindingConfiguration.Project?.ServerConnection);
 
             if (isSameSolution)
             {
@@ -129,8 +135,8 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         }
     }
 
-    private ImmutableArray<AnalyzerFileReference> ChooseAnalyzers(ServerConnection serverConnection) =>
-        ChooseAnalyzers(serverConnection is not null ? connectedModeAnalyzerProvider.GetOrNull(serverConnection) : null);
+    private async Task<ImmutableArray<AnalyzerFileReference>> ChooseAnalyzersAsync(ServerConnection serverConnection) =>
+        ChooseAnalyzers(serverConnection is not null ? (await connectedModeAnalyzerProvider.GetOrNullAsync()) : null);
 
     private ImmutableArray<AnalyzerFileReference> ChooseAnalyzers(ImmutableArray<AnalyzerFileReference>? connectedModeAnalyzers) =>
         connectedModeAnalyzers ?? embeddedAnalyzerProvider.Get();
