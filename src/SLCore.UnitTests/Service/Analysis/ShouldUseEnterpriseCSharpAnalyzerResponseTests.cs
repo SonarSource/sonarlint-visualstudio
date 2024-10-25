@@ -21,6 +21,7 @@
 
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Service.Analysis.Models;
+using SonarLint.VisualStudio.SLCore.Service.Telemetry;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Analysis;
 
@@ -40,5 +41,16 @@ public class ShouldUseEnterpriseCSharpAnalyzerResponseTests
         var serializedString = JsonConvert.SerializeObject(testSubject, Formatting.Indented);
 
         serializedString.Should().Be(expectedString);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Deserialized_AsExpected(bool shouldUseEnterpriseAnalyzer)
+    {
+        var expected = new ShouldUseEnterpriseCSharpAnalyzerResponse(shouldUseEnterpriseAnalyzer);
+        var serialized = $"{{\"shouldUseEnterpriseAnalyzer\":{shouldUseEnterpriseAnalyzer.ToString().ToLower()}}}";
+
+        JsonConvert.DeserializeObject<ShouldUseEnterpriseCSharpAnalyzerResponse>(serialized).Should().BeEquivalentTo(expected);
     }
 }
