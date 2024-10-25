@@ -38,6 +38,4 @@ internal class ConnectedModeRoslynAnalyzerProvider : IConnectedModeRoslynAnalyze
     {
         return null;
     }
-
-    public event EventHandler<AnalyzerUpdatedForConnectionEventArgs> AnalyzerUpdatedForConnection;
 }

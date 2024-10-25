@@ -68,8 +68,6 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         this.roslynWorkspace = roslynWorkspace;
         this.analyzerComparer = analyzerComparer;
         this.logger = logger;
-
-        connectedModeAnalyzerProvider.AnalyzerUpdatedForConnection += HandleConnectedModeAnalyzerUpdate;
     }
 
     public void OnSolutionChanged(string solutionName, BindingConfiguration bindingConfiguration)
@@ -114,21 +112,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         {
             return;
         }
-        connectedModeAnalyzerProvider.AnalyzerUpdatedForConnection -= HandleConnectedModeAnalyzerUpdate;
         disposed = true;
-    }
-
-    internal /* for testing */ void HandleConnectedModeAnalyzerUpdate(object sender, AnalyzerUpdatedForConnectionEventArgs args)
-    {
-        lock (lockObject)
-        {
-            ThrowIfDisposed();
-            
-            if (args.Connection is not null && currentState?.BindingConfiguration.Project?.ServerConnection.Id == args.Connection.Id)
-            {
-                UpdateAnalyzersIfChanged(ChooseAnalyzers(args.Connection));
-            }
-        }
     }
 
     private void UpdateCurrentSolutionInfo(string solutionName, BindingConfiguration bindingConfiguration, out bool isSameSolution)
