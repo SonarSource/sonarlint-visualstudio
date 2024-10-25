@@ -72,34 +72,34 @@ public class NotificationServiceTests
     [TestMethod]
     public void ShowNotification_WhenNotificationIsDisabled_NotificationNotShown()
     {
-        ShowNotification(id: "some id", disabled: true);
+        var attachedNotification = ShowNotification(id: "some id", disabled: true);
 
-        AssertNoNotificationWasShown();
+        AssertNotificationNotShown(attachedNotification);
     }
 
     [TestMethod]
     public void ShowNotification_WhenNewNotificationIsDisabled_DoesNotClosePrevious()
     {
-        var infoBar1 = ShowNotification(id: "some id1");
-        var infoBar2 = ShowNotification(id: "some id2", disabled: true);
+        var attachedNotification1 = ShowNotification(id: "some id1", disabled: false);
+        var attachedNotification2 = ShowNotification(id: "some id2", disabled: true);
         
-        AssertNotificationNotClosed(infoBar1);
-        infoBar2.ReceivedCalls().Should().BeEmpty();
+        AssertNotificationNotClosed(attachedNotification1);
+        AssertNotificationNotShown(attachedNotification2);
     }
 
     [TestMethod]
     public void ShowNotification_SubscribesToInfoBarEvents()
     {
-        var infoBar = ShowNotification();
+        var attachedNotification = ShowNotification();
         
-        AssertSubscribedToInfoBarEvents(infoBar);
+        AssertSubscribedToInfoBarEvents(attachedNotification);
     }
     
     [TestMethod]
     public void ShowNotification_AttachesInfoBarToWindow_RunsOnUIThread()
     {
         var notification = CreateNotification();
-        AttachNotification(notification, out _);
+        AttachNotification(notification);
         
         // Prevent the ThreadHandling action to run immediately and capture it for later execution
         Action showInfoBar = null;
@@ -120,28 +120,26 @@ public class NotificationServiceTests
     [TestMethod]
     public void ShowNotification_InfoBarCreatedCorrectly()
     {
-        ShowNotification(out var notification, actions:
+        var attachedNotification = ShowNotification(actions:
         [
             new NotificationAction("button1", _ => { }, false),
             new NotificationAction("button2", _ => { }, false),
             new NotificationAction("button3", _ => { }, false)
         ]);
 
-        AssertNotificationWasShown(notification);
+        AssertNotificationWasShown(attachedNotification);
     }
 
     [TestMethod]
     public void ShowNotification_WithSameId_OnceWhenPerSessionEnabled_IsShownOnlyOnce()
     {
         const string notificationId = "some id";
-        const string anotherNotificationId = "some other id";
-
-        ShowNotification(id: notificationId, oncePerSession: true);
-        var infoBar2 = ShowNotification(id: anotherNotificationId, oncePerSession: true);
-        var infoBar3 = ShowNotification(id: notificationId, oncePerSession: true);
         
-        AssertNotificationNotClosed(infoBar2);
-        infoBar3.ReceivedCalls().Count().Should().Be(0);
+        var attachedNotification1 = ShowNotification(id: notificationId, oncePerSession: true);
+        var attachedNotification2 = ShowNotification(id: notificationId, oncePerSession: true);
+        
+        AssertNotificationNotClosed(attachedNotification1);
+        AssertNotificationNotShown(attachedNotification2);
     }
 
     [TestMethod]
@@ -150,20 +148,22 @@ public class NotificationServiceTests
         const string notificationId = "some id";
         const string anotherNotificationId = "some other id";
         
-        ShowNotification(id: notificationId, oncePerSession: false);
-        ShowNotification(id: anotherNotificationId, oncePerSession: false);
-        ShowNotification(out var notification3, id: notificationId, oncePerSession: false);
+        var attachedNotification1 = ShowNotification(id: notificationId, oncePerSession: false);
+        var attachedNotification2 = ShowNotification(id: anotherNotificationId, oncePerSession: false);
+        var attachedNotification3 = ShowNotification(id: notificationId, oncePerSession: false);
         
-        AssertNotificationWasShown(notification3);
+        AssertNotificationWasShown(attachedNotification1);
+        AssertNotificationWasShown(attachedNotification2);
+        AssertNotificationWasShown(attachedNotification3);
     }
     
     [TestMethod]
-    public void ShowNotification_WhenUnknownInfoBarButtonClicked_NoException()
+    public void ShowNotification_ButtonClicked_WhenUnknownButton_NoException()
     {
-        var callback = Substitute.For<Action<string>>();
-        var infoBar = ShowNotification(actions: new NotificationAction("notification1", _ => callback("action1"), false));
+        var callback = Substitute.For<Action>();
+        var attachedNotification = ShowNotification(actions: new NotificationAction("notification1", _ => callback(), false));
         
-        infoBar.ButtonClick += Raise.Event<EventHandler<InfoBarButtonClickedEventArgs>>(this, new InfoBarButtonClickedEventArgs("unknown notification"));
+        attachedNotification.InfoBar.ButtonClick += Raise.Event<EventHandler<InfoBarButtonClickedEventArgs>>(this, new InfoBarButtonClickedEventArgs("unknown notification"));
         
         callback.ReceivedCalls().Should().BeEmpty();
     }
@@ -171,14 +171,13 @@ public class NotificationServiceTests
     [TestMethod]
     public void ShowNotification_ButtonClicked_WhenCriticalException_ExceptionNotCaught()
     {
-        var callback = Substitute.For<Action<string>>();
-        callback.WhenForAnyArgs(x => x.Invoke(Arg.Any<string>())).Throw(new StackOverflowException("critical exception"));
-        var infoBar = ShowNotification(actions: new NotificationAction("notification1", _ => callback("action1"), false));
+        var callback = Substitute.For<Action>();
+        callback.When(x => x.Invoke()).Throw(new StackOverflowException("critical exception"));
+        var attachedNotification = ShowNotification(actions: new NotificationAction("notification1", _ => callback(), false));
         
-        Action act = () => infoBar.ButtonClick += Raise.Event<EventHandler<InfoBarButtonClickedEventArgs>>(this, new InfoBarButtonClickedEventArgs("notification1"));
+        var act = () => attachedNotification.InfoBar.ButtonClick += Raise.Event<EventHandler<InfoBarButtonClickedEventArgs>>(this, new InfoBarButtonClickedEventArgs("notification1"));
     
         act.Should().ThrowExactly<StackOverflowException>().WithMessage("critical exception");
-    
         logger.AssertNoOutputMessages();
     }
     
@@ -187,37 +186,44 @@ public class NotificationServiceTests
     {
         var callback = Substitute.For<Action<string>>();
         callback.WhenForAnyArgs(x => x.Invoke(Arg.Any<string>())).Throw(new NotImplementedException("non critical exception"));
-        var infoBar = ShowNotification(actions: new NotificationAction("notification1", _ => callback("action1"), false));
+        var attachedNotification = ShowNotification(actions: new NotificationAction("notification1", _ => callback("action1"), false));
         
-        infoBar.ButtonClick += Raise.Event<EventHandler<InfoBarButtonClickedEventArgs>>(this, new InfoBarButtonClickedEventArgs("notification1"));
+        attachedNotification.InfoBar.ButtonClick += Raise.Event<EventHandler<InfoBarButtonClickedEventArgs>>(this, new InfoBarButtonClickedEventArgs("notification1"));
         
         logger.AssertPartialOutputStringExists(string.Format(CoreStrings.Notifications_FailedToExecuteAction, "System.NotImplementedException: non critical exception"));
     }
-
-    [DataRow(false, 0)]
-    [DataRow(true, 1)]
-    [TestMethod]
-    public void ShowNotification_InfoBarButtonClicked_ActionInvokedWithTheNotification(bool shouldDismissNotificationAfterAction, int dismissInvocationCount)
-    {
-        var callback = Substitute.For<Action<INotification>>();
-        var infoBar = ShowNotification(out var notification, actions: new NotificationAction("notification1", x => callback(x), shouldDismissNotificationAfterAction));
     
-        infoBar.ButtonClick += Raise.Event<EventHandler<InfoBarButtonClickedEventArgs>>(this, new InfoBarButtonClickedEventArgs("notification1"));
-
-        callback.Received(1).Invoke(notification);
-        infoBarManager.Received(dismissInvocationCount).CloseInfoBar(infoBar);
+    [TestMethod]
+    public void ShowNotification_InfoBarButtonClicked_WhenShouldDismissAfterAction_ClosesNotification()
+    {
+        var attachedNotification = ShowNotification(actions: new NotificationAction("notification1", _ => { }, true));
+    
+        attachedNotification.InfoBar.ButtonClick += Raise.Event<EventHandler<InfoBarButtonClickedEventArgs>>(this, new InfoBarButtonClickedEventArgs("notification1"));
+        
+        AssertNotificationClosed(attachedNotification);
+    }
+    
+    [TestMethod]
+    public void ShowNotification_InfoBarButtonClicked_WhenDontDismissAfterAction_NotificationRemains()
+    {
+        var attachedNotification = ShowNotification(actions: new NotificationAction("notification1", _ => { }, false));
+    
+        attachedNotification.InfoBar.ButtonClick += Raise.Event<EventHandler<InfoBarButtonClickedEventArgs>>(this, new InfoBarButtonClickedEventArgs("notification1"));
+        
+        AssertNotificationNotClosed(attachedNotification);
     }
     
     [TestMethod]
     public void ShowNotification_InfoBarButtonClicked_CorrectActionInvoked()
     {
         var callback = Substitute.For<Action<string>>();
-        var infoBar = ShowNotification(actions:
-        [
-            new NotificationAction("notification1", _ => callback("action1"), false),
-            new NotificationAction("notification2", _ => callback("action2"), false),
-            new NotificationAction("notification3", _ => callback("action3"), false)
-        ]);
+        var infoBar = ShowNotification(actions: 
+            [
+                new NotificationAction("notification1", _ => callback("action1"), false),
+                new NotificationAction("notification2", _ => callback("action2"), false),
+                new NotificationAction("notification3", _ => callback("action3"), false)
+            ])
+            .InfoBar;
     
         infoBar.ButtonClick += Raise.Event<EventHandler<InfoBarButtonClickedEventArgs>>(this, new InfoBarButtonClickedEventArgs("notification2"));
         callback.Received(1).Invoke("action2");
@@ -231,12 +237,11 @@ public class NotificationServiceTests
     [TestMethod]
     public void ShowNotification_ClosesPreviousNotification()
     {
-        var infoBar1 = ShowNotification();
-    
-        ShowNotification(out var notification2);
+        var attachedNotification1 = ShowNotification();
+        var attachedNotification2 = ShowNotification();
         
-        AssertNotificationClosed(infoBar1);
-        AssertNotificationWasShown(notification2);
+        AssertNotificationClosed(attachedNotification1);
+        AssertNotificationWasShown(attachedNotification2);
     }
         
     [TestMethod]
@@ -244,32 +249,30 @@ public class NotificationServiceTests
     {
         var aToolWindowId = Guid.NewGuid();
         var notification = CreateNotification();
-        AttachNotification(notification, aToolWindowId);
+        var attachedNotification = AttachNotification(notification, aToolWindowId);
     
         testSubject.ShowNotification(notification, aToolWindowId);
     
-        AssertNotificationWasShown(notification, aToolWindowId);
+        AssertNotificationWasShown(attachedNotification, aToolWindowId);
     }
     
     [TestMethod]
     public void Dispose_ClosesNotification()
     {
-        var infoBar = ShowNotification();
+        var attachedNotification = ShowNotification();
 
         testSubject.Dispose();
     
-        AssertNotificationClosed(infoBar);
+        AssertNotificationClosed(attachedNotification);
     }
 
     [TestMethod]
     public void ShowNotification_WhenNonCriticalException_ExceptionCaught()
     {
-        var notification = CreateNotification();
-        AttachNotification(notification, out _);
         infoBarManager.When(x => x.AttachInfoBarToMainWindow(Arg.Any<string>(), SonarLintImageMoniker.OfficialSonarLintMoniker, Arg.Any<string[]>()))
             .Do(_ => throw new NotImplementedException("this is a test"));
         
-        Action act = () => testSubject.ShowNotification(notification);
+        Action act = () => ShowNotification();
     
         act.Should().NotThrow();
     
@@ -279,12 +282,10 @@ public class NotificationServiceTests
     [TestMethod]
     public void ShowNotification_WhenCriticalException_ExceptionNotCaught()
     {
-        var notification = CreateNotification();
-        AttachNotification(notification, out _);
         infoBarManager.When(x => x.AttachInfoBarToMainWindow(Arg.Any<string>(), SonarLintImageMoniker.OfficialSonarLintMoniker, Arg.Any<string[]>()))
             .Do(_ => throw new StackOverflowException("this is a test"));
         
-        Action act = () => testSubject.ShowNotification(notification);
+        var act = () => ShowNotification();
     
         act.Should().ThrowExactly<StackOverflowException>().WithMessage("this is a test");
     
@@ -294,17 +295,17 @@ public class NotificationServiceTests
     [TestMethod]
     public void CloseNotification_ClosesCurrentNotification_AndUnsubscribesFromInfoBarEvents()
     {
-        var infoBar = ShowNotification();
+        var attachedNotification = ShowNotification();
     
         testSubject.CloseNotification();
     
-        AssertNotificationClosed(infoBar);
+        AssertNotificationClosed(attachedNotification);
     }
     
     [TestMethod]
     public void CloseNotification_CurrentNotificationIsNull_DoesNotThrow()
     {
-        Action act = () => testSubject.CloseNotification();
+        var act = () => testSubject.CloseNotification();
     
         act.Should().NotThrow();
         infoBarManager.ReceivedCalls().Should().BeEmpty();
@@ -314,7 +315,7 @@ public class NotificationServiceTests
     public void CloseNotification_ClosesInfoBar_RunsOnUIThread()
     {
         var notification = CreateNotification();
-        AttachNotification(notification, out var infoBar);
+        var infoBar = AttachNotification(notification).InfoBar;
         
         // Prevent the ThreadHandling action to run immediately and capture it for later execution
         Action runThreadAction = null;
@@ -339,13 +340,11 @@ public class NotificationServiceTests
     [TestMethod]
     public void CloseNotification_WhenNonCriticalException_ExceptionCaught()
     {
-        var notification = CreateNotification();
-        AttachNotification(notification, out var infoBar);
-        infoBarManager.When(x => x.CloseInfoBar(infoBar))
+        var infoBar = ShowNotification().InfoBar;
+        infoBarManager.WhenForAnyArgs(x => x.CloseInfoBar(infoBar))
             .Do(_ => throw new NotImplementedException("this is a test"));
-    
-        testSubject.ShowNotification(notification);
-        Action act = () => testSubject.CloseNotification();
+        
+        var act = () => testSubject.CloseNotification();
         
         act.Should().NotThrow();
         logger.AssertPartialOutputStringExists("this is a test");
@@ -354,16 +353,13 @@ public class NotificationServiceTests
     [TestMethod]
     public void CloseNotification_WhenCriticalException_ExceptionNotCaught()
     {
-        var notification = CreateNotification();
-        AttachNotification(notification, out var infoBar);
+        var infoBar = ShowNotification().InfoBar;
         infoBarManager.When(x => x.CloseInfoBar(infoBar))
             .Do(_ => throw new StackOverflowException("this is a test"));
     
-        testSubject.ShowNotification(notification);
-    
-        Action act = () => testSubject.CloseNotification();
+        var act = () => testSubject.CloseNotification();
+        
         act.Should().ThrowExactly<StackOverflowException>().WithMessage("this is a test");
-    
         logger.AssertNoOutputMessages();
     }
     
@@ -372,17 +368,12 @@ public class NotificationServiceTests
         threadHandling.RunOnUIThreadAsync(Arg.Do<Action>(arg => arg()));
     }
     
-    private IInfoBar ShowNotification(string id = null, bool oncePerSession = true, bool disabled = false, params INotificationAction[] actions)
+    private AttachedNotification ShowNotification(string id = null, bool oncePerSession = true, bool disabled = false, params INotificationAction[] actions)
     {
-        return ShowNotification(out _, id, oncePerSession, disabled, actions);
-    }
-    
-    private IInfoBar ShowNotification(out INotification notification, string id = null, bool oncePerSession = true, bool disabled = false, params INotificationAction[] actions)
-    {
-        notification = CreateNotification(id, oncePerSession, disabled, actions);
-        AttachNotification(notification, out var infoBar);
+        var notification = CreateNotification(id, oncePerSession, disabled, actions);
+        var attachedNotification = AttachNotification(notification);
         testSubject.ShowNotification(notification);
-        return infoBar;
+        return attachedNotification;
     }
 
     private INotification CreateNotification(string id = null, bool oncePerSession = true, bool disabled = false, params INotificationAction[] actions)
@@ -395,9 +386,9 @@ public class NotificationServiceTests
         return notification;
     }
 
-    private void AttachNotification(INotification notification, out IInfoBar infoBar)
+    private AttachedNotification AttachNotification(INotification notification)
     {
-        infoBar = Substitute.For<IInfoBar>();
+        var infoBar = Substitute.For<IInfoBar>();
         
         infoBarManager.AttachInfoBarToMainWindow(
                 notification.Message,
@@ -405,11 +396,13 @@ public class NotificationServiceTests
                 Arg.Any<string[]>())
             .Returns(infoBar);
 
-        infoBarManager.When(x => x.CloseInfoBar(Arg.Any<IInfoBar>()))
-            .Do(x => ((IInfoBar)x.Args()[0]).Closed += Raise.Event());
+        infoBarManager.When(x => x.CloseInfoBar(infoBar))
+            .Do(_ => infoBar.Closed += Raise.Event());
+
+        return new AttachedNotification(notification, infoBar);
     }
 
-    private void AttachNotification(INotification notification, Guid toolWindowId)
+    private AttachedNotification AttachNotification(INotification notification, Guid toolWindowId)
     {
         var infoBar = Substitute.For<IInfoBar>();
         
@@ -420,29 +413,31 @@ public class NotificationServiceTests
                 SonarLintImageMoniker.OfficialSonarLintMoniker)
             .Returns(infoBar);
 
-        infoBarManager.When(x => x.CloseInfoBar(Arg.Any<IInfoBar>()))
-            .Do(x => ((IInfoBar)x.Args()[0]).Closed += Raise.Event());
+        infoBarManager.When(x => x.CloseInfoBar(infoBar))
+            .Do(_ => infoBar.Closed += Raise.Event());
+
+        return new AttachedNotification(notification, infoBar);
     }
 
-    private void AssertNotificationWasShown(INotification notification)
+    private void AssertNotificationWasShown(AttachedNotification attachedNotification)
     {
         infoBarManager.ReceivedWithAnyArgs().AttachInfoBarToMainWindow(
-            notification.Message,
+            attachedNotification.Notification.Message,
             SonarLintImageMoniker.OfficialSonarLintMoniker,
             Arg.Any<string[]>());
 
-        AssertNotificationContainsActionButtons(notification);
+        AssertNotificationContainsActionButtons(attachedNotification.Notification);
     }
 
-    private void AssertNotificationWasShown(INotification notification, Guid toolWindowId)
+    private void AssertNotificationWasShown(AttachedNotification attachedNotification, Guid toolWindowId)
     {
         infoBarManager.ReceivedWithAnyArgs().AttachInfoBarWithButtons(
             toolWindowId,
-            notification.Message,
+            attachedNotification.Notification.Message,
             Arg.Any<string[]>(),
             SonarLintImageMoniker.OfficialSonarLintMoniker);
 
-        AssertNotificationContainsActionButtons(notification);
+        AssertNotificationContainsActionButtons(attachedNotification.Notification);
     }
 
     private void AssertNotificationContainsActionButtons(INotification notification)
@@ -451,33 +446,34 @@ public class NotificationServiceTests
         var actualButtonTexts = infoBarManager.ReceivedCalls().Last().GetArguments()[2] as IEnumerable<string>;
         actualButtonTexts.Should().BeEquivalentTo(expectedButtonTexts);
     }
-    
-    private void AssertNoNotificationWasShown()
+
+    private void AssertNotificationClosed(AttachedNotification attachedNotification)
     {
-        infoBarManager.ReceivedCalls().Should().BeEmpty();
-        threadHandling.DidNotReceive().RunOnUIThreadAsync(Arg.Any<Action>());
+        AssertUnsubscribedFromInfoBarEvents(attachedNotification);
+        infoBarManager.Received(1).CloseInfoBar(attachedNotification.InfoBar);
+    }
+    
+    private void AssertNotificationNotClosed(AttachedNotification attachedNotification)
+    {
+        infoBarManager.DidNotReceive().CloseInfoBar(attachedNotification.InfoBar);
+    }
+    
+    private static void AssertNotificationNotShown(AttachedNotification attachedNotification)
+    {
+        attachedNotification.InfoBar.ReceivedCalls().Should().BeEmpty();
+    }
+    
+    private static void AssertSubscribedToInfoBarEvents(AttachedNotification attachedNotification)
+    {
+        attachedNotification.InfoBar.ReceivedWithAnyArgs(1).Closed += Arg.Any<EventHandler>();
+        attachedNotification.InfoBar.ReceivedWithAnyArgs(1).ButtonClick += Arg.Any<EventHandler<InfoBarButtonClickedEventArgs>>();
     }
 
-    private void AssertNotificationClosed(IInfoBar infoBar)
+    private static void AssertUnsubscribedFromInfoBarEvents(AttachedNotification attachedNotification)
     {
-        AssertUnsubscribedFromInfoBarEvents(infoBar);
-        infoBarManager.Received(1).CloseInfoBar(infoBar);
-    }
-    
-    private void AssertNotificationNotClosed(IInfoBar infoBar)
-    {
-        infoBarManager.DidNotReceive().CloseInfoBar(infoBar);
-    }
-    
-    private static void AssertSubscribedToInfoBarEvents(IInfoBar infoBar)
-    {
-        infoBar.ReceivedWithAnyArgs(1).Closed += Arg.Any<EventHandler>();
-        infoBar.ReceivedWithAnyArgs(1).ButtonClick += Arg.Any<EventHandler<InfoBarButtonClickedEventArgs>>();
+        attachedNotification.InfoBar.ReceivedWithAnyArgs(1).Closed -= Arg.Any<EventHandler>();
+        attachedNotification.InfoBar.ReceivedWithAnyArgs(1).ButtonClick -= Arg.Any<EventHandler<InfoBarButtonClickedEventArgs>>();
     }
 
-    private static void AssertUnsubscribedFromInfoBarEvents(IInfoBar infoBar)
-    {
-        infoBar.ReceivedWithAnyArgs(1).Closed -= Arg.Any<EventHandler>();
-        infoBar.ReceivedWithAnyArgs(1).ButtonClick -= Arg.Any<EventHandler<InfoBarButtonClickedEventArgs>>();
-    }
+    private record AttachedNotification(INotification Notification, IInfoBar InfoBar);
 }
