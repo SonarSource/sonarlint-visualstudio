@@ -53,7 +53,7 @@ internal sealed class NotificationService : INotificationService
 
     private readonly HashSet<string> oncePerSessionNotifications = [];
 
-    private Tuple<IInfoBar, INotification> activeNotification;
+    private AttachedNotification activeNotification;
 
     [ImportingConstructor]
     public NotificationService(IInfoBarManager infoBarManager,
@@ -109,7 +109,7 @@ internal sealed class NotificationService : INotificationService
         {
             try
             {
-                infoBarManager.CloseInfoBar(activeNotification.Item1);
+                infoBarManager.CloseInfoBar(activeNotification.InfoBar);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -122,7 +122,7 @@ internal sealed class NotificationService : INotificationService
     {
         try
         {
-            var notification = activeNotification.Item2;
+            var notification = activeNotification.Notification;
             var matchingAction = notification.Actions.FirstOrDefault(x => x.CommandText == e.ClickedButtonText);
 
             matchingAction?.Action(notification);
@@ -145,8 +145,8 @@ internal sealed class NotificationService : INotificationService
             return;
         }
 
-        activeNotification.Item1.ButtonClick -= CurrentInfoBar_ButtonClick;
-        activeNotification.Item1.Closed -= CurrentInfoBar_Closed;
+        activeNotification.InfoBar.ButtonClick -= CurrentInfoBar_ButtonClick;
+        activeNotification.InfoBar.Closed -= CurrentInfoBar_Closed;
         activeNotification = null;
     }
 
@@ -154,10 +154,9 @@ internal sealed class NotificationService : INotificationService
     {
         try
         {
-            var infoBar = AttachInfoBar(notification, toolWindowId);
-            activeNotification = new Tuple<IInfoBar, INotification>(infoBar, notification);
-            activeNotification.Item1.ButtonClick += CurrentInfoBar_ButtonClick;
-            activeNotification.Item1.Closed += CurrentInfoBar_Closed;
+            activeNotification = AttachInfoBar(notification, toolWindowId);
+            activeNotification.InfoBar.ButtonClick += CurrentInfoBar_ButtonClick;
+            activeNotification.InfoBar.Closed += CurrentInfoBar_Closed;
             if (notification.ShowOncePerSession)
             {
                 oncePerSessionNotifications.Add(notification.Id);
@@ -169,26 +168,33 @@ internal sealed class NotificationService : INotificationService
         }
     }
 
-    private IInfoBar AttachInfoBar(INotification notification, Guid toolWindowId)
+    private AttachedNotification AttachInfoBar(INotification notification, Guid toolWindowId)
     {
         var buttonTexts = notification.Actions.Select(x => x.CommandText).ToArray();
 
+        IInfoBar infoBar;
         if (toolWindowId == MainWindowId)
         {
-            return infoBarManager.AttachInfoBarToMainWindow(notification.Message,
+            infoBar = infoBarManager.AttachInfoBarToMainWindow(notification.Message,
                 SonarLintImageMoniker.OfficialSonarLintMoniker,
                 buttonTexts);
         }
-            
-        return infoBarManager.AttachInfoBarWithButtons(
-            toolWindowId,
-            notification.Message,
-            buttonTexts,
-            SonarLintImageMoniker.OfficialSonarLintMoniker);
+        else
+        {
+            infoBar = infoBarManager.AttachInfoBarWithButtons(
+                toolWindowId,
+                notification.Message,
+                buttonTexts,
+                SonarLintImageMoniker.OfficialSonarLintMoniker);
+        }
+        
+        return new AttachedNotification(notification, infoBar);
     }
 
     public void Dispose()
     {
         CloseNotification();
     }
+    
+    private sealed record AttachedNotification(INotification Notification, IInfoBar InfoBar);
 }
