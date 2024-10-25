@@ -21,7 +21,6 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
@@ -29,7 +28,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
 public interface ISolutionRoslynAnalyzerManager : IDisposable
 {
-    void OnSolutionChanged(string solutionName, BindingConfiguration bindingConfiguration);
+    Task OnSolutionBindingChangedAsync(string solutionName, BindingConfiguration bindingConfiguration);
 }
 
 [Export(typeof(ISolutionRoslynAnalyzerManager))]
@@ -71,9 +70,9 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         this.logger = logger;
     }
 
-    public void OnSolutionChanged(string solutionName, BindingConfiguration bindingConfiguration)
+    public async Task OnSolutionBindingChangedAsync(string solutionName, BindingConfiguration bindingConfiguration)
     {
-        UpdateAnalyzersAsync(solutionName, bindingConfiguration).Forget();
+        await UpdateAnalyzersAsync(solutionName, bindingConfiguration);
     }
 
     private async Task UpdateAnalyzersAsync(string solutionName, BindingConfiguration bindingConfiguration)
