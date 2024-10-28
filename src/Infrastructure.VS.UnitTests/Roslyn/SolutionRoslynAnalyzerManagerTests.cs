@@ -138,7 +138,7 @@ public class SolutionRoslynAnalyzerManagerTests
             analyzerComparer.Equals(embeddedAnalyzers, connectedAnalyzers);
             v1Solution.RemoveAnalyzerReferences(embeddedAnalyzers);
             roslynWorkspaceWrapper.TryApplyChanges(v2Solution);
-            v2Solution.WithAnalyzerReferences(connectedAnalyzers);
+            v2Solution.AddAnalyzerReferences(connectedAnalyzers);
             roslynWorkspaceWrapper.TryApplyChanges(v3Solution);
         });
         embeddedRoslynAnalyzerProvider.DidNotReceiveWithAnyArgs().Get();
@@ -180,7 +180,7 @@ public class SolutionRoslynAnalyzerManagerTests
         testSubject.OnSolutionChanged(null, BindingConfiguration.Standalone);
         testSubject.OnSolutionChanged(solutionName, BindingConfiguration.Standalone);
         
-        v2Solution.Received().WithAnalyzerReferences(embeddedAnalyzers);
+        v2Solution.Received().AddAnalyzerReferences(embeddedAnalyzers);
         roslynWorkspaceWrapper.Received().TryApplyChanges(v3Solution);
     }
     
@@ -200,7 +200,7 @@ public class SolutionRoslynAnalyzerManagerTests
         roslynWorkspaceWrapper.CurrentSolution.Returns(v2Solution); // simulate solution closed and opened, so this is a different version now
         testSubject.OnSolutionChanged(solutionName, connectedModeConfiguration);
         
-        v2Solution.Received().WithAnalyzerReferences(connectedAnalyzers);
+        v2Solution.Received().AddAnalyzerReferences(connectedAnalyzers);
         roslynWorkspaceWrapper.Received().TryApplyChanges(v3Solution);
     }
     
@@ -221,7 +221,7 @@ public class SolutionRoslynAnalyzerManagerTests
 
         Received.InOrder(() =>
         {
-            v1Solution.WithAnalyzerReferences(connectedAnalyzers);
+            v1Solution.AddAnalyzerReferences(connectedAnalyzers);
             roslynWorkspaceWrapper.TryApplyChanges(v2Solution);
         });
     }
@@ -235,7 +235,7 @@ public class SolutionRoslynAnalyzerManagerTests
         
         testSubject.HandleConnectedModeAnalyzerUpdate(null, new AnalyzerUpdatedForConnectionEventArgs(new ServerConnection.SonarCloud("someorg"), connectedAnalyzers));
 
-        v1Solution.DidNotReceiveWithAnyArgs().WithAnalyzerReferences(default);
+        v1Solution.DidNotReceiveWithAnyArgs().AddAnalyzerReferences(default);
         v1Solution.DidNotReceiveWithAnyArgs().RemoveAnalyzerReferences(default);
     }
     
@@ -248,7 +248,7 @@ public class SolutionRoslynAnalyzerManagerTests
         
         testSubject.HandleConnectedModeAnalyzerUpdate(null, new AnalyzerUpdatedForConnectionEventArgs(new ServerConnection.SonarCloud("some other org"), connectedAnalyzers));
 
-        v1Solution.DidNotReceiveWithAnyArgs().WithAnalyzerReferences(default);
+        v1Solution.DidNotReceiveWithAnyArgs().AddAnalyzerReferences(default);
         v1Solution.DidNotReceiveWithAnyArgs().RemoveAnalyzerReferences(default);
     }
     
@@ -274,7 +274,7 @@ public class SolutionRoslynAnalyzerManagerTests
             analyzerComparer.Equals(connectedAnalyzers, differentConnectedAnalyzers);
             v1Solution.RemoveAnalyzerReferences(connectedAnalyzers);
             roslynWorkspaceWrapper.TryApplyChanges(v2Solution);
-            v2Solution.WithAnalyzerReferences(differentConnectedAnalyzers);
+            v2Solution.AddAnalyzerReferences(differentConnectedAnalyzers);
             roslynWorkspaceWrapper.TryApplyChanges(v3Solution);
         });
     }
@@ -337,7 +337,7 @@ public class SolutionRoslynAnalyzerManagerTests
         IRoslynSolutionWrapper resultingSolution,
         ImmutableArray<AnalyzerFileReference> analyzers)
     {
-        originalSolution.WithAnalyzerReferences(analyzers).Returns(resultingSolution);
+        originalSolution.AddAnalyzerReferences(analyzers).Returns(resultingSolution);
         roslynWorkspaceWrapper.TryApplyChanges(resultingSolution).Returns(true);
     }
     
