@@ -80,7 +80,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
 
     private async Task UpdateAnalyzersAsync(string solutionName, BindingConfiguration bindingConfiguration)
     {
-        var analyzersToUse = await ChooseAnalyzersAsync(bindingConfiguration.Project?.ServerConnection);
+        var analyzersToUse = await ChooseAnalyzersAsync();
 
         lock (lockObject)
         {
@@ -126,15 +126,11 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
 
     internal /* for testing */ async Task HandleConnectedModeAnalyzerUpdateAsync(AnalyzerUpdatedForConnectionEventArgs args)
     {
-        var analyzersToUse = await ChooseAnalyzersAsync(args.Connection);
+        var analyzersToUse = await ChooseAnalyzersAsync();
         lock (lockObject)
         {
             ThrowIfDisposed();
-
-            if (args.Connection is not null && currentState?.BindingConfiguration.Project?.ServerConnection.Id == args.Connection.Id)
-            {
-                UpdateAnalyzersIfChanged(analyzersToUse);
-            }
+            UpdateAnalyzersIfChanged(analyzersToUse);
         }
     }
 
@@ -157,8 +153,8 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         }
     }
 
-    private async Task<ImmutableArray<AnalyzerFileReference>> ChooseAnalyzersAsync(ServerConnection serverConnection) =>
-        ChooseAnalyzers(serverConnection is not null ? (await connectedModeAnalyzerProvider.GetOrNullAsync()) : null);
+    private async Task<ImmutableArray<AnalyzerFileReference>> ChooseAnalyzersAsync() =>
+        ChooseAnalyzers(await connectedModeAnalyzerProvider.GetOrNullAsync());
 
     private ImmutableArray<AnalyzerFileReference> ChooseAnalyzers(ImmutableArray<AnalyzerFileReference>? connectedModeAnalyzers) =>
         connectedModeAnalyzers ?? embeddedAnalyzerProvider.Get();

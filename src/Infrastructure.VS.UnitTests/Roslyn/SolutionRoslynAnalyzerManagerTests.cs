@@ -227,26 +227,14 @@ public class SolutionRoslynAnalyzerManagerTests
     }
 
     [TestMethod]
-    public async Task HandleConnectedModeAnalyzerUpdateAsync_Standalone_Ignored()
+    public async Task HandleConnectedModeAnalyzerUpdateAsync_Standalone_Ignores()
     {
         var v1Solution = Substitute.For<IRoslynSolutionWrapper>();
         await SetUpStandaloneSolution(v1Solution, "solution");
         EnableDefaultEmbeddedAnalyzers();
-        
-        await testSubject.HandleConnectedModeAnalyzerUpdateAsync(new AnalyzerUpdatedForConnectionEventArgs(new ServerConnection.SonarCloud("someorg"), connectedAnalyzers));
+        analyzerComparer.Equals(embeddedAnalyzers, embeddedAnalyzers).Returns(true);
 
-        v1Solution.DidNotReceiveWithAnyArgs().WithAnalyzerReferences(default);
-        v1Solution.DidNotReceiveWithAnyArgs().RemoveAnalyzerReferences(default);
-    }
-    
-    [TestMethod]
-    public async Task HandleConnectedModeAnalyzerUpdateAsync_Connected_DifferentConnection_Ignored()
-    {
-        var v1Solution = Substitute.For<IRoslynSolutionWrapper>();
-        await SetUpBoundSolution(v1Solution, "solution");
-        EnableDefaultEmbeddedAnalyzers();
-        
-        await testSubject.HandleConnectedModeAnalyzerUpdateAsync(new AnalyzerUpdatedForConnectionEventArgs(new ServerConnection.SonarCloud("some other org"), connectedAnalyzers));
+        await testSubject.HandleConnectedModeAnalyzerUpdateAsync(new AnalyzerUpdatedForConnectionEventArgs(connectedAnalyzers));
 
         v1Solution.DidNotReceiveWithAnyArgs().WithAnalyzerReferences(default);
         v1Solution.DidNotReceiveWithAnyArgs().RemoveAnalyzerReferences(default);
@@ -255,7 +243,6 @@ public class SolutionRoslynAnalyzerManagerTests
     [TestMethod]
     public async Task HandleConnectedModeAnalyzerUpdateAsync_Connected_NewAnalyzerSet()
     {
-        var connectionWithSameId = new ServerConnection.SonarCloud(((ServerConnection.SonarCloud)connectedModeConfiguration.Project.ServerConnection).OrganizationKey);
         var differentConnectedAnalyzers = ImmutableArray.Create(new AnalyzerFileReference(@"C:\path\connected2", Substitute.For<IAnalyzerAssemblyLoader>()));
         var v1Solution = Substitute.For<IRoslynSolutionWrapper>();
         var v2Solution = Substitute.For<IRoslynSolutionWrapper>();
@@ -266,7 +253,7 @@ public class SolutionRoslynAnalyzerManagerTests
         SetUpAnalyzerRemoval(v1Solution, v2Solution, connectedAnalyzers);
         SetUpAnalyzerAddition(v2Solution, v3Solution, differentConnectedAnalyzers);
 
-        await testSubject.HandleConnectedModeAnalyzerUpdateAsync(new AnalyzerUpdatedForConnectionEventArgs(connectionWithSameId, connectedAnalyzers));
+        await testSubject.HandleConnectedModeAnalyzerUpdateAsync(new AnalyzerUpdatedForConnectionEventArgs(connectedAnalyzers));
 
         Received.InOrder(() =>
         {
@@ -282,7 +269,6 @@ public class SolutionRoslynAnalyzerManagerTests
     [TestMethod]
     public async Task HandleConnectedModeAnalyzerUpdateAsync_Connected_AnalyzersDidNotChange_DoesNotReRegisterConnected()
     {
-        var connectionWithSameId = new ServerConnection.SonarCloud(((ServerConnection.SonarCloud)connectedModeConfiguration.Project.ServerConnection).OrganizationKey);
         var sameSetOfConnectedAnalyzers = ImmutableArray.Create(new AnalyzerFileReference(@"C:\path\connected", Substitute.For<IAnalyzerAssemblyLoader>()));
         var v1Solution = Substitute.For<IRoslynSolutionWrapper>();
         await SetUpBoundSolution(v1Solution, "solution");
@@ -290,7 +276,7 @@ public class SolutionRoslynAnalyzerManagerTests
         connectedModeRoslynAnalyzerProvider.GetOrNullAsync().Returns(sameSetOfConnectedAnalyzers);
         analyzerComparer.Equals(connectedAnalyzers, sameSetOfConnectedAnalyzers).Returns(true);
 
-        await testSubject.HandleConnectedModeAnalyzerUpdateAsync(new AnalyzerUpdatedForConnectionEventArgs(connectionWithSameId, sameSetOfConnectedAnalyzers));
+        await testSubject.HandleConnectedModeAnalyzerUpdateAsync(new AnalyzerUpdatedForConnectionEventArgs(sameSetOfConnectedAnalyzers));
 
         Received.InOrder(() =>
         {
@@ -322,7 +308,7 @@ public class SolutionRoslynAnalyzerManagerTests
     [TestMethod]
     public void HandleConnectedModeAnalyzerUpdateAsync_Disposed_Throws()
     {
-        var act = async () => await testSubject.HandleConnectedModeAnalyzerUpdateAsync(new AnalyzerUpdatedForConnectionEventArgs(connectedModeConfiguration.Project.ServerConnection, embeddedAnalyzers));
+        var act = async () => await testSubject.HandleConnectedModeAnalyzerUpdateAsync(new AnalyzerUpdatedForConnectionEventArgs(embeddedAnalyzers));
         testSubject.Dispose();
         
         act.Should().Throw<ObjectDisposedException>();

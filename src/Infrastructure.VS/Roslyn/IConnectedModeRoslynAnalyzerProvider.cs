@@ -42,8 +42,7 @@ public interface IConnectedModeRoslynAnalyzerProvider
 }
 
 [ExcludeFromCodeCoverage]
-public class AnalyzerUpdatedForConnectionEventArgs(ServerConnection connection, ImmutableArray<AnalyzerFileReference>? analyzers) : EventArgs
+public class AnalyzerUpdatedForConnectionEventArgs(ImmutableArray<AnalyzerFileReference>? analyzers) : EventArgs
 {
-    public ServerConnection Connection { get; } = connection;
     public ImmutableArray<AnalyzerFileReference>? Analyzers { get; } = analyzers;
 }
