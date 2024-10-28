@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests.Roslyn;
@@ -47,9 +46,9 @@ public class ConnectedModeRoslynAnalyzerProviderTests
     }
 
     [TestMethod]
-    public void GetOrNull_ReturnsNull()
+    public async Task GetOrNull_ReturnsNull()
     {
-        var analyzer = testSubject.GetOrNull(new ServerConnection.SonarCloud("myOrg"));
+        var analyzer = await testSubject.GetOrNullAsync();
 
         analyzer.Should().BeNull();
     }
