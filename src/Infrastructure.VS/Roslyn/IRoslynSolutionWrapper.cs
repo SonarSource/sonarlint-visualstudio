@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 internal interface IRoslynSolutionWrapper
 {
     IRoslynSolutionWrapper RemoveAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers);
-    IRoslynSolutionWrapper WithAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers);
+    IRoslynSolutionWrapper AddAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers);
     Solution GetRoslynSolution();
 }
 
@@ -43,8 +43,8 @@ internal class RoslynSolutionWrapper(Solution solution) : IRoslynSolutionWrapper
                             ? current.RemoveAnalyzerReference(analyzer)
                             : current));
 
-    public IRoslynSolutionWrapper WithAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers) => 
-        new RoslynSolutionWrapper(solution.WithAnalyzerReferences(analyzers));
+    public IRoslynSolutionWrapper AddAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers) => 
+        new RoslynSolutionWrapper(solution.AddAnalyzerReferences(analyzers));
 
     public Solution GetRoslynSolution() => solution;
 }
