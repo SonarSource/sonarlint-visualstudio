@@ -60,12 +60,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion
             var notification = new Notification(
                 id: string.Format(IdTemplate, solutionInfoProvider.GetSolutionName()),
                 message: string.Format(BindingStrings.SharedBindingSuggestionMainText, serverType),
-                actions: new INotificationAction[]
-                {
+                actions:
+                [
                     new NotificationAction(BindingStrings.SharedBindingSuggestionConnectOptionText, _ => onConnectHandler(), true),
                     new NotificationAction(BindingStrings.SharedBindingSuggestionInfoOptionText, _ => OnLearnMore(), false),
                     doNotShowAgainNotificationAction
-                });
+                ]);
 
             notificationService.ShowNotification(notification);
         }

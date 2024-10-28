@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-
 namespace SonarLint.VisualStudio.Core.Notifications
 {
     public interface INotification
@@ -30,21 +27,24 @@ namespace SonarLint.VisualStudio.Core.Notifications
         IEnumerable<INotificationAction> Actions { get; }
 
         bool ShowOncePerSession { get; }
+        bool CloseOnSolutionClose { get; }
     }
 
     public class Notification : INotification
     {
-        public Notification(string id, string message, IEnumerable<INotificationAction> actions, bool showOncePerSession = true)
+        public Notification(string id, string message, IEnumerable<INotificationAction> actions, bool showOncePerSession = true, bool closeOnSolutionClose = true)
         {
             Id = id ?? throw new ArgumentNullException(nameof(id));
             Message = message ?? throw new ArgumentNullException(nameof(message));
             Actions = actions ?? throw new ArgumentNullException(nameof(actions));
             ShowOncePerSession = showOncePerSession;
+            CloseOnSolutionClose = closeOnSolutionClose;
         }
 
         public string Id { get; }
         public string Message { get; }
         public IEnumerable<INotificationAction> Actions { get; }
         public bool ShowOncePerSession { get; }
+        public bool CloseOnSolutionClose { get; }
     }
 }

@@ -29,6 +29,7 @@ public class NotificationServiceTests
 {
     private IInfoBarManager infoBarManager;
     private IDisabledNotificationsStorage disabledNotificationsStorage;
+    private IActiveSolutionTracker activeSolutionTracker;
     private IThreadHandling threadHandling;
     private TestLogger logger;
     private NotificationService testSubject;
@@ -38,9 +39,10 @@ public class NotificationServiceTests
     {
         infoBarManager = Substitute.For<IInfoBarManager>();
         disabledNotificationsStorage = Substitute.For<IDisabledNotificationsStorage>();
+        activeSolutionTracker = Substitute.For<IActiveSolutionTracker>();
         threadHandling = Substitute.For<IThreadHandling>();
         logger = new TestLogger();
-        testSubject = new NotificationService(infoBarManager, disabledNotificationsStorage, threadHandling, logger);
+        testSubject = new NotificationService(infoBarManager, disabledNotificationsStorage, activeSolutionTracker, threadHandling, logger);
         
         AllowRunningUiThreadActions();
     }
@@ -51,6 +53,7 @@ public class NotificationServiceTests
         MefTestHelpers.CheckTypeCanBeImported<NotificationService, INotificationService>(
             MefTestHelpers.CreateExport<IInfoBarManager>(),
             MefTestHelpers.CreateExport<IDisabledNotificationsStorage>(),
+            MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
             MefTestHelpers.CreateExport<IThreadHandling>(),
             MefTestHelpers.CreateExport<ILogger>());
     }
@@ -105,7 +108,7 @@ public class NotificationServiceTests
         Action showInfoBar = null;
         var captureParamThreadHandling = Substitute.For<IThreadHandling>();
         captureParamThreadHandling.RunOnUIThreadAsync(Arg.Do<Action>(arg => showInfoBar = arg));
-        var threadHandledTestSubject = new NotificationService(infoBarManager, disabledNotificationsStorage, captureParamThreadHandling, logger);
+        var threadHandledTestSubject = new NotificationService(infoBarManager, disabledNotificationsStorage, activeSolutionTracker, captureParamThreadHandling, logger);
         
         // Trigger the ShowNotification without running the action to validate that the UI action is the one responsible for showing the notification
         threadHandledTestSubject.ShowNotification(notification);
@@ -255,7 +258,38 @@ public class NotificationServiceTests
     
         AssertNotificationWasShown(attachedNotification, aToolWindowId);
     }
+
+    [TestMethod]
+    public void ActiveSolutionChangedEvent_WhenNoActiveNotification_NotificationNotClosed()
+    {
+        activeSolutionTracker.ActiveSolutionChanged += Raise.Event<EventHandler<ActiveSolutionChangedEventArgs>>(this, new ActiveSolutionChangedEventArgs(false));
+
+        infoBarManager.DidNotReceive().CloseInfoBar(Arg.Any<IInfoBar>());
+    }
     
+    [TestMethod]
+    public void ActiveSolutionChangedEvent_WhenSolutionClosedAndCloseOnSolutionClose_NotificationCloses()
+    {
+        var attachedNotification = ShowNotification(closeOnSolutionClose: true);
+    
+        activeSolutionTracker.ActiveSolutionChanged += Raise.Event<EventHandler<ActiveSolutionChangedEventArgs>>(this, new ActiveSolutionChangedEventArgs(false));
+
+        AssertNotificationClosed(attachedNotification);
+    }
+    
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public void ActiveSolutionChangedEvent_WhenSolutionOpenedOrNotCloseOnSolutionClose_NotificationDoesNotClose(bool isSolutionOpen, bool closeOnSolutionClose)
+    {
+        var attachedNotification = ShowNotification(closeOnSolutionClose: closeOnSolutionClose);
+    
+        activeSolutionTracker.ActiveSolutionChanged += Raise.Event<EventHandler<ActiveSolutionChangedEventArgs>>(this, new ActiveSolutionChangedEventArgs(isSolutionOpen));
+        
+        AssertNotificationNotClosed(attachedNotification);
+    }
+
     [TestMethod]
     public void Dispose_ClosesNotification()
     {
@@ -264,6 +298,14 @@ public class NotificationServiceTests
         testSubject.Dispose();
     
         AssertNotificationClosed(attachedNotification);
+    }
+
+    [TestMethod]
+    public void Dispose_UnsubscribesFromActiveSolutionChangeEvents()
+    {
+        testSubject.Dispose();
+    
+        activeSolutionTracker.Received(1).ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
     }
 
     [TestMethod]
@@ -321,7 +363,7 @@ public class NotificationServiceTests
         Action runThreadAction = null;
         var captureParamThreadHandling = Substitute.For<IThreadHandling>();
         captureParamThreadHandling.RunOnUIThreadAsync(Arg.Do<Action>(arg => runThreadAction = arg));
-        var threadHandledTestSubject = new NotificationService(infoBarManager, disabledNotificationsStorage, captureParamThreadHandling, logger);
+        var threadHandledTestSubject = new NotificationService(infoBarManager, disabledNotificationsStorage, activeSolutionTracker, captureParamThreadHandling, logger);
         
         // Show a notification to be able to close it
         threadHandledTestSubject.ShowNotification(notification);
@@ -368,18 +410,18 @@ public class NotificationServiceTests
         threadHandling.RunOnUIThreadAsync(Arg.Do<Action>(arg => arg()));
     }
     
-    private AttachedNotification ShowNotification(string id = null, bool oncePerSession = true, bool disabled = false, params INotificationAction[] actions)
+    private AttachedNotification ShowNotification(string id = null, bool oncePerSession = true, bool disabled = false, bool closeOnSolutionClose = true, params INotificationAction[] actions)
     {
-        var notification = CreateNotification(id, oncePerSession, disabled, actions);
+        var notification = CreateNotification(id, oncePerSession, disabled, closeOnSolutionClose, actions);
         var attachedNotification = AttachNotification(notification);
         testSubject.ShowNotification(notification);
         return attachedNotification;
     }
 
-    private INotification CreateNotification(string id = null, bool oncePerSession = true, bool disabled = false, params INotificationAction[] actions)
+    private INotification CreateNotification(string id = null, bool oncePerSession = true, bool disabled = false, bool closeOnSolutionClose = true, params INotificationAction[] actions)
     {
         var notificationId = id ?? Guid.NewGuid().ToString();
-        var notification = new Notification(notificationId, notificationId, actions, oncePerSession);
+        var notification = new Notification(notificationId, notificationId, actions, oncePerSession, closeOnSolutionClose);
         
         disabledNotificationsStorage.IsNotificationDisabled(notificationId).Returns(disabled);
         

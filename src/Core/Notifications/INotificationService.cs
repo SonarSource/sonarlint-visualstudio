@@ -45,9 +45,10 @@ public interface INotificationService : IDisposable
 internal sealed class NotificationService : INotificationService
 {
     private static readonly Guid MainWindowId = Guid.Empty;
-        
+
     private readonly IInfoBarManager infoBarManager;
     private readonly IDisabledNotificationsStorage notificationsStorage;
+    private readonly IActiveSolutionTracker activeSolutionTracker;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
 
@@ -56,17 +57,22 @@ internal sealed class NotificationService : INotificationService
     private AttachedNotification activeNotification;
 
     [ImportingConstructor]
-    public NotificationService(IInfoBarManager infoBarManager,
+    public NotificationService(
+        IInfoBarManager infoBarManager,
         IDisabledNotificationsStorage notificationsStorage,
+        IActiveSolutionTracker activeSolutionTracker,
         IThreadHandling threadHandling,
         ILogger logger)
     {
         this.infoBarManager = infoBarManager;
         this.notificationsStorage = notificationsStorage;
+        this.activeSolutionTracker = activeSolutionTracker;
         this.threadHandling = threadHandling;
         this.logger = logger;
+        
+        this.activeSolutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
     }
-
+    
     public void ShowNotification(INotification notification)
     {
         ShowNotification(notification, MainWindowId);
@@ -190,10 +196,25 @@ internal sealed class NotificationService : INotificationService
         
         return new AttachedNotification(notification, infoBar);
     }
+    
+    private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
+    {
+        if (activeNotification == null)
+        {
+            return;
+        }
+        
+        if (activeNotification.Notification.CloseOnSolutionClose && !e.IsSolutionOpen)
+        {
+            CloseNotification();
+        }
+    }
 
     public void Dispose()
     {
         CloseNotification();
+        
+        activeSolutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
     }
     
     private sealed record AttachedNotification(INotification Notification, IInfoBar InfoBar);
