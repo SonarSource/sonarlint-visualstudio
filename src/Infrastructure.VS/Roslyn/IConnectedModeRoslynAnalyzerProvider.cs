@@ -19,7 +19,9 @@
  */
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
@@ -29,4 +31,19 @@ public interface IConnectedModeRoslynAnalyzerProvider
     /// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are downloaded from the server for the current binding
     /// </summary>
     Task<ImmutableArray<AnalyzerFileReference>?> GetOrNullAsync();
+
+    /// <summary>
+    /// Provides updates about the analyzers for a given connection
+    /// </summary>
+    /// <remarks>
+    /// Internally this reacts to SLCore synchronization and updates to the cached Connected Mode analyzers
+    /// </remarks>
+    event EventHandler<AnalyzerUpdatedForConnectionEventArgs> AnalyzerUpdatedForConnection;
+}
+
+[ExcludeFromCodeCoverage]
+public class AnalyzerUpdatedForConnectionEventArgs(ServerConnection connection, ImmutableArray<AnalyzerFileReference>? analyzers) : EventArgs
+{
+    public ServerConnection Connection { get; } = connection;
+    public ImmutableArray<AnalyzerFileReference>? Analyzers { get; } = analyzers;
 }

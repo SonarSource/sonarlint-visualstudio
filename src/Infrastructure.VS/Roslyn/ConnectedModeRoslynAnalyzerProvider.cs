@@ -38,4 +38,6 @@ internal class ConnectedModeRoslynAnalyzerProvider : IConnectedModeRoslynAnalyze
     {
         return await Task.FromResult<ImmutableArray<AnalyzerFileReference>?>(null);
     }
+
+    public event EventHandler<AnalyzerUpdatedForConnectionEventArgs> AnalyzerUpdatedForConnection;
 }

@@ -21,6 +21,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
@@ -68,6 +69,8 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         this.roslynWorkspace = roslynWorkspace;
         this.analyzerComparer = analyzerComparer;
         this.logger = logger;
+
+        connectedModeAnalyzerProvider.AnalyzerUpdatedForConnection += HandleConnectedModeAnalyzerUpdate;
     }
 
     public async Task OnSolutionBindingChangedAsync(string solutionName, BindingConfiguration bindingConfiguration)
@@ -117,7 +120,27 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         {
             return;
         }
+        connectedModeAnalyzerProvider.AnalyzerUpdatedForConnection -= HandleConnectedModeAnalyzerUpdate;
         disposed = true;
+    }
+
+    internal /* for testing */ async Task HandleConnectedModeAnalyzerUpdateAsync(AnalyzerUpdatedForConnectionEventArgs args)
+    {
+        var analyzersToUse = await ChooseAnalyzersAsync(args.Connection);
+        lock (lockObject)
+        {
+            ThrowIfDisposed();
+
+            if (args.Connection is not null && currentState?.BindingConfiguration.Project?.ServerConnection.Id == args.Connection.Id)
+            {
+                UpdateAnalyzersIfChanged(analyzersToUse);
+            }
+        }
+    }
+
+    private void HandleConnectedModeAnalyzerUpdate(object sender, AnalyzerUpdatedForConnectionEventArgs args)
+    {
+        HandleConnectedModeAnalyzerUpdateAsync(args).Forget();
     }
 
     private void UpdateCurrentSolutionInfo(string solutionName, BindingConfiguration bindingConfiguration, out bool isSameSolution)
