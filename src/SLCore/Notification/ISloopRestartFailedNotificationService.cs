@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core.Notifications;
 
@@ -52,7 +51,8 @@ namespace SonarLint.VisualStudio.SLCore.Notification
                 {
                     new NotificationAction(SLCoreStrings.SloopRestartFailedNotificationService_Restart, _ => act(), true)
                 },
-                showOncePerSession: false
+                showOncePerSession: false,
+                closeOnSolutionClose: false
             );
 
             notificationService.ShowNotification(notification);

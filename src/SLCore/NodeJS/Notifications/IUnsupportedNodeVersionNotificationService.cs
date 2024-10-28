@@ -54,11 +54,13 @@ namespace SonarLint.VisualStudio.SLCore.NodeJS.Notifications
             notificationService.ShowNotification(new VisualStudio.Core.Notifications.Notification(
                 id: NotificationId,
                 message: string.Format(NotificationStrings.NotificationUnsupportedNode, languageName, minVersion, currentVersion ?? NotificationStrings.NotificationNoneVersion),
-                actions: new INotificationAction[]
-                {
+                actions:
+                [
                     new NotificationAction(NotificationStrings.NotificationShowMoreInfoAction, _ => ShowMoreInfo(), false),
                     doNotShowAgainNotificationAction
-                }));
+                ],
+                closeOnSolutionClose: false)
+            );
         }
 
         private void ShowMoreInfo()
