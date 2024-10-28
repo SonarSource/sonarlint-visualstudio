@@ -184,7 +184,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
 
     private void AddAnalyzer(ImmutableArray<AnalyzerFileReference> analyzerToUse)
     {
-        if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.WithAnalyzerReferences(analyzerToUse)))
+        if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.AddAnalyzerReferences(analyzerToUse)))
         {
             const string message = "Failed to add analyzer references while adding analyzers";
             Debug.Assert(true, message);

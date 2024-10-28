@@ -41,10 +41,27 @@ public class RoslynWrappersTests
         var roslynWorkspaceWrapper = CreateWorkspaceWrapper();
         var analyzers = ImmutableArray.Create(analyzerFileReference);
 
-        var solutionAfterAddition = roslynWorkspaceWrapper.CurrentSolution.WithAnalyzerReferences(analyzers);
+        var solutionAfterAddition = roslynWorkspaceWrapper.CurrentSolution.AddAnalyzerReferences(analyzers);
         roslynWorkspaceWrapper.TryApplyChanges(solutionAfterAddition).Should().BeTrue();
         
-        roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Contains(analyzerFileReference).Should().BeTrue();
+        roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Should().Contain(analyzerFileReference);
+    }
+    
+    [TestMethod]
+    public void AddExtraAnalyzer_CurrentSolutionContainsBothAnalyzers()
+    {
+        var analyzerFileReference = new AnalyzerFileReference(@"C:\abc", Substitute.For<IAnalyzerAssemblyLoader>());
+        var extraAnalyzerFileReference = new AnalyzerFileReference(@"C:\abc", Substitute.For<IAnalyzerAssemblyLoader>());
+        var roslynWorkspaceWrapper = CreateWorkspaceWrapper();
+        var extraAnalyzers = ImmutableArray.Create(extraAnalyzerFileReference);
+        roslynWorkspaceWrapper.TryApplyChanges(roslynWorkspaceWrapper.CurrentSolution.AddAnalyzerReferences(ImmutableArray.Create(analyzerFileReference))).Should().BeTrue();
+        
+        var solutionAfterAddition = roslynWorkspaceWrapper.CurrentSolution.AddAnalyzerReferences(extraAnalyzers);
+        roslynWorkspaceWrapper.TryApplyChanges(solutionAfterAddition).Should().BeTrue();
+
+        var solutionAnalyzers = roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences;
+        solutionAnalyzers.Should().Contain(analyzerFileReference);
+        solutionAnalyzers.Should().Contain(extraAnalyzerFileReference);
     }
     
     [TestMethod]
@@ -54,13 +71,13 @@ public class RoslynWrappersTests
         var roslynWorkspaceWrapper = CreateWorkspaceWrapper();
         var analyzers = ImmutableArray.Create(analyzerFileReference);
         
-        var solutionAfterAddition = roslynWorkspaceWrapper.CurrentSolution.WithAnalyzerReferences(analyzers);
+        var solutionAfterAddition = roslynWorkspaceWrapper.CurrentSolution.AddAnalyzerReferences(analyzers);
         roslynWorkspaceWrapper.TryApplyChanges(solutionAfterAddition).Should().BeTrue();
         
         var solutionAfterRemoval = roslynWorkspaceWrapper.CurrentSolution.RemoveAnalyzerReferences(analyzers);
         roslynWorkspaceWrapper.TryApplyChanges(solutionAfterRemoval).Should().BeTrue();
         
-        roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Contains(analyzerFileReference).Should().BeFalse();
+        roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Should().NotContain(analyzerFileReference);
     }
     
     [TestMethod]
@@ -73,7 +90,7 @@ public class RoslynWrappersTests
         var solutionAfterRemoval = roslynWorkspaceWrapper.CurrentSolution.RemoveAnalyzerReferences(analyzers);
         roslynWorkspaceWrapper.TryApplyChanges(solutionAfterRemoval).Should().BeTrue();
         
-        roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Contains(analyzerFileReference).Should().BeFalse();
+        roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Should().NotContain(analyzerFileReference);
     }
     
     [TestMethod]
@@ -85,10 +102,10 @@ public class RoslynWrappersTests
         var analyzersToRemove = ImmutableArray.Create(analyzerFileReference1);
         var roslynWorkspaceWrapper = CreateWorkspaceWrapper();
         
-        roslynWorkspaceWrapper.TryApplyChanges(roslynWorkspaceWrapper.CurrentSolution.WithAnalyzerReferences(analyzersToAdd)).Should().BeTrue();
+        roslynWorkspaceWrapper.TryApplyChanges(roslynWorkspaceWrapper.CurrentSolution.AddAnalyzerReferences(analyzersToAdd)).Should().BeTrue();
         roslynWorkspaceWrapper.TryApplyChanges(roslynWorkspaceWrapper.CurrentSolution.RemoveAnalyzerReferences(analyzersToRemove)).Should().BeTrue();
-        roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Contains(analyzerFileReference1).Should().BeFalse();
-        roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Contains(analyzerFileReference2).Should().BeTrue();
+        roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Should().NotContain(analyzerFileReference1);
+        roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Should().Contain(analyzerFileReference2);
     }
 
     private static IRoslynWorkspaceWrapper CreateWorkspaceWrapper()
