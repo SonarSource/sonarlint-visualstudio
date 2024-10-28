@@ -21,6 +21,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
@@ -28,7 +29,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
 public interface ISolutionRoslynAnalyzerManager : IDisposable
 {
-    void OnSolutionChanged(string solutionName, BindingConfiguration bindingConfiguration);
+    Task OnSolutionStateChangedAsync(string solutionName);
 }
 
 [Export(typeof(ISolutionRoslynAnalyzerManager))]
@@ -72,8 +73,10 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         connectedModeAnalyzerProvider.AnalyzerUpdatedForConnection += HandleConnectedModeAnalyzerUpdate;
     }
 
-    public void OnSolutionChanged(string solutionName, BindingConfiguration bindingConfiguration)
+    public async Task OnSolutionStateChangedAsync(string solutionName)
     {
+        var analyzersToUse = await ChooseAnalyzersAsync();
+
         lock (lockObject)
         {
             ThrowIfDisposed();
@@ -85,9 +88,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
                 return;
             }
 
-            UpdateCurrentSolutionInfo(solutionName, bindingConfiguration, out var isSameSolution);
-
-            var analyzersToUse = ChooseAnalyzers(bindingConfiguration.Project?.ServerConnection);
+            UpdateCurrentSolutionInfo(solutionName, out var isSameSolution);
 
             if (isSameSolution)
             {
@@ -118,35 +119,36 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         disposed = true;
     }
 
-    internal /* for testing */ void HandleConnectedModeAnalyzerUpdate(object sender, AnalyzerUpdatedForConnectionEventArgs args)
+    internal /* for testing */ async Task HandleConnectedModeAnalyzerUpdateAsync(AnalyzerUpdatedForConnectionEventArgs args)
     {
+        var analyzersToUse = await ChooseAnalyzersAsync();
         lock (lockObject)
         {
             ThrowIfDisposed();
-            
-            if (args.Connection is not null && currentState?.BindingConfiguration.Project?.ServerConnection.Id == args.Connection.Id)
-            {
-                UpdateAnalyzersIfChanged(ChooseAnalyzers(args.Connection));
-            }
+            UpdateAnalyzersIfChanged(analyzersToUse);
         }
     }
 
-    private void UpdateCurrentSolutionInfo(string solutionName, BindingConfiguration bindingConfiguration, out bool isSameSolution)
+    private void HandleConnectedModeAnalyzerUpdate(object sender, AnalyzerUpdatedForConnectionEventArgs args)
+    {
+        HandleConnectedModeAnalyzerUpdateAsync(args).Forget();
+    }
+
+    private void UpdateCurrentSolutionInfo(string solutionName, out bool isSameSolution)
     {
         if (currentState is { SolutionName: var currentSolutionName } && solutionName == currentSolutionName)
         {
-            currentState = currentState.Value with { BindingConfiguration = bindingConfiguration };
             isSameSolution = true;
         }
         else
         {
-            currentState = new SolutionStateInfo(solutionName, bindingConfiguration);
+            currentState = new SolutionStateInfo(solutionName);
             isSameSolution = false;
         }
     }
 
-    private ImmutableArray<AnalyzerFileReference> ChooseAnalyzers(ServerConnection serverConnection) =>
-        ChooseAnalyzers(serverConnection is not null ? connectedModeAnalyzerProvider.GetOrNull(serverConnection) : null);
+    private async Task<ImmutableArray<AnalyzerFileReference>> ChooseAnalyzersAsync() =>
+        ChooseAnalyzers(await connectedModeAnalyzerProvider.GetOrNullAsync());
 
     private ImmutableArray<AnalyzerFileReference> ChooseAnalyzers(ImmutableArray<AnalyzerFileReference>? connectedModeAnalyzers) =>
         connectedModeAnalyzers ?? embeddedAnalyzerProvider.Get();
@@ -195,5 +197,5 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         currentAnalyzers = analyzerToUse;
     }
 
-    private record struct SolutionStateInfo(string SolutionName, BindingConfiguration BindingConfiguration);
+    private record struct SolutionStateInfo(string SolutionName);
 }

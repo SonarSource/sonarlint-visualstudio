@@ -34,9 +34,9 @@ internal class ConnectedModeRoslynAnalyzerProvider : IConnectedModeRoslynAnalyze
     {
     }
 
-    public ImmutableArray<AnalyzerFileReference>? GetOrNull(ServerConnection connection)
+    public async Task<ImmutableArray<AnalyzerFileReference>?> GetOrNullAsync()
     {
-        return null;
+        return await Task.FromResult<ImmutableArray<AnalyzerFileReference>?>(null);
     }
 
     public event EventHandler<AnalyzerUpdatedForConnectionEventArgs> AnalyzerUpdatedForConnection;

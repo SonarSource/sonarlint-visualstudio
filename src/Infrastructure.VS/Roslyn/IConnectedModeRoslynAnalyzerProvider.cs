@@ -30,7 +30,8 @@ public interface IConnectedModeRoslynAnalyzerProvider
     /// <summary>
     /// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are downloaded from the server for the current binding
     /// </summary>
-    ImmutableArray<AnalyzerFileReference>? GetOrNull(ServerConnection connection);
+    Task<ImmutableArray<AnalyzerFileReference>?> GetOrNullAsync();
+
     /// <summary>
     /// Provides updates about the analyzers for a given connection
     /// </summary>
@@ -41,8 +42,7 @@ public interface IConnectedModeRoslynAnalyzerProvider
 }
 
 [ExcludeFromCodeCoverage]
-public class AnalyzerUpdatedForConnectionEventArgs(ServerConnection connection, ImmutableArray<AnalyzerFileReference>? analyzers) : EventArgs
+public class AnalyzerUpdatedForConnectionEventArgs(ImmutableArray<AnalyzerFileReference>? analyzers) : EventArgs
 {
-    public ServerConnection Connection { get; } = connection;
     public ImmutableArray<AnalyzerFileReference>? Analyzers { get; } = analyzers;
 }
