@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Linq;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.SLCore.Notification;
 
@@ -59,6 +58,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Notification
             notification.Id.Should().Be("sonarlint.sloop.restart.failed");
             notification.Message.Should().Be("SonarLint background service failed to start");
             notification.Actions.Should().HaveCount(1);
+            notification.CloseOnSolutionClose.Should().Be(false);
 
             notification.Actions.First().Action(notification);
 

@@ -21,6 +21,7 @@
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.SLCore.NodeJS.Notifications;
+using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.NodeJS.Notifications
 {
@@ -37,11 +38,11 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.NodeJS.Notifications
         }
 
         [DataTestMethod]
-        [DataRow(SLCore.Common.Models.Language.JS, "321", "123", "123")]
-        [DataRow(SLCore.Common.Models.Language.CSS, "99.00.11", "9876.5432", "9876.5432")]
-        [DataRow(SLCore.Common.Models.Language.JS, "321", null, "Not found")]
-        [DataRow(SLCore.Common.Models.Language.TS, "5.4.3.2.1", null, "Not found")]
-        public void Show_ShowsCorrectMessageAndNotificationId(SLCore.Common.Models.Language language, string expectedVersion, string actualVersion, string displayActualVersion)
+        [DataRow(Language.JS, "321", "123", "123")]
+        [DataRow(Language.CSS, "99.00.11", "9876.5432", "9876.5432")]
+        [DataRow(Language.JS, "321", null, "Not found")]
+        [DataRow(Language.TS, "5.4.3.2.1", null, "Not found")]
+        public void Show_ShowsCorrectMessageAndNotificationId(Language language, string expectedVersion, string actualVersion, string displayActualVersion)
         {
             INotification createdNotification = null;
             var notificationService = CreateNotificationService(n => createdNotification = n);
@@ -60,6 +61,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.NodeJS.Notifications
             createdNotification.Id.Should().Be("sonarlint.nodejs.min.version.not.found");
             createdNotification.Message.Should().Be($"SonarLint: {language} analysis failed. Could not find a Node.js runtime (required: >={expectedVersion}, actual: {displayActualVersion}) on your computer.");
             createdNotification.Actions.Count().Should().Be(2);
+            createdNotification.CloseOnSolutionClose.Should().Be(false);
         }
 
         [TestMethod]
