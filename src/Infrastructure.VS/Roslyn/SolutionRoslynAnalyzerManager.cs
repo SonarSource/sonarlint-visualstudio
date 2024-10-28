@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
 public interface ISolutionRoslynAnalyzerManager : IDisposable
 {
-    Task OnSolutionStateChangedAsync(string solutionName, BindingConfiguration bindingConfiguration);
+    Task OnSolutionStateChangedAsync(string solutionName);
 }
 
 [Export(typeof(ISolutionRoslynAnalyzerManager))]
@@ -73,12 +73,12 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         connectedModeAnalyzerProvider.AnalyzerUpdatedForConnection += HandleConnectedModeAnalyzerUpdate;
     }
 
-    public async Task OnSolutionStateChangedAsync(string solutionName, BindingConfiguration bindingConfiguration)
+    public async Task OnSolutionStateChangedAsync(string solutionName)
     {
-        await UpdateAnalyzersAsync(solutionName, bindingConfiguration);
+        await UpdateAnalyzersAsync(solutionName);
     }
 
-    private async Task UpdateAnalyzersAsync(string solutionName, BindingConfiguration bindingConfiguration)
+    private async Task UpdateAnalyzersAsync(string solutionName)
     {
         var analyzersToUse = await ChooseAnalyzersAsync();
 
@@ -93,7 +93,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
                 return;
             }
 
-            UpdateCurrentSolutionInfo(solutionName, bindingConfiguration, out var isSameSolution);
+            UpdateCurrentSolutionInfo(solutionName, out var isSameSolution);
 
             if (isSameSolution)
             {
@@ -139,16 +139,15 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         HandleConnectedModeAnalyzerUpdateAsync(args).Forget();
     }
 
-    private void UpdateCurrentSolutionInfo(string solutionName, BindingConfiguration bindingConfiguration, out bool isSameSolution)
+    private void UpdateCurrentSolutionInfo(string solutionName, out bool isSameSolution)
     {
         if (currentState is { SolutionName: var currentSolutionName } && solutionName == currentSolutionName)
         {
-            currentState = currentState.Value with { BindingConfiguration = bindingConfiguration };
             isSameSolution = true;
         }
         else
         {
-            currentState = new SolutionStateInfo(solutionName, bindingConfiguration);
+            currentState = new SolutionStateInfo(solutionName);
             isSameSolution = false;
         }
     }
@@ -203,5 +202,5 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         currentAnalyzers = analyzerToUse;
     }
 
-    private record struct SolutionStateInfo(string SolutionName, BindingConfiguration BindingConfiguration);
+    private record struct SolutionStateInfo(string SolutionName);
 }
