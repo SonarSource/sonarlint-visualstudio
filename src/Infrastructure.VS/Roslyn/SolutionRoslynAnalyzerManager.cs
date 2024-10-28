@@ -75,11 +75,6 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
 
     public async Task OnSolutionStateChangedAsync(string solutionName)
     {
-        await UpdateAnalyzersAsync(solutionName);
-    }
-
-    private async Task UpdateAnalyzersAsync(string solutionName)
-    {
         var analyzersToUse = await ChooseAnalyzersAsync();
 
         lock (lockObject)
