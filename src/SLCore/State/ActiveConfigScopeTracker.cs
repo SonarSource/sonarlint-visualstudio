@@ -43,6 +43,8 @@ public interface IActiveConfigScopeTracker : IDisposable
     bool TryUpdateRootOnCurrentConfigScope(string id, string root);
 
     bool TryUpdateAnalysisReadinessOnCurrentConfigScope(string id, bool isReady);
+
+    event EventHandler CurrentConfigurationScopeChanged;
 }
 
 public record ConfigurationScope(
@@ -107,12 +109,14 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             {
                 configurationScopeService.DidUpdateBinding(new DidUpdateBindingParams(id, GetBinding(connectionId, sonarProjectKey)));
                 currentConfigScope = currentConfigScope with { ConnectionId = connectionId, SonarProjectId = sonarProjectKey };
+                OnCurrentConfigurationScopeChanged();
                 return;
             }
 
             configurationScopeService.DidAddConfigurationScopes(new DidAddConfigurationScopesParams([
                 new ConfigurationScopeDto(id, id, true, GetBinding(connectionId, sonarProjectKey))]));
             currentConfigScope = new ConfigurationScope(id, connectionId, sonarProjectKey);
+            OnCurrentConfigurationScopeChanged();
         }
     }
 
@@ -123,6 +127,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         using (asyncLock.Acquire())
         {
             currentConfigScope = null;
+            OnCurrentConfigurationScopeChanged();
         }
     }
 
@@ -145,6 +150,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             configurationScopeService.DidRemoveConfigurationScope(
                 new DidRemoveConfigurationScopeParams(currentConfigScope.Id));
             currentConfigScope = null;
+            OnCurrentConfigurationScopeChanged();
         }
     }
 
@@ -158,6 +164,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             }
 
             currentConfigScope = currentConfigScope with { RootPath = root };
+            OnCurrentConfigurationScopeChanged();
             return true;
         }
     }
@@ -172,9 +179,12 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             }
             
             currentConfigScope = currentConfigScope with { isReadyForAnalysis = isReady};
+            OnCurrentConfigurationScopeChanged();
             return true;
         }
     }
+
+    public event EventHandler CurrentConfigurationScopeChanged;
 
     public void Dispose()
     {
@@ -184,4 +194,9 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
     private BindingConfigurationDto GetBinding(string connectionId, string sonarProjectKey) => connectionId is not null
         ? new BindingConfigurationDto(connectionId, sonarProjectKey)
         : null;
+
+    private void OnCurrentConfigurationScopeChanged()
+    {
+        CurrentConfigurationScopeChanged?.Invoke(this, EventArgs.Empty);
+    }
 }
