@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
 public interface ISolutionRoslynAnalyzerManager : IDisposable
 {
-    Task OnSolutionBindingChangedAsync(string solutionName, BindingConfiguration bindingConfiguration);
+    Task OnSolutionStateChangedAsync(string solutionName, BindingConfiguration bindingConfiguration);
 }
 
 [Export(typeof(ISolutionRoslynAnalyzerManager))]
@@ -73,7 +73,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         connectedModeAnalyzerProvider.AnalyzerUpdatedForConnection += HandleConnectedModeAnalyzerUpdate;
     }
 
-    public async Task OnSolutionBindingChangedAsync(string solutionName, BindingConfiguration bindingConfiguration)
+    public async Task OnSolutionStateChangedAsync(string solutionName, BindingConfiguration bindingConfiguration)
     {
         await UpdateAnalyzersAsync(solutionName, bindingConfiguration);
     }

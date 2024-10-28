@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 sonarQubeService: sonarQubeServiceMock.Object,
                 solutionRoslynAnalyzerManager: analyzerManager.Object);
 
-            analyzerManager.Verify(x => x.OnSolutionBindingChangedAsync(null, BindingConfiguration.Standalone));
+            analyzerManager.Verify(x => x.OnSolutionStateChangedAsync(null, BindingConfiguration.Standalone));
         }
         
         [TestMethod]
@@ -197,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 sonarQubeService: sonarQubeServiceMock.Object,
                 solutionRoslynAnalyzerManager: analyzerManager.Object);
 
-            analyzerManager.Verify(x => x.OnSolutionBindingChangedAsync("solution123", BindingConfiguration.Standalone));
+            analyzerManager.Verify(x => x.OnSolutionStateChangedAsync("solution123", BindingConfiguration.Standalone));
         }
 
         [TestMethod]
@@ -218,7 +218,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 sonarQubeService: sonarQubeServiceMock.Object,
                 solutionRoslynAnalyzerManager: analyzerManager.Object);
             
-            analyzerManager.Verify(x => x.OnSolutionBindingChangedAsync("solution123", It.Is<BindingConfiguration>(y => y.Mode == SonarLintMode.Connected && y.Project == boundSonarQubeProject)));
+            analyzerManager.Verify(x => x.OnSolutionStateChangedAsync("solution123", It.Is<BindingConfiguration>(y => y.Mode == SonarLintMode.Connected && y.Project == boundSonarQubeProject)));
         }
 
         [TestMethod]
@@ -362,13 +362,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             if (bound)
             {
-                analyzerManager.Verify(x => x.OnSolutionBindingChangedAsync(solutionName,
+                analyzerManager.Verify(x => x.OnSolutionStateChangedAsync(solutionName,
                         It.Is<BindingConfiguration>(y => y.Mode == SonarLintMode.Connected && y.Project == boundSonarQubeProject)),
                     Times.Exactly(1));
             }
             else
             {
-                analyzerManager.Verify(x => x.OnSolutionBindingChangedAsync(solutionName, BindingConfiguration.Standalone), Times.Exactly(1));
+                analyzerManager.Verify(x => x.OnSolutionStateChangedAsync(solutionName, BindingConfiguration.Standalone), Times.Exactly(1));
             }
             analyzerManager.Invocations.Clear();
         }
