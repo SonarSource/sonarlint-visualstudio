@@ -21,10 +21,10 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
-using SonarLint.VisualStudio.SLCore.State;
 using AnalyzerOptions = SonarLint.VisualStudio.Core.Analysis.AnalyzerOptions;
 
 namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation.Analysis;

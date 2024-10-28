@@ -21,12 +21,12 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.File;
-using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.Integration.LocalServices;
 
