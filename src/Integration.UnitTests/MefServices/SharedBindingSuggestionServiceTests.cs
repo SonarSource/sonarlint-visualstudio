@@ -147,14 +147,6 @@ public class SharedBindingSuggestionServiceTests
         showAction.Should().NotBeNull();
         connectedModeManager.Received(1).ShowManageBindingDialog(true);
     }
-    
-    [TestMethod]
-    public void ActiveSolutionChanged_SolutionIsClosed_ClosesNotification()
-    {
-        RaiseActiveSolutionChanged(false);
-        
-        suggestSharedBindingGoldBar.Received().Close();
-    }
 
     private void RaiseActiveSolutionChanged(bool isSolutionOpened)
     {

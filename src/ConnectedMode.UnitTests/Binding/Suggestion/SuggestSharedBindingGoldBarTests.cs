@@ -71,7 +71,7 @@ public class SuggestSharedBindingGoldBarTests
         notificationActions[1].CommandText.Should().Be(BindingStrings.SharedBindingSuggestionInfoOptionText);
         notificationActions[1].ShouldDismissAfterAction.Should().BeFalse();
         notificationActions[2].Should().BeSameAs(doNotShowAgainMock.Object);
-        notification.CloseOnSolutionClose.Should().Be(false);
+        notification.CloseOnSolutionClose.Should().Be(true);
     }
 
     
