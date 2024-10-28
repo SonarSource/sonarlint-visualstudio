@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
@@ -87,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration
             solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
 
             CurrentConfiguration = GetBindingConfiguration();
-            solutionRoslynAnalyzerManager.OnSolutionChanged(activeSolutionTracker.CurrentSolutionName, CurrentConfiguration);
+            solutionRoslynAnalyzerManager.OnSolutionStateChangedAsync(activeSolutionTracker.CurrentSolutionName).Forget();
 
             SetBoundSolutionUIContext();
 
@@ -169,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration
         private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration, string solutionName, bool? isBindingCleared = null)
         {
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project);
-            solutionRoslynAnalyzerManager.OnSolutionChanged(solutionName, newBindingConfiguration);
+            solutionRoslynAnalyzerManager.OnSolutionStateChangedAsync(solutionName).Forget();
 
             if (!CurrentConfiguration.Equals(newBindingConfiguration))
             {
