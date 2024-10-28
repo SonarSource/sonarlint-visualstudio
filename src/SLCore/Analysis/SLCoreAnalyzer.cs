@@ -62,7 +62,7 @@ public class SLCoreAnalyzer : IAnalyzer
         analysisStatusNotifier.AnalysisStarted();
         
         var configurationScope = activeConfigScopeTracker.Current;
-        if (configurationScope is not { isReadyForAnalysis: true })
+        if (configurationScope is not { IsReadyForAnalysis: true })
         {
             analysisStatusNotifier.AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
             return;

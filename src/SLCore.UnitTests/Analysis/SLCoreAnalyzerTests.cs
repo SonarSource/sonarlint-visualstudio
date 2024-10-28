@@ -99,7 +99,7 @@ public class SLCoreAnalyzerTests
     public void ExecuteAnalysis_ConfigScopeNotReadyForAnalysis_NotifyNotReady()
     {
         var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
-        activeConfigScopeTracker.Current.Returns(new ConfigurationScope("someconfigscopeid", isReadyForAnalysis: false));
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope("someconfigscopeid", IsReadyForAnalysis: false));
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), activeConfigScopeTracker, CreateDefaultAnalysisStatusNotifier(out var notifier));
         
         testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
@@ -235,7 +235,7 @@ public class SLCoreAnalyzerTests
     private static IActiveConfigScopeTracker CreateInitializedConfigScope(string id)
     {
         var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
-        activeConfigScopeTracker.Current.Returns(new ConfigurationScope(id, isReadyForAnalysis: true));
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope(id, IsReadyForAnalysis: true));
         return activeConfigScopeTracker;
     }
 

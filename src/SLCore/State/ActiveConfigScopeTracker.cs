@@ -150,7 +150,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
                 return false;
             }
             
-            currentConfigScope = currentConfigScope with { isReadyForAnalysis = isReady};
+            currentConfigScope = currentConfigScope with { IsReadyForAnalysis = isReady};
             OnCurrentConfigurationScopeChanged();
             return true;
         }

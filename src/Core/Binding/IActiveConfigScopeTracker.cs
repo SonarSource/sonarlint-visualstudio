@@ -42,7 +42,7 @@ public record ConfigurationScope(
     string ConnectionId = null,
     string SonarProjectId = null,
     string RootPath = null,
-    bool isReadyForAnalysis = false)
+    bool IsReadyForAnalysis = false)
 {
     public string Id { get; } = Id ?? throw new ArgumentNullException(nameof(Id));
 }
