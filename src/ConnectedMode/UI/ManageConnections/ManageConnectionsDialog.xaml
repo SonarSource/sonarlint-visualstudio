@@ -21,7 +21,7 @@
         </ResourceDictionary>
     </Window.Resources>
     <Window.Style>
-        <Style TargetType="Window" BasedOn="{StaticResource ConnectedModeWindow}"></Style>
+        <Style TargetType="Window" BasedOn="{StaticResource ConnectedModeWindow}" />
     </Window.Style>
 
     <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="10">
@@ -66,10 +66,10 @@
                                    <Style TargetType="Image">
                                        <Style.Triggers>
                                            <DataTrigger Binding="{Binding Path=ServerType}" Value="SonarCloud">
-                                               <Setter Property="Source" Value="{StaticResource SonarCloudIconDrawingImage}"></Setter>
+                                               <Setter Property="Source" Value="{StaticResource SonarCloudIconDrawingImage}" />
                                            </DataTrigger>
                                            <DataTrigger Binding="{Binding Path=ServerType}" Value="SonarQube">
-                                               <Setter Property="Source" Value="{StaticResource SonarQubeIconDrawingImage}"></Setter>
+                                               <Setter Property="Source" Value="{StaticResource SonarQubeIconDrawingImage}" />
                                            </DataTrigger>
                                         </Style.Triggers>
                                    </Style>
@@ -92,7 +92,7 @@
                                    <ColumnDefinition Width="Auto"/>
                                </Grid.ColumnDefinitions>
 
-                               <Button Grid.Column="0" Style="{StaticResource IconButtonStyle}" ToolTip="{x:Static res:UiResources.EditConnectionToolTip}" Click="EditConnection_Clicked" Visibility="Collapsed">
+                               <Button Grid.Column="0" Style="{StaticResource IconButtonStyle}" ToolTip="{x:Static res:UiResources.EditConnectionToolTip}" Click="EditConnection_Clicked">
                                    <imaging:CrispImage Width="20" Height="20" VerticalAlignment="Center" Cursor="Hand" Moniker="{x:Static vsimagecatalog:KnownMonikers.Settings}"
                                                        Margin="10,0" />
                                 </Button>
