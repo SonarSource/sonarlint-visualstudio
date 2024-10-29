@@ -115,7 +115,7 @@ public class ActiveConfigScopeTrackerTests
         var result = testSubject.TryUpdateRootOnCurrentConfigScope("some other id", "some root");
         
         result.Should().BeFalse();
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, isReadyForAnalysis: isReady));
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, IsReadyForAnalysis: isReady));
         VerifyCurrentConfigurationScopeChangedNotRaised();
     }
     
@@ -357,7 +357,7 @@ public class ActiveConfigScopeTrackerTests
         currentConfigScopeChangedEventHandler.Received(1).Invoke(testSubject, Arg.Is<ConfigurationScope>(c => IsSameConfigScope(c, configScopeId)));
     }
 
-    private bool IsSameConfigScope(ConfigurationScope configurationScope, string configScopeId)
+    private static bool IsSameConfigScope(ConfigurationScope configurationScope, string configScopeId)
     {
         return configurationScope?.Id == configScopeId;
     }
