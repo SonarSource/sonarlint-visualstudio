@@ -97,7 +97,7 @@ public class ActiveConfigScopeTrackerTests
         testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, isReadyForAnalysis: isReady);
 
         var result = testSubject.TryUpdateRootOnCurrentConfigScope(configScopeId, "some root");
-        
+
         result.Should().BeTrue();
         testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, "some root", isReady));
         VerifyCurrentConfigurationScopeChangedRaised();
@@ -113,12 +113,12 @@ public class ActiveConfigScopeTrackerTests
         testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, isReadyForAnalysis: isReady);
 
         var result = testSubject.TryUpdateRootOnCurrentConfigScope("some other id", "some root");
-        
+
         result.Should().BeFalse();
         testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, isReadyForAnalysis: isReady));
         VerifyCurrentConfigurationScopeChangedNotRaised();
     }
-    
+
     [TestMethod]
     public void TryUpdateAnalysisReadinessOnCurrentConfigScope_ConfigScopeSame_Updates()
     {
@@ -129,7 +129,7 @@ public class ActiveConfigScopeTrackerTests
         testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root);
 
         var result = testSubject.TryUpdateAnalysisReadinessOnCurrentConfigScope(configScopeId, true);
-        
+
         result.Should().BeTrue();
         testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root, true));
         VerifyCurrentConfigurationScopeChangedRaised();
@@ -145,7 +145,7 @@ public class ActiveConfigScopeTrackerTests
         testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root);
 
         var result = testSubject.TryUpdateAnalysisReadinessOnCurrentConfigScope("some other id", true);
-        
+
         result.Should().BeFalse();
         testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root));
         VerifyCurrentConfigurationScopeChangedNotRaised();
