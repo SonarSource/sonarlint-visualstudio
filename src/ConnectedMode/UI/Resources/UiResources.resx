@@ -422,4 +422,10 @@ Please manually add the credentials for the connection and then try again.</valu
   <data name="NoProjectsFoundForSearchTermLabel" xml:space="preserve">
     <value>Your search did not match any project</value>
   </data>
+  <data name="UpdatingConnectionCredentialsProgressText" xml:space="preserve">
+    <value>Updating credentials...</value>
+  </data>
+  <data name="UpdatingConnectionCredentialsFailedText" xml:space="preserve">
+    <value>Failed to update the connection, please make sure that the credentials are correct.</value>
+  </data>
 </root>

@@ -280,7 +280,42 @@ public class ManageConnectionsViewModelTest
         testSubject.ConnectionViewModels.Should().BeEmpty();
         serverConnectionsRepositoryAdapter.Received(1).TryAddConnection(connectionToAdd, Arg.Any<ICredentialsModel>());
     }
+    
+    [TestMethod]
+    public async Task UpdateConnectionCredentialsWithProgressAsync_InitializesDataAndReportsProgress()
+    {
+        var connectionToUpdate = CreateSonarCloudConnection();
 
+        await testSubject.UpdateConnectionCredentialsWithProgressAsync(connectionToUpdate, Substitute.For<ICredentialsModel>());
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.ProgressStatus == UiResources.UpdatingConnectionCredentialsProgressText &&
+                    x.WarningText == UiResources.UpdatingConnectionCredentialsFailedText));
+    }
+    
+    [TestMethod]
+    public void UpdateConnectionCredentials_ConnectionWasUpdatedInRepository_UpdatesProvidedConnection()
+    {
+        var connectionToUpdate = CreateSonarCloudConnection();
+        serverConnectionsRepositoryAdapter.TryUpdateCredentials(connectionToUpdate, Arg.Any<ICredentialsModel>()).Returns(true);
+
+        var succeeded = testSubject.UpdateConnectionCredentials(connectionToUpdate, Substitute.For<ICredentialsModel>());
+
+        succeeded.Should().BeTrue();
+        serverConnectionsRepositoryAdapter.Received(1).TryUpdateCredentials(connectionToUpdate, Arg.Any<ICredentialsModel>());
+    }
+
+    [TestMethod]
+    public void UpdateConnectionCredentials_ConnectionIsNull_DoesNotUpdateConnection()
+    {
+        var succeeded = testSubject.UpdateConnectionCredentials(null, Substitute.For<ICredentialsModel>());
+
+        succeeded.Should().BeFalse();
+        serverConnectionsRepositoryAdapter.DidNotReceive().TryUpdateCredentials(Arg.Any<Connection>(), Arg.Any<ICredentialsModel>());
+    }
+    
     [TestMethod]
     public async Task GetConnectionReferencesWithProgressAsync_CalculatesReferencesAndReportsProgress()
     {

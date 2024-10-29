@@ -926,6 +926,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to update the connection, please make sure that the credentials are correct..
+        /// </summary>
+        public static string UpdatingConnectionCredentialsFailedText {
+            get {
+                return ResourceManager.GetString("UpdatingConnectionCredentialsFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating credentials....
+        /// </summary>
+        public static string UpdatingConnectionCredentialsProgressText {
+            get {
+                return ResourceManager.GetString("UpdatingConnectionCredentialsProgressText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Username.
         /// </summary>
         public static string UsernameLabel {
