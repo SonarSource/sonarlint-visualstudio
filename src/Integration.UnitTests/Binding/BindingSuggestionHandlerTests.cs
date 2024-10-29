@@ -20,11 +20,11 @@
 
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.UI;
-using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding;
 
@@ -131,11 +131,34 @@ public class BindingSuggestionHandlerTests
 
         browserService.Received().Navigate(DocumentationLinks.OpenInIdeBindingSetup);
     }
+    
+    [TestMethod]
+    [DataRow(SonarLintMode.Connected, true)]
+    [DataRow(SonarLintMode.Standalone, false)]
+    public void SolutionBindingChanged_WhenConnectedMode_ClosesAnyOpenGoldBar(SonarLintMode mode, bool expectedToClose)
+    {
+        RaiseSolutionBindingChanged(mode);
+
+        notificationService.Received(expectedToClose ? 1 : 0).CloseNotification();
+    }
+    
+    [TestMethod]
+    public void Dispose_UnsubscribesFromAllEvents()
+    {
+        testSubject.Dispose();
+
+        activeSolutionBoundTracker.Received(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
+    }
 
     private void MockCurrentConfiguration(SonarLintMode sonarLintMode)
     {
         activeSolutionBoundTracker.CurrentConfiguration.Returns(new BindingConfiguration(
             new BoundServerProject("solution", "server project", new ServerConnection.SonarCloud("org")), sonarLintMode,
             "a-directory"));
+    }
+    
+    private void RaiseSolutionBindingChanged(SonarLintMode mode)
+    {
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(new BindingConfiguration(null, mode, string.Empty)));
     }
 }

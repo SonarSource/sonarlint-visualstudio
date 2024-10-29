@@ -21,15 +21,15 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion;
 using SonarLint.VisualStudio.ConnectedMode.UI;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Notifications;
-using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     [Export(typeof(IBindingSuggestionHandler))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class BindingSuggestionHandler : IBindingSuggestionHandler
+    internal sealed class BindingSuggestionHandler : IBindingSuggestionHandler, IDisposable
     {
         private readonly INotificationService notificationService;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
@@ -49,6 +49,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.ideWindowService = ideWindowService;
             this.connectedModeUiManager = connectedModeUiManager;
             this.browserService = browserService;
+
+            this.activeSolutionBoundTracker.SolutionBindingChanged += OnActiveSolutionBindingChanged;
         }
 
         public void Notify()
@@ -77,6 +79,19 @@ namespace SonarLint.VisualStudio.Integration.Binding
             notificationService.ShowNotification(notification);
 
             ideWindowService.BringToFront();
+        }
+        
+        public void Dispose()
+        {
+            activeSolutionBoundTracker.SolutionBindingChanged -= OnActiveSolutionBindingChanged;
+        }
+        
+        private void OnActiveSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
+        {
+            if (e.Configuration.Mode == SonarLintMode.Connected)
+            {
+                notificationService.CloseNotification();
+            }
         }
     }
 }

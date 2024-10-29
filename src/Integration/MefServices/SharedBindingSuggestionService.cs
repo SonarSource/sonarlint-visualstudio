@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
         private readonly IConnectedModeBindingServices connectedModeBindingServices;
         private readonly IConnectedModeUIManager connectedModeUiManager;
         private readonly IActiveSolutionTracker activeSolutionTracker;
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
 
         [ImportingConstructor]
         public SharedBindingSuggestionService(
@@ -48,15 +49,18 @@ namespace SonarLint.VisualStudio.Integration.MefServices
             IConnectedModeServices connectedModeServices,
             IConnectedModeBindingServices connectedModeBindingServices,
             IConnectedModeUIManager connectedModeUiManager,
-            IActiveSolutionTracker activeSolutionTracker)
+            IActiveSolutionTracker activeSolutionTracker,
+            IActiveSolutionBoundTracker activeSolutionBoundTracker)
         {
             this.suggestSharedBindingGoldBar = suggestSharedBindingGoldBar;
             this.connectedModeServices = connectedModeServices;
             this.connectedModeBindingServices = connectedModeBindingServices;
             this.connectedModeUiManager = connectedModeUiManager;
             this.activeSolutionTracker = activeSolutionTracker;
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
 
             this.activeSolutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
+            this.activeSolutionBoundTracker.SolutionBindingChanged += OnActiveSolutionBindingChanged;
         }
 
         public void Suggest()
@@ -73,6 +77,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
         public void Dispose()
         {
             activeSolutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
+            activeSolutionBoundTracker.SolutionBindingChanged -= OnActiveSolutionBindingChanged;
         }
 
         private void ShowManageBindingDialog()
@@ -85,6 +90,14 @@ namespace SonarLint.VisualStudio.Integration.MefServices
             if (e.IsSolutionOpen)
             {
                 Suggest();
+            }
+        }
+        
+        private void OnActiveSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
+        {
+            if (e.Configuration.Mode == SonarLintMode.Connected)
+            {
+                suggestSharedBindingGoldBar.Close();
             }
         }
     }
