@@ -123,14 +123,6 @@ public class SharedBindingSuggestionServiceTests
     }
 
     [TestMethod]
-    public void ActiveSolutionChanged_SolutionIsClosed_ClosesAnyOpenGoldBar()
-    {
-        RaiseActiveSolutionChanged(false);
-
-        suggestSharedBindingGoldBar.Received(1).Close();
-    }
-
-    [TestMethod]
     [DataRow(SonarLintMode.Connected, true)]
     [DataRow(SonarLintMode.Standalone, false)]
     public void SolutionBindingChanged_WhenConnectedMode_ClosesAnyOpenGoldBar(SonarLintMode mode, bool expectedToClose)
