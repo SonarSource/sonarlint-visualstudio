@@ -20,6 +20,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using System.Windows.Controls;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
@@ -43,12 +44,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             InitializeComponent();
         }
 
-        private void EditConnection_Clicked(object sender, RoutedEventArgs e)
+        private async void EditConnection_Clicked(object sender, RoutedEventArgs e)
         {
-            if(sender is System.Windows.Controls.Button button && button.DataContext is ConnectionViewModel connectionViewModel)
+            if(sender is not Button { DataContext: ConnectionViewModel connectionViewModel })
             {
-                new CredentialsDialog(connectedModeServices, connectionViewModel.Connection.Info, false).ShowDialog(this);
+                return;
             }
+            
+            var credentialsDialog = new CredentialsDialog(connectedModeServices, connectionViewModel.Connection.Info, false);
+            if (!CredentialsDialogSucceeded(credentialsDialog))
+            {
+                return;
+            }
+            
+            await ViewModel.UpdateConnectionCredentialsWithProgressAsync(connectionViewModel.Connection, credentialsDialog.ViewModel.GetCredentialsModel());
         }
 
         private async void NewConnection_Clicked(object sender, RoutedEventArgs e)
@@ -103,7 +112,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private async void RemoveConnectionButton_OnClick(object sender, RoutedEventArgs e)
         {
-            if (sender is not System.Windows.Controls.Button { DataContext: ConnectionViewModel connectionViewModel })
+            if (sender is not Button { DataContext: ConnectionViewModel connectionViewModel })
             {
                 return;
             }
