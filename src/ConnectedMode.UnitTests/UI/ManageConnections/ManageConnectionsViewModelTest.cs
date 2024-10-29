@@ -296,15 +296,16 @@ public class ManageConnectionsViewModelTest
     }
     
     [TestMethod]
-    public void UpdateConnectionCredentials_ConnectionWasUpdatedInRepository_UpdatesProvidedConnection()
+    public void UpdateConnectionCredentials_UpdatesProvidedConnection()
     {
         var connectionToUpdate = CreateSonarCloudConnection();
-        serverConnectionsRepositoryAdapter.TryUpdateCredentials(connectionToUpdate, Arg.Any<ICredentialsModel>()).Returns(true);
+        var credentials = Substitute.For<ICredentialsModel>();
+        serverConnectionsRepositoryAdapter.TryUpdateCredentials(connectionToUpdate, credentials).Returns(true);
 
-        var succeeded = testSubject.UpdateConnectionCredentials(connectionToUpdate, Substitute.For<ICredentialsModel>());
+        var succeeded = testSubject.UpdateConnectionCredentials(connectionToUpdate, credentials);
 
         succeeded.Should().BeTrue();
-        serverConnectionsRepositoryAdapter.Received(1).TryUpdateCredentials(connectionToUpdate, Arg.Any<ICredentialsModel>());
+        serverConnectionsRepositoryAdapter.Received(1).TryUpdateCredentials(connectionToUpdate, credentials);
     }
 
     [TestMethod]

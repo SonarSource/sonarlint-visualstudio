@@ -104,9 +104,7 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
             case TokenCredentialsModel tokenCredentialsModel:
                 return new BasicAuthCredentials(tokenCredentialsModel.Token.ToUnsecureString(), new SecureString());
             case UsernamePasswordModel usernameCredentialsModel:
-            {
                 return new BasicAuthCredentials(usernameCredentialsModel.Username, usernameCredentialsModel.Password);
-            }
             default:
                 return null;
         }
