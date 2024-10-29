@@ -45,7 +45,6 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     private readonly IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider;
     private readonly IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider;
     private readonly ILogger logger;
-    private readonly object lockObject = new();
     private readonly IRoslynWorkspaceWrapper roslynWorkspace;
     private ImmutableArray<AnalyzerFileReference>? currentAnalyzers;
 
@@ -134,21 +133,6 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         activeConfigScopeTracker.CurrentConfigurationScopeChanged -= OnConfigurationScopeChanged;
         activeSolutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
         disposed = true;
-    }
-
-    internal /* for testing */ async Task HandleConnectedModeAnalyzerUpdateAsync(AnalyzerUpdatedForConnectionEventArgs args)
-    {
-        var analyzersToUse = await ChooseAnalyzersAsync();
-        lock (lockObject)
-        {
-            ThrowIfDisposed();
-            UpdateAnalyzersIfChanged(analyzersToUse);
-        }
-    }
-
-    private void HandleConnectedModeAnalyzerUpdate(object sender, AnalyzerUpdatedForConnectionEventArgs args)
-    {
-        HandleConnectedModeAnalyzerUpdateAsync(args).Forget();
     }
 
     private void UpdateCurrentSolutionInfo(string solutionName)

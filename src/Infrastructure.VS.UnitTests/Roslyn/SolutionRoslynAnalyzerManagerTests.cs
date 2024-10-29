@@ -253,68 +253,6 @@ public class SolutionRoslynAnalyzerManagerTests
             roslynWorkspaceWrapper.TryApplyChanges(v2Solution);
         });
     }
-
-    [TestMethod]
-    public async Task HandleConnectedModeAnalyzerUpdateAsync_Standalone_Ignores()
-    {
-        var v1Solution = Substitute.For<IRoslynSolutionWrapper>();
-        await SetUpStandaloneSolution(v1Solution, "solution");
-        EnableDefaultEmbeddedAnalyzers();
-        analyzerComparer.Equals(embeddedAnalyzers, embeddedAnalyzers).Returns(true);
-
-        await testSubject.HandleConnectedModeAnalyzerUpdateAsync(new AnalyzerUpdatedForConnectionEventArgs(connectedAnalyzers));
-
-        v1Solution.DidNotReceiveWithAnyArgs().AddAnalyzerReferences(default);
-        v1Solution.DidNotReceiveWithAnyArgs().RemoveAnalyzerReferences(default);
-    }
-    
-    [TestMethod]
-    public async Task HandleConnectedModeAnalyzerUpdateAsync_Connected_NewAnalyzerSet()
-    {
-        var differentConnectedAnalyzers = ImmutableArray.Create(new AnalyzerFileReference(@"C:\path\connected2", Substitute.For<IAnalyzerAssemblyLoader>()));
-        var v1Solution = Substitute.For<IRoslynSolutionWrapper>();
-        var v2Solution = Substitute.For<IRoslynSolutionWrapper>();
-        var v3Solution = Substitute.For<IRoslynSolutionWrapper>();
-        await SetUpBoundSolution(v1Solution, "solution");
-        SetUpCurrentSolutionSequence(v1Solution, v2Solution);
-        embeddedRoslynAnalyzerProvider.Get().Returns(differentConnectedAnalyzers);
-        SetUpAnalyzerRemoval(v1Solution, v2Solution, connectedAnalyzers);
-        SetUpAnalyzerAddition(v2Solution, v3Solution, differentConnectedAnalyzers);
-
-        await testSubject.HandleConnectedModeAnalyzerUpdateAsync(new AnalyzerUpdatedForConnectionEventArgs(connectedAnalyzers));
-
-        Received.InOrder(() =>
-        {
-            connectedModeRoslynAnalyzerProvider.GetOrNullAsync();
-            analyzerComparer.Equals(connectedAnalyzers, differentConnectedAnalyzers);
-            v1Solution.RemoveAnalyzerReferences(connectedAnalyzers);
-            roslynWorkspaceWrapper.TryApplyChanges(v2Solution);
-            v2Solution.AddAnalyzerReferences(differentConnectedAnalyzers);
-            roslynWorkspaceWrapper.TryApplyChanges(v3Solution);
-        });
-    }
-    
-    [TestMethod]
-    public async Task HandleConnectedModeAnalyzerUpdateAsync_Connected_AnalyzersDidNotChange_DoesNotReRegisterConnected()
-    {
-        var sameSetOfConnectedAnalyzers = ImmutableArray.Create(new AnalyzerFileReference(@"C:\path\connected", Substitute.For<IAnalyzerAssemblyLoader>()));
-        var v1Solution = Substitute.For<IRoslynSolutionWrapper>();
-        await SetUpBoundSolution(v1Solution, "solution");
-        SetUpCurrentSolutionSequence(v1Solution);
-        connectedModeRoslynAnalyzerProvider.GetOrNullAsync().Returns(sameSetOfConnectedAnalyzers);
-        analyzerComparer.Equals(connectedAnalyzers, sameSetOfConnectedAnalyzers).Returns(true);
-
-        await testSubject.HandleConnectedModeAnalyzerUpdateAsync(new AnalyzerUpdatedForConnectionEventArgs(sameSetOfConnectedAnalyzers));
-
-        Received.InOrder(() =>
-        {
-            connectedModeRoslynAnalyzerProvider.GetOrNullAsync();
-            analyzerComparer.Equals(connectedAnalyzers, sameSetOfConnectedAnalyzers);
-        });
-        embeddedRoslynAnalyzerProvider.DidNotReceiveWithAnyArgs().Get();
-        v1Solution.ReceivedCalls().Should().BeEmpty();
-        roslynWorkspaceWrapper.DidNotReceiveWithAnyArgs().TryApplyChanges(default);
-    }
     
     [TestMethod]
     public void Dispose_UnsubscribesFromEvents()
@@ -329,15 +267,6 @@ public class SolutionRoslynAnalyzerManagerTests
     public void OnSolutionStateChangedAsync_Disposed_Throws()
     {
         var act = async () => await testSubject.OnSolutionStateChangedAsync("solution");
-        testSubject.Dispose();
-        
-        act.Should().Throw<ObjectDisposedException>();
-    }
-
-    [TestMethod]
-    public void HandleConnectedModeAnalyzerUpdateAsync_Disposed_Throws()
-    {
-        var act = async () => await testSubject.HandleConnectedModeAnalyzerUpdateAsync(new AnalyzerUpdatedForConnectionEventArgs(embeddedAnalyzers));
         testSubject.Dispose();
         
         act.Should().Throw<ObjectDisposedException>();
