@@ -95,6 +95,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 UiResources.CreatingConnectionFailedText);
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         }
+        
+        internal async Task UpdateConnectionCredentialsWithProgressAsync(Connection connection, ICredentialsModel credentialsModel)
+        {
+            var validationParams = new TaskToPerformParams<AdapterResponse>(
+                async () => await SafeExecuteActionAsync(() => UpdateConnectionCredentials(connection, credentialsModel)),
+                UiResources.UpdatingConnectionCredentialsProgressText,
+                UiResources.UpdatingConnectionCredentialsFailedText);
+            await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
+        }
 
         internal async Task<AdapterResponse> SafeExecuteActionAsync(Func<bool> funcToExecute)
         {
@@ -139,6 +148,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 AddConnectionViewModel(connection);
             }
             return succeeded;
+        }
+
+        internal bool UpdateConnectionCredentials(Connection connection, ICredentialsModel credentialsModel)
+        {
+            if (connection is null)
+            {
+                return false;
+            }
+            
+            return connectedModeServices.ServerConnectionsRepositoryAdapter.TryUpdateCredentials(connection, credentialsModel);
         }
 
         internal void AddConnectionViewModel(Connection connection)
