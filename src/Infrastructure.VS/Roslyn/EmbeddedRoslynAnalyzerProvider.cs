@@ -58,7 +58,7 @@ public class EmbeddedRoslynAnalyzerProvider : IEmbeddedRoslynAnalyzerProvider
 
     private ImmutableArray<AnalyzerFileReference> CreateAnalyzerFileReferences()
     {
-        var analyzerPaths = locator.GetAnalyzerFullPaths();
+        var analyzerPaths = locator.GetBasicAnalyzerFullPaths();
         if(analyzerPaths.Count == 0)
         {
             logger.LogVerbose(Resources.EmbeddedRoslynAnalyzersNotFound);

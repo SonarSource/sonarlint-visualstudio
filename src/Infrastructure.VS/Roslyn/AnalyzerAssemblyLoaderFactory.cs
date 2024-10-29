@@ -51,6 +51,8 @@ internal class AnalyzerAssemblyLoaderFactory : IAnalyzerAssemblyLoaderFactory
 
         public Assembly LoadFromPath(string fullPath)
         {
+            // AssemblyName.GetAssemblyName(fullPath).GetPublicKeyToken() == "1daew2e3q"
+            
             return Assembly.LoadFrom(fullPath);
         }
     }

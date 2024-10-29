@@ -67,13 +67,13 @@ public class EmbeddedRoslynAnalyzerProviderTests
     {
         testSubject.Get();
 
-        locator.Received(1).GetAnalyzerFullPaths();
+        locator.Received(1).GetBasicAnalyzerFullPaths();
     }
 
     [TestMethod]
     public void Get_AnalyzerFilesExist_ReturnsAnalyzerFileReference()
     {
-        locator.GetAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll"), GetAnalyzerFullPath("analyzer2.dll")]);
+        locator.GetBasicAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll"), GetAnalyzerFullPath("analyzer2.dll")]);
 
         var analyzerFileReferences = testSubject.Get();
 
@@ -87,7 +87,7 @@ public class EmbeddedRoslynAnalyzerProviderTests
     [TestMethod]
     public void Get_AnalyzerFilesDoNotExist_ReturnsLogsAndThrows()
     {
-        locator.GetAnalyzerFullPaths().Returns([]);
+        locator.GetBasicAnalyzerFullPaths().Returns([]);
 
         Action act = () => testSubject.Get();
 
@@ -103,7 +103,7 @@ public class EmbeddedRoslynAnalyzerProviderTests
         testSubject.Get();
 
         analyzerAssemblyLoaderFactory.Received(1).Create();
-        locator.Received(1).GetAnalyzerFullPaths();
+        locator.Received(1).GetBasicAnalyzerFullPaths();
     }
 
     private static string GetAnalyzerFullPath(string analyzerFile)
@@ -120,7 +120,7 @@ public class EmbeddedRoslynAnalyzerProviderTests
 
     private void MockServices()
     {
-        locator.GetAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll")]);
+        locator.GetBasicAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll")]);
         analyzerAssemblyLoaderFactory.Create().Returns(analyzerAssemblyLoader);
     }
 }

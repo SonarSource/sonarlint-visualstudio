@@ -57,28 +57,83 @@ public class EmbeddedRoslynAnalyzersLocatorTests
     }
 
     [TestMethod]
-    public void GetAnalyzerPaths_AnalyzersExists_ReturnsFullPathsToAnalyzers()
+    public void GetBasicAnalyzerFullPaths_AnalyzersExists_ReturnsFullPathsToAnalyzers()
     {
         string[] expectedPaths =
         [
-            GetAnalyzerFullPath(PathInsideVsix, "analyzer1.dll"),
-            GetAnalyzerFullPath(PathInsideVsix, "analyzer2.dll")
+            GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.1.dll"),
+            GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.2.dll")
         ];
         fileSystem.Directory.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns(expectedPaths);
 
-        var paths = testSubject.GetAnalyzerFullPaths();
+        var paths = testSubject.GetBasicAnalyzerFullPaths();
+
+        paths.Should().BeEquivalentTo(expectedPaths);
+    }
+    
+    [TestMethod]
+    public void GetBasicAnalyzerFullPaths_EnterpriseAnalyzersExists_Skips()
+    {
+        string[] filePaths =
+        [
+            GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.1.dll"),
+            GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.Enterprise.2.dll")
+        ];
+        fileSystem.Directory.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns(filePaths);
+
+        var paths = testSubject.GetBasicAnalyzerFullPaths();
+
+        paths.Should().BeEquivalentTo(filePaths[0]);
+    }
+
+    [TestMethod]
+    public void GetBasicAnalyzerFullPaths_SearchesForFilesInsideVsix()
+    {
+        vsixRootLocator.GetVsixRoot().Returns(PathInsideVsix);
+
+        testSubject.GetBasicAnalyzerFullPaths();
+
+        fileSystem.Directory.Received(1).GetFiles(Path.Combine(PathInsideVsix, "EmbeddedDotnetAnalyzerDLLs"), "*.dll");
+    }
+    
+    [TestMethod]
+    public void GetEnterpriseAnalyzerFullPaths_AnalyzersExists_ReturnsFullPathsToAnalyzers()
+    {
+        string[] expectedPaths =
+        [
+            GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.1.dll"),
+            GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.2.dll")
+        ];
+        fileSystem.Directory.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns(expectedPaths);
+
+        var paths = testSubject.GetEnterpriseAnalyzerFullPaths();
+
+        paths.Should().BeEquivalentTo(expectedPaths);
+    }
+    
+    [TestMethod]
+    public void GetEnterpriseAnalyzerFullPaths_EnterpriseAnalyzersExists_ReturnsFullPathsToAnalyzers()
+    {
+        string[] expectedPaths =
+        [
+            GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.1.dll"),
+            GetAnalyzerFullPath(PathInsideVsix, "SonarAnalyzer.Enterprise.2.dll")
+        ];
+        fileSystem.Directory.GetFiles(Arg.Any<string>(), Arg.Any<string>()).Returns(expectedPaths);
+
+        var paths = testSubject.GetEnterpriseAnalyzerFullPaths();
 
         paths.Should().BeEquivalentTo(expectedPaths);
     }
 
     [TestMethod]
-    public void GetAnalyzerPaths_SearchesForFilesInsideVsix()
+    public void GetAnalyzerFullPaths_SearchesForFilesInsideVsix()
     {
         vsixRootLocator.GetVsixRoot().Returns(PathInsideVsix);
 
-        testSubject.GetAnalyzerFullPaths();
+        testSubject.GetEnterpriseAnalyzerFullPaths();
 
-        fileSystem.Directory.Received(1).GetFiles(Path.Combine(PathInsideVsix, "EmbeddedRoslynAnalyzers"), "*.dll");
+        fileSystem.Directory.Received(1).GetFiles(Path.Combine(PathInsideVsix, "EmbeddedDotnetAnalyzerDLLs"), "*.dll");
     }
 
     private static string GetAnalyzerFullPath(string pathInsideVsix, string analyzerFile)

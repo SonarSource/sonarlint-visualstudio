@@ -6,6 +6,7 @@
   <!-- We are using T4 to generate a list of SupportedSuppressions, one suppression for each Sonar C#/VB.NET rules. -->
 
   <Import Project="$(MSBuildThisFileDirectory)..\..\EmbeddedSonarAnalyzer.props" />
+  <Import Project="$(MSBuildThisFileDirectory)..\..\..\build\DownloadDependencies\CommonProperties.props" />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v17.0\TextTemplating\Microsoft.TextTemplating.targets" />
   
   <ItemGroup Label="Roslyn / analyzer packages">
@@ -15,10 +16,6 @@
     -->
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.11.0" PrivateAssets="all" GeneratePathProperty="true" />
 
-    <!-- Reference the Sonar analyzers we want to import, but don't include them as analyzers for this project -->
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="SonarAnalyzer.VisualBasic" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />
-
     <!-- NuGet packages required during the T4 transformation -->
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="3.11.0" PrivateAssets="all" IncludeAssets="none" GeneratePathProperty="true" />
     <PackageReference Include="System.Composition.AttributedModel" Version="1.0.31" PrivateAssets="all" IncludeAssets="none" GeneratePathProperty="true" />
@@ -26,8 +23,10 @@
   
   <PropertyGroup>
     <!-- Calculate the paths to the analyzer dlls so we can reference them from the T4 template -->
-    <SonarCSharpDllPath>$(PkgSonarAnalyzer_CSharp)\analyzers\SonarAnalyzer.CSharp.dll</SonarCSharpDllPath>
-    <SonarVBDllPath>$(PkgSonarAnalyzer_VisualBasic)\analyzers\SonarAnalyzer.VisualBasic.dll</SonarVBDllPath>
+    <SonarCSharpDllPath>$(EnterpriseDotnetAnalyzersExtractDir)\SonarAnalyzer.CSharp.dll</SonarCSharpDllPath>
+    <EnterpriseSonarCSharpDllPath>$(EnterpriseDotnetAnalyzersExtractDir)\SonarAnalyzer.Enterprise.CSharp.dll</EnterpriseSonarCSharpDllPath>
+    <SonarVBDllPath>$(EnterpriseDotnetAnalyzersExtractDir)\SonarAnalyzer.VisualBasic.dll</SonarVBDllPath>
+    <EnterpriseSonarVBDllPath>$(EnterpriseDotnetAnalyzersExtractDir)\SonarAnalyzer.Enterprise.VisualBasic.dll</EnterpriseSonarVBDllPath>
     <!-- ... and for the other NuGet dependencies used by the .tts -->
     <MSCodeAnalysisCommonDllPath>$(PkgMicrosoft_CodeAnalysis_Common)\lib\netstandard2.0\Microsoft.CodeAnalysis.dll</MSCodeAnalysisCommonDllPath>
     <MSCodeAnalysisWorkspacesDllPath>$(PkgMicrosoft_CodeAnalysis_Workspaces_Common)\lib\netstandard2.0\Microsoft.CodeAnalysis.Workspaces.dll</MSCodeAnalysisWorkspacesDllPath>
@@ -50,6 +49,14 @@
     </T4ParameterValues>
     <T4ParameterValues Include="SonarVBDllPath">
       <Value>$(SonarVBDllPath)</Value>
+      <Visible>false</Visible>
+    </T4ParameterValues>
+    <T4ParameterValues Include="EnterpriseSonarCSharpDllPath">
+      <Value>$(EnterpriseSonarCSharpDllPath)</Value>
+      <Visible>false</Visible>
+    </T4ParameterValues>
+    <T4ParameterValues Include="EnterpriseSonarVBDllPath">
+      <Value>$(EnterpriseSonarVBDllPath)</Value>
       <Visible>false</Visible>
     </T4ParameterValues>
     <T4ParameterValues Include="MSCodeAnalysisCommonDllPath">
