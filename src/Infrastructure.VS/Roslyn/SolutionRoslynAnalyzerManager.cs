@@ -48,8 +48,6 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     private readonly IRoslynWorkspaceWrapper roslynWorkspace;
     private ImmutableArray<AnalyzerFileReference>? currentAnalyzers;
 
-    private SolutionStateInfo? currentState;
-
     [ImportingConstructor]
     public SolutionRoslynAnalyzerManager(
         IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider,
@@ -104,13 +102,11 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
             
             if (solutionName is null)
             {
-                currentState = null;
                 // check why is the exception thrown
                 currentAnalyzers = null;
                 return;
             }
 
-            UpdateCurrentSolutionInfo(solutionName);
             var analyzersToUse = await ChooseAnalyzersAsync();
             UpdateAnalyzersIfChanged(analyzersToUse);
         }
@@ -133,14 +129,6 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         activeConfigScopeTracker.CurrentConfigurationScopeChanged -= OnConfigurationScopeChanged;
         activeSolutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
         disposed = true;
-    }
-
-    private void UpdateCurrentSolutionInfo(string solutionName)
-    {
-        if (currentState is not { SolutionName: var currentSolutionName } || solutionName != currentSolutionName)
-        {
-            currentState = new SolutionStateInfo(solutionName);
-        }
     }
 
     private async Task<ImmutableArray<AnalyzerFileReference>> ChooseAnalyzersAsync() =>
@@ -203,6 +191,4 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     {
         OnSolutionStateChangedAsync(e?.SolutionName).Forget();
     }
-
-    private record struct SolutionStateInfo(string SolutionName);
 }
