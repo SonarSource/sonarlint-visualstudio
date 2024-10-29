@@ -156,7 +156,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         }
     }
 
-    public event EventHandler CurrentConfigurationScopeChanged;
+    public event EventHandler<ConfigurationScope> CurrentConfigurationScopeChanged;
 
     public void Dispose()
     {
@@ -169,6 +169,6 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 
     private void OnCurrentConfigurationScopeChanged()
     {
-        CurrentConfigurationScopeChanged?.Invoke(this, EventArgs.Empty);
+        CurrentConfigurationScopeChanged?.Invoke(this, currentConfigScope);
     }
 }
