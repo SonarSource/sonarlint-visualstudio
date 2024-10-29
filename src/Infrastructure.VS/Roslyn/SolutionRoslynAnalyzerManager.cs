@@ -30,7 +30,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
 public interface ISolutionRoslynAnalyzerManager : IDisposable
 {
-    Task OnSolutionStateChangedAsync(string solutionName);
 }
 
 [Export(typeof(ISolutionRoslynAnalyzerManager))]
@@ -98,7 +97,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         activeSolutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
     }
 
-    public async Task OnSolutionStateChangedAsync(string solutionName)
+    internal async Task OnSolutionStateChangedAsync(string solutionName)
     {
         using (await asyncLock.AcquireAsync())
         {
