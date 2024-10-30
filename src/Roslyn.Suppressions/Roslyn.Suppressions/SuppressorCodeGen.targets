@@ -22,6 +22,7 @@
   </ItemGroup>
   
   <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <!-- Calculate the paths to the analyzer dlls so we can reference them from the T4 template -->
     <SonarCSharpDllPath>$(EnterpriseDotnetAnalyzersExtractDir)\SonarAnalyzer.CSharp.dll</SonarCSharpDllPath>
     <EnterpriseSonarCSharpDllPath>$(EnterpriseDotnetAnalyzersExtractDir)\SonarAnalyzer.Enterprise.CSharp.dll</EnterpriseSonarCSharpDllPath>
