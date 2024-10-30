@@ -139,7 +139,6 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
             return;
         }
 
-      
         RemoveCurrentAnalyzers();
         AddAnalyzer(analyzersToUse); 
     }
@@ -154,7 +153,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         if (currentAnalyzers.HasValue && !roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.RemoveAnalyzerReferences(currentAnalyzers.Value)))
         {
             logger.LogVerbose(Resources.RoslynAnalyzersNotRemoved);
-            throw new NotImplementedException();
+            throw new InvalidOperationException(Resources.RoslynAnalyzersNotRemoved);
         }
 
         currentAnalyzers = null;
@@ -165,7 +164,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.AddAnalyzerReferences(analyzerToUse)))
         {
             logger.LogVerbose(Resources.RoslynAnalyzersNotAdded);
-            throw new NotImplementedException();
+            throw new InvalidOperationException(Resources.RoslynAnalyzersNotAdded);
         }
 
         currentAnalyzers = analyzerToUse;
