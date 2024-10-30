@@ -153,9 +153,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     {
         if (currentAnalyzers.HasValue && !roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.RemoveAnalyzerReferences(currentAnalyzers.Value)))
         {
-            const string message = "Failed to remove analyzer references while updating analyzers";
-            Debug.Assert(true, message);
-            logger.LogVerbose(message);
+            logger.LogVerbose(Resources.RoslynAnalyzersNotRemoved);
             throw new NotImplementedException();
         }
 
@@ -166,9 +164,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     {
         if (!roslynWorkspace.TryApplyChanges(roslynWorkspace.CurrentSolution.AddAnalyzerReferences(analyzerToUse)))
         {
-            const string message = "Failed to add analyzer references while adding analyzers";
-            Debug.Assert(true, message);
-            logger.LogVerbose(message);
+            logger.LogVerbose(Resources.RoslynAnalyzersNotAdded);
             throw new NotImplementedException();
         }
 
