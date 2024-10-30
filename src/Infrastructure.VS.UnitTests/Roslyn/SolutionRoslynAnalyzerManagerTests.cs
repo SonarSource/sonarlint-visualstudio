@@ -106,6 +106,7 @@ public class SolutionRoslynAnalyzerManagerTests
             asyncLockFactory,
             logger);
 
+        // todo add more tests for the events
         activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged += Arg.Any<EventHandler<ConfigurationScope>>();
         activeSolutionTracker.Received().ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
     }
@@ -201,6 +202,7 @@ public class SolutionRoslynAnalyzerManagerTests
         EnableDefaultEmbeddedAnalyzers();
         SetUpCurrentSolutionSequence(v2Solution);
         SetUpAnalyzerAddition(v2Solution, v3Solution, embeddedAnalyzers);
+        SetUpAnalyzerRemoval(v2Solution, v3Solution, embeddedAnalyzers);
         
         await testSubject.OnSolutionStateChangedAsync(null);
         await testSubject.OnSolutionStateChangedAsync(solutionName);
@@ -220,7 +222,8 @@ public class SolutionRoslynAnalyzerManagerTests
         EnableDefaultEmbeddedAnalyzers();
         connectedModeRoslynAnalyzerProvider.GetOrNullAsync().Returns(connectedAnalyzers);
         SetUpAnalyzerAddition(v2Solution, v3Solution, connectedAnalyzers);
-        
+        SetUpAnalyzerRemoval(preCloseSolution, v2Solution, embeddedAnalyzers);
+
         await testSubject.OnSolutionStateChangedAsync(null);
         roslynWorkspaceWrapper.CurrentSolution.Returns(v2Solution); // simulate solution closed and opened, so this is a different version now
         await testSubject.OnSolutionStateChangedAsync(solutionName);
@@ -271,7 +274,20 @@ public class SolutionRoslynAnalyzerManagerTests
         
         act.Should().Throw<ObjectDisposedException>();
     }
-    
+
+    [TestMethod]
+    public async Task OnSolutionStateChangedAsync_SolutionClosed_RemovesAnalzyers()
+    {
+        var v1Solution = Substitute.For<IRoslynSolutionWrapper>();
+        await SetUpStandaloneSolution(v1Solution, "solution");
+        SetUpAnalyzerRemoval(v1Solution, Substitute.For<IRoslynSolutionWrapper>(), embeddedAnalyzers);
+
+        await testSubject.OnSolutionStateChangedAsync(null);
+
+        v1Solution.Received(1).RemoveAnalyzerReferences(embeddedAnalyzers);
+        await connectedModeRoslynAnalyzerProvider.DidNotReceiveWithAnyArgs().GetOrNullAsync();
+    }
+
     private void SetUpCurrentSolutionSequence(IRoslynSolutionWrapper solution, params IRoslynSolutionWrapper[] solutions)
     {
         roslynWorkspaceWrapper.CurrentSolution.Returns(solution, solutions);
@@ -302,12 +318,6 @@ public class SolutionRoslynAnalyzerManagerTests
     {
         EnableDefaultEmbeddedAnalyzers();
         await SimulateSolutionSet(solution, solutionName, embeddedAnalyzers);
-    }
-    
-    private async Task SetUpBoundSolution(IRoslynSolutionWrapper solution, string solutionName)
-    {
-        connectedModeRoslynAnalyzerProvider.GetOrNullAsync().ReturnsForAnyArgs(connectedAnalyzers);
-        await SimulateSolutionSet(solution, solutionName, connectedAnalyzers);
     }
 
     private async Task SimulateSolutionSet(IRoslynSolutionWrapper resultingSolution, string solutionName, ImmutableArray<AnalyzerFileReference> analyzers)

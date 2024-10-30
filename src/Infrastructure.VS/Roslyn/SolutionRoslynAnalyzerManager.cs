@@ -102,8 +102,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
             
             if (solutionName is null)
             {
-                // check why is the exception thrown
-                currentAnalyzers = null;
+                RemoveCurrentAnalyzers(); 
                 return;
             }
 
