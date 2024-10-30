@@ -284,6 +284,30 @@ public class SolutionRoslynAnalyzerManagerTests
         await connectedModeRoslynAnalyzerProvider.DidNotReceiveWithAnyArgs().GetOrNullAsync();
     }
 
+    [TestMethod]
+    public async Task CurrentConfigurationScopeChanged_SetsAnalyzers()
+    {
+        roslynWorkspaceWrapper.TryApplyChanges(Arg.Any<IRoslynSolutionWrapper>()).Returns(true);
+        connectedModeRoslynAnalyzerProvider.GetOrNullAsync().Returns(embeddedAnalyzers);
+   
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.Event<EventHandler<ConfigurationScope>>(this, new ConfigurationScope("my solution"));
+
+        await connectedModeRoslynAnalyzerProvider.Received(1).GetOrNullAsync();
+        roslynWorkspaceWrapper.Received(1).TryApplyChanges(Arg.Any<IRoslynSolutionWrapper>());
+    }
+
+    [TestMethod]
+    public async Task ActiveSolutionChanged_SetsAnalyzers()
+    {
+        roslynWorkspaceWrapper.TryApplyChanges(Arg.Any<IRoslynSolutionWrapper>()).Returns(true);
+        connectedModeRoslynAnalyzerProvider.GetOrNullAsync().Returns(embeddedAnalyzers);
+
+        activeSolutionTracker.ActiveSolutionChanged += Raise.Event<EventHandler<ActiveSolutionChangedEventArgs>>(this, new ActiveSolutionChangedEventArgs(true, "my solution"));
+
+        await connectedModeRoslynAnalyzerProvider.Received(1).GetOrNullAsync();
+        roslynWorkspaceWrapper.Received(1).TryApplyChanges(Arg.Any<IRoslynSolutionWrapper>());
+    }
+
     private void SetUpCurrentSolutionSequence(IRoslynSolutionWrapper solution, params IRoslynSolutionWrapper[] solutions)
     {
         roslynWorkspaceWrapper.CurrentSolution.Returns(solution, solutions);
