@@ -24,8 +24,8 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.SLCore.State;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint

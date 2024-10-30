@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
 using System.Windows.Documents;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Education.Layout.Logical;
 using SonarLint.VisualStudio.Education.Rule;
 using SonarLint.VisualStudio.Education.XamlGenerator;

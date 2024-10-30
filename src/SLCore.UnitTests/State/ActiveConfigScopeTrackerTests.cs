@@ -20,6 +20,7 @@
 
 using System.ComponentModel;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Project;
@@ -94,7 +95,7 @@ public class ActiveConfigScopeTrackerTests
         const string connectionId = "connectionid";
         const string sonarProjectKey = "projectkey";
         const bool isReady = true;
-        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, isReadyForAnalysis: isReady);
+        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, IsReadyForAnalysis: isReady);
 
         var result = testSubject.TryUpdateRootOnCurrentConfigScope(configScopeId, "some root");
 
@@ -110,12 +111,12 @@ public class ActiveConfigScopeTrackerTests
         const string connectionId = "connectionid";
         const string sonarProjectKey = "projectkey";
         const bool isReady = true;
-        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, isReadyForAnalysis: isReady);
+        testSubject.currentConfigScope = new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, IsReadyForAnalysis: isReady);
 
         var result = testSubject.TryUpdateRootOnCurrentConfigScope("some other id", "some root");
 
         result.Should().BeFalse();
-        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, isReadyForAnalysis: isReady));
+        testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, IsReadyForAnalysis: isReady));
         VerifyCurrentConfigurationScopeChangedNotRaised();
     }
 

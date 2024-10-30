@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using NSubstitute.ClearExtensions;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -32,7 +33,6 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SonarLint.VisualStudio.SLCore.Service.Taint;
-using SonarLint.VisualStudio.SLCore.State;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint;

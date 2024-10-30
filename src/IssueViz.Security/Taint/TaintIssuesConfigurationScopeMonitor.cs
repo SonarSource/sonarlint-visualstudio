@@ -20,7 +20,7 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.SLCore.State;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 {

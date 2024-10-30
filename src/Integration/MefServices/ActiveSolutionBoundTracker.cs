@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarQube.Client;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
