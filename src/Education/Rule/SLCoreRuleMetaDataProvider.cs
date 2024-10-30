@@ -23,7 +23,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Issue;
 using SonarLint.VisualStudio.SLCore.Service.Rules;
-using SonarLint.VisualStudio.SLCore.State;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 
 namespace SonarLint.VisualStudio.Education.Rule;
 

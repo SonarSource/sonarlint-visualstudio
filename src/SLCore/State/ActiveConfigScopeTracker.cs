@@ -18,8 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Project;
@@ -27,33 +30,6 @@ using SonarLint.VisualStudio.SLCore.Service.Project.Models;
 using SonarLint.VisualStudio.SLCore.Service.Project.Params;
 
 namespace SonarLint.VisualStudio.SLCore.State;
-
-public interface IActiveConfigScopeTracker : IDisposable
-{
-    ConfigurationScope Current { get; }
-
-    void SetCurrentConfigScope(string id, string connectionId = null, string sonarProjectKey = null);
-
-    void Reset();
-
-    void RemoveCurrentConfigScope();
-
-    bool TryUpdateRootOnCurrentConfigScope(string id, string root);
-
-    bool TryUpdateAnalysisReadinessOnCurrentConfigScope(string id, bool isReady);
-
-    event EventHandler CurrentConfigurationScopeChanged;
-}
-
-public record ConfigurationScope(
-    string Id,
-    string ConnectionId = null,
-    string SonarProjectId = null,
-    string RootPath = null,
-    bool isReadyForAnalysis = false)
-{
-    public string Id { get; } = Id ?? throw new ArgumentNullException(nameof(Id));
-}
 
 [Export(typeof(IActiveConfigScopeTracker))]
 [PartCreationPolicy(CreationPolicy.Shared)]
@@ -176,8 +152,8 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             {
                 return false;
             }
-            
-            currentConfigScope = currentConfigScope with { isReadyForAnalysis = isReady};
+
+            currentConfigScope = currentConfigScope with { IsReadyForAnalysis = isReady};
         }
         OnCurrentConfigurationScopeChanged();
         return true;

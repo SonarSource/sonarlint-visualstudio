@@ -22,10 +22,10 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Branch;
-using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.ConnectedMode
 {

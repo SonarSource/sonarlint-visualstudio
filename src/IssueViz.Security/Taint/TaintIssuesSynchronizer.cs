@@ -20,12 +20,12 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Taint;
-using SonarLint.VisualStudio.SLCore.State;
 using VSShellInterop = Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint;

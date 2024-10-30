@@ -26,8 +26,8 @@ using SonarLint.VisualStudio.SLCore.Service.Issue;
 using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 using SonarLint.VisualStudio.SLCore.Service.Rules;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
-using SonarLint.VisualStudio.SLCore.State;
 using SonarLint.VisualStudio.TestInfrastructure;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.Rule;
 
