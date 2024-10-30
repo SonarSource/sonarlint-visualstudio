@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -32,7 +27,6 @@ using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Rules;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
-using SonarLint.VisualStudio.SLCore.State;
 using SonarLint.VisualStudio.TestInfrastructure;
 using CleanCodeAttribute = SonarLint.VisualStudio.SLCore.Common.Models.CleanCodeAttribute;
 using IssueSeverity = SonarLint.VisualStudio.SLCore.Common.Models.IssueSeverity;
@@ -41,6 +35,7 @@ using SoftwareQuality = SonarLint.VisualStudio.SLCore.Common.Models.SoftwareQual
 using RuleCleanCodeAttribute = SonarLint.VisualStudio.Core.Analysis.CleanCodeAttribute;
 using RuleSoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
 using RuleSoftwareQualitySeverity = SonarLint.VisualStudio.Core.Analysis.SoftwareQualitySeverity;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.Rule;
 

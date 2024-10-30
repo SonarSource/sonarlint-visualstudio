@@ -21,11 +21,11 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Analysis;
-using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore.Analysis;
 
@@ -62,7 +62,7 @@ public class SLCoreAnalyzer : IAnalyzer
         analysisStatusNotifier.AnalysisStarted();
         
         var configurationScope = activeConfigScopeTracker.Current;
-        if (configurationScope is not { isReadyForAnalysis: true })
+        if (configurationScope is not { IsReadyForAnalysis: true })
         {
             analysisStatusNotifier.AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
             return;
