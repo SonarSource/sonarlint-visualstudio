@@ -37,7 +37,6 @@ public class SolutionRoslynAnalyzerManagerTests
     private IRoslynWorkspaceWrapper roslynWorkspaceWrapper;
     private IActiveConfigScopeTracker activeConfigScopeTracker;
     private IActiveSolutionTracker activeSolutionTracker;
-    private IThreadHandling threadHandling;
     private IAsyncLockFactory asyncLockFactory;
     private IAsyncLock asyncLock;
     private IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer;
@@ -56,7 +55,6 @@ public class SolutionRoslynAnalyzerManagerTests
         analyzerComparer = Substitute.For<IEqualityComparer<ImmutableArray<AnalyzerFileReference>?>>();
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         activeSolutionTracker = Substitute.For<IActiveSolutionTracker>();
-        threadHandling = new NoOpThreadHandler();
         asyncLockFactory = Substitute.For<IAsyncLockFactory>();
         asyncLock = Substitute.For<IAsyncLock>();
         asyncLockFactory.Create().Returns(asyncLock);
@@ -68,7 +66,6 @@ public class SolutionRoslynAnalyzerManagerTests
             analyzerComparer,
             activeConfigScopeTracker,
             activeSolutionTracker,
-            threadHandling,
             asyncLockFactory,
             logger);
     }
@@ -102,7 +99,6 @@ public class SolutionRoslynAnalyzerManagerTests
             analyzerComparer,
             activeConfigScopeTracker,
             activeSolutionTracker,
-            threadHandling,
             asyncLockFactory,
             logger);
 

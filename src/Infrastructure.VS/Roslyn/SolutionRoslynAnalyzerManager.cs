@@ -40,7 +40,6 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     private readonly IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IActiveSolutionTracker activeSolutionTracker;
-    private readonly IThreadHandling threadHandling;
     private readonly IAsyncLock asyncLock;
     private readonly IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider;
     private readonly IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider;
@@ -63,7 +62,6 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
               AnalyzerArrayComparer.Instance,
               activeConfigScopeTracker, 
               activeSolutionTracker,
-              ThreadHandling.Instance, 
               asyncLockFactory, 
               logger)
     {
@@ -76,7 +74,6 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer,
         IActiveConfigScopeTracker activeConfigScopeTracker,
         IActiveSolutionTracker activeSolutionTracker,
-        IThreadHandling threadHandling,
         IAsyncLockFactory asyncLockFactory,
         ILogger logger)
     {
@@ -86,7 +83,6 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         this.analyzerComparer = analyzerComparer;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.activeSolutionTracker = activeSolutionTracker;
-        this.threadHandling = threadHandling;
         this.asyncLock = asyncLockFactory.Create();
         this.logger = logger;
 
@@ -143,11 +139,9 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
             return;
         }
 
-        threadHandling.RunOnUIThread(() =>
-        { 
-            RemoveCurrentAnalyzers();
-            AddAnalyzer(analyzersToUse);
-        });
+      
+        RemoveCurrentAnalyzers();
+        AddAnalyzer(analyzersToUse); 
     }
 
     private bool DidAnalyzerChoiceChange(ImmutableArray<AnalyzerFileReference> analyzersToUse)
