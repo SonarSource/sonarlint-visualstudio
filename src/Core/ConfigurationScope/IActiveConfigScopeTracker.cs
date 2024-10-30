@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Binding;
+namespace SonarLint.VisualStudio.Core.ConfigurationScope;
 
 public interface IActiveConfigScopeTracker : IDisposable
 {

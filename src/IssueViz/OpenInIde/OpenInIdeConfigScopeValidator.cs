@@ -20,7 +20,7 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 
 namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 

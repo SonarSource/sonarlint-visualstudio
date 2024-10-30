@@ -21,7 +21,6 @@
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Education.Rule;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -36,6 +35,7 @@ using SoftwareQuality = SonarLint.VisualStudio.SLCore.Common.Models.SoftwareQual
 using RuleCleanCodeAttribute = SonarLint.VisualStudio.Core.Analysis.CleanCodeAttribute;
 using RuleSoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
 using RuleSoftwareQualitySeverity = SonarLint.VisualStudio.Core.Analysis.SoftwareQualitySeverity;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.Rule;
 
