@@ -22,7 +22,6 @@
   </ItemGroup>
   
   <PropertyGroup>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <!-- Calculate the paths to the analyzer dlls so we can reference them from the T4 template -->
     <SonarCSharpDllPath>$(EnterpriseDotnetAnalyzersExtractDir)\SonarAnalyzer.CSharp.dll</SonarCSharpDllPath>
     <EnterpriseSonarCSharpDllPath>$(EnterpriseDotnetAnalyzersExtractDir)\SonarAnalyzer.Enterprise.CSharp.dll</EnterpriseSonarCSharpDllPath>
@@ -36,7 +35,8 @@
     <!-- Tell T4 to run the .tt code generator on build
          See https://learn.microsoft.com/en-us/visualstudio/modeling/code-generation-in-a-build-process?view=vs-2022&tabs=csharp
     -->
-    <TransformOnBuild>true</TransformOnBuild>
+    <!-- TransformOnBuild is disabled until https://sonarsource.atlassian.net/browse/SLVS-1567 -->
+    <TransformOnBuild>false</TransformOnBuild> 
     <TransformOutOfDateOnly>true</TransformOutOfDateOnly>
   </PropertyGroup>
 
