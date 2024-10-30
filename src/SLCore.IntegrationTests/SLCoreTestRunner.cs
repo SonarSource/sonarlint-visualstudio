@@ -22,6 +22,7 @@ using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Service;

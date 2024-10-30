@@ -36,6 +36,7 @@ using SoftwareQuality = SonarLint.VisualStudio.SLCore.Common.Models.SoftwareQual
 using RuleCleanCodeAttribute = SonarLint.VisualStudio.Core.Analysis.CleanCodeAttribute;
 using RuleSoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
 using RuleSoftwareQualitySeverity = SonarLint.VisualStudio.Core.Analysis.SoftwareQualitySeverity;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.Rule;
 

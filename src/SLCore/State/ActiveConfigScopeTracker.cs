@@ -20,7 +20,7 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Project;
@@ -81,26 +81,26 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             {
                 configurationScopeService.DidUpdateBinding(new DidUpdateBindingParams(id, GetBinding(connectionId, sonarProjectKey)));
                 currentConfigScope = currentConfigScope with { ConnectionId = connectionId, SonarProjectId = sonarProjectKey };
-                OnCurrentConfigurationScopeChanged();
-                return;
             }
-
-            configurationScopeService.DidAddConfigurationScopes(new DidAddConfigurationScopesParams([
-                new ConfigurationScopeDto(id, id, true, GetBinding(connectionId, sonarProjectKey))]));
-            currentConfigScope = new ConfigurationScope(id, connectionId, sonarProjectKey);
-            OnCurrentConfigurationScopeChanged();
+            else
+            {
+                configurationScopeService.DidAddConfigurationScopes(new DidAddConfigurationScopesParams([
+                    new ConfigurationScopeDto(id, id, true, GetBinding(connectionId, sonarProjectKey))]));
+                currentConfigScope = new ConfigurationScope(id, connectionId, sonarProjectKey);
+            }
         }
+
+        OnCurrentConfigurationScopeChanged();
     }
 
     public void Reset()
     {
         threadHandling.ThrowIfOnUIThread();
-
         using (asyncLock.Acquire())
         {
             currentConfigScope = null;
-            OnCurrentConfigurationScopeChanged();
         }
+        OnCurrentConfigurationScopeChanged();
     }
 
     public void RemoveCurrentConfigScope()
@@ -122,8 +122,9 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             configurationScopeService.DidRemoveConfigurationScope(
                 new DidRemoveConfigurationScopeParams(currentConfigScope.Id));
             currentConfigScope = null;
-            OnCurrentConfigurationScopeChanged();
         }
+
+        OnCurrentConfigurationScopeChanged();
     }
 
     public bool TryUpdateRootOnCurrentConfigScope(string id, string root)
@@ -136,9 +137,9 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             }
 
             currentConfigScope = currentConfigScope with { RootPath = root };
-            OnCurrentConfigurationScopeChanged();
-            return true;
         }
+        OnCurrentConfigurationScopeChanged();
+        return true;
     }
 
     public bool TryUpdateAnalysisReadinessOnCurrentConfigScope(string id, bool isReady)
@@ -151,12 +152,12 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
             }
             
             currentConfigScope = currentConfigScope with { IsReadyForAnalysis = isReady};
-            OnCurrentConfigurationScopeChanged();
-            return true;
         }
+        OnCurrentConfigurationScopeChanged();
+        return true;
     }
 
-    public event EventHandler<ConfigurationScope> CurrentConfigurationScopeChanged;
+    public event EventHandler CurrentConfigurationScopeChanged;
 
     public void Dispose()
     {
@@ -169,6 +170,6 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 
     private void OnCurrentConfigurationScopeChanged()
     {
-        CurrentConfigurationScopeChanged?.Invoke(this, currentConfigScope);
+        CurrentConfigurationScopeChanged?.Invoke(this, EventArgs.Empty);
     }
 }

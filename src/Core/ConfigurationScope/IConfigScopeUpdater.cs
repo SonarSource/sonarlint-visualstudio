@@ -18,34 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Binding;
 
-public interface IActiveConfigScopeTracker : IDisposable
+namespace SonarLint.VisualStudio.Core.ConfigurationScope;
+
+/// <summary>
+/// Updates current active configuration scope of SLCore
+/// </summary>
+public interface IConfigScopeUpdater
 {
-    ConfigurationScope Current { get; }
-
-    void SetCurrentConfigScope(string id, string connectionId = null, string sonarProjectKey = null);
-
-    void Reset();
-
-    void RemoveCurrentConfigScope();
-
-    bool TryUpdateRootOnCurrentConfigScope(string id, string root);
-
-    bool TryUpdateAnalysisReadinessOnCurrentConfigScope(string id, bool isReady);
-
-    event EventHandler<ConfigurationScope> CurrentConfigurationScopeChanged;
+    void UpdateConfigScopeForCurrentSolution(BoundServerProject currentBinding);
 }
-
-public record ConfigurationScope(
-    string Id,
-    string ConnectionId = null,
-    string SonarProjectId = null,
-    string RootPath = null,
-    bool IsReadyForAnalysis = false)
-{
-    public string Id { get; } = Id ?? throw new ArgumentNullException(nameof(Id));
-}
-
-
-
