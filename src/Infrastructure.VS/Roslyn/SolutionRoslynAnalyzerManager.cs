@@ -23,7 +23,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Synchronization;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
@@ -171,9 +171,9 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         currentAnalyzers = analyzerToUse;
     }
 
-    private void OnConfigurationScopeChanged(object sender, ConfigurationScope e)
+    private void OnConfigurationScopeChanged(object sender, EventArgs e)
     {
-        OnSolutionStateChangedAsync(e?.Id).Forget();
+        OnSolutionStateChangedAsync(activeConfigScopeTracker.Current?.Id).Forget();
     }
 
     private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)

@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using NSubstitute.ClearExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
@@ -103,7 +104,7 @@ public class SolutionRoslynAnalyzerManagerTests
             logger);
 
         // todo add more tests for the events
-        activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged += Arg.Any<EventHandler<ConfigurationScope>>();
+        activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged += Arg.Any<EventHandler>();
         activeSolutionTracker.Received().ActiveSolutionChanged += Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
     }
     
@@ -258,7 +259,7 @@ public class SolutionRoslynAnalyzerManagerTests
     {
         testSubject.Dispose();
 
-        activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged -= Arg.Any<EventHandler<ConfigurationScope>>();
+        activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged -= Arg.Any<EventHandler>();
         activeSolutionTracker.Received().ActiveSolutionChanged -= Arg.Any<EventHandler<ActiveSolutionChangedEventArgs>>();
     }
     
@@ -289,8 +290,9 @@ public class SolutionRoslynAnalyzerManagerTests
     {
         roslynWorkspaceWrapper.TryApplyChanges(Arg.Any<IRoslynSolutionWrapper>()).Returns(true);
         connectedModeRoslynAnalyzerProvider.GetOrNullAsync().Returns(embeddedAnalyzers);
-   
-        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.Event<EventHandler<ConfigurationScope>>(this, new ConfigurationScope("my solution"));
+        activeConfigScopeTracker.Current.Returns(new ConfigurationScope("my solution"));
+
+        activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.Event<EventHandler>(this, EventArgs.Empty);
 
         await connectedModeRoslynAnalyzerProvider.Received(1).GetOrNullAsync();
         roslynWorkspaceWrapper.Received(1).TryApplyChanges(Arg.Any<IRoslynSolutionWrapper>());
