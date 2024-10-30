@@ -44,7 +44,7 @@ public interface IActiveConfigScopeTracker : IDisposable
 
     bool TryUpdateAnalysisReadinessOnCurrentConfigScope(string id, bool isReady);
 
-    event EventHandler<ConfigurationScope> CurrentConfigurationScopeChanged;
+    event EventHandler CurrentConfigurationScopeChanged;
 }
 
 public record ConfigurationScope(
@@ -184,7 +184,7 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
         }
     }
 
-    public event EventHandler<ConfigurationScope> CurrentConfigurationScopeChanged;
+    public event EventHandler CurrentConfigurationScopeChanged;
 
     public void Dispose()
     {
@@ -197,6 +197,6 @@ internal sealed class ActiveConfigScopeTracker : IActiveConfigScopeTracker
 
     private void OnCurrentConfigurationScopeChanged()
     {
-        CurrentConfigurationScopeChanged?.Invoke(this, currentConfigScope);
+        CurrentConfigurationScopeChanged?.Invoke(this, EventArgs.Empty);
     }
 }

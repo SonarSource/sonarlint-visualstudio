@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -38,7 +39,7 @@ public class ActiveConfigScopeTrackerTests
     private ISLCoreServiceProvider serviceProvider;
     private IAsyncLockFactory asyncLockFactory;
     private IThreadHandling threadHandling;
-    private EventHandler<ConfigurationScope> currentConfigScopeChangedEventHandler;
+    private EventHandler currentConfigScopeChangedEventHandler;
 
     [TestInitialize]
     public void TestInitialize()
@@ -51,7 +52,7 @@ public class ActiveConfigScopeTrackerTests
         threadHandling = Substitute.For<IThreadHandling>();
         ConfigureServiceProvider(isServiceAvailable:true);
         ConfigureAsyncLockFactory();
-        currentConfigScopeChangedEventHandler = Substitute.For<EventHandler<ConfigurationScope>>();
+        currentConfigScopeChangedEventHandler = Substitute.For<EventHandler>();
 
         testSubject = new ActiveConfigScopeTracker(serviceProvider, asyncLockFactory, threadHandling);
         testSubject.CurrentConfigurationScopeChanged += currentConfigScopeChangedEventHandler;
@@ -83,7 +84,7 @@ public class ActiveConfigScopeTrackerTests
         VerifyThreadHandling();
         VerifyServiceAddCall();
         VerifyLockTakenSynchronouslyAndReleased();
-        VerifyCurrentConfigurationScopeChangedRaised(configScopeId);
+        VerifyCurrentConfigurationScopeChangedRaised();
     }
 
     [TestMethod]
@@ -99,7 +100,7 @@ public class ActiveConfigScopeTrackerTests
         
         result.Should().BeTrue();
         testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, "some root", isReady));
-        VerifyCurrentConfigurationScopeChangedRaised(configScopeId);
+        VerifyCurrentConfigurationScopeChangedRaised();
     }
 
     [TestMethod]
@@ -131,7 +132,7 @@ public class ActiveConfigScopeTrackerTests
         
         result.Should().BeTrue();
         testSubject.currentConfigScope.Should().BeEquivalentTo(new ConfigurationScope(configScopeId, connectionId, sonarProjectKey, root, true));
-        VerifyCurrentConfigurationScopeChangedRaised(configScopeId);
+        VerifyCurrentConfigurationScopeChangedRaised();
     }
 
     [TestMethod]
@@ -163,7 +164,7 @@ public class ActiveConfigScopeTrackerTests
         VerifyThreadHandling();
         VerifyServiceAddCall();
         VerifyLockTakenSynchronouslyAndReleased();
-        VerifyCurrentConfigurationScopeChangedRaised(configScopeId);
+        VerifyCurrentConfigurationScopeChangedRaised();
     }
 
     [TestMethod]
@@ -183,7 +184,7 @@ public class ActiveConfigScopeTrackerTests
         VerifyThreadHandling();
         VerifyServiceUpdateCall();
         VerifyLockTakenSynchronouslyAndReleased();
-        VerifyCurrentConfigurationScopeChangedRaised(configScopeId);
+        VerifyCurrentConfigurationScopeChangedRaised();
     }
 
     [TestMethod]
@@ -224,7 +225,7 @@ public class ActiveConfigScopeTrackerTests
         configScopeService.Received().DidRemoveConfigurationScope(Arg.Is<DidRemoveConfigurationScopeParams>(p => p.removedId == configScopeId));
         VerifyThreadHandling();
         VerifyLockTakenSynchronouslyAndReleased();
-        VerifyCurrentConfigurationScopeChangedRaised(null);
+        VerifyCurrentConfigurationScopeChangedRaised();
     }
 
     [TestMethod]
@@ -294,7 +295,7 @@ public class ActiveConfigScopeTrackerTests
         serviceProvider.ReceivedCalls().Count().Should().Be(0);
         VerifyThreadHandling();
         VerifyLockTakenSynchronouslyAndReleased();
-        VerifyCurrentConfigurationScopeChangedRaised(null);
+        VerifyCurrentConfigurationScopeChangedRaised();
     }
 
     [TestMethod]
@@ -351,19 +352,14 @@ public class ActiveConfigScopeTrackerTests
         });
     }
 
-    private void VerifyCurrentConfigurationScopeChangedRaised(string configScopeId)
+    private void VerifyCurrentConfigurationScopeChangedRaised()
     {
-        currentConfigScopeChangedEventHandler.Received(1).Invoke(testSubject, Arg.Is<ConfigurationScope>(c => IsSameConfigScope(c, configScopeId)));
-    }
-
-    private bool IsSameConfigScope(ConfigurationScope configurationScope, string configScopeId)
-    {
-        return configurationScope?.Id == configScopeId;
+        currentConfigScopeChangedEventHandler.Received(1).Invoke(testSubject, Arg.Any<EventArgs>());
     }
 
     private void VerifyCurrentConfigurationScopeChangedNotRaised()
     {
-        currentConfigScopeChangedEventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<ConfigurationScope>());
+        currentConfigScopeChangedEventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<EventArgs>());
     }
 
     private class ConfigurationScopeDtoComparer : IEqualityComparer<ConfigurationScopeDto>
