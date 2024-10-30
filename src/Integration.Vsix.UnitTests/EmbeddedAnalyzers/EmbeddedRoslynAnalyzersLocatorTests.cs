@@ -93,7 +93,7 @@ public class EmbeddedRoslynAnalyzersLocatorTests
 
         testSubject.GetBasicAnalyzerFullPaths();
 
-        fileSystem.Directory.Received(1).GetFiles(Path.Combine(PathInsideVsix, "EmbeddedDotnetAnalyzerDLLs"), "*.dll");
+        fileSystem.Directory.Received(1).GetFiles(Path.Combine(PathInsideVsix, "EmbeddedDotnetAnalyzerDLLs"), "SonarAnalyzer.*.dll");
     }
     
     [TestMethod]
@@ -133,7 +133,7 @@ public class EmbeddedRoslynAnalyzersLocatorTests
 
         testSubject.GetEnterpriseAnalyzerFullPaths();
 
-        fileSystem.Directory.Received(1).GetFiles(Path.Combine(PathInsideVsix, "EmbeddedDotnetAnalyzerDLLs"), "*.dll");
+        fileSystem.Directory.Received(1).GetFiles(Path.Combine(PathInsideVsix, "EmbeddedDotnetAnalyzerDLLs"), "SonarAnalyzer.*.dll");
     }
 
     private static string GetAnalyzerFullPath(string pathInsideVsix, string analyzerFile)
