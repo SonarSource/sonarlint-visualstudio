@@ -90,7 +90,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         activeSolutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
     }
 
-    internal async Task OnSolutionStateChangedAsync(string solutionName)
+    internal /*for testing*/ async Task OnSolutionStateChangedAsync(string solutionName)
     {
         using (await asyncLock.AcquireAsync())
         {
