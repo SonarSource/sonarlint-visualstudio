@@ -21,6 +21,7 @@
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Education.Rule;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;

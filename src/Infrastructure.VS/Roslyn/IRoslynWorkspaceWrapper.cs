@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
@@ -36,20 +37,27 @@ internal interface IRoslynWorkspaceWrapper
 internal class RoslynWorkspaceWrapper : IRoslynWorkspaceWrapper
 {
     private readonly Workspace workspace;
+    private readonly IThreadHandling threadHandling;
 
     [ImportingConstructor]
     [ExcludeFromCodeCoverage] // not mef-testable
-    public RoslynWorkspaceWrapper(VisualStudioWorkspace workspace) : this(workspace as Workspace)
+    public RoslynWorkspaceWrapper(VisualStudioWorkspace workspace) : this(workspace as Workspace, ThreadHandling.Instance)
     {
     }
 
-    internal /* for testing */ RoslynWorkspaceWrapper(Workspace workspace)
+    internal /* for testing */ RoslynWorkspaceWrapper(Workspace workspace, IThreadHandling threadHandling)
     {
         this.workspace = workspace;
+        this.threadHandling = threadHandling;
     }
 
     public IRoslynSolutionWrapper CurrentSolution => 
         new RoslynSolutionWrapper(workspace.CurrentSolution);
-    public bool TryApplyChanges(IRoslynSolutionWrapper solution) => 
-        workspace.TryApplyChanges(solution.GetRoslynSolution());
+
+    public bool TryApplyChanges(IRoslynSolutionWrapper solution)
+    {
+        var wasApplied = false;
+        threadHandling.RunOnUIThread(() => wasApplied = workspace.TryApplyChanges(solution.GetRoslynSolution()));
+        return wasApplied;
+    }
 }

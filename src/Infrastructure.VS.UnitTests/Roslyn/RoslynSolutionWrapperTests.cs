@@ -21,6 +21,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests.Roslyn;
@@ -28,6 +29,14 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests.Roslyn;
 [TestClass]
 public class RoslynWrappersTests
 {
+    private IRoslynWorkspaceWrapper roslynWorkspaceWrapper;
+
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        roslynWorkspaceWrapper = CreateWorkspaceWrapper(new NoOpThreadHandler());
+    }
+
     [TestMethod]
     public void MefCtor_CheckIsSingleton()
     {
@@ -38,7 +47,6 @@ public class RoslynWrappersTests
     public void AddAnalyzer_CurrentSolutionContainsAnalyzer()
     {
         var analyzerFileReference = new AnalyzerFileReference(@"C:\abc", Substitute.For<IAnalyzerAssemblyLoader>());
-        var roslynWorkspaceWrapper = CreateWorkspaceWrapper();
         var analyzers = ImmutableArray.Create(analyzerFileReference);
 
         var solutionAfterAddition = roslynWorkspaceWrapper.CurrentSolution.AddAnalyzerReferences(analyzers);
@@ -52,7 +60,6 @@ public class RoslynWrappersTests
     {
         var analyzerFileReference = new AnalyzerFileReference(@"C:\abc", Substitute.For<IAnalyzerAssemblyLoader>());
         var extraAnalyzerFileReference = new AnalyzerFileReference(@"C:\abc", Substitute.For<IAnalyzerAssemblyLoader>());
-        var roslynWorkspaceWrapper = CreateWorkspaceWrapper();
         var extraAnalyzers = ImmutableArray.Create(extraAnalyzerFileReference);
         roslynWorkspaceWrapper.TryApplyChanges(roslynWorkspaceWrapper.CurrentSolution.AddAnalyzerReferences(ImmutableArray.Create(analyzerFileReference))).Should().BeTrue();
         
@@ -68,7 +75,6 @@ public class RoslynWrappersTests
     public void AddAndRemoveAnalyzer_CurrentSolutionNoLongerContainsAnalyzer()
     {
         var analyzerFileReference = new AnalyzerFileReference(@"C:\abc", Substitute.For<IAnalyzerAssemblyLoader>());
-        var roslynWorkspaceWrapper = CreateWorkspaceWrapper();
         var analyzers = ImmutableArray.Create(analyzerFileReference);
         
         var solutionAfterAddition = roslynWorkspaceWrapper.CurrentSolution.AddAnalyzerReferences(analyzers);
@@ -85,7 +91,6 @@ public class RoslynWrappersTests
     {
         var analyzerFileReference = new AnalyzerFileReference(@"C:\abc", Substitute.For<IAnalyzerAssemblyLoader>());
         var analyzers = ImmutableArray.Create(analyzerFileReference);
-        var roslynWorkspaceWrapper = CreateWorkspaceWrapper();
         
         var solutionAfterRemoval = roslynWorkspaceWrapper.CurrentSolution.RemoveAnalyzerReferences(analyzers);
         roslynWorkspaceWrapper.TryApplyChanges(solutionAfterRemoval).Should().BeTrue();
@@ -100,7 +105,6 @@ public class RoslynWrappersTests
         var analyzerFileReference2 = new AnalyzerFileReference(@"C:\abc", Substitute.For<IAnalyzerAssemblyLoader>());
         var analyzersToAdd = ImmutableArray.Create(analyzerFileReference1, analyzerFileReference2);
         var analyzersToRemove = ImmutableArray.Create(analyzerFileReference1);
-        var roslynWorkspaceWrapper = CreateWorkspaceWrapper();
         
         roslynWorkspaceWrapper.TryApplyChanges(roslynWorkspaceWrapper.CurrentSolution.AddAnalyzerReferences(analyzersToAdd)).Should().BeTrue();
         roslynWorkspaceWrapper.TryApplyChanges(roslynWorkspaceWrapper.CurrentSolution.RemoveAnalyzerReferences(analyzersToRemove)).Should().BeTrue();
@@ -108,13 +112,24 @@ public class RoslynWrappersTests
         roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Should().Contain(analyzerFileReference2);
     }
 
-    private static IRoslynWorkspaceWrapper CreateWorkspaceWrapper()
+    [TestMethod]
+    public void TryApplyChanges_RunsOnUIThread()
+    {
+        var threadHandling = Substitute.For<IThreadHandling>();
+        var testSubject = CreateWorkspaceWrapper(threadHandling);
+
+        testSubject.TryApplyChanges(testSubject.CurrentSolution);
+
+        threadHandling.Received(1).RunOnUIThread(Arg.Any<Action>());
+    }
+
+    private static IRoslynWorkspaceWrapper CreateWorkspaceWrapper(IThreadHandling threadHandling)
     {
         var adhocWorkspace = new AdhocWorkspace();
 
         var slnInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default, null, []);
         adhocWorkspace.AddSolution(slnInfo);
 
-        return new RoslynWorkspaceWrapper(adhocWorkspace);
+        return new RoslynWorkspaceWrapper(adhocWorkspace, threadHandling);
     }
 }

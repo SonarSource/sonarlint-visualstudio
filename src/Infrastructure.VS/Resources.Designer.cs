@@ -88,6 +88,24 @@ namespace SonarLint.VisualStudio.Infrastructure.VS {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to add analyzer references while adding analyzers.
+        /// </summary>
+        internal static string RoslynAnalyzersNotAdded {
+            get {
+                return ResourceManager.GetString("RoslynAnalyzersNotAdded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to remove analyzer references while updating analyzers.
+        /// </summary>
+        internal static string RoslynAnalyzersNotRemoved {
+            get {
+                return ResourceManager.GetString("RoslynAnalyzersNotRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Current VS version:
         ///    {0}
         ///    {1}
