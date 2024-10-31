@@ -32,14 +32,7 @@
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
   </ItemGroup>
-
-  <!-- Only need to reference the analyzer common assembly for testing. -->
-  <Import Project="..\EmbeddedSonarAnalyzer.props" />
-  <ItemGroup Label="Embedded SonarLint analyzers">
-    <!-- Reference the packages we want to import, but we don't want to include them as analyzers for project -->
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
-  </ItemGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\Integration.Vsix\Integration.Vsix.csproj" />
     <ProjectReference Include="..\Integration\Integration.csproj" />

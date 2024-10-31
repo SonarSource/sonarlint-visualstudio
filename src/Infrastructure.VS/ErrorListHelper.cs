@@ -143,7 +143,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
                 return buildTool switch
                 {
                     "SonarAnalyzer.CSharp" => $"{SonarRuleRepoKeys.CSharpRules}:{errorCode}",
+                    "SonarAnalyzer.Enterprise.CSharp" => $"{SonarRuleRepoKeys.CSharpRules}:{errorCode}",
                     "SonarAnalyzer.VisualBasic" => $"{SonarRuleRepoKeys.VBNetRules}:{errorCode}",
+                    "SonarAnalyzer.Enterprise.VisualBasic" => $"{SonarRuleRepoKeys.VBNetRules}:{errorCode}",
                     "SonarLint" => errorCode,
                     _ => null
                 };

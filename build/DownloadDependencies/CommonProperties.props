@@ -39,20 +39,6 @@
       <LanguageKey>c</LanguageKey>
       <RepoKey>c</RepoKey>
     </PluginJars>
-
-    <PluginJars Include="C#">
-      <JarName>sonar-csharp-plugin-$(EmbeddedSonarAnalyzerVersion).jar</JarName>
-      <URL>https://binaries.sonarsource.com/Distribution/sonar-csharp-plugin/%(JarName)</URL>
-      <LanguageKey>cs</LanguageKey>
-      <RepoKey>csharpsquid</RepoKey>
-    </PluginJars>
-
-    <PluginJars Include="VB.NET">
-      <JarName>sonar-vbnet-plugin-$(EmbeddedSonarAnalyzerVersion).jar</JarName>
-      <URL>https://binaries.sonarsource.com/Distribution/sonar-vbnet-plugin/%(JarName)</URL>
-      <LanguageKey>vbnet</LanguageKey>
-      <RepoKey>vbnet</RepoKey>
-    </PluginJars>
   </ItemGroup>
 
   <PropertyGroup>
@@ -65,5 +51,24 @@
     <SonarTextPluginFileName>sonar-text-plugin-$(EmbeddedSonarSecretsJarVersion).jar</SonarTextPluginFileName>
     <SonarTextPluginDownloadPath>$(JarDownloadDir)\$(SonarTextPluginFileName)</SonarTextPluginDownloadPath>
     <SonarTextPluginRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/text/sonar-text-plugin/$(EmbeddedSonarSecretsJarVersion)/$(SonarTextPluginFileName)</SonarTextPluginRemoteUrl>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <DotnetPluginsExtractDir>$(LOCALAPPDATA)\SLVS_Build_Dotnet</DotnetPluginsExtractDir>
+    <EnterpriseDotnetAnalyzersExtractDir>$(LOCALAPPDATA)\SLVS_Build_Dotnet\EnterpriseAnalyzerDlls-$(EmbeddedSonarAnalyzerVersion)</EnterpriseDotnetAnalyzersExtractDir>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <EnterpriseSonarVBNetPluginFileNameWithoutExtension>sonar-vbnet-enterprise-plugin-$(EmbeddedSonarAnalyzerVersion)</EnterpriseSonarVBNetPluginFileNameWithoutExtension>
+    <EnterpriseSonarVBNetPluginFileName>$(EnterpriseSonarVBNetPluginFileNameWithoutExtension).jar</EnterpriseSonarVBNetPluginFileName>
+    <EnterpriseSonarVBNetPluginDownloadPath>$(JarDownloadDir)\$(EnterpriseSonarVBNetPluginFileName)</EnterpriseSonarVBNetPluginDownloadPath>
+    <EnterpriseSonarVBNetPluginRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/com/sonarsource/dotnet/sonar-vbnet-enterprise-plugin/$(EmbeddedSonarAnalyzerVersion)/$(EnterpriseSonarVBNetPluginFileName)</EnterpriseSonarVBNetPluginRemoteUrl>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <EnterpriseSonarCSharpPluginFileNameWithoutExtension>sonar-csharp-enterprise-plugin-$(EmbeddedSonarAnalyzerVersion)</EnterpriseSonarCSharpPluginFileNameWithoutExtension>
+    <EnterpriseSonarCSharpPluginFileName>$(EnterpriseSonarCSharpPluginFileNameWithoutExtension).jar</EnterpriseSonarCSharpPluginFileName>
+    <EnterpriseSonarCSharpPluginDownloadPath>$(JarDownloadDir)\$(EnterpriseSonarCSharpPluginFileName)</EnterpriseSonarCSharpPluginDownloadPath>
+    <EnterpriseSonarCSharpPluginRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/com/sonarsource/dotnet/sonar-csharp-enterprise-plugin/$(EmbeddedSonarAnalyzerVersion)/$(EnterpriseSonarCSharpPluginFileName)</EnterpriseSonarCSharpPluginRemoteUrl>
   </PropertyGroup>
 </Project>
