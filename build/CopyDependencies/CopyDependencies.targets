@@ -4,11 +4,14 @@
   <Target Name="Build">
     <CallTarget Targets="ClearDirs" />
     <CallTarget Targets="CopyJars" />
+    <CallTarget Targets="CopyEnterpriseDotnet" />
     <CallTarget Targets="CopySloop" />
   </Target>
 
   <PropertyGroup>
     <VsixDir>..\..\src\Integration.Vsix</VsixDir>
+    <EnterpriseDotnetAnalyzersExtractDir>$(LOCALAPPDATA)\SLVS_Build_Dotnet\EnterpriseAnalyzerDlls-$(EmbeddedSonarAnalyzerVersion)</EnterpriseDotnetAnalyzersExtractDir>
+    <EmbeddedEnterpriseDotnetAnalyzersDir>$(VsixDir)\EmbeddedDotnetAnalyzerDLLs</EmbeddedEnterpriseDotnetAnalyzersDir>
     <JarDownloadDir>$(LOCALAPPDATA)\SLVS_Build_DownloadedJars</JarDownloadDir>
     <EmbeddedJarDir>$(VsixDir)\DownloadedJars</EmbeddedJarDir>
     <SloopDowloadDir>$(LOCALAPPDATA)\SLVS_Build_SLOOP\sonarlint-backend-cli-$(EmbeddedSloopVersion)-windows_x64</SloopDowloadDir>
@@ -19,17 +22,25 @@
   <Target Name="ClearDirs">
     <RemoveDir Directories="$(EmbeddedJarDir)" />
     <RemoveDir Directories="$(EmbeddedSloopDir)" />
+    <RemoveDir Directories="$(EmbeddedEnterpriseDotnetAnalyzersDir)" />
   </Target>
 
   <Target Name="CopyJars">
     <ItemGroup>
       <SourceJars Include="$(JarDownloadDir)\sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar" />
-      <SourceJars Include="$(JarDownloadDir)\sonar-csharp-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
-      <SourceJars Include="$(JarDownloadDir)\sonar-vbnet-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
+      <SourceJars Include="$(JarDownloadDir)\sonar-csharp-enterprise-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
+      <SourceJars Include="$(JarDownloadDir)\sonar-vbnet-enterprise-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-text-plugin-$(EmbeddedSonarSecretsJarVersion).jar" />
     </ItemGroup>
     <Copy SourceFiles ="@(SourceJars)" DestinationFolder="$(EmbeddedJarDir)" />
+  </Target>
+  
+  <Target Name="CopyEnterpriseDotnet">
+    <ItemGroup>
+      <EnterpriseDotnetSource Include="$(EnterpriseDotnetAnalyzersExtractDir)\*.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(EnterpriseDotnetSource)" DestinationFolder="$(EmbeddedEnterpriseDotnetAnalyzersDir)"/>
   </Target>
 
   <Target Name="CopySloop">

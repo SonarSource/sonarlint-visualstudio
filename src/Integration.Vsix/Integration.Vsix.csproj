@@ -76,36 +76,9 @@
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
   <!-- ********************************************************** -->
-  <!-- Sonar C#/VB analyzers -->
+  <!-- Sonar C#/VB analyzers are now handled by DownloadDependencies.proj & <ItemGroup Label="Sonar Dependencies"> below -->
   <!-- ********************************************************** -->
-  <!-- We assume that the package restore has happened so the files are already on disc -->
   <Import Project="..\EmbeddedSonarAnalyzer.props" />
-  <ItemGroup Label="Embedded SonarLint analyzers">
-    <!-- Reference the packages we want to import, but don't include them as analyzers for this project -->
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all">
-      <TargetPath>EmbeddedRoslynAnalyzers\%(Filename)%(Extension)</TargetPath>
-    </PackageReference>
-    <PackageReference Include="SonarAnalyzer.VisualBasic" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all">
-      <TargetPath>EmbeddedRoslynAnalyzers\%(Filename)%(Extension)</TargetPath>
-    </PackageReference>
-
-    <!-- Include all of the analyzer binaries including third-party binaries in the VSIX -->
-    <AllSonarAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\*.dll">
-      <TargetPath>EmbeddedRoslynAnalyzers\%(Filename)%(Extension)</TargetPath>
-    </AllSonarAnalyzerAssemblies>
-    <AllSonarAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.VisualBasic\$(EmbeddedSonarAnalyzerVersion)\analyzers\*.dll">
-      <TargetPath>EmbeddedRoslynAnalyzers\%(Filename)%(Extension)</TargetPath>
-    </AllSonarAnalyzerAssemblies>
-    <VSIXSourceItem Include="@(AllSonarAnalyzerAssemblies)" />
-
-    <!-- Make sure the Sonar.* analyzer assemblies we want to include in the AsmRef check to the output directory. -->
-    <!-- We don't want to copy third-party assemblies from the analyzers in case there are version conflicts e.g. NewtonSoft.Json.dll -->
-    <SonarAuthoredAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\Sonar*.dll" />
-    <SonarAuthoredAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.VisualBasic\$(EmbeddedSonarAnalyzerVersion)\analyzers\Sonar*.dll" />
-    <None Include="@(SonarAuthoredAnalyzerAssemblies)" CopyToOutputDirectory="PreserveNewest" />
-
-  </ItemGroup>
-  <!-- ********************************************************** -->
 
   <PropertyGroup>
     <ProjectGuid>{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}</ProjectGuid>
@@ -259,11 +232,14 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup Label="Sloop Dependencies">
+  <ItemGroup Label="Sonar Dependencies">
     <Content Include="$(JarsFolderName)\*.jar">
       <IncludeInVSIX>True</IncludeInVSIX>
     </Content>
     <Content Include="$(SloopFolderName)\**\*">
+      <IncludeInVSIX>True</IncludeInVSIX>
+    </Content>
+    <Content Include="$(DotnetDLLsFolderName)\**\*">
       <IncludeInVSIX>True</IncludeInVSIX>
     </Content>
   </ItemGroup>
@@ -369,6 +345,7 @@
 
     <CFamilyFolderName>lib</CFamilyFolderName>
     <JarsFolderName>DownloadedJars</JarsFolderName>
+    <DotnetDLLsFolderName>EmbeddedDotnetAnalyzerDLLs</DotnetDLLsFolderName>
     <SloopFolderName>Sloop</SloopFolderName>
 
     <!-- Folder the embedded files should be copied to. This folder should be excluded from source code control. -->
