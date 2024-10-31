@@ -26,9 +26,9 @@ using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.EmbeddedAnalyzers;
 
-[Export(typeof(IEmbeddedRoslynAnalyzersLocator))]
+[Export(typeof(IEmbeddedDotnetAnalyzersLocator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class EmbeddedDotnetAnalyzersLocator : IEmbeddedRoslynAnalyzersLocator
+internal class EmbeddedDotnetAnalyzersLocator : IEmbeddedDotnetAnalyzersLocator
 {
     private const string PathInsideVsix = "EmbeddedDotnetAnalyzerDLLs";
     private const string DllsSearchPattern = "SonarAnalyzer.*.dll"; // starting from 10.0, the analyzer assemblies are merged and all of the dll names start with SonarAnalyzer

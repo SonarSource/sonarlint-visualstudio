@@ -33,14 +33,14 @@ public class EmbeddedRoslynAnalyzerProviderTests
     private const string AnalyzersPath = "C:\\somepath";
     private readonly IAnalyzerAssemblyLoader analyzerAssemblyLoader = Substitute.For<IAnalyzerAssemblyLoader>();
     private EmbeddedRoslynAnalyzerProvider testSubject;
-    private IEmbeddedRoslynAnalyzersLocator locator;
+    private IEmbeddedDotnetAnalyzersLocator locator;
     private IAnalyzerAssemblyLoaderFactory analyzerAssemblyLoaderFactory;
     private ILogger logger;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        locator = Substitute.For<IEmbeddedRoslynAnalyzersLocator>();
+        locator = Substitute.For<IEmbeddedDotnetAnalyzersLocator>();
         analyzerAssemblyLoaderFactory = Substitute.For<IAnalyzerAssemblyLoaderFactory>();
         logger = Substitute.For<ILogger>();
 
@@ -52,7 +52,7 @@ public class EmbeddedRoslynAnalyzerProviderTests
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<EmbeddedRoslynAnalyzerProvider, IEmbeddedRoslynAnalyzerProvider>(
-            MefTestHelpers.CreateExport<IEmbeddedRoslynAnalyzersLocator>(),
+            MefTestHelpers.CreateExport<IEmbeddedDotnetAnalyzersLocator>(),
             MefTestHelpers.CreateExport<ILogger>());
     }
 

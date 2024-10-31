@@ -46,7 +46,7 @@ public class EmbeddedDotnetAnalyzersLocatorTests
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<EmbeddedDotnetAnalyzersLocator, IEmbeddedRoslynAnalyzersLocator>(
+        MefTestHelpers.CheckTypeCanBeImported<EmbeddedDotnetAnalyzersLocator, IEmbeddedDotnetAnalyzersLocator>(
             MefTestHelpers.CreateExport<IVsixRootLocator>());
     }
 

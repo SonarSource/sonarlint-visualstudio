@@ -29,18 +29,18 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class EmbeddedRoslynAnalyzerProvider : IEmbeddedRoslynAnalyzerProvider
 {
-    private readonly IEmbeddedRoslynAnalyzersLocator locator;
+    private readonly IEmbeddedDotnetAnalyzersLocator locator;
     private readonly IAnalyzerAssemblyLoaderFactory analyzerAssemblyLoaderFactory;
     private readonly ILogger logger;
     private ImmutableArray<AnalyzerFileReference>? embeddedAnalyzers;
 
     [ImportingConstructor]
-    public EmbeddedRoslynAnalyzerProvider(IEmbeddedRoslynAnalyzersLocator locator, ILogger logger) :
+    public EmbeddedRoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator locator, ILogger logger) :
         this(locator, new AnalyzerAssemblyLoaderFactory(), logger)
     {
     }
 
-    internal EmbeddedRoslynAnalyzerProvider(IEmbeddedRoslynAnalyzersLocator locator,
+    internal EmbeddedRoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator locator,
         IAnalyzerAssemblyLoaderFactory analyzerAssemblyLoaderFactory,
         ILogger logger)
     {
