@@ -30,13 +30,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
     [TestClass]
     public class ErrorListHelperTests
     {
-        internal enum TestVsSuppressionState
-        {
-            Active,
-            Suppressed,
-            NotApplicable,
-        }
-
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -232,8 +225,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
         [TestMethod]
         [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp", null)]
+        [DataRow("S667", "csharpsquid", "S667", "SonarAnalyzer.Enterprise.CSharp", null)]
         [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic", null)]
         [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.VisualBasic", null)]
+        [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.Enterprise.VisualBasic", null)]
         [DataRow("c:S111", "c", "S111", "SonarLint", null)]
         [DataRow("cpp:S222", "cpp", "S222", "SonarLint", null)]
         [DataRow("javascript:S333", "javascript", "S333", "SonarLint", null)]
@@ -268,8 +263,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
         [TestMethod]
         [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp", null)]
+        [DataRow("S667", "csharpsquid", "S667", "SonarAnalyzer.Enterprise.CSharp", null)]
         [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic", null)]
         [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.VisualBasic", null)]
+        [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.Enterprise.VisualBasic", null)]
         [DataRow("c:S111", "c", "S111", "SonarLint", null)]
         [DataRow("cpp:S222", "cpp", "S222", "SonarLint", null)]
         [DataRow("javascript:S333", "javascript", "S333", "SonarLint", null)]
