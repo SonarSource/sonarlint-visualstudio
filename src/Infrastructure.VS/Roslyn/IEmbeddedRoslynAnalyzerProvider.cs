@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
-
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
 public interface IEmbeddedRoslynAnalyzerProvider
@@ -29,5 +26,5 @@ public interface IEmbeddedRoslynAnalyzerProvider
     /// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are embedded in the VSIX.
     /// If no analyzer is found, throws an exception
     /// </summary>
-    ImmutableArray<AnalyzerFileReference> Get();
+    IAnalyzerReferencesHolder Get();
 }

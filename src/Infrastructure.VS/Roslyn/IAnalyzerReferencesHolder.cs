@@ -18,23 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
-[Export(typeof(IConnectedModeRoslynAnalyzerProvider))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-internal class ConnectedModeRoslynAnalyzerProvider : IConnectedModeRoslynAnalyzerProvider
+public interface IAnalyzerReferencesHolder
 {
-    [ImportingConstructor]
-    public ConnectedModeRoslynAnalyzerProvider()
+    ImmutableArray<AnalyzerFileReference> AnalyzerFileReferences { get; }
+}
+
+public class AnalyzerReferencesHolder : IAnalyzerReferencesHolder
+{
+    public AnalyzerReferencesHolder(List<string> analyzerPaths, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
     {
+        AnalyzerFileReferences = analyzerPaths.Select(path => new AnalyzerFileReference(path, analyzerAssemblyLoader)).ToImmutableArray();
     }
 
-    public async Task<IAnalyzerReferencesHolder> GetOrNullAsync()
-    {
-        return await Task.FromResult<IAnalyzerReferencesHolder>(null);
-    }
-
-    public event EventHandler<AnalyzerUpdatedForConnectionEventArgs> AnalyzerUpdatedForConnection;
+    public ImmutableArray<AnalyzerFileReference> AnalyzerFileReferences { get; }
 }

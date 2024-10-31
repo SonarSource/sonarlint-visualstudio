@@ -75,13 +75,13 @@ public class EmbeddedRoslynAnalyzerProviderTests
     {
         locator.GetBasicAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll"), GetAnalyzerFullPath("analyzer2.dll")]);
 
-        var analyzerFileReferences = testSubject.Get();
+        var analyzerReferencesHolder = testSubject.Get();
 
         analyzerAssemblyLoaderFactory.Received(1).Create();
-        analyzerFileReferences.Should().NotBeNull();
-        analyzerFileReferences.Length.Should().Be(2);
-        ContainsExpectedAnalyzerFileReference(analyzerFileReferences, GetAnalyzerFullPath("analyzer1.dll"));
-        ContainsExpectedAnalyzerFileReference(analyzerFileReferences, GetAnalyzerFullPath("analyzer2.dll"));
+        analyzerReferencesHolder.Should().NotBeNull();
+        analyzerReferencesHolder.AnalyzerFileReferences.Length.Should().Be(2);
+        ContainsExpectedAnalyzerFileReference(analyzerReferencesHolder.AnalyzerFileReferences, GetAnalyzerFullPath("analyzer1.dll"));
+        ContainsExpectedAnalyzerFileReference(analyzerReferencesHolder.AnalyzerFileReferences, GetAnalyzerFullPath("analyzer2.dll"));
     }
 
     [TestMethod]

@@ -32,7 +32,7 @@ public class EmbeddedRoslynAnalyzerProvider : IEmbeddedRoslynAnalyzerProvider
     private readonly IEmbeddedDotnetAnalyzersLocator locator;
     private readonly IAnalyzerAssemblyLoaderFactory analyzerAssemblyLoaderFactory;
     private readonly ILogger logger;
-    private ImmutableArray<AnalyzerFileReference>? embeddedAnalyzers;
+    private IAnalyzerReferencesHolder embeddedAnalyzers;
 
     [ImportingConstructor]
     public EmbeddedRoslynAnalyzerProvider(IEmbeddedDotnetAnalyzersLocator locator, ILogger logger) :
@@ -49,14 +49,14 @@ public class EmbeddedRoslynAnalyzerProvider : IEmbeddedRoslynAnalyzerProvider
         this.logger = logger;
     }
 
-    public ImmutableArray<AnalyzerFileReference> Get()
+    public IAnalyzerReferencesHolder Get()
     {
         embeddedAnalyzers ??= CreateAnalyzerFileReferences();
 
-        return embeddedAnalyzers.Value;
+        return embeddedAnalyzers;
     }
 
-    private ImmutableArray<AnalyzerFileReference> CreateAnalyzerFileReferences()
+    private IAnalyzerReferencesHolder CreateAnalyzerFileReferences()
     {
         var analyzerPaths = locator.GetBasicAnalyzerFullPaths();
         if(analyzerPaths.Count == 0)
@@ -65,6 +65,6 @@ public class EmbeddedRoslynAnalyzerProvider : IEmbeddedRoslynAnalyzerProvider
             throw new InvalidOperationException(Resources.EmbeddedRoslynAnalyzersNotFound);
         }
         var loader = analyzerAssemblyLoaderFactory.Create();
-        return analyzerPaths.Select(path => new AnalyzerFileReference(path, loader)).ToImmutableArray();
+        return new AnalyzerReferencesHolder(analyzerPaths, loader);
     }
 }

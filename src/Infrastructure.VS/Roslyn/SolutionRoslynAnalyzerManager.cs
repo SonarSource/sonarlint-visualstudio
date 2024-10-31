@@ -102,8 +102,8 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
                 return;
             }
 
-            var analyzersToUse = await ChooseAnalyzersAsync();
-            UpdateAnalyzersIfChanged(analyzersToUse);
+            var analyzersReferencesHolder = await ChooseAnalyzersAsync();
+            UpdateAnalyzersIfChanged(analyzersReferencesHolder.AnalyzerFileReferences);
         }
     }
 
@@ -126,10 +126,10 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         disposed = true;
     }
 
-    private async Task<ImmutableArray<AnalyzerFileReference>> ChooseAnalyzersAsync() =>
+    private async Task<IAnalyzerReferencesHolder> ChooseAnalyzersAsync() =>
         ChooseAnalyzers(await connectedModeAnalyzerProvider.GetOrNullAsync());
 
-    private ImmutableArray<AnalyzerFileReference> ChooseAnalyzers(ImmutableArray<AnalyzerFileReference>? connectedModeAnalyzers) =>
+    private IAnalyzerReferencesHolder ChooseAnalyzers(IAnalyzerReferencesHolder connectedModeAnalyzers) =>
         connectedModeAnalyzers ?? embeddedAnalyzerProvider.Get();
     
     private void UpdateAnalyzersIfChanged(ImmutableArray<AnalyzerFileReference> analyzersToUse)
