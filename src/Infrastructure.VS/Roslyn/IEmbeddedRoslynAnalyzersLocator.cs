@@ -20,7 +20,9 @@
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
-public interface IEmbeddedRoslynAnalyzersLocator
+public interface IEmbeddedDotnetAnalyzersLocator
 {
-    List<string> GetAnalyzerFullPaths();
+    List<string> GetBasicAnalyzerFullPaths();
+
+    List<string> GetEnterpriseAnalyzerFullPaths();
 }

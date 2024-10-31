@@ -54,6 +54,9 @@ UnitTestResults.html
 # Visual Studio temp directories
 .vs/
 
+# Rider temp directories
+.idea/
+
 # Visual C++ cache files
 ipch/
 *.aps
@@ -171,3 +174,4 @@ $RECYCLE.BIN/
 /src/Rules/Embedded
 /src/Integration.Vsix/DownloadedJars
 /src/Integration.Vsix/Sloop
+/src/Integration.Vsix/EmbeddedDotnetAnalyzerDLLs
