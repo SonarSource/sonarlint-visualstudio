@@ -50,8 +50,8 @@ public class DependencyLocator // this might be reused in the product code in th
         var secrestsAnalyzerVersion = GetDependencyVersion("EmbeddedSonarSecretsJarVersion", dependencyProps);
         AnalyzerPlugins = new List<string>
         {
-            GetAnalyzerPath("sonar-csharp-plugin", roslynAnalyzerVersion, availablePluginJars),
-            GetAnalyzerPath("sonar-vbnet-plugin", roslynAnalyzerVersion, availablePluginJars),    
+            GetAnalyzerPath("sonar-csharp-enterprise-plugin", roslynAnalyzerVersion, availablePluginJars),
+            GetAnalyzerPath("sonar-vbnet-enterprise-plugin", roslynAnalyzerVersion, availablePluginJars),    
             GetAnalyzerPath("sonar-cfamily-plugin", cfamilyAnalyzerVersion, availablePluginJars),
             GetAnalyzerPath("sonar-javascript-plugin", jstsAnalyzerVersion, availablePluginJars),
             GetAnalyzerPath("sonar-text-plugin", secrestsAnalyzerVersion, availablePluginJars),

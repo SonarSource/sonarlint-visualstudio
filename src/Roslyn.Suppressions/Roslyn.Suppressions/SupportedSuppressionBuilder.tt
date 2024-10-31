@@ -3,6 +3,8 @@
 <#@ assembly name="System.Core" #>
 <#@ assembly name="$(SonarCSharpDllPath)" #>
 <#@ assembly name="$(SonarVBDllPath)" #>
+<#@ assembly name="$(EnterpriseSonarCSharpDllPath)" #>
+<#@ assembly name="$(EnterpriseSonarVBDllPath)" #>
 <#@ assembly name="$(MSCodeAnalysisCommonDllPath)" #>
 <#@ assembly name="$(MSCodeAnalysisWorkspacesDllPath)" #>
 <#@ assembly name="$(SystemCompositionAttributedModelDllPath)" #>
@@ -123,7 +125,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         private readonly Assembly[] AssembliesWithDiagnostics = new Assembly[]
         {
             typeof(SonarAnalyzer.Rules.CSharp.CommentKeyword).Assembly,
-            typeof(SonarAnalyzer.Rules.VisualBasic.CommentKeyword).Assembly
+            typeof(SonarAnalyzer.Rules.CSharp.SymbolicExecutionRunner).Assembly,
+            typeof(SonarAnalyzer.Rules.VisualBasic.CommentKeyword).Assembly,
+            typeof(SonarAnalyzer.Rules.VisualBasic.SymbolicExecutionRunner).Assembly
         };
 
         private IEnumerable<string> GetAllDiagnosticIds() =>

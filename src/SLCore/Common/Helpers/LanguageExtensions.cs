@@ -43,8 +43,8 @@ internal static class LanguageExtensions
         {
             Language.C or Language.CPP => "cpp",
             Language.JS or Language.TS or Language.CSS => "javascript",
-            Language.CS => "csharp",
-            Language.VBNET => "vbnet",
+            Language.CS => "csharpenterprise",
+            Language.VBNET => "vbnetenterprise",
             Language.SECRETS => "text",
             _ => null
         };
