@@ -218,8 +218,10 @@ public class ErrorListHelperTests
 
     [TestMethod]
     [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp", null)]
+    [DataRow("S667", "csharpsquid", "S667", "SonarAnalyzer.Enterprise.CSharp", null)]
     [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic", null)]
     [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.VisualBasic", null)]
+    [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.Enterprise.VisualBasic", null)]
     [DataRow("c:S111", "c", "S111", "SonarLint", null)]
     [DataRow("cpp:S222", "cpp", "S222", "SonarLint", null)]
     [DataRow("javascript:S333", "javascript", "S333", "SonarLint", null)]
@@ -229,16 +231,15 @@ public class ErrorListHelperTests
     [DataRow("S666", "csharpsquid", "S666", null, "https://rules.sonarsource.com/csharp/RSPEC-666/")]
     [DataRow("S666", "vbnet", "S666", null, "https://rules.sonarsource.com/vbnet/RSPEC-666/")]
     [DataRow("S234", "vbnet", "S234", null, "https://rules.sonarsource.com/vbnet/RSPEC-234/")]
-    public void TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned(
-        string fullRuleKey,
-        string expectedRepo,
-        string expectedRule,
-        string buildTool,
-        string helpLink)
+    public void TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool, string helpLink)
     {
-        var issueHandle = CreateIssueHandle(111,
-            new Dictionary<string, object> { { StandardTableKeyNames.BuildTool, buildTool }, { StandardTableKeyNames.HelpLink, helpLink }, { StandardTableKeyNames.ErrorCode, fullRuleKey } });
-        MockErrorList(issueHandle);
+        // Arrange
+        var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+        {
+            { StandardTableKeyNames.BuildTool, buildTool },
+            { StandardTableKeyNames.HelpLink, helpLink },
+            { StandardTableKeyNames.ErrorCode, fullRuleKey }
+        });
 
         var result = testSubject.TryGetRuleIdFromSelectedRow(out var ruleId);
 
@@ -249,8 +250,10 @@ public class ErrorListHelperTests
 
     [TestMethod]
     [DataRow("S666", "csharpsquid", "S666", "SonarAnalyzer.CSharp", null)]
+    [DataRow("S667", "csharpsquid", "S667", "SonarAnalyzer.Enterprise.CSharp", null)]
     [DataRow("S666", "vbnet", "S666", "SonarAnalyzer.VisualBasic", null)]
     [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.VisualBasic", null)]
+    [DataRow("S234", "vbnet", "S234", "SonarAnalyzer.Enterprise.VisualBasic", null)]
     [DataRow("c:S111", "c", "S111", "SonarLint", null)]
     [DataRow("cpp:S222", "cpp", "S222", "SonarLint", null)]
     [DataRow("javascript:S333", "javascript", "S333", "SonarLint", null)]
@@ -260,17 +263,16 @@ public class ErrorListHelperTests
     [DataRow("S666", "csharpsquid", "S666", null, "https://rules.sonarsource.com/csharp/RSPEC-666/")]
     [DataRow("S666", "vbnet", "S666", null, "https://rules.sonarsource.com/vbnet/RSPEC-666/")]
     [DataRow("S234", "vbnet", "S234", null, "https://rules.sonarsource.com/vbnet/RSPEC-234/")]
-    public void TryGetRuleId_FromHandle_ErrorCodeReturned(
-        string fullRuleKey,
-        string expectedRepo,
-        string expectedRule,
-        string buildTool,
-        string helpLink)
+    public void TryGetRuleId_FromHandle_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule, string buildTool, string helpLink)
     {
         // Note: this is a copy of TryGetRuleIdFromSelectedRow_SingleSonarIssue_ErrorCodeReturned,
         //       but without the serviceProvider and IErrorList setup
-        var issueHandle = CreateIssueHandle(111,
-            new Dictionary<string, object> { { StandardTableKeyNames.BuildTool, buildTool }, { StandardTableKeyNames.HelpLink, helpLink }, { StandardTableKeyNames.ErrorCode, fullRuleKey } });
+        var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+        {
+            { StandardTableKeyNames.BuildTool, buildTool },
+            { StandardTableKeyNames.HelpLink, helpLink },
+            { StandardTableKeyNames.ErrorCode, fullRuleKey }
+        });
 
         var result = testSubject.TryGetRuleId(issueHandle, out var ruleId);
 

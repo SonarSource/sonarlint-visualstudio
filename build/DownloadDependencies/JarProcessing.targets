@@ -27,6 +27,8 @@
     <CallTarget Targets="PrepareDirectories" />
     <CallTarget Targets="DownloadIndividualJars" />
     <CallTarget Targets="DownloadRepoxJars" />
+    <CallTarget Targets="UnzipEnterpriseSonarCSharp" />
+    <CallTarget Targets="UnzipEnterpriseSonarVBNet" />
     <CallTarget Targets="DownloadSloop" />
     <CallTarget Targets="UnzipSloop" />
     <CallTarget Targets="WriteOutputFile" />
@@ -48,6 +50,8 @@
   <Target Name="DownloadRepoxJars">
     <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(JavaScriptPluginDownloadPath) --url $(JavascriptPluginRemoteUrl)" />
     <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(SonarTextPluginDownloadPath) --url $(SonarTextPluginRemoteUrl)" />
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(EnterpriseSonarCSharpPluginDownloadPath) --url $(EnterpriseSonarCSharpPluginRemoteUrl)" />
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(EnterpriseSonarVBNetPluginDownloadPath) --url $(EnterpriseSonarVBNetPluginRemoteUrl)" />
   </Target>
 
   <Target Name ="DownloadSloop">
@@ -56,6 +60,16 @@
 
   <Target Name="UnzipSloop">
     <Unzip SourceFiles="$(SloopBinaryDownloadPath)" DestinationFolder="$(SloopExtractDir)" OverwriteReadOnlyFiles="true" />
+  </Target>
+
+  <Target Name="UnzipEnterpriseSonarCSharp">
+    <Unzip SourceFiles="$(EnterpriseSonarCSharpPluginDownloadPath)" DestinationFolder="$(DotnetPluginsExtractDir)\$(EnterpriseSonarCSharpPluginFileNameWithoutExtension)" OverwriteReadOnlyFiles="true" />
+    <Unzip SourceFiles="$(DotnetPluginsExtractDir)\$(EnterpriseSonarCSharpPluginFileNameWithoutExtension)\static\SonarAnalyzer-$(EmbeddedSonarAnalyzerVersion).zip" DestinationFolder="$(EnterpriseDotnetAnalyzersExtractDir)" OverwriteReadOnlyFiles="true" />
+  </Target>
+
+  <Target Name="UnzipEnterpriseSonarVBNet">
+    <Unzip SourceFiles="$(EnterpriseSonarVBNetPluginDownloadPath)" DestinationFolder="$(DotnetPluginsExtractDir)\$(EnterpriseSonarVBNetPluginFileNameWithoutExtension)" OverwriteReadOnlyFiles="true" />
+    <Unzip SourceFiles="$(DotnetPluginsExtractDir)\$(EnterpriseSonarVBNetPluginFileNameWithoutExtension)\static\SonarAnalyzer-$(EmbeddedSonarAnalyzerVersion).zip" DestinationFolder="$(EnterpriseDotnetAnalyzersExtractDir)" OverwriteReadOnlyFiles="true" />
   </Target>
 
   <Target Name="WriteOutputFile">

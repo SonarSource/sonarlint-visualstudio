@@ -26,34 +26,33 @@ using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.EmbeddedAnalyzers;
 
-[Export(typeof(IEmbeddedRoslynAnalyzersLocator))]
+[Export(typeof(IEmbeddedDotnetAnalyzersLocator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class EmbeddedRoslynAnalyzersLocator : IEmbeddedRoslynAnalyzersLocator
+internal class EmbeddedDotnetAnalyzersLocator : IEmbeddedDotnetAnalyzersLocator
 {
-    private const string PathInsideVsix = "EmbeddedRoslynAnalyzers";
-    private const string DllsSearchPattern = "*.dll";
+    private const string PathInsideVsix = "EmbeddedDotnetAnalyzerDLLs";
+    private const string DllsSearchPattern = "SonarAnalyzer.*.dll"; // starting from 10.0, the analyzer assemblies are merged and all of the dll names start with SonarAnalyzer
+    private const string EnterpriseInfix = ".Enterprise."; // enterprise analyzer assemblies are included in the same folder and need to be filtered out
 
     private readonly IFileSystem fileSystem;
     private readonly IVsixRootLocator vsixRootLocator;
 
     [ImportingConstructor]
-    public EmbeddedRoslynAnalyzersLocator(IVsixRootLocator vsixRootLocator) : this(vsixRootLocator, new FileSystem())
+    public EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator) : this(vsixRootLocator, new FileSystem())
     {
     }
 
-    internal EmbeddedRoslynAnalyzersLocator(IVsixRootLocator vsixRootLocator, IFileSystem fileSystem)
+    internal EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, IFileSystem fileSystem)
     {
         this.vsixRootLocator = vsixRootLocator;
         this.fileSystem = fileSystem;
     }
 
-    public List<string> GetAnalyzerFullPaths()
-    {
-       return fileSystem.Directory.GetFiles(GetPathToParentFolder(), DllsSearchPattern).ToList();
-    }
+    public List<string> GetBasicAnalyzerFullPaths() => GetAnalyzerDlls().Where(x => !x.Contains(EnterpriseInfix)).ToList();
 
-    private string GetPathToParentFolder()
-    {
-        return Path.Combine(vsixRootLocator.GetVsixRoot(), PathInsideVsix);
-    }
+    public List<string> GetEnterpriseAnalyzerFullPaths() => GetAnalyzerDlls().ToList();
+
+    private string[] GetAnalyzerDlls() => fileSystem.Directory.GetFiles(GetPathToParentFolder(), DllsSearchPattern);
+
+    private string GetPathToParentFolder() => Path.Combine(vsixRootLocator.GetVsixRoot(), PathInsideVsix);
 }
