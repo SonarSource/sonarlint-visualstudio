@@ -66,7 +66,6 @@ namespace SonarLint.VisualStudio.Integration
         public ActiveSolutionBoundTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IActiveSolutionTracker activeSolutionTracker,
             IConfigScopeUpdater configScopeUpdater,
-            ISolutionRoslynAnalyzerManager solutionRoslynAnalyzerManager, 
             ILogger logger,
             IBoundSolutionGitMonitor gitEventsMonitor,
             IConfigurationProvider configurationProvider,
@@ -90,7 +89,6 @@ namespace SonarLint.VisualStudio.Integration
             solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
             
             CurrentConfiguration = GetBindingConfiguration();
-            solutionRoslynAnalyzerManager.OnSolutionStateChangedAsync(activeSolutionTracker.CurrentSolutionName).Forget();
 
             SetBoundSolutionUIContext();
 
@@ -165,7 +163,6 @@ namespace SonarLint.VisualStudio.Integration
         private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration, string solutionName, bool? isBindingCleared = null)
         {
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project);
-            solutionRoslynAnalyzerManager.OnSolutionStateChangedAsync(solutionName).Forget();
             
             if (!CurrentConfiguration.Equals(newBindingConfiguration))
             {

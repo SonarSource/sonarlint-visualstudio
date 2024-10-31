@@ -126,6 +126,12 @@
   <data name="NoOpenSolutionOrFolder" xml:space="preserve">
     <value>No open solution or folder</value>
   </data>
+  <data name="RoslynAnalyzersNotAdded" xml:space="preserve">
+    <value>Failed to add analyzer references while adding analyzers</value>
+  </data>
+  <data name="RoslynAnalyzersNotRemoved" xml:space="preserve">
+    <value>Failed to remove analyzer references while updating analyzers</value>
+  </data>
   <data name="VsVersionDetails" xml:space="preserve">
     <value>Current VS version:
     {0}
