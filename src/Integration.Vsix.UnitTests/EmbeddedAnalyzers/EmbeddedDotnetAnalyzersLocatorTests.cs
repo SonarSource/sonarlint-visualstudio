@@ -27,11 +27,11 @@ using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 namespace SonarLint.VisualStudio.Integration.UnitTests.EmbeddedAnalyzers;
 
 [TestClass]
-public class EmbeddedRoslynAnalyzersLocatorTests
+public class EmbeddedDotnetAnalyzersLocatorTests
 {
     private const string PathInsideVsix = "C:\\somePath";
 
-    private EmbeddedRoslynAnalyzersLocator testSubject;
+    private EmbeddedDotnetAnalyzersLocator testSubject;
     private IVsixRootLocator vsixRootLocator;
     private IFileSystem fileSystem;
 
@@ -40,20 +40,20 @@ public class EmbeddedRoslynAnalyzersLocatorTests
     {
         vsixRootLocator = Substitute.For<IVsixRootLocator>();
         fileSystem = Substitute.For<IFileSystem>();
-        testSubject = new EmbeddedRoslynAnalyzersLocator(vsixRootLocator, fileSystem);
+        testSubject = new EmbeddedDotnetAnalyzersLocator(vsixRootLocator, fileSystem);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<EmbeddedRoslynAnalyzersLocator, IEmbeddedRoslynAnalyzersLocator>(
+        MefTestHelpers.CheckTypeCanBeImported<EmbeddedDotnetAnalyzersLocator, IEmbeddedRoslynAnalyzersLocator>(
             MefTestHelpers.CreateExport<IVsixRootLocator>());
     }
 
     [TestMethod]
     public void MefCtor_IsSingleton()
     {
-        MefTestHelpers.CheckIsSingletonMefComponent<EmbeddedRoslynAnalyzersLocator>();
+        MefTestHelpers.CheckIsSingletonMefComponent<EmbeddedDotnetAnalyzersLocator>();
     }
 
     [TestMethod]

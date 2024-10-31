@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.EmbeddedAnalyzers;
 
 [Export(typeof(IEmbeddedRoslynAnalyzersLocator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class EmbeddedRoslynAnalyzersLocator : IEmbeddedRoslynAnalyzersLocator
+internal class EmbeddedDotnetAnalyzersLocator : IEmbeddedRoslynAnalyzersLocator
 {
     private const string PathInsideVsix = "EmbeddedDotnetAnalyzerDLLs";
     private const string DllsSearchPattern = "SonarAnalyzer.*.dll"; // starting from 10.0, the analyzer assemblies are merged and all of the dll names start with SonarAnalyzer
@@ -38,11 +38,11 @@ internal class EmbeddedRoslynAnalyzersLocator : IEmbeddedRoslynAnalyzersLocator
     private readonly IVsixRootLocator vsixRootLocator;
 
     [ImportingConstructor]
-    public EmbeddedRoslynAnalyzersLocator(IVsixRootLocator vsixRootLocator) : this(vsixRootLocator, new FileSystem())
+    public EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator) : this(vsixRootLocator, new FileSystem())
     {
     }
 
-    internal EmbeddedRoslynAnalyzersLocator(IVsixRootLocator vsixRootLocator, IFileSystem fileSystem)
+    internal EmbeddedDotnetAnalyzersLocator(IVsixRootLocator vsixRootLocator, IFileSystem fileSystem)
     {
         this.vsixRootLocator = vsixRootLocator;
         this.fileSystem = fileSystem;

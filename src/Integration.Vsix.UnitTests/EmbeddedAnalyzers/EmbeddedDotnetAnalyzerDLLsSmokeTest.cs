@@ -23,14 +23,14 @@ using System.IO;
 namespace SonarLint.VisualStudio.Integration.UnitTests.EmbeddedAnalyzers;
 
 [TestClass]
-public class EmbeddedAnalyzerDLLsSmokeTest
+public class EmbeddedDotnetAnalyzerDLLsSmokeTest
 {
     [TestMethod]
-    public void EmbeddedAnalyzerDLLs_MatchesExpectedSetOfAssemblies()
+    public void EmbeddedDotnetAnalyzerDLLs_MatchExpectedSetOfAssemblies()
     {
         var directoryInfo = new DirectoryInfo(GetType().Assembly.Location);
-        var combine = Path.Combine(GetPathToSrc(directoryInfo), @"Integration.Vsix\EmbeddedDotnetAnalyzerDLLs");
-        var files = Directory.GetFiles(combine, "*", SearchOption.AllDirectories).Select(Path.GetFileName);
+        var pathToEmbeddedDotnetAnalyzerFolder = Path.Combine(GetPathToSrc(directoryInfo), @"Integration.Vsix\EmbeddedDotnetAnalyzerDLLs");
+        var files = Directory.GetFiles(pathToEmbeddedDotnetAnalyzerFolder, "*", SearchOption.AllDirectories).Select(Path.GetFileName);
         files.Should().BeEquivalentTo(
         [
             "SonarAnalyzer.Enterprise.VisualBasic.dll",
@@ -40,9 +40,9 @@ public class EmbeddedAnalyzerDLLsSmokeTest
         ], options => options.WithoutStrictOrdering()); 
     }
 
-    public string GetPathToSrc(DirectoryInfo directoryInfo)
+    private static string GetPathToSrc(DirectoryInfo directoryInfo)
     {
-        while (!directoryInfo.FullName.EndsWith("src"))
+        while (!directoryInfo!.FullName.EndsWith("src"))
         {
             directoryInfo = directoryInfo.Parent;
         }
