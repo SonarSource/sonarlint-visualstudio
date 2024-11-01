@@ -41,23 +41,23 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IActiveSolutionTracker activeSolutionTracker;
     private readonly IAsyncLock asyncLock;
-    private readonly IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider;
-    private readonly IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider;
+    private readonly IEnterpriseRoslynAnalyzerProvider enterpriseAnalyzerProvider;
+    private readonly IBasicRoslynAnalyzerProvider basicAnalyzerProvider;
     private readonly ILogger logger;
     private readonly IRoslynWorkspaceWrapper roslynWorkspace;
     private ImmutableArray<AnalyzerFileReference>? currentAnalyzers;
 
     [ImportingConstructor]
     public SolutionRoslynAnalyzerManager(
-        IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider,
-        IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider,
+        IBasicRoslynAnalyzerProvider basicAnalyzerProvider,
+        IEnterpriseRoslynAnalyzerProvider enterpriseAnalyzerProvider,
         IRoslynWorkspaceWrapper roslynWorkspace,
         IActiveConfigScopeTracker activeConfigScopeTracker,
         IActiveSolutionTracker activeSolutionTracker,
         IAsyncLockFactory asyncLockFactory,
         ILogger logger) 
-        : this(embeddedAnalyzerProvider,
-              connectedModeAnalyzerProvider, 
+        : this(basicAnalyzerProvider,
+              enterpriseAnalyzerProvider, 
               roslynWorkspace, 
               AnalyzerArrayComparer.Instance,
               activeConfigScopeTracker, 
@@ -68,8 +68,8 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     }
 
     internal /* for testing */ SolutionRoslynAnalyzerManager(
-        IEmbeddedRoslynAnalyzerProvider embeddedAnalyzerProvider,
-        IConnectedModeRoslynAnalyzerProvider connectedModeAnalyzerProvider,
+        IBasicRoslynAnalyzerProvider basicAnalyzerProvider,
+        IEnterpriseRoslynAnalyzerProvider enterpriseAnalyzerProvider,
         IRoslynWorkspaceWrapper roslynWorkspace,
         IEqualityComparer<ImmutableArray<AnalyzerFileReference>?> analyzerComparer,
         IActiveConfigScopeTracker activeConfigScopeTracker,
@@ -77,8 +77,8 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         IAsyncLockFactory asyncLockFactory,
         ILogger logger)
     {
-        this.embeddedAnalyzerProvider = embeddedAnalyzerProvider;
-        this.connectedModeAnalyzerProvider = connectedModeAnalyzerProvider;
+        this.basicAnalyzerProvider = basicAnalyzerProvider;
+        this.enterpriseAnalyzerProvider = enterpriseAnalyzerProvider;
         this.roslynWorkspace = roslynWorkspace;
         this.analyzerComparer = analyzerComparer;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
@@ -102,7 +102,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
                 return;
             }
 
-            var analyzersToUse = await ChooseAnalyzersAsync();
+            var analyzersToUse = await ChooseAnalyzersAsync(solutionName);
             UpdateAnalyzersIfChanged(analyzersToUse);
         }
     }
@@ -126,12 +126,9 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         disposed = true;
     }
 
-    private async Task<ImmutableArray<AnalyzerFileReference>> ChooseAnalyzersAsync() =>
-        ChooseAnalyzers(await connectedModeAnalyzerProvider.GetOrNullAsync());
+    private async Task<ImmutableArray<AnalyzerFileReference>> ChooseAnalyzersAsync(string configurationScopeId) =>
+        await enterpriseAnalyzerProvider.GetOrNullAsync(configurationScopeId) ?? await basicAnalyzerProvider.GetAsync();
 
-    private ImmutableArray<AnalyzerFileReference> ChooseAnalyzers(ImmutableArray<AnalyzerFileReference>? connectedModeAnalyzers) =>
-        connectedModeAnalyzers ?? embeddedAnalyzerProvider.Get();
-    
     private void UpdateAnalyzersIfChanged(ImmutableArray<AnalyzerFileReference> analyzersToUse)
     {
         if (!DidAnalyzerChoiceChange(analyzersToUse))

@@ -19,25 +19,15 @@
  */
 
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
-using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
-[Export(typeof(IConnectedModeRoslynAnalyzerProvider))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-internal class ConnectedModeRoslynAnalyzerProvider : IConnectedModeRoslynAnalyzerProvider
+public interface IBasicRoslynAnalyzerProvider
 {
-    [ImportingConstructor]
-    public ConnectedModeRoslynAnalyzerProvider()
-    {
-    }
-
-    public async Task<ImmutableArray<AnalyzerFileReference>?> GetOrNullAsync()
-    {
-        return await Task.FromResult<ImmutableArray<AnalyzerFileReference>?>(null);
-    }
-
-    public event EventHandler<AnalyzerUpdatedForConnectionEventArgs> AnalyzerUpdatedForConnection;
+    /// <summary>
+    /// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are embedded in the VSIX.
+    /// If no analyzer is found, throws an exception
+    /// </summary>
+    Task<ImmutableArray<AnalyzerFileReference>> GetAsync();
 }

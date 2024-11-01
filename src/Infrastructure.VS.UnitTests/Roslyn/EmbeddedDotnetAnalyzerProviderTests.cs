@@ -23,61 +23,70 @@ using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests.Roslyn;
 
 [TestClass]
-public class EmbeddedRoslynAnalyzerProviderTests
+public class EmbeddedDotnetAnalyzerProviderTests
 {
     private const string AnalyzersPath = "C:\\somepath";
     private readonly IAnalyzerAssemblyLoader analyzerAssemblyLoader = Substitute.For<IAnalyzerAssemblyLoader>();
-    private EmbeddedRoslynAnalyzerProvider testSubject;
+    private EmbeddedDotnetAnalyzerProvider testSubject;
     private IEmbeddedDotnetAnalyzersLocator locator;
-    private IAnalyzerAssemblyLoaderFactory analyzerAssemblyLoaderFactory;
+    private IAnalyzerAssemblyLoaderFactory loaderFactory;
+    private IConfigurationScopeDotnetAnalyzerIndicator indicator;
     private ILogger logger;
+    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void TestInitialize()
     {
         locator = Substitute.For<IEmbeddedDotnetAnalyzersLocator>();
-        analyzerAssemblyLoaderFactory = Substitute.For<IAnalyzerAssemblyLoaderFactory>();
+        loaderFactory = Substitute.For<IAnalyzerAssemblyLoaderFactory>();
+        loaderFactory.Create().Returns(analyzerAssemblyLoader);
         logger = Substitute.For<ILogger>();
+        indicator = Substitute.For<IConfigurationScopeDotnetAnalyzerIndicator>();
+        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
 
-        testSubject = new EmbeddedRoslynAnalyzerProvider(locator, analyzerAssemblyLoaderFactory, logger);
+        testSubject = new EmbeddedDotnetAnalyzerProvider(locator, loaderFactory, indicator, logger, threadHandling);
         MockServices();
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
-        MefTestHelpers.CheckTypeCanBeImported<EmbeddedRoslynAnalyzerProvider, IEmbeddedRoslynAnalyzerProvider>(
+        MefTestHelpers.CheckTypeCanBeImported<EmbeddedDotnetAnalyzerProvider, IBasicRoslynAnalyzerProvider>(
             MefTestHelpers.CreateExport<IEmbeddedDotnetAnalyzersLocator>(),
-            MefTestHelpers.CreateExport<ILogger>());
+            MefTestHelpers.CreateExport<IAnalyzerAssemblyLoaderFactory>(),
+            MefTestHelpers.CreateExport<IConfigurationScopeDotnetAnalyzerIndicator>(),
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());
     }
 
     [TestMethod]
     public void MefCtor_IsSingleton()
     {
-        MefTestHelpers.CheckIsSingletonMefComponent<EmbeddedRoslynAnalyzerProvider>();
+        MefTestHelpers.CheckIsSingletonMefComponent<EmbeddedDotnetAnalyzerProvider>();
     }
 
     [TestMethod]
     public void Get_GetsAnalyzersFromExpectedLocation()
     {
-        testSubject.Get();
+        testSubject.GetAsync();
 
         locator.Received(1).GetBasicAnalyzerFullPaths();
     }
 
     [TestMethod]
-    public void Get_AnalyzerFilesExist_ReturnsAnalyzerFileReference()
+    public async Task Get_AnalyzerFilesExist_ReturnsAnalyzerFileReference()
     {
         locator.GetBasicAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll"), GetAnalyzerFullPath("analyzer2.dll")]);
 
-        var analyzerFileReferences = testSubject.Get();
+        var analyzerFileReferences = await testSubject.GetAsync();
 
-        analyzerAssemblyLoaderFactory.Received(1).Create();
+        loaderFactory.Received(1).Create();
         analyzerFileReferences.Should().NotBeNull();
         analyzerFileReferences.Length.Should().Be(2);
         ContainsExpectedAnalyzerFileReference(analyzerFileReferences, GetAnalyzerFullPath("analyzer1.dll"));
@@ -85,24 +94,23 @@ public class EmbeddedRoslynAnalyzerProviderTests
     }
 
     [TestMethod]
-    public void Get_AnalyzerFilesDoNotExist_ReturnsLogsAndThrows()
+    public async Task Get_AnalyzerFilesDoNotExist_ReturnsLogsAndThrows()
     {
         locator.GetBasicAnalyzerFullPaths().Returns([]);
 
-        Action act = () => testSubject.Get();
+        Func<Task> act = () => testSubject.GetAsync();
 
-        act.Should().Throw<InvalidOperationException>().WithMessage(Resources.EmbeddedRoslynAnalyzersNotFound);
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage(Resources.EmbeddedRoslynAnalyzersNotFound);
         logger.Received(1).LogVerbose(Resources.EmbeddedRoslynAnalyzersNotFound);
-        analyzerAssemblyLoaderFactory.DidNotReceive().Create();
     }
 
     [TestMethod]
-    public void Get_CachesAnalyzerFileReferences()
+    public async Task Get_CachesAnalyzerFileReferences()
     {
-        testSubject.Get();
-        testSubject.Get();
+        await testSubject.GetAsync();
+        await testSubject.GetAsync();
 
-        analyzerAssemblyLoaderFactory.Received(1).Create();
+        loaderFactory.Received(1).Create();
         locator.Received(1).GetBasicAnalyzerFullPaths();
     }
 
@@ -121,6 +129,6 @@ public class EmbeddedRoslynAnalyzerProviderTests
     private void MockServices()
     {
         locator.GetBasicAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll")]);
-        analyzerAssemblyLoaderFactory.Create().Returns(analyzerAssemblyLoader);
+        loaderFactory.Create().Returns(analyzerAssemblyLoader);
     }
 }
