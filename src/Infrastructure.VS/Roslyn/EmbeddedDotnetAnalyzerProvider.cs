@@ -52,9 +52,16 @@ public class EmbeddedDotnetAnalyzerProvider(
 
     public Task<ImmutableArray<AnalyzerFileReference>?> GetOrNullAsync(string configurationScopeId) =>
         threadHandling.RunOnBackgroundThread(async () =>
-            await indicator.ShouldUseEnterpriseCSharpAnalyzerAsync(configurationScopeId)
-                ? enterpriseAnalyzers ??= CreateAnalyzerFileReferences(locator.GetEnterpriseAnalyzerFullPaths())
-                : null as ImmutableArray<AnalyzerFileReference>?);
+        {
+            if (!await indicator.ShouldUseEnterpriseCSharpAnalyzerAsync(configurationScopeId))
+            {
+                return null;
+            }
+
+            enterpriseAnalyzers ??= CreateAnalyzerFileReferences(locator.GetEnterpriseAnalyzerFullPaths());
+            return enterpriseAnalyzers;
+
+        });
 
     private ImmutableArray<AnalyzerFileReference> CreateAnalyzerFileReferences(List<string> analyzerPaths)
     {
