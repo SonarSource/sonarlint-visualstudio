@@ -19,15 +19,16 @@
  */
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
-public interface IEmbeddedRoslynAnalyzerProvider
+public interface IEnterpriseRoslynAnalyzerProvider
 {
     /// <summary>
-    /// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are embedded in the VSIX.
-    /// If no analyzer is found, throws an exception
+    /// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are downloaded from the server for the current binding
     /// </summary>
-    ImmutableArray<AnalyzerFileReference> Get();
+    Task<ImmutableArray<AnalyzerFileReference>?> GetEnterpriseOrNullAsync(string configurationScopeId);
 }
