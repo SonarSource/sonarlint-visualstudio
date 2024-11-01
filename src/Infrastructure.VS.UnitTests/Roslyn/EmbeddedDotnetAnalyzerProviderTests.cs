@@ -72,46 +72,111 @@ public class EmbeddedDotnetAnalyzerProviderTests
     }
 
     [TestMethod]
-    public void Get_GetsAnalyzersFromExpectedLocation()
+    public void Ctor_CreatesLoader()
     {
-        testSubject.GetAsync();
+        var factory = Substitute.For<IAnalyzerAssemblyLoaderFactory>();
+        
+        new EmbeddedDotnetAnalyzerProvider(default, factory, default, default, default);
 
-        locator.Received(1).GetBasicAnalyzerFullPaths();
+        factory.Received(1).Create();
     }
 
     [TestMethod]
-    public async Task Get_AnalyzerFilesExist_ReturnsAnalyzerFileReference()
+    public void GetBasicAsync_GetsAnalyzersFromExpectedLocation()
+    {
+        testSubject.GetBasicAsync();
+
+        locator.Received(1).GetBasicAnalyzerFullPaths();
+    }
+    
+    [TestMethod]
+    public void GetEnterpriseOrNullAsync_GetsAnalyzersFromExpectedLocation()
+    {
+        testSubject.GetEnterpriseOrNullAsync("scope");
+
+        locator.Received(1).GetEnterpriseAnalyzerFullPaths();
+    }
+
+    [TestMethod]
+    public async Task GetBasicAsync_AnalyzerFilesExist_ReturnsAnalyzerFileReference()
     {
         locator.GetBasicAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll"), GetAnalyzerFullPath("analyzer2.dll")]);
 
-        var analyzerFileReferences = await testSubject.GetAsync();
-
-        loaderFactory.Received(1).Create();
+        var analyzerFileReferences = await testSubject.GetBasicAsync();
+        
         analyzerFileReferences.Should().NotBeNull();
         analyzerFileReferences.Length.Should().Be(2);
         ContainsExpectedAnalyzerFileReference(analyzerFileReferences, GetAnalyzerFullPath("analyzer1.dll"));
         ContainsExpectedAnalyzerFileReference(analyzerFileReferences, GetAnalyzerFullPath("analyzer2.dll"));
     }
+    
+    [TestMethod]
+    public async Task GetEnterpriseOrNullAsync_AnalyzerFilesExist_ReturnsAnalyzerFileReference()
+    {
+        const string configurationScopeId = "scope";
+        locator.GetEnterpriseAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll"), GetAnalyzerFullPath("analyzer2.dll")]);
+        indicator.ShouldUseEnterpriseCSharpAnalyzerAsync(configurationScopeId).Returns(true);
+
+        var analyzerFileReferences = await testSubject.GetEnterpriseOrNullAsync(configurationScopeId);
+        
+        analyzerFileReferences.Should().NotBeNull();
+        analyzerFileReferences!.Value.Length.Should().Be(2);
+        ContainsExpectedAnalyzerFileReference(analyzerFileReferences.Value, GetAnalyzerFullPath("analyzer1.dll"));
+        ContainsExpectedAnalyzerFileReference(analyzerFileReferences.Value, GetAnalyzerFullPath("analyzer2.dll"));
+    }
+    
+    [TestMethod]
+    public async Task GetEnterpriseOrNullAsync_AnalyzerFilesExist_NotEnabledForConfigScope_ReturnsAnalyzerFileReference()
+    {
+        const string configurationScopeId = "scope";
+        locator.GetEnterpriseAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll"), GetAnalyzerFullPath("analyzer2.dll")]);
+        indicator.ShouldUseEnterpriseCSharpAnalyzerAsync(configurationScopeId).Returns(false);
+
+        var analyzerFileReferences = await testSubject.GetEnterpriseOrNullAsync(configurationScopeId);
+        
+        analyzerFileReferences.Should().BeNull();
+    }
 
     [TestMethod]
-    public async Task Get_AnalyzerFilesDoNotExist_ReturnsLogsAndThrows()
+    public async Task GetBasicAsync_AnalyzerFilesDoNotExist_ReturnsLogsAndThrows()
     {
         locator.GetBasicAnalyzerFullPaths().Returns([]);
 
-        Func<Task> act = () => testSubject.GetAsync();
+        Func<Task> act = () => testSubject.GetBasicAsync();
+
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage(Resources.EmbeddedRoslynAnalyzersNotFound);
+        logger.Received(1).LogVerbose(Resources.EmbeddedRoslynAnalyzersNotFound);
+    }
+    
+    [TestMethod]
+    public async Task GetEnterpriseOrNullAsync_AnalyzerFilesDoNotExist_ReturnsLogsAndThrows()
+    {
+        locator.GetEnterpriseAnalyzerFullPaths().Returns([]);
+
+        Func<Task> act = () => testSubject.GetEnterpriseOrNullAsync("scope");
 
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage(Resources.EmbeddedRoslynAnalyzersNotFound);
         logger.Received(1).LogVerbose(Resources.EmbeddedRoslynAnalyzersNotFound);
     }
 
     [TestMethod]
-    public async Task Get_CachesAnalyzerFileReferences()
+    public async Task GetBasicAsync_CachesAnalyzerFileReferences()
     {
-        await testSubject.GetAsync();
-        await testSubject.GetAsync();
+        await testSubject.GetBasicAsync();
+        await testSubject.GetBasicAsync();
 
         loaderFactory.Received(1).Create();
         locator.Received(1).GetBasicAnalyzerFullPaths();
+    }
+    
+    [TestMethod]
+    public async Task GetEnterpriseOrNullAsync_CachesAnalyzerFileReferences()
+    {
+        await testSubject.GetEnterpriseOrNullAsync("scope");
+        await testSubject.GetEnterpriseOrNullAsync("other scope");
+
+        loaderFactory.Received(1).Create();
+        locator.Received(1).GetEnterpriseAnalyzerFullPaths();
     }
 
     private static string GetAnalyzerFullPath(string analyzerFile)
@@ -128,7 +193,9 @@ public class EmbeddedDotnetAnalyzerProviderTests
 
     private void MockServices()
     {
+        indicator.ShouldUseEnterpriseCSharpAnalyzerAsync(default).ReturnsForAnyArgs(true);
         locator.GetBasicAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll")]);
+        locator.GetEnterpriseAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll")]);
         loaderFactory.Create().Returns(analyzerAssemblyLoader);
     }
 }

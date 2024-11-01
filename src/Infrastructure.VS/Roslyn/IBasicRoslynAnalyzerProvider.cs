@@ -29,5 +29,5 @@ public interface IBasicRoslynAnalyzerProvider
     /// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are embedded in the VSIX.
     /// If no analyzer is found, throws an exception
     /// </summary>
-    Task<ImmutableArray<AnalyzerFileReference>> GetAsync();
+    Task<ImmutableArray<AnalyzerFileReference>> GetBasicAsync();
 }

@@ -30,5 +30,5 @@ public interface IEnterpriseRoslynAnalyzerProvider
     /// <summary>
     /// Returns SonarAnalyzer.CSharp & SonarAnalyzer.VisualBasic analyzer DLLs that are downloaded from the server for the current binding
     /// </summary>
-    Task<ImmutableArray<AnalyzerFileReference>?> GetOrNullAsync(string configurationScopeId);
+    Task<ImmutableArray<AnalyzerFileReference>?> GetEnterpriseOrNullAsync(string configurationScopeId);
 }

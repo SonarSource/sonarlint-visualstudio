@@ -127,7 +127,7 @@ public class SolutionRoslynAnalyzerManagerTests
     [TestMethod]
     public async Task OnSolutionStateChangedAsync_StandaloneSolution_AppliesEmbeddedAnalyzer()
     {
-        basicRoslynAnalyzerProvider.GetAsync()
+        basicRoslynAnalyzerProvider.GetBasicAsync()
             .Returns(embeddedAnalyzers);
         var v1Solution = Substitute.For<IRoslynSolutionWrapper>();
         var v2Solution = Substitute.For<IRoslynSolutionWrapper>();
@@ -149,7 +149,7 @@ public class SolutionRoslynAnalyzerManagerTests
         await SetUpStandaloneSolution(v1Solution, solutionName);
 
         analyzerComparer.Equals(embeddedAnalyzers, connectedAnalyzers).Returns(false);
-        enterpriseRoslynAnalyzerProvider.GetOrNullAsync(solutionName).Returns(connectedAnalyzers);
+        enterpriseRoslynAnalyzerProvider.GetEnterpriseOrNullAsync(solutionName).Returns(connectedAnalyzers);
         roslynWorkspaceWrapper.CurrentSolution.Returns(v1Solution, v2Solution);
         SetUpAnalyzerRemoval(v1Solution, v2Solution, embeddedAnalyzers);
         SetUpAnalyzerAddition(v2Solution, v3Solution, connectedAnalyzers);
@@ -164,7 +164,7 @@ public class SolutionRoslynAnalyzerManagerTests
             v2Solution.AddAnalyzerReferences(connectedAnalyzers);
             roslynWorkspaceWrapper.TryApplyChanges(v3Solution);
         });
-        basicRoslynAnalyzerProvider.DidNotReceiveWithAnyArgs().GetAsync();
+        basicRoslynAnalyzerProvider.DidNotReceiveWithAnyArgs().GetBasicAsync();
     }
     
     [TestMethod]
@@ -174,15 +174,15 @@ public class SolutionRoslynAnalyzerManagerTests
         var v1Solution = Substitute.For<IRoslynSolutionWrapper>();
         await SetUpStandaloneSolution(v1Solution, solutionName);
         EnableDefaultEmbeddedAnalyzers();
-        enterpriseRoslynAnalyzerProvider.GetOrNullAsync(solutionName).Returns((ImmutableArray<AnalyzerFileReference>?)null);
+        enterpriseRoslynAnalyzerProvider.GetEnterpriseOrNullAsync(solutionName).Returns((ImmutableArray<AnalyzerFileReference>?)null);
         analyzerComparer.Equals(embeddedAnalyzers, embeddedAnalyzers).Returns(true);
         
         await testSubject.OnSolutionStateChangedAsync(solutionName);
 
         Received.InOrder(() =>
         {
-            enterpriseRoslynAnalyzerProvider.GetOrNullAsync(solutionName);
-            basicRoslynAnalyzerProvider.GetAsync();
+            enterpriseRoslynAnalyzerProvider.GetEnterpriseOrNullAsync(solutionName);
+            basicRoslynAnalyzerProvider.GetBasicAsync();
             analyzerComparer.Equals(embeddedAnalyzers, embeddedAnalyzers);
         });
         roslynWorkspaceWrapper.DidNotReceiveWithAnyArgs().TryApplyChanges(default);
@@ -217,7 +217,7 @@ public class SolutionRoslynAnalyzerManagerTests
         var v3Solution = Substitute.For<IRoslynSolutionWrapper>();
         await SetUpStandaloneSolution(preCloseSolution, solutionName);
         EnableDefaultEmbeddedAnalyzers();
-        enterpriseRoslynAnalyzerProvider.GetOrNullAsync(solutionName).Returns(connectedAnalyzers);
+        enterpriseRoslynAnalyzerProvider.GetEnterpriseOrNullAsync(solutionName).Returns(connectedAnalyzers);
         SetUpAnalyzerAddition(v2Solution, v3Solution, connectedAnalyzers);
         SetUpAnalyzerRemoval(preCloseSolution, v2Solution, embeddedAnalyzers);
 
@@ -239,7 +239,7 @@ public class SolutionRoslynAnalyzerManagerTests
         var differentSolution = "different solution";
         EnableDefaultEmbeddedAnalyzers();
 
-        enterpriseRoslynAnalyzerProvider.GetOrNullAsync(differentSolution).Returns(connectedAnalyzers);
+        enterpriseRoslynAnalyzerProvider.GetEnterpriseOrNullAsync(differentSolution).Returns(connectedAnalyzers);
         SetUpCurrentSolutionSequence(v1Solution); // different solution
         SetUpAnalyzerAddition(v1Solution, v2Solution, connectedAnalyzers);
         SetUpAnalyzerRemoval(v1Solution, v2Solution, embeddedAnalyzers);
@@ -284,7 +284,7 @@ public class SolutionRoslynAnalyzerManagerTests
         await testSubject.OnSolutionStateChangedAsync(null);
 
         v1Solution.Received(1).RemoveAnalyzerReferences(embeddedAnalyzers);
-        await enterpriseRoslynAnalyzerProvider.DidNotReceiveWithAnyArgs().GetOrNullAsync(solutionName);
+        await enterpriseRoslynAnalyzerProvider.DidNotReceiveWithAnyArgs().GetEnterpriseOrNullAsync(solutionName);
     }
 
     [TestMethod]
@@ -292,12 +292,12 @@ public class SolutionRoslynAnalyzerManagerTests
     {
         const string mySolution = "my solution";
         roslynWorkspaceWrapper.TryApplyChanges(Arg.Any<IRoslynSolutionWrapper>()).Returns(true);
-        enterpriseRoslynAnalyzerProvider.GetOrNullAsync(mySolution).Returns(embeddedAnalyzers);
+        enterpriseRoslynAnalyzerProvider.GetEnterpriseOrNullAsync(mySolution).Returns(embeddedAnalyzers);
         activeConfigScopeTracker.Current.Returns(new ConfigurationScope(mySolution));
 
         activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.Event<EventHandler>(this, EventArgs.Empty);
 
-        await enterpriseRoslynAnalyzerProvider.Received(1).GetOrNullAsync(mySolution);
+        await enterpriseRoslynAnalyzerProvider.Received(1).GetEnterpriseOrNullAsync(mySolution);
         roslynWorkspaceWrapper.Received(1).TryApplyChanges(Arg.Any<IRoslynSolutionWrapper>());
     }
 
@@ -306,11 +306,11 @@ public class SolutionRoslynAnalyzerManagerTests
     {
         const string solutionName = "my solution";
         roslynWorkspaceWrapper.TryApplyChanges(Arg.Any<IRoslynSolutionWrapper>()).Returns(true);
-        enterpriseRoslynAnalyzerProvider.GetOrNullAsync(solutionName).Returns(embeddedAnalyzers);
+        enterpriseRoslynAnalyzerProvider.GetEnterpriseOrNullAsync(solutionName).Returns(embeddedAnalyzers);
 
         activeSolutionTracker.ActiveSolutionChanged += Raise.Event<EventHandler<ActiveSolutionChangedEventArgs>>(this, new ActiveSolutionChangedEventArgs(true, solutionName));
 
-        await enterpriseRoslynAnalyzerProvider.Received(1).GetOrNullAsync(solutionName);
+        await enterpriseRoslynAnalyzerProvider.Received(1).GetEnterpriseOrNullAsync(solutionName);
         roslynWorkspaceWrapper.Received(1).TryApplyChanges(Arg.Any<IRoslynSolutionWrapper>());
     }
 
@@ -337,7 +337,7 @@ public class SolutionRoslynAnalyzerManagerTests
 
     private void EnableDefaultEmbeddedAnalyzers()
     {
-        basicRoslynAnalyzerProvider.GetAsync().Returns(embeddedAnalyzers);
+        basicRoslynAnalyzerProvider.GetBasicAsync().Returns(embeddedAnalyzers);
     }
 
     private async Task SetUpStandaloneSolution(IRoslynSolutionWrapper solution, string solutionName)

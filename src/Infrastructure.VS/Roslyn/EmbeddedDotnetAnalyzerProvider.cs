@@ -42,7 +42,7 @@ public class EmbeddedDotnetAnalyzerProvider(
     private ImmutableArray<AnalyzerFileReference>? basicAnalyzers;
     private ImmutableArray<AnalyzerFileReference>? enterpriseAnalyzers;
 
-    public Task<ImmutableArray<AnalyzerFileReference>> GetAsync() =>
+    public Task<ImmutableArray<AnalyzerFileReference>> GetBasicAsync() =>
         threadHandling.RunOnBackgroundThread(() =>
         {
             basicAnalyzers ??= CreateAnalyzerFileReferences(locator.GetBasicAnalyzerFullPaths());
@@ -50,7 +50,7 @@ public class EmbeddedDotnetAnalyzerProvider(
             return Task.FromResult(basicAnalyzers.Value);
         });
 
-    public Task<ImmutableArray<AnalyzerFileReference>?> GetOrNullAsync(string configurationScopeId) =>
+    public Task<ImmutableArray<AnalyzerFileReference>?> GetEnterpriseOrNullAsync(string configurationScopeId) =>
         threadHandling.RunOnBackgroundThread(async () =>
         {
             if (!await indicator.ShouldUseEnterpriseCSharpAnalyzerAsync(configurationScopeId))

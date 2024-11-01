@@ -127,7 +127,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
     }
 
     private async Task<ImmutableArray<AnalyzerFileReference>> ChooseAnalyzersAsync(string configurationScopeId) =>
-        await enterpriseAnalyzerProvider.GetOrNullAsync(configurationScopeId) ?? await basicAnalyzerProvider.GetAsync();
+        await enterpriseAnalyzerProvider.GetEnterpriseOrNullAsync(configurationScopeId) ?? await basicAnalyzerProvider.GetBasicAsync();
 
     private void UpdateAnalyzersIfChanged(ImmutableArray<AnalyzerFileReference> analyzersToUse)
     {
