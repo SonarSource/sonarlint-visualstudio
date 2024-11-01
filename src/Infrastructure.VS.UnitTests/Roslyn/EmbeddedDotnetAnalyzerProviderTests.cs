@@ -48,7 +48,7 @@ public class EmbeddedDotnetAnalyzerProviderTests
         loaderFactory.Create().Returns(analyzerAssemblyLoader);
         logger = Substitute.For<ILogger>();
         indicator = Substitute.For<IConfigurationScopeDotnetAnalyzerIndicator>();
-        threadHandling = Substitute.ForPartsOf<NoOpThreadHandler>();
+        threadHandling = new NoOpThreadHandler();
 
         testSubject = new EmbeddedDotnetAnalyzerProvider(locator, loaderFactory, indicator, logger, threadHandling);
         MockServices();
@@ -96,11 +96,41 @@ public class EmbeddedDotnetAnalyzerProviderTests
     }
     
     [TestMethod]
+    public void GetBasicAsync_RunsOnBackgroundThread()
+    {
+        var threadHandlingMock = Substitute.For<IThreadHandling>();
+        var subject = new EmbeddedDotnetAnalyzerProvider(default,
+            Substitute.For<IAnalyzerAssemblyLoaderFactory>(),
+            default,
+            default,
+            threadHandlingMock);
+
+        subject.GetBasicAsync();
+        
+        threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ImmutableArray<AnalyzerFileReference>>>>());
+    }
+    
+    [TestMethod]
     public void GetEnterpriseOrNullAsync_GetsAnalyzersFromExpectedLocation()
     {
         testSubject.GetEnterpriseOrNullAsync("scope");
 
         locator.Received(1).GetEnterpriseAnalyzerFullPaths();
+    }
+    
+    [TestMethod]
+    public void GetEnterpriseOrNullAsync_RunsOnBackgroundThread()
+    {
+        var threadHandlingMock = Substitute.For<IThreadHandling>();
+        var subject = new EmbeddedDotnetAnalyzerProvider(default,
+            Substitute.For<IAnalyzerAssemblyLoaderFactory>(),
+            default,
+            default,
+            threadHandlingMock);
+
+        subject.GetEnterpriseOrNullAsync("scope");
+        
+        threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ImmutableArray<AnalyzerFileReference>?>>>());
     }
 
     [TestMethod]
