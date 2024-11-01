@@ -331,4 +331,7 @@
   <data name="FuzzySearchProjects_Fails" xml:space="preserve">
     <value>[ConnectedMode] The search for projects for the connectionId {0} with the search term "{1}" failed: {2}</value>
   </data>
+  <data name="DotnetAnalyzerIndicatorTemplate" xml:space="preserve">
+    <value>[ConnectedMode/DotnetAnalyzerIndicator] {0}</value>
+  </data>
 </root>
