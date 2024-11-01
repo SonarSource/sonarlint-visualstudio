@@ -62,6 +62,12 @@ public class EmbeddedDotnetAnalyzerProviderTests
             MefTestHelpers.CreateExport<IAnalyzerAssemblyLoaderFactory>(),
             MefTestHelpers.CreateExport<IConfigurationScopeDotnetAnalyzerIndicator>(),
             MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());   
+        MefTestHelpers.CheckTypeCanBeImported<EmbeddedDotnetAnalyzerProvider, IEnterpriseRoslynAnalyzerProvider>(
+            MefTestHelpers.CreateExport<IEmbeddedDotnetAnalyzersLocator>(),
+            MefTestHelpers.CreateExport<IAnalyzerAssemblyLoaderFactory>(),
+            MefTestHelpers.CreateExport<IConfigurationScopeDotnetAnalyzerIndicator>(),
+            MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
     }
 

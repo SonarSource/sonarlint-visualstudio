@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Core.ConfigurationScope;
 namespace SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 
 [Export(typeof(IBasicRoslynAnalyzerProvider))]
+[Export(typeof(IEnterpriseRoslynAnalyzerProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 public class EmbeddedDotnetAnalyzerProvider(
