@@ -746,6 +746,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to refresh binding, please make sure that the credentials are correct..
+        /// </summary>
+        public static string RebindingFailedText {
+            get {
+                return ResourceManager.GetString("RebindingFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Refreshing binding....
+        /// </summary>
+        public static string RebindingProgressText {
+            get {
+                return ResourceManager.GetString("RebindingProgressText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove connection.
         /// </summary>
         public static string RemoveConnectionToolTip {
