@@ -18,25 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
 namespace SonarLint.VisualStudio.SLCore.Protocol
 {
     /// <summary>
     /// Represents an option class where only one of the properties <see cref="Left"/> or <see cref="Right"/> is not null
     /// </summary>
-    public sealed class Either<TLeft, TRight>
+    public readonly struct Either<TLeft, TRight>
         where TLeft : class
         where TRight : class
     {
-        private Either()
+        private Either(TLeft left)
         {
+            Left = left;
         }
 
-        public TLeft Left { get; private set; }
-        public TRight Right { get; private set; }
+        private Either(TRight right)
+        {
+            Right = right;
+        }
 
-        public static Either<TLeft, TRight> CreateLeft(TLeft left) => new() { Left = left ?? throw new ArgumentNullException(nameof(left))};
-        public static Either<TLeft, TRight> CreateRight(TRight right) => new() { Right = right ?? throw new ArgumentNullException(nameof(right))};
+        public TLeft Left { get; }
+        public TRight Right { get;}
+
+        public static Either<TLeft, TRight> CreateLeft(TLeft left) => new(left ?? throw new ArgumentNullException(nameof(left)));
+        public static Either<TLeft, TRight> CreateRight(TRight right) => new(right ?? throw new ArgumentNullException(nameof(right)));
+
+        public static implicit operator Either<TLeft, TRight>(TLeft left) => CreateLeft(left);
+        public static implicit operator Either<TLeft, TRight>(TRight right) => CreateRight(right);
     }
 }

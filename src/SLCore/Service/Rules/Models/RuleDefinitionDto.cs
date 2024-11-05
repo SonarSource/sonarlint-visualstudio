@@ -25,21 +25,8 @@ namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 public record RuleDefinitionDto(
     string key,
     string name,
-    IssueSeverity severity,
-    RuleType type,
     CleanCodeAttribute? cleanCodeAttribute,
-    CleanCodeAttributeCategory? cleanCodeAttributeCategory,
-    List<ImpactDto> defaultImpacts,
+    List<ImpactDto> softwareImpacts,
     Language language,
-    VulnerabilityProbability? vulnerabilityProbability,
     Dictionary<string, object> paramsByKey, // object because we ignore rule parameters at the moment
-    bool isActiveByDefault)
-    : AbstractRuleDto(key,
-        name,
-        severity,
-        type,
-        cleanCodeAttribute,
-        cleanCodeAttributeCategory,
-        defaultImpacts,
-        language,
-        vulnerabilityProbability);
+    bool isActiveByDefault);

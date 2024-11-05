@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Education.Rule
         Hotspot,        // SonarQube serialization = SECURITY_HOTSPOT
         Unknown
     }
-    
+
     /// <summary>
     /// Help data about a single rule, extracted using the Java plugin API
     /// </summary>
@@ -60,16 +60,16 @@ namespace SonarLint.VisualStudio.Education.Rule
         string FullRuleKey { get; }
 
         string Name { get; }
-        
-        RuleIssueSeverity Severity { get; }
 
-        RuleIssueType IssueType { get; }
+        RuleIssueSeverity? Severity { get; }
+
+        RuleIssueType? IssueType { get; }
 
         /// <summary>
         /// The HTML description, tweaked so it can be parsed as XML
         /// </summary>
         string Description { get; }
-        
+
         RuleSplitDescriptionDto RichRuleDescriptionDto { get; }
 
         CleanCodeAttribute? CleanCodeAttribute { get; }
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Education.Rule
     public class RuleInfo : IRuleInfo
     {
         public RuleInfo(string fullRuleKey, string description, string name,
-            RuleIssueSeverity severity, RuleIssueType issueType, RuleSplitDescriptionDto richRuleDescriptionDto,
+            RuleIssueSeverity? severity, RuleIssueType? issueType, RuleSplitDescriptionDto richRuleDescriptionDto,
             CleanCodeAttribute? cleanCodeAttribute, Dictionary<SoftwareQuality, SoftwareQualitySeverity> defaultImpacts)
         {
             FullRuleKey = fullRuleKey;
@@ -97,9 +97,9 @@ namespace SonarLint.VisualStudio.Education.Rule
 
         public string Name { get; private set; }
 
-        public RuleIssueSeverity Severity { get; set; }
+        public RuleIssueSeverity? Severity { get; set; }
 
-        public RuleIssueType IssueType { get; private set; }
+        public RuleIssueType? IssueType { get; private set; }
 
         public string Description { get; private set; }
 
