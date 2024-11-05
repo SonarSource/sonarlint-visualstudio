@@ -123,17 +123,11 @@ namespace SonarLint.VisualStudio.Integration
             {
                 var newBindingConfiguration = GetBindingConfiguration();
 
-                var updateConnection = await UpdateConnectionAsync(newBindingConfiguration);
-
-                if (!updateConnection)
-                {
-                    CurrentConfiguration = BindingConfiguration.Standalone;
-                    return;
-                }
+                var connectionUpdatedSuccessfully = await UpdateConnectionAsync(newBindingConfiguration);
 
                 gitEventsMonitor.Refresh();
 
-                this.RaiseAnalyzersChangedIfBindingChanged(newBindingConfiguration);
+                RaiseAnalyzersChangedIfBindingChanged(connectionUpdatedSuccessfully ? newBindingConfiguration : BindingConfiguration.Standalone);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -153,6 +147,7 @@ namespace SonarLint.VisualStudio.Integration
 
             if (!bindingConfiguration.Mode.IsInAConnectedMode())
             {
+                // The Standalone mode has no connection so there is nothing to update, thus nothing to fail
                 return true;
             }
 
