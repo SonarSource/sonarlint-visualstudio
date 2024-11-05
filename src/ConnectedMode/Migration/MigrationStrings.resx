@@ -152,7 +152,7 @@
     <value>Learn more</value>
   </data>
   <data name="MigrationPrompt_Message" xml:space="preserve">
-    <value>SonarLint: You're using an outdated Connected Mode configuration format. Some features will not be available. Please migrate.</value>
+    <value>SonarQube for Visual Studio: You're using an outdated Connected Mode configuration format. Some features will not be available. Please migrate.</value>
   </data>
   <data name="MigrationPrompt_MigrateButton" xml:space="preserve">
     <value>Migrate configuration</value>
@@ -186,7 +186,7 @@
     <value>[Migration]  - {0}</value>
   </data>
   <data name="MigrationPrompt_AlreadyConnected_Message" xml:space="preserve">
-    <value>SonarLint: You have both old and new connected mode settings. Please Migrate again to clean up the old settings</value>
+    <value>SonarQube for Visual Studio: You have both old and new connected mode settings. Please Migrate again to clean up the old settings</value>
   </data>
   <data name="Wizard_Progress_Cancelled" xml:space="preserve">
     <value>Migration cancelled</value>

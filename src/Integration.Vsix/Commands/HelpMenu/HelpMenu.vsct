@@ -41,7 +41,7 @@
         <Parent guid="HelpMenuCmdSet" id="HelpAboutGroup"/>
         <Icon guid="guidImages" id="sonarlint" />
         <Strings>
-          <ButtonText>About SonarLint</ButtonText>
+          <ButtonText>About SonarQube for Visual Studio</ButtonText>
         </Strings>
       </Button>
     </Buttons>

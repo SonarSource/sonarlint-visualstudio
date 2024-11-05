@@ -121,21 +121,21 @@
     <value>Active document can be analyzed by the CFamily analyzer: {0}</value>
   </data>
   <data name="ReproCmd_DocumentIsNotAnalyzable" xml:space="preserve">
-    <value>Cannot run SonarLint CFamily reproducer - the active document is not analyzable by the CFamily analyzer: {0}</value>
+    <value>SonarQube for Visual Studio: Cannot run CFamily reproducer - the active document is not analyzable by the CFamily analyzer: {0}</value>
   </data>
   <data name="ReproCmd_Error_Execute" xml:space="preserve">
-    <value>Error executing the SonarLint CFamily reproducer command:
+    <value>SonarQube for Visual Studio: Error executing the CFamily reproducer command.
   Error: {0}</value>
   </data>
   <data name="ReproCmd_Error_QueryStatus" xml:space="preserve">
-    <value>Error in calculating whether the SonarLint CFamily reproducer command is available:
+    <value>SonarQube for Visual Studio: Error in calculating whether the CFamily reproducer command is available:
   Error: {0}</value>
   </data>
   <data name="ReproCmd_ExecutingReproducer" xml:space="preserve">
-    <value>Calling the SonarLint CFamily reproducer...</value>
+    <value>SonarQube for Visual Studio: Calling the CFamily reproducer...</value>
   </data>
   <data name="ReproCmd_NoActiveDocument" xml:space="preserve">
-    <value>Cannot run SonarLint CFamily reproducer - no active document.</value>
+    <value>SonarQube for Visual Studio: Cannot run CFamily reproducer - no active document.</value>
   </data>
   <data name="ERROR_CreatingConfig" xml:space="preserve">
     <value>[CFamily Analysis] Error retrieving VCX configuration. File: {0}, Error: {1}</value>

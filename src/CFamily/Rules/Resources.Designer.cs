@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.CFamily.Rules {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [CFamily] Note: the following CFamily rules are not available in SonarLint: {0}.
+        ///   Looks up a localized string similar to [CFamily] Note: the following CFamily rules are not available in SonarQube for Visual Studio: {0}.
         /// </summary>
         internal static string RulesUnavailableInSonarLint {
             get {

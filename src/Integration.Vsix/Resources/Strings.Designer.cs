@@ -259,7 +259,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint provides its own JRE to launch SonarLint Core out of process. You can provide an explicit Java installation (17 or more recent) to be used instead.
+        ///   Looks up a localized string similar to SonarQube for Visual Studio provides its own JRE to launch SLCORE out of process. You can provide an explicit Java installation (17 or more recent) to be used instead.
         ///
         ///E.g. C:\Program Files\Java\jdk-17.
         /// </summary>
@@ -378,7 +378,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint saved the binding configuration to: &quot;{0}&quot;
+        ///   Looks up a localized string similar to SonarQube for Visual Studio saved the binding configuration to: &quot;{0}&quot;
         ///Please commit this file to share it with other contributors. See documentation for more info..
         /// </summary>
         public static string SaveSharedConnectionCommand_SaveSuccess_Message {
@@ -388,7 +388,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint package: error occurred: {0}.
+        ///   Looks up a localized string similar to SonarQube for Visual Studio package: error occurred: {0}.
         /// </summary>
         public static string SL_ERROR {
             get {
@@ -397,7 +397,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Finishing initializing the SonarLint package.
+        ///   Looks up a localized string similar to Finishing initializing the SonarQube for Visual Studio package.
         /// </summary>
         public static string SL_InitializationComplete {
             get {
@@ -406,7 +406,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Initializing the SonarLint package....
+        ///   Looks up a localized string similar to Initializing the SonarQube for Visual Studio package....
         /// </summary>
         public static string SL_Initializing {
             get {
@@ -480,7 +480,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         
         /// <summary>
         ///   Looks up a localized string similar to {
-        ///  &quot;sonarlint_product&quot;: &quot;SonarLint Visual Studio&quot;,
+        ///  &quot;sonarlint_product&quot;: &quot;SonarQube for Visual Studio&quot;,
         ///  &quot;sonarlint_version&quot;: &quot;4.12.0.0&quot;,
         ///  &quot;ide_version&quot;: &quot;16.0.29123.89&quot;,
         ///  &quot;days_since_installation&quot;: 1,
@@ -500,7 +500,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         ///      &quot;language&quot;: &quot;cpp&quot;
         ///    },
         ///    {
-        ///      &quot;language&quot; [rest of string was truncated]&quot;;.
+        ///      &quot;langu [rest of string was truncated]&quot;;.
         /// </summary>
         public static string ToolsOptions_ExampleJson {
             get {

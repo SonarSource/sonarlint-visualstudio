@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
             }
             catch (Exception ex)
             {
-                logger.LogVerbose($"[SharedBindingConfigFileProvider] Unable to read shared sonarlint config file: {ex.Message}");
+                logger.LogVerbose($"[SharedBindingConfigFileProvider] Unable to read shared config file: {ex.Message}");
             }
 
             return null;
@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
             }
             catch (Exception ex)
             {
-                logger.LogVerbose($"[SharedBindingConfigFileProvider] Unable to write shared sonarlint config file: {ex.Message}");
+                logger.LogVerbose($"[SharedBindingConfigFileProvider] Unable to write shared config file: {ex.Message}");
             }
             return result;
         }

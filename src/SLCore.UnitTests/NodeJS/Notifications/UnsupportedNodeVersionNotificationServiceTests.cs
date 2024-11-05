@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.NodeJS.Notifications
 
             createdNotification.Should().NotBeNull();
             createdNotification.Id.Should().Be("sonarlint.nodejs.min.version.not.found");
-            createdNotification.Message.Should().Be($"SonarLint: {language} analysis failed. Could not find a Node.js runtime (required: >={expectedVersion}, actual: {displayActualVersion}) on your computer.");
+            createdNotification.Message.Should().Be($"SonarQube for Visual Studio: {language} analysis failed. Could not find a Node.js runtime (required: >={expectedVersion}, actual: {displayActualVersion}) on your computer.");
             createdNotification.Actions.Count().Should().Be(2);
             createdNotification.CloseOnSolutionClose.Should().Be(false);
         }
