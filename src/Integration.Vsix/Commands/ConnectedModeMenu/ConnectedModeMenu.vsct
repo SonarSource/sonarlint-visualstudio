@@ -12,7 +12,7 @@
       <Button guid="ConnectedModeMenuCmdSet" id="ManageServerConnectionsCommand">
         <Parent guid="ConnectedModeMenuCmdSet" id="ConnectedModeGroup" />
         <Strings>
-          <ButtonText>Bind to SonarQube or SonarCloud...</ButtonText>
+          <ButtonText>Bind to SonarQube (Cloud, Server)...</ButtonText>
         </Strings>
       </Button>
       <Button guid="ConnectedModeMenuCmdSet" id="SaveSharedConnectionCommand">

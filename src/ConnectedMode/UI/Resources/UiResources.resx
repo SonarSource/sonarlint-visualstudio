@@ -166,7 +166,7 @@
     <value>Password</value>
   </data>
   <data name="EnterSonarQubeUrlLabel" xml:space="preserve">
-    <value>Enter the SonarQube URL:</value>
+    <value>Enter the SonarQube Server URL:</value>
   </data>
   <data name="RemoveConnectionToolTip" xml:space="preserve">
     <value>Remove connection</value>
@@ -187,7 +187,7 @@
     <value>is entirely free for open source projects</value>
   </data>
   <data name="FreeSonarQubeOfferDescription" xml:space="preserve">
-    <value>SonarQube offers a free</value>
+    <value>SonarQube Server offers a free</value>
   </data>
   <data name="SonarQubeAccountSecurityUrl" xml:space="preserve">
     <value>account/security</value>
@@ -217,10 +217,10 @@
     <value>Select one of the projects from the server </value>
   </data>
   <data name="SelectOrganizationLabel" xml:space="preserve">
-    <value>Select one of your SonarCloud organizations from the list or manually provide one.</value>
+    <value>Select one of your SonarQube Cloud organizations from the list or manually provide one.</value>
   </data>
   <data name="OrganizationSelectionDialogTitle" xml:space="preserve">
-    <value>Select SonarCloud Organization</value>
+    <value>Select SonarQube Cloud Organization</value>
   </data>
   <data name="ChooseAnotherOrganizationButton" xml:space="preserve">
     <value>Choose another organization</value>

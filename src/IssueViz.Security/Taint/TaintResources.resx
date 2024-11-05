@@ -136,7 +136,7 @@
     <value>[Taint] Initializing taint issues synchronization package...</value>
   </data>
   <data name="Synchronizer_UnsupportedSQVersion" xml:space="preserve">
-    <value>[Taint] Displaying taint vulnerabilities in the IDE requires SonarQube v8.6 or later, or SonarCloud. Connected SonarQube version: v{0}
+    <value>[Taint] Displaying taint vulnerabilities in the IDE requires SonarQube Server v8.6 or later, or SonarQube Cloud. Connected SonarQube Server version: v{0}
     Visit {1} to find out more about this and other SonarLint features.</value>
   </data>
 </root>
