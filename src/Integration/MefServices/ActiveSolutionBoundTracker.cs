@@ -25,7 +25,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
-using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -83,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration
 
             // The solution changed inside the IDE
             solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
-            
+
             CurrentConfiguration = GetBindingConfiguration();
 
             SetBoundSolutionUIContext();
@@ -97,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration
             {
                 return;
             }
-            
+
             this.RaiseAnalyzersChangedIfBindingChanged(GetBindingConfiguration(), isBindingCleared);
         }
 
@@ -123,12 +122,12 @@ namespace SonarLint.VisualStudio.Integration
             try
             {
                 var newBindingConfiguration = GetBindingConfiguration();
-                
-                await UpdateConnectionAsync(newBindingConfiguration);
+
+                var connectionUpdatedSuccessfully = await UpdateConnectionAsync(newBindingConfiguration);
 
                 gitEventsMonitor.Refresh();
 
-                this.RaiseAnalyzersChangedIfBindingChanged(newBindingConfiguration);
+                RaiseAnalyzersChangedIfBindingChanged(connectionUpdatedSuccessfully ? newBindingConfiguration : BindingConfiguration.Standalone);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -136,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
-        private async Task UpdateConnectionAsync(BindingConfiguration bindingConfiguration)
+        private async Task<bool> UpdateConnectionAsync(BindingConfiguration bindingConfiguration)
         {
             if (sonarQubeService.IsConnected)
             {
@@ -146,20 +145,27 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(!sonarQubeService.IsConnected,
                 "SonarQube service should always be disconnected at this point");
 
-            var boundProject = bindingConfiguration.Project;
-
-            if (boundProject != null)
+            if (!bindingConfiguration.Mode.IsInAConnectedMode())
             {
-                var connectionInformation = boundProject.CreateConnectionInformation();
-                await WebServiceHelper.SafeServiceCallAsync(() => sonarQubeService.ConnectAsync(connectionInformation,
-                    CancellationToken.None), this.logger);
+                // The Standalone mode has no connection so there is nothing to update, thus nothing to fail
+                return true;
             }
+
+            var boundProject = bindingConfiguration.Project;
+            var connectionInformation = boundProject.CreateConnectionInformation();
+            var isConnected = await WebServiceHelper.SafeServiceCallAsync(async () =>
+            {
+                await sonarQubeService.ConnectAsync(connectionInformation, CancellationToken.None);
+                return sonarQubeService.IsConnected;
+            }, logger);
+
+            return isConnected;
         }
 
         private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration, bool? isBindingCleared = null)
         {
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project);
-            
+
             if (!CurrentConfiguration.Equals(newBindingConfiguration))
             {
                 CurrentConfiguration = newBindingConfiguration;
