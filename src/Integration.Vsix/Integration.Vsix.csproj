@@ -267,6 +267,10 @@
     <None Remove="Settings\GeneralOptionsDialogControl.xaml" />
     <None Remove="Settings\OtherOptionsDialogControl.xaml" />
     <None Remove="SonarLint.vsct" />
+    <Content Include="Resources\sonarqube_for_ide_16px.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\sonarqube_for_ide_logo_200px.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
