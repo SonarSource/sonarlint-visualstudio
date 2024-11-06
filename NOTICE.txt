@@ -1,4 +1,4 @@
-SonarQube for Visual Studio
+sonarlint-visualstudio
 Copyright (C) 2016-2024 SonarSource SA
 mailto:info AT sonarsource DOT com
 

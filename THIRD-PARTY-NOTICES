@@ -1,5 +1,5 @@
-﻿SonarQube for Visual Studio uses third-party libraries or other resources
-that may be distributed under licenses different than the SonarQube for 
+﻿SonarLint for Visual Studio uses third-party libraries or other resources
+that may be distributed under licenses different than the SonarLint for 
 Visual Studio software.
 
 Attributions and licence notices for test cases originally authored by
