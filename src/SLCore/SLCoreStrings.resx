@@ -142,10 +142,10 @@
     <value>[SLCoreHandler] SLCore instance exited</value>
   </data>
   <data name="SloopRestartFailedNotificationService_GoldBarMessage" xml:space="preserve">
-    <value>SonarLint background service failed to start</value>
+    <value>SonarQube for Visual Studio background service failed to start</value>
   </data>
   <data name="SloopRestartFailedNotificationService_Restart" xml:space="preserve">
-    <value>Restart SonarLint</value>
+    <value>Restart SonarQube for Visual Studio</value>
   </data>
   <data name="ConfigScopeConflict" xml:space="preserve">
     <value>Configuration scope conflict</value>

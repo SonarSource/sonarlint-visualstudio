@@ -5,7 +5,7 @@
     xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
     xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
     
-    Title="SonarLint Connected Mode Migration"
+    Title="SonarQube for Visual Studio Connected Mode Migration"
     HorizontalAlignment="Center"
     ResizeMode="NoResize"
     SizeToContent="WidthAndHeight"

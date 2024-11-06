@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Notification
 
             notification.Should().NotBeNull();
             notification.Id.Should().Be("sonarlint.sloop.restart.failed");
-            notification.Message.Should().Be("SonarLint background service failed to start");
+            notification.Message.Should().Be(SLCoreStrings.SloopRestartFailedNotificationService_GoldBarMessage);
             notification.Actions.Should().HaveCount(1);
             notification.CloseOnSolutionClose.Should().Be(false);
 

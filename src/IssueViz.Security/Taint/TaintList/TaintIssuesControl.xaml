@@ -28,7 +28,7 @@
                         <vsImaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.BrowserLink}" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Show SonarLint Issue Visualization"
+                <MenuItem Header="Show Issue Visualization"
                           CommandParameter="{Binding}"
                           Command="{Binding DataContext.ShowVisualizationPaneCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
                     <MenuItem.Icon>
@@ -106,7 +106,7 @@
                 <TextBlock Style="{StaticResource OverlayTextBlockStyle}">
                     <Hyperlink Command="{Binding ShowDocumentationCommand}">
                         <LineBreak />
-                        <Run Text="Click here to go online and find out more about this and other SonarLint features." />
+                        <Run Text="Click here to go online and find out more about this and other SonarQube for Visual Studio features." />
                     </Hyperlink>
                 </TextBlock>
             </StackPanel>

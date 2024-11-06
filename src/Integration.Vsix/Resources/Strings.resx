@@ -176,15 +176,15 @@
     <comment>Output window message</comment>
   </data>
   <data name="SL_ERROR" xml:space="preserve">
-    <value>SonarLint package: error occurred: {0}</value>
+    <value>SonarQube for Visual Studio package: error occurred: {0}</value>
     <comment>Output window message</comment>
   </data>
   <data name="SL_InitializationComplete" xml:space="preserve">
-    <value>Finishing initializing the SonarLint package</value>
+    <value>Finishing initializing the SonarQube for Visual Studio package</value>
     <comment>Output window message</comment>
   </data>
   <data name="SL_Initializing" xml:space="preserve">
-    <value>Initializing the SonarLint package...</value>
+    <value>Initializing the SonarQube for Visual Studio package...</value>
     <comment>Output window message</comment>
   </data>
   <data name="Telemetry_ERROR" xml:space="preserve">
@@ -205,7 +205,7 @@
   </data>
   <data name="ToolsOptions_ExampleJson" xml:space="preserve">
     <value>{
-  "sonarlint_product": "SonarLint Visual Studio",
+  "sonarlint_product": "SonarQube for Visual Studio",
   "sonarlint_version": "4.12.0.0",
   "ide_version": "16.0.29123.89",
   "days_since_installation": 1,
@@ -278,7 +278,7 @@
     <value>Failed to calculate project guid of file {0}, error occurred: {1}</value>
   </data>
   <data name="SaveSharedConnectionCommand_SaveSuccess_Message" xml:space="preserve">
-    <value>SonarLint saved the binding configuration to: "{0}"
+    <value>SonarQube for Visual Studio saved the binding configuration to: "{0}"
 Please commit this file to share it with other contributors. See documentation for more info.</value>
   </data>
   <data name="SaveSharedConnectionCommand_SaveFail_Caption" xml:space="preserve">
@@ -300,7 +300,7 @@ Please commit this file to share it with other contributors. See documentation f
     <value>Unable to detect java installation provided in the settings "{0}". Embedded JRE will be used.</value>
   </data>
   <data name="JreLocationDescriptionText" xml:space="preserve">
-    <value>SonarLint provides its own JRE to launch SonarLint Core out of process. You can provide an explicit Java installation (17 or more recent) to be used instead.
+    <value>SonarQube for Visual Studio provides its own JRE to launch SLCORE out of process. You can provide an explicit Java installation (17 or more recent) to be used instead.
 
 E.g. C:\Program Files\Java\jdk-17</value>
   </data>

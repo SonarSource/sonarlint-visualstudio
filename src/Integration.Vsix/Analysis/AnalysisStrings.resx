@@ -142,20 +142,20 @@
     <comment>Output window message</comment>
   </data>
   <data name="ReanalysisStatusBar_InProgress" xml:space="preserve">
-    <value>SonarLint: re-analysing open documents. Completed {0} of {1}</value>
+    <value>SonarQube for Visual Studio: re-analysing open documents. Completed {0} of {1}</value>
     <comment>Status bar message</comment>
   </data>
   <data name="Requester_Error" xml:space="preserve">
     <value>Error re-analysing open documents: {0}</value>
   </data>
   <data name="Notifier_AnalysisFinished" xml:space="preserve">
-    <value>SonarLint: Finished analyzing {0}</value>
+    <value>SonarQube for Visual Studio: Finished analyzing {0}</value>
   </data>
   <data name="Notifier_AnalysisFailed" xml:space="preserve">
-    <value>SonarLint: Failed to analyze {0}. See the Output Window for more information.</value>
+    <value>SonarQube for Visual Studio: Failed to analyze {0}. See the Output Window for more information.</value>
   </data>
   <data name="Notifier_AnalysisStarted" xml:space="preserve">
-    <value>SonarLint: Analyzing {0}</value>
+    <value>SonarQube for Visual Studio: Analyzing {0}</value>
   </data>
   <data name="MSG_AnalysisComplete" xml:space="preserve">
     <value>Finished analyzing {0} with id {1}, analysis time: {2}s</value>
@@ -197,7 +197,7 @@
     <value>Outdated Analysis Report</value>
   </data>
   <data name="MuteIssue_IssueAlreadyMutedText" xml:space="preserve">
-    <value>This issue is already resolved on the server. It will be removed from the Error List after the next SonarLint analysis.</value>
+    <value>This issue is already resolved on the server. It will be removed from the Error List after the next SonarQube for Visual Studio analysis.</value>
   </data>
   <data name="MSG_AnalysisNotReady" xml:space="preserve">
     <value>Analysis {1} not ready for file {0}: {2}</value>

@@ -240,7 +240,7 @@
     <value>[Suppressions] Handling IssueChangedEvent, isResolved: {0}, issue keys for current branch: {1}</value>
   </data>
   <data name="ImportBeforeFileGenerator_CheckingIfFileExists" xml:space="preserve">
-    <value>[ConnectedMode/ImportsBeforeFileGenerator] Checking if file SonarLint before imports targets file exists. File: {0}</value>
+    <value>[ConnectedMode/ImportsBeforeFileGenerator] Checking if file exists before importing targets. File: {0}</value>
   </data>
   <data name="ImportBeforeFileGenerator_CreatingDirectory" xml:space="preserve">
     <value>[ConnectedMode/ImportsBeforeFileGenerator] Creating directory {0}</value>
@@ -281,10 +281,10 @@
     <value>[ConnectedMode/TimedUpdate] Triggering refresh of server settings...</value>
   </data>
   <data name="SharedBindingConfigProvider_SavePathNotFound" xml:space="preserve">
-    <value>[SharedBindingConfigProvider] There's no SonarLint shared folder or solution is not under git</value>
+    <value>[SharedBindingConfigProvider] There's no .sonarlint shared folder or solution is not under git</value>
   </data>
   <data name="SharedBindingConfigProvider_SharedFolderNotFound" xml:space="preserve">
-    <value>[SharedBindingConfigProvider] SonarLint shared folder was not found</value>
+    <value>[SharedBindingConfigProvider] The .sonarlint shared folder was not found</value>
   </data>
   <data name="MuteWindowService_NotInConnectedMode" xml:space="preserve">
     <value>[Transition]Issue muting is only supported in connected mode</value>

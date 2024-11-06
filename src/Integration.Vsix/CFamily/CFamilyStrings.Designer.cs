@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot run SonarLint CFamily reproducer - the active document is not analyzable by the CFamily analyzer: {0}.
+        ///   Looks up a localized string similar to SonarQube for Visual Studio: Cannot run CFamily reproducer - the active document is not analyzable by the CFamily analyzer: {0}.
         /// </summary>
         internal static string ReproCmd_DocumentIsNotAnalyzable {
             get {
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error executing the SonarLint CFamily reproducer command:
+        ///   Looks up a localized string similar to SonarQube for Visual Studio: Error executing the CFamily reproducer command.
         ///  Error: {0}.
         /// </summary>
         internal static string ReproCmd_Error_Execute {
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error in calculating whether the SonarLint CFamily reproducer command is available:
+        ///   Looks up a localized string similar to SonarQube for Visual Studio: Error in calculating whether the CFamily reproducer command is available:
         ///  Error: {0}.
         /// </summary>
         internal static string ReproCmd_Error_QueryStatus {
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Calling the SonarLint CFamily reproducer....
+        ///   Looks up a localized string similar to SonarQube for Visual Studio: Calling the CFamily reproducer....
         /// </summary>
         internal static string ReproCmd_ExecutingReproducer {
             get {
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot run SonarLint CFamily reproducer - no active document..
+        ///   Looks up a localized string similar to SonarQube for Visual Studio: Cannot run CFamily reproducer - no active document..
         /// </summary>
         internal static string ReproCmd_NoActiveDocument {
             get {
