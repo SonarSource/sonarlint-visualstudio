@@ -120,6 +120,6 @@
   <data name="UseNewConnectedMode" xml:space="preserve">
     <value>The Connected Mode experience has been migrated away from Team Explorer view. 
     
-Please use the new window by navigating to Extensions -&gt; SonarQube for Visual Studio -&gt; Connected Mode -&gt; Bind to SonarQube (Cloud, Server)...</value>
+Please use the new window by navigating to Extensions -&gt; SonarQube for Visual Studio -&gt; Connected Mode -&gt; Bind to SonarQube (Server, Cloud)...</value>
   </data>
 </root>

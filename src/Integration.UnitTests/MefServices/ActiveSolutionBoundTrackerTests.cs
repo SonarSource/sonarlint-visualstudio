@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             loggerMock
-                .Verify(x => x.WriteLine(It.Is<string>(s => s.StartsWith("SonarQube (Cloud, Server) request failed:")), It.IsAny<object[]>()), Times.Exactly(2));
+                .Verify(x => x.WriteLine(It.Is<string>(s => s.StartsWith("SonarQube (Server, Cloud) request failed:")), It.IsAny<object[]>()), Times.Exactly(2));
             loggerMock
                 .Verify(x => x.WriteLine(It.Is<string>(s => s == CoreStrings.SonarQubeRequestTimeoutOrCancelled)), Times.Once);
         }

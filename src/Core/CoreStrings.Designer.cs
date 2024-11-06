@@ -198,7 +198,7 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube (Cloud, Server) request failed: {0} {1}.
+        ///   Looks up a localized string similar to SonarQube (Server, Cloud) request failed: {0} {1}.
         /// </summary>
         public static string SonarQubeRequestFailed {
             get {
@@ -207,7 +207,7 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube (Cloud, Server) request timed out or was canceled.
+        ///   Looks up a localized string similar to SonarQube (Server, Cloud) request timed out or was canceled.
         /// </summary>
         public static string SonarQubeRequestTimeoutOrCancelled {
             get {
