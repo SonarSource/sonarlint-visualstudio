@@ -263,16 +263,10 @@
   <ItemGroup>
     <None Remove="Commands\HelpMenu\AboutDialog.xaml" />
     <None Remove="Resources\MavenPro-Regular.ttf" />
-    <None Remove="Resources\sonarlint_32.png" />
     <None Remove="Resources\SonarLint_About_For Export.jpg" />
     <None Remove="Settings\GeneralOptionsDialogControl.xaml" />
     <None Remove="Settings\OtherOptionsDialogControl.xaml" />
     <None Remove="SonarLint.vsct" />
-
-    <Content Include="Resources\sonarlint_32.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Content Include="Resources\sonarqube_for_ide_logo_200px.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
