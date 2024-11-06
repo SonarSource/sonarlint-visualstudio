@@ -126,11 +126,11 @@
     <comment>Button text (with access key) for canceling an action – access key 'n'</comment>
   </data>
   <data name="TeamExplorerPageTitle" xml:space="preserve">
-    <value>SonarQube</value>
+    <value>SonarQube (Server, Cloud)</value>
     <comment>Title for the SonarQube Team Explorer page</comment>
   </data>
   <data name="CannotCompareVersionStrings" xml:space="preserve">
-    <value>A SonarQube server plugin has a malformed version and cannot be compared. Version was '{0}'.</value>
+    <value>A SonarQube (Server, Cloud) server plugin has a malformed version and cannot be compared. Version was '{0}'.</value>
     <comment>Exception message indicating that the provided version string is malformed and cannot be compared. {0} version string</comment>
   </data>
   <data name="InvalidTestProjectRegexPattern" xml:space="preserve">
@@ -142,7 +142,7 @@
     <comment>Output pane title</comment>
   </data>
   <data name="Notifications_NotSupported" xml:space="preserve">
-    <value>Notifications are not supported on this version of SonarQube</value>
+    <value>Notifications are not supported on this version of SonarQube (Server, Cloud)</value>
     <comment>Output window message</comment>
   </data>
   <data name="Notifications_ERROR_Fetching" xml:space="preserve">
@@ -182,7 +182,7 @@
     <value>Mark Issue as...</value>
   </data>
   <data name="MuteWindow_Title" xml:space="preserve">
-    <value>Mark Issue as Resolved on SonarQube</value>
+    <value>Mark Issue as Resolved on SonarQube (Server, Cloud)</value>
   </data>
   <data name="MuteWindow_WontFixContent" xml:space="preserve">
     <value>The issue is valid but does not need fixing. It represents accepted technical debt.</value>
