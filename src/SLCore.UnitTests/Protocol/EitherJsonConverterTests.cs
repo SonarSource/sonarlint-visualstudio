@@ -139,8 +139,8 @@ public class EitherJsonConverterTests
                 new ComplexObject.RightOption())
         };
 
-        JsonConvert.DeserializeObject<ComplexObject>(JsonConvert.SerializeObject(left)).Should().BeEquivalentTo(left, options => options.ComparingByMembers<Either<ComplexObject.LeftOption, ComplexObject.RightOption>>());
-        JsonConvert.DeserializeObject<ComplexObject>(JsonConvert.SerializeObject(right)).Should().BeEquivalentTo(right,options => options.ComparingByMembers<Either<ComplexObject.LeftOption, ComplexObject.RightOption>>());
+        JsonConvert.DeserializeObject<ComplexObject>(JsonConvert.SerializeObject(left)).Should().BeEquivalentTo(left);
+        JsonConvert.DeserializeObject<ComplexObject>(JsonConvert.SerializeObject(right)).Should().BeEquivalentTo(right);
     }
 
     public class SimpleObject
