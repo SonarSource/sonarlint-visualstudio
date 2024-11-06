@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             Debug.Assert(!sonarQubeService.IsConnected,
-                "SonarQube service should always be disconnected at this point");
+                $"{nameof(SonarQubeService)} should always be disconnected at this point");
 
             if (!bindingConfiguration.Mode.IsInAConnectedMode())
             {

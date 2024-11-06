@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A SonarQube server plugin has a malformed version and cannot be compared. Version was &apos;{0}&apos;..
+        ///   Looks up a localized string similar to A SonarQube (Server, Cloud) server plugin has a malformed version and cannot be compared. Version was &apos;{0}&apos;..
         /// </summary>
         public static string CannotCompareVersionStrings {
             get {
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Mark Issue as Resolved on SonarQube.
+        ///   Looks up a localized string similar to Mark Issue as Resolved on SonarQube (Server, Cloud).
         /// </summary>
         public static string MuteWindow_Title {
             get {
@@ -232,7 +232,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Notifications are not supported on this version of SonarQube.
+        ///   Looks up a localized string similar to Notifications are not supported on this version of SonarQube (Server, Cloud).
         /// </summary>
         public static string Notifications_NotSupported {
             get {
@@ -250,7 +250,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube.
+        ///   Looks up a localized string similar to SonarQube (Server, Cloud).
         /// </summary>
         public static string TeamExplorerPageTitle {
             get {
