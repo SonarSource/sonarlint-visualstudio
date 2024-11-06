@@ -76,11 +76,11 @@ internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
 
     private static RuleInfo Convert(EffectiveRuleDetailsDto effectiveRuleDetailsAsync) =>
         new(effectiveRuleDetailsAsync.key,
-            HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(effectiveRuleDetailsAsync.description.Left?.htmlContent),
+            HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(effectiveRuleDetailsAsync.description?.Left?.htmlContent),
             effectiveRuleDetailsAsync.name,
             Convert(effectiveRuleDetailsAsync.severityDetails.Left?.severity),
             Convert(effectiveRuleDetailsAsync.severityDetails.Left?.type),
-            effectiveRuleDetailsAsync.description.Right,
+            effectiveRuleDetailsAsync.description?.Right,
             Convert(effectiveRuleDetailsAsync.severityDetails.Right?.cleanCodeAttribute),
             Convert(effectiveRuleDetailsAsync.severityDetails.Right?.impacts));
 
