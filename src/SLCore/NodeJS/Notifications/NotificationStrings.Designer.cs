@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.SLCore.NodeJS.Notifications {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: {0} analysis failed. Could not find a Node.js runtime (required: &gt;={1}, actual: {2}) on your computer..
+        ///   Looks up a localized string similar to SonarQube for Visual Studio: {0} analysis failed. Could not find a Node.js runtime (required: &gt;={1}, actual: {2}) on your computer..
         /// </summary>
         internal static string NotificationUnsupportedNode {
             get {

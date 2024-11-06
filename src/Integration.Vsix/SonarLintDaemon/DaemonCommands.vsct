@@ -16,7 +16,7 @@
         <CommandFlag>DefaultDisabled</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
-          <ButtonText>Disable SonarLint rule</ButtonText>
+          <ButtonText>Disable rule</ButtonText>
         </Strings>
       </Button>
       

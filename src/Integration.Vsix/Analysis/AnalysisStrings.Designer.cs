@@ -225,7 +225,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This issue is already resolved on the server. It will be removed from the Error List after the next SonarLint analysis..
+        ///   Looks up a localized string similar to This issue is already resolved on the server. It will be removed from the Error List after the next SonarQube for Visual Studio analysis..
         /// </summary>
         internal static string MuteIssue_IssueAlreadyMutedText {
             get {
@@ -252,7 +252,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: Failed to analyze {0}. See the Output Window for more information..
+        ///   Looks up a localized string similar to SonarQube for Visual Studio: Failed to analyze {0}. See the Output Window for more information..
         /// </summary>
         internal static string Notifier_AnalysisFailed {
             get {
@@ -261,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: Finished analyzing {0}.
+        ///   Looks up a localized string similar to SonarQube for Visual Studio: Finished analyzing {0}.
         /// </summary>
         internal static string Notifier_AnalysisFinished {
             get {
@@ -270,7 +270,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: Analyzing {0}.
+        ///   Looks up a localized string similar to SonarQube for Visual Studio: Analyzing {0}.
         /// </summary>
         internal static string Notifier_AnalysisStarted {
             get {
@@ -288,7 +288,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: re-analysing open documents. Completed {0} of {1}.
+        ///   Looks up a localized string similar to SonarQube for Visual Studio: re-analysing open documents. Completed {0} of {1}.
         /// </summary>
         internal static string ReanalysisStatusBar_InProgress {
             get {

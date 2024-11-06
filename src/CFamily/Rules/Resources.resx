@@ -131,7 +131,7 @@
     <value>[CFamily] No custom rules settings - using defaults</value>
   </data>
   <data name="RulesUnavailableInSonarLint" xml:space="preserve">
-    <value>[CFamily] Note: the following CFamily rules are not available in SonarLint: {0}</value>
+    <value>[CFamily] Note: the following CFamily rules are not available in SonarQube for Visual Studio: {0}</value>
     <comment>Output window messge</comment>
   </data>
   <data name="UnableToLoadConnectedModeSettings" xml:space="preserve">

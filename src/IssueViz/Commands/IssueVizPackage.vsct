@@ -30,7 +30,7 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Show SonarLint Issue Visualization</ButtonText>
+          <ButtonText>Show Issue Visualization</ButtonText>
         </Strings>
       </Button>
 
@@ -43,7 +43,7 @@
           <ButtonText>Go to next issue location</ButtonText>
           <CanonicalName>SonarLintGoToNextLocation</CanonicalName>
           <LocCanonicalName>SonarLintGoToNextLocation</LocCanonicalName>
-          <CommandName>SonarLint Go to next issue location</CommandName>
+          <CommandName>SonarQube for Visual Studio: Go to next issue location</CommandName>
         </Strings>
       </Button>
 
@@ -56,7 +56,7 @@
           <ButtonText>Go to previous issue location</ButtonText>
           <CanonicalName>SonarLintGoToPreviousLocation</CanonicalName>
           <LocCanonicalName>SonarLintGoToPreviousLocation</LocCanonicalName>
-          <CommandName>SonarLint Go to previous issue location</CommandName>
+          <CommandName>SonarQube for Visual Studio: Go to previous issue location</CommandName>
         </Strings>
       </Button>
 

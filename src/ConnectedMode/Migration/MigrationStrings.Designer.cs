@@ -188,7 +188,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: You have both old and new connected mode settings. Please Migrate again to clean up the old settings.
+        ///   Looks up a localized string similar to SonarQube for Visual Studio: You have both old and new connected mode settings. Please Migrate again to clean up the old settings.
         /// </summary>
         internal static string MigrationPrompt_AlreadyConnected_Message {
             get {
@@ -206,7 +206,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: You&apos;re using an outdated Connected Mode configuration format. Some features will not be available. Please migrate..
+        ///   Looks up a localized string similar to SonarQube for Visual Studio: You&apos;re using an outdated Connected Mode configuration format. Some features will not be available. Please migrate..
         /// </summary>
         internal static string MigrationPrompt_Message {
             get {

@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 {
     [Export(typeof(ISuggestedActionsSourceProvider))]
-    [Name("SonarLint Issue Visualization")]
+    [Name("SonarQube for Visual Studio Issue Visualization")]
     [ContentType("text")]
     internal class IssueLocationActionsSourceProvider : ISuggestedActionsSourceProvider
     {

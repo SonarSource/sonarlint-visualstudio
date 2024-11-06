@@ -138,7 +138,7 @@
     <comment>Warning output message indicating that the test project name regex was invalid. {0} invalid regex pattern</comment>
   </data>
   <data name="SonarLintOutputPaneTitle" xml:space="preserve">
-    <value>SonarLint</value>
+    <value>SonarQube for Visual Studio</value>
     <comment>Output pane title</comment>
   </data>
   <data name="Notifications_NotSupported" xml:space="preserve">
