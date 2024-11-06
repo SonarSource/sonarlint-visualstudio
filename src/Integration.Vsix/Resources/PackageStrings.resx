@@ -118,15 +118,15 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="110" xml:space="preserve">
-    <value>SonarLint for Visual Studio</value>
+    <value>SonarQube for Visual Studio</value>
     <comment>Package name in the Help/About</comment>
   </data>
   <data name="112" xml:space="preserve">
-    <value>SonarLint is an extension to your favorite IDE that provides on-the-fly feedback to developers on new bugs and quality issues injected into their code.</value>
+    <value>SonarQube for Visual Studio is an extension to your favorite IDE that provides on-the-fly feedback to developers on new bugs and quality issues injected into their code.</value>
     <comment>Package description in the Help/About</comment>
   </data>
   <data name="901" xml:space="preserve">
-    <value>SonarLint</value>
+    <value>SonarQube for Visual Studio</value>
     <comment>Options group name</comment>
   </data>
   <data name="902" xml:space="preserve">
@@ -134,7 +134,7 @@
     <comment>General options page name</comment>
   </data>
   <data name="903" xml:space="preserve">
-    <value>analysis rule rules SonarLint</value>
+    <value>analysis rule rules SonarQube for Visual Studio</value>
     <comment>Keywords for General options page (used when searching Options)</comment>
   </data>
   <data name="904" xml:space="preserve">

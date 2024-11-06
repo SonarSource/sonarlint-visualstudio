@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="FileWatcherException" xml:space="preserve">
-    <value>[Roslyn Suppressions] Error handling SonarLint suppressions change. Issues suppressed on the server may not be suppressed in the IDE. Error: {0}</value>
+    <value>[Roslyn Suppressions] Error handling SonarQube for Visual Studio suppressions change. Issues suppressed on the server may not be suppressed in the IDE. Error: {0}</value>
   </data>
   <data name="RoslynSettingsFileStorageFileNotFound" xml:space="preserve">
     <value>Settings File was not found</value>

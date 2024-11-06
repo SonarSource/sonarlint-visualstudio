@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             result.Should().BeNull();
             logger.AssertOutputStrings(1);
-            logger.AssertPartialOutputStringExists("SonarLint shared folder was not found");
+            logger.AssertPartialOutputStringExists(Resources.SharedBindingConfigProvider_SharedFolderNotFound);
         }
 
         [TestMethod]
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
             result.Should().BeNull();
             sharedBindingConfigFileProvider.VerifyNoOtherCalls();
             logger.AssertOutputStrings(1);
-            logger.AssertPartialOutputStringExists("no SonarLint shared folder or solution is not under git");
+            logger.AssertPartialOutputStringExists(Resources.SharedBindingConfigProvider_SavePathNotFound);
         }
 
         private IGitWorkspaceService CreateGitWorkspaceService(string gitRepo)

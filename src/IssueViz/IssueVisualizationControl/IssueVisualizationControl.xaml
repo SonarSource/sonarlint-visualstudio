@@ -254,11 +254,11 @@
           vsTheming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
         <Grid x:Name="Overlay" Style="{StaticResource OverlayGridStyle}" Panel.ZIndex="1000">
             <StackPanel VerticalAlignment="Center">
-                <TextBlock Style="{StaticResource OverlayTitleTextStyle}" Text="Please select a SonarLint issue with secondary locations." />
+                <TextBlock Style="{StaticResource OverlayTitleTextStyle}" Text="Please select a SonarQube for Visual Studio issue with secondary locations." />
                 <TextBlock Style="{StaticResource OverlayTextStyle}">
                     <Hyperlink Command="{Binding NavigateToDocumentationCommand}">
                         <LineBreak />
-                        <Run Text="Click here to go online and find out more about this and other SonarLint features." />
+                        <Run Text="Click here to go online and find out more about this and other SonarQube for Visual Studio features." />
                     </Hyperlink>
                 </TextBlock>
             </StackPanel>
