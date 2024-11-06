@@ -367,7 +367,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enter the SonarQube URL:.
+        ///   Looks up a localized string similar to Enter the SonarQube Server URL:.
         /// </summary>
         public static string EnterSonarQubeUrlLabel {
             get {
@@ -448,7 +448,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarQube offers a free.
+        ///   Looks up a localized string similar to SonarQube Server offers a free.
         /// </summary>
         public static string FreeSonarQubeOfferDescription {
             get {
@@ -702,7 +702,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select SonarCloud Organization.
+        ///   Looks up a localized string similar to Select SonarQube Cloud Organization.
         /// </summary>
         public static string OrganizationSelectionDialogTitle {
             get {
@@ -819,7 +819,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select one of your SonarCloud organizations from the list or manually provide one..
+        ///   Looks up a localized string similar to Select one of your SonarQube Cloud organizations from the list or manually provide one..
         /// </summary>
         public static string SelectOrganizationLabel {
             get {

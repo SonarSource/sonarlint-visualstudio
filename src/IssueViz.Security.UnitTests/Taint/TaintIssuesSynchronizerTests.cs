@@ -246,8 +246,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             await testSubject.SynchronizeWithServer();
 
-            logger.AssertPartialOutputStringExists("requires SonarQube v8.6 or later");
-            logger.AssertPartialOutputStringExists($"Connected SonarQube version: v{versionString}");
+            logger.AssertPartialOutputStringExists("requires SonarQube Server v8.6 or later");
+            logger.AssertPartialOutputStringExists($"Connected SonarQube Server version: v{versionString}");
 
             CheckIssuesAreNotFetched(sonarQubeServer);
             CheckStoreIsCleared(taintStore);

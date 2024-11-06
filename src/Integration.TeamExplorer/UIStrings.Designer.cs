@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer {
         /// <summary>
         ///   Looks up a localized string similar to The Connected Mode experience has been migrated away from Team Explorer view. 
         ///    
-        ///Please use the new window by navigating to Extensions -&gt; SonarQube for Visual Studio -&gt; Connected Mode -&gt; Bind to SonarQube or SonarCloud....
+        ///Please use the new window by navigating to Extensions -&gt; SonarQube for Visual Studio -&gt; Connected Mode -&gt; Bind to SonarQube (Server, Cloud)....
         /// </summary>
         public static string UseNewConnectedMode {
             get {
