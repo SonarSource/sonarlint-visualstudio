@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint background service failed to start.
+        ///   Looks up a localized string similar to SonarQube for Visual Studio background service failed to start.
         /// </summary>
         public static string SloopRestartFailedNotificationService_GoldBarMessage {
             get {
@@ -205,7 +205,7 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Restart SonarLint.
+        ///   Looks up a localized string similar to Restart SonarQube for Visual Studio.
         /// </summary>
         public static string SloopRestartFailedNotificationService_Restart {
             get {

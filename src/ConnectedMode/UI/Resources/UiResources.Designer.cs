@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Binding could not be established. Please check the SonarLint logs for more details..
+        ///   Looks up a localized string similar to Binding could not be established. Please check the SonarQube for Visual Studio logs for more details..
         /// </summary>
         public static string BindingFailedText {
             get {
@@ -178,7 +178,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Checking for shared configuration failed. Please check the SonarLint logs for more details..
+        ///   Looks up a localized string similar to Checking for shared configuration failed. Please check the SonarQube for Visual Studio logs for more details..
         /// </summary>
         public static string CheckingForSharedBindingFailedText {
             get {
@@ -421,7 +421,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Binding could not be established. Please check the SonarLint logs for more details..
+        ///   Looks up a localized string similar to Binding could not be established. Please check the SonarQube for Visual Studio logs for more details..
         /// </summary>
         public static string FetchingBindingStatusFailedText {
             get {

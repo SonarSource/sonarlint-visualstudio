@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
         
         /// <summary>
         ///   Looks up a localized string similar to There are no active rules on the selected Quality Profile &apos;{0}&apos; for Language {1} (rules from the SonarAnalyzer repository). Connected mode requires at least one active rule.
-        ///   Note that third party rules are excluded from SonarLint.
+        ///   Note that third party rules are excluded from SonarQube for Visual Studio.
         /// </summary>
         internal static string NoSonarAnalyzerActiveRulesForQualityProfile {
             get {
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint detected binding configuration for this solution in your repository. Do you want to bind it to {0}?.
+        ///   Looks up a localized string similar to SonarQube for Visual Studio detected binding configuration for this solution in your repository. Do you want to bind it to {0}?.
         /// </summary>
         internal static string SharedBindingSuggestionMainText {
             get {

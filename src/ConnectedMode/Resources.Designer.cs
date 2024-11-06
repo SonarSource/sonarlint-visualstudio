@@ -304,7 +304,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Checking if file SonarLint before imports targets file exists. File: {0}.
+        ///   Looks up a localized string similar to [ConnectedMode/ImportsBeforeFileGenerator] Checking if file exists before importing targets. File: {0}.
         /// </summary>
         internal static string ImportBeforeFileGenerator_CheckingIfFileExists {
             get {
@@ -448,7 +448,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [SharedBindingConfigProvider] There&apos;s no SonarLint shared folder or solution is not under git.
+        ///   Looks up a localized string similar to [SharedBindingConfigProvider] There&apos;s no .sonarlint shared folder or solution is not under git.
         /// </summary>
         internal static string SharedBindingConfigProvider_SavePathNotFound {
             get {
@@ -457,7 +457,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [SharedBindingConfigProvider] SonarLint shared folder was not found.
+        ///   Looks up a localized string similar to [SharedBindingConfigProvider] The .sonarlint shared folder was not found.
         /// </summary>
         internal static string SharedBindingConfigProvider_SharedFolderNotFound {
             get {

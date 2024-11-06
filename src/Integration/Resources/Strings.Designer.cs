@@ -241,7 +241,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint.
+        ///   Looks up a localized string similar to SonarQube for Visual Studio.
         /// </summary>
         public static string SonarLintOutputPaneTitle {
             get {

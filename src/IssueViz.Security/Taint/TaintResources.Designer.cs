@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
         
         /// <summary>
         ///   Looks up a localized string similar to [Taint] Displaying taint vulnerabilities in the IDE requires SonarQube Server v8.6 or later, or SonarQube Cloud. Connected SonarQube Server version: v{0}
-        ///    Visit {1} to find out more about this and other SonarLint features..
+        ///    Visit {1} to find out more about this and other SonarQube for Visual Studio features..
         /// </summary>
         internal static string Synchronizer_UnsupportedSQVersion {
             get {

@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions.QuickFix
 {
     internal class QuickFixSuggestedAction : BaseSuggestedAction
     {
-        internal const string sonarLintPrefix = "SonarLint: ";
+        internal const string sonarLintPrefix = "SonarQube for Visual Studio: ";
         private readonly IQuickFixVisualization quickFixVisualization;
         private readonly ITextBuffer textBuffer;
         private readonly ISpanTranslator spanTranslator;

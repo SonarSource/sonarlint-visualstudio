@@ -119,7 +119,7 @@
   </resheader>
   <data name="NoSonarAnalyzerActiveRulesForQualityProfile" xml:space="preserve">
     <value>There are no active rules on the selected Quality Profile '{0}' for Language {1} (rules from the SonarAnalyzer repository). Connected mode requires at least one active rule.
-   Note that third party rules are excluded from SonarLint</value>
+   Note that third party rules are excluded from SonarQube for Visual Studio</value>
     <comment>Output window message displayed when the result from the API export call returns no active rule from the SonarAnalyzer repository. {0} The name of the Quality Profile. {1} the language.</comment>
   </data>
   <data name="SaveExclusionsFailed" xml:space="preserve">
@@ -130,7 +130,7 @@
     <comment>Output window message format. Used whenever the message should be displayed as a sub-message from a step message so the user can clearly identify the grouping. {0} the actual message to display.</comment>
   </data>
   <data name="SharedBindingSuggestionMainText" xml:space="preserve">
-    <value>SonarLint detected binding configuration for this solution in your repository. Do you want to bind it to {0}?</value>
+    <value>SonarQube for Visual Studio detected binding configuration for this solution in your repository. Do you want to bind it to {0}?</value>
   </data>
   <data name="SharedBindingSuggestionConnectOptionText" xml:space="preserve">
     <value>Bind</value>
