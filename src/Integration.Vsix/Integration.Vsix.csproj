@@ -265,7 +265,6 @@
     <None Remove="Resources\MavenPro-Regular.ttf" />
     <None Remove="Resources\sonarlint_32.png" />
     <None Remove="Resources\SonarLint_About_For Export.jpg" />
-    <None Remove="Resources\sonarlint_nobg.png" />
     <None Remove="Settings\GeneralOptionsDialogControl.xaml" />
     <None Remove="Settings\OtherOptionsDialogControl.xaml" />
     <None Remove="SonarLint.vsct" />
@@ -474,7 +473,6 @@
   <ItemGroup>
     <Resource Include="Resources\MavenPro-Regular.ttf" />
     <Resource Include="Resources\SonarLint_About_For Export.jpg" />
-    <Resource Include="Resources\sonarlint_nobg.png" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Properties\Settings.settings">
