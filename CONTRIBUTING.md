@@ -9,7 +9,7 @@ by some simple guidelines outlined in our [Code of Conduct](./CODE_OF_CONDUCT.md
 One of the easiest ways to contribute is to participate in discussions and discuss issues here on this
 [GitHub project](https://github.com/SonarSource/sonarlint-visualstudio/issues), on
 [StackOverflow](http://stackoverflow.com/questions/tagged/sonarlint-vs) or on our
-[Google Group](https://groups.google.com/forum/#!forum/sonarlint)).
+[Google Group](https://groups.google.com/forum/#!forum/sonarlint).
 
 ## General feedback and discussions?
 
