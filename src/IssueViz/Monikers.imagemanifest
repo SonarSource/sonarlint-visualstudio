@@ -9,7 +9,7 @@
   </Symbols>
   <Images>
     <Image Guid="$(MonikersGuid)" ID="$(sonarlint)">
-      <Source Uri="$(Resources)/sonarlint.png">
+      <Source Uri="$(Resources)/sonarqube_for_ide_logo_16px.png">
         <Size Value="16" />
       </Source>
     </Image>
