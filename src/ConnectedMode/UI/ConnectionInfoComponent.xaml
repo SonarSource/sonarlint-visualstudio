@@ -21,7 +21,7 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
-        <Image Grid.Column="0" Height="30" Margin="{Binding ElementName=ConnectionInfoUc, Path= ImageMargin}" 
+        <Image Grid.Column="0" Height="25" Margin="{Binding ElementName=ConnectionInfoUc, Path= ImageMargin}" 
                VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path= TextAndIconVerticalAlignment}" HorizontalAlignment="Center">
             <Image.Style>
                 <Style TargetType="Image">

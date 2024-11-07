@@ -1,8 +1,6 @@
 ﻿<Window x:Class="SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection.DeleteConnectionDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
-        xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
         xmlns:converters="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
@@ -40,7 +38,7 @@
         <TextBlock Grid.Row="0" Margin="0, 0, 0, 20">
             <Run Text="{x:Static res:UiResources.DeleteConnectionDescription}" />
             <InlineUIContainer Style="{StaticResource ConnectionInfoInlineWrapper}">
-                <ui:ConnectionInfoComponent ConnectionInfo="{Binding ConnectionInfo}" />
+                <ui:ConnectionInfoComponent ConnectionInfo="{Binding ConnectionInfo}" TextAndIconVerticalAlignment="Center" Margin="2,0"/>
             </InlineUIContainer>
             <Run Text="?" />
         </TextBlock>
