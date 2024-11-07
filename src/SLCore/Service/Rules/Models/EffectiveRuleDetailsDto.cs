@@ -20,30 +20,24 @@
 
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Protocol;
+using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
 public record EffectiveRuleDetailsDto(
     string key,
     string name,
-    IssueSeverity severity,
-    RuleType type,
-    CleanCodeAttribute? cleanCodeAttribute,
-    CleanCodeAttributeCategory? cleanCodeAttributeCategory,
-    List<ImpactDto> defaultImpacts,
     Language language,
+    [property: JsonConverter(typeof(EitherJsonConverter<StandardModeDetails, MQRModeDetails>))]
+    Either<StandardModeDetails, MQRModeDetails> severityDetails,
     VulnerabilityProbability? vulnerabilityProbability,
     [property: JsonConverter(typeof(EitherJsonConverter<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>))]
     Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description,
-    List<EffectiveRuleParamDto> @params)
-    : AbstractRuleDto(key,
-        name,
-        severity,
-        type,
-        cleanCodeAttribute,
-        cleanCodeAttributeCategory,
-        defaultImpacts,
-        language,
-        vulnerabilityProbability);
+    List<EffectiveRuleParamDto> @params);
+
+public record StandardModeDetails(IssueSeverity severity, RuleType type);
+
+public record MQRModeDetails(CleanCodeAttribute cleanCodeAttribute, List<ImpactDto> impacts);
