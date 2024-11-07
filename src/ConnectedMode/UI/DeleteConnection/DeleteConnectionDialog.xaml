@@ -1,8 +1,6 @@
 ﻿<Window x:Class="SonarLint.VisualStudio.ConnectedMode.UI.DeleteConnection.DeleteConnectionDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
-        xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
         xmlns:converters="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
@@ -28,7 +26,7 @@
         </ResourceDictionary>
     </Window.Resources>
     <Window.Style>
-        <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}"></Style>
+        <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}" />
     </Window.Style>
 
     <Grid DataContext="{Binding ElementName=This, Path=ViewModel}" Margin="15">
@@ -40,7 +38,8 @@
         <TextBlock Grid.Row="0" Margin="0, 0, 0, 20">
             <Run Text="{x:Static res:UiResources.DeleteConnectionDescription}" />
             <InlineUIContainer Style="{StaticResource ConnectionInfoInlineWrapper}">
-                <ui:ConnectionInfoComponent ConnectionInfo="{Binding ConnectionInfo}" />
+                <ui:ConnectionInfoComponent ConnectionInfo="{Binding ConnectionInfo}"
+                                            TextAndIconVerticalAlignment="Center" Margin="2,0" />
             </InlineUIContainer>
             <Run Text="?" />
         </TextBlock>
@@ -57,19 +56,22 @@
             <ListBox Grid.Row="1"
                      Margin="0, 10"
                      ItemContainerStyle="{StaticResource NoSelectionListBoxItemStyle}"
-                     ItemsSource="{Binding ProjectsToUnbind}" >
+                     ItemsSource="{Binding ProjectsToUnbind}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock>
-                            <Run Text="{Binding Path=SolutionInfo.SolutionType, StringFormat='{}{0}'}"/>
-                            <Run Text="{Binding Path=SolutionInfo.Name, StringFormat='{}&quot;{0}&quot;'}" FontWeight="DemiBold"/>
+                            <Run Text="{Binding Path=SolutionInfo.SolutionType, StringFormat='{}{0}'}" />
+                            <Run Text="{Binding Path=SolutionInfo.Name, StringFormat='{}&quot;{0}&quot;'}"
+                                 FontWeight="DemiBold" />
                             <Run Text="{x:Static res:UiResources.BoundToLabel}" />
-                            <Run Text="{Binding Path=ServerProject.Name, StringFormat='{}&quot;{0}&quot;'}" FontWeight="DemiBold" />
+                            <Run Text="{Binding Path=ServerProject.Name, StringFormat='{}&quot;{0}&quot;'}"
+                                 FontWeight="DemiBold" />
                         </TextBlock>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <ui:WarningMessage Grid.Row="2" WarningText="{x:Static res:UiResources.DeleteConnectionBindingsWarningText}" />
+            <ui:WarningMessage Grid.Row="2"
+                               WarningText="{x:Static res:UiResources.DeleteConnectionBindingsWarningText}" />
         </Grid>
         <Grid Grid.Row="2" Margin="0, 20, 0, 0">
             <Grid.ColumnDefinitions>
@@ -78,9 +80,9 @@
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="1" Style="{StaticResource DialogButtonsPanel}">
                 <Button Content="{x:Static res:UiResources.DeleteButton}"
-                                   IsDefault="True"
-                                   Click="DeleteButton_OnClick"
-                                   IsEnabled="True" />
+                        IsDefault="True"
+                        Click="DeleteButton_OnClick"
+                        IsEnabled="True" />
                 <Button Content="{x:Static res:UiResources.CancelButton}" IsCancel="True" />
             </StackPanel>
         </Grid>
