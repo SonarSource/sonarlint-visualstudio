@@ -79,7 +79,7 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
 
-    <Resource Include="Commands\Resources\sonarlint.png" />
+    <Resource Include="Commands\Resources\sonarqube_for_ide_logo_16px.png" />
 
     <Content Include="Monikers.imagemanifest">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
