@@ -109,13 +109,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEve
 
         private async Task AddToStoreIfOnTheRightBranchAsync(ITaintVulnerabilityRaisedServerEvent taintRaisedEvent)
         {
-            var serverBranch = await serverBranchProvider.GetServerBranchNameAsync(cancellationTokenSource.Token);
+            // todo https://sonarsource.atlassian.net/browse/SLVS-1593
 
-            if (taintRaisedEvent.Branch.Equals(serverBranch))
-            {
-                var taintIssue = taintToIssueVizConverter.Convert(taintRaisedEvent.Issue);
-                taintStore.Add(taintIssue);
-            }
+            // var serverBranch = await serverBranchProvider.GetServerBranchNameAsync(cancellationTokenSource.Token);
+            //
+            // if (taintRaisedEvent.Branch.Equals(serverBranch))
+            // {
+            //     var taintIssue = taintToIssueVizConverter.Convert(taintRaisedEvent.Issue);
+            //     taintStore.Add(taintIssue);
+            // }
         }
 
         private bool disposed;

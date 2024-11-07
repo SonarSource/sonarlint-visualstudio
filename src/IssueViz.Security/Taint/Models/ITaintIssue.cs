@@ -18,36 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
 {
-    internal interface ITaintIssue : IAnalysisIssueBase
+    public interface ITaintIssue : IAnalysisIssueBase
     {
         string IssueKey { get; }
 
-        AnalysisIssueSeverity Severity { get; }
-        
+        AnalysisIssueSeverity? Severity { get; }
+
         SoftwareQualitySeverity? HighestSoftwareQualitySeverity { get; }
 
         DateTimeOffset CreationTimestamp { get; }
-
-        DateTimeOffset LastUpdateTimestamp { get; }
     }
 
-    internal class TaintIssue : ITaintIssue
+    public class TaintIssue : ITaintIssue
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
 
         public TaintIssue(string issueKey,
             string ruleKey,
             IAnalysisIssueLocation primaryLocation,
-            AnalysisIssueSeverity severity, 
+            AnalysisIssueSeverity? severity,
             SoftwareQualitySeverity? highestSoftwareQualitySeverity,
             DateTimeOffset creationTimestamp,
-            DateTimeOffset lastUpdateTimestamp,
             IReadOnlyList<IAnalysisIssueFlow> flows,
             string ruleDescriptionContextKey)
         {
@@ -56,7 +51,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Severity = severity;
             CreationTimestamp = creationTimestamp;
-            LastUpdateTimestamp = lastUpdateTimestamp;
             Flows = flows ?? EmptyFlows;
             RuleDescriptionContextKey = ruleDescriptionContextKey;
             this.HighestSoftwareQualitySeverity = highestSoftwareQualitySeverity;
@@ -64,10 +58,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
 
         public string IssueKey { get; }
         public string RuleKey { get; }
-        public AnalysisIssueSeverity Severity { get; }
+        public AnalysisIssueSeverity? Severity { get; }
         public SoftwareQualitySeverity? HighestSoftwareQualitySeverity { get; }
         public DateTimeOffset CreationTimestamp { get; }
-        public DateTimeOffset LastUpdateTimestamp { get; }
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
         public IAnalysisIssueLocation PrimaryLocation { get; }
         public string RuleDescriptionContextKey { get; }
