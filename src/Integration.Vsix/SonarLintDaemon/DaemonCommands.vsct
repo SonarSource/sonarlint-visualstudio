@@ -47,7 +47,7 @@
     </Buttons>
 
     <Bitmaps>
-      <Bitmap guid="guidImages" href="..\Resources\sonarlint.png"/>
+      <Bitmap guid="guidImages" href="..\Resources\sonarqube_for_ide_logo_16px.png"/>
     </Bitmaps>
   </Commands>
   

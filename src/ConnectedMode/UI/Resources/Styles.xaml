@@ -12,7 +12,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}" />
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
         <Setter Property="SnapsToDevicePixels" Value="False" />
-        <Setter Property="Icon" Value="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarlint_32px.ico" />
+        <Setter Property="Icon" Value="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarqube_for_ide_16px.ico" />
     </Style>
 
     <Style x:Key="ConnectedModeWindow" TargetType="Window" BasedOn="{StaticResource {x:Type Window}}">
@@ -73,8 +73,7 @@
                     <Setter Property="Control.Template">
                         <Setter.Value>
                             <ControlTemplate>
-                                <Rectangle Stroke="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonFocusedTextBrushKey}}"  StrokeThickness="1" StrokeDashArray="1 2" Margin="2" x:Uid="ButtonFocusVisualStyleRect" SnapsToDevicePixels="True">
-                                </Rectangle>
+                                <Rectangle Stroke="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonFocusedTextBrushKey}}"  StrokeThickness="1" StrokeDashArray="1 2" Margin="2" x:Uid="ButtonFocusVisualStyleRect" SnapsToDevicePixels="True" />
                             </ControlTemplate>
                         </Setter.Value>
                     </Setter>
@@ -138,7 +137,7 @@
     <Style TargetType="ComboBox">
         <Setter Property="Height" Value="30" />
         <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.ActiveBorderKey}}"></Setter>
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.ActiveBorderKey}}" />
     </Style>
 
     <Style TargetType="ProgressBar">
@@ -197,7 +196,7 @@
     </DataTemplate>
 
     <Style TargetType="GroupBox">
-        <Setter Property="BorderBrush" Value="{StaticResource Border}"></Setter>
+        <Setter Property="BorderBrush" Value="{StaticResource Border}" />
         <Setter Property="HeaderTemplate">
             <Setter.Value>
                 <DataTemplate>
