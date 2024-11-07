@@ -475,11 +475,6 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="..\..\binaries\">
-      <Link>binaries</Link>
-    </Folder>
-  </ItemGroup>
 
   <!-- Target to help debugging the CI build - dumps report differences to the console. 
        Note: there will always be differences in the reports since the timestamps will be
