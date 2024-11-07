@@ -48,7 +48,6 @@
     <None Remove="UI\ServerSelection\ServerSelectionDialog.xaml" />
     <Resource Include="UI\Resources\sonarqube_for_ide_16px.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
     </Resource>
     <EmbeddedResource Include="Install\SonarLintTargets.xml" />
   </ItemGroup>
