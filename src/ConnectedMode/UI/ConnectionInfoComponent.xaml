@@ -9,8 +9,10 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/LogoImages.xaml" />
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/LogoImages.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -21,25 +23,26 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
-        <Image Grid.Column="0" Height="30" Margin="{Binding ElementName=ConnectionInfoUc, Path= ImageMargin}" 
-               VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path= TextAndIconVerticalAlignment}" HorizontalAlignment="Center">
+        <Image Grid.Column="0" Height="25" Margin="{Binding ElementName=ConnectionInfoUc, Path= ImageMargin}"
+               VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path= TextAndIconVerticalAlignment}"
+               HorizontalAlignment="Center">
             <Image.Style>
                 <Style TargetType="Image">
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding Path=ServerType}" Value="SonarCloud">
-                            <Setter Property="Source" Value="{StaticResource SonarCloudIconDrawingImage}"></Setter>
+                            <Setter Property="Source" Value="{StaticResource SonarCloudIconDrawingImage}" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Path=ServerType}" Value="SonarQube">
-                            <Setter Property="Source" Value="{StaticResource SonarQubeIconDrawingImage}"></Setter>
+                            <Setter Property="Source" Value="{StaticResource SonarQubeIconDrawingImage}" />
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
             </Image.Style>
         </Image>
         <TextBlock x:Name="IdTextBlock" Grid.Column="1" Text="{Binding Path=Id}"
+                   Margin="5,0,0,0"
                    VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path=TextAndIconVerticalAlignment}"
-                   FontWeight="{Binding ElementName=ConnectionInfoUc, Path=TextFontWeight}" >
-        </TextBlock>
+                   FontWeight="{Binding ElementName=ConnectionInfoUc, Path=TextFontWeight}" />
     </Grid>
 
 </UserControl>
