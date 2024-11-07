@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     public class FilePathAndContent<T>
@@ -34,7 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
                 throw new ArgumentNullException(nameof(path));
             }
 
-            if (content == null)
+            if (Equals(content, default(T)))
             {
                 throw new ArgumentNullException(nameof(content));
             }
