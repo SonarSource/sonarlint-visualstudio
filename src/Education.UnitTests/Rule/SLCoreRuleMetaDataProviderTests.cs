@@ -18,14 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Education.Rule;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -48,20 +42,15 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Rule;
 public class SLCoreRuleMetaDataProviderTests
 {
     [TestMethod]
-    public void MefCtor_CheckIsExported()
-    {
+    public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<SLCoreRuleMetaDataProvider, IRuleMetaDataProvider>(
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<ILogger>());
-    }
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton()
-    {
-        MefTestHelpers.CheckIsSingletonMefComponent<SLCoreRuleMetaDataProvider>();
-    }
-    
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SLCoreRuleMetaDataProvider>();
+
     [DataTestMethod]
     [DataRow(IssueSeverity.INFO, RuleIssueSeverity.Info)]
     [DataRow(IssueSeverity.MAJOR, RuleIssueSeverity.Major)]
@@ -80,12 +69,8 @@ public class SLCoreRuleMetaDataProviderTests
         SetupRulesService(rulesServiceMock, rulekey, configScopeId, new EffectiveRuleDetailsDto(
             default,
             default,
-            slCore,
             default,
-            default,
-            default,
-            default,
-            default,
+            new StandardModeDetails(slCore, default),
             default,
             default,
             default));
@@ -94,7 +79,7 @@ public class SLCoreRuleMetaDataProviderTests
 
         ruleInfo.Severity.Should().Be(expected);
     }
-    
+
     [DataTestMethod]
     [DataRow(RuleType.CODE_SMELL, RuleIssueType.CodeSmell)]
     [DataRow(RuleType.VULNERABILITY, RuleIssueType.Vulnerability)]
@@ -113,11 +98,7 @@ public class SLCoreRuleMetaDataProviderTests
             default,
             default,
             default,
-            slCore,
-            default,
-            default,
-            default,
-            default,
+            new StandardModeDetails(default, slCore),
             default,
             default,
             default));
@@ -155,11 +136,7 @@ public class SLCoreRuleMetaDataProviderTests
             default,
             default,
             default,
-            default,
-            slCore,
-            default,
-            default,
-            default,
+            new MQRModeDetails(slCore, default),
             default,
             default,
             default));
@@ -168,7 +145,7 @@ public class SLCoreRuleMetaDataProviderTests
 
         ruleInfo.CleanCodeAttribute.Should().Be(expected);
     }
-    
+
     [TestMethod]
     public async Task GetRuleInfoAsync_CorrectlyConvertsImpacts()
     {
@@ -183,16 +160,11 @@ public class SLCoreRuleMetaDataProviderTests
             default,
             default,
             default,
-            default,
-            default,
-            default,
-            new List<ImpactDto>
-            {
-                new(SoftwareQuality.SECURITY, ImpactSeverity.HIGH),
-                new(SoftwareQuality.RELIABILITY, ImpactSeverity.LOW),
-                new(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.MEDIUM),
-            },
-            default,
+            new MQRModeDetails(default, [
+                new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH),
+                new ImpactDto(SoftwareQuality.RELIABILITY, ImpactSeverity.LOW),
+                new ImpactDto(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.MEDIUM)
+            ]),
             default,
             default,
             default));
@@ -201,14 +173,14 @@ public class SLCoreRuleMetaDataProviderTests
 
         ruleInfo.DefaultImpacts.Should().BeEquivalentTo(new Dictionary<RuleSoftwareQuality, RuleSoftwareQualitySeverity>
         {
-            { RuleSoftwareQuality.Security , SoftwareQualitySeverity.High},
-            { RuleSoftwareQuality.Reliability , SoftwareQualitySeverity.Low},
-            { RuleSoftwareQuality.Maintainability , SoftwareQualitySeverity.Medium},
+            { RuleSoftwareQuality.Security, RuleSoftwareQualitySeverity.High },
+            { RuleSoftwareQuality.Reliability, RuleSoftwareQualitySeverity.Low },
+            { RuleSoftwareQuality.Maintainability, RuleSoftwareQualitySeverity.Medium }
         });
     }
-    
+
     [TestMethod]
-    public async Task GetRuleInfoAsync_SimpleRuleDescription()
+    public async Task GetRuleInfoAsync_Standard_SimpleRuleDescription()
     {
         const string rulekey = "rule:key1";
         const string configScopeId = "configscope";
@@ -220,16 +192,8 @@ public class SLCoreRuleMetaDataProviderTests
         SetupRulesService(rulesServiceMock, rulekey, configScopeId, new EffectiveRuleDetailsDto(
             rulekey,
             "name",
-            IssueSeverity.CRITICAL,
-            RuleType.SECURITY_HOTSPOT,
-            CleanCodeAttribute.MODULAR,
-            CleanCodeAttributeCategory.INTENTIONAL,
-            new List<ImpactDto>
-            {
-                new(SoftwareQuality.SECURITY, ImpactSeverity.HIGH),
-                new(SoftwareQuality.RELIABILITY, ImpactSeverity.LOW)
-            },
             Language.JS,
+            new StandardModeDetails(IssueSeverity.CRITICAL, RuleType.VULNERABILITY),
             VulnerabilityProbability.MEDIUM,
             Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateLeft(
                 new RuleMonolithicDescriptionDto("content")),
@@ -237,22 +201,56 @@ public class SLCoreRuleMetaDataProviderTests
 
         var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
 
-        ruleInfo.Should().BeEquivalentTo(new RuleInfo(rulekey, 
+        ruleInfo.Should().BeEquivalentTo(new RuleInfo(rulekey,
             "content",
-            "name", 
+            "name",
             RuleIssueSeverity.Critical,
-            RuleIssueType.Hotspot, 
+            RuleIssueType.Vulnerability,
             null,
-            Core.Analysis.CleanCodeAttribute.Modular,
-            new Dictionary<Core.Analysis.SoftwareQuality, SoftwareQualitySeverity>
+            null,
+            null));
+    }
+
+    [TestMethod]
+    public async Task GetRuleInfoAsync_MQR_SimpleRuleDescription()
+    {
+        const string rulekey = "rule:key1";
+        const string configScopeId = "configscope";
+
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out var logger);
+        SetUpServiceProvider(serviceProviderMock, out var rulesServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope(configScopeId));
+        SetupRulesService(rulesServiceMock, rulekey, configScopeId, new EffectiveRuleDetailsDto(
+            rulekey,
+            "name",
+            Language.JS,
+            new MQRModeDetails(CleanCodeAttribute.MODULAR, [
+                new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH),
+                new ImpactDto(SoftwareQuality.RELIABILITY, ImpactSeverity.LOW)
+            ]),
+            VulnerabilityProbability.MEDIUM,
+            Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateLeft(
+                new RuleMonolithicDescriptionDto("content")),
+            new List<EffectiveRuleParamDto>()));
+
+        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+
+        ruleInfo.Should().BeEquivalentTo(new RuleInfo(rulekey,
+            "content",
+            "name",
+            null,
+            null,
+            null,
+            RuleCleanCodeAttribute.Modular,
+            new Dictionary<RuleSoftwareQuality, RuleSoftwareQualitySeverity>
             {
-                { Core.Analysis.SoftwareQuality.Security, SoftwareQualitySeverity.High },
-                { Core.Analysis.SoftwareQuality.Reliability, SoftwareQualitySeverity.Low }
+                { RuleSoftwareQuality.Security, RuleSoftwareQualitySeverity.High }, { RuleSoftwareQuality.Reliability, RuleSoftwareQualitySeverity.Low }
             }));
     }
 
     [TestMethod]
-    public async Task GetRuleInfoAsync_RichRuleDescription()
+    public async Task GetRuleInfoAsync_Standard_RichRuleDescription()
     {
         const string rulekey = "rule:key1";
         const string configScopeId = "configscope";
@@ -265,35 +263,57 @@ public class SLCoreRuleMetaDataProviderTests
         SetupRulesService(rulesServiceMock, rulekey, configScopeId, new EffectiveRuleDetailsDto(
             rulekey,
             "name",
-            IssueSeverity.MINOR,
-            RuleType.BUG,
-            CleanCodeAttribute.RESPECTFUL,
-            CleanCodeAttributeCategory.ADAPTABLE,
-            new List<ImpactDto>
-            {
-                new(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.MEDIUM)
-            },
             Language.CPP,
+            new StandardModeDetails(IssueSeverity.MINOR, RuleType.BUG),
             null,
             Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateRight(ruleSplitDescriptionDto),
-            new List<EffectiveRuleParamDto>
-            {
-                new("ignored", default, default, default)
-            }));
+            new List<EffectiveRuleParamDto> { new("ignored", default, default, default) }));
 
         var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
 
-        ruleInfo.Should().BeEquivalentTo(new RuleInfo(rulekey, 
-            null, 
-            "name", 
-            RuleIssueSeverity.Minor, 
+        ruleInfo.Should().BeEquivalentTo(new RuleInfo(rulekey,
+            null,
+            "name",
+            RuleIssueSeverity.Minor,
             RuleIssueType.Bug,
             ruleSplitDescriptionDto,
-            Core.Analysis.CleanCodeAttribute.Respectful,
-            new Dictionary<Core.Analysis.SoftwareQuality, SoftwareQualitySeverity>
-            {
-                { Core.Analysis.SoftwareQuality.Maintainability, SoftwareQualitySeverity.Medium }
-            }));
+            null,
+            null));
+        logger.AssertNoOutputMessages();
+    }
+
+    [TestMethod]
+    public async Task GetRuleInfoAsync_MQR_RichRuleDescription()
+    {
+        const string rulekey = "rule:key1";
+        const string configScopeId = "configscope";
+
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out var logger);
+        SetUpServiceProvider(serviceProviderMock, out var rulesServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope(configScopeId));
+        var ruleSplitDescriptionDto = new RuleSplitDescriptionDto("intro", new List<RuleDescriptionTabDto>());
+        SetupRulesService(rulesServiceMock, rulekey, configScopeId, new EffectiveRuleDetailsDto(
+            rulekey,
+            "name",
+            Language.CPP,
+            new MQRModeDetails(CleanCodeAttribute.RESPECTFUL, [
+                new ImpactDto(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.MEDIUM)
+            ]),
+            null,
+            Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateRight(ruleSplitDescriptionDto),
+            new List<EffectiveRuleParamDto> { new("ignored", default, default, default) }));
+
+        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+
+        ruleInfo.Should().BeEquivalentTo(new RuleInfo(rulekey,
+            null,
+            "name",
+            null,
+            null,
+            ruleSplitDescriptionDto,
+            RuleCleanCodeAttribute.Respectful,
+            new Dictionary<RuleSoftwareQuality, RuleSoftwareQualitySeverity> { { RuleSoftwareQuality.Maintainability, RuleSoftwareQualitySeverity.Medium } }));
         logger.AssertNoOutputMessages();
     }
 
@@ -340,22 +360,23 @@ public class SLCoreRuleMetaDataProviderTests
         logger.AssertPartialOutputStringExists("my message");
     }
 
-    private static void SetUpConfigScopeTracker(Mock<IActiveConfigScopeTracker> configScopeTrackerMock,
-        ConfigurationScope scope)
-    {
+    private static void SetUpConfigScopeTracker(
+        Mock<IActiveConfigScopeTracker> configScopeTrackerMock,
+        ConfigurationScope scope) =>
         configScopeTrackerMock.SetupGet(x => x.Current).Returns(scope);
-    }
 
-    private static void SetupRulesService(Mock<IRulesSLCoreService> rulesServiceMock, string rulekey, string configScopeId,
-        EffectiveRuleDetailsDto response)
-    {
+    private static void SetupRulesService(
+        Mock<IRulesSLCoreService> rulesServiceMock,
+        string rulekey,
+        string configScopeId,
+        EffectiveRuleDetailsDto response) =>
         rulesServiceMock
             .Setup(r => r.GetEffectiveRuleDetailsAsync(It.Is<GetEffectiveRuleDetailsParams>(p =>
                 p.ruleKey == rulekey && p.configurationScopeId == configScopeId)))
             .ReturnsAsync(new GetEffectiveRuleDetailsResponse(response));
-    }
 
-    private static void SetUpServiceProvider(Mock<ISLCoreServiceProvider> serviceProviderMock,
+    private static void SetUpServiceProvider(
+        Mock<ISLCoreServiceProvider> serviceProviderMock,
         out Mock<IRulesSLCoreService> rulesServiceMock)
     {
         rulesServiceMock = new Mock<IRulesSLCoreService>();
@@ -363,7 +384,8 @@ public class SLCoreRuleMetaDataProviderTests
         serviceProviderMock.Setup(x => x.TryGetTransientService(out rulesService)).Returns(true);
     }
 
-    private static SLCoreRuleMetaDataProvider CreateTestSubject(out Mock<ISLCoreServiceProvider> serviceProviderMock,
+    private static SLCoreRuleMetaDataProvider CreateTestSubject(
+        out Mock<ISLCoreServiceProvider> serviceProviderMock,
         out Mock<IActiveConfigScopeTracker> configScopeTrackerMock,
         out TestLogger logger)
     {

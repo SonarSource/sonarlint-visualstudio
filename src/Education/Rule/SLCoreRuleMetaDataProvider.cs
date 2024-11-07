@@ -78,17 +78,17 @@ internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
         new(effectiveRuleDetailsAsync.key,
             HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(effectiveRuleDetailsAsync.description?.Left?.htmlContent),
             effectiveRuleDetailsAsync.name,
-            Convert(effectiveRuleDetailsAsync.severity),
-            Convert(effectiveRuleDetailsAsync.type),
+            Convert(effectiveRuleDetailsAsync.severityDetails.Left?.severity),
+            Convert(effectiveRuleDetailsAsync.severityDetails.Left?.type),
             effectiveRuleDetailsAsync.description?.Right,
-            Convert(effectiveRuleDetailsAsync.cleanCodeAttribute),
-            Convert(effectiveRuleDetailsAsync.defaultImpacts));
+            Convert(effectiveRuleDetailsAsync.severityDetails.Right?.cleanCodeAttribute),
+            Convert(effectiveRuleDetailsAsync.severityDetails.Right?.impacts));
 
-    private static Dictionary<SoftwareQuality, SoftwareQualitySeverity> Convert(List<ImpactDto> cleanCodeAttribute) => 
+    private static Dictionary<SoftwareQuality, SoftwareQualitySeverity> Convert(List<ImpactDto> cleanCodeAttribute) =>
         cleanCodeAttribute?.ToDictionary(x => Convert(x.softwareQuality), x => x.impactSeverity.ToSoftwareQualitySeverity());
 
 
-    private static RuleIssueSeverity Convert(IssueSeverity issueSeverity) =>
+    private static RuleIssueSeverity? Convert(IssueSeverity? issueSeverity) =>
         issueSeverity switch
         {
             IssueSeverity.BLOCKER => RuleIssueSeverity.Blocker,
@@ -96,16 +96,18 @@ internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
             IssueSeverity.MAJOR => RuleIssueSeverity.Major,
             IssueSeverity.MINOR => RuleIssueSeverity.Minor,
             IssueSeverity.INFO => RuleIssueSeverity.Info,
+            null => null,
             _ => throw new ArgumentOutOfRangeException(nameof(issueSeverity), issueSeverity, null)
         };
 
-    private static RuleIssueType Convert(RuleType ruleType) =>
+    private static RuleIssueType? Convert(RuleType? ruleType) =>
         ruleType switch
         {
             RuleType.CODE_SMELL => RuleIssueType.CodeSmell,
             RuleType.BUG => RuleIssueType.Bug,
             RuleType.VULNERABILITY => RuleIssueType.Vulnerability,
             RuleType.SECURITY_HOTSPOT => RuleIssueType.Hotspot,
+            null => null,
             _ => throw new ArgumentOutOfRangeException(nameof(ruleType), ruleType, null)
         };
 

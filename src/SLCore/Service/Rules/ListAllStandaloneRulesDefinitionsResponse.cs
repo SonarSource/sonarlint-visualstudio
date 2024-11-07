@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
-
 namespace SonarLint.VisualStudio.SLCore.Service.Rules;
 
-public record ListAllStandaloneRulesDefinitionsResponse(Dictionary<string, RuleDefinitionDto> rulesByKey);
+public record ListAllStandaloneRulesDefinitionsResponse(Dictionary<string, object> rulesByKey); // we only care about rule ids, so we don't parse the value object
