@@ -37,7 +37,7 @@ public class EitherJsonConverterTests
 
         testSubject.CanConvert(typeToCheck).Should().Be(isSupported);
     }
-    
+
     [TestMethod]
     public void SerializeObject_SerializesEitherAsSingleObject()
     {
@@ -64,7 +64,7 @@ public class EitherJsonConverterTests
         var str = """
                   {
                     "Property" : "ThisIsExpectedToBeAnObjectButItIsAString"
-                  }  
+                  }
                   """;
 
         Action act = () => JsonConvert.DeserializeObject<SimpleObject>(str);
@@ -78,7 +78,7 @@ public class EitherJsonConverterTests
         var str = """
                   {
                     "Property" : [1, 2, 3]
-                  }  
+                  }
                   """;
 
         Action act = () => JsonConvert.DeserializeObject<SimpleObject>(str);

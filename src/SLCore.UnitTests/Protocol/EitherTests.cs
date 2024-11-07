@@ -18,18 +18,35 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.SLCore.Protocol;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Protocol;
 
-public abstract record AbstractRuleDto(
-    string key,
-    string name,
-    IssueSeverity severity,
-    RuleType type,
-    CleanCodeAttribute? cleanCodeAttribute,
-    CleanCodeAttributeCategory? cleanCodeAttributeCategory,
-    List<ImpactDto> defaultImpacts,
-    Language language,
-    VulnerabilityProbability? vulnerabilityProbability);
+[TestClass]
+public class EitherTests
+{
+    [TestMethod]
+    public void ImplicitConvertFrom_LeftValue_ConvertsToEquivalentEither()
+    {
+        LeftType value = new LeftType();
+
+        Either<LeftType, RightType> either = value;
+
+        either.Left.Should().BeSameAs(value);
+        either.Right.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void ImplicitConvertFrom_RightValue_ConvertsToEquivalentEither()
+    {
+        RightType value = new RightType();
+
+        Either<LeftType, RightType> either = value;
+
+        either.Right.Should().BeSameAs(value);
+        either.Left.Should().BeNull();
+    }
+
+    private class LeftType;
+    private class RightType;
+}
