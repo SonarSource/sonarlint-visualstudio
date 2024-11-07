@@ -27,7 +27,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyInformationalVersion("Version:8.7.0.0 Branch:not-set Sha1:not-set Configuration:not-set")]
 [assembly: AssemblyConfiguration("")]
 [assembly: ComVisible(false)]
-[assembly: AssemblyProduct("SonarLint for Visual Studio")]
+[assembly: AssemblyProduct("SonarQube for Visual Studio")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyCulture("")]
 [assembly: AssemblyCompany("SonarSource")]
