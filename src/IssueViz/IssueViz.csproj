@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Commands\Resources\CommandIcons.png" />
+    <None Remove="Commands\Resources\sonarlint.png" />
     <None Remove="IssueVisualizationControl\IssueVisualizationControl.xaml" />
 
     <Page Include="IssueVisualizationControl\IssueVisualizationControl.xaml">
