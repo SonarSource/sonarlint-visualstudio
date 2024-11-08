@@ -37,28 +37,32 @@ public class RaiseIssuesParamsTests
             new Dictionary<FileUri, List<RaisedIssueDto>>
             {
                 {
-                    new FileUri("file:///C:/Users/developer/Documents/Repos/sonarlint-visualstudio-sampleprojects%20AAA%20ЖЖЖЖ/bound/sonarcloud/SLVS_Samples_Bound_VS2019/Secrets/ShouldExclude/Excluded.yml"),
-                    [new RaisedIssueDto(Guid.Parse("10bd4422-7d55-402f-889c-e080dbe4c781"),
-                        null,
-                        "secrets:S6336",
-                        "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
-                        IssueSeverity.BLOCKER,
-                        RuleType.VULNERABILITY,
-                        CleanCodeAttribute.TRUSTWORTHY,
-                        [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)],
-                        DateTimeOffset.FromUnixTimeMilliseconds(1718182975467), 
-                        true,
-                        false,
-                        new TextRangeDto(14, 24, 14, 54),
-                        [],
-                        [],
-                        null,
-                        Either<StandardModeDetails, MQRModeDetails>.CreateRight(new MQRModeDetails(CleanCodeAttribute.COMPLETE, [new ImpactDto(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.LOW)])))]
+                    new FileUri(
+                        "file:///C:/Users/developer/Documents/Repos/sonarlint-visualstudio-sampleprojects%20AAA%20ЖЖЖЖ/bound/sonarcloud/SLVS_Samples_Bound_VS2019/Secrets/ShouldExclude/Excluded.yml"),
+                    [
+                        new RaisedIssueDto(Guid.Parse("10bd4422-7d55-402f-889c-e080dbe4c781"),
+                            null,
+                            "secrets:S6336",
+                            "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
+                            IssueSeverity.BLOCKER,
+                            RuleType.VULNERABILITY,
+                            CleanCodeAttribute.TRUSTWORTHY,
+                            [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)],
+                            DateTimeOffset.FromUnixTimeMilliseconds(1718182975467),
+                            true,
+                            false,
+                            new TextRangeDto(14, 24, 14, 54),
+                            [],
+                            [],
+                            null,
+                            Either<StandardModeDetails, MQRModeDetails>.CreateRight(new MQRModeDetails(CleanCodeAttribute.COMPLETE,
+                                [new ImpactDto(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.LOW)])))
+                    ]
                 }
             },
             false,
             Guid.Parse("11ec4b5a-8ff6-4211-ab95-8c16eb8c7f0a"));
-        
+
         var serialized =
             """
             {
@@ -109,8 +113,8 @@ public class RaiseIssuesParamsTests
             """;
 
         var deserialized = JsonConvert.DeserializeObject<RaiseFindingParams<RaisedIssueDto>>(serialized);
-        
-        deserialized.Should().BeEquivalentTo(expected, options => 
+
+        deserialized.Should().BeEquivalentTo(expected, options =>
             options.ComparingByMembers<RaiseFindingParams<RaisedIssueDto>>().ComparingByMembers<RaisedIssueDto>().ComparingByMembers<MQRModeDetails>());
     }
 
@@ -121,23 +125,26 @@ public class RaiseIssuesParamsTests
             new Dictionary<FileUri, List<RaisedIssueDto>>
             {
                 {
-                    new FileUri("file:///C:/Users/developer/Documents/Repos/sonarlint-visualstudio-sampleprojects%20AAA%20ЖЖЖЖ/bound/sonarcloud/SLVS_Samples_Bound_VS2019/Secrets/ShouldExclude/Excluded.yml"),
-                    [new RaisedIssueDto(Guid.Parse("10bd4422-7d55-402f-889c-e080dbe4c781"),
-                        null,
-                        "secrets:S6336",
-                        "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
-                        IssueSeverity.BLOCKER,
-                        RuleType.VULNERABILITY,
-                        CleanCodeAttribute.TRUSTWORTHY,
-                        [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)],
-                        DateTimeOffset.FromUnixTimeMilliseconds(1718182975467),
-                        true,
-                        false,
-                        new TextRangeDto(14, 24, 14, 54),
-                        [],
-                        [],
-                        null,
-                        Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new StandardModeDetails(IssueSeverity.BLOCKER, RuleType.BUG)))]
+                    new FileUri(
+                        "file:///C:/Users/developer/Documents/Repos/sonarlint-visualstudio-sampleprojects%20AAA%20ЖЖЖЖ/bound/sonarcloud/SLVS_Samples_Bound_VS2019/Secrets/ShouldExclude/Excluded.yml"),
+                    [
+                        new RaisedIssueDto(Guid.Parse("10bd4422-7d55-402f-889c-e080dbe4c781"),
+                            null,
+                            "secrets:S6336",
+                            "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
+                            IssueSeverity.BLOCKER,
+                            RuleType.VULNERABILITY,
+                            CleanCodeAttribute.TRUSTWORTHY,
+                            [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)],
+                            DateTimeOffset.FromUnixTimeMilliseconds(1718182975467),
+                            true,
+                            false,
+                            new TextRangeDto(14, 24, 14, 54),
+                            [],
+                            [],
+                            null,
+                            Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new StandardModeDetails(IssueSeverity.BLOCKER, RuleType.BUG)))
+                    ]
                 }
             },
             false,
@@ -200,25 +207,28 @@ public class RaiseIssuesParamsTests
             new Dictionary<FileUri, List<RaisedHotspotDto>>
             {
                 {
-                    new FileUri("file:///C:/Users/developer/Documents/Repos/sonarlint-visualstudio-sampleprojects%20AAA%20ЖЖЖЖ/bound/sonarcloud/SLVS_Samples_Bound_VS2019/Secrets/ShouldExclude/Excluded.yml"),
-                    [new RaisedHotspotDto(Guid.Parse("10bd4422-7d55-402f-889c-e080dbe4c781"),
-                        null,
-                        "secrets:S6336",
-                        "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
-                        IssueSeverity.BLOCKER,
-                        RuleType.VULNERABILITY,
-                        CleanCodeAttribute.TRUSTWORTHY,
-                        [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)],
-                        DateTimeOffset.FromUnixTimeMilliseconds(1718182975467),
-                        true,
-                        false,
-                        new TextRangeDto(14, 24, 14, 54),
-                        [],
-                        [],
-                        null, 
-                        VulnerabilityProbability.HIGH,
-                        HotspotStatus.TO_REVIEW,
-                        Either<StandardModeDetails, MQRModeDetails>.CreateRight(new MQRModeDetails(CleanCodeAttribute.CLEAR, [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)])))]
+                    new FileUri(
+                        "file:///C:/Users/developer/Documents/Repos/sonarlint-visualstudio-sampleprojects%20AAA%20ЖЖЖЖ/bound/sonarcloud/SLVS_Samples_Bound_VS2019/Secrets/ShouldExclude/Excluded.yml"),
+                    [
+                        new RaisedHotspotDto(Guid.Parse("10bd4422-7d55-402f-889c-e080dbe4c781"),
+                            null,
+                            "secrets:S6336",
+                            "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
+                            IssueSeverity.BLOCKER,
+                            RuleType.VULNERABILITY,
+                            CleanCodeAttribute.TRUSTWORTHY,
+                            [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)],
+                            DateTimeOffset.FromUnixTimeMilliseconds(1718182975467),
+                            true,
+                            false,
+                            new TextRangeDto(14, 24, 14, 54),
+                            [],
+                            [],
+                            null,
+                            VulnerabilityProbability.HIGH,
+                            HotspotStatus.TO_REVIEW,
+                            Either<StandardModeDetails, MQRModeDetails>.CreateRight(new MQRModeDetails(CleanCodeAttribute.CLEAR, [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)])))
+                    ]
                 }
             },
             false,
@@ -288,25 +298,28 @@ public class RaiseIssuesParamsTests
             new Dictionary<FileUri, List<RaisedHotspotDto>>
             {
                 {
-                    new FileUri("file:///C:/Users/developer/Documents/Repos/sonarlint-visualstudio-sampleprojects%20AAA%20ЖЖЖЖ/bound/sonarcloud/SLVS_Samples_Bound_VS2019/Secrets/ShouldExclude/Excluded.yml"),
-                    [new RaisedHotspotDto(Guid.Parse("10bd4422-7d55-402f-889c-e080dbe4c781"),
-                        null,
-                        "secrets:S6336",
-                        "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
-                        IssueSeverity.BLOCKER,
-                        RuleType.VULNERABILITY,
-                        CleanCodeAttribute.TRUSTWORTHY,
-                        [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)],
-                        DateTimeOffset.FromUnixTimeMilliseconds(1718182975467),
-                        true,
-                        false,
-                        new TextRangeDto(14, 24, 14, 54),
-                        [],
-                        [],
-                        null,
-                        VulnerabilityProbability.HIGH,
-                        HotspotStatus.TO_REVIEW,
-                        Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new StandardModeDetails(IssueSeverity.MINOR, RuleType.VULNERABILITY)))]
+                    new FileUri(
+                        "file:///C:/Users/developer/Documents/Repos/sonarlint-visualstudio-sampleprojects%20AAA%20ЖЖЖЖ/bound/sonarcloud/SLVS_Samples_Bound_VS2019/Secrets/ShouldExclude/Excluded.yml"),
+                    [
+                        new RaisedHotspotDto(Guid.Parse("10bd4422-7d55-402f-889c-e080dbe4c781"),
+                            null,
+                            "secrets:S6336",
+                            "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
+                            IssueSeverity.BLOCKER,
+                            RuleType.VULNERABILITY,
+                            CleanCodeAttribute.TRUSTWORTHY,
+                            [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)],
+                            DateTimeOffset.FromUnixTimeMilliseconds(1718182975467),
+                            true,
+                            false,
+                            new TextRangeDto(14, 24, 14, 54),
+                            [],
+                            [],
+                            null,
+                            VulnerabilityProbability.HIGH,
+                            HotspotStatus.TO_REVIEW,
+                            Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new StandardModeDetails(IssueSeverity.MINOR, RuleType.VULNERABILITY)))
+                    ]
                 }
             },
             false,

@@ -35,7 +35,8 @@ public record RaisedIssueDto(
     RuleType? type,
     CleanCodeAttribute? cleanCodeAttribute,
     List<ImpactDto> impacts,
-    [JsonConverter(typeof(MillisecondUnixTimestampDateTimeOffsetConverter))] DateTimeOffset introductionDate,
+    [JsonConverter(typeof(MillisecondUnixTimestampDateTimeOffsetConverter))]
+    DateTimeOffset introductionDate,
     bool isOnNewCode,
     bool resolved,
     TextRangeDto textRange,
