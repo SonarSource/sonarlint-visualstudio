@@ -93,7 +93,8 @@ public class SimpleAnalysisTests
         {
             var receivedIssue = receivedIssues.SingleOrDefault(x => x.ruleKey == expectedIssue.ruleKey && x.textRange.Equals(expectedIssue.textRange));
             receivedIssue.Should().NotBeNull();
-            receivedIssue.severityMode.Left.type.Should().Be(expectedIssue.type);
+            receivedIssue.severityMode.Right.Should().NotBeNull();
+            receivedIssue.severityMode.Right.cleanCodeAttribute.Should().Be(expectedIssue.cleanCodeAttribute);
             receivedIssue.flows.Count.Should().Be(expectedIssue.expectedFlows);
         }
     }
