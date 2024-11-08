@@ -31,10 +31,6 @@ public record RaisedIssueDto(
     string serverKey,
     string ruleKey,
     string primaryMessage,
-    IssueSeverity? severity,
-    RuleType? type,
-    CleanCodeAttribute? cleanCodeAttribute,
-    List<ImpactDto> impacts,
     [JsonConverter(typeof(MillisecondUnixTimestampDateTimeOffsetConverter))]
     DateTimeOffset introductionDate,
     bool isOnNewCode,
@@ -43,6 +39,5 @@ public record RaisedIssueDto(
     List<IssueFlowDto> flows,
     List<QuickFixDto> quickFixes,
     string ruleDescriptionContextKey,
-    Either<StandardModeDetails, MQRModeDetails> severityMode) : RaisedFindingDto(id, serverKey, ruleKey, primaryMessage, severity, type,
-    cleanCodeAttribute, impacts, introductionDate, isOnNewCode, resolved, textRange, flows, quickFixes,
+    Either<StandardModeDetails, MQRModeDetails> severityMode) : RaisedFindingDto(id, serverKey, ruleKey, primaryMessage, introductionDate, isOnNewCode, resolved, textRange, flows, quickFixes,
     ruleDescriptionContextKey, severityMode);

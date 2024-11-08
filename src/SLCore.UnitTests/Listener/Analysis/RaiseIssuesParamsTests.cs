@@ -44,10 +44,6 @@ public class RaiseIssuesParamsTests
                             null,
                             "secrets:S6336",
                             "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
-                            IssueSeverity.BLOCKER,
-                            RuleType.VULNERABILITY,
-                            CleanCodeAttribute.TRUSTWORTHY,
-                            [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)],
                             DateTimeOffset.FromUnixTimeMilliseconds(1718182975467),
                             true,
                             false,
@@ -83,15 +79,6 @@ public class RaiseIssuesParamsTests
                          }
                        ]
                      },
-                    "severity": "BLOCKER",
-                    "type": "VULNERABILITY",
-                    "cleanCodeAttribute": "TRUSTWORTHY",
-                    "impacts": [
-                      {
-                        "softwareQuality": "SECURITY",
-                        "impactSeverity": "HIGH"
-                      }
-                    ],
                     "introductionDate": 1718182975467,
                     "isOnNewCode": true,
                     "resolved": false,
@@ -132,10 +119,6 @@ public class RaiseIssuesParamsTests
                             null,
                             "secrets:S6336",
                             "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
-                            IssueSeverity.BLOCKER,
-                            RuleType.VULNERABILITY,
-                            CleanCodeAttribute.TRUSTWORTHY,
-                            [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)],
                             DateTimeOffset.FromUnixTimeMilliseconds(1718182975467),
                             true,
                             false,
@@ -165,15 +148,6 @@ public class RaiseIssuesParamsTests
                        "severity": "BLOCKER",
                        "type": "BUG"
                      },
-                    "severity": "BLOCKER",
-                    "type": "VULNERABILITY",
-                    "cleanCodeAttribute": "TRUSTWORTHY",
-                    "impacts": [
-                      {
-                        "softwareQuality": "SECURITY",
-                        "impactSeverity": "HIGH"
-                      }
-                    ],
                     "introductionDate": 1718182975467,
                     "isOnNewCode": true,
                     "resolved": false,
@@ -214,10 +188,6 @@ public class RaiseIssuesParamsTests
                             null,
                             "secrets:S6336",
                             "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
-                            IssueSeverity.BLOCKER,
-                            RuleType.VULNERABILITY,
-                            CleanCodeAttribute.TRUSTWORTHY,
-                            [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)],
                             DateTimeOffset.FromUnixTimeMilliseconds(1718182975467),
                             true,
                             false,
@@ -254,15 +224,6 @@ public class RaiseIssuesParamsTests
                          }
                        ]
                      },
-                    "severity": "BLOCKER",
-                    "type": "VULNERABILITY",
-                    "cleanCodeAttribute": "TRUSTWORTHY",
-                    "impacts": [
-                      {
-                        "softwareQuality": "SECURITY",
-                        "impactSeverity": "HIGH"
-                      }
-                    ],
                     "introductionDate": 1718182975467,
                     "isOnNewCode": true,
                     "resolved": false,
@@ -305,10 +266,6 @@ public class RaiseIssuesParamsTests
                             null,
                             "secrets:S6336",
                             "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
-                            IssueSeverity.BLOCKER,
-                            RuleType.VULNERABILITY,
-                            CleanCodeAttribute.TRUSTWORTHY,
-                            [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)],
                             DateTimeOffset.FromUnixTimeMilliseconds(1718182975467),
                             true,
                             false,
@@ -340,15 +297,6 @@ public class RaiseIssuesParamsTests
                        "severity": "MINOR",
                        "type": "VULNERABILITY"
                      },
-                    "severity": "BLOCKER",
-                    "type": "VULNERABILITY",
-                    "cleanCodeAttribute": "TRUSTWORTHY",
-                    "impacts": [
-                      {
-                        "softwareQuality": "SECURITY",
-                        "impactSeverity": "HIGH"
-                      }
-                    ],
                     "introductionDate": 1718182975467,
                     "isOnNewCode": true,
                     "resolved": false,
