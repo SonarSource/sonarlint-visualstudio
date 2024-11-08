@@ -22,15 +22,16 @@ using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
+using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Analysis;
 
 [TestClass]
 public class RaiseIssuesParamsTests
 {
-
     [TestMethod]
-    public void DeserializedCorrectly()
+    public void RaisedIssueDto_MqrMode_DeserializedCorrectly()
     {
         var expected = new RaiseFindingParams<RaisedIssueDto>("SLVS_Bound_VS2019",
             new Dictionary<FileUri, List<RaisedIssueDto>>
@@ -51,7 +52,8 @@ public class RaiseIssuesParamsTests
                         new TextRangeDto(14, 24, 14, 54),
                         [],
                         [],
-                        null)]
+                        null,
+                        Either<StandardModeDetails, MQRModeDetails>.CreateRight(new MQRModeDetails(CleanCodeAttribute.COMPLETE, [new ImpactDto(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.LOW)])))]
                 }
             },
             false,
@@ -68,6 +70,15 @@ public class RaiseIssuesParamsTests
                     "serverKey": null,
                     "ruleKey": "secrets:S6336",
                     "primaryMessage": "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
+                    "severityMode": {
+                       "cleanCodeAttribute": "COMPLETE",
+                       "impacts": [
+                         {
+                           "softwareQuality": "MAINTAINABILITY",
+                           "impactSeverity": "LOW"
+                         }
+                       ]
+                     },
                     "severity": "BLOCKER",
                     "type": "VULNERABILITY",
                     "cleanCodeAttribute": "TRUSTWORTHY",
@@ -100,11 +111,90 @@ public class RaiseIssuesParamsTests
         var deserialized = JsonConvert.DeserializeObject<RaiseFindingParams<RaisedIssueDto>>(serialized);
         
         deserialized.Should().BeEquivalentTo(expected, options => 
-            options.ComparingByMembers<RaiseFindingParams<RaisedIssueDto>>().ComparingByMembers<RaisedIssueDto>());
+            options.ComparingByMembers<RaiseFindingParams<RaisedIssueDto>>().ComparingByMembers<RaisedIssueDto>().ComparingByMembers<MQRModeDetails>());
     }
 
     [TestMethod]
-    public void RaiseHotspotParams_DeserializedCorrectly()
+    public void RaisedIssueDto_StandardMode_DeserializedCorrectly()
+    {
+        var expected = new RaiseFindingParams<RaisedIssueDto>("SLVS_Bound_VS2019",
+            new Dictionary<FileUri, List<RaisedIssueDto>>
+            {
+                {
+                    new FileUri("file:///C:/Users/developer/Documents/Repos/sonarlint-visualstudio-sampleprojects%20AAA%20ЖЖЖЖ/bound/sonarcloud/SLVS_Samples_Bound_VS2019/Secrets/ShouldExclude/Excluded.yml"),
+                    [new RaisedIssueDto(Guid.Parse("10bd4422-7d55-402f-889c-e080dbe4c781"),
+                        null,
+                        "secrets:S6336",
+                        "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
+                        IssueSeverity.BLOCKER,
+                        RuleType.VULNERABILITY,
+                        CleanCodeAttribute.TRUSTWORTHY,
+                        [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)],
+                        DateTimeOffset.FromUnixTimeMilliseconds(1718182975467),
+                        true,
+                        false,
+                        new TextRangeDto(14, 24, 14, 54),
+                        [],
+                        [],
+                        null,
+                        Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new StandardModeDetails(IssueSeverity.BLOCKER, RuleType.BUG)))]
+                }
+            },
+            false,
+            Guid.Parse("11ec4b5a-8ff6-4211-ab95-8c16eb8c7f0a"));
+
+        var serialized =
+            """
+            {
+              "configurationScopeId": "SLVS_Bound_VS2019",
+              "issuesByFileUri": {
+                "file:///C:/Users/developer/Documents/Repos/sonarlint-visualstudio-sampleprojects%20AAA%20ЖЖЖЖ/bound/sonarcloud/SLVS_Samples_Bound_VS2019/Secrets/ShouldExclude/Excluded.yml": [
+                  {
+                    "id": "10bd4422-7d55-402f-889c-e080dbe4c781",
+                    "serverKey": null,
+                    "ruleKey": "secrets:S6336",
+                    "primaryMessage": "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
+                    "severityMode": {
+                       "severity": "BLOCKER",
+                       "type": "BUG"
+                     },
+                    "severity": "BLOCKER",
+                    "type": "VULNERABILITY",
+                    "cleanCodeAttribute": "TRUSTWORTHY",
+                    "impacts": [
+                      {
+                        "softwareQuality": "SECURITY",
+                        "impactSeverity": "HIGH"
+                      }
+                    ],
+                    "introductionDate": 1718182975467,
+                    "isOnNewCode": true,
+                    "resolved": false,
+                    "textRange": {
+                      "startLine": 14,
+                      "startLineOffset": 24,
+                      "endLine": 14,
+                      "endLineOffset": 54
+                    },
+                    "flows": [],
+                    "quickFixes": [],
+                    "ruleDescriptionContextKey": null
+                  }
+                ]
+              },
+              "isIntermediatePublication": false,
+              "analysisId": "11ec4b5a-8ff6-4211-ab95-8c16eb8c7f0a"
+            }
+            """;
+
+        var deserialized = JsonConvert.DeserializeObject<RaiseFindingParams<RaisedIssueDto>>(serialized);
+
+        deserialized.Should().BeEquivalentTo(expected, options =>
+            options.ComparingByMembers<RaiseFindingParams<RaisedIssueDto>>().ComparingByMembers<RaisedIssueDto>().ComparingByMembers<MQRModeDetails>());
+    }
+
+    [TestMethod]
+    public void RaiseHotspotParams_MqrMode_DeserializedCorrectly()
     {
         var expected = new RaiseHotspotParams("SLVS_Bound_VS2019",
             new Dictionary<FileUri, List<RaisedHotspotDto>>
@@ -127,7 +217,8 @@ public class RaiseIssuesParamsTests
                         [],
                         null, 
                         VulnerabilityProbability.HIGH,
-                        HotspotStatus.TO_REVIEW)]
+                        HotspotStatus.TO_REVIEW,
+                        Either<StandardModeDetails, MQRModeDetails>.CreateRight(new MQRModeDetails(CleanCodeAttribute.CLEAR, [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)])))]
                 }
             },
             false,
@@ -144,6 +235,15 @@ public class RaiseIssuesParamsTests
                     "serverKey": null,
                     "ruleKey": "secrets:S6336",
                     "primaryMessage": "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
+                    "severityMode": {
+                       "cleanCodeAttribute": "CLEAR",
+                       "impacts": [
+                         {
+                           "softwareQuality": "SECURITY",
+                           "impactSeverity": "HIGH"
+                         }
+                       ]
+                     },
                     "severity": "BLOCKER",
                     "type": "VULNERABILITY",
                     "cleanCodeAttribute": "TRUSTWORTHY",
@@ -178,6 +278,89 @@ public class RaiseIssuesParamsTests
         var deserialized = JsonConvert.DeserializeObject<RaiseHotspotParams>(serialized);
 
         deserialized.Should().BeEquivalentTo(expected, options =>
-            options.ComparingByMembers<RaiseHotspotParams>().ComparingByMembers<RaisedHotspotDto>());
+            options.ComparingByMembers<RaiseHotspotParams>().ComparingByMembers<RaisedHotspotDto>().ComparingByMembers<MQRModeDetails>());
+    }
+
+    [TestMethod]
+    public void RaiseHotspotParams_StandardMode_DeserializedCorrectly()
+    {
+        var expected = new RaiseHotspotParams("SLVS_Bound_VS2019",
+            new Dictionary<FileUri, List<RaisedHotspotDto>>
+            {
+                {
+                    new FileUri("file:///C:/Users/developer/Documents/Repos/sonarlint-visualstudio-sampleprojects%20AAA%20ЖЖЖЖ/bound/sonarcloud/SLVS_Samples_Bound_VS2019/Secrets/ShouldExclude/Excluded.yml"),
+                    [new RaisedHotspotDto(Guid.Parse("10bd4422-7d55-402f-889c-e080dbe4c781"),
+                        null,
+                        "secrets:S6336",
+                        "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
+                        IssueSeverity.BLOCKER,
+                        RuleType.VULNERABILITY,
+                        CleanCodeAttribute.TRUSTWORTHY,
+                        [new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH)],
+                        DateTimeOffset.FromUnixTimeMilliseconds(1718182975467),
+                        true,
+                        false,
+                        new TextRangeDto(14, 24, 14, 54),
+                        [],
+                        [],
+                        null,
+                        VulnerabilityProbability.HIGH,
+                        HotspotStatus.TO_REVIEW,
+                        Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new StandardModeDetails(IssueSeverity.MINOR, RuleType.VULNERABILITY)))]
+                }
+            },
+            false,
+            Guid.Parse("11ec4b5a-8ff6-4211-ab95-8c16eb8c7f0a"));
+
+        var serialized =
+            """
+            {
+              "configurationScopeId": "SLVS_Bound_VS2019",
+              "hotspotsByFileUri": {
+                "file:///C:/Users/developer/Documents/Repos/sonarlint-visualstudio-sampleprojects%20AAA%20ЖЖЖЖ/bound/sonarcloud/SLVS_Samples_Bound_VS2019/Secrets/ShouldExclude/Excluded.yml": [
+                  {
+                    "id": "10bd4422-7d55-402f-889c-e080dbe4c781",
+                    "serverKey": null,
+                    "ruleKey": "secrets:S6336",
+                    "primaryMessage": "Make sure this Alibaba Cloud Access Key Secret gets revoked, changed, and removed from the code.",
+                    "severityMode": {
+                       "severity": "MINOR",
+                       "type": "VULNERABILITY"
+                     },
+                    "severity": "BLOCKER",
+                    "type": "VULNERABILITY",
+                    "cleanCodeAttribute": "TRUSTWORTHY",
+                    "impacts": [
+                      {
+                        "softwareQuality": "SECURITY",
+                        "impactSeverity": "HIGH"
+                      }
+                    ],
+                    "introductionDate": 1718182975467,
+                    "isOnNewCode": true,
+                    "resolved": false,
+                    "textRange": {
+                      "startLine": 14,
+                      "startLineOffset": 24,
+                      "endLine": 14,
+                      "endLineOffset": 54
+                    },
+                    "flows": [],
+                    "quickFixes": [],
+                    "ruleDescriptionContextKey": null,
+                    "vulnerabilityProbability": "HIGH",
+                    "status": "TO_REVIEW"
+                  }
+                ]
+              },
+              "isIntermediatePublication": false,
+              "analysisId": "11ec4b5a-8ff6-4211-ab95-8c16eb8c7f0a"
+            }
+            """;
+
+        var deserialized = JsonConvert.DeserializeObject<RaiseHotspotParams>(serialized);
+
+        deserialized.Should().BeEquivalentTo(expected, options =>
+            options.ComparingByMembers<RaiseHotspotParams>().ComparingByMembers<RaisedHotspotDto>().ComparingByMembers<MQRModeDetails>());
     }
 }
