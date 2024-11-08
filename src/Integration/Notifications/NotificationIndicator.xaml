@@ -5,23 +5,48 @@
     <UserControl.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <converters:BoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" TrueValue="Collapsed" FalseValue="Visible" />
-        <SolidColorBrush x:Key="LogoBlueBrush" Color="#D5D5D5" />
+        <SolidColorBrush x:Key="LogoWhiteBrush" Color="White" />
         <DrawingImage x:Key="SonarQubeIconDrawingImage" >
             <DrawingImage.Drawing>
                 <DrawingGroup ClipGeometry="M0,0 V96 H96 V0 H0 Z">
-                    <GeometryDrawing Brush="{StaticResource LogoBlueBrush}" Geometry="F1 M96,96z M0,0z M91.03,50.97C89.39,50.97 88.06,49.64 88.06,48 88.06,25.92 70.09,7.95 48.01,7.95 46.37,7.95 45.04,6.62 45.04,4.98 45.04,3.34 46.37,2.01 48.01,2.01 73.37,2.01 94.01,22.64 94.01,48.01 94.01,49.65 92.68,50.98 91.04,50.98z" />
-                    <GeometryDrawing Brush="{StaticResource LogoBlueBrush}" Geometry="F1 M96,96z M0,0z M48,94C22.64,94 2,73.37 2,48 2,46.36 3.33,45.03 4.97,45.03 6.61,45.03 7.94,46.36 7.94,48 7.94,70.08 25.91,88.05 47.99,88.05 49.63,88.05 50.96,89.38 50.96,91.02 50.96,92.66 49.63,93.99 47.99,93.99z" />
-                    <GeometryDrawing Brush="{StaticResource LogoBlueBrush}" Geometry="F1 M96,96z M0,0z M60.91,50.97C59.27,50.97 57.94,49.64 57.94,48 57.94,42.52 53.48,38.07 48.01,38.07 46.37,38.07 45.04,36.74 45.04,35.1 45.04,33.46 46.37,32.13 48.01,32.13 56.77,32.13 63.89,39.25 63.89,48.01 63.89,49.65 62.56,50.98 60.92,50.98z" />
-                    <GeometryDrawing Brush="{StaticResource LogoBlueBrush}" Geometry="F1 M96,96z M0,0z M48,63.88C39.24,63.88 32.12,56.76 32.12,48 32.12,46.36 33.45,45.03 35.09,45.03 36.73,45.03 38.06,46.36 38.06,48 38.06,53.48 42.52,57.93 47.99,57.93 49.63,57.93 50.96,59.26 50.96,60.9 50.96,62.54 49.63,63.87 47.99,63.87z" />
-                    <GeometryDrawing Brush="{StaticResource LogoBlueBrush}" Geometry="F1 M96,96z M0,0z M75.97,50.97C74.33,50.97 73,49.64 73,48 73,34.22 61.79,23.01 48.01,23.01 46.37,23.01 45.04,21.68 45.04,20.04 45.04,18.4 46.37,17.07 48.01,17.07 65.07,17.07 78.95,30.95 78.95,48.01 78.95,49.65 77.62,50.98 75.98,50.98z" />
-                    <GeometryDrawing Brush="{StaticResource LogoBlueBrush}" Geometry="F1 M96,96z M0,0z M48,78.94C30.94,78.94 17.06,65.06 17.06,48 17.06,46.36 18.39,45.03 20.03,45.03 21.67,45.03 23,46.36 23,48 23,61.78 34.21,72.99 47.99,72.99 49.63,72.99 50.96,74.32 50.96,75.96 50.96,77.6 49.63,78.93 47.99,78.93z" />
+                    <GeometryDrawing Brush="{StaticResource LogoWhiteBrush}" Geometry="F1 M96,96z M0,0z M91.03,50.97C89.39,50.97 88.06,49.64 88.06,48 88.06,25.92 70.09,7.95 48.01,7.95 46.37,7.95 45.04,6.62 45.04,4.98 45.04,3.34 46.37,2.01 48.01,2.01 73.37,2.01 94.01,22.64 94.01,48.01 94.01,49.65 92.68,50.98 91.04,50.98z" />
+                    <GeometryDrawing Brush="{StaticResource LogoWhiteBrush}" Geometry="F1 M96,96z M0,0z M48,94C22.64,94 2,73.37 2,48 2,46.36 3.33,45.03 4.97,45.03 6.61,45.03 7.94,46.36 7.94,48 7.94,70.08 25.91,88.05 47.99,88.05 49.63,88.05 50.96,89.38 50.96,91.02 50.96,92.66 49.63,93.99 47.99,93.99z" />
+                    <GeometryDrawing Brush="{StaticResource LogoWhiteBrush}" Geometry="F1 M96,96z M0,0z M60.91,50.97C59.27,50.97 57.94,49.64 57.94,48 57.94,42.52 53.48,38.07 48.01,38.07 46.37,38.07 45.04,36.74 45.04,35.1 45.04,33.46 46.37,32.13 48.01,32.13 56.77,32.13 63.89,39.25 63.89,48.01 63.89,49.65 62.56,50.98 60.92,50.98z" />
+                    <GeometryDrawing Brush="{StaticResource LogoWhiteBrush}" Geometry="F1 M96,96z M0,0z M48,63.88C39.24,63.88 32.12,56.76 32.12,48 32.12,46.36 33.45,45.03 35.09,45.03 36.73,45.03 38.06,46.36 38.06,48 38.06,53.48 42.52,57.93 47.99,57.93 49.63,57.93 50.96,59.26 50.96,60.9 50.96,62.54 49.63,63.87 47.99,63.87z" />
+                    <GeometryDrawing Brush="{StaticResource LogoWhiteBrush}" Geometry="F1 M96,96z M0,0z M75.97,50.97C74.33,50.97 73,49.64 73,48 73,34.22 61.79,23.01 48.01,23.01 46.37,23.01 45.04,21.68 45.04,20.04 45.04,18.4 46.37,17.07 48.01,17.07 65.07,17.07 78.95,30.95 78.95,48.01 78.95,49.65 77.62,50.98 75.98,50.98z" />
+                    <GeometryDrawing Brush="{StaticResource LogoWhiteBrush}" Geometry="F1 M96,96z M0,0z M48,78.94C30.94,78.94 17.06,65.06 17.06,48 17.06,46.36 18.39,45.03 20.03,45.03 21.67,45.03 23,46.36 23,48 23,61.78 34.21,72.99 47.99,72.99 49.63,72.99 50.96,74.32 50.96,75.96 50.96,77.6 49.63,78.93 47.99,78.93z" />
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+        <DrawingImage x:Key="SonarCloudIconDrawingImage">
+            <DrawingImage.Drawing>
+                <DrawingGroup ClipGeometry="M0,0 V57 H57 V0 H0 Z">
+                    <GeometryDrawing Brush="{StaticResource LogoWhiteBrush}"
+                                 Geometry="F1 M57,57z M0,0z M34.17,18.46C32.74,17.06 30.86,16.29 28.84,16.31 27.91,16.31 27.17,17.08 27.18,18 27.18,18.92 27.94,19.66 28.86,19.66 28.88,19.66 28.9,19.66 28.92,19.66 31.19,19.66 33.05,21.5 33.08,23.78 33.08,24.7 33.84,25.44 34.76,25.44L34.78,25.44C35.71,25.44 36.45,24.67 36.44,23.75 36.42,21.74 35.62,19.87 34.19,18.46z" />
+                    <GeometryDrawing Brush="{StaticResource LogoWhiteBrush}"
+                                 Geometry="F1 M57,57z M0,0z M29.1,6.16C29.16,6.16 29.22,6.16 29.28,6.16 37.9,6.16 45.3,12.55 46.52,21.09 46.64,21.93 47.36,22.53 48.18,22.53 48.26,22.53 48.34,22.53 48.42,22.51 49.34,22.38 49.97,21.53 49.84,20.61 48.39,10.42 39.57,2.8 29.28,2.8 29.22,2.8 29.15,2.8 29.08,2.8 28.15,2.8 27.41,3.57 27.42,4.49 27.42,5.41 28.18,6.15 29.1,6.15z" />
+                    <GeometryDrawing Brush="{StaticResource LogoWhiteBrush}"
+                                 Geometry="F1 M57,57z M0,0z M43.26,24.89C43.41,20.89 41.98,16.85 38.94,13.8 33.14,8 23.71,8 17.91,13.8 14.93,16.78 13.4,20.79 13.59,24.95 11.11,25.59 8.75,26.87 6.81,28.81 1.01,34.61 1.01,44.04 6.81,49.84 9.71,52.74 13.52,54.19 17.33,54.19 21.14,54.19 24.95,52.74 27.84,49.84 28.07,49.61 28.29,49.35 28.51,49.1 31.24,52.22 35.23,54.2 39.69,54.2 47.89,54.2 54.56,47.53 54.56,39.33 54.56,32.49 49.8,26.52 43.27,24.9z M39.68,50.84C33.33,50.84 28.16,45.67 28.16,39.32 28.16,38.39 27.41,37.64 26.48,37.64 25.55,37.64 24.8,38.39 24.8,39.32 24.8,41.81 25.42,44.16 26.51,46.22 26.18,46.65 25.84,47.07 25.45,47.46 20.96,51.95 13.65,51.95 9.16,47.46 4.67,42.97 4.67,35.66 9.16,31.17 13.65,26.68 20.96,26.68 25.45,31.17 26.1,31.82 27.17,31.82 27.82,31.17 28.47,30.52 28.47,29.45 27.82,28.8 24.82,25.8 20.84,24.36 16.89,24.47 16.84,21.36 18.03,18.39 20.26,16.16 24.75,11.67 32.06,11.67 36.55,16.16 41.04,20.65 41.04,27.96 36.55,32.45 35.9,33.1 35.9,34.17 36.55,34.82 36.88,35.15 37.31,35.31 37.74,35.31 38.17,35.31 38.6,35.15 38.93,34.82 40.83,32.92 42.09,30.64 42.75,28.22 47.65,29.58 51.2,34.12 51.2,39.31 51.2,45.66 46.03,50.83 39.68,50.83z" />
                 </DrawingGroup>
             </DrawingImage.Drawing>
         </DrawingImage>
         <ControlTemplate x:Key="ImageButtonTemplate" TargetType="ToggleButton">
             <Grid x:Name="Root" Width="30" Height="16" Background="Transparent">
                 <Grid Margin="3,1,1,1" HorizontalAlignment="Left">
-                    <Image Source="{StaticResource SonarQubeIconDrawingImage}"></Image>
+                    <Image>
+                       <Image.Style>
+                            <Style TargetType="Image">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsCloud}" Value="True">
+                                        <Setter Property="Source" Value="{StaticResource SonarCloudIconDrawingImage}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsCloud}" Value="False">
+                                        <Setter Property="Source" Value="{StaticResource SonarQubeIconDrawingImage}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                       </Image.Style>
+                    </Image>
                 </Grid>
                 <ContentPresenter Content="{TemplateBinding Content}" />
             </Grid>
