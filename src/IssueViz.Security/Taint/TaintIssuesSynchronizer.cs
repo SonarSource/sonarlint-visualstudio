@@ -18,185 +18,148 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Synchronization;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
-using SonarQube.Client;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.Taint;
+using SonarLint.VisualStudio.SLCore.State;
 using VSShellInterop = Microsoft.VisualStudio.Shell.Interop;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint;
+
+internal interface ITaintIssuesSynchronizer
 {
-    internal interface ITaintIssuesSynchronizer
+    /// <summary>
+    ///     Fetches taint vulnerabilities from the server, converts them into visualizations and populates <see cref="ITaintStore" />.
+    /// </summary>
+    Task UpdateTaintVulnerabilitiesAsync(ConfigurationScope configurationScope);
+}
+
+[Export(typeof(ITaintIssuesSynchronizer))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
+{
+    private readonly IAsyncLock asyncLock;
+    private readonly ITaintIssueToIssueVisualizationConverter converter;
+    private readonly ILogger logger;
+    private readonly ISLCoreServiceProvider slCoreServiceProvider;
+    private readonly ITaintStore taintStore;
+    private readonly IThreadHandling threadHandling;
+    private readonly IToolWindowService toolWindowService;
+    private readonly IVsUIServiceOperation vSServiceOperation;
+
+    [ImportingConstructor]
+    public TaintIssuesSynchronizer(
+        ITaintStore taintStore,
+        ISLCoreServiceProvider slCoreServiceProvider,
+        ITaintIssueToIssueVisualizationConverter converter,
+        IToolWindowService toolWindowService,
+        IStatefulServerBranchProvider serverBranchProvider,
+        IVsUIServiceOperation vSServiceOperation,
+        IThreadHandling threadHandling,
+        IAsyncLockFactory asyncLockFactory,
+        ILogger logger)
     {
-        /// <summary>
-        /// Fetches taint vulnerabilities from the server, converts them into visualizations and populates <see cref="ITaintStore"/>.
-        /// </summary>
-        Task SynchronizeWithServer();
+        this.taintStore = taintStore;
+        this.slCoreServiceProvider = slCoreServiceProvider;
+        this.converter = converter;
+        this.toolWindowService = toolWindowService;
+        this.vSServiceOperation = vSServiceOperation;
+        asyncLock = asyncLockFactory.Create();
+        this.threadHandling = threadHandling;
+        this.logger = logger;
     }
 
-    [Export(typeof(ITaintIssuesSynchronizer))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
+    public Task UpdateTaintVulnerabilitiesAsync(ConfigurationScope configurationScope) =>
+        threadHandling.RunOnBackgroundThread(async () =>
+        {
+            using (await asyncLock.AcquireAsync())
+            {
+                await PerformSynchronizationInternalAsync(configurationScope);
+            }
+        });
+
+    private async Task PerformSynchronizationInternalAsync(ConfigurationScope configurationScope)
     {
-        private static readonly Version MinimumRequiredSonarQubeVersion = new Version(8, 6);
-
-        private readonly ITaintStore taintStore;
-        private readonly ISonarQubeService sonarQubeService;
-        private readonly ITaintIssueToIssueVisualizationConverter converter;
-        private readonly IConfigurationProvider configurationProvider;
-        private readonly IToolWindowService toolWindowService;
-        private readonly IStatefulServerBranchProvider serverBranchProvider;
-        private readonly IVsUIServiceOperation vSServiceOperation;
-        private readonly ILogger logger;
-
-        [ImportingConstructor]
-        public TaintIssuesSynchronizer(ITaintStore taintStore,
-            ISonarQubeService sonarQubeService,
-            ITaintIssueToIssueVisualizationConverter converter,
-            IConfigurationProvider configurationProvider,
-            IToolWindowService toolWindowService,
-            IStatefulServerBranchProvider serverBranchProvider,
-            IVsUIServiceOperation vSServiceOperation,
-            ILogger logger)
+        try
         {
-            this.taintStore = taintStore;
-            this.sonarQubeService = sonarQubeService;
-            this.converter = converter;
-            this.configurationProvider = configurationProvider;
-            this.toolWindowService = toolWindowService;
-            this.serverBranchProvider = serverBranchProvider;
-            this.vSServiceOperation = vSServiceOperation;
-            this.logger = logger;
-        }
-
-        public async Task SynchronizeWithServer()
-        {
-            return; // todo https://sonarsource.atlassian.net/browse/SLVS-1592
-
-            // try
-            // {
-            //     var bindingConfiguration = configurationProvider.GetConfiguration();
-            //
-            //     if (IsStandalone(bindingConfiguration) || !IsConnected(out var serverInfo) || !IsFeatureSupported(serverInfo))
-            //     {
-            //         HandleNoTaintIssues();
-            //         return;
-            //     }
-            //
-            //     var projectKey = bindingConfiguration.Project.ServerProjectKey;
-            //     var serverBranch = await serverBranchProvider.GetServerBranchNameAsync(CancellationToken.None);
-            //
-            //     var taintVulnerabilities = await sonarQubeService.GetTaintVulnerabilitiesAsync(projectKey,
-            //         serverBranch,
-            //         CancellationToken.None);
-            //
-            //     logger.WriteLine(TaintResources.Synchronizer_NumberOfServerIssues, taintVulnerabilities.Count);
-            //
-            //     var analysisInformation = await GetAnalysisInformation(projectKey, serverBranch);
-            //     var taintIssueVizs = taintVulnerabilities.Select(converter.Convert).ToArray();
-            //     taintStore.Set(taintIssueVizs, analysisInformation);
-            //
-            //     var hasTaintIssues = taintVulnerabilities.Count > 0;
-            //
-            //     if (!hasTaintIssues)
-            //     {
-            //         UpdateTaintIssuesUIContext(false);
-            //     }
-            //     else
-            //     {
-            //         UpdateTaintIssuesUIContext(true);
-            //
-            //         // We need the tool window content to exist so the issues are filtered and the
-            //         // tool window caption is updated. See the "EnsureToolWindowExists" method comment
-            //         // for more information.
-            //         toolWindowService.EnsureToolWindowExists(TaintToolWindow.ToolWindowId);
-            //     }
-            // }
-            // catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            // {
-            //     logger.WriteLine(TaintResources.Synchronizer_Failure, ex);
-            //     HandleNoTaintIssues();
-            // }
-        }
-
-        private bool IsStandalone(BindingConfiguration bindingConfiguration)
-        {
-            if (bindingConfiguration.Mode == SonarLintMode.Standalone)
+            if (IsStandalone(configurationScope) || !slCoreServiceProvider.TryGetTransientService(out ITaintVulnerabilityTrackingSlCoreService taintService))
             {
-                logger.WriteLine(TaintResources.Synchronizer_NotInConnectedMode);
-                return true;
+                HandleNoTaintIssues();
+                return;
             }
 
-            return false;
-        }
-
-        private bool IsConnected(out ServerInfo serverInfo)
-        {
-            serverInfo = sonarQubeService.GetServerInfo();
-
-            if (serverInfo != null)
+            if (!IsConfigScopeReady(configurationScope) || IsAlreadyInitializedForConfigScope(configurationScope))
             {
-                return true;
+                return;
             }
 
-            logger.WriteLine(TaintResources.Synchronizer_ServerNotConnected);
-            return false;
+            var taintsResponse = await taintService.ListAllAsync(new ListAllTaintsParams(configurationScope.Id, true));
+            logger.WriteLine(TaintResources.Synchronizer_NumberOfServerIssues, taintsResponse.taintVulnerabilities.Count);
+
+            taintStore.Set(taintsResponse.taintVulnerabilities.Select(x => converter.Convert(x, configurationScope.RootPath)), configurationScope.Id);
+
+            HandleUIContextUpdate(taintsResponse);
         }
-
-        private bool IsFeatureSupported(ServerInfo serverInfo)
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
-            if (serverInfo.ServerType == ServerType.SonarCloud ||
-                serverInfo.Version >= MinimumRequiredSonarQubeVersion)
-            {
-                return true;
-            }
-
-            logger.WriteLine(TaintResources.Synchronizer_UnsupportedSQVersion, serverInfo.Version, DocumentationLinks.TaintVulnerabilities);
-            return false;
+            logger.WriteLine(TaintResources.Synchronizer_Failure, ex);
+            HandleNoTaintIssues();
         }
+    }
 
-        private async Task<AnalysisInformation> GetAnalysisInformation(string projectKey, string branchName)
+    private static bool IsConfigScopeReady(ConfigurationScope configurationScope) => configurationScope.RootPath is not null;
+
+    private bool IsAlreadyInitializedForConfigScope(ConfigurationScope configurationScope) => taintStore.ConfigurationScope == configurationScope.Id;
+
+    private void HandleUIContextUpdate(ListAllTaintsResponse taintsResponse)
+    {
+        var hasTaintIssues = taintsResponse.taintVulnerabilities.Count > 0;
+
+        if (!hasTaintIssues)
         {
-            Debug.Assert(branchName != null, "BranchName should not be null when in Connected Mode");
-
-            var branches = await sonarQubeService.GetProjectBranchesAsync(projectKey, CancellationToken.None);
-
-            var issuesBranch = branches.FirstOrDefault(x => x.Name.Equals(branchName));
-
-            Debug.Assert(issuesBranch != null, "Should always find a matching branch");
-
-            return new AnalysisInformation(issuesBranch.Name, issuesBranch.LastAnalysisTimestamp);
-        }
-
-        private void HandleNoTaintIssues()
-        {
-            ClearStore();
             UpdateTaintIssuesUIContext(false);
         }
-
-        private void ClearStore()
+        else
         {
-            taintStore.Set(Enumerable.Empty<IAnalysisIssueVisualization>(), null);
-        }
+            UpdateTaintIssuesUIContext(true);
 
-        private void UpdateTaintIssuesUIContext(bool hasTaintIssues)
-        {
-            vSServiceOperation.Execute<VSShellInterop.SVsShellMonitorSelection, VSShellInterop.IVsMonitorSelection>(
-                monitorSelection =>
-                {
-                    Guid localGuid = TaintIssuesExistUIContext.Guid;
-
-                    monitorSelection.GetCmdUIContextCookie(ref localGuid, out var cookie);
-                    monitorSelection.SetCmdUIContext(cookie, hasTaintIssues ? 1 : 0);
-                });
+            // We need the tool window content to exist so the issues are filtered and the
+            // tool window caption is updated. See the "EnsureToolWindowExists" method comment
+            // for more information.
+            toolWindowService.EnsureToolWindowExists(TaintToolWindow.ToolWindowId);
         }
     }
+
+    private bool IsStandalone(ConfigurationScope configurationScope)
+    {
+        if (configurationScope is { SonarProjectId: not null })
+        {
+            return false;
+        }
+
+        logger.WriteLine(TaintResources.Synchronizer_NotInConnectedMode);
+        return true;
+    }
+
+    private void HandleNoTaintIssues()
+    {
+        ClearStore();
+        UpdateTaintIssuesUIContext(false);
+    }
+
+    private void ClearStore() => taintStore.Set([], null);
+
+    private void UpdateTaintIssuesUIContext(bool hasTaintIssues) =>
+        vSServiceOperation.Execute<VSShellInterop.SVsShellMonitorSelection, VSShellInterop.IVsMonitorSelection>(
+            monitorSelection =>
+            {
+                var localGuid = TaintIssuesExistUIContext.Guid;
+
+                monitorSelection.GetCmdUIContextCookie(ref localGuid, out var cookie);
+                monitorSelection.SetCmdUIContext(cookie, hasTaintIssues ? 1 : 0);
+            });
 }

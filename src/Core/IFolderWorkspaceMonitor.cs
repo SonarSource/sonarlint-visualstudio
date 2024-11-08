@@ -34,6 +34,6 @@ namespace SonarLint.VisualStudio.Core
         /// We need this event since certain parts of our code, i.e. <see cref="IAbsoluteFilePathLocator"/>,
         /// rely on VsHierarchy being initialized by the time they're called.
         /// </remarks>
-        event EventHandler FolderWorkspaceInitialized;
+        event EventHandler FolderWorkspaceInitialized; // todo
     }
 }
