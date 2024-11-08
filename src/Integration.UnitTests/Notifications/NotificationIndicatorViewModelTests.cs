@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Notifications;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -33,6 +34,7 @@ public class NotificationIndicatorViewModelTests
     [
         new("foo", "foo", new Uri("http://foo.com"), new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.FromHours(2)))
     ];
+    private IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private IBrowserService browserService;
     private NotificationIndicatorViewModel testSubject;
     private IThreadHandling threadHandling;
@@ -43,9 +45,13 @@ public class NotificationIndicatorViewModelTests
     {
         timer = Substitute.For<ITimer>();
         browserService = Substitute.For<IBrowserService>();
+        activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         threadHandling = new NoOpThreadHandler();
-        testSubject = new NotificationIndicatorViewModel(browserService, threadHandling, timer);
+        testSubject = new NotificationIndicatorViewModel(browserService, activeSolutionBoundTracker, threadHandling, timer);
     }
+
+    [TestMethod]
+    public void Ctor_SubscribesToEvents() => activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged += Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
 
     [TestMethod]
     public void Text_Raises_PropertyChanged()
@@ -166,7 +172,7 @@ public class NotificationIndicatorViewModelTests
     public void HasUnreadEvents_RunOnUIThread()
     {
         var mockThreadHandling = Substitute.For<IThreadHandling>();
-        var notificationViewModel = new NotificationIndicatorViewModel(browserService, mockThreadHandling, timer);
+        var notificationViewModel = new NotificationIndicatorViewModel(browserService, activeSolutionBoundTracker, mockThreadHandling, timer);
         notificationViewModel.AreNotificationsEnabled = true;
         notificationViewModel.IsIconVisible = true;
 
@@ -208,6 +214,51 @@ public class NotificationIndicatorViewModelTests
 
         testSubject.HasUnreadEvents.Should().BeFalse();
     }
+
+    [TestMethod]
+    public void Dispose_UnsubscribesFromEvents()
+    {
+        testSubject.Dispose();
+
+        activeSolutionBoundTracker.ReceivedWithAnyArgs(1).SolutionBindingChanged -= Arg.Any<EventHandler<ActiveSolutionBindingEventArgs>>();
+    }
+
+    [TestMethod]
+    [DataRow(SonarLintMode.Connected)]
+    [DataRow(SonarLintMode.LegacyConnected)]
+    public void SolutionBindingChanged_BindingToCloud_IsCloudIsTrue(SonarLintMode sonarLintMode)
+    {
+        var cloudBindingConfiguration = CreateBindingConfiguration(new ServerConnection.SonarCloud("my org"), sonarLintMode);
+
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(cloudBindingConfiguration));
+
+        testSubject.IsCloud.Should().BeTrue();
+    }
+
+    [TestMethod]
+    [DataRow(SonarLintMode.Connected)]
+    [DataRow(SonarLintMode.LegacyConnected)]
+    public void SolutionBindingChanged_BindingToServer_IsCloudIsFalse(SonarLintMode sonarLintMode)
+    {
+        var cloudBindingConfiguration = CreateBindingConfiguration(new ServerConnection.SonarQube(new Uri("C:\\")), sonarLintMode);
+
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(cloudBindingConfiguration));
+
+        testSubject.IsCloud.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void SolutionBindingChanged_Standalone_IsCloudIsFalse()
+    {
+        var cloudBindingConfiguration = new BindingConfiguration(null, SonarLintMode.Standalone, string.Empty);
+
+        activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(cloudBindingConfiguration));
+
+        testSubject.IsCloud.Should().BeFalse();
+    }
+
+    private static BindingConfiguration CreateBindingConfiguration(ServerConnection serverConnection, SonarLintMode mode) =>
+        new(new BoundServerProject("my solution", "my project", serverConnection), mode, string.Empty);
 
     private static SonarQubeNotification CreateNotification(string category, string url = "http://localhost") => new(category, "test", new Uri(url), DateTimeOffset.Now);
 

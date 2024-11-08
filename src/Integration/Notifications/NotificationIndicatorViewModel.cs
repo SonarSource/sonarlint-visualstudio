@@ -19,9 +19,11 @@
  */
 
 using System.Collections.ObjectModel;
+using System.Timers;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -30,9 +32,10 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Notifications
 {
-    public class NotificationIndicatorViewModel : ViewModelBase, INotificationIndicatorViewModel
+    public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificationIndicatorViewModel, IDisposable
     {
         private readonly ITimer autocloseTimer;
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IThreadHandling threadHandling;
 
         private string text;
@@ -40,26 +43,31 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         private bool isVisible;
         private bool isToolTipVisible;
         private bool areNotificationsEnabled;
+        private bool isCloud;
 
         public ObservableCollection<SonarQubeNotification> NotificationEvents { get; }
 
         public ICommand NavigateToNotification { get; }
 
-        public NotificationIndicatorViewModel(IBrowserService vsBrowserService)
-            : this(vsBrowserService, ThreadHandling.Instance,
+        public NotificationIndicatorViewModel(IBrowserService vsBrowserService, IActiveSolutionBoundTracker activeSolutionBoundTracker)
+            : this(vsBrowserService, activeSolutionBoundTracker, ThreadHandling.Instance,
                   new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */})
         {
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         }
 
         // For testing
         internal NotificationIndicatorViewModel(
             IBrowserService vsBrowserService,
+            IActiveSolutionBoundTracker activeSolutionBoundTracker,
             IThreadHandling threadHandling, 
             ITimer autocloseTimer)
         {
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.threadHandling = threadHandling;
             this.autocloseTimer = autocloseTimer;
 
+            activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
             NotificationEvents = new ObservableCollection<SonarQubeNotification>();
             text = BuildToolTipText();
 
@@ -144,6 +152,12 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             }
         }
 
+        public bool IsCloud 
+        {
+            get => isCloud;
+            set => SetAndRaisePropertyChanged(ref isCloud, value);
+        }
+
         public void SetNotificationEvents(IEnumerable<SonarQubeNotification> events)
         {
             if (events == null ||
@@ -169,6 +183,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                 });
         }
 
+        public void Dispose() => activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
+
         private void OnAutocloseTimerElapsed(object sender, EventArgs e)
         {
             IsToolTipVisible = false;
@@ -186,5 +202,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             return string.Format("You have {0} unread event{1}.",
                 NotificationEvents.Count, NotificationEvents.Count == 1 ? "" : "s");
         }
+
+        private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs args) => IsCloud = args.Configuration?.Project?.ServerConnection is ServerConnection.SonarCloud;
     }
 }
