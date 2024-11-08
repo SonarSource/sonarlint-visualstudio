@@ -38,8 +38,8 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
         private static AnalysisIssue CreateAnalysisIssue<T>(FileUri fileUri, T item) where T : RaisedFindingDto
         {
             var itemRuleKey = item.ruleKey;
-            var analysisIssueSeverity = item.severity?.ToAnalysisIssueSeverity() ?? AnalysisIssueSeverity.Info; // TODO by SLVS-1597
-            var analysisIssueType = item.type?.ToAnalysisIssueType() ?? AnalysisIssueType.Bug; // TODO by SLVS-1597
+            var analysisIssueSeverity = item.severity?.ToAnalysisIssueSeverity() ?? AnalysisIssueSeverity.Info; // TODO by SLVS-1612
+            var analysisIssueType = item.type?.ToAnalysisIssueType() ?? AnalysisIssueType.Bug; // TODO by SLVS-1612
             var highestSoftwareQualitySeverity = GetHighestSoftwareQualitySeverity(item.impacts);
             var analysisIssueLocation = GetAnalysisIssueLocation(fileUri.LocalPath, item.primaryMessage, item.textRange);
             var analysisIssueFlows = GetFlows(item.flows);
