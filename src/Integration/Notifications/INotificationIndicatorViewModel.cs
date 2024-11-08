@@ -36,6 +36,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         bool IsToolTipVisible { get; set; }
 
+        bool IsCloud { get; set; }
+
         void SetNotificationEvents(IEnumerable<SonarQubeNotification> events);
 
         ICommand NavigateToNotification { get; }
