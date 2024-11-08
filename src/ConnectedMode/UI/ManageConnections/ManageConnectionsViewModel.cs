@@ -185,9 +185,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
             try
             {
-                var localBindingKey = await connectedModeBindingServices.SolutionInfoProvider.GetSolutionNameAsync();
+                var localBindingKey = await ConnectedModeBindingServices.SolutionInfoProvider.GetSolutionNameAsync();
                 var boundServerProject = new BoundServerProject(localBindingKey, serverProjectKey, serverConnection);
-                await connectedModeBindingServices.BindingController.BindAsync(boundServerProject, CancellationToken.None);
+                await ConnectedModeBindingServices.BindingController.BindAsync(boundServerProject, CancellationToken.None);
                 return new AdapterResponse(true);
             }
             catch (Exception)
