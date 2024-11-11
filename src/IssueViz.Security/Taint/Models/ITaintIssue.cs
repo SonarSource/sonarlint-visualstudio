@@ -53,7 +53,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
             CreationTimestamp = creationTimestamp;
             Flows = flows ?? EmptyFlows;
             RuleDescriptionContextKey = ruleDescriptionContextKey;
-            this.HighestSoftwareQualitySeverity = highestSoftwareQualitySeverity;
+            HighestSoftwareQualitySeverity = highestSoftwareQualitySeverity;
+
+            if (!severity.HasValue && !highestSoftwareQualitySeverity.HasValue)
+            {
+                throw new ArgumentException(string.Format(TaintResources.TaintIssue_SeverityUndefined, IssueKey));
+            }
         }
 
         public string IssueKey { get; }

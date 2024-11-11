@@ -139,4 +139,7 @@
     <value>[Taint] Displaying taint vulnerabilities in the IDE requires SonarQube v8.6 or later, or SonarCloud. Connected SonarQube version: v{0}
     Visit {1} to find out more about this and other SonarLint features.</value>
   </data>
+  <data name="TaintIssue_SeverityUndefined" xml:space="preserve">
+    <value>Taint issue with id: {0} has no defined severity</value>
+  </data>
 </root>
