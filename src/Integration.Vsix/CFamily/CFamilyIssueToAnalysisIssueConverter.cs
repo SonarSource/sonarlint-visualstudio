@@ -197,6 +197,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             return new AnalysisIssue
             (
+                id: Guid.Empty, 
                 ruleKey: sqLanguage + ":" + cFamilyIssue.RuleKey,
                 severity: Convert(defaultSeverity),
                 type: Convert(defaultType),

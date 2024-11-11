@@ -64,7 +64,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
     {
         var dateTimeOffset = DateTimeOffset.Now;
         var issue1 = new RaisedIssueDto(
-            Guid.NewGuid(), 
+            IssueWithFlowsAndQuickFixesUseCase.Issue1Id, 
             "serverKey1", 
             "ruleKey1", 
             "PrimaryMessage1", 
@@ -79,7 +79,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
             null, 
             null, 
             "context1");
-        var issue2 = new RaisedIssueDto(Guid.NewGuid(),
+        var issue2 = new RaisedIssueDto(IssueWithFlowsAndQuickFixesUseCase.Issue2Id,
             "serverKey2",
             "ruleKey2",
             "PrimaryMessage2",
@@ -104,7 +104,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
     public void GetAnalysisIssues_HasHotspot_ConvertsCorrectly()
     {
         var dateTimeOffset = DateTimeOffset.Now;
-        var issue1 = new RaisedHotspotDto(Guid.NewGuid(),
+        var issue1 = new RaisedHotspotDto(IssueWithFlowsAndQuickFixesUseCase.Issue1Id,
             "serverKey1",
             "ruleKey1",
             "PrimaryMessage1", 
@@ -121,7 +121,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
             "context1", 
             VulnerabilityProbability.HIGH, 
             HotspotStatus.FIXED);
-        var issue2 = new RaisedHotspotDto(Guid.NewGuid(),
+        var issue2 = new RaisedHotspotDto(IssueWithFlowsAndQuickFixesUseCase.Issue2Id,
             "serverKey2",
             "ruleKey2",
             "PrimaryMessage2",
@@ -310,13 +310,15 @@ public class RaiseFindingToAnalysisIssueConverterTests
         private static TextEditDto Issue2Fix2FileEdit1Textedit1 => new(new TextRangeDto(51, 52, 53, 54), "new text");
         private static FileEditDto Issue2Fix2FileEdit1 => new(new FileUri("C:\\IssueFile.cs"), [Issue2Fix2FileEdit1Textedit1]);
         internal static QuickFixDto Issue2Fix2 => new([Issue2Fix2FileEdit1], "issue 2 fix 2");
-
+        internal static Guid Issue1Id { get; } = Guid.NewGuid();
+        internal static Guid Issue2Id { get; } = Guid.NewGuid();
 
         internal static void VerifyDtosConvertedCorrectly(List<IAnalysisIssue> result)
         {
             result.Should().NotBeNull();
             result.Should().HaveCount(2);
 
+            result[0].Id.Should().Be(Issue1Id);
             result[0].RuleKey.Should().Be("ruleKey1");
             result[0].Severity.Should().Be(AnalysisIssueSeverity.Major);
             result[0].Type.Should().Be(AnalysisIssueType.CodeSmell);
@@ -334,6 +336,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
             result[0].Flows.Should().BeEmpty();
             result[0].Fixes.Should().BeEmpty();
 
+            result[1].Id.Should().Be(Issue2Id);
             result[1].RuleKey.Should().Be("ruleKey2");
             result[1].Severity.Should().Be(AnalysisIssueSeverity.Critical);
             result[1].Type.Should().Be(AnalysisIssueType.Bug);

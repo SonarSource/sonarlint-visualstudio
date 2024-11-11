@@ -28,6 +28,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
     public class DummyAnalysisIssue : IAnalysisIssue
     {
         public string RuleKey { get; set; }
+        public Guid Id { get; set; }
 
         public AnalysisIssueSeverity Severity { get; set; }
         

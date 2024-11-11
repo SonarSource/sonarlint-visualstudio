@@ -26,6 +26,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         private static readonly IReadOnlyList<IQuickFix> EmptyFixes = [];
 
         public AnalysisIssue(
+            Guid id,
             string ruleKey,
             AnalysisIssueSeverity severity,
             AnalysisIssueType type,
@@ -36,6 +37,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             string context = null
             )
         {
+            Id = id;
             RuleKey = ruleKey;
             Severity = severity;
             HighestSoftwareQualitySeverity = highestSoftwareQualitySeverity;
@@ -45,6 +47,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
             Fixes = fixes ?? EmptyFixes;
             RuleDescriptionContextKey = context;
         }
+
+        public Guid Id { get; }
 
         public string RuleKey { get; }
 
@@ -65,7 +69,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
     public class AnalysisHotspotIssue : AnalysisIssue, IAnalysisHotspotIssue
     {
-        public AnalysisHotspotIssue(string ruleKey, 
+        public AnalysisHotspotIssue(Guid id,
+            string ruleKey, 
             AnalysisIssueSeverity severity, 
             AnalysisIssueType type, 
             SoftwareQualitySeverity? highestSoftwareQualitySeverity,
@@ -74,7 +79,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             IReadOnlyList<IQuickFix> fixes = null, 
             string context = null,
             HotspotPriority? hotspotPriority = null) : 
-            base(ruleKey, severity, type, highestSoftwareQualitySeverity, primaryLocation, flows, fixes, context)
+            base(id, ruleKey, severity, type, highestSoftwareQualitySeverity, primaryLocation, flows, fixes, context)
         {
             HotspotPriority = hotspotPriority;
         }
