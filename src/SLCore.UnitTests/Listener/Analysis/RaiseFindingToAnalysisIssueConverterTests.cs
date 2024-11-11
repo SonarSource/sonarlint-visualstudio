@@ -22,6 +22,8 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
+using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using CleanCodeAttribute = SonarLint.VisualStudio.SLCore.Common.Models.CleanCodeAttribute;
 using SoftwareQuality = SonarLint.VisualStudio.SLCore.Common.Models.SoftwareQuality;
 
@@ -78,7 +80,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
             new TextRangeDto(1, 2, 3, 4), 
             null, 
             null, 
-            "context1");
+            "context1",
+            Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new(IssueSeverity.MAJOR, RuleType.CODE_SMELL)));
         var issue2 = new RaisedIssueDto(Guid.NewGuid(),
             "serverKey2",
             "ruleKey2",
@@ -93,7 +96,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
             new TextRangeDto(61, 62, 63, 64),
             [IssueWithFlowsAndQuickFixesUseCase.Issue2Flow1, IssueWithFlowsAndQuickFixesUseCase.Issue2Flow2],
             [IssueWithFlowsAndQuickFixesUseCase.Issue2Fix1, IssueWithFlowsAndQuickFixesUseCase.Issue2Fix2],
-            "context2");
+            "context2",
+            Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new (IssueSeverity.CRITICAL, RuleType.BUG)));
 
         var result = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedIssueDto> { issue1, issue2 }).ToList();
 
@@ -120,7 +124,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
             null, 
             "context1", 
             VulnerabilityProbability.HIGH, 
-            HotspotStatus.FIXED);
+            HotspotStatus.FIXED,
+            Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new(IssueSeverity.MAJOR, RuleType.CODE_SMELL)));
         var issue2 = new RaisedHotspotDto(Guid.NewGuid(),
             "serverKey2",
             "ruleKey2",
@@ -136,7 +141,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
             [IssueWithFlowsAndQuickFixesUseCase.Issue2Flow1, IssueWithFlowsAndQuickFixesUseCase.Issue2Flow2],
             [IssueWithFlowsAndQuickFixesUseCase.Issue2Fix1, IssueWithFlowsAndQuickFixesUseCase.Issue2Fix2],
             "context2", VulnerabilityProbability.HIGH,
-            HotspotStatus.FIXED);
+            HotspotStatus.FIXED,
+            Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new(IssueSeverity.CRITICAL, RuleType.BUG)));
 
         var result = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedFindingDto> { issue1, issue2 }).ToList();
 
@@ -164,6 +170,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
                     3,
                     4),
                 UnflattenedFlowsUseCase.UnflattenedFlows,
+                default,
                 default,
                 default)
         });
@@ -195,7 +202,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 default,
                 VulnerabilityProbability.HIGH,
-                HotspotStatus.SAFE)
+                HotspotStatus.SAFE,
+                default)
         });
 
         UnflattenedFlowsUseCase.VerifyFlattenedFlow(analysisIssues);
@@ -228,7 +236,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 default,
                 vulnerabilityProbability,
-                HotspotStatus.SAFE)
+                HotspotStatus.SAFE,
+                default)
         });
 
         analysisIssues.Single().Should().BeOfType<AnalysisHotspotIssue>().Which.HotspotPriority.Should().Be(expectedHotspotPriority);
@@ -258,7 +267,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 default,
                 null,
-                HotspotStatus.SAFE)
+                HotspotStatus.SAFE,
+                default)
         });
 
         analysisIssues.Single().Should().BeOfType<AnalysisHotspotIssue>().Which.HotspotPriority.Should().BeNull();
