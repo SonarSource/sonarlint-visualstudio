@@ -28,7 +28,7 @@
     </Window.Resources>
     <StackPanel Height="200" Width="600">
         <StackPanel.Background>
-            <ImageBrush Stretch="Fill" ImageSource="..\..\Resources\SonarLint_About_For Export.jpg"/>
+            <ImageBrush Stretch="Fill" ImageSource="..\..\Resources\About_Background.png"/>
         </StackPanel.Background>
         <Grid Margin="42,102,10,0">
             <Grid.RowDefinitions>

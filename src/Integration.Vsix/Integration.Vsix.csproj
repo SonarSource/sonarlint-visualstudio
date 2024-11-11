@@ -262,7 +262,6 @@
 
   <ItemGroup>
     <None Remove="Resources\MavenPro-Regular.ttf" />
-    <None Remove="Resources\SonarLint_About_For Export.jpg" />
     <Content Include="Resources\sonarqube_for_ide_16px.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -466,8 +465,8 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\About_Background.png" />
     <Resource Include="Resources\MavenPro-Regular.ttf" />
-    <Resource Include="Resources\SonarLint_About_For Export.jpg" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Properties\Settings.settings">
