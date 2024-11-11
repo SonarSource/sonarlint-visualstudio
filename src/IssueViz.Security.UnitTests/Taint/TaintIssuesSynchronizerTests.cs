@@ -36,7 +36,7 @@
 // using SonarQube.Client;
 // using SonarQube.Client.Models;
 // using Task = System.Threading.Tasks.Task;
-//
+// // todo https://sonarsource.atlassian.net/browse/SLVS-1592
 // using VSShellInterop = Microsoft.VisualStudio.Shell.Interop;
 //
 // namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
