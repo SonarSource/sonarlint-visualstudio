@@ -35,6 +35,7 @@ internal interface ITaintIssueToIssueVisualizationConverter
 }
 
 [Export(typeof(ITaintIssueToIssueVisualizationConverter))]
+[PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 internal class TaintIssueToIssueVisualizationConverter(IAnalysisIssueVisualizationConverter issueVisualizationConverter)
     : ITaintIssueToIssueVisualizationConverter

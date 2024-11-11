@@ -18,30 +18,42 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Text;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
+using SoftwareQuality = SonarLint.VisualStudio.SLCore.Common.Models.SoftwareQuality;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint;
 
 [TestClass]
 public class TaintIssueToIssueVisualizationConverterTests
 {
-    [TestMethod]
-    public void MefCtor_CheckIsExported()
+    private IAnalysisIssueVisualizationConverter issueVizConverter;
+    private TaintIssueToIssueVisualizationConverter testSubject;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        MefTestHelpers.CheckTypeCanBeImported<TaintIssueToIssueVisualizationConverter, ITaintIssueToIssueVisualizationConverter>(
-            MefTestHelpers.CreateExport<IAnalysisIssueVisualizationConverter>());
+        issueVizConverter = Substitute.For<IAnalysisIssueVisualizationConverter>();
+        testSubject = new TaintIssueToIssueVisualizationConverter(issueVizConverter);
     }
 
     [TestMethod]
-    public void Convert_FromSonarQubeIssue_IssueVizConverterCalledWithCorrectParameters_ReturnsConvertedIssueVizWithReversedLocations()
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<TaintIssueToIssueVisualizationConverter, ITaintIssueToIssueVisualizationConverter>(
+            MefTestHelpers.CreateExport<IAnalysisIssueVisualizationConverter>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() =>
+        MefTestHelpers.CheckIsSingletonMefComponent<TaintIssueToIssueVisualizationConverter>();
+
+    [TestMethod]
+    public void Convert_IssueVizConverterCalledWithCorrectParameters_ReturnsConvertedIssueVizWithReversedLocations()
     {
         var created = DateTimeOffset.Parse("2001-12-30T01:02:03+0000");
         var taintDto = new TaintVulnerabilityDto(
@@ -78,16 +90,12 @@ public class TaintIssueToIssueVisualizationConverterTests
             false);
 
         var expectedConvertedIssueViz = CreateIssueViz();
-        var issueVizConverter = Substitute.For<IAnalysisIssueVisualizationConverter>();
         issueVizConverter.Convert(Arg.Any<IAnalysisIssueBase>(), null)
             .Returns(expectedConvertedIssueViz);
 
-        var testSubject = CreateTestSubject(issueVizConverter);
         var result = testSubject.Convert(taintDto, "C:\\root");
 
         result.Should().BeSameAs(expectedConvertedIssueViz);
-
-        expectedConvertedIssueViz.Received().IsSuppressed = true;
         issueVizConverter.Received().Convert(
             Arg.Is((TaintIssue taintIssue) =>
                 taintIssue.IssueKey == "serverkey" &&
@@ -130,261 +138,143 @@ public class TaintIssueToIssueVisualizationConverterTests
             ));
     }
 
-    // [TestMethod]
-    // [DataRow(SonarQubeIssueSeverity.Blocker, AnalysisIssueSeverity.Blocker)]
-    // [DataRow(SonarQubeIssueSeverity.Critical, AnalysisIssueSeverity.Critical)]
-    // [DataRow(SonarQubeIssueSeverity.Info, AnalysisIssueSeverity.Info)]
-    // [DataRow(SonarQubeIssueSeverity.Major, AnalysisIssueSeverity.Major)]
-    // [DataRow(SonarQubeIssueSeverity.Minor, AnalysisIssueSeverity.Minor)]
-    // public void Convert_KnownSeverity_ConvertedToAnalysisIssueSeverity(SonarQubeIssueSeverity sqSeverity, AnalysisIssueSeverity expectedSeverity)
-    // {
-    //     var result = TaintIssueToIssueVisualizationConverter.Convert(sqSeverity);
-    //
-    //     result.Should().Be(expectedSeverity);
-    // }
-    //
-    // [TestMethod]
-    // public void ConvertToHighestSeverity_NullSeverities_ReturnsNull()
-    // {
-    //     var result = TaintIssueToIssueVisualizationConverter.ConvertToHighestSeverity(null);
-    //
-    //     result.Should().Be(null);
-    // }
-    //
-    // [TestMethod]
-    // public void ConvertToHighestSeverity_EmptySeverities_ReturnsNull()
-    // {
-    //     var result = TaintIssueToIssueVisualizationConverter.ConvertToHighestSeverity(new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>());
-    //
-    //     result.Should().Be(null);
-    // }
-    //
-    // [DataTestMethod]
-    // [DataRow(SonarQubeSoftwareQualitySeverity.High, SoftwareQualitySeverity.High)]
-    // [DataRow(SonarQubeSoftwareQualitySeverity.Medium, SoftwareQualitySeverity.Medium)]
-    // [DataRow(SonarQubeSoftwareQualitySeverity.Low, SoftwareQualitySeverity.Low)]
-    // public void ConvertToHighestSeverity_SingleSeverity_ReturnsIt(
-    //     SonarQubeSoftwareQualitySeverity sqSeverity,
-    //     SoftwareQualitySeverity expectedSeverity)
-    // {
-    //     var impacts = new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> { { SonarQubeSoftwareQuality.Maintainability, sqSeverity } };
-    //
-    //     var result = TaintIssueToIssueVisualizationConverter.ConvertToHighestSeverity(impacts);
-    //
-    //     result.Should().Be(expectedSeverity);
-    // }
-    //
-    // [TestMethod]
-    // public void ConvertToHighestSeverity_InvalidSeverity_Throws()
-    // {
-    //     var impacts = new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> { { SonarQubeSoftwareQuality.Maintainability, (SonarQubeSoftwareQualitySeverity)999 } };
-    //
-    //     var act = () => TaintIssueToIssueVisualizationConverter.ConvertToHighestSeverity(impacts);
-    //
-    //     act.Should().Throw<ArgumentOutOfRangeException>();
-    // }
-    //
-    // [DataTestMethod]
-    // [DataRow(new[] { SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Low }, SoftwareQualitySeverity.Low)]
-    // [DataRow(new[] { SonarQubeSoftwareQualitySeverity.Low, SonarQubeSoftwareQualitySeverity.Medium, SonarQubeSoftwareQualitySeverity.Low }, SoftwareQualitySeverity.Medium)]
-    // [DataRow(new[] { SonarQubeSoftwareQualitySeverity.High, SonarQubeSoftwareQualitySeverity.Medium, SonarQubeSoftwareQualitySeverity.Low }, SoftwareQualitySeverity.High)]
-    // public void ConvertToHighestSeverity_MultipleSeverities_ReturnsHighest(SonarQubeSoftwareQualitySeverity[] sqSeverities, SoftwareQualitySeverity expectedSeverity)
-    // {
-    //     if (sqSeverities.Length != 3)
-    //     {
-    //         Assert.Fail("Wrong length of the list");
-    //     }
-    //
-    //     var impacts = new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>
-    //     {
-    //         { SonarQubeSoftwareQuality.Maintainability, sqSeverities[0] }, { SonarQubeSoftwareQuality.Reliability, sqSeverities[1] }, { SonarQubeSoftwareQuality.Security, sqSeverities[2] },
-    //     };
-    //
-    //     var result = TaintIssueToIssueVisualizationConverter.ConvertToHighestSeverity(impacts);
-    //
-    //     result.Should().Be(expectedSeverity);
-    // }
-    //
-    // [TestMethod]
-    // [DataRow(SonarQubeIssueSeverity.Unknown)]
-    // [DataRow((SonarQubeIssueSeverity)1234)]
-    // public void Convert_UnknownSeverity_ArgumentOutOfRangeException(SonarQubeIssueSeverity sqSeverity)
-    // {
-    //     Action act = () => TaintIssueToIssueVisualizationConverter.Convert(sqSeverity);
-    //
-    //     act.Should().Throw<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueSeverity");
-    // }
-    //
-    // public enum OriginalIssueType
-    // {
-    //     SonarQubeIssue,
-    //     TaintSonarQubeIssue
-    // }
-    //
-    // [TestMethod]
-    // [DataRow(OriginalIssueType.SonarQubeIssue)]
-    // [DataRow(OriginalIssueType.TaintSonarQubeIssue)]
-    // public void Convert_CalculatesLocalFilePaths(OriginalIssueType originalIssueType)
-    // {
-    //     var locationViz1 = CreateLocationViz("server-path1");
-    //     var locationViz2 = CreateLocationViz("server-path2");
-    //     var locationViz3 = CreateLocationViz("server-path3");
-    //     var expectedIssueViz = CreateIssueViz("server-path4", locationViz1, locationViz2, locationViz3);
-    //
-    //     var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
-    //     issueVizConverter
-    //         .Setup(x => x.Convert(It.IsAny<IAnalysisIssueBase>(), null))
-    //         .Returns(expectedIssueViz);
-    //
-    //     var absoluteFilePathLocator = new Mock<IAbsoluteFilePathLocator>();
-    //     absoluteFilePathLocator.Setup(x => x.Locate("server-path1")).Returns("local1");
-    //     absoluteFilePathLocator.Setup(x => x.Locate("server-path2")).Returns((string)null);
-    //     absoluteFilePathLocator.Setup(x => x.Locate("server-path3")).Returns("local3");
-    //     absoluteFilePathLocator.Setup(x => x.Locate("server-path4")).Returns("local4");
-    //
-    //     var testSubject = CreateTestSubject(issueVizConverter.Object, absoluteFilePathLocator.Object);
-    //
-    //     var result = originalIssueType == OriginalIssueType.SonarQubeIssue
-    //         ? testSubject.Convert(CreateDummySonarQubeIssue())
-    //         : testSubject.Convert(CreateDummyTaintSonarQubeIssue());
-    //
-    //     result.Should().Be(expectedIssueViz);
-    //
-    //     expectedIssueViz.CurrentFilePath.Should().Be("local4");
-    //
-    //     var secondaryLocations = expectedIssueViz.GetSecondaryLocations().ToList();
-    //     secondaryLocations[0].CurrentFilePath.Should().Be("local1");
-    //     secondaryLocations[1].CurrentFilePath.Should().Be(null);
-    //     secondaryLocations[2].CurrentFilePath.Should().Be("local3");
-    // }
-    //
-    // [TestMethod]
-    // public void Convert_FromTaintIssue_IssueVizConverterCalledWithCorrectParameters_ReturnsConvertedIssueVizWithReversedLocations()
-    // {
-    //     var location1 = CreateTaintServerLocation("path1", "message1", CreateTaintTextRange(1, 2, 3, 4, "hash1"));
-    //     var location2 = CreateTaintServerLocation("path2", "message2", CreateTaintTextRange(5, 6, 7, 8, "hash2"));
-    //     var flow1 = CreateTaintServerFlow(location1, location2);
-    //
-    //     var location3 = CreateTaintServerLocation("path3", "message3", CreateTaintTextRange(9, 10, 11, 12, "hash3"));
-    //     var flow2 = CreateTaintServerFlow(location3);
-    //
-    //     var mainLocation = CreateTaintServerLocation("path4", "message4", CreateTaintTextRange(13, 14, 15, 16, "hash4"));
-    //     var creationDate = DateTimeOffset.UtcNow;
-    //     var issue = CreateTaintServerIssue("issue key",
-    //         "rule",
-    //         creationDate,
-    //         SonarQubeIssueSeverity.Major,
-    //         new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>
-    //         {
-    //             { SonarQubeSoftwareQuality.Security, SonarQubeSoftwareQualitySeverity.Low }, { SonarQubeSoftwareQuality.Maintainability, SonarQubeSoftwareQualitySeverity.Medium },
-    //         },
-    //         mainLocation,
-    //         flow1,
-    //         flow2);
-    //
-    //     var expectedConvertedIssueViz = CreateIssueViz();
-    //     var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
-    //     issueVizConverter
-    //         .Setup(x => x.Convert(It.IsAny<IAnalysisIssueBase>(), null))
-    //         .Returns(expectedConvertedIssueViz);
-    //
-    //     var testSubject = CreateTestSubject(issueVizConverter.Object);
-    //     var result = testSubject.Convert(issue);
-    //
-    //     result.Should().BeSameAs(expectedConvertedIssueViz);
-    //
-    //     issueVizConverter.Verify(x => x.Convert(
-    //             It.Is((TaintIssue taintIssue) =>
-    //                 taintIssue.IssueKey == "issue key" &&
-    //                 taintIssue.RuleKey == "rule" &&
-    //                 taintIssue.Severity == AnalysisIssueSeverity.Major &&
-    //                 taintIssue.HighestSoftwareQualitySeverity == SoftwareQualitySeverity.Medium &&
-    //                 taintIssue.PrimaryLocation.FilePath == "path4" &&
-    //                 taintIssue.PrimaryLocation.Message == "message4" &&
-    //                 taintIssue.PrimaryLocation.TextRange.LineHash == "hash4" &&
-    //                 taintIssue.PrimaryLocation.TextRange.StartLine == 13 &&
-    //                 taintIssue.PrimaryLocation.TextRange.EndLine == 14 &&
-    //                 taintIssue.PrimaryLocation.TextRange.StartLineOffset == 15 &&
-    //                 taintIssue.PrimaryLocation.TextRange.EndLineOffset == 16 &&
-    //                 taintIssue.CreationTimestamp == creationDate &&
-    //                 // taintIssue.LastUpdateTimestamp == default &&
-    //                 taintIssue.Flows.Count == 2 &&
-    //                 taintIssue.Flows[0].Locations.Count == 2 &&
-    //                 taintIssue.Flows[1].Locations.Count == 1 &&
-    //                 taintIssue.Flows[0].Locations[0].Message == "message2" &&
-    //                 taintIssue.Flows[0].Locations[0].FilePath == "path2" &&
-    //                 taintIssue.Flows[0].Locations[0].TextRange.LineHash == "hash2" &&
-    //                 taintIssue.Flows[0].Locations[0].TextRange.StartLine == 5 &&
-    //                 taintIssue.Flows[0].Locations[0].TextRange.EndLine == 6 &&
-    //                 taintIssue.Flows[0].Locations[0].TextRange.StartLineOffset == 7 &&
-    //                 taintIssue.Flows[0].Locations[0].TextRange.EndLineOffset == 8 &&
-    //                 taintIssue.Flows[0].Locations[1].Message == "message1" &&
-    //                 taintIssue.Flows[0].Locations[1].FilePath == "path1" &&
-    //                 taintIssue.Flows[0].Locations[1].TextRange.LineHash == "hash1" &&
-    //                 taintIssue.Flows[0].Locations[1].TextRange.StartLine == 1 &&
-    //                 taintIssue.Flows[0].Locations[1].TextRange.EndLine == 2 &&
-    //                 taintIssue.Flows[0].Locations[1].TextRange.StartLineOffset == 3 &&
-    //                 taintIssue.Flows[0].Locations[1].TextRange.EndLineOffset == 4 &&
-    //                 taintIssue.Flows[1].Locations[0].Message == "message3" &&
-    //                 taintIssue.Flows[1].Locations[0].FilePath == "path3" &&
-    //                 taintIssue.Flows[1].Locations[0].TextRange.LineHash == "hash3" &&
-    //                 taintIssue.Flows[1].Locations[0].TextRange.StartLine == 9 &&
-    //                 taintIssue.Flows[1].Locations[0].TextRange.EndLine == 10 &&
-    //                 taintIssue.Flows[1].Locations[0].TextRange.StartLineOffset == 11 &&
-    //                 taintIssue.Flows[1].Locations[0].TextRange.EndLineOffset == 12
-    //             ),
-    //             It.IsAny<ITextSnapshot>()),
-    //         Times.Once);
-    // }
-    //
-    // [TestMethod]
-    // [DataRow(true)]
-    // [DataRow(false)]
-    // public void Convert_FromSonarQubeIssue_IssueVizIsCorrectlyMarkedAsSuppressed(bool isIssueSuppressed)
-    // {
-    //     var issue = CreateServerIssue(resolved: isIssueSuppressed, textRange: new IssueTextRange(1, 2, 3, 4));
-    //
-    //     var expectedConvertedIssueViz = CreateIssueViz();
-    //
-    //     var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
-    //     issueVizConverter
-    //         .Setup(x => x.Convert(It.IsAny<IAnalysisIssueBase>(), null))
-    //         .Returns(expectedConvertedIssueViz);
-    //
-    //     var testSubject = CreateTestSubject(issueVizConverter.Object);
-    //     var result = testSubject.Convert(issue);
-    //
-    //     result.Should().Be(expectedConvertedIssueViz);
-    //     result.IsSuppressed.Should().Be(isIssueSuppressed);
-    // }
-    //
-    // [TestMethod]
-    // public void Convert_FromTaintIssue_IssueVizIsNotSuppressed()
-    // {
-    //     var taintIssue = CreateTaintServerIssue(
-    //         mainLocation: CreateTaintServerLocation(
-    //             textRange: CreateTaintTextRange(1, 2, 3, 4, null)));
-    //
-    //     var expectedConvertedIssueViz = CreateIssueViz();
-    //
-    //     var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
-    //     issueVizConverter
-    //         .Setup(x => x.Convert(It.IsAny<IAnalysisIssueBase>(), null))
-    //         .Returns(expectedConvertedIssueViz);
-    //
-    //     var testSubject = CreateTestSubject(issueVizConverter.Object);
-    //     var result = testSubject.Convert(taintIssue);
-    //
-    //     result.Should().Be(expectedConvertedIssueViz);
-    //     result.IsSuppressed.Should().BeFalse();
-    // }
-
-    private static TaintIssueToIssueVisualizationConverter CreateTestSubject(IAnalysisIssueVisualizationConverter issueVizConverter = null)
+    [DataTestMethod]
+    [DataRow(IssueSeverity.INFO, AnalysisIssueSeverity.Info)]
+    [DataRow(IssueSeverity.MINOR, AnalysisIssueSeverity.Minor)]
+    [DataRow(IssueSeverity.CRITICAL, AnalysisIssueSeverity.Critical)]
+    [DataRow(IssueSeverity.MAJOR, AnalysisIssueSeverity.Major)]
+    [DataRow(IssueSeverity.BLOCKER, AnalysisIssueSeverity.Blocker)]
+    public void StandardSeverity_Converts(IssueSeverity slCoreSeverity, AnalysisIssueSeverity expectedSeverity)
     {
-        issueVizConverter ??= Substitute.For<IAnalysisIssueVisualizationConverter>();
+        var taintVulnerabilityDto = CreateDefaultTaintDto(new StandardModeDetails(slCoreSeverity, default));
 
-        return new TaintIssueToIssueVisualizationConverter(issueVizConverter);
+        testSubject.Convert(taintVulnerabilityDto, "C:\\root");
+
+        issueVizConverter.Received()
+            .Convert(Arg.Is<ITaintIssue>(x => x.HighestSoftwareQualitySeverity == null && x.Severity == expectedSeverity));
     }
+
+    [TestMethod]
+    public void StandardSeverity_InvalidSeverity_Converts()
+    {
+        var taintVulnerabilityDto = CreateDefaultTaintDto(new StandardModeDetails((IssueSeverity)999, default));
+
+        var act = () => testSubject.Convert(taintVulnerabilityDto, "C:\\root");
+
+        act.Should().Throw<ArgumentException>();
+        issueVizConverter.DidNotReceiveWithAnyArgs().Convert(default, default);
+    }
+
+    [TestMethod]
+    public void MqrSeverity_EmptySeverities_Throws()
+    {
+        var taintVulnerabilityDto = CreateDefaultTaintDto(new MQRModeDetails(default, []));
+
+        var act = () => testSubject.Convert(taintVulnerabilityDto, "C:\\root");
+
+        act.Should().Throw<ArgumentException>();
+        issueVizConverter.DidNotReceiveWithAnyArgs().Convert(default, default);
+    }
+
+    [DataTestMethod]
+    [DataRow(ImpactSeverity.BLOCKER, SoftwareQualitySeverity.Blocker)]
+    [DataRow(ImpactSeverity.HIGH, SoftwareQualitySeverity.High)]
+    [DataRow(ImpactSeverity.MEDIUM, SoftwareQualitySeverity.Medium)]
+    [DataRow(ImpactSeverity.LOW, SoftwareQualitySeverity.Low)]
+    [DataRow(ImpactSeverity.INFO, SoftwareQualitySeverity.Info)]
+    public void MqrSeverity_SingleSeverity_ReturnsIt(
+        ImpactSeverity slCoreSeverity,
+        SoftwareQualitySeverity expectedSeverity)
+    {
+        var taintVulnerabilityDto = CreateDefaultTaintDto(new MQRModeDetails(default, [new ImpactDto(SoftwareQuality.SECURITY, slCoreSeverity)]));
+
+        testSubject.Convert(taintVulnerabilityDto, "C:\\root");
+
+        issueVizConverter.Received()
+            .Convert(Arg.Is<ITaintIssue>(x => x.HighestSoftwareQualitySeverity == expectedSeverity && x.Severity == null));
+    }
+
+    [TestMethod]
+    public void MqrSeverity_InvalidSeverity_Throws()
+    {
+        var taintVulnerabilityDto = CreateDefaultTaintDto(new MQRModeDetails(default, [new ImpactDto(SoftwareQuality.SECURITY, (ImpactSeverity)999)]));
+
+        var act = () => testSubject.Convert(taintVulnerabilityDto, "C:\\root");
+
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [DataTestMethod]
+    [DataRow(new[] { ImpactSeverity.LOW, ImpactSeverity.LOW, ImpactSeverity.LOW }, SoftwareQualitySeverity.Low)]
+    [DataRow(new[] { ImpactSeverity.LOW, ImpactSeverity.LOW, ImpactSeverity.INFO }, SoftwareQualitySeverity.Low)]
+    [DataRow(new[] { ImpactSeverity.LOW, ImpactSeverity.MEDIUM, ImpactSeverity.LOW }, SoftwareQualitySeverity.Medium)]
+    [DataRow(new[] { ImpactSeverity.HIGH, ImpactSeverity.MEDIUM, ImpactSeverity.LOW }, SoftwareQualitySeverity.High)]
+    [DataRow(new[] { ImpactSeverity.MEDIUM, ImpactSeverity.BLOCKER, ImpactSeverity.HIGH }, SoftwareQualitySeverity.Blocker)]
+    public void MqrSeverity_MultipleSeverities_ReturnsHighest(ImpactSeverity[] slCoreSeverities, SoftwareQualitySeverity expectedSeverity)
+    {
+        var qualities = Enum.GetValues(typeof(SoftwareQuality)).Cast<SoftwareQuality>().ToArray();
+
+        if (slCoreSeverities.Length != qualities.Length)
+        {
+            Assert.Fail("Wrong length of the list");
+        }
+
+        var taintVulnerabilityDto = CreateDefaultTaintDto(new MQRModeDetails(default, qualities.Zip(slCoreSeverities, (x, y) => new ImpactDto(x, y)).ToList()));
+
+        testSubject.Convert(taintVulnerabilityDto, "C:\\root");
+
+        issueVizConverter.Received()
+            .Convert(Arg.Is<ITaintIssue>(x => x.HighestSoftwareQualitySeverity == expectedSeverity && x.Severity == null));
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Convert_IssueVizIsCorrectlyMarkedAsSuppressed(bool isIssueSuppressed)
+    {
+        var taintVulnerabilityDto = CreateDefaultTaintDto(resolved: isIssueSuppressed);
+        var expectedConvertedIssueViz = CreateIssueViz();
+        issueVizConverter.Convert(Arg.Any<IAnalysisIssueBase>(), null)
+            .Returns(expectedConvertedIssueViz);
+
+        testSubject.Convert(taintVulnerabilityDto, "C:\\root");
+
+        expectedConvertedIssueViz.Received().IsSuppressed = isIssueSuppressed;
+    }
+
+    private static TaintVulnerabilityDto CreateDefaultTaintDto(Either<StandardModeDetails, MQRModeDetails> severity = null, bool resolved = true) =>
+        new(
+            Guid.Parse("efa697a2-9cfd-4faf-ba21-71b378667a81"),
+            "serverkey",
+            resolved,
+            "rulekey:S123",
+            "message1",
+            "file\\path\\1",
+            DateTimeOffset.Now,
+            severity ?? new StandardModeDetails(IssueSeverity.MINOR, RuleType.VULNERABILITY),
+            [
+                new TaintFlowDto(
+                [
+                    new TaintLocationDto(
+                        new TextRangeWithHashDto(5, 6, 7, 8, "hash2"),
+                        "message2",
+                        "file\\path\\2"),
+                    new TaintLocationDto(
+                        new TextRangeWithHashDto(9, 10, 11, 12, "hash3"),
+                        "message3",
+                        "file\\path\\3"),
+                ]),
+                new TaintFlowDto(
+                [
+                    new TaintLocationDto(
+                        new TextRangeWithHashDto(13, 14, 15, 16, "hash4"),
+                        "message4",
+                        "file\\path\\4")
+                ])
+            ],
+            new TextRangeWithHashDto(1, 2, 3, 4, "hash1"),
+            "rulecontext",
+            false);
 
     private static IAnalysisIssueVisualization CreateIssueViz(string serverFilePath = null, params IAnalysisIssueLocationVisualization[] locationVizs)
     {
@@ -400,16 +290,5 @@ public class TaintIssueToIssueVisualizationConverterTests
         location.FilePath.Returns(serverFilePath);
 
         return issueViz;
-    }
-
-    private static IAnalysisIssueLocationVisualization CreateLocationViz(string serverFilePath)
-    {
-        var locationViz = Substitute.For<IAnalysisIssueLocationVisualization>();
-
-        var location = Substitute.For<IAnalysisIssueLocation>();
-        locationViz.Location.Returns(location);
-        location.FilePath.Returns(serverFilePath);
-
-        return locationViz;
     }
 }
