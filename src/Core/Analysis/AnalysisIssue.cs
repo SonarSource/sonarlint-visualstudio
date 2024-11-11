@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             string ruleKey,
             AnalysisIssueSeverity? severity,
             AnalysisIssueType? type,
-            SoftwareQualitySeverity? highestSoftwareQualitySeverity, 
+            Impact highestImpact, 
             IAnalysisIssueLocation primaryLocation,
             IReadOnlyList<IAnalysisIssueFlow> flows,
             IReadOnlyList<IQuickFix> fixes = null,
@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         {
             RuleKey = ruleKey;
             Severity = severity;
-            HighestSoftwareQualitySeverity = highestSoftwareQualitySeverity;
+            HighestImpact = highestImpact;
             Type = type;
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Flows = flows ?? EmptyFlows;
@@ -49,8 +49,6 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public string RuleKey { get; }
 
         public AnalysisIssueSeverity? Severity { get; }
-        
-        public SoftwareQualitySeverity? HighestSoftwareQualitySeverity { get; }
 
         public AnalysisIssueType? Type { get; }
 
@@ -69,13 +67,13 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public AnalysisHotspotIssue(string ruleKey, 
             AnalysisIssueSeverity? severity, 
             AnalysisIssueType? type, 
-            SoftwareQualitySeverity? highestSoftwareQualitySeverity,
+            Impact highestImpact,
             IAnalysisIssueLocation primaryLocation, 
             IReadOnlyList<IAnalysisIssueFlow> flows, 
             IReadOnlyList<IQuickFix> fixes = null, 
             string context = null,
             HotspotPriority? hotspotPriority = null) : 
-            base(ruleKey, severity, type, highestSoftwareQualitySeverity, primaryLocation, flows, fixes, context)
+            base(ruleKey, severity, type, highestImpact, primaryLocation, flows, fixes, context)
         {
             HotspotPriority = hotspotPriority;
         }

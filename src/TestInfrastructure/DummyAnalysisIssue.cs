@@ -29,7 +29,7 @@ public class DummyAnalysisIssue : IAnalysisIssue
 
     public AnalysisIssueSeverity? Severity { get; set; }
 
-    public SoftwareQualitySeverity? HighestSoftwareQualitySeverity { get; set; }
+    public Impact HighestImpact { get; set; }
 
     public AnalysisIssueType? Type { get; set; }
 
@@ -38,7 +38,6 @@ public class DummyAnalysisIssue : IAnalysisIssue
     public IAnalysisIssueLocation PrimaryLocation { get; set; } = new DummyAnalysisIssueLocation();
 
     public IReadOnlyList<IQuickFix> Fixes { get; } = Array.Empty<IQuickFix>();
-    public Impact HighestImpact { get; }
 
     public string RuleDescriptionContextKey { get; set; }
 }

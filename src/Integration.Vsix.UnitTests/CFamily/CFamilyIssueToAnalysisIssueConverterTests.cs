@@ -18,18 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO.Abstractions;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
-using Moq;
 using SonarLint.VisualStudio.CFamily.Rules;
 using SonarLint.VisualStudio.CFamily.SubProcess;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
@@ -477,11 +471,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var testSubject = CreateTestSubject(connectedModeFeaturesConfiguration: CMConfig.Object);
             var issue = testSubject.Convert(message, "lang", CFamilyconfig.Object);
 
-            issue.HighestSoftwareQualitySeverity.Should().Be(expectedSoftwareQualitySeverity);
+            var highestSoftwareQualitySeverity = issue.HighestImpact?.Severity;
+            highestSoftwareQualitySeverity.Should().Be(expectedSoftwareQualitySeverity);
         }
 
         [TestMethod]
-        [Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/2149")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/2149")]
         [DataRow("", "")] // empty should not throw
         [DataRow("a.txt", "a.txt")] // not-rooted should stay the same
         [DataRow("c:\\a.txt", "c:\\a.txt")]
@@ -504,7 +499,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        [Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/2557")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/2557")]
         [DataRow("", "")] // empty should not throw
         [DataRow("a.txt", "a.txt")] // not-rooted should stay the same
         [DataRow("c:\\a.txt", "c:\\a.txt")]
@@ -554,39 +549,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [DataRow(SoftwareQualitySeverity.Medium, SoftwareQualitySeverity.Medium)]
         [DataRow(SoftwareQualitySeverity.Low, SoftwareQualitySeverity.Low)]
         [DataRow(null, null)]
-        public void GetHighestSoftwareQualitySeverity(SoftwareQualitySeverity? softwareQualitySeverity, SoftwareQualitySeverity? highestSoftwareQualitySeverity)
+        public void GetHighestImpact_ReturnsImpactWithHighestSeverity(SoftwareQualitySeverity? softwareQualitySeverity, SoftwareQualitySeverity? expectedHighestSoftwareQualitySeverity)
         {
             var impacts = new Dictionary<SoftwareQuality, SoftwareQualitySeverity>();
-
             if (softwareQualitySeverity.HasValue)
             {
                 impacts.Add(SoftwareQuality.Maintainability, softwareQualitySeverity.Value);
             }
-
             RuleMetadata ruleMetaData = CreateRuleMetaData(impacts);
 
-            CFamilyIssueToAnalysisIssueConverter.GetHighestSoftwareQualitySeverity(ruleMetaData).Should().Be(highestSoftwareQualitySeverity);
+            var highestSoftwareQualitySeverity = CFamilyIssueToAnalysisIssueConverter.GetHighestImpact(ruleMetaData)?.Severity;
+
+            highestSoftwareQualitySeverity.Should().Be(expectedHighestSoftwareQualitySeverity);
         }
 
         [TestMethod]
         [DataRow(new SoftwareQualitySeverity[] { SoftwareQualitySeverity.Low, SoftwareQualitySeverity.Medium }, SoftwareQualitySeverity.Medium)]
         [DataRow(new SoftwareQualitySeverity[] { SoftwareQualitySeverity.Low, SoftwareQualitySeverity.High }, SoftwareQualitySeverity.High)]
         [DataRow(new SoftwareQualitySeverity[] { SoftwareQualitySeverity.Medium, SoftwareQualitySeverity.High }, SoftwareQualitySeverity.High)]
-        public void GetHighestSoftwareQualitySeverity_HasTwoImpacts_GetsTheHighestOne(SoftwareQualitySeverity[] softwareQualitySeverities, SoftwareQualitySeverity? highestSoftwareQualitySeverity)
+        public void GetHighestImpact_HasTwoImpacts_GetsTheHighestOne(SoftwareQualitySeverity[] softwareQualitySeverities, SoftwareQualitySeverity? expectedHighestSoftwareQualitySeverity)
         {
             var impacts = new Dictionary<SoftwareQuality, SoftwareQualitySeverity>
             {
                 { SoftwareQuality.Maintainability, softwareQualitySeverities[0] },
                 { SoftwareQuality.Reliability, softwareQualitySeverities[1] }
             };
-
             RuleMetadata ruleMetaData = CreateRuleMetaData(impacts);
 
-            CFamilyIssueToAnalysisIssueConverter.GetHighestSoftwareQualitySeverity(ruleMetaData).Should().Be(highestSoftwareQualitySeverity);
+            var highestSoftwareQualitySeverity = CFamilyIssueToAnalysisIssueConverter.GetHighestImpact(ruleMetaData)?.Severity;
+
+            highestSoftwareQualitySeverity.Should().Be(expectedHighestSoftwareQualitySeverity);
         }
 
         [TestMethod]
-        public void GetHighestSoftwareQualitySeverity_HasThreeImpacts_GetsTheHighestOne()
+        public void GetHighestImpact_HasThreeImpacts_GetsTheHighestOne()
         {
             var impacts = new Dictionary<SoftwareQuality, SoftwareQualitySeverity>
             {
@@ -594,10 +590,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 { SoftwareQuality.Reliability, SoftwareQualitySeverity.High },
                 { SoftwareQuality.Security, SoftwareQualitySeverity.Medium }
             };
-
             RuleMetadata ruleMetaData = CreateRuleMetaData(impacts);
 
-            CFamilyIssueToAnalysisIssueConverter.GetHighestSoftwareQualitySeverity(ruleMetaData).Should().Be(SoftwareQualitySeverity.High);
+            var highestImpact = CFamilyIssueToAnalysisIssueConverter.GetHighestImpact(ruleMetaData);
+
+            highestImpact.Severity.Should().Be(SoftwareQualitySeverity.High);
+            highestImpact.Quality.Should().Be(SoftwareQuality.Reliability);
+        }
+
+        [TestMethod]
+        [DataRow(SoftwareQualitySeverity.Blocker)]
+        [DataRow(SoftwareQualitySeverity.High)]
+        [DataRow(SoftwareQualitySeverity.Medium)]
+        [DataRow(SoftwareQualitySeverity.Low)]
+        [DataRow(SoftwareQualitySeverity.Info)]
+        public void GetHighestImpact_HasTwoHighImpactsForDifferentQualities_GetsTheHighestSoftwareQuality(SoftwareQualitySeverity softwareQualitySeverity)
+        {
+            var impacts = new Dictionary<SoftwareQuality, SoftwareQualitySeverity>
+            {
+                { SoftwareQuality.Maintainability, SoftwareQualitySeverity.Info },
+                { SoftwareQuality.Reliability, softwareQualitySeverity },
+                { SoftwareQuality.Security, softwareQualitySeverity }
+            };
+            RuleMetadata ruleMetaData = CreateRuleMetaData(impacts);
+
+            var highestImpact = CFamilyIssueToAnalysisIssueConverter.GetHighestImpact(ruleMetaData);
+
+            highestImpact.Severity.Should().Be(softwareQualitySeverity);
+            highestImpact.Quality.Should().Be(SoftwareQuality.Security);
         }
 
         [TestMethod]
