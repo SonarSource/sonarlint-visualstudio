@@ -70,10 +70,6 @@ public class RaiseFindingToAnalysisIssueConverterTests
             "serverKey1", 
             "ruleKey1", 
             "PrimaryMessage1", 
-            IssueSeverity.MAJOR, 
-            RuleType.CODE_SMELL, 
-            CleanCodeAttribute.EFFICIENT,
-            [],
             dateTimeOffset, 
             true, 
             false, 
@@ -81,15 +77,11 @@ public class RaiseFindingToAnalysisIssueConverterTests
             null, 
             null, 
             "context1",
-            Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new(IssueSeverity.MAJOR, RuleType.CODE_SMELL)));
+            new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
         var issue2 = new RaisedIssueDto(Guid.NewGuid(),
             "serverKey2",
             "ruleKey2",
             "PrimaryMessage2",
-            IssueSeverity.CRITICAL,
-            RuleType.BUG,
-            CleanCodeAttribute.LOGICAL,
-            IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts,
             dateTimeOffset,
             true,
             false,
@@ -97,7 +89,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
             [IssueWithFlowsAndQuickFixesUseCase.Issue2Flow1, IssueWithFlowsAndQuickFixesUseCase.Issue2Flow2],
             [IssueWithFlowsAndQuickFixesUseCase.Issue2Fix1, IssueWithFlowsAndQuickFixesUseCase.Issue2Fix2],
             "context2",
-            Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new (IssueSeverity.CRITICAL, RuleType.BUG)));
+            new MQRModeDetails(CleanCodeAttribute.COMPLETE, IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts));
 
         var result = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedIssueDto> { issue1, issue2 }).ToList();
 
@@ -112,10 +104,6 @@ public class RaiseFindingToAnalysisIssueConverterTests
             "serverKey1",
             "ruleKey1",
             "PrimaryMessage1", 
-            IssueSeverity.MAJOR, 
-            RuleType.CODE_SMELL, 
-            CleanCodeAttribute.EFFICIENT,
-            [], 
             dateTimeOffset, 
             true, 
             false, 
@@ -125,15 +113,11 @@ public class RaiseFindingToAnalysisIssueConverterTests
             "context1", 
             VulnerabilityProbability.HIGH, 
             HotspotStatus.FIXED,
-            Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new(IssueSeverity.MAJOR, RuleType.CODE_SMELL)));
+            new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
         var issue2 = new RaisedHotspotDto(Guid.NewGuid(),
             "serverKey2",
             "ruleKey2",
             "PrimaryMessage2",
-            IssueSeverity.CRITICAL,
-            RuleType.BUG,
-            CleanCodeAttribute.LOGICAL,
-            IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts,
             dateTimeOffset,
             true,
             false,
@@ -142,7 +126,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
             [IssueWithFlowsAndQuickFixesUseCase.Issue2Fix1, IssueWithFlowsAndQuickFixesUseCase.Issue2Fix2],
             "context2", VulnerabilityProbability.HIGH,
             HotspotStatus.FIXED,
-            Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new(IssueSeverity.CRITICAL, RuleType.BUG)));
+            new MQRModeDetails(CleanCodeAttribute.COMPLETE, IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts));
 
         var result = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedFindingDto> { issue1, issue2 }).ToList();
 
@@ -161,10 +145,6 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 default,
                 default,
-                default,
-                default,
-                default,
-                default,
                 new TextRangeDto(1,
                     2,
                     3,
@@ -172,7 +152,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 UnflattenedFlowsUseCase.UnflattenedFlows,
                 default,
                 default,
-                default)
+                new StandardModeDetails(default, default))
         });
 
         UnflattenedFlowsUseCase.VerifyFlattenedFlow(analysisIssues);
@@ -190,10 +170,6 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 default,
                 default,
-                default,
-                default,
-                default,
-                default,
                 new TextRangeDto(1,
                     2,
                     3,
@@ -203,7 +179,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 VulnerabilityProbability.HIGH,
                 HotspotStatus.SAFE,
-                default)
+                new StandardModeDetails(default, default))
         });
 
         UnflattenedFlowsUseCase.VerifyFlattenedFlow(analysisIssues);
@@ -224,10 +200,6 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 default,
                 default,
-                default,
-                default,
-                default,
-                default,
                 new TextRangeDto(1,
                     2,
                     3,
@@ -237,7 +209,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 vulnerabilityProbability,
                 HotspotStatus.SAFE,
-                default)
+                new StandardModeDetails(default, default))
         });
 
         analysisIssues.Single().Should().BeOfType<AnalysisHotspotIssue>().Which.HotspotPriority.Should().Be(expectedHotspotPriority);
@@ -255,10 +227,6 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 default,
                 default,
-                default,
-                default,
-                default,
-                default,
                 new TextRangeDto(1,
                     2,
                     3,
@@ -268,7 +236,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 null,
                 HotspotStatus.SAFE,
-                default)
+                new StandardModeDetails(default, default))
         });
 
         analysisIssues.Single().Should().BeOfType<AnalysisHotspotIssue>().Which.HotspotPriority.Should().BeNull();
@@ -345,8 +313,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
             result[0].Fixes.Should().BeEmpty();
 
             result[1].RuleKey.Should().Be("ruleKey2");
-            result[1].Severity.Should().Be(AnalysisIssueSeverity.Critical);
-            result[1].Type.Should().Be(AnalysisIssueType.Bug);
+            result[1].Severity.Should().BeNull();
+            result[1].Type.Should().BeNull();
             result[1].HighestSoftwareQualitySeverity.Should().Be(SoftwareQualitySeverity.High);
             result[1].RuleDescriptionContextKey.Should().Be("context2");
 

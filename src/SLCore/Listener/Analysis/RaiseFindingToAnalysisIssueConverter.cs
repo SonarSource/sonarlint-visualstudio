@@ -38,9 +38,9 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
         private static AnalysisIssue CreateAnalysisIssue<T>(FileUri fileUri, T item) where T : RaisedFindingDto
         {
             var itemRuleKey = item.ruleKey;
-            var analysisIssueSeverity = item.severity?.ToAnalysisIssueSeverity() ?? AnalysisIssueSeverity.Info; // TODO by SLVS-1612
-            var analysisIssueType = item.type?.ToAnalysisIssueType() ?? AnalysisIssueType.Bug; // TODO by SLVS-1612
-            var highestSoftwareQualitySeverity = GetHighestSoftwareQualitySeverity(item.impacts);
+            var analysisIssueSeverity = item.severityMode.Left?.severity.ToAnalysisIssueSeverity(); 
+            var analysisIssueType = item.severityMode.Left?.type.ToAnalysisIssueType();
+            var highestSoftwareQualitySeverity = GetHighestSoftwareQualitySeverity(item.severityMode.Right?.impacts);
             var analysisIssueLocation = GetAnalysisIssueLocation(fileUri.LocalPath, item.primaryMessage, item.textRange);
             var analysisIssueFlows = GetFlows(item.flows);
             var readOnlyList = item.quickFixes?.Select(qf => GetQuickFix(fileUri, qf)).Where(qf => qf is not null).ToList();
