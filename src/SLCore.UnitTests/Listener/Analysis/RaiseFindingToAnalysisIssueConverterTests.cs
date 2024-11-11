@@ -77,7 +77,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
             null, 
             null, 
             "context1",
-            Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new(IssueSeverity.MAJOR, RuleType.CODE_SMELL)));
+            new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
         var issue2 = new RaisedIssueDto(Guid.NewGuid(),
             "serverKey2",
             "ruleKey2",
@@ -89,7 +89,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
             [IssueWithFlowsAndQuickFixesUseCase.Issue2Flow1, IssueWithFlowsAndQuickFixesUseCase.Issue2Flow2],
             [IssueWithFlowsAndQuickFixesUseCase.Issue2Fix1, IssueWithFlowsAndQuickFixesUseCase.Issue2Fix2],
             "context2",
-            Either<StandardModeDetails, MQRModeDetails>.CreateRight(new (CleanCodeAttribute.COMPLETE, IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts)));
+            new MQRModeDetails(CleanCodeAttribute.COMPLETE, IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts));
 
         var result = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedIssueDto> { issue1, issue2 }).ToList();
 
@@ -113,7 +113,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
             "context1", 
             VulnerabilityProbability.HIGH, 
             HotspotStatus.FIXED,
-            Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new(IssueSeverity.MAJOR, RuleType.CODE_SMELL)));
+            new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
         var issue2 = new RaisedHotspotDto(Guid.NewGuid(),
             "serverKey2",
             "ruleKey2",
@@ -126,7 +126,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
             [IssueWithFlowsAndQuickFixesUseCase.Issue2Fix1, IssueWithFlowsAndQuickFixesUseCase.Issue2Fix2],
             "context2", VulnerabilityProbability.HIGH,
             HotspotStatus.FIXED,
-            Either<StandardModeDetails, MQRModeDetails>.CreateRight(new(CleanCodeAttribute.COMPLETE, IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts)));
+            new MQRModeDetails(CleanCodeAttribute.COMPLETE, IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts));
 
         var result = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedFindingDto> { issue1, issue2 }).ToList();
 
@@ -152,7 +152,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 UnflattenedFlowsUseCase.UnflattenedFlows,
                 default,
                 default,
-                Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new(default, default)))
+                new StandardModeDetails(default, default))
         });
 
         UnflattenedFlowsUseCase.VerifyFlattenedFlow(analysisIssues);
@@ -179,7 +179,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 VulnerabilityProbability.HIGH,
                 HotspotStatus.SAFE,
-                Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new(default, default)))
+                new StandardModeDetails(default, default))
         });
 
         UnflattenedFlowsUseCase.VerifyFlattenedFlow(analysisIssues);
@@ -209,7 +209,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 vulnerabilityProbability,
                 HotspotStatus.SAFE,
-                Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new(default, default)))
+                new StandardModeDetails(default, default))
         });
 
         analysisIssues.Single().Should().BeOfType<AnalysisHotspotIssue>().Which.HotspotPriority.Should().Be(expectedHotspotPriority);
@@ -236,7 +236,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 null,
                 HotspotStatus.SAFE,
-                Either<StandardModeDetails, MQRModeDetails>.CreateLeft(new(default, default)))
+                new StandardModeDetails(default, default))
         });
 
         analysisIssues.Single().Should().BeOfType<AnalysisHotspotIssue>().Which.HotspotPriority.Should().BeNull();
