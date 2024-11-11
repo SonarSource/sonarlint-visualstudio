@@ -59,6 +59,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public IAnalysisIssueLocation PrimaryLocation { get; }
 
         public IReadOnlyList<IQuickFix> Fixes { get; }
+        public Impact HighestImpact { get; }
 
         public string RuleDescriptionContextKey { get; }
     }

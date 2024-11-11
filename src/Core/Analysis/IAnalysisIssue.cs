@@ -29,6 +29,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
         AnalysisIssueType? Type { get; }
 
         IReadOnlyList<IQuickFix> Fixes { get; }
+
+        Impact HighestImpact { get; }
     }
 
     public interface IAnalysisHotspotIssue : IAnalysisIssue
