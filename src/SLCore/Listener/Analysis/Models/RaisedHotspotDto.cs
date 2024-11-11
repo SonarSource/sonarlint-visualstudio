@@ -22,6 +22,8 @@ using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
@@ -31,11 +33,12 @@ public record RaisedHotspotDto(
     string serverKey,
     string ruleKey,
     string primaryMessage,
-    IssueSeverity severity,
-    RuleType type,
-    CleanCodeAttribute cleanCodeAttribute,
+    IssueSeverity? severity,
+    RuleType? type,
+    CleanCodeAttribute? cleanCodeAttribute,
     List<ImpactDto> impacts,
-    [JsonConverter(typeof(MillisecondUnixTimestampDateTimeOffsetConverter))] DateTimeOffset introductionDate,
+    [JsonConverter(typeof(MillisecondUnixTimestampDateTimeOffsetConverter))]
+    DateTimeOffset introductionDate,
     bool isOnNewCode,
     bool resolved,
     TextRangeDto textRange,
@@ -43,5 +46,6 @@ public record RaisedHotspotDto(
     List<QuickFixDto> quickFixes,
     string ruleDescriptionContextKey,
     VulnerabilityProbability? vulnerabilityProbability,
-    HotspotStatus status) : RaisedFindingDto(id, serverKey, ruleKey, primaryMessage, severity, type, cleanCodeAttribute,
-    impacts, introductionDate, isOnNewCode, resolved, textRange, flows, quickFixes, ruleDescriptionContextKey);
+    HotspotStatus status,
+    Either<StandardModeDetails, MQRModeDetails> severityMode) : RaisedFindingDto(id, serverKey, ruleKey, primaryMessage, severity, type, cleanCodeAttribute,
+    impacts, introductionDate, isOnNewCode, resolved, textRange, flows, quickFixes, ruleDescriptionContextKey, severityMode);

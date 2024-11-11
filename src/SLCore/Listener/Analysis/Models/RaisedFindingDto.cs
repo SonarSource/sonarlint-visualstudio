@@ -19,7 +19,10 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
@@ -29,9 +32,9 @@ public abstract record RaisedFindingDto(
     string serverKey,
     string ruleKey,
     string primaryMessage,
-    IssueSeverity severity,
-    RuleType type,
-    CleanCodeAttribute cleanCodeAttribute,
+    IssueSeverity? severity,
+    RuleType? type,
+    CleanCodeAttribute? cleanCodeAttribute,
     List<ImpactDto> impacts,
     DateTimeOffset introductionDate,
     bool isOnNewCode,
@@ -39,4 +42,6 @@ public abstract record RaisedFindingDto(
     TextRangeDto textRange,
     List<IssueFlowDto> flows,
     List<QuickFixDto> quickFixes,
-    string ruleDescriptionContextKey);
+    string ruleDescriptionContextKey,
+    [property: JsonConverter(typeof(EitherJsonConverter<StandardModeDetails, MQRModeDetails>))]
+    Either<StandardModeDetails, MQRModeDetails> severityMode);
