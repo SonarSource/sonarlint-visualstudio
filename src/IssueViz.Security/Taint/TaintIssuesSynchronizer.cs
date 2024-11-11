@@ -57,7 +57,6 @@ internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
         ISLCoreServiceProvider slCoreServiceProvider,
         ITaintIssueToIssueVisualizationConverter converter,
         IToolWindowService toolWindowService,
-        IStatefulServerBranchProvider serverBranchProvider,
         IVsUIServiceOperation vSServiceOperation,
         IThreadHandling threadHandling,
         IAsyncLockFactory asyncLockFactory,
