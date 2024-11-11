@@ -206,7 +206,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetValue_ErrorCategory_Is_Issue_Type()
+        public void GetValue_StandardMode_ErrorCategory_IsSeverityAndType()
         {
             issue.Type = AnalysisIssueType.Bug;
             issue.Severity = AnalysisIssueSeverity.Blocker;
@@ -215,6 +215,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Code Smell");
             issue.Type = AnalysisIssueType.Vulnerability;
             GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Vulnerability");
+        }
+
+        [TestMethod]
+        [DataRow(SoftwareQuality.Security, SoftwareQualitySeverity.Blocker)]
+        [DataRow(SoftwareQuality.Security, SoftwareQualitySeverity.High)]
+        [DataRow(SoftwareQuality.Maintainability, SoftwareQualitySeverity.Medium)]
+        [DataRow(SoftwareQuality.Maintainability, SoftwareQualitySeverity.Low)]
+        [DataRow(SoftwareQuality.Reliability, SoftwareQualitySeverity.Info)]
+        public void GetValue_MqrMode_ErrorCategory_IsSoftwareQualityAndSeverity(SoftwareQuality quality, SoftwareQualitySeverity severity)
+        {
+            issue.HighestImpact = new Impact(quality, severity);
+
+            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be(severity + " " + quality);
         }
 
         [TestMethod]
