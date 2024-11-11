@@ -27,8 +27,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
         public AnalysisIssue(
             string ruleKey,
-            AnalysisIssueSeverity severity,
-            AnalysisIssueType type,
+            AnalysisIssueSeverity? severity,
+            AnalysisIssueType? type,
             SoftwareQualitySeverity? highestSoftwareQualitySeverity, 
             IAnalysisIssueLocation primaryLocation,
             IReadOnlyList<IAnalysisIssueFlow> flows,
@@ -48,11 +48,11 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
         public string RuleKey { get; }
 
-        public AnalysisIssueSeverity Severity { get; }
+        public AnalysisIssueSeverity? Severity { get; }
         
         public SoftwareQualitySeverity? HighestSoftwareQualitySeverity { get; }
 
-        public AnalysisIssueType Type { get; }
+        public AnalysisIssueType? Type { get; }
 
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
 
@@ -66,8 +66,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
     public class AnalysisHotspotIssue : AnalysisIssue, IAnalysisHotspotIssue
     {
         public AnalysisHotspotIssue(string ruleKey, 
-            AnalysisIssueSeverity severity, 
-            AnalysisIssueType type, 
+            AnalysisIssueSeverity? severity, 
+            AnalysisIssueType? type, 
             SoftwareQualitySeverity? highestSoftwareQualitySeverity,
             IAnalysisIssueLocation primaryLocation, 
             IReadOnlyList<IAnalysisIssueFlow> flows, 

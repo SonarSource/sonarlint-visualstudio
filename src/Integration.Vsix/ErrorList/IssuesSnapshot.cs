@@ -276,7 +276,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return !issue.Span.HasValue || issue.Span.Value.IsEmpty;
         }
 
-        private object ToString(AnalysisIssueType type)
+        private object ToString(AnalysisIssueType? type)
         {
             switch (type)
             {

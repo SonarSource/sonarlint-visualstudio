@@ -33,10 +33,6 @@ public record RaisedHotspotDto(
     string serverKey,
     string ruleKey,
     string primaryMessage,
-    IssueSeverity? severity,
-    RuleType? type,
-    CleanCodeAttribute? cleanCodeAttribute,
-    List<ImpactDto> impacts,
     [JsonConverter(typeof(MillisecondUnixTimestampDateTimeOffsetConverter))]
     DateTimeOffset introductionDate,
     bool isOnNewCode,
@@ -47,5 +43,5 @@ public record RaisedHotspotDto(
     string ruleDescriptionContextKey,
     VulnerabilityProbability? vulnerabilityProbability,
     HotspotStatus status,
-    Either<StandardModeDetails, MQRModeDetails> severityMode) : RaisedFindingDto(id, serverKey, ruleKey, primaryMessage, severity, type, cleanCodeAttribute,
-    impacts, introductionDate, isOnNewCode, resolved, textRange, flows, quickFixes, ruleDescriptionContextKey, severityMode);
+    Either<StandardModeDetails, MQRModeDetails> severityMode) : RaisedFindingDto(id, serverKey, ruleKey, primaryMessage, introductionDate, isOnNewCode, resolved, textRange, flows, quickFixes,
+    ruleDescriptionContextKey, severityMode);
