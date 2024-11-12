@@ -52,8 +52,6 @@ namespace SonarQube.Client.Models.ServerSentEvents
         private readonly IDictionary<string, Type> eventTypeToDataTypeMap = new Dictionary<string, Type>
         {
             {"IssueChanged", typeof(IssueChangedServerEvent)},
-            {"TaintVulnerabilityClosed", typeof(TaintVulnerabilityClosedServerEvent)},
-            {"TaintVulnerabilityRaised", typeof(TaintVulnerabilityRaisedServerEvent)},
             {"RuleSetChanged", typeof(QualityProfileEvent)},
         };
 
