@@ -45,7 +45,7 @@
       <Menu guid="SonarLintCmdSet" id="SonarLintMenu" type="Menu" priority="0x0100">
         <Parent guid="SonarLintCmdSet" id="SonarLintOuterGroup" />
         <Strings>
-          <ButtonText>SonarLint</ButtonText>
+          <ButtonText>SonarQube for Visual Studio</ButtonText>
         </Strings>
       </Menu>
 
