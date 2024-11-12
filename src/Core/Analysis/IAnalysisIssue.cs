@@ -23,12 +23,12 @@ namespace SonarLint.VisualStudio.Core.Analysis
     public interface IAnalysisIssue : IAnalysisIssueBase
     {
         AnalysisIssueSeverity? Severity { get; }
-        
-        SoftwareQualitySeverity? HighestSoftwareQualitySeverity { get; }
 
         AnalysisIssueType? Type { get; }
 
         IReadOnlyList<IQuickFix> Fixes { get; }
+
+        Impact HighestImpact { get; }
     }
 
     public interface IAnalysisHotspotIssue : IAnalysisIssue

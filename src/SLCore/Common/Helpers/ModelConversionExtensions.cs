@@ -20,59 +20,62 @@
 
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
+using SoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
 
-namespace SonarLint.VisualStudio.SLCore.Common.Helpers
+namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
+
+public static class ModelConversionExtensions
 {
-    public static class ModelConversionExtensions
-    {
-        public static AnalysisIssueSeverity ToAnalysisIssueSeverity(this IssueSeverity issueSeverity)
+    public static AnalysisIssueSeverity ToAnalysisIssueSeverity(this IssueSeverity issueSeverity) =>
+        issueSeverity switch
         {
-            return issueSeverity switch
-            {
-                IssueSeverity.BLOCKER => AnalysisIssueSeverity.Blocker,
-                IssueSeverity.CRITICAL => AnalysisIssueSeverity.Critical,
-                IssueSeverity.MAJOR => AnalysisIssueSeverity.Major,
-                IssueSeverity.MINOR => AnalysisIssueSeverity.Minor,
-                IssueSeverity.INFO => AnalysisIssueSeverity.Info,
-                _ => throw new ArgumentOutOfRangeException(nameof(issueSeverity), issueSeverity, SLCoreStrings.ModelExtensions_UnexpectedValue),
-            };
-        }
+            IssueSeverity.BLOCKER => AnalysisIssueSeverity.Blocker,
+            IssueSeverity.CRITICAL => AnalysisIssueSeverity.Critical,
+            IssueSeverity.MAJOR => AnalysisIssueSeverity.Major,
+            IssueSeverity.MINOR => AnalysisIssueSeverity.Minor,
+            IssueSeverity.INFO => AnalysisIssueSeverity.Info,
+            _ => throw new ArgumentOutOfRangeException(nameof(issueSeverity), issueSeverity, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
 
-        public static AnalysisIssueType ToAnalysisIssueType(this RuleType ruleType)
+    public static AnalysisIssueType ToAnalysisIssueType(this RuleType ruleType) =>
+        ruleType switch
         {
-            return ruleType switch
-            {
-                RuleType.CODE_SMELL => AnalysisIssueType.CodeSmell,
-                RuleType.BUG => AnalysisIssueType.Bug,
-                RuleType.VULNERABILITY => AnalysisIssueType.Vulnerability,
-                RuleType.SECURITY_HOTSPOT => AnalysisIssueType.SecurityHotspot,
-                _ => throw new ArgumentOutOfRangeException(nameof(ruleType), ruleType, SLCoreStrings.ModelExtensions_UnexpectedValue),
-            };
-        }
+            RuleType.CODE_SMELL => AnalysisIssueType.CodeSmell,
+            RuleType.BUG => AnalysisIssueType.Bug,
+            RuleType.VULNERABILITY => AnalysisIssueType.Vulnerability,
+            RuleType.SECURITY_HOTSPOT => AnalysisIssueType.SecurityHotspot,
+            _ => throw new ArgumentOutOfRangeException(nameof(ruleType), ruleType, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
 
-        public static SoftwareQualitySeverity ToSoftwareQualitySeverity(this ImpactSeverity impactSeverity)
+    public static SoftwareQualitySeverity ToSoftwareQualitySeverity(this ImpactSeverity impactSeverity) =>
+        impactSeverity switch
         {
-            return impactSeverity switch
-            {
-                ImpactSeverity.INFO => SoftwareQualitySeverity.Info,
-                ImpactSeverity.LOW => SoftwareQualitySeverity.Low,
-                ImpactSeverity.MEDIUM => SoftwareQualitySeverity.Medium,
-                ImpactSeverity.HIGH => SoftwareQualitySeverity.High,
-                ImpactSeverity.BLOCKER => SoftwareQualitySeverity.Blocker,
-                _ => throw new ArgumentOutOfRangeException(nameof(impactSeverity), impactSeverity, SLCoreStrings.ModelExtensions_UnexpectedValue),
-            };
-        }
+            ImpactSeverity.INFO => SoftwareQualitySeverity.Info,
+            ImpactSeverity.LOW => SoftwareQualitySeverity.Low,
+            ImpactSeverity.MEDIUM => SoftwareQualitySeverity.Medium,
+            ImpactSeverity.HIGH => SoftwareQualitySeverity.High,
+            ImpactSeverity.BLOCKER => SoftwareQualitySeverity.Blocker,
+            _ => throw new ArgumentOutOfRangeException(nameof(impactSeverity), impactSeverity, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
 
-        public static HotspotPriority? GetHotspotPriority(this VulnerabilityProbability? vulnerabilityProbability)
+    public static HotspotPriority? GetHotspotPriority(this VulnerabilityProbability? vulnerabilityProbability) =>
+        vulnerabilityProbability switch
         {
-            return vulnerabilityProbability switch
-            {
-                null => null,
-                VulnerabilityProbability.HIGH => HotspotPriority.High,
-                VulnerabilityProbability.MEDIUM => HotspotPriority.Medium,
-                VulnerabilityProbability.LOW => HotspotPriority.Low,
-                _ => throw new ArgumentOutOfRangeException(nameof(vulnerabilityProbability), vulnerabilityProbability, SLCoreStrings.ModelExtensions_UnexpectedValue),
-            };
-        }
-    }
+            null => null,
+            VulnerabilityProbability.HIGH => HotspotPriority.High,
+            VulnerabilityProbability.MEDIUM => HotspotPriority.Medium,
+            VulnerabilityProbability.LOW => HotspotPriority.Low,
+            _ => throw new ArgumentOutOfRangeException(nameof(vulnerabilityProbability), vulnerabilityProbability, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
+
+    public static SoftwareQuality ToSoftwareQuality(this Models.SoftwareQuality softwareQuality) =>
+        softwareQuality switch
+        {
+            Models.SoftwareQuality.MAINTAINABILITY => SoftwareQuality.Maintainability,
+            Models.SoftwareQuality.RELIABILITY => SoftwareQuality.Reliability,
+            Models.SoftwareQuality.SECURITY => SoftwareQuality.Security,
+            _ => throw new ArgumentOutOfRangeException(nameof(softwareQuality), softwareQuality, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
+
+    public static Impact ToImpact(this ImpactDto impact) => new(impact.softwareQuality.ToSoftwareQuality(), impact.impactSeverity.ToSoftwareQualitySeverity());
 }
