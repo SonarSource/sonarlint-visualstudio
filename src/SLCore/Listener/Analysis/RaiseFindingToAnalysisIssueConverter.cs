@@ -37,6 +37,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 
         private static AnalysisIssue CreateAnalysisIssue<T>(FileUri fileUri, T item) where T : RaisedFindingDto
         {
+            var id = item.id;
             var itemRuleKey = item.ruleKey;
             var analysisIssueSeverity = item.severityMode.Left?.severity.ToAnalysisIssueSeverity(); 
             var analysisIssueType = item.severityMode.Left?.type.ToAnalysisIssueType();
@@ -48,7 +49,8 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 
             if (item is RaisedHotspotDto raisedHotspotDto)
             {
-                return new AnalysisHotspotIssue(itemRuleKey,
+                return new AnalysisHotspotIssue(id,
+                    itemRuleKey,
                     analysisIssueSeverity,
                     analysisIssueType,
                     highestSoftwareQualitySeverity,
@@ -59,7 +61,8 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
                     raisedHotspotDto.vulnerabilityProbability.GetHotspotPriority());
             }
 
-            return new AnalysisIssue(itemRuleKey,
+            return new AnalysisIssue(id,
+                itemRuleKey,
                 analysisIssueSeverity,
                 analysisIssueType,
                 highestSoftwareQualitySeverity,
