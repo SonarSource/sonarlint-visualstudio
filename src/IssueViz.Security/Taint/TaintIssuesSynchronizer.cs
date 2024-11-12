@@ -99,7 +99,7 @@ internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
             var taintsResponse = await taintService.ListAllAsync(new ListAllTaintsParams(configurationScope.Id, true));
             logger.WriteLine(TaintResources.Synchronizer_NumberOfServerIssues, taintsResponse.taintVulnerabilities.Count);
 
-            taintStore.Set(taintsResponse.taintVulnerabilities.Select(x => converter.Convert(x, configurationScope.RootPath)), configurationScope.Id);
+            taintStore.Set(taintsResponse.taintVulnerabilities.Select(x => converter.Convert(x, configurationScope.RootPath)).ToArray(), configurationScope.Id);
 
             HandleUIContextUpdate(taintsResponse);
         }

@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         /// Removes all existing visualizations and initializes the store to the given collection.
         /// Can be called multiple times.
         /// </summary>
-        void Set(IEnumerable<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope);
+        void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope);
 
         string ConfigurationScope { get; }
 
@@ -122,18 +122,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
         }
 
-        public void Set(IEnumerable<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
+        public void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
         {
             if (issueVisualizations == null)
             {
                 throw new ArgumentNullException(nameof(issueVisualizations));
             }
 
+            if (issueVisualizations.Count > 0 && newConfigurationScope == null)
+            {
+                throw new ArgumentNullException(nameof(newConfigurationScope));
+            }
+
             lock (locker)
             {
-                configurationScope = newConfigurationScope;
                 var oldIssues = taintVulnerabilities;
                 taintVulnerabilities = issueVisualizations.ToList();
+                configurationScope = newConfigurationScope;
 
                 var removedIssues = oldIssues.Except(taintVulnerabilities, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance).ToArray();
                 var addedIssues = taintVulnerabilities.Except(oldIssues, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance).ToArray();
