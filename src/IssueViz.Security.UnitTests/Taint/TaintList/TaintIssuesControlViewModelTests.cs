@@ -695,48 +695,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         [TestMethod]
-        public void AnalysisInformation_NoAnalysisInformation_Null()
-        {
-            var store = new Mock<ITaintStore>();
-            SetupAnalysisInformation(store, null);
-
-            var testSubject = CreateTestSubject(store: store);
-
-            testSubject.AnalysisInformation.Should().BeNull();
-        }
-
-        [TestMethod]
-        public void AnalysisInformation_HasAnalysisInformation_PropertySet()
-        {
-            var store = new Mock<ITaintStore>();
-            var analysisInformation = new AnalysisInformation("some branch", default);
-            SetupAnalysisInformation(store, analysisInformation);
-
-            var testSubject = CreateTestSubject(store: store);
-
-            testSubject.AnalysisInformation.Should().BeSameAs(analysisInformation);
-        }
-
-        [TestMethod]
-        public void AnalysisInformation_IssuesChanged_RaisesPropertyChanged()
-        {
-            var store = new Mock<ITaintStore>();
-            var testSubject = CreateTestSubject(store: store);
-
-            var eventHandler = new Mock<PropertyChangedEventHandler>();
-            testSubject.PropertyChanged += eventHandler.Object;
-
-            var analysisInformation = new AnalysisInformation("some branch", default);
-
-            SetupAnalysisInformation(store, analysisInformation);
-            RaiseStoreIssuesChangedEvent(store);
-
-            VerifyPropertyChangedWasRaised(eventHandler, nameof(testSubject.AnalysisInformation));
-
-            testSubject.AnalysisInformation.Should().BeSameAs(analysisInformation);
-        }
-
-        [TestMethod]
         [DataRow(null, ServerType.SonarCloud, nameof(ServerType.SonarCloud), true)]
         [DataRow(null, null, "", false)]
         [DataRow(ServerType.SonarCloud, null, "", true)]
