@@ -87,11 +87,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Taint] Unable to fetch taint vulnerabilities: a connection to the server is not yet established..
+        ///   Looks up a localized string similar to [Taint] Unable to fetch taint vulnerabilities: SonarLint Core backend is not available..
         /// </summary>
-        internal static string Synchronizer_ServerNotConnected {
+        internal static string Synchronizer_SLCoreNotReady {
             get {
-                return ResourceManager.GetString("Synchronizer_ServerNotConnected", resourceCulture);
+                return ResourceManager.GetString("Synchronizer_SLCoreNotReady", resourceCulture);
             }
         }
         

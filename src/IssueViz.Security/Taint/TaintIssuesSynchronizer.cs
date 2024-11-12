@@ -85,13 +85,15 @@ internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
     {
         try
         {
-            if (IsStandalone(configurationScope) || !slCoreServiceProvider.TryGetTransientService(out ITaintVulnerabilityTrackingSlCoreService taintService))
+            if (!IsConnectedModeConfigScope(configurationScope)
+                || !IsConfigScopeReady(configurationScope)
+                || !TryGetSLCoreService(out var taintService))
             {
                 HandleNoTaintIssues();
                 return;
             }
 
-            if (!IsConfigScopeReady(configurationScope) || IsAlreadyInitializedForConfigScope(configurationScope))
+            if (IsAlreadyInitializedForConfigScope(configurationScope))
             {
                 return;
             }
@@ -101,7 +103,7 @@ internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
 
             taintStore.Set(taintsResponse.taintVulnerabilities.Select(x => converter.Convert(x, configurationScope.RootPath)).ToArray(), configurationScope.Id);
 
-            HandleUIContextUpdate(taintsResponse);
+            HandleUIContextUpdate(taintsResponse.taintVulnerabilities.Count);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
@@ -110,19 +112,39 @@ internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
         }
     }
 
-    private static bool IsConfigScopeReady(ConfigurationScope configurationScope) => configurationScope.RootPath is not null;
-
-    private bool IsAlreadyInitializedForConfigScope(ConfigurationScope configurationScope) => taintStore.ConfigurationScope == configurationScope.Id;
-
-    private void HandleUIContextUpdate(ListAllTaintsResponse taintsResponse)
+    private bool TryGetSLCoreService(out ITaintVulnerabilityTrackingSlCoreService taintService)
     {
-        var hasTaintIssues = taintsResponse.taintVulnerabilities.Count > 0;
-
-        if (!hasTaintIssues)
+        var result = slCoreServiceProvider.TryGetTransientService(out taintService);
+        if (!result)
         {
-            UpdateTaintIssuesUIContext(false);
+            logger.WriteLine(TaintResources.Synchronizer_SLCoreNotReady);
         }
-        else
+        return result;
+    }
+
+    private bool IsConfigScopeReady(ConfigurationScope configurationScope)
+    {
+        var isReady = configurationScope.RootPath is not null;
+        if (!isReady)
+        {
+            logger.LogVerbose("Configuration scope root hasn't been initialized.");
+        }
+        return isReady;
+    }
+
+    private bool IsAlreadyInitializedForConfigScope(ConfigurationScope configurationScope)
+    {
+        var isAlreadyInitialized = taintStore.ConfigurationScope == configurationScope.Id;
+        if (!isAlreadyInitialized)
+        {
+            logger.LogVerbose("Taint store has already been initialized for current configuration scope");
+        }
+        return isAlreadyInitialized;
+    }
+
+    private void HandleUIContextUpdate(int taintsCount)
+    {
+        if (taintsCount > 0)
         {
             UpdateTaintIssuesUIContext(true);
 
@@ -131,17 +153,21 @@ internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
             // for more information.
             toolWindowService.EnsureToolWindowExists(TaintToolWindow.ToolWindowId);
         }
+        else
+        {
+            UpdateTaintIssuesUIContext(false);
+        }
     }
 
-    private bool IsStandalone(ConfigurationScope configurationScope)
+    private bool IsConnectedModeConfigScope(ConfigurationScope configurationScope)
     {
         if (configurationScope is { SonarProjectId: not null })
         {
-            return false;
+            return true;
         }
 
         logger.WriteLine(TaintResources.Synchronizer_NotInConnectedMode);
-        return true;
+        return false;
     }
 
     private void HandleNoTaintIssues()
