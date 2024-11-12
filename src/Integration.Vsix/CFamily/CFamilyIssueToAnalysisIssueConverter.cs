@@ -197,6 +197,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             return new AnalysisIssue
             (
+                id: null, // until CFamily is migrated to SlCore, its ID will be null 
                 ruleKey: sqLanguage + ":" + cFamilyIssue.RuleKey,
                 severity: Convert(defaultSeverity),
                 type: Convert(defaultType),
