@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         private static readonly IReadOnlyList<IQuickFix> EmptyFixes = [];
 
         public AnalysisIssue(
-            Guid id,
+            Guid? id,
             string ruleKey,
             AnalysisIssueSeverity? severity,
             AnalysisIssueType? type,
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             RuleDescriptionContextKey = context;
         }
 
-        public Guid Id { get; }
+        public Guid? Id { get; }
 
         public string RuleKey { get; }
 

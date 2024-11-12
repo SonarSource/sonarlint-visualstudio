@@ -22,8 +22,6 @@ namespace SonarLint.VisualStudio.Core.Analysis
 {
     public interface IAnalysisIssue : IAnalysisIssueBase
     {
-        Guid Id { get; }
-
         AnalysisIssueSeverity? Severity { get; }
         
         SoftwareQualitySeverity? HighestSoftwareQualitySeverity { get; }
@@ -40,6 +38,11 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
     public interface IAnalysisIssueBase
     {
+        /// <summary>
+        /// The id of the issue that comes from SlCore 
+        /// </summary>
+        Guid? Id { get; }
+
         string RuleKey { get; }
 
         IReadOnlyList<IAnalysisIssueFlow> Flows { get; }

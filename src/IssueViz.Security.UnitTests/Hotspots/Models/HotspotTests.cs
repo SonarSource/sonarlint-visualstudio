@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         [TestMethod]
         public void Ctor_NullLocation_ArgumentNullException()
         {
-            Action act = () => new Hotspot(
+            Action act = () => new Hotspot(id: null,
                 "hotspot key",
                 "server-path",
                 primaryLocation: null,
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         [TestMethod]
         public void Ctor_PropertiesSet()
         {
-            var hotspot = new Hotspot(
+            var hotspot = new Hotspot(id: null,
                 "hotspot key",
                 "server-path",
                 primaryLocation: new AnalysisIssueLocation(
@@ -84,7 +84,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         public void Ctor_NoFlows_EmptyFlows()
         {
             IReadOnlyList<IAnalysisIssueFlow> flows = null;
-            var hotspot = new Hotspot("hotspot key",
+            var hotspot = new Hotspot(id: null,
+                "hotspot key",
                 "server-path",
                 new AnalysisIssueLocation(
                     "message",
@@ -105,7 +106,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         public void Ctor_HasFlows_CorrectFlows()
         {
             var flows = new[] { Mock.Of<IAnalysisIssueFlow>(), Mock.Of<IAnalysisIssueFlow>() };
-            var hotspot = new Hotspot("hotspot key",
+            var hotspot = new Hotspot(id: null,
+                "hotspot key",
                 "server-path",
                 new AnalysisIssueLocation(
                     "message",
