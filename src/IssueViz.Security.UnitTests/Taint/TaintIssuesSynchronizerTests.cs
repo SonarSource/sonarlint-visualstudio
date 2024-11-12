@@ -138,7 +138,7 @@ public class TaintIssuesSynchronizerTests
 
         await act.Should().NotThrowAsync();
         CheckStoreIsCleared();
-        // CheckUIContextIsCleared(cookie);
+        CheckUIContextIsCleared(cookie);
         logger.AssertPartialOutputStringExists("this is a test");
         asyncLockReleaser.Received().Dispose();
     }
@@ -163,7 +163,7 @@ public class TaintIssuesSynchronizerTests
         await testSubject.UpdateTaintVulnerabilitiesAsync(None);
 
         CheckStoreIsCleared();
-        // CheckUIContextIsCleared(cookie);
+        CheckUIContextIsCleared(cookie);
         logger.AssertPartialOutputStringExists("not in connected mode");
         slCoreServiceProvider.ReceivedCalls().Should().BeEmpty();
         converter.ReceivedCalls().Should().BeEmpty();
@@ -179,7 +179,7 @@ public class TaintIssuesSynchronizerTests
         await testSubject.UpdateTaintVulnerabilitiesAsync(Standalone);
 
         CheckStoreIsCleared();
-        // CheckUIContextIsCleared(cookie);
+        CheckUIContextIsCleared(cookie);
         logger.AssertPartialOutputStringExists("not in connected mode");
         slCoreServiceProvider.ReceivedCalls().Should().BeEmpty();
         toolWindowService.ReceivedCalls().Should().BeEmpty();
@@ -194,7 +194,7 @@ public class TaintIssuesSynchronizerTests
         await testSubject.UpdateTaintVulnerabilitiesAsync(ConnectedWithUninitializedRoot);
 
         CheckStoreIsCleared();
-        // CheckUIContextIsCleared(cookie);
+        CheckUIContextIsCleared(cookie);
         slCoreServiceProvider.ReceivedCalls().Should().BeEmpty();
         toolWindowService.ReceivedCalls().Should().BeEmpty();
     }
@@ -209,7 +209,7 @@ public class TaintIssuesSynchronizerTests
         await testSubject.UpdateTaintVulnerabilitiesAsync(ConnectedReady);
 
         CheckStoreIsCleared();
-        // CheckUIContextIsCleared(cookie);
+        CheckUIContextIsCleared(cookie);
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
@@ -228,7 +228,6 @@ public class TaintIssuesSynchronizerTests
 
         await testSubject.UpdateTaintVulnerabilitiesAsync(ConnectedReady);
 
-        // todo log
         taintStore.DidNotReceiveWithAnyArgs().Set(default, default);
         taintService.ReceivedCalls().Should().BeEmpty();
     }
@@ -242,7 +241,7 @@ public class TaintIssuesSynchronizerTests
 
         await testSubject.UpdateTaintVulnerabilitiesAsync(ConnectedReady);
 
-        // CheckUIContextIsCleared(cookie);
+        CheckUIContextIsCleared(cookie);
         converter.DidNotReceiveWithAnyArgs().Convert(default, default);
         taintStore.Received(1).Set(Arg.Is<IReadOnlyCollection<IAnalysisIssueVisualization>>(x => x.SequenceEqual(Array.Empty<IAnalysisIssueVisualization>())), ConnectedReady.Id);
         toolWindowService.ReceivedCalls().Should().BeEmpty();
@@ -264,7 +263,7 @@ public class TaintIssuesSynchronizerTests
 
         await testSubject.UpdateTaintVulnerabilitiesAsync(ConnectedReady);
 
-        // CheckUIContextIsSet(cookie);
+        CheckUIContextIsSet(cookie);
         converter.ReceivedWithAnyArgs(3).Convert(default, default);
         taintStore.Received(1).Set(Arg.Is<IReadOnlyCollection<IAnalysisIssueVisualization>>(x => x.SequenceEqual(taintVisualizations)), ConnectedReady.Id);
         CheckToolWindowServiceIsCalled();
@@ -306,7 +305,7 @@ public class TaintIssuesSynchronizerTests
         var serviceOp = Substitute.For<IVsUIServiceOperation>();
 
         // Set up the mock to invoke the operation with the supplied VS service
-        serviceOp.When(x => x.Execute<SVsShellMonitorSelection, IVsMonitorSelection>(It.IsAny<Action<IVsMonitorSelection>>()))
+        serviceOp.When(x => x.Execute<SVsShellMonitorSelection, IVsMonitorSelection>(Arg.Any<Action<IVsMonitorSelection>>()))
             .Do(call => call.Arg<Action<IVsMonitorSelection>>().Invoke(svcToPassToCallback));
 
         return serviceOp;
