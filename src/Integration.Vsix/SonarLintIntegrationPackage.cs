@@ -43,8 +43,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     // Register the information needed to show the package in the Help/About dialog of VS.
     // NB: The version is automatically updated by the ChangeVersion.proj
     [InstalledProductRegistration("#110", "#112", "8.7.0.0", IconResourceID = 400)]
-    [ProvideOptionPage(typeof(GeneralOptionsDialogPage), "SonarLint", GeneralOptionsDialogPage.PageName, 901, 902, false, 903)]
-    [ProvideOptionPage(typeof(OtherOptionsDialogPage), "SonarLint", OtherOptionsDialogPage.PageName, 901, 904, true)]
+    [ProvideOptionPage(typeof(GeneralOptionsDialogPage), "SonarQube for Visual Studio", GeneralOptionsDialogPage.PageName, 901, 902, false, 903)]
+    [ProvideOptionPage(typeof(OtherOptionsDialogPage), "SonarQube for Visual Studio", OtherOptionsDialogPage.PageName, 901, 904, true)]
     [ProvideUIContextRule(CommonGuids.PackageActivation, "SonarLintIntegrationPackageActivation",
          "(HasCSProj | HasVBProj)",
         new string[] { "HasCSProj",
@@ -86,8 +86,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger.WriteLine(Strings.SL_Initializing);
 
                 IServiceProvider serviceProvider = this;
-             
-             
+
+
                 this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
 
                 this.commandManager.Initialize(
