@@ -18,224 +18,74 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
+using System.IO;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
-using SonarQube.Client.Models;
-using SonarQube.Client.Models.ServerSentEvents.ClientContract;
-using ITaintIssue = SonarQube.Client.Models.ServerSentEvents.ClientContract.ITaintIssue;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
+using SonarLint.VisualStudio.SLCore.Common.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint;
+
+internal interface ITaintIssueToIssueVisualizationConverter
 {
-    internal interface ITaintIssueToIssueVisualizationConverter
-    {
-        IAnalysisIssueVisualization Convert(SonarQubeIssue sonarQubeIssue);
+    IAnalysisIssueVisualization Convert(TaintVulnerabilityDto slcoreTaintIssue, string configScopeRoot);
+}
 
-        IAnalysisIssueVisualization Convert(ITaintIssue sonarQubeTaintIssue);
+[Export(typeof(ITaintIssueToIssueVisualizationConverter))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal class TaintIssueToIssueVisualizationConverter(IAnalysisIssueVisualizationConverter issueVisualizationConverter)
+    : ITaintIssueToIssueVisualizationConverter
+{
+    public IAnalysisIssueVisualization Convert(TaintVulnerabilityDto slcoreTaintIssue, string configScopeRoot)
+    {
+        var analysisIssue = ConvertToAnalysisIssue(slcoreTaintIssue, configScopeRoot);
+        var issueViz = CreateAnalysisIssueVisualization(analysisIssue);
+        issueViz.IsSuppressed = slcoreTaintIssue.resolved;
+
+        return issueViz;
     }
 
-    [Export(typeof(ITaintIssueToIssueVisualizationConverter))]
-    internal class TaintIssueToIssueVisualizationConverter : ITaintIssueToIssueVisualizationConverter
-    {
-        private readonly IAnalysisIssueVisualizationConverter issueVisualizationConverter;
-        private readonly IAbsoluteFilePathLocator absoluteFilePathLocator;
+    private static IAnalysisIssueBase ConvertToAnalysisIssue(TaintVulnerabilityDto slcoreTaintIssue, string configScopeRoot) =>
+        new TaintIssue(
+            slcoreTaintIssue.sonarServerKey,
+            slcoreTaintIssue.ruleKey,
+            CreateLocation(slcoreTaintIssue.message, slcoreTaintIssue.ideFilePath, configScopeRoot, slcoreTaintIssue.textRange),
+            slcoreTaintIssue.severityMode.Left?.severity.ToAnalysisIssueSeverity(),
+            slcoreTaintIssue.severityMode.Right?.impacts.Select(x => x?.impactSeverity.ToSoftwareQualitySeverity()).Max(),
+            slcoreTaintIssue.introductionDate,
+            slcoreTaintIssue
+                .flows
+                .Select(taintFlow =>
+                    new AnalysisIssueFlow(
+                        taintFlow
+                            .locations
+                            .Select(taintLocation =>
+                                CreateLocation(
+                                    taintLocation.message,
+                                    taintLocation.filePath,
+                                    configScopeRoot,
+                                    taintLocation.textRange))
+                            .ToArray()))
+                .ToArray(),
+            slcoreTaintIssue.ruleDescriptionContextKey);
 
-        [ImportingConstructor]
-        public TaintIssueToIssueVisualizationConverter(IAnalysisIssueVisualizationConverter issueVisualizationConverter, IAbsoluteFilePathLocator absoluteFilePathLocator)
-        {
-            this.issueVisualizationConverter = issueVisualizationConverter;
-            this.absoluteFilePathLocator = absoluteFilePathLocator;
-        }
+    private static AnalysisIssueLocation CreateLocation(
+        string message,
+        string filePath,
+        string configScopeRoot,
+        TextRangeWithHashDto textRange) =>
+        new(message,
+            Path.Combine(configScopeRoot, filePath),
+            new TextRange(textRange.startLine,
+                textRange.endLine,
+                textRange.startLineOffset,
+                textRange.endLineOffset,
+                textRange.hash));
 
-        public IAnalysisIssueVisualization Convert(SonarQubeIssue sonarQubeIssue)
-        {
-            var analysisIssue = ConvertToAnalysisIssue(sonarQubeIssue);
-            var issueViz = CreateAnalysisIssueVisualization(analysisIssue);
-            issueViz.IsSuppressed = sonarQubeIssue.IsResolved;
-
-            return issueViz;
-        }
-
-        public IAnalysisIssueVisualization Convert(ITaintIssue sonarQubeTaintIssue)
-        {
-            var analysisIssue = ConvertToAnalysisIssue(sonarQubeTaintIssue);
-
-            return CreateAnalysisIssueVisualization(analysisIssue);
-        }
-
-        private IAnalysisIssueVisualization CreateAnalysisIssueVisualization(IAnalysisIssueBase analysisIssue)
-        {
-            var issueViz = issueVisualizationConverter.Convert(analysisIssue);
-
-            CalculateLocalFilePaths(issueViz);
-
-            return issueViz;
-        }
-
-        private void CalculateLocalFilePaths(IAnalysisIssueVisualization issueViz)
-        {
-            var allLocations = issueViz.GetAllLocations();
-
-            foreach (var location in allLocations)
-            {
-                location.CurrentFilePath = absoluteFilePathLocator.Locate(location.Location.FilePath);
-            }
-        }
-
-        private static IAnalysisIssueBase ConvertToAnalysisIssue(SonarQubeIssue sonarQubeIssue)
-        {
-            if (sonarQubeIssue.TextRange == null)
-            {
-                throw new ArgumentNullException(nameof(sonarQubeIssue.TextRange));
-            }
-
-            return new TaintIssue(
-                sonarQubeIssue.IssueKey,
-                sonarQubeIssue.RuleId,
-                primaryLocation: new AnalysisIssueLocation(
-                    sonarQubeIssue.Message,
-                    sonarQubeIssue.FilePath,
-                    textRange: new TextRange(
-                        sonarQubeIssue.TextRange.StartLine,
-                        sonarQubeIssue.TextRange.EndLine,
-                        sonarQubeIssue.TextRange.StartOffset,
-                        sonarQubeIssue.TextRange.EndOffset,
-                        sonarQubeIssue.Hash)),
-                Convert(sonarQubeIssue.Severity),
-                ConvertToHighestSeverity(sonarQubeIssue.DefaultImpacts),
-                sonarQubeIssue.CreationTimestamp,
-                sonarQubeIssue.LastUpdateTimestamp,
-                Convert(sonarQubeIssue.Flows),
-                sonarQubeIssue.Context
-            );
-        }
-
-        private static IAnalysisIssueBase ConvertToAnalysisIssue(ITaintIssue sonarQubeTaintIssue)
-        {
-            return new TaintIssue(
-                sonarQubeTaintIssue.Key,
-                sonarQubeTaintIssue.RuleKey,
-                primaryLocation: new AnalysisIssueLocation(
-                    sonarQubeTaintIssue.MainLocation.Message,
-                    sonarQubeTaintIssue.MainLocation.FilePath,
-                    textRange: new TextRange(
-                        sonarQubeTaintIssue.MainLocation.TextRange.StartLine,
-                        sonarQubeTaintIssue.MainLocation.TextRange.EndLine,
-                        sonarQubeTaintIssue.MainLocation.TextRange.StartLineOffset,
-                        sonarQubeTaintIssue.MainLocation.TextRange.EndLineOffset,
-                        sonarQubeTaintIssue.MainLocation.TextRange.Hash)),
-                Convert(sonarQubeTaintIssue.Severity),
-                ConvertToHighestSeverity(sonarQubeTaintIssue.DefaultImpacts),
-                sonarQubeTaintIssue.CreationDate,
-                default,
-                Convert(sonarQubeTaintIssue.Flows),
-                sonarQubeTaintIssue.Context
-            );
-        }
-
-        private static IReadOnlyList<IAnalysisIssueFlow> Convert(IEnumerable<IssueFlow> flows) =>
-            flows.Select(x => new AnalysisIssueFlow(Convert(x.Locations))).ToArray();
-
-        private static IReadOnlyList<IAnalysisIssueFlow> Convert(IEnumerable<IFlow> flows) =>
-            flows.Select(x => new AnalysisIssueFlow(Convert(x.Locations))).ToArray();
-
-        private static IReadOnlyList<IAnalysisIssueLocation> Convert(IEnumerable<IssueLocation> locations) =>
-            locations.Reverse().Select(location =>
-            {
-                if (location.TextRange == null)
-                {
-                    throw new ArgumentNullException(nameof(location.TextRange));
-                }
-
-                return new AnalysisIssueLocation(location.Message,
-                    location.FilePath,
-                    textRange: new TextRange(
-                        location.TextRange.StartLine,
-                        location.TextRange.EndLine,
-                        location.TextRange.StartOffset,
-                        location.TextRange.EndOffset,
-                        null));
-            }).ToArray();
-
-        private static IReadOnlyList<IAnalysisIssueLocation> Convert(IEnumerable<ILocation> locations) =>
-            locations.Reverse().Select(location =>
-            {
-                if (location.TextRange == null)
-                {
-                    throw new ArgumentNullException(nameof(location.TextRange));
-                }
-
-                return new AnalysisIssueLocation(location.Message,
-                    location.FilePath,
-                    textRange: new TextRange(
-                        location.TextRange.StartLine,
-                        location.TextRange.EndLine,
-                        location.TextRange.StartLineOffset,
-                        location.TextRange.EndLineOffset,
-                        location.TextRange.Hash));
-            }).ToArray();
-
-        /// <summary>
-        /// Converts from the sonarqube issue severity enum to the standard AnalysisIssueSeverity
-        /// </summary>
-        internal /* for testing */ static AnalysisIssueSeverity Convert(SonarQubeIssueSeverity issueSeverity)
-        {
-            switch (issueSeverity)
-            {
-                case SonarQubeIssueSeverity.Blocker:
-                    return AnalysisIssueSeverity.Blocker;
-
-                case SonarQubeIssueSeverity.Critical:
-                    return AnalysisIssueSeverity.Critical;
-
-                case SonarQubeIssueSeverity.Info:
-                    return AnalysisIssueSeverity.Info;
-
-                case SonarQubeIssueSeverity.Major:
-                    return AnalysisIssueSeverity.Major;
-
-                case SonarQubeIssueSeverity.Minor:
-                    return AnalysisIssueSeverity.Minor;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(issueSeverity));
-            }
-        }
-
-        internal /* for testing */ static SoftwareQualitySeverity? ConvertToHighestSeverity(
-            Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> sonarQubeSoftwareQualitySeverities)
-        {
-            if (sonarQubeSoftwareQualitySeverities == null || sonarQubeSoftwareQualitySeverities.Count == 0)
-            {
-                return null;
-            }
-
-            return sonarQubeSoftwareQualitySeverities
-                .Select(kvp => kvp.Value)
-                .Select(sqSeverity =>
-                {
-                    switch (sqSeverity)
-                    {
-                        case SonarQubeSoftwareQualitySeverity.Info:
-                            return SoftwareQualitySeverity.Info;
-                        case SonarQubeSoftwareQualitySeverity.Low:
-                            return SoftwareQualitySeverity.Low;
-                        case SonarQubeSoftwareQualitySeverity.Medium:
-                            return SoftwareQualitySeverity.Medium;
-                        case SonarQubeSoftwareQualitySeverity.High:
-                            return SoftwareQualitySeverity.High;
-                        case SonarQubeSoftwareQualitySeverity.Blocker:
-                            return SoftwareQualitySeverity.Blocker;
-                        default:
-                            throw new ArgumentOutOfRangeException(nameof(sqSeverity));
-                    }
-                })
-                .Max();
-        }
-    }
+    private IAnalysisIssueVisualization CreateAnalysisIssueVisualization(IAnalysisIssueBase analysisIssue) =>
+        issueVisualizationConverter.Convert(analysisIssue);
 }

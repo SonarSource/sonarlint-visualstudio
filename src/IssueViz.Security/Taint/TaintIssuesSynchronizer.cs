@@ -79,50 +79,52 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         public async Task SynchronizeWithServer()
         {
-            try
-            {
-                var bindingConfiguration = configurationProvider.GetConfiguration();
+            return; // todo https://sonarsource.atlassian.net/browse/SLVS-1592
 
-                if (IsStandalone(bindingConfiguration) || !IsConnected(out var serverInfo) || !IsFeatureSupported(serverInfo))
-                {
-                    HandleNoTaintIssues();
-                    return;
-                }
-
-                var projectKey = bindingConfiguration.Project.ServerProjectKey;
-                var serverBranch = await serverBranchProvider.GetServerBranchNameAsync(CancellationToken.None);
-
-                var taintVulnerabilities = await sonarQubeService.GetTaintVulnerabilitiesAsync(projectKey,
-                    serverBranch,
-                    CancellationToken.None);
-
-                logger.WriteLine(TaintResources.Synchronizer_NumberOfServerIssues, taintVulnerabilities.Count);
-
-                var analysisInformation = await GetAnalysisInformation(projectKey, serverBranch);
-                var taintIssueVizs = taintVulnerabilities.Select(converter.Convert).ToArray();
-                taintStore.Set(taintIssueVizs, analysisInformation);
-
-                var hasTaintIssues = taintVulnerabilities.Count > 0;
-
-                if (!hasTaintIssues)
-                {
-                    UpdateTaintIssuesUIContext(false);
-                }
-                else
-                {
-                    UpdateTaintIssuesUIContext(true);
-
-                    // We need the tool window content to exist so the issues are filtered and the
-                    // tool window caption is updated. See the "EnsureToolWindowExists" method comment
-                    // for more information.
-                    toolWindowService.EnsureToolWindowExists(TaintToolWindow.ToolWindowId);
-                }
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(TaintResources.Synchronizer_Failure, ex);
-                HandleNoTaintIssues();
-            }
+            // try
+            // {
+            //     var bindingConfiguration = configurationProvider.GetConfiguration();
+            //
+            //     if (IsStandalone(bindingConfiguration) || !IsConnected(out var serverInfo) || !IsFeatureSupported(serverInfo))
+            //     {
+            //         HandleNoTaintIssues();
+            //         return;
+            //     }
+            //
+            //     var projectKey = bindingConfiguration.Project.ServerProjectKey;
+            //     var serverBranch = await serverBranchProvider.GetServerBranchNameAsync(CancellationToken.None);
+            //
+            //     var taintVulnerabilities = await sonarQubeService.GetTaintVulnerabilitiesAsync(projectKey,
+            //         serverBranch,
+            //         CancellationToken.None);
+            //
+            //     logger.WriteLine(TaintResources.Synchronizer_NumberOfServerIssues, taintVulnerabilities.Count);
+            //
+            //     var analysisInformation = await GetAnalysisInformation(projectKey, serverBranch);
+            //     var taintIssueVizs = taintVulnerabilities.Select(converter.Convert).ToArray();
+            //     taintStore.Set(taintIssueVizs, analysisInformation);
+            //
+            //     var hasTaintIssues = taintVulnerabilities.Count > 0;
+            //
+            //     if (!hasTaintIssues)
+            //     {
+            //         UpdateTaintIssuesUIContext(false);
+            //     }
+            //     else
+            //     {
+            //         UpdateTaintIssuesUIContext(true);
+            //
+            //         // We need the tool window content to exist so the issues are filtered and the
+            //         // tool window caption is updated. See the "EnsureToolWindowExists" method comment
+            //         // for more information.
+            //         toolWindowService.EnsureToolWindowExists(TaintToolWindow.ToolWindowId);
+            //     }
+            // }
+            // catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            // {
+            //     logger.WriteLine(TaintResources.Synchronizer_Failure, ex);
+            //     HandleNoTaintIssues();
+            // }
         }
 
         private bool IsStandalone(BindingConfiguration bindingConfiguration)

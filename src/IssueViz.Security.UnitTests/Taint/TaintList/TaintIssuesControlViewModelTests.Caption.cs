@@ -27,6 +27,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
@@ -259,6 +260,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 var issue = new Mock<ITaintIssue>();
 
                 var issueViz = new Mock<IAnalysisIssueVisualization>();
+                issue.Setup(x => x.Severity).Returns(AnalysisIssueSeverity.Major);
                 issueViz.Setup(x => x.CurrentFilePath).Returns(filePath);
                 issueViz.Setup(x => x.Issue).Returns(issue.Object);
                 issueViz.Setup(x => x.Flows).Returns(Array.Empty<IAnalysisIssueFlowVisualization>());
