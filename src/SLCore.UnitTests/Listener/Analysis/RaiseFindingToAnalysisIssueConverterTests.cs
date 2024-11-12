@@ -22,6 +22,8 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
+using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using CleanCodeAttribute = SonarLint.VisualStudio.SLCore.Common.Models.CleanCodeAttribute;
 using SoftwareQuality = SonarLint.VisualStudio.SLCore.Common.Models.SoftwareQuality;
 
@@ -65,35 +67,29 @@ public class RaiseFindingToAnalysisIssueConverterTests
         var dateTimeOffset = DateTimeOffset.Now;
         var issue1 = new RaisedIssueDto(
             IssueWithFlowsAndQuickFixesUseCase.Issue1Id, 
-            "serverKey1", 
-            "ruleKey1", 
-            "PrimaryMessage1", 
-            IssueSeverity.MAJOR, 
-            RuleType.CODE_SMELL, 
-            CleanCodeAttribute.EFFICIENT,
-            [],
-            dateTimeOffset, 
-            true, 
-            false, 
-            new TextRangeDto(1, 2, 3, 4), 
-            null, 
-            null, 
-            "context1");
+            "serverKey1",
+            "ruleKey1",
+            "PrimaryMessage1",
+            dateTimeOffset,
+            true,
+            false,
+            new TextRangeDto(1, 2, 3, 4),
+            null,
+            null,
+            "context1",
+            new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
         var issue2 = new RaisedIssueDto(IssueWithFlowsAndQuickFixesUseCase.Issue2Id,
             "serverKey2",
             "ruleKey2",
             "PrimaryMessage2",
-            IssueSeverity.CRITICAL,
-            RuleType.BUG,
-            CleanCodeAttribute.LOGICAL,
-            IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts,
             dateTimeOffset,
             true,
             false,
             new TextRangeDto(61, 62, 63, 64),
             [IssueWithFlowsAndQuickFixesUseCase.Issue2Flow1, IssueWithFlowsAndQuickFixesUseCase.Issue2Flow2],
             [IssueWithFlowsAndQuickFixesUseCase.Issue2Fix1, IssueWithFlowsAndQuickFixesUseCase.Issue2Fix2],
-            "context2");
+            "context2",
+            new MQRModeDetails(CleanCodeAttribute.COMPLETE, IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts));
 
         var result = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedIssueDto> { issue1, issue2 }).ToList();
 
@@ -107,28 +103,21 @@ public class RaiseFindingToAnalysisIssueConverterTests
         var issue1 = new RaisedHotspotDto(IssueWithFlowsAndQuickFixesUseCase.Issue1Id,
             "serverKey1",
             "ruleKey1",
-            "PrimaryMessage1", 
-            IssueSeverity.MAJOR, 
-            RuleType.CODE_SMELL, 
-            CleanCodeAttribute.EFFICIENT,
-            [], 
-            dateTimeOffset, 
-            true, 
-            false, 
-            new TextRangeDto(1, 2, 3, 4), 
-            null, 
-            null, 
-            "context1", 
-            VulnerabilityProbability.HIGH, 
-            HotspotStatus.FIXED);
+            "PrimaryMessage1",
+            dateTimeOffset,
+            true,
+            false,
+            new TextRangeDto(1, 2, 3, 4),
+            null,
+            null,
+            "context1",
+            VulnerabilityProbability.HIGH,
+            HotspotStatus.FIXED,
+            new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
         var issue2 = new RaisedHotspotDto(IssueWithFlowsAndQuickFixesUseCase.Issue2Id,
             "serverKey2",
             "ruleKey2",
             "PrimaryMessage2",
-            IssueSeverity.CRITICAL,
-            RuleType.BUG,
-            CleanCodeAttribute.LOGICAL,
-            IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts,
             dateTimeOffset,
             true,
             false,
@@ -136,7 +125,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
             [IssueWithFlowsAndQuickFixesUseCase.Issue2Flow1, IssueWithFlowsAndQuickFixesUseCase.Issue2Flow2],
             [IssueWithFlowsAndQuickFixesUseCase.Issue2Fix1, IssueWithFlowsAndQuickFixesUseCase.Issue2Fix2],
             "context2", VulnerabilityProbability.HIGH,
-            HotspotStatus.FIXED);
+            HotspotStatus.FIXED,
+            new MQRModeDetails(CleanCodeAttribute.COMPLETE, IssueWithFlowsAndQuickFixesUseCase.Issue2Impacts));
 
         var result = testSubject.GetAnalysisIssues(new FileUri("C:\\IssueFile.cs"), new List<RaisedFindingDto> { issue1, issue2 }).ToList();
 
@@ -155,17 +145,14 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 default,
                 default,
-                default,
-                default,
-                default,
-                default,
                 new TextRangeDto(1,
                     2,
                     3,
                     4),
                 UnflattenedFlowsUseCase.UnflattenedFlows,
                 default,
-                default)
+                default,
+                new StandardModeDetails(default, default))
         });
 
         UnflattenedFlowsUseCase.VerifyFlattenedFlow(analysisIssues);
@@ -183,10 +170,6 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 default,
                 default,
-                default,
-                default,
-                default,
-                default,
                 new TextRangeDto(1,
                     2,
                     3,
@@ -195,7 +178,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 default,
                 VulnerabilityProbability.HIGH,
-                HotspotStatus.SAFE)
+                HotspotStatus.SAFE,
+                new StandardModeDetails(default, default))
         });
 
         UnflattenedFlowsUseCase.VerifyFlattenedFlow(analysisIssues);
@@ -209,11 +193,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
     {
         var analysisIssues = testSubject.GetAnalysisIssues(fileUri, new List<RaisedHotspotDto>
         {
-            new(Guid.Empty, 
-                default,
-                default,
-                default,
-                default,
+            new(Guid.Empty,
                 default,
                 default,
                 default,
@@ -228,7 +208,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 default,
                 vulnerabilityProbability,
-                HotspotStatus.SAFE)
+                HotspotStatus.SAFE,
+                new StandardModeDetails(default, default))
         });
 
         analysisIssues.Single().Should().BeOfType<AnalysisHotspotIssue>().Which.HotspotPriority.Should().Be(expectedHotspotPriority);
@@ -246,10 +227,6 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 default,
                 default,
-                default,
-                default,
-                default,
-                default,
                 new TextRangeDto(1,
                     2,
                     3,
@@ -258,7 +235,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
                 default,
                 default,
                 null,
-                HotspotStatus.SAFE)
+                HotspotStatus.SAFE,
+                new StandardModeDetails(default, default))
         });
 
         analysisIssues.Single().Should().BeOfType<AnalysisHotspotIssue>().Which.HotspotPriority.Should().BeNull();
@@ -301,7 +279,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
         internal static List<ImpactDto> Issue2Impacts => [Issue2Impact1, Issue2Impact2, Issue2Impact3];
         private static IssueLocationDto Issue2Flow1Location1 => new(new TextRangeDto(11, 12, 13, 14), "Flow1Location1Message", new FileUri("C:\\flowFile1.cs"));
         private static IssueLocationDto Issue2Flow1Location2 => new(new TextRangeDto(21, 22, 23, 24), "Flow1Location2Message", new FileUri("C:\\flowFile1.cs"));
-        internal static IssueFlowDto Issue2Flow1 => new ([Issue2Flow1Location1, Issue2Flow1Location2]);
+        internal static IssueFlowDto Issue2Flow1 => new([Issue2Flow1Location1, Issue2Flow1Location2]);
         private static IssueLocationDto Issue2Flow2Location1 => new(new TextRangeDto(31, 32, 33, 34), "Flow2Location1Message", new FileUri("C:\\flowFile2.cs"));
         private static IssueLocationDto Issue2Flow2Location2 => new(new TextRangeDto(41, 42, 43, 44), "Flow2Location2Message", new FileUri("C:\\flowFile2.cs"));
         internal static IssueFlowDto Issue2Flow2 => new([Issue2Flow2Location1, Issue2Flow2Location2]);
@@ -338,8 +316,8 @@ public class RaiseFindingToAnalysisIssueConverterTests
 
             result[1].Id.Should().Be(Issue2Id);
             result[1].RuleKey.Should().Be("ruleKey2");
-            result[1].Severity.Should().Be(AnalysisIssueSeverity.Critical);
-            result[1].Type.Should().Be(AnalysisIssueType.Bug);
+            result[1].Severity.Should().BeNull();
+            result[1].Type.Should().BeNull();
             result[1].HighestSoftwareQualitySeverity.Should().Be(SoftwareQualitySeverity.High);
             result[1].RuleDescriptionContextKey.Should().Be("context2");
 

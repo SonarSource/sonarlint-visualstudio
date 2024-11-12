@@ -26,6 +26,8 @@ using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 using SonarLint.VisualStudio.SLCore.Listeners.Implementation.Analysis;
+using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using CleanCodeAttribute = SonarLint.VisualStudio.SLCore.Common.Models.CleanCodeAttribute;
 using IssueSeverity = SonarLint.VisualStudio.SLCore.Common.Models.IssueSeverity;
 using SloopLanguage = SonarLint.VisualStudio.SLCore.Common.Models.Language;
@@ -299,7 +301,7 @@ public class RaisedFindingProcessorTests
 
     private TestFinding CreateTestFinding(string ruleKey)
     {
-        return new TestFinding(default, default, ruleKey, default, default, default, default, default, default, default, default, default, default, default, default);
+        return new TestFinding(default, default, ruleKey, default, default, default, default, default, default, default, default, default);
     }
 
     private static IAnalysisIssue CreateAnalysisIssue(string ruleKey)
@@ -314,30 +316,24 @@ public class RaisedFindingProcessorTests
         string serverKey,
         string ruleKey,
         string primaryMessage,
-        IssueSeverity severity,
-        RuleType type,
-        CleanCodeAttribute cleanCodeAttribute,
-        List<ImpactDto> impacts,
         DateTimeOffset introductionDate,
         bool isOnNewCode,
         bool resolved,
         TextRangeDto textRange,
         List<IssueFlowDto> flows,
         List<QuickFixDto> quickFixes,
-        string ruleDescriptionContextKey) :
+        string ruleDescriptionContextKey,
+        Either<StandardModeDetails, MQRModeDetails> severityMode) :
         RaisedFindingDto(id,
             serverKey,
             ruleKey,
             primaryMessage,
-            severity,
-            type,
-            cleanCodeAttribute,
-            impacts,
             introductionDate,
             isOnNewCode,
             resolved,
             textRange,
             flows,
             quickFixes,
-            ruleDescriptionContextKey);
+            ruleDescriptionContextKey,
+            severityMode);
 }

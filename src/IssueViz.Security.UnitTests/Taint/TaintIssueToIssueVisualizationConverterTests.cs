@@ -49,8 +49,7 @@ public class TaintIssueToIssueVisualizationConverterTests
             MefTestHelpers.CreateExport<IAnalysisIssueVisualizationConverter>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<TaintIssueToIssueVisualizationConverter>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<TaintIssueToIssueVisualizationConverter>();
 
     [TestMethod]
     public void Convert_IssueVizConverterCalledWithCorrectParameters_ReturnsConvertedIssueVizWithReversedLocations()
@@ -68,19 +67,19 @@ public class TaintIssueToIssueVisualizationConverterTests
             new StandardModeDetails(IssueSeverity.MINOR, RuleType.VULNERABILITY),
             [
                 new TaintFlowDto(
-                    [
-                        new TaintLocationDto(
-                            new TextRangeWithHashDto(5, 6, 7, 8, "hash2"),
-                            "message2",
-                            "file\\path\\2"),
-                        new TaintLocationDto(
-                            new TextRangeWithHashDto(9, 10, 11, 12, "hash3"),
-                            "message3",
-                            "file\\path\\3"),
-                    ]),
+                [
+                    new TaintFlowLocationDto(
+                        new TextRangeWithHashDto(5, 6, 7, 8, "hash2"),
+                        "message2",
+                        "file\\path\\2"),
+                    new TaintFlowLocationDto(
+                        new TextRangeWithHashDto(9, 10, 11, 12, "hash3"),
+                        "message3",
+                        "file\\path\\3")
+                ]),
                 new TaintFlowDto(
                 [
-                    new TaintLocationDto(
+                    new TaintFlowLocationDto(
                         new TextRangeWithHashDto(13, 14, 15, 16, "hash4"),
                         "message4",
                         "file\\path\\4")
@@ -91,7 +90,7 @@ public class TaintIssueToIssueVisualizationConverterTests
             false);
 
         var expectedConvertedIssueViz = CreateIssueViz();
-        issueVizConverter.Convert(Arg.Any<IAnalysisIssueBase>(), null)
+        issueVizConverter.Convert(Arg.Any<IAnalysisIssueBase>())
             .Returns(expectedConvertedIssueViz);
 
         var result = testSubject.Convert(taintDto, "C:\\root");
@@ -157,14 +156,14 @@ public class TaintIssueToIssueVisualizationConverterTests
     }
 
     [TestMethod]
-    public void StandardSeverity_InvalidSeverity_Converts()
+    public void StandardSeverity_InvalidSeverity_Throws()
     {
         var taintVulnerabilityDto = CreateDefaultTaintDto(new StandardModeDetails((IssueSeverity)999, default));
 
         var act = () => testSubject.Convert(taintVulnerabilityDto, "C:\\root");
 
         act.Should().Throw<ArgumentException>();
-        issueVizConverter.DidNotReceiveWithAnyArgs().Convert(default, default);
+        issueVizConverter.DidNotReceiveWithAnyArgs().Convert(default);
     }
 
     [TestMethod]
@@ -175,7 +174,7 @@ public class TaintIssueToIssueVisualizationConverterTests
         var act = () => testSubject.Convert(taintVulnerabilityDto, "C:\\root");
 
         act.Should().Throw<ArgumentException>();
-        issueVizConverter.DidNotReceiveWithAnyArgs().Convert(default, default);
+        issueVizConverter.DidNotReceiveWithAnyArgs().Convert(default);
     }
 
     [DataTestMethod]
@@ -236,7 +235,7 @@ public class TaintIssueToIssueVisualizationConverterTests
     {
         var taintVulnerabilityDto = CreateDefaultTaintDto(resolved: isIssueSuppressed);
         var expectedConvertedIssueViz = CreateIssueViz();
-        issueVizConverter.Convert(Arg.Any<IAnalysisIssueBase>(), null)
+        issueVizConverter.Convert(Arg.Any<IAnalysisIssueBase>())
             .Returns(expectedConvertedIssueViz);
 
         testSubject.Convert(taintVulnerabilityDto, "C:\\root");
@@ -254,26 +253,7 @@ public class TaintIssueToIssueVisualizationConverterTests
             "file\\path\\1",
             DateTimeOffset.Now,
             severity ?? new StandardModeDetails(IssueSeverity.MINOR, RuleType.VULNERABILITY),
-            [
-                new TaintFlowDto(
-                [
-                    new TaintLocationDto(
-                        new TextRangeWithHashDto(5, 6, 7, 8, "hash2"),
-                        "message2",
-                        "file\\path\\2"),
-                    new TaintLocationDto(
-                        new TextRangeWithHashDto(9, 10, 11, 12, "hash3"),
-                        "message3",
-                        "file\\path\\3"),
-                ]),
-                new TaintFlowDto(
-                [
-                    new TaintLocationDto(
-                        new TextRangeWithHashDto(13, 14, 15, 16, "hash4"),
-                        "message4",
-                        "file\\path\\4")
-                ])
-            ],
+            [],
             new TextRangeWithHashDto(1, 2, 3, 4, "hash1"),
             "rulecontext",
             false);

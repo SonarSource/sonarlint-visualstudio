@@ -180,7 +180,7 @@ internal interface ITestingFile
     List<ExpectedTestIssue> ExpectedIssues { get; }
 }
 
-internal record ExpectedTestIssue(string ruleKey, TextRangeDto textRange, RuleType type, int expectedFlows);
+internal record ExpectedTestIssue(string ruleKey, TextRangeDto textRange, CleanCodeAttribute cleanCodeAttribute, int expectedFlows);
 
 internal class JavaScriptIssuesFile : ITestingFile
 {
@@ -188,8 +188,8 @@ internal class JavaScriptIssuesFile : ITestingFile
 
     public List<ExpectedTestIssue> ExpectedIssues =>
     [
-        new ExpectedTestIssue("javascript:S1135", new TextRangeDto(1, 3, 1, 7), RuleType.CODE_SMELL, 0),
-        new ExpectedTestIssue("javascript:S3504", new TextRangeDto(2, 0, 2, 5), RuleType.CODE_SMELL, 0)
+        new ExpectedTestIssue("javascript:S1135", new TextRangeDto(1, 3, 1, 7), CleanCodeAttribute.COMPLETE, 0),
+        new ExpectedTestIssue("javascript:S3504", new TextRangeDto(2, 0, 2, 5), CleanCodeAttribute.CLEAR, 0)
     ];
 }
 
@@ -209,9 +209,9 @@ internal class TypeScriptIssuesFile : ITestingFile
 
     public List<ExpectedTestIssue> ExpectedIssues =>
     [
-        new ExpectedTestIssue("typescript:S2737", new TextRangeDto(3, 2, 3, 7), RuleType.CODE_SMELL, 0),
-        new ExpectedTestIssue("typescript:S1186", new TextRangeDto(7, 16, 7, 19), RuleType.CODE_SMELL, 0),
-        new ExpectedTestIssue("typescript:S3776", new TextRangeDto(30, 9, 30, 18), RuleType.CODE_SMELL, 21)
+        new ExpectedTestIssue("typescript:S2737", new TextRangeDto(3, 2, 3, 7), CleanCodeAttribute.CLEAR, 0),
+        new ExpectedTestIssue("typescript:S1186", new TextRangeDto(7, 16, 7, 19), CleanCodeAttribute.COMPLETE, 0),
+        new ExpectedTestIssue("typescript:S3776", new TextRangeDto(30, 9, 30, 18), CleanCodeAttribute.FOCUSED, 21)
     ];
 }
 
@@ -221,8 +221,8 @@ internal class CssIssuesFile : ITestingFile
 
     public List<ExpectedTestIssue> ExpectedIssues =>
     [
-        new ExpectedTestIssue("css:S4666", new TextRangeDto(20, 0, 20, 77), RuleType.CODE_SMELL, 0),
-        new ExpectedTestIssue("css:S4655", new TextRangeDto(12, 0, 12, 38), RuleType.BUG, 0),
+        new ExpectedTestIssue("css:S4666", new TextRangeDto(20, 0, 20, 77), CleanCodeAttribute.LOGICAL, 0),
+        new ExpectedTestIssue("css:S4655", new TextRangeDto(12, 0, 12, 38), CleanCodeAttribute.LOGICAL, 0),
     ];
 }
 
@@ -232,8 +232,8 @@ internal class VueIssuesFile : ITestingFile
 
     public List<ExpectedTestIssue> ExpectedIssues =>
     [
-        new ExpectedTestIssue("css:S4661", new TextRangeDto(12, 0, 12, 43), RuleType.BUG, 0),
-        new ExpectedTestIssue("css:S4658", new TextRangeDto(12, 0, 12, 43), RuleType.CODE_SMELL, 0),
+        new ExpectedTestIssue("css:S4661", new TextRangeDto(12, 0, 12, 43), CleanCodeAttribute.LOGICAL, 0),
+        new ExpectedTestIssue("css:S4658", new TextRangeDto(12, 0, 12, 43), CleanCodeAttribute.CLEAR, 0),
     ];
 }
 
@@ -245,9 +245,9 @@ internal class SecretsIssuesFile : ITestingFile
 
     public List<ExpectedTestIssue> ExpectedIssues =>
     [
-        new ExpectedTestIssue(CloudSecretsRuleKey, new TextRangeDto(9, 24, 9, 40), RuleType.VULNERABILITY, 0),
-        new ExpectedTestIssue(CloudSecretsRuleKey, new TextRangeDto(14, 24, 14, 40), RuleType.VULNERABILITY, 0),
-        new ExpectedTestIssue("secrets:S6337", new TextRangeDto(20, 12, 20, 56), RuleType.VULNERABILITY, 0),
+        new ExpectedTestIssue(CloudSecretsRuleKey, new TextRangeDto(9, 24, 9, 40), CleanCodeAttribute.TRUSTWORTHY, 0),
+        new ExpectedTestIssue(CloudSecretsRuleKey, new TextRangeDto(14, 24, 14, 40), CleanCodeAttribute.TRUSTWORTHY, 0),
+        new ExpectedTestIssue("secrets:S6337", new TextRangeDto(20, 12, 20, 56), CleanCodeAttribute.TRUSTWORTHY, 0),
     ];
 }
 

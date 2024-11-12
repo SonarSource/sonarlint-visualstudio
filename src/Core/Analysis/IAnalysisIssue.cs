@@ -24,11 +24,11 @@ namespace SonarLint.VisualStudio.Core.Analysis
     {
         Guid Id { get; }
 
-        AnalysisIssueSeverity Severity { get; }
+        AnalysisIssueSeverity? Severity { get; }
         
         SoftwareQualitySeverity? HighestSoftwareQualitySeverity { get; }
 
-        AnalysisIssueType Type { get; }
+        AnalysisIssueType? Type { get; }
 
         IReadOnlyList<IQuickFix> Fixes { get; }
     }

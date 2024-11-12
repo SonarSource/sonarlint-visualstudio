@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
 {
     public interface IAnalysisSeverityToVsSeverityConverter
     {
-        __VSERRORCATEGORY Convert(AnalysisIssueSeverity severity);
+        __VSERRORCATEGORY Convert(AnalysisIssueSeverity? severity);
         __VSERRORCATEGORY ConvertFromCct(SoftwareQualitySeverity severity);
     }
 
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
             }
         }
 
-        public __VSERRORCATEGORY Convert(AnalysisIssueSeverity severity)
+        public __VSERRORCATEGORY Convert(AnalysisIssueSeverity? severity)
         {
             switch (severity)
             {
