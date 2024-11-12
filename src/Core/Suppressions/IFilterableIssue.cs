@@ -26,6 +26,11 @@ namespace SonarLint.VisualStudio.Core.Suppressions
     /// </summary>
     public interface IFilterableIssue
     {
+        /// <summary>
+        /// The id of the issue that comes from SlCore
+        /// Nullable due to the fact that some issues do not come from SlCore (e.g. Roslyn)
+        /// </summary>
+        Guid? IssueId { get; }
         string RuleId { get; }
         string FilePath { get; }
         string LineHash { get; }

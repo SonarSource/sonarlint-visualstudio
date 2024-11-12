@@ -25,6 +25,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
 
 internal class TestFilterableIssue : IFilterableIssue
 {
+    public Guid? IssueId { get; set; }
     public string RuleId { get; set; }
     public string LineHash { get; set; }
     public int? StartLine { get; set; }

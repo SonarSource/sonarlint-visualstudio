@@ -40,6 +40,10 @@ namespace SonarLint.VisualStudio.Core.Suppressions
             RoslynStartColumn = startColumn;
         }
 
+        /// <summary>
+        /// Always null, as this Id is specific to SlCore
+        /// </summary>
+        public Guid? IssueId { get; }
         public string RuleId { get; }
         public string FilePath { get; }
         public int? StartLine => RoslynStartLine;

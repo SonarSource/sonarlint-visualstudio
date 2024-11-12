@@ -107,6 +107,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        public Guid? IssueId => Issue.Id;
         string IFilterableIssue.RuleId => Issue.RuleKey;
 
         string IFilterableIssue.FilePath => CurrentFilePath;
