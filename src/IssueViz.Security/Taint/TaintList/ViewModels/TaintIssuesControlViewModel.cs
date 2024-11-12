@@ -65,8 +65,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         string WindowCaption { get; }
 
         string ServerType { get; }
-
-        AnalysisInformation AnalysisInformation { get; }
     }
 
     /// <summary>
@@ -132,8 +130,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             }
         }
 
-        public AnalysisInformation AnalysisInformation { get; private set; }
-
         public string ServerType => serverType.ToString();
 
         public TaintIssuesControlViewModel(ITaintStore store,
@@ -164,7 +160,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             ISonarQubeService sonarQubeService,
             INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
             IThreadHandling threadHandling)
-        {            
+        {
             this.threadHandling = threadHandling;
             unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
             AllowMultiThreadedAccessToIssuesCollection();
@@ -300,8 +296,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
                 taintIssueViewModel.TaintIssueViz.PropertyChanged += OnTaintIssuePropertyChanged;
             }
-
-            AnalysisInformation = store.GetAnalysisInformation();
 
             NotifyPropertyChanged(nameof(HasServerIssues));
             NotifyPropertyChanged(nameof(AnalysisInformation));
