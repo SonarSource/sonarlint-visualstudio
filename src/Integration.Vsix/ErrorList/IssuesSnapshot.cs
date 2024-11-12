@@ -227,7 +227,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorCategory:
-                    content = $"{issue.Severity} {ToString(issue.Type)}";
+                    content = GetErrorCategory(issue);
                     return true;
 
                 case StandardTableKeyNames.ErrorCodeToolTip:
@@ -260,6 +260,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     content = null;
                     return false;
             }
+        }
+
+        private string GetErrorCategory(IAnalysisIssue issue)
+        {
+            if (issue.HighestImpact != null)
+            {
+                return $"{issue.HighestImpact.Severity} {issue.HighestImpact.Quality}";
+            }
+            return $"{issue.Severity} {ToString(issue.Type)}";
         }
 
         /// <summary>

@@ -85,7 +85,7 @@ internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
             Convert(effectiveRuleDetailsAsync.severityDetails.Right?.impacts));
 
     private static Dictionary<SoftwareQuality, SoftwareQualitySeverity> Convert(List<ImpactDto> cleanCodeAttribute) =>
-        cleanCodeAttribute?.ToDictionary(x => Convert(x.softwareQuality), x => x.impactSeverity.ToSoftwareQualitySeverity());
+        cleanCodeAttribute?.ToDictionary(x => x.softwareQuality.ToSoftwareQuality(), x => x.impactSeverity.ToSoftwareQualitySeverity());
 
 
     private static RuleIssueSeverity? Convert(IssueSeverity? issueSeverity) =>
@@ -109,15 +109,6 @@ internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
             RuleType.SECURITY_HOTSPOT => RuleIssueType.Hotspot,
             null => null,
             _ => throw new ArgumentOutOfRangeException(nameof(ruleType), ruleType, null)
-        };
-
-    private static SoftwareQuality Convert(SLCore.Common.Models.SoftwareQuality argSoftwareQuality) =>
-        argSoftwareQuality switch
-        {
-            SLCore.Common.Models.SoftwareQuality.MAINTAINABILITY => SoftwareQuality.Maintainability,
-            SLCore.Common.Models.SoftwareQuality.RELIABILITY => SoftwareQuality.Reliability,
-            SLCore.Common.Models.SoftwareQuality.SECURITY => SoftwareQuality.Security,
-            _ => throw new ArgumentOutOfRangeException(nameof(argSoftwareQuality), argSoftwareQuality, null)
         };
 
     private static CleanCodeAttribute? Convert(SLCore.Common.Models.CleanCodeAttribute? cleanCodeAttribute) =>
