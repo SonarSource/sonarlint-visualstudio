@@ -38,6 +38,11 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
     public interface IAnalysisIssueBase
     {
+        /// <summary>
+        /// The id of the issue that comes from SlCore 
+        /// </summary>
+        Guid? Id { get; }
+
         string RuleKey { get; }
 
         IReadOnlyList<IAnalysisIssueFlow> Flows { get; }

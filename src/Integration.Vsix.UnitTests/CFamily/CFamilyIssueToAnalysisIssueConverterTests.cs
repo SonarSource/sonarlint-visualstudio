@@ -18,18 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.IO.Abstractions;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
-using Moq;
 using SonarLint.VisualStudio.CFamily.Rules;
 using SonarLint.VisualStudio.CFamily.SubProcess;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Configuration;
 using SonarLint.VisualStudio.Core.UserRuleSettings;
@@ -444,6 +437,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var testSubject = CreateTestSubject();
             var issue = Convert(testSubject, message);
 
+            issue.Id.Should().BeNull();
             issue.RuleKey.Should().Be($"lang1:{ruleKey}");
             issue.Severity.Should().Be(severity);
             issue.Type.Should().Be(type);

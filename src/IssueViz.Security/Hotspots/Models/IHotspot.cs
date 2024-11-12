@@ -40,13 +40,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
 
-        public Hotspot(string hotspotKey,
+        public Hotspot(Guid? id,
+            string hotspotKey,
             string serverFilePath,
             IAnalysisIssueLocation primaryLocation,
             IHotspotRule rule,
             IReadOnlyList<IAnalysisIssueFlow> flows,
             string context = null)
         {
+            Id = id;
             HotspotKey = hotspotKey;
             ServerFilePath = serverFilePath;
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
@@ -56,6 +58,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
         }
 
         public string HotspotKey { get; }
+        public Guid? Id { get; }
         public string RuleKey => Rule.RuleKey;
         public IHotspotRule Rule { get; }
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
