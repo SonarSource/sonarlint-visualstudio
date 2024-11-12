@@ -89,8 +89,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
                 taintVulnerabilities.Add(issueVisualization);
 
-                NotifyIssuesChanged(Array.Empty<IAnalysisIssueVisualization>(), new[] { issueVisualization });
             }
+
+            NotifyIssuesChanged([], [issueVisualization]);
         }
 
         public void Remove(string issueKey)
@@ -99,6 +100,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             {
                 throw new ArgumentNullException(nameof(issueKey));
             }
+
+            IAnalysisIssueVisualization valueToRemove;
 
             lock (locker)
             {
@@ -115,11 +118,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                     return;
                 }
 
-                var valueToRemove = taintVulnerabilities[indexToRemove];
+                valueToRemove = taintVulnerabilities[indexToRemove];
                 taintVulnerabilities.RemoveAt(indexToRemove);
 
-                NotifyIssuesChanged(new[] { valueToRemove }, Array.Empty<IAnalysisIssueVisualization>());
             }
+
+            NotifyIssuesChanged([valueToRemove], []);
         }
 
         public void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
@@ -134,17 +138,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 throw new ArgumentNullException(nameof(newConfigurationScope));
             }
 
+            IAnalysisIssueVisualization[] removedIssues;
+            IAnalysisIssueVisualization[] addedIssues;
+
             lock (locker)
             {
                 var oldIssues = taintVulnerabilities;
                 taintVulnerabilities = issueVisualizations.ToList();
                 configurationScope = newConfigurationScope;
 
-                var removedIssues = oldIssues.Except(taintVulnerabilities, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance).ToArray();
-                var addedIssues = taintVulnerabilities.Except(oldIssues, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance).ToArray();
 
-                NotifyIssuesChanged(removedIssues, addedIssues);
+                removedIssues = oldIssues.Except(taintVulnerabilities, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance).ToArray();
+                addedIssues = taintVulnerabilities.Except(oldIssues, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance).ToArray();
             }
+
+            NotifyIssuesChanged(removedIssues, addedIssues);
         }
 
         public string ConfigurationScope
