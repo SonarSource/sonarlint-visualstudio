@@ -94,8 +94,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
         public static __VSERRORCATEGORY GetVsSeverity(
             this IAnalysisSeverityToVsSeverityConverter converter,
             IAnalysisIssue issue) =>
-            issue.HighestSoftwareQualitySeverity.HasValue
-                ? converter.ConvertFromCct(issue.HighestSoftwareQualitySeverity.Value)
+            issue.HighestImpact?.Severity != null
+                ? converter.ConvertFromCct(issue.HighestImpact.Severity)
                 : converter.Convert(issue.Severity);
     }
 }
