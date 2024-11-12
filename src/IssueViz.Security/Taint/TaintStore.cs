@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 {
-    internal interface ITaintStore : IIssuesStore
+    public interface ITaintStore : IIssuesStore
     {
         /// <summary>
         /// Removes all existing visualizations and initializes the store to the given collection.
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         /// Removes an issue with the given key from the existing list of visualizations.
         /// If no matching issue is found, the operation is ignored.
         /// </summary>
-        void Remove(string issueKey);
+        void Remove(Guid id);
     }
 
     [Export(typeof(ITaintStore))]
@@ -94,13 +94,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             NotifyIssuesChanged([], [issueVisualization]);
         }
 
-        public void Remove(string issueKey)
+        public void Remove(Guid id)
         {
-            if (issueKey == null)
-            {
-                throw new ArgumentNullException(nameof(issueKey));
-            }
-
             IAnalysisIssueVisualization valueToRemove;
 
             lock (locker)
@@ -111,7 +106,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 }
 
                 var indexToRemove =
-                    taintVulnerabilities.FindIndex(issueViz => ((ITaintIssue)issueViz.Issue).IssueKey.Equals(issueKey));
+                    taintVulnerabilities.FindIndex(issueViz => ((ITaintIssue)issueViz.Issue).Id.Equals(id));
 
                 if (indexToRemove == -1)
                 {
@@ -198,13 +193,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 var firstTaintIssue = (ITaintIssue)first.Issue;
                 var secondTaintIssue = (ITaintIssue)second.Issue;
 
-                return firstTaintIssue.IssueKey.Equals(secondTaintIssue.IssueKey);
+                return firstTaintIssue.Id.Equals(secondTaintIssue.Id);
             }
 
 
             public int GetHashCode(IAnalysisIssueVisualization obj)
             {
-                return (obj.Issue != null ? ((ITaintIssue)obj.Issue).IssueKey.GetHashCode() : 0);
+                return (obj.Issue != null ? ((ITaintIssue)obj.Issue).Id.GetHashCode() : 0);
             }
         }
     }
