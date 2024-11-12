@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
                 return firstTaintIssue.IssueKey.Equals(secondTaintIssue.IssueKey);
             }
-            
+
 
             public int GetHashCode(IAnalysisIssueVisualization obj)
             {

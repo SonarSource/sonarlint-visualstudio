@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
@@ -928,6 +929,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             DateTimeOffset created = default, bool isSuppressed = false, params IAnalysisIssueLocationVisualization[] locations)
         {
             var issue = new Mock<ITaintIssue>();
+            issue.Setup(x => x.Severity).Returns(AnalysisIssueSeverity.Major);
             issue.Setup(x => x.IssueKey).Returns(issueKey);
             issue.Setup(x => x.CreationTimestamp).Returns(created);
 

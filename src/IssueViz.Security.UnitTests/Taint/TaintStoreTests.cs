@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             storeImport.Import.Should().BeSameAs(issuesStoreImport.Import);
         }
-        
+
         [TestMethod]
         public void GetAll_ReturnsImmutableInstance()
         {
