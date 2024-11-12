@@ -446,6 +446,44 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             isSuppressed.Should().Be(expectedSuppression);
         }
 
+        [TestMethod]
+        public void TryGetFilterableIssue_SonarIssue_IssueReturned()
+        {
+            var issueMock = Mock.Of<IAnalysisIssueVisualization>();
+            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, "SonarLint" },
+                { StandardTableKeyNames.ErrorCode, "javascript:S333"},
+                { SonarLintTableControlConstants.IssueVizColumnName, issueMock }
+            });
+            var errorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
+            var testSubject = new ErrorListHelper(serviceProvider);
+
+            bool result = testSubject.TryGetFilterableIssue(issueHandle, out var issue);
+
+            result.Should().BeTrue();
+            issue.Should().BeSameAs(issueMock);
+        }
+
+        [TestMethod]
+        public void TryGetFilterableIssue_NoAnalysisIssue_IssueNotReturned()
+        {
+            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
+            {
+                { StandardTableKeyNames.BuildTool, "SonarLint" },
+                { StandardTableKeyNames.ErrorCode, "javascript:S333"},
+                { SonarLintTableControlConstants.IssueVizColumnName, null }
+            });
+            var errorList = CreateErrorList(issueHandle);
+            var serviceProvider = CreateServiceOperation(errorList);
+
+            var testSubject = new ErrorListHelper(serviceProvider);
+            var result = testSubject.TryGetFilterableIssue(issueHandle,out _);
+
+            result.Should().BeFalse();
+        }
+
         private IVsUIServiceOperation CreateServiceOperation(IErrorList svcToPassToCallback)
         {
             var serviceOp = new Mock<IVsUIServiceOperation>();
