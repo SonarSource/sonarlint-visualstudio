@@ -18,14 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
+using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Settings;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
 {
@@ -141,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             var testSubject = CreateTestSubject(settingsStore.Object);
 
             testSubject.SetValue(propertyName, valueToSet);
-            
+
             CheckPropertySet(settingsStore, propertyName, valueToSet);
         }
 
@@ -304,6 +299,63 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
 
         #endregion
+
+        [TestMethod]
+        public void IsActivateMoreEnabled_WhenDisposed_ReturnsDefault()
+        {
+            var testSubject = CreateComDetachedTestSubject();
+
+            testSubject.IsActivateMoreEnabled = true;
+            var activateMoreEnabled = testSubject.IsActivateMoreEnabled;
+
+            activateMoreEnabled.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void DaemonLogLevel_WhenDisposed_ReturnsDefault()
+        {
+            var testSubject = CreateComDetachedTestSubject();
+
+            testSubject.DaemonLogLevel = DaemonLogLevel.Verbose;
+            var daemonLogLevel = testSubject.DaemonLogLevel;
+
+            daemonLogLevel.Should().Be(DaemonLogLevel.Minimal);
+        }
+
+        [TestMethod]
+        public void JreLocation_WhenDisposed_ReturnsDefault()
+        {
+            var testSubject = CreateComDetachedTestSubject();
+
+            testSubject.JreLocation = "/path/to/jre";
+            var jreLocation = testSubject.JreLocation;
+
+            jreLocation.Should().BeEmpty();
+        }
+
+        private static SonarLintSettings CreateComDetachedTestSubject()
+        {
+            var comException = new InvalidComObjectException("COM object that has been separated from its underlying RCW cannot be used.");
+            var writableSettingsStore = Substitute.For<WritableSettingsStore>();
+            writableSettingsStore.When(x => x.GetBoolean(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>()))
+                .Do(x => throw comException);
+            writableSettingsStore.When(x => x.SetBoolean(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>()))
+                .Do(x => throw comException);
+            writableSettingsStore.When(x => x.GetString(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()))
+                .Do(x => throw comException);
+            writableSettingsStore.When(x => x.SetString(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()))
+                .Do(x => throw comException);
+            writableSettingsStore.When(x => x.GetInt32(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>()))
+                .Do(x => throw comException);
+            writableSettingsStore.When(x => x.SetInt32(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>()))
+                .Do(x => throw comException);
+            var writableSettingsStoreFactory = Substitute.For<IWritableSettingsStoreFactory>();
+            writableSettingsStoreFactory.Create(SonarLintSettings.SettingsRoot).Returns(writableSettingsStore);
+            var testSubject = new SonarLintSettings(writableSettingsStoreFactory);
+            testSubject.Dispose();
+            return testSubject;
+        }
+
         private static SonarLintSettings CreateTestSubject(IWritableSettingsStoreFactory storeFactory)
             => new SonarLintSettings(storeFactory);
 
