@@ -35,6 +35,6 @@ namespace SonarLint.VisualStudio.Core
         /// browser i.e. at rules.sonarsource.com</remarks>
         /// <param name="issueContext">Key for the How to fix it Context acquired from a specific issue. Can be null.</param>
         /// <param name="issueId">The SlCore issue ID for which the rule help should be shown.s</param>
-        void ShowRuleHelp(SonarCompositeRuleId ruleId, string issueContext, Guid? issueId);
+        void ShowRuleHelp(SonarCompositeRuleId ruleId, Guid? issueId, string issueContext);
     }
 }

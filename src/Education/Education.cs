@@ -65,12 +65,12 @@ namespace SonarLint.VisualStudio.Education
             this.threadHandling = threadHandling;
         }
 
-        public void ShowRuleHelp(SonarCompositeRuleId ruleId, string issueContext, Guid? issueId)
+        public void ShowRuleHelp(SonarCompositeRuleId ruleId, Guid? issueId, string issueContext)
         {
-            ShowRuleHelpAsync(ruleId, issueContext, issueId).Forget();
+            ShowRuleHelpAsync(ruleId, issueId, issueContext).Forget();
         }
 
-        private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, string issueContext, Guid? issueId)
+        private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, Guid? issueId, string issueContext)
         {
             await threadHandling.SwitchToBackgroundThread();
 

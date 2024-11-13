@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Education
                     errorListHelper.TryGetFilterableIssue(entry, out var filterableIssue);
                     logger.LogVerbose(Resources.ErrorList_Processor_SonarRuleDetected, ruleId);
 
-                    educationService.ShowRuleHelp(ruleId, null, filterableIssue?.IssueId);
+                    educationService.ShowRuleHelp(ruleId, filterableIssue?.IssueId, null);
 
                     // Mark the event as handled to stop the normal VS "show help in browser" behaviour
                     handled = true;

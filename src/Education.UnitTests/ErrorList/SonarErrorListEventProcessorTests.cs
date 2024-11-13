@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.ErrorList
             testSubject.PreprocessNavigateToHelp(handle, new TableEntryEventArgs());
 
             education.Invocations.Should().HaveCount(1);
-            education.Verify(x => x.ShowRuleHelp(ruleId, null, filterableIssue.IssueId));
+            education.Verify(x => x.ShowRuleHelp(ruleId, filterableIssue.IssueId, null));
         }
 
         private static Mock<IErrorListHelper> CreateErrorListHelper(bool isSonarRule, SonarCompositeRuleId ruleId)

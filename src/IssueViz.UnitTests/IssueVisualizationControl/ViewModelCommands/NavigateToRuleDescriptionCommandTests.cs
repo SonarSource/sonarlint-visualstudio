@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             testSubject.Execute(executeParam);
 
-            educationService.Verify(x => x.ShowRuleHelp(It.IsAny<SonarCompositeRuleId>(), null, issueId), Times.Once);
+            educationService.Verify(x => x.ShowRuleHelp(It.IsAny<SonarCompositeRuleId>(), issueId, null), Times.Once);
             educationService.VerifyNoOtherCalls();
         }
 

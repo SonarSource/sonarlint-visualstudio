@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
                 showRuleInBrowser.Object,
                 ruleHelpXamlBuilder.Object);
 
-            testSubject.ShowRuleHelp(ruleId,null, issueId);
+            testSubject.ShowRuleHelp(ruleId,issueId, null);
 
             ruleMetadataProvider.Verify(x => x.GetRuleInfoAsync(ruleId, issueId), Times.Once);
         }
