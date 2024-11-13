@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
@@ -100,6 +98,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             testSubject.Execute("wrong param");
 
+            educationService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Execute_IssueIdProvided_RuleDocumentationShownForIssue()
+        {
+            var issueId = Guid.NewGuid();
+            var educationService = new Mock<IEducation>();
+            var testSubject = CreateTestSubject(educationService.Object);
+            var executeParam = new NavigateToRuleDescriptionCommandParam { FullRuleKey = "csharp:S100", IssueId = issueId};
+
+            testSubject.Execute(executeParam);
+
+            educationService.Verify(x => x.ShowRuleHelp(It.IsAny<SonarCompositeRuleId>(), null, issueId), Times.Once);
             educationService.VerifyNoOtherCalls();
         }
 

@@ -322,6 +322,7 @@
                                 <MultiBinding Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
                                     <Binding Path="RuleKey" />
                                     <Binding Path="RuleDescriptionContextKey" />
+                                    <Binding Path="CurrentIssue.IssueId" />
                                 </MultiBinding>
                             </Hyperlink.CommandParameter>
                             <Hyperlink.ToolTip>
