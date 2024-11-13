@@ -26,12 +26,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(ISonarLintSettings))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class SonarLintSettings : ISonarLintSettings
+    internal sealed class SonarLintSettings : ISonarLintSettings, IDisposable
     {
         public const string SettingsRoot = "SonarLintForVisualStudio";
 
         // Lazily create the settings store on first use (we can't create it in the constructor)
         private readonly Lazy<WritableSettingsStore> writableSettingsStore;
+
+        private bool disposed;
 
         [ImportingConstructor]
         public SonarLintSettings(IWritableSettingsStoreFactory storeFactory)
@@ -44,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             try
             {
-                return writableSettingsStore.Value?.GetBoolean(SettingsRoot, key, defaultValue)
+                return GetWritableSettingsStore()?.GetBoolean(SettingsRoot, key, defaultValue)
                 ?? defaultValue;
             }
             catch (ArgumentException)
@@ -55,14 +57,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal /* testing purposes */ void SetValue(string key, bool value)
         {
-            writableSettingsStore.Value?.SetBoolean(SettingsRoot, key, value);
+            GetWritableSettingsStore()?.SetBoolean(SettingsRoot, key, value);
         }
 
         internal /* testing purposes */ string GetValueOrDefault(string key, string defaultValue)
         {
             try
             {
-                return writableSettingsStore.Value?.GetString(SettingsRoot, key, defaultValue)
+                return GetWritableSettingsStore()?.GetString(SettingsRoot, key, defaultValue)
                 ?? defaultValue;
             }
             catch (ArgumentException)
@@ -73,14 +75,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal /* testing purposes */ void SetValue(string key, string value)
         {
-            writableSettingsStore.Value?.SetString(SettingsRoot, key, value ?? string.Empty);
+            GetWritableSettingsStore()?.SetString(SettingsRoot, key, value ?? string.Empty);
         }
 
         internal /* testing purposes */ int GetValueOrDefault(string key, int defaultValue)
         {
             try
             {
-                return writableSettingsStore.Value?.GetInt32(SettingsRoot, key, defaultValue)
+                return GetWritableSettingsStore()?.GetInt32(SettingsRoot, key, defaultValue)
                     ?? defaultValue;
             }
             catch (ArgumentException)
@@ -89,10 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        internal /* testing purposes */ void SetValue(string key, int value)
-        {
-            writableSettingsStore.Value?.SetInt32(SettingsRoot, key, value);
-        }
+        internal /* testing purposes */ void SetValue(string key, int value) => GetWritableSettingsStore()?.SetInt32(SettingsRoot, key, value);
 
         public bool IsActivateMoreEnabled
         {
@@ -111,5 +110,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             get => this.GetValueOrDefault(nameof(JreLocation), string.Empty);
             set => this.SetValue(nameof(JreLocation), value);
         }
+
+        public void Dispose() => disposed = true;
+
+        private WritableSettingsStore GetWritableSettingsStore() => disposed ? null : writableSettingsStore.Value;
     }
 }
