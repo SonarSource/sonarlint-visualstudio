@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Education
                 {
                     logger.LogVerbose(Resources.ErrorList_Processor_SonarRuleDetected, ruleId);
 
-                    educationService.ShowRuleHelp(ruleId, /* todo */ null);
+                    educationService.ShowRuleHelp(ruleId, /* todo */ null, null); // TODO 
 
                     // Mark the event as handled to stop the normal VS "show help in browser" behaviour
                     handled = true;

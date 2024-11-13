@@ -18,13 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Education.Commands;
+using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Education.Rule;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -68,16 +65,16 @@ namespace SonarLint.VisualStudio.Education
             this.threadHandling = threadHandling;
         }
 
-        public void ShowRuleHelp(SonarCompositeRuleId ruleId, string issueContext)
+        public void ShowRuleHelp(SonarCompositeRuleId ruleId, string issueContext, Guid? issueId)
         {
-            ShowRuleHelpAsync(ruleId, issueContext).Forget();
+            ShowRuleHelpAsync(ruleId, issueContext, issueId).Forget();
         }
 
-        private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, string issueContext)
+        private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, string issueContext, Guid? issueId)
         {
             await threadHandling.SwitchToBackgroundThread();
 
-            var ruleInfo = await ruleMetadataProvider.GetRuleInfoAsync(ruleId);
+            var ruleInfo = await ruleMetadataProvider.GetRuleInfoAsync(ruleId, issueId);
 
             await threadHandling.RunOnUIThreadAsync(() =>
             {

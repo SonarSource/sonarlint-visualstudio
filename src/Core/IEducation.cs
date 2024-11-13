@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.Suppressions;
+
 namespace SonarLint.VisualStudio.Core
 {
     /// <summary>
@@ -32,6 +34,7 @@ namespace SonarLint.VisualStudio.Core
         /// be displayed in the IDE. Otherwise, the rule help will be displayed in the
         /// browser i.e. at rules.sonarsource.com</remarks>
         /// <param name="issueContext">Key for the How to fix it Context acquired from a specific issue. Can be null.</param>
-        void ShowRuleHelp(SonarCompositeRuleId ruleId, string issueContext);
+        /// <param name="issueId">The SlCore issue ID for which the rule help should be shown.s</param>
+        void ShowRuleHelp(SonarCompositeRuleId ruleId, string issueContext, Guid? issueId);
     }
 }

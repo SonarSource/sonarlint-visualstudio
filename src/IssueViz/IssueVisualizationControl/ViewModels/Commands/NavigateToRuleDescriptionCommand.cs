@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                     var paramObject = parameter as NavigateToRuleDescriptionCommandParam;
                     if (SonarCompositeRuleId.TryParse(paramObject?.FullRuleKey, out var ruleId))
                     {
-                        educationService.ShowRuleHelp(ruleId, paramObject?.Context);
+                        educationService.ShowRuleHelp(ruleId, paramObject?.Context, null); // TODO check if we can provide the ID here
                     }
                 },
                 parameter => parameter is NavigateToRuleDescriptionCommandParam s &&

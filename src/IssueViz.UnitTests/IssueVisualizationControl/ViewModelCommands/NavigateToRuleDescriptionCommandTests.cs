@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             testSubject.Execute(executeParam);
 
-            educationService.Verify(x => x.ShowRuleHelp(It.IsAny<SonarCompositeRuleId>(), /* todo */ null), Times.Once);
+            educationService.Verify(x => x.ShowRuleHelp(It.IsAny<SonarCompositeRuleId>(), /* todo */ null, null), Times.Once);
             educationService.VerifyNoOtherCalls();
 
             var actualRuleId = (SonarCompositeRuleId)educationService.Invocations[0].Arguments[0];
