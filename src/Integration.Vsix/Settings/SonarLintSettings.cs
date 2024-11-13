@@ -20,96 +20,91 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Settings;
-using SonarLint.VisualStudio.Integration.Vsix.Settings;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.Settings;
+
+[Export(typeof(ISonarLintSettings))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal sealed class SonarLintSettings : ISonarLintSettings, IDisposable
 {
-    [Export(typeof(ISonarLintSettings))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class SonarLintSettings : ISonarLintSettings
+    public const string SettingsRoot = "SonarLintForVisualStudio";
+
+    // Lazily create the settings store on first use (we can't create it in the constructor)
+    private readonly Lazy<WritableSettingsStore> writableSettingsStore;
+
+    private bool disposed;
+
+    [ImportingConstructor]
+    public SonarLintSettings(IWritableSettingsStoreFactory storeFactory)
     {
-        public const string SettingsRoot = "SonarLintForVisualStudio";
+        // Called from MEF constructor -> must be free-threaded
+        writableSettingsStore = new Lazy<WritableSettingsStore>(() => storeFactory.Create(SettingsRoot), LazyThreadSafetyMode.PublicationOnly);
+    }
 
-        // Lazily create the settings store on first use (we can't create it in the constructor)
-        private readonly Lazy<WritableSettingsStore> writableSettingsStore;
+    public bool IsActivateMoreEnabled
+    {
+        get => GetValueOrDefault(nameof(IsActivateMoreEnabled), false);
+        set => SetValue(nameof(IsActivateMoreEnabled), value);
+    }
 
-        [ImportingConstructor]
-        public SonarLintSettings(IWritableSettingsStoreFactory storeFactory)
+    public DaemonLogLevel DaemonLogLevel
+    {
+        get => (DaemonLogLevel) GetValueOrDefault(nameof(DaemonLogLevel), (int) DaemonLogLevel.Minimal);
+        set => SetValue(nameof(DaemonLogLevel), (int) value);
+    }
+
+    public string JreLocation
+    {
+        get => GetValueOrDefault(nameof(JreLocation), string.Empty);
+        set => SetValue(nameof(JreLocation), value);
+    }
+
+    public void Dispose() => disposed = true;
+
+    internal bool GetValueOrDefault(string key, bool defaultValue)
+    {
+        try
         {
-            // Called from MEF constructor -> must be free-threaded
-            writableSettingsStore = new Lazy<WritableSettingsStore>(() => storeFactory.Create(SettingsRoot), LazyThreadSafetyMode.PublicationOnly);
+            return GetWritableSettingsStore()?.GetBoolean(SettingsRoot, key, defaultValue)
+                   ?? defaultValue;
         }
-
-        internal /* testing purposes */ bool GetValueOrDefault(string key, bool defaultValue)
+        catch (ArgumentException)
         {
-            try
-            {
-                return writableSettingsStore.Value?.GetBoolean(SettingsRoot, key, defaultValue)
-                ?? defaultValue;
-            }
-            catch (ArgumentException)
-            {
-                return defaultValue;
-            }
-        }
-
-        internal /* testing purposes */ void SetValue(string key, bool value)
-        {
-            writableSettingsStore.Value?.SetBoolean(SettingsRoot, key, value);
-        }
-
-        internal /* testing purposes */ string GetValueOrDefault(string key, string defaultValue)
-        {
-            try
-            {
-                return writableSettingsStore.Value?.GetString(SettingsRoot, key, defaultValue)
-                ?? defaultValue;
-            }
-            catch (ArgumentException)
-            {
-                return defaultValue;
-            }
-        }
-
-        internal /* testing purposes */ void SetValue(string key, string value)
-        {
-            writableSettingsStore.Value?.SetString(SettingsRoot, key, value ?? string.Empty);
-        }
-
-        internal /* testing purposes */ int GetValueOrDefault(string key, int defaultValue)
-        {
-            try
-            {
-                return writableSettingsStore.Value?.GetInt32(SettingsRoot, key, defaultValue)
-                    ?? defaultValue;
-            }
-            catch (ArgumentException)
-            {
-                return defaultValue;
-            }
-        }
-
-        internal /* testing purposes */ void SetValue(string key, int value)
-        {
-            writableSettingsStore.Value?.SetInt32(SettingsRoot, key, value);
-        }
-
-        public bool IsActivateMoreEnabled
-        {
-            get { return this.GetValueOrDefault(nameof(IsActivateMoreEnabled), false); }
-            set { this.SetValue(nameof(IsActivateMoreEnabled), value); }
-        }
-
-        public DaemonLogLevel DaemonLogLevel
-        {
-            get { return (DaemonLogLevel)this.GetValueOrDefault(nameof(DaemonLogLevel), (int)DaemonLogLevel.Minimal); }
-            set { this.SetValue(nameof(DaemonLogLevel), (int)value); }
-        }
-
-        public string JreLocation
-        {
-            get => this.GetValueOrDefault(nameof(JreLocation), string.Empty);
-            set => this.SetValue(nameof(JreLocation), value);
+            return defaultValue;
         }
     }
+
+    internal string GetValueOrDefault(string key, string defaultValue)
+    {
+        try
+        {
+            return GetWritableSettingsStore()?.GetString(SettingsRoot, key, defaultValue)
+                   ?? defaultValue;
+        }
+        catch (ArgumentException)
+        {
+            return defaultValue;
+        }
+    }
+
+    internal int GetValueOrDefault(string key, int defaultValue)
+    {
+        try
+        {
+            return GetWritableSettingsStore()?.GetInt32(SettingsRoot, key, defaultValue)
+                   ?? defaultValue;
+        }
+        catch (ArgumentException)
+        {
+            return defaultValue;
+        }
+    }
+
+    internal void SetValue(string key, bool value) => GetWritableSettingsStore()?.SetBoolean(SettingsRoot, key, value);
+
+    internal void SetValue(string key, string value) => GetWritableSettingsStore()?.SetString(SettingsRoot, key, value ?? string.Empty);
+
+    internal void SetValue(string key, int value) => GetWritableSettingsStore()?.SetInt32(SettingsRoot, key, value);
+
+    private WritableSettingsStore GetWritableSettingsStore() => disposed ? null : writableSettingsStore.Value;
 }
