@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Core.Suppressions
         /// <summary>
         /// Always null, as this Id is specific to SlCore
         /// </summary>
-        public Guid? IssueId { get; }
+        public Guid? IssueId => null;
         public string RuleId { get; }
         public string FilePath { get; }
         public int? StartLine => RoslynStartLine;

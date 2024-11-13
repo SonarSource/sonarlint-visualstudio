@@ -88,8 +88,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         {
             IFilterableIssue issueOut = null;
             var result = vSServiceOperation.Execute<SVsErrorList, IErrorList, bool>(
-                errorList => TryGetSelectedSnapshotAndIndex(errorList, out var snapshot, out var index)
-                             && TryGetValue(snapshot, index, SonarLintTableControlConstants.IssueVizColumnName, out issueOut));
+                errorList => TryGetSelectedTableEntry(errorList, out var handle) && TryGetFilterableIssue(handle, out issueOut));
 
             issue = issueOut;
 
