@@ -20,6 +20,7 @@
 
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Education.Rule;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -35,12 +36,16 @@ using SoftwareQuality = SonarLint.VisualStudio.SLCore.Common.Models.SoftwareQual
 using RuleCleanCodeAttribute = SonarLint.VisualStudio.Core.Analysis.CleanCodeAttribute;
 using RuleSoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
 using RuleSoftwareQualitySeverity = SonarLint.VisualStudio.Core.Analysis.SoftwareQualitySeverity;
+using SonarLint.VisualStudio.SLCore.Service.Issue;
+using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 
 namespace SonarLint.VisualStudio.Education.UnitTests.Rule;
 
 [TestClass]
 public class SLCoreRuleMetaDataProviderTests
 {
+    private static readonly SonarCompositeRuleId _compositeRuleId = new("rule", "key1");
+
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<SLCoreRuleMetaDataProvider, IRuleMetaDataProvider>(
@@ -360,6 +365,329 @@ public class SLCoreRuleMetaDataProviderTests
         logger.AssertPartialOutputStringExists("my message");
     }
 
+    [DataTestMethod]
+    [DataRow(IssueSeverity.INFO, RuleIssueSeverity.Info)]
+    [DataRow(IssueSeverity.MAJOR, RuleIssueSeverity.Major)]
+    [DataRow(IssueSeverity.BLOCKER, RuleIssueSeverity.Blocker)]
+    [DataRow(IssueSeverity.CRITICAL, RuleIssueSeverity.Critical)]
+    [DataRow(IssueSeverity.MINOR, RuleIssueSeverity.Minor)]
+    public async Task GetEffectiveIssueDetailsAsync_CorrectlyConvertsSeverity(IssueSeverity slCore, RuleIssueSeverity expected)
+    {
+        var issueId = Guid.NewGuid();
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpIssueServiceProvider(serviceProviderMock, out var issuesServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
+        SetupIssuesService(issuesServiceMock, issueId, "configscope", CreateEffectiveIssueDetailsDto(new StandardModeDetails(slCore, default)));
+
+        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+
+        ruleInfo.Severity.Should().Be(expected);
+    }
+
+    [DataTestMethod]
+    [DataRow(RuleType.CODE_SMELL, RuleIssueType.CodeSmell)]
+    [DataRow(RuleType.VULNERABILITY, RuleIssueType.Vulnerability)]
+    [DataRow(RuleType.BUG, RuleIssueType.Bug)]
+    [DataRow(RuleType.SECURITY_HOTSPOT, RuleIssueType.Hotspot)]
+    public async Task GetEffectiveIssueDetailsAsync_CorrectlyConvertsType(RuleType slCore, RuleIssueType expected)
+    {
+        var issueId = Guid.NewGuid();
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpIssueServiceProvider(serviceProviderMock, out var issueServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
+        SetupIssuesService(issueServiceMock, issueId, "configscope", CreateEffectiveIssueDetailsDto(new StandardModeDetails(default, slCore)));
+
+        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+
+        ruleInfo.IssueType.Should().Be(expected);
+    }
+
+    [DataTestMethod]
+    [DataRow(CleanCodeAttribute.CONVENTIONAL, RuleCleanCodeAttribute.Conventional)]
+    [DataRow(CleanCodeAttribute.FORMATTED, RuleCleanCodeAttribute.Formatted)]
+    [DataRow(CleanCodeAttribute.IDENTIFIABLE, RuleCleanCodeAttribute.Identifiable)]
+    [DataRow(CleanCodeAttribute.CLEAR, RuleCleanCodeAttribute.Clear)]
+    [DataRow(CleanCodeAttribute.COMPLETE, RuleCleanCodeAttribute.Complete)]
+    [DataRow(CleanCodeAttribute.EFFICIENT, RuleCleanCodeAttribute.Efficient)]
+    [DataRow(CleanCodeAttribute.LOGICAL, RuleCleanCodeAttribute.Logical)]
+    [DataRow(CleanCodeAttribute.DISTINCT, RuleCleanCodeAttribute.Distinct)]
+    [DataRow(CleanCodeAttribute.FOCUSED, RuleCleanCodeAttribute.Focused)]
+    [DataRow(CleanCodeAttribute.MODULAR, RuleCleanCodeAttribute.Modular)]
+    [DataRow(CleanCodeAttribute.TESTED, RuleCleanCodeAttribute.Tested)]
+    [DataRow(CleanCodeAttribute.LAWFUL, RuleCleanCodeAttribute.Lawful)]
+    [DataRow(CleanCodeAttribute.RESPECTFUL, RuleCleanCodeAttribute.Respectful)]
+    [DataRow(CleanCodeAttribute.TRUSTWORTHY, RuleCleanCodeAttribute.Trustworthy)]
+    public async Task GetEffectiveIssueDetailsAsync_CorrectlyConvertsCleanCodeAttribute(CleanCodeAttribute slCore, RuleCleanCodeAttribute expected)
+    {
+        var issueId = Guid.NewGuid();
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpIssueServiceProvider(serviceProviderMock, out var issueServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
+        SetupIssuesService(issueServiceMock, issueId, "configscope", CreateEffectiveIssueDetailsDto(new MQRModeDetails(slCore, default)));
+
+        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+
+        ruleInfo.CleanCodeAttribute.Should().Be(expected);
+    }
+
+    [TestMethod]
+    public async Task GetEffectiveIssueDetailsAsync_CorrectlyConvertsImpacts()
+    {
+        var issueId = Guid.NewGuid();
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpIssueServiceProvider(serviceProviderMock, out var issueServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
+        SetupIssuesService(issueServiceMock, issueId, "configscope", CreateEffectiveIssueDetailsDto(new MQRModeDetails(default, [
+            new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH),
+            new ImpactDto(SoftwareQuality.RELIABILITY, ImpactSeverity.LOW),
+            new ImpactDto(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.MEDIUM)
+        ])));
+
+        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+
+        ruleInfo.DefaultImpacts.Should().BeEquivalentTo(new Dictionary<RuleSoftwareQuality, RuleSoftwareQualitySeverity>
+    {
+        { RuleSoftwareQuality.Security, RuleSoftwareQualitySeverity.High },
+        { RuleSoftwareQuality.Reliability, RuleSoftwareQualitySeverity.Low },
+        { RuleSoftwareQuality.Maintainability, RuleSoftwareQualitySeverity.Medium }
+    });
+    }
+
+    [TestMethod]
+    public async Task GetEffectiveIssueDetailsAsync_Standard_SimpleRuleDescription()
+    {
+        var issueId = Guid.NewGuid();
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpIssueServiceProvider(serviceProviderMock, out var issueServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
+        SetupIssuesService(issueServiceMock, issueId, "configscope", CreateEffectiveIssueDetailsDto(new StandardModeDetails(IssueSeverity.CRITICAL, RuleType.VULNERABILITY),
+            Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateLeft(
+                new RuleMonolithicDescriptionDto("content"))));
+
+        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+
+        ruleInfo.Should().BeEquivalentTo(new RuleInfo(null,
+            "content",
+            null,
+            RuleIssueSeverity.Critical,
+            RuleIssueType.Vulnerability,
+            null,
+            null,
+            null));
+    }
+
+    [TestMethod]
+    public async Task GetEffectiveIssueDetailsAsync_MQR_SimpleRuleDescription()
+    {
+        var issueId = Guid.NewGuid();
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpIssueServiceProvider(serviceProviderMock, out var issueServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
+        SetupIssuesService(issueServiceMock, issueId, "configscope", CreateEffectiveIssueDetailsDto(new MQRModeDetails(CleanCodeAttribute.MODULAR, default), Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateLeft(
+            new RuleMonolithicDescriptionDto("content"))));
+
+        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+
+        ruleInfo.Should().BeEquivalentTo(new RuleInfo(null,
+            "content",
+            null,
+            null,
+            null,
+            null,
+            RuleCleanCodeAttribute.Modular,
+            null));
+    }
+
+    [TestMethod]
+    public async Task GetEffectiveIssueDetailsAsync_Standard_RichRuleDescription()
+    {
+        var issueId = Guid.NewGuid();
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out var logger);
+        SetUpIssueServiceProvider(serviceProviderMock, out var issueServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
+        var ruleSplitDescriptionDto = new RuleSplitDescriptionDto("intro", new List<RuleDescriptionTabDto>());
+        SetupIssuesService(issueServiceMock, issueId, "configscope", CreateEffectiveIssueDetailsDto(new StandardModeDetails(IssueSeverity.MINOR, RuleType.BUG),
+            Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateRight(ruleSplitDescriptionDto)));
+
+        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+
+        ruleInfo.Should().BeEquivalentTo(new RuleInfo(null,
+            null,
+            null,
+            RuleIssueSeverity.Minor,
+            RuleIssueType.Bug,
+            ruleSplitDescriptionDto,
+            null,
+            null));
+        logger.AssertNoOutputMessages();
+    }
+
+    [TestMethod]
+    public async Task GetEffectiveIssueDetailsAsync_MQR_RichRuleDescription()
+    {
+        var issueId = Guid.NewGuid();
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out var logger);
+        SetUpIssueServiceProvider(serviceProviderMock, out var issueServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
+        var ruleSplitDescriptionDto = new RuleSplitDescriptionDto("intro", new List<RuleDescriptionTabDto>());
+        SetupIssuesService(issueServiceMock, issueId, "configscope", CreateEffectiveIssueDetailsDto(new MQRModeDetails(CleanCodeAttribute.RESPECTFUL, default),
+            Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateRight(ruleSplitDescriptionDto)));
+
+        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+
+        ruleInfo.Should().BeEquivalentTo(new RuleInfo(null,
+            null,
+            null,
+            null,
+            null,
+            ruleSplitDescriptionDto,
+            RuleCleanCodeAttribute.Respectful,
+            null));
+        logger.AssertNoOutputMessages();
+    }
+
+    [TestMethod]
+    public async Task GetEffectiveIssueDetailsAsync_NoActiveScope_ReturnsNull()
+    {
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out var logger);
+        SetUpIssueServiceProvider(serviceProviderMock, out _);
+        SetUpConfigScopeTracker(configScopeTrackerMock, null);
+        var issueId = Guid.NewGuid();
+
+        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+
+        ruleInfo.Should().BeNull();
+        logger.AssertNoOutputMessages();
+    }
+
+    [TestMethod]
+    public async Task GetEffectiveIssueDetailsAsync_ServiceUnavailable_ReturnsNull()
+    {
+        var testSubject = CreateTestSubject(out _, out var configScopeTrackerMock, out var logger);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("id"));
+
+        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(Guid.NewGuid());
+
+        ruleInfo.Should().BeNull();
+        logger.AssertNoOutputMessages();
+    }
+
+    [TestMethod]
+    public void GetEffectiveIssueDetailsAsync_ServiceThrows_ReturnsNullAndLogs()
+    {
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out var logger);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("id"));
+        SetUpIssueServiceProvider(serviceProviderMock, out var issueServiceMock);
+        issueServiceMock
+            .Setup(x => x.GetEffectiveIssueDetailsAsync(It.IsAny<GetEffectiveIssueDetailsParams>()))
+            .ThrowsAsync(new Exception("my message"));
+
+        var act = () => testSubject.GetEffectiveIssueDetailsAsync(Guid.NewGuid());
+
+        act.Should().NotThrow();
+        logger.AssertPartialOutputStringExists("my message");
+    }
+
+    [TestMethod]
+    public async Task GetRuleInfoAsync_FilterableIssueNull_CallsGetEffectiveRuleDetailsAsync()
+    {
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpIssueServiceProvider(serviceProviderMock, out var issueServiceMock);
+        SetUpServiceProvider(serviceProviderMock, out var rulesServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
+
+        await testSubject.GetRuleInfoAsync(_compositeRuleId, null);
+
+        rulesServiceMock.Verify(x => x.GetEffectiveRuleDetailsAsync(It.Is<GetEffectiveRuleDetailsParams>(p => p.ruleKey == _compositeRuleId.ToString())), Times.Once);
+        issueServiceMock.Verify(x => x.GetEffectiveIssueDetailsAsync(It.IsAny<GetEffectiveIssueDetailsParams>()), Times.Never);
+    }
+
+    [TestMethod]
+    public async Task GetRuleInfoAsync_FilterableIssueIdNull_CallsGetEffectiveRuleDetailsAsync()
+    {
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpIssueServiceProvider(serviceProviderMock, out var issueServiceMock);
+        SetUpServiceProvider(serviceProviderMock, out var rulesServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
+        Guid? issueId = null;
+
+        await testSubject.GetRuleInfoAsync(_compositeRuleId, issueId);
+
+        rulesServiceMock.Verify(x => x.GetEffectiveRuleDetailsAsync(It.Is<GetEffectiveRuleDetailsParams>(p => p.ruleKey == _compositeRuleId.ToString())), Times.Once);
+        issueServiceMock.Verify(x => x.GetEffectiveIssueDetailsAsync(It.IsAny<GetEffectiveIssueDetailsParams>()), Times.Never);
+    }
+
+    [TestMethod]
+    public async Task GetRuleInfoAsync_FilterableIssueIdNotNull_CallsGetEffectiveIssueDetailsAsync()
+    {
+        var configScopeId = "configscope";
+        var issueId = Guid.NewGuid();
+        var testSubject = CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpIssueServiceProvider(serviceProviderMock, out var issueServiceMock);
+        SetUpServiceProvider(serviceProviderMock, out var rulesServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope(configScopeId));
+        SetupIssuesService(issueServiceMock, issueId, configScopeId, CreateEffectiveIssueDetailsDto(new MQRModeDetails(default, default)));
+
+        await testSubject.GetRuleInfoAsync(_compositeRuleId, issueId);
+
+        rulesServiceMock.Verify(x => x.GetEffectiveRuleDetailsAsync(It.IsAny<GetEffectiveRuleDetailsParams>()), Times.Never);
+        issueServiceMock.Verify(x => x.GetEffectiveIssueDetailsAsync(It.Is<GetEffectiveIssueDetailsParams>(p => p.issueId == issueId)), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task GetRuleInfoAsync_GetEffectiveIssueDetailsAsyncThrows_CallsGetEffectiveRuleDetailsAsync()
+    {
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpIssueServiceProvider(serviceProviderMock, out var issueServiceMock);
+        SetUpServiceProvider(serviceProviderMock, out var rulesServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
+        var issueId = Guid.NewGuid();
+        issueServiceMock
+            .Setup(x => x.GetEffectiveIssueDetailsAsync(It.IsAny<GetEffectiveIssueDetailsParams>()))
+            .ThrowsAsync(new Exception("my message"));
+
+        await testSubject.GetRuleInfoAsync(_compositeRuleId, issueId);
+
+        rulesServiceMock.Verify(x => x.GetEffectiveRuleDetailsAsync(It.Is<GetEffectiveRuleDetailsParams>(p => p.ruleKey == _compositeRuleId.ToString())), Times.Once);
+        issueServiceMock.Verify(x => x.GetEffectiveIssueDetailsAsync(It.Is<GetEffectiveIssueDetailsParams>(p => p.issueId == issueId)), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task GetRuleInfoAsync_BothServicesThrow_ReturnsNull()
+    {
+        var testSubject =
+            CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out _);
+        SetUpIssueServiceProvider(serviceProviderMock, out var issueServiceMock);
+        SetUpServiceProvider(serviceProviderMock, out var rulesServiceMock);
+        SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
+        var issueId = Guid.NewGuid();
+        issueServiceMock
+            .Setup(x => x.GetEffectiveIssueDetailsAsync(It.IsAny<GetEffectiveIssueDetailsParams>()))
+            .ThrowsAsync(new Exception("my message"));
+        rulesServiceMock
+            .Setup(x => x.GetEffectiveRuleDetailsAsync(It.IsAny<GetEffectiveRuleDetailsParams>()))
+            .ThrowsAsync(new Exception("my message"));
+
+        var result = await testSubject.GetRuleInfoAsync(_compositeRuleId, issueId);
+
+        result.Should().BeNull();
+        rulesServiceMock.Verify(x => x.GetEffectiveRuleDetailsAsync(It.Is<GetEffectiveRuleDetailsParams>(p => p.ruleKey == _compositeRuleId.ToString())), Times.Once);
+        issueServiceMock.Verify(x => x.GetEffectiveIssueDetailsAsync(It.Is<GetEffectiveIssueDetailsParams>(p => p.issueId == issueId)), Times.Once);
+    }
+
     private static void SetUpConfigScopeTracker(
         Mock<IActiveConfigScopeTracker> configScopeTrackerMock,
         ConfigurationScope scope) =>
@@ -375,11 +703,29 @@ public class SLCoreRuleMetaDataProviderTests
                 p.ruleKey == rulekey && p.configurationScopeId == configScopeId)))
             .ReturnsAsync(new GetEffectiveRuleDetailsResponse(response));
 
+    private static void SetupIssuesService(
+        Mock<IIssueSLCoreService> issuesServiceMock,
+        Guid id,
+        string configScopeId,
+        EffectiveIssueDetailsDto response) =>
+        issuesServiceMock
+            .Setup(r => r.GetEffectiveIssueDetailsAsync(It.Is<GetEffectiveIssueDetailsParams>(p => p.configurationScopeId == configScopeId && p.issueId == id)))
+            .ReturnsAsync(new GetEffectiveIssueDetailsResponse(response));
+
     private static void SetUpServiceProvider(
         Mock<ISLCoreServiceProvider> serviceProviderMock,
         out Mock<IRulesSLCoreService> rulesServiceMock)
     {
         rulesServiceMock = new Mock<IRulesSLCoreService>();
+        var rulesService = rulesServiceMock.Object;
+        serviceProviderMock.Setup(x => x.TryGetTransientService(out rulesService)).Returns(true);
+    }
+
+    private static void SetUpIssueServiceProvider(
+        Mock<ISLCoreServiceProvider> serviceProviderMock,
+        out Mock<IIssueSLCoreService> rulesServiceMock)
+    {
+        rulesServiceMock = new Mock<IIssueSLCoreService>();
         var rulesService = rulesServiceMock.Object;
         serviceProviderMock.Setup(x => x.TryGetTransientService(out rulesService)).Returns(true);
     }
@@ -394,4 +740,16 @@ public class SLCoreRuleMetaDataProviderTests
         logger = new TestLogger();
         return new SLCoreRuleMetaDataProvider(serviceProviderMock.Object, configScopeTrackerMock.Object, logger);
     }
+
+    private static EffectiveIssueDetailsDto CreateEffectiveIssueDetailsDto(Either<StandardModeDetails, MQRModeDetails> severityDetails,
+        Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description = default) =>
+        new(
+            default,
+            default,
+            default,
+            default,
+            description,
+            default,
+            severityDetails, 
+            default);
 }

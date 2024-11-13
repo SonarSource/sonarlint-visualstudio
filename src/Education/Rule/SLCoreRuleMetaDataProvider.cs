@@ -18,16 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.Issue;
 using SonarLint.VisualStudio.SLCore.Service.Rules;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SonarLint.VisualStudio.SLCore.State;
@@ -74,7 +72,35 @@ internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
         return null;
     }
 
-    private static RuleInfo Convert(EffectiveRuleDetailsDto effectiveRuleDetailsAsync) =>
+    /// <inheritdoc />
+    public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, Guid? issueId)
+    {
+        var ruleInfoFromIssue = issueId != null ? await GetEffectiveIssueDetailsAsync(issueId.Value) : null;
+
+        return ruleInfoFromIssue ?? await GetRuleInfoAsync(ruleId);
+    }
+
+    internal async Task<IRuleInfo> GetEffectiveIssueDetailsAsync(Guid issueId)
+    {
+        if (activeConfigScopeTracker.Current is { Id: var configurationScopeId }
+            && slCoreServiceProvider.TryGetTransientService(out IIssueSLCoreService rulesRpcService))
+        {
+            try
+            {
+                var issueDetailsResponse = await rulesRpcService.GetEffectiveIssueDetailsAsync(
+                    new GetEffectiveIssueDetailsParams(configurationScopeId, issueId));
+                return Convert(issueDetailsResponse.details);
+            }
+            catch (Exception e)
+            {
+                logger.WriteLine(e.ToString());
+            }
+        }
+
+        return null;
+    }
+
+    private static RuleInfo Convert(IRuleDetails effectiveRuleDetailsAsync) =>
         new(effectiveRuleDetailsAsync.key,
             HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(effectiveRuleDetailsAsync.description?.Left?.htmlContent),
             effectiveRuleDetailsAsync.name,
