@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -90,9 +88,24 @@ public class SSESessionManagerTests
     }
 
     [TestMethod]
+    public void CreateSessionIfInConnectedMode_WhenConnectedToSonarCloud_DoesNotCreateSession()
+    {
+        var bindingConfig = TestScope.CreateConnectedModeSonarCloudBindingConfiguration(DefaultProjectKey);
+
+        var testScope = new TestScope(bindingConfig);
+
+        var _ = testScope.CreateTestSubject();
+        var testSubject = testScope.CreateTestSubject();
+
+        testSubject.CreateSessionIfInConnectedMode(bindingConfig);
+
+        testScope.SSESessionFactoryMock.Verify(factory => factory.Create(DefaultProjectKey, It.IsAny<OnSessionFailedAsync>()), Times.Never);
+    }
+
+    [TestMethod]
     public void CreateSessionIfInConnectedMode_WhenInConnectedModeOnCreation_CreatesSession()
     {
-        var bindingConfig = TestScope.CreateConnectedModeBindingConfiguration(DefaultProjectKey);
+        var bindingConfig = TestScope.CreateConnectedModeSonarQubeBindingConfiguration(DefaultProjectKey);
 
         var testScope = new TestScope(bindingConfig);
         var sessionMock = testScope.SetUpSSEFactoryToReturnNoOpSSESession(DefaultProjectKey);
@@ -158,7 +171,7 @@ public class SSESessionManagerTests
     [DataTestMethod]
     public async Task OnSessionFailed_CancelsSessionAndStartsNewOne()
     {
-        var bindingConfig = TestScope.CreateConnectedModeBindingConfiguration(DefaultProjectKey);
+        var bindingConfig = TestScope.CreateConnectedModeSonarQubeBindingConfiguration(DefaultProjectKey);
 
         var testScope = new TestScope(bindingConfig);
 
@@ -256,11 +269,23 @@ public class SSESessionManagerTests
                 Mock.Of<ILogger>());
         }
 
-        public static BindingConfiguration CreateConnectedModeBindingConfiguration(string projectKey)
+        public static BindingConfiguration CreateConnectedModeSonarQubeBindingConfiguration(string projectKey)
+        {
+            var sonarQube = new ServerConnection.SonarQube(new Uri("http://localhost"));
+            return CreateConnectedModeBindingConfiguration(projectKey, sonarQube);
+        }
+
+        public static BindingConfiguration CreateConnectedModeSonarCloudBindingConfiguration(string projectKey)
+        {
+            var sonarCloud = new ServerConnection.SonarCloud(projectKey);
+            return CreateConnectedModeBindingConfiguration(projectKey, sonarCloud);
+        }
+
+        private static BindingConfiguration CreateConnectedModeBindingConfiguration(string projectKey, ServerConnection serverConnection)
         {
             var randomString = Guid.NewGuid().ToString();
             var bindingConfiguration = new BindingConfiguration(
-                new BoundServerProject(randomString, projectKey, new ServerConnection.SonarQube(new Uri("http://localhost"))),
+                new BoundServerProject(randomString, projectKey, serverConnection),
                 SonarLintMode.Connected,
                 randomString);
             return bindingConfiguration;
@@ -298,7 +323,7 @@ public class SSESessionManagerTests
 
         public void RaiseInConnectedModeEvent(string projectKey)
         {
-            var openProjectEvent = CreateConnectedModeBindingConfiguration(projectKey);
+            var openProjectEvent = CreateConnectedModeSonarQubeBindingConfiguration(projectKey);
             RaiseSolutionBindingEvent(openProjectEvent);
         }
 
