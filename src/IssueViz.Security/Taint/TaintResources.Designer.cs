@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Taint] Unable to fetch taint vulnerabilities: SonarLint Core backend is not available..
+        ///   Looks up a localized string similar to [Taint] Unable to fetch taint vulnerabilities: SLCore backend is not available..
         /// </summary>
         internal static string Synchronizer_SLCoreNotReady {
             get {
@@ -96,12 +96,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Taint] Displaying taint vulnerabilities in the IDE requires SonarQube v8.6 or later, or SonarCloud. Connected SonarQube version: v{0}
-        ///    Visit {1} to find out more about this and other SonarLint features..
+        ///   Looks up a localized string similar to [Taint Sync] Taint storage has already been initialized for current configuration scope.
         /// </summary>
-        internal static string Synchronizer_UnsupportedSQVersion {
+        internal static string Synchronizer_Verbose_AlreadyInitialized {
             get {
-                return ResourceManager.GetString("Synchronizer_UnsupportedSQVersion", resourceCulture);
+                return ResourceManager.GetString("Synchronizer_Verbose_AlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Taint Sync] Configuration scope root hasn&apos;t been initialized....
+        /// </summary>
+        internal static string Synchronizer_Verbose_ConfigScopeNotReady {
+            get {
+                return ResourceManager.GetString("Synchronizer_Verbose_ConfigScopeNotReady", resourceCulture);
             }
         }
         

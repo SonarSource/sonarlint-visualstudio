@@ -26,22 +26,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint;
 [TestClass]
 public class TaintIssuesConfigurationScopeMonitorTests
 {
-    [TestMethod]
-    public void Ctor_SubscribesToConfigurationScopeEvents()
+    private TaintIssuesConfigurationScopeMonitor testSubject;
+    private IActiveConfigScopeTracker activeConfigScopeTracker;
+    private ITaintIssuesSynchronizer taintIssuesSynchronizer;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
-
-        _ = new TaintIssuesConfigurationScopeMonitor(activeConfigScopeTracker, Substitute.For<ITaintIssuesSynchronizer>());
-
-        activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged += Arg.Any<EventHandler>();
+        activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        taintIssuesSynchronizer = Substitute.For<ITaintIssuesSynchronizer>();
+        testSubject = new TaintIssuesConfigurationScopeMonitor(activeConfigScopeTracker, taintIssuesSynchronizer);
     }
+
+    [TestMethod]
+    public void Ctor_SubscribesToConfigurationScopeEvents() =>
+        activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged += Arg.Any<EventHandler>();
 
     [TestMethod]
     public void Dispose_UnsubscribesToConfigurationScopeEvents()
     {
-        var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
-        var testSubject = new TaintIssuesConfigurationScopeMonitor(activeConfigScopeTracker, Substitute.For<ITaintIssuesSynchronizer>());
-
         testSubject.Dispose();
 
         activeConfigScopeTracker.Received().CurrentConfigurationScopeChanged -= Arg.Any<EventHandler>();
@@ -50,11 +53,8 @@ public class TaintIssuesConfigurationScopeMonitorTests
     [TestMethod]
     public void ConfigScopeChangedEvent_CallsTaintSynchronizer()
     {
-        var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         var configurationScope = new ConfigurationScope("config scope");
         activeConfigScopeTracker.Current.Returns(configurationScope);
-        var taintIssuesSynchronizer = Substitute.For<ITaintIssuesSynchronizer>();
-        _ = new TaintIssuesConfigurationScopeMonitor(activeConfigScopeTracker, taintIssuesSynchronizer);
 
         activeConfigScopeTracker.CurrentConfigurationScopeChanged += Raise.Event<EventHandler>();
 

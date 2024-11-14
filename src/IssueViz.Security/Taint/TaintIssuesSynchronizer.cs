@@ -127,7 +127,7 @@ internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
         var isReady = configurationScope.RootPath is not null;
         if (!isReady)
         {
-            logger.LogVerbose("Configuration scope root hasn't been initialized.");
+            logger.LogVerbose(TaintResources.Synchronizer_Verbose_ConfigScopeNotReady);
         }
         return isReady;
     }
@@ -137,7 +137,7 @@ internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
         var isAlreadyInitialized = taintStore.ConfigurationScope == configurationScope.Id;
         if (!isAlreadyInitialized)
         {
-            logger.LogVerbose("Taint store has already been initialized for current configuration scope");
+            logger.LogVerbose(TaintResources.Synchronizer_Verbose_AlreadyInitialized);
         }
         return isAlreadyInitialized;
     }
