@@ -211,7 +211,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         [TestMethod]
         public void IsFilterable()
         {
+            var id = Guid.NewGuid();
             var issueMock = new Mock<IAnalysisIssue>();
+            issueMock.SetupGet(x => x.Id).Returns(id);
             issueMock.SetupGet(x => x.RuleKey).Returns("my key");
             issueMock.SetupGet(x => x.PrimaryLocation.FilePath).Returns("x:\\aaa.foo");
             issueMock.SetupGet(x => x.PrimaryLocation.TextRange.StartLine).Returns(999);
@@ -223,6 +225,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
 
             var filterable = (IFilterableIssue)testSubject;
 
+            filterable.IssueId.Should().Be(id);
             filterable.RuleId.Should().Be(issueMock.Object.RuleKey);
             filterable.FilePath.Should().Be(issueMock.Object.PrimaryLocation.FilePath);
             filterable.StartLine.Should().Be(issueMock.Object.PrimaryLocation.TextRange.StartLine);

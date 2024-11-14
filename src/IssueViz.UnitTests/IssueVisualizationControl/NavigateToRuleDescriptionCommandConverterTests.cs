@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -43,13 +41,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         }
 
         [TestMethod]
-        public void Convert_WrongNumberOfParams_ReturnsNull()
+        public void Convert_WrongNumberOfParams_IgnoresAdditionalParameter()
         {
-            var values = new object[] { "RuleKey", "context", "third param" };
+            var values = new object[] { "RuleKey", "context", "third param", "fourth param" };
 
             var command = testSubject.Convert(values, default, default, default);
 
-            command.Should().BeNull();
+            (command is NavigateToRuleDescriptionCommandParam).Should().BeTrue();
+            ((NavigateToRuleDescriptionCommandParam)command).FullRuleKey.Should().Be("RuleKey");
+            ((NavigateToRuleDescriptionCommandParam)command).Context.Should().Be("context");
         }
 
         [DataRow("str", 3)]
@@ -89,6 +89,35 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
                 values.Should().BeNull();
             }
+        }
+
+        [TestMethod]
+        public void Convert_ThirdOptionalValueProvided_SetsIssueId()
+        {
+            var issuedId = Guid.NewGuid();
+            var values = new object[] { "RuleKey", "context", issuedId };
+
+            var command = testSubject.Convert(values, default, default, default);
+
+            var navigateToRuleDescriptionParam = command as NavigateToRuleDescriptionCommandParam;
+            navigateToRuleDescriptionParam.Should().NotBeNull();
+            navigateToRuleDescriptionParam.FullRuleKey.Should().Be("RuleKey");
+            navigateToRuleDescriptionParam.Context.Should().Be("context");
+            navigateToRuleDescriptionParam.IssueId.Should().Be(issuedId);
+        }
+
+        [TestMethod]
+        public void Convert_ThirdOptionalValueIsNull_SetsIssueIdToNull()
+        {
+            var values = new object[] { "RuleKey", "context", null };
+
+            var command = testSubject.Convert(values, default, default, default);
+
+            var navigateToRuleDescriptionParam = command as NavigateToRuleDescriptionCommandParam;
+            navigateToRuleDescriptionParam.Should().NotBeNull();
+            navigateToRuleDescriptionParam.FullRuleKey.Should().Be("RuleKey");
+            navigateToRuleDescriptionParam.Context.Should().Be("context");
+            navigateToRuleDescriptionParam.IssueId.Should().BeNull();
         }
     }
 }

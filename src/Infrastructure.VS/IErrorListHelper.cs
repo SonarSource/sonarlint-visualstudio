@@ -52,6 +52,13 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         bool TryGetIssueFromSelectedRow(out IFilterableIssue issue);
 
         /// <summary>
+        /// Extracts, if present, <see cref="IFilterableIssue"/> from the hidden column <see cref="SonarLintTableControlConstants.IssueVizColumnName"/>
+        /// The method will only return a rule key if the row represents a Sonar analysis issue for any supported language (including Roslyn languages i.e. C# and VB.NET)
+        /// </summary>
+        /// <returns>True if issue is present in the provided row</returns>
+        bool TryGetFilterableIssue(ITableEntryHandle handle, out IFilterableIssue issue);
+
+        /// <summary>
         /// Extracts <see cref="IFilterableRoslynIssue"/> from error code, line number and file path. Does not calculate line hash.
         /// </summary>
         /// <returns>True if error code is of sonar issue, line number and file path are available. False otherwise or if multiple rows selected</returns>

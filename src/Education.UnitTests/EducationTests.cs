@@ -18,14 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading;
 using System.Windows.Documents;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Education.Commands;
+using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Education.Rule;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -53,11 +49,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var ruleId = new SonarCompositeRuleId("repoKey", "ruleKey");
 
             var ruleInfo = Mock.Of<IRuleInfo>();
-            ruleMetaDataProvider.Setup(x => x.GetRuleInfoAsync(It.IsAny<SonarCompositeRuleId>())).ReturnsAsync(ruleInfo);
+            ruleMetaDataProvider.Setup(x => x.GetRuleInfoAsync(It.IsAny<SonarCompositeRuleId>(), It.IsAny<Guid?>())).ReturnsAsync(ruleInfo);
 
             var flowDocument = Mock.Of<FlowDocument>();
             var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
-            ruleHelpXamlBuilder.Setup(x => x.Create(ruleInfo, /* todo */ null)).Returns(flowDocument);
+            ruleHelpXamlBuilder.Setup(x => x.Create(ruleInfo, /* todo by SLVS-1630 */ null)).Returns(flowDocument);
 
             var ruleDescriptionToolWindow = new Mock<IRuleHelpToolWindow>();
 
@@ -74,10 +70,10 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             toolWindowService.Invocations.Should().HaveCount(0);
 
             // Act
-            testSubject.ShowRuleHelp(ruleId, null);
+            testSubject.ShowRuleHelp(ruleId, null, null);
 
-            ruleMetaDataProvider.Verify(x => x.GetRuleInfoAsync(ruleId), Times.Once);
-            ruleHelpXamlBuilder.Verify(x => x.Create(ruleInfo, /* todo */ null), Times.Once);
+            ruleMetaDataProvider.Verify(x => x.GetRuleInfoAsync(ruleId, It.IsAny<Guid?>()), Times.Once);
+            ruleHelpXamlBuilder.Verify(x => x.Create(ruleInfo, /* todo by SLVS-1630 */ null), Times.Once);
             ruleDescriptionToolWindow.Verify(x => x.UpdateContent(flowDocument), Times.Once);
             toolWindowService.Verify(x => x.Show(RuleHelpToolWindow.ToolWindowId), Times.Once);
 
@@ -95,9 +91,9 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var ruleId = new SonarCompositeRuleId("repoKey", "ruleKey");
 
             var ruleInfo = Mock.Of<IRuleInfo>();
-            ruleMetadataProvider.Setup(x => x.GetRuleInfoAsync(It.IsAny<SonarCompositeRuleId>())).ReturnsAsync(ruleInfo);
+            ruleMetadataProvider.Setup(x => x.GetRuleInfoAsync(It.IsAny<SonarCompositeRuleId>(), It.IsAny<Guid?>())).ReturnsAsync(ruleInfo);
 
-            ruleHelpXamlBuilder.Setup(x => x.Create(ruleInfo, /* todo */ null)).Throws(new Exception("some layout error"));
+            ruleHelpXamlBuilder.Setup(x => x.Create(ruleInfo, /* todo by SLVS-1630 */ null)).Throws(new Exception("some layout error"));
 
             var testSubject = CreateEducation(
                 toolWindowService.Object,
@@ -107,9 +103,9 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
             toolWindowService.Reset(); // Called in the constructor, so need to reset to clear the list of invocations
 
-            testSubject.ShowRuleHelp(ruleId, /* todo */ null);
+            testSubject.ShowRuleHelp(ruleId, null, /* todo by SLVS-1630 */null);
 
-            ruleMetadataProvider.Verify(x => x.GetRuleInfoAsync(ruleId), Times.Once);
+            ruleMetadataProvider.Verify(x => x.GetRuleInfoAsync(ruleId, It.IsAny<Guid?>()), Times.Once);
             showRuleInBrowser.Verify(x => x.ShowRuleDescription(ruleId), Times.Once);
 
             // should have attempted to build the rule, but failed
@@ -126,7 +122,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests
             var showRuleInBrowser = new Mock<IShowRuleInBrowser>();
 
             var unknownRule = new SonarCompositeRuleId("known", "xxx");
-            ruleMetadataProvider.Setup(x => x.GetRuleInfoAsync(unknownRule)).ReturnsAsync((IRuleInfo)null);
+            ruleMetadataProvider.Setup(x => x.GetRuleInfoAsync(unknownRule, It.IsAny<Guid?>())).ReturnsAsync((IRuleInfo)null);
 
             var testSubject = CreateEducation(
                 toolWindowService.Object,
@@ -136,14 +132,35 @@ namespace SonarLint.VisualStudio.Education.UnitTests
 
             toolWindowService.Reset(); // Called in the constructor, so need to reset to clear the list of invocations
 
-            testSubject.ShowRuleHelp(unknownRule, /* todo */ null);
+            testSubject.ShowRuleHelp(unknownRule, null, /* todo by SLVS-1630 */ null);
 
-            ruleMetadataProvider.Verify(x => x.GetRuleInfoAsync(unknownRule), Times.Once);
+            ruleMetadataProvider.Verify(x => x.GetRuleInfoAsync(unknownRule, It.IsAny<Guid?>()), Times.Once);
             showRuleInBrowser.Verify(x => x.ShowRuleDescription(unknownRule), Times.Once);
 
             // Should not have attempted to build the rule
             ruleHelpXamlBuilder.Invocations.Should().HaveCount(0);
             toolWindowService.Invocations.Should().HaveCount(0);
+        }
+
+        [TestMethod]
+        public void ShowRuleHelp_FilterableIssueProvided_CallsGetRuleInfoForIssue()
+        {
+            var toolWindowService = new Mock<IToolWindowService>();
+            var ruleMetadataProvider = new Mock<IRuleMetaDataProvider>();
+            var ruleHelpXamlBuilder = new Mock<IRuleHelpXamlBuilder>();
+            var showRuleInBrowser = new Mock<IShowRuleInBrowser>();
+            var issueId = Guid.NewGuid();
+            var ruleId = new SonarCompositeRuleId("repoKey", "ruleKey");
+            ruleMetadataProvider.Setup(x => x.GetRuleInfoAsync(ruleId, issueId)).ReturnsAsync((IRuleInfo)null);
+            var testSubject = CreateEducation(
+                toolWindowService.Object,
+                ruleMetadataProvider.Object,
+                showRuleInBrowser.Object,
+                ruleHelpXamlBuilder.Object);
+
+            testSubject.ShowRuleHelp(ruleId,issueId, null);
+
+            ruleMetadataProvider.Verify(x => x.GetRuleInfoAsync(ruleId, issueId), Times.Once);
         }
 
         private Education CreateEducation(IToolWindowService toolWindowService = null,
