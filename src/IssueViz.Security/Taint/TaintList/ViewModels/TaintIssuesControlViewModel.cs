@@ -298,7 +298,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             }
 
             NotifyPropertyChanged(nameof(HasServerIssues));
-            NotifyPropertyChanged(nameof(AnalysisInformation));
         }
 
 
