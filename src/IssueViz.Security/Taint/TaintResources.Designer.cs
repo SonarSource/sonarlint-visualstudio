@@ -9,8 +9,8 @@
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -22,15 +22,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TaintResources {
-        
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal TaintResources() {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [Taint] Failed to synchronize taint vulnerabilities with the connected server: {0}..
         /// </summary>
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
                 return ResourceManager.GetString("Synchronizer_Failure", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [Taint] Unable to fetch taint vulnerabilities: not in connected mode..
         /// </summary>
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
                 return ResourceManager.GetString("Synchronizer_NotInConnectedMode", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [Taint] Fetched {0} taint vulnerabilities..
         /// </summary>
@@ -85,26 +85,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
                 return ResourceManager.GetString("Synchronizer_NumberOfServerIssues", resourceCulture);
             }
         }
-        
+
         /// <summary>
-        ///   Looks up a localized string similar to [Taint] Unable to fetch taint vulnerabilities: a connection to the server is not yet established..
+        ///   Looks up a localized string similar to [Taint] Unable to fetch taint vulnerabilities: SLCore backend is not available..
         /// </summary>
-        internal static string Synchronizer_ServerNotConnected {
+        internal static string Synchronizer_SLCoreNotReady {
             get {
-                return ResourceManager.GetString("Synchronizer_ServerNotConnected", resourceCulture);
+                return ResourceManager.GetString("Synchronizer_SLCoreNotReady", resourceCulture);
             }
         }
-        
+
         /// <summary>
-        ///   Looks up a localized string similar to [Taint] Displaying taint vulnerabilities in the IDE requires SonarQube Server v8.6 or later, or SonarQube Cloud. Connected SonarQube Server version: v{0}
-        ///    Visit {1} to find out more about this and other SonarQube for Visual Studio features..
+        ///   Looks up a localized string similar to [Taint Sync] Taint storage has already been initialized for current configuration scope.
         /// </summary>
-        internal static string Synchronizer_UnsupportedSQVersion {
+        internal static string Synchronizer_Verbose_AlreadyInitialized {
             get {
-                return ResourceManager.GetString("Synchronizer_UnsupportedSQVersion", resourceCulture);
+                return ResourceManager.GetString("Synchronizer_Verbose_AlreadyInitialized", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to [Taint Sync] Configuration scope root hasn&apos;t been initialized....
+        /// </summary>
+        internal static string Synchronizer_Verbose_ConfigScopeNotReady {
+            get {
+                return ResourceManager.GetString("Synchronizer_Verbose_ConfigScopeNotReady", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to [Taint] Finished initializing taint issues synchronization package..
         /// </summary>
@@ -113,7 +121,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
                 return ResourceManager.GetString("SyncPackage_Initialized", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [Taint] Initializing taint issues synchronization package....
         /// </summary>
@@ -122,7 +130,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
                 return ResourceManager.GetString("SyncPackage_Initializing", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Taint issue with id: {0} has no defined severity.
         /// </summary>

@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
@@ -34,12 +31,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         /// Removes all existing visualizations and initializes the store to the given collection.
         /// Can be called multiple times.
         /// </summary>
-        void Set(IEnumerable<IAnalysisIssueVisualization> issueVisualizations, AnalysisInformation analysisInformation);
+        void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope);
 
-        /// <summary>
-        /// Returns additional analysis information for the existing visualizations in the store.
-        /// </summary>
-        AnalysisInformation GetAnalysisInformation();
+        string ConfigurationScope { get; }
 
         /// <summary>
         /// Add the given issue to the existing list of visualizations.
@@ -61,20 +55,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     {
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 
-        private static readonly object Locker = new object();
+        private readonly object locker = new object();
 
+        private string configurationScope;
         private List<IAnalysisIssueVisualization> taintVulnerabilities = new List<IAnalysisIssueVisualization>();
-        private AnalysisInformation analysisInformation;
 
         public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll()
         {
-            lock (Locker)
+            lock (locker)
             {
                 return taintVulnerabilities.ToList();
             }
         }
-
-        public AnalysisInformation GetAnalysisInformation() => analysisInformation;
 
         public void Add(IAnalysisIssueVisualization issueVisualization)
         {
@@ -83,9 +75,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 throw new ArgumentNullException(nameof(issueVisualization));
             }
 
-            lock (Locker)
+            lock (locker)
             {
-                if (analysisInformation == null)
+                if (configurationScope == null)
                 {
                     return;
                 }
@@ -97,8 +89,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
                 taintVulnerabilities.Add(issueVisualization);
 
-                NotifyIssuesChanged(Array.Empty<IAnalysisIssueVisualization>(), new[] { issueVisualization });
             }
+
+            NotifyIssuesChanged([], [issueVisualization]);
         }
 
         public void Remove(string issueKey)
@@ -108,8 +101,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 throw new ArgumentNullException(nameof(issueKey));
             }
 
-            lock (Locker)
+            IAnalysisIssueVisualization valueToRemove;
+
+            lock (locker)
             {
+                if (configurationScope == null)
+                {
+                    return;
+                }
+
                 var indexToRemove =
                     taintVulnerabilities.FindIndex(issueViz => ((ITaintIssue)issueViz.Issue).IssueKey.Equals(issueKey));
 
@@ -118,31 +118,51 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                     return;
                 }
 
-                var valueToRemove = taintVulnerabilities[indexToRemove];
+                valueToRemove = taintVulnerabilities[indexToRemove];
                 taintVulnerabilities.RemoveAt(indexToRemove);
 
-                NotifyIssuesChanged(new[] { valueToRemove }, Array.Empty<IAnalysisIssueVisualization>());
             }
+
+            NotifyIssuesChanged([valueToRemove], []);
         }
 
-        public void Set(IEnumerable<IAnalysisIssueVisualization> issueVisualizations, AnalysisInformation analysisInformation)
+        public void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
         {
             if (issueVisualizations == null)
             {
                 throw new ArgumentNullException(nameof(issueVisualizations));
             }
 
-            lock (Locker)
+            if (issueVisualizations.Count > 0 && newConfigurationScope == null)
             {
-                this.analysisInformation = analysisInformation;
+                throw new ArgumentNullException(nameof(newConfigurationScope));
+            }
 
+            IAnalysisIssueVisualization[] removedIssues;
+            IAnalysisIssueVisualization[] addedIssues;
+
+            lock (locker)
+            {
                 var oldIssues = taintVulnerabilities;
                 taintVulnerabilities = issueVisualizations.ToList();
+                configurationScope = newConfigurationScope;
 
-                var removedIssues = oldIssues.Except(taintVulnerabilities, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance).ToArray();
-                var addedIssues = taintVulnerabilities.Except(oldIssues, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance).ToArray();
 
-                NotifyIssuesChanged(removedIssues, addedIssues);
+                removedIssues = oldIssues.Except(taintVulnerabilities, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance).ToArray();
+                addedIssues = taintVulnerabilities.Except(oldIssues, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance).ToArray();
+            }
+
+            NotifyIssuesChanged(removedIssues, addedIssues);
+        }
+
+        public string ConfigurationScope
+        {
+            get
+            {
+                lock (locker)
+                {
+                    return configurationScope;
+                }
             }
         }
 
