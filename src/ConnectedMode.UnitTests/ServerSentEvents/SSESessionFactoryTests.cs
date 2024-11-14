@@ -18,81 +18,70 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
-using System;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents;
+
+[TestClass]
+public class SSESessionFactoryTests
 {
-    [TestClass]
-    public class SSESessionFactoryTests
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<SSESessionFactory, ISSESessionFactory>(
-                MefTestHelpers.CreateExport<ISonarQubeService>(),
-                MefTestHelpers.CreateExport<ITaintServerEventSourcePublisher>(),
-                MefTestHelpers.CreateExport<IIssueServerEventSourcePublisher>(),
-                MefTestHelpers.CreateExport<IQualityProfileServerEventSourcePublisher>(),
-                MefTestHelpers.CreateExport<ILogger>(),
-                MefTestHelpers.CreateExport<IThreadHandling>());
-        }
-
-        [TestMethod]
-        public void Create_ReturnsCorrectType()
-        {
-            var testSubject = CreateTestSubject();
-
-            var sseSession = testSubject.Create("MyProjectName", null);
-
-            sseSession.Should().NotBeNull().And.BeOfType<SSESessionFactory.SSESession>();
-        }
-
-        [TestMethod]
-        public void Create_AfterDispose_Throws()
-        {
-            var testSubject = CreateTestSubject();
-
-            testSubject.Dispose();
-            Action act = () => testSubject.Create("MyProjectName", null);
-
-            act.Should().Throw<ObjectDisposedException>();
-        }
-
-        [TestMethod]
-        public void Dispose_IdempotentAndDisposesPublishers()
-        {
-            var taintPublisherMock = new Mock<ITaintServerEventSourcePublisher>();
-            var issuesPublisherMock = new Mock<IIssueServerEventSourcePublisher>();
-            var qualityProfilePublisherMock = new Mock<IQualityProfileServerEventSourcePublisher>();
-            var testSubject = CreateTestSubject(taintPublisherMock, issuesPublisherMock, qualityProfilePublisherMock);
-
-            testSubject.Dispose();
-            testSubject.Dispose();
-            testSubject.Dispose();
-
-            taintPublisherMock.Verify(p => p.Dispose(), Times.Once);
-            issuesPublisherMock.Verify(p => p.Dispose(), Times.Once);
-            qualityProfilePublisherMock.Verify(p => p.Dispose(), Times.Once);
-        }
-
-        private SSESessionFactory CreateTestSubject(Mock<ITaintServerEventSourcePublisher> taintPublisher = null,
-            Mock<IIssueServerEventSourcePublisher> issuePublisher = null,
-            Mock<IQualityProfileServerEventSourcePublisher> qualityProfileServerEventSourcePublisher = null)
-        {
-            return new SSESessionFactory(Mock.Of<ISonarQubeService>(),
-                taintPublisher?.Object ?? Mock.Of<ITaintServerEventSourcePublisher>(), 
-                issuePublisher?.Object ?? Mock.Of<IIssueServerEventSourcePublisher>(),
-                qualityProfileServerEventSourcePublisher?.Object ?? Mock.Of<IQualityProfileServerEventSourcePublisher>(),
-            Mock.Of<IThreadHandling>(),
-                Mock.Of<ILogger>());
-        }
+        MefTestHelpers.CheckTypeCanBeImported<SSESessionFactory, ISSESessionFactory>(
+            MefTestHelpers.CreateExport<ISonarQubeService>(),
+            MefTestHelpers.CreateExport<IIssueServerEventSourcePublisher>(),
+            MefTestHelpers.CreateExport<IQualityProfileServerEventSourcePublisher>(),
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());
     }
+
+    [TestMethod]
+    public void Create_ReturnsCorrectType()
+    {
+        var testSubject = CreateTestSubject();
+
+        var sseSession = testSubject.Create("MyProjectName", null);
+
+        sseSession.Should().NotBeNull().And.BeOfType<SSESessionFactory.SSESession>();
+    }
+
+    [TestMethod]
+    public void Create_AfterDispose_Throws()
+    {
+        var testSubject = CreateTestSubject();
+
+        testSubject.Dispose();
+        Action act = () => testSubject.Create("MyProjectName", null);
+
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+    [TestMethod]
+    public void Dispose_IdempotentAndDisposesPublishers()
+    {
+        var issuesPublisherMock = new Mock<IIssueServerEventSourcePublisher>();
+        var qualityProfilePublisherMock = new Mock<IQualityProfileServerEventSourcePublisher>();
+        var testSubject = CreateTestSubject(issuesPublisherMock, qualityProfilePublisherMock);
+
+        testSubject.Dispose();
+        testSubject.Dispose();
+        testSubject.Dispose();
+
+        issuesPublisherMock.Verify(p => p.Dispose(), Times.Once);
+        qualityProfilePublisherMock.Verify(p => p.Dispose(), Times.Once);
+    }
+
+    private SSESessionFactory CreateTestSubject(Mock<IIssueServerEventSourcePublisher> issuePublisher = null,
+        Mock<IQualityProfileServerEventSourcePublisher> qualityProfileServerEventSourcePublisher = null) =>
+        new(Mock.Of<ISonarQubeService>(),
+            issuePublisher?.Object ?? Mock.Of<IIssueServerEventSourcePublisher>(),
+            qualityProfileServerEventSourcePublisher?.Object ?? Mock.Of<IQualityProfileServerEventSourcePublisher>(),
+            Mock.Of<IThreadHandling>(),
+            Mock.Of<ILogger>());
 }
