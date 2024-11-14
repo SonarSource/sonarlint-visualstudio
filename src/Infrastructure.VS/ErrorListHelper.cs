@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -89,8 +88,19 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         {
             IFilterableIssue issueOut = null;
             var result = vSServiceOperation.Execute<SVsErrorList, IErrorList, bool>(
-                errorList => TryGetSelectedSnapshotAndIndex(errorList, out var snapshot, out var index)
-                             && TryGetValue(snapshot, index, SonarLintTableControlConstants.IssueVizColumnName, out issueOut));
+                errorList => TryGetSelectedTableEntry(errorList, out var handle) && TryGetFilterableIssue(handle, out issueOut));
+
+            issue = issueOut;
+
+            return result;
+        }
+
+        public bool TryGetFilterableIssue(ITableEntryHandle handle, out IFilterableIssue issue)
+        {
+            IFilterableIssue issueOut = null;
+            var result = vSServiceOperation.Execute<SVsErrorList, IErrorList, bool>(
+                _ => handle.TryGetSnapshot(out var snapshot, out var index)
+                     && TryGetValue(snapshot, index, SonarLintTableControlConstants.IssueVizColumnName, out issueOut));
 
             issue = issueOut;
 
@@ -155,7 +165,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
                 {
                     return $"{SonarRuleRepoKeys.CSharpRules}:{errorCode}";
                 }
-                
+
                 if (helpLink.Contains("rules.sonarsource.com/vbnet/"))
                 {
                     return $"{SonarRuleRepoKeys.VBNetRules}:{errorCode}";
@@ -197,7 +207,11 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             return true;
         }
 
-        private static bool TryGetValue<T>(ITableEntriesSnapshot snapshot, int index, string columnName, out T value)
+        private static bool TryGetValue<T>(
+            ITableEntriesSnapshot snapshot,
+            int index,
+            string columnName,
+            out T value)
         {
             value = default;
 

@@ -34,7 +34,7 @@ public class GetEffectiveIssueDetailsResponseTests
     {
         var expected = new GetEffectiveIssueDetailsResponse(
             details: new EffectiveIssueDetailsDto(
-                ruleKey: "S3776",
+                key: "S3776",
                 name: "Cognitive Complexity of methods should not be too high",
                 language: Language.CS,
                 vulnerabilityProbability: VulnerabilityProbability.HIGH,

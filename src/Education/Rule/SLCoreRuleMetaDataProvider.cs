@@ -18,22 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.SLCore.Common.Helpers;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.Issue;
 using SonarLint.VisualStudio.SLCore.Service.Rules;
-using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SonarLint.VisualStudio.SLCore.State;
-using CleanCodeAttribute = SonarLint.VisualStudio.Core.Analysis.CleanCodeAttribute;
-using IssueSeverity = SonarLint.VisualStudio.SLCore.Common.Models.IssueSeverity;
-using SoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
 
 namespace SonarLint.VisualStudio.Education.Rule;
 
@@ -42,28 +32,44 @@ namespace SonarLint.VisualStudio.Education.Rule;
 internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
 {
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
+    private readonly IRuleInfoConverter ruleInfoConverter;
     private readonly ILogger logger;
     private readonly ISLCoreServiceProvider slCoreServiceProvider;
 
     [ImportingConstructor]
     public SLCoreRuleMetaDataProvider(ISLCoreServiceProvider slCoreServiceProvider,
-        IActiveConfigScopeTracker activeConfigScopeTracker, ILogger logger)
+        IActiveConfigScopeTracker activeConfigScopeTracker,
+        IRuleInfoConverter ruleInfoConverter,
+        ILogger logger)
     {
         this.slCoreServiceProvider = slCoreServiceProvider;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
+        this.ruleInfoConverter = ruleInfoConverter;
         this.logger = logger;
     }
 
-    public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId)
+    /// <inheritdoc />
+    public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, Guid? issueId = null)
     {
-        if (activeConfigScopeTracker.Current is { Id: var configurationScopeId }
-            && slCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesRpcService))
+        if (activeConfigScopeTracker.Current is not { Id: var configurationScopeId })
+        {
+            return null;
+        }
+
+        var ruleInfoFromIssue = issueId != null ? await GetEffectiveIssueDetailsAsync(configurationScopeId, issueId.Value) : null;
+
+        return ruleInfoFromIssue ?? await GetEffectiveRuleDetailsAsync(configurationScopeId, ruleId);
+    }
+
+    private async Task<IRuleInfo> GetEffectiveIssueDetailsAsync(string configurationScopeId, Guid issueId)
+    {
+        if (slCoreServiceProvider.TryGetTransientService(out IIssueSLCoreService rulesRpcService))
         {
             try
             {
-                var ruleDetailsResponse = await rulesRpcService.GetEffectiveRuleDetailsAsync(
-                    new GetEffectiveRuleDetailsParams(configurationScopeId, ruleId.ToString()));
-                return Convert(ruleDetailsResponse.details);
+                var issueDetailsResponse = await rulesRpcService.GetEffectiveIssueDetailsAsync(
+                    new GetEffectiveIssueDetailsParams(configurationScopeId, issueId));
+                return ruleInfoConverter.Convert(issueDetailsResponse.details);
             }
             catch (Exception e)
             {
@@ -74,61 +80,22 @@ internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
         return null;
     }
 
-    private static RuleInfo Convert(EffectiveRuleDetailsDto effectiveRuleDetailsAsync) =>
-        new(effectiveRuleDetailsAsync.key,
-            HtmlXmlCompatibilityHelper.EnsureHtmlIsXml(effectiveRuleDetailsAsync.description?.Left?.htmlContent),
-            effectiveRuleDetailsAsync.name,
-            Convert(effectiveRuleDetailsAsync.severityDetails.Left?.severity),
-            Convert(effectiveRuleDetailsAsync.severityDetails.Left?.type),
-            effectiveRuleDetailsAsync.description?.Right,
-            Convert(effectiveRuleDetailsAsync.severityDetails.Right?.cleanCodeAttribute),
-            Convert(effectiveRuleDetailsAsync.severityDetails.Right?.impacts));
-
-    private static Dictionary<SoftwareQuality, SoftwareQualitySeverity> Convert(List<ImpactDto> cleanCodeAttribute) =>
-        cleanCodeAttribute?.ToDictionary(x => x.softwareQuality.ToSoftwareQuality(), x => x.impactSeverity.ToSoftwareQualitySeverity());
-
-
-    private static RuleIssueSeverity? Convert(IssueSeverity? issueSeverity) =>
-        issueSeverity switch
+    private async Task<IRuleInfo> GetEffectiveRuleDetailsAsync(string configurationScopeId, SonarCompositeRuleId ruleId)
+    {
+        if (slCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesRpcService))
         {
-            IssueSeverity.BLOCKER => RuleIssueSeverity.Blocker,
-            IssueSeverity.CRITICAL => RuleIssueSeverity.Critical,
-            IssueSeverity.MAJOR => RuleIssueSeverity.Major,
-            IssueSeverity.MINOR => RuleIssueSeverity.Minor,
-            IssueSeverity.INFO => RuleIssueSeverity.Info,
-            null => null,
-            _ => throw new ArgumentOutOfRangeException(nameof(issueSeverity), issueSeverity, null)
-        };
+            try
+            {
+                var ruleDetailsResponse = await rulesRpcService.GetEffectiveRuleDetailsAsync(
+                    new GetEffectiveRuleDetailsParams(configurationScopeId, ruleId.ToString()));
+                return ruleInfoConverter.Convert(ruleDetailsResponse.details);
+            }
+            catch (Exception e)
+            {
+                logger.WriteLine(e.ToString());
+            }
+        }
 
-    private static RuleIssueType? Convert(RuleType? ruleType) =>
-        ruleType switch
-        {
-            RuleType.CODE_SMELL => RuleIssueType.CodeSmell,
-            RuleType.BUG => RuleIssueType.Bug,
-            RuleType.VULNERABILITY => RuleIssueType.Vulnerability,
-            RuleType.SECURITY_HOTSPOT => RuleIssueType.Hotspot,
-            null => null,
-            _ => throw new ArgumentOutOfRangeException(nameof(ruleType), ruleType, null)
-        };
-
-    private static CleanCodeAttribute? Convert(SLCore.Common.Models.CleanCodeAttribute? cleanCodeAttribute) =>
-        cleanCodeAttribute switch
-        {
-            SLCore.Common.Models.CleanCodeAttribute.CONVENTIONAL => CleanCodeAttribute.Conventional,
-            SLCore.Common.Models.CleanCodeAttribute.FORMATTED => CleanCodeAttribute.Formatted,
-            SLCore.Common.Models.CleanCodeAttribute.IDENTIFIABLE => CleanCodeAttribute.Identifiable,
-            SLCore.Common.Models.CleanCodeAttribute.CLEAR => CleanCodeAttribute.Clear,
-            SLCore.Common.Models.CleanCodeAttribute.COMPLETE => CleanCodeAttribute.Complete,
-            SLCore.Common.Models.CleanCodeAttribute.EFFICIENT => CleanCodeAttribute.Efficient,
-            SLCore.Common.Models.CleanCodeAttribute.LOGICAL => CleanCodeAttribute.Logical,
-            SLCore.Common.Models.CleanCodeAttribute.DISTINCT => CleanCodeAttribute.Distinct,
-            SLCore.Common.Models.CleanCodeAttribute.FOCUSED => CleanCodeAttribute.Focused,
-            SLCore.Common.Models.CleanCodeAttribute.MODULAR => CleanCodeAttribute.Modular,
-            SLCore.Common.Models.CleanCodeAttribute.TESTED => CleanCodeAttribute.Tested,
-            SLCore.Common.Models.CleanCodeAttribute.LAWFUL => CleanCodeAttribute.Lawful,
-            SLCore.Common.Models.CleanCodeAttribute.RESPECTFUL => CleanCodeAttribute.Respectful,
-            SLCore.Common.Models.CleanCodeAttribute.TRUSTWORTHY => CleanCodeAttribute.Trustworthy,
-            null => null,
-            _ => throw new ArgumentOutOfRangeException(nameof(cleanCodeAttribute), cleanCodeAttribute, null)
-        };
+        return null;
+    }
 }

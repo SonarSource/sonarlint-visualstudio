@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Education.Rule
@@ -27,9 +25,10 @@ namespace SonarLint.VisualStudio.Education.Rule
     public interface IRuleMetaDataProvider
     {
         /// <summary>
-        /// Returns rule information for the specified rule ID, or null if a rule description
-        /// could not be found.
+        /// If <paramref name="issueId"/> is NOT null, returns rule information for the specified issue ID
+        /// If <paramref name="issueId"/> is null, returns the rule information for the specified rule ID
+        /// If no rule information can be found, null is returned.
         /// </summary>
-        Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId);
+        Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, Guid? issueId = null);
     }
 }
