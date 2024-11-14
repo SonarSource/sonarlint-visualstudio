@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.SLCore.State;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
@@ -63,7 +64,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
             await ThreadHandling.Instance.SwitchToBackgroundThread();
 
-            await taintIssuesSynchronizer.SynchronizeWithServer();
+            await taintIssuesSynchronizer.UpdateTaintVulnerabilitiesAsync(componentModel.GetService<IActiveConfigScopeTracker>().Current);
 
             logger.WriteLine(TaintResources.SyncPackage_Initialized);
         }
