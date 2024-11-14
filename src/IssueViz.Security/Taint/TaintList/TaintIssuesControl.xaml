@@ -117,14 +117,7 @@
                 <RowDefinition Name="List" Height="*" />
             </Grid.RowDefinitions>
             <Border Grid.Row="0" Style="{StaticResource DisclaimerBorderStyle}">
-                <TextBlock Style="{StaticResource DisclaimerTextBlockStyle}">
-                    <TextBlock.Text>
-                        <MultiBinding StringFormat="{}Server issues found in current file (branch '{0}', last analyzed on {1})">
-                            <Binding Path="AnalysisInformation.BranchName" />
-                            <Binding Path="AnalysisInformation.AnalysisTimestamp" Converter="{StaticResource DateTimeConverter}" />
-                        </MultiBinding>
-                    </TextBlock.Text>
-                </TextBlock>
+                <TextBlock Style="{StaticResource DisclaimerTextBlockStyle}" Text="Server Security Vulnerabilities found in the current file" />
             </Border>
             <Grid x:Name="TaintList" Grid.Row="1">
                 <Grid.ColumnDefinitions>
