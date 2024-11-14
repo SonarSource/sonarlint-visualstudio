@@ -65,8 +65,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         string WindowCaption { get; }
 
         string ServerType { get; }
-
-        AnalysisInformation AnalysisInformation { get; }
     }
 
     /// <summary>
@@ -131,8 +129,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                 }
             }
         }
-
-        public AnalysisInformation AnalysisInformation { get; private set; }
 
         public string ServerType => serverType.ToString();
 
@@ -301,10 +297,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                 taintIssueViewModel.TaintIssueViz.PropertyChanged += OnTaintIssuePropertyChanged;
             }
 
-            AnalysisInformation = new AnalysisInformation("stub", DateTimeOffset.Now);
-
             NotifyPropertyChanged(nameof(HasServerIssues));
-            NotifyPropertyChanged(nameof(AnalysisInformation));
         }
 
 
