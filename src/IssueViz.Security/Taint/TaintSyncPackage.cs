@@ -18,17 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.IssueVisualization.Security.Taint.ServerSentEvents;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
@@ -52,7 +48,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     public sealed class TaintSyncPackage : AsyncPackage
     {
         private ITaintIssuesBindingMonitor bindingMonitor;
-        private ITaintServerEventsListener taintServerEventsListener;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -64,13 +59,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             logger.WriteLine(TaintResources.SyncPackage_Initializing);
 
             bindingMonitor = componentModel.GetService<ITaintIssuesBindingMonitor>();
-            taintServerEventsListener = componentModel.GetService<ITaintServerEventsListener>();
             var taintIssuesSynchronizer = componentModel.GetService<ITaintIssuesSynchronizer>();
 
             await ThreadHandling.Instance.SwitchToBackgroundThread();
 
             await taintIssuesSynchronizer.SynchronizeWithServer();
-            taintServerEventsListener.ListenAsync().Forget();
 
             logger.WriteLine(TaintResources.SyncPackage_Initialized);
         }
@@ -80,7 +73,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             if (disposing)
             {
                 bindingMonitor?.Dispose();
-                taintServerEventsListener?.Dispose();
             }
 
             base.Dispose(disposing);
