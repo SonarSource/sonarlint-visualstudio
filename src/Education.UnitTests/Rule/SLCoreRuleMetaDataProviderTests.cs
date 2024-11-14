@@ -20,7 +20,6 @@
 
 using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Education.Rule;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -44,7 +43,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Rule;
 [TestClass]
 public class SLCoreRuleMetaDataProviderTests
 {
-    private static readonly SonarCompositeRuleId _compositeRuleId = new("rule", "key1");
+    private static readonly SonarCompositeRuleId CompositeRuleId = new("rule", "key1");
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
@@ -80,7 +79,7 @@ public class SLCoreRuleMetaDataProviderTests
             default,
             default));
 
-        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+        var ruleInfo = await testSubject.GetRuleInfoAsync(CompositeRuleId);
 
         ruleInfo.Severity.Should().Be(expected);
     }
@@ -108,7 +107,7 @@ public class SLCoreRuleMetaDataProviderTests
             default,
             default));
 
-        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+        var ruleInfo = await testSubject.GetRuleInfoAsync(CompositeRuleId);
 
         ruleInfo.IssueType.Should().Be(expected);
     }
@@ -146,7 +145,7 @@ public class SLCoreRuleMetaDataProviderTests
             default,
             default));
 
-        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+        var ruleInfo = await testSubject.GetRuleInfoAsync(CompositeRuleId);
 
         ruleInfo.CleanCodeAttribute.Should().Be(expected);
     }
@@ -174,7 +173,7 @@ public class SLCoreRuleMetaDataProviderTests
             default,
             default));
 
-        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+        var ruleInfo = await testSubject.GetRuleInfoAsync(CompositeRuleId);
 
         ruleInfo.DefaultImpacts.Should().BeEquivalentTo(new Dictionary<RuleSoftwareQuality, RuleSoftwareQualitySeverity>
         {
@@ -204,7 +203,7 @@ public class SLCoreRuleMetaDataProviderTests
                 new RuleMonolithicDescriptionDto("content")),
             new List<EffectiveRuleParamDto>()));
 
-        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+        var ruleInfo = await testSubject.GetRuleInfoAsync(CompositeRuleId);
 
         ruleInfo.Should().BeEquivalentTo(new RuleInfo(rulekey,
             "content",
@@ -239,7 +238,7 @@ public class SLCoreRuleMetaDataProviderTests
                 new RuleMonolithicDescriptionDto("content")),
             new List<EffectiveRuleParamDto>()));
 
-        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+        var ruleInfo = await testSubject.GetRuleInfoAsync(CompositeRuleId);
 
         ruleInfo.Should().BeEquivalentTo(new RuleInfo(rulekey,
             "content",
@@ -274,7 +273,7 @@ public class SLCoreRuleMetaDataProviderTests
             Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateRight(ruleSplitDescriptionDto),
             new List<EffectiveRuleParamDto> { new("ignored", default, default, default) }));
 
-        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+        var ruleInfo = await testSubject.GetRuleInfoAsync(CompositeRuleId);
 
         ruleInfo.Should().BeEquivalentTo(new RuleInfo(rulekey,
             null,
@@ -309,7 +308,7 @@ public class SLCoreRuleMetaDataProviderTests
             Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateRight(ruleSplitDescriptionDto),
             new List<EffectiveRuleParamDto> { new("ignored", default, default, default) }));
 
-        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+        var ruleInfo = await testSubject.GetRuleInfoAsync(CompositeRuleId);
 
         ruleInfo.Should().BeEquivalentTo(new RuleInfo(rulekey,
             null,
@@ -330,7 +329,7 @@ public class SLCoreRuleMetaDataProviderTests
         SetUpServiceProvider(serviceProviderMock, out _);
         SetUpConfigScopeTracker(configScopeTrackerMock, null);
 
-        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+        var ruleInfo = await testSubject.GetRuleInfoAsync(CompositeRuleId);
 
         ruleInfo.Should().BeNull();
         logger.AssertNoOutputMessages();
@@ -342,7 +341,7 @@ public class SLCoreRuleMetaDataProviderTests
         var testSubject = CreateTestSubject(out _, out var configScopeTrackerMock, out var logger);
         SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("id"));
 
-        var ruleInfo = await testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+        var ruleInfo = await testSubject.GetRuleInfoAsync(CompositeRuleId);
 
         ruleInfo.Should().BeNull();
         logger.AssertNoOutputMessages();
@@ -359,7 +358,7 @@ public class SLCoreRuleMetaDataProviderTests
             .Setup(x => x.GetEffectiveRuleDetailsAsync(It.IsAny<GetEffectiveRuleDetailsParams>()))
             .ThrowsAsync(new Exception("my message"));
 
-        var act = () => testSubject.GetRuleInfoAsync(new SonarCompositeRuleId("rule", "key1"));
+        var act = () => testSubject.GetRuleInfoAsync(CompositeRuleId);
 
         act.Should().NotThrow();
         logger.AssertPartialOutputStringExists("my message");
@@ -371,7 +370,7 @@ public class SLCoreRuleMetaDataProviderTests
     [DataRow(IssueSeverity.BLOCKER, RuleIssueSeverity.Blocker)]
     [DataRow(IssueSeverity.CRITICAL, RuleIssueSeverity.Critical)]
     [DataRow(IssueSeverity.MINOR, RuleIssueSeverity.Minor)]
-    public async Task GetEffectiveIssueDetailsAsync_CorrectlyConvertsSeverity(IssueSeverity slCore, RuleIssueSeverity expected)
+    public async Task GetRuleInfoAsync_ForIssue_CorrectlyConvertsSeverity(IssueSeverity slCore, RuleIssueSeverity expected)
     {
         var issueId = Guid.NewGuid();
         var testSubject =
@@ -380,7 +379,7 @@ public class SLCoreRuleMetaDataProviderTests
         SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
         SetupIssuesService(issuesServiceMock, issueId, "configscope", CreateEffectiveIssueDetailsDto(new StandardModeDetails(slCore, default)));
 
-        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+        var ruleInfo = await testSubject.GetRuleInfoAsync(default, issueId);
 
         ruleInfo.Severity.Should().Be(expected);
     }
@@ -390,7 +389,7 @@ public class SLCoreRuleMetaDataProviderTests
     [DataRow(RuleType.VULNERABILITY, RuleIssueType.Vulnerability)]
     [DataRow(RuleType.BUG, RuleIssueType.Bug)]
     [DataRow(RuleType.SECURITY_HOTSPOT, RuleIssueType.Hotspot)]
-    public async Task GetEffectiveIssueDetailsAsync_CorrectlyConvertsType(RuleType slCore, RuleIssueType expected)
+    public async Task GetRuleInfoAsync_ForIssue_CorrectlyConvertsType(RuleType slCore, RuleIssueType expected)
     {
         var issueId = Guid.NewGuid();
         var testSubject =
@@ -399,7 +398,7 @@ public class SLCoreRuleMetaDataProviderTests
         SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
         SetupIssuesService(issueServiceMock, issueId, "configscope", CreateEffectiveIssueDetailsDto(new StandardModeDetails(default, slCore)));
 
-        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+        var ruleInfo = await testSubject.GetRuleInfoAsync(default,issueId);
 
         ruleInfo.IssueType.Should().Be(expected);
     }
@@ -419,7 +418,7 @@ public class SLCoreRuleMetaDataProviderTests
     [DataRow(CleanCodeAttribute.LAWFUL, RuleCleanCodeAttribute.Lawful)]
     [DataRow(CleanCodeAttribute.RESPECTFUL, RuleCleanCodeAttribute.Respectful)]
     [DataRow(CleanCodeAttribute.TRUSTWORTHY, RuleCleanCodeAttribute.Trustworthy)]
-    public async Task GetEffectiveIssueDetailsAsync_CorrectlyConvertsCleanCodeAttribute(CleanCodeAttribute slCore, RuleCleanCodeAttribute expected)
+    public async Task GetRuleInfoAsync_ForIssue_CorrectlyConvertsCleanCodeAttribute(CleanCodeAttribute slCore, RuleCleanCodeAttribute expected)
     {
         var issueId = Guid.NewGuid();
         var testSubject =
@@ -428,13 +427,13 @@ public class SLCoreRuleMetaDataProviderTests
         SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
         SetupIssuesService(issueServiceMock, issueId, "configscope", CreateEffectiveIssueDetailsDto(new MQRModeDetails(slCore, default)));
 
-        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+        var ruleInfo = await testSubject.GetRuleInfoAsync(default,issueId);
 
         ruleInfo.CleanCodeAttribute.Should().Be(expected);
     }
 
     [TestMethod]
-    public async Task GetEffectiveIssueDetailsAsync_CorrectlyConvertsImpacts()
+    public async Task GetRuleInfoAsync_ForIssue_CorrectlyConvertsImpacts()
     {
         var issueId = Guid.NewGuid();
         var testSubject =
@@ -447,7 +446,7 @@ public class SLCoreRuleMetaDataProviderTests
             new ImpactDto(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.MEDIUM)
         ])));
 
-        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+        var ruleInfo = await testSubject.GetRuleInfoAsync(default,issueId);
 
         ruleInfo.DefaultImpacts.Should().BeEquivalentTo(new Dictionary<RuleSoftwareQuality, RuleSoftwareQualitySeverity>
     {
@@ -458,7 +457,7 @@ public class SLCoreRuleMetaDataProviderTests
     }
 
     [TestMethod]
-    public async Task GetEffectiveIssueDetailsAsync_Standard_SimpleRuleDescription()
+    public async Task GetRuleInfoAsync_ForIssue_Standard_SimpleRuleDescription()
     {
         var issueId = Guid.NewGuid();
         var testSubject =
@@ -469,7 +468,7 @@ public class SLCoreRuleMetaDataProviderTests
             Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateLeft(
                 new RuleMonolithicDescriptionDto("content"))));
 
-        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+        var ruleInfo = await testSubject.GetRuleInfoAsync(default,issueId);
 
         ruleInfo.Should().BeEquivalentTo(new RuleInfo(null,
             "content",
@@ -482,7 +481,7 @@ public class SLCoreRuleMetaDataProviderTests
     }
 
     [TestMethod]
-    public async Task GetEffectiveIssueDetailsAsync_MQR_SimpleRuleDescription()
+    public async Task GetRuleInfoAsync_ForIssue_MQR_SimpleRuleDescription()
     {
         var issueId = Guid.NewGuid();
         var testSubject =
@@ -492,7 +491,7 @@ public class SLCoreRuleMetaDataProviderTests
         SetupIssuesService(issueServiceMock, issueId, "configscope", CreateEffectiveIssueDetailsDto(new MQRModeDetails(CleanCodeAttribute.MODULAR, default), Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateLeft(
             new RuleMonolithicDescriptionDto("content"))));
 
-        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+        var ruleInfo = await testSubject.GetRuleInfoAsync(default,issueId);
 
         ruleInfo.Should().BeEquivalentTo(new RuleInfo(null,
             "content",
@@ -505,7 +504,7 @@ public class SLCoreRuleMetaDataProviderTests
     }
 
     [TestMethod]
-    public async Task GetEffectiveIssueDetailsAsync_Standard_RichRuleDescription()
+    public async Task GetRuleInfoAsync_ForIssue_Standard_RichRuleDescription()
     {
         var issueId = Guid.NewGuid();
         var testSubject =
@@ -516,7 +515,7 @@ public class SLCoreRuleMetaDataProviderTests
         SetupIssuesService(issueServiceMock, issueId, "configscope", CreateEffectiveIssueDetailsDto(new StandardModeDetails(IssueSeverity.MINOR, RuleType.BUG),
             Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateRight(ruleSplitDescriptionDto)));
 
-        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+        var ruleInfo = await testSubject.GetRuleInfoAsync(default,issueId);
 
         ruleInfo.Should().BeEquivalentTo(new RuleInfo(null,
             null,
@@ -530,7 +529,7 @@ public class SLCoreRuleMetaDataProviderTests
     }
 
     [TestMethod]
-    public async Task GetEffectiveIssueDetailsAsync_MQR_RichRuleDescription()
+    public async Task GetRuleInfoAsync_ForIssue_MQR_RichRuleDescription()
     {
         var issueId = Guid.NewGuid();
         var testSubject =
@@ -541,7 +540,7 @@ public class SLCoreRuleMetaDataProviderTests
         SetupIssuesService(issueServiceMock, issueId, "configscope", CreateEffectiveIssueDetailsDto(new MQRModeDetails(CleanCodeAttribute.RESPECTFUL, default),
             Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateRight(ruleSplitDescriptionDto)));
 
-        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+        var ruleInfo = await testSubject.GetRuleInfoAsync(default,issueId);
 
         ruleInfo.Should().BeEquivalentTo(new RuleInfo(null,
             null,
@@ -555,7 +554,7 @@ public class SLCoreRuleMetaDataProviderTests
     }
 
     [TestMethod]
-    public async Task GetEffectiveIssueDetailsAsync_NoActiveScope_ReturnsNull()
+    public async Task GetRuleInfoAsync_ForIssue_NoActiveScope_ReturnsNull()
     {
         var testSubject =
             CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out var logger);
@@ -563,26 +562,26 @@ public class SLCoreRuleMetaDataProviderTests
         SetUpConfigScopeTracker(configScopeTrackerMock, null);
         var issueId = Guid.NewGuid();
 
-        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(issueId);
+        var ruleInfo = await testSubject.GetRuleInfoAsync(default,issueId);
 
         ruleInfo.Should().BeNull();
         logger.AssertNoOutputMessages();
     }
 
     [TestMethod]
-    public async Task GetEffectiveIssueDetailsAsync_ServiceUnavailable_ReturnsNull()
+    public async Task GetRuleInfoAsync_ForIssue_ServiceUnavailable_ReturnsNull()
     {
         var testSubject = CreateTestSubject(out _, out var configScopeTrackerMock, out var logger);
         SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("id"));
 
-        var ruleInfo = await testSubject.GetEffectiveIssueDetailsAsync(Guid.NewGuid());
+        var ruleInfo = await testSubject.GetRuleInfoAsync(default,Guid.NewGuid());
 
         ruleInfo.Should().BeNull();
         logger.AssertNoOutputMessages();
     }
 
     [TestMethod]
-    public void GetEffectiveIssueDetailsAsync_ServiceThrows_ReturnsNullAndLogs()
+    public void GetRuleInfoAsync_ForIssue_ServiceThrows_ReturnsNullAndLogs()
     {
         var testSubject =
             CreateTestSubject(out var serviceProviderMock, out var configScopeTrackerMock, out var logger);
@@ -592,7 +591,7 @@ public class SLCoreRuleMetaDataProviderTests
             .Setup(x => x.GetEffectiveIssueDetailsAsync(It.IsAny<GetEffectiveIssueDetailsParams>()))
             .ThrowsAsync(new Exception("my message"));
 
-        var act = () => testSubject.GetEffectiveIssueDetailsAsync(Guid.NewGuid());
+        var act = () => testSubject.GetRuleInfoAsync(default,Guid.NewGuid());
 
         act.Should().NotThrow();
         logger.AssertPartialOutputStringExists("my message");
@@ -607,9 +606,9 @@ public class SLCoreRuleMetaDataProviderTests
         SetUpServiceProvider(serviceProviderMock, out var rulesServiceMock);
         SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
 
-        await testSubject.GetRuleInfoAsync(_compositeRuleId, null);
+        await testSubject.GetRuleInfoAsync(CompositeRuleId, null);
 
-        rulesServiceMock.Verify(x => x.GetEffectiveRuleDetailsAsync(It.Is<GetEffectiveRuleDetailsParams>(p => p.ruleKey == _compositeRuleId.ToString())), Times.Once);
+        rulesServiceMock.Verify(x => x.GetEffectiveRuleDetailsAsync(It.Is<GetEffectiveRuleDetailsParams>(p => p.ruleKey == CompositeRuleId.ToString())), Times.Once);
         issueServiceMock.Verify(x => x.GetEffectiveIssueDetailsAsync(It.IsAny<GetEffectiveIssueDetailsParams>()), Times.Never);
     }
 
@@ -623,9 +622,9 @@ public class SLCoreRuleMetaDataProviderTests
         SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope("configscope"));
         Guid? issueId = null;
 
-        await testSubject.GetRuleInfoAsync(_compositeRuleId, issueId);
+        await testSubject.GetRuleInfoAsync(CompositeRuleId, issueId);
 
-        rulesServiceMock.Verify(x => x.GetEffectiveRuleDetailsAsync(It.Is<GetEffectiveRuleDetailsParams>(p => p.ruleKey == _compositeRuleId.ToString())), Times.Once);
+        rulesServiceMock.Verify(x => x.GetEffectiveRuleDetailsAsync(It.Is<GetEffectiveRuleDetailsParams>(p => p.ruleKey == CompositeRuleId.ToString())), Times.Once);
         issueServiceMock.Verify(x => x.GetEffectiveIssueDetailsAsync(It.IsAny<GetEffectiveIssueDetailsParams>()), Times.Never);
     }
 
@@ -640,7 +639,7 @@ public class SLCoreRuleMetaDataProviderTests
         SetUpConfigScopeTracker(configScopeTrackerMock, new ConfigurationScope(configScopeId));
         SetupIssuesService(issueServiceMock, issueId, configScopeId, CreateEffectiveIssueDetailsDto(new MQRModeDetails(default, default)));
 
-        await testSubject.GetRuleInfoAsync(_compositeRuleId, issueId);
+        await testSubject.GetRuleInfoAsync(CompositeRuleId, issueId);
 
         rulesServiceMock.Verify(x => x.GetEffectiveRuleDetailsAsync(It.IsAny<GetEffectiveRuleDetailsParams>()), Times.Never);
         issueServiceMock.Verify(x => x.GetEffectiveIssueDetailsAsync(It.Is<GetEffectiveIssueDetailsParams>(p => p.issueId == issueId)), Times.Once);
@@ -659,9 +658,9 @@ public class SLCoreRuleMetaDataProviderTests
             .Setup(x => x.GetEffectiveIssueDetailsAsync(It.IsAny<GetEffectiveIssueDetailsParams>()))
             .ThrowsAsync(new Exception("my message"));
 
-        await testSubject.GetRuleInfoAsync(_compositeRuleId, issueId);
+        await testSubject.GetRuleInfoAsync(CompositeRuleId, issueId);
 
-        rulesServiceMock.Verify(x => x.GetEffectiveRuleDetailsAsync(It.Is<GetEffectiveRuleDetailsParams>(p => p.ruleKey == _compositeRuleId.ToString())), Times.Once);
+        rulesServiceMock.Verify(x => x.GetEffectiveRuleDetailsAsync(It.Is<GetEffectiveRuleDetailsParams>(p => p.ruleKey == CompositeRuleId.ToString())), Times.Once);
         issueServiceMock.Verify(x => x.GetEffectiveIssueDetailsAsync(It.Is<GetEffectiveIssueDetailsParams>(p => p.issueId == issueId)), Times.Once);
     }
 
@@ -681,10 +680,10 @@ public class SLCoreRuleMetaDataProviderTests
             .Setup(x => x.GetEffectiveRuleDetailsAsync(It.IsAny<GetEffectiveRuleDetailsParams>()))
             .ThrowsAsync(new Exception("my message"));
 
-        var result = await testSubject.GetRuleInfoAsync(_compositeRuleId, issueId);
+        var result = await testSubject.GetRuleInfoAsync(CompositeRuleId, issueId);
 
         result.Should().BeNull();
-        rulesServiceMock.Verify(x => x.GetEffectiveRuleDetailsAsync(It.Is<GetEffectiveRuleDetailsParams>(p => p.ruleKey == _compositeRuleId.ToString())), Times.Once);
+        rulesServiceMock.Verify(x => x.GetEffectiveRuleDetailsAsync(It.Is<GetEffectiveRuleDetailsParams>(p => p.ruleKey == CompositeRuleId.ToString())), Times.Once);
         issueServiceMock.Verify(x => x.GetEffectiveIssueDetailsAsync(It.Is<GetEffectiveIssueDetailsParams>(p => p.issueId == issueId)), Times.Once);
     }
 

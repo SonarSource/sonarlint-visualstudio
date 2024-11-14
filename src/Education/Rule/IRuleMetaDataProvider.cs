@@ -19,23 +19,16 @@
  */
 
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Suppressions;
 
 namespace SonarLint.VisualStudio.Education.Rule
 {
     public interface IRuleMetaDataProvider
     {
         /// <summary>
-        /// Returns rule information for the specified rule ID, or null if a rule description
-        /// could not be found.
-        /// </summary>
-        Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId);
-
-        /// <summary>
-        /// Returns rule information for the specified issue ID.
+        /// If <paramref name="issueId"/> is NOT null, returns rule information for the specified issue ID
         /// If <paramref name="issueId"/> is null, returns the rule information for the specified rule ID
         /// If no rule information can be found, null is returned.
         /// </summary>
-        Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, Guid? issueId);
+        Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, Guid? issueId = null);
     }
 }

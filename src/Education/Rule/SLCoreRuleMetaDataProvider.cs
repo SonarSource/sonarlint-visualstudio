@@ -51,16 +51,24 @@ internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
         this.logger = logger;
     }
 
-    public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId)
+    /// <inheritdoc />
+    public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, Guid? issueId = null)
+    {
+        var ruleInfoFromIssue = issueId != null ? await GetEffectiveIssueDetailsAsync(issueId.Value) : null;
+
+        return ruleInfoFromIssue ?? await GetEffectiveRuleDetailsAsync(ruleId);
+    }
+
+    private async Task<IRuleInfo> GetEffectiveIssueDetailsAsync(Guid issueId)
     {
         if (activeConfigScopeTracker.Current is { Id: var configurationScopeId }
-            && slCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesRpcService))
+            && slCoreServiceProvider.TryGetTransientService(out IIssueSLCoreService rulesRpcService))
         {
             try
             {
-                var ruleDetailsResponse = await rulesRpcService.GetEffectiveRuleDetailsAsync(
-                    new GetEffectiveRuleDetailsParams(configurationScopeId, ruleId.ToString()));
-                return Convert(ruleDetailsResponse.details);
+                var issueDetailsResponse = await rulesRpcService.GetEffectiveIssueDetailsAsync(
+                    new GetEffectiveIssueDetailsParams(configurationScopeId, issueId));
+                return Convert(issueDetailsResponse.details);
             }
             catch (Exception e)
             {
@@ -71,24 +79,16 @@ internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
         return null;
     }
 
-    /// <inheritdoc />
-    public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, Guid? issueId)
-    {
-        var ruleInfoFromIssue = issueId != null ? await GetEffectiveIssueDetailsAsync(issueId.Value) : null;
-
-        return ruleInfoFromIssue ?? await GetRuleInfoAsync(ruleId);
-    }
-
-    internal async Task<IRuleInfo> GetEffectiveIssueDetailsAsync(Guid issueId)
+    private async Task<IRuleInfo> GetEffectiveRuleDetailsAsync(SonarCompositeRuleId ruleId)
     {
         if (activeConfigScopeTracker.Current is { Id: var configurationScopeId }
-            && slCoreServiceProvider.TryGetTransientService(out IIssueSLCoreService rulesRpcService))
+            && slCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesRpcService))
         {
             try
             {
-                var issueDetailsResponse = await rulesRpcService.GetEffectiveIssueDetailsAsync(
-                    new GetEffectiveIssueDetailsParams(configurationScopeId, issueId));
-                return Convert(issueDetailsResponse.details);
+                var ruleDetailsResponse = await rulesRpcService.GetEffectiveRuleDetailsAsync(
+                    new GetEffectiveRuleDetailsParams(configurationScopeId, ruleId.ToString()));
+                return Convert(ruleDetailsResponse.details);
             }
             catch (Exception e)
             {
