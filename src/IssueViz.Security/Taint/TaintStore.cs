@@ -77,7 +77,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
         }
 
-        public void Reset() => SetInternal([], null);
+        public void Reset() =>
+            SetInternal([], null);
 
         public void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
         {
@@ -93,7 +94,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             lock (locker)
             {
                 var oldVulnerabilities = taintVulnerabilities;
-                taintVulnerabilities = issueVisualizations.ToDictionary(x => x.Issue.Id!.Value, x => x);
+                taintVulnerabilities = issueVisualizations.ToDictionary(x => x.IssueId!.Value, x => x);
                 configurationScope = newConfigurationScope;
 
                 diffRemoved.AddRange(oldVulnerabilities.Values);
@@ -141,6 +142,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         private static void ValidateUpdate(TaintVulnerabilityUpdate taintVulnerabilityUpdate)
         {
+            if (taintVulnerabilityUpdate == null)
+            {
+                throw new ArgumentNullException(nameof(taintVulnerabilityUpdate));
+            }
+
             if (taintVulnerabilityUpdate.Added == null)
             {
                 throw new ArgumentNullException(nameof(taintVulnerabilityUpdate.Added));
