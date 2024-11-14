@@ -18,15 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
-using SonarQube.Client.Api.Common;
 using SonarQube.Client.Logging;
-using SonarQube.Client.Models;
 using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 using SonarQube.Client.Models.ServerSentEvents.ServerContract;
@@ -139,99 +133,6 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
         }
 
         [TestMethod]
-        public async Task ReadAsync_TaintVulnerabilityClosedEventType_DeserializedEvent()
-        {
-            const string serializedTaintVulnerabilityClosedEvent =
-                "{\"projectKey\": \"projectKey1\",\"key\": \"taintKey\"}";
-
-            var sqSSEStreamReader = CreateSqStreamReader(new SqServerEvent("TaintVulnerabilityClosed", serializedTaintVulnerabilityClosedEvent));
-
-            var testSubject = CreateTestSubject(sqSSEStreamReader);
-
-            var result = await testSubject.ReadAsync();
-
-            result.Should().NotBeNull();
-            result.Should().BeOfType<TaintVulnerabilityClosedServerEvent>();
-            result.Should().BeEquivalentTo(
-                new TaintVulnerabilityClosedServerEvent(
-                    projectKey: "projectKey1",
-                    key: "taintKey"));
-        }
-
-        [TestMethod]
-        public async Task ReadAsync_TaintVulnerabilityRaisedEventType_DeserializedEvent()
-        {
-            const string serializedTaintVulnerabilityRaisedEvent = @"{
-	""key"": ""taintKey"",
-	""projectKey"": ""projectKey1"",
-    ""creationDate"": 1676390804000,
-	""branch"": ""master"",
-	""ruleKey"": ""javasecurity:S123"",
-	""severity"": ""MAJOR"",
-	""type"": ""VULNERABILITY"",
-	""mainLocation"": {
-		""filePath"": ""functions/taint.js"",
-		""message"": ""blah blah"",
-		""textRange"": {
-			""startLine"": 17,
-			""startLineOffset"": 10,
-			""endLine"": 3,
-			""endLineOffset"": 2,
-			""hash"": ""hash""
-		}
-	},
-	""flows"": [
-		{
-			""locations"": [
-				{
-					""filePath"": ""functions/taint.js"",
-					""message"": ""sink""
-				}
-			]
-		}
-	],
-    ""impacts"": [
-        {
-          ""softwareQuality"": ""SECURITY"",
-          ""severity"": ""HIGH""
-        }
-      ],
-    ""ruleDescriptionContextKey"": ""ContextKey""
-}";
-            var sqSSEStreamReader = CreateSqStreamReader(new SqServerEvent("TaintVulnerabilityRaised", serializedTaintVulnerabilityRaisedEvent));
-
-            var testSubject = CreateTestSubject(sqSSEStreamReader);
-
-            var result = await testSubject.ReadAsync();
-
-            result.Should().NotBeNull();
-            result.Should().BeOfType<TaintVulnerabilityRaisedServerEvent>();
-            result.Should().BeEquivalentTo(
-                new TaintVulnerabilityRaisedServerEvent(
-                    projectKey: "projectKey1",
-                    key: "taintKey",
-                    creationDate: DateTimeOffset.Parse("2023-02-14T16:06:44+00:00"),
-                    branch: "master",
-                    ruleKey: "javasecurity:S123",
-                    severity: SonarQubeIssueSeverity.Major,
-                    type: SonarQubeIssueType.Vulnerability,
-                    impacts: new []{new ServerImpact{SoftwareQuality = "SECURITY", Severity = "HIGH"}},
-                    mainLocation:
-                    new Location(
-                        filePath: "functions/taint.js",
-                        message: "blah blah",
-                        textRange: new TextRange(17, 10, 3, 2, "hash")),
-                    flows: new[]
-                    {
-                        new Flow(new[]
-                        {
-                            new Location(filePath: "functions/taint.js", message: "sink", textRange: null)
-                        })
-                    },
-                    ruleDescriptionContextKey: "ContextKey"));
-        }
-        
-        [TestMethod]
         public async Task ReadAsync_QualityProfileEventType_DeserializedEvent()
         {
             const string serializedQualityProfileEvent = """
@@ -250,7 +151,7 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
                   "deactivatedRules": []
                 }
                 """;
-            
+
             var sqSSEStreamReader = CreateSqStreamReader(new SqServerEvent("RuleSetChanged", serializedQualityProfileEvent));
 
             var testSubject = CreateTestSubject(sqSSEStreamReader);

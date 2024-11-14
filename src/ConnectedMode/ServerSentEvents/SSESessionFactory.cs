@@ -18,213 +18,195 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.QualityProfile;
-using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Taint;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ServerSentEvents;
 using SonarQube.Client;
 using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Models.ServerSentEvents.ClientContract;
 
-namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
+namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents;
+
+internal delegate Task OnSessionFailedAsync(ISSESession failedSession);
+
+/// <summary>
+/// Factory for <see cref="ISSESession"/>. Responsible for disposing EventSourcePublishers <see cref="IServerSentEventSourcePublisher{T}"/>
+/// </summary>
+internal interface ISSESessionFactory : IDisposable
 {
-    internal delegate Task OnSessionFailedAsync(ISSESession failedSession);
+    ISSESession Create(string projectKey, OnSessionFailedAsync onSessionFailedCallback);
+}
 
-    /// <summary>
-    /// Factory for <see cref="ISSESession"/>. Responsible for disposing EventSourcePublishers <see cref="IServerSentEventSourcePublisher{T}"/>
-    /// </summary>
-    internal interface ISSESessionFactory : IDisposable
+/// <summary>
+/// Represents the session entity, that is responsible for dealing with <see cref="ISSEStreamReader"/> reader
+/// and propagating events to correct topic event publishers
+/// </summary>
+internal interface ISSESession : IDisposable
+{
+    Task PumpAllAsync();
+}
+
+[Export(typeof(ISSESessionFactory))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal sealed class SSESessionFactory : ISSESessionFactory
+{
+    private readonly ISonarQubeService sonarQubeClient;
+    private readonly IIssueServerEventSourcePublisher issueServerEventSourcePublisher;
+    private readonly IQualityProfileServerEventSourcePublisher qualityProfileServerEventSourcePublisher;
+    private readonly IThreadHandling threadHandling;
+
+    private bool disposed;
+    private readonly ILogger logger;
+
+    [ImportingConstructor]
+    public SSESessionFactory(ISonarQubeService sonarQubeClient,
+        IIssueServerEventSourcePublisher issueServerEventSourcePublisher,
+        IQualityProfileServerEventSourcePublisher qualityProfileServerEventSourcePublisher,
+        IThreadHandling threadHandling,
+        ILogger logger)
     {
-        ISSESession Create(string projectKey, OnSessionFailedAsync onSessionFailedCallback);
+        this.sonarQubeClient = sonarQubeClient;
+        this.issueServerEventSourcePublisher = issueServerEventSourcePublisher;
+        this.qualityProfileServerEventSourcePublisher = qualityProfileServerEventSourcePublisher;
+        this.threadHandling = threadHandling;
+        this.logger = logger;
     }
 
-    /// <summary>
-    /// Represents the session entity, that is responsible for dealing with <see cref="ISSEStreamReader"/> reader
-    /// and propagating events to correct topic event publishers
-    /// </summary>
-    internal interface ISSESession : IDisposable
+    public ISSESession Create(string projectKey, OnSessionFailedAsync onSessionFailedCallback)
     {
-        Task PumpAllAsync();
+        if (disposed)
+        {
+            throw new ObjectDisposedException(nameof(SSESessionFactory));
+        }
+
+        var session = new SSESession(
+            issueServerEventSourcePublisher,
+            qualityProfileServerEventSourcePublisher,
+            projectKey,
+            threadHandling,
+            sonarQubeClient,
+            onSessionFailedCallback,
+            logger);
+
+        return session;
     }
 
-    [Export(typeof(ISSESessionFactory))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class SSESessionFactory : ISSESessionFactory
+    public void Dispose()
     {
-        private readonly ISonarQubeService sonarQubeClient;
-        private readonly ITaintServerEventSourcePublisher taintServerEventSourcePublisher;
+        if (disposed)
+        {
+            return;
+        }
+
+        issueServerEventSourcePublisher.Dispose();
+        qualityProfileServerEventSourcePublisher.Dispose();
+        disposed = true;
+    }
+
+    internal sealed class SSESession : ISSESession
+    {
         private readonly IIssueServerEventSourcePublisher issueServerEventSourcePublisher;
         private readonly IQualityProfileServerEventSourcePublisher qualityProfileServerEventSourcePublisher;
+        private readonly string projectKey;
         private readonly IThreadHandling threadHandling;
+        private readonly ISonarQubeService sonarQubeService;
+        private readonly OnSessionFailedAsync onSessionFailedCallback;
+        private readonly ILogger logger;
+        private readonly CancellationTokenSource sessionTokenSource;
 
         private bool disposed;
-        private readonly ILogger logger;
 
-        [ImportingConstructor]
-        public SSESessionFactory(ISonarQubeService sonarQubeClient,
-            ITaintServerEventSourcePublisher taintServerEventSourcePublisher,
-            IIssueServerEventSourcePublisher issueServerEventSourcePublisher,
-            IQualityProfileServerEventSourcePublisher qualityProfileServerEventSourcePublisher, 
-            IThreadHandling threadHandling, 
+        internal SSESession(IIssueServerEventSourcePublisher issueServerEventSourcePublisher,
+            IQualityProfileServerEventSourcePublisher qualityProfileServerEventSourcePublisher,
+            string projectKey,
+            IThreadHandling threadHandling,
+            ISonarQubeService sonarQubeService,
+            OnSessionFailedAsync onSessionFailedCallback,
             ILogger logger)
         {
-            this.sonarQubeClient = sonarQubeClient;
-            this.taintServerEventSourcePublisher = taintServerEventSourcePublisher;
             this.issueServerEventSourcePublisher = issueServerEventSourcePublisher;
             this.qualityProfileServerEventSourcePublisher = qualityProfileServerEventSourcePublisher;
+            this.projectKey = projectKey;
             this.threadHandling = threadHandling;
+            this.sonarQubeService = sonarQubeService;
+            this.onSessionFailedCallback = onSessionFailedCallback;
             this.logger = logger;
+            this.sessionTokenSource = new CancellationTokenSource();
         }
 
-        public ISSESession Create(string projectKey, OnSessionFailedAsync onSessionFailedCallback)
+        public async Task PumpAllAsync()
         {
             if (disposed)
             {
-                throw new ObjectDisposedException(nameof(SSESessionFactory));
+                logger.LogVerbose("[SSESession] Session {0} is disposed", GetHashCode());
+                throw new ObjectDisposedException(nameof(SSESession));
             }
 
-            var session = new SSESession(taintServerEventSourcePublisher,
-                issueServerEventSourcePublisher,
-                qualityProfileServerEventSourcePublisher,
-                projectKey,
-                threadHandling,
-                sonarQubeClient,
-                onSessionFailedCallback,
-                logger);
-            
-            return session;
-        }
+            await threadHandling.SwitchToBackgroundThread();
 
-        public void Dispose()
-        {
-            if (disposed)
+            var sseStreamReader = await sonarQubeService.CreateSSEStreamReader(projectKey, sessionTokenSource.Token);
+
+            if (sseStreamReader == null)
             {
+                logger.LogVerbose("[SSESession] Failed to create CreateSSEStreamReader");
                 return;
             }
 
-            taintServerEventSourcePublisher.Dispose();
-            issueServerEventSourcePublisher.Dispose();
-            qualityProfileServerEventSourcePublisher.Dispose();
-            disposed = true;
-        }
-
-        internal sealed class SSESession : ISSESession
-        {
-            private readonly ITaintServerEventSourcePublisher taintServerEventSourcePublisher;
-            private readonly IIssueServerEventSourcePublisher issueServerEventSourcePublisher;
-            private readonly IQualityProfileServerEventSourcePublisher qualityProfileServerEventSourcePublisher;
-            private readonly string projectKey;
-            private readonly IThreadHandling threadHandling;
-            private readonly ISonarQubeService sonarQubeService;
-            private readonly OnSessionFailedAsync onSessionFailedCallback;
-            private readonly ILogger logger;
-            private readonly CancellationTokenSource sessionTokenSource;
-
-            private bool disposed;
-
-            internal SSESession(ITaintServerEventSourcePublisher taintServerEventSourcePublisher,
-                IIssueServerEventSourcePublisher issueServerEventSourcePublisher,
-                IQualityProfileServerEventSourcePublisher qualityProfileServerEventSourcePublisher,
-                string projectKey,
-                IThreadHandling threadHandling,
-                ISonarQubeService sonarQubeService,
-                OnSessionFailedAsync onSessionFailedCallback,
-                ILogger logger)
+            while (!sessionTokenSource.IsCancellationRequested)
             {
-                this.taintServerEventSourcePublisher = taintServerEventSourcePublisher;
-                this.issueServerEventSourcePublisher = issueServerEventSourcePublisher;
-                this.qualityProfileServerEventSourcePublisher = qualityProfileServerEventSourcePublisher;
-                this.projectKey = projectKey;
-                this.threadHandling = threadHandling;
-                this.sonarQubeService = sonarQubeService;
-                this.onSessionFailedCallback = onSessionFailedCallback;
-                this.logger = logger;
-                this.sessionTokenSource = new CancellationTokenSource();
-            }
-
-            public async Task PumpAllAsync()
-            {
-                if (disposed)
+                try
                 {
-                    logger.LogVerbose("[SSESession] Session {0} is disposed", GetHashCode());
-                    throw new ObjectDisposedException(nameof(SSESession));
-                }
+                    var serverEvent = await sseStreamReader.ReadAsync();
 
-                await threadHandling.SwitchToBackgroundThread();
-
-                var sseStreamReader = await sonarQubeService.CreateSSEStreamReader(projectKey, sessionTokenSource.Token);
-
-                if (sseStreamReader == null)
-                {
-                    logger.LogVerbose("[SSESession] Failed to create CreateSSEStreamReader");
-                    return;
-                }
-
-                while (!sessionTokenSource.IsCancellationRequested)
-                {
-                    try
+                    if (serverEvent == null)
                     {
-                        var serverEvent = await sseStreamReader.ReadAsync();
+                        continue;
+                    }
 
-                        if (serverEvent == null)
-                        {
-                            continue;
-                        }
+                    logger.LogVerbose("[SSESession] Received server event: {0}", serverEvent.GetType());
 
-                        logger.LogVerbose("[SSESession] Received server event: {0}", serverEvent.GetType());
-
-                        switch (serverEvent)
-                        {
-                            case ITaintServerEvent taintServerEvent:
-                            {
-                                logger.LogVerbose("[SSESession] Publishing taint event...");
-                                taintServerEventSourcePublisher.Publish(taintServerEvent);
-                                break;
-                            }
-                            case IIssueChangedServerEvent issueChangedServerEvent:
+                    switch (serverEvent)
+                    {
+                        case IIssueChangedServerEvent issueChangedServerEvent:
                             {
                                 logger.LogVerbose("[SSESession] Publishing issue changed event...");
                                 issueServerEventSourcePublisher.Publish(issueChangedServerEvent);
                                 break;
                             }
-                            case IQualityProfileEvent qualityProfileEvent:
+                        case IQualityProfileEvent qualityProfileEvent:
                             {
                                 logger.LogVerbose("[SSESession] Publishing quality profile event...");
                                 qualityProfileServerEventSourcePublisher.Publish(qualityProfileEvent);
                                 break;
                             }
-                        }
-                    }
-                    catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-                    {
-                        logger.LogVerbose($"[SSESession] Failed to handle events: {ex}");
-                        onSessionFailedCallback(this).Forget();
-                        Dispose();
-                        return;
                     }
                 }
-
-                logger.LogVerbose("[SSESession] Session stopped, session token was canceled");
-            }
-
-            public void Dispose()
-            {
-                logger.LogVerbose("[SSESession] Disposing session: {0}", GetHashCode());
-
-                if (disposed)
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
+                    logger.LogVerbose($"[SSESession] Failed to handle events: {ex}");
+                    onSessionFailedCallback(this).Forget();
+                    Dispose();
                     return;
                 }
-
-                disposed = true;
-                sessionTokenSource.Cancel();
             }
+
+            logger.LogVerbose("[SSESession] Session stopped, session token was canceled");
+        }
+
+        public void Dispose()
+        {
+            logger.LogVerbose("[SSESession] Disposing session: {0}", GetHashCode());
+
+            if (disposed)
+            {
+                return;
+            }
+
+            disposed = true;
+            sessionTokenSource.Cancel();
         }
     }
 }

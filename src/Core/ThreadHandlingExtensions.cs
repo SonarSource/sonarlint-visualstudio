@@ -27,10 +27,10 @@ public static class ThreadHandlingExtensions
         syncMethod();
         return Task.CompletedTask;
     });
-        
-    public static Task RunOnBackgroundThread(this IThreadHandling threadHandling, Func<Task> asyncMethod) => Task.FromResult(threadHandling.RunOnBackgroundThread(async () =>
+
+    public static Task RunOnBackgroundThread(this IThreadHandling threadHandling, Func<Task> asyncMethod) => threadHandling.RunOnBackgroundThread(async () =>
     {
         await asyncMethod();
         return 0;
-    }));
+    });
 }
