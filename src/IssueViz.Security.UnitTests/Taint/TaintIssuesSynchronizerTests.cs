@@ -343,5 +343,5 @@ public class TaintIssuesSynchronizerTests
     private void CheckToolWindowServiceIsCalled() =>
         toolWindowService.Received().EnsureToolWindowExists(TaintToolWindow.ToolWindowId);
 
-    private void CheckStoreIsCleared() => taintStore.Received(1).Set([], null);
+    private void CheckStoreIsCleared() => taintStore.Received(1).Reset();
 }
