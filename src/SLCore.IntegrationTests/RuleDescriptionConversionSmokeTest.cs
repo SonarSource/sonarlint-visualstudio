@@ -132,6 +132,7 @@ public class RuleDescriptionConversionSmokeTest
         IActiveConfigScopeTracker activeConfigScopeTracker, ILogger testLogger) =>
         new(slCoreTestRunner.SLCoreServiceProvider,
             activeConfigScopeTracker,
+            new RuleInfoConverter(),
             testLogger);
 
     private static ActiveConfigScopeTracker CreateActiveConfigScopeTracker(SLCoreTestRunner slCoreTestRunner) =>

@@ -18,23 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Protocol;
-using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 
-public record EffectiveRuleDetailsDto(
-    string key,
-    string name,
-    Language language,
-    [property: JsonConverter(typeof(EitherJsonConverter<StandardModeDetails, MQRModeDetails>))]
-    Either<StandardModeDetails, MQRModeDetails> severityDetails,
-    VulnerabilityProbability? vulnerabilityProbability,
-    [property: JsonConverter(typeof(EitherJsonConverter<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>))]
-    Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description,
-    [JsonProperty("params")] List<EffectiveRuleParamDto> parameters) : IRuleDetails;
-
-public record StandardModeDetails(IssueSeverity severity, RuleType type);
-public record MQRModeDetails(CleanCodeAttribute cleanCodeAttribute, List<ImpactDto> impacts);
+public interface IRuleDetails
+{
+    string key { get; }
+    string name { get; }
+    Language language { get; }
+    Either<StandardModeDetails, MQRModeDetails> severityDetails { get; }
+    VulnerabilityProbability? vulnerabilityProbability { get; }
+    Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description { get; }
+    List<EffectiveRuleParamDto> parameters { get; }
+}

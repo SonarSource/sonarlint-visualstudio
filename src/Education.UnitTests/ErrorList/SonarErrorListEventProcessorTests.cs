@@ -18,11 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Education.SonarLint.VisualStudio.Education.ErrorList;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -68,8 +67,28 @@ namespace SonarLint.VisualStudio.Education.UnitTests.ErrorList
 
             errorListHelper.Verify(x => x.TryGetRuleId(handle, out ruleId));
             education.Invocations.Should().HaveCount(1);
-            education.Verify(x => x.ShowRuleHelp(ruleId, /* todo */ null));
+            education.Verify(x => x.ShowRuleHelp(ruleId, null, /* todo by SLVS-1630 */ null));
             eventArgs.Handled.Should().BeTrue();
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void PreprocessNavigateToHelp_IsASonarRule_EducationServiceIsCalledWithIssueId(bool getFilterableIssueResult)
+        {
+            SonarCompositeRuleId ruleId;
+            IFilterableIssue filterableIssue = new Mock<IFilterableIssue>().Object;
+            SonarCompositeRuleId.TryParse("cpp:S123", out ruleId);
+            var handle = Mock.Of<ITableEntryHandle>();
+            var errorListHelper = CreateErrorListHelper(isSonarRule: true, ruleId);
+            errorListHelper.Setup(x => x.TryGetFilterableIssue(It.IsAny<ITableEntryHandle>(), out filterableIssue)).Returns(getFilterableIssueResult);
+            var education = new Mock<IEducation>();
+            var testSubject = CreateTestSubject(education.Object, errorListHelper.Object);
+
+            testSubject.PreprocessNavigateToHelp(handle, new TableEntryEventArgs());
+
+            education.Invocations.Should().HaveCount(1);
+            education.Verify(x => x.ShowRuleHelp(ruleId, filterableIssue.IssueId, null));
         }
 
         private static Mock<IErrorListHelper> CreateErrorListHelper(bool isSonarRule, SonarCompositeRuleId ruleId)

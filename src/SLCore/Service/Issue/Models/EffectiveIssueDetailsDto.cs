@@ -26,11 +26,11 @@ using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 namespace SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 
 public record EffectiveIssueDetailsDto(
-    string ruleKey,
+    [JsonProperty("ruleKey")] string key,
     string name,
     Language language,
     VulnerabilityProbability? vulnerabilityProbability,
     [JsonConverter(typeof(EitherJsonConverter<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>))] Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description,
     [JsonProperty("params")] List<EffectiveRuleParamDto> parameters,
     [JsonConverter(typeof(EitherJsonConverter<StandardModeDetails, MQRModeDetails>))] Either<StandardModeDetails, MQRModeDetails> severityDetails,
-    string ruleDescriptionContextKey);
+    string ruleDescriptionContextKey) : IRuleDetails;
