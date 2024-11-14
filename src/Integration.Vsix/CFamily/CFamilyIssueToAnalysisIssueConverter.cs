@@ -122,11 +122,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // Look up default severity and type
             var defaultSeverity = ruleMetaData.DefaultSeverity;
             var defaultType = ruleMetaData.Type;
-            SoftwareQualitySeverity? highestSoftwareQualitySeverity = null;
+            Impact highestImpact = null;
 
             if (ruleMetaData.Type != IssueType.SecurityHotspot && connectedModeFeaturesConfiguration.IsNewCctAvailable())
             {
-                highestSoftwareQualitySeverity = GetHighestSoftwareQualitySeverity(ruleMetaData);
+                highestImpact = GetHighestImpact(ruleMetaData);
             }
 
             var fileContents = GetFileContentsOfReportedFiles(cFamilyIssue);
@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             var flows = locations.Any() ? new[] { new AnalysisIssueFlow(locations) } : null;
 
-            var result = ToAnalysisIssue(cFamilyIssue, sqLanguage, defaultSeverity, defaultType, flows, fileContents, highestSoftwareQualitySeverity);
+            var result = ToAnalysisIssue(cFamilyIssue, sqLanguage, defaultSeverity, defaultType, flows, fileContents, highestImpact);
 
             CodeMarkers.Instance.CFamilyConvertIssueStop();
 
@@ -193,14 +193,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             IssueType defaultType,
             IReadOnlyList<IAnalysisIssueFlow> flows,
             IReadOnlyDictionary<string, ITextDocument> fileContents,
-            SoftwareQualitySeverity? highestSoftwareQualitySeverity)
+            Impact highestImpact)
         {
             return new AnalysisIssue
             (
+                id: null, // until CFamily is migrated to SlCore, its ID will be null 
                 ruleKey: sqLanguage + ":" + cFamilyIssue.RuleKey,
                 severity: Convert(defaultSeverity),
                 type: Convert(defaultType),
-                highestSoftwareQualitySeverity,
+                highestImpact,
                 primaryLocation: ToAnalysisIssueLocation(cFamilyIssue, fileContents),
                 flows: flows,
                 fixes: ToQuickFixes(cFamilyIssue)
@@ -311,7 +312,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
         }
 
-        internal /* for testing */ static SoftwareQualitySeverity? GetHighestSoftwareQualitySeverity(RuleMetadata ruleMetadata)
-            => ruleMetadata.Code?.Impacts?.Count > 0 ? (SoftwareQualitySeverity?)ruleMetadata.Code.Impacts.Max(r => r.Value) : null;
+        internal /* for testing */ static Impact GetHighestImpact(RuleMetadata ruleMetadata)
+        {
+            if (ruleMetadata?.Code?.Impacts == null || ruleMetadata.Code.Impacts.Count == 0)
+            {
+                return null;
+            }
+
+            var highestImpact = ruleMetadata.Code.Impacts.OrderByDescending(kvp => kvp.Value).ThenByDescending(kvp => kvp.Key).First();
+            return new Impact(highestImpact.Key, highestImpact.Value);
+        }
     }
 }

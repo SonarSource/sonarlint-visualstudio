@@ -22,7 +22,6 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
-using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using CleanCodeAttribute = SonarLint.VisualStudio.SLCore.Common.Models.CleanCodeAttribute;
 using SoftwareQuality = SonarLint.VisualStudio.SLCore.Common.Models.SoftwareQuality;
@@ -32,26 +31,17 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Analysis;
 [TestClass]
 public class RaiseFindingToAnalysisIssueConverterTests
 {
-    private RaiseFindingToAnalysisIssueConverter testSubject;
     private readonly FileUri fileUri = new(@"C:\file");
+    private RaiseFindingToAnalysisIssueConverter testSubject;
 
     [TestInitialize]
-    public void TestInitialize()
-    {
-        testSubject = new RaiseFindingToAnalysisIssueConverter();
-    }
+    public void TestInitialize() => testSubject = new RaiseFindingToAnalysisIssueConverter();
 
     [TestMethod]
-    public void MefCtor_CheckIsExported()
-    {
-        MefTestHelpers.CheckTypeCanBeImported<RaiseFindingToAnalysisIssueConverter, IRaiseFindingToAnalysisIssueConverter>();
-    }
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<RaiseFindingToAnalysisIssueConverter, IRaiseFindingToAnalysisIssueConverter>();
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton()
-    {
-        MefTestHelpers.CheckIsSingletonMefComponent<RaiseFindingToAnalysisIssueConverter>();
-    }
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RaiseFindingToAnalysisIssueConverter>();
 
     [TestMethod]
     public void GetAnalysisIssues_HasNoIssues_ReturnsEmpty()
@@ -66,19 +56,19 @@ public class RaiseFindingToAnalysisIssueConverterTests
     {
         var dateTimeOffset = DateTimeOffset.Now;
         var issue1 = new RaisedIssueDto(
-            Guid.NewGuid(), 
-            "serverKey1", 
-            "ruleKey1", 
-            "PrimaryMessage1", 
-            dateTimeOffset, 
-            true, 
-            false, 
-            new TextRangeDto(1, 2, 3, 4), 
-            null, 
-            null, 
+            IssueWithFlowsAndQuickFixesUseCase.Issue1Id, 
+            "serverKey1",
+            "ruleKey1",
+            "PrimaryMessage1",
+            dateTimeOffset,
+            true,
+            false,
+            new TextRangeDto(1, 2, 3, 4),
+            null,
+            null,
             "context1",
             new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
-        var issue2 = new RaisedIssueDto(Guid.NewGuid(),
+        var issue2 = new RaisedIssueDto(IssueWithFlowsAndQuickFixesUseCase.Issue2Id,
             "serverKey2",
             "ruleKey2",
             "PrimaryMessage2",
@@ -100,21 +90,21 @@ public class RaiseFindingToAnalysisIssueConverterTests
     public void GetAnalysisIssues_HasHotspot_ConvertsCorrectly()
     {
         var dateTimeOffset = DateTimeOffset.Now;
-        var issue1 = new RaisedHotspotDto(Guid.NewGuid(),
+        var issue1 = new RaisedHotspotDto(IssueWithFlowsAndQuickFixesUseCase.Issue1Id,
             "serverKey1",
             "ruleKey1",
-            "PrimaryMessage1", 
-            dateTimeOffset, 
-            true, 
-            false, 
-            new TextRangeDto(1, 2, 3, 4), 
-            null, 
-            null, 
-            "context1", 
-            VulnerabilityProbability.HIGH, 
+            "PrimaryMessage1",
+            dateTimeOffset,
+            true,
+            false,
+            new TextRangeDto(1, 2, 3, 4),
+            null,
+            null,
+            "context1",
+            VulnerabilityProbability.HIGH,
             HotspotStatus.FIXED,
             new StandardModeDetails(IssueSeverity.MAJOR, RuleType.CODE_SMELL));
-        var issue2 = new RaisedHotspotDto(Guid.NewGuid(),
+        var issue2 = new RaisedHotspotDto(IssueWithFlowsAndQuickFixesUseCase.Issue2Id,
             "serverKey2",
             "ruleKey2",
             "PrimaryMessage2",
@@ -189,11 +179,13 @@ public class RaiseFindingToAnalysisIssueConverterTests
     [DataRow(VulnerabilityProbability.HIGH, HotspotPriority.High)]
     [DataRow(VulnerabilityProbability.MEDIUM, HotspotPriority.Medium)]
     [DataRow(VulnerabilityProbability.LOW, HotspotPriority.Low)]
-    public void GetAnalysisIssues_HotspotHasVulnerabilityProbability_AnalysisHotspotIssueIsCreatedWithCorrectHotspotPriority(VulnerabilityProbability vulnerabilityProbability, HotspotPriority expectedHotspotPriority)
+    public void GetAnalysisIssues_HotspotHasVulnerabilityProbability_AnalysisHotspotIssueIsCreatedWithCorrectHotspotPriority(
+        VulnerabilityProbability vulnerabilityProbability,
+        HotspotPriority expectedHotspotPriority)
     {
         var analysisIssues = testSubject.GetAnalysisIssues(fileUri, new List<RaisedHotspotDto>
         {
-            new(Guid.Empty, 
+            new(Guid.Empty,
                 default,
                 default,
                 default,
@@ -242,33 +234,108 @@ public class RaiseFindingToAnalysisIssueConverterTests
         analysisIssues.Single().Should().BeOfType<AnalysisHotspotIssue>().Which.HotspotPriority.Should().BeNull();
     }
 
+    [TestMethod]
+    [DataRow(ImpactSeverity.BLOCKER, SoftwareQualitySeverity.Blocker)]
+    [DataRow(ImpactSeverity.HIGH, SoftwareQualitySeverity.High)]
+    [DataRow(ImpactSeverity.MEDIUM, SoftwareQualitySeverity.Medium)]
+    [DataRow(ImpactSeverity.LOW, SoftwareQualitySeverity.Low)]
+    [DataRow(ImpactSeverity.INFO, SoftwareQualitySeverity.Info)]
+    public void GetAnalysisIssues_HotspotWithTwoHighImpactsForDifferentQualities_GetsTheHighestSoftwareQuality(ImpactSeverity severity, SoftwareQualitySeverity expectedSoftwareQualitySeverity)
+    {
+        var analysisIssues = testSubject.GetAnalysisIssues(fileUri, new List<RaisedHotspotDto>
+        {
+            new(Guid.Empty,
+                default,
+                default,
+                default,
+                default,
+                default,
+                default,
+                new TextRangeDto(1,
+                    2,
+                    3,
+                    4),
+                [],
+                default,
+                default,
+                null,
+                HotspotStatus.SAFE,
+                new MQRModeDetails(default,
+                [
+                    new ImpactDto(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.INFO),
+                    new ImpactDto(SoftwareQuality.RELIABILITY, severity),
+                    new ImpactDto(SoftwareQuality.SECURITY, severity)
+                ]))
+        });
+
+        var hotspotIssue = analysisIssues.SingleOrDefault() as AnalysisHotspotIssue;
+        hotspotIssue.Should().NotBeNull();
+        hotspotIssue.HighestImpact.Should().NotBeNull();
+        hotspotIssue.HighestImpact.Quality.Should().Be(VisualStudio.Core.Analysis.SoftwareQuality.Security);
+        hotspotIssue.HighestImpact.Severity.Should().Be(expectedSoftwareQualitySeverity);
+    }
+
+    [TestMethod]
+    [DataRow(ImpactSeverity.BLOCKER, SoftwareQualitySeverity.Blocker)]
+    [DataRow(ImpactSeverity.HIGH, SoftwareQualitySeverity.High)]
+    [DataRow(ImpactSeverity.MEDIUM, SoftwareQualitySeverity.Medium)]
+    [DataRow(ImpactSeverity.LOW, SoftwareQualitySeverity.Low)]
+    [DataRow(ImpactSeverity.INFO, SoftwareQualitySeverity.Info)]
+    public void GetAnalysisIssues_IssueWithTwoHighImpactsForDifferentQualities_GetsTheHighestSoftwareQuality(ImpactSeverity severity, SoftwareQualitySeverity expectedSoftwareQualitySeverity)
+    {
+        var analysisIssues = testSubject.GetAnalysisIssues(fileUri, new List<RaisedIssueDto>
+        {
+            new(Guid.Empty,
+                default,
+                default,
+                default,
+                default,
+                default,
+                default,
+                new TextRangeDto(1,
+                    2,
+                    3,
+                    4),
+               [],
+                default,
+                default,
+                new MQRModeDetails(default,
+                [
+                    new ImpactDto(SoftwareQuality.MAINTAINABILITY, ImpactSeverity.INFO),
+                    new ImpactDto(SoftwareQuality.RELIABILITY, severity),
+                    new ImpactDto(SoftwareQuality.SECURITY, severity)
+                ]))
+        });
+
+        var issue = analysisIssues.SingleOrDefault() as AnalysisIssue;
+        issue.Should().NotBeNull();
+        issue.HighestImpact.Should().NotBeNull();
+        issue.HighestImpact.Quality.Should().Be(VisualStudio.Core.Analysis.SoftwareQuality.Security);
+        issue.HighestImpact.Severity.Should().Be(expectedSoftwareQualitySeverity);
+    }
+
     private static class UnflattenedFlowsUseCase
     {
         internal static FileUri FileUri => new("C:\\IssueFile.cs");
 
-        internal static List<IssueFlowDto> UnflattenedFlows => [
-            new IssueFlowDto([new IssueLocationDto(new TextRangeDto(1, 1, 1, 1), "1", FileUri)]),
-            new IssueFlowDto([new IssueLocationDto(new TextRangeDto(2, 2, 2, 2), "2", FileUri)]),
-            new IssueFlowDto([new IssueLocationDto(new TextRangeDto(3, 3, 3, 3), "3", FileUri)]),
-            new IssueFlowDto([new IssueLocationDto(new TextRangeDto(4, 4, 4, 4), "4", FileUri)]),
-            new IssueFlowDto([new IssueLocationDto(new TextRangeDto(5, 5, 5, 5), "5", FileUri)]),
+        internal static List<IssueFlowDto> UnflattenedFlows =>
+        [
+            new([new IssueLocationDto(new TextRangeDto(1, 1, 1, 1), "1", FileUri)]),
+            new([new IssueLocationDto(new TextRangeDto(2, 2, 2, 2), "2", FileUri)]),
+            new([new IssueLocationDto(new TextRangeDto(3, 3, 3, 3), "3", FileUri)]),
+            new([new IssueLocationDto(new TextRangeDto(4, 4, 4, 4), "4", FileUri)]),
+            new([new IssueLocationDto(new TextRangeDto(5, 5, 5, 5), "5", FileUri)])
         ];
 
-        internal static void VerifyFlattenedFlow(IEnumerable<IAnalysisIssue> analysisIssues)
-        {
+        internal static void VerifyFlattenedFlow(IEnumerable<IAnalysisIssue> analysisIssues) =>
             analysisIssues.Single()
                 .Flows.Should()
                 .ContainSingle()
                 .Which.Locations.Should()
                 .HaveCount(5)
-                .And.BeEquivalentTo([
-                    new AnalysisIssueLocation("1", FileUri.LocalPath, new TextRange(1, 1, 1, 1, null)),
-                    new AnalysisIssueLocation("2", FileUri.LocalPath, new TextRange(2, 2, 2, 2, null)),
-                    new AnalysisIssueLocation("3", FileUri.LocalPath, new TextRange(3, 3, 3, 3, null)),
-                    new AnalysisIssueLocation("4", FileUri.LocalPath, new TextRange(4, 4, 4, 4, null)),
-                    new AnalysisIssueLocation("5", FileUri.LocalPath, new TextRange(5, 5, 5, 5, null)),
-                ]);
-        }
+                .And.BeEquivalentTo(new AnalysisIssueLocation("1", FileUri.LocalPath, new TextRange(1, 1, 1, 1, null)),
+                    new AnalysisIssueLocation("2", FileUri.LocalPath, new TextRange(2, 2, 2, 2, null)), new AnalysisIssueLocation("3", FileUri.LocalPath, new TextRange(3, 3, 3, 3, null)),
+                    new AnalysisIssueLocation("4", FileUri.LocalPath, new TextRange(4, 4, 4, 4, null)), new AnalysisIssueLocation("5", FileUri.LocalPath, new TextRange(5, 5, 5, 5, null)));
     }
 
     private static class IssueWithFlowsAndQuickFixesUseCase
@@ -279,7 +346,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
         internal static List<ImpactDto> Issue2Impacts => [Issue2Impact1, Issue2Impact2, Issue2Impact3];
         private static IssueLocationDto Issue2Flow1Location1 => new(new TextRangeDto(11, 12, 13, 14), "Flow1Location1Message", new FileUri("C:\\flowFile1.cs"));
         private static IssueLocationDto Issue2Flow1Location2 => new(new TextRangeDto(21, 22, 23, 24), "Flow1Location2Message", new FileUri("C:\\flowFile1.cs"));
-        internal static IssueFlowDto Issue2Flow1 => new ([Issue2Flow1Location1, Issue2Flow1Location2]);
+        internal static IssueFlowDto Issue2Flow1 => new([Issue2Flow1Location1, Issue2Flow1Location2]);
         private static IssueLocationDto Issue2Flow2Location1 => new(new TextRangeDto(31, 32, 33, 34), "Flow2Location1Message", new FileUri("C:\\flowFile2.cs"));
         private static IssueLocationDto Issue2Flow2Location2 => new(new TextRangeDto(41, 42, 43, 44), "Flow2Location2Message", new FileUri("C:\\flowFile2.cs"));
         internal static IssueFlowDto Issue2Flow2 => new([Issue2Flow2Location1, Issue2Flow2Location2]);
@@ -288,17 +355,19 @@ public class RaiseFindingToAnalysisIssueConverterTests
         private static TextEditDto Issue2Fix2FileEdit1Textedit1 => new(new TextRangeDto(51, 52, 53, 54), "new text");
         private static FileEditDto Issue2Fix2FileEdit1 => new(new FileUri("C:\\IssueFile.cs"), [Issue2Fix2FileEdit1Textedit1]);
         internal static QuickFixDto Issue2Fix2 => new([Issue2Fix2FileEdit1], "issue 2 fix 2");
-
+        internal static Guid Issue1Id { get; } = Guid.NewGuid();
+        internal static Guid Issue2Id { get; } = Guid.NewGuid();
 
         internal static void VerifyDtosConvertedCorrectly(List<IAnalysisIssue> result)
         {
             result.Should().NotBeNull();
             result.Should().HaveCount(2);
 
+            result[0].Id.Should().Be(Issue1Id);
             result[0].RuleKey.Should().Be("ruleKey1");
             result[0].Severity.Should().Be(AnalysisIssueSeverity.Major);
             result[0].Type.Should().Be(AnalysisIssueType.CodeSmell);
-            result[0].HighestSoftwareQualitySeverity.Should().BeNull();
+            result[0].HighestImpact.Should().BeNull();
             result[0].RuleDescriptionContextKey.Should().Be("context1");
 
             result[0].PrimaryLocation.FilePath.Should().Be("C:\\IssueFile.cs");
@@ -312,10 +381,11 @@ public class RaiseFindingToAnalysisIssueConverterTests
             result[0].Flows.Should().BeEmpty();
             result[0].Fixes.Should().BeEmpty();
 
+            result[1].Id.Should().Be(Issue2Id);
             result[1].RuleKey.Should().Be("ruleKey2");
             result[1].Severity.Should().BeNull();
             result[1].Type.Should().BeNull();
-            result[1].HighestSoftwareQualitySeverity.Should().Be(SoftwareQualitySeverity.High);
+            result[1].HighestImpact.Severity.Should().Be(SoftwareQualitySeverity.High);
             result[1].RuleDescriptionContextKey.Should().Be("context2");
 
             result[1].PrimaryLocation.FilePath.Should().Be("C:\\IssueFile.cs");
@@ -368,6 +438,5 @@ public class RaiseFindingToAnalysisIssueConverterTests
             result[1].Fixes[0].Edits[0].RangeToReplace.EndLineOffset.Should().Be(54);
             result[1].Fixes[0].Edits[0].RangeToReplace.LineHash.Should().BeNull();
         }
-
     }
 }

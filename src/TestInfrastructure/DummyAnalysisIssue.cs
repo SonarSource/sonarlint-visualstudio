@@ -18,29 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.TestInfrastructure
+namespace SonarLint.VisualStudio.TestInfrastructure;
+
+// Properties are settable to simplify creating test instances
+public class DummyAnalysisIssue : IAnalysisIssue
 {
-    // Properties are settable to simplify creating test instances
-    public class DummyAnalysisIssue : IAnalysisIssue
-    {
-        public string RuleKey { get; set; }
+    public Guid? Id { get; set; }
 
-        public AnalysisIssueSeverity? Severity { get; set; }
-        
-        public SoftwareQualitySeverity? HighestSoftwareQualitySeverity { get; set; }
+    public string RuleKey { get; set; }
 
-        public AnalysisIssueType? Type { get; set; }
+    public AnalysisIssueSeverity? Severity { get; set; }
 
-        public IReadOnlyList<IAnalysisIssueFlow> Flows { get; } = Array.Empty<IAnalysisIssueFlow>();
+    public Impact HighestImpact { get; set; }
 
-        public IAnalysisIssueLocation PrimaryLocation { get; set; } = new DummyAnalysisIssueLocation();
+    public AnalysisIssueType? Type { get; set; }
 
-        public IReadOnlyList<IQuickFix> Fixes { get; } = Array.Empty<IQuickFix>();
+    public IReadOnlyList<IAnalysisIssueFlow> Flows { get; } = Array.Empty<IAnalysisIssueFlow>();
 
-        public string RuleDescriptionContextKey { get; set; }
-    }
+    public IAnalysisIssueLocation PrimaryLocation { get; set; } = new DummyAnalysisIssueLocation();
+
+    public IReadOnlyList<IQuickFix> Fixes { get; } = Array.Empty<IQuickFix>();
+
+    public string RuleDescriptionContextKey { get; set; }
 }

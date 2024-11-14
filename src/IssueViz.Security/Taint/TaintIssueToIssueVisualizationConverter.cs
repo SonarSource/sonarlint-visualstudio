@@ -51,6 +51,7 @@ internal class TaintIssueToIssueVisualizationConverter(IAnalysisIssueVisualizati
 
     private static IAnalysisIssueBase ConvertToAnalysisIssue(TaintVulnerabilityDto slcoreTaintIssue, string configScopeRoot) =>
         new TaintIssue(
+            slcoreTaintIssue.id,
             slcoreTaintIssue.sonarServerKey,
             slcoreTaintIssue.ruleKey,
             CreateLocation(slcoreTaintIssue.message, slcoreTaintIssue.ideFilePath, configScopeRoot, slcoreTaintIssue.textRange),

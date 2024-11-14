@@ -55,8 +55,9 @@ public class TaintIssueToIssueVisualizationConverterTests
     public void Convert_IssueVizConverterCalledWithCorrectParameters_ReturnsConvertedIssueVizWithReversedLocations()
     {
         var created = DateTimeOffset.Parse("2001-12-30T01:02:03+0000");
+        var id = Guid.Parse("efa697a2-9cfd-4faf-ba21-71b378667a81");
         var taintDto = new TaintVulnerabilityDto(
-            Guid.Parse("efa697a2-9cfd-4faf-ba21-71b378667a81"),
+            id,
             "serverkey",
             true,
             "rulekey:S123",
@@ -97,6 +98,7 @@ public class TaintIssueToIssueVisualizationConverterTests
         result.Should().BeSameAs(expectedConvertedIssueViz);
         issueVizConverter.Received().Convert(
             Arg.Is((TaintIssue taintIssue) =>
+                taintIssue.Id == id &&
                 taintIssue.IssueKey == "serverkey" &&
                 taintIssue.RuleKey == "rulekey:S123" &&
                 taintIssue.Severity == AnalysisIssueSeverity.Minor &&

@@ -268,10 +268,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         private IAnalysisIssue CreateIssue(params IQuickFix[] quickFixes)
         {
             var issue = new AnalysisIssue(
+                Guid.NewGuid(),
                 Guid.NewGuid().ToString(),
                 AnalysisIssueSeverity.Blocker,
                 AnalysisIssueType.Bug,
-                SoftwareQualitySeverity.High,
+                new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.High),
                 CreateLocation(Guid.NewGuid().ToString()),
                 null,
                 quickFixes
@@ -283,10 +284,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         private IAnalysisIssue CreateIssue(string filePath, params IAnalysisIssueFlow[] flows)
         {
             var issue = new AnalysisIssue(
+                Guid.NewGuid(),
                 Guid.NewGuid().ToString(),
                 AnalysisIssueSeverity.Blocker,
                 AnalysisIssueType.Bug,
-                SoftwareQualitySeverity.High,
+                new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.High),
                 CreateLocation(filePath),
                 flows
             );

@@ -37,10 +37,11 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 
         private static AnalysisIssue CreateAnalysisIssue<T>(FileUri fileUri, T item) where T : RaisedFindingDto
         {
+            var id = item.id;
             var itemRuleKey = item.ruleKey;
             var analysisIssueSeverity = item.severityMode.Left?.severity.ToAnalysisIssueSeverity(); 
             var analysisIssueType = item.severityMode.Left?.type.ToAnalysisIssueType();
-            var highestSoftwareQualitySeverity = GetHighestSoftwareQualitySeverity(item.severityMode.Right?.impacts);
+            var highestSoftwareQualitySeverity = GetHighestImpact(item.severityMode.Right?.impacts);
             var analysisIssueLocation = GetAnalysisIssueLocation(fileUri.LocalPath, item.primaryMessage, item.textRange);
             var analysisIssueFlows = GetFlows(item.flows);
             var readOnlyList = item.quickFixes?.Select(qf => GetQuickFix(fileUri, qf)).Where(qf => qf is not null).ToList();
@@ -48,7 +49,8 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 
             if (item is RaisedHotspotDto raisedHotspotDto)
             {
-                return new AnalysisHotspotIssue(itemRuleKey,
+                return new AnalysisHotspotIssue(id,
+                    itemRuleKey,
                     analysisIssueSeverity,
                     analysisIssueType,
                     highestSoftwareQualitySeverity,
@@ -59,7 +61,8 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
                     raisedHotspotDto.vulnerabilityProbability.GetHotspotPriority());
             }
 
-            return new AnalysisIssue(itemRuleKey,
+            return new AnalysisIssue(id,
+                itemRuleKey,
                 analysisIssueSeverity,
                 analysisIssueType,
                 highestSoftwareQualitySeverity,
@@ -69,10 +72,14 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
                 itemRuleDescriptionContextKey);
         }
 
-        private static SoftwareQualitySeverity? GetHighestSoftwareQualitySeverity(List<ImpactDto> impacts) =>
-            impacts is not null && impacts.Any()
-                ? impacts.Max(i => i.impactSeverity).ToSoftwareQualitySeverity()
-                : null;
+        private static Impact GetHighestImpact(List<ImpactDto> impacts)
+        {
+            if(impacts is null || impacts.Count == 0)
+            {
+                return null;
+            }
+            return impacts.OrderByDescending(i => i.impactSeverity).ThenByDescending(i => i.softwareQuality).First().ToImpact();
+        }
 
         private static IAnalysisIssueLocation GetAnalysisIssueLocation(string filePath, string message, TextRangeDto textRangeDto) =>
             new AnalysisIssueLocation(message,

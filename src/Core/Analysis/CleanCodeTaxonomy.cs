@@ -108,4 +108,6 @@ namespace SonarLint.VisualStudio.Core.Analysis
         High = 3,
         Blocker = 4
     }
+
+    public record Impact(SoftwareQuality Quality, SoftwareQualitySeverity Severity);
 }

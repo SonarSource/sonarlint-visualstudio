@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
 
             converter.Object.GetVsSeverity(new DummyAnalysisIssue
             {
-                Severity = AnalysisIssueSeverity.Major, HighestSoftwareQualitySeverity = SoftwareQualitySeverity.High
+                Severity = AnalysisIssueSeverity.Major, HighestImpact = new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.High)
             });
             
             converter.Verify(x => x.ConvertFromCct(SoftwareQualitySeverity.High), Times.Once);

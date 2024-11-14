@@ -26,19 +26,21 @@ namespace SonarLint.VisualStudio.Core.Analysis
         private static readonly IReadOnlyList<IQuickFix> EmptyFixes = [];
 
         public AnalysisIssue(
+            Guid? id,
             string ruleKey,
             AnalysisIssueSeverity? severity,
             AnalysisIssueType? type,
-            SoftwareQualitySeverity? highestSoftwareQualitySeverity, 
+            Impact highestImpact, 
             IAnalysisIssueLocation primaryLocation,
             IReadOnlyList<IAnalysisIssueFlow> flows,
             IReadOnlyList<IQuickFix> fixes = null,
             string context = null
             )
         {
+            Id = id;
             RuleKey = ruleKey;
             Severity = severity;
-            HighestSoftwareQualitySeverity = highestSoftwareQualitySeverity;
+            HighestImpact = highestImpact;
             Type = type;
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Flows = flows ?? EmptyFlows;
@@ -46,11 +48,11 @@ namespace SonarLint.VisualStudio.Core.Analysis
             RuleDescriptionContextKey = context;
         }
 
+        public Guid? Id { get; }
+
         public string RuleKey { get; }
 
         public AnalysisIssueSeverity? Severity { get; }
-        
-        public SoftwareQualitySeverity? HighestSoftwareQualitySeverity { get; }
 
         public AnalysisIssueType? Type { get; }
 
@@ -59,22 +61,24 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public IAnalysisIssueLocation PrimaryLocation { get; }
 
         public IReadOnlyList<IQuickFix> Fixes { get; }
+        public Impact HighestImpact { get; }
 
         public string RuleDescriptionContextKey { get; }
     }
 
     public class AnalysisHotspotIssue : AnalysisIssue, IAnalysisHotspotIssue
     {
-        public AnalysisHotspotIssue(string ruleKey, 
+        public AnalysisHotspotIssue(Guid? id,
+            string ruleKey, 
             AnalysisIssueSeverity? severity, 
             AnalysisIssueType? type, 
-            SoftwareQualitySeverity? highestSoftwareQualitySeverity,
+            Impact highestImpact,
             IAnalysisIssueLocation primaryLocation, 
             IReadOnlyList<IAnalysisIssueFlow> flows, 
             IReadOnlyList<IQuickFix> fixes = null, 
             string context = null,
             HotspotPriority? hotspotPriority = null) : 
-            base(ruleKey, severity, type, highestSoftwareQualitySeverity, primaryLocation, flows, fixes, context)
+            base(id, ruleKey, severity, type, highestImpact, primaryLocation, flows, fixes, context)
         {
             HotspotPriority = hotspotPriority;
         }
