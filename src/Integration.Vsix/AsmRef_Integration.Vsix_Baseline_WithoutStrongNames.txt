@@ -19,7 +19,7 @@
 #
 ################################
 
-# Base directory: C:\Users\georgii.borovinskikh\Documents\Repos\sonarlint-visualstudio\src\Integration.Vsix\bin\Debug\VS2022\net472
+# Base directory: C:\Code\sonarlint-visualstudio\src\Integration.Vsix\bin\Debug\VS2022\net472
 Include patterns:
 - 'Sonar*'
 Exclude patterns:

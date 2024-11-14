@@ -32,16 +32,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         /// </summary>
         void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope);
 
+        void Reset();
+
         string ConfigurationScope { get; }
 
         void Update(TaintVulnerabilityUpdate taintVulnerabilityUpdate);
     }
 
     public record TaintVulnerabilityUpdate(
+        string ConfigurationScope,
         IEnumerable<IAnalysisIssueVisualization> Added,
         IEnumerable<IAnalysisIssueVisualization> Updated,
-        IEnumerable<Guid> Closed,
-        string ConfigurationScope);
+        IEnumerable<Guid> Closed);
 
     [Export(typeof(ITaintStore))]
     [Export(typeof(IIssuesStore))]
@@ -54,6 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         private string configurationScope;
         private Dictionary<Guid, IAnalysisIssueVisualization> taintVulnerabilities = new();
+
 
         public string ConfigurationScope
         {
@@ -74,12 +77,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
         }
 
+        public void Reset() => SetInternal([], null);
+
         public void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
         {
             ValidateSet(issueVisualizations, newConfigurationScope);
+            SetInternal(issueVisualizations, newConfigurationScope);
+        }
 
-            List<IAnalysisIssueVisualization> diffRemoved = new();
-            List<IAnalysisIssueVisualization> diffAdded = new();
+        private void SetInternal(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
+        {
+            List<IAnalysisIssueVisualization> diffRemoved = [];
+            List<IAnalysisIssueVisualization> diffAdded = [];
 
             lock (locker)
             {
@@ -101,7 +110,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 throw new ArgumentNullException(nameof(issueVisualizations));
             }
 
-            if (issueVisualizations.Count > 0 && string.IsNullOrEmpty(newConfigurationScope))
+            Debug.Assert(issueVisualizations.All(x => x.IssueId.HasValue));
+
+            if (string.IsNullOrEmpty(newConfigurationScope))
             {
                 throw new ArgumentNullException(nameof(newConfigurationScope));
             }
@@ -111,8 +122,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         {
             ValidateUpdate(taintVulnerabilityUpdate);
 
-            List<IAnalysisIssueVisualization> diffAdded = new();
-            List<IAnalysisIssueVisualization> diffRemoved = new();
+            List<IAnalysisIssueVisualization> diffAdded = [];
+            List<IAnalysisIssueVisualization> diffRemoved = [];
             lock (locker)
             {
                 if (taintVulnerabilityUpdate.ConfigurationScope != configurationScope)
@@ -135,10 +146,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 throw new ArgumentNullException(nameof(taintVulnerabilityUpdate.Added));
             }
 
+            Debug.Assert(taintVulnerabilityUpdate.Added.All(x => x.IssueId.HasValue));
+
             if (taintVulnerabilityUpdate.Updated == null)
             {
                 throw new ArgumentNullException(nameof(taintVulnerabilityUpdate.Updated));
             }
+
+            Debug.Assert(taintVulnerabilityUpdate.Updated.All(x => x.IssueId.HasValue));
 
             if (taintVulnerabilityUpdate.Closed == null)
             {
@@ -155,12 +170,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         {
             foreach (var addedVulnerability in added)
             {
-                if (taintVulnerabilities.ContainsKey(addedVulnerability.Issue.Id!.Value))
+                if (taintVulnerabilities.ContainsKey(addedVulnerability.IssueId!.Value))
                 {
-                    Debug.Fail("Taint Update: attemting to add a Vulnerability with the same id that already exists");
+                    Debug.Fail("Taint Update: attempting to add a Vulnerability with the same id that already exists");
                     continue;
                 }
-                taintVulnerabilities[addedVulnerability.Issue.Id!.Value] = addedVulnerability;
+                taintVulnerabilities[addedVulnerability.IssueId!.Value] = addedVulnerability;
                 diffAdded.Add(addedVulnerability);
             }
         }
@@ -169,12 +184,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         {
             foreach (var updatedVulnerability in updated)
             {
-                if (!taintVulnerabilities.TryGetValue(updatedVulnerability.Issue.Id!.Value, out IAnalysisIssueVisualization outdatedVulnerability))
+                if (!taintVulnerabilities.TryGetValue(updatedVulnerability.IssueId!.Value, out var outdatedVulnerability))
                 {
                     Debug.Fail("Taint Update: attempting to update a non-existent Vulnerability");
                     continue;
                 }
-                taintVulnerabilities[updatedVulnerability.Issue.Id!.Value] = updatedVulnerability;
+                taintVulnerabilities[updatedVulnerability.IssueId!.Value] = updatedVulnerability;
                 diffRemoved.Add(outdatedVulnerability);
                 diffAdded.Add(updatedVulnerability);
             }
@@ -184,7 +199,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         {
             foreach (var removedId in removed)
             {
-                if (!taintVulnerabilities.TryGetValue(removedId, out IAnalysisIssueVisualization removedVulnerability))
+                if (!taintVulnerabilities.TryGetValue(removedId, out var removedVulnerability))
                 {
                     Debug.Fail("Taint Update: attempting to remove a non-existent Vulnerability");
                     continue;
