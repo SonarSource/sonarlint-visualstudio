@@ -21,97 +21,96 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Education.Rule;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
-namespace SonarLint.VisualStudio.Education
+namespace SonarLint.VisualStudio.Education;
+
+[Export(typeof(IEducation))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal class Education : IEducation
 {
-    [Export(typeof(IEducation))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class Education : IEducation
+    private readonly ILogger logger;
+    private readonly IRuleHelpXamlBuilder ruleHelpXamlBuilder;
+    private readonly IRuleMetaDataProvider ruleMetadataProvider;
+    private readonly IShowRuleInBrowser showRuleInBrowser;
+    private readonly IThreadHandling threadHandling;
+    private readonly IToolWindowService toolWindowService;
+
+    private IRuleHelpToolWindow ruleHelpToolWindow;
+
+    [ImportingConstructor]
+    public Education(
+        IToolWindowService toolWindowService,
+        IRuleMetaDataProvider ruleMetadataProvider,
+        IShowRuleInBrowser showRuleInBrowser,
+        ILogger logger,
+        IRuleHelpXamlBuilder ruleHelpXamlBuilder)
+        : this(toolWindowService,
+            ruleMetadataProvider,
+            showRuleInBrowser,
+            logger,
+            ruleHelpXamlBuilder,
+            ThreadHandling.Instance)
     {
-        private readonly IToolWindowService toolWindowService;
-        private readonly IRuleMetaDataProvider ruleMetadataProvider;
-        private readonly IRuleHelpXamlBuilder ruleHelpXamlBuilder;
-        private readonly IShowRuleInBrowser showRuleInBrowser;
-        private readonly ILogger logger;
-        private readonly IThreadHandling threadHandling;
+    }
 
-        private IRuleHelpToolWindow ruleHelpToolWindow;
+    internal /* for testing */ Education(
+        IToolWindowService toolWindowService,
+        IRuleMetaDataProvider ruleMetadataProvider,
+        IShowRuleInBrowser showRuleInBrowser,
+        ILogger logger,
+        IRuleHelpXamlBuilder ruleHelpXamlBuilder,
+        IThreadHandling threadHandling)
+    {
+        this.toolWindowService = toolWindowService;
+        this.ruleHelpXamlBuilder = ruleHelpXamlBuilder;
+        this.ruleMetadataProvider = ruleMetadataProvider;
+        this.showRuleInBrowser = showRuleInBrowser;
+        this.logger = logger;
+        this.threadHandling = threadHandling;
+    }
 
-        [ImportingConstructor]
-        public Education(IToolWindowService toolWindowService, IRuleMetaDataProvider ruleMetadataProvider, IShowRuleInBrowser showRuleInBrowser, ILogger logger, IRuleHelpXamlBuilder ruleHelpXamlBuilder)
-            : this(toolWindowService,
-                ruleMetadataProvider,
-                showRuleInBrowser,
-                logger,
-                ruleHelpXamlBuilder,
-                ThreadHandling.Instance) { }
+    public void ShowRuleHelp(SonarCompositeRuleId ruleId, Guid? issueId, string issueContext) => ShowRuleHelpAsync(ruleId, issueId, issueContext).Forget();
 
-        internal /* for testing */ Education(IToolWindowService toolWindowService,
-            IRuleMetaDataProvider ruleMetadataProvider,
-            IShowRuleInBrowser showRuleInBrowser,
-            ILogger logger,
-            IRuleHelpXamlBuilder ruleHelpXamlBuilder,
-            IThreadHandling threadHandling)
+    private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, Guid? issueId, string issueContext)
+    {
+        await threadHandling.SwitchToBackgroundThread();
+
+        var ruleInfo = await ruleMetadataProvider.GetRuleInfoAsync(ruleId, issueId);
+
+        await threadHandling.RunOnUIThreadAsync(() =>
         {
-            this.toolWindowService = toolWindowService;
-            this.ruleHelpXamlBuilder = ruleHelpXamlBuilder;
-            this.ruleMetadataProvider = ruleMetadataProvider;
-            this.showRuleInBrowser = showRuleInBrowser;
-            this.logger = logger;
-            this.threadHandling = threadHandling;
-        }
-
-        public void ShowRuleHelp(SonarCompositeRuleId ruleId, Guid? issueId, string issueContext)
-        {
-            ShowRuleHelpAsync(ruleId, issueId, issueContext).Forget();
-        }
-
-        private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, Guid? issueId, string issueContext)
-        {
-            await threadHandling.SwitchToBackgroundThread();
-
-            var ruleInfo = await ruleMetadataProvider.GetRuleInfoAsync(ruleId, issueId);
-
-            await threadHandling.RunOnUIThreadAsync(() =>
+            if (ruleInfo == null)
             {
-                if (ruleInfo == null)
-                {
-                    showRuleInBrowser.ShowRuleDescription(ruleId);
-                }
-                else
-                {
-                    ShowRuleInIde(ruleInfo, ruleId, issueContext);
-                }
-            });
-        }
-
-        private void ShowRuleInIde(IRuleInfo ruleInfo, SonarCompositeRuleId ruleId, string issueContext)
-        {
-            threadHandling.ThrowIfNotOnUIThread();
-
-            // Lazily fetch the tool window from a UI thread
-            if (ruleHelpToolWindow == null)
-            {
-                ruleHelpToolWindow = toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>();
-            }
-
-            try
-            {
-                var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo, issueContext);
-
-                ruleHelpToolWindow.UpdateContent(flowDocument);
-
-                toolWindowService.Show(RuleHelpToolWindow.ToolWindowId);
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(string.Format(Resources.ERR_RuleHelpToolWindow_Exception, ex));
                 showRuleInBrowser.ShowRuleDescription(ruleId);
             }
+            else
+            {
+                ShowRuleInIde(ruleInfo, ruleId, issueContext);
+            }
+        });
+    }
+
+    private void ShowRuleInIde(IRuleInfo ruleInfo, SonarCompositeRuleId ruleId, string issueContext)
+    {
+        threadHandling.ThrowIfNotOnUIThread();
+        // Lazily fetch the tool window from a UI thread
+        ruleHelpToolWindow ??= toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>();
+
+        try
+        {
+            var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo, issueContext);
+
+            ruleHelpToolWindow.UpdateContent(flowDocument);
+
+            toolWindowService.Show(RuleHelpToolWindow.ToolWindowId);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.WriteLine(string.Format(Resources.ERR_RuleHelpToolWindow_Exception, ex));
+            showRuleInBrowser.ShowRuleDescription(ruleId);
         }
     }
 }
