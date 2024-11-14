@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -43,7 +41,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
         private bool disposed;
 
         [ImportingConstructor]
-        public SSESessionManager(IActiveSolutionBoundTracker activeSolutionBoundTracker, 
+        public SSESessionManager(IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ISSESessionFactory sseSessionFactory,
             ILogger logger)
         {
@@ -83,12 +81,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents
             lock (syncRoot)
             {
                 EndCurrentSession();
-                
+
                 var isInConnectedMode = !bindingConfiguration.Equals(BindingConfiguration.Standalone);
 
                 if (!isInConnectedMode)
                 {
                     logger.LogVerbose("[SSESessionManager] Not in connected mode");
+                    return;
+                }
+
+                if (bindingConfiguration.Project.ServerConnection is ServerConnection.SonarCloud)
+                {
+                    logger.LogVerbose("[SSESessionManager] Not available for the current server connection");
                     return;
                 }
 
