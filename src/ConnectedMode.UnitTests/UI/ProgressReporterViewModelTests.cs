@@ -27,8 +27,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI;
 [TestClass]
 public class ProgressReporterViewModelTests
 {
-    private ProgressReporterViewModel testSubject;
     private ILogger logger;
+    private ProgressReporterViewModel testSubject;
 
     [TestInitialize]
     public void TestInitialize()

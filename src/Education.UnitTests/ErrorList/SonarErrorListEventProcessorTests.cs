@@ -19,95 +19,97 @@
  */
 
 using Microsoft.VisualStudio.Shell.TableControl;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Suppressions;
-using SonarLint.VisualStudio.Education.SonarLint.VisualStudio.Education.ErrorList;
+using SonarLint.VisualStudio.Education.ErrorList;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Education.UnitTests.ErrorList
+namespace SonarLint.VisualStudio.Education.UnitTests.ErrorList;
+
+[TestClass]
+public class SonarErrorListEventProcessorTests
 {
-    [TestClass]
-    public class SonarErrorListEventProcessorTests
+    private readonly TableEntryEventArgs eventArgs = new();
+
+    private IEducation education;
+    private IErrorListHelper errorListHelper;
+    private IFilterableIssue filterableIssue;
+    private ITableEntryHandle handle;
+    private ILogger logger;
+    private SonarErrorListEventProcessor testSubject;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        [TestMethod]
-        public void PreprocessNavigateToHelp_NotASonarRule_EventIsNotHandled()
+        education = Substitute.For<IEducation>();
+        errorListHelper = Substitute.For<IErrorListHelper>();
+        handle = Substitute.For<ITableEntryHandle>();
+        filterableIssue = Substitute.For<IFilterableIssue>();
+        logger = new TestLogger(true);
+
+        testSubject = new SonarErrorListEventProcessor(education, errorListHelper, logger);
+    }
+
+    [TestMethod]
+    public void PreprocessNavigateToHelp_NotASonarRule_EventIsNotHandled()
+    {
+        SonarCompositeRuleId ruleId = null;
+        MockErrorListHelper(false, ruleId);
+
+        testSubject.PreprocessNavigateToHelp(handle, eventArgs);
+
+        errorListHelper.Received(1).TryGetRuleId(handle, out _);
+        education.ReceivedCalls().Should().HaveCount(0);
+        eventArgs.Handled.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void PreprocessNavigateToHelp_IsASonarRule_EventIsHandledAndEducationServiceCalled()
+    {
+        var ruleId = CreateSonarCompositeRuleId("cpp:S123");
+        MockErrorListHelper(true, ruleId);
+
+        testSubject.PreprocessNavigateToHelp(handle, eventArgs);
+
+        errorListHelper.Received(1).TryGetRuleId(handle, out _);
+        education.ReceivedCalls().Should().HaveCount(1);
+        education.Received(1).ShowRuleHelp(ruleId, null, /* todo by SLVS-1630 */ null);
+        eventArgs.Handled.Should().BeTrue();
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void PreprocessNavigateToHelp_IsASonarRule_EducationServiceIsCalledWithIssueId(bool getFilterableIssueResult)
+    {
+        var ruleId = CreateSonarCompositeRuleId("cpp:S123");
+        MockErrorListHelper(true, ruleId);
+        MockGetFilterableIssue(getFilterableIssueResult);
+
+        testSubject.PreprocessNavigateToHelp(handle, new TableEntryEventArgs());
+
+        education.ReceivedCalls().Should().HaveCount(1);
+        education.Received(1).ShowRuleHelp(ruleId, filterableIssue.IssueId, null);
+    }
+
+    private void MockGetFilterableIssue(bool getFilterableIssueResult) =>
+        errorListHelper.TryGetFilterableIssue(Arg.Any<ITableEntryHandle>(), out _).Returns(callInfo =>
         {
-            SonarCompositeRuleId ruleId = null;
-            var handle = Mock.Of<ITableEntryHandle>();
-            var errorListHelper = CreateErrorListHelper(isSonarRule: false, ruleId);
+            callInfo[1] = filterableIssue;
+            return getFilterableIssueResult;
+        });
 
-            var education = new Mock<IEducation>();
-            var eventArgs = new TableEntryEventArgs();
-
-            var testSubject = CreateTestSubject(education.Object, errorListHelper.Object);
-
-            testSubject.PreprocessNavigateToHelp(handle, eventArgs);
-
-            errorListHelper.Verify(x => x.TryGetRuleId(handle, out ruleId));
-            education.Invocations.Should().HaveCount(0);
-            eventArgs.Handled.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void PreprocessNavigateToHelp_IsASonarRule_EventIsHandledAndEducationServiceCalled()
+    private void MockErrorListHelper(bool isSonarRule, SonarCompositeRuleId ruleId) =>
+        errorListHelper.TryGetRuleId(Arg.Any<ITableEntryHandle>(), out _).Returns(callInfo =>
         {
-            SonarCompositeRuleId ruleId;
-            SonarCompositeRuleId.TryParse("cpp:S123", out ruleId);
-            var handle = Mock.Of<ITableEntryHandle>();
-            var errorListHelper = CreateErrorListHelper(isSonarRule: true, ruleId);
+            callInfo[1] = ruleId;
+            return isSonarRule;
+        });
 
-            var education = new Mock<IEducation>();
-            var eventArgs = new TableEntryEventArgs();
-
-            var testSubject = CreateTestSubject(education.Object, errorListHelper.Object);
-
-            testSubject.PreprocessNavigateToHelp(handle, eventArgs);
-
-            errorListHelper.Verify(x => x.TryGetRuleId(handle, out ruleId));
-            education.Invocations.Should().HaveCount(1);
-            education.Verify(x => x.ShowRuleHelp(ruleId, null, /* todo by SLVS-1630 */ null));
-            eventArgs.Handled.Should().BeTrue();
-        }
-
-        [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void PreprocessNavigateToHelp_IsASonarRule_EducationServiceIsCalledWithIssueId(bool getFilterableIssueResult)
-        {
-            SonarCompositeRuleId ruleId;
-            IFilterableIssue filterableIssue = new Mock<IFilterableIssue>().Object;
-            SonarCompositeRuleId.TryParse("cpp:S123", out ruleId);
-            var handle = Mock.Of<ITableEntryHandle>();
-            var errorListHelper = CreateErrorListHelper(isSonarRule: true, ruleId);
-            errorListHelper.Setup(x => x.TryGetFilterableIssue(It.IsAny<ITableEntryHandle>(), out filterableIssue)).Returns(getFilterableIssueResult);
-            var education = new Mock<IEducation>();
-            var testSubject = CreateTestSubject(education.Object, errorListHelper.Object);
-
-            testSubject.PreprocessNavigateToHelp(handle, new TableEntryEventArgs());
-
-            education.Invocations.Should().HaveCount(1);
-            education.Verify(x => x.ShowRuleHelp(ruleId, filterableIssue.IssueId, null));
-        }
-
-        private static Mock<IErrorListHelper> CreateErrorListHelper(bool isSonarRule, SonarCompositeRuleId ruleId)
-        {
-            var mock = new Mock<IErrorListHelper>();
-            mock.Setup(x => x.TryGetRuleId(It.IsAny<ITableEntryHandle>(), out ruleId)).Returns(isSonarRule);
-            return mock;
-        }
-
-        private static SonarErrorListEventProcessor CreateTestSubject(IEducation educationService = null,
-            IErrorListHelper errorListHelper = null,
-            ILogger logger = null)
-        {
-            educationService ??= Mock.Of<IEducation>();
-            errorListHelper ??= Mock.Of<IErrorListHelper>();
-            logger ??= new TestLogger(logToConsole: true);
-
-            var testSubject = new SonarErrorListEventProcessor(educationService, errorListHelper, logger);
-            return testSubject;
-        }
+    private static SonarCompositeRuleId CreateSonarCompositeRuleId(string errorListErrorCode)
+    {
+        SonarCompositeRuleId.TryParse(errorListErrorCode, out var ruleId);
+        return ruleId;
     }
 }

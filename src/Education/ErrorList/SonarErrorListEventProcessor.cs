@@ -23,50 +23,35 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
-namespace SonarLint.VisualStudio.Education
+namespace SonarLint.VisualStudio.Education.ErrorList;
+
+/// <summary>
+///     Processor class that lets us handle WPF events from the Error List
+/// </summary>
+internal class SonarErrorListEventProcessor(IEducation educationService, IErrorListHelper errorListHelper, ILogger logger) : TableControlEventProcessorBase
 {
-    namespace SonarLint.VisualStudio.Education.ErrorList
+    public override void PreprocessNavigateToHelp(
+        ITableEntryHandle entry,
+        TableEntryEventArgs e)
     {
-        /// <summary>
-        /// Proccessor class that lets us handle WPF events from the Error List
-        /// </summary>
-        internal class SonarErrorListEventProcessor : TableControlEventProcessorBase
+        // If the user is navigating to help for one of the Sonar rules,
+        // show our rule description tool window
+
+        Requires.NotNull(entry, nameof(entry));
+
+        var handled = false;
+
+        if (errorListHelper.TryGetRuleId(entry, out var ruleId))
         {
-            private readonly IEducation educationService;
-            private readonly IErrorListHelper errorListHelper;
-            private readonly ILogger logger;
+            errorListHelper.TryGetFilterableIssue(entry, out var filterableIssue);
+            logger.LogVerbose(Resources.ErrorList_Processor_SonarRuleDetected, ruleId);
 
-            public SonarErrorListEventProcessor(IEducation educationService, IErrorListHelper errorListHelper, ILogger logger)
-            {
-                this.educationService = educationService;
-                this.errorListHelper = errorListHelper;
-                this.logger = logger;
-            }
+            educationService.ShowRuleHelp(ruleId, filterableIssue?.IssueId, /* todo by SLVS-1630 */null);
 
-            public override void PreprocessNavigateToHelp(
-               ITableEntryHandle entry,
-               TableEntryEventArgs e)
-            {
-                // If the user is navigating to help for one of the Sonar rules,
-                // show our rule description tool window
-
-                Requires.NotNull(entry, nameof(entry));
-
-                bool handled = false;
-
-                if (errorListHelper.TryGetRuleId(entry, out var ruleId))
-                {
-                    errorListHelper.TryGetFilterableIssue(entry, out var filterableIssue);
-                    logger.LogVerbose(Resources.ErrorList_Processor_SonarRuleDetected, ruleId);
-
-                    educationService.ShowRuleHelp(ruleId, filterableIssue?.IssueId, /* todo by SLVS-1630 */null);
-
-                    // Mark the event as handled to stop the normal VS "show help in browser" behaviour
-                    handled = true;
-                }
-
-                e.Handled = handled;
-            }
+            // Mark the event as handled to stop the normal VS "show help in browser" behaviour
+            handled = true;
         }
+
+        e.Handled = handled;
     }
 }

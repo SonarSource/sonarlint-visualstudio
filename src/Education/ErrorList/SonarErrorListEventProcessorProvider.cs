@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Education.ErrorList;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Education
