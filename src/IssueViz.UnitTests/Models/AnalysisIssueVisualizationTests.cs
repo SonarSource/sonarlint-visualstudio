@@ -18,248 +18,192 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
-using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models;
+
+[TestClass]
+public class AnalysisIssueVisualizationTests
 {
-    [TestClass]
-    public class AnalysisIssueVisualizationTests
+    private readonly SnapshotSpan emptySpan = new();
+    private readonly string filePath = "filePath.txt";
+
+    private IAnalysisIssue issue = Substitute.For<IAnalysisIssue>();
+    private AnalysisIssueVisualization issueVisualizationWithEmptySpan;
+    private AnalysisIssueVisualization issueVisualizationWithNoSpan;
+    private AnalysisIssueVisualization issueVisualizationWithNotEmptySpan;
+    private SnapshotSpan notEmptySpan;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        [TestMethod]
-        public void Ctor_StepNumberIsZero()
-        {
-            var testSubject = CreateTestSubject();
+        notEmptySpan = CreateSpan();
+        issue = Substitute.For<IAnalysisIssue>();
+        MockAnalysisIssue();
 
-            testSubject.StepNumber.Should().Be(0);
-        }
+        issueVisualizationWithNoSpan = new AnalysisIssueVisualization(null, issue, null, null);
+        issueVisualizationWithEmptySpan = new AnalysisIssueVisualization(null, issue, emptySpan, null);
+        issueVisualizationWithNotEmptySpan = new AnalysisIssueVisualization(null, issue, notEmptySpan, null);
+    }
 
-        [TestMethod]
-        public void Ctor_InitialFilePathIsTakenFromIssue()
-        {
-            var testSubject = CreateTestSubject(filePath: "test path");
+    [TestMethod]
+    public void Ctor_StepNumberIsZero() => issueVisualizationWithNoSpan.StepNumber.Should().Be(0);
 
-            testSubject.CurrentFilePath.Should().Be("test path");
-        }
+    [TestMethod]
+    public void Ctor_InitialFilePathIsTakenFromIssue() => issueVisualizationWithNoSpan.CurrentFilePath.Should().Be(filePath);
 
-        [TestMethod]
-        public void Ctor_NullSpan_InitialSpanIsSetToGivenValue()
-        {
-            var testSubject = CreateTestSubject(span: null);
+    [TestMethod]
+    public void Ctor_NullSpan_InitialSpanIsSetToGivenValue() => issueVisualizationWithNoSpan.Span.Should().BeNull();
 
-            testSubject.Span.Should().BeNull();
-        }
+    [TestMethod]
+    public void Ctor_EmptySpan_InitialSpanIsSetToGivenValue() => issueVisualizationWithEmptySpan.Span.Should().Be(emptySpan);
 
-        [TestMethod]
-        public void Ctor_EmptySpan_InitialSpanIsSetToGivenValue()
-        {
-            var span = new SnapshotSpan();
-            var testSubject = CreateTestSubject(span: span);
+    [TestMethod]
+    public void Ctor_NonEmptySpan_InitialSpanIsSetToGivenValue() => issueVisualizationWithNotEmptySpan.Span.Should().Be(notEmptySpan);
 
-            testSubject.Span.Should().Be(span);
-        }
+    [TestMethod]
+    public void Location_ReturnsUnderlyingIssueLocation() => issueVisualizationWithEmptySpan.Location.Should().Be(issueVisualizationWithEmptySpan.Issue.PrimaryLocation);
 
-        [TestMethod]
-        public void Ctor_NonEmptySpan_InitialSpanIsSetToGivenValue()
-        {
-            var span = CreateSpan();
-            var testSubject = CreateTestSubject(span: span);
+    [TestMethod]
+    public void SetCurrentFilePath_FilePathIsNull_SpanIsInvalidated()
+    {
+        VerifySpanAndLocationCorrect(filePath);
+        var propertyChangedEventHandler = MockSubscriberToPropertyChanged();
 
-            testSubject.Span.Should().Be(span);
-        }
+        issueVisualizationWithNotEmptySpan.CurrentFilePath = null;
 
-        [TestMethod]
-        public void Location_ReturnsUnderlyingIssueLocation()
-        {
-            var testSubject = CreateTestSubject();
-            testSubject.Location.Should().Be(testSubject.Issue.PrimaryLocation);
-        }
+        issueVisualizationWithNotEmptySpan.Span.Value.IsEmpty.Should().BeTrue();
+        issueVisualizationWithNotEmptySpan.CurrentFilePath.Should().BeNull();
+        VerifyPropertyChangedRaised(propertyChangedEventHandler, issueVisualizationWithNotEmptySpan, nameof(issueVisualizationWithNotEmptySpan.CurrentFilePath));
+        VerifyPropertyChangedRaised(propertyChangedEventHandler, issueVisualizationWithNotEmptySpan, nameof(issueVisualizationWithNotEmptySpan.Span));
+        propertyChangedEventHandler.ReceivedCalls().Count().Should().Be(2);
+    }
 
-        [TestMethod]
-        public void SetCurrentFilePath_FilePathIsNull_SpanIsInvalidated()
-        {
-            // Arrange
-            var oldFilePath = "oldpath.txt";
-            var oldSpan = CreateSpan();
+    [TestMethod]
+    public void SetCurrentFilePath_FilePathIsNotNull_SpanNotChanged()
+    {
+        VerifySpanAndLocationCorrect(filePath);
+        var propertyChangedEventHandler = MockSubscriberToPropertyChanged();
 
-            var testSubject = CreateTestSubject(oldFilePath, oldSpan);
-            testSubject.Span.Should().Be(oldSpan);
-            testSubject.CurrentFilePath.Should().Be(oldFilePath);
+        issueVisualizationWithNotEmptySpan.CurrentFilePath = "newpath.txt";
 
-            var propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
-            testSubject.PropertyChanged += propertyChangedEventHandler.Object;
+        issueVisualizationWithNotEmptySpan.Span.Should().Be(notEmptySpan);
+        issueVisualizationWithNotEmptySpan.CurrentFilePath.Should().Be("newpath.txt");
+        VerifyPropertyChangedRaised(propertyChangedEventHandler, issueVisualizationWithNotEmptySpan, nameof(issueVisualizationWithNotEmptySpan.CurrentFilePath));
+        VerifyPropertyChangedNotRaised(propertyChangedEventHandler, nameof(issueVisualizationWithNotEmptySpan.Span));
+        propertyChangedEventHandler.ReceivedCalls().Count().Should().Be(1);
+    }
 
-            // Act
-            testSubject.CurrentFilePath = null;
+    [TestMethod]
+    public void SetCurrentFilePath_NoSubscribers_NoException()
+    {
+        Action act = () => issueVisualizationWithNotEmptySpan.CurrentFilePath = "new path";
+        act.Should().NotThrow();
 
-            // Assert
-            testSubject.Span.Value.IsEmpty.Should().BeTrue();
-            testSubject.CurrentFilePath.Should().BeNull();
+        issueVisualizationWithNotEmptySpan.CurrentFilePath.Should().Be("new path");
+    }
 
-            VerifyPropertyChangedRaised(propertyChangedEventHandler, nameof(testSubject.CurrentFilePath));
-            VerifyPropertyChangedRaised(propertyChangedEventHandler, nameof(testSubject.Span));
-            propertyChangedEventHandler.VerifyNoOtherCalls();
-        }
+    [TestMethod]
+    public void SetCurrentFilePath_HasSubscribers_NotifiesSubscribers()
+    {
+        var propertyChangedEventHandler = MockSubscriberToPropertyChanged();
 
-        [TestMethod]
-        public void SetCurrentFilePath_FilePathIsNotNull_SpanNotChanged()
-        {
-            // Arrange
-            var oldFilePath = "oldpath.txt";
-            var oldSpan = CreateSpan();
+        issueVisualizationWithNotEmptySpan.CurrentFilePath = "new path";
 
-            var testSubject = CreateTestSubject(oldFilePath, oldSpan);
-            testSubject.Span.Should().Be(oldSpan);
-            testSubject.CurrentFilePath.Should().Be(oldFilePath);
+        VerifyPropertyChangedRaised(propertyChangedEventHandler, issueVisualizationWithNotEmptySpan, nameof(issueVisualizationWithNotEmptySpan.CurrentFilePath));
+        propertyChangedEventHandler.ReceivedCalls().Count().Should().Be(1);
+        issueVisualizationWithNotEmptySpan.CurrentFilePath.Should().Be("new path");
+    }
 
-            var propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
-            testSubject.PropertyChanged += propertyChangedEventHandler.Object;
+    [TestMethod]
+    public void SetSpan_NoSubscribers_NoException()
+    {
+        var newSpan = CreateSpan();
 
-            // Act
-            testSubject.CurrentFilePath = "newpath.txt";
+        Action act = () => issueVisualizationWithNotEmptySpan.Span = newSpan;
+        act.Should().NotThrow();
 
-            // Assert
-            testSubject.Span.Should().Be(oldSpan);
-            testSubject.CurrentFilePath.Should().Be("newpath.txt");
+        issueVisualizationWithNotEmptySpan.Span.Should().Be(newSpan);
+    }
 
-            VerifyPropertyChangedRaised(propertyChangedEventHandler, nameof(testSubject.CurrentFilePath));
-            VerifyPropertyChangedNotRaised(propertyChangedEventHandler, nameof(testSubject.Span));
-            propertyChangedEventHandler.VerifyNoOtherCalls();
-        }
+    [TestMethod]
+    public void SetSpan_HasSubscribers_NotifiesSubscribers()
+    {
+        var newSpan = CreateSpan();
+        var propertyChangedEventHandler = MockSubscriberToPropertyChanged();
 
-        [TestMethod]
-        public void SetCurrentFilePath_NoSubscribers_NoException()
-        {
-            var testSubject = CreateTestSubject();
+        issueVisualizationWithNotEmptySpan.Span = newSpan;
 
-            Action act = () => testSubject.CurrentFilePath = "new path";
-            act.Should().NotThrow();
+        VerifyPropertyChangedRaised(propertyChangedEventHandler, issueVisualizationWithNotEmptySpan, nameof(issueVisualizationWithNotEmptySpan.Span));
+        propertyChangedEventHandler.ReceivedCalls().Count().Should().Be(1);
+        issueVisualizationWithNotEmptySpan.Span.Should().Be(newSpan);
+    }
 
-            testSubject.CurrentFilePath.Should().Be("new path");
-        }
+    [TestMethod]
+    public void SetIsSuppressed_HasSubscribers_VerifyRaised()
+    {
+        issueVisualizationWithNotEmptySpan.IsSuppressed.Should().BeFalse();
+        var propertyChangedEventHandler = MockSubscriberToPropertyChanged();
 
-        [TestMethod]
-        public void SetCurrentFilePath_HasSubscribers_NotifiesSubscribers()
-        {
-            var propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
+        issueVisualizationWithNotEmptySpan.IsSuppressed = true;
 
-            var testSubject = CreateTestSubject();
-            testSubject.PropertyChanged += propertyChangedEventHandler.Object;
+        VerifyPropertyChangedRaised(propertyChangedEventHandler, issueVisualizationWithNotEmptySpan, nameof(issueVisualizationWithNotEmptySpan.IsSuppressed));
+        propertyChangedEventHandler.ReceivedCalls().Count().Should().Be(1);
+        issueVisualizationWithNotEmptySpan.IsSuppressed.Should().BeTrue();
+    }
 
-            testSubject.CurrentFilePath = "new path";
+    [TestMethod]
+    public void IsFilterable()
+    {
+        issueVisualizationWithEmptySpan.Should().BeAssignableTo<IFilterableIssue>();
 
-            VerifyPropertyChangedRaised(propertyChangedEventHandler, nameof(testSubject.CurrentFilePath));
-            propertyChangedEventHandler.VerifyNoOtherCalls();
+        var filterable = (IFilterableIssue)issueVisualizationWithEmptySpan;
+        filterable.IssueId.Should().Be(issue.Id);
+        filterable.RuleId.Should().Be(issue.RuleKey);
+        filterable.FilePath.Should().Be(issue.PrimaryLocation.FilePath);
+        filterable.StartLine.Should().Be(issue.PrimaryLocation.TextRange.StartLine);
+        filterable.LineHash.Should().Be(issue.PrimaryLocation.TextRange.LineHash);
+    }
 
-            testSubject.CurrentFilePath.Should().Be("new path");
-        }
+    private void MockAnalysisIssue()
+    {
+        var id = Guid.NewGuid();
+        issue.Id.Returns(id);
+        issue.RuleKey.Returns("my key");
+        issue.PrimaryLocation.FilePath.Returns("x:\\aaa.foo");
+        issue.PrimaryLocation.TextRange.StartLine.Returns(999);
+        issue.PrimaryLocation.TextRange.LineHash.Returns("hash");
+        issue.PrimaryLocation.FilePath.Returns(filePath);
+    }
 
-        [TestMethod]
-        public void SetSpan_NoSubscribers_NoException()
-        {
-            var newSpan = CreateSpan();
-            var testSubject = CreateTestSubject();
+    private SnapshotSpan CreateSpan()
+    {
+        var mockTextSnapshot = Substitute.For<ITextSnapshot>();
+        mockTextSnapshot.Length.Returns(20);
 
-            Action act = () => testSubject.Span = newSpan;
-            act.Should().NotThrow();
+        return new SnapshotSpan(mockTextSnapshot, new Span(0, 10));
+    }
 
-            testSubject.Span.Should().Be(newSpan);
-        }
+    private void VerifyPropertyChangedRaised(PropertyChangedEventHandler propertyChangedEventHandler, AnalysisIssueVisualization testSubject, string propertyName) =>
+        propertyChangedEventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == propertyName));
 
-        [TestMethod]
-        public void SetSpan_HasSubscribers_NotifiesSubscribers()
-        {
-            var newSpan = CreateSpan();
-            var propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
+    private void VerifyPropertyChangedNotRaised(PropertyChangedEventHandler propertyChangedEventHandler, string propertyName) =>
+        propertyChangedEventHandler.DidNotReceive().Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == propertyName));
 
-            var testSubject = CreateTestSubject();
-            testSubject.PropertyChanged += propertyChangedEventHandler.Object;
+    private PropertyChangedEventHandler MockSubscriberToPropertyChanged()
+    {
+        var propertyChangedEventHandler = Substitute.For<PropertyChangedEventHandler>();
+        issueVisualizationWithNotEmptySpan.PropertyChanged += propertyChangedEventHandler;
+        return propertyChangedEventHandler;
+    }
 
-            testSubject.Span = newSpan;
-
-            VerifyPropertyChangedRaised(propertyChangedEventHandler, nameof(testSubject.Span));
-            propertyChangedEventHandler.VerifyNoOtherCalls();
-
-            testSubject.Span.Should().Be(newSpan);
-        }
-
-        [TestMethod]
-        public void SetIsSuppressed_HasSubscribers_VerifyRaised()
-        {
-            var testSubject = CreateTestSubject();
-
-            testSubject.IsSuppressed.Should().BeFalse();
-
-            var propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
-            testSubject.PropertyChanged += propertyChangedEventHandler.Object;
-
-            testSubject.IsSuppressed = true;
-
-            VerifyPropertyChangedRaised(propertyChangedEventHandler, nameof(testSubject.IsSuppressed));
-            propertyChangedEventHandler.VerifyNoOtherCalls();
-
-            testSubject.IsSuppressed.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void IsFilterable()
-        {
-            var id = Guid.NewGuid();
-            var issueMock = new Mock<IAnalysisIssue>();
-            issueMock.SetupGet(x => x.Id).Returns(id);
-            issueMock.SetupGet(x => x.RuleKey).Returns("my key");
-            issueMock.SetupGet(x => x.PrimaryLocation.FilePath).Returns("x:\\aaa.foo");
-            issueMock.SetupGet(x => x.PrimaryLocation.TextRange.StartLine).Returns(999);
-            issueMock.SetupGet(x => x.PrimaryLocation.TextRange.LineHash).Returns("hash");
-
-            var testSubject = new AnalysisIssueVisualization(null, issueMock.Object, new SnapshotSpan(), null);
-
-            testSubject.Should().BeAssignableTo<IFilterableIssue>();
-
-            var filterable = (IFilterableIssue)testSubject;
-
-            filterable.IssueId.Should().Be(id);
-            filterable.RuleId.Should().Be(issueMock.Object.RuleKey);
-            filterable.FilePath.Should().Be(issueMock.Object.PrimaryLocation.FilePath);
-            filterable.StartLine.Should().Be(issueMock.Object.PrimaryLocation.TextRange.StartLine);
-            filterable.LineHash.Should().Be(issueMock.Object.PrimaryLocation.TextRange.LineHash);
-        }
-
-        private SnapshotSpan CreateSpan()
-        {
-            var mockTextSnapshot = new Mock<ITextSnapshot>();
-            mockTextSnapshot.SetupGet(x => x.Length).Returns(20);
-
-            return new SnapshotSpan(mockTextSnapshot.Object, new Span(0, 10));
-        }
-
-        private AnalysisIssueVisualization CreateTestSubject(string filePath = null, SnapshotSpan? span = null)
-        {
-            var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.PrimaryLocation.FilePath).Returns(filePath);
-
-            return new AnalysisIssueVisualization(null, issue.Object, span, null);
-        }
-
-        private void VerifyPropertyChangedRaised(Mock<PropertyChangedEventHandler> propertyChangedEventHandler, string propertyName)
-        {
-            propertyChangedEventHandler.Verify(x =>
-                    x(It.IsAny<object>(), It.Is((PropertyChangedEventArgs e) => e.PropertyName == propertyName)),
-                Times.Once);
-        }
-
-        private void VerifyPropertyChangedNotRaised(Mock<PropertyChangedEventHandler> propertyChangedEventHandler, string propertyName)
-        {
-            propertyChangedEventHandler.Verify(x =>
-                    x(It.IsAny<object>(), It.Is((PropertyChangedEventArgs e) => e.PropertyName == propertyName)),
-                Times.Never);
-        }
+    private void VerifySpanAndLocationCorrect(string oldFilePath)
+    {
+        issueVisualizationWithNotEmptySpan.Span.Should().Be(notEmptySpan);
+        issueVisualizationWithNotEmptySpan.CurrentFilePath.Should().Be(oldFilePath);
     }
 }
