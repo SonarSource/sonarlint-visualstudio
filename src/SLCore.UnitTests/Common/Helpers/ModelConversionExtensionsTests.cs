@@ -21,7 +21,9 @@
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
+using CleanCodeAttribute = SonarLint.VisualStudio.Core.Analysis.CleanCodeAttribute;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers;
 
@@ -190,6 +192,41 @@ public class ModelConversionExtensionsTests
         act.Should().Throw<ArgumentOutOfRangeException>().WithMessage("""
                                                                       Unexpected enum value
                                                                       Parameter name: softwareQuality
+                                                                      Actual value was 1000.
+                                                                      """);
+    }
+
+    [TestMethod]
+    [DataRow(SLCore.Common.Models.CleanCodeAttribute.CONVENTIONAL, CleanCodeAttribute.Conventional)]
+    [DataRow(SLCore.Common.Models.CleanCodeAttribute.FORMATTED, CleanCodeAttribute.Formatted)]
+    [DataRow(SLCore.Common.Models.CleanCodeAttribute.IDENTIFIABLE, CleanCodeAttribute.Identifiable)]
+    [DataRow(SLCore.Common.Models.CleanCodeAttribute.CLEAR, CleanCodeAttribute.Clear)]
+    [DataRow(SLCore.Common.Models.CleanCodeAttribute.COMPLETE, CleanCodeAttribute.Complete)]
+    [DataRow(SLCore.Common.Models.CleanCodeAttribute.EFFICIENT, CleanCodeAttribute.Efficient)]
+    [DataRow(SLCore.Common.Models.CleanCodeAttribute.LOGICAL, CleanCodeAttribute.Logical)]
+    [DataRow(SLCore.Common.Models.CleanCodeAttribute.DISTINCT, CleanCodeAttribute.Distinct)]
+    [DataRow(SLCore.Common.Models.CleanCodeAttribute.FOCUSED, CleanCodeAttribute.Focused)]
+    [DataRow(SLCore.Common.Models.CleanCodeAttribute.MODULAR, CleanCodeAttribute.Modular)]
+    [DataRow(SLCore.Common.Models.CleanCodeAttribute.TESTED, CleanCodeAttribute.Tested)]
+    [DataRow(SLCore.Common.Models.CleanCodeAttribute.LAWFUL, CleanCodeAttribute.Lawful)]
+    [DataRow(SLCore.Common.Models.CleanCodeAttribute.RESPECTFUL, CleanCodeAttribute.Respectful)]
+    [DataRow(SLCore.Common.Models.CleanCodeAttribute.TRUSTWORTHY, CleanCodeAttribute.Trustworthy)]
+    [DataRow(null, null)]
+    public void ToCleanCodeAttribute_ConvertsCorrectly(SLCore.Common.Models.CleanCodeAttribute? slCoreCleanCodeAttribute, CleanCodeAttribute? expected)
+    {
+        var result = slCoreCleanCodeAttribute.ToCleanCodeAttribute();
+
+        result.Should().Be(expected);
+    }
+
+    [TestMethod]
+    public void ToCleanCodeAttribute_ValueOutOfRange_Throws()
+    {
+        var act = () => ((SLCore.Common.Models.CleanCodeAttribute?)1000).ToCleanCodeAttribute();
+
+        act.Should().Throw<ArgumentOutOfRangeException>().WithMessage("""
+                                                                      Unexpected enum value
+                                                                      Parameter name: cleanCodeAttribute
                                                                       Actual value was 1000.
                                                                       """);
     }

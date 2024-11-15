@@ -23,7 +23,6 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
-using CleanCodeAttribute = SonarLint.VisualStudio.Core.Analysis.CleanCodeAttribute;
 using IssueSeverity = SonarLint.VisualStudio.SLCore.Common.Models.IssueSeverity;
 using SoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
 
@@ -48,7 +47,7 @@ public class RuleInfoConverter : IRuleInfoConverter
             Convert(details.severityDetails.Left?.severity),
             Convert(details.severityDetails.Left?.type),
             details.description?.Right,
-            Convert(details.severityDetails.Right?.cleanCodeAttribute),
+            (details.severityDetails.Right?.cleanCodeAttribute).ToCleanCodeAttribute(),
             Convert(details.severityDetails.Right?.impacts));
 
     private static RuleIssueSeverity? Convert(IssueSeverity? issueSeverity) =>
@@ -72,27 +71,6 @@ public class RuleInfoConverter : IRuleInfoConverter
             RuleType.SECURITY_HOTSPOT => RuleIssueType.Hotspot,
             null => null,
             _ => throw new ArgumentOutOfRangeException(nameof(ruleType), ruleType, null)
-        };
-
-    private static CleanCodeAttribute? Convert(SLCore.Common.Models.CleanCodeAttribute? cleanCodeAttribute) =>
-        cleanCodeAttribute switch
-        {
-            SLCore.Common.Models.CleanCodeAttribute.CONVENTIONAL => CleanCodeAttribute.Conventional,
-            SLCore.Common.Models.CleanCodeAttribute.FORMATTED => CleanCodeAttribute.Formatted,
-            SLCore.Common.Models.CleanCodeAttribute.IDENTIFIABLE => CleanCodeAttribute.Identifiable,
-            SLCore.Common.Models.CleanCodeAttribute.CLEAR => CleanCodeAttribute.Clear,
-            SLCore.Common.Models.CleanCodeAttribute.COMPLETE => CleanCodeAttribute.Complete,
-            SLCore.Common.Models.CleanCodeAttribute.EFFICIENT => CleanCodeAttribute.Efficient,
-            SLCore.Common.Models.CleanCodeAttribute.LOGICAL => CleanCodeAttribute.Logical,
-            SLCore.Common.Models.CleanCodeAttribute.DISTINCT => CleanCodeAttribute.Distinct,
-            SLCore.Common.Models.CleanCodeAttribute.FOCUSED => CleanCodeAttribute.Focused,
-            SLCore.Common.Models.CleanCodeAttribute.MODULAR => CleanCodeAttribute.Modular,
-            SLCore.Common.Models.CleanCodeAttribute.TESTED => CleanCodeAttribute.Tested,
-            SLCore.Common.Models.CleanCodeAttribute.LAWFUL => CleanCodeAttribute.Lawful,
-            SLCore.Common.Models.CleanCodeAttribute.RESPECTFUL => CleanCodeAttribute.Respectful,
-            SLCore.Common.Models.CleanCodeAttribute.TRUSTWORTHY => CleanCodeAttribute.Trustworthy,
-            null => null,
-            _ => throw new ArgumentOutOfRangeException(nameof(cleanCodeAttribute), cleanCodeAttribute, null)
         };
 
     private static Dictionary<SoftwareQuality, SoftwareQualitySeverity> Convert(List<ImpactDto> cleanCodeAttribute) =>

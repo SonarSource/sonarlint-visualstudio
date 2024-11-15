@@ -21,6 +21,7 @@
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SoftwareQuality = SonarLint.VisualStudio.Core.Analysis.SoftwareQuality;
+using CleanCodeAttribute = SonarLint.VisualStudio.Core.Analysis.CleanCodeAttribute;
 
 namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
 
@@ -75,6 +76,27 @@ public static class ModelConversionExtensions
             Models.SoftwareQuality.RELIABILITY => SoftwareQuality.Reliability,
             Models.SoftwareQuality.SECURITY => SoftwareQuality.Security,
             _ => throw new ArgumentOutOfRangeException(nameof(softwareQuality), softwareQuality, SLCoreStrings.ModelExtensions_UnexpectedValue)
+        };
+
+    public static CleanCodeAttribute? ToCleanCodeAttribute(this SLCore.Common.Models.CleanCodeAttribute? cleanCodeAttribute) =>
+        cleanCodeAttribute switch
+        {
+            SLCore.Common.Models.CleanCodeAttribute.CONVENTIONAL => CleanCodeAttribute.Conventional,
+            SLCore.Common.Models.CleanCodeAttribute.FORMATTED => CleanCodeAttribute.Formatted,
+            SLCore.Common.Models.CleanCodeAttribute.IDENTIFIABLE => CleanCodeAttribute.Identifiable,
+            SLCore.Common.Models.CleanCodeAttribute.CLEAR => CleanCodeAttribute.Clear,
+            SLCore.Common.Models.CleanCodeAttribute.COMPLETE => CleanCodeAttribute.Complete,
+            SLCore.Common.Models.CleanCodeAttribute.EFFICIENT => CleanCodeAttribute.Efficient,
+            SLCore.Common.Models.CleanCodeAttribute.LOGICAL => CleanCodeAttribute.Logical,
+            SLCore.Common.Models.CleanCodeAttribute.DISTINCT => CleanCodeAttribute.Distinct,
+            SLCore.Common.Models.CleanCodeAttribute.FOCUSED => CleanCodeAttribute.Focused,
+            SLCore.Common.Models.CleanCodeAttribute.MODULAR => CleanCodeAttribute.Modular,
+            SLCore.Common.Models.CleanCodeAttribute.TESTED => CleanCodeAttribute.Tested,
+            SLCore.Common.Models.CleanCodeAttribute.LAWFUL => CleanCodeAttribute.Lawful,
+            SLCore.Common.Models.CleanCodeAttribute.RESPECTFUL => CleanCodeAttribute.Respectful,
+            SLCore.Common.Models.CleanCodeAttribute.TRUSTWORTHY => CleanCodeAttribute.Trustworthy,
+            null => null,
+            _ => throw new ArgumentOutOfRangeException(nameof(cleanCodeAttribute), cleanCodeAttribute, SLCoreStrings.ModelExtensions_UnexpectedValue)
         };
 
     public static Impact ToImpact(this ImpactDto impact) => new(impact.softwareQuality.ToSoftwareQuality(), impact.impactSeverity.ToSoftwareQualitySeverity());
