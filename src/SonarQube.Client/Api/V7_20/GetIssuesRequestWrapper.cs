@@ -18,105 +18,89 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarQube.Client.Logging;
 using SonarQube.Client.Models;
 
-namespace SonarQube.Client.Api.V7_20
+namespace SonarQube.Client.Api.V7_20;
+
+/// <summary>
+/// The SonarQube 10k API result limit problem (https://github.com/SonarSource/sonarlint-visualstudio/issues/776):
+/// SonarQube will return the first 10k results from any query.The suppressed issues in large
+/// projects could be more than 10k and SLVS will not hide those which are not returned by the
+/// server.
+///
+/// To reduce the effects of this limitation we will retrieve issues in batches by issue type.
+/// The same approach is used in the other flavours of SonarLint.
+///
+/// This class should be removed if/when SonarQube removes the 10k API result limitation.
+/// </summary>
+internal class GetIssuesRequestWrapper<T> : IGetIssuesRequest
+    where T : GetIssuesWithComponentRequest, new()
 {
-    /// <summary>
-    /// The SonarQube 10k API result limit problem (https://github.com/SonarSource/sonarlint-visualstudio/issues/776):
-    /// SonarQube will return the first 10k results from any query.The suppressed issues in large
-    /// projects could be more than 10k and SLVS will not hide those which are not returned by the
-    /// server.
-    ///
-    /// To reduce the effects of this limitation we will retrieve issues in batches by issue type.
-    /// The same approach is used in the other flavours of SonarLint.
-    ///
-    /// This class should be removed if/when SonarQube removes the 10k API result limitation.
-    /// </summary>
-    internal class GetIssuesRequestWrapper<T> : IGetIssuesRequest
-        where T : GetIssuesWithComponentRequest, new()
+    private readonly T innerRequest = new T();
+
+    public string ProjectKey { get; set; }
+
+    public string Statuses { get; set; }
+
+    public string Branch { get; set; }
+
+    public string[] IssueKeys { get; set; }
+
+    public string RuleId { get; set; }
+
+    public string ComponentKey { get; set; }
+    public ILogger Logger { get; set; }
+
+    public async Task<SonarQubeIssue[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
     {
-        private readonly T innerRequest = new T();
+        // Transfer all IGetIssuesRequest properties to the inner request. If more properties are
+        // added to IGetIssuesRequest, this block should set them.
+        innerRequest.ProjectKey = ProjectKey;
+        innerRequest.Statuses = Statuses;
+        innerRequest.Branch = Branch;
+        innerRequest.Logger = Logger;
+        innerRequest.IssueKeys = IssueKeys;
+        innerRequest.RuleId = RuleId;
+        innerRequest.ComponentKey = ComponentKey;
 
-        public string ProjectKey { get; set; }
-
-        public string Statuses { get; set; }
-
-        public string Branch { get; set; }
-
-        public string[] IssueKeys { get; set; }
-
-        public string RuleId { get; set; }
-
-        public string ComponentKey { get; set; }
-        public ILogger Logger { get; set; }
-        public bool IncludeTaint { get; set; } = true;
-
-        public async Task<SonarQubeIssue[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
+        if (innerRequest.IssueKeys != null)
         {
-            // Transfer all IGetIssuesRequest properties to the inner request. If more properties are
-            // added to IGetIssuesRequest, this block should set them.
-            innerRequest.ProjectKey = ProjectKey;
-            innerRequest.Statuses = Statuses;
-            innerRequest.Branch = Branch;
-            innerRequest.Logger = Logger;
-            innerRequest.IssueKeys = IssueKeys;
-            innerRequest.RuleId = RuleId;
-            innerRequest.ComponentKey = ComponentKey;
+            var response = await innerRequest.InvokeAsync(httpClient, token);
 
-            if (innerRequest.IssueKeys != null)
-            {
-                var response = await innerRequest.InvokeAsync(httpClient, token);
-
-                return response;
-            }
-
-            ResetInnerRequest();
-            innerRequest.Types = "CODE_SMELL";
-            var codeSmells = await innerRequest.InvokeAsync(httpClient, token);
-            WarnForApiLimit(codeSmells, innerRequest, "code smells");
-
-            ResetInnerRequest();
-            innerRequest.Types = "BUG";
-            var bugs = await innerRequest.InvokeAsync(httpClient, token);
-            WarnForApiLimit(bugs, innerRequest, "bugs");
-
-            var vulnerabilities = Array.Empty<SonarQubeIssue>();
-            if (IncludeTaint)
-            {
-                ResetInnerRequest();
-                innerRequest.Types = "VULNERABILITY";
-                vulnerabilities = await innerRequest.InvokeAsync(httpClient, token);
-                WarnForApiLimit(vulnerabilities, innerRequest, "vulnerabilities");
-            }
-            return codeSmells
-                .Concat(bugs)
-                .Concat(vulnerabilities)
-                .ToArray();
+            return response;
         }
 
-        private void WarnForApiLimit(SonarQubeIssue[] issues, GetIssuesRequest request, string friendlyIssueType)
-        {
-            if (issues.Length == request.ItemsLimit)
-            {
-                Logger.Warning($"Sonar web API response limit reached ({request.ItemsLimit} items). Some {friendlyIssueType} might not be suppressed.");
-            }
-        }
+        ResetInnerRequest();
+        innerRequest.Types = "CODE_SMELL";
+        var codeSmells = await innerRequest.InvokeAsync(httpClient, token);
+        WarnForApiLimit(codeSmells, innerRequest, "code smells");
 
-        /// <summary>
-        /// For paged requests the Page property is automatically changed on each invocation.
-        /// We are resetting it so that our invocations for different issue types could start
-        /// from the first page.
-        /// </summary>
-        private void ResetInnerRequest()
+        ResetInnerRequest();
+        innerRequest.Types = "BUG";
+        var bugs = await innerRequest.InvokeAsync(httpClient, token);
+        WarnForApiLimit(bugs, innerRequest, "bugs");
+        return codeSmells
+            .Concat(bugs)
+            .ToArray();
+    }
+
+    private void WarnForApiLimit(SonarQubeIssue[] issues, GetIssuesRequest request, string friendlyIssueType)
+    {
+        if (issues.Length == request.ItemsLimit)
         {
-            innerRequest.Page = 1;
+            Logger.Warning($"Sonar web API response limit reached ({request.ItemsLimit} items). Some {friendlyIssueType} might not be suppressed.");
         }
+    }
+
+    /// <summary>
+    /// For paged requests the Page property is automatically changed on each invocation.
+    /// We are resetting it so that our invocations for different issue types could start
+    /// from the first page.
+    /// </summary>
+    private void ResetInnerRequest()
+    {
+        innerRequest.Page = 1;
     }
 }
