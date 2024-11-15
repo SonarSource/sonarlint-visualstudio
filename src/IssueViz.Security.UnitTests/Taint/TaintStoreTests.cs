@@ -124,17 +124,13 @@ public class TaintStoreTests
     [TestMethod]
     public void Set_NoPreviousItems_HasNewItems_CollectionChangedAndEventRaised()
     {
-        var eventHandlerMock = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
-        testSubject.IssuesChanged += eventHandlerMock;
-
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
         var newItems = new[] { SetupIssueViz(), SetupIssueViz() };
+
         testSubject.Set(newItems, "some config scope");
 
         testSubject.GetAll().Should().BeEquivalentTo(newItems);
-        eventHandlerMock.ReceivedWithAnyArgs(1).Invoke(default, default);
-        var eventArgs = (IssuesChangedEventArgs)eventHandlerMock.ReceivedCalls().Single().GetArguments()[1]!;
-        eventArgs.RemovedIssues.Should().BeEmpty();
-        eventArgs.AddedIssues.Should().BeEquivalentTo(newItems);
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([], newItems));
     }
 
     [TestMethod]
@@ -142,17 +138,12 @@ public class TaintStoreTests
     {
         var oldItems = new[] { SetupIssueViz(), SetupIssueViz() };
         testSubject.Set(oldItems, "some config scope");
-
-        var eventHandlerMock = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
-        testSubject.IssuesChanged += eventHandlerMock;
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
         testSubject.Set([], "some config scope");
 
         testSubject.GetAll().Should().BeEmpty();
-        eventHandlerMock.ReceivedWithAnyArgs(1).Invoke(default, default);
-        var eventArgs = (IssuesChangedEventArgs)eventHandlerMock.ReceivedCalls().Single().GetArguments()[1]!;
-        eventArgs.RemovedIssues.Should().BeEquivalentTo(oldItems);
-        eventArgs.AddedIssues.Should().BeEmpty();
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs(oldItems, []));
     }
 
     [TestMethod]
@@ -160,18 +151,13 @@ public class TaintStoreTests
     {
         var oldItems = new[] { SetupIssueViz(), SetupIssueViz() };
         testSubject.Set(oldItems, "some config scope");
-
-        var eventHandlerMock = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
-        testSubject.IssuesChanged += eventHandlerMock;
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
         var newItems = new[] { SetupIssueViz(), SetupIssueViz() };
         testSubject.Set(newItems, "some config scope");
 
         testSubject.GetAll().Should().BeEquivalentTo(newItems);
-        eventHandlerMock.ReceivedWithAnyArgs(1).Invoke(default, default);
-        var eventArgs = (IssuesChangedEventArgs)eventHandlerMock.ReceivedCalls().Single().GetArguments()[1]!;
-        eventArgs.RemovedIssues.Should().BeEquivalentTo(oldItems);
-        eventArgs.AddedIssues.Should().BeEquivalentTo(newItems);
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs(oldItems, newItems));
     }
 
     [TestMethod]
@@ -185,18 +171,13 @@ public class TaintStoreTests
 
         var oldItems = new[] { issueViz1, issueViz2 };
         testSubject.Set(oldItems, "some config scope");
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
-        var eventHandlerMock = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
-        testSubject.IssuesChanged += eventHandlerMock;
-
-        var newItems = new[] { issueViz2NewObject, issueViz3};
+        var newItems = new[] { issueViz2NewObject, issueViz3 };
         testSubject.Set(newItems, "some config scope");
 
         testSubject.GetAll().Should().BeEquivalentTo(newItems);
-        eventHandlerMock.ReceivedWithAnyArgs(1).Invoke(default, default);
-        var eventArgs = (IssuesChangedEventArgs)eventHandlerMock.ReceivedCalls().Single().GetArguments()[1]!;
-        eventArgs.RemovedIssues.Should().BeEquivalentTo([issueViz1, issueViz2]);
-        eventArgs.AddedIssues.Should().BeEquivalentTo([issueViz2NewObject, issueViz3]);
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([issueViz1, issueViz2], [issueViz2NewObject, issueViz3]));
     }
 
     [TestMethod]
@@ -247,6 +228,237 @@ public class TaintStoreTests
         testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [SetupIssueViz()], [], []));
 
         eventHandlerMock.DidNotReceiveWithAnyArgs().Invoke(default, default);
+    }
+
+    [TestMethod]
+    public void Update_ClosedIssues_Removed()
+    {
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        testSubject.Set(analysisIssueVisualizations, "some config scope");
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
+
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [], [analysisIssueVisualizations[0].IssueId!.Value, analysisIssueVisualizations[2].IssueId!.Value]));
+
+        testSubject.GetAll().Should().BeEquivalentTo(analysisIssueVisualizations[1]);
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([analysisIssueVisualizations[0], analysisIssueVisualizations[2]], []));
+    }
+
+    [TestMethod]
+    public void Update_ClosedIssues_PartiallyPresent_Removed()
+    {
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        testSubject.Set(analysisIssueVisualizations, "some config scope");
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
+
+        using (new AssertIgnoreScope())
+        {
+            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [], [analysisIssueVisualizations[0].IssueId!.Value, Guid.NewGuid()]));
+        }
+
+        testSubject.GetAll().Should().BeEquivalentTo(analysisIssueVisualizations.Skip(1));
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([analysisIssueVisualizations[0]], []));
+    }
+
+    [TestMethod]
+    public void Update_ClosedIssues_NotPresent_Ignored()
+    {
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        testSubject.Set(analysisIssueVisualizations, "some config scope");
+        var eventHandlerMock = CreateEventHandlerMock();
+
+        using (new AssertIgnoreScope())
+        {
+            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [], [Guid.NewGuid()]));
+        }
+
+        testSubject.GetAll().Should().BeEquivalentTo(analysisIssueVisualizations);
+        eventHandlerMock.DidNotReceiveWithAnyArgs().Invoke(default, default);
+    }
+
+    [TestMethod]
+    public void Update_UpdatedIssues_Replaced()
+    {
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        var updated1 = SetupIssueViz(analysisIssueVisualizations[0].IssueId);
+        var updated2 = SetupIssueViz(analysisIssueVisualizations[2].IssueId);
+        testSubject.Set(analysisIssueVisualizations, "some config scope");
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
+
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated1, updated2], []));
+
+        testSubject.GetAll().Should().BeEquivalentTo(updated1, updated2, analysisIssueVisualizations[1]);
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([analysisIssueVisualizations[0], analysisIssueVisualizations[2]], [updated1, updated2]));
+    }
+
+    [TestMethod]
+    public void Update_UpdatedIssues_PartiallyPresent_Replaced()
+    {
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        var updated1 = SetupIssueViz(analysisIssueVisualizations[0].IssueId);
+        var updated2 = SetupIssueViz();
+        testSubject.Set(analysisIssueVisualizations, "some config scope");
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
+
+        using (new AssertIgnoreScope())
+        {
+            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated1, updated2], []));
+        }
+
+        testSubject.GetAll().Should().BeEquivalentTo(updated1, analysisIssueVisualizations[1], analysisIssueVisualizations[2]);
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([analysisIssueVisualizations[0]], [updated1]));
+    }
+
+    [TestMethod]
+    public void Update_UpdatedIssues_NotPresent_Ignored()
+    {
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        var updated1 = SetupIssueViz();
+        var updated2 = SetupIssueViz();
+        testSubject.Set(analysisIssueVisualizations, "some config scope");
+        var eventHandlerMock = CreateEventHandlerMock();
+
+        using (new AssertIgnoreScope())
+        {
+            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated1, updated2], []));
+        }
+
+        testSubject.GetAll().Should().BeEquivalentTo(analysisIssueVisualizations);
+        eventHandlerMock.DidNotReceiveWithAnyArgs().Invoke(default, default);
+    }
+
+    [TestMethod]
+    public void Update_AddedIssues_Adds()
+    {
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        var added1 = SetupIssueViz();
+        var added2 = SetupIssueViz();
+        testSubject.Set(analysisIssueVisualizations, "some config scope");
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
+
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [added1, added2], [], []));
+
+        testSubject.GetAll().Should().BeEquivalentTo(analysisIssueVisualizations.Concat([added1, added2]));
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([], [added1, added2]));
+    }
+
+    [TestMethod]
+    public void Update_AddedIssues_PartiallyPresent_AddsMissing()
+    {
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        var added1 = SetupIssueViz(analysisIssueVisualizations[0].IssueId);
+        var added2 = SetupIssueViz();
+        testSubject.Set(analysisIssueVisualizations, "some config scope");
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
+
+        using (new AssertIgnoreScope())
+        {
+            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [added1, added2], [], []));
+        }
+
+        testSubject.GetAll().Should().BeEquivalentTo(analysisIssueVisualizations.Concat([added2]));
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([], [added2]));
+    }
+
+    [TestMethod]
+    public void Update_AddedIssues_AllPresent_Ignored()
+    {
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
+        var added1 = SetupIssueViz(analysisIssueVisualizations[0].IssueId);
+        var added2 = SetupIssueViz(analysisIssueVisualizations[2].IssueId);
+        testSubject.Set(analysisIssueVisualizations, "some config scope");
+        var eventHandlerMock = CreateEventHandlerMock();
+
+        using (new AssertIgnoreScope())
+        {
+            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [added1, added2], [], []));
+        }
+
+        testSubject.GetAll().Should().BeEquivalentTo(analysisIssueVisualizations);
+        eventHandlerMock.DidNotReceiveWithAnyArgs().Invoke(default, default);
+    }
+
+    [TestMethod]
+    public void Update_Complex_RemovesUpdatesAndAdds()
+    {
+        var added = SetupIssueViz();
+        var toUpdate = SetupIssueViz();
+        var updated = SetupIssueViz(toUpdate.IssueId);
+        var toRemove = SetupIssueViz();
+        var notTouched = SetupIssueViz();
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [toUpdate, toRemove, notTouched];
+        testSubject.Set(analysisIssueVisualizations, "some config scope");
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
+
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [added], [updated], [toRemove.IssueId!.Value]));
+
+        testSubject.GetAll().Should().BeEquivalentTo(added, updated, notTouched);
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([toUpdate, toRemove], [added, updated]));
+    }
+
+    [TestMethod]
+    public void Update_CloseAndUpdateSameIssue_RemovesAndIgnoresUpdate()
+    {
+        var original = SetupIssueViz();
+        var updated = SetupIssueViz(original.IssueId);
+        var remove = original.IssueId!.Value;
+        testSubject.Set([original], "some config scope");
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
+
+        using (new AssertIgnoreScope())
+        {
+            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated], [remove]));
+        }
+
+        testSubject.GetAll().Should().BeEmpty();
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([original], []));
+    }
+
+    [TestMethod]
+    public void Update_UpdateAndAddSameIssue_UpdatesAndIgnoresAdd()
+    {
+        var original = SetupIssueViz();
+        var updated = SetupIssueViz(original.IssueId);
+        var add = SetupIssueViz(original.IssueId);
+        testSubject.Set([original], "some config scope");
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
+
+        using (new AssertIgnoreScope())
+        {
+            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [add], [updated], []));
+        }
+
+        testSubject.GetAll().Should().BeEquivalentTo(updated);
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([original], [updated]));
+    }
+
+    [TestMethod]
+    public void Update_RemoveAndAddSameIssue_Updates()
+    {
+        var original = SetupIssueViz();
+        var remove = original.IssueId!.Value;
+        var add = SetupIssueViz(original.IssueId);
+        testSubject.Set([original], "some config scope");
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
+
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [add], [], [remove]));
+
+        testSubject.GetAll().Should().BeEquivalentTo(add);
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([original], [add]));
+    }
+
+    private Func<IssuesChangedEventArgs> CaptureIssuesChangedEventArgs()
+    {
+        IssuesChangedEventArgs receivedEvent = null;
+        var eventHandlerMock = CreateEventHandlerMock();
+        eventHandlerMock.Invoke(Arg.Any<object>(), Arg.Do<IssuesChangedEventArgs>(x => receivedEvent = x));
+        return () => receivedEvent;
+    }
+
+    private EventHandler<IssuesChangedEventArgs> CreateEventHandlerMock()
+    {
+        var eventHandlerMock = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
+        testSubject.IssuesChanged += eventHandlerMock;
+        return eventHandlerMock;
     }
 
     private IAnalysisIssueVisualization SetupIssueViz(Guid? id = null)

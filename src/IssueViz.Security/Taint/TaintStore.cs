@@ -143,7 +143,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 HandleAdded(taintVulnerabilitiesUpdate.Added, diffRemoved);
             }
 
-            NotifyIssuesChanged(diffAdded, diffRemoved);
+            NotifyIfIssuesChanged(diffAdded, diffRemoved);
+        }
+
+        private void NotifyIfIssuesChanged(List<IAnalysisIssueVisualization> diffAdded, List<IAnalysisIssueVisualization> diffRemoved)
+        {
+            if (diffAdded.Count != 0 || diffRemoved.Count != 0)
+            {
+                NotifyIssuesChanged(diffAdded, diffRemoved);
+            }
         }
 
         private static void ValidateUpdate(TaintVulnerabilitiesUpdate taintVulnerabilitiesUpdate)
