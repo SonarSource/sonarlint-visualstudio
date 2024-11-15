@@ -36,14 +36,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         string ConfigurationScope { get; }
 
-        void Update(TaintVulnerabilityUpdate taintVulnerabilityUpdate);
+        void Update(TaintVulnerabilitiesUpdate taintVulnerabilitiesUpdate);
     }
 
-    public record TaintVulnerabilityUpdate(
-        string ConfigurationScope,
-        IEnumerable<IAnalysisIssueVisualization> Added,
-        IEnumerable<IAnalysisIssueVisualization> Updated,
-        IEnumerable<Guid> Closed);
+    public class TaintVulnerabilitiesUpdate(
+        string configurationScope,
+        IEnumerable<IAnalysisIssueVisualization> added,
+        IEnumerable<IAnalysisIssueVisualization> updated,
+        IEnumerable<Guid> closed)
+    {
+        public string ConfigurationScope { get; } = !string.IsNullOrEmpty(configurationScope) ? configurationScope : throw new ArgumentNullException(nameof(configurationScope));
+        public IEnumerable<IAnalysisIssueVisualization> Added { get; } = added ?? throw new ArgumentNullException(nameof(added));
+        public IEnumerable<IAnalysisIssueVisualization> Updated { get; } = updated ?? throw new ArgumentNullException(nameof(updated));
+        public IEnumerable<Guid> Closed { get; } = closed ?? throw new ArgumentNullException(nameof(closed));
+    }
 
     [Export(typeof(ITaintStore))]
     [Export(typeof(IIssuesStore))]
@@ -119,57 +125,36 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
         }
 
-        public void Update(TaintVulnerabilityUpdate taintVulnerabilityUpdate)
+        public void Update(TaintVulnerabilitiesUpdate taintVulnerabilitiesUpdate)
         {
-            ValidateUpdate(taintVulnerabilityUpdate);
+            ValidateUpdate(taintVulnerabilitiesUpdate);
 
             List<IAnalysisIssueVisualization> diffAdded = [];
             List<IAnalysisIssueVisualization> diffRemoved = [];
             lock (locker)
             {
-                if (taintVulnerabilityUpdate.ConfigurationScope != configurationScope)
+                if (taintVulnerabilitiesUpdate.ConfigurationScope != configurationScope)
                 {
                     return;
                 }
 
-                HandleClosed(taintVulnerabilityUpdate.Closed, diffAdded);
-                HandleUpdated(taintVulnerabilityUpdate.Updated, diffAdded, diffRemoved);
-                HandleAdded(taintVulnerabilityUpdate.Added, diffRemoved);
+                HandleClosed(taintVulnerabilitiesUpdate.Closed, diffAdded);
+                HandleUpdated(taintVulnerabilitiesUpdate.Updated, diffAdded, diffRemoved);
+                HandleAdded(taintVulnerabilitiesUpdate.Added, diffRemoved);
             }
 
             NotifyIssuesChanged(diffAdded, diffRemoved);
         }
 
-        private static void ValidateUpdate(TaintVulnerabilityUpdate taintVulnerabilityUpdate)
+        private static void ValidateUpdate(TaintVulnerabilitiesUpdate taintVulnerabilitiesUpdate)
         {
-            if (taintVulnerabilityUpdate == null)
+            if (taintVulnerabilitiesUpdate == null)
             {
-                throw new ArgumentNullException(nameof(taintVulnerabilityUpdate));
+                throw new ArgumentNullException(nameof(taintVulnerabilitiesUpdate));
             }
 
-            if (taintVulnerabilityUpdate.Added == null)
-            {
-                throw new ArgumentNullException(nameof(taintVulnerabilityUpdate.Added));
-            }
-
-            Debug.Assert(taintVulnerabilityUpdate.Added.All(x => x.IssueId.HasValue));
-
-            if (taintVulnerabilityUpdate.Updated == null)
-            {
-                throw new ArgumentNullException(nameof(taintVulnerabilityUpdate.Updated));
-            }
-
-            Debug.Assert(taintVulnerabilityUpdate.Updated.All(x => x.IssueId.HasValue));
-
-            if (taintVulnerabilityUpdate.Closed == null)
-            {
-                throw new ArgumentNullException(nameof(taintVulnerabilityUpdate.Closed));
-            }
-
-            if (string.IsNullOrEmpty(taintVulnerabilityUpdate.ConfigurationScope))
-            {
-                throw new ArgumentNullException(nameof(taintVulnerabilityUpdate.ConfigurationScope));
-            }
+            Debug.Assert(taintVulnerabilitiesUpdate.Added.All(x => x.IssueId.HasValue));
+            Debug.Assert(taintVulnerabilitiesUpdate.Updated.All(x => x.IssueId.HasValue));
         }
 
         private void HandleAdded(IEnumerable<IAnalysisIssueVisualization> added, List<IAnalysisIssueVisualization> diffAdded)

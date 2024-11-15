@@ -66,7 +66,7 @@ public class TaintStoreTests
         testSubject.Set(oldItems, "config scope");
 
         var issuesList1 = testSubject.GetAll();
-        testSubject.Update(new TaintVulnerabilityUpdate("config scope", [SetupIssueViz()], [], []));
+        testSubject.Update(new TaintVulnerabilitiesUpdate("config scope", [SetupIssueViz()], [], []));
         var issuesList2 = testSubject.GetAll();
 
         issuesList1.Count.Should().Be(2);
@@ -227,6 +227,26 @@ public class TaintStoreTests
 
         var result = testSubject.ConfigurationScope;
         result.Should().BeSameAs(newConfigurationScope);
+    }
+
+    [TestMethod]
+    public void Update_NullParameter_Throws()
+    {
+        var act = () => testSubject.Update(null);
+
+        act.Should().ThrowExactly<ArgumentNullException>().Which.ParamName.Should().Be("taintVulnerabilitiesUpdate");
+    }
+
+    [TestMethod]
+    public void Update_NoConfigScope_Ignored()
+    {
+        testSubject.Reset();
+        var eventHandlerMock = Substitute.For<EventHandler<IssuesChangedEventArgs>>();
+        testSubject.IssuesChanged += eventHandlerMock;
+
+        testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [SetupIssueViz()], [], []));
+
+        eventHandlerMock.DidNotReceiveWithAnyArgs().Invoke(default, default);
     }
 
     private IAnalysisIssueVisualization SetupIssueViz(Guid? id = null)
