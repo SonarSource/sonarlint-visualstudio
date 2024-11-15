@@ -27,15 +27,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     public interface ITaintStore : IIssuesStore
     {
         /// <summary>
-        /// Removes all existing visualizations and initializes the store to the given collection.
+        /// Removes all existing visualizations and initializes the store to the given collection & configuration scope.
         /// Can be called multiple times.
         /// </summary>
         void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope);
 
+        /// <summary>
+        /// Removes all existing visualizations and resets the configurations scope.
+        /// Can be called multiple times.
+        /// </summary>
         void Reset();
 
+        /// <summary>
+        /// Returns current configuration scope id. Null if store is Reset
+        /// </summary>
         string ConfigurationScope { get; }
 
+        /// <summary>
+        /// Applies updates to current store. If store is Reset or configuration scope is different, update is ignored.
+        /// </summary>
         void Update(TaintVulnerabilitiesUpdate taintVulnerabilitiesUpdate);
     }
 
