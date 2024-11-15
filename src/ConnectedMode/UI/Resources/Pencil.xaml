@@ -1,0 +1,21 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0">
+
+    <DrawingImage x:Key="PencilDrawingImage">
+        <DrawingImage.Drawing>
+            <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                <DrawingGroup Opacity="1">
+                    <GeometryDrawing
+                        Geometry="F1 M16,16z M0,0z M13.26,2.736A1.5,1.5,0,0,1,13.26,4.855L13.26,4.855 6.116,12 4,9.884 11.143,2.736A1.5,1.5,0,0,1,13.26,2.736z">
+                        <GeometryDrawing.Brush>
+                            <SolidColorBrush Color="#FF212121" Opacity="0.1" />
+                        </GeometryDrawing.Brush>
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}"
+                                     Geometry="F1 M16,16z M0,0z M13.588,5.233A2,2,0,0,0,10.761,2.41L10.761,2.41 4.042,9.13 2,13.333 2.667,14 6.732,12.056 13.588,5.24z M6.224,11.19L6.142,11.229 4.771,9.858 4.81,9.776 11.465,3.118A1,1,0,1,1,12.9,4.507L12.875,4.532 12.875,4.532z" />
+                </DrawingGroup>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+</ResourceDictionary>
