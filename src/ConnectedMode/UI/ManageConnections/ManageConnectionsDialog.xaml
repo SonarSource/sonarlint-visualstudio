@@ -19,6 +19,7 @@
                     Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/LogoImages.xaml" />
                 <ResourceDictionary
                     Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/TrashCanImage.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Pencil.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
         </ResourceDictionary>
@@ -104,8 +105,8 @@
                                 </Grid.ColumnDefinitions>
 
                                <Button Grid.Column="0" Style="{StaticResource IconButtonStyle}" ToolTip="{x:Static res:UiResources.EditConnectionToolTip}" Click="EditConnection_Clicked">
-                                   <imaging:CrispImage Width="20" Height="20" VerticalAlignment="Center" Cursor="Hand" Moniker="{x:Static vsimagecatalog:KnownMonikers.Settings}"
-                                                       Margin="10,0" />
+                                   <Image Width="20" Height="20" VerticalAlignment="Center" Cursor="Hand" Source="{StaticResource PencilDrawingImage}"
+                                                       Margin="5,0" />
                                 </Button>
                                 <Button Grid.Column="1" Style="{StaticResource IconButtonStyle}"
                                         ToolTip="{x:Static res:UiResources.RemoveConnectionToolTip}"
