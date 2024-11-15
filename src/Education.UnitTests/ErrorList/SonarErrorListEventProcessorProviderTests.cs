@@ -18,37 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Education.SonarLint.VisualStudio.Education.ErrorList;
+using SonarLint.VisualStudio.Education.ErrorList;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Education.UnitTests.ErrorList
+namespace SonarLint.VisualStudio.Education.UnitTests.ErrorList;
+
+[TestClass]
+public class SonarErrorListEventProcessorProviderTests
 {
-    [TestClass]
-    public class SonarErrorListEventProcessorProviderTests
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<SonarErrorListEventProcessorProvider, ITableControlEventProcessorProvider>(
+            MefTestHelpers.CreateExport<IEducation>(),
+            MefTestHelpers.CreateExport<IErrorListHelper>(),
+            MefTestHelpers.CreateExport<ILogger>());
+
+    [TestMethod]
+    public void Get_CreatesAndReturnsProcessor()
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<SonarErrorListEventProcessorProvider, ITableControlEventProcessorProvider>(
-                MefTestHelpers.CreateExport<IEducation>(),
-                MefTestHelpers.CreateExport<IErrorListHelper>(),
-                MefTestHelpers.CreateExport<ILogger>());
-        }
+        var testSubject = new SonarErrorListEventProcessorProvider(Substitute.For<IEducation>(), Substitute.For<IErrorListHelper>(), Substitute.For<ILogger>());
 
-        [TestMethod]
-        public void Get_CreatesAndReturnsProcessor()
-        {
-            var testSubject = new SonarErrorListEventProcessorProvider(Mock.Of<IEducation>(), Mock.Of<IErrorListHelper>(), Mock.Of<ILogger>());
+        var actual = testSubject.GetAssociatedEventProcessor(Substitute.For<IWpfTableControl>());
 
-            var actual = testSubject.GetAssociatedEventProcessor(Mock.Of<IWpfTableControl>());
-
-            actual.Should().NotBeNull();
-        }
+        actual.Should().NotBeNull();
     }
 }

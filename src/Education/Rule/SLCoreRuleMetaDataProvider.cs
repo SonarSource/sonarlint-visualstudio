@@ -29,25 +29,14 @@ namespace SonarLint.VisualStudio.Education.Rule;
 
 [Export(typeof(IRuleMetaDataProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class SLCoreRuleMetaDataProvider : IRuleMetaDataProvider
+[method: ImportingConstructor]
+internal class SLCoreRuleMetaDataProvider(
+    ISLCoreServiceProvider slCoreServiceProvider,
+    IActiveConfigScopeTracker activeConfigScopeTracker,
+    IRuleInfoConverter ruleInfoConverter,
+    ILogger logger)
+    : IRuleMetaDataProvider
 {
-    private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
-    private readonly IRuleInfoConverter ruleInfoConverter;
-    private readonly ILogger logger;
-    private readonly ISLCoreServiceProvider slCoreServiceProvider;
-
-    [ImportingConstructor]
-    public SLCoreRuleMetaDataProvider(ISLCoreServiceProvider slCoreServiceProvider,
-        IActiveConfigScopeTracker activeConfigScopeTracker,
-        IRuleInfoConverter ruleInfoConverter,
-        ILogger logger)
-    {
-        this.slCoreServiceProvider = slCoreServiceProvider;
-        this.activeConfigScopeTracker = activeConfigScopeTracker;
-        this.ruleInfoConverter = ruleInfoConverter;
-        this.logger = logger;
-    }
-
     /// <inheritdoc />
     public async Task<IRuleInfo> GetRuleInfoAsync(SonarCompositeRuleId ruleId, Guid? issueId = null)
     {
