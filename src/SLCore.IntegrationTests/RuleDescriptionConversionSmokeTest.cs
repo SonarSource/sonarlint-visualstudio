@@ -73,7 +73,7 @@ public class RuleDescriptionConversionSmokeTest
         IRuleMetaDataProvider slCoreRuleMetaDataProvider)
     {
         ruleDefinitions.rulesByKey.Count.Should().BeGreaterThan(1500);
-        
+
         var ruleDescriptions = new List<IRuleInfo>();
         foreach (var ruleKey in ruleDefinitions.rulesByKey.Keys)
         {
@@ -109,7 +109,7 @@ public class RuleDescriptionConversionSmokeTest
             {
                 using (new AssertIgnoreScope())
                 {
-                    CheckRuleDescription(ruleHelpXamlBuilder.Create(ruleDescription, null));
+                    CheckRuleDescription(ruleHelpXamlBuilder.Create(ruleDescription));
                 }
             }
             catch (Exception)

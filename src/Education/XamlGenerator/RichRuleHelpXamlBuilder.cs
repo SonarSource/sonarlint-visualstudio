@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         /// The document will still render if a style is missing, but the styling won't be correct.</remarks>
         /// <param name="ruleInfo">Rule description information</param>
         /// <param name="issueContext">Key for the How to fix it Context acquired from a specific issue</param>
-        FlowDocument Create(IRuleInfo ruleInfo, string issueContext);
+        FlowDocument Create(IRuleInfo ruleInfo);
     }
 
     [Export(typeof(IRichRuleHelpXamlBuilder))]
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             this.xamlWriterFactory = xamlWriterFactory;
         }
 
-        public FlowDocument Create(IRuleInfo ruleInfo, string issueContext)
+        public FlowDocument Create(IRuleInfo ruleInfo)
         {
             var sb = new StringBuilder();
             var writer = xamlWriterFactory.Create(sb);
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             helper.WriteDocumentHeader(ruleInfo);
             richRuleDescriptionProvider
                 .GetRichRuleDescriptionModel(ruleInfo)
-                .ProduceVisualNode(new VisualizationParameters(xamlTranslatorFactory.Create(), issueContext))
+                .ProduceVisualNode(new VisualizationParameters(xamlTranslatorFactory.Create(), ruleInfo.SelectedContextKey))
                 .ProduceXaml(writer);
             helper.EndDocument();
 

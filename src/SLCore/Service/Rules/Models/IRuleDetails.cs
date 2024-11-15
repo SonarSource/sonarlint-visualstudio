@@ -32,4 +32,5 @@ public interface IRuleDetails
     VulnerabilityProbability? vulnerabilityProbability { get; }
     Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description { get; }
     List<EffectiveRuleParamDto> parameters { get; }
+    string ruleDescriptionContextKey { get; }
 }

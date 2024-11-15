@@ -34,7 +34,10 @@ public record EffectiveRuleDetailsDto(
     VulnerabilityProbability? vulnerabilityProbability,
     [property: JsonConverter(typeof(EitherJsonConverter<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>))]
     Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description,
-    [JsonProperty("params")] List<EffectiveRuleParamDto> parameters) : IRuleDetails;
+    [JsonProperty("params")] List<EffectiveRuleParamDto> parameters) : IRuleDetails
+{
+    public string ruleDescriptionContextKey => null;
+}
 
 public record StandardModeDetails(IssueSeverity severity, RuleType type);
 public record MQRModeDetails(CleanCodeAttribute cleanCodeAttribute, List<ImpactDto> impacts);

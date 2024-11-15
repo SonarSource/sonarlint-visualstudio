@@ -70,6 +70,8 @@ namespace SonarLint.VisualStudio.Education.Rule
         /// </summary>
         string Description { get; }
 
+        string SelectedContextKey { get; }
+
         RuleSplitDescriptionDto RichRuleDescriptionDto { get; }
 
         CleanCodeAttribute? CleanCodeAttribute { get; }
@@ -102,6 +104,7 @@ namespace SonarLint.VisualStudio.Education.Rule
         public RuleIssueType? IssueType { get; private set; }
 
         public string Description { get; private set; }
+        public string SelectedContextKey { get; init;  }
 
         public RuleSplitDescriptionDto RichRuleDescriptionDto { get; set; }
 

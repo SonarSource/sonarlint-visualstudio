@@ -34,6 +34,6 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         /// The document will still render if a style is missing, but the styling won't be correct.</remarks>
         /// <param name="ruleInfo">Rule description information</param>
         /// <param name="issueContext">Key for the How to fix it Context acquired from a specific issue</param>
-        FlowDocument Create(IRuleInfo ruleInfo, string issueContext);
+        FlowDocument Create(IRuleInfo ruleInfo);
     }
 }
