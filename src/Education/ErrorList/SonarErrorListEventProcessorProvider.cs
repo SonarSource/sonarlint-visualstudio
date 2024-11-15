@@ -22,46 +22,40 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Education.ErrorList;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
-namespace SonarLint.VisualStudio.Education
+namespace SonarLint.VisualStudio.Education.ErrorList;
+// Notifies VS that we want to handle events from the Error List
+
+[Export(typeof(ITableControlEventProcessorProvider))]
+[Name("SonarLint ErrorList Event Processor")]
+
+// Need to hook into the list of processors before the standard VS handler so we can
+// change the behaviour of the "navigate to help" action
+[Order(After = "Default Priority", Before = "ErrorListPackage Table Control Event Processor")]
+[ManagerType("ErrorsTable")]
+
+// TODO - DataSourceType/DataSource can both be used multiple times. Can we just register for our source and Roslyn?
+// Ideally, we'd only handle our own data source types. However, we also need to handle the Roslyn data source
+[DataSourceType("*")]
+[DataSource("*")]
+internal class SonarErrorListEventProcessorProvider : ITableControlEventProcessorProvider
 {
-    namespace SonarLint.VisualStudio.Education.ErrorList
+    private readonly IEducation educationService;
+    private readonly IErrorListHelper errorListHelper;
+    private readonly ILogger logger;
+
+    [ImportingConstructor]
+    public SonarErrorListEventProcessorProvider(IEducation educationService, IErrorListHelper errorListHelper, ILogger logger)
     {
-        // Notifies VS that we want to handle events from the Error List
+        this.educationService = educationService;
+        this.errorListHelper = errorListHelper;
+        this.logger = logger;
+    }
 
-        [Export(typeof(ITableControlEventProcessorProvider))]
-        [Name("SonarLint ErrorList Event Processor")]
-
-        // Need to hook into the list of processors before the standard VS handler so we can
-        // change the behaviour of the "navigate to help" action
-        [Order(After = "Default Priority", Before = "ErrorListPackage Table Control Event Processor")]
-        [ManagerType("ErrorsTable")]
-
-        // TODO - DataSourceType/DataSource can both be used multiple times. Can we just register for our source and Roslyn?
-        // Ideally, we'd only handle our own data source types. However, we also need to handle the Roslyn data source
-        [DataSourceType("*")]
-        [DataSource("*")]
-        internal class SonarErrorListEventProcessorProvider : ITableControlEventProcessorProvider
-        {
-            private readonly IEducation educationService;
-            private readonly IErrorListHelper errorListHelper;
-            private readonly ILogger logger;
-
-            [ImportingConstructor]
-            public SonarErrorListEventProcessorProvider(IEducation educationService, IErrorListHelper errorListHelper, ILogger logger)
-            {
-                this.educationService = educationService;
-                this.errorListHelper = errorListHelper;
-                this.logger = logger;
-            }
-
-            public ITableControlEventProcessor GetAssociatedEventProcessor(IWpfTableControl tableControl)
-            {
-                logger.LogVerbose(Resources.ErrorList_ProcessorCreated);
-                return new SonarErrorListEventProcessor(educationService, errorListHelper, logger);
-            }
-        }
+    public ITableControlEventProcessor GetAssociatedEventProcessor(IWpfTableControl tableControl)
+    {
+        logger.LogVerbose(Resources.ErrorList_ProcessorCreated);
+        return new SonarErrorListEventProcessor(educationService, errorListHelper, logger);
     }
 }

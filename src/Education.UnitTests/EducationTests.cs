@@ -19,6 +19,7 @@
  */
 
 using System.Windows.Documents;
+using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Education.Rule;
 using SonarLint.VisualStudio.Education.XamlGenerator;
@@ -53,7 +54,8 @@ public class EducationTests
         ruleInfo = Substitute.For<IRuleInfo>();
         logger = new TestLogger(true);
         threadHandling = new NoOpThreadHandler();
-        GetRuleInfoAsync(ruleInfo);
+        SetupKnownRule();
+        SetupUnknownRule();
 
         testSubject = new Education(toolWindowService, ruleMetadataProvider, showRuleInBrowser, logger, ruleHelpXamlBuilder, threadHandling);
     }
@@ -68,14 +70,20 @@ public class EducationTests
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
+    public void Ctor_IsFreeThreaded()
+    {
+        toolWindowService.ReceivedCalls().Should().HaveCount(0);
+        ruleMetadataProvider.ReceivedCalls().Should().HaveCount(0);
+        showRuleInBrowser.ReceivedCalls().Should().HaveCount(0);
+        ruleHelpXamlBuilder.ReceivedCalls().Should().HaveCount(0);
+    }
+
+    [TestMethod]
     public void ShowRuleHelp_KnownRule_DocumentIsDisplayedInToolWindow()
     {
         var flowDocument = MockFlowDocument();
         toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>().Returns(ruleDescriptionToolWindow);
-        // Sanity check - tool window not yet fetched
-        toolWindowService.ReceivedCalls().Should().HaveCount(0);
 
-        // Act
         testSubject.ShowRuleHelp(knownRule, null, null);
 
         VerifyGetsRuleInfoForCorrectRuleId(knownRule);
@@ -87,7 +95,6 @@ public class EducationTests
     public void ShowRuleHelp_FailedToDisplayRule_RuleIsShownInBrowser()
     {
         ruleHelpXamlBuilder.When(x => x.Create(ruleInfo, /* todo by SLVS-1630 */ null)).Do(x => throw new Exception("some layout error"));
-        toolWindowService.ClearReceivedCalls(); // Called in the constructor, so need to reset to clear the list of invocations
 
         testSubject.ShowRuleHelp(knownRule, null, /* todo by SLVS-1630 */ null);
 
@@ -99,9 +106,6 @@ public class EducationTests
     [TestMethod]
     public void ShowRuleHelp_UnknownRule_RuleIsShownInBrowser()
     {
-        GetRuleInfoAsync(null);
-        toolWindowService.ClearReceivedCalls(); // Called in the constructor, so need to reset to clear the list of invocations
-
         testSubject.ShowRuleHelp(unknownRule, null, /* todo by SLVS-1630 */ null);
 
         VerifyGetsRuleInfoForCorrectRuleId(unknownRule);
@@ -113,14 +117,11 @@ public class EducationTests
     public void ShowRuleHelp_FilterableIssueProvided_CallsGetRuleInfoForIssue()
     {
         var issueId = Guid.NewGuid();
-        GetRuleInfoAsync(null);
 
         testSubject.ShowRuleHelp(knownRule, issueId, null);
 
         ruleMetadataProvider.Received(1).GetRuleInfoAsync(knownRule, issueId);
     }
-
-    private void GetRuleInfoAsync(IRuleInfo returnedRuleInfo) => ruleMetadataProvider.GetRuleInfoAsync(Arg.Any<SonarCompositeRuleId>(), Arg.Any<Guid?>()).Returns(returnedRuleInfo);
 
     private void VerifyGetsRuleInfoForCorrectRuleId(SonarCompositeRuleId ruleId) => ruleMetadataProvider.Received(1).GetRuleInfoAsync(ruleId, Arg.Any<Guid?>());
 
@@ -148,6 +149,10 @@ public class EducationTests
         ruleDescriptionToolWindow.Received(1).UpdateContent(flowDocument);
         VerifyToolWindowShown();
     }
+
+    private void SetupKnownRule() => ruleMetadataProvider.GetRuleInfoAsync(knownRule, Arg.Any<Guid?>()).Returns(ruleInfo);
+
+    private void SetupUnknownRule() => ruleMetadataProvider.GetRuleInfoAsync(unknownRule, Arg.Any<Guid?>()).ReturnsNull();
 
     private FlowDocument MockFlowDocument()
     {

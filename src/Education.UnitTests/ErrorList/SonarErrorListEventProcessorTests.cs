@@ -46,7 +46,7 @@ public class SonarErrorListEventProcessorTests
         errorListHelper = Substitute.For<IErrorListHelper>();
         handle = Substitute.For<ITableEntryHandle>();
         filterableIssue = Substitute.For<IFilterableIssue>();
-        logger = new TestLogger(true);
+        logger = new TestLogger();
 
         testSubject = new SonarErrorListEventProcessor(education, errorListHelper, logger);
     }

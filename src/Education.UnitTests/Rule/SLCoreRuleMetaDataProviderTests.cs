@@ -128,7 +128,7 @@ public class SLCoreRuleMetaDataProviderTests
 
         ruleInfo.Should().NotBeNull();
         logger.AssertNoOutputMessages();
-        await VerifyGetRuleDetailsWasCalled(compositeRuleId.ToString());
+        VerifyGetRuleDetailsWasCalled(compositeRuleId.ToString());
     }
 
     [TestMethod]
@@ -147,8 +147,8 @@ public class SLCoreRuleMetaDataProviderTests
     {
         await testSubject.GetRuleInfoAsync(compositeRuleId, null);
 
-        await VerifyGetRuleDetailsWasCalled(compositeRuleId.ToString());
-        await VerifyIssueDetailsWasNotCalled();
+        VerifyGetRuleDetailsWasCalled(compositeRuleId.ToString());
+        VerifyIssueDetailsWasNotCalled();
     }
 
     [TestMethod]
@@ -158,8 +158,8 @@ public class SLCoreRuleMetaDataProviderTests
 
         await testSubject.GetRuleInfoAsync(compositeRuleId, issueId);
 
-        await VerifyRuleDetailsWasNotCalled();
-        await VerifyGetIssueDetailsWasCalled(issueId);
+        VerifyRuleDetailsWasNotCalled();
+        VerifyGetIssueDetailsWasCalled(issueId);
     }
 
     [TestMethod]
@@ -169,8 +169,8 @@ public class SLCoreRuleMetaDataProviderTests
 
         await testSubject.GetRuleInfoAsync(compositeRuleId, issueId);
 
-        await VerifyGetRuleDetailsWasCalled(compositeRuleId.ToString());
-        await VerifyGetIssueDetailsWasCalled(issueId);
+        VerifyGetRuleDetailsWasCalled(compositeRuleId.ToString());
+        VerifyGetIssueDetailsWasCalled(issueId);
     }
 
     [TestMethod]
@@ -182,8 +182,8 @@ public class SLCoreRuleMetaDataProviderTests
         var result = await testSubject.GetRuleInfoAsync(compositeRuleId, issueId);
 
         result.Should().BeNull();
-        await VerifyGetRuleDetailsWasCalled(compositeRuleId.ToString());
-        await VerifyGetIssueDetailsWasCalled(issueId);
+        VerifyGetRuleDetailsWasCalled(compositeRuleId.ToString());
+        VerifyGetIssueDetailsWasCalled(issueId);
     }
 
     private void SetUpConfigScopeTracker(ConfigurationScope scope) => configScopeTrackerMock.Current.Returns(scope);
@@ -224,12 +224,11 @@ public class SLCoreRuleMetaDataProviderTests
 
     private void MockRuleInfoConverter() => ruleInfoConverter.Convert(Arg.Any<IRuleDetails>()).Returns(defaultRuleInfo);
 
-    private async Task VerifyGetIssueDetailsWasCalled(Guid id) => await issueServiceMock.Received(1).GetEffectiveIssueDetailsAsync(Arg.Is<GetEffectiveIssueDetailsParams>(x => x.issueId == id));
+    private void VerifyGetIssueDetailsWasCalled(Guid id) => issueServiceMock.Received(1).GetEffectiveIssueDetailsAsync(Arg.Is<GetEffectiveIssueDetailsParams>(x => x.issueId == id));
 
-    private async Task VerifyGetRuleDetailsWasCalled(string ruleKey) =>
-        await rulesServiceMock.Received(1).GetEffectiveRuleDetailsAsync(Arg.Is<GetEffectiveRuleDetailsParams>(x => x.ruleKey == ruleKey));
+    private void VerifyGetRuleDetailsWasCalled(string ruleKey) => rulesServiceMock.Received(1).GetEffectiveRuleDetailsAsync(Arg.Is<GetEffectiveRuleDetailsParams>(x => x.ruleKey == ruleKey));
 
-    private async Task VerifyIssueDetailsWasNotCalled() => await issueServiceMock.DidNotReceive().GetEffectiveIssueDetailsAsync(Arg.Any<GetEffectiveIssueDetailsParams>());
+    private void VerifyIssueDetailsWasNotCalled() => issueServiceMock.DidNotReceive().GetEffectiveIssueDetailsAsync(Arg.Any<GetEffectiveIssueDetailsParams>());
 
-    private async Task VerifyRuleDetailsWasNotCalled() => await rulesServiceMock.DidNotReceive().GetEffectiveRuleDetailsAsync(Arg.Any<GetEffectiveRuleDetailsParams>());
+    private void VerifyRuleDetailsWasNotCalled() => rulesServiceMock.DidNotReceive().GetEffectiveRuleDetailsAsync(Arg.Any<GetEffectiveRuleDetailsParams>());
 }
