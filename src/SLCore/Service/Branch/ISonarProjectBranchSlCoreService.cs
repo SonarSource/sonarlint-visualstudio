@@ -18,12 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Protocol;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Branch;
 
 [JsonRpcClass("branch")]
-public interface ISonarProjectBranchSlCoreService
+public interface ISonarProjectBranchSlCoreService : ISLCoreService
 {
     /// <summary>
     /// Must be called when any change on the VCS might lead to a different sonar project branch being resolved (could be a different HEAD, a branch checkout).
