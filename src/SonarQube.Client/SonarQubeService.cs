@@ -343,7 +343,6 @@ namespace SonarQube.Client
                     request.Branch = branch;
                     request.ComponentKey = componentKey;
                     request.RuleId = ruleId;
-                    request.IncludeTaint = false;
                 },
                 token);
         }
@@ -445,19 +444,6 @@ namespace SonarQube.Client
             return commentResult
                 ? SonarQubeIssueTransitionResult.Success
                 : SonarQubeIssueTransitionResult.CommentAdditionFailed;
-        }
-
-        public async Task<IList<SonarQubeIssue>> GetTaintVulnerabilitiesAsync(string projectKey, string branch, CancellationToken token)
-        {
-            var issues = await InvokeCheckedRequestAsync<IGetTaintVulnerabilitiesRequest, SonarQubeIssue[]>(
-                request =>
-                {
-                    request.ProjectKey = projectKey;
-                    request.Branch = branch;
-                }, token);
-
-            await secondaryIssueHashUpdater.UpdateHashesAsync(issues, this, token);
-            return issues;
         }
 
         public Uri GetViewIssueUrl(string projectKey, string issueKey)
