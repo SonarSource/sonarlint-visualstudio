@@ -21,28 +21,25 @@
 using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
 
-namespace SonarQube.Client.Api
+namespace SonarQube.Client.Api;
+
+interface IGetIssuesRequest : IRequest<SonarQubeIssue[]>
 {
-    interface IGetIssuesRequest : IRequest<SonarQubeIssue[]>
-    {
-        string ProjectKey { get; set; }
+    string ProjectKey { get; set; }
 
-        string Statuses { get; set; }
+    string Statuses { get; set; }
 
-        /// <summary>
-        /// The branch name to fetch.
-        /// </summary>
-        /// <remarks>If the value is null/empty, the main branch will be fetched</remarks>
-        string Branch { get; set; }
+    /// <summary>
+    /// The branch name to fetch.
+    /// </summary>
+    /// <remarks>If the value is null/empty, the main branch will be fetched</remarks>
+    string Branch { get; set; }
 
-        string[] IssueKeys { get; set; }
+    string[] IssueKeys { get; set; }
 
-        string RuleId { get; set; }
+    string RuleId { get; set; }
 
-        string ComponentKey { get; set; }
+    string ComponentKey { get; set; }
 
-        bool IncludeTaint { get; set; }
-
-        // Update <see cref="V7_20.GetIssuesRequestWrapper"/> when adding properties here.
-    }
+    // Update <see cref="V7_20.GetIssuesRequestWrapper"/> when adding properties here.
 }

@@ -50,6 +50,9 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
                 BaseAddress = new Uri(ValidBaseAddress)
             };
 
+            // the contents of the json below were left untouched during the cleanup of the taint related methods & requests of SonarQube.Client
+            // because they still represent a valid issue format (with flows and secondary locations),
+            // while the fact that the contents have mentions of taint in them is irrelevant for this test
             var request = $"api/issues/search?projects={projectKey}&statuses={expectedEscapedStatusesInRequest}&p=1&ps=500";
             const string response = @"
 {
@@ -138,6 +141,9 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
                 BaseAddress = new Uri(ValidBaseAddress)
             };
 
+            // the contents of the json below were left untouched during the cleanup of the taint related methods & requests of SonarQube.Client
+            // because they still represent a valid issue format (with flows and secondary locations),
+            // while the fact that the contents have mentions of taint in them is irrelevant for this test
             var request = $"api/issues/search?projects={projectKey}&statuses={expectedEscapedStatusesInRequest}&p=1&ps=500";
             const string response = @"
 {
