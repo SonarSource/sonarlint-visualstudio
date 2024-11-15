@@ -43,6 +43,8 @@
     <None Remove="UI\ProgressAndErrorReporterComponent.xaml" />
     <None Remove="UI\Resources\CheckImage.xaml" />
     <None Remove="UI\Resources\LogoImages.xaml" />
+    <None Remove="UI\Resources\Pencil.xaml" />
+    <None Remove="UI\Resources\sonarlint_32px.ico" />
     <None Remove="UI\Resources\Styles.xaml" />
     <None Remove="UI\Resources\TrashCanImage.xaml" />
     <None Remove="UI\ServerSelection\ServerSelectionDialog.xaml" />
@@ -68,6 +70,7 @@
     <Page Include="UI\Resources\CheckImage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="UI\Resources\Pencil.xaml" />
     <Page Include="UI\Resources\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
