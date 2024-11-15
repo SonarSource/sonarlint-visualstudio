@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 }
 
                 HandleClosed(taintVulnerabilitiesUpdate.Closed, diffAdded);
-                HandleUpdated(taintVulnerabilitiesUpdate.Updated, diffAdded, diffRemoved);
+                HandleUpdated(taintVulnerabilitiesUpdate.Updated, diffRemoved, diffAdded);
                 HandleAdded(taintVulnerabilitiesUpdate.Added, diffRemoved);
             }
 
