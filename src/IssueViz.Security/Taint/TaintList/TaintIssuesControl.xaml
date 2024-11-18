@@ -101,7 +101,7 @@
                     <LineBreak />
                 </TextBlock>
                 <TextBlock Style="{StaticResource OverlayTextBlockStyle}">
-                    <Run>Please ensure that your solution is bound to a Sonar project that contains taint vulnerabilities.</Run>
+                    <Run>Please ensure that your solution is bound to a SonarQube project that contains taint vulnerabilities.</Run>
                 </TextBlock>
                 <TextBlock Style="{StaticResource OverlayTextBlockStyle}">
                     <Hyperlink Command="{Binding ShowDocumentationCommand}">

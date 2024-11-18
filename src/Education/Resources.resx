@@ -139,7 +139,7 @@
     <value>[Education] Error handling Uri: {0}</value>
   </data>
   <data name="RuleHelpToolWindowCaption" xml:space="preserve">
-    <value>Sonar Rule Help</value>
+    <value>SonarQube Rule Help</value>
   </data>
   <data name="RuleHelpUserControl_RelativeURI" xml:space="preserve">
     <value>[Education] Failed to open Uri: {0}</value>
