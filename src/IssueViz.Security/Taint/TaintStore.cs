@@ -21,31 +21,44 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
-using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 {
-    internal interface ITaintStore : IIssuesStore
+    public interface ITaintStore : IIssuesStore
     {
         /// <summary>
-        /// Removes all existing visualizations and initializes the store to the given collection.
+        /// Removes all existing visualizations and initializes the store to the given collection & configuration scope.
         /// Can be called multiple times.
         /// </summary>
         void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope);
 
+        /// <summary>
+        /// Removes all existing visualizations and resets the configurations scope.
+        /// Can be called multiple times.
+        /// </summary>
+        void Reset();
+
+        /// <summary>
+        /// Returns current configuration scope id. Null if store is Reset
+        /// </summary>
         string ConfigurationScope { get; }
 
         /// <summary>
-        /// Add the given issue to the existing list of visualizations.
-        /// If <see cref="GetAnalysisInformation"/> is null, the operation is ignored.
+        /// Applies updates to current store. If store is Reset or configuration scope is different, update is ignored.
         /// </summary>
-        void Add(IAnalysisIssueVisualization issueVisualization);
+        void Update(TaintVulnerabilitiesUpdate taintVulnerabilitiesUpdate);
+    }
 
-        /// <summary>
-        /// Removes an issue with the given key from the existing list of visualizations.
-        /// If no matching issue is found, the operation is ignored.
-        /// </summary>
-        void Remove(string issueKey);
+    public class TaintVulnerabilitiesUpdate(
+        string configurationScope,
+        IEnumerable<IAnalysisIssueVisualization> added,
+        IEnumerable<IAnalysisIssueVisualization> updated,
+        IEnumerable<Guid> closed)
+    {
+        public string ConfigurationScope { get; } = !string.IsNullOrEmpty(configurationScope) ? configurationScope : throw new ArgumentNullException(nameof(configurationScope));
+        public IEnumerable<IAnalysisIssueVisualization> Added { get; } = added ?? throw new ArgumentNullException(nameof(added));
+        public IEnumerable<IAnalysisIssueVisualization> Updated { get; } = updated ?? throw new ArgumentNullException(nameof(updated));
+        public IEnumerable<Guid> Closed { get; } = closed ?? throw new ArgumentNullException(nameof(closed));
     }
 
     [Export(typeof(ITaintStore))]
@@ -55,105 +68,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     {
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 
-        private readonly object locker = new object();
+        private readonly object locker = new();
 
         private string configurationScope;
-        private List<IAnalysisIssueVisualization> taintVulnerabilities = new List<IAnalysisIssueVisualization>();
+        private Dictionary<Guid, IAnalysisIssueVisualization> taintVulnerabilities = new();
 
-        public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll()
-        {
-            lock (locker)
-            {
-                return taintVulnerabilities.ToList();
-            }
-        }
-
-        public void Add(IAnalysisIssueVisualization issueVisualization)
-        {
-            if (issueVisualization == null)
-            {
-                throw new ArgumentNullException(nameof(issueVisualization));
-            }
-
-            lock (locker)
-            {
-                if (configurationScope == null)
-                {
-                    return;
-                }
-
-                if (taintVulnerabilities.Contains(issueVisualization, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance))
-                {
-                    return;
-                }
-
-                taintVulnerabilities.Add(issueVisualization);
-
-            }
-
-            NotifyIssuesChanged([], [issueVisualization]);
-        }
-
-        public void Remove(string issueKey)
-        {
-            if (issueKey == null)
-            {
-                throw new ArgumentNullException(nameof(issueKey));
-            }
-
-            IAnalysisIssueVisualization valueToRemove;
-
-            lock (locker)
-            {
-                if (configurationScope == null)
-                {
-                    return;
-                }
-
-                var indexToRemove =
-                    taintVulnerabilities.FindIndex(issueViz => ((ITaintIssue)issueViz.Issue).IssueKey.Equals(issueKey));
-
-                if (indexToRemove == -1)
-                {
-                    return;
-                }
-
-                valueToRemove = taintVulnerabilities[indexToRemove];
-                taintVulnerabilities.RemoveAt(indexToRemove);
-
-            }
-
-            NotifyIssuesChanged([valueToRemove], []);
-        }
-
-        public void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
-        {
-            if (issueVisualizations == null)
-            {
-                throw new ArgumentNullException(nameof(issueVisualizations));
-            }
-
-            if (issueVisualizations.Count > 0 && newConfigurationScope == null)
-            {
-                throw new ArgumentNullException(nameof(newConfigurationScope));
-            }
-
-            IAnalysisIssueVisualization[] removedIssues;
-            IAnalysisIssueVisualization[] addedIssues;
-
-            lock (locker)
-            {
-                var oldIssues = taintVulnerabilities;
-                taintVulnerabilities = issueVisualizations.ToList();
-                configurationScope = newConfigurationScope;
-
-
-                removedIssues = oldIssues.Except(taintVulnerabilities, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance).ToArray();
-                addedIssues = taintVulnerabilities.Except(oldIssues, TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer.Instance).ToArray();
-            }
-
-            NotifyIssuesChanged(removedIssues, addedIssues);
-        }
 
         public string ConfigurationScope
         {
@@ -166,46 +85,145 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
         }
 
+        public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll()
+        {
+            lock (locker)
+            {
+                return taintVulnerabilities.Values.ToList();
+            }
+        }
+
+        public void Reset() =>
+            SetInternal([], null);
+
+        public void Set(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
+        {
+            ValidateSet(issueVisualizations, newConfigurationScope);
+            SetInternal(issueVisualizations, newConfigurationScope);
+        }
+
+        private void SetInternal(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
+        {
+            List<IAnalysisIssueVisualization> diffRemoved = [];
+            List<IAnalysisIssueVisualization> diffAdded = [];
+
+            lock (locker)
+            {
+                var oldVulnerabilities = taintVulnerabilities;
+                taintVulnerabilities = issueVisualizations.ToDictionary(x => x.IssueId!.Value, x => x);
+                configurationScope = newConfigurationScope;
+
+                diffRemoved.AddRange(oldVulnerabilities.Values);
+                diffAdded.AddRange(taintVulnerabilities.Values);
+            }
+
+            NotifyIssuesChanged(diffRemoved, diffAdded);
+        }
+
+        private static void ValidateSet(IReadOnlyCollection<IAnalysisIssueVisualization> issueVisualizations, string newConfigurationScope)
+        {
+            if (issueVisualizations == null)
+            {
+                throw new ArgumentNullException(nameof(issueVisualizations));
+            }
+
+            Debug.Assert(issueVisualizations.All(x => x.IssueId.HasValue));
+
+            if (string.IsNullOrEmpty(newConfigurationScope))
+            {
+                throw new ArgumentNullException(nameof(newConfigurationScope));
+            }
+        }
+
+        public void Update(TaintVulnerabilitiesUpdate taintVulnerabilitiesUpdate)
+        {
+            ValidateUpdate(taintVulnerabilitiesUpdate);
+
+            List<IAnalysisIssueVisualization> diffAdded = [];
+            List<IAnalysisIssueVisualization> diffRemoved = [];
+            lock (locker)
+            {
+                if (taintVulnerabilitiesUpdate.ConfigurationScope != configurationScope)
+                {
+                    return;
+                }
+
+                HandleClosed(taintVulnerabilitiesUpdate.Closed, diffAdded);
+                HandleUpdated(taintVulnerabilitiesUpdate.Updated, diffRemoved, diffAdded);
+                HandleAdded(taintVulnerabilitiesUpdate.Added, diffRemoved);
+            }
+
+            NotifyIfIssuesChanged(diffAdded, diffRemoved);
+        }
+
+        private void NotifyIfIssuesChanged(List<IAnalysisIssueVisualization> diffAdded, List<IAnalysisIssueVisualization> diffRemoved)
+        {
+            if (diffAdded.Count != 0 || diffRemoved.Count != 0)
+            {
+                NotifyIssuesChanged(diffAdded, diffRemoved);
+            }
+        }
+
+        private static void ValidateUpdate(TaintVulnerabilitiesUpdate taintVulnerabilitiesUpdate)
+        {
+            if (taintVulnerabilitiesUpdate == null)
+            {
+                throw new ArgumentNullException(nameof(taintVulnerabilitiesUpdate));
+            }
+
+            Debug.Assert(taintVulnerabilitiesUpdate.Added.All(x => x.IssueId.HasValue));
+            Debug.Assert(taintVulnerabilitiesUpdate.Updated.All(x => x.IssueId.HasValue));
+        }
+
+        private void HandleAdded(IEnumerable<IAnalysisIssueVisualization> added, List<IAnalysisIssueVisualization> diffAdded)
+        {
+            foreach (var addedVulnerability in added)
+            {
+                if (taintVulnerabilities.ContainsKey(addedVulnerability.IssueId!.Value))
+                {
+                    Debug.Fail("Taint Update: attempting to add a Vulnerability with the same id that already exists");
+                    continue;
+                }
+                taintVulnerabilities[addedVulnerability.IssueId!.Value] = addedVulnerability;
+                diffAdded.Add(addedVulnerability);
+            }
+        }
+
+        private void HandleUpdated(IEnumerable<IAnalysisIssueVisualization> updated, List<IAnalysisIssueVisualization> diffRemoved, List<IAnalysisIssueVisualization> diffAdded)
+        {
+            foreach (var updatedVulnerability in updated)
+            {
+                if (!taintVulnerabilities.TryGetValue(updatedVulnerability.IssueId!.Value, out var outdatedVulnerability))
+                {
+                    Debug.Fail("Taint Update: attempting to update a non-existent Vulnerability");
+                    continue;
+                }
+                taintVulnerabilities[updatedVulnerability.IssueId!.Value] = updatedVulnerability;
+                diffRemoved.Add(outdatedVulnerability);
+                diffAdded.Add(updatedVulnerability);
+            }
+        }
+
+        private void HandleClosed(IEnumerable<Guid> removed, List<IAnalysisIssueVisualization> diffRemoved)
+        {
+            foreach (var removedId in removed)
+            {
+                if (!taintVulnerabilities.TryGetValue(removedId, out var removedVulnerability))
+                {
+                    Debug.Fail("Taint Update: attempting to remove a non-existent Vulnerability");
+                    continue;
+                }
+                taintVulnerabilities.Remove(removedId);
+                diffRemoved.Add(removedVulnerability);
+            }
+        }
+
         private void NotifyIssuesChanged(
             IReadOnlyCollection<IAnalysisIssueVisualization> removedIssues,
-            IReadOnlyCollection<IAnalysisIssueVisualization> addedIssues)
-        {
+            IReadOnlyCollection<IAnalysisIssueVisualization> addedIssues) =>
             // Hacky workaround for #4066 - always raise the event, even if
             // the set of added/removed files is empty.
             // See also #4070.
             IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(removedIssues, addedIssues));
-        }
-
-        private sealed class TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer : IEqualityComparer<IAnalysisIssueVisualization>
-        {
-            public static readonly TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer Instance =
-                new TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer();
-
-            private TaintAnalysisIssueVisualizationByIssueKeyEqualityComparer(){}
-
-            public bool Equals(IAnalysisIssueVisualization first, IAnalysisIssueVisualization second)
-            {
-                if (ReferenceEquals(first, second))
-                {
-                    return true;
-                }
-
-                if (first == null || second == null)
-                {
-                    return false;
-                }
-
-                var firstTaintIssue = (ITaintIssue)first.Issue;
-                var secondTaintIssue = (ITaintIssue)second.Issue;
-
-                return firstTaintIssue.IssueKey.Equals(secondTaintIssue.IssueKey);
-            }
-
-
-            public int GetHashCode(IAnalysisIssueVisualization obj)
-            {
-                return (obj.Issue != null ? ((ITaintIssue)obj.Issue).IssueKey.GetHashCode() : 0);
-            }
-        }
     }
 }

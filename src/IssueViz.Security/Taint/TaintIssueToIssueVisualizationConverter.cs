@@ -29,7 +29,7 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 
-internal interface ITaintIssueToIssueVisualizationConverter
+public interface ITaintIssueToIssueVisualizationConverter
 {
     IAnalysisIssueVisualization Convert(TaintVulnerabilityDto slcoreTaintIssue, string configScopeRoot);
 }
