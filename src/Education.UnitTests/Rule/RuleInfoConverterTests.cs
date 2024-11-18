@@ -421,7 +421,7 @@ public class RuleInfoConverterTests
     [DataRow(null)]
     public void Convert_IssueDetails_ContextKey(string key)
     {
-        var effectiveIssueDetailsDto = CreateEffectiveIssueDetailsDto(ruleDescriptionContextKey: key);
+        var effectiveIssueDetailsDto = CreateEffectiveIssueDetailsDto(new StandardModeDetails(default, default), ruleDescriptionContextKey: key);
 
         var ruleInfo = testSubject.Convert(effectiveIssueDetailsDto);
 
@@ -429,7 +429,7 @@ public class RuleInfoConverterTests
     }
 
     private static EffectiveIssueDetailsDto CreateEffectiveIssueDetailsDto(
-        Either<StandardModeDetails, MQRModeDetails> severityDetails = null,
+        Either<StandardModeDetails, MQRModeDetails> severityDetails,
         Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description = default,
         string ruleDescriptionContextKey = default) =>
         new(
