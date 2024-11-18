@@ -315,36 +315,32 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         #region RuleKey
 
         [TestMethod]
-        public void RuleKeyAndRuleDescriptionContextKey_CurrentIssueIsNull_Null()
+        public void RuleKey_CurrentIssueIsNull_Null()
         {
             testSubject.RuleKey.Should().BeNullOrEmpty();
-            testSubject.RuleDescriptionContextKey.Should().BeNullOrEmpty();
         }
 
         [TestMethod]
-        public void RuleKeyAndRuleDescriptionContextKey_CurrentIssueHasNoAnalysisIssue_Null()
+        public void RuleKey_CurrentIssueHasNoAnalysisIssue_Null()
         {
             var issueViz = CreateIssue();
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz);
 
             testSubject.RuleKey.Should().BeNullOrEmpty();
-            testSubject.RuleDescriptionContextKey.Should().BeNullOrEmpty();
         }
 
         [TestMethod]
-        public void RuleKeyAndRuleDescriptionContextKey_CurrentIssueHasAnalysisIssue_IssueRuleKey()
+        public void RuleKey_CurrentIssueHasAnalysisIssue_IssueRuleKey()
         {
             var issue = new Mock<IAnalysisIssue>();
             issue.SetupGet(x => x.RuleKey).Returns("test RuleKey");
-            issue.SetupGet(x => x.RuleDescriptionContextKey).Returns("issue Context");
 
             var issueViz = CreateIssue(issue: issue.Object);
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz);
 
             testSubject.RuleKey.Should().Be("test RuleKey");
-            testSubject.RuleDescriptionContextKey.Should().Be("issue Context");
         }
 
         #endregion

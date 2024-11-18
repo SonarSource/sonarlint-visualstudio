@@ -56,7 +56,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
     {
         var dateTimeOffset = DateTimeOffset.Now;
         var issue1 = new RaisedIssueDto(
-            IssueWithFlowsAndQuickFixesUseCase.Issue1Id, 
+            IssueWithFlowsAndQuickFixesUseCase.Issue1Id,
             "serverKey1",
             "ruleKey1",
             "PrimaryMessage1",
@@ -368,7 +368,6 @@ public class RaiseFindingToAnalysisIssueConverterTests
             result[0].Severity.Should().Be(AnalysisIssueSeverity.Major);
             result[0].Type.Should().Be(AnalysisIssueType.CodeSmell);
             result[0].HighestImpact.Should().BeNull();
-            result[0].RuleDescriptionContextKey.Should().Be("context1");
 
             result[0].PrimaryLocation.FilePath.Should().Be("C:\\IssueFile.cs");
             result[0].PrimaryLocation.Message.Should().Be("PrimaryMessage1");
@@ -386,7 +385,6 @@ public class RaiseFindingToAnalysisIssueConverterTests
             result[1].Severity.Should().BeNull();
             result[1].Type.Should().BeNull();
             result[1].HighestImpact.Severity.Should().Be(SoftwareQualitySeverity.High);
-            result[1].RuleDescriptionContextKey.Should().Be("context2");
 
             result[1].PrimaryLocation.FilePath.Should().Be("C:\\IssueFile.cs");
             result[1].PrimaryLocation.Message.Should().Be("PrimaryMessage2");
