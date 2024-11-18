@@ -172,11 +172,9 @@ internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
 
     private void HandleNoTaintIssues()
     {
-        ClearStore();
+        taintStore.Reset();
         UpdateTaintIssuesUIContext(false);
     }
-
-    private void ClearStore() => taintStore.Set([], null);
 
     private void UpdateTaintIssuesUIContext(bool hasTaintIssues) =>
         vSServiceOperation.Execute<VSShellInterop.SVsShellMonitorSelection, VSShellInterop.IVsMonitorSelection>(

@@ -28,17 +28,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
     /// Stores a collection of <see cref="IAnalysisIssueVisualization"/> and
     /// raises <see cref="IssuesChanged"/> event when the collection is modified.
     /// </summary>
-    internal interface IIssuesStore
+    public interface IIssuesStore
     {
         IReadOnlyCollection<IAnalysisIssueVisualization> GetAll();
 
         event EventHandler<IssuesChangedEventArgs> IssuesChanged;
     }
 
-    internal class IssuesChangedEventArgs
+    public class IssuesChangedEventArgs
     {
         public IReadOnlyCollection<IAnalysisIssueVisualization> RemovedIssues { get; }
-        
+
         public IReadOnlyCollection<IAnalysisIssueVisualization> AddedIssues { get; }
 
         public IssuesChangedEventArgs(IReadOnlyCollection<IAnalysisIssueVisualization> removedIssues, IReadOnlyCollection<IAnalysisIssueVisualization> addedIssues)
