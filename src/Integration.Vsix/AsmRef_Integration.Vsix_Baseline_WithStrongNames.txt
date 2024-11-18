@@ -442,11 +442,12 @@ Referenced assemblies:
 - 'SonarLint.VisualStudio.ConnectedMode, Version=8.7.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarLint.VisualStudio.Core, Version=8.7.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarLint.VisualStudio.IssueVisualization, Version=8.7.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
+- 'SonarLint.VisualStudio.IssueVisualization.Security, Version=8.7.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'SonarLint.VisualStudio.SLCore, Version=8.7.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-# Number of references: 8
+# Number of references: 9
 
 ---
 Assembly: 'SonarQube.Client, Version=8.7.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
