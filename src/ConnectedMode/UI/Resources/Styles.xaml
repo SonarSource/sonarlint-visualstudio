@@ -12,7 +12,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}" />
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}" />
         <Setter Property="SnapsToDevicePixels" Value="False" />
-        <Setter Property="Icon" Value="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarqube_for_ide_16px.ico" />
+        <Setter Property="Icon" Value="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/sonarqube_for_ide_logo_16px.png" />
     </Style>
 
     <Style x:Key="ConnectedModeWindow" TargetType="Window" BasedOn="{StaticResource {x:Type Window}}">

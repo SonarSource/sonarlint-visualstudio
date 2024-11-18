@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sonar Local Security Hotspots.
+        ///   Looks up a localized string similar to SonarQube Local Security Hotspots.
         /// </summary>
         internal static string HotspotsToolWindowCaption {
             get {
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sonar Server Security Hotspots.
+        ///   Looks up a localized string similar to SonarQube Server Security Hotspots.
         /// </summary>
         internal static string OpenInIDEHotspotsToolWindowCaption {
             get {
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sonar Taint Vulnerabilities.
+        ///   Looks up a localized string similar to SonarQube Taint Vulnerabilities.
         /// </summary>
         internal static string TaintToolWindowCaption {
             get {
