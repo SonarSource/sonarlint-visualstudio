@@ -39,13 +39,12 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
         {
             var id = item.id;
             var itemRuleKey = item.ruleKey;
-            var analysisIssueSeverity = item.severityMode.Left?.severity.ToAnalysisIssueSeverity(); 
+            var analysisIssueSeverity = item.severityMode.Left?.severity.ToAnalysisIssueSeverity();
             var analysisIssueType = item.severityMode.Left?.type.ToAnalysisIssueType();
             var highestSoftwareQualitySeverity = GetHighestImpact(item.severityMode.Right?.impacts);
             var analysisIssueLocation = GetAnalysisIssueLocation(fileUri.LocalPath, item.primaryMessage, item.textRange);
             var analysisIssueFlows = GetFlows(item.flows);
             var readOnlyList = item.quickFixes?.Select(qf => GetQuickFix(fileUri, qf)).Where(qf => qf is not null).ToList();
-            var itemRuleDescriptionContextKey = item.ruleDescriptionContextKey;
 
             if (item is RaisedHotspotDto raisedHotspotDto)
             {
@@ -57,7 +56,6 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
                     analysisIssueLocation,
                     analysisIssueFlows,
                     readOnlyList,
-                    itemRuleDescriptionContextKey,
                     raisedHotspotDto.vulnerabilityProbability.GetHotspotPriority());
             }
 
@@ -68,8 +66,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
                 highestSoftwareQualitySeverity,
                 analysisIssueLocation,
                 analysisIssueFlows,
-                readOnlyList,
-                itemRuleDescriptionContextKey);
+                readOnlyList);
         }
 
         private static Impact GetHighestImpact(List<ImpactDto> impacts)
