@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     public interface IAnalysisIssueBase
     {
         /// <summary>
-        /// The id of the issue that comes from SlCore 
+        /// The id of the issue that comes from SlCore
         /// </summary>
         Guid? Id { get; }
 
@@ -51,8 +51,6 @@ namespace SonarLint.VisualStudio.Core.Analysis
         /// Should never be null
         /// </summary>
         IAnalysisIssueLocation PrimaryLocation { get; }
-
-        string RuleDescriptionContextKey { get; }
     }
 
     public interface IAnalysisIssueFlow

@@ -44,7 +44,6 @@ public class RuleHelpXamlBuilderTests
     [DataRow(false)]
     public void Create_ChoosesCorrectLayoutBuilder(bool isExtendedRule)
     {
-        var selectedIssueContext = "abrakadabra";
         var ruleInfoMock = new Mock<IRuleInfo>();
         ruleInfoMock.SetupGet(x => x.RichRuleDescriptionDto).Returns(isExtendedRule
             ? new RuleSplitDescriptionDto("intro", new List<RuleDescriptionTabDto>())
@@ -53,9 +52,9 @@ public class RuleHelpXamlBuilderTests
         var richRuleHelpXamlBuilderMock = new Mock<IRichRuleHelpXamlBuilder>();
         var testSubject = new RuleHelpXamlBuilder(simpleRuleHelpXamlBuilderMock.Object, richRuleHelpXamlBuilderMock.Object);
 
-        testSubject.Create(ruleInfoMock.Object, selectedIssueContext);
+        testSubject.Create(ruleInfoMock.Object);
 
         simpleRuleHelpXamlBuilderMock.Verify(x => x.Create(ruleInfoMock.Object), isExtendedRule ? Times.Never : Times.Once);
-        richRuleHelpXamlBuilderMock.Verify(x => x.Create(ruleInfoMock.Object, selectedIssueContext), isExtendedRule ? Times.Once : Times.Never);
+        richRuleHelpXamlBuilderMock.Verify(x => x.Create(ruleInfoMock.Object), isExtendedRule ? Times.Once : Times.Never);
     }
 }

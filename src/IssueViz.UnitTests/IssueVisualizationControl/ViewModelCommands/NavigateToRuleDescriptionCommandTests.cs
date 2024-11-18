@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             testSubject.Execute(executeParam);
 
-            educationService.Verify(x => x.ShowRuleHelp(It.IsAny<SonarCompositeRuleId>(),null,  /* todo by SLVS-1630 */null), Times.Once);
+            educationService.Verify(x => x.ShowRuleHelp(It.IsAny<SonarCompositeRuleId>(),null), Times.Once);
             educationService.VerifyNoOtherCalls();
 
             var actualRuleId = (SonarCompositeRuleId)educationService.Invocations[0].Arguments[0];
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             testSubject.Execute(executeParam);
 
-            educationService.Verify(x => x.ShowRuleHelp(It.IsAny<SonarCompositeRuleId>(), issueId, null), Times.Once);
+            educationService.Verify(x => x.ShowRuleHelp(It.IsAny<SonarCompositeRuleId>(), issueId), Times.Once);
             educationService.VerifyNoOtherCalls();
         }
 

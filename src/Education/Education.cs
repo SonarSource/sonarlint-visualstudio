@@ -72,9 +72,9 @@ internal class Education : IEducation
         this.threadHandling = threadHandling;
     }
 
-    public void ShowRuleHelp(SonarCompositeRuleId ruleId, Guid? issueId, string issueContext) => ShowRuleHelpAsync(ruleId, issueId, issueContext).Forget();
+    public void ShowRuleHelp(SonarCompositeRuleId ruleId, Guid? issueId) => ShowRuleHelpAsync(ruleId, issueId).Forget();
 
-    private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, Guid? issueId, string issueContext)
+    private async Task ShowRuleHelpAsync(SonarCompositeRuleId ruleId, Guid? issueId)
     {
         await threadHandling.SwitchToBackgroundThread();
 
@@ -88,12 +88,12 @@ internal class Education : IEducation
             }
             else
             {
-                ShowRuleInIde(ruleInfo, ruleId, issueContext);
+                ShowRuleInIde(ruleInfo, ruleId);
             }
         });
     }
 
-    private void ShowRuleInIde(IRuleInfo ruleInfo, SonarCompositeRuleId ruleId, string issueContext)
+    private void ShowRuleInIde(IRuleInfo ruleInfo, SonarCompositeRuleId ruleId)
     {
         threadHandling.ThrowIfNotOnUIThread();
         // Lazily fetch the tool window from a UI thread
@@ -101,7 +101,7 @@ internal class Education : IEducation
 
         try
         {
-            var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo, issueContext);
+            var flowDocument = ruleHelpXamlBuilder.Create(ruleInfo);
 
             ruleHelpToolWindow.UpdateContent(flowDocument);
 

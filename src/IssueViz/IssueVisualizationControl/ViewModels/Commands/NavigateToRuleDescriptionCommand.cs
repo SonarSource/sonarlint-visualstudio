@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                     var paramObject = parameter as NavigateToRuleDescriptionCommandParam;
                     if (SonarCompositeRuleId.TryParse(paramObject?.FullRuleKey, out var ruleId))
                     {
-                        educationService.ShowRuleHelp(ruleId, paramObject?.IssueId, paramObject?.Context);
+                        educationService.ShowRuleHelp(ruleId, paramObject?.IssueId);
                     }
                 },
                 parameter => parameter is NavigateToRuleDescriptionCommandParam s &&
@@ -59,23 +59,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         /// <summary>
         /// The id of the issue that comes from SlCore
         /// </summary>
-        public Guid? IssueId { get; set; }
-        public string FullRuleKey { get; set; }
-        public string Context { get; set; }
+        public Guid? IssueId { get; init; }
+        public string FullRuleKey { get; init; }
     }
 
     public class NavigateToRuleDescriptionCommandConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (values.Length >= 2 && values[0] is string && (values[1] is string || values[1] == null))
+            if (values.Length == 2 && values[0] is string && (values[1] is Guid || values[1] == null))
             {
-                var parameters = new NavigateToRuleDescriptionCommandParam { FullRuleKey = (string)values[0], Context = (string)values[1] };
-                if (values.Length == 3 && values[2] is Guid)
-                {
-                    parameters.IssueId = (Guid)values[2];
-                }
-                return parameters;
+                return new NavigateToRuleDescriptionCommandParam { FullRuleKey = (string)values[0], IssueId = (Guid?)values[1] };
             }
             return null;
         }

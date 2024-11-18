@@ -48,7 +48,8 @@ public class RuleInfoConverter : IRuleInfoConverter
             Convert(details.severityDetails.Left?.type),
             details.description?.Right,
             (details.severityDetails.Right?.cleanCodeAttribute).ToCleanCodeAttribute(),
-            Convert(details.severityDetails.Right?.impacts));
+            Convert(details.severityDetails.Right?.impacts),
+            (details as IRelevantContextRuleDetails)?.ruleDescriptionContextKey);
 
     private static RuleIssueSeverity? Convert(IssueSeverity? issueSeverity) =>
         issueSeverity switch

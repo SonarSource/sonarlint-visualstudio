@@ -30,12 +30,10 @@ namespace SonarLint.VisualStudio.Core.Analysis
             string ruleKey,
             AnalysisIssueSeverity? severity,
             AnalysisIssueType? type,
-            Impact highestImpact, 
+            Impact highestImpact,
             IAnalysisIssueLocation primaryLocation,
             IReadOnlyList<IAnalysisIssueFlow> flows,
-            IReadOnlyList<IQuickFix> fixes = null,
-            string context = null
-            )
+            IReadOnlyList<IQuickFix> fixes = null)
         {
             Id = id;
             RuleKey = ruleKey;
@@ -45,7 +43,6 @@ namespace SonarLint.VisualStudio.Core.Analysis
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Flows = flows ?? EmptyFlows;
             Fixes = fixes ?? EmptyFixes;
-            RuleDescriptionContextKey = context;
         }
 
         public Guid? Id { get; }
@@ -62,23 +59,20 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
         public IReadOnlyList<IQuickFix> Fixes { get; }
         public Impact HighestImpact { get; }
-
-        public string RuleDescriptionContextKey { get; }
     }
 
     public class AnalysisHotspotIssue : AnalysisIssue, IAnalysisHotspotIssue
     {
         public AnalysisHotspotIssue(Guid? id,
-            string ruleKey, 
-            AnalysisIssueSeverity? severity, 
-            AnalysisIssueType? type, 
+            string ruleKey,
+            AnalysisIssueSeverity? severity,
+            AnalysisIssueType? type,
             Impact highestImpact,
-            IAnalysisIssueLocation primaryLocation, 
-            IReadOnlyList<IAnalysisIssueFlow> flows, 
-            IReadOnlyList<IQuickFix> fixes = null, 
-            string context = null,
-            HotspotPriority? hotspotPriority = null) : 
-            base(id, ruleKey, severity, type, highestImpact, primaryLocation, flows, fixes, context)
+            IAnalysisIssueLocation primaryLocation,
+            IReadOnlyList<IAnalysisIssueFlow> flows,
+            IReadOnlyList<IQuickFix> fixes = null,
+            HotspotPriority? hotspotPriority = null) :
+            base(id, ruleKey, severity, type, highestImpact, primaryLocation, flows, fixes)
         {
             HotspotPriority = hotspotPriority;
         }
