@@ -46,7 +46,7 @@ internal class SonarErrorListEventProcessor(IEducation educationService, IErrorL
             errorListHelper.TryGetFilterableIssue(entry, out var filterableIssue);
             logger.LogVerbose(Resources.ErrorList_Processor_SonarRuleDetected, ruleId);
 
-            educationService.ShowRuleHelp(ruleId, filterableIssue?.IssueId, /* todo by SLVS-1630 */null);
+            educationService.ShowRuleHelp(ruleId, filterableIssue?.IssueId);
 
             // Mark the event as handled to stop the normal VS "show help in browser" behaviour
             handled = true;

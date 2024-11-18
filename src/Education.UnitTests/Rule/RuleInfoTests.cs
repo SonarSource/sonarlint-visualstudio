@@ -43,12 +43,13 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Rule
                 RuleIssueType.Unknown,
                 richRuleDescriptionDto: null,
                 cleanCodeAttribute: null,
-                defaultImpacts: null);
+                defaultImpacts: null,
+                selectedContextKey: null);
 
             testSubject.DefaultImpacts.Should().NotBeNull();
         }
-        
-        
+
+
         [TestMethod]
         public void Ctor_SetsProperties()
         {
@@ -57,7 +58,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Rule
             var defaultImpacts = new Dictionary<SoftwareQuality, SoftwareQualitySeverity>();
             defaultImpacts.Add(SoftwareQuality.Maintainability, SoftwareQualitySeverity.Medium);
             defaultImpacts.Add(SoftwareQuality.Reliability, SoftwareQualitySeverity.Low);
-        
+
             var testSubject = new RuleInfo(
                 "xxx:S123",
                 "a description",
@@ -66,8 +67,9 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Rule
                 RuleIssueType.Vulnerability,
                 richDescription,
                 CleanCodeAttribute.Respectful,
-                defaultImpacts);
-        
+                defaultImpacts,
+                "rule context");
+
             testSubject.FullRuleKey.Should().Be("xxx:S123");
             testSubject.Description.Should().Be("a description");
             testSubject.Name.Should().Be("the rule name");
@@ -76,6 +78,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Rule
             testSubject.RichRuleDescriptionDto.Should().BeSameAs(richDescription);
             testSubject.CleanCodeAttribute.Should().Be(CleanCodeAttribute.Respectful);
             testSubject.DefaultImpacts.Should().BeEquivalentTo(defaultImpacts);
+            testSubject.SelectedContextKey.Should().Be("rule context");
         }
     }
 }

@@ -40,7 +40,8 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             var xamlGeneratorHelperFactoryMock = new Mock<IXamlGeneratorHelperFactory>(MockBehavior.Strict);
             var xamlGeneratorHelperMock = new Mock<IXamlGeneratorHelper>(MockBehavior.Strict);
             var xamlWriterFactoryMock = new Mock<IXamlWriterFactory>(MockBehavior.Strict);
-            var ruleInfo = Mock.Of<IRuleInfo>();
+            var ruleInfo = new Mock<IRuleInfo>();
+            ruleInfo.SetupGet(x => x.SelectedContextKey).Returns(selectedIssueContext);
             XmlWriter writer = null;
             xamlWriterFactoryMock
                 .InSequence(callSequence)
@@ -56,11 +57,11 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
                 .Returns(xamlGeneratorHelperMock.Object);
             xamlGeneratorHelperMock
                 .InSequence(callSequence)
-                .Setup(x => x.WriteDocumentHeader(ruleInfo))
+                .Setup(x => x.WriteDocumentHeader(ruleInfo.Object))
                 .Callback(() => { writer.WriteStartElement("FlowDocument", "http://schemas.microsoft.com/winfx/2006/xaml/presentation"); });
             richRuleDescriptionProviderMock
                 .InSequence(callSequence)
-                .Setup(provider => provider.GetRichRuleDescriptionModel(ruleInfo))
+                .Setup(provider => provider.GetRichRuleDescriptionModel(ruleInfo.Object))
                 .Returns(richRuleDescriptionMock.Object);
             ruleInfoTranslatorFactoryMock
                 .InSequence(callSequence)
@@ -68,7 +69,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
                 .Returns(ruleInfoTranslatorMock.Object);
             richRuleDescriptionMock
                 .InSequence(callSequence)
-                .Setup(richRule => 
+                .Setup(richRule =>
                     richRule.ProduceVisualNode(It.Is<VisualizationParameters>(p =>
                         p.HtmlToXamlTranslator == ruleInfoTranslatorMock.Object && p.RelevantContext == selectedIssueContext)))
                 .Returns(visualizationNodeMock.Object);
@@ -95,7 +96,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
                 xamlGeneratorHelperFactoryMock.Object,
                 xamlWriterFactoryMock.Object);
 
-            var flowDocument = testSubject.Create(ruleInfo, selectedIssueContext);
+            var flowDocument = testSubject.Create(ruleInfo.Object);
 
             flowDocument
                 .Blocks

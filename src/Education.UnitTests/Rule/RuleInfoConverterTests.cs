@@ -171,6 +171,7 @@ public class RuleInfoConverterTests
             RuleIssueType.Vulnerability,
             null,
             null,
+            null,
             null));
     }
 
@@ -203,7 +204,8 @@ public class RuleInfoConverterTests
             new Dictionary<RuleSoftwareQuality, RuleSoftwareQualitySeverity>
             {
                 { RuleSoftwareQuality.Security, RuleSoftwareQualitySeverity.High }, { RuleSoftwareQuality.Reliability, RuleSoftwareQualitySeverity.Low }
-            }));
+            },
+            null));
     }
 
     [TestMethod]
@@ -228,6 +230,7 @@ public class RuleInfoConverterTests
             RuleIssueSeverity.Minor,
             RuleIssueType.Bug,
             ruleSplitDescriptionDto,
+            null,
             null,
             null));
     }
@@ -257,7 +260,8 @@ public class RuleInfoConverterTests
             null,
             ruleSplitDescriptionDto,
             RuleCleanCodeAttribute.Respectful,
-            new Dictionary<RuleSoftwareQuality, RuleSoftwareQualitySeverity> { { RuleSoftwareQuality.Maintainability, RuleSoftwareQualitySeverity.Medium } }));
+            new Dictionary<RuleSoftwareQuality, RuleSoftwareQualitySeverity> { { RuleSoftwareQuality.Maintainability, RuleSoftwareQualitySeverity.Medium } },
+            null));
     }
 
     [DataTestMethod]
@@ -268,7 +272,6 @@ public class RuleInfoConverterTests
     [DataRow(IssueSeverity.MINOR, RuleIssueSeverity.Minor)]
     public void Convert_IssueDetails_CorrectlyConvertsSeverity(IssueSeverity slCore, RuleIssueSeverity expected)
     {
-        Guid.NewGuid();
         var ruleDetails = CreateEffectiveIssueDetailsDto(new StandardModeDetails(slCore, default));
 
         var ruleInfo = testSubject.Convert(ruleDetails);
@@ -283,7 +286,6 @@ public class RuleInfoConverterTests
     [DataRow(RuleType.SECURITY_HOTSPOT, RuleIssueType.Hotspot)]
     public void Convert_IssueDetails_CorrectlyConvertsType(RuleType slCore, RuleIssueType expected)
     {
-        Guid.NewGuid();
         var ruleDetails = CreateEffectiveIssueDetailsDto(new StandardModeDetails(default, slCore));
 
         var ruleInfo = testSubject.Convert(ruleDetails);
@@ -308,7 +310,6 @@ public class RuleInfoConverterTests
     [DataRow(CleanCodeAttribute.TRUSTWORTHY, RuleCleanCodeAttribute.Trustworthy)]
     public void Convert_IssueDetails_CorrectlyConvertsCleanCodeAttribute(CleanCodeAttribute slCore, RuleCleanCodeAttribute expected)
     {
-        Guid.NewGuid();
         var ruleDetails = CreateEffectiveIssueDetailsDto(new MQRModeDetails(slCore, default));
 
         var ruleInfo = testSubject.Convert(ruleDetails);
@@ -319,7 +320,6 @@ public class RuleInfoConverterTests
     [TestMethod]
     public void Convert_IssueDetails_CorrectlyConvertsImpacts()
     {
-        Guid.NewGuid();
         var ruleDetails = CreateEffectiveIssueDetailsDto(new MQRModeDetails(default, [
             new ImpactDto(SoftwareQuality.SECURITY, ImpactSeverity.HIGH),
             new ImpactDto(SoftwareQuality.RELIABILITY, ImpactSeverity.LOW),
@@ -339,7 +339,6 @@ public class RuleInfoConverterTests
     [TestMethod]
     public void Convert_IssueDetails_Standard_SimpleRuleDescription()
     {
-        Guid.NewGuid();
         var ruleDetails = CreateEffectiveIssueDetailsDto(new StandardModeDetails(IssueSeverity.CRITICAL, RuleType.VULNERABILITY),
             Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateLeft(
                 new RuleMonolithicDescriptionDto("content")));
@@ -353,13 +352,13 @@ public class RuleInfoConverterTests
             RuleIssueType.Vulnerability,
             null,
             null,
+            null,
             null));
     }
 
     [TestMethod]
     public void Convert_IssueDetails_MQR_SimpleRuleDescription()
     {
-        Guid.NewGuid();
         var ruleDetails = CreateEffectiveIssueDetailsDto(new MQRModeDetails(CleanCodeAttribute.MODULAR, default), Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateLeft(
             new RuleMonolithicDescriptionDto("content")));
 
@@ -372,13 +371,13 @@ public class RuleInfoConverterTests
             null,
             null,
             RuleCleanCodeAttribute.Modular,
+            null,
             null));
     }
 
     [TestMethod]
     public void Convert_IssueDetails_Standard_RichRuleDescription()
     {
-        Guid.NewGuid();
         var ruleSplitDescriptionDto = new RuleSplitDescriptionDto("intro", new List<RuleDescriptionTabDto>());
         var ruleDetails = CreateEffectiveIssueDetailsDto(new StandardModeDetails(IssueSeverity.MINOR, RuleType.BUG),
             Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateRight(ruleSplitDescriptionDto));
@@ -392,13 +391,13 @@ public class RuleInfoConverterTests
             RuleIssueType.Bug,
             ruleSplitDescriptionDto,
             null,
+            null,
             null));
     }
 
     [TestMethod]
     public void Convert_IssueDetails_MQR_RichRuleDescription()
     {
-        Guid.NewGuid();
         var ruleSplitDescriptionDto = new RuleSplitDescriptionDto("intro", new List<RuleDescriptionTabDto>());
         var ruleDetails = CreateEffectiveIssueDetailsDto(new MQRModeDetails(CleanCodeAttribute.RESPECTFUL, default),
             Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>.CreateRight(ruleSplitDescriptionDto));
@@ -412,12 +411,27 @@ public class RuleInfoConverterTests
             null,
             ruleSplitDescriptionDto,
             RuleCleanCodeAttribute.Respectful,
+            null,
             null));
+    }
+
+    [DataTestMethod]
+    [DataRow("key1")]
+    [DataRow("key 1 2 3")]
+    [DataRow(null)]
+    public void Convert_IssueDetails_ContextKey(string key)
+    {
+        var effectiveIssueDetailsDto = CreateEffectiveIssueDetailsDto(new StandardModeDetails(default, default), ruleDescriptionContextKey: key);
+
+        var ruleInfo = testSubject.Convert(effectiveIssueDetailsDto);
+
+        ruleInfo.SelectedContextKey.Should().BeSameAs(key);
     }
 
     private static EffectiveIssueDetailsDto CreateEffectiveIssueDetailsDto(
         Either<StandardModeDetails, MQRModeDetails> severityDetails,
-        Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description = default) =>
+        Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description = default,
+        string ruleDescriptionContextKey = default) =>
         new(
             default,
             default,
@@ -426,5 +440,5 @@ public class RuleInfoConverterTests
             description,
             default,
             severityDetails,
-            default);
+            ruleDescriptionContextKey);
 }

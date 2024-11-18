@@ -46,7 +46,7 @@ public class IssueDetailDtoToAnalysisIssueConverterTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<IssueDetailDtoToAnalysisIssueConverter>();
     }
-    
+
     [TestMethod]
     public void Convert_CalculatesChecksumForCodeSnippet()
     {
@@ -74,7 +74,7 @@ public class IssueDetailDtoToAnalysisIssueConverterTests
 
         issue.PrimaryLocation.TextRange.LineHash.Should().BeSameAs(checksum);
     }
-    
+
     [TestMethod]
     public void Convert_PathTranslated()
     {
@@ -98,7 +98,7 @@ public class IssueDetailDtoToAnalysisIssueConverterTests
 
         issue.PrimaryLocation.FilePath.Should().Be("some\\path\\ide\\path");
     }
-    
+
     [TestMethod]
     public void Convert_PrimaryRangeAndMessagePreserved()
     {
@@ -128,7 +128,7 @@ public class IssueDetailDtoToAnalysisIssueConverterTests
         issue.PrimaryLocation.Message.Should().BeSameAs(message);
         issue.PrimaryLocation.TextRange.Should().BeEquivalentTo(new TextRange(startLine, endLine, startLineOffset, endLineOffset, "hash"), options => options.Excluding(info => info.LineHash));
     }
-    
+
     [TestMethod]
     public void Convert_RuleKeyPreserved()
     {
@@ -150,28 +150,7 @@ public class IssueDetailDtoToAnalysisIssueConverterTests
 
         issue.RuleKey.Should().BeSameAs(ruleKey);
     }
-    
-    [TestMethod]
-    public void Convert_RuleDescriptionContextSetToDefault()
-    {
-        var testSubject = new IssueDetailDtoToAnalysisIssueConverter(Substitute.For<IChecksumCalculator>());
 
-        var issue = testSubject.Convert(new IssueDetailDto("key",
-                "rule",
-                "ide\\path",
-                "branch",
-                "pr",
-                "msg",
-                "today",
-                "codeSnippet",
-                false,
-                null,
-                new TextRangeDto(1, 2, 3, 4)),
-            "some\\path");
-
-        issue.RuleDescriptionContextKey.Should().BeNull();
-    }
-    
     [TestMethod]
     public void Convert_FlowsPreservedWithPathTranslation()
     {

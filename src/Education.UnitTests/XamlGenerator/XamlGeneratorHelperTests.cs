@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
             var sb = new StringBuilder();
             var xmlWriter = new XamlWriterFactory().Create(sb);
             var ruleInfo = new RuleInfo("cs:123", "<p>Hi</p>", "Hi", RuleIssueSeverity.Critical,
-                RuleIssueType.Vulnerability, null, null, null);
+                RuleIssueType.Vulnerability, null, null, null, null);
             IXamlGeneratorHelper testSubject = CreateTestSubject(xmlWriter);
 
             testSubject.WriteDocumentHeader(ruleInfo);
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
                     { SoftwareQuality.Maintainability, SoftwareQualitySeverity.High},
                     { SoftwareQuality.Security, SoftwareQualitySeverity.Low},
                     { SoftwareQuality.Reliability, SoftwareQualitySeverity.Medium},
-                });
+                }, null);
             IXamlGeneratorHelper testSubject = CreateTestSubject(xmlWriter);
 
             testSubject.WriteDocumentHeader(ruleInfo);

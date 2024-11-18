@@ -38,7 +38,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         string FileName { get; }
         string Description { get; }
         string RuleKey { get; }
-        string RuleDescriptionContextKey { get; }
         IAnalysisIssueVisualization CurrentIssue { get; }
         IAnalysisIssueFlowVisualization CurrentFlow { get; set; }
         IReadOnlyList<ILocationListItem> LocationListItems { get; }
@@ -120,8 +119,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         public string Description => CurrentIssue?.Issue?.PrimaryLocation.Message;
 
         public string RuleKey => CurrentIssue?.Issue?.RuleKey;
-
-        public string RuleDescriptionContextKey => CurrentIssue?.Issue?.RuleDescriptionContextKey;
 
         public IAnalysisIssueVisualization CurrentIssue
         {

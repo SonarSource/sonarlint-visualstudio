@@ -84,7 +84,7 @@ public class EducationTests
         var flowDocument = MockFlowDocument();
         toolWindowService.GetToolWindow<RuleHelpToolWindow, IRuleHelpToolWindow>().Returns(ruleDescriptionToolWindow);
 
-        testSubject.ShowRuleHelp(knownRule, null, null);
+        testSubject.ShowRuleHelp(knownRule, null);
 
         VerifyGetsRuleInfoForCorrectRuleId(knownRule);
         VerifyRuleIsDisplayedInIde(flowDocument);
@@ -94,9 +94,9 @@ public class EducationTests
     [TestMethod]
     public void ShowRuleHelp_FailedToDisplayRule_RuleIsShownInBrowser()
     {
-        ruleHelpXamlBuilder.When(x => x.Create(ruleInfo, /* todo by SLVS-1630 */ null)).Do(x => throw new Exception("some layout error"));
+        ruleHelpXamlBuilder.When(x => x.Create(ruleInfo)).Do(x => throw new Exception("some layout error"));
 
-        testSubject.ShowRuleHelp(knownRule, null, /* todo by SLVS-1630 */ null);
+        testSubject.ShowRuleHelp(knownRule, null);
 
         VerifyGetsRuleInfoForCorrectRuleId(knownRule);
         VerifyRuleShownInBrowser(knownRule);
@@ -106,7 +106,7 @@ public class EducationTests
     [TestMethod]
     public void ShowRuleHelp_UnknownRule_RuleIsShownInBrowser()
     {
-        testSubject.ShowRuleHelp(unknownRule, null, /* todo by SLVS-1630 */ null);
+        testSubject.ShowRuleHelp(unknownRule, null);
 
         VerifyGetsRuleInfoForCorrectRuleId(unknownRule);
         VerifyRuleShownInBrowser(unknownRule);
@@ -118,7 +118,7 @@ public class EducationTests
     {
         var issueId = Guid.NewGuid();
 
-        testSubject.ShowRuleHelp(knownRule, issueId, null);
+        testSubject.ShowRuleHelp(knownRule, issueId);
 
         ruleMetadataProvider.Received(1).GetRuleInfoAsync(knownRule, issueId);
     }
@@ -145,7 +145,7 @@ public class EducationTests
 
     private void VerifyRuleIsDisplayedInIde(FlowDocument flowDocument)
     {
-        ruleHelpXamlBuilder.Received(1).Create(ruleInfo, /* todo by SLVS-1630 */ null);
+        ruleHelpXamlBuilder.Received(1).Create(ruleInfo);
         ruleDescriptionToolWindow.Received(1).UpdateContent(flowDocument);
         VerifyToolWindowShown();
     }
@@ -157,7 +157,7 @@ public class EducationTests
     private FlowDocument MockFlowDocument()
     {
         var flowDocument = Substitute.For<FlowDocument>();
-        ruleHelpXamlBuilder.Create(ruleInfo, /* todo by SLVS-1630 */ null).Returns(flowDocument);
+        ruleHelpXamlBuilder.Create(ruleInfo).Returns(flowDocument);
         return flowDocument;
     }
 }

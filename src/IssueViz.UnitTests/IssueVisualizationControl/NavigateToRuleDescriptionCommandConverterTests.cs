@@ -21,103 +21,86 @@
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualizationControl
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualizationControl;
+
+[TestClass]
+public class NavigateToRuleDescriptionCommandConverterTests
 {
-    [TestClass]
-    public class NavigateToRuleDescriptionCommandConverterTests
+    private readonly NavigateToRuleDescriptionCommandConverter testSubject = new NavigateToRuleDescriptionCommandConverter();
+
+    [TestMethod]
+    public void Convert_WrongNumberOfParams_ReturnsNull()
     {
-        private readonly NavigateToRuleDescriptionCommandConverter testSubject = new NavigateToRuleDescriptionCommandConverter();
+        var values = new object[] { "RuleKey", "context", "third param" };
 
-        [TestMethod]
-        public void Convert_CorrectFormat_Converts()
+        var command = testSubject.Convert(values, default, default, default);
+
+        command.Should().BeNull();
+    }
+
+    [DataRow("str", 3)]
+    [DataRow(3, "str")]
+    [DataRow(3, 3)]
+    [TestMethod]
+    public void Convert_WrongTypes_ReturnsNull(object param1, object param2)
+    {
+        var values = new object[] { param1, param2 };
+
+        var command = testSubject.Convert(values, default, default, default);
+
+        command.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void ConvertBack_CorrectType_ReturnsNull()
+    {
+        using (new AssertIgnoreScope())
         {
-            var values = new object[] { "RuleKey", "context" };
+            var command = new NavigateToRuleDescriptionCommandParam { FullRuleKey = "FullRuleKey" };
 
-            var command = testSubject.Convert(values, default, default, default);
+            var values = testSubject.ConvertBack(command, default, default, default);
 
-            (command is NavigateToRuleDescriptionCommandParam).Should().BeTrue();
-            ((NavigateToRuleDescriptionCommandParam)command).FullRuleKey.Should().Be("RuleKey");
-            ((NavigateToRuleDescriptionCommandParam)command).Context.Should().Be("context");
+            values.Should().BeNull();
         }
+    }
 
-        [TestMethod]
-        public void Convert_WrongNumberOfParams_IgnoresAdditionalParameter()
+    [TestMethod]
+    public void ConvertBack_WrongType_ReturnsValues()
+    {
+        using (new AssertIgnoreScope())
         {
-            var values = new object[] { "RuleKey", "context", "third param", "fourth param" };
+            var value = "Some str object";
 
-            var command = testSubject.Convert(values, default, default, default);
+            var values = testSubject.ConvertBack(value, default, default, default);
 
-            (command is NavigateToRuleDescriptionCommandParam).Should().BeTrue();
-            ((NavigateToRuleDescriptionCommandParam)command).FullRuleKey.Should().Be("RuleKey");
-            ((NavigateToRuleDescriptionCommandParam)command).Context.Should().Be("context");
+            values.Should().BeNull();
         }
+    }
 
-        [DataRow("str", 3)]
-        [DataRow(3, "str")]
-        [DataRow(3, 3)]
-        [TestMethod]
-        public void Convert_WrongTypes_ReturnsNull(object param1, object param2)
-        {
-            var values = new object[] { param1, param2 };
+    [TestMethod]
+    public void Convert_WithIssueId_SetsIssueId()
+    {
+        var issuedId = Guid.NewGuid();
+        var values = new object[] { "RuleKey", issuedId };
 
-            var command = testSubject.Convert(values, default, default, default);
+        var command = testSubject.Convert(values, default, default, default);
 
-            command.Should().BeNull();
-        }
+        var navigateToRuleDescriptionParam = command as NavigateToRuleDescriptionCommandParam;
+        navigateToRuleDescriptionParam.Should().NotBeNull();
+        navigateToRuleDescriptionParam.FullRuleKey.Should().Be("RuleKey");
+        navigateToRuleDescriptionParam.IssueId.Should().Be(issuedId);
+    }
 
-        [TestMethod]
-        public void ConvertBack_CorrectType_ReturnsNull()
-        {
-            using (new AssertIgnoreScope())
-            {
-                var command = new NavigateToRuleDescriptionCommandParam { FullRuleKey = "FullRuleKey", Context = "Context" };
+    [TestMethod]
+    public void Convert_WithoutIssueId_SetsIssueIdToNull()
+    {
+        var values = new object[] { "RuleKey", null };
 
-                var values = testSubject.ConvertBack(command, default, default, default);
+        var command = testSubject.Convert(values, default, default, default);
 
-                values.Should().BeNull();
-            }
-        }
-
-        [TestMethod]
-        public void ConvertBack_WrongType_ReturnsValues()
-        {
-            using (new AssertIgnoreScope())
-            {
-                var value = "Some str object";
-
-                var values = testSubject.ConvertBack(value, default, default, default);
-
-                values.Should().BeNull();
-            }
-        }
-
-        [TestMethod]
-        public void Convert_ThirdOptionalValueProvided_SetsIssueId()
-        {
-            var issuedId = Guid.NewGuid();
-            var values = new object[] { "RuleKey", "context", issuedId };
-
-            var command = testSubject.Convert(values, default, default, default);
-
-            var navigateToRuleDescriptionParam = command as NavigateToRuleDescriptionCommandParam;
-            navigateToRuleDescriptionParam.Should().NotBeNull();
-            navigateToRuleDescriptionParam.FullRuleKey.Should().Be("RuleKey");
-            navigateToRuleDescriptionParam.Context.Should().Be("context");
-            navigateToRuleDescriptionParam.IssueId.Should().Be(issuedId);
-        }
-
-        [TestMethod]
-        public void Convert_ThirdOptionalValueIsNull_SetsIssueIdToNull()
-        {
-            var values = new object[] { "RuleKey", "context", null };
-
-            var command = testSubject.Convert(values, default, default, default);
-
-            var navigateToRuleDescriptionParam = command as NavigateToRuleDescriptionCommandParam;
-            navigateToRuleDescriptionParam.Should().NotBeNull();
-            navigateToRuleDescriptionParam.FullRuleKey.Should().Be("RuleKey");
-            navigateToRuleDescriptionParam.Context.Should().Be("context");
-            navigateToRuleDescriptionParam.IssueId.Should().BeNull();
-        }
+        var navigateToRuleDescriptionParam = command as NavigateToRuleDescriptionCommandParam;
+        navigateToRuleDescriptionParam.Should().NotBeNull();
+        navigateToRuleDescriptionParam.FullRuleKey.Should().Be("RuleKey");
+        navigateToRuleDescriptionParam.IssueId.Should().BeNull();
     }
 }

@@ -115,7 +115,6 @@
                                     <Hyperlink.CommandParameter>
                                         <MultiBinding Converter="{StaticResource NavigateToRuleDescriptionCommandConverter}">
                                             <Binding Path="Hotspot.Issue.RuleKey" />
-                                            <Binding Path="Hotspot.Issue.RuleDescriptionContextKey" />
                                             <Binding Path="Hotspot.Issue.Id" />
                                         </MultiBinding>
                                     </Hyperlink.CommandParameter>

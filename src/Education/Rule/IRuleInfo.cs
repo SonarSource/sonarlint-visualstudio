@@ -70,6 +70,11 @@ namespace SonarLint.VisualStudio.Education.Rule
         /// </summary>
         string Description { get; }
 
+        /// <summary>
+        /// Represents the context key that is used to pre-select the most relevant contextual section. Can be null, in which case the default key of the section should be used.
+        /// </summary>
+        string SelectedContextKey { get; }
+
         RuleSplitDescriptionDto RichRuleDescriptionDto { get; }
 
         CleanCodeAttribute? CleanCodeAttribute { get; }
@@ -79,9 +84,16 @@ namespace SonarLint.VisualStudio.Education.Rule
 
     public class RuleInfo : IRuleInfo
     {
-        public RuleInfo(string fullRuleKey, string description, string name,
-            RuleIssueSeverity? severity, RuleIssueType? issueType, RuleSplitDescriptionDto richRuleDescriptionDto,
-            CleanCodeAttribute? cleanCodeAttribute, Dictionary<SoftwareQuality, SoftwareQualitySeverity> defaultImpacts)
+        public RuleInfo(
+            string fullRuleKey,
+            string description,
+            string name,
+            RuleIssueSeverity? severity,
+            RuleIssueType? issueType,
+            RuleSplitDescriptionDto richRuleDescriptionDto,
+            CleanCodeAttribute? cleanCodeAttribute,
+            Dictionary<SoftwareQuality, SoftwareQualitySeverity> defaultImpacts,
+            string selectedContextKey)
         {
             FullRuleKey = fullRuleKey;
             Description = description;
@@ -91,6 +103,7 @@ namespace SonarLint.VisualStudio.Education.Rule
             RichRuleDescriptionDto = richRuleDescriptionDto;
             CleanCodeAttribute = cleanCodeAttribute;
             DefaultImpacts = defaultImpacts ?? new Dictionary<SoftwareQuality, SoftwareQualitySeverity>();
+            SelectedContextKey = selectedContextKey;
         }
 
         public string FullRuleKey { get; private set; }
@@ -102,6 +115,7 @@ namespace SonarLint.VisualStudio.Education.Rule
         public RuleIssueType? IssueType { get; private set; }
 
         public string Description { get; private set; }
+        public string SelectedContextKey { get; }
 
         public RuleSplitDescriptionDto RichRuleDescriptionDto { get; set; }
 

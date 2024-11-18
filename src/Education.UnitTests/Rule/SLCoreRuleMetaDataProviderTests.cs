@@ -36,7 +36,7 @@ public class SLCoreRuleMetaDataProviderTests
 {
     private readonly SonarCompositeRuleId compositeRuleId = new("rule", "key1");
     private readonly ConfigurationScope configurationScope = new("id");
-    private readonly RuleInfo defaultRuleInfo = new(default, default, default, default, default, default, default, default);
+    private readonly RuleInfo defaultRuleInfo = new(default, default, default, default, default, default, default, default, default);
     private readonly EffectiveIssueDetailsDto effectiveIssueDetailsDto = new(default, default, default, default, default, default, default, default);
     private readonly string errorMessage = "my message";
     private readonly Guid issueId = Guid.NewGuid();

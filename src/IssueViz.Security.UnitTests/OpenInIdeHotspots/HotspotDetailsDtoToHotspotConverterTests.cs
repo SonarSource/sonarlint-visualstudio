@@ -47,7 +47,7 @@ public class HotspotDetailsDtoToHotspotConverterTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<HotspotDetailsDtoToHotspotConverter>();
     }
-    
+
     [TestMethod]
     public void Convert_CalculatesChecksumForCodeSnippet()
     {
@@ -76,7 +76,7 @@ public class HotspotDetailsDtoToHotspotConverterTests
 
         hotspot.PrimaryLocation.TextRange.LineHash.Should().BeSameAs(checksum);
     }
-    
+
     [TestMethod]
     public void Convert_PathTranslated()
     {
@@ -101,7 +101,7 @@ public class HotspotDetailsDtoToHotspotConverterTests
 
         hotspot.PrimaryLocation.FilePath.Should().Be("some\\path\\ide\\path");
     }
-    
+
     [TestMethod]
     public void Convert_PrimaryRangeAndMessagePreserved()
     {
@@ -132,7 +132,7 @@ public class HotspotDetailsDtoToHotspotConverterTests
         hotspot.PrimaryLocation.Message.Should().BeSameAs(message);
         hotspot.PrimaryLocation.TextRange.Should().BeEquivalentTo(new TextRange(startLine, endLine, startLineOffset, endLineOffset, "hash"), options => options.Excluding(info => info.LineHash));
     }
-    
+
     [TestMethod]
     public void Convert_RuleKeyPreserved()
     {
@@ -158,13 +158,13 @@ public class HotspotDetailsDtoToHotspotConverterTests
 
         hotspot.RuleKey.Should().BeSameAs(ruleKey);
     }
-    
+
     [TestMethod]
     public void Convert_HotspotKeyPreserved()
     {
         const string hotspotKey = "hotspotKey123";
         var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
-    
+
         var hotspot = testSubject.Convert(new HotspotDetailsDto(hotspotKey,
                 "msg",
                 "ide\\path",
@@ -181,10 +181,10 @@ public class HotspotDetailsDtoToHotspotConverterTests
                     "fix recomendations"),
                 "code snippet"),
             "some\\path").Should().BeOfType<Hotspot>().Subject;
-    
+
         hotspot.HotspotKey.Should().BeSameAs(hotspotKey);
     }
-    
+
     [TestMethod]
     public void Convert_HotspotRulePreserved()
     {
@@ -215,7 +215,7 @@ public class HotspotDetailsDtoToHotspotConverterTests
         hotspot.Rule.VulnerabilityDescription.Should().BeSameAs(hotspotRuleDto.vulnerabilityDescription);
         hotspot.Rule.FixRecommendations.Should().BeSameAs(hotspotRuleDto.fixRecommendations);
     }
-    
+
     [DataTestMethod]
     [DataRow("LOW", HotspotPriority.Low)]
     [DataRow("low", HotspotPriority.Low)]
@@ -250,7 +250,7 @@ public class HotspotDetailsDtoToHotspotConverterTests
 
         hotspot.Rule.Priority.Should().Be(priority);
     }
-    
+
     [TestMethod]
     public void Convert_PriorityOutOfRange_Throws()
     {
@@ -302,7 +302,7 @@ public class HotspotDetailsDtoToHotspotConverterTests
     }
 
     [TestMethod]
-    public void Convert_FlowsAndRuleDescriptionContextSetToDefault()
+    public void Convert_Flows()
     {
         var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
 
@@ -324,6 +324,5 @@ public class HotspotDetailsDtoToHotspotConverterTests
             "some\\path");
 
         hotspot.Flows.Should().BeEmpty();
-        hotspot.RuleDescriptionContextKey.Should().BeNull();
     }
 }

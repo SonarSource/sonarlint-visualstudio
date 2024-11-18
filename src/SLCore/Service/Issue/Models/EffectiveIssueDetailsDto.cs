@@ -33,4 +33,4 @@ public record EffectiveIssueDetailsDto(
     [JsonConverter(typeof(EitherJsonConverter<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto>))] Either<RuleMonolithicDescriptionDto, RuleSplitDescriptionDto> description,
     [JsonProperty("params")] List<EffectiveRuleParamDto> parameters,
     [JsonConverter(typeof(EitherJsonConverter<StandardModeDetails, MQRModeDetails>))] Either<StandardModeDetails, MQRModeDetails> severityDetails,
-    string ruleDescriptionContextKey) : IRuleDetails;
+    string ruleDescriptionContextKey) : IRelevantContextRuleDetails;

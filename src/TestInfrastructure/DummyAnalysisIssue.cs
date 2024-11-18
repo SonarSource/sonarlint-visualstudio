@@ -40,6 +40,4 @@ public class DummyAnalysisIssue : IAnalysisIssue
     public IAnalysisIssueLocation PrimaryLocation { get; set; } = new DummyAnalysisIssueLocation();
 
     public IReadOnlyList<IQuickFix> Fixes { get; } = Array.Empty<IQuickFix>();
-
-    public string RuleDescriptionContextKey { get; set; }
 }

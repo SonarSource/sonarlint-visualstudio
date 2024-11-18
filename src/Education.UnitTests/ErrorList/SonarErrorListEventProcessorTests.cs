@@ -74,7 +74,7 @@ public class SonarErrorListEventProcessorTests
 
         errorListHelper.Received(1).TryGetRuleId(handle, out _);
         education.ReceivedCalls().Should().HaveCount(1);
-        education.Received(1).ShowRuleHelp(ruleId, null, /* todo by SLVS-1630 */ null);
+        education.Received(1).ShowRuleHelp(ruleId, null);
         eventArgs.Handled.Should().BeTrue();
     }
 
@@ -90,7 +90,7 @@ public class SonarErrorListEventProcessorTests
         testSubject.PreprocessNavigateToHelp(handle, new TableEntryEventArgs());
 
         education.ReceivedCalls().Should().HaveCount(1);
-        education.Received(1).ShowRuleHelp(ruleId, filterableIssue.IssueId, null);
+        education.Received(1).ShowRuleHelp(ruleId, filterableIssue.IssueId);
     }
 
     private void MockGetFilterableIssue(bool getFilterableIssueResult) =>
