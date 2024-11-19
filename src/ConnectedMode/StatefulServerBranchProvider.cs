@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             logger.LogVerbose(Resources.StatefulBranchProvider_BindingUpdated);
             selectedBranch = null;
 
-            threadHandling.RunOnBackgroundThread(NotifySlCoreBranchChange).Forget();
+            NotifySlCoreBranchChange();
         }
 
         private void OnPreSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
@@ -75,18 +75,23 @@ namespace SonarLint.VisualStudio.ConnectedMode
             logger.LogVerbose(Resources.StatefulBranchProvider_BindingChanged);
             selectedBranch = null;
 
-            threadHandling.RunOnBackgroundThread(NotifySlCoreBranchChange).Forget();
+            NotifySlCoreBranchChange();
         }
 
-        private void NotifySlCoreBranchChange()
-        {
-            if (!serviceProvider.TryGetTransientService(out ISonarProjectBranchSlCoreService sonarProjectBranchSlCoreService))
+        private void NotifySlCoreBranchChange() =>
+            threadHandling.RunOnBackgroundThread(() =>
             {
-                logger.LogVerbose(SLCoreStrings.ServiceProviderNotInitialized);
-                return;
-            }
-            sonarProjectBranchSlCoreService.DidVcsRepositoryChange(new DidVcsRepositoryChangeParams(activeConfigScopeTracker.Current.Id));
-        }
+                if (!serviceProvider.TryGetTransientService(out ISonarProjectBranchSlCoreService sonarProjectBranchSlCoreService))
+                {
+                    logger.LogVerbose(SLCoreStrings.ServiceProviderNotInitialized);
+                    return;
+                }
+                if (activeConfigScopeTracker.Current == null)
+                {
+                    return;
+                }
+                sonarProjectBranchSlCoreService.DidVcsRepositoryChange(new DidVcsRepositoryChangeParams(activeConfigScopeTracker.Current.Id));
+            }).Forget();
 
         public async Task<string> GetServerBranchNameAsync(CancellationToken token)
         {
