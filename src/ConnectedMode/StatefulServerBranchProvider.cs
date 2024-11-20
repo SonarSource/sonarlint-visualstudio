@@ -58,8 +58,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
             this.logger = logger;
             this.threadHandling = threadHandling;
 
-            activeSolutionBoundTracker.PreSolutionBindingChanged += OnPreSolutionBindingChanged;
             activeSolutionBoundTracker.PreSolutionBindingUpdated += OnPreSolutionBindingUpdated;
+            activeSolutionBoundTracker.PreSolutionBindingChanged += OnPreSolutionBindingChanged;
         }
 
         private void OnPreSolutionBindingUpdated(object sender, EventArgs e)
@@ -75,7 +75,10 @@ namespace SonarLint.VisualStudio.ConnectedMode
             logger.LogVerbose(Resources.StatefulBranchProvider_BindingChanged);
             selectedBranch = null;
 
-            NotifySlCoreBranchChange();
+            if(e.Configuration.Mode.IsInAConnectedMode())
+            {
+                NotifySlCoreBranchChange();
+            }
         }
 
         private void NotifySlCoreBranchChange() =>
