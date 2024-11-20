@@ -18,12 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.SLCore;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.Branch;
+using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.ConnectedMode
 {
@@ -33,6 +35,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
     {
         private readonly IServerBranchProvider serverBranchProvider;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
+        private readonly ISLCoreServiceProvider serviceProvider;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
         private bool disposedValue;
@@ -42,29 +46,55 @@ namespace SonarLint.VisualStudio.ConnectedMode
         public StatefulServerBranchProvider(
             IServerBranchProvider serverBranchProvider,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            IActiveConfigScopeTracker activeConfigScopeTracker,
+            ISLCoreServiceProvider serviceProvider,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             this.serverBranchProvider = serverBranchProvider;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.activeConfigScopeTracker = activeConfigScopeTracker;
+            this.serviceProvider = serviceProvider;
             this.logger = logger;
             this.threadHandling = threadHandling;
 
-            activeSolutionBoundTracker.PreSolutionBindingChanged += OnPreSolutionBindingChanged;
             activeSolutionBoundTracker.PreSolutionBindingUpdated += OnPreSolutionBindingUpdated;
+            activeSolutionBoundTracker.PreSolutionBindingChanged += OnPreSolutionBindingChanged;
         }
 
         private void OnPreSolutionBindingUpdated(object sender, EventArgs e)
         {
             logger.LogVerbose(Resources.StatefulBranchProvider_BindingUpdated);
             selectedBranch = null;
+
+            NotifySlCoreBranchChange();
         }
 
         private void OnPreSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
             logger.LogVerbose(Resources.StatefulBranchProvider_BindingChanged);
             selectedBranch = null;
+
+            if(e.Configuration.Mode.IsInAConnectedMode())
+            {
+                NotifySlCoreBranchChange();
+            }
         }
+
+        private void NotifySlCoreBranchChange() =>
+            threadHandling.RunOnBackgroundThread(() =>
+            {
+                if (!serviceProvider.TryGetTransientService(out ISonarProjectBranchSlCoreService sonarProjectBranchSlCoreService))
+                {
+                    logger.LogVerbose(SLCoreStrings.ServiceProviderNotInitialized);
+                    return;
+                }
+                if (activeConfigScopeTracker.Current == null)
+                {
+                    return;
+                }
+                sonarProjectBranchSlCoreService.DidVcsRepositoryChange(new DidVcsRepositoryChangeParams(activeConfigScopeTracker.Current.Id));
+            }).Forget();
 
         public async Task<string> GetServerBranchNameAsync(CancellationToken token)
         {

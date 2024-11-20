@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Branch;
 
@@ -26,16 +27,16 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
 {
     [Export(typeof(ISLCoreListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class BranchListener : IBranchListener
+    [method: ImportingConstructor]
+    public class BranchListener(IStatefulServerBranchProvider statefulServerBranchProvider) : IBranchListener
     {
         /// <summary>
-        /// Stub method for compability with SLCore. TODO https://github.com/SonarSource/sonarlint-visualstudio/issues/5401
+        /// Request to calculate the matching branch between the local project and the sonar server
         /// </summary>
-        /// <param name="parameters">Parameter's here for compability we discard it</param>
-        /// <remarks>This will be implemented properly in the future when needed but features we support does not need branch awareness for now</remarks>
-        public Task<MatchSonarProjectBranchResponse> MatchSonarProjectBranchAsync(MatchSonarProjectBranchParams parameters)
+        public async Task<MatchSonarProjectBranchResponse> MatchSonarProjectBranchAsync(MatchSonarProjectBranchParams parameters)
         {
-            return Task.FromResult(new MatchSonarProjectBranchResponse(parameters.mainSonarBranchName));
+            var matchingBranchName = await statefulServerBranchProvider.GetServerBranchNameAsync(CancellationToken.None);
+            return new MatchSonarProjectBranchResponse(matchingBranchName);
         }
 
         /// <summary>
