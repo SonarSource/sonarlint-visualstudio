@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Branch;
 
@@ -26,10 +27,21 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
     [TestClass]
     public class BranchListenerTests
     {
+        private IStatefulServerBranchProvider statefulServerBranchProvider;
+        private BranchListener testSubject;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            statefulServerBranchProvider = Substitute.For<IStatefulServerBranchProvider>();
+            testSubject = new BranchListener(statefulServerBranchProvider);
+        }
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<BranchListener, ISLCoreListener>();
+            MefTestHelpers.CheckTypeCanBeImported<BranchListener, ISLCoreListener>(
+                MefTestHelpers.CreateExport<IStatefulServerBranchProvider>());
         }
 
         [TestMethod]
@@ -39,17 +51,19 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
         }
 
         [TestMethod]
-        public async Task MatchSonarProjectBranch_ReturnsMainBranch()
+        public async Task MatchSonarProjectBranch_ReturnsCalculatedBranch()
         {
+            const string checkedOutBranch = "branch2";
+
+            statefulServerBranchProvider.GetServerBranchNameAsync(CancellationToken.None).Returns(checkedOutBranch);
+
             var param = new MatchSonarProjectBranchParams("scopeId",
                 "mainBranch",
-                new List<string> { "branch1", "branch2", "mainBranch" });
-
-            var testSubject = new BranchListener();
+                ["branch1", "branch2", "mainBranch"]);
 
             var result = await testSubject.MatchSonarProjectBranchAsync(param);
 
-            result.matchedSonarBranch.Should().Be("mainBranch");
+            result.matchedSonarBranch.Should().Be(checkedOutBranch);
         }
 
         [TestMethod]
@@ -58,8 +72,6 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
         [DataRow("something")]
         public void DidChangeMatchedSonarProjectBranch_ReturnsTaskCompleted(object parameter)
         {
-            var testSubject = new BranchListener();
-
             var result = testSubject.DidChangeMatchedSonarProjectBranchAsync(parameter);
 
             result.Should().Be(Task.CompletedTask);
@@ -68,8 +80,6 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests
         [TestMethod]
         public async Task MatchProjectBranchAsync_ReturnsAlwaysTrue()
         {
-            var testSubject = new BranchListener();
-
             var response = await testSubject.MatchProjectBranchAsync(new MatchProjectBranchParams("my_config_scope_id", "the_branch_name"));
 
             response.Should().BeEquivalentTo(new MatchProjectBranchResponse(true));

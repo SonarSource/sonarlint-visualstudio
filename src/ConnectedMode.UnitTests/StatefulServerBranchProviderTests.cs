@@ -18,11 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.SLCore;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.Branch;
+using SonarLint.VisualStudio.SLCore.State;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
@@ -30,12 +31,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
     [TestClass]
     public class StatefulServerBranchProviderTests
     {
+        private readonly ActiveSolutionBindingEventArgs ConnectedModeBinding = new(new BindingConfiguration(default, SonarLintMode.Connected, default));
+        private readonly ActiveSolutionBindingEventArgs StandaloneModeBinding = new(BindingConfiguration.Standalone);
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<StatefulServerBranchProvider, IStatefulServerBranchProvider>(
                 MefTestHelpers.CreateExport<IServerBranchProvider>(),
                 MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
+                MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
+                MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IThreadHandling>());
         }
@@ -50,7 +56,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             threadHandling.Setup(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<string>>>()))
                 .Returns<Func<Task<string>>>(x => x()); // passthrough - call whatever was passed
 
-            var testSubject = CreateTestSubject(serverBranchProvider.Object, activeSolutionBoundTracker, threadHandling.Object);
+            var testSubject = CreateTestSubject(serverBranchProvider.Object, activeSolutionBoundTracker, threadHandling: threadHandling.Object);
 
             // First call: Should use IServerBranchProvider
             var serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
@@ -72,10 +78,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             serverBranchProvider.VerifyGetServerBranchNameCalled(Times.Once);
         }
 
-        [TestMethod]
-        public async Task GetServerBranchNameAsync_PreSolutionBindingChanged_CacheIsCleared()
+        [DataTestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task GetServerBranchNameAsync_PreSolutionBindingChanged_CacheIsCleared(bool isConnected)
         {
             await TestEffectOfRaisingEventOnCache(asbt => asbt.PreSolutionBindingChanged += null,
+                eventArg: isConnected ? ConnectedModeBinding : StandaloneModeBinding,
                 shouldClearCache: true);
         }
 
@@ -101,7 +110,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         }
 
         private static async Task TestEffectOfRaisingEventOnCache(Action<IActiveSolutionBoundTracker> eventAction,
-            bool shouldClearCache)
+            bool shouldClearCache,
+            object eventArg = null)
         {
             var serverBranchProvider = CreateServerBranchProvider("OriginalBranch");
             var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
@@ -117,7 +127,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             serverBranchProvider.SetBranchNameToReturn("NewBranch");
 
             // Raise event - should *not* trigger clearing the cache
-            activeSolutionBoundTracker.Raise(eventAction, null, null);
+            activeSolutionBoundTracker.Raise(eventAction, null, eventArg);
 
             //second call: may or may not use the cache
             serverBranch = await testSubject.GetServerBranchNameAsync(CancellationToken.None);
@@ -126,13 +136,120 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             {
                 serverBranch.Should().Be("NewBranch");
                 serverBranchProvider.VerifyGetServerBranchNameCalled(Times.Exactly(2));
-
             }
             else
             {
                 serverBranch.Should().Be("OriginalBranch");
                 serverBranchProvider.VerifyGetServerBranchNameCalled(Times.Once);
             }
+        }
+
+        [TestMethod]
+        public void NotifySlCoreBranchChange_BindingChanged_Connected_CallsDidVcsRepositoryChangeWithCorrectId()
+        {
+            // Arrange
+            const string expectedConfigScopeId = "expected-id";
+            var activeConfigScopeTracker = new Mock<IActiveConfigScopeTracker>();
+            activeConfigScopeTracker.Setup(x => x.Current).Returns(new ConfigurationScope(expectedConfigScopeId));
+
+            var sonarProjectBranchSlCoreService = new Mock<ISonarProjectBranchSlCoreService>();
+            var serviceProvider = new Mock<ISLCoreServiceProvider>();
+            var service = sonarProjectBranchSlCoreService.Object;
+            serviceProvider.Setup(x => x.TryGetTransientService(out service)).Returns(true);
+
+            var serverBranchProvider = CreateServerBranchProvider("OriginalBranch");
+            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
+            CreateTestSubject(serverBranchProvider.Object, activeSolutionBoundTracker.Object, activeConfigScopeTracker.Object, serviceProvider.Object);
+
+            // Act
+            activeSolutionBoundTracker.Raise(x => x.PreSolutionBindingChanged += null, null, ConnectedModeBinding);
+
+            // Assert
+            sonarProjectBranchSlCoreService.Verify(x =>
+                x.DidVcsRepositoryChange(It.Is<DidVcsRepositoryChangeParams>(p => p.configurationScopeId == expectedConfigScopeId)));
+        }
+
+        [TestMethod]
+        public void NotifySlCoreBranchChange_BindingChanged_Standalone_Ignores()
+        {
+            // Arrange
+            var activeConfigScopeTracker = new Mock<IActiveConfigScopeTracker>();
+            var serviceProvider = new Mock<ISLCoreServiceProvider>();
+            var serverBranchProvider = CreateServerBranchProvider("OriginalBranch");
+            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
+            CreateTestSubject(serverBranchProvider.Object, activeSolutionBoundTracker.Object, activeConfigScopeTracker.Object, serviceProvider.Object);
+
+            // Act
+            activeSolutionBoundTracker.Raise(x => x.PreSolutionBindingChanged += null, null, StandaloneModeBinding);
+
+            // Assert
+            activeConfigScopeTracker.VerifyNoOtherCalls();
+            serviceProvider.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void NotifySlCoreBranchChange_BindingUpdated_CallsDidVcsRepositoryChangeWithCorrectId()
+        {
+            // Arrange
+            const string expectedConfigScopeId = "expected-id";
+            var activeConfigScopeTracker = new Mock<IActiveConfigScopeTracker>();
+            activeConfigScopeTracker.Setup(x => x.Current).Returns(new ConfigurationScope(expectedConfigScopeId));
+
+            var sonarProjectBranchSlCoreService = new Mock<ISonarProjectBranchSlCoreService>();
+            var serviceProvider = new Mock<ISLCoreServiceProvider>();
+            var service = sonarProjectBranchSlCoreService.Object;
+            serviceProvider.Setup(x => x.TryGetTransientService(out service)).Returns(true);
+
+            var serverBranchProvider = CreateServerBranchProvider("OriginalBranch");
+            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
+            CreateTestSubject(serverBranchProvider.Object, activeSolutionBoundTracker.Object, activeConfigScopeTracker.Object, serviceProvider.Object);
+
+            // Act
+            activeSolutionBoundTracker.Raise(x => x.PreSolutionBindingUpdated += null, null, null);
+
+            // Assert
+            sonarProjectBranchSlCoreService.Verify(x =>
+                x.DidVcsRepositoryChange(It.Is<DidVcsRepositoryChangeParams>(p => p.configurationScopeId == expectedConfigScopeId)));
+        }
+
+        [TestMethod]
+        public void NotifySlCoreBranchChange_BindingChanged_WhenServiceProviderReturnsFalse_LogsError()
+        {
+            // Arrange
+            var sonarProjectBranchSlCoreService = new Mock<ISonarProjectBranchSlCoreService>();
+            var serviceProvider = new Mock<ISLCoreServiceProvider>();
+            var service = sonarProjectBranchSlCoreService.Object;
+            serviceProvider.Setup(x => x.TryGetTransientService(out service)).Returns(false);
+
+            var serverBranchProvider = CreateServerBranchProvider("OriginalBranch");
+            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
+            var logger = new TestLogger();
+            CreateTestSubject(serverBranchProvider.Object, activeSolutionBoundTracker.Object, slCoreServiceProvider: serviceProvider.Object, logger: logger);
+
+            activeSolutionBoundTracker.Raise(x => x.PreSolutionBindingChanged += null, null, ConnectedModeBinding);
+
+            logger.AssertPartialOutputStringExists(SLCoreStrings.ServiceProviderNotInitialized);
+            sonarProjectBranchSlCoreService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void NotifySlCoreBranchChange_BindingUpdated_WhenServiceProviderReturnsFalse_LogsError()
+        {
+            // Arrange
+            var sonarProjectBranchSlCoreService = new Mock<ISonarProjectBranchSlCoreService>();
+            var serviceProvider = new Mock<ISLCoreServiceProvider>();
+            var service = sonarProjectBranchSlCoreService.Object;
+            serviceProvider.Setup(x => x.TryGetTransientService(out service)).Returns(false);
+
+            var serverBranchProvider = CreateServerBranchProvider("OriginalBranch");
+            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
+            var logger = new TestLogger();
+            CreateTestSubject(serverBranchProvider.Object, activeSolutionBoundTracker.Object, slCoreServiceProvider: serviceProvider.Object, logger: logger);
+
+            activeSolutionBoundTracker.Raise(x => x.PreSolutionBindingUpdated += null, null, null);
+
+            logger.AssertPartialOutputStringExists(SLCoreStrings.ServiceProviderNotInitialized);
+            sonarProjectBranchSlCoreService.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -164,10 +281,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         private static StatefulServerBranchProvider CreateTestSubject(
             IServerBranchProvider provider,
             IActiveSolutionBoundTracker tracker,
+            IActiveConfigScopeTracker activeConfigScopeTracker = null,
+            ISLCoreServiceProvider slCoreServiceProvider = null,
+            ILogger logger = null,
             IThreadHandling threadHandling = null)
         {
             threadHandling ??= new NoOpThreadHandler();
-            return new StatefulServerBranchProvider(provider, tracker, new TestLogger(logToConsole: true), threadHandling);
+            activeConfigScopeTracker ??= Substitute.For<IActiveConfigScopeTracker>();
+            slCoreServiceProvider ??= Substitute.For<ISLCoreServiceProvider>();
+            logger ??= new TestLogger();
+            return new StatefulServerBranchProvider(provider, tracker, activeConfigScopeTracker, slCoreServiceProvider, logger, threadHandling);
         }
     }
 
