@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {
     internal class FileConfig : IFileConfig
     {
+
         public static FileConfig TryGet(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath)
         {
             if (!(dteProjectItem.ContainingProject.Object is VCProject vcProject) ||
@@ -35,6 +36,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 return null;
             }
 
+            return TryGet(logger, vcProject, vcFile, absoluteFilePath);
+        }
+        public static FileConfig TryGet(ILogger logger, VCProject vcProject, VCFile vcFile, string absoluteFilePath)
+        {
             var vcConfig = vcProject.ActiveConfiguration;
 
             var vcFileSettings = GetVcFileSettings(logger, absoluteFilePath, vcConfig, vcFile);
