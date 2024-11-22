@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 {
@@ -193,9 +194,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         {
             foreach (var updatedVulnerability in updated)
             {
-                if (!taintVulnerabilities.TryGetValue(updatedVulnerability.IssueId!.Value, out var outdatedVulnerability))
+                var outdatedVulnerability = MatchToCached(updatedVulnerability);
+                if (outdatedVulnerability == null)
                 {
-                    Debug.Fail("Taint Update: attempting to update a non-existent Vulnerability");
                     continue;
                 }
                 taintVulnerabilities[updatedVulnerability.IssueId!.Value] = updatedVulnerability;
@@ -225,5 +226,32 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             // the set of added/removed files is empty.
             // See also #4070.
             IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(removedIssues, addedIssues));
+
+        private IAnalysisIssueVisualization MatchToCached(IAnalysisIssueVisualization taintVulnerability)
+        {
+            if (taintVulnerabilities.TryGetValue(taintVulnerability.IssueId!.Value, out var outdatedVulnerabilityByIssueId))
+            {
+                return outdatedVulnerabilityByIssueId;
+            }
+
+            var outdatedVulnerabilityByServerKey = MatchByServerKey(taintVulnerability);
+            if (outdatedVulnerabilityByServerKey != null)
+            {
+                // Taint was not found by issue id, but was found by server key
+                // This is a workaround for situations when the issue id randomly changes
+                // In this case, remove the cached non-existing one to re-align the cache with the new one
+                taintVulnerabilities.Remove(outdatedVulnerabilityByServerKey.IssueId!.Value);
+                return outdatedVulnerabilityByServerKey;
+            }
+
+            Debug.Fail("Taint Update: attempting to update a non-existent Vulnerability");
+            return null;
+        }
+
+        private IAnalysisIssueVisualization MatchByServerKey(IAnalysisIssueVisualization taintVulnerability) =>
+            taintVulnerabilities
+                .Where(x => ((ITaintIssue) x.Value.Issue).IssueKey == ((ITaintIssue) taintVulnerability.Issue).IssueKey)
+                .Select(x => x.Value)
+                .FirstOrDefault();
     }
 }

@@ -20,11 +20,11 @@
 
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
-using SonarLint.VisualStudio.TestInfrastructure;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint;
 
@@ -327,6 +327,26 @@ public class TaintStoreTests
     }
 
     [TestMethod]
+    public void Update_UpdatedIssues_ChangedId_MatchedByIssueKeyAndReplaced()
+    {
+        const string serverKey = "taint-1";
+        var taintWithChangedId = SetupIssueViz(issueKey: serverKey);
+        List<IAnalysisIssueVisualization> analysisIssueVisualizations = [taintWithChangedId, SetupIssueViz(), SetupIssueViz()];
+        var updated1 = SetupIssueViz(issueKey: serverKey);
+        testSubject.Set(analysisIssueVisualizations, "some config scope");
+        var receivedEventGetter = CaptureIssuesChangedEventArgs();
+
+        using (new AssertIgnoreScope())
+        {
+            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated1], []));
+        }
+
+        testSubject.GetAll().Should().NotContain(taintWithChangedId);
+        testSubject.GetAll().Should().Contain(updated1);
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([updated1], [taintWithChangedId]));
+    }
+
+    [TestMethod]
     public void Update_AddedIssues_Adds()
     {
         List<IAnalysisIssueVisualization> analysisIssueVisualizations = [SetupIssueViz(), SetupIssueViz(), SetupIssueViz()];
@@ -461,12 +481,16 @@ public class TaintStoreTests
         return eventHandlerMock;
     }
 
-    private IAnalysisIssueVisualization SetupIssueViz(Guid? id = null)
+    private static IAnalysisIssueVisualization SetupIssueViz(Guid? id = null, string issueKey = null)
     {
         id ??= Guid.NewGuid();
+        issueKey ??= Guid.NewGuid().ToString();
 
         var issueViz = Substitute.For<IAnalysisIssueVisualization>();
         issueViz.IssueId.Returns(id.Value);
+        var taintIssue = Substitute.For<ITaintIssue>();
+        taintIssue.IssueKey.Returns(issueKey);
+        issueViz.Issue.Returns(taintIssue);
 
         return issueViz;
     }
