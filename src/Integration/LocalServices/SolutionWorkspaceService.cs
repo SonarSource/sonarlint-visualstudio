@@ -38,16 +38,18 @@ namespace SonarLint.VisualStudio.Integration
     public class SolutionWorkspaceService : ISolutionWorkspaceService
     {
         private readonly ISolutionInfoProvider solutionInfoProvider;
+        private readonly ILogger log;
         private readonly IServiceProvider serviceProvider;
         private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
-        public SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-            : this(solutionInfoProvider, serviceProvider, ThreadHandling.Instance) { }
+        public SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider, ILogger log, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+            : this(solutionInfoProvider, log, serviceProvider, ThreadHandling.Instance) { }
 
-        internal SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider, IServiceProvider serviceProvider, IThreadHandling threadHandling)
+        internal SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider, ILogger log, IServiceProvider serviceProvider, IThreadHandling threadHandling)
         {
             this.solutionInfoProvider = solutionInfoProvider;
+            this.log = log;
             this.serviceProvider = serviceProvider;
             this.threadHandling = threadHandling;
         }
@@ -76,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration
                 .Where(x => !x.Contains("\\.nuget\\"))
                 .Where(x => !x.Contains("\\node_modules\\"))
                 .ToHashSet(StringComparer.InvariantCultureIgnoreCase)); // move filtering closer to path extraction to avoid processing unnecessary items)
-            
+
             return result;
         }
 
@@ -149,24 +151,36 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         [ExcludeFromCodeCoverage]
-        private static VSConstants.VSITEMID FirstChild(IVsHierarchy hierarchy, VSConstants.VSITEMID rootID)
+        private VSConstants.VSITEMID FirstChild(IVsHierarchy hierarchy, VSConstants.VSITEMID rootID)
         {
-            hierarchy.GetProperty((uint)rootID, (int)__VSHPROPID.VSHPROPID_FirstChild, out var childIDObj);
-            if (childIDObj != null)
+            try
             {
-                return (VSConstants.VSITEMID)(int)childIDObj;
+                if (hierarchy.GetProperty((uint)rootID, (int)__VSHPROPID.VSHPROPID_FirstChild, out var childIDObj) == VSConstants.S_OK && childIDObj != null)
+                {
+                    return (VSConstants.VSITEMID)(int)childIDObj;
+                }
+            }
+            catch (Exception e)
+            {
+                log.LogVerbose(e.ToString());
             }
 
             return VSConstants.VSITEMID.Nil;
         }
 
         [ExcludeFromCodeCoverage]
-        private static VSConstants.VSITEMID NextSibling(IVsHierarchy hierarchy, VSConstants.VSITEMID firstID)
+        private VSConstants.VSITEMID NextSibling(IVsHierarchy hierarchy, VSConstants.VSITEMID firstID)
         {
-            hierarchy.GetProperty((uint)firstID, (int)__VSHPROPID.VSHPROPID_NextSibling, out var siblingIDObj);
-            if (siblingIDObj != null)
+            try
             {
-                return (VSConstants.VSITEMID)(int)siblingIDObj;
+                if (hierarchy.GetProperty((uint)firstID, (int)__VSHPROPID.VSHPROPID_NextSibling, out var siblingIDObj) == VSConstants.S_OK && siblingIDObj != null)
+                {
+                    return (VSConstants.VSITEMID)(int)siblingIDObj;
+                }
+            }
+            catch (Exception e)
+            {
+                log.LogVerbose(e.ToString());
             }
 
             return VSConstants.VSITEMID.Nil;

@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             MefTestHelpers.CheckTypeCanBeImported<SolutionWorkspaceService, ISolutionWorkspaceService>(
                 MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
+                MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<SVsServiceProvider>());
         }
 
@@ -57,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             var threadHandler = new NoOpThreadHandler();
 
-            var testSubject = new SolutionWorkspaceService(solutionInfoProvider, serviceProvider, threadHandler);
+            var testSubject = new SolutionWorkspaceService(solutionInfoProvider, new TestLogger(), serviceProvider, threadHandler);
 
             var result = testSubject.IsSolutionWorkSpace();
 
