@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands
 
                 var path = @$".\cdgen{Guid.NewGuid()}.json";
                 var fullPath = Path.GetFullPath(path);
-                File.WriteAllText(fullPath, JsonConvert.SerializeObject(configs, Formatting.Indented));
+                File.WriteAllText(fullPath, JsonConvert.SerializeObject(configs.Values.Where(x => x is not null).ToList(), Formatting.Indented));
                 log.WriteLine($"[CDGEN] Generated file: {fullPath}");
 
                 return Task.CompletedTask;
