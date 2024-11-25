@@ -70,7 +70,7 @@
         <Icon guid="ImageCatalogGuid" id="Settings" />
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
-          <ButtonText>Options...</ButtonText>
+          <ButtonText>GENERATE COMPILATION DATABASE</ButtonText>
         </Strings>
       </Button>
     </Buttons>

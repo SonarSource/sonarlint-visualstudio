@@ -20,10 +20,12 @@
 
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using SonarLint.VisualStudio.Integration.Vsix.Commands;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu;
 using SonarLint.VisualStudio.Integration.Vsix.Commands.HelpMenu;
@@ -43,6 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         public void Initialize(
+            IServiceProvider serviceProvider,
             IProjectPropertyManager projectPropertyManager,
             IOutputWindowService outputWindowService,
             IShowInBrowserService showInBrowserService,
@@ -60,7 +63,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             RegisterCommand((int)PackageCommandId.ProjectSonarLintMenu, new ProjectSonarLintMenuCommand(projectPropertyManager));
 
             // Commands
-            RegisterCommand(CommonGuids.SonarLintMenuCommandSet, OptionsCommand.Id, new OptionsCommand(showOptionsPage));
+            RegisterCommand(CommonGuids.SonarLintMenuCommandSet, GENCDCOmmand.Id, new GENCDCOmmand(serviceProvider.GetService<SVsSolution,IVsSolution>(),
+                serviceProvider.GetMefService<IProjectSystemHelper>(),
+                new FileConfigProvider(serviceProvider.GetMefService<ILogger>()),
+                serviceProvider.GetMefService<ILogger>()));
 
             // Help menu buttons
             RegisterCommand(CommonGuids.HelpMenuCommandSet, ShowLogsCommand.Id, new ShowLogsCommand(outputWindowService));

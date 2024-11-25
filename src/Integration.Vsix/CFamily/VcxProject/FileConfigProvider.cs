@@ -20,6 +20,7 @@
 
 using System;
 using EnvDTE;
+using Microsoft.VisualStudio.VCProjectEngine;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Integration.Helpers;
@@ -28,6 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {
     internal interface IFileConfigProvider
     {
+        IFileConfig Get(VCProject project, VCFile file, string analyzedFilePath);
         IFileConfig Get(ProjectItem projectItem, string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions);
     }
 
@@ -41,6 +43,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             this.logger = logger;
         }
 
+        public IFileConfig Get(VCProject project, VCFile file, string analyzedFilePath)
+        {
+            var analysisLogger = new NoOpLogger();
+
+            // if (!IsFileInSolution(file.Object as ProjectItem))
+            // {
+            //     analysisLogger.LogVerbose($"[VCX:FileConfigProvider] The file is not part of a VCX project. File: {analyzedFilePath}");
+            //     return null;
+            // }
+
+            try
+            {
+                // Note: if the C++ tools are not installed then it's likely an exception will be thrown when
+                // the framework tries to JIT-compile the TryGet method (since it won't be able to find the MS.VS.VCProjectEngine
+                // types).
+                return FileConfig.TryGet(analysisLogger, project, file, analyzedFilePath);
+            }
+            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+            {
+                analysisLogger.WriteLine(CFamilyStrings.ERROR_CreatingConfig, analyzedFilePath, ex);
+                return null;
+            }
+        }
 
         public IFileConfig Get(ProjectItem projectItem, string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
