@@ -332,18 +332,18 @@ public class TaintStoreTests
         const string serverKey = "taint-1";
         var taintWithChangedId = SetupIssueViz(issueKey: serverKey);
         List<IAnalysisIssueVisualization> analysisIssueVisualizations = [taintWithChangedId, SetupIssueViz(), SetupIssueViz()];
-        var updated1 = SetupIssueViz(issueKey: serverKey);
+        var updated = SetupIssueViz(issueKey: serverKey);
         testSubject.Set(analysisIssueVisualizations, "some config scope");
         var receivedEventGetter = CaptureIssuesChangedEventArgs();
 
         using (new AssertIgnoreScope())
         {
-            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated1], []));
+            testSubject.Update(new TaintVulnerabilitiesUpdate("some config scope", [], [updated], []));
         }
 
         testSubject.GetAll().Should().NotContain(taintWithChangedId);
-        testSubject.GetAll().Should().Contain(updated1);
-        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([updated1], [taintWithChangedId]));
+        testSubject.GetAll().Should().Contain(updated);
+        receivedEventGetter().Should().BeEquivalentTo(new IssuesChangedEventArgs([taintWithChangedId], [updated]));
     }
 
     [TestMethod]

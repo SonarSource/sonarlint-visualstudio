@@ -149,9 +149,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                     return;
                 }
 
-                HandleClosed(taintVulnerabilitiesUpdate.Closed, diffAdded);
+                HandleClosed(taintVulnerabilitiesUpdate.Closed, diffRemoved);
                 HandleUpdated(taintVulnerabilitiesUpdate.Updated, diffRemoved, diffAdded);
-                HandleAdded(taintVulnerabilitiesUpdate.Added, diffRemoved);
+                HandleAdded(taintVulnerabilitiesUpdate.Added, diffAdded);
             }
 
             NotifyIfIssuesChanged(diffAdded, diffRemoved);
@@ -161,7 +161,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         {
             if (diffAdded.Count != 0 || diffRemoved.Count != 0)
             {
-                NotifyIssuesChanged(diffAdded, diffRemoved);
+                NotifyIssuesChanged(diffRemoved, diffAdded);
             }
         }
 
@@ -234,7 +234,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 return outdatedVulnerabilityByIssueId;
             }
 
-            var outdatedVulnerabilityByServerKey = MatchByServerKey(taintVulnerability);
+            var issueKey = ((ITaintIssue) taintVulnerability.Issue).IssueKey;
+            var outdatedVulnerabilityByServerKey = MatchByServerKey(issueKey);
             if (outdatedVulnerabilityByServerKey != null)
             {
                 // Taint was not found by issue id, but was found by server key
@@ -248,9 +249,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             return null;
         }
 
-        private IAnalysisIssueVisualization MatchByServerKey(IAnalysisIssueVisualization taintVulnerability) =>
+        private IAnalysisIssueVisualization MatchByServerKey(string issueKey) =>
             taintVulnerabilities
-                .Where(x => ((ITaintIssue) x.Value.Issue).IssueKey == ((ITaintIssue) taintVulnerability.Issue).IssueKey)
+                .Where(x => ((ITaintIssue) x.Value.Issue).IssueKey == issueKey)
                 .Select(x => x.Value)
                 .FirstOrDefault();
     }
