@@ -140,8 +140,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         {
             ValidateUpdate(taintVulnerabilitiesUpdate);
 
-            List<IAnalysisIssueVisualization> diffAdded = [];
             List<IAnalysisIssueVisualization> diffRemoved = [];
+            List<IAnalysisIssueVisualization> diffAdded = [];
             lock (locker)
             {
                 if (taintVulnerabilitiesUpdate.ConfigurationScope != configurationScope)
@@ -154,12 +154,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 HandleAdded(taintVulnerabilitiesUpdate.Added, diffAdded);
             }
 
-            NotifyIfIssuesChanged(diffAdded, diffRemoved);
-        }
-
-        private void NotifyIfIssuesChanged(List<IAnalysisIssueVisualization> diffAdded, List<IAnalysisIssueVisualization> diffRemoved)
-        {
-            if (diffAdded.Count != 0 || diffRemoved.Count != 0)
+            if (diffRemoved.Count != 0 || diffAdded.Count != 0)
             {
                 NotifyIssuesChanged(diffRemoved, diffAdded);
             }
