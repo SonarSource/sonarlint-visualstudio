@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
-using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarQube.Client;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
@@ -49,7 +48,6 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IVsMonitorSelection vsMonitorSelection;
         private readonly IBoundSolutionGitMonitor gitEventsMonitor;
         private readonly IConfigScopeUpdater configScopeUpdater;
-        private readonly ISolutionRoslynAnalyzerManager solutionRoslynAnalyzerManager;
         private readonly ILogger logger;
         private readonly uint boundSolutionContextCookie;
         private bool disposed;
@@ -81,7 +79,6 @@ namespace SonarLint.VisualStudio.Integration
             this.configurationProvider = configurationProvider;
             this.sonarQubeService = sonarQubeService;
             this.configScopeUpdater = configScopeUpdater;
-            this.solutionRoslynAnalyzerManager = solutionRoslynAnalyzerManager;
 
             // The solution changed inside the IDE
             solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
@@ -100,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration
                 return;
             }
 
-            this.RaiseAnalyzersChangedIfBindingChanged(GetBindingConfiguration(), solutionTracker.CurrentSolutionName, isBindingCleared);
+            this.RaiseAnalyzersChangedIfBindingChanged(GetBindingConfiguration(), isBindingCleared);
         }
 
         private BindingConfiguration GetBindingConfiguration()
@@ -130,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 gitEventsMonitor.Refresh();
 
-                RaiseAnalyzersChangedIfBindingChanged(connectionUpdatedSuccessfully ? newBindingConfiguration : BindingConfiguration.Standalone, args.SolutionName);
+                RaiseAnalyzersChangedIfBindingChanged(connectionUpdatedSuccessfully ? newBindingConfiguration : BindingConfiguration.Standalone);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -165,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration
             return isConnected;
         }
 
-        private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration, string solutionName, bool? isBindingCleared = null)
+        private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration, bool? isBindingCleared = null)
         {
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project);
 
