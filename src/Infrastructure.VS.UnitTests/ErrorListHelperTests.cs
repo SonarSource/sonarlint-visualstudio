@@ -240,6 +240,7 @@ public class ErrorListHelperTests
             { StandardTableKeyNames.HelpLink, helpLink },
             { StandardTableKeyNames.ErrorCode, fullRuleKey }
         });
+        MockErrorList(issueHandle);
 
         var result = testSubject.TryGetRuleIdFromSelectedRow(out var ruleId);
 
