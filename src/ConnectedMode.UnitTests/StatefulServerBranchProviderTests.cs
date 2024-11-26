@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             // Arrange
             const string expectedConfigScopeId = "expected-id";
             var activeConfigScopeTracker = new Mock<IActiveConfigScopeTracker>();
-            activeConfigScopeTracker.Setup(x => x.Current).Returns(new ConfigurationScope(expectedConfigScopeId));
+            activeConfigScopeTracker.Setup(x => x.Current).Returns(new Core.ConfigurationScope.ConfigurationScope(expectedConfigScopeId));
 
             var sonarProjectBranchSlCoreService = new Mock<ISonarProjectBranchSlCoreService>();
             var serviceProvider = new Mock<ISLCoreServiceProvider>();
@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
             // Arrange
             const string expectedConfigScopeId = "expected-id";
             var activeConfigScopeTracker = new Mock<IActiveConfigScopeTracker>();
-            activeConfigScopeTracker.Setup(x => x.Current).Returns(new ConfigurationScope(expectedConfigScopeId));
+            activeConfigScopeTracker.Setup(x => x.Current).Returns(new Core.ConfigurationScope.ConfigurationScope(expectedConfigScopeId));
 
             var sonarProjectBranchSlCoreService = new Mock<ISonarProjectBranchSlCoreService>();
             var serviceProvider = new Mock<ISLCoreServiceProvider>();
