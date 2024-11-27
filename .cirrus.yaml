@@ -47,10 +47,15 @@ build_task:
     SONARSOURCE_SNK: VAULT[development/team/languages/kv/data/strong_named_key data.SonarSourceSecret_snk]
   clone_script: |
     git config --global core.autocrlf true
-    git init
-    git remote add origin https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git
-    git fetch origin
-    git reset --hard $CIRRUS_CHANGE_IN_REPO
+    if [ -z "$CIRRUS_PR" ]; then
+      git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    else
+      git clone --recursive https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
+      git checkout pull/$CIRRUS_PR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    fi
   calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
   prepare_signing_script: |
     if [[ "${CIRRUS_BRANCH}" == "${CIRRUS_DEFAULT_BRANCH}" ]] || echo "${CIRRUS_BRANCH}" | grep -qE "^branch-.*" || echo "${CIRRUS_BRANCH}" | grep -qE "^sign-.*"; then
@@ -71,7 +76,7 @@ build_task:
   dotnet_restore_script: |
     dotnet restore "${SOLUTION_PATH}" --locked-mode
   prepare_analysis_script: |
-    dotnet sonarscanner begin -d:sonar.token=${SONAR_TOKEN} -d:sonar.host.url="${SONAR_URL}" -k:"${CIRRUS_REPO_NAME}" -o:"sonarsource" -d:sonar.cs.vscoveragexml.reportsPaths="${COVERAGE_FILE}" -d:sonar.scanner.scanAll=false
+    .cirrus/sonarqube-cloud-analysis.sh
   build_solution_script: |
     msbuild.exe "${SOLUTION_PATH}" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=${SHOULD_SIGN} -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:DeployExtension=false -p:Sha1="${CIRRUS_CHANGE_IN_REPO}" -p:BuildNumber="${CI_BUILD_NUMBER}" -p:Configuration=Release
   sign_artifact_script: |
