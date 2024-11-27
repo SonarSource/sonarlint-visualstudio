@@ -20,6 +20,7 @@
 
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.SLCore.Analysis;
@@ -38,8 +39,9 @@ public class SLCoreAnalyzerTests
         MefTestHelpers.CheckTypeCanBeImported<SLCoreAnalyzer, IAnalyzer>(
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
-            MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(), 
-            MefTestHelpers.CreateExport<ICurrentTimeProvider>());
+            MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
+            MefTestHelpers.CreateExport<ICurrentTimeProvider>(),
+            MefTestHelpers.CreateExport<ICompilationDatabaseLocator>());
     }
 
     [TestMethod]
@@ -47,7 +49,7 @@ public class SLCoreAnalyzerTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<SLCoreAnalyzer>();
     }
-    
+
     [TestMethod]
     public void IsAnalysisSupported_ReturnsTrueForNoDetectedLanguage()
     {
@@ -55,7 +57,7 @@ public class SLCoreAnalyzerTests
 
         testSubject.IsAnalysisSupported([]).Should().BeTrue();
     }
-    
+
     [DataTestMethod]
     [DataRow(AnalysisLanguage.Javascript)]
     [DataRow(AnalysisLanguage.TypeScript)]
@@ -74,54 +76,54 @@ public class SLCoreAnalyzerTests
     {
         var analysisStatusNotifierFactory = CreateDefaultAnalysisStatusNotifier(out var notifier);
         var testSubject = CreateTestSubject(analysisStatusNotifierFactory: analysisStatusNotifierFactory);
-        
+
         testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
 
         analysisStatusNotifierFactory.Received().Create(nameof(SLCoreAnalyzer), @"C:\file\path");
         notifier.Received().AnalysisStarted();
     }
-    
+
     [TestMethod]
     public void ExecuteAnalysis_ConfigScopeNotInitialized_NotifyNotReady()
     {
         var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         activeConfigScopeTracker.Current.Returns((ConfigurationScope)null);
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), activeConfigScopeTracker, CreateDefaultAnalysisStatusNotifier(out var notifier));
-        
+
         testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
 
         _ = activeConfigScopeTracker.Received().Current;
         analysisService.ReceivedCalls().Should().BeEmpty();
         notifier.Received().AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
     }
-    
+
     [TestMethod]
     public void ExecuteAnalysis_ConfigScopeNotReadyForAnalysis_NotifyNotReady()
     {
         var activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         activeConfigScopeTracker.Current.Returns(new ConfigurationScope("someconfigscopeid", IsReadyForAnalysis: false));
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), activeConfigScopeTracker, CreateDefaultAnalysisStatusNotifier(out var notifier));
-        
+
         testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
 
         _ = activeConfigScopeTracker.Received().Current;
         analysisService.ReceivedCalls().Should().BeEmpty();
         notifier.Received().AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
     }
-    
+
     [TestMethod]
     public void ExecuteAnalysis_ServiceProviderUnavailable_NotifyFailed()
     {
         var slCoreServiceProvider = CreatServiceProvider(out var analysisService, false);
         var testSubject = CreateTestSubject(slCoreServiceProvider, CreateInitializedConfigScope("someconfigscopeid"), CreateDefaultAnalysisStatusNotifier(out var notifier));
-        
+
         testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
 
         slCoreServiceProvider.Received().TryGetTransientService(out Arg.Any<IAnalysisSLCoreService>());
         analysisService.ReceivedCalls().Should().BeEmpty();
         notifier.Received().AnalysisFailed(SLCoreStrings.ServiceProviderNotInitialized);
     }
-    
+
     [TestMethod]
     public void ExecuteAnalysis_PassesCorrectArgumentsToAnalysisService()
     {
@@ -131,15 +133,15 @@ public class SLCoreAnalyzerTests
 
         testSubject.ExecuteAnalysis(@"C:\file\path", analysisId, default, default, default, default);
 
-        analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a => 
-                a.analysisId == analysisId 
+        analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
+                a.analysisId == analysisId
                 && a.configurationScopeId == "someconfigscopeid"
                 && a.filesToAnalyze.Single() == new FileUri(@"C:\file\path")
-                && a.extraProperties != null
+                && a.extraProperties.Count == 0
                 && a.startTime == expectedTimeStamp.ToUnixTimeMilliseconds()),
             Arg.Any<CancellationToken>());
     }
-    
+
     [DataTestMethod]
     [DataRow(null, false)]
     [DataRow(false, false)]
@@ -150,10 +152,39 @@ public class SLCoreAnalyzerTests
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"));
 
         testSubject.ExecuteAnalysis(@"C:\file\path", default, default, default, options, default);
-        
-        analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a => 
+
+        analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
                 a.shouldFetchServerIssues == expected),
             Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public void ExecuteAnalysis_ForCFamily_PassesCompilationDatabaseAsExtraProperties()
+    {
+        const string compilationDatabasePath = @"C:\file\path\compilation_database.json";
+        var compilationDatabaseLocator = WithCompilationDatabase(compilationDatabasePath);
+        var activeConfigScopeTracker = CreateInitializedConfigScope("someconfigscopeid");
+        var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), activeConfigScopeTracker, compilationDatabaseLocator: compilationDatabaseLocator);
+
+        testSubject.ExecuteAnalysis(@"C:\file\path\myclass.cpp", Guid.NewGuid(), [AnalysisLanguage.CFamily], default, default, default);
+
+        analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
+                a.extraProperties != null
+                && a.extraProperties["sonar.cfamily.compile-commands"] == compilationDatabasePath),
+            Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public void ExecuteAnalysis_ForCFamily_WithoutCompilationDatabase_FailsToAnalyze()
+    {
+        var compilationDatabaseLocator = WithCompilationDatabase(null);
+        var activeConfigScopeTracker = CreateInitializedConfigScope("someconfigscopeid");
+        var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), activeConfigScopeTracker, CreateDefaultAnalysisStatusNotifier(out var notifier), compilationDatabaseLocator: compilationDatabaseLocator);
+
+        testSubject.ExecuteAnalysis(@"C:\file\path\myclass.cpp", Guid.NewGuid(), [AnalysisLanguage.CFamily], default, default, default);
+
+        analysisService.ReceivedCalls().Should().BeEmpty();
+        notifier.Received().AnalysisFailed(SLCoreStrings.CompilationDatabaseNotFound);
     }
 
     [TestMethod]
@@ -164,57 +195,57 @@ public class SLCoreAnalyzerTests
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"));
 
         testSubject.ExecuteAnalysis(@"C:\file\path", analysisId, default, default, default, cancellationTokenSource.Token);
-        
+
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Any<AnalyzeFilesAndTrackParams>(),
             cancellationTokenSource.Token);
     }
-    
+
     [TestMethod]
     public void ExecuteAnalysis_AnalysisServiceSucceeds_ExitsWithoutFinishingAnalysis()
     {
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"), CreateDefaultAnalysisStatusNotifier(out var notifier));
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ReturnsForAnyArgs(new AnalyzeFilesResponse(new HashSet<FileUri>(), []));
-        
+
         testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
-        
+
         notifier.DidNotReceiveWithAnyArgs().AnalysisNotReady(default);
         notifier.DidNotReceiveWithAnyArgs().AnalysisFailed(default(Exception));
         notifier.DidNotReceiveWithAnyArgs().AnalysisFailed(default(string));
         notifier.DidNotReceiveWithAnyArgs().AnalysisFinished(default, default);
     }
-    
+
     [TestMethod]
     public void ExecuteAnalysis_AnalysisServiceFailsForFile_NotifyFailed()
     {
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"), CreateDefaultAnalysisStatusNotifier(out var notifier));
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ReturnsForAnyArgs(new AnalyzeFilesResponse(new HashSet<FileUri>{new(@"C:\file\path")}, []));
-        
+
         testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
-        
+
         notifier.Received().AnalysisFailed(SLCoreStrings.AnalysisFailedReason);
     }
-    
+
     [TestMethod]
     public void ExecuteAnalysis_AnalysisServiceCancelled_NotifyCancel()
     {
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"), CreateDefaultAnalysisStatusNotifier(out var notifier));
         var operationCanceledException = new OperationCanceledException();
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ThrowsAsyncForAnyArgs(operationCanceledException);
-        
+
         testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
-        
+
         notifier.Received().AnalysisCancelled();
     }
-    
+
     [TestMethod]
     public void ExecuteAnalysis_AnalysisServiceThrows_NotifyFailed()
     {
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), CreateInitializedConfigScope("someconfigscopeid"), CreateDefaultAnalysisStatusNotifier(out var notifier));
         var exception = new Exception();
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ThrowsAsyncForAnyArgs(exception);
-        
+
         testSubject.ExecuteAnalysis(@"C:\file\path", Guid.NewGuid(), default, default, default, default);
-        
+
         notifier.Received().AnalysisFailed(exception);
     }
 
@@ -255,19 +286,28 @@ public class SLCoreAnalyzerTests
         return currentTimeProvider;
     }
 
-
     private static SLCoreAnalyzer CreateTestSubject(ISLCoreServiceProvider slCoreServiceProvider = null,
         IActiveConfigScopeTracker activeConfigScopeTracker = null,
-        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory = null, 
-        ICurrentTimeProvider currentTimeProvider = null)
+        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory = null,
+        ICurrentTimeProvider currentTimeProvider = null,
+        ICompilationDatabaseLocator compilationDatabaseLocator = null)
     {
         slCoreServiceProvider ??= Substitute.For<ISLCoreServiceProvider>();
         activeConfigScopeTracker ??= Substitute.For<IActiveConfigScopeTracker>();
         analysisStatusNotifierFactory ??= Substitute.For<IAnalysisStatusNotifierFactory>();
         currentTimeProvider ??= Substitute.For<ICurrentTimeProvider>();
+        compilationDatabaseLocator ??= Substitute.For<ICompilationDatabaseLocator>();
         return new SLCoreAnalyzer(slCoreServiceProvider,
             activeConfigScopeTracker,
-            analysisStatusNotifierFactory, 
-            currentTimeProvider);
+            analysisStatusNotifierFactory,
+            currentTimeProvider,
+            compilationDatabaseLocator);
+    }
+
+    private static ICompilationDatabaseLocator WithCompilationDatabase(string compilationDatabasePath)
+    {
+        var compilationDatabaseLocator = Substitute.For<ICompilationDatabaseLocator>();
+        compilationDatabaseLocator.Locate().Returns(compilationDatabasePath);
+        return compilationDatabaseLocator;
     }
 }
