@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.Core;
 
+// TODO: Remove this TODO
 namespace SonarLint.VisualStudio.Integration
 {
     public static class Constants
