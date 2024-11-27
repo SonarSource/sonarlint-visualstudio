@@ -71,7 +71,7 @@ build_task:
   dotnet_restore_script: |
     dotnet restore "${SOLUTION_PATH}" --locked-mode
   prepare_analysis_script: |
-    dotnet sonarscanner begin -d:sonar.token=${SONAR_TOKEN} -d:sonar.host.url="${SONAR_URL}" -k:"${CIRRUS_REPO_NAME}" -o:"sonarsource" -d:sonar.cs.vscoveragexml.reportsPaths="${COVERAGE_FILE}" -d:sonar.scanner.scanAll=false
+    .cirrus/sonarqube-cloud-analysis.sh
   build_solution_script: |
     msbuild.exe "${SOLUTION_PATH}" -p:VsVersion=17.0 -p:VsTargetVersion=2022 -p:SignArtifacts=${SHOULD_SIGN} -p:AssemblyOriginatorKeyFile="${SONARSOURCE_SNK_FILE}" -p:DeployExtension=false -p:Sha1="${CIRRUS_CHANGE_IN_REPO}" -p:BuildNumber="${CI_BUILD_NUMBER}" -p:Configuration=Release
   sign_artifact_script: |
