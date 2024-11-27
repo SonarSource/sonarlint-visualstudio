@@ -175,16 +175,18 @@ public class SLCoreAnalyzerTests
     }
 
     [TestMethod]
-    public void ExecuteAnalysis_ForCFamily_WithoutCompilationDatabase_FailsToAnalyze()
+    public void ExecuteAnalysis_ForCFamily_WithoutCompilationDatabase_DoesNotPassExtraProperty()
     {
         var compilationDatabaseLocator = WithCompilationDatabase(null);
         var activeConfigScopeTracker = CreateInitializedConfigScope("someconfigscopeid");
-        var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), activeConfigScopeTracker, CreateDefaultAnalysisStatusNotifier(out var notifier), compilationDatabaseLocator: compilationDatabaseLocator);
+        var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), activeConfigScopeTracker, compilationDatabaseLocator: compilationDatabaseLocator);
 
         testSubject.ExecuteAnalysis(@"C:\file\path\myclass.cpp", Guid.NewGuid(), [AnalysisLanguage.CFamily], default, default, default);
 
-        analysisService.ReceivedCalls().Should().BeEmpty();
-        notifier.Received().AnalysisFailed(SLCoreStrings.CompilationDatabaseNotFound);
+        analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
+                a.extraProperties != null
+                && !a.extraProperties.ContainsKey("sonar.cfamily.compile-commands")),
+            Arg.Any<CancellationToken>());
     }
 
     [TestMethod]

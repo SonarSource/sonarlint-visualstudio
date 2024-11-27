@@ -21,8 +21,8 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Core;
@@ -34,6 +34,8 @@ namespace SonarLint.VisualStudio.SLCore.Analysis;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class SLCoreAnalyzer : IAnalyzer
 {
+    private const string CFamilyCompileCommandsProperty = "sonar.cfamily.compile-commands";
+
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
@@ -79,15 +81,13 @@ public class SLCoreAnalyzer : IAnalyzer
         }
 
         Dictionary<string, string> extraProperties = [];
-        if (detectedLanguages != null && detectedLanguages.Contains(AnalysisLanguage.CFamily))
+        if (IsCFamily(detectedLanguages))
         {
             var compilationDatabasePath = compilationDatabaseLocator.Locate();
-            if (compilationDatabasePath == null)
+            if (compilationDatabasePath != null)
             {
-                analysisStatusNotifier.AnalysisFailed(SLCoreStrings.CompilationDatabaseNotFound);
-                return;
+                extraProperties[CFamilyCompileCommandsProperty] = compilationDatabasePath;
             }
-            extraProperties["sonar.cfamily.compile-commands"] = compilationDatabasePath;
         }
 
         ExecuteAnalysisInternalAsync(path, configurationScope.Id, analysisId, analyzerOptions, analysisService, analysisStatusNotifier, extraProperties, cancellationToken).Forget();
@@ -129,4 +129,6 @@ public class SLCoreAnalyzer : IAnalyzer
             analysisStatusNotifier.AnalysisFailed(e);
         }
     }
+
+    private static bool IsCFamily(IEnumerable<AnalysisLanguage> detectedLanguages) => detectedLanguages != null && detectedLanguages.Contains(AnalysisLanguage.CFamily);
 }
