@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.CFamily.Analysis
@@ -33,6 +34,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
             CancellationToken cancellationToken);
     }
 
+    [ExcludeFromCodeCoverage]
     [Export(typeof(ICFamilyAnalyzer))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class CLangAnalyzer : ICFamilyAnalyzer
