@@ -80,15 +80,7 @@ public class SLCoreAnalyzer : IAnalyzer
             return;
         }
 
-        Dictionary<string, string> extraProperties = [];
-        if (IsCFamily(detectedLanguages))
-        {
-            var compilationDatabasePath = compilationDatabaseLocator.Locate();
-            if (compilationDatabasePath != null)
-            {
-                extraProperties[CFamilyCompileCommandsProperty] = compilationDatabasePath;
-            }
-        }
+        var extraProperties = GetExtraProperties(detectedLanguages);
 
         ExecuteAnalysisInternalAsync(path, configurationScope.Id, analysisId, analyzerOptions, analysisService, analysisStatusNotifier, extraProperties, cancellationToken).Forget();
     }
@@ -128,6 +120,22 @@ public class SLCoreAnalyzer : IAnalyzer
         {
             analysisStatusNotifier.AnalysisFailed(e);
         }
+    }
+
+    private Dictionary<string, string> GetExtraProperties(IEnumerable<AnalysisLanguage> detectedLanguages)
+    {
+        Dictionary<string, string> extraProperties = [];
+        if (!IsCFamily(detectedLanguages))
+        {
+            return extraProperties;
+        }
+
+        var compilationDatabasePath = compilationDatabaseLocator.Locate();
+        if (compilationDatabasePath != null)
+        {
+            extraProperties[CFamilyCompileCommandsProperty] = compilationDatabasePath;
+        }
+        return extraProperties;
     }
 
     private static bool IsCFamily(IEnumerable<AnalysisLanguage> detectedLanguages) => detectedLanguages != null && detectedLanguages.Contains(AnalysisLanguage.CFamily);
