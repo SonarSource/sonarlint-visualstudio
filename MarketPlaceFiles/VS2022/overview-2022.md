@@ -141,6 +141,8 @@ Check out the [source code on GitHub](https://github.com/SonarSource/sonarlint-v
 
 ## **License**
 
-Copyright 2016-2024 SonarSource.
+Copyright 2017-2024 SonarSource SA
 
 Licensed under the GNU Lesser General Public License, Version 3.0
+
+This extension is distributed with SonarQube analyzers that are subject to specific license terms (Sonar Source-Available License Version 1 or proprietary license).
