@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
 namespace SonarLint.VisualStudio.Integration
 {
     public static class DateTimeOffsetExtensions
@@ -52,5 +50,10 @@ namespace SonarLint.VisualStudio.Integration
 
         public static long DaysPassedSince(this DateTimeOffset date, DateTimeOffset other) =>
             (long)date.Subtract(other).TotalDays;
+
+        public static void DoLiterallyNothing()
+        {
+            // TODO: Still nothing
+        }
     }
 }
