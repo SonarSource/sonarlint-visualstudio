@@ -35,11 +35,11 @@ internal interface IVCXCompilationDatabaseStorage : IDisposable
 
 [Export(typeof(IVCXCompilationDatabaseStorage))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class VcxCompilationDatabaseStorage : IVCXCompilationDatabaseStorage
+internal sealed class VcxCompilationDatabaseStorage : IVCXCompilationDatabaseStorage
 {
     private bool disposed;
     private readonly IFileSystem fileSystem = new FileSystem();
-    private readonly string workDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
+    private readonly string compilationDatabaseDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
     private readonly IThreadHandling threadHandling;
 
     [ImportingConstructor]
@@ -62,16 +62,23 @@ internal class VcxCompilationDatabaseStorage : IVCXCompilationDatabaseStorage
 
         try
         {
-            fileSystem.Directory.CreateDirectory(workDirectoryPath);
-            var path = Path.Combine(workDirectoryPath, $"{Path.GetFileNameWithoutExtension(compilationDatabaseEntry.File)}_{compilationDatabaseEntry.File!.GetHashCode()}.json");
-            fileSystem.File.WriteAllText(path, JsonConvert.SerializeObject(compilationDatabase));
-            return path;
+            var compilationDatabaseFullPath = GetCompilationDatabaseFullPath(compilationDatabaseEntry);
+            fileSystem.Directory.CreateDirectory(compilationDatabaseDirectoryPath);
+            fileSystem.File.WriteAllText(compilationDatabaseFullPath, JsonConvert.SerializeObject(compilationDatabase));
+            return compilationDatabaseFullPath;
         }
         catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
         {
             //todo log
             return null;
         }
+    }
+
+    private string GetCompilationDatabaseFullPath(CompilationDatabaseEntry compilationDatabaseEntry)
+    {
+        var compilationDatabaseFileName = $"{Path.GetFileName(compilationDatabaseEntry.File)}.{compilationDatabaseEntry.File!.GetHashCode()}.json";
+        var compilationDatabaseFullPath = Path.Combine(compilationDatabaseDirectoryPath, compilationDatabaseFileName);
+        return compilationDatabaseFullPath;
     }
 
     public void Dispose()
@@ -82,6 +89,6 @@ internal class VcxCompilationDatabaseStorage : IVCXCompilationDatabaseStorage
         }
 
         disposed = true;
-        fileSystem.Directory.Delete(workDirectoryPath, true);
+        fileSystem.Directory.Delete(compilationDatabaseDirectoryPath, true);
     }
 }
