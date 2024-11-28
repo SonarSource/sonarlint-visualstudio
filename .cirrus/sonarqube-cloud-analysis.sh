@@ -2,6 +2,18 @@
 
 set -xeuo pipefail
 
+# Fetch all commit history so that SonarCloud has exact blame information
+# for issue auto-assignment
+# This command can fail with "fatal: --unshallow on a complete repository does not make sense"
+# if there are not enough commits in the Git repository
+# For this reason errors are ignored with "|| true"
+git fetch --unshallow || true
+
+# fetch references from github for PR analysis
+if [ -n "${CIRRUS_BASE_BRANCH}" ]; then
+	git fetch origin "${CIRRUS_BASE_BRANCH}"
+fi
+
 if [ "$CIRRUS_BRANCH" == "master" ] && [ "$CIRRUS_PR" == "false" ]; then
   echo '======= Analyze master branch'
 
