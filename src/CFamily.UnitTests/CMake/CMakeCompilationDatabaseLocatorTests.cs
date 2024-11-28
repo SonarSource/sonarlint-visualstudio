@@ -70,10 +70,9 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var defaultLocation = GetDefaultDatabaseFileLocation(activeConfiguration);
 
-            var fileSystem = new Mock<IFileSystem>();
-            fileSystem.SetFileExists(defaultLocation, fileExists);
+            var fileSystem = Substitute.For<IFileSystemService>().SetFileExists(defaultLocation, fileExists);
 
-            var testSubject = CreateTestSubject(RootDirectory, configProvider, cmakeSettingsProvider.Object, fileSystem.Object);
+            var testSubject = CreateTestSubject(RootDirectory, configProvider, cmakeSettingsProvider.Object, fileSystem);
 
             var result = testSubject.Locate();
 
@@ -136,10 +135,9 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var compilationDatabaseFullLocation = Path.GetFullPath(
                 Path.Combine("folder", CMakeCompilationDatabaseLocator.CompilationDatabaseFileName));
 
-            var fileSystem = new Mock<IFileSystemService>();
-            fileSystem.SetFileExists(compilationDatabaseFullLocation, fileExists);
+            var fileSystem = Substitute.For<IFileSystemService>().SetFileExists(compilationDatabaseFullLocation, fileExists);
 
-            var testSubject = CreateTestSubject(RootDirectory, configProvider, cmakeSettingsProvider.Object, fileSystem.Object,
+            var testSubject = CreateTestSubject(RootDirectory, configProvider, cmakeSettingsProvider.Object, fileSystem,
                 macroEvaluationService: PassthroughMacroService);
 
             var result = testSubject.Locate();
@@ -286,9 +284,8 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
                     new CMakeSettingsSearchResult(cmakeSettings, cmakeSettingsFilePath, cmakeListsFilePath));
 
                 // Treat all files as existing
-                var fileSystem = new Mock<IFileSystem>();
-                Func<string, bool> nonNullFilesExist = x => x != null;
-                fileSystem.Setup(x => x.File.Exists(It.IsAny<string>())).Returns(nonNullFilesExist);
+                var fileSystem = Substitute.For<IFileSystemService>();
+                fileSystem.File.Exists(Arg.Any<string>()).Returns(call => call.Arg<string>() != null);
 
                 MacroEvalService = new Mock<IMacroEvaluationService>();
                 MacroEvalService.Setup(x =>
@@ -305,7 +302,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
                 Logger = new TestLogger(logToConsole: true);
 
                 TestSubject = CreateTestSubject(workspaceRootDir, configProvider, cmakeSettingsProvider.Object,
-                    fileSystem.Object, Logger, MacroEvalService.Object);
+                    fileSystem, Logger, MacroEvalService.Object);
             }
 
             public CMakeCompilationDatabaseLocator TestSubject { get; }
