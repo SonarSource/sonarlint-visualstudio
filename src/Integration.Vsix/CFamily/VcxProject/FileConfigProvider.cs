@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using EnvDTE;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.CFamily.Analysis;
@@ -31,16 +32,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         IFileConfig Get(ProjectItem projectItem, string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions);
     }
 
-    internal class FileConfigProvider : IFileConfigProvider
+    [Export(typeof(IFileConfigProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    [method: ImportingConstructor]
+    internal class FileConfigProvider(ILogger logger) : IFileConfigProvider
     {
         private static readonly NoOpLogger noOpLogger = new NoOpLogger();
-        private readonly ILogger logger;
-
-        public FileConfigProvider(ILogger logger)
-        {
-            this.logger = logger;
-        }
-
 
         public IFileConfig Get(ProjectItem projectItem, string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
