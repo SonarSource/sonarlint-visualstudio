@@ -8,6 +8,10 @@ set -xeuo pipefail
 # if there are not enough commits in the Git repository
 # For this reason errors are ignored with "|| true"
 git fetch --unshallow || true
+git status
+git fetch --all
+git branch -D master
+git rev-parse origin/master
 
 # fetch references from github for PR analysis
 if [ -n "${CIRRUS_BASE_BRANCH}" ]; then
