@@ -35,18 +35,29 @@ internal interface IVCXCompilationDatabaseStorage : IDisposable
 
 [Export(typeof(IVCXCompilationDatabaseStorage))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class VcxCompilationDatabaseStorage(IThreadHandling threadHandling) : IVCXCompilationDatabaseStorage
+internal class VcxCompilationDatabaseStorage : IVCXCompilationDatabaseStorage
 {
     private bool disposed;
     private readonly IFileSystem fileSystem = new FileSystem();
-    private string workDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
+    private readonly string workDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
+    private readonly IThreadHandling threadHandling;
+
+    [ImportingConstructor]
+    public VcxCompilationDatabaseStorage(IThreadHandling threadHandling)
+    {
+        this.threadHandling = threadHandling;
+    }
 
     public string CreateDatabase(IFileConfig fileConfig)
     {
         threadHandling.ThrowIfOnUIThread();
 
-        var compilationDatabaseEntry = new CompilationDatabaseEntry { Directory = fileConfig.CDDirectory, Command = fileConfig.CDCommand, File = fileConfig.CDFile };
+        var compilationDatabaseEntry = new CompilationDatabaseEntry
+        {
+            Directory = fileConfig.CDDirectory,
+            Command = fileConfig.CDCommand,
+            File = fileConfig.CDFile
+        };
         var compilationDatabase = new[] { compilationDatabaseEntry };
 
         try
