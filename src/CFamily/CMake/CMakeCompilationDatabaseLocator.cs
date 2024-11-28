@@ -22,6 +22,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
@@ -38,19 +39,19 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         internal const string DefaultLocationFormat = "{0}\\out\\build\\{1}";
 
         private readonly IFolderWorkspaceService folderWorkspaceService;
-        private readonly IFileSystem fileSystem;
+        private readonly IFileSystemService fileSystem;
         private readonly IBuildConfigProvider buildConfigProvider;
         private readonly ICMakeSettingsProvider cMakeSettingsProvider;
         private readonly IMacroEvaluationService macroEvaluationService;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public CMakeCompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, ILogger logger)
+        public CMakeCompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, IFileSystemService fileSystem, ILogger logger)
             : this(folderWorkspaceService,
                 new BuildConfigProvider(logger),
                 new CMakeSettingsProvider(logger),
                 new MacroEvaluationService(logger),
-                new FileSystem(),
+                fileSystem,
                 logger)
         {
         }
@@ -59,7 +60,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             IBuildConfigProvider buildConfigProvider,
             ICMakeSettingsProvider cMakeSettingsProvider,
             IMacroEvaluationService macroEvaluationService,
-            IFileSystem fileSystem,
+            IFileSystemService fileSystem,
             ILogger logger)
         {
             this.folderWorkspaceService = folderWorkspaceService;

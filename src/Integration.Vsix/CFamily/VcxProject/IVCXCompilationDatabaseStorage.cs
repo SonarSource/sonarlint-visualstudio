@@ -25,6 +25,7 @@ using Newtonsoft.Json;
 using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
@@ -35,18 +36,12 @@ internal interface IVCXCompilationDatabaseStorage : IDisposable
 
 [Export(typeof(IVCXCompilationDatabaseStorage))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class VcxCompilationDatabaseStorage : IVCXCompilationDatabaseStorage
+[method: ImportingConstructor]
+internal sealed class VcxCompilationDatabaseStorage(IFileSystemService fileSystemService, IThreadHandling threadHandling)
+    : IVCXCompilationDatabaseStorage
 {
     private bool disposed;
-    private readonly IFileSystem fileSystem = new FileSystem();
     private readonly string compilationDatabaseDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
-    private readonly IThreadHandling threadHandling;
-
-    [ImportingConstructor]
-    public VcxCompilationDatabaseStorage(IThreadHandling threadHandling)
-    {
-        this.threadHandling = threadHandling;
-    }
 
     public string CreateDatabase(IFileConfig fileConfig)
     {
@@ -63,8 +58,8 @@ internal sealed class VcxCompilationDatabaseStorage : IVCXCompilationDatabaseSto
         try
         {
             var compilationDatabaseFullPath = GetCompilationDatabaseFullPath(compilationDatabaseEntry);
-            fileSystem.Directory.CreateDirectory(compilationDatabaseDirectoryPath);
-            fileSystem.File.WriteAllText(compilationDatabaseFullPath, JsonConvert.SerializeObject(compilationDatabase));
+            fileSystemService.Directory.CreateDirectory(compilationDatabaseDirectoryPath);
+            fileSystemService.File.WriteAllText(compilationDatabaseFullPath, JsonConvert.SerializeObject(compilationDatabase));
             return compilationDatabaseFullPath;
         }
         catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
@@ -89,6 +84,6 @@ internal sealed class VcxCompilationDatabaseStorage : IVCXCompilationDatabaseSto
         }
 
         disposed = true;
-        fileSystem.Directory.Delete(compilationDatabaseDirectoryPath, true);
+        fileSystemService.Directory.Delete(compilationDatabaseDirectoryPath, true);
     }
 }

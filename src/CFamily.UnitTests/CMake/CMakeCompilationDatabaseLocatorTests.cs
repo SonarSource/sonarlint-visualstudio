@@ -23,6 +23,7 @@ using System.IO.Abstractions;
 using Moq;
 using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.TestInfrastructure.Extensions.FileSystemExtensions;
 
@@ -41,6 +42,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         {
             MefTestHelpers.CheckTypeCanBeImported<CMakeCompilationDatabaseLocator, ICMakeCompilationDatabaseLocator>(
                 MefTestHelpers.CreateExport<IFolderWorkspaceService>(),
+                MefTestHelpers.CreateExport<IFileSystemService>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -134,7 +136,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var compilationDatabaseFullLocation = Path.GetFullPath(
                 Path.Combine("folder", CMakeCompilationDatabaseLocator.CompilationDatabaseFileName));
 
-            var fileSystem = new Mock<IFileSystem>();
+            var fileSystem = new Mock<IFileSystemService>();
             fileSystem.SetFileExists(compilationDatabaseFullLocation, fileExists);
 
             var testSubject = CreateTestSubject(RootDirectory, configProvider, cmakeSettingsProvider.Object, fileSystem.Object,
@@ -221,7 +223,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         private static CMakeCompilationDatabaseLocator CreateTestSubject(string rootDirectory,
             IBuildConfigProvider buildConfigProvider = null,
             ICMakeSettingsProvider cMakeSettingsProvider = null,
-            IFileSystem fileSystem = null,
+            IFileSystemService fileSystem = null,
             ILogger logger = null,
             IMacroEvaluationService macroEvaluationService = null)
         {
@@ -231,7 +233,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             cMakeSettingsProvider ??= Mock.Of<ICMakeSettingsProvider>();
             buildConfigProvider ??= Mock.Of<IBuildConfigProvider>();
             logger ??= Mock.Of<ILogger>();
-            fileSystem ??= new FileSystem();
+            fileSystem ??= new FileSystemService();
             macroEvaluationService ??= Mock.Of<IMacroEvaluationService>();
 
             return new CMakeCompilationDatabaseLocator(folderWorkspaceService.Object, buildConfigProvider, cMakeSettingsProvider, macroEvaluationService, fileSystem, logger);
