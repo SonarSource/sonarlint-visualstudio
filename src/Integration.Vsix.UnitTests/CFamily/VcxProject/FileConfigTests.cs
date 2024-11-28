@@ -185,8 +185,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
 
             // Assert
-            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu /TC \"c:\\dummy\\file.h\"", request.CDCommand);
             Assert.AreEqual("c", request.HeaderFileLanguage);
+
+            // Arrange
+            projectItemConfig.FileConfigProperties["CompileAs"] = "CompileAsCpp";
+
+            // Act
+            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
+
+            // Assert
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu /TP \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("cpp", request.HeaderFileLanguage);
         }
 
         [TestMethod]

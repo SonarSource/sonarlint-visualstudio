@@ -318,10 +318,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        [DataRow("Default", "cpp")]
-        [DataRow("CompileAsC", "c")]
-        [DataRow("CompileAsCpp", "cpp")]
-        public void HeaderFileLang(string compileAs, string lang)
+        [DataRow("Default", "cpp", "")]
+        [DataRow("CompileAsC", "c", "/TC ")]
+        [DataRow("CompileAsCpp", "cpp", "/TP ")]
+        public void HeaderFileLang(string compileAs, string lang, string cmd)
         {
             var cmdBuilder = new CmdBuilder(true);
             var settingsMock = new Mock<IVCRulePropertyStorage>();
@@ -329,7 +329,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             cmdBuilder.AddOptFromProperties(settingsMock.Object);
 
-            cmdBuilder.GetFullCmd().Should().Be("");
+            cmdBuilder.GetFullCmd().Should().Be(cmd);
             cmdBuilder.HeaderFileLang.Should().Be(lang);
         }
 

@@ -171,10 +171,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             {
                 HeaderFileLang = (compileAs == "CompileAsC") ? "c" : "cpp";
             }
-            else
-            {
-                AddCmdOpt(ConvertCompileAsAndGetLanguage(compileAs));
-            }
+            AddCmdOpt(ConvertCompileAsAndGetLanguage(compileAs));
 
             // Additional options
             var additionalOptions = properties.GetEvaluatedPropertyValue("AdditionalOptions");
