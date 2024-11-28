@@ -35,10 +35,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
     public class FileConfigProviderTests
     {
         [TestMethod]
+        public void MefCtor_CheckIsExported() =>
+            MefTestHelpers.CheckTypeCanBeImported<FileConfigProvider, IFileConfigProvider>(
+                MefTestHelpers.CreateExport<ILogger>());
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<FileConfigProvider>();
+
+        [TestMethod]
         public void Get_FileIsNotInSolution_ReturnsNull()
         {
             var projectItemMock = CreateMockProjectItem("c:\\foo\\SingleFileISense\\xxx.vcxproj");
-           
+
             var testSubject = CreateTestSubject();
             var result = testSubject.Get(projectItemMock.Object, "c:\\dummy", new CFamilyAnalyzerOptions());
 
@@ -132,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         public void Get_SuccessfulConfig_ConfigReturned()
         {
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj");
-            
+
             var testSubject = CreateTestSubject();
             var result = testSubject.Get(projectItemMock.Object, "c:\\dummy", new CFamilyAnalyzerOptions());
 
