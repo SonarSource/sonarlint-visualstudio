@@ -24,6 +24,7 @@ if [ "$CIRRUS_BRANCH" == "master" ] && [ "$CIRRUS_PR" == "false" ]; then
     -d:sonar.token=${SONAR_TOKEN} \
     -d:sonar.analysis.buildNumber="${CI_BUILD_NUMBER}" \
     -d:sonar.analysis.pipeline="$CIRRUS_BUILD_ID" \
+    -d:sonar.analysis.sha1="${CIRRUS_CHANGE_IN_REPO}" \
     -d:sonar.cs.vscoveragexml.reportsPaths="${COVERAGE_FILE}" \
     -d:sonar.scanner.scanAll=false
 
@@ -37,6 +38,7 @@ elif [[ "$CIRRUS_BRANCH" == "branch-"* || "$CIRRUS_BRANCH" == "feature/"* ]] && 
     -d:sonar.token=${SONAR_TOKEN} \
     -d:sonar.analysis.buildNumber="${CI_BUILD_NUMBER}" \
     -d:sonar.analysis.pipeline="$CIRRUS_BUILD_ID" \
+    -d:sonar.analysis.sha1="${CIRRUS_CHANGE_IN_REPO}" \
     -d:sonar.branch.name="${CIRRUS_BRANCH}" \
     -d:sonar.cs.vscoveragexml.reportsPaths="${COVERAGE_FILE}" \
     -d:sonar.scanner.scanAll=false
@@ -51,6 +53,7 @@ elif [ "$CIRRUS_PR" != "false" ]; then
     -d:sonar.token=${SONAR_TOKEN} \
     -d:sonar.analysis.buildNumber="${CI_BUILD_NUMBER}" \
     -d:sonar.analysis.pipeline="$CIRRUS_BUILD_ID" \
+    -d:sonar.analysis.sha1="${CIRRUS_CHANGE_IN_REPO}" \
     -d:sonar.pullrequest.key="${CIRRUS_PR}" \
     -d:sonar.pullrequest.branch="${CIRRUS_BRANCH}" \
     -d:sonar.pullrequest.base="${CIRRUS_BASE_BRANCH}" \
