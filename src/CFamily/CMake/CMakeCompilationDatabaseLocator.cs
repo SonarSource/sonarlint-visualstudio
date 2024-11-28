@@ -21,15 +21,18 @@
 using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
-using System.Linq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
-    [Export(typeof(ICompilationDatabaseLocator))]
+    internal interface ICMakeCompilationDatabaseLocator
+    {
+        string Locate();
+    }
+
+    [Export(typeof(ICMakeCompilationDatabaseLocator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class CompilationDatabaseLocator : ICompilationDatabaseLocator
+    internal class CMakeCompilationDatabaseLocator : ICMakeCompilationDatabaseLocator
     {
         internal const string CompilationDatabaseFileName = "compile_commands.json";
         internal const string DefaultLocationFormat = "{0}\\out\\build\\{1}";
@@ -42,21 +45,21 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, ILogger logger)
+        public CMakeCompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, ILogger logger)
             : this(folderWorkspaceService,
                 new BuildConfigProvider(logger),
-                new CMakeSettingsProvider(logger), 
+                new CMakeSettingsProvider(logger),
                 new MacroEvaluationService(logger),
                 new FileSystem(),
                 logger)
         {
         }
 
-        public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, 
+        public CMakeCompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService,
             IBuildConfigProvider buildConfigProvider,
             ICMakeSettingsProvider cMakeSettingsProvider,
             IMacroEvaluationService macroEvaluationService,
-            IFileSystem fileSystem, 
+            IFileSystem fileSystem,
             ILogger logger)
         {
             this.folderWorkspaceService = folderWorkspaceService;
@@ -73,7 +76,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
             if (string.IsNullOrEmpty(rootDirectory))
             {
-                logger.LogVerbose("[CompilationDatabaseLocator] Could not find project root directory");
+                logger.LogVerbose("[CMakeCompilationDatabaseLocator] Could not find project root directory");
                 return null;
             }
 
@@ -99,12 +102,12 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             var defaultDirectory = Path.GetFullPath(string.Format(DefaultLocationFormat, rootDirectory, activeConfiguration));
             var defaultLocation = Path.Combine(defaultDirectory, CompilationDatabaseFileName);
 
-            logger.LogVerbose($"[CompilationDatabaseLocator] No CMakeSettings file was found under {rootDirectory}, returning default location: {defaultLocation}");
+            logger.LogVerbose($"[CMakeCompilationDatabaseLocator] No CMakeSettings file was found under {rootDirectory}, returning default location: {defaultLocation}");
 
             return defaultLocation;
         }
 
-        private string GetConfiguredLocation(CMakeSettingsSearchResult cMakeSettings, 
+        private string GetConfiguredLocation(CMakeSettingsSearchResult cMakeSettings,
             string activeConfiguration,
             string rootDirectory)
         {
@@ -129,7 +132,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 cMakeSettings.CMakeSettingsFilePath);
 
             var evaluatedBuildRoot = macroEvaluationService.Evaluate(buildConfiguration.BuildRoot, evaluationContext);
-            
+
             if (evaluatedBuildRoot == null)
             {
                 logger.WriteLine(Resources.UnableToEvaluateBuildRootProperty, buildConfiguration.BuildRoot);
