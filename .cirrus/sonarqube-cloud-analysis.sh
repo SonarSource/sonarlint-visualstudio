@@ -58,7 +58,8 @@ elif [ "$CIRRUS_PR" != "false" ]; then
     -d:sonar.pullrequest.branch="${CIRRUS_BRANCH}" \
     -d:sonar.pullrequest.base="${CIRRUS_BASE_BRANCH}" \
     -d:sonar.cs.vscoveragexml.reportsPaths="${COVERAGE_FILE}" \
-    -d:sonar.scanner.scanAll=false
+    -d:sonar.scanner.scanAll=false \
+    -d:sonar.verbose=True
 
 else
   echo '======= No analysis'
