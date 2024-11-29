@@ -97,6 +97,30 @@ public class VCXCompilationDatabaseStorageTests
         VerifyDatabaseContents();
     }
 
+
+    [TestMethod]
+    public void CreateDatabase_Disposed_Throws()
+    {
+        testSubject.Dispose();
+
+        var act = () => testSubject.CreateDatabase(Substitute.For<IFileConfig>());
+
+        act.Should().Throw<ObjectDisposedException>();
+    }
+
+
+    [TestMethod]
+    public void Dispose_RemovesDirectory()
+    {
+        var expectedDirectory = Path.Combine(Path.GetTempPath(), "SLVS", "VCXCD", PathHelper.PerVsInstanceFolderName.ToString());
+
+        testSubject.Dispose();
+        testSubject.Dispose();
+        testSubject.Dispose();
+
+        fileSystemService.Directory.Received(1).Delete(expectedDirectory, true);
+    }
+
     private static IFileConfig SetUpFileConfig()
     {
         var fileConfig = Substitute.For<IFileConfig>();

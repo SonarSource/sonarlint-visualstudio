@@ -45,6 +45,7 @@ internal sealed class VCXCompilationDatabaseStorage(IFileSystemService fileSyste
 
     public string CreateDatabase(IFileConfig fileConfig)
     {
+        ThrowIfDisposed();
         threadHandling.ThrowIfOnUIThread();
 
         var compilationDatabaseEntry = new CompilationDatabaseEntry
@@ -67,6 +68,14 @@ internal sealed class VCXCompilationDatabaseStorage(IFileSystemService fileSyste
         {
             logger.LogVerbose(e.ToString());
             return null;
+        }
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (disposed)
+        {
+            throw new ObjectDisposedException(nameof(VCXCompilationDatabaseStorage));
         }
     }
 
