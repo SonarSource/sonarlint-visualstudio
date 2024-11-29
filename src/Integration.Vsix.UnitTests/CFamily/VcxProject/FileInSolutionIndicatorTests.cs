@@ -39,6 +39,15 @@ public class FileInSolutionIndicatorTests
     }
 
     [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<FileInSolutionIndicator, IFileInSolutionIndicator>(
+            MefTestHelpers.CreateExport<IThreadHandling>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() =>
+        MefTestHelpers.CheckIsSingletonMefComponent<FileInSolutionIndicator>();
+
+    [TestMethod]
     public void Get_FileIsNotInSolution_ReturnsFalse()
     {
         var projectItemMock = CreateMockProjectItem("c:\\foo\\SingleFileISense\\xxx.vcxproj");
