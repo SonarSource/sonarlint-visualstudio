@@ -50,14 +50,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         {
             var analysisLogger = GetAnalysisLogger(analyzerOptions);
 
-            IFileConfig fileConfig = null;
-
-            uiServiceOperation.Execute<SDTE, DTE2>(dte =>
-            {
-                fileConfig = GetInternal(analyzedFilePath, dte, analysisLogger);
-            });
-
-            return fileConfig;
+            return uiServiceOperation.Execute<SDTE, DTE2, IFileConfig>(dte =>
+                GetInternal(analyzedFilePath, dte, analysisLogger));
         }
 
         private FileConfig GetInternal(string analyzedFilePath, DTE2 dte, ILogger analysisLogger)
