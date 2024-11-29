@@ -21,36 +21,57 @@
 using System;
 using System.ComponentModel.Composition;
 using EnvDTE;
+using EnvDTE80;
+using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.CFamily.Analysis;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {
     internal interface IFileConfigProvider
     {
-        IFileConfig Get(ProjectItem projectItem, string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions);
+        IFileConfig Get(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions);
     }
 
     [Export(typeof(IFileConfigProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [method: ImportingConstructor]
-    internal class FileConfigProvider(ILogger logger) : IFileConfigProvider
+    internal class FileConfigProvider(
+        IVsUIServiceOperation uiServiceOperation,
+        IFileInSolutionIndicator fileInSolutionIndicator,
+        ILogger logger,
+        IThreadHandling threadHandling) : IFileConfigProvider
     {
         private static readonly NoOpLogger noOpLogger = new NoOpLogger();
 
-        public IFileConfig Get(ProjectItem projectItem, string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
+        public IFileConfig Get(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
             var analysisLogger = GetAnalysisLogger(analyzerOptions);
 
-            if (!IsFileInSolution(projectItem))
-            {
-                analysisLogger.LogVerbose($"[VCX:FileConfigProvider] The file is not part of a VCX project. File: {analyzedFilePath}");
-                return null;
-            }
+            return uiServiceOperation.Execute<SDTE, DTE2, IFileConfig>(dte =>
+                GetInternal(analyzedFilePath, dte, analysisLogger));
+        }
+
+        private FileConfig GetInternal(string analyzedFilePath, DTE2 dte, ILogger analysisLogger)
+        {
+            threadHandling.ThrowIfNotOnUIThread();
 
             try
             {
+                var projectItem = dte.Solution.FindProjectItem(analyzedFilePath);
+
+                if (projectItem == null)
+                {
+                    return null;
+                }
+
+                if (!fileInSolutionIndicator.IsFileInSolution(projectItem))
+                {
+                    analysisLogger.LogVerbose($"[VCX:FileConfigProvider] The file is not part of a VCX project. File: {analyzedFilePath}");
+                    return null;
+                }
                 // Note: if the C++ tools are not installed then it's likely an exception will be thrown when
                 // the framework tries to JIT-compile the TryGet method (since it won't be able to find the MS.VS.VCProjectEngine
                 // types).
@@ -76,29 +97,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             return logger;
         }
 
-        internal static bool IsFileInSolution(ProjectItem projectItem)
-        {
-            try
-            {
-                // Issue 667:  https://github.com/SonarSource/sonarlint-visualstudio/issues/667
-                // If you open a C++ file that is not part of the current solution then
-                // VS will cruft up a temporary vcxproj so that it can provide language
-                // services for the file (e.g. syntax highlighting). This means that
-                // even though we have what looks like a valid project item, it might
-                // not actually belong to a real project.
-                var indexOfSingleFileString = projectItem?.ContainingProject?.FullName.IndexOf("SingleFileISense", StringComparison.OrdinalIgnoreCase);
-                return indexOfSingleFileString.HasValue &&
-                       indexOfSingleFileString.Value <= 0 &&
-                       projectItem.ConfigurationManager != null &&
-                       // the next line will throw if the file is not part of a solution
-                       projectItem.ConfigurationManager.ActiveConfiguration != null;
-            }
-            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
-            {
-                // Suppress non-critical exceptions
-            }
-            return false;
-        }
 
         private class NoOpLogger : ILogger
         {
