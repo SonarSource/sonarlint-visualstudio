@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -xeuo pipefail
+set -xeo pipefail
 
 SONAR_PARAMS=(
   -k:"${CIRRUS_REPO_NAME}"
@@ -14,15 +14,15 @@ SONAR_PARAMS=(
   -d:sonar.scanner.scanAll=false
 )
 
-if [ "$CIRRUS_BRANCH" == "master" ] && [ "$CIRRUS_PR" == "false" ]; then
+if [ "$CIRRUS_BRANCH" == "master" ] && [ -z "$CIRRUS_PR" ]; then
   echo '======= Analyze master branch'
   dotnet sonarscanner begin "${SONAR_PARAMS[@]}"
 
-elif [[ "$CIRRUS_BRANCH" == "branch-"* || "$CIRRUS_BRANCH" == "feature/"* ]] && [ "$CIRRUS_PR" == "false" ]; then
+elif [[ "$CIRRUS_BRANCH" == "branch-"* || "$CIRRUS_BRANCH" == "feature/"* ]] && [ -z "$CIRRUS_PR" ]; then
   echo '======= Analyze long lived branch'
   dotnet sonarscanner begin "${SONAR_PARAMS[@]}" -d:sonar.branch.name="${CIRRUS_BRANCH}"
 
-elif [ "$CIRRUS_PR" != "false" ]; then
+elif [ -n "$CIRRUS_PR" ]; then
   echo '======= Analyze pull request'
   dotnet sonarscanner begin "${SONAR_PARAMS[@]}" \
     -d:sonar.pullrequest.key="${CIRRUS_PR}" \
