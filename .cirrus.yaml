@@ -1,5 +1,4 @@
 env:
-  CIRRUS_CLONE_DEPTH: 50
   ARTIFACTORY_PASSWORD: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-private-reader access_token]
   ARTIFACTORY_URL: VAULT[development/kv/data/repox data.url]
   ARTIFACTORY_USER: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-private-reader username]
@@ -26,6 +25,7 @@ build_task:
   ec2_instance: *INSTANCE_DEFINITION
   only_if: *ONLY_SONARSOURCE_QA
   env:
+    CIRRUS_CLONE_DEPTH: 50
     ARTIFACTORY_DEPLOY_TOKEN: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-qa-deployer access_token]
     COVERAGE_FILE: coverage.xml
     LOCALAPPDATA: C:\sonar-ci\AppData\Local # Fixes unit test error
@@ -48,10 +48,14 @@ build_task:
     SONARSOURCE_SNK: VAULT[development/team/languages/kv/data/strong_named_key data.SonarSourceSecret_snk]
   clone_script: |
     git config --global core.autocrlf true
-    git init
-    git remote add origin https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git
-    git fetch origin
-    git reset --hard $CIRRUS_CHANGE_IN_REPO
+    if [ -z "$CIRRUS_PR" ]; then
+      git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    else
+      git clone --recursive https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    fi
   calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
   prepare_signing_script: |
     if [[ "${CIRRUS_BRANCH}" == "${CIRRUS_DEFAULT_BRANCH}" ]] || echo "${CIRRUS_BRANCH}" | grep -qE "^branch-.*" || echo "${CIRRUS_BRANCH}" | grep -qE "^sign-.*"; then
@@ -104,7 +108,7 @@ build_task:
   collect_coverage_script: |
     dotnet-coverage merge -o "${COVERAGE_FILE}" -f xml "**\*.coverage"
   sonarcloud_analysis_script: |
-    dotnet sonarscanner end -d:sonar.token="${SONAR_TOKEN}" -d:sonar.verbose=true
+    dotnet sonarscanner end -d:sonar.token="${SONAR_TOKEN}"
   on_failure:
     asmref_artifacts:
       path: "src/Integration.Vsix/**/AsmRef_*.txt"
