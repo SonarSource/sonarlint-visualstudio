@@ -31,35 +31,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 internal class VCXCompilationDatabaseProvider(
-    IVsUIServiceOperation uiServiceOperation,
     IVCXCompilationDatabaseStorage storage,
-    ILogger logger,
-    IThreadHandling threadHandling)
+    IFileConfigProvider fileConfigProvider)
     : IVCXCompilationDatabaseProvider
 {
-    private readonly IFileConfigProvider fileConfigProvider = new FileConfigProvider(logger);
-
-    public string CreateOrNull(string filePath)
-    {
-        IFileConfig fileConfig = null;
-        uiServiceOperation.Execute<SDTE, DTE2>(dte =>
-        {
-            threadHandling.ThrowIfNotOnUIThread();
-
-            var projectItem = dte.Solution.FindProjectItem(filePath);
-            if (projectItem == null)
-            {
-                return;
-            }
-
-            fileConfig = fileConfigProvider.Get(projectItem, filePath, null);
-        });
-
-        if (fileConfig is null)
-        {
-            return null;
-        }
-
-        return storage.CreateDatabase(fileConfig);
-    }
+    public string CreateOrNull(string filePath) =>
+        fileConfigProvider.Get(filePath, null) is {} fileConfig
+            ? storage.CreateDatabase(fileConfig)
+            : null;
 }
