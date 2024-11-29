@@ -38,7 +38,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
     [Export(typeof(IFileConfigProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [method: ImportingConstructor]
-    internal class FileConfigProvider(IFileInSolutionIndicator fileInSolutionIndicator, ILogger logger, IVsUIServiceOperation uiServiceOperation) : IFileConfigProvider
+    internal class FileConfigProvider(
+        IVsUIServiceOperation uiServiceOperation,
+        IFileInSolutionIndicator fileInSolutionIndicator,
+        ILogger logger,
+        IThreadHandling threadHandling) : IFileConfigProvider
     {
         private static readonly NoOpLogger noOpLogger = new NoOpLogger();
 
@@ -58,6 +62,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
         private FileConfig GetInternal(string analyzedFilePath, DTE2 dte, ILogger analysisLogger)
         {
+            threadHandling.ThrowIfNotOnUIThread();
+
             try
             {
                 var projectItem = dte.Solution.FindProjectItem(analyzedFilePath);

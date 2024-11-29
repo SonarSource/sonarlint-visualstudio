@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             dte = Substitute.For<DTE2>();
             uiServiceOperation = CreateDefaultUiServiceOperation(dte);
 
-            testSubject = new FileConfigProvider(fileInSolutionIndicator, logger, uiServiceOperation);
+            testSubject = new FileConfigProvider(uiServiceOperation, fileInSolutionIndicator, logger, new NoOpThreadHandler());
         }
 
         private static IFileInSolutionIndicator CreateDefaultFileInSolutionIndicator()
