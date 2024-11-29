@@ -18,15 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.VCProjectEngine;
-using Moq;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.VisualStudio.Shell.Interop;
+using NSubstitute.ExceptionExtensions;
+using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.CFamily.Analysis;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
-using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
@@ -34,124 +34,121 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
     [TestClass]
     public class FileConfigProviderTests
     {
+        private const string SourceFilePath = "any path";
+        private TestLogger logger;
+        private IFileInSolutionIndicator fileInSolutionIndicator;
+        private DTE2 dte;
+        private IVsUIServiceOperation uiServiceOperation;
+        private FileConfigProvider testSubject;
+
         [TestMethod]
         public void MefCtor_CheckIsExported() =>
             MefTestHelpers.CheckTypeCanBeImported<FileConfigProvider, IFileConfigProvider>(
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<IFileInSolutionIndicator>(),
+                MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<IVsUIServiceOperation>());
 
         [TestMethod]
         public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<FileConfigProvider>();
 
-        [TestMethod]
-        public void Get_FileIsNotInSolution_ReturnsNull()
+        [TestInitialize]
+        public void TestInitialize()
         {
-            var projectItemMock = CreateMockProjectItem("c:\\foo\\SingleFileISense\\xxx.vcxproj");
+            logger = new TestLogger();
+            fileInSolutionIndicator = CreateDefaultFileInSolutionIndicator();
+            dte = Substitute.For<DTE2>();
+            uiServiceOperation = CreateDefaultUiServiceOperation(dte);
 
-            var testSubject = CreateTestSubject();
-            var result = testSubject.Get(projectItemMock.Object, "c:\\dummy", new CFamilyAnalyzerOptions());
+            testSubject = new FileConfigProvider(fileInSolutionIndicator, logger, uiServiceOperation);
+        }
+
+        private static IFileInSolutionIndicator CreateDefaultFileInSolutionIndicator()
+        {
+            var mock = Substitute.For<IFileInSolutionIndicator>();
+            mock.IsFileInSolution(Arg.Any<ProjectItem>()).Returns(true);
+            return mock;
+        }
+
+        private static IVsUIServiceOperation CreateDefaultUiServiceOperation(DTE2 dte2)
+        {
+            var mock = Substitute.For<IVsUIServiceOperation>();
+            mock.When(x => x.Execute<SDTE, DTE2>(Arg.Any<Action<DTE2>>())).Do(info => info.Arg<Action<DTE2>>()(dte2));
+            return mock;
+        }
+
+        [TestMethod]
+        public void Get_FailsToRetrieveProjectItem_NonCriticalException_ExceptionCaughtAndNullReturned()
+        {
+            dte.Solution.ThrowsForAnyArgs<NotImplementedException>();
+
+            var result = testSubject.Get(SourceFilePath, new CFamilyAnalyzerOptions());
 
             result.Should().BeNull();
-            projectItemMock.Verify(x => x.ContainingProject, Times.Once);
+            logger.AssertPartialOutputStringExists(nameof(NotImplementedException), SourceFilePath);
         }
 
         [TestMethod]
-        public void Get_FailureToCheckIfFileIsInSolution_NonCriticalException_ExceptionCaughtAndNullReturned()
+        public void Get_FailsToRetrieveProjectItem_NonCriticalException_Pch_ExceptionCaughtNotLoggedAndNullReturned()
         {
-            var projectItemMock = CreateMockProjectItem("c:\\foo\\SingleFileISense\\xxx.vcxproj");
-            projectItemMock.Setup(x => x.ContainingProject).Throws<NotImplementedException>();
+            dte.Solution.ThrowsForAnyArgs<NotImplementedException>();
 
-            var testSubject = CreateTestSubject();
-            var result = testSubject.Get(projectItemMock.Object, "c:\\dummy", new CFamilyAnalyzerOptions());
+            var result = testSubject.Get(SourceFilePath, new CFamilyAnalyzerOptions{CreatePreCompiledHeaders = true});
 
             result.Should().BeNull();
-            projectItemMock.Verify(x => x.ContainingProject, Times.Once);
-        }
-
-        [TestMethod]
-        public void Get_FailureToCheckIfFileIsInSolution_CriticalException_ExceptionThrown()
-        {
-            var projectItemMock = CreateMockProjectItem("c:\\foo\\SingleFileISense\\xxx.vcxproj");
-            projectItemMock.Setup(x => x.ContainingProject).Throws<StackOverflowException>();
-
-            var testSubject = CreateTestSubject();
-            Action act = () => testSubject.Get(projectItemMock.Object, "c:\\dummy", new CFamilyAnalyzerOptions());
-
-            act.Should().Throw<StackOverflowException>();
-            projectItemMock.Verify(x => x.ContainingProject, Times.Once);
-        }
-
-        [TestMethod]
-        public void Get_FailsToRetrieveFileConfig_NonCriticalException_ExceptionCaughtAndNullReturned()
-        {
-            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj");
-            var containingProject = Mock.Get(projectItemMock.Object.ContainingProject.Object as VCProject);
-            containingProject.Setup(x => x.ActiveConfiguration).Throws<NotImplementedException>();
-
-            var testSubject = CreateTestSubject();
-            var result = testSubject.Get(projectItemMock.Object, "c:\\dummy", new CFamilyAnalyzerOptions());
-
-            result.Should().BeNull();
-            containingProject.Verify(x => x.ActiveConfiguration, Times.Once);
-        }
-
-        [TestMethod]
-        public void Get_FailsToRetrieveFileConfig_CriticalException_ExceptionThrown()
-        {
-            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj");
-            var containingProject = Mock.Get(projectItemMock.Object.ContainingProject.Object as VCProject);
-            containingProject.Setup(x => x.ActiveConfiguration).Throws<StackOverflowException>();
-
-            var testSubject = CreateTestSubject();
-            Action act = () => testSubject.Get(projectItemMock.Object, "c:\\dummy", new CFamilyAnalyzerOptions());
-
-            act.Should().Throw<StackOverflowException>();
-            containingProject.Verify(x => x.ActiveConfiguration, Times.Once);
-        }
-
-        [TestMethod]
-        public void Get_FailsToRetrieveFileConfig_NotPch_ExceptionLogged()
-        {
-            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj");
-            var containingProject = Mock.Get(projectItemMock.Object.ContainingProject.Object as VCProject);
-            containingProject.Setup(x => x.ActiveConfiguration).Throws<NotImplementedException>();
-
-            var logger = new TestLogger();
-            var testSubject = CreateTestSubject(logger);
-            testSubject.Get(projectItemMock.Object, "c:\\dummy", new CFamilyAnalyzerOptions());
-
-            logger.AssertPartialOutputStringExists(nameof(NotImplementedException), "c:\\dummy");
-        }
-
-        [TestMethod]
-        public void Get_FailsToRetrieveFileConfig_Pch_ExceptionNotLogged()
-        {
-            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj");
-            var containingProject = Mock.Get(projectItemMock.Object.ContainingProject.Object as VCProject);
-            containingProject.Setup(x => x.ActiveConfiguration).Throws<NotImplementedException>();
-
-            var logger = new TestLogger();
-            var testSubject = CreateTestSubject(logger);
-            testSubject.Get(projectItemMock.Object, "c:\\dummy", new CFamilyAnalyzerOptions{CreatePreCompiledHeaders = true});
-
             logger.AssertNoOutputMessages();
+        }
+
+        [TestMethod]
+        public void Get_FailsToRetrieveProjectItem_CriticalException_ExceptionThrown()
+        {
+            dte.Solution.ThrowsForAnyArgs<DivideByZeroException>();
+
+            Action act = () => testSubject.Get(SourceFilePath, new CFamilyAnalyzerOptions());
+
+            act.Should().Throw<DivideByZeroException>();
+        }
+
+        [TestMethod]
+        public void Get_NoProjectItem_ReturnsNull()
+        {
+            dte.Solution.FindProjectItem(SourceFilePath).ReturnsNull();
+
+            testSubject.Get(SourceFilePath, null)
+                .Should().BeNull();
+
+            Received.InOrder(() =>
+            {
+                uiServiceOperation.Execute<SDTE, DTE2>(Arg.Any<Action<DTE2>>());
+                dte.Solution.FindProjectItem(SourceFilePath);
+            });
+        }
+
+        [TestMethod]
+        public void Get_ProjectItemNotInSolution_ReturnsNull()
+        {
+            var mockProjectItem = CreateMockProjectItem(SourceFilePath);
+            dte.Solution.FindProjectItem(SourceFilePath).Returns(mockProjectItem.Object);
+            fileInSolutionIndicator.IsFileInSolution(mockProjectItem.Object).Returns(false);
+
+            testSubject.Get(SourceFilePath, null)
+                .Should().BeNull();
+
+            Received.InOrder(() =>
+            {
+                uiServiceOperation.Execute<SDTE, DTE2>(Arg.Any<Action<DTE2>>());
+                dte.Solution.FindProjectItem(SourceFilePath);
+                fileInSolutionIndicator.IsFileInSolution(mockProjectItem.Object);
+            });
         }
 
         [TestMethod]
         public void Get_SuccessfulConfig_ConfigReturned()
         {
-            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj");
+            var mockProjectItem = CreateMockProjectItem(SourceFilePath);
+            dte.Solution.FindProjectItem(SourceFilePath).Returns(mockProjectItem.Object);
 
-            var testSubject = CreateTestSubject();
-            var result = testSubject.Get(projectItemMock.Object, "c:\\dummy", new CFamilyAnalyzerOptions());
-
-            result.Should().NotBeNull();
-        }
-
-        private FileConfigProvider CreateTestSubject(ILogger logger = null)
-        {
-            logger ??= Mock.Of<ILogger>();
-
-            return new FileConfigProvider(logger);
+            testSubject.Get(SourceFilePath, null)
+                .Should().NotBeNull();
         }
     }
 }

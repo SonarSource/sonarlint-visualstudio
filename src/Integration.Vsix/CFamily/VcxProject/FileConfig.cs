@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using EnvDTE;
 using Microsoft.VisualStudio.VCProjectEngine;
@@ -27,6 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {
     internal class FileConfig : IFileConfig
     {
+        [ExcludeFromCodeCoverage]
         public static FileConfig TryGet(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath)
         {
             if (!(dteProjectItem.ContainingProject.Object is VCProject vcProject) ||
