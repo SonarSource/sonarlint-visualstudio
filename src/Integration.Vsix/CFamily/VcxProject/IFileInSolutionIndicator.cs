@@ -31,6 +31,7 @@ public interface IFileInSolutionIndicator
 
 [Export(typeof(IFileInSolutionIndicator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
+[method:ImportingConstructor]
 public class FileInSolutionIndicator(IThreadHandling threadHandling) : IFileInSolutionIndicator
 {
     public bool IsFileInSolution(ProjectItem projectItem)
