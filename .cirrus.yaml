@@ -25,7 +25,6 @@ build_task:
   ec2_instance: *INSTANCE_DEFINITION
   only_if: *ONLY_SONARSOURCE_QA
   env:
-    CIRRUS_CLONE_DEPTH: 50
     ARTIFACTORY_DEPLOY_TOKEN: VAULT[development/artifactory/token/${CIRRUS_REPO_OWNER}-${CIRRUS_REPO_NAME}-qa-deployer access_token]
     COVERAGE_FILE: coverage.xml
     LOCALAPPDATA: C:\sonar-ci\AppData\Local # Fixes unit test error
@@ -55,6 +54,7 @@ build_task:
       git clone --recursive https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
       git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
       git checkout pull/$CIRRUS_PR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
     fi
   calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
   prepare_signing_script: |
