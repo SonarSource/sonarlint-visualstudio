@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         private static IVsUIServiceOperation CreateDefaultUiServiceOperation(DTE2 dte2)
         {
             var mock = Substitute.For<IVsUIServiceOperation>();
-            mock.When(x => x.Execute<SDTE, DTE2>(Arg.Any<Action<DTE2>>())).Do(info => info.Arg<Action<DTE2>>()(dte2));
+            mock.Execute<SDTE, DTE2, IFileConfig>(Arg.Any<Func<DTE2, IFileConfig>>()).Returns(info => info.Arg<Func<DTE2, IFileConfig>>()(dte2));
             return mock;
         }
 
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
 
             Received.InOrder(() =>
             {
-                uiServiceOperation.Execute<SDTE, DTE2>(Arg.Any<Action<DTE2>>());
+                uiServiceOperation.Execute<SDTE, DTE2, IFileConfig>(Arg.Any<Func<DTE2, IFileConfig>>());
                 dte.Solution.FindProjectItem(SourceFilePath);
             });
         }
@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
 
             Received.InOrder(() =>
             {
-                uiServiceOperation.Execute<SDTE, DTE2>(Arg.Any<Action<DTE2>>());
+                uiServiceOperation.Execute<SDTE, DTE2, IFileConfig>(Arg.Any<Func<DTE2, IFileConfig>>());
                 dte.Solution.FindProjectItem(SourceFilePath);
                 fileInSolutionIndicator.IsFileInSolution(mockProjectItem.Object);
             });
