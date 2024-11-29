@@ -37,7 +37,7 @@ internal interface IVCXCompilationDatabaseStorage : IDisposable
 [Export(typeof(IVCXCompilationDatabaseStorage))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal sealed class VcxCompilationDatabaseStorage(IFileSystemService fileSystemService, IThreadHandling threadHandling)
+internal sealed class VCXCompilationDatabaseStorage(IFileSystemService fileSystemService, IThreadHandling threadHandling, ILogger logger)
     : IVCXCompilationDatabaseStorage
 {
     private bool disposed;
@@ -55,16 +55,17 @@ internal sealed class VcxCompilationDatabaseStorage(IFileSystemService fileSyste
         };
         var compilationDatabase = new[] { compilationDatabaseEntry };
 
+        var compilationDatabaseFullPath = GetCompilationDatabaseFullPath(compilationDatabaseEntry);
+
         try
         {
-            var compilationDatabaseFullPath = GetCompilationDatabaseFullPath(compilationDatabaseEntry);
             fileSystemService.Directory.CreateDirectory(compilationDatabaseDirectoryPath);
             fileSystemService.File.WriteAllText(compilationDatabaseFullPath, JsonConvert.SerializeObject(compilationDatabase));
             return compilationDatabaseFullPath;
         }
         catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
         {
-            //todo log
+            logger.LogVerbose(e.ToString());
             return null;
         }
     }
