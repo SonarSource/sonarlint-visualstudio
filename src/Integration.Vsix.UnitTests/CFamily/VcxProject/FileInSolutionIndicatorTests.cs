@@ -19,6 +19,7 @@
  */
 
 using EnvDTE;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
 
@@ -28,11 +29,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject;
 public class FileInSolutionIndicatorTests
 {
     private FileInSolutionIndicator testSubject;
+    private IThreadHandling threadHandling;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new FileInSolutionIndicator();
+        threadHandling = Substitute.For<IThreadHandling>();
+        testSubject = new FileInSolutionIndicator(threadHandling);
     }
 
     [TestMethod]
@@ -44,6 +47,7 @@ public class FileInSolutionIndicatorTests
             .Should().BeFalse();
 
         projectItemMock.Verify(x => x.ContainingProject);
+        threadHandling.Received().ThrowIfNotOnUIThread();
     }
 
     [TestMethod]
@@ -57,6 +61,7 @@ public class FileInSolutionIndicatorTests
 
         projectItemMock.Verify(x => x.ContainingProject);
         projectItemMock.Verify(x => x.ConfigurationManager);
+        threadHandling.Received().ThrowIfNotOnUIThread();
     }
 
     [TestMethod]
@@ -72,6 +77,7 @@ public class FileInSolutionIndicatorTests
         projectItemMock.Verify(x => x.ContainingProject);
         projectItemMock.Verify(x => x.ConfigurationManager);
         configurationManagerMock.Verify(x => x.ActiveConfiguration);
+        threadHandling.Received().ThrowIfNotOnUIThread();
     }
 
     [TestMethod]
@@ -84,6 +90,7 @@ public class FileInSolutionIndicatorTests
 
         projectItemMock.Verify(x => x.ContainingProject);
         projectItemMock.Verify(x => x.ConfigurationManager);
+        threadHandling.Received().ThrowIfNotOnUIThread();
     }
 
     [TestMethod]
@@ -96,6 +103,7 @@ public class FileInSolutionIndicatorTests
             .Should().BeFalse();
 
         projectItemMock.Verify(x => x.ContainingProject);
+        threadHandling.Received().ThrowIfNotOnUIThread();
     }
 
     [TestMethod]
@@ -108,5 +116,6 @@ public class FileInSolutionIndicatorTests
 
         act.Should().Throw<DivideByZeroException>();
         projectItemMock.Verify(x => x.ContainingProject);
+        threadHandling.Received().ThrowIfNotOnUIThread();
     }
 }

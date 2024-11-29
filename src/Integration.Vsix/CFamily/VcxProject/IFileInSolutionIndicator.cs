@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using EnvDTE;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
@@ -30,10 +31,12 @@ public interface IFileInSolutionIndicator
 
 [Export(typeof(IFileInSolutionIndicator))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class FileInSolutionIndicator : IFileInSolutionIndicator
+public class FileInSolutionIndicator(IThreadHandling threadHandling) : IFileInSolutionIndicator
 {
     public bool IsFileInSolution(ProjectItem projectItem)
     {
+        threadHandling.ThrowIfNotOnUIThread();
+
         try
         {
             // Issue 667:  https://github.com/SonarSource/sonarlint-visualstudio/issues/667
