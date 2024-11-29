@@ -46,6 +46,16 @@ build_task:
     SONAR_URL: VAULT[development/kv/data/sonarcloud data.url]
     SONARSOURCE_SNK_FILE: ${TMP_DIR}\SonarSource.snk
     SONARSOURCE_SNK: VAULT[development/team/languages/kv/data/strong_named_key data.SonarSourceSecret_snk]
+  clone_script: |
+    git config --global core.autocrlf true
+    if [ -z "$CIRRUS_PR" ]; then
+      git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    else
+      git clone --recursive https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
+      git checkout pull/$CIRRUS_PR
+    fi
   calculate_version_script: *CALCULATE_VERSION_SCRIPT_DEFINITION
   prepare_signing_script: |
     if [[ "${CIRRUS_BRANCH}" == "${CIRRUS_DEFAULT_BRANCH}" ]] || echo "${CIRRUS_BRANCH}" | grep -qE "^branch-.*" || echo "${CIRRUS_BRANCH}" | grep -qE "^sign-.*"; then
