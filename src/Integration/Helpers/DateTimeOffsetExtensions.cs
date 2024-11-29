@@ -53,6 +53,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public static void DoLiterallyNothing()
         {
+            // TODO: One more TODO
             // TODO: Still nothing
         }
     }
