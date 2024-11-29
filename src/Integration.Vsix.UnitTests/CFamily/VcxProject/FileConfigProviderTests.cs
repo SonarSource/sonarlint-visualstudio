@@ -46,6 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             MefTestHelpers.CheckTypeCanBeImported<FileConfigProvider, IFileConfigProvider>(
                 MefTestHelpers.CreateExport<IFileInSolutionIndicator>(),
                 MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<IThreadHandling>(),
                 MefTestHelpers.CreateExport<IVsUIServiceOperation>());
 
         [TestMethod]
