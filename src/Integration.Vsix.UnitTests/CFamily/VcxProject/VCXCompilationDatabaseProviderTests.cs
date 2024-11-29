@@ -58,7 +58,7 @@ public class VCXCompilationDatabaseProviderTests
 
         testSubject.CreateOrNull(SourceFilePath).Should().BeNull();
 
-        fileConfigProvider.DidNotReceiveWithAnyArgs().Get(default, default);
+        storage.DidNotReceiveWithAnyArgs().CreateDatabase(default);
     }
 
     [TestMethod]
