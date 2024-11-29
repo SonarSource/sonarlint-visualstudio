@@ -174,6 +174,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             // Assert
             request.Should().NotBeNull();
             Assert.AreEqual("\"C:\\path\\cl.exe\" /Yu\"pch.h\" /FI\"pch.h\" /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("non_existent_file", request.CDFile);
 
             // Arrange
             projectItemConfig.FileConfigProperties["CompileAs"] = "CompileAsC";
@@ -184,6 +185,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
 
             // Assert
             Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu /TC \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("non_existent_file", request.CDFile);
 
             // Arrange
             projectItemConfig.FileConfigProperties["CompileAs"] = "CompileAsCpp";
@@ -193,6 +195,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
 
             // Assert
             Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu /TP \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("non_existent_file", request.CDFile);
         }
 
         [TestMethod]
