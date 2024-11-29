@@ -104,7 +104,7 @@ build_task:
   collect_coverage_script: |
     dotnet-coverage merge -o "${COVERAGE_FILE}" -f xml "**\*.coverage"
   sonarcloud_analysis_script: |
-    dotnet sonarscanner end -d:sonar.token="${SONAR_TOKEN}"
+    dotnet sonarscanner end -d:sonar.token="${SONAR_TOKEN}" -d:sonar.verbose=true
   on_failure:
     asmref_artifacts:
       path: "src/Integration.Vsix/**/AsmRef_*.txt"
