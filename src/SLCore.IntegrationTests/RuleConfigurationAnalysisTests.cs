@@ -35,7 +35,7 @@ public class RuleConfigurationAnalysisTests
     {
         sharedFileAnalysisTestsRunner = new FileAnalysisTestsRunner(nameof(RuleConfigurationAnalysisTests));
     }
-    
+
     [ClassCleanup]
     public static void ClassCleanup()
     {
@@ -48,13 +48,13 @@ public class RuleConfigurationAnalysisTests
         var ruleToDisable = FileAnalysisTestsRunner.JavaScriptIssues.ExpectedIssues[0];
         var ruleConfig = CreateInactiveRuleConfig(ruleToDisable.ruleKey);
         sharedFileAnalysisTestsRunner.SetRuleConfiguration(ruleConfig);
-        
+
         var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(FileAnalysisTestsRunner.JavaScriptIssues, TestContext.TestName);
 
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.JavaScriptIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.JavaScriptIssues.ExpectedIssues.Count - 1);
     }
-    
+
     [TestMethod]
     public async Task StandaloneRuleConfig_SecretsAnalysisShouldIgnoreTwoIssuesOfInactiveRule()
     {
@@ -67,7 +67,7 @@ public class RuleConfigurationAnalysisTests
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.SecretsIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.SecretsIssues.ExpectedIssues.Count - multipleIssuesRule.issuesCount);
     }
-    
+
     [TestMethod]
     public async Task StandaloneRuleConfig_JsLetRuleIsDisableInSettingsFile_JavaScriptAnalysisShouldIgnoreIssueOnInitialization()
     {
@@ -80,7 +80,7 @@ public class RuleConfigurationAnalysisTests
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.JavaScriptIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.JavaScriptIssues.ExpectedIssues.Count - 1);
     }
-    
+
     [TestMethod]
     public async Task StandaloneRuleConfig_CloudSecretsRuleIsDisabledInSettingsFile_SecretsAnalysisShouldIgnoreIssueOnInitialization()
     {
@@ -89,31 +89,31 @@ public class RuleConfigurationAnalysisTests
         using var customTestRunner = new FileAnalysisTestsRunner(TestContext.TestName, secretsRuleConfig);
 
         var issuesByFileUri = await customTestRunner.RunFileAnalysis(FileAnalysisTestsRunner.SecretsIssues, TestContext.TestName);
-    
+
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.SecretsIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.SecretsIssues.ExpectedIssues.Count - multipleIssuesRule.issuesCount);
     }
-    
+
     [TestMethod]
     public async Task StandaloneRuleConfig_CtorParamsUnderThreshold_JavaScriptActiveRuleShouldHaveNoIssue()
     {
-        var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfig(threshold: FileAnalysisTestsRunner.OneIssueRuleWithParam.ActualCtorParams + 1);
+        var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfig(threshold: OneIssueRuleWithParamFile.ActualCtorParams + 1);
         sharedFileAnalysisTestsRunner.SetRuleConfiguration(ctorParamsRuleConfig);
-    
+
         var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(FileAnalysisTestsRunner.OneIssueRuleWithParam, TestContext.TestName);
-    
+
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.OneIssueRuleWithParam.GetFullPath())].Should().HaveCount(0);
     }
-    
+
     [TestMethod]
     public async Task StandaloneRuleConfig_CtorParamsAboveThreshold_JavaScriptActiveRuleShouldHaveOneIssue()
     {
-        var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfig(threshold: FileAnalysisTestsRunner.OneIssueRuleWithParam.ActualCtorParams - 1);
+        var ctorParamsRuleConfig = CreateActiveCtorParamRuleConfig(threshold: OneIssueRuleWithParamFile.ActualCtorParams - 1);
         sharedFileAnalysisTestsRunner.SetRuleConfiguration(ctorParamsRuleConfig);
-        
+
         var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(FileAnalysisTestsRunner.OneIssueRuleWithParam, TestContext.TestName);
-    
+
         issuesByFileUri.Should().HaveCount(1);
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.OneIssueRuleWithParam.GetFullPath())].Should().HaveCount(1);
     }
@@ -122,7 +122,7 @@ public class RuleConfigurationAnalysisTests
     {
         return new()
         {
-            { FileAnalysisTestsRunner.OneIssueRuleWithParam.CtorParamRuleId, new StandaloneRuleConfigDto(isActive: true, new() { { FileAnalysisTestsRunner.OneIssueRuleWithParam.CtorParamName, threshold.ToString() } }) }
+            { OneIssueRuleWithParamFile.CtorParamRuleId, new StandaloneRuleConfigDto(isActive: true, new() { { OneIssueRuleWithParamFile.CtorParamName, threshold.ToString() } }) }
         };
     }
 

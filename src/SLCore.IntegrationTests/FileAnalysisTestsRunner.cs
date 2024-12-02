@@ -177,41 +177,41 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 internal interface ITestingFile
 {
     string RelativePath { get; }
-    List<ExpectedTestIssue> ExpectedIssues { get; }
+    List<TestIssue> ExpectedIssues { get; }
 }
 
-internal record ExpectedTestIssue(string ruleKey, TextRangeDto textRange, CleanCodeAttribute cleanCodeAttribute, int expectedFlows);
+internal record TestIssue(string ruleKey, TextRangeDto textRange, CleanCodeAttribute? cleanCodeAttribute, int expectedFlows);
 
 internal class JavaScriptIssuesFile : ITestingFile
 {
     public string RelativePath => @"Resources\JavaScriptIssues.js";
 
-    public List<ExpectedTestIssue> ExpectedIssues =>
+    public List<TestIssue> ExpectedIssues =>
     [
-        new ExpectedTestIssue("javascript:S1135", new TextRangeDto(1, 3, 1, 7), CleanCodeAttribute.COMPLETE, 0),
-        new ExpectedTestIssue("javascript:S3504", new TextRangeDto(2, 0, 2, 5), CleanCodeAttribute.CLEAR, 0)
+        new("javascript:S1135", new TextRangeDto(1, 3, 1, 7), CleanCodeAttribute.COMPLETE, 0),
+        new("javascript:S3504", new TextRangeDto(2, 0, 2, 5), CleanCodeAttribute.CLEAR, 0)
     ];
 }
 
 internal class OneIssueRuleWithParamFile : ITestingFile
 {
     public string RelativePath => @"Resources\RuleParam.js";
-    
-    public readonly string CtorParamRuleId = "javascript:S107";
-    public readonly  int ActualCtorParams = 4;
-    public readonly  string CtorParamName = "maximumFunctionParameters";
-    public List<ExpectedTestIssue> ExpectedIssues { get; set; }
+
+    public const string CtorParamRuleId = "javascript:S107";
+    public const int ActualCtorParams = 4;
+    public const string CtorParamName = "maximumFunctionParameters";
+    public List<TestIssue> ExpectedIssues { get; set; }
 }
 
 internal class TypeScriptIssuesFile : ITestingFile
 {
     public string RelativePath => @"Resources\TypeScriptIssues.ts";
 
-    public List<ExpectedTestIssue> ExpectedIssues =>
+    public List<TestIssue> ExpectedIssues =>
     [
-        new ExpectedTestIssue("typescript:S2737", new TextRangeDto(3, 2, 3, 7), CleanCodeAttribute.CLEAR, 0),
-        new ExpectedTestIssue("typescript:S1186", new TextRangeDto(7, 16, 7, 19), CleanCodeAttribute.COMPLETE, 0),
-        new ExpectedTestIssue("typescript:S3776", new TextRangeDto(30, 9, 30, 18), CleanCodeAttribute.FOCUSED, 21)
+        new("typescript:S2737", new TextRangeDto(3, 2, 3, 7), CleanCodeAttribute.CLEAR, 0),
+        new("typescript:S1186", new TextRangeDto(7, 16, 7, 19), CleanCodeAttribute.COMPLETE, 0),
+        new("typescript:S3776", new TextRangeDto(30, 9, 30, 18), CleanCodeAttribute.FOCUSED, 21)
     ];
 }
 
@@ -219,10 +219,10 @@ internal class CssIssuesFile : ITestingFile
 {
     public string RelativePath => @"Resources\CssIssues.css";
 
-    public List<ExpectedTestIssue> ExpectedIssues =>
+    public List<TestIssue> ExpectedIssues =>
     [
-        new ExpectedTestIssue("css:S4666", new TextRangeDto(20, 0, 20, 77), CleanCodeAttribute.LOGICAL, 0),
-        new ExpectedTestIssue("css:S4655", new TextRangeDto(12, 0, 12, 38), CleanCodeAttribute.LOGICAL, 0),
+        new("css:S4666", new TextRangeDto(20, 0, 20, 77), CleanCodeAttribute.LOGICAL, 0),
+        new("css:S4655", new TextRangeDto(12, 0, 12, 38), CleanCodeAttribute.LOGICAL, 0),
     ];
 }
 
@@ -230,24 +230,25 @@ internal class VueIssuesFile : ITestingFile
 {
     public string RelativePath => @"Resources\VueIssues.vue";
 
-    public List<ExpectedTestIssue> ExpectedIssues =>
+    public List<TestIssue> ExpectedIssues =>
     [
-        new ExpectedTestIssue("css:S4661", new TextRangeDto(12, 0, 12, 43), CleanCodeAttribute.LOGICAL, 0),
-        new ExpectedTestIssue("css:S4658", new TextRangeDto(12, 0, 12, 43), CleanCodeAttribute.CLEAR, 0),
+        new("css:S4661", new TextRangeDto(12, 0, 12, 43), CleanCodeAttribute.LOGICAL, 0),
+        new("css:S4658", new TextRangeDto(12, 0, 12, 43), CleanCodeAttribute.CLEAR, 0),
     ];
 }
 
 internal class SecretsIssuesFile : ITestingFile
 {
-    private const string CloudSecretsRuleKey = "secrets:S6336";
+    private const string AmazonSecretsRuleKey = "secrets:S6290";
+    private const string AzureSecretsRuleKey = "secrets:S6684";
     public string RelativePath => @"Resources\Secrets.yml";
-    public (string ruleKey, int issuesCount) RuleWithMultipleIssues => (CloudSecretsRuleKey, 2);
+    public (string ruleKey, int issuesCount) RuleWithMultipleIssues => (AmazonSecretsRuleKey, 2);
 
-    public List<ExpectedTestIssue> ExpectedIssues =>
+    public List<TestIssue> ExpectedIssues =>
     [
-        new ExpectedTestIssue(CloudSecretsRuleKey, new TextRangeDto(9, 24, 9, 40), CleanCodeAttribute.TRUSTWORTHY, 0),
-        new ExpectedTestIssue(CloudSecretsRuleKey, new TextRangeDto(14, 24, 14, 40), CleanCodeAttribute.TRUSTWORTHY, 0),
-        new ExpectedTestIssue("secrets:S6337", new TextRangeDto(20, 12, 20, 56), CleanCodeAttribute.TRUSTWORTHY, 0),
+        new(AmazonSecretsRuleKey, new TextRangeDto(9, 38, 9, 78), CleanCodeAttribute.TRUSTWORTHY, 0),
+        new(AmazonSecretsRuleKey, new TextRangeDto(14, 38, 14, 78), CleanCodeAttribute.TRUSTWORTHY, 0),
+        new(AzureSecretsRuleKey, new TextRangeDto(20, 33, 20, 65), CleanCodeAttribute.TRUSTWORTHY, 0),
     ];
 }
 
