@@ -171,4 +171,10 @@
   <data name="UnexpectedServerConnectionType" xml:space="preserve">
     <value>Unexpected server connection type</value>
   </data>
+  <data name="CertificateValidator_Failed" xml:space="preserve">
+    <value>[CertificateChainValidator] Certificate validation failed for the following reason(s):</value>
+  </data>
+  <data name="CertificateValidator_FailureReasonTemplate" xml:space="preserve">
+    <value>[CertificateChainValidator] {0}: {1}</value>
+  </data>
 </root>
