@@ -46,8 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 return null;
             }
 
-            var isHeader = vcFile.ItemType == "ClInclude";
-            CmdBuilder cmdBuilder = new CmdBuilder(isHeader);
+            CmdBuilder cmdBuilder = new CmdBuilder(vcFile.ItemType == "ClInclude");
 
             var compilerPath = vcConfig.GetEvaluatedPropertyValue("ClCompilerPath");
             if (string.IsNullOrEmpty(compilerPath))
@@ -76,9 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             {
                 CDDirectory = Path.GetDirectoryName(vcProject.ProjectFile),
                 CDCommand = cmdBuilder.GetFullCmd(),
-                // A hack to communicate with the CFamily analyzer that this is a header file.
-                // A long-term solution should be investigated in CPP-5898.
-                CDFile = isHeader ? "non_existent_file" : absoluteFilePath,
+                CDFile = absoluteFilePath,
                 EnvInclude = envINCLUDE,
             };
         }
