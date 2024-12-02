@@ -41,16 +41,16 @@ internal class CertificateChainValidator : ICertificateChainValidator
     {
         this.logger = logger;
     }
-    
+
     [ExcludeFromCodeCoverage] // can't easily unit test X509Chain
     public bool ValidateChain(X509Certificate2 primaryCertificate, IEnumerable<X509Certificate2> additionalCertificates)
     {
-        logger.LogVerbose($"[{nameof(CertificateChainValidator)}] Validating certificate: " + primaryCertificate);
+        logger.LogVerbose("[CertificateChainValidator] Validating certificate: " + primaryCertificate);
         using var x509Chain = new X509Chain();
 
         foreach (var additionalCertificate in additionalCertificates)
         {
-            logger.LogVerbose($"[{nameof(CertificateChainValidator)}] Using chain certificate: " + primaryCertificate);
+            logger.LogVerbose("[CertificateChainValidator] Using chain certificate: " + primaryCertificate);
 
             x509Chain.ChainPolicy.ExtraStore.Add(additionalCertificate);
         }
@@ -59,12 +59,13 @@ internal class CertificateChainValidator : ICertificateChainValidator
 
         if (!validationResult)
         {
+            logger.WriteLine(SLCoreStrings.CertificateValidator_Failed);
             foreach (var x509ChainChainStatus in x509Chain.ChainStatus)
             {
-                logger.LogVerbose($"{x509ChainChainStatus.Status}: {x509ChainChainStatus.StatusInformation}");
+                logger.WriteLine(SLCoreStrings.CertificateValidator_FailureReasonTemplate, x509ChainChainStatus.Status, x509ChainChainStatus.StatusInformation);
             }
         }
-        
+
         return validationResult;
     }
 }
