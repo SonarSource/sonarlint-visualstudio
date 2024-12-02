@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.SLCore.Common.Models;
+using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
@@ -34,27 +35,27 @@ public class SimpleAnalysisTests
     {
         sharedFileAnalysisTestsRunner = new FileAnalysisTestsRunner(nameof(SimpleAnalysisTests));
     }
-    
+
     [ClassCleanup]
     public static void ClassCleanup()
     {
         sharedFileAnalysisTestsRunner.Dispose();
     }
-    
+
     [TestMethod]
-    public Task DefaultRuleConfig_ContentFromDisk_JavaScriptAnalysisProducesExpectedIssues() 
+    public Task DefaultRuleConfig_ContentFromDisk_JavaScriptAnalysisProducesExpectedIssues()
         => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.JavaScriptIssues,false);
-    
+
     [TestMethod]
-    public Task DefaultRuleConfig_ContentFromRpc_JavaScriptAnalysisProducesExpectedIssues() 
+    public Task DefaultRuleConfig_ContentFromRpc_JavaScriptAnalysisProducesExpectedIssues()
         => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.JavaScriptIssues,true);
 
     [TestMethod]
-    public Task DefaultRuleConfig_ContentFromDisk_SecretsAnalysisProducesExpectedIssues() 
+    public Task DefaultRuleConfig_ContentFromDisk_SecretsAnalysisProducesExpectedIssues()
         => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.SecretsIssues, false);
 
     [TestMethod]
-    public Task DefaultRuleConfig_ContentFromRpc_SecretsAnalysisProducesExpectedIssues() 
+    public Task DefaultRuleConfig_ContentFromRpc_SecretsAnalysisProducesExpectedIssues()
         => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.SecretsIssues, true);
 
     [TestMethod]
@@ -87,16 +88,7 @@ public class SimpleAnalysisTests
 
         issuesByFileUri.Should().HaveCount(1);
         var receivedIssues = issuesByFileUri[new FileUri(testingFile.GetFullPath())];
-        receivedIssues.Should().HaveCount(testingFile.ExpectedIssues.Count);
-
-        foreach (var expectedIssue in testingFile.ExpectedIssues)
-        {
-            var receivedIssue = receivedIssues.SingleOrDefault(x => x.ruleKey == expectedIssue.ruleKey && x.textRange.Equals(expectedIssue.textRange));
-            receivedIssue.Should().NotBeNull();
-            receivedIssue.severityMode.Right.Should().NotBeNull();
-            receivedIssue.severityMode.Right.cleanCodeAttribute.Should().Be(expectedIssue.cleanCodeAttribute);
-            receivedIssue.flows.Count.Should().Be(expectedIssue.expectedFlows);
-        }
+        var receivedTestIssues = receivedIssues.Select(x => new TestIssue(x.ruleKey, x.textRange, x.severityMode.Right?.cleanCodeAttribute, x.flows.Count));
+        receivedTestIssues.Should().BeEquivalentTo(testingFile.ExpectedIssues);
     }
-
 }
