@@ -28,8 +28,6 @@ public record IssueDetailDto(
     string issueKey,
     string ruleKey,
     string ideFilePath,
-    string branch,
-    string pullRequest,
     string message,
     string creationDate,
     string codeSnippet,

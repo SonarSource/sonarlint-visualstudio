@@ -67,15 +67,17 @@ public class FileTracker : IFileTracker
             .Forget();
     }
 
-    private void NotifySlCoreFilesChanged(string[] removedFiles, SourceFile[] addedFiles)
+    private void NotifySlCoreFilesChanged(string[] removedFiles, SourceFile[] addedOrChangedFiles)
     {
-        if (serviceProvider.TryGetTransientService(out IFileRpcSLCoreService fileRpcSlCoreService) && activeConfigScopeTracker.Current is {} configScope) 
+        if (serviceProvider.TryGetTransientService(out IFileRpcSLCoreService fileRpcSlCoreService) && activeConfigScopeTracker.Current is {} configScope)
         {
-            var clientFiles = addedFiles.Select(sourceFile => clientFileDtoFactory.Create(configScope.Id, configScope.RootPath, sourceFile)).ToList();
+            var clientFiles = addedOrChangedFiles.Select(sourceFile => clientFileDtoFactory.Create(configScope.Id, configScope.RootPath, sourceFile)).ToList();
             var removedFileUris = removedFiles.Select(f => new FileUri(f)).ToList();
 
-            fileRpcSlCoreService.DidUpdateFileSystem(new DidUpdateFileSystemParams(
-                removedFileUris, clientFiles));
+            /*  we're only sending changed files here as it is complicated to implement the proper tracking of added files
+                AND `changed` files that were actually added are recognized as added by SLCore
+                https://github.com/SonarSource/sonarlint-core/pull/1163/files#diff-070e6ef952d4a71245d92ea8f281c5a56050e8992179cde3955d4b1530dff664R152 */
+            fileRpcSlCoreService.DidUpdateFileSystem(new DidUpdateFileSystemParams(removedFileUris, [], clientFiles));
         }
         else
         {
