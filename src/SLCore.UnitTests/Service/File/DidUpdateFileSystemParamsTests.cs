@@ -37,13 +37,19 @@ public class DidUpdateFileSystemParamsTests
             new("file:///tmp/junit14012097140227905793/Bar.cs")
         };
 
-        var addedOrChangedFiles = new List<ClientFileDto>
+        var addedFiles = new List<ClientFileDto>
         {
-            new(new FileUri("file:///c:/Users/test/project/Baz.cs"), "Baz.cs", "CONFIG_SCOPE_ID", false,
-                "utf8", "C:\\Users\\test\\project", "CONTENT")
+            new(new FileUri("file:///c:/Users/test/projec1t/Baz.cs"), "Baz.cs", "CONFIG_SCOPE_ID", false,
+                "utf8", "C:\\Users\\test\\project1", "CONTENT")
         };
 
-        var testSubject = new DidUpdateFileSystemParams(removedFiles, addedOrChangedFiles);
+        var changedFiles = new List<ClientFileDto>
+        {
+            new(new FileUri("file:///c:/Users/test/project2/ABOBA.cs"), "ABOBA.cs", "CONFIG_SCOPE_ID", true,
+                "utf16", "C:\\Users\\test\\project2", "CONTENT2")
+        };
+
+        var testSubject = new DidUpdateFileSystemParams(removedFiles, addedFiles, changedFiles);
 
         const string expectedString = """
                                       {
@@ -51,15 +57,27 @@ public class DidUpdateFileSystemParamsTests
                                           "file:///tmp/junit14012097140227905793/Foo.cs",
                                           "file:///tmp/junit14012097140227905793/Bar.cs"
                                         ],
-                                        "addedOrChangedFiles": [
+                                        "addedFiles": [
                                           {
-                                            "uri": "file:///c:/Users/test/project/Baz.cs",
+                                            "uri": "file:///c:/Users/test/projec1t/Baz.cs",
                                             "ideRelativePath": "Baz.cs",
                                             "configScopeId": "CONFIG_SCOPE_ID",
                                             "isTest": false,
                                             "charset": "utf8",
-                                            "fsPath": "C:\\Users\\test\\project",
+                                            "fsPath": "C:\\Users\\test\\project1",
                                             "content": "CONTENT",
+                                            "isUserDefined": true
+                                          }
+                                        ],
+                                        "changedFiles": [
+                                          {
+                                            "uri": "file:///c:/Users/test/project2/ABOBA.cs",
+                                            "ideRelativePath": "ABOBA.cs",
+                                            "configScopeId": "CONFIG_SCOPE_ID",
+                                            "isTest": true,
+                                            "charset": "utf16",
+                                            "fsPath": "C:\\Users\\test\\project2",
+                                            "content": "CONTENT2",
                                             "isUserDefined": true
                                           }
                                         ]

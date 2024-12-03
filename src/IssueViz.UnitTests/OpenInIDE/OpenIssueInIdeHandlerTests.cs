@@ -43,19 +43,19 @@ public class OpenIssueInIdeHandlerTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<OpenIssueInIdeHandler>();
     }
-    
+
     [DataTestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void Show_CallsBaseHandler(bool isTaint)
     {
         const string configScope = "configscope";
-        var issue = new IssueDetailDto(default, default, default, default, default, default,
+        var issue = new IssueDetailDto(default, default, default, default,
             default, default, isTaint, default, default);
         var testSubject = CreateTestSubject(out var handler, out var converter);
-        
+
         testSubject.Show(issue, configScope);
-        
+
         handler.Received().ShowIssue(issue, configScope, converter, isTaint ? IssueListIds.TaintId : IssueListIds.ErrorListId, null);
     }
 
@@ -66,5 +66,5 @@ public class OpenIssueInIdeHandlerTests
         issueOpenInIdeConverter = Substitute.For<IIssueDetailDtoToAnalysisIssueConverter>();
         return new OpenIssueInIdeHandler(openInIdeHandlerImplementation,
             issueOpenInIdeConverter);
-    } 
+    }
 }

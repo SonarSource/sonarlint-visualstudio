@@ -43,7 +43,7 @@ public class FileTrackerTests
             MefTestHelpers.CreateExport<IClientFileDtoFactory>(),
             MefTestHelpers.CreateExport<ILogger>());
     }
-    
+
     [TestMethod]
     public void AddFiles_ServiceProviderFailed_LogsError()
     {
@@ -56,7 +56,7 @@ public class FileTrackerTests
         var testLogger = new TestLogger();
 
         var testSubject = new FileTracker(serviceProvider, activeConfigScopeTracker, threadHandling, clientFileDtoFactory, testLogger);
-        
+
         testSubject.AddFiles(new SourceFile("C:\\Users\\test\\TestProject\\AFile.cs"));
 
         testLogger.AssertOutputStrings($"[FileTracker] {SLCoreStrings.ServiceProviderNotInitialized}");
@@ -72,7 +72,8 @@ public class FileTrackerTests
         testSubject.AddFiles(new SourceFile("C:\\Users\\test\\TestProject\\AFile.cs"));
 
         result.removedFiles.Should().BeEmpty();
-        result.addedOrChangedFiles.Should().ContainSingle();
+        result.addedFiles.Should().BeEmpty();
+        result.changedFiles.Should().ContainSingle();
     }
 
     [TestMethod]
@@ -86,7 +87,8 @@ public class FileTrackerTests
 
         result.removedFiles.Should().ContainSingle();
         result.removedFiles[0].Should().BeEquivalentTo(new FileUri("C:\\Users\\test\\TestProject\\AFile.cs"));
-        result.addedOrChangedFiles.Should().BeEmpty();
+        result.addedFiles.Should().BeEmpty();
+        result.changedFiles.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -101,7 +103,8 @@ public class FileTrackerTests
 
         result.removedFiles.Should().ContainSingle();
         result.removedFiles[0].Should().BeEquivalentTo(new FileUri("C:\\Users\\test\\TestProject\\AFile.cs"));
-        result.addedOrChangedFiles.Should().ContainSingle();
+        result.addedFiles.Should().BeEmpty();
+        result.changedFiles.Should().ContainSingle();
     }
 
     private static FileTracker CreateTestSubject(out IFileRpcSLCoreService slCoreService)
@@ -124,7 +127,7 @@ public class FileTrackerTests
             .Returns(async info => await info.Arg<Func<Task<int>>>()());
 
         var logger = Substitute.For<ILogger>();
-        
+
         return new FileTracker(serviceProvider, activeConfigScopeTracker, threadHandling, clientFileDtoFactory, logger);
     }
 }

@@ -23,4 +23,4 @@ using SonarLint.VisualStudio.SLCore.Listener.Files.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.File;
 
-public record DidUpdateFileSystemParams(List<FileUri> removedFiles, List<ClientFileDto> addedOrChangedFiles);
+public record DidUpdateFileSystemParams(List<FileUri> removedFiles, List<ClientFileDto> addedFiles, List<ClientFileDto> changedFiles);
