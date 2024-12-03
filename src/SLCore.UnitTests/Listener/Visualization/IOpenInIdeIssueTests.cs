@@ -31,7 +31,7 @@ public class IOpenInIdeIssueTests
     public void Issue_ReturnsType_DependingOnIsTaintProperty(bool isTaint)
     {
         const string issueKey = "key123";
-        var testSubject = new IssueDetailDto(issueKey, default, default, default, default,
+        var testSubject = new IssueDetailDto(issueKey, default, default,
             default, default, default, isTaint, default, default);
 
         testSubject.Key.Should().BeSameAs(issueKey);

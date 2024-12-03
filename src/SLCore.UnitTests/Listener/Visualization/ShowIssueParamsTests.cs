@@ -37,8 +37,6 @@ public class ShowIssueParamsTests
             new IssueDetailDto("issueKeyValue",
                 "rule:S123",
                 "idepath",
-                "feature/sloop-open-in-ide",
-                "pr#123",
                 "my message",
                 "2024-01-01",
                 "a==b",
