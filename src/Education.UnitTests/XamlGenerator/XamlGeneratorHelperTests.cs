@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.Text;
 using System.Xml;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Education.Rule;
@@ -132,7 +129,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         </TextBlock>
       </Border>
       <TextBlock>
-        <Hyperlink NavigateUri=""https://docs.sonarsource.com/sonarlint/visual-studio/concepts/clean-code/introduction"">Learn more about Clean Code</Hyperlink>
+        <Hyperlink NavigateUri=""https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/concepts/clean-code/introduction"">Learn more about Clean Code</Hyperlink>
       </TextBlock>
     </WrapPanel>
   </BlockUIContainer>

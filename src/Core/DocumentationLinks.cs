@@ -25,21 +25,21 @@ namespace SonarLint.VisualStudio.Core
     /// </summary>
     public static class DocumentationLinks
     {
-        public const string HomePage = "https://docs.sonarsource.com/sonarlint/visual-studio/";
-        public const string LanguageSpecificRequirements = "https://docs.sonarsource.com/sonarlint/visual-studio/getting-started/requirements/#language-specific-requirements";
-        public const string LanguageSpecificRequirements_JsTs = "https://docs.sonarsource.com/sonarlint/visual-studio/getting-started/requirements/#nodejs-prerequisites-for-js-and-ts";
-        public const string MigrateToConnectedModeV7 = "https://docs.sonarsource.com/sonarlint/visual-studio/team-features/migrate-connected-mode-to-v7/";
-        public const string MigrateToConnectedModeV7_NotesForTfvcUsers = "https://docs.sonarsource.com/sonarlint/visual-studio/team-features/migrate-connected-mode-to-v7/#notes-for-tfvc-users";
-        public const string ConnectedMode = "https://docs.sonarsource.com/sonarlint/visual-studio/team-features/connected-mode/";
-        public const string TaintVulnerabilities = "https://docs.sonarsource.com/sonarlint/visual-studio/using-sonarlint/taint-vulnerabilities/";
-        public const string DisablingARule = "https://docs.sonarsource.com/sonarlint/visual-studio/using-sonarlint/rules/#disabling-a-rule";
-        public const string UseSharedBinding = "https://docs.sonarsource.com/sonarlint/visual-studio/team-features/connected-mode-setup/#bind-using-shared-configuration";
-        public const string SetupSharedBinding = "https://docs.sonarsource.com/sonarlint/visual-studio/team-features/connected-mode-setup/#save-the-connection-binding";
-        public const string CleanCode = "https://docs.sonarsource.com/sonarlint/visual-studio/concepts/clean-code/introduction";
-        public const string OpenInIdeIssueLocation = "https://docs.sonarsource.com/sonarlint/visual-studio/troubleshooting/#no-matching-issue-found";
-        public const string OpenInIdeBindingSetup = "https://docs.sonarsource.com/sonarlint/visual-studio/troubleshooting/#no-matching-project-found";
-        public const string UnbindingProject = "https://docs.sonarsource.com/sonarlint/visual-studio/team-features/connected-mode-setup/#unbinding-a-project";
-        
+        public const string HomePage = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/";
+        public const string LanguageSpecificRequirements = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/getting-started/requirements/#language-specific-requirements";
+        public const string LanguageSpecificRequirements_JsTs = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/getting-started/requirements/#nodejs-prerequisites-for-js-and-ts";
+        public const string MigrateToConnectedModeV7 = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/migrate-connected-mode-to-v7/";
+        public const string MigrateToConnectedModeV7_NotesForTfvcUsers = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/migrate-connected-mode-to-v7/#notes-for-tfvc-users";
+        public const string ConnectedMode = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode/";
+        public const string TaintVulnerabilities = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/using-sonarlint/taint-vulnerabilities/";
+        public const string DisablingARule = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/using-sonarlint/rules/#disabling-a-rule";
+        public const string UseSharedBinding = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode-setup/#bind-using-shared-configuration";
+        public const string SetupSharedBinding = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode-setup/#save-the-connection-binding";
+        public const string CleanCode = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/concepts/clean-code/introduction";
+        public const string OpenInIdeIssueLocation = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/troubleshooting/#no-matching-issue-found";
+        public const string OpenInIdeBindingSetup = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/troubleshooting/#no-matching-project-found";
+        public const string UnbindingProject = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode-setup/#unbinding-a-project";
+
         public static readonly Uri UnbindingProjectUri = new(UnbindingProject);
         public static readonly Uri ConnectedModeUri = new(ConnectedMode);
     }
