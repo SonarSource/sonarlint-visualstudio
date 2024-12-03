@@ -39,7 +39,7 @@ public class DidUpdateFileSystemParamsTests
 
         var addedFiles = new List<ClientFileDto>
         {
-            new(new FileUri("file:///c:/Users/test/projec1t/Baz.cs"), "Baz.cs", "CONFIG_SCOPE_ID", false,
+            new(new FileUri("file:///c:/Users/test/project1/Baz.cs"), "Baz.cs", "CONFIG_SCOPE_ID", false,
                 "utf8", "C:\\Users\\test\\project1", "CONTENT")
         };
 
@@ -59,7 +59,7 @@ public class DidUpdateFileSystemParamsTests
                                         ],
                                         "addedFiles": [
                                           {
-                                            "uri": "file:///c:/Users/test/projec1t/Baz.cs",
+                                            "uri": "file:///c:/Users/test/project1/Baz.cs",
                                             "ideRelativePath": "Baz.cs",
                                             "configScopeId": "CONFIG_SCOPE_ID",
                                             "isTest": false,
