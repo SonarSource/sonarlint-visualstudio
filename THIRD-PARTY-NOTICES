@@ -21,8 +21,8 @@ mailto:info AT sonarsource DOT com
 This program is distributed with SonarQube analyzers that are subject to
 specific license terms.
 
-The sonar-csharp-enterprise-plugin and sonar-vbnet-enterprise-plugin are
-SonarQube analyzers published under the following proprietary license:
+The sonar-cfamily, sonar-csharp-enterprise-plugin and sonar-vbnet-enterprise-plugin
+are SonarQube analyzers published under the following proprietary license:
 SonarSource SA  grants you a non-transferable, non-sublicensable,
 limited license to use the aforementioned plugins solely as part of this
 program. Any use, reproduction, distribution, or modification of the
