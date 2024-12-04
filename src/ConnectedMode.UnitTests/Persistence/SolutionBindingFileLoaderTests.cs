@@ -20,6 +20,7 @@
 
 using System.IO;
 using System.IO.Abstractions;
+using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -29,8 +30,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
     [TestClass]
     public class SolutionBindingFileLoaderTests
     {
-        private Mock<ILogger> logger;
-        private Mock<IFileSystem> fileSystem;
+        private ILogger logger;
+        private IFileSystem fileSystem;
         private SolutionBindingFileLoader testSubject;
         private BindingJsonModel bindingJsonModel;
         private string serializedProject;
@@ -41,12 +42,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestInitialize]
         public void TestInitialize()
         {
-            logger = new Mock<ILogger>();
-            fileSystem = new Mock<IFileSystem>();
+            logger = Substitute.For<ILogger>();
+            fileSystem = Substitute.For<IFileSystem>();
 
-            testSubject = new SolutionBindingFileLoader(logger.Object, fileSystem.Object);
+            testSubject = new SolutionBindingFileLoader(logger, fileSystem);
 
-            fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(true);
+            fileSystem.Directory.Exists(MockDirectory).Returns(true);
             
             bindingJsonModel = new BindingJsonModel
             {
@@ -91,7 +92,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Ctor_NullFileSystem_Exception()
         {
-            Action act = () => new SolutionBindingFileLoader(logger.Object, null);
+            Action act = () => new SolutionBindingFileLoader(logger, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }
@@ -99,28 +100,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Save_DirectoryDoesNotExist_DirectoryIsCreated()
         {
-            fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(false);
+            fileSystem.Directory.Exists(MockDirectory).Returns(false);
 
             testSubject.Save(MockFilePath, bindingJsonModel);
 
-            fileSystem.Verify(x => x.Directory.CreateDirectory(MockDirectory), Times.Once);
+            fileSystem.Directory.Received(1).CreateDirectory(MockDirectory);
         }
 
         [TestMethod]
         public void Save_DirectoryExists_DirectoryNotCreated()
         {
-            fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(true);
+            fileSystem.Directory.Exists(MockDirectory).Returns(true);
 
             testSubject.Save(MockFilePath, bindingJsonModel);
 
-            fileSystem.Verify(x => x.Directory.CreateDirectory(It.IsAny<string>()), Times.Never);
+            fileSystem.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
         }
 
         [TestMethod]
         public void Save_ReturnsTrue()
         {
-            fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, serializedProject));
-
             var actual = testSubject.Save(MockFilePath, bindingJsonModel);
             actual.Should().BeTrue();
         }
@@ -128,17 +127,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Save_FileSerializedAndWritten()
         {
-            fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, serializedProject));
-
             testSubject.Save(MockFilePath, bindingJsonModel);
 
-            fileSystem.Verify(x => x.File.WriteAllText(MockFilePath, serializedProject), Times.Once);
+            fileSystem.File.Received(1).WriteAllText(MockFilePath, serializedProject);
         }
 
         [TestMethod]
         public void Save_NonCriticalException_False()
         {
-            fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, It.IsAny<string>())).Throws<PathTooLongException>();
+            fileSystem.File.When(x => x.WriteAllText(MockFilePath, Arg.Any<string>())).Throw<PathTooLongException>();
 
             var actual = testSubject.Save(MockFilePath, bindingJsonModel);
             actual.Should().BeFalse();
@@ -147,7 +144,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Save_CriticalException_Exception()
         {
-            fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, It.IsAny<string>())).Throws<StackOverflowException>();
+            fileSystem.File.When(x => x.WriteAllText(MockFilePath, Arg.Any<string>())).Throw<StackOverflowException>();
 
             Action act = () => testSubject.Save(MockFilePath, bindingJsonModel);
 
@@ -166,7 +163,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Load_FileDoesNotExist_Null()
         {
-            fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(false);
+            fileSystem.File.Exists(MockFilePath).Returns(false);
 
             var actual = testSubject.Load(MockFilePath);
             actual.Should().Be(null);
@@ -175,8 +172,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Load_InvalidJson_Null()
         {
-            fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
-            fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns("bad json");
+            fileSystem.File.Exists(MockFilePath).Returns(true);
+            fileSystem.File.ReadAllText(MockFilePath).Returns("bad json");
 
             var actual = testSubject.Load(MockFilePath);
             actual.Should().Be(null);
@@ -185,8 +182,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Load_NonCriticalException_Null()
         {
-            fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
-            fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Throws<PathTooLongException>();
+            fileSystem.File.Exists(MockFilePath).Returns(true);
+            fileSystem.File.ReadAllText(MockFilePath).Throws<PathTooLongException>();
 
             var actual = testSubject.Load(MockFilePath);
             actual.Should().Be(null);
@@ -195,8 +192,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Load_CriticalException_Exception()
         {
-            fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
-            fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Throws<StackOverflowException>();
+            fileSystem.File.Exists(MockFilePath).Returns(true);
+            fileSystem.File.ReadAllText(MockFilePath).Throws<StackOverflowException>();
 
             Action act = () => testSubject.Load(MockFilePath);
 
@@ -206,8 +203,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Load_FileExists_DeserializedProject()
         {
-            fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
-            fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns(serializedProject);
+            fileSystem.File.Exists(MockFilePath).Returns(true);
+            fileSystem.File.ReadAllText(MockFilePath).Returns(serializedProject);
 
             var actual = testSubject.Load(MockFilePath);
             actual.Should().BeEquivalentTo(bindingJsonModel);
@@ -220,8 +217,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             const string localDate = "2020-02-25T10:57:54+02:00";
             serializedProject = serializedProject.Replace(utcDate, localDate);
 
-            fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
-            fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns(serializedProject);
+            fileSystem.File.Exists(MockFilePath).Returns(true);
+            fileSystem.File.ReadAllText(MockFilePath).Returns(serializedProject);
 
             var actual = testSubject.Load(MockFilePath);
             actual.Should().BeEquivalentTo(bindingJsonModel);
