@@ -44,7 +44,13 @@ public interface ISolutionBindingRepository
     bool Write(string configFilePath, BoundServerProject binding);
 
     /// <summary>
-    /// Raises when <see cref="Write"/> operation completes successfully
+    /// Deletes the binding information
+    /// </summary>
+    /// <returns>If binding has been deleted</returns>
+    bool DeleteBinding(string configFilePath);
+
+    /// <summary>
+    /// Raises when <see cref="Write" /> operation completes successfully
     /// </summary>
     event EventHandler BindingUpdated;
 
