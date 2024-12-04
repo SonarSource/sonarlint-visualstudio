@@ -41,7 +41,7 @@ public class SLCoreAnalyzerTests
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
             MefTestHelpers.CreateExport<ICurrentTimeProvider>(),
-            MefTestHelpers.CreateExport<ICompilationDatabaseLocator>());
+            MefTestHelpers.CreateExport<IAggregatingCompilationDatabaseProvider>());
     }
 
     [TestMethod]
@@ -161,12 +161,13 @@ public class SLCoreAnalyzerTests
     [TestMethod]
     public void ExecuteAnalysis_ForCFamily_PassesCompilationDatabaseAsExtraProperties()
     {
+        const string filePath = @"C:\file\path\myclass.cpp";
         const string compilationDatabasePath = @"C:\file\path\compilation_database.json";
-        var compilationDatabaseLocator = WithCompilationDatabase(compilationDatabasePath);
+        var compilationDatabaseLocator = WithCompilationDatabase(filePath, compilationDatabasePath);
         var activeConfigScopeTracker = CreateInitializedConfigScope("someconfigscopeid");
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), activeConfigScopeTracker, compilationDatabaseLocator: compilationDatabaseLocator);
 
-        testSubject.ExecuteAnalysis(@"C:\file\path\myclass.cpp", Guid.NewGuid(), [AnalysisLanguage.CFamily], default, default, default);
+        testSubject.ExecuteAnalysis(filePath, Guid.NewGuid(), [AnalysisLanguage.CFamily], default, default, default);
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
                 a.extraProperties != null
@@ -177,11 +178,12 @@ public class SLCoreAnalyzerTests
     [TestMethod]
     public void ExecuteAnalysis_ForCFamily_WithoutCompilationDatabase_DoesNotPassExtraProperty()
     {
-        var compilationDatabaseLocator = WithCompilationDatabase(null);
+        const string filePath = @"C:\file\path\myclass.cpp";
+        var compilationDatabaseLocator = WithCompilationDatabase(filePath, null);
         var activeConfigScopeTracker = CreateInitializedConfigScope("someconfigscopeid");
         var testSubject = CreateTestSubject(CreatServiceProvider(out var analysisService), activeConfigScopeTracker, compilationDatabaseLocator: compilationDatabaseLocator);
 
-        testSubject.ExecuteAnalysis(@"C:\file\path\myclass.cpp", Guid.NewGuid(), [AnalysisLanguage.CFamily], default, default, default);
+        testSubject.ExecuteAnalysis(filePath, Guid.NewGuid(), [AnalysisLanguage.CFamily], default, default, default);
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
                 a.extraProperties != null
@@ -292,13 +294,13 @@ public class SLCoreAnalyzerTests
         IActiveConfigScopeTracker activeConfigScopeTracker = null,
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory = null,
         ICurrentTimeProvider currentTimeProvider = null,
-        ICompilationDatabaseLocator compilationDatabaseLocator = null)
+        IAggregatingCompilationDatabaseProvider compilationDatabaseLocator = null)
     {
         slCoreServiceProvider ??= Substitute.For<ISLCoreServiceProvider>();
         activeConfigScopeTracker ??= Substitute.For<IActiveConfigScopeTracker>();
         analysisStatusNotifierFactory ??= Substitute.For<IAnalysisStatusNotifierFactory>();
         currentTimeProvider ??= Substitute.For<ICurrentTimeProvider>();
-        compilationDatabaseLocator ??= Substitute.For<ICompilationDatabaseLocator>();
+        compilationDatabaseLocator ??= Substitute.For<IAggregatingCompilationDatabaseProvider>();
         return new SLCoreAnalyzer(slCoreServiceProvider,
             activeConfigScopeTracker,
             analysisStatusNotifierFactory,
@@ -306,10 +308,10 @@ public class SLCoreAnalyzerTests
             compilationDatabaseLocator);
     }
 
-    private static ICompilationDatabaseLocator WithCompilationDatabase(string compilationDatabasePath)
+    private static IAggregatingCompilationDatabaseProvider WithCompilationDatabase(string filePath, string compilationDatabasePath)
     {
-        var compilationDatabaseLocator = Substitute.For<ICompilationDatabaseLocator>();
-        compilationDatabaseLocator.Locate().Returns(compilationDatabasePath);
+        var compilationDatabaseLocator = Substitute.For<IAggregatingCompilationDatabaseProvider>();
+        compilationDatabaseLocator.GetOrNull(filePath).Returns(compilationDatabasePath);
         return compilationDatabaseLocator;
     }
 }

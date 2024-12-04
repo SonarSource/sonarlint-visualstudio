@@ -18,27 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO.Abstractions;
-using Moq;
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.CFamily.CMake;
+using SonarLint.VisualStudio.Core.CFamily;
 
-namespace SonarLint.VisualStudio.TestInfrastructure.Extensions
+namespace SonarLint.VisualStudio.CFamily.CompilationDatabase;
+
+[Export(typeof(IAggregatingCompilationDatabaseProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method:ImportingConstructor]
+internal class AggregatingCompilationDatabaseProvider(
+    ICMakeCompilationDatabaseLocator cMakeCompilationDatabaseLocator,
+    IVCXCompilationDatabaseProvider vcxCompilationDatabaseProvider)
+    : IAggregatingCompilationDatabaseProvider
 {
-    /// <summary>
-    /// Extension methods to simplify working with IFileSystem mocks
-    /// </summary>
-    public static class FileSystemExtensions
+    public string GetOrNull(string sourceFilePath)
     {
-        public static T SetFileExists<T>(this T fileSystem, string fullPath, bool result = true)
-         where T : class, IFileSystem
+        if (cMakeCompilationDatabaseLocator.Locate() is {} cmakeCompilationDatabasePath)
         {
-            fileSystem.File.Exists(fullPath).Returns(result);
-            return fileSystem;
+            return cmakeCompilationDatabasePath;
         }
-        public static T VerifyFileExistsCalledOnce<T>(this T fileSystem, string fullPath)
-            where T : class, IFileSystem
-        {
-            fileSystem.File.Received().Exists(fullPath);
-            return fileSystem;
-        }
+
+        return vcxCompilationDatabaseProvider.CreateOrNull(sourceFilePath);
     }
 }
