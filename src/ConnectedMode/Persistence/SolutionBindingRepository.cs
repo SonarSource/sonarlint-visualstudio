@@ -102,6 +102,8 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
         return true;
     }
 
+    public bool DeleteBinding(string configFilePath) => throw new NotImplementedException();
+
     public event EventHandler BindingUpdated;
 
     public IEnumerable<BoundServerProject> List()
