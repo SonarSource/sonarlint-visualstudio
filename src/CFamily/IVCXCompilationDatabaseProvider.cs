@@ -18,14 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.CFamily
+namespace SonarLint.VisualStudio.CFamily;
+
+public interface IVCXCompilationDatabaseProvider
 {
-    public interface ICompilationDatabaseLocator
-    {
-        /// <summary>
-        /// Returns absolute path to the compilation database file of the currently active build configuration.
-        /// Returns null if the file was not found.
-        /// </summary>
-        string Locate();
-    }
+    string CreateOrNull(string filePath);
 }

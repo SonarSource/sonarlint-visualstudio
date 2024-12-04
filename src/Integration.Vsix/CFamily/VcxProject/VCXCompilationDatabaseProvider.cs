@@ -18,27 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO.Abstractions;
-using Moq;
+using System.ComponentModel.Composition;
+using EnvDTE80;
+using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.CFamily;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
-namespace SonarLint.VisualStudio.TestInfrastructure.Extensions
+namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
+
+[Export(typeof(IVCXCompilationDatabaseProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal class VCXCompilationDatabaseProvider(
+    IVCXCompilationDatabaseStorage storage,
+    IFileConfigProvider fileConfigProvider)
+    : IVCXCompilationDatabaseProvider
 {
-    /// <summary>
-    /// Extension methods to simplify working with IFileSystem mocks
-    /// </summary>
-    public static class FileSystemExtensions
-    {
-        public static T SetFileExists<T>(this T fileSystem, string fullPath, bool result = true)
-         where T : class, IFileSystem
-        {
-            fileSystem.File.Exists(fullPath).Returns(result);
-            return fileSystem;
-        }
-        public static T VerifyFileExistsCalledOnce<T>(this T fileSystem, string fullPath)
-            where T : class, IFileSystem
-        {
-            fileSystem.File.Received().Exists(fullPath);
-            return fileSystem;
-        }
-    }
+    public string CreateOrNull(string filePath) =>
+        fileConfigProvider.Get(filePath, null) is {} fileConfig
+            ? storage.CreateDatabase(fileConfig)
+            : null;
 }

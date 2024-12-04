@@ -18,18 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace SonarLint.VisualStudio.Core.Helpers
 {
     public static class PathHelper
     {
-        private static readonly Guid perVSInstanceFolderName = Guid.NewGuid();
+        internal static readonly Guid PerVsInstanceFolderName = Guid.NewGuid();
 
         /// <summary>
         /// Replace all invalid file path characters with the underscore ("_").
@@ -129,16 +125,16 @@ namespace SonarLint.VisualStudio.Core.Helpers
 
             var taskFolders = new List<string> { SLVSTempFolder };
 
-            taskFolders.AddRange(folders);  
-            
+            taskFolders.AddRange(folders);
+
             var taskPath = Path.Combine(taskFolders.ToArray());
 
             if(perVSInstance)
             {
-                return Path.Combine(taskPath, perVSInstanceFolderName.ToString());
+                return Path.Combine(taskPath, PerVsInstanceFolderName.ToString());
             }
 
-            return taskPath;            
+            return taskPath;
         }
 
         public static string CalculateServerRoot(string localFilePath, IList<string> serverPathsWithSameFileName)
