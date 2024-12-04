@@ -23,7 +23,7 @@ namespace SonarLint.VisualStudio.Core.Binding;
 public interface ILegacySolutionBindingRepository
 {
     /// <summary>
-    ///     Retrieves solution binding information
+    /// Retrieves solution binding information
     /// </summary>
     /// <returns>Can be null if not bound</returns>
     BoundSonarQubeProject Read(string configFilePath);
@@ -32,30 +32,30 @@ public interface ILegacySolutionBindingRepository
 public interface ISolutionBindingRepository
 {
     /// <summary>
-    ///     Retrieves solution binding information
+    /// Retrieves solution binding information
     /// </summary>
     /// <returns>Can be null if not bound</returns>
     BoundServerProject Read(string configFilePath);
 
     /// <summary>
-    ///     Writes the binding information
+    /// Writes the binding information
     /// </summary>
     /// <returns>Has file been saved</returns>
     bool Write(string configFilePath, BoundServerProject binding);
 
     /// <summary>
-    ///     Deletes the binding information
+    /// Deletes the binding information
     /// </summary>
     /// <returns>If binding has been deleted</returns>
     bool DeleteBinding(string configFilePath);
 
     /// <summary>
-    ///     Raises when <see cref="Write" /> operation completes successfully
+    /// Raises when <see cref="Write" /> operation completes successfully
     /// </summary>
     event EventHandler BindingUpdated;
 
     /// <summary>
-    ///     Lists all the binding information
+    /// Lists all the binding information
     /// </summary>
     /// <returns></returns>
     IEnumerable<BoundServerProject> List();
