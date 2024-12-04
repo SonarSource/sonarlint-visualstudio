@@ -41,6 +41,7 @@ Referenced assemblies:
 - 'Microsoft.VisualStudio.Threading, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'Microsoft.VisualStudio.VCProjectEngine, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+- 'Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed'
 - 'PresentationCore, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'SonarLint.VisualStudio.CFamily, Version=8.9.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
@@ -60,16 +61,14 @@ Referenced assemblies:
 - 'System.IO.Abstractions, Version=9.0.0.0, Culture=neutral, PublicKeyToken=96bf224d23c43e59'
 - 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-# Number of references: 30
+# Number of references: 31
 
 ---
 Assembly: 'SonarLint.VisualStudio.CFamily, Version=8.9.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 Relative path: 'SonarLint.VisualStudio.CFamily.dll'
 
 Referenced assemblies:
-- 'Microsoft.VisualStudio.CoreUtility, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'Microsoft.VisualStudio.Shell.Framework, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
-- 'Microsoft.VisualStudio.Text.Data, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed'
 - 'SonarLint.VisualStudio.Core, Version=8.9.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
@@ -78,7 +77,7 @@ Referenced assemblies:
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.IO.Abstractions, Version=9.0.0.0, Culture=neutral, PublicKeyToken=96bf224d23c43e59'
-# Number of references: 11
+# Number of references: 9
 
 ---
 Assembly: 'SonarLint.VisualStudio.ConnectedMode, Version=8.9.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'

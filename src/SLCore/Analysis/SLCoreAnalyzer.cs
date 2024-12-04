@@ -40,14 +40,14 @@ public class SLCoreAnalyzer : IAnalyzer
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
     private readonly ICurrentTimeProvider currentTimeProvider;
-    private readonly ICompilationDatabaseLocator compilationDatabaseLocator;
+    private readonly IAggregatingCompilationDatabaseProvider compilationDatabaseLocator;
 
     [ImportingConstructor]
     public SLCoreAnalyzer(ISLCoreServiceProvider serviceProvider,
         IActiveConfigScopeTracker activeConfigScopeTracker,
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
         ICurrentTimeProvider currentTimeProvider,
-        ICompilationDatabaseLocator compilationDatabaseLocator)
+        IAggregatingCompilationDatabaseProvider compilationDatabaseLocator)
     {
         this.serviceProvider = serviceProvider;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
@@ -80,7 +80,7 @@ public class SLCoreAnalyzer : IAnalyzer
             return;
         }
 
-        var extraProperties = GetExtraProperties(detectedLanguages);
+        var extraProperties = GetExtraProperties(path, detectedLanguages);
 
         ExecuteAnalysisInternalAsync(path, configurationScope.Id, analysisId, analyzerOptions, analysisService, analysisStatusNotifier, extraProperties, cancellationToken).Forget();
     }
@@ -122,7 +122,7 @@ public class SLCoreAnalyzer : IAnalyzer
         }
     }
 
-    private Dictionary<string, string> GetExtraProperties(IEnumerable<AnalysisLanguage> detectedLanguages)
+    private Dictionary<string, string> GetExtraProperties(string path, IEnumerable<AnalysisLanguage> detectedLanguages)
     {
         Dictionary<string, string> extraProperties = [];
         if (!IsCFamily(detectedLanguages))
@@ -130,7 +130,7 @@ public class SLCoreAnalyzer : IAnalyzer
             return extraProperties;
         }
 
-        var compilationDatabasePath = compilationDatabaseLocator.Locate();
+        var compilationDatabasePath = compilationDatabaseLocator.GetOrNull(path);
         if (compilationDatabasePath != null)
         {
             extraProperties[CFamilyCompileCommandsProperty] = compilationDatabasePath;

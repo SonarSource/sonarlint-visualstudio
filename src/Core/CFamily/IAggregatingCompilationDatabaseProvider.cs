@@ -18,27 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO.Abstractions;
-using Moq;
+namespace SonarLint.VisualStudio.Core.CFamily;
 
-namespace SonarLint.VisualStudio.TestInfrastructure.Extensions
+public interface IAggregatingCompilationDatabaseProvider
 {
-    /// <summary>
-    /// Extension methods to simplify working with IFileSystem mocks
-    /// </summary>
-    public static class FileSystemExtensions
-    {
-        public static T SetFileExists<T>(this T fileSystem, string fullPath, bool result = true)
-         where T : class, IFileSystem
-        {
-            fileSystem.File.Exists(fullPath).Returns(result);
-            return fileSystem;
-        }
-        public static T VerifyFileExistsCalledOnce<T>(this T fileSystem, string fullPath)
-            where T : class, IFileSystem
-        {
-            fileSystem.File.Received().Exists(fullPath);
-            return fileSystem;
-        }
-    }
+    string GetOrNull(string sourceFilePath);
 }
