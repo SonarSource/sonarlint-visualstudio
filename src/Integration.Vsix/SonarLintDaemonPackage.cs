@@ -22,12 +22,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.CFamily.PreCompiledHeaders;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS.Roslyn;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using SonarLint.VisualStudio.Integration.Vsix.Events;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.SLCore;
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public const string CommandSetGuidString = "1F83EA11-3B07-45B3-BF39-307FD4F42194";
 
         private ILogger logger;
-        private IPreCompiledHeadersEventListener cFamilyPreCompiledHeadersEventListener;
+        private IVCXCompilationDatabaseStorage vcxCompilationDatabaseStorage;
         private ISolutionRoslynAnalyzerManager solutionRoslynAnalyzerManager;
         private IProjectDocumentsEventsListener projectDocumentsEventsListener;
         private ISLCoreHandler slCoreHandler;
@@ -100,15 +100,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 await DisableRuleCommand.InitializeAsync(this, logger);
                 await CFamilyReproducerCommand.InitializeAsync(this, logger);
 
-                cFamilyPreCompiledHeadersEventListener = await this.GetMefServiceAsync<IPreCompiledHeadersEventListener>();
+                vcxCompilationDatabaseStorage = await this.GetMefServiceAsync<IVCXCompilationDatabaseStorage>();
 
                 projectDocumentsEventsListener = await this.GetMefServiceAsync<IProjectDocumentsEventsListener>();
                 projectDocumentsEventsListener.Initialize();
 
                 solutionRoslynAnalyzerManager = await this.GetMefServiceAsync<ISolutionRoslynAnalyzerManager>();
-                
+
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
-                
+
                 slCoreHandler = await this.GetMefServiceAsync<ISLCoreHandler>();
                 slCoreHandler.EnableSloop();
             }
@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             logger?.WriteLine(Strings.Daemon_InitializationComplete);
         }
-        
+
         private async Task MigrateBindingsToServerConnectionsIfNeededAsync()
         {
             var bindingToConnectionMigration = await this.GetMefServiceAsync<IBindingToConnectionMigration>();
@@ -131,8 +131,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (disposing)
             {
-                cFamilyPreCompiledHeadersEventListener?.Dispose();
-                cFamilyPreCompiledHeadersEventListener = null;
+                vcxCompilationDatabaseStorage?.Dispose();
+                vcxCompilationDatabaseStorage = null;
                 projectDocumentsEventsListener?.Dispose();
                 projectDocumentsEventsListener = null;
                 solutionRoslynAnalyzerManager?.Dispose();
