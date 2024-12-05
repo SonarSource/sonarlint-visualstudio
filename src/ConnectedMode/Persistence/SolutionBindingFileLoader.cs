@@ -18,114 +18,114 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Persistence
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
+
+internal class SolutionBindingFileLoader : ISolutionBindingFileLoader
 {
-    internal class SolutionBindingFileLoader : ISolutionBindingFileLoader
+    private readonly IFileSystem fileSystem;
+    private readonly ILogger logger;
+
+    public SolutionBindingFileLoader(ILogger logger)
+        : this(logger, new FileSystem())
     {
-        private readonly ILogger logger;
-        private readonly IFileSystem fileSystem;
+    }
 
-        public SolutionBindingFileLoader(ILogger logger)
-            : this(logger, new FileSystem())
+    internal SolutionBindingFileLoader(ILogger logger, IFileSystem fileSystem)
+    {
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+    }
+
+    public bool Save(string filePath, BindingJsonModel project)
+    {
+        var serializedProject = Serialize(project);
+
+        return SafePerformFileSystemOperation(() => WriteConfig(filePath, serializedProject));
+    }
+
+    public bool DeleteBindingDirectory(string configFilePath)
+    {
+        if (fileSystem.File.Exists(configFilePath))
         {
-        }
-
-        internal SolutionBindingFileLoader(ILogger logger, IFileSystem fileSystem)
-        {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-        }
-
-        public bool Save(string filePath, BindingJsonModel project)
-        {
-            var serializedProject = Serialize(project);
-
-            return SafePerformFileSystemOperation(() => WriteConfig(filePath, serializedProject));
-        }
-
-        private void WriteConfig(string configFile, string serializedProject)
-        {
-            Debug.Assert(!string.IsNullOrWhiteSpace(configFile));
-
-            var directoryName = Path.GetDirectoryName(configFile);
-
-            if (!fileSystem.Directory.Exists(directoryName))
+            return SafePerformFileSystemOperation(() =>
             {
-                fileSystem.Directory.CreateDirectory(directoryName);
-            }
-
-            fileSystem.File.WriteAllText(configFile, serializedProject);
+                var directoryName = Path.GetDirectoryName(configFilePath);
+                fileSystem.Directory.Delete(directoryName, true);
+            });
         }
 
-        public BindingJsonModel Load(string filePath)
+        logger.LogVerbose(PersistenceStrings.BindingDirectoryNotDeleted, configFilePath);
+        return false;
+    }
+
+    public BindingJsonModel Load(string filePath)
+    {
+        if (string.IsNullOrEmpty(filePath) || !fileSystem.File.Exists(filePath))
         {
-            if (string.IsNullOrEmpty(filePath) || !fileSystem.File.Exists(filePath))
-            {
-                return null;
-            }
-
-            string configJson = null;
-
-            if (SafePerformFileSystemOperation(() => ReadConfig(filePath, out configJson)))
-            {
-                try
-                {
-                    return Deserialize(configJson);
-                }
-                catch (JsonException)
-                {
-                    logger.WriteLine(PersistenceStrings.FailedToDeserializeSQCOnfiguration, filePath);
-                }
-            }
-
             return null;
         }
 
-        private void ReadConfig(string configFile, out string text)
-        {
-            text = fileSystem.File.ReadAllText(configFile);
-        }
+        string configJson = null;
 
-        private bool SafePerformFileSystemOperation(Action operation)
+        if (SafePerformFileSystemOperation(() => ReadConfig(filePath, out configJson)))
         {
-            Debug.Assert(operation != null);
-
             try
             {
-                operation();
-                return true;
+                return Deserialize(configJson);
             }
-            catch (Exception e) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(e))
+            catch (JsonException)
             {
-                logger.WriteLine(e.Message);
-                return false;
+                logger.WriteLine(PersistenceStrings.FailedToDeserializeSQCOnfiguration, filePath);
             }
         }
 
-        private BindingJsonModel Deserialize(string projectJson)
+        return null;
+    }
+
+    private void WriteConfig(string configFile, string serializedProject)
+    {
+        Debug.Assert(!string.IsNullOrWhiteSpace(configFile));
+
+        var directoryName = Path.GetDirectoryName(configFile);
+
+        if (!fileSystem.Directory.Exists(directoryName))
         {
-            return JsonConvert.DeserializeObject<BindingJsonModel>(projectJson, new JsonSerializerSettings
-            {
-                DateFormatHandling = DateFormatHandling.IsoDateFormat,
-                DateTimeZoneHandling = DateTimeZoneHandling.Local,
-                DateParseHandling = DateParseHandling.DateTimeOffset
-            });
+            fileSystem.Directory.CreateDirectory(directoryName);
         }
 
-        private string Serialize(BindingJsonModel project)
+        fileSystem.File.WriteAllText(configFile, serializedProject);
+    }
+
+    private void ReadConfig(string configFile, out string text) => text = fileSystem.File.ReadAllText(configFile);
+
+    private bool SafePerformFileSystemOperation(Action operation)
+    {
+        Debug.Assert(operation != null);
+
+        try
         {
-            return JsonConvert.SerializeObject(project, Formatting.Indented, new JsonSerializerSettings
-            {
-                DateTimeZoneHandling = DateTimeZoneHandling.Utc
-            });
+            operation();
+            return true;
+        }
+        catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+        {
+            logger.WriteLine(e.Message);
+            return false;
         }
     }
+
+    private BindingJsonModel Deserialize(string projectJson) =>
+        JsonConvert.DeserializeObject<BindingJsonModel>(projectJson,
+            new JsonSerializerSettings
+            {
+                DateFormatHandling = DateFormatHandling.IsoDateFormat, DateTimeZoneHandling = DateTimeZoneHandling.Local, DateParseHandling = DateParseHandling.DateTimeOffset
+            });
+
+    private string Serialize(BindingJsonModel project) => JsonConvert.SerializeObject(project, Formatting.Indented, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
 }

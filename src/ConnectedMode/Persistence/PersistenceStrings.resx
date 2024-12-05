@@ -121,4 +121,7 @@
     <value>Failed loading file: '{0}'. Please rebind solution to create a new configuration file.</value>
     <comment>Output window message in case of deserialization error. {0} file path.</comment>
   </data>
+  <data name="BindingDirectoryNotDeleted" xml:space="preserve">
+    <value>The Connected Mode configuration file '{0}' does not exist. Connected Mode configuration not deleted.</value>
+  </data>
 </root>

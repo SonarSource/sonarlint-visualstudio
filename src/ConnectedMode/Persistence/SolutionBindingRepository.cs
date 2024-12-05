@@ -100,7 +100,11 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
         return true;
     }
 
-    public bool DeleteBinding(string configFilePath) => throw new NotImplementedException();
+    public bool DeleteBinding(string localBindingKey)
+    {
+        var bindingPath = unintrusiveBindingPathProvider.GetBindingPath(localBindingKey);
+        return solutionBindingFileLoader.DeleteBindingDirectory(bindingPath);
+    }
 
     public event EventHandler BindingUpdated;
 

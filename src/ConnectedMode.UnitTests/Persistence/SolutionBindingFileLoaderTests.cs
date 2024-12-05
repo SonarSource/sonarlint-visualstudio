@@ -20,54 +20,48 @@
 
 using System.IO;
 using System.IO.Abstractions;
+using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
+
+[TestClass]
+public class SolutionBindingFileLoaderTests
 {
-    [TestClass]
-    public class SolutionBindingFileLoaderTests
+    private const string MockFilePath = "c:\\test.txt";
+    private const string MockDirectory = "c:\\";
+    private BindingJsonModel bindingJsonModel;
+    private IFileSystem fileSystem;
+    private ILogger logger;
+    private string serializedProject;
+    private SolutionBindingFileLoader testSubject;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        private Mock<ILogger> logger;
-        private Mock<IFileSystem> fileSystem;
-        private SolutionBindingFileLoader testSubject;
-        private BindingJsonModel bindingJsonModel;
-        private string serializedProject;
+        logger = Substitute.For<ILogger>();
+        fileSystem = Substitute.For<IFileSystem>();
 
-        private const string MockFilePath = "c:\\test.txt";
-        private const string MockDirectory = "c:\\";
+        testSubject = new SolutionBindingFileLoader(logger, fileSystem);
 
-        [TestInitialize]
-        public void TestInitialize()
+        fileSystem.Directory.Exists(MockDirectory).Returns(true);
+
+        bindingJsonModel = new BindingJsonModel
         {
-            logger = new Mock<ILogger>();
-            fileSystem = new Mock<IFileSystem>();
-
-            testSubject = new SolutionBindingFileLoader(logger.Object, fileSystem.Object);
-
-            fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(true);
-            
-            bindingJsonModel = new BindingJsonModel
+            ServerUri = new Uri("http://xxx.www.zzz/yyy:9000"),
+            Organization = null,
+            ProjectKey = "MyProject Key",
+            ProjectName = "projectName",
+            ServerConnectionId = null,
+            Profiles = new Dictionary<Language, ApplicableQualityProfile>
             {
-                ServerUri = new Uri("http://xxx.www.zzz/yyy:9000"),
-                Organization = null,
-                ProjectKey = "MyProject Key",
-                ProjectName = "projectName",
-                ServerConnectionId = null,
-                Profiles = new Dictionary<Language, ApplicableQualityProfile>
-                {
-                    {
-                        Language.CSharp,
-                        new ApplicableQualityProfile
-                        {
-                            ProfileKey = "sonar way", ProfileTimestamp = DateTime.Parse("2020-02-25T08:57:54+0000")
-                        }
-                    }
-                }
-            };
+                { Language.CSharp, new ApplicableQualityProfile { ProfileKey = "sonar way", ProfileTimestamp = DateTime.Parse("2020-02-25T08:57:54+0000") } }
+            }
+        };
 
-            serializedProject = @"{
+        serializedProject = @"{
   ""ServerUri"": ""http://xxx.www.zzz/yyy:9000"",
   ""ProjectKey"": ""MyProject Key"",
   ""ProjectName"": ""projectName"",
@@ -78,156 +72,191 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
     }
   }
 }";
-        }
-
-        [TestMethod]
-        public void Ctor_NullLogger_Exception()
-        {
-            Action act = () => new SolutionBindingFileLoader(null, null);
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-        }
-
-        [TestMethod]
-        public void Ctor_NullFileSystem_Exception()
-        {
-            Action act = () => new SolutionBindingFileLoader(logger.Object, null);
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
-        }
-
-        [TestMethod]
-        public void Save_DirectoryDoesNotExist_DirectoryIsCreated()
-        {
-            fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(false);
-
-            testSubject.Save(MockFilePath, bindingJsonModel);
-
-            fileSystem.Verify(x => x.Directory.CreateDirectory(MockDirectory), Times.Once);
-        }
-
-        [TestMethod]
-        public void Save_DirectoryExists_DirectoryNotCreated()
-        {
-            fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(true);
-
-            testSubject.Save(MockFilePath, bindingJsonModel);
-
-            fileSystem.Verify(x => x.Directory.CreateDirectory(It.IsAny<string>()), Times.Never);
-        }
-
-        [TestMethod]
-        public void Save_ReturnsTrue()
-        {
-            fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, serializedProject));
-
-            var actual = testSubject.Save(MockFilePath, bindingJsonModel);
-            actual.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void Save_FileSerializedAndWritten()
-        {
-            fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, serializedProject));
-
-            testSubject.Save(MockFilePath, bindingJsonModel);
-
-            fileSystem.Verify(x => x.File.WriteAllText(MockFilePath, serializedProject), Times.Once);
-        }
-
-        [TestMethod]
-        public void Save_NonCriticalException_False()
-        {
-            fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, It.IsAny<string>())).Throws<PathTooLongException>();
-
-            var actual = testSubject.Save(MockFilePath, bindingJsonModel);
-            actual.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void Save_CriticalException_Exception()
-        {
-            fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, It.IsAny<string>())).Throws<StackOverflowException>();
-
-            Action act = () => testSubject.Save(MockFilePath, bindingJsonModel);
-
-            act.Should().ThrowExactly<StackOverflowException>();
-        }
-
-        [DataTestMethod]
-        [DataRow("")]
-        [DataRow(null)]
-        public void Load_FilePathIsNull_Null(string filePath)
-        {
-            var actual = testSubject.Load(filePath);
-            actual.Should().Be(null);
-        }
-
-        [TestMethod]
-        public void Load_FileDoesNotExist_Null()
-        {
-            fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(false);
-
-            var actual = testSubject.Load(MockFilePath);
-            actual.Should().Be(null);
-        }
-
-        [TestMethod]
-        public void Load_InvalidJson_Null()
-        {
-            fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
-            fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns("bad json");
-
-            var actual = testSubject.Load(MockFilePath);
-            actual.Should().Be(null);
-        }
-
-        [TestMethod]
-        public void Load_NonCriticalException_Null()
-        {
-            fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
-            fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Throws<PathTooLongException>();
-
-            var actual = testSubject.Load(MockFilePath);
-            actual.Should().Be(null);
-        }
-
-        [TestMethod]
-        public void Load_CriticalException_Exception()
-        {
-            fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
-            fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Throws<StackOverflowException>();
-
-            Action act = () => testSubject.Load(MockFilePath);
-
-            act.Should().ThrowExactly<StackOverflowException>();
-        }
-
-        [TestMethod]
-        public void Load_FileExists_DeserializedProject()
-        {
-            fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
-            fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns(serializedProject);
-
-            var actual = testSubject.Load(MockFilePath);
-            actual.Should().BeEquivalentTo(bindingJsonModel);
-        }
-
-        [TestMethod]
-        public void Load_FileExists_ProjectWithNonUtcTimestamp_DeserializedProjectWithCorrectTimestampData()
-        {
-            const string utcDate = "2020-02-25T08:57:54Z";
-            const string localDate = "2020-02-25T10:57:54+02:00";
-            serializedProject = serializedProject.Replace(utcDate, localDate);
-
-            fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
-            fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns(serializedProject);
-
-            var actual = testSubject.Load(MockFilePath);
-            actual.Should().BeEquivalentTo(bindingJsonModel);
-
-            var deserializedTimestamp = actual.Profiles[Language.CSharp].ProfileTimestamp.Value.ToUniversalTime();
-            deserializedTimestamp.Should().Be(new DateTime(2020, 2, 25, 8, 57, 54));
-        }
     }
+
+    [TestMethod]
+    public void Ctor_NullLogger_Exception()
+    {
+        Action act = () => new SolutionBindingFileLoader(null, null);
+
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    }
+
+    [TestMethod]
+    public void Ctor_NullFileSystem_Exception()
+    {
+        Action act = () => new SolutionBindingFileLoader(logger, null);
+
+        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
+    }
+
+    [TestMethod]
+    public void Save_DirectoryDoesNotExist_DirectoryIsCreated()
+    {
+        fileSystem.Directory.Exists(MockDirectory).Returns(false);
+
+        testSubject.Save(MockFilePath, bindingJsonModel);
+
+        fileSystem.Directory.Received(1).CreateDirectory(MockDirectory);
+    }
+
+    [TestMethod]
+    public void Save_DirectoryExists_DirectoryNotCreated()
+    {
+        fileSystem.Directory.Exists(MockDirectory).Returns(true);
+
+        testSubject.Save(MockFilePath, bindingJsonModel);
+
+        fileSystem.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
+    }
+
+    [TestMethod]
+    public void Save_ReturnsTrue()
+    {
+        var actual = testSubject.Save(MockFilePath, bindingJsonModel);
+        actual.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void Save_FileSerializedAndWritten()
+    {
+        testSubject.Save(MockFilePath, bindingJsonModel);
+
+        fileSystem.File.Received(1).WriteAllText(MockFilePath, serializedProject);
+    }
+
+    [TestMethod]
+    public void Save_NonCriticalException_False()
+    {
+        fileSystem.File.When(x => x.WriteAllText(MockFilePath, Arg.Any<string>())).Throw<PathTooLongException>();
+
+        var actual = testSubject.Save(MockFilePath, bindingJsonModel);
+        actual.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void Save_CriticalException_Exception()
+    {
+        fileSystem.File.When(x => x.WriteAllText(MockFilePath, Arg.Any<string>())).Throw<StackOverflowException>();
+
+        Action act = () => testSubject.Save(MockFilePath, bindingJsonModel);
+
+        act.Should().ThrowExactly<StackOverflowException>();
+    }
+
+    [DataTestMethod]
+    [DataRow("")]
+    [DataRow(null)]
+    public void Load_FilePathIsNull_Null(string filePath)
+    {
+        var actual = testSubject.Load(filePath);
+        actual.Should().Be(null);
+    }
+
+    [TestMethod]
+    public void Load_FileDoesNotExist_Null()
+    {
+        MockFileNotExists(MockFilePath);
+
+        var actual = testSubject.Load(MockFilePath);
+        actual.Should().Be(null);
+    }
+
+    [TestMethod]
+    public void Load_InvalidJson_Null()
+    {
+        MockFileExists(MockFilePath);
+        fileSystem.File.ReadAllText(MockFilePath).Returns("bad json");
+
+        var actual = testSubject.Load(MockFilePath);
+        actual.Should().Be(null);
+    }
+
+    [TestMethod]
+    public void Load_NonCriticalException_Null()
+    {
+        MockFileExists(MockFilePath);
+        fileSystem.File.ReadAllText(MockFilePath).Throws<PathTooLongException>();
+
+        var actual = testSubject.Load(MockFilePath);
+        actual.Should().Be(null);
+    }
+
+    [TestMethod]
+    public void Load_CriticalException_Exception()
+    {
+        MockFileExists(MockFilePath);
+        fileSystem.File.ReadAllText(MockFilePath).Throws<StackOverflowException>();
+
+        Action act = () => testSubject.Load(MockFilePath);
+
+        act.Should().ThrowExactly<StackOverflowException>();
+    }
+
+    [TestMethod]
+    public void Load_FileExists_DeserializedProject()
+    {
+        MockFileExists(MockFilePath);
+        fileSystem.File.ReadAllText(MockFilePath).Returns(serializedProject);
+
+        var actual = testSubject.Load(MockFilePath);
+        actual.Should().BeEquivalentTo(bindingJsonModel);
+    }
+
+    [TestMethod]
+    public void Load_FileExists_ProjectWithNonUtcTimestamp_DeserializedProjectWithCorrectTimestampData()
+    {
+        const string utcDate = "2020-02-25T08:57:54Z";
+        const string localDate = "2020-02-25T10:57:54+02:00";
+        serializedProject = serializedProject.Replace(utcDate, localDate);
+
+        MockFileExists(MockFilePath);
+        fileSystem.File.ReadAllText(MockFilePath).Returns(serializedProject);
+
+        var actual = testSubject.Load(MockFilePath);
+        actual.Should().BeEquivalentTo(bindingJsonModel);
+
+        var deserializedTimestamp = actual.Profiles[Language.CSharp].ProfileTimestamp.Value.ToUniversalTime();
+        deserializedTimestamp.Should().Be(new DateTime(2020, 2, 25, 8, 57, 54));
+    }
+
+    [TestMethod]
+    public void DeleteBindingDirectory_ConfigFilePathNotExists_ReturnsFalseAndLogs()
+    {
+        MockFileNotExists(MockFilePath);
+
+        var result = testSubject.DeleteBindingDirectory(MockFilePath);
+
+        result.Should().BeFalse();
+        fileSystem.Directory.DidNotReceive().Delete(MockDirectory, true);
+        logger.Received(1).LogVerbose(PersistenceStrings.BindingDirectoryNotDeleted, MockFilePath);
+    }
+
+    [TestMethod]
+    public void DeleteBindingDirectory_ConfigFilePathExists_DeletesBindingDirectoryRecursively()
+    {
+        MockFileExists(MockFilePath);
+
+        var result = testSubject.DeleteBindingDirectory(MockFilePath);
+
+        result.Should().BeTrue();
+        fileSystem.Directory.Received(1).Delete(MockDirectory, true);
+    }
+
+    [TestMethod]
+    public void DeleteBindingDirectory_DeletingDirectoryThrows_ReturnsFalseAndLogs()
+    {
+        MockFileExists(MockFilePath);
+        fileSystem.Directory.When(x => x.Delete(MockDirectory, true)).Throw<UnauthorizedAccessException>();
+
+        var result = testSubject.DeleteBindingDirectory(MockFilePath);
+
+        result.Should().BeFalse();
+        fileSystem.Directory.Received(1).Delete(MockDirectory, true);
+        logger.Received(1).WriteLine(Arg.Any<string>());
+    }
+
+    private void MockFileExists(string filePath) => fileSystem.File.Exists(filePath).Returns(true);
+
+    private void MockFileNotExists(string filePath) => fileSystem.File.Exists(filePath).Returns(false);
 }
