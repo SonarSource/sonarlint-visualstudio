@@ -44,6 +44,7 @@ public class SolutionBindingRepositoryTests
 
     private BasicAuthCredentials mockCredentials;
     private const string MockFilePath = "test file path";
+    private const string LocalBindingKey = "my solution";
 
     [TestInitialize]
     public void TestInitialize()
@@ -289,6 +290,29 @@ public class SolutionBindingRepositoryTests
         
         ((ILegacySolutionBindingRepository)testSubject).Read(MockFilePath).Should().BeSameAs(boundSonarQubeProject);
         credentialsLoader.Received().Load(bindingJsonModel.ServerUri);
+    }
+
+    [TestMethod]
+    public void DeleteBinding_DeletesBindingDirectoryOfBindingFile()
+    {
+        unintrusiveBindingPathProvider.GetBindingPath(LocalBindingKey).Returns(MockFilePath);
+
+        testSubject.DeleteBinding(LocalBindingKey);
+
+        solutionBindingFileLoader.Received(1).DeleteBindingDirectory(MockFilePath);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void DeleteBinding_ReturnsResultOfDeleteBindingDirectory(bool expectedResult)
+    {
+        unintrusiveBindingPathProvider.GetBindingPath(LocalBindingKey).Returns(MockFilePath);
+        solutionBindingFileLoader.DeleteBindingDirectory(MockFilePath).Returns(expectedResult);
+
+        var result = testSubject.DeleteBinding(LocalBindingKey);
+
+        result.Should().Be(expectedResult);
     }
 
     private BoundServerProject SetUpBinding(string solution, ServerConnection connection, string bindingConfig)
