@@ -62,7 +62,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ITextSnapshot analysisSnapshot;
         private readonly IAnalysisIssueVisualizationConverter issueToIssueVisualizationConverter;
         private readonly string analysisFilePath;
-        private  List<IAnalysisIssueVisualization> allIssues;
         private readonly OnIssuesChanged onIssuesChanged;
 
         public delegate void OnIssuesChanged(IEnumerable<IAnalysisIssueVisualization> issues);
@@ -73,8 +72,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.analysisFilePath = analysisFilePath ?? throw new ArgumentNullException(nameof(analysisFilePath));
             this.onIssuesChanged = onIssuesChangedCallback ?? throw new ArgumentNullException(nameof(onIssuesChangedCallback));
             this.issueToIssueVisualizationConverter = issueToIssueVisualizationConverter ?? throw new ArgumentNullException(nameof(issueToIssueVisualizationConverter));
-
-            allIssues = new List<IAnalysisIssueVisualization>();
         }
 
         public void Set(string path, IEnumerable<IAnalysisIssue> issues)
@@ -88,12 +85,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             Debug.Assert(issues.All(IsIssueFileLevelOrInAnalysisSnapshot), "Not all reported issues could be mapped to the analysis snapshot");
 
-            allIssues = issues
+            onIssuesChanged.Invoke(issues
                 .Where(IsIssueFileLevelOrInAnalysisSnapshot)
                 .Select(x => issueToIssueVisualizationConverter.Convert(x, analysisSnapshot))
-                .ToList();
-
-            onIssuesChanged.Invoke(allIssues);
+                .ToList());
         }
 
         /// <summary>
