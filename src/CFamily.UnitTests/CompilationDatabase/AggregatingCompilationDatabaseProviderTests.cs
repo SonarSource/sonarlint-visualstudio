@@ -58,7 +58,7 @@ public class AggregatingCompilationDatabaseProviderTests
 
         var result = testSubject.GetOrNull("some path");
 
-        result.Should().Be(location);
+        result.Should().BeOfType<ExternalCompilationDatabaseHandle>().And.BeEquivalentTo(new ExternalCompilationDatabaseHandle(location));
         vcx.DidNotReceiveWithAnyArgs().CreateOrNull(default);
     }
 
@@ -66,7 +66,7 @@ public class AggregatingCompilationDatabaseProviderTests
     public void GetOrNull_CmakeUnavailable_VcxAvailable_ReturnsVcxLocation()
     {
         var sourcePath = "some path";
-        var location = "some location";
+        var location = Substitute.For<ICompilationDatabaseHandle>();
         cmake.Locate().ReturnsNull();
         vcx.CreateOrNull(sourcePath).Returns(location);
 
