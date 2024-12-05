@@ -20,6 +20,7 @@
 
 using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.CFamily;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject;
@@ -74,13 +75,13 @@ public class VCXCompilationDatabaseProviderTests
     }
 
     [TestMethod]
-    public void CreateOrNull_FileConfig_StoresAndReturnsPath()
+    public void CreateOrNull_FileConfig_StoresAndReturnsHandle()
     {
-        const string databasePath = "database path";
         var fileConfig = Substitute.For<IFileConfig>();
         fileConfigProvider.Get(SourceFilePath, default).Returns(fileConfig);
-        storage.CreateDatabase(fileConfig).Returns(databasePath);
+        var compilationDatabaseHandle = Substitute.For<ICompilationDatabaseHandle>();
+        storage.CreateDatabase(fileConfig).Returns(compilationDatabaseHandle);
 
-        testSubject.CreateOrNull(SourceFilePath).Should().Be(databasePath);
+        testSubject.CreateOrNull(SourceFilePath).Should().Be(compilationDatabaseHandle);
     }
 }

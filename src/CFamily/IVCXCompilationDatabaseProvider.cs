@@ -18,9 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.CFamily;
+
 namespace SonarLint.VisualStudio.CFamily;
 
 public interface IVCXCompilationDatabaseProvider
 {
-    string CreateOrNull(string filePath);
+    ICompilationDatabaseHandle CreateOrNull(string filePath);
 }

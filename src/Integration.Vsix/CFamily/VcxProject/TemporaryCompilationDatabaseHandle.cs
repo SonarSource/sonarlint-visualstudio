@@ -18,27 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.CFamily.CMake;
+using System.IO.Abstractions;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 
-namespace SonarLint.VisualStudio.CFamily.CompilationDatabase;
+namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
-[Export(typeof(IAggregatingCompilationDatabaseProvider))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-[method:ImportingConstructor]
-internal class AggregatingCompilationDatabaseProvider(
-    ICMakeCompilationDatabaseLocator cMakeCompilationDatabaseLocator,
-    IVCXCompilationDatabaseProvider vcxCompilationDatabaseProvider)
-    : IAggregatingCompilationDatabaseProvider
+internal sealed class TemporaryCompilationDatabaseHandle(string filePath, IFile file, ILogger logger) : ICompilationDatabaseHandle
 {
-    public ICompilationDatabaseHandle GetOrNull(string sourceFilePath)
-    {
-        if (cMakeCompilationDatabaseLocator.Locate() is {} cmakeCompilationDatabasePath)
-        {
-            return new ExternalCompilationDatabaseHandle(cmakeCompilationDatabasePath);
-        }
+    private bool disposed;
+    public string FilePath { get; } = filePath ?? throw new ArgumentNullException(nameof(filePath));
 
-        return vcxCompilationDatabaseProvider.CreateOrNull(sourceFilePath);
+    public void Dispose()
+    {
+        if (disposed)
+        {
+            return;
+        }
+        disposed = true;
+
+        try
+        {
+            file.Delete(FilePath);
+        }
+        catch (Exception e)
+        {
+            logger.LogVerbose(e.ToString());
+        }
     }
 }
