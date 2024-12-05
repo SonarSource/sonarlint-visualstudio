@@ -142,7 +142,7 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess
             // TextBufferIssueTracker when the file was closed, but the TextBufferIssueTracker will
             // still exist and handle the call.
             // todo https://sonarsource.atlassian.net/browse/SLVS-1661
-            // issueConsumer.Set(request.Context.File, new[] { issue });
+            issueConsumer.Set(request.Context.File, new[] { issue });
         }
 
         internal /* for testing */ static bool IsIssueForActiveRule(Message message, ICFamilyRulesConfig rulesConfiguration)
