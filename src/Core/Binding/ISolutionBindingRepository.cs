@@ -46,8 +46,9 @@ public interface ISolutionBindingRepository
     /// <summary>
     /// Deletes the binding information
     /// </summary>
+    /// <param name="localBindingKey">The local binding key of the <see cref="BoundServerProject" /></param>
     /// <returns>If binding has been deleted</returns>
-    bool DeleteBinding(string configFilePath);
+    bool DeleteBinding(string localBindingKey);
 
     /// <summary>
     /// Raises when <see cref="Write" /> operation completes successfully

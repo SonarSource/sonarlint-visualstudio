@@ -18,11 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.ConnectedMode.Persistence
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
+
+internal interface ISolutionBindingFileLoader
 {
-    internal interface ISolutionBindingFileLoader
-    {
-        BindingJsonModel Load(string filePath);
-        bool Save(string filePath, BindingJsonModel project);
-    }
+    BindingJsonModel Load(string filePath);
+
+    bool Save(string filePath, BindingJsonModel project);
+
+    bool DeleteBindingDirectory(string configFilePath);
 }
