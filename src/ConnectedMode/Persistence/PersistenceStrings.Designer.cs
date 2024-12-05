@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The binding configuration file &apos;{0}&apos; does not exist. Binding directory not deleted..
+        /// </summary>
+        internal static string BindingDirectoryNotDeleted {
+            get {
+                return ResourceManager.GetString("BindingDirectoryNotDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed loading file: &apos;{0}&apos;. Please rebind solution to create a new configuration file..
         /// </summary>
         internal static string FailedToDeserializeSQCOnfiguration {

@@ -51,6 +51,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
             return SafePerformFileSystemOperation(() => WriteConfig(filePath, serializedProject));
         }
 
+        public bool DeleteBindingDirectory(string configFilePath)
+        {
+            if (fileSystem.File.Exists(configFilePath))
+            {
+                return SafePerformFileSystemOperation(() =>
+                {
+                    var directoryName = Path.GetDirectoryName(configFilePath);
+                    fileSystem.Directory.Delete(directoryName, recursive:true);
+                });
+            }
+
+            logger.LogVerbose(PersistenceStrings.BindingDirectoryNotDeleted, configFilePath);
+            return false;
+        }
+
         private void WriteConfig(string configFile, string serializedProject)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(configFile));

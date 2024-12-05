@@ -20,6 +20,7 @@
 
 using System.IO;
 using System.IO.Abstractions;
+using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
@@ -163,7 +164,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Load_FileDoesNotExist_Null()
         {
-            fileSystem.File.Exists(MockFilePath).Returns(false);
+            MockFileNotExists(MockFilePath);
 
             var actual = testSubject.Load(MockFilePath);
             actual.Should().Be(null);
@@ -172,7 +173,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Load_InvalidJson_Null()
         {
-            fileSystem.File.Exists(MockFilePath).Returns(true);
+            MockFileExists(MockFilePath);
             fileSystem.File.ReadAllText(MockFilePath).Returns("bad json");
 
             var actual = testSubject.Load(MockFilePath);
@@ -182,7 +183,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Load_NonCriticalException_Null()
         {
-            fileSystem.File.Exists(MockFilePath).Returns(true);
+            MockFileExists(MockFilePath);
             fileSystem.File.ReadAllText(MockFilePath).Throws<PathTooLongException>();
 
             var actual = testSubject.Load(MockFilePath);
@@ -192,7 +193,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Load_CriticalException_Exception()
         {
-            fileSystem.File.Exists(MockFilePath).Returns(true);
+            MockFileExists(MockFilePath);
             fileSystem.File.ReadAllText(MockFilePath).Throws<StackOverflowException>();
 
             Action act = () => testSubject.Load(MockFilePath);
@@ -203,7 +204,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Load_FileExists_DeserializedProject()
         {
-            fileSystem.File.Exists(MockFilePath).Returns(true);
+            MockFileExists(MockFilePath);
             fileSystem.File.ReadAllText(MockFilePath).Returns(serializedProject);
 
             var actual = testSubject.Load(MockFilePath);
@@ -217,7 +218,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             const string localDate = "2020-02-25T10:57:54+02:00";
             serializedProject = serializedProject.Replace(utcDate, localDate);
 
-            fileSystem.File.Exists(MockFilePath).Returns(true);
+            MockFileExists(MockFilePath);
             fileSystem.File.ReadAllText(MockFilePath).Returns(serializedProject);
 
             var actual = testSubject.Load(MockFilePath);
@@ -226,5 +227,45 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             var deserializedTimestamp = actual.Profiles[Language.CSharp].ProfileTimestamp.Value.ToUniversalTime();
             deserializedTimestamp.Should().Be(new DateTime(2020, 2, 25, 8, 57, 54));
         }
+
+        [TestMethod]
+        public void DeleteBindingDirectory_ConfigFilePathNotExists_ReturnsFalseAndLogs()
+        {
+            MockFileNotExists(MockFilePath);
+
+            var result = testSubject.DeleteBindingDirectory(MockFilePath);
+
+            result.Should().BeFalse();
+            fileSystem.Directory.DidNotReceive().Delete(MockDirectory, recursive:true);
+            logger.Received(1).LogVerbose(PersistenceStrings.BindingDirectoryNotDeleted, MockFilePath);
+        }
+
+        [TestMethod]
+        public void DeleteBindingDirectory_ConfigFilePathExists_DeletesBindingDirectoryRecursively()
+        {
+            MockFileExists(MockFilePath);
+
+            var result = testSubject.DeleteBindingDirectory(MockFilePath);
+
+            result.Should().BeTrue();
+            fileSystem.Directory.Received(1).Delete(MockDirectory, recursive:true);
+        }
+
+        [TestMethod]
+        public void DeleteBindingDirectory_DeletingDirectoryThrows_ReturnsFalseAndLogs()
+        {
+            MockFileExists(MockFilePath);
+            fileSystem.Directory.When(x => x.Delete(MockDirectory, recursive: true)).Throw<UnauthorizedAccessException>();
+
+            var result = testSubject.DeleteBindingDirectory(MockFilePath);
+
+            result.Should().BeFalse();
+            fileSystem.Directory.Received(1).Delete(MockDirectory, recursive: true);
+            logger.Received(1).WriteLine(Arg.Any<string>());
+        }
+
+        private void MockFileExists(string filePath) => fileSystem.File.Exists(filePath).Returns(true);
+
+        private void MockFileNotExists(string filePath) => fileSystem.File.Exists(filePath).Returns(false);
     }
 }

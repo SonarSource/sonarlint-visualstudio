@@ -24,5 +24,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
     {
         BindingJsonModel Load(string filePath);
         bool Save(string filePath, BindingJsonModel project);
+        bool DeleteBindingDirectory(string configFilePath);
     }
 }
