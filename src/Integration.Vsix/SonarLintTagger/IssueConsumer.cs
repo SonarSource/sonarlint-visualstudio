@@ -18,41 +18,37 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
-/* 
+/*
  * Instancing: a new instance of this class should be created for each analysis request.
- * 
+ *
  * The class is initialized with the text snapshot representing the state of the text buffer
  * at the point the analysis was triggered.
- * 
+ *
  * The job of the class is to:
- * 1) map the issue start/end positions supplied by the analyzer to spans in the supplied text snapshot, and 
- * 2) accumulate the list of issues that have return by the analyzer so far
- * 
- * Each time IIssueConsumer.Accept is called, the new issues will be mapped back to the
+ * 1) map the issue start/end positions supplied by the analyzer to spans in the supplied text snapshot, and
+ * 2) replace the previous list of issues
+ *
+ * Each time IIssueConsumer.Set is called, the new issues will be mapped back to the
  * supplied snapshot and decorated with the additional data required for filtering and tagging.
  * Then, all of the issues that have been received so far will be passed to the OnIssuesChanged delegate.
- * 
+ *
  * However, it's possible that the text buffer could have been edited since the analysis
  * was triggered. It is the responsibility of the callback to translate the supplied IssueVisualizations
  * to the current text buffer snapshot, if necessary.
- * 
- * 
+ *
+ *
  * Mapping from reported issue line/char positions to the analysis snapshot
  * ------------------------------------------------------------------------
- * Currently, the JS/CFamily analyzers run against the file on disc, not the content of 
+ * Currently, the JS/CFamily analyzers run against the file on disc, not the content of
  * the snapshot. We're assuming that analysis is triggered on save so the state of the
  * text snapshot matches the file on disc which is being analyzed.
  * We expect always to be able to map back from the reported issue to the snapshot.
  * However, we code defensively and strip out any issues that can't be mapped.
- * 
+ *
  */
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -60,18 +56,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <summary>
     /// Handles processing the issues for a single analysis request
     /// </summary>
-    internal class AccumulatingIssueConsumer : IIssueConsumer
+    internal class IssueConsumer : IIssueConsumer
     {
         // See bug #1487: this text snapshot should match the content of the file being analysed
         private readonly ITextSnapshot analysisSnapshot;
         private readonly IAnalysisIssueVisualizationConverter issueToIssueVisualizationConverter;
-        private readonly List<IAnalysisIssueVisualization> allIssues;
         private readonly string analysisFilePath;
+        private  List<IAnalysisIssueVisualization> allIssues;
         private readonly OnIssuesChanged onIssuesChanged;
 
         public delegate void OnIssuesChanged(IEnumerable<IAnalysisIssueVisualization> issues);
 
-        public AccumulatingIssueConsumer(ITextSnapshot analysisSnapshot, string analysisFilePath, OnIssuesChanged onIssuesChangedCallback, IAnalysisIssueVisualizationConverter issueToIssueVisualizationConverter)
+        public IssueConsumer(ITextSnapshot analysisSnapshot, string analysisFilePath, OnIssuesChanged onIssuesChangedCallback, IAnalysisIssueVisualizationConverter issueToIssueVisualizationConverter)
         {
             this.analysisSnapshot = analysisSnapshot ?? throw new ArgumentNullException(nameof(analysisSnapshot));
             this.analysisFilePath = analysisFilePath ?? throw new ArgumentNullException(nameof(analysisFilePath));
@@ -81,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             allIssues = new List<IAnalysisIssueVisualization>();
         }
 
-        public void Accept(string path, IEnumerable<IAnalysisIssue> issues)
+        public void Set(string path, IEnumerable<IAnalysisIssue> issues)
         {
             // Callback from the daemon when new results are available
             if (path != analysisFilePath)
@@ -92,12 +88,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             Debug.Assert(issues.All(IsIssueFileLevelOrInAnalysisSnapshot), "Not all reported issues could be mapped to the analysis snapshot");
 
-            var newIssues = issues
+            allIssues = issues
                 .Where(IsIssueFileLevelOrInAnalysisSnapshot)
                 .Select(x => issueToIssueVisualizationConverter.Convert(x, analysisSnapshot))
-                .ToArray();
-
-            allIssues.AddRange(newIssues);
+                .ToList();
 
             onIssuesChanged.Invoke(allIssues);
         }
