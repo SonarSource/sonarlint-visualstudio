@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The binding configuration file &apos;{0}&apos; does not exist. Binding directory not deleted..
+        ///   Looks up a localized string similar to The Connected Mode configuration file &apos;{0}&apos; does not exist. Connected Mode configuration not deleted..
         /// </summary>
         internal static string BindingDirectoryNotDeleted {
             get {

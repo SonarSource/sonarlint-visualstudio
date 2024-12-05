@@ -122,6 +122,6 @@
     <comment>Output window message in case of deserialization error. {0} file path.</comment>
   </data>
   <data name="BindingDirectoryNotDeleted" xml:space="preserve">
-    <value>The binding configuration file '{0}' does not exist. Binding directory not deleted.</value>
+    <value>The Connected Mode configuration file '{0}' does not exist. Connected Mode configuration not deleted.</value>
   </data>
 </root>
