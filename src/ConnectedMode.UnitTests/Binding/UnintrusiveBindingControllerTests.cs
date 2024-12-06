@@ -41,6 +41,7 @@ public class UnintrusiveBindingControllerTests
     private IBindingProcessFactory bindingProcessFactory;
     private ISonarQubeService sonarQubeService;
     private UnintrusiveBindingController testSubject;
+    private ISolutionBindingRepository solutionBindingRepository;
 
     [TestInitialize]
     public void TestInitialize()
@@ -48,7 +49,8 @@ public class UnintrusiveBindingControllerTests
         CreateBindingProcessFactory();
         sonarQubeService = Substitute.For<ISonarQubeService>();
         activeSolutionChangedHandler = Substitute.For<IActiveSolutionChangedHandler>();
-        testSubject = new UnintrusiveBindingController(bindingProcessFactory, sonarQubeService, activeSolutionChangedHandler);
+        solutionBindingRepository = Substitute.For<ISolutionBindingRepository>();
+        testSubject = new UnintrusiveBindingController(bindingProcessFactory, sonarQubeService, activeSolutionChangedHandler, solutionBindingRepository);
     }
 
     [TestMethod]
@@ -59,14 +61,16 @@ public class UnintrusiveBindingControllerTests
         MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingController, IUnintrusiveBindingController>(
             MefTestHelpers.CreateExport<IBindingProcessFactory>(),
             MefTestHelpers.CreateExport<ISonarQubeService>(),
-            MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>());
+            MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>(),
+            MefTestHelpers.CreateExport<ISolutionBindingRepository>());
 
     [TestMethod]
     public void MefCtor_IBindingController_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingController, IBindingController>(
             MefTestHelpers.CreateExport<IBindingProcessFactory>(),
             MefTestHelpers.CreateExport<ISonarQubeService>(),
-            MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>());
+            MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>(),
+            MefTestHelpers.CreateExport<ISolutionBindingRepository>());
 
     [TestMethod]
     public async Task BindAsync_EstablishesConnection()
@@ -110,6 +114,43 @@ public class UnintrusiveBindingControllerTests
             bindingProcess.DownloadQualityProfileAsync(null, cancellationToken);
             bindingProcess.SaveServerExclusionsAsync(cancellationToken);
         });
+    }
+
+    [TestMethod]
+    public void Unbind_BindingDeletionSucceeded_HandlesBindingChanges()
+    {
+        solutionBindingRepository.DeleteBinding(AnyBoundProject.LocalBindingKey).Returns(true);
+
+        testSubject.Unbind(AnyBoundProject.LocalBindingKey);
+
+        Received.InOrder(() =>
+        {
+            solutionBindingRepository.DeleteBinding(AnyBoundProject.LocalBindingKey);
+            activeSolutionChangedHandler.HandleBindingChange(true);
+        });
+    }
+
+    [TestMethod]
+    public void Unbind_BindingDeletionFailed_DoesNotCallHandleBindingChange()
+    {
+        solutionBindingRepository.DeleteBinding(AnyBoundProject.LocalBindingKey).Returns(false);
+
+        testSubject.Unbind(AnyBoundProject.LocalBindingKey);
+
+        solutionBindingRepository.Received(1).DeleteBinding(AnyBoundProject.LocalBindingKey);
+        activeSolutionChangedHandler.DidNotReceive().HandleBindingChange(true);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void Unbind_ReturnsResultOfDeletedBinding(bool expectedResult)
+    {
+        solutionBindingRepository.DeleteBinding(AnyBoundProject.LocalBindingKey).Returns(expectedResult);
+
+        var result = testSubject.Unbind(AnyBoundProject.LocalBindingKey);
+
+        result.Should().Be(expectedResult);
     }
 
     private void CreateBindingProcessFactory()

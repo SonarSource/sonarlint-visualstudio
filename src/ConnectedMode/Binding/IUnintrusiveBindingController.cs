@@ -28,6 +28,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     public interface IBindingController
     {
         Task BindAsync(BoundServerProject project, CancellationToken cancellationToken);
+        bool Unbind(string localBindingKey);
     }
     
     internal interface IUnintrusiveBindingController
@@ -43,13 +44,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private readonly IBindingProcessFactory bindingProcessFactory;
         private readonly ISonarQubeService sonarQubeService;
         private readonly IActiveSolutionChangedHandler activeSolutionChangedHandler;
+        private readonly ISolutionBindingRepository solutionBindingRepository;
 
         [ImportingConstructor]
-        public UnintrusiveBindingController(IBindingProcessFactory bindingProcessFactory, ISonarQubeService sonarQubeService, IActiveSolutionChangedHandler activeSolutionChangedHandler)
+        public UnintrusiveBindingController(IBindingProcessFactory bindingProcessFactory, ISonarQubeService sonarQubeService, IActiveSolutionChangedHandler activeSolutionChangedHandler, ISolutionBindingRepository solutionBindingRepository)
         {
             this.bindingProcessFactory = bindingProcessFactory;
             this.sonarQubeService = sonarQubeService;
             this.activeSolutionChangedHandler = activeSolutionChangedHandler;
+            this.solutionBindingRepository = solutionBindingRepository;
         }
 
         public async Task BindAsync(BoundServerProject project, CancellationToken cancellationToken)
@@ -65,6 +68,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             var bindingProcess = CreateBindingProcess(project);
             await bindingProcess.DownloadQualityProfileAsync(progress, token);
             await bindingProcess.SaveServerExclusionsAsync(token);
+        }
+
+        public bool Unbind(string localBindingKey)
+        {
+            var bindingDeleted = solutionBindingRepository.DeleteBinding(localBindingKey);
+            if (bindingDeleted)
+            {
+                activeSolutionChangedHandler.HandleBindingChange(true);
+            }
+            return bindingDeleted;
         }
 
         private IBindingProcess CreateBindingProcess(BoundServerProject project)
