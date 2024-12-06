@@ -58,7 +58,7 @@ internal class RaisedFindingProcessor : IRaisedFindingProcessor
 
         analyzableLanguagesRuleKeyPrefixes = CalculateAnalyzableRulePrefixes(slCoreConstantsProvider);
     }
-    
+
     public void RaiseFinding<T>(RaiseFindingParams<T> parameters) where T : RaisedFindingDto
     {
         if (!IsValid(parameters))
@@ -68,19 +68,13 @@ internal class RaisedFindingProcessor : IRaisedFindingProcessor
 
         PublishFindings(parameters);
     }
-    
+
     private bool IsValid<T>(RaiseFindingParams<T> parameters) where T : RaisedFindingDto
     {
         var logContext = $"[{nameof(RaiseFinding)}+{typeof(T).Name}]";
         if (!parameters.analysisId.HasValue)
         {
             logger.LogVerbose($"{logContext} No {nameof(parameters.analysisId)}, ignoring...");
-            return false;
-        }
-
-        if (parameters.isIntermediatePublication)
-        {
-            logger.LogVerbose($"{logContext} {nameof(parameters.isIntermediatePublication)}=true, ignoring...");
             return false;
         }
 
@@ -92,7 +86,7 @@ internal class RaisedFindingProcessor : IRaisedFindingProcessor
 
         return true;
     }
-    
+
     private void PublishFindings<T>(RaiseFindingParams<T> parameters) where T : RaisedFindingDto
     {
         foreach (var fileAndIssues in parameters.issuesByFileUri)
@@ -112,7 +106,7 @@ internal class RaisedFindingProcessor : IRaisedFindingProcessor
     {
         return findings.Where(i => analyzableLanguagesRuleKeyPrefixes.Exists(languageRepo => i.ruleKey.StartsWith(languageRepo))).ToArray();
     }
-    
+
     private static List<string> CalculateAnalyzableRulePrefixes(ISLCoreConstantsProvider slCoreConstantsProvider)
     {
         return slCoreConstantsProvider.SLCoreAnalyzableLanguages?
