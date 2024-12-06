@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             /* The empty issues list is passed as an argument here because
             it's impossible to verify the actual pipeline due to the fact
             that mocking ITextSnapshot in a way that then can be used by a SnapshotSpan takes a lot of effort */
-            consumer.Accept("analysisfile.txt", []);
+            consumer.Set("analysisfile.txt", []);
 
             publishedIssuesSnapshot.Should().NotBeNull();
             publishedIssuesSnapshot.AnalyzedFilePath.Should().Be("updatedfile.txt"); // filename should be updted by this point
