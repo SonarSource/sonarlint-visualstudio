@@ -38,24 +38,20 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation.Analy
 public class RaisedFindingProcessorTests
 {
     [TestMethod]
-    public void MefCtor_CheckIsExported()
-    {
+    public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<RaisedFindingProcessor, IRaisedFindingProcessor>(
             MefTestHelpers.CreateExport<ISLCoreConstantsProvider>(),
             MefTestHelpers.CreateExport<IAnalysisService>(),
             MefTestHelpers.CreateExport<IRaiseFindingToAnalysisIssueConverter>(),
             MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
             MefTestHelpers.CreateExport<ILogger>());
-    }
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton()
-    {
+    public void MefCtor_CheckIsSingleton() =>
         MefTestHelpers.CheckIsSingletonMefComponent<RaisedFindingProcessor>();
-    }
-    
+
     [TestMethod]
-    public void RaiseFindings_AnalysisIDisNull_Ignores()
+    public void RaiseFindings_AnalysisIdIsNull_Ignores()
     {
         var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", new Dictionary<FileUri, List<TestFinding>>(), false, null);
 
@@ -70,7 +66,7 @@ public class RaisedFindingProcessorTests
         analysisService.DidNotReceive().PublishIssues(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<IEnumerable<IAnalysisIssue>>());
         raiseFindingParamsToAnalysisIssueConverter.DidNotReceive().GetAnalysisIssues(Arg.Any<FileUri>(), Arg.Any<List<TestFinding>>());
     }
-    
+
     [TestMethod]
     public void RaiseFindings_NoFindings_Ignores()
     {
@@ -203,8 +199,10 @@ public class RaisedFindingProcessorTests
         analysisStatusNotifier.Received(1).AnalysisFinished(2, TimeSpan.Zero);
     }
 
-    [TestMethod]
-    public void RaiseFindings_MultipleFiles_PublishFindingsForEachFile()
+    [DataRow(true)]
+    [DataRow(false)]
+    [DataTestMethod]
+    public void RaiseFindings_MultipleFiles_PublishFindingsForEachFile(bool isIntermediate)
     {
         var analysisId = Guid.NewGuid();
         var fileUri1 = new FileUri("file://C:/somefile");
@@ -217,7 +215,7 @@ public class RaisedFindingProcessorTests
 
         var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>> { { fileUri1, [raisedFinding1] }, { fileUri2, [raisedFinding2] } };
 
-        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", findingsByFileUri, false, analysisId);
+        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", findingsByFileUri, isIntermediate, analysisId);
 
         var analysisService = Substitute.For<IAnalysisService>();
         var raiseFindingParamsToAnalysisIssueConverter = Substitute.For<IRaiseFindingToAnalysisIssueConverter>();
@@ -241,26 +239,6 @@ public class RaisedFindingProcessorTests
         analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", fileUri2.LocalPath, analysisId);
     }
 
-    [TestMethod]
-    public void RaiseFindings_HasIssuesIntermediate_DoNotPublishFindings()
-    {
-        var raisedFinding1 = CreateTestFinding("csharpsquid:S100");
-        var raisedFinding2 = CreateTestFinding("javascript:S101");
-        var raisedFinding3 = CreateTestFinding("secrets:S1012");
-        var raisedFindings = new List<TestFinding> { raisedFinding1, raisedFinding2, raisedFinding3 };
-
-        var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>> { { new FileUri("file://C:/somefile"), raisedFindings } };
-        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", findingsByFileUri, true, Guid.NewGuid());
-
-        var analysisService = Substitute.For<IAnalysisService>();
-
-        var testSubject = CreateTestSubject(analysisService: analysisService);
-
-        testSubject.RaiseFinding(raiseFindingParams);
-
-        analysisService.DidNotReceiveWithAnyArgs().PublishIssues(default, default, default);
-    }
-
     private RaisedFindingProcessor CreateTestSubject(
         IAnalysisService analysisService = null,
         IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter = null,
@@ -273,7 +251,7 @@ public class RaisedFindingProcessorTests
             analysisService ?? Substitute.For<IAnalysisService>(),
             raiseFindingToAnalysisIssueConverter ?? Substitute.For<IRaiseFindingToAnalysisIssueConverter>(),
             analysisStatusNotifierFactory ?? Substitute.For<IAnalysisStatusNotifierFactory>(), logger ?? new TestLogger());
-    
+
     private static IRaiseFindingToAnalysisIssueConverter CreateConverter(FileUri fileUri, IReadOnlyCollection<TestFinding> raisedFindingDtos,
         IAnalysisIssue[] findings)
     {
@@ -282,7 +260,7 @@ public class RaisedFindingProcessorTests
             .GetAnalysisIssues(fileUri, Arg.Is<IEnumerable<TestFinding>>(x => x.SequenceEqual(raisedFindingDtos))).Returns(findings);
         return raiseFindingParamsToAnalysisIssueConverter;
     }
-    
+
     private ISLCoreConstantsProvider CreateConstantsProviderWithLanguages(params SloopLanguage[] languages)
     {
         var slCoreConstantsProvider = Substitute.For<ISLCoreConstantsProvider>();

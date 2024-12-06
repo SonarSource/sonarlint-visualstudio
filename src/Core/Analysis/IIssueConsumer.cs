@@ -25,5 +25,5 @@ namespace SonarLint.VisualStudio.Core.Analysis;
 /// </summary>
 public interface IIssueConsumer
 {
-    void Accept(string path, IEnumerable<IAnalysisIssue> issues);
+    void Set(string path, IEnumerable<IAnalysisIssue> issues);
 }
