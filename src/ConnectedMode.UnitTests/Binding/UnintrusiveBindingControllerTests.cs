@@ -21,7 +21,6 @@
 using System.Security;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
@@ -35,58 +34,62 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
 public class UnintrusiveBindingControllerTests
 {
     private static readonly CancellationToken ACancellationToken = CancellationToken.None;
-    private static readonly BasicAuthCredentials ValidToken = new ("TOKEN", new SecureString());
-    private static readonly BoundServerProject AnyBoundProject = new ("any", "any", new ServerConnection.SonarCloud("any", credentials: ValidToken));
+    private static readonly BasicAuthCredentials ValidToken = new("TOKEN", new SecureString());
+    private static readonly BoundServerProject AnyBoundProject = new("any", "any", new ServerConnection.SonarCloud("any", credentials: ValidToken));
+    private IActiveSolutionChangedHandler activeSolutionChangedHandler;
+    private IBindingProcess bindingProcess;
+    private IBindingProcessFactory bindingProcessFactory;
+    private ISonarQubeService sonarQubeService;
+    private UnintrusiveBindingController testSubject;
 
-    [TestMethod]
-    public void MefCtor_CheckTypeIsNonShared()
-        => MefTestHelpers.CheckIsNonSharedMefComponent<UnintrusiveBindingController>();
-
-    [TestMethod]
-    public void MefCtor_IUnintrusiveBindingController_CheckIsExported()
+    [TestInitialize]
+    public void TestInitialize()
     {
+        CreateBindingProcessFactory();
+        sonarQubeService = Substitute.For<ISonarQubeService>();
+        activeSolutionChangedHandler = Substitute.For<IActiveSolutionChangedHandler>();
+        testSubject = new UnintrusiveBindingController(bindingProcessFactory, sonarQubeService, activeSolutionChangedHandler);
+    }
+
+    [TestMethod]
+    public void MefCtor_CheckTypeIsNonShared() => MefTestHelpers.CheckIsNonSharedMefComponent<UnintrusiveBindingController>();
+
+    [TestMethod]
+    public void MefCtor_IUnintrusiveBindingController_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingController, IUnintrusiveBindingController>(
             MefTestHelpers.CreateExport<IBindingProcessFactory>(),
             MefTestHelpers.CreateExport<ISonarQubeService>(),
             MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>());
-    }
-    
+
     [TestMethod]
-    public void MefCtor_IBindingController_CheckIsExported()
-    {
+    public void MefCtor_IBindingController_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<UnintrusiveBindingController, IBindingController>(
             MefTestHelpers.CreateExport<IBindingProcessFactory>(),
             MefTestHelpers.CreateExport<ISonarQubeService>(),
             MefTestHelpers.CreateExport<IActiveSolutionChangedHandler>());
-    }
 
     [TestMethod]
     public async Task BindAsync_EstablishesConnection()
     {
-        var sonarQubeService = Substitute.For<ISonarQubeService>();
         var projectToBind = new BoundServerProject(
-            "local-key", 
+            "local-key",
             "server-key",
             new ServerConnection.SonarCloud("organization", credentials: ValidToken));
-        var testSubject = CreateTestSubject(sonarQubeService: sonarQubeService);
-        
+
         await testSubject.BindAsync(projectToBind, ACancellationToken);
 
         await sonarQubeService
             .Received()
             .ConnectAsync(
-                Arg.Is<ConnectionInformation>(x => x.ServerUri.Equals("https://sonarcloud.io/") 
+                Arg.Is<ConnectionInformation>(x => x.ServerUri.Equals("https://sonarcloud.io/")
                                                    && x.UserName.Equals(ValidToken.UserName)
                                                    && string.IsNullOrEmpty(x.Password.ToUnsecureString())),
                 ACancellationToken);
     }
-    
+
     [TestMethod]
     public async Task BindAsync_NotifiesBindingChanged()
     {
-        var activeSolutionChangedHandler = Substitute.For<IActiveSolutionChangedHandler>();
-        var testSubject = CreateTestSubject(activeSolutionChangedHandler: activeSolutionChangedHandler);
-        
         await testSubject.BindAsync(AnyBoundProject, ACancellationToken);
 
         activeSolutionChangedHandler
@@ -98,10 +101,7 @@ public class UnintrusiveBindingControllerTests
     public async Task BindAsync_CallsBindingProcessInOrder()
     {
         var cancellationToken = CancellationToken.None;
-        var bindingProcess = Substitute.For<IBindingProcess>();
-        var bindingProcessFactory = CreateBindingProcessFactory(bindingProcess);
-        var testSubject = CreateTestSubject(bindingProcessFactory);
-            
+
         await testSubject.BindAsync(AnyBoundProject, null, cancellationToken);
 
         Received.InOrder(() =>
@@ -111,25 +111,12 @@ public class UnintrusiveBindingControllerTests
             bindingProcess.SaveServerExclusionsAsync(cancellationToken);
         });
     }
-    
-    private UnintrusiveBindingController CreateTestSubject(IBindingProcessFactory bindingProcessFactory = null,
-        ISonarQubeService sonarQubeService = null,
-        IActiveSolutionChangedHandler activeSolutionChangedHandler = null)
-    {
-        var testSubject = new UnintrusiveBindingController(bindingProcessFactory ?? CreateBindingProcessFactory(),
-            sonarQubeService ?? Substitute.For<ISonarQubeService>(),
-            activeSolutionChangedHandler ?? Substitute.For<IActiveSolutionChangedHandler>());
 
-        return testSubject;
-    }
-
-    private static IBindingProcessFactory CreateBindingProcessFactory(IBindingProcess bindingProcess = null)
+    private void CreateBindingProcessFactory()
     {
         bindingProcess ??= Substitute.For<IBindingProcess>();
 
-        var bindingProcessFactory = Substitute.For<IBindingProcessFactory>();
+        bindingProcessFactory = Substitute.For<IBindingProcessFactory>();
         bindingProcessFactory.Create(Arg.Any<BindCommandArgs>()).Returns(bindingProcess);
-
-        return bindingProcessFactory;
     }
 }
