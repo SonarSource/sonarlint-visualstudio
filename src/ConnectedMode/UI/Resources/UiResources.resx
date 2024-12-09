@@ -434,4 +434,10 @@ Please manually add the credentials for the connection and then try again.</valu
   <data name="RebindingFailedText" xml:space="preserve">
     <value>Failed to refresh binding, please make sure that the credentials are correct.</value>
   </data>
+  <data name="UnbindingInProgressText" xml:space="preserve">
+    <value>Unbinding in progress...</value>
+  </data>
+  <data name="UnbindingFailedText" xml:space="preserve">
+    <value>Unbinding the project failed.  Please check the SonarQube for Visual Studio logs for more details.</value>
+  </data>
 </root>
