@@ -99,6 +99,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
                         if (queryInfo.projectKey == null || queryInfo.serverBranch == null)
                         {
+                            storeWriter.Reset();
                             return;
                         }
 

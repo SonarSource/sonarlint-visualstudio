@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         [DataRow(null, null)]
         [DataRow(null, "branch")]
         [DataRow("projectKey", null)]
-        public async Task UpdateAll_MissingServerQueryInfo_NoOp(string projectKey, string branchName)
+        public async Task UpdateAll_MissingServerQueryInfo_ResetsStore(string projectKey, string branchName)
         {
             // Server query info is not available -> give up
             var queryInfo = CreateQueryInfoProvider(projectKey, branchName);
@@ -64,7 +64,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             queryInfo.Verify(x => x.GetProjectKeyAndBranchAsync(It.IsAny<CancellationToken>()), Times.Once());
             server.Invocations.Should().HaveCount(0);
-            writer.Invocations.Should().HaveCount(0);
+            writer.Verify(x => x.Reset(), Times.Once);
+            writer.Invocations.Should().HaveCount(1);
         }
 
         [TestMethod]
