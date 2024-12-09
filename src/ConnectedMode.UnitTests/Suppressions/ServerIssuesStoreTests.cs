@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.RemoteSettings;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -274,6 +275,54 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Exactly(expectedEventCount));
         }
 
+        [TestMethod]
+        public void Reset_HasIssue_AllIssuesRemoved()
+        {
+            var testSubject = InitializeStoreWithOneIssue();
+
+            testSubject.Reset();
+
+            testSubject.Get().Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Reset_HasIssue_InvokesEvent()
+        {
+            var testSubject = InitializeStoreWithOneIssue();
+            var eventMock = new Mock<EventHandler>();
+            testSubject.ServerIssuesChanged += eventMock.Object;
+
+            testSubject.Reset();
+
+            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Exactly(1));
+        }
+
+        [TestMethod]
+        public void Reset_NoIssue_DoesNotInvokeEvent()
+        {
+            var testSubject = CreateTestSubject();
+            var eventMock = new Mock<EventHandler>();
+            testSubject.ServerIssuesChanged += eventMock.Object;
+
+            testSubject.Reset();
+
+            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Never);
+        }
+
+        [TestMethod]
+        public void Reset_CalledMultipleTimes_InvokesEventOnce()
+        {
+            var testSubject = InitializeStoreWithOneIssue();
+            var eventMock = new Mock<EventHandler>();
+            testSubject.ServerIssuesChanged += eventMock.Object;
+
+            testSubject.Reset();
+            testSubject.Reset();
+            testSubject.Reset();
+
+            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Exactly(1));
+        }
+
         private static ServerIssuesStore CreateTestSubject(ILogger logger = null)
         {
             logger ??= new TestLogger(logToConsole: true);
@@ -285,6 +334,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var issue = new SonarQubeIssue(key, "", "", "", "", "", isResolved, SonarQubeIssueSeverity.Info, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, null, null);
 
             return issue;
+        }
+
+        private static ServerIssuesStore InitializeStoreWithOneIssue()
+        {
+            var testSubject = CreateTestSubject();
+            testSubject.AddIssues(new List<SonarQubeIssue>() { CreateIssue("issue1", true) }, clearAllExistingIssues: false);
+            return testSubject;
         }
     }
 }

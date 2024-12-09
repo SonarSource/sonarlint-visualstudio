@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft;
 using SonarLint.VisualStudio.Core;
 using SonarQube.Client.Models;
 
@@ -81,6 +82,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
                 {
                     serverIssues[issue.IssueKey] = issue;
                 }
+            }
+
+            RaiseEventIfRequired();
+        }
+
+        public void Reset()
+        {
+            if (!Get().Any())
+            {
+                return;
+            }
+
+            lock (serverIssuesLock)
+            {
+                serverIssues.Clear();
             }
 
             RaiseEventIfRequired();
