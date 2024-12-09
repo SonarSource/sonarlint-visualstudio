@@ -85,18 +85,32 @@ public class VCXCompilationDatabaseStorageTests
     public void CreateDatabase_FileWritten_ReturnsPathToDatabaseWithCorrectContent()
     {
         var expectedDirectory = Path.Combine(Path.GetTempPath(), "SLVS", "VCXCD", PathHelper.PerVsInstanceFolderName.ToString());
-        var expectedPath = Path.Combine(expectedDirectory, $"{SourceFileName}.{SourceFilePath.GetHashCode()}.json");
         var fileConfig = SetUpFileConfig();
 
-        var databasePath = testSubject.CreateDatabase(fileConfig);
+        var databaseHandle = testSubject.CreateDatabase(fileConfig);
 
-        databasePath.Should().Be(expectedPath);
+        var temporaryCompilationDatabaseHandle = databaseHandle.Should().BeOfType<TemporaryCompilationDatabaseHandle>().Subject;
+        Directory.GetParent(temporaryCompilationDatabaseHandle.FilePath).FullName.Should().BeEquivalentTo(expectedDirectory);
+        Path.GetExtension(temporaryCompilationDatabaseHandle.FilePath).Should().Be(".json");
         threadHandling.Received().ThrowIfOnUIThread();
         fileSystemService.Directory.Received().CreateDirectory(expectedDirectory);
-        fileSystemService.File.Received().WriteAllText(expectedPath, Arg.Any<string>());
+        fileSystemService.File.Received().WriteAllText(temporaryCompilationDatabaseHandle.FilePath, Arg.Any<string>());
         VerifyDatabaseContents();
     }
 
+    [TestMethod]
+    public void CreateDatabase_CreatesDifferentHandlesForSameFile()
+    {
+        var expectedDirectory = Path.Combine(Path.GetTempPath(), "SLVS", "VCXCD", PathHelper.PerVsInstanceFolderName.ToString());
+        var fileConfig = SetUpFileConfig();
+
+        var databaseHandle1 = testSubject.CreateDatabase(fileConfig);
+        var databaseHandle2 = testSubject.CreateDatabase(fileConfig);
+
+        Directory.GetParent(databaseHandle1.FilePath).FullName.Should().BeEquivalentTo(expectedDirectory);
+        Directory.GetParent(databaseHandle2.FilePath).FullName.Should().BeEquivalentTo(expectedDirectory);
+        Path.GetFileNameWithoutExtension(databaseHandle1.FilePath).Should().NotBe(Path.GetFileNameWithoutExtension(databaseHandle2.FilePath));
+    }
 
     [TestMethod]
     public void CreateDatabase_Disposed_Throws()
@@ -115,10 +129,32 @@ public class VCXCompilationDatabaseStorageTests
         var expectedDirectory = Path.Combine(Path.GetTempPath(), "SLVS", "VCXCD", PathHelper.PerVsInstanceFolderName.ToString());
 
         testSubject.Dispose();
+
+        fileSystemService.Directory.Received().Delete(expectedDirectory, true);
+        testLogger.AssertNoOutputMessages();
+    }
+
+    [TestMethod]
+    public void Dispose_MultipleTimes_ActsOnlyOnce()
+    {
+        testSubject.Dispose();
         testSubject.Dispose();
         testSubject.Dispose();
 
-        fileSystemService.Directory.Received(1).Delete(expectedDirectory, true);
+        fileSystemService.Directory.ReceivedWithAnyArgs(1).Delete(default, default);
+    }
+
+
+    [TestMethod]
+    public void Dispose_CatchesAndLogsException()
+    {
+        var exception = new Exception("testexc");
+        fileSystemService.Directory.When(x => x.Delete(Arg.Any<string>(), Arg.Any<bool>())).Throw(exception);
+
+        var act = () => testSubject.Dispose();
+
+        act.Should().NotThrow();
+        testLogger.AssertPartialOutputStringExists(exception.ToString());
     }
 
     private static IFileConfig SetUpFileConfig()

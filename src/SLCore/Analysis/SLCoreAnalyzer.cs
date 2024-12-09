@@ -43,7 +43,8 @@ public class SLCoreAnalyzer : IAnalyzer
     private readonly IAggregatingCompilationDatabaseProvider compilationDatabaseLocator;
 
     [ImportingConstructor]
-    public SLCoreAnalyzer(ISLCoreServiceProvider serviceProvider,
+    public SLCoreAnalyzer(
+        ISLCoreServiceProvider serviceProvider,
         IActiveConfigScopeTracker activeConfigScopeTracker,
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
         ICurrentTimeProvider currentTimeProvider,
@@ -56,15 +57,17 @@ public class SLCoreAnalyzer : IAnalyzer
         this.compilationDatabaseLocator = compilationDatabaseLocator;
     }
 
-    public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
-    {
-        return true;
-    }
+    public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages) => true;
 
-    public void ExecuteAnalysis(string path, Guid analysisId, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
-        IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
+    public void ExecuteAnalysis(
+        string path,
+        Guid analysisId,
+        IEnumerable<AnalysisLanguage> detectedLanguages,
+        IIssueConsumer consumer,
+        IAnalyzerOptions analyzerOptions,
+        CancellationToken cancellationToken)
     {
-        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), path);
+        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), path, analysisId);
         analysisStatusNotifier.AnalysisStarted();
 
         var configurationScope = activeConfigScopeTracker.Current;
@@ -80,28 +83,30 @@ public class SLCoreAnalyzer : IAnalyzer
             return;
         }
 
-        var extraProperties = GetExtraProperties(path, detectedLanguages);
-
-        ExecuteAnalysisInternalAsync(path, configurationScope.Id, analysisId, analyzerOptions, analysisService, analysisStatusNotifier, extraProperties, cancellationToken).Forget();
+        ExecuteAnalysisInternalAsync(path, configurationScope.Id, analysisId, detectedLanguages, analyzerOptions, analysisService, analysisStatusNotifier, cancellationToken).Forget();
     }
 
-    private async Task ExecuteAnalysisInternalAsync(string path,
+    private async Task ExecuteAnalysisInternalAsync(
+        string path,
         string configScopeId,
         Guid analysisId,
+        IEnumerable<AnalysisLanguage> detectedLanguages,
         IAnalyzerOptions analyzerOptions,
         IAnalysisSLCoreService analysisService,
         IAnalysisStatusNotifier analysisStatusNotifier,
-        Dictionary<string, string> extraProperties,
         CancellationToken cancellationToken)
     {
         try
         {
+            Dictionary<string, string> properties = [];
+            using var temporaryResourcesHandle = EnrichPropertiesForCFamily(properties, path, detectedLanguages);
+
             var (failedAnalysisFiles, _) = await analysisService.AnalyzeFilesAndTrackAsync(
                 new AnalyzeFilesAndTrackParams(
                     configScopeId,
                     analysisId,
                     [new FileUri(path)],
-                    extraProperties,
+                    properties,
                     analyzerOptions?.IsOnOpen ?? false,
                     currentTimeProvider.Now.ToUnixTimeMilliseconds()),
                 cancellationToken);
@@ -110,7 +115,6 @@ public class SLCoreAnalyzer : IAnalyzer
             {
                 analysisStatusNotifier.AnalysisFailed(SLCoreStrings.AnalysisFailedReason);
             }
-
         }
         catch (OperationCanceledException)
         {
@@ -122,20 +126,19 @@ public class SLCoreAnalyzer : IAnalyzer
         }
     }
 
-    private Dictionary<string, string> GetExtraProperties(string path, IEnumerable<AnalysisLanguage> detectedLanguages)
+    private IDisposable EnrichPropertiesForCFamily(Dictionary<string, string> properties, string path, IEnumerable<AnalysisLanguage> detectedLanguages)
     {
-        Dictionary<string, string> extraProperties = [];
         if (!IsCFamily(detectedLanguages))
         {
-            return extraProperties;
+            return null;
         }
 
-        var compilationDatabasePath = compilationDatabaseLocator.GetOrNull(path);
-        if (compilationDatabasePath != null)
+        var compilationDatabaseHandle = compilationDatabaseLocator.GetOrNull(path);
+        if (compilationDatabaseHandle != null)
         {
-            extraProperties[CFamilyCompileCommandsProperty] = compilationDatabasePath;
+            properties[CFamilyCompileCommandsProperty] = compilationDatabaseHandle.FilePath;
         }
-        return extraProperties;
+        return compilationDatabaseHandle;
     }
 
     private static bool IsCFamily(IEnumerable<AnalysisLanguage> detectedLanguages) => detectedLanguages != null && detectedLanguages.Contains(AnalysisLanguage.CFamily);
