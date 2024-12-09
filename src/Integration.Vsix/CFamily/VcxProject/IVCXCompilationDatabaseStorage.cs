@@ -20,10 +20,10 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
-using System.IO.Abstractions;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 
@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
 internal interface IVCXCompilationDatabaseStorage : IDisposable
 {
-    string CreateDatabase(IFileConfig fileConfig);
+    ICompilationDatabaseHandle CreateDatabase(IFileConfig fileConfig);
 }
 
 [Export(typeof(IVCXCompilationDatabaseStorage))]
@@ -43,7 +43,7 @@ internal sealed class VCXCompilationDatabaseStorage(IFileSystemService fileSyste
     private bool disposed;
     private readonly string compilationDatabaseDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
 
-    public string CreateDatabase(IFileConfig fileConfig)
+    public ICompilationDatabaseHandle CreateDatabase(IFileConfig fileConfig)
     {
         ThrowIfDisposed();
         threadHandling.ThrowIfOnUIThread();
@@ -56,13 +56,13 @@ internal sealed class VCXCompilationDatabaseStorage(IFileSystemService fileSyste
         };
         var compilationDatabase = new[] { compilationDatabaseEntry };
 
-        var compilationDatabaseFullPath = GetCompilationDatabaseFullPath(compilationDatabaseEntry);
+        var compilationDatabaseFullPath = GetCompilationDatabaseFullPath();
 
         try
         {
             fileSystemService.Directory.CreateDirectory(compilationDatabaseDirectoryPath);
             fileSystemService.File.WriteAllText(compilationDatabaseFullPath, JsonConvert.SerializeObject(compilationDatabase));
-            return compilationDatabaseFullPath;
+            return new TemporaryCompilationDatabaseHandle(compilationDatabaseFullPath, fileSystemService.File, logger);
         }
         catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
         {
@@ -79,9 +79,9 @@ internal sealed class VCXCompilationDatabaseStorage(IFileSystemService fileSyste
         }
     }
 
-    private string GetCompilationDatabaseFullPath(CompilationDatabaseEntry compilationDatabaseEntry)
+    private string GetCompilationDatabaseFullPath()
     {
-        var compilationDatabaseFileName = $"{Path.GetFileName(compilationDatabaseEntry.File)}.{compilationDatabaseEntry.File!.GetHashCode()}.json";
+        var compilationDatabaseFileName = $"{Guid.NewGuid()}.json";
         var compilationDatabaseFullPath = Path.Combine(compilationDatabaseDirectoryPath, compilationDatabaseFileName);
         return compilationDatabaseFullPath;
     }
@@ -92,8 +92,15 @@ internal sealed class VCXCompilationDatabaseStorage(IFileSystemService fileSyste
         {
             return;
         }
-
         disposed = true;
-        fileSystemService.Directory.Delete(compilationDatabaseDirectoryPath, true);
+
+        try
+        {
+            fileSystemService.Directory.Delete(compilationDatabaseDirectoryPath, true);
+        }
+        catch (Exception e)
+        {
+            logger.LogVerbose(e.ToString());
+        }
     }
 }
