@@ -32,6 +32,14 @@ public class TemporaryCompilationDatabaseHandleTests
     private TestLogger logger;
     private TemporaryCompilationDatabaseHandle testSubject;
 
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        file = Substitute.For<IFile>();
+        logger = new TestLogger();
+        testSubject = new TemporaryCompilationDatabaseHandle(FilePath, file, logger);
+    }
+
     [DataRow("path1")]
     [DataRow(@"path1\path2")]
     [DataTestMethod]
@@ -44,14 +52,6 @@ public class TemporaryCompilationDatabaseHandleTests
         var act = () => new TemporaryCompilationDatabaseHandle(null, default, default);
 
         act.Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("filePath");
-    }
-
-    [TestInitialize]
-    public void TestInitialize()
-    {
-        file = Substitute.For<IFile>();
-        logger = new TestLogger();
-        testSubject = new TemporaryCompilationDatabaseHandle(FilePath, file, logger);
     }
 
     [TestMethod]
