@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             refreshTimer.Object.AutoReset.Should().BeTrue();
             refreshTimer.Object.Interval.Should().Be(1000 * 60 * 10);
-            refreshTimer.VerifyAdd(x => x.Elapsed += It.IsAny<EventHandler<TimerEventArgs>>(), Times.Once);
+            refreshTimer.VerifyAdd(x => x.Elapsed += It.IsAny<EventHandler>(), Times.Once);
             refreshTimer.Verify(x => x.Start(), Times.Once);
         }
 
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
             _ = CreateTestSubject(activeSolutionBoundTracker.Object, suppressionIssueStoreUpdater.Object, serverHotspotStoreUpdater.Object, qualityProfileUpdater.Object, timerFactory);
 
-            refreshTimer.Raise(x => x.Elapsed += null, new TimerEventArgs(DateTime.UtcNow));
+            refreshTimer.Raise(x => x.Elapsed += null, EventArgs.Empty);
 
             suppressionIssueStoreUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Once);
             serverHotspotStoreUpdater.Verify(x => x.UpdateAllServerHotspotsAsync(), Times.Once);
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             testSubject.Dispose();
 
             refreshTimer.Verify(x => x.Dispose(), Times.Once);
-            refreshTimer.Raise(x => x.Elapsed += null, new TimerEventArgs(DateTime.UtcNow));
+            refreshTimer.Raise(x => x.Elapsed += null, EventArgs.Empty);
 
             suppressionIssueStoreUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Never);
             serverHotspotStoreUpdater.Verify(x => x.UpdateAllServerHotspotsAsync(), Times.Never);
@@ -148,12 +148,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         {
             var timerFactory = new Mock<ITimerFactory>();
 
-            timerFactory.Setup(x => x.Create()).Returns(timer);
+            timerFactory.Setup(x => x.Create(true)).Returns(timer);
 
             return timerFactory.Object;
         }
 
-        private static TimedUpdateHandler CreateTestSubject(IActiveSolutionBoundTracker activeSolutionBoundTracker, 
+        private static TimedUpdateHandler CreateTestSubject(IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater = null,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater = null ,
             IQualityProfileUpdater qualityProfileUpdater = null,

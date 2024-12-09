@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             this.logger = logger;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
 
-            refreshTimer = timerFactory.Create();
+            refreshTimer = timerFactory.Create(true);
             refreshTimer.AutoReset = true;
             refreshTimer.Interval = MillisecondsToWaitBetweenRefresh;
             refreshTimer.Elapsed += OnRefreshTimerElapsed;
@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             }
         }
 
-        private void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
+        private void OnRefreshTimerElapsed(object sender, EventArgs e)
         {
             logger.WriteLine(Resources.TimedUpdateTriggered);
             suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();

@@ -22,9 +22,9 @@ namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
     public sealed class TimerFactory : ITimerFactory
     {
-        public ITimer Create()
+        public ITimer Create(bool raiseOnStart)
         {
-            return new TimerWrapper();
+            return new TimerWrapper(raiseOnStart);
         }
     }
 }
