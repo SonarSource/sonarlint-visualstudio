@@ -90,7 +90,7 @@
                         </Grid.ColumnDefinitions>
 
                         <Button Grid.Column="0" Content="{x:Static res:UiResources.UnbindButton}" IsEnabled="{Binding Path=IsUnbindButtonEnabled}" 
-                           Visibility="Collapsed" VerticalAlignment="Center"
+                           VerticalAlignment="Center"
                            Click="Unbind_OnClick"/>
                         <Button Grid.Column="1" Visibility="Collapsed" Content="{x:Static res:UiResources.ShareConfigurationButton}" ToolTip="{x:Static res:UiResources.ExportBindingConfigurationTooltip}"
                            IsEnabled="{Binding Path=IsExportButtonEnabled}" VerticalAlignment="Center"
