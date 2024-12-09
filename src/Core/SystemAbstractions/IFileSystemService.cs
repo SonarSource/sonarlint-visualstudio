@@ -18,12 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Analysis;
+using System.ComponentModel.Composition;
+using System.IO.Abstractions;
 
-/// <summary>
-/// Handler for incoming analysis results
-/// </summary>
-public interface IIssueConsumer
-{
-    void Set(string path, IEnumerable<IAnalysisIssue> issues);
-}
+namespace SonarLint.VisualStudio.Core.SystemAbstractions;
+
+public interface IFileSystemService : IFileSystem; // separate export interface to avoid conflicts
+
+[Export(typeof(IFileSystemService))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+public sealed class FileSystemService : FileSystem, IFileSystemService; // exporting class

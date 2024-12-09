@@ -40,7 +40,7 @@ public class AnalysisServiceTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<AnalysisService>();
     }
-    
+
     [TestMethod]
     public void ScheduleAnalysis_AnalysisScheduler_CachesIssueConsumer_And_RunsAnalyzerController()
     {
@@ -54,7 +54,7 @@ public class AnalysisServiceTests
         var testSubject = CreateTestSubject(analyzerController, issueConsumerStorage, scheduler);
 
         testSubject.ScheduleAnalysis("file/path", analysisId, detectedLanguages, issueConsumer, analyzerOptions);
-    
+
         Received.InOrder(() =>
         {
            scheduler.Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
@@ -62,7 +62,7 @@ public class AnalysisServiceTests
            analyzerController.ExecuteAnalysis("file/path", analysisId, detectedLanguages, issueConsumer, analyzerOptions, Arg.Any<CancellationToken>());
         });
     }
-    
+
     [TestMethod]
     public void ScheduleAnalysis_JobCancelledBeforeStarting_DoesNotExecute()
     {
@@ -72,7 +72,7 @@ public class AnalysisServiceTests
         var testSubject = CreateTestSubject(analyzerController, issueConsumerStorage, scheduler);
 
         testSubject.ScheduleAnalysis("file/path", default, default, default, default);
-    
+
         scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
         issueConsumerStorage.DidNotReceiveWithAnyArgs().Set(default, default, default);
         analyzerController.DidNotReceiveWithAnyArgs().ExecuteAnalysis(default, default, default, default, default, default);
@@ -90,26 +90,26 @@ public class AnalysisServiceTests
             Environment.SetEnvironmentVariable(EnvironmentSettings.AnalysisTimeoutEnvVar, envSettingsResponse.ToString());
             var scheduler = Substitute.For<IScheduler>();
             var testSubject = CreateTestSubject(scheduler: scheduler);
-    
+
             testSubject.ScheduleAnalysis("file/path", default, default, default, default);
-            
+
             scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), expectedTimeout);
         }
         finally
         {
             Environment.SetEnvironmentVariable(EnvironmentSettings.AnalysisTimeoutEnvVar, null);
         }
-    
+
     }
-    
+
     [TestMethod]
     public void ScheduleAnalysis_NoEnvironmentSettings_DefaultTimeout()
     {
         var scheduler = Substitute.For<IScheduler>();
         var testSubject = CreateTestSubject(scheduler: scheduler);
-    
+
         testSubject.ScheduleAnalysis("file/path", default, default, default, default);
-    
+
         scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), AnalysisService.DefaultAnalysisTimeoutMs);
     }
 
@@ -118,12 +118,12 @@ public class AnalysisServiceTests
     {
         var issueConsumerStorage = CreateIssueConsumerStorageWithStoredItem(Guid.NewGuid(), null, false);
         var testSubject = CreateTestSubject(issueConsumerStorage:issueConsumerStorage);
-        
+
         var act = () => testSubject.PublishIssues("file/path", Guid.NewGuid(), Substitute.For<IEnumerable<IAnalysisIssue>>());
-        
+
         act.Should().NotThrow();
     }
-    
+
     [TestMethod]
     public void PublishIssues_DifferentAnalysisId_DoesNothing()
     {
@@ -131,12 +131,12 @@ public class AnalysisServiceTests
         var issueConsumer = Substitute.For<IIssueConsumer>();
         var issueConsumerStorage = CreateIssueConsumerStorageWithStoredItem(Guid.NewGuid(), issueConsumer, true);
         var testSubject = CreateTestSubject(issueConsumerStorage:issueConsumerStorage);
-        
+
         testSubject.PublishIssues("file/path", analysisId, Substitute.For<IEnumerable<IAnalysisIssue>>());
-        
-        issueConsumer.DidNotReceiveWithAnyArgs().Accept(default, default);
+
+        issueConsumer.DidNotReceiveWithAnyArgs().Set(default, default);
     }
-    
+
     [TestMethod]
     public void PublishIssues_MatchingConsumer_PublishesIssues()
     {
@@ -147,10 +147,10 @@ public class AnalysisServiceTests
         var analysisIssues = Substitute.For<IEnumerable<IAnalysisIssue>>();
 
         testSubject.PublishIssues("file/path", analysisId, analysisIssues);
-        
-        issueConsumer.Received().Accept("file/path", analysisIssues);
+
+        issueConsumer.Received().Set("file/path", analysisIssues);
     }
-    
+
     [DataRow(true)]
     [DataRow(false)]
     [DataTestMethod]
@@ -170,22 +170,22 @@ public class AnalysisServiceTests
         var issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
         var scheduler = CreateDefaultScheduler(true);
         var testSubject = CreateTestSubject(issueConsumerStorage: issueConsumerStorage, scheduler: scheduler);
-        
+
         testSubject.CancelForFile("file/path");
-        
+
         scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), -1);
         issueConsumerStorage.DidNotReceiveWithAnyArgs().Remove(default);
     }
-    
+
     [TestMethod]
     public void CancelForFile_RunsConsumerStorageClearAsScheduledJob()
     {
         var issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
         var scheduler = CreateDefaultScheduler();
         var testSubject = CreateTestSubject(issueConsumerStorage: issueConsumerStorage, scheduler: scheduler);
-        
+
         testSubject.CancelForFile("file/path");
-        
+
         Received.InOrder(() =>
         {
             scheduler.Schedule("file/path", Arg.Any<Action<CancellationToken>>(), -1);
@@ -202,7 +202,7 @@ public class AnalysisServiceTests
         scheduler ??= Substitute.For<IScheduler>();
         return new AnalysisService(analyzerController, issueConsumerStorage, scheduler);
     }
-    
+
     private static IIssueConsumerStorage CreateIssueConsumerStorageWithStoredItem(Guid analysisId, IIssueConsumer issueConsumer, bool result)
     {
         var issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
@@ -214,7 +214,7 @@ public class AnalysisServiceTests
         });
         return issueConsumerStorage;
     }
-    
+
     private static IScheduler CreateDefaultScheduler(bool createCancelled = false)
     {
         var cancellationTokenSource = new CancellationTokenSource();

@@ -18,12 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.CFamily;
 
-/// <summary>
-/// Handler for incoming analysis results
-/// </summary>
-public interface IIssueConsumer
+namespace SonarLint.VisualStudio.CFamily;
+
+public interface IVCXCompilationDatabaseProvider
 {
-    void Set(string path, IEnumerable<IAnalysisIssue> issues);
+    ICompilationDatabaseHandle CreateOrNull(string filePath);
 }

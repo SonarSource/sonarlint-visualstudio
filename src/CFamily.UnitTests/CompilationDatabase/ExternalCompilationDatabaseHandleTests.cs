@@ -18,27 +18,35 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO.Abstractions;
-using Moq;
+using SonarLint.VisualStudio.CFamily.CompilationDatabase;
 
-namespace SonarLint.VisualStudio.TestInfrastructure.Extensions
+namespace SonarLint.VisualStudio.CFamily.UnitTests.CompilationDatabase;
+
+[TestClass]
+public class ExternalCompilationDatabaseHandleTests
 {
-    /// <summary>
-    /// Extension methods to simplify working with IFileSystem mocks
-    /// </summary>
-    public static class FileSystemExtensions
+    [TestMethod]
+    public void Ctor_AssignsExpectedValues()
     {
-        public static T SetFileExists<T>(this T fileSystem, string fullPath, bool result = true)
-         where T : class, IFileSystem
-        {
-            fileSystem.File.Exists(fullPath).Returns(result);
-            return fileSystem;
-        }
-        public static T VerifyFileExistsCalledOnce<T>(this T fileSystem, string fullPath)
-            where T : class, IFileSystem
-        {
-            fileSystem.File.Received().Exists(fullPath);
-            return fileSystem;
-        }
+        const string filePath = "some path";
+        var testSubject = new ExternalCompilationDatabaseHandle(filePath);
+
+        testSubject.FilePath.Should().BeSameAs(filePath);
+    }
+
+    [TestMethod]
+    public void Ctor_NullPath_Throws()
+    {
+        var act = () => new ExternalCompilationDatabaseHandle(null);
+
+        act.Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("filePath");
+    }
+
+    [TestMethod]
+    public void Dispose_NoOp_DoesNotThrow()
+    {
+        var act = () => new ExternalCompilationDatabaseHandle("some path").Dispose();
+
+        act.Should().NotThrow();
     }
 }
