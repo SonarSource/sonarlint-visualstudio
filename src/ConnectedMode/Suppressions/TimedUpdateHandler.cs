@@ -85,6 +85,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             if (bindingConfiguration?.Mode != SonarLintMode.Standalone)
             {
                 refreshTimer.Start();
+                PerformUpdate();
             }
             else
             {
@@ -93,6 +94,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         }
 
         private void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
+        {
+            PerformUpdate();
+        }
+
+        private void PerformUpdate()
         {
             logger.WriteLine(Resources.TimedUpdateTriggered);
             suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
