@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
     public interface ITimer : IDisposable
     {
-        event EventHandler<TimerEventArgs> Elapsed;
+        event EventHandler Elapsed;
 
         bool AutoReset { get; set; }
         double Interval { get; set; }

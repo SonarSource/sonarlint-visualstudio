@@ -50,7 +50,7 @@ public sealed class NotificationIndicatorViewModel : ViewModelBase, INotificatio
 
     public NotificationIndicatorViewModel(IBrowserService vsBrowserService, IActiveSolutionBoundTracker activeSolutionBoundTracker)
         : this(vsBrowserService, activeSolutionBoundTracker, ThreadHandling.Instance,
-            new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */ }) =>
+            new TimerWrapper(false) { AutoReset = false, Interval = 3000 /* 3 sec */ }) =>
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
 
     // For testing

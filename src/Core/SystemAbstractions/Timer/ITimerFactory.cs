@@ -22,6 +22,6 @@ namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
     public interface ITimerFactory
     {
-        ITimer Create();
+        ITimer Create(bool raiseOnStart);
     }
 }

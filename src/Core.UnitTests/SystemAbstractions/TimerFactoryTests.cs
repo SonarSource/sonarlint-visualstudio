@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         public void Create_ReturnsExpectedInstance()
         {
             // Arrange & Act
-            var timer = new TimerFactory().Create();
+            var timer = new TimerFactory().Create(default);
 
             // Assert
             timer.Should().NotBeNull();

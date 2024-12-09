@@ -77,9 +77,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             logger.WriteLine(Resources.Strings.Notifications_Initializing);
 
             AddOptionKey(NotificationDataKey);
-            
+
             var vsBrowserService = await this.GetMefServiceAsync<Core.IBrowserService>();
-            
+
             // Initialising the UI elements has to be on the main thread
             await JoinableTaskFactory.SwitchToMainThreadAsync();
             SafePerformOpOnUIThread(() =>
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 activeSolutionBoundTracker = this.GetMefService<IActiveSolutionBoundTracker>();
 
                 notifications = new SonarQubeNotificationService(sonarqubeService,
-                    new NotificationIndicatorViewModel(vsBrowserService, activeSolutionBoundTracker), new TimerWrapper { Interval = 60000 }, logger);
+                    new NotificationIndicatorViewModel(vsBrowserService, activeSolutionBoundTracker), new TimerWrapper(false) { Interval = 60000 }, logger);
 
                 // A bound solution might already have completed loading. If so, we need to
                 // trigger the load of the options from the solution file

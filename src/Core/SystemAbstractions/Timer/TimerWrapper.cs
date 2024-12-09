@@ -26,17 +26,19 @@ namespace SonarLint.VisualStudio.Core.SystemAbstractions
     [ExcludeFromCodeCoverage] // Wrapper around System
     public sealed class TimerWrapper : ITimer
     {
+        private readonly bool raiseOnStart;
         private readonly Timer timerInstance;
         private bool isDisposed;
 
-        public TimerWrapper()
+        public TimerWrapper(bool raiseOnStart)
         {
+            this.raiseOnStart = raiseOnStart;
             this.timerInstance = new Timer();
             this.timerInstance.Elapsed += (s, e) =>
-                this.Elapsed?.Invoke(this, new TimerEventArgs(e.SignalTime));
+                this.Elapsed?.Invoke(this, EventArgs.Empty);
         }
 
-        public event EventHandler<TimerEventArgs> Elapsed;
+        public event EventHandler Elapsed;
 
         public bool AutoReset
         {
@@ -64,8 +66,14 @@ namespace SonarLint.VisualStudio.Core.SystemAbstractions
             }
         }
 
-        public void Start() =>
+        public void Start()
+        {
+            if (raiseOnStart)
+            {
+                Elapsed?.Invoke(this, EventArgs.Empty);
+            }
             this.timerInstance.Start();
+        }
 
         public void Stop() =>
             this.timerInstance.Stop();
