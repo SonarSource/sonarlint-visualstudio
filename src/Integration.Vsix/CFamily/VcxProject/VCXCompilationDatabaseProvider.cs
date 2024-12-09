@@ -19,11 +19,8 @@
  */
 
 using System.ComponentModel.Composition;
-using EnvDTE80;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.CFamily;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
@@ -35,7 +32,7 @@ internal class VCXCompilationDatabaseProvider(
     IFileConfigProvider fileConfigProvider)
     : IVCXCompilationDatabaseProvider
 {
-    public string CreateOrNull(string filePath) =>
+    public ICompilationDatabaseHandle CreateOrNull(string filePath) =>
         fileConfigProvider.Get(filePath, null) is {} fileConfig
             ? storage.CreateDatabase(fileConfig)
             : null;

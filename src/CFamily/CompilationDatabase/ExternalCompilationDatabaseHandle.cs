@@ -18,27 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.CFamily.CompilationDatabase;
 
-[Export(typeof(IAggregatingCompilationDatabaseProvider))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-[method:ImportingConstructor]
-internal class AggregatingCompilationDatabaseProvider(
-    ICMakeCompilationDatabaseLocator cMakeCompilationDatabaseLocator,
-    IVCXCompilationDatabaseProvider vcxCompilationDatabaseProvider)
-    : IAggregatingCompilationDatabaseProvider
+internal sealed class ExternalCompilationDatabaseHandle(string filePath) : ICompilationDatabaseHandle
 {
-    public ICompilationDatabaseHandle GetOrNull(string sourceFilePath)
-    {
-        if (cMakeCompilationDatabaseLocator.Locate() is {} cmakeCompilationDatabasePath)
-        {
-            return new ExternalCompilationDatabaseHandle(cmakeCompilationDatabasePath);
-        }
+    public string FilePath { get; } = filePath ?? throw new ArgumentNullException(nameof(filePath));
 
-        return vcxCompilationDatabaseProvider.CreateOrNull(sourceFilePath);
+    public void Dispose()
+    {
+        // do nothing
     }
 }
