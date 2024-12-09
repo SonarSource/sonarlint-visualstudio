@@ -75,6 +75,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             var bindingDeleted = solutionBindingRepository.DeleteBinding(localBindingKey);
             if (bindingDeleted)
             {
+                sonarQubeService.Disconnect();
                 activeSolutionChangedHandler.HandleBindingChange(true);
             }
             return bindingDeleted;

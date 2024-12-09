@@ -117,7 +117,7 @@ public class UnintrusiveBindingControllerTests
     }
 
     [TestMethod]
-    public void Unbind_BindingDeletionSucceeded_HandlesBindingChanges()
+    public void Unbind_BindingDeletionSucceeded_HandlesBindingChangesAndDisconnects()
     {
         solutionBindingRepository.DeleteBinding(AnyBoundProject.LocalBindingKey).Returns(true);
 
@@ -126,6 +126,7 @@ public class UnintrusiveBindingControllerTests
         Received.InOrder(() =>
         {
             solutionBindingRepository.DeleteBinding(AnyBoundProject.LocalBindingKey);
+            sonarQubeService.Disconnect();
             activeSolutionChangedHandler.HandleBindingChange(true);
         });
     }
