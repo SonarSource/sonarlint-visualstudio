@@ -18,13 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.ConnectedMode.Helpers;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarQube.Client;
 
@@ -58,7 +54,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
-        public SuppressionIssueStoreUpdater(ISonarQubeService server,
+        public SuppressionIssueStoreUpdater(
+            ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
             IServerIssuesStoreWriter storeWriter,
             ICancellableActionRunner actionRunner,
@@ -67,7 +64,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         {
         }
 
-        internal /* for testing */ SuppressionIssueStoreUpdater(ISonarQubeService server,
+        internal /* for testing */ SuppressionIssueStoreUpdater(
+            ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
             IServerIssuesStoreWriter storeWriter,
             ICancellableActionRunner actionRunner,
@@ -99,6 +97,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
                         if (queryInfo.projectKey == null || queryInfo.serverBranch == null)
                         {
+                            storeWriter.Reset();
                             return;
                         }
 

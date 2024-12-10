@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
@@ -68,5 +66,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         /// <remarks>Passing an empty list to <paramref name="issues"/> and false to <paramref name="clearAllExistingIssues"/>
         /// has the effect of clearing the store in a single atomic operation.</remarks>
         void AddIssues(IEnumerable<SonarQubeIssue> issues, bool clearAllExistingIssues);
+
+        /// <summary>
+        /// Removes all existing issues. Can be called multiple times.
+        /// </summary>
+        void Reset();
     }
 }
