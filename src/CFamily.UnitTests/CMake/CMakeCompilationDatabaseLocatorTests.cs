@@ -18,22 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
 using System.IO.Abstractions;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.TestInfrastructure.Extensions.FileSystemExtensions;
 
 namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 {
     [TestClass]
-    public class CompilationDatabaseLocatorTests
+    public class CMakeCompilationDatabaseLocatorTests
     {
         private const string RootDirectory = "dummy root";
 
@@ -43,8 +40,9 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<CompilationDatabaseLocator, ICompilationDatabaseLocator>(
+            MefTestHelpers.CheckTypeCanBeImported<CMakeCompilationDatabaseLocator, ICMakeCompilationDatabaseLocator>(
                 MefTestHelpers.CreateExport<IFolderWorkspaceService>(),
+                MefTestHelpers.CreateExport<IFileSystemService>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
@@ -72,10 +70,9 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var defaultLocation = GetDefaultDatabaseFileLocation(activeConfiguration);
 
-            var fileSystem = new Mock<IFileSystem>();
-            fileSystem.SetFileExists(defaultLocation, fileExists);
+            var fileSystem = Substitute.For<IFileSystemService>().SetFileExists(defaultLocation, fileExists);
 
-            var testSubject = CreateTestSubject(RootDirectory, configProvider, cmakeSettingsProvider.Object, fileSystem.Object);
+            var testSubject = CreateTestSubject(RootDirectory, configProvider, cmakeSettingsProvider.Object, fileSystem);
 
             var result = testSubject.Locate();
 
@@ -132,16 +129,15 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         {
             var configProvider = CreateConfigProvider("my-config");
             var cmakeSettings = CreateCMakeSettings("my-config", "folder");
-            var cmakeSettingsProvider = CreateCMakeSettingsProvider(RootDirectory, 
+            var cmakeSettingsProvider = CreateCMakeSettingsProvider(RootDirectory,
                 new CMakeSettingsSearchResult(cmakeSettings, "", ""));
 
             var compilationDatabaseFullLocation = Path.GetFullPath(
-                Path.Combine("folder", CompilationDatabaseLocator.CompilationDatabaseFileName));
+                Path.Combine("folder", CMakeCompilationDatabaseLocator.CompilationDatabaseFileName));
 
-            var fileSystem = new Mock<IFileSystem>();
-            fileSystem.SetFileExists(compilationDatabaseFullLocation, fileExists);
+            var fileSystem = Substitute.For<IFileSystemService>().SetFileExists(compilationDatabaseFullLocation, fileExists);
 
-            var testSubject = CreateTestSubject(RootDirectory, configProvider, cmakeSettingsProvider.Object, fileSystem.Object,
+            var testSubject = CreateTestSubject(RootDirectory, configProvider, cmakeSettingsProvider.Object, fileSystem,
                 macroEvaluationService: PassthroughMacroService);
 
             var result = testSubject.Locate();
@@ -199,8 +195,8 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             context.MacroEvalService.Invocations.Count.Should().Be(1);
         }
 
-        private static CMakeSettings CreateCMakeSettings(string activeConfigurationName, 
-            string buildRoot, 
+        private static CMakeSettings CreateCMakeSettings(string activeConfigurationName,
+            string buildRoot,
             string generator = "generator") =>
             new()
             {
@@ -217,15 +213,15 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
         private static string GetDefaultDatabaseFileLocation(string activeBuildConfiguration) =>
             Path.GetFullPath(Path.Combine(
-                string.Format(CompilationDatabaseLocator.DefaultLocationFormat,
+                string.Format(CMakeCompilationDatabaseLocator.DefaultLocationFormat,
                     RootDirectory,
                     activeBuildConfiguration),
-                CompilationDatabaseLocator.CompilationDatabaseFileName));
+                CMakeCompilationDatabaseLocator.CompilationDatabaseFileName));
 
-        private static CompilationDatabaseLocator CreateTestSubject(string rootDirectory, 
+        private static CMakeCompilationDatabaseLocator CreateTestSubject(string rootDirectory,
             IBuildConfigProvider buildConfigProvider = null,
             ICMakeSettingsProvider cMakeSettingsProvider = null,
-            IFileSystem fileSystem = null, 
+            IFileSystemService fileSystem = null,
             ILogger logger = null,
             IMacroEvaluationService macroEvaluationService = null)
         {
@@ -235,17 +231,17 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             cMakeSettingsProvider ??= Mock.Of<ICMakeSettingsProvider>();
             buildConfigProvider ??= Mock.Of<IBuildConfigProvider>();
             logger ??= Mock.Of<ILogger>();
-            fileSystem ??= new FileSystem();
+            fileSystem ??= new FileSystemService();
             macroEvaluationService ??= Mock.Of<IMacroEvaluationService>();
 
-            return new CompilationDatabaseLocator(folderWorkspaceService.Object, buildConfigProvider, cMakeSettingsProvider, macroEvaluationService, fileSystem, logger);
+            return new CMakeCompilationDatabaseLocator(folderWorkspaceService.Object, buildConfigProvider, cMakeSettingsProvider, macroEvaluationService, fileSystem, logger);
         }
 
         private static IBuildConfigProvider CreateConfigProvider(string activeConfiguration)
         {
             var provider = new Mock<IBuildConfigProvider>();
             provider.Setup(x => x.GetActiveConfig(It.IsAny<string>())).Returns(activeConfiguration);
-            
+
             return provider.Object;
         }
 
@@ -288,10 +284,9 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
                     new CMakeSettingsSearchResult(cmakeSettings, cmakeSettingsFilePath, cmakeListsFilePath));
 
                 // Treat all files as existing
-                var fileSystem = new Mock<IFileSystem>();
-                Func<string, bool> nonNullFilesExist = x => x != null;
-                fileSystem.Setup(x => x.File.Exists(It.IsAny<string>())).Returns(nonNullFilesExist);
- 
+                var fileSystem = Substitute.For<IFileSystemService>();
+                fileSystem.File.Exists(Arg.Any<string>()).Returns(call => call.Arg<string>() != null);
+
                 MacroEvalService = new Mock<IMacroEvaluationService>();
                 MacroEvalService.Setup(x =>
                     x.Evaluate(unevaluatedBuildRoot,
@@ -307,10 +302,10 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
                 Logger = new TestLogger(logToConsole: true);
 
                 TestSubject = CreateTestSubject(workspaceRootDir, configProvider, cmakeSettingsProvider.Object,
-                    fileSystem.Object, Logger, MacroEvalService.Object);
+                    fileSystem, Logger, MacroEvalService.Object);
             }
 
-            public CompilationDatabaseLocator TestSubject { get; }
+            public CMakeCompilationDatabaseLocator TestSubject { get; }
             public Mock<IMacroEvaluationService> MacroEvalService { get; }
             public TestLogger Logger { get; }
         }

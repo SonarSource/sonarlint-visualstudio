@@ -18,14 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.CFamily
+using System.IO.Abstractions;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.CFamily;
+
+namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
+
+internal sealed class TemporaryCompilationDatabaseHandle(string filePath, IFile file, ILogger logger) : ICompilationDatabaseHandle
 {
-    public interface ICompilationDatabaseLocator
+    private bool disposed;
+    public string FilePath { get; } = filePath ?? throw new ArgumentNullException(nameof(filePath));
+
+    public void Dispose()
     {
-        /// <summary>
-        /// Returns absolute path to the compilation database file of the currently active build configuration.
-        /// Returns null if the file was not found.
-        /// </summary>
-        string Locate();
+        if (disposed)
+        {
+            return;
+        }
+        disposed = true;
+
+        try
+        {
+            file.Delete(FilePath);
+        }
+        catch (Exception e)
+        {
+            logger.LogVerbose(e.ToString());
+        }
     }
 }

@@ -18,12 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.TestInfrastructure;
 
-/// <summary>
-/// Handler for incoming analysis results
-/// </summary>
-public interface IIssueConsumer
+namespace SonarLint.VisualStudio.Core.UnitTests.SystemAbstractions;
+
+[TestClass]
+public class FileSystemServiceTests
 {
-    void Set(string path, IEnumerable<IAnalysisIssue> issues);
+    [TestMethod]
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<FileSystemService, IFileSystemService>();
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<FileSystemService>();
 }

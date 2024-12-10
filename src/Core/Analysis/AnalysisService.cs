@@ -50,7 +50,7 @@ internal class AnalysisService : IAnalysisService
         if (issueConsumerStorage.TryGet(filePath, out var currentAnalysisId, out var issueConsumer)
             && analysisId == currentAnalysisId)
         {
-            issueConsumer.Accept(filePath, issues);
+            issueConsumer.Set(filePath, issues);
         }
     }
 
@@ -84,7 +84,7 @@ internal class AnalysisService : IAnalysisService
             },
             -1);
     }
-    
+
     private static int GetAnalysisTimeoutInMilliseconds()
     {
         var environmentSettings = new EnvironmentSettings();

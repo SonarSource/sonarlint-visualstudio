@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess
 
                 // Rules that start with internal shouldn't be treated as issues.
                 // Some of them should be handled like `internal.fileDependency`. See: https://github.com/SonarSource/sonarlint-visualstudio/issues/2611
-                // Others should can simply ignored like `internal.z3RefutationRate`, which is used to log in the scanner how many issues are rejected by the Z3 solver 
+                // Others should can simply ignored like `internal.z3RefutationRate`, which is used to log in the scanner how many issues are rejected by the Z3 solver
                 case string s when s.StartsWith("internal."):
                     break;
 
@@ -137,11 +137,12 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess
             IssueCount++;
             var issue = issueConverter.Convert(message, request.Context.CFamilyLanguage, request.Context.RulesConfiguration);
 
-            // Note: the file being analyzed might have been closed by the time the analysis results are 
+            // Note: the file being analyzed might have been closed by the time the analysis results are
             // returned. This doesn't cause a crash; all active taggers will have been detached from the
             // TextBufferIssueTracker when the file was closed, but the TextBufferIssueTracker will
             // still exist and handle the call.
-            issueConsumer.Accept(request.Context.File, new[] { issue });
+            // todo https://sonarsource.atlassian.net/browse/SLVS-1661
+            issueConsumer.Set(request.Context.File, new[] { issue });
         }
 
         internal /* for testing */ static bool IsIssueForActiveRule(Message message, ICFamilyRulesConfig rulesConfiguration)

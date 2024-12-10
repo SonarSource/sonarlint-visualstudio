@@ -18,12 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Analysis;
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.CFamily;
+using SonarLint.VisualStudio.Core.CFamily;
 
-/// <summary>
-/// Handler for incoming analysis results
-/// </summary>
-public interface IIssueConsumer
+namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
+
+[Export(typeof(IVCXCompilationDatabaseProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal class VCXCompilationDatabaseProvider(
+    IVCXCompilationDatabaseStorage storage,
+    IFileConfigProvider fileConfigProvider)
+    : IVCXCompilationDatabaseProvider
 {
-    void Set(string path, IEnumerable<IAnalysisIssue> issues);
+    public ICompilationDatabaseHandle CreateOrNull(string filePath) =>
+        fileConfigProvider.Get(filePath, null) is {} fileConfig
+            ? storage.CreateDatabase(fileConfig)
+            : null;
 }

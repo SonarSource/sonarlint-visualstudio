@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void MicrosoftVisualStudioVCProjectEngine_EnsureCorrectVersion()
         {
             var codeAnalysisAssemblyVersion = AssemblyHelper.GetVersionOfReferencedAssembly(
-                typeof(SonarLint.VisualStudio.Integration.Vsix.AccumulatingIssueConsumer), // any type in the VSIX assembly will do
+                typeof(SonarLint.VisualStudio.Integration.Vsix.IssueConsumer), // any type in the VSIX assembly will do
                 "Microsoft.VisualStudio.VCProjectEngine");
 
             AssertIsCorrectMajorVersion(codeAnalysisAssemblyVersion.Major);

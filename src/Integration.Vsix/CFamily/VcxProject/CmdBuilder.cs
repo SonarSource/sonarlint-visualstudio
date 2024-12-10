@@ -39,7 +39,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
         StringBuilder Cmd { get; set; } = new StringBuilder();
         bool IsHeader { get; set; }
-        public string HeaderFileLang { get; set; } = "";
 
         public CmdBuilder(bool isHeader)
         {
@@ -167,14 +166,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             AddCmdOpt(ConvertStructMemberAlignment(structMemberAlignment));
 
             var compileAs = properties.GetEvaluatedPropertyValue("CompileAs");
-            if (IsHeader)
-            {
-                HeaderFileLang = (compileAs == "CompileAsC") ? "c" : "cpp";
-            }
-            else
-            {
-                AddCmdOpt(ConvertCompileAsAndGetLanguage(compileAs));
-            }
+            AddCmdOpt(ConvertCompileAsAndGetLanguage(compileAs));
 
             // Additional options
             var additionalOptions = properties.GetEvaluatedPropertyValue("AdditionalOptions");

@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using EnvDTE;
 using Microsoft.VisualStudio.VCProjectEngine;
@@ -27,6 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {
     internal class FileConfig : IFileConfig
     {
+        [ExcludeFromCodeCoverage]
         public static FileConfig TryGet(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath)
         {
             if (!(dteProjectItem.ContainingProject.Object is VCProject vcProject) ||
@@ -43,6 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 // Not supported
                 return null;
             }
+
             CmdBuilder cmdBuilder = new CmdBuilder(vcFile.ItemType == "ClInclude");
 
             var compilerPath = vcConfig.GetEvaluatedPropertyValue("ClCompilerPath");
@@ -74,7 +77,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 CDCommand = cmdBuilder.GetFullCmd(),
                 CDFile = absoluteFilePath,
                 EnvInclude = envINCLUDE,
-                HeaderFileLanguage = cmdBuilder.HeaderFileLang,
             };
         }
 
@@ -132,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         public string CDCommand { get; set; }
         public string CDFile { get; set; }
         public string EnvInclude { get; set; }
-        public string HeaderFileLanguage { get; set; }
+
         #endregion
 
     }
