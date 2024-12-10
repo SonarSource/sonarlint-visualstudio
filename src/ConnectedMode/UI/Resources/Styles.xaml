@@ -30,7 +30,7 @@
         <Setter Property="Padding" Value="5,2"/>
         <Setter Property="Foreground" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonTextBrushKey}}" />
         <Setter Property="Background" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonBrushKey}}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonBorderBrushKey}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonBorderFocusedBrushKey}}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">

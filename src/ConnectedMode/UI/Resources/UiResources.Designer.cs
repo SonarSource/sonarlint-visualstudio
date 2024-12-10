@@ -214,6 +214,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close.
+        /// </summary>
+        public static string CloseButton {
+            get {
+                return ResourceManager.GetString("CloseButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Discover which connection is best for your team .
         /// </summary>
         public static string ConnectionDiscoveringText {
@@ -941,6 +950,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string UnbindButton {
             get {
                 return ResourceManager.GetString("UnbindButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unbinding the project failed.  Please check the SonarQube for Visual Studio logs for more details..
+        /// </summary>
+        public static string UnbindingFailedText {
+            get {
+                return ResourceManager.GetString("UnbindingFailedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unbinding in progress....
+        /// </summary>
+        public static string UnbindingInProgressText {
+            get {
+                return ResourceManager.GetString("UnbindingInProgressText", resourceCulture);
             }
         }
         
