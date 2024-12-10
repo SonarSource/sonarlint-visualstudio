@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
 
             result.Should().NotBeNull();
             result.PathToExecutable.Should().Be($"""{VsixRoot}\jre\bin\java.exe""");
-            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" -Djava.net.useSystemProxies=true org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
         }
         
         [TestMethod]
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
 
             result.Should().NotBeNull();
             result.PathToExecutable.Should().Be($"""{VsixRoot}\Custom\VsixSubpath\jre\bin\java.exe""");
-            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\Custom\VsixSubpath\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\Custom\VsixSubpath\lib\*" -Djava.net.useSystemProxies=true org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
         }
         
         [TestMethod]
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
 
             result.Should().NotBeNull();
             result.PathToExecutable.Should().Be($"""{VsixRoot}\jre\bin\java.exe""");
-            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" -Djava.net.useSystemProxies=true org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
         }
 
         [TestMethod]
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
 
             result.Should().NotBeNull();
             result.PathToExecutable.Should().Be($"""{VsixRoot}\jre\bin\java.exe""");
-            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" -Djava.net.useSystemProxies=true org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
         }
 
         [TestMethod]
@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
 
             result.Should().NotBeNull();
             result.PathToExecutable.Should().Be($"""{VsixRoot}\jre\bin\java.exe""");
-            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" -Djava.net.useSystemProxies=true org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
             logger.Received(1).LogVerbose(string.Format(Resources.Strings.SlCoreLocator_CustomJreLocationNotFound, customPathToExecutable));
         }
 
@@ -140,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
 
             result.Should().NotBeNull();
             result.PathToExecutable.Should().Be(expectedPathToExecutable);
-            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
+            result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" -Djava.net.useSystemProxies=true org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
             logger.Received(1).LogVerbose(string.Format(Resources.Strings.SlCoreLocator_UsingCustomJreLocation, expectedPathToExecutable));
         }
     }
