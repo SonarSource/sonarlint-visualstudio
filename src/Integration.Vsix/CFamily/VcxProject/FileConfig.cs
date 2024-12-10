@@ -45,6 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 // Not supported
                 return null;
             }
+
             CmdBuilder cmdBuilder = new CmdBuilder(vcFile.ItemType == "ClInclude");
 
             var compilerPath = vcConfig.GetEvaluatedPropertyValue("ClCompilerPath");
@@ -76,7 +77,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 CDCommand = cmdBuilder.GetFullCmd(),
                 CDFile = absoluteFilePath,
                 EnvInclude = envINCLUDE,
-                HeaderFileLanguage = cmdBuilder.HeaderFileLang,
             };
         }
 
@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         public string CDCommand { get; set; }
         public string CDFile { get; set; }
         public string EnvInclude { get; set; }
-        public string HeaderFileLanguage { get; set; }
+
         #endregion
 
     }

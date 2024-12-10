@@ -139,7 +139,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             // Assert
             request.Should().NotBeNull();
             Assert.AreEqual("\"C:\\path\\cl.exe\" /permissive- /std:c++17 /EHsc /arch:AVX512 /MT /RTCu /Zp8 /TP /DA \"c:\\dummy\\file.cpp\"", request.CDCommand);
-            Assert.AreEqual("", request.HeaderFileLanguage);
             Assert.AreEqual("C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;", request.EnvInclude);
             Assert.AreEqual("c:\\dummy\\file.cpp", request.CDFile);
             Assert.AreEqual("c:\\foo", request.CDDirectory);
@@ -175,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             // Assert
             request.Should().NotBeNull();
             Assert.AreEqual("\"C:\\path\\cl.exe\" /Yu\"pch.h\" /FI\"pch.h\" /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
-            Assert.AreEqual("cpp", request.HeaderFileLanguage);
+            Assert.AreEqual("c:\\dummy\\file.h", request.CDFile);
 
             // Arrange
             projectItemConfig.FileConfigProperties["CompileAs"] = "CompileAsC";
@@ -185,8 +184,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
 
             // Assert
-            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
-            Assert.AreEqual("c", request.HeaderFileLanguage);
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu /TC \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("c:\\dummy\\file.h", request.CDFile);
+
+            // Arrange
+            projectItemConfig.FileConfigProperties["CompileAs"] = "CompileAsCpp";
+
+            // Act
+            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
+
+            // Assert
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu /TP \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("c:\\dummy\\file.h", request.CDFile);
         }
 
         [TestMethod]
