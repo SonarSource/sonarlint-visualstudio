@@ -18,329 +18,281 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.VisualStudio.RemoteSettings;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions;
+
+[TestClass]
+public class ServerIssuesStoreTests
 {
-    [TestClass]
-    public class ServerIssuesStoreTests
+    private readonly SonarQubeIssue resolvedIssue = CreateIssue("3", true);
+    private readonly SonarQubeIssue resolvedIssue2 = CreateIssue("4", true);
+    private readonly SonarQubeIssue unresolvedIssue = CreateIssue("1");
+    private readonly SonarQubeIssue unresolvedIssue2 = CreateIssue("2");
+    private ILogger logger;
+    private ServerIssuesStore testSubject;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
+        logger = new TestLogger();
+        testSubject = new ServerIssuesStore(logger);
+    }
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
+    {
+        MefTestHelpers.CheckTypeCanBeImported<ServerIssuesStore, IServerIssuesStore>(
+            MefTestHelpers.CreateExport<ILogger>());
+
+        MefTestHelpers.CheckTypeCanBeImported<ServerIssuesStore, IServerIssuesStoreWriter>(
+            MefTestHelpers.CreateExport<ILogger>());
+    }
+
+    [TestMethod]
+    public void MefCtor_Check_SameInstanceExported() =>
+        MefTestHelpers.CheckMultipleExportsReturnSameInstance<ServerIssuesStore, IServerIssuesStore, IServerIssuesStore>(
+            MefTestHelpers.CreateExport<ILogger>());
+
+    [TestMethod]
+    public void TryGetIssue_HasIssueWithSameKey_ReturnsTrue()
+    {
+        InitializeStoreWithIssue(unresolvedIssue);
+
+        testSubject.TryGetIssue(unresolvedIssue.IssueKey, out var storedIssue).Should().BeTrue();
+
+        storedIssue.Should().BeSameAs(unresolvedIssue);
+    }
+
+    [TestMethod]
+    public void TryGetIssue_NoMatchingIssue_ReturnsFalse()
+    {
+        InitializeStoreWithIssue(unresolvedIssue);
+
+        testSubject.TryGetIssue("NOTMATCHINGKEY", out _).Should().BeFalse();
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void AddIssues_EmptyList_ResultContainsNewIssues(bool clearAllExistingIssues)
+    {
+        VerifyNoIssues();
+
+        testSubject.AddIssues([unresolvedIssue, unresolvedIssue2], clearAllExistingIssues);
+
+        VerifyExpectedIssues(unresolvedIssue, unresolvedIssue2);
+    }
+
+    [TestMethod]
+    public void AddIssues_NonEmptyList_ClearExisting_OldIssuesCleared()
+    {
+        VerifyNoIssues();
+
+        testSubject.AddIssues([unresolvedIssue], false);
+        VerifyExpectedIssues(unresolvedIssue);
+
+        testSubject.AddIssues([unresolvedIssue2], true);
+        VerifyExpectedIssues(unresolvedIssue2);
+    }
+
+    [TestMethod]
+    public void AddIssues_ListOfAddIssues_NonEmptyList_DontClearExisting_OldIssuesAreRetained()
+    {
+        VerifyNoIssues();
+
+        testSubject.AddIssues([unresolvedIssue], false);
+        VerifyExpectedIssues(unresolvedIssue);
+
+        testSubject.AddIssues([unresolvedIssue2], false);
+        VerifyExpectedIssues(unresolvedIssue, unresolvedIssue2);
+    }
+
+    [TestMethod]
+    public void AddIssues_ExistingIssues_NewIssuesUpdateExistingIssues()
+    {
+        var existing1 = CreateIssue("e1");
+        var existing2 = CreateIssue("e2");
+        // Set the initial list of items
+        testSubject.AddIssues([existing1, existing2], true);
+        VerifyExpectedIssues(existing1, existing2);
+
+        // Modify the items in the store
+        // e1 is unchanged
+        // e2 is replaced
+        // n1 is added
+        // E1 is added - different case from "e1" so should be treated as different
+        var mod1 = CreateIssue("e2");
+        var mod2 = CreateIssue("e3");
+        var new1 = CreateIssue("n1");
+        var new2 = CreateIssue("E1");
+
+        testSubject.AddIssues([mod1, mod2, new1, new2], false);
+
+        VerifyExpectedIssues(existing1, mod1, mod2, new1, new2);
+        testSubject.Get().Should().NotContain(existing2);
+    }
+
+    [TestMethod]
+    public void AddIssues_AddNullIssues_EventIsNotInvoked()
+    {
+        var eventMock = Substitute.For<EventHandler>();
+        testSubject.ServerIssuesChanged += eventMock;
+
+        testSubject.AddIssues(null, false);
+
+        VerifyNotRaisedServerIssueChanged(eventMock);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void AddIssues_EventIsInvoked(bool clearAllExistingIssues)
+    {
+        var eventMock = Substitute.For<EventHandler>();
+        testSubject.ServerIssuesChanged += eventMock;
+
+        testSubject.AddIssues([unresolvedIssue], clearAllExistingIssues);
+
+        VerifyRaisedServerIssueChanged(eventMock);
+    }
+
+    [TestMethod]
+    public void UpdateIssues_EmptyList_DoesNotInvokeEvent()
+    {
+        var eventMock = Substitute.For<EventHandler>();
+        testSubject.ServerIssuesChanged += eventMock;
+        VerifyNoIssues();
+
+        testSubject.UpdateIssues(false, [resolvedIssue.IssueKey]);
+
+        VerifyNotRaisedServerIssueChanged(eventMock);
+    }
+
+    [TestMethod]
+    public void UpdateIssues_NonEmptyList_NoMatch_DoesNotInvokeEvent()
+    {
+        InitializeStoreWithIssue(unresolvedIssue);
+        var eventMock = Substitute.For<EventHandler>();
+        testSubject.ServerIssuesChanged += eventMock;
+
+        testSubject.UpdateIssues(false, ["NOTMATCHINGKEY"]);
+
+        VerifyNotRaisedServerIssueChanged(eventMock);
+    }
+
+    [TestMethod]
+    public void UpdateIssues_NonEmptyList_Match_InvokesEventAndPropertyIsChanged()
+    {
+        InitializeStoreWithIssue(resolvedIssue, resolvedIssue2, unresolvedIssue);
+        var eventMock = Substitute.For<EventHandler>();
+        testSubject.ServerIssuesChanged += eventMock;
+
+        testSubject.UpdateIssues(false, [resolvedIssue2.IssueKey, unresolvedIssue.IssueKey]);
+
+        resolvedIssue.IsResolved.Should().BeTrue();
+        resolvedIssue2.IsResolved.Should().BeFalse();
+        unresolvedIssue.IsResolved.Should().BeFalse();
+
+        // Changing a single property should be enough to trigger the event
+        VerifyRaisedServerIssueChanged(eventMock);
+    }
+
+    [TestMethod]
+    [DataRow(true, true)]
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    public void UpdateIssues_IssueExists_InvokesEventIfPropertyDoesNotMatch(bool storeValue, bool newValue)
+    {
+        var issue1 = CreateIssue("issue1Key", storeValue);
+        InitializeStoreWithIssue(issue1);
+        var eventMock = Substitute.For<EventHandler>();
+        testSubject.ServerIssuesChanged += eventMock;
+
+        testSubject.UpdateIssues(newValue, [issue1.IssueKey]);
+
+        issue1.IsResolved.Should().Be(newValue);
+        var expectedEventCount = storeValue == newValue ? 0 : 1;
+        eventMock.Received(expectedEventCount).Invoke(testSubject, Arg.Is<EventArgs>(x => x == EventArgs.Empty));
+    }
+
+    [TestMethod]
+    public void Reset_HasIssue_AllIssuesRemoved()
+    {
+        InitializeStoreWithIssue(unresolvedIssue);
+
+        testSubject.Reset();
+
+        testSubject.Get().Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void Reset_HasIssue_InvokesEvent()
+    {
+        InitializeStoreWithIssue(unresolvedIssue);
+        var eventMock = Substitute.For<EventHandler>();
+        testSubject.ServerIssuesChanged += eventMock;
+
+        testSubject.Reset();
+
+        VerifyRaisedServerIssueChanged(eventMock);
+    }
+
+    [TestMethod]
+    public void Reset_NoIssue_DoesNotInvokeEvent()
+    {
+        var eventMock = Substitute.For<EventHandler>();
+        testSubject.ServerIssuesChanged += eventMock;
+
+        testSubject.Reset();
+
+        VerifyNotRaisedServerIssueChanged(eventMock);
+    }
+
+    [TestMethod]
+    public void Reset_CalledMultipleTimes_InvokesEventOnce()
+    {
+        InitializeStoreWithIssue(unresolvedIssue);
+        var eventMock = Substitute.For<EventHandler>();
+        testSubject.ServerIssuesChanged += eventMock;
+
+        testSubject.Reset();
+        testSubject.Reset();
+        testSubject.Reset();
+
+        VerifyRaisedServerIssueChanged(eventMock);
+    }
+
+    private static SonarQubeIssue CreateIssue(string key, bool isResolved = false)
+    {
+        var issue = new SonarQubeIssue(key, "", "", "", "", "", isResolved, SonarQubeIssueSeverity.Info, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, null);
+
+        return issue;
+    }
+
+    private void InitializeStoreWithIssue(params SonarQubeIssue[] expectedIssues) => testSubject.AddIssues(expectedIssues, false);
+
+    private void VerifyExpectedIssues(params SonarQubeIssue[] expectedIssues)
+    {
+        var result = testSubject.Get().ToList();
+        result.Should().HaveCount(expectedIssues.Length);
+        foreach (var expectedIssue in expectedIssues)
         {
-            MefTestHelpers.CheckTypeCanBeImported<ServerIssuesStore, IServerIssuesStore>(
-                MefTestHelpers.CreateExport<ILogger>());
-
-            MefTestHelpers.CheckTypeCanBeImported<ServerIssuesStore, IServerIssuesStoreWriter>(
-                MefTestHelpers.CreateExport<ILogger>());
-        }
-
-        [TestMethod]
-        public void MefCtor_Check_SameInstanceExported()
-            => MefTestHelpers.CheckMultipleExportsReturnSameInstance<ServerIssuesStore, IServerIssuesStore, IServerIssuesStore>(
-                MefTestHelpers.CreateExport<ILogger>());
-
-        [TestMethod]
-        public void TryGetIssue_HasIssueWithSameKey_ReturnsTrue()
-        {
-            var issue = CreateIssue("1", false);
-
-            var testSubject = CreateTestSubject();
-            testSubject.AddIssues(new []{issue}, false);
-
-            testSubject.TryGetIssue(issue.IssueKey, out var storedIssue).Should().BeTrue();
-            storedIssue.Should().BeSameAs(issue);
-        }
-        
-        [TestMethod]
-        public void TryGetIssue_NoMatchingIssue_ReturnsFalse()
-        {
-            var issue = CreateIssue("1", false);
-
-            var testSubject = CreateTestSubject();
-            testSubject.AddIssues(new []{issue}, false);
-
-            testSubject.TryGetIssue("NOTMATCHINGKEY", out var storedIssue).Should().BeFalse();
-        }
-        
-        [TestMethod]
-        [DataRow(false)]
-        [DataRow(true)]
-        public void AddIssues_EmptyList_ResultContainsNewIssues(bool clearAllExistingIssues)
-        {
-            var issue1 = CreateIssue("1", false);
-            var issue2 = CreateIssue("2", false);
-
-            var testSubject = CreateTestSubject();
-
-            var result = testSubject.Get();
-            result.Count().Should().Be(0);
-
-            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1, issue2 }, clearAllExistingIssues: clearAllExistingIssues);
-
-            result = testSubject.Get();
-            result.Count().Should().Be(2);
-            result.Should().Contain(issue1);
-            result.Should().Contain(issue2);
-        }
-
-        [TestMethod]
-        public void AddIssues_NonEmptyList_ClearExisting_OldIssuesCleared()
-        {
-            var issue1 = CreateIssue("1", false);
-            var issue2 = CreateIssue("2", false);
-
-            var testSubject = CreateTestSubject();
-
-            var result = testSubject.Get();
-            result.Count().Should().Be(0);
-
-            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1 }, clearAllExistingIssues: false);
-
-            result = testSubject.Get();
-            result.Count().Should().Be(1);
-            result.Should().Contain(issue1);
-
-            testSubject.AddIssues(new List<SonarQubeIssue>() { issue2 }, clearAllExistingIssues: true);
-
-            result = testSubject.Get();
-            result.Count().Should().Be(1);
-            result.Should().Contain(issue2);
-        }
-
-        [TestMethod]
-        public void AddIssues_ListOfAddIssues_NonEmptyList_DontClearExisting_OldIssuesAreRetained()
-        {
-            var issue1 = CreateIssue("1", false);
-            var issue2 = CreateIssue("2", false);
-
-            var testSubject = CreateTestSubject();
-
-            var result = testSubject.Get();
-            result.Count().Should().Be(0);
-
-            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1 }, clearAllExistingIssues: false);
-
-            result = testSubject.Get();
-            result.Count().Should().Be(1);
-            result.Should().Contain(issue1);
-
-            testSubject.AddIssues(new List<SonarQubeIssue>() { issue2 }, clearAllExistingIssues: false);
-
-            result = testSubject.Get();
-            result.Count().Should().Be(2);
-            result.Should().Contain(issue1);
-            result.Should().Contain(issue2);
-        }
-
-        [TestMethod]
-        public void AddIssues_ExistingIssues_NewIssuesUpdateExistingIssues()
-        {
-            var testSubject = CreateTestSubject();
-
-            var existing1 = CreateIssue("e1");
-            var existing2 = CreateIssue("e2");
-
-            // Set the initial list of items
-            testSubject.AddIssues(new[] { existing1, existing2 }, true);
-            var initialIssues = testSubject.Get();
-            initialIssues.Should().HaveCount(2);
-            initialIssues.Should().BeEquivalentTo(existing1, existing2);
-
-            // Modify the items in the store
-            // e1 is unchanged
-            // e2 is replaced
-            // n1 is added
-            // E1 is added - different case from "e1" so should be treated as different
-            var mod1 = CreateIssue("e2");
-            var mod2 = CreateIssue("e3");
-            var new1 = CreateIssue("n1");
-            var new2 = CreateIssue("E1");
-
-            testSubject.AddIssues(new[] { mod1, mod2, new1, new2 }, false);
-
-            var actual = testSubject.Get();
-            actual.Should().HaveCount(5);
-            actual.Should().BeEquivalentTo(existing1, mod1, mod2, new1, new2);
-
-            actual.Should().NotContain(existing2);
-        }
-
-        [TestMethod]
-        public void AddIssues_AddNullIssues_EventIsNotInvoked()
-        {
-            var testSubject = CreateTestSubject();
-
-            var eventMock = new Mock<EventHandler>();
-            testSubject.ServerIssuesChanged += eventMock.Object;
-
-            testSubject.AddIssues(null, false);
-
-            eventMock.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void AddIssues_EventIsInvoked(bool clearAllExistingIssues)
-        {
-            var issue1 = CreateIssue("issue1", true);
-
-            var testSubject = CreateTestSubject();
-            var eventMock = new Mock<EventHandler>();
-            testSubject.ServerIssuesChanged += eventMock.Object;
-
-            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1 }, clearAllExistingIssues);
-            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Once);
-        }
-
-        [TestMethod]
-        public void UpdateIssues_EmptyList_DoesNotInvokeEvent()
-        {
-            var testSubject = CreateTestSubject();
-
-            var eventMock = new Mock<EventHandler>();
-            testSubject.ServerIssuesChanged += eventMock.Object;
-
-            var result = testSubject.Get();
-            result.Count().Should().Be(0);
-            testSubject.UpdateIssues(false, new[] { "issue1" });
-
-            eventMock.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void UpdateIssues_NonEmptyList_NoMatch_DoesNotInvokeEvent()
-        {
-            var testSubject = CreateTestSubject();
-            testSubject.AddIssues(new List<SonarQubeIssue>() { CreateIssue("issue1", true) }, clearAllExistingIssues: false);
-
-            var eventMock = new Mock<EventHandler>();
-            testSubject.ServerIssuesChanged += eventMock.Object;
-            testSubject.UpdateIssues(false, new[] { "issue2" });
-
-            eventMock.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void UpdateIssues_NonEmptyList_Match_InvokesEventAndPropertyIsChanged()
-        {
-            var issue1 = CreateIssue("issue1", true);
-            var issue2 = CreateIssue("issue2", true); // this property should be changed
-            var issue3 = CreateIssue("issue3", false);
-
-            var testSubject = CreateTestSubject();
-            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1, issue2, issue3 }, clearAllExistingIssues: false);
-
-            var eventMock = new Mock<EventHandler>();
-            testSubject.ServerIssuesChanged += eventMock.Object;
-
-            testSubject.UpdateIssues(false, new[] { "issue2", "issue3" });
-
-            issue1.IsResolved.Should().BeTrue();
-            issue2.IsResolved.Should().BeFalse();
-            issue3.IsResolved.Should().BeFalse();
-
-            // Changing a single property should be enough to trigger the event
-            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Exactly(1));
-        }
-
-        [TestMethod]
-        [DataRow(true, true)]
-        [DataRow(false, false)]
-        [DataRow(true, false)]
-        [DataRow(false, true)]
-        public void UpdateIssues_IssueExists_InvokesEventIfPropertyDoesNotMatch(bool storeValue, bool newValue)
-        {
-            var issue1 = CreateIssue("issue1Key", storeValue);
-
-            var testSubject = CreateTestSubject();
-            testSubject.AddIssues(new List<SonarQubeIssue>() { issue1 }, clearAllExistingIssues: true);
-
-            var eventMock = new Mock<EventHandler>();
-            testSubject.ServerIssuesChanged += eventMock.Object;
-
-            testSubject.UpdateIssues(newValue, new[] { "issue1Key" });
-
-            issue1.IsResolved.Should().Be(newValue);
-
-            var expectedEventCount = (storeValue == newValue) ? 0 : 1;
-            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Exactly(expectedEventCount));
-        }
-
-        [TestMethod]
-        public void Reset_HasIssue_AllIssuesRemoved()
-        {
-            var testSubject = InitializeStoreWithOneIssue();
-
-            testSubject.Reset();
-
-            testSubject.Get().Should().BeEmpty();
-        }
-
-        [TestMethod]
-        public void Reset_HasIssue_InvokesEvent()
-        {
-            var testSubject = InitializeStoreWithOneIssue();
-            var eventMock = new Mock<EventHandler>();
-            testSubject.ServerIssuesChanged += eventMock.Object;
-
-            testSubject.Reset();
-
-            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Exactly(1));
-        }
-
-        [TestMethod]
-        public void Reset_NoIssue_DoesNotInvokeEvent()
-        {
-            var testSubject = CreateTestSubject();
-            var eventMock = new Mock<EventHandler>();
-            testSubject.ServerIssuesChanged += eventMock.Object;
-
-            testSubject.Reset();
-
-            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Never);
-        }
-
-        [TestMethod]
-        public void Reset_CalledMultipleTimes_InvokesEventOnce()
-        {
-            var testSubject = InitializeStoreWithOneIssue();
-            var eventMock = new Mock<EventHandler>();
-            testSubject.ServerIssuesChanged += eventMock.Object;
-
-            testSubject.Reset();
-            testSubject.Reset();
-            testSubject.Reset();
-
-            eventMock.Verify(x => x(testSubject, EventArgs.Empty), Times.Exactly(1));
-        }
-
-        private static ServerIssuesStore CreateTestSubject(ILogger logger = null)
-        {
-            logger ??= new TestLogger(logToConsole: true);
-            return new ServerIssuesStore(logger);
-        }
-
-        private static SonarQubeIssue CreateIssue(string key, bool isResolved = false)
-        {
-            var issue = new SonarQubeIssue(key, "", "", "", "", "", isResolved, SonarQubeIssueSeverity.Info, DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, null, null);
-
-            return issue;
-        }
-
-        private static ServerIssuesStore InitializeStoreWithOneIssue()
-        {
-            var testSubject = CreateTestSubject();
-            testSubject.AddIssues(new List<SonarQubeIssue>() { CreateIssue("issue1", true) }, clearAllExistingIssues: false);
-            return testSubject;
+            result.Should().Contain(expectedIssue);
         }
     }
+
+    private void VerifyNoIssues()
+    {
+        var result = testSubject.Get();
+        result.Should().BeEmpty();
+    }
+
+    private void VerifyNotRaisedServerIssueChanged(EventHandler eventMock) => eventMock.DidNotReceive().Invoke(testSubject, Arg.Any<EventArgs>());
+
+    private void VerifyRaisedServerIssueChanged(EventHandler eventMock) => eventMock.Received(1).Invoke(testSubject, Arg.Is<EventArgs>(x => x == EventArgs.Empty));
 }
