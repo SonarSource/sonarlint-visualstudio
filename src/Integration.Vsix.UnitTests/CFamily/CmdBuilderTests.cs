@@ -314,14 +314,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             cmdBuilder.AddOptFromProperties(settingsMock.Object);
 
             cmdBuilder.GetFullCmd().Should().Be(cmd);
-            cmdBuilder.HeaderFileLang.Should().Be("");
         }
 
         [TestMethod]
-        [DataRow("Default", "cpp")]
-        [DataRow("CompileAsC", "c")]
-        [DataRow("CompileAsCpp", "cpp")]
-        public void HeaderFileLang(string compileAs, string lang)
+        [DataRow("Default", "")]
+        [DataRow("CompileAsC", "/TC ")]
+        [DataRow("CompileAsCpp", "/TP ")]
+        public void HeaderFileLang(string compileAs, string cmd)
         {
             var cmdBuilder = new CmdBuilder(true);
             var settingsMock = new Mock<IVCRulePropertyStorage>();
@@ -329,8 +328,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             cmdBuilder.AddOptFromProperties(settingsMock.Object);
 
-            cmdBuilder.GetFullCmd().Should().Be("");
-            cmdBuilder.HeaderFileLang.Should().Be(lang);
+            cmdBuilder.GetFullCmd().Should().Be(cmd);
         }
 
         [TestMethod]
@@ -391,7 +389,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             cmdBuilder.AddOptFromProperties(settingsMock.Object);
             cmdBuilder.GetFullCmd().Should().Be("/Yc\"C:\\pch.h\" ");
-            cmdBuilder.HeaderFileLang.Should().Be("");
         }
 
         [TestMethod]
