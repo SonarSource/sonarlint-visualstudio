@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
             var vsixRoot = vsixRootLocator.GetVsixRoot();
             
             return new (GetCustomJrePathFromSettings() ?? GetEmbeddedJrePath(vsixRoot), 
-                $"-classpath \"{Path.Combine(vsixRoot, basePathInsideVsix, LibSubPath)}\" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli");
+                $"-classpath \"{Path.Combine(vsixRoot, basePathInsideVsix, LibSubPath)}\" -Djava.net.useSystemProxies=true org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli");
         }
 
         private string GetEmbeddedJrePath(string vsixRoot)
