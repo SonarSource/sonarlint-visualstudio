@@ -170,7 +170,7 @@
 
             <Button Grid.Column="0" Content="{x:Static res:UiResources.BindButton}" IsDefault="True" IsEnabled="{Binding Path=IsBindButtonEnabled}"
                     Click="Binding_OnClick"/>
-            <Button Grid.Column="1" Content="{x:Static res:UiResources.CancelButton}" IsCancel="True"/> 
+            <Button Grid.Column="1" Content="{x:Static res:UiResources.CloseButton}" IsCancel="True"/> 
         </Grid>
 
         <Grid Grid.Row="4" HorizontalAlignment="Right" Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToVisibleConverter}}">

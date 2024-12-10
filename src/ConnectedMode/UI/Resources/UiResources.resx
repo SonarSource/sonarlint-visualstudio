@@ -440,4 +440,7 @@ Please manually add the credentials for the connection and then try again.</valu
   <data name="UnbindingFailedText" xml:space="preserve">
     <value>Unbinding the project failed.  Please check the SonarQube for Visual Studio logs for more details.</value>
   </data>
+  <data name="CloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
 </root>
