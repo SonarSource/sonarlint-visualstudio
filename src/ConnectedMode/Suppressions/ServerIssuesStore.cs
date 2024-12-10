@@ -89,13 +89,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         public void Reset()
         {
-            if (!Get().Any())
-            {
-                return;
-            }
-
             lock (serverIssuesLock)
             {
+                if (!serverIssues.Any())
+                {
+                    return;
+                }
                 serverIssues.Clear();
             }
 
