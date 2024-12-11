@@ -116,14 +116,10 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
 
                 var sonarProjectKey = configurationProvider.GetConfiguration().Project?.ServerProjectKey;
 
+                var solutionNameWithoutExtension = await GetSolutionNameWithoutExtension();
                 if (!string.IsNullOrEmpty(sonarProjectKey))
                 {
-                    var fullSolutionFilePath = await solutionInfoProvider.GetFullSolutionFilePathAsync();
-                    Debug.Assert(fullSolutionFilePath != null, "Not expecting the solution name to be null in Connected Mode");
-                    var solnNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(fullSolutionFilePath);
-
                     var allSuppressedIssues = serverIssuesStore.Get();
-
                     var settings = new RoslynSettings
                     {
                         SonarProjectKey = sonarProjectKey,
@@ -133,7 +129,11 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
                                             .Where(x => x.RoslynLanguage != RoslynLanguage.Unknown && !string.IsNullOrEmpty(x.RoslynRuleId))
                                             .ToArray(),
                     };
-                    roslynSettingsFileStorage.Update(settings, solnNameWithoutExtension);
+                    roslynSettingsFileStorage.Update(settings, solutionNameWithoutExtension);
+                }
+                else
+                {
+                    roslynSettingsFileStorage.Delete(solutionNameWithoutExtension);
                 }
             }
             finally
@@ -142,9 +142,19 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess
             }
         }
 
+   
+
         public void Dispose()
         {
             serverIssuesStore.ServerIssuesChanged -= OnServerIssuesChanged;
+        }
+
+        private async Task<string> GetSolutionNameWithoutExtension()
+        {
+            var fullSolutionFilePath = await solutionInfoProvider.GetFullSolutionFilePathAsync();
+            Debug.Assert(fullSolutionFilePath != null, "Not expecting the solution name to be null in Connected Mode");
+            var solnNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(fullSolutionFilePath);
+            return solnNameWithoutExtension;
         }
 
         // Converts SonarQube issues to SuppressedIssues that can be compared more easily with Roslyn issues

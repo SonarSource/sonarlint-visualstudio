@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -88,20 +89,24 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         }
 
         [TestMethod]
-        public void OnSuppressionsUpdateRequested_StandaloneMode_StorageNotUpdated()
+        public void OnSuppressionsUpdateRequested_StandaloneMode_StorageFileDeleted()
         {
+            var fullSolutionFilePath = "c:\\aaa\\MySolution1.sln";
+            var solutionInfo = CreateSolutionInfoProvider(fullSolutionFilePath);
             var serverIssuesStore = new Mock<IServerIssuesStore>();
             var roslynSettingsFileStorage = new Mock<IRoslynSettingsFileStorage>();
             var configProvider = CreateConfigProvider(BindingConfiguration.Standalone);
             
             CreateTestSubject(serverIssuesStore: serverIssuesStore.Object,
                 configProvider: configProvider.Object,
-                roslynSettingsFileStorage: roslynSettingsFileStorage.Object);
+                roslynSettingsFileStorage: roslynSettingsFileStorage.Object,
+                solutionInfoProvider:solutionInfo.Object);
 
             serverIssuesStore.Raise(x=> x.ServerIssuesChanged += null, EventArgs.Empty);
 
             configProvider.Verify(x=> x.GetConfiguration(), Times.Once);
-            roslynSettingsFileStorage.Invocations.Count.Should().Be(0);
+            roslynSettingsFileStorage.Verify(x => x.Delete(Path.GetFileNameWithoutExtension(fullSolutionFilePath)), Times.Once);
+            roslynSettingsFileStorage.Invocations.Count.Should().Be(1);
         }
 
         [TestMethod]
