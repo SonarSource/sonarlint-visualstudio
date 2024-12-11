@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             // Check the updated issues
 
             notificationHandler.UpdatedSnapshot.Issues.Count().Should().Be(1);
-            notificationHandler.UpdatedSnapshot.Issues.Should().BeEquivalentTo(new []{issue});
+            notificationHandler.UpdatedSnapshot.Issues.Should().BeEquivalentTo(issue);
 
             notificationHandler.UpdatedSnapshot.TryGetValue(0, StandardTableKeyNames.ProjectName, out var actualProjectName).Should().BeTrue();
             actualProjectName.Should().Be(expectedProjectName);
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             testSubject.HandleNewHotspots(inputIssues);
 
             // Assert
-            VerifyHotspotsAdded(hotspotStoreMock, expectedFilePath, new []{ hotspot });
+            VerifyHotspotsAdded(hotspotStoreMock, expectedFilePath, [hotspot]);
         }
 
         [TestMethod]
