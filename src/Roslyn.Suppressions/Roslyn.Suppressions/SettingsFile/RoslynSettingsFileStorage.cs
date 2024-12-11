@@ -18,99 +18,119 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
 
-namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
-{
-    internal interface IRoslynSettingsFileStorage
-    {
-        /// <summary>
-        /// Updates the Roslyn settings file on disc for the specified solution
-        /// </summary>
-        void Update(RoslynSettings settings, string solutionNameWithoutExtension);
+namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 
-        /// <summary>
-        /// Return the settings for the specific settings key, or null
-        /// if there are no settings for that key
-        /// </summary>
-        RoslynSettings Get(string settingsKey);
+internal interface IRoslynSettingsFileStorage
+{
+    /// <summary>
+    /// Updates the Roslyn settings file on disc for the specified solution
+    /// </summary>
+    void Update(RoslynSettings settings, string solutionNameWithoutExtension);
+
+    /// <summary>
+    /// Return the settings for the specific settings key, or null
+    /// if there are no settings for that key
+    /// </summary>
+    RoslynSettings Get(string settingsKey);
+
+    /// <summary>
+    /// Deletes the Roslyn settings file on disc for the specified solution
+    /// </summary>
+    void Delete(string solutionNameWithoutExtension);
+}
+
+[Export(typeof(IRoslynSettingsFileStorage))]
+internal class RoslynSettingsFileStorage : IRoslynSettingsFileStorage
+{
+    private readonly IFileSystem fileSystem;
+    private readonly ILogger logger;
+
+    [ImportingConstructor]
+    public RoslynSettingsFileStorage(ILogger logger) : this(logger, new FileSystem())
+    {
     }
 
-    [Export(typeof(IRoslynSettingsFileStorage))]
-    internal class RoslynSettingsFileStorage : IRoslynSettingsFileStorage
+    internal RoslynSettingsFileStorage(ILogger logger, IFileSystem fileSystem)
     {
-        private readonly ILogger logger;
-        private readonly IFileSystem fileSystem;
+        this.fileSystem = fileSystem;
+        this.logger = logger;
+        fileSystem.Directory.CreateDirectory(RoslynSettingsFileInfo.Directory);
+    }
 
-        [ImportingConstructor]
-        public RoslynSettingsFileStorage(ILogger logger) : this(logger, new FileSystem())
+    public RoslynSettings Get(string settingsKey)
+    {
+        Debug.Assert(settingsKey != null, "Not expecting settings to be null");
+
+        try
         {
+            CodeMarkers.Instance.FileStorageGetStart();
+            var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(settingsKey);
+
+            if (!fileSystem.File.Exists(filePath))
+            {
+                logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageGetError, settingsKey, Strings.RoslynSettingsFileStorageFileNotFound));
+                return null;
+            }
+
+            var fileContent = fileSystem.File.ReadAllText(filePath);
+            return JsonConvert.DeserializeObject<RoslynSettings>(fileContent);
         }
-
-        internal RoslynSettingsFileStorage(ILogger logger, IFileSystem fileSystem)
+        catch (Exception ex)
         {
-            this.fileSystem = fileSystem;
-            this.logger = logger;
-            fileSystem.Directory.CreateDirectory(RoslynSettingsFileInfo.Directory);
+            logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageGetError, settingsKey, ex.Message));
         }
-
-        public RoslynSettings Get(string settingsKey)
+        finally
         {
-            Debug.Assert(settingsKey != null, "Not expecting settings to be null");
-         
-            try
-            {
-                CodeMarkers.Instance.FileStorageGetStart();
-                var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(settingsKey);
-
-                if(!fileSystem.File.Exists(filePath))
-                {
-                    logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageGetError, settingsKey, Strings.RoslynSettingsFileStorageFileNotFound));
-                    return null;
-                }
-
-                var fileContent = fileSystem.File.ReadAllText(filePath);
-                return JsonConvert.DeserializeObject<RoslynSettings>(fileContent);
-            }
-            catch (Exception ex)
-            {
-                logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageGetError, settingsKey, ex.Message));
-            }
-            finally
-            {
-                CodeMarkers.Instance.FileStorageGetStop();
-            }
-            return null;
+            CodeMarkers.Instance.FileStorageGetStop();
         }
+        return null;
+    }
 
-        public void Update(RoslynSettings settings, string solutionNameWithoutExtension)
+    public void Delete(string solutionNameWithoutExtension)
+    {
+        try
         {
-            Debug.Assert(settings != null, "Not expecting settings to be null");
-            Debug.Assert(!string.IsNullOrWhiteSpace(settings.SonarProjectKey), "Not expecting settings.SonarProjectKey to be null");
-            Debug.Assert(solutionNameWithoutExtension != null, "Not expecting solutionNameWithoutExtension to be null");
+            CodeMarkers.Instance.FileStorageUpdateStart();
+            var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(solutionNameWithoutExtension);
+            fileSystem.File.Delete(filePath);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(Strings.RoslynSettingsFileStorageDeleteError, solutionNameWithoutExtension, ex.Message);
+        }
+        finally
+        {
+            CodeMarkers.Instance.FileStorageUpdateStop();
+        }
+    }
 
-            try
-            {
-                CodeMarkers.Instance.FileStorageUpdateStart();
-                var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(solutionNameWithoutExtension);
-                var fileContent = JsonConvert.SerializeObject(settings, Formatting.Indented);
-                fileSystem.File.WriteAllText(filePath, fileContent);
-            }
-            catch (Exception ex)
-            {
-                logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageUpdateError, settings.SonarProjectKey, ex.Message));
-            }
-            finally
-            {
-                CodeMarkers.Instance.FileStorageUpdateStop();
-            }
+    public void Update(RoslynSettings settings, string solutionNameWithoutExtension)
+    {
+        Debug.Assert(settings != null, "Not expecting settings to be null");
+        Debug.Assert(!string.IsNullOrWhiteSpace(settings.SonarProjectKey), "Not expecting settings.SonarProjectKey to be null");
+        Debug.Assert(solutionNameWithoutExtension != null, "Not expecting solutionNameWithoutExtension to be null");
+
+        try
+        {
+            CodeMarkers.Instance.FileStorageUpdateStart();
+            var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(solutionNameWithoutExtension);
+            var fileContent = JsonConvert.SerializeObject(settings, Formatting.Indented);
+            fileSystem.File.WriteAllText(filePath, fileContent);
+        }
+        catch (Exception ex)
+        {
+            logger.WriteLine(string.Format(Strings.RoslynSettingsFileStorageUpdateError, settings.SonarProjectKey, ex.Message));
+        }
+        finally
+        {
+            CodeMarkers.Instance.FileStorageUpdateStop();
         }
     }
 }
