@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             testSubject.HandleNewHotspots(inputIssues);
 
             // Assert
-            VerifyHotspotsAdded(hotspotStoreMock, expectedFilePath, new []{ hotspot });
+            VerifyHotspotsAdded(hotspotStoreMock, expectedFilePath, [hotspot]);
         }
 
         [TestMethod]
