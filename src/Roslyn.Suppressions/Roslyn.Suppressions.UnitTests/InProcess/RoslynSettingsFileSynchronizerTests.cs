@@ -130,7 +130,7 @@ public class RoslynSettingsFileSynchronizerTests
 
         await testSubject.UpdateFileStorageAsync();
 
-        await threadHandling.Received(1).SwitchToBackgroundThread();
+        threadHandling.Received(1).SwitchToBackgroundThread();
         roslynSettingsFileStorage.ReceivedCalls().Should().HaveCount(1);
         configProvider.ReceivedCalls().Should().HaveCount(1);
         roslynSettingsFileStorage.Received(1).Update(Arg.Any<RoslynSettings>(), Arg.Any<string>());
