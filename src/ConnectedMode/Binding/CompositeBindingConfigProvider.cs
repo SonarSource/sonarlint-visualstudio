@@ -45,8 +45,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         [ImportingConstructor]
         public CompositeBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
             : this(
-                  new CSharpVBBindingConfigProvider(sonarQubeService, logger),
-                  new NonRoslynBindingConfigProvider(sonarQubeService, logger))
+                  new CSharpVBBindingConfigProvider(sonarQubeService, logger))
         { }
 
         internal /* for testing */ CompositeBindingConfigProvider(params IBindingConfigProvider[] providers)
@@ -66,6 +65,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
             if (provider == null)
             {
+                return Task.FromResult<IBindingConfig>(null);
                 throw new ArgumentOutOfRangeException(nameof(language));
             }
 

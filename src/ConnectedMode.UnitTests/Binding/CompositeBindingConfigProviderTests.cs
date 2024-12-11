@@ -55,7 +55,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             // Assert
             testSubject.Providers.Count().Should().Be(2);
             testSubject.Providers.Select(x => x.GetType()).Should().BeEquivalentTo(
-                typeof(NonRoslynBindingConfigProvider),
                 typeof(CSharpVBBindingConfigProvider));
         }
 

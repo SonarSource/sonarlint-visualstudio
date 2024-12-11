@@ -26,11 +26,6 @@ namespace SonarLint.VisualStudio.Core.Analysis;
 public interface IAnalysisService
 {
     /// <summary>
-    /// Indicates whether at least one language from <paramref name="languages"/> list is analyzable.
-    /// </summary>
-    bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
-
-    /// <summary>
     /// Starts analysis for <paramref name="filePath"/>
     /// </summary>
     void ScheduleAnalysis(string filePath,

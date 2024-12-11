@@ -59,7 +59,7 @@ public class AnalysisServiceTests
         {
            scheduler.Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
            issueConsumerStorage.Set("file/path", analysisId, issueConsumer);
-           analyzerController.ExecuteAnalysis("file/path", analysisId, detectedLanguages, issueConsumer, analyzerOptions, Arg.Any<CancellationToken>());
+           analyzerController.ExecuteAnalysis("file/path", analysisId, detectedLanguages, analyzerOptions, Arg.Any<CancellationToken>());
         });
     }
 
@@ -75,7 +75,7 @@ public class AnalysisServiceTests
 
         scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), Arg.Any<int>());
         issueConsumerStorage.DidNotReceiveWithAnyArgs().Set(default, default, default);
-        analyzerController.DidNotReceiveWithAnyArgs().ExecuteAnalysis(default, default, default, default, default, default);
+        analyzerController.DidNotReceiveWithAnyArgs().ExecuteAnalysis(default, default, default, default, default);
     }
 
     [TestMethod]
@@ -111,19 +111,6 @@ public class AnalysisServiceTests
         testSubject.ScheduleAnalysis("file/path", default, default, default, default);
 
         scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), AnalysisService.DefaultAnalysisTimeoutMs);
-    }
-
-    [DataRow(true)]
-    [DataRow(false)]
-    [DataTestMethod]
-    public void IsAnalysisSupported_CallsAnalyzerController(bool expected)
-    {
-        var analyzerController = Substitute.For<IAnalyzerController>();
-        var detectedLanguages = Substitute.For<IEnumerable<AnalysisLanguage>>();
-        analyzerController.IsAnalysisSupported(detectedLanguages).Returns(expected);
-        var testSubject = CreateTestSubject(analyzerController:analyzerController);
-
-        testSubject.IsAnalysisSupported(detectedLanguages).Should().Be(expected);
     }
 
     [TestMethod]

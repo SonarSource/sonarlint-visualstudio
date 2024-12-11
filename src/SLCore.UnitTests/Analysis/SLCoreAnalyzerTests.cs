@@ -85,22 +85,9 @@ public class SLCoreAnalyzerTests
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SLCoreAnalyzer>();
 
     [TestMethod]
-    public void IsAnalysisSupported_ReturnsTrueForNoDetectedLanguage() =>
-        testSubject.IsAnalysisSupported([]).Should().BeTrue();
-
-    [DataTestMethod]
-    [DataRow(AnalysisLanguage.Javascript)]
-    [DataRow(AnalysisLanguage.TypeScript)]
-    [DataRow(AnalysisLanguage.CFamily)]
-    [DataRow(AnalysisLanguage.CascadingStyleSheets)]
-    [DataRow(AnalysisLanguage.RoslynFamily)]
-    public void IsAnalysisSupported_ReturnsTrueForEveryDetectedLanguage(AnalysisLanguage language) =>
-        testSubject.IsAnalysisSupported([language]).Should().BeTrue();
-
-    [TestMethod]
     public void ExecuteAnalysis_CreatesNotifierAndStarts()
     {
-        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default);
 
         analysisStatusNotifierFactory.Received().Create(nameof(SLCoreAnalyzer), FilePath, analysisId);
         notifier.Received().AnalysisStarted();
@@ -111,7 +98,7 @@ public class SLCoreAnalyzerTests
     {
         activeConfigScopeTracker.Current.Returns((ConfigurationScope)null);
 
-        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default);
 
         _ = activeConfigScopeTracker.Received().Current;
         analysisService.ReceivedCalls().Should().BeEmpty();
@@ -123,7 +110,7 @@ public class SLCoreAnalyzerTests
     {
         activeConfigScopeTracker.Current.Returns(new ConfigurationScope(ConfigScopeId, IsReadyForAnalysis: false));
 
-        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default);
 
         _ = activeConfigScopeTracker.Received().Current;
         analysisService.ReceivedCalls().Should().BeEmpty();
@@ -136,7 +123,7 @@ public class SLCoreAnalyzerTests
         SetUpServiceProvider(false);
         SetUpInitializedConfigScope();
 
-        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default);
 
         slCoreServiceProvider.Received().TryGetTransientService(out Arg.Any<IAnalysisSLCoreService>());
         analysisService.ReceivedCalls().Should().BeEmpty();
@@ -150,7 +137,7 @@ public class SLCoreAnalyzerTests
         SetUpCurrentTimeProvider(expectedTimeStamp);
         SetUpInitializedConfigScope();
 
-        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default);
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
                 a.analysisId == analysisId
@@ -170,7 +157,7 @@ public class SLCoreAnalyzerTests
         IAnalyzerOptions options = value.HasValue ? new AnalyzerOptions { IsOnOpen = value.Value } : null;
         SetUpInitializedConfigScope();
 
-        testSubject.ExecuteAnalysis(FilePath, default, default, default, options, default);
+        testSubject.ExecuteAnalysis(FilePath, default, default, options, default);
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
                 a.shouldFetchServerIssues == expected),
@@ -186,7 +173,7 @@ public class SLCoreAnalyzerTests
         SetUpCompilationDatabaseLocator(filePath, compilationDatabaseHandle);
         SetUpInitializedConfigScope();
 
-        testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], default, default, default);
+        testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], default, default);
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
                 a.extraProperties != null
@@ -205,7 +192,7 @@ public class SLCoreAnalyzerTests
         SetUpInitializedConfigScope();
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ThrowsAsyncForAnyArgs<Exception>();
 
-        testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], default, default, default);
+        testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], default, default);
 
         compilationDatabaseHandle.Received().Dispose();
     }
@@ -217,7 +204,7 @@ public class SLCoreAnalyzerTests
         SetUpCompilationDatabaseLocator(filePath, null);
         SetUpInitializedConfigScope();
 
-        testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], default, default, default);
+        testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], default, default);
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
                 a.extraProperties != null
@@ -232,7 +219,7 @@ public class SLCoreAnalyzerTests
         var cancellationTokenSource = new CancellationTokenSource();
         SetUpInitializedConfigScope();
 
-        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default, cancellationTokenSource.Token);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, cancellationTokenSource.Token);
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Any<AnalyzeFilesAndTrackParams>(),
             cancellationTokenSource.Token);
@@ -244,7 +231,7 @@ public class SLCoreAnalyzerTests
         SetUpInitializedConfigScope();
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ReturnsForAnyArgs(new AnalyzeFilesResponse(new HashSet<FileUri>(), []));
 
-        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default);
 
         notifier.DidNotReceiveWithAnyArgs().AnalysisNotReady(default);
         notifier.DidNotReceiveWithAnyArgs().AnalysisFailed(default(Exception));
@@ -258,7 +245,7 @@ public class SLCoreAnalyzerTests
         SetUpInitializedConfigScope();
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ReturnsForAnyArgs(new AnalyzeFilesResponse(new HashSet<FileUri> { new(@"C:\file\path") }, []));
 
-        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default);
 
         notifier.Received().AnalysisFailed(SLCoreStrings.AnalysisFailedReason);
     }
@@ -270,7 +257,7 @@ public class SLCoreAnalyzerTests
         var operationCanceledException = new OperationCanceledException();
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ThrowsAsyncForAnyArgs(operationCanceledException);
 
-        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default);
 
         notifier.Received().AnalysisCancelled();
     }
@@ -282,7 +269,7 @@ public class SLCoreAnalyzerTests
         var exception = new Exception();
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ThrowsAsyncForAnyArgs(exception);
 
-        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default, default);
+        testSubject.ExecuteAnalysis(FilePath, analysisId, default, default, default);
 
         notifier.Received().AnalysisFailed(exception);
     }

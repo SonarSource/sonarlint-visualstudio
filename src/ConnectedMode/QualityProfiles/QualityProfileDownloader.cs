@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         /// <exception cref="InvalidOperationException">If binding failed for one of the languages</exception>
         Task<bool> UpdateAsync(BoundServerProject boundProject, IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
     }
-    
+
     [Export(typeof(IQualityProfileDownloader))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class QualityProfileDownloader : IQualityProfileDownloader
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             this(
                 bindingConfigProvider,
                 configurationPersister,
-                outOfDateQualityProfileFinder, 
+                outOfDateQualityProfileFinder,
                 logger,
                 Language.KnownLanguages)
         { }
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             EnsureProfilesExistForAllSupportedLanguages(boundProject);
 
             var outOfDateProfiles = await outOfDateQualityProfileFinder.GetAsync(boundProject, cancellationToken);
-            
+
             int currentLanguage = 0;
             var totalLanguages = outOfDateProfiles.Count;
 
@@ -112,6 +112,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                 var bindingConfig = await bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
                 if (bindingConfig == null)
                 {
+                    continue;
+
                     // NOTE: this should never happen, binding config should be present for every supported language
                     throw new InvalidOperationException(
                         string.Format(QualityProfilesStrings.FailedToCreateBindingConfigForLanguage, language.Name));
@@ -132,7 +134,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             {
                 LogWithBindingPrefix(string.Format(QualityProfilesStrings.SubTextPaddingFormat, QualityProfilesStrings.DownloadingQualityProfilesNotNeeded));
             }
-            
+
             return isChanged;
         }
 
