@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageBinding;
 
@@ -199,22 +200,84 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void Unbind_SetsBoundProjectToNull()
+    public async Task UnbindWithProgressAsync_BindsProjectAndReportsProgress()
+    {
+        await testSubject.UnbindWithProgressAsync();
+
+        await progressReporterViewModel.Received(1)
+            .ExecuteTaskWithProgressAsync(
+                Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
+                    x.TaskToPerform == testSubject.UnbindAsync &&
+                    x.ProgressStatus == UiResources.UnbindingInProgressText &&
+                    x.WarningText == UiResources.UnbindingFailedText &&
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated &&
+                    x.AfterSuccess == testSubject.AfterUnbind));
+    }
+
+    [TestMethod]
+    public async Task UnbindAsync_UnbindsOnUIThread()
+    {
+        await testSubject.UnbindAsync();
+
+        await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
+    }
+
+    [TestMethod]
+    public async Task UnbindAsync_UnbindsCurrentSolution()
+    {
+        await InitializeBoundProject();
+        connectedModeServices.ThreadHandling.Returns(new NoOpThreadHandler());
+
+        await testSubject.UnbindAsync();
+
+        connectedModeBindingServices.BindingController.Received(1).Unbind(testSubject.SolutionInfo.Name);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task UnbindAsync_ReturnsResponseOfUnbinding(bool expectedResponse)
+    {
+        await InitializeBoundProject();
+        connectedModeServices.ThreadHandling.Returns(new NoOpThreadHandler());
+        connectedModeBindingServices.BindingController.Unbind(Arg.Any<string>()).Returns(expectedResponse);
+
+        var adapterResponse = await testSubject.UnbindAsync();
+
+        adapterResponse.Success.Should().Be(expectedResponse);
+    }
+
+    [TestMethod]
+    public async Task UnbindAsync_UnbindingThrows_ReturnsFalse()
+    {
+        var exceptionMsg = "Failed to load connections";
+        var mockedThreadHandling = Substitute.For<IThreadHandling>();
+        connectedModeServices.ThreadHandling.Returns(mockedThreadHandling);
+        mockedThreadHandling.When(x => x.RunOnUIThreadAsync(Arg.Any<Action>())).Do(_ => throw new Exception(exceptionMsg));
+
+        var adapterResponse = await testSubject.UnbindAsync();
+
+        adapterResponse.Success.Should().BeFalse();
+        logger.Received(1).WriteLine(exceptionMsg);
+    }
+
+    [TestMethod]
+    public void AfterUnbind_SetsBoundProjectToNull()
     {
         testSubject.BoundProject = serverProject;
 
-        testSubject.Unbind();
+        testSubject.AfterUnbind(new AdapterResponse(true));
 
         testSubject.BoundProject.Should().BeNull();
     }
 
     [TestMethod]
-    public void Unbind_SetsConnectionInfoToNull()
+    public void AfterUnbind_SetsConnectionInfoToNull()
     {
         testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
         testSubject.SelectedProject = serverProject;
 
-        testSubject.Unbind();
+        testSubject.AfterUnbind(new AdapterResponse(true));
 
         testSubject.SelectedConnectionInfo.Should().BeNull();
         testSubject.SelectedProject.Should().BeNull();
@@ -1024,5 +1087,11 @@ public class ManageBindingViewModelTests
         slCoreConnectionAdapter.GetServerProjectByKeyAsync(Arg.Any<ServerConnection>(),Arg.Any<string>())
             .Returns(Task.FromResult(new AdapterResponseWithData<ServerProject>(success, responseData)));
         connectedModeServices.SlCoreConnectionAdapter.Returns(slCoreConnectionAdapter);
+    }
+
+    private async Task InitializeBoundProject()
+    {
+        SetupBoundProject(new ServerConnection.SonarCloud("my org"), serverProject);
+        await testSubject.DisplayBindStatusAsync();
     }
 }
