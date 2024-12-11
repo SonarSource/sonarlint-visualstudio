@@ -118,20 +118,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             }
 
             var connectionReferences = await ViewModel.GetConnectionReferencesWithProgressAsync(connectionViewModel);
-            if (connectionReferences.Count > 0)
+            var deleteConnectionDialog = new DeleteConnectionDialog(connectionReferences, connectionViewModel.Connection.Info);
+            if (deleteConnectionDialog.ShowDialog(this) == true)
             {
-                var preventConnectionDeleteDialog = new PreventDeleteConnectionDialog(connectionReferences, connectionViewModel.Connection.Info, connectedModeServices.BrowserService);
-                preventConnectionDeleteDialog.ShowDialog(this);
+                await ViewModel.RemoveConnectionWithProgressAsync(connectionViewModel);
             }
-            else
-            {
-                var deleteConnectionDialog = new DeleteConnectionDialog([], connectionViewModel.Connection.Info);
-                if (deleteConnectionDialog.ShowDialog(this) == true)
-                {
-                    await ViewModel.RemoveConnectionWithProgressAsync(connectionViewModel);
-                }
-            }
-           
         }
     }
 }
