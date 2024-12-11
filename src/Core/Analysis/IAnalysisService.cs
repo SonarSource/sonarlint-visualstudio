@@ -44,3 +44,15 @@ public interface IAnalysisService
     /// </summary>
     void CancelForFile(string filePath);
 }
+
+public interface IFindingsPublisher
+{
+    /// <summary>
+    /// Handles analysis results
+    /// </summary>
+    void Publish(string filePath, Guid analysisId, IEnumerable<IAnalysisIssue> issues);
+}
+
+public interface IIssuePublisher : IFindingsPublisher;
+
+public interface IHotspotPublisher : IFindingsPublisher;
