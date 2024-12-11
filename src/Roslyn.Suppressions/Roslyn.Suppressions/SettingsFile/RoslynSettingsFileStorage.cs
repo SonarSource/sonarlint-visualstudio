@@ -41,6 +41,11 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
         /// if there are no settings for that key
         /// </summary>
         RoslynSettings Get(string settingsKey);
+
+        /// <summary>
+        /// Deletes the Roslyn settings file on disc for the specified solution
+        /// </summary>
+        void Delete(string solutionNameWithoutExtension);
     }
 
     [Export(typeof(IRoslynSettingsFileStorage))]
@@ -88,6 +93,24 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile
                 CodeMarkers.Instance.FileStorageGetStop();
             }
             return null;
+        }
+
+        public void Delete(string solutionNameWithoutExtension)
+        {
+            try
+            {
+                CodeMarkers.Instance.FileStorageUpdateStart();
+                var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(solutionNameWithoutExtension);
+                fileSystem.File.Delete(filePath);
+            }
+            catch (Exception ex) when(!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.LogVerbose(Strings.RoslynSettingsFileStorageDeleteError, solutionNameWithoutExtension, ex.Message);
+            }
+            finally
+            {
+                CodeMarkers.Instance.FileStorageUpdateStop();
+            }
         }
 
         public void Update(RoslynSettings settings, string solutionNameWithoutExtension)

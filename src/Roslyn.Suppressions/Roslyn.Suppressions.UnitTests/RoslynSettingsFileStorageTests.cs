@@ -19,9 +19,11 @@
  */
 
 using System.IO.Abstractions;
+using Moq;
 using Newtonsoft.Json;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Roslyn.Suppressions.Resources;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.TestHelper;
@@ -192,6 +194,37 @@ public class RoslynSettingsFileStorageTests
         secondSuppression.RoslynIssueLine.Should().Be(111);
         secondSuppression.Hash.Should().BeNull();
         secondSuppression.RoslynLanguage.Should().Be(RoslynLanguage.VB);
+    }
+
+    [TestMethod]
+    public void Delete_FileIsDeleted()
+    {
+        testSubject.Delete(SolutionName);
+
+        file.Received(1).Delete(GetFilePath(SolutionName));
+        logger.AssertNoOutputMessages();
+    }
+
+    [TestMethod]
+    public void Delete_DeletionFails_Logs()
+    {
+        var errorMessage = "deletion failed";
+        fileSystem.File.When(x => x.Delete(GetFilePath(SolutionName))).Do(_ => throw new Exception(errorMessage));
+
+        testSubject.Delete(SolutionName);
+
+        file.Received(1).Delete(GetFilePath(SolutionName));
+        logger.AssertPartialOutputStrings(string.Format(Strings.RoslynSettingsFileStorageDeleteError, SolutionName, errorMessage));
+    }
+
+    [TestMethod]
+    public void Delete_CriticalException_ExceptionThrown()
+    {
+        fileSystem.File.When(x => x.Delete(GetFilePath(SolutionName))).Do(_ => throw new StackOverflowException());
+
+        Action act = () => testSubject.Delete(SolutionName);
+
+        act.Should().Throw<StackOverflowException>();
     }
 
     private void MockFileSystem(bool fileExists = true)
