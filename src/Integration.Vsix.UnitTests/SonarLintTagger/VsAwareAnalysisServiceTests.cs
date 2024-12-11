@@ -125,7 +125,8 @@ public class VsAwareAnalysisServiceTests
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-            issueConsumer.Set(analysisFilePath, []);
+            issueConsumer.SetIssues(analysisFilePath, []);
+            issueConsumer.SetHotspots(analysisFilePath, []);
             analysisService.ScheduleAnalysis(analysisFilePath,
                 Arg.Any<Guid>(),
                 Arg.Any<IEnumerable<AnalysisLanguage>>(),

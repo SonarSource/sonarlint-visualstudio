@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             var expectedGuid = Guid.NewGuid();
             const string expectedProjectName = "my project name";
             const string expectedFilePath = "c:\\aaa\\file.txt";
-            
+
             var testSubject = CreateTestSubject(notificationHandler.OnSnapshotChanged,
                 expectedProjectName, expectedGuid, expectedFilePath, localHotspotsStoreUpdater:hotspotStoreMock.Object);
 
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
             // Check the updated issues
             VerifyHotspotsAdded(hotspotStoreMock, expectedFilePath, new []{ hotspot });
-            
+
             notificationHandler.UpdatedSnapshot.Issues.Count().Should().Be(1);
             notificationHandler.UpdatedSnapshot.Issues.Should().BeEquivalentTo(new []{issue});
 
@@ -125,14 +125,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
             var inputIssues = new[]
             {
-                CreateIssue("xxx", startLine: 1, endLine: 1),
-                CreateIssue("xxxx", startLine: 3, endLine: 3, isHotspot: true)
+                CreateIssue("xxx", startLine: 1, endLine: 1)
             };
 
             var issuesToReturnFromTranslator = new[]
             {
-                CreateIssue("yyy", startLine: 2, endLine: 2),
-                CreateIssue("yyyy", startLine: 4, endLine: 4, isHotspot: true)
+                CreateIssue("yyy", startLine: 2, endLine: 2)
             };
 
             var notificationHandler = new SnapshotChangeHandler();
@@ -155,8 +153,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             translator.VerifyAll();
             notificationHandler.InvocationCount.Should().Be(1);
             notificationHandler.UpdatedSnapshot.Issues.Should().BeEquivalentTo(issuesToReturnFromTranslator.First());
-            
-            VerifyHotspotsAdded(hotspotStoreMock, filePath, new []{ issuesToReturnFromTranslator.Last()});
         }
 
         [TestMethod]
@@ -224,7 +220,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             issue3.IsSuppressed.Should().BeFalse();
             issue4.IsSuppressed.Should().BeTrue();
         }
-        
+
         private static void VerifyHotspotsAdded(Mock<ILocalHotspotsStoreUpdater> hotspotStoreMock, string filePath,
             IAnalysisIssueVisualization[] expectedHotspots)
         {
@@ -304,7 +300,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         }
 
         private static IssueHandler CreateTestSubject(SnapshotChangedHandler notificationHandler,
-            ISuppressedIssueMatcher suppressedIssueMatcher = null, 
+            ISuppressedIssueMatcher suppressedIssueMatcher = null,
             TranslateSpans translator = null,
             ITextDocument textDocument = null,
             ILocalHotspotsStoreUpdater localHotspotsStoreUpdater = null)
@@ -332,7 +328,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             var testSubject = new IssueHandler(
                 textDocument,
                 projectName,
-                projectGuid,                
+                projectGuid,
                 suppressedIssueMatcher,
                 notificationHandler,
                 localHotspotsStoreUpdater ?? Mock.Of<ILocalHotspotsStoreUpdater>(),

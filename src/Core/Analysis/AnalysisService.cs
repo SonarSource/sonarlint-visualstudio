@@ -45,15 +45,6 @@ internal class AnalysisService : IAnalysisService
         return analyzerController.IsAnalysisSupported(languages);
     }
 
-    public void PublishIssues(string filePath, Guid analysisId, IEnumerable<IAnalysisIssue> issues)
-    {
-        if (issueConsumerStorage.TryGet(filePath, out var currentAnalysisId, out var issueConsumer)
-            && analysisId == currentAnalysisId)
-        {
-            issueConsumer.Set(filePath, issues);
-        }
-    }
-
     public void ScheduleAnalysis(string filePath,
         Guid analysisId,
         IEnumerable<AnalysisLanguage> detectedLanguages,

@@ -31,11 +31,6 @@ public interface IAnalysisService
     bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
 
     /// <summary>
-    /// Handles analysis results
-    /// </summary>
-    void PublishIssues(string filePath, Guid analysisId, IEnumerable<IAnalysisIssue> issues);
-
-    /// <summary>
     /// Starts analysis for <paramref name="filePath"/>
     /// </summary>
     void ScheduleAnalysis(string filePath,
@@ -49,3 +44,15 @@ public interface IAnalysisService
     /// </summary>
     void CancelForFile(string filePath);
 }
+
+public interface IFindingsPublisher
+{
+    /// <summary>
+    /// Handles analysis results
+    /// </summary>
+    void Publish(string filePath, Guid analysisId, IEnumerable<IAnalysisIssue> issues);
+}
+
+public interface IIssuePublisher : IFindingsPublisher;
+
+public interface IHotspotPublisher : IFindingsPublisher;

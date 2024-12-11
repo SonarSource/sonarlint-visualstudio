@@ -18,13 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
+
 namespace SonarLint.VisualStudio.Core.Analysis;
 
-/// <summary>
-/// Handler for incoming analysis results
-/// </summary>
-public interface IIssueConsumer
+[Export(typeof(IIssuePublisher))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method:ImportingConstructor]
+internal class IssuePublisher(IIssueConsumerStorage issueConsumerStorage) : IIssuePublisher
 {
-    void SetIssues(string path, IEnumerable<IAnalysisIssue> issues);
-    void SetHotspots(string path, IEnumerable<IAnalysisIssue> hotspots);
+    public void Publish(string filePath, Guid analysisId, IEnumerable<IAnalysisIssue> issues)
+    {
+        if (issueConsumerStorage.TryGet(filePath, out var currentAnalysisId, out var issueConsumer)
+            && analysisId == currentAnalysisId)
+        {
+            issueConsumer.SetIssues(filePath, issues);
+        }
+    }
 }

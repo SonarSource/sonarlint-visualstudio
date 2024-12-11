@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.CFamily.SubProcess.UnitTests
             context.IssueConverter.Invocations.Count.Should().Be(1);
             context.IssueConsumer.Invocations.Count.Should().Be(1);
 
-            context.IssueConsumer.Verify(x => x.Set(analyzedFile, It.IsAny<IEnumerable<IAnalysisIssue>>()));
+            context.IssueConsumer.Verify(x => x.SetIssues(analyzedFile, It.IsAny<IEnumerable<IAnalysisIssue>>()));
         }
 
         [TestMethod]
