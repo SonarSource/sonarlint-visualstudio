@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using SonarLint.VisualStudio.Core;
@@ -45,9 +46,21 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
         this.certificateDtoConverter = certificateDtoConverter;
     }
 
-    public Task<SelectProxiesResponse> SelectProxiesAsync(object parameters)
+    [ExcludeFromCodeCoverage] // TODO by SLVS-1694 add tests
+    public Task<SelectProxiesResponse> SelectProxiesAsync(SelectProxiesParams parameters)
     {
-        return Task.FromResult(new SelectProxiesResponse(){proxies = [ProxyDto.NO_PROXY, ] });
+        return Task.FromResult(new SelectProxiesResponse {proxies = [GetSystemProxy(parameters.uri) ?? ProxyDto.NO_PROXY, ] });
+    }
+
+    private static ProxyDto GetSystemProxy(Uri uri)
+    {
+        var proxyUri = WebRequest.GetSystemWebProxy().GetProxy(uri);
+        if (proxyUri == uri) 
+        {
+            // No proxy
+            return null;
+        }
+        return new ProxyDto(ProxyType.HTTP, proxyUri.Host, proxyUri.Port);
     }
 
     public Task<CheckServerTrustedResponse> CheckServerTrustedAsync(CheckServerTrustedParams parameters)
