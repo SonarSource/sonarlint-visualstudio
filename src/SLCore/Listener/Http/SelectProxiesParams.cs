@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-
 namespace SonarLint.VisualStudio.SLCore.Listener.Http;
 
-public interface IHttpConfigurationListener : ISLCoreListener
-{
-    Task<SelectProxiesResponse> SelectProxiesAsync(SelectProxiesParams parameters);
-    Task<CheckServerTrustedResponse> CheckServerTrustedAsync(CheckServerTrustedParams parameters);
-}
+public record SelectProxiesParams(Uri uri);

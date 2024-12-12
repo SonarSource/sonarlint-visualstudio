@@ -19,9 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Http;
@@ -36,18 +33,31 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
     private readonly ILogger logger;
     private readonly ICertificateChainValidator chainValidator;
     private readonly ICertificateDtoConverter certificateDtoConverter;
+    private readonly ISystemProxyDetector proxySettingsDetector;
 
     [ImportingConstructor]
-    public HttpConfigurationListener(ILogger logger, ICertificateChainValidator chainValidator, ICertificateDtoConverter certificateDtoConverter)
+    public HttpConfigurationListener(ILogger logger, ICertificateChainValidator chainValidator, ICertificateDtoConverter certificateDtoConverter, ISystemProxyDetector proxySettingsDetector)
     {
         this.logger = logger;
         this.chainValidator = chainValidator;
         this.certificateDtoConverter = certificateDtoConverter;
+        this.proxySettingsDetector = proxySettingsDetector;
     }
 
-    public Task<SelectProxiesResponse> SelectProxiesAsync(object parameters)
+    public Task<SelectProxiesResponse> SelectProxiesAsync(SelectProxiesParams parameters)
     {
-        return Task.FromResult(new SelectProxiesResponse(){proxies = [ProxyDto.NO_PROXY, ] });
+        return Task.FromResult(new SelectProxiesResponse {proxies = [GetSystemProxy(parameters.uri) ?? ProxyDto.NO_PROXY, ] });
+    }
+
+    private ProxyDto GetSystemProxy(Uri uri)
+    {
+        var proxyUri = proxySettingsDetector.GetProxyUri(uri);
+        if (proxyUri == uri) 
+        {
+            // no proxy was configured at system level
+            return null;
+        }
+        return new ProxyDto(ProxyType.HTTP, proxyUri.Host, proxyUri.Port);
     }
 
     public Task<CheckServerTrustedResponse> CheckServerTrustedAsync(CheckServerTrustedParams parameters)

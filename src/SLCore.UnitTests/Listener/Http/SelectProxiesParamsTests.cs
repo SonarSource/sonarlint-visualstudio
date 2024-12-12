@@ -18,12 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Listener.Http;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Http;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Listener.Http;
 
-public interface IHttpConfigurationListener : ISLCoreListener
+[TestClass]
+public class SelectProxiesParamsTests
 {
-    Task<SelectProxiesResponse> SelectProxiesAsync(SelectProxiesParams parameters);
-    Task<CheckServerTrustedResponse> CheckServerTrustedAsync(CheckServerTrustedParams parameters);
+    [TestMethod]
+    public void DeserializeCorrectly()
+    {
+        var paramString = "{\"uri\" : \"https://sonarcloud.io\"}";
+
+        var result = JsonConvert.DeserializeObject<SelectProxiesParams>(paramString);
+
+        result.Should().NotBeNull();
+        result.uri.Should().Be("https://sonarcloud.io");
+    }
 }

@@ -18,12 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
+using System.Net;
 using SonarLint.VisualStudio.SLCore.Core;
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Http;
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation.Http;
 
-public interface IHttpConfigurationListener : ISLCoreListener
+public interface ISystemProxyDetector
 {
-    Task<SelectProxiesResponse> SelectProxiesAsync(SelectProxiesParams parameters);
-    Task<CheckServerTrustedResponse> CheckServerTrustedAsync(CheckServerTrustedParams parameters);
+    Uri GetProxyUri(Uri uri);
+}
+
+[Export(typeof(ISystemProxyDetector))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+public class SystemProxyDetector : ISystemProxyDetector
+{
+    public Uri GetProxyUri(Uri uri) => uri == null ? null : WebRequest.GetSystemWebProxy().GetProxy(uri);
 }
