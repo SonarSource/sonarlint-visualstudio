@@ -22,50 +22,39 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding;
+
+internal class NonRoslynDummyBindingConfigProvider : IBindingConfigProvider
 {
-    internal class NonRoslynDummyBindingConfigProvider : IBindingConfigProvider
+    // List of languages that use this type of configuration file (all non-Roslyn languages)
+    private static readonly Language[] SupportedLanguages =
+    [
+        Language.C,
+        Language.Cpp,
+        Language.Js,
+        Language.Ts,
+        Language.Secrets,
+        Language.Css
+    ];
+
+    public bool IsLanguageSupported(Language language) => SupportedLanguages.Contains(language);
+
+    public Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language,
+        BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
     {
-        // List of languages that use this type of configuration file (all non-Roslyn languages)
-        internal static readonly IEnumerable<Language> SupportedLanguages = new []
+        if (!IsLanguageSupported(language))
         {
-            Language.C,
-            Language.Cpp,
-            Language.Js,
-            Language.Ts,
-            Language.Secrets,
-            Language.Css
-        };
-
-        private readonly IEnumerable<Language> supportedLanguages;
-        public NonRoslynDummyBindingConfigProvider()
-            : this(SupportedLanguages)
-        { }
-
-        public NonRoslynDummyBindingConfigProvider(IEnumerable<Language> supportedLanguages)
-        {
-            this.supportedLanguages = supportedLanguages ?? throw new ArgumentNullException(nameof(supportedLanguages));
+            throw new ArgumentOutOfRangeException(nameof(language));
         }
 
-        public bool IsLanguageSupported(Language language) => supportedLanguages.Contains(language);
+        return Task.FromResult<IBindingConfig>(new DummyConfig());
+    }
 
-        public async Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language,
-            BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
+    private class DummyConfig : IBindingConfig
+    {
+        public void Save()
         {
-            if (!IsLanguageSupported(language))
-            {
-                throw new ArgumentOutOfRangeException(nameof(language));
-            }
-
-            return new DummyConfig();
-        }
-
-        private class DummyConfig : IBindingConfig
-        {
-            public void Save()
-            {
-                // do nothing
-            }
+            // do nothing
         }
     }
 }
