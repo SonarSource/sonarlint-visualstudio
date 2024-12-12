@@ -61,11 +61,12 @@ public class HttpConfigurationListenerTests
     }
 
     [TestMethod]
-    [DataRow(null)]
-    [DataRow(5)]
-    [DataRow("something")]
-    public async Task SelectProxiesAsync_ReturnsNoProxy(object parameter)
+    [DataRow("htpp://localhost")]
+    [DataRow("https://sonarcloud.io")]
+    public async Task SelectProxiesAsync_ReturnsAProxy(string uri)
     {
+        var parameter = new SelectProxiesParams(new Uri(uri));
+
         var result = await testSubject.SelectProxiesAsync(parameter);
 
         result.proxies.Should().BeEquivalentTo([ProxyDto.NO_PROXY]);
