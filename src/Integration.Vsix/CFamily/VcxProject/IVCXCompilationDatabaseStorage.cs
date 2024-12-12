@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using Newtonsoft.Json;
@@ -37,11 +39,15 @@ internal interface IVCXCompilationDatabaseStorage : IDisposable
 [Export(typeof(IVCXCompilationDatabaseStorage))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal sealed class VCXCompilationDatabaseStorage(IFileSystemService fileSystemService, IThreadHandling threadHandling, ILogger logger)
+internal sealed class VCXCompilationDatabaseStorage(IFileSystemService fileSystemService, IEnvironmentVariableProvider environmentVariableProvider, IThreadHandling threadHandling, ILogger logger)
     : IVCXCompilationDatabaseStorage
 {
     private bool disposed;
     private readonly string compilationDatabaseDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
+
+    private readonly ImmutableList<string> environmentVariablePairs = ImmutableList.CreateRange(environmentVariableProvider.GetEnvironmentVariables().Select(x => GetEnvVarPair(x.name, x.value)));
+
+    private static string GetEnvVarPair(string name, string value) => $"{name}={value}";
 
     public ICompilationDatabaseHandle CreateDatabase(IFileConfig fileConfig)
     {
@@ -52,7 +58,8 @@ internal sealed class VCXCompilationDatabaseStorage(IFileSystemService fileSyste
         {
             Directory = fileConfig.CDDirectory,
             Command = fileConfig.CDCommand,
-            File = fileConfig.CDFile
+            File = fileConfig.CDFile,
+            Environment = environmentVariablePairs.Add(GetEnvVarPair("INCLUDE", fileConfig.EnvInclude))
         };
         var compilationDatabase = new[] { compilationDatabaseEntry };
 
@@ -85,6 +92,8 @@ internal sealed class VCXCompilationDatabaseStorage(IFileSystemService fileSyste
         var compilationDatabaseFullPath = Path.Combine(compilationDatabaseDirectoryPath, compilationDatabaseFileName);
         return compilationDatabaseFullPath;
     }
+
+
 
     public void Dispose()
     {

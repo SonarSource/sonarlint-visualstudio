@@ -35,11 +35,15 @@ public class VCXCompilationDatabaseStorageTests
     private const string CompileCommand = "compile";
     private const string SourceDirectory = @"C:\a\b\c";
     private const string SourceFileName = "source.cpp";
+    private const string EnvIncludeValue = "envincludevalue";
+    private const string CustomVariableName = "customvariablename";
+    private const string CustomVariableValue = "customvariablenamevalue";
     private static readonly string SourceFilePath = Path.Combine(SourceDirectory, SourceFileName);
     private IFileSystemService fileSystemService;
     private IThreadHandling threadHandling;
     private IVCXCompilationDatabaseStorage testSubject;
     private TestLogger testLogger;
+    private EnvironmentVariableScope environmentVariableScope;
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
@@ -57,7 +61,15 @@ public class VCXCompilationDatabaseStorageTests
         fileSystemService = Substitute.For<IFileSystemService>();
         threadHandling = Substitute.For<IThreadHandling>();
         testLogger = new TestLogger();
-        testSubject = new VCXCompilationDatabaseStorage(fileSystemService, threadHandling, testLogger);
+        environmentVariableScope = new EnvironmentVariableScope();
+        environmentVariableScope.SetVariable(CustomVariableName, CustomVariableValue);
+        testSubject = new VCXCompilationDatabaseStorage(fileSystemService, Substitute.For<IEnvironmentVariableProvider>(), threadHandling, testLogger);
+    }
+
+    [TestCleanup]
+    public void TestCleanup()
+    {
+        environmentVariableScope.Dispose();
     }
 
     [TestMethod]
@@ -163,6 +175,7 @@ public class VCXCompilationDatabaseStorageTests
         fileConfig.CDFile.Returns(SourceFilePath);
         fileConfig.CDDirectory.Returns(SourceDirectory);
         fileConfig.CDCommand.Returns(CompileCommand);
+        fileConfig.EnvInclude.Returns(EnvIncludeValue);
         return fileConfig;
     }
 
@@ -170,6 +183,8 @@ public class VCXCompilationDatabaseStorageTests
     {
         var serializedCompilationDatabase = fileSystemService.File.ReceivedCalls().Single().GetArguments()[1] as string;
         var compilationDatabaseEntries = JsonConvert.DeserializeObject<CompilationDatabaseEntry[]>(serializedCompilationDatabase);
-        compilationDatabaseEntries.Should().BeEquivalentTo(new CompilationDatabaseEntry { Directory = SourceDirectory, File = SourceFilePath, Command = CompileCommand, Arguments = null });
+        var compilationDatabaseEntry = compilationDatabaseEntries.Single();
+        compilationDatabaseEntry.Should().BeEquivalentTo(new CompilationDatabaseEntry { Directory = SourceDirectory, File = SourceFilePath, Command = CompileCommand, Arguments = null, Environment = default}, options => options.Excluding(x => x.Environment));
+        compilationDatabaseEntry.Environment.Should().Contain([$"{CustomVariableName}={CustomVariableValue}", $"INCLUDE={EnvIncludeValue}"]);
     }
 }

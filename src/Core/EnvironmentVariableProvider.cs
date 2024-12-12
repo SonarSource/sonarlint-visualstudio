@@ -19,8 +19,11 @@
  */
 
 using System;
+using System.Collections;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Core
 {
@@ -38,12 +41,17 @@ namespace SonarLint.VisualStudio.Core
         /// Gets the path to the system special folder that is identified by the specified enumeration.
         /// </summary>
         string GetFolderPath(Environment.SpecialFolder folder);
+
+        List<(string name, string value)> GetEnvironmentVariables();
     }
 
+    [Export(typeof(IEnvironmentVariableProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class EnvironmentVariableProvider : IEnvironmentVariableProvider
     {
         public static EnvironmentVariableProvider Instance { get; } = new EnvironmentVariableProvider();
 
+        [ImportingConstructor]
         private EnvironmentVariableProvider()
         {
             // no-op
@@ -60,6 +68,19 @@ namespace SonarLint.VisualStudio.Core
         }
 
         public string GetFolderPath(Environment.SpecialFolder folder) => Environment.GetFolderPath(folder);
+
+        public List<(string name, string value)> GetEnvironmentVariables()
+        {
+            var variables = new List<(string name, string value)>();
+            foreach (DictionaryEntry environmentVariable in Environment.GetEnvironmentVariables())
+            {
+                if (environmentVariable is { Key: string variableName, Value: string variableValue })
+                {
+                    variables.Add((variableName, variableValue));
+                }
+            }
+            return variables;
+        }
     }
 
     /// <summary>

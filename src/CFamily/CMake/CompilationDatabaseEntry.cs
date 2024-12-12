@@ -20,23 +20,25 @@
 
 using Newtonsoft.Json;
 
-namespace SonarLint.VisualStudio.CFamily.CMake
+namespace SonarLint.VisualStudio.CFamily.CMake;
+
+/// <summary>
+/// Schema based on https://clang.llvm.org/docs/JSONCompilationDatabase.html
+/// </summary>
+public class CompilationDatabaseEntry
 {
-    /// <summary>
-    /// Schema based on https://clang.llvm.org/docs/JSONCompilationDatabase.html
-    /// </summary>
-    public class CompilationDatabaseEntry
-    {
-        [JsonProperty("directory")]
-        public string Directory { get; set; }
+    [JsonProperty("directory")]
+    public string Directory { get; set; }
 
-        [JsonProperty("command")]
-        public string Command { get; set; }
+    [JsonProperty("command")]
+    public string Command { get; set; }
 
-        [JsonProperty("file")]
-        public string File { get; set; }
+    [JsonProperty("file")]
+    public string File { get; set; }
 
-        [JsonProperty("arguments")]
-        public string Arguments { get; set; }
-    }
+    [JsonProperty("arguments")]
+    public string Arguments { get; set; }
+
+    [JsonProperty("environment")]
+    public IList<string> Environment { get; set; }
 }
