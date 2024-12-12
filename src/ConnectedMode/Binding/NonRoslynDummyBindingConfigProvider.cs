@@ -50,7 +50,7 @@ internal class NonRoslynDummyBindingConfigProvider : IBindingConfigProvider
         return Task.FromResult<IBindingConfig>(new DummyConfig());
     }
 
-    private class DummyConfig : IBindingConfig
+    internal sealed class DummyConfig : IBindingConfig
     {
         public void Save()
         {

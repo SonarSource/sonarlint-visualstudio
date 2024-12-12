@@ -64,7 +64,7 @@ public class NonRoslynDummyBindingConfigProviderTests
     public async Task GetConfigurationAsync_ReturnsDummyConfigForSupported(Language language)
     {
         var config = await new NonRoslynDummyBindingConfigProvider().GetConfigurationAsync(default, language, default, default);
-        config.Should().NotBeNull();
+        config.Should().NotBeNull().And.BeOfType<NonRoslynDummyBindingConfigProvider.DummyConfig>();
 
         var configSave = () => config.Save();
         configSave.Should().NotThrow();
