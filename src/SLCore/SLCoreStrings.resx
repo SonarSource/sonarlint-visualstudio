@@ -177,4 +177,7 @@
   <data name="CertificateValidator_FailureReasonTemplate" xml:space="preserve">
     <value>[CertificateChainValidator] {0}: {1}</value>
   </data>
+  <data name="CompilationDatabaseNotFound" xml:space="preserve">
+    <value>[SLCoreAnalyzer] No compilation database found for file: {0}</value>
+  </data>
 </root>

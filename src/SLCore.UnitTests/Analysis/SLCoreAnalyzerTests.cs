@@ -19,6 +19,7 @@
  */
 
 using NSubstitute.ExceptionExtensions;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
@@ -43,6 +44,7 @@ public class SLCoreAnalyzerTests
     private ICurrentTimeProvider currentTimeProvider;
     private IAggregatingCompilationDatabaseProvider compilationDatabaseLocator;
     private IAnalysisStatusNotifier notifier;
+    private ILogger logger;
     private SLCoreAnalyzer testSubject;
 
     [TestInitialize]
@@ -58,11 +60,13 @@ public class SLCoreAnalyzerTests
         SetUpDefaultNotifier();
         currentTimeProvider = Substitute.For<ICurrentTimeProvider>();
         compilationDatabaseLocator = Substitute.For<IAggregatingCompilationDatabaseProvider>();
+        logger = new TestLogger();
         testSubject = new SLCoreAnalyzer(slCoreServiceProvider,
             activeConfigScopeTracker,
             analysisStatusNotifierFactory,
             currentTimeProvider,
-            compilationDatabaseLocator);
+            compilationDatabaseLocator,
+            logger);
 
         void SetUpDefaultNotifier() => analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), FilePath, analysisId).Returns(notifier);
     }
@@ -74,7 +78,8 @@ public class SLCoreAnalyzerTests
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
             MefTestHelpers.CreateExport<ICurrentTimeProvider>(),
-            MefTestHelpers.CreateExport<IAggregatingCompilationDatabaseProvider>());
+            MefTestHelpers.CreateExport<IAggregatingCompilationDatabaseProvider>(),
+            MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SLCoreAnalyzer>();
@@ -206,7 +211,7 @@ public class SLCoreAnalyzerTests
     }
 
     [TestMethod]
-    public void ExecuteAnalysis_ForCFamily_WithoutCompilationDatabase_DoesNotPassExtraProperty()
+    public void ExecuteAnalysis_ForCFamily_WithoutCompilationDatabase_PassesEmptyStringAsExtraProperty()
     {
         const string filePath = @"C:\file\path\myclass.cpp";
         SetUpCompilationDatabaseLocator(filePath, null);
@@ -216,7 +221,8 @@ public class SLCoreAnalyzerTests
 
         analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
                 a.extraProperties != null
-                && !a.extraProperties.ContainsKey("sonar.cfamily.compile-commands")),
+                && a.extraProperties.ContainsKey("sonar.cfamily.compile-commands")
+                && a.extraProperties["sonar.cfamily.compile-commands"] == ""),
             Arg.Any<CancellationToken>());
     }
 
