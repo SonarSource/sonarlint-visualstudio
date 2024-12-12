@@ -44,8 +44,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         [ImportingConstructor]
         public CompositeBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
-            : this(
-                  new CSharpVBBindingConfigProvider(sonarQubeService, logger))
+            : this(new NonRoslynDummyBindingConfigProvider(), new CSharpVBBindingConfigProvider(sonarQubeService, logger))
         { }
 
         internal /* for testing */ CompositeBindingConfigProvider(params IBindingConfigProvider[] providers)
@@ -54,7 +53,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             this.providers = new HashSet<IBindingConfigProvider>(providers);
         }
 
-        internal /* for testing */ IEnumerable<IBindingConfigProvider> Providers { get { return this.providers; } }
+        internal /* for testing */ IEnumerable<IBindingConfigProvider> Providers => providers;
 
         #region IBindingConfigProvider methods
 
@@ -65,17 +64,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
             if (provider == null)
             {
-                return Task.FromResult<IBindingConfig>(null);
                 throw new ArgumentOutOfRangeException(nameof(language));
             }
 
             return provider.GetConfigurationAsync(qualityProfile, language, bindingConfiguration, cancellationToken);
         }
 
-        public bool IsLanguageSupported(Language language)
-        {
-            return Providers.Any(p => p.IsLanguageSupported(language));
-        }
+        public bool IsLanguageSupported(Language language) => Providers.Any(p => p.IsLanguageSupported(language));
 
         #endregion IBindingConfigProvider methods
     }

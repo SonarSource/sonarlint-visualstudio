@@ -112,8 +112,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                 var bindingConfig = await bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
                 if (bindingConfig == null)
                 {
-                    continue;
-
                     // NOTE: this should never happen, binding config should be present for every supported language
                     throw new InvalidOperationException(
                         string.Format(QualityProfilesStrings.FailedToCreateBindingConfigForLanguage, language.Name));
