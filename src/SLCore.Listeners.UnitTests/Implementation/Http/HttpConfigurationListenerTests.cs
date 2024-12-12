@@ -22,6 +22,7 @@ using System.Security.Cryptography.X509Certificates;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Listener.Http;
 using SonarLint.VisualStudio.SLCore.Listener.Http.Model;
 using SonarLint.VisualStudio.SLCore.Listeners.Implementation.Http;
 
@@ -63,11 +64,11 @@ public class HttpConfigurationListenerTests
     [DataRow(null)]
     [DataRow(5)]
     [DataRow("something")]
-    public async Task SelectProxiesAsync_ReturnsEmptyList(object parameter)
+    public async Task SelectProxiesAsync_ReturnsNoProxy(object parameter)
     {
         var result = await testSubject.SelectProxiesAsync(parameter);
 
-        result.proxies.Should().BeEmpty();
+        result.proxies.Should().BeEquivalentTo([ProxyDto.NO_PROXY]);
     }
 
     [DataTestMethod]
@@ -102,7 +103,7 @@ public class HttpConfigurationListenerTests
 
         response.trusted.Should().Be(validationResult);
     }
-    
+
     [TestMethod]
     public async Task CheckServerTrustedAsync_Exception_ReturnsFalse()
     {
@@ -114,7 +115,7 @@ public class HttpConfigurationListenerTests
         response.trusted.Should().Be(false);
         testLogger.AssertPartialOutputStringExists(exceptionReason);
     }
-    
+
     private (X509CertificateDto certificateDto, X509Certificate2 certificate) SetUpCertificate(string certificateName)
     {
         var certificateDto = new X509CertificateDto(certificateName);

@@ -47,7 +47,7 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
 
     public Task<SelectProxiesResponse> SelectProxiesAsync(object parameters)
     {
-        return Task.FromResult(new SelectProxiesResponse());
+        return Task.FromResult(new SelectProxiesResponse(){proxies = [ProxyDto.NO_PROXY, ] });
     }
 
     public Task<CheckServerTrustedResponse> CheckServerTrustedAsync(CheckServerTrustedParams parameters)
