@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Http;
 
 public record ProxyDto(ProxyType type, string hostname, int port)
 {
-    public static ProxyDto NO_PROXY = new(ProxyType.DIRECT, null, 0);
+    public static readonly ProxyDto NO_PROXY = new(ProxyType.DIRECT, null, 0);
 }
 
 [JsonConverter(typeof(StringEnumConverter))]
