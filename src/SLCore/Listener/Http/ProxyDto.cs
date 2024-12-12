@@ -18,9 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json;
+
 namespace SonarLint.VisualStudio.SLCore.Listener.Http;
 
-public class SelectProxiesResponse
+public record ProxyDto(ProxyType type, string hostname, int port)
 {
-    public List<ProxyDto> proxies = new();
+    public static ProxyDto NO_PROXY = new(ProxyType.DIRECT, null, 0);
+}
+
+[JsonConverter(typeof(StringEnumConverter))]
+public enum ProxyType
+{
+    DIRECT,
+    HTTP,
+    SOCKS
 }
