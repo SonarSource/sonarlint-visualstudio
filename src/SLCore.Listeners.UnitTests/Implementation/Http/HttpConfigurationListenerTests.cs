@@ -64,11 +64,11 @@ public class HttpConfigurationListenerTests
     [DataRow(null)]
     [DataRow(5)]
     [DataRow("something")]
-    public async Task SelectProxiesAsync_ReturnsEmptyList(object parameter)
+    public async Task SelectProxiesAsync_ReturnsNoProxy(object parameter)
     {
         var result = await testSubject.SelectProxiesAsync(parameter);
 
-        result.proxies.Should().BeEmpty();
+        result.proxies.Should().BeEquivalentTo([ProxyDto.NO_PROXY]);
     }
 
     [DataTestMethod]
@@ -114,14 +114,6 @@ public class HttpConfigurationListenerTests
 
         response.trusted.Should().Be(false);
         testLogger.AssertPartialOutputStringExists(exceptionReason);
-    }
-
-    [TestMethod]
-    public async Task SelectProxiesAsync_ReturnsNoProxy()
-    {
-        var response = await testSubject.SelectProxiesAsync(null);
-
-        response.proxies.Should().BeEquivalentTo([ProxyDto.NO_PROXY]);
     }
 
     private (X509CertificateDto certificateDto, X509Certificate2 certificate) SetUpCertificate(string certificateName)
