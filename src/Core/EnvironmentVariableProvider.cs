@@ -42,14 +42,17 @@ namespace SonarLint.VisualStudio.Core
         /// </summary>
         string GetFolderPath(Environment.SpecialFolder folder);
 
-        List<(string name, string value)> GetEnvironmentVariables();
+        /// <summary>
+        /// Gets the current process environment variables
+        /// </summary>
+        List<(string name, string value)> GetAll();
     }
 
     [Export(typeof(IEnvironmentVariableProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class EnvironmentVariableProvider : IEnvironmentVariableProvider
     {
-        public static EnvironmentVariableProvider Instance { get; } = new EnvironmentVariableProvider();
+        public static EnvironmentVariableProvider Instance { get; } = new();
 
         [ImportingConstructor]
         private EnvironmentVariableProvider()
@@ -69,7 +72,7 @@ namespace SonarLint.VisualStudio.Core
 
         public string GetFolderPath(Environment.SpecialFolder folder) => Environment.GetFolderPath(folder);
 
-        public List<(string name, string value)> GetEnvironmentVariables()
+        public List<(string name, string value)> GetAll()
         {
             var variables = new List<(string name, string value)>();
             foreach (DictionaryEntry environmentVariable in Environment.GetEnvironmentVariables())

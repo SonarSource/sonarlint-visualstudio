@@ -38,14 +38,24 @@ internal interface IVCXCompilationDatabaseStorage : IDisposable
 
 [Export(typeof(IVCXCompilationDatabaseStorage))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal sealed class VCXCompilationDatabaseStorage(IFileSystemService fileSystemService, IEnvironmentVariableProvider environmentVariableProvider, IThreadHandling threadHandling, ILogger logger)
-    : IVCXCompilationDatabaseStorage
+internal sealed class VCXCompilationDatabaseStorage : IVCXCompilationDatabaseStorage
 {
     private bool disposed;
     private readonly string compilationDatabaseDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
 
-    private readonly ImmutableList<string> environmentVariablePairs = ImmutableList.CreateRange(environmentVariableProvider.GetEnvironmentVariables().Select(x => GetEnvVarPair(x.name, x.value)));
+    private readonly ImmutableList<string> environmentVariablePairs;
+    private readonly IFileSystemService fileSystemService;
+    private readonly IThreadHandling threadHandling;
+    private readonly ILogger logger;
+
+    [ImportingConstructor]
+    public VCXCompilationDatabaseStorage(IFileSystemService fileSystemService, IEnvironmentVariableProvider environmentVariableProvider, IThreadHandling threadHandling, ILogger logger)
+    {
+        this.fileSystemService = fileSystemService;
+        this.threadHandling = threadHandling;
+        this.logger = logger;
+        environmentVariablePairs = ImmutableList.CreateRange(environmentVariableProvider.GetAll().Select(x => GetEnvVarPair(x.name, x.value)));
+    }
 
     private static string GetEnvVarPair(string name, string value) => $"{name}={value}";
 

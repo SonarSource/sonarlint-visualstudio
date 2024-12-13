@@ -43,17 +43,7 @@ public class VCXCompilationDatabaseStorageTests
     private IThreadHandling threadHandling;
     private IVCXCompilationDatabaseStorage testSubject;
     private TestLogger testLogger;
-    private EnvironmentVariableScope environmentVariableScope;
-
-    [TestMethod]
-    public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<VCXCompilationDatabaseStorage, IVCXCompilationDatabaseStorage>(
-            MefTestHelpers.CreateExport<IFileSystemService>(),
-            MefTestHelpers.CreateExport<IThreadHandling>(),
-            MefTestHelpers.CreateExport<ILogger>());
-
-    [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<VCXCompilationDatabaseStorage>();
+    private IEnvironmentVariableProvider environmentVariableProvider;
 
     [TestInitialize]
     public void TestInitialize()
@@ -61,16 +51,25 @@ public class VCXCompilationDatabaseStorageTests
         fileSystemService = Substitute.For<IFileSystemService>();
         threadHandling = Substitute.For<IThreadHandling>();
         testLogger = new TestLogger();
-        environmentVariableScope = new EnvironmentVariableScope();
-        environmentVariableScope.SetVariable(CustomVariableName, CustomVariableValue);
-        testSubject = new VCXCompilationDatabaseStorage(fileSystemService, Substitute.For<IEnvironmentVariableProvider>(), threadHandling, testLogger);
+        environmentVariableProvider = Substitute.For<IEnvironmentVariableProvider>();
+        environmentVariableProvider.GetAll().Returns([(CustomVariableName, CustomVariableValue)]);
+        testSubject = new VCXCompilationDatabaseStorage(fileSystemService, environmentVariableProvider, threadHandling, testLogger);
     }
 
-    [TestCleanup]
-    public void TestCleanup()
+    [TestMethod]
+    public void MefCtor_CheckIsExported()
     {
-        environmentVariableScope.Dispose();
+        var variableProvider = Substitute.For<IEnvironmentVariableProvider>();
+        variableProvider.GetAll().Returns([]);
+        MefTestHelpers.CheckTypeCanBeImported<VCXCompilationDatabaseStorage, IVCXCompilationDatabaseStorage>(
+            MefTestHelpers.CreateExport<IFileSystemService>(),
+            MefTestHelpers.CreateExport<IEnvironmentVariableProvider>(variableProvider),
+            MefTestHelpers.CreateExport<IThreadHandling>(),
+            MefTestHelpers.CreateExport<ILogger>());
     }
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<VCXCompilationDatabaseStorage>();
 
     [TestMethod]
     public void CreateDatabase_NonCriticalException_ReturnsNull()
@@ -122,6 +121,7 @@ public class VCXCompilationDatabaseStorageTests
         Directory.GetParent(databaseHandle1.FilePath).FullName.Should().BeEquivalentTo(expectedDirectory);
         Directory.GetParent(databaseHandle2.FilePath).FullName.Should().BeEquivalentTo(expectedDirectory);
         Path.GetFileNameWithoutExtension(databaseHandle1.FilePath).Should().NotBe(Path.GetFileNameWithoutExtension(databaseHandle2.FilePath));
+        environmentVariableProvider.Received(1).GetAll();
     }
 
     [TestMethod]
