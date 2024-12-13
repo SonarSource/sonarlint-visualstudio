@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
@@ -41,6 +42,7 @@ public class SLCoreAnalyzer : IAnalyzer
     private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
     private readonly ICurrentTimeProvider currentTimeProvider;
     private readonly IAggregatingCompilationDatabaseProvider compilationDatabaseLocator;
+    private readonly ILogger logger;
 
     [ImportingConstructor]
     public SLCoreAnalyzer(
@@ -48,13 +50,15 @@ public class SLCoreAnalyzer : IAnalyzer
         IActiveConfigScopeTracker activeConfigScopeTracker,
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
         ICurrentTimeProvider currentTimeProvider,
-        IAggregatingCompilationDatabaseProvider compilationDatabaseLocator)
+        IAggregatingCompilationDatabaseProvider compilationDatabaseLocator,
+        ILogger logger)
     {
         this.serviceProvider = serviceProvider;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
         this.currentTimeProvider = currentTimeProvider;
         this.compilationDatabaseLocator = compilationDatabaseLocator;
+        this.logger = logger;
     }
 
     public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages) => true;
@@ -134,7 +138,13 @@ public class SLCoreAnalyzer : IAnalyzer
         }
 
         var compilationDatabaseHandle = compilationDatabaseLocator.GetOrNull(path);
-        if (compilationDatabaseHandle != null)
+        if (compilationDatabaseHandle == null)
+        {
+            logger.WriteLine(SLCoreStrings.CompilationDatabaseNotFound, path);
+            // Pass empty compilation database path in order to get a more helpful message and not break the analyzer
+            properties[CFamilyCompileCommandsProperty] = "";
+        }
+        else
         {
             properties[CFamilyCompileCommandsProperty] = compilationDatabaseHandle.FilePath;
         }
