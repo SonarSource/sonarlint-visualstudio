@@ -42,10 +42,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         }
 
-        internal async Task RemoveConnectionWithProgressAsync(ConnectionViewModel connectionViewModel)
+        internal async Task RemoveConnectionWithProgressAsync(List<string> bindingKeysReferencedByConnection, ConnectionViewModel connectionViewModel)
         {
             var validationParams = new TaskToPerformParams<AdapterResponse>(
-                async () => await SafeExecuteActionAsync(() => RemoveConnectionViewModel(connectionViewModel)),
+                async () => await SafeExecuteActionAsync(() => RemoveConnectionViewModel(bindingKeysReferencedByConnection, connectionViewModel)),
                 UiResources.RemovingConnectionText,
                 UiResources.RemovingConnectionFailedText);
             await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
@@ -145,8 +145,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             return succeeded;
         }
 
-        internal bool RemoveConnectionViewModel(ConnectionViewModel connectionViewModel)
+        /// <summary>
+        /// Deleting a connection involves removing the connection from the repository and deleting the bindings that reference that connection.
+        /// This is not an atomic operation: if deleting a binding failed, then the connection will not be removed.
+        /// Which means that some bindings could have been deleted in the process. This is acceptable as there is no user data loss and rebinding is an easy process.
+        /// </summary>
+        /// <param name="referencedBindingKeys">The list of localBindingKeys that reference the connection to be removed </param>
+        /// <param name="connectionViewModel">The <see cref="ConnectionViewModel"/> of the connection to be removed</param>
+        /// <returns>Returns true if all the bindings and the connection have been deleted successfully</returns>
+        internal bool RemoveConnectionViewModel(List<string> referencedBindingKeys, ConnectionViewModel connectionViewModel)
         {
+            var bindingsRemoved = DeleteBindings(referencedBindingKeys);
+            if (!bindingsRemoved)
+            {
+                return false;
+            }
             var succeeded = connectedModeServices.ServerConnectionsRepositoryAdapter.TryRemoveConnection(connectionViewModel.Connection.Info);
             if (succeeded)
             {
@@ -154,6 +167,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 RaisePropertyChanged(nameof(NoConnectionExists));
             }
             return succeeded;
+        }
+
+        private bool DeleteBindings(List<string> connectionReferences)
+        {
+            var currentSolutionName = connectedModeBindingServices.SolutionInfoProvider.GetSolutionName();
+            foreach (var connectionReference in connectionReferences)
+            {
+                var bindingDeleted = currentSolutionName == connectionReference ? ConnectedModeBindingServices.BindingController.Unbind(connectionReference) : ConnectedModeBindingServices.SolutionBindingRepository.DeleteBinding(connectionReference);
+                if (!bindingDeleted)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         internal bool CreateNewConnection(Connection connection, ICredentialsModel credentialsModel)

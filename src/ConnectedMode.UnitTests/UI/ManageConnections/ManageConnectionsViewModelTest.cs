@@ -43,6 +43,8 @@ public class ManageConnectionsViewModelTest
     private IBindingController bindingController;
     private IConnectedModeBindingServices connectedModeBindingServices;
     private ISolutionBindingRepository solutionBindingRepository;
+    private const string LocalBindingKey1 = "solution name 1";
+    private const string LocalBindingKey2 = "solution name 2";
 
     [TestInitialize]
     public void TestInitialize()
@@ -81,7 +83,7 @@ public class ManageConnectionsViewModelTest
     [TestMethod]
     public async Task RemoveConnectionWithProgressAsync_InitializesDataAndReportsProgress()
     {
-        await testSubject.RemoveConnectionWithProgressAsync(new ConnectionViewModel(new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud))));
+        await testSubject.RemoveConnectionWithProgressAsync([], new ConnectionViewModel(new Connection(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud))));
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
@@ -99,7 +101,7 @@ public class ManageConnectionsViewModelTest
         var connectionToRemove = testSubject.ConnectionViewModels[0];
         serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info).Returns(expectedStatus);
 
-        var succeeded = testSubject.RemoveConnectionViewModel(connectionToRemove);
+        var succeeded = testSubject.RemoveConnectionViewModel([], connectionToRemove);
 
         succeeded.Should().Be(expectedStatus);
         serverConnectionsRepositoryAdapter.Received(1).TryRemoveConnection(connectionToRemove.Connection.Info);
@@ -112,7 +114,7 @@ public class ManageConnectionsViewModelTest
         var connectionToRemove = testSubject.ConnectionViewModels[0];
         serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info).Returns(true);
 
-        testSubject.RemoveConnectionViewModel(connectionToRemove);
+        testSubject.RemoveConnectionViewModel([], connectionToRemove);
 
         testSubject.ConnectionViewModels.Count.Should().Be(twoConnections.Count - 1);
         testSubject.ConnectionViewModels.Should().NotContain(connectionToRemove);
@@ -125,7 +127,7 @@ public class ManageConnectionsViewModelTest
         var connectionToRemove = testSubject.ConnectionViewModels[0];
         serverConnectionsRepositoryAdapter.TryRemoveConnection(connectionToRemove.Connection.Info).Returns(false);
 
-        testSubject.RemoveConnectionViewModel(connectionToRemove);
+        testSubject.RemoveConnectionViewModel([], connectionToRemove);
 
         testSubject.ConnectionViewModels.Count.Should().Be(twoConnections.Count);
         testSubject.ConnectionViewModels.Should().Contain(connectionToRemove);
@@ -139,7 +141,7 @@ public class ManageConnectionsViewModelTest
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
-        testSubject.RemoveConnectionViewModel(testSubject.ConnectionViewModels[0]);
+        testSubject.RemoveConnectionViewModel([], testSubject.ConnectionViewModels[0]);
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.NoConnectionExists)));
     }
@@ -152,9 +154,77 @@ public class ManageConnectionsViewModelTest
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
-        testSubject.RemoveConnectionViewModel(testSubject.ConnectionViewModels[0]);
+        testSubject.RemoveConnectionViewModel([], testSubject.ConnectionViewModels[0]);
 
         eventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<PropertyChangedEventArgs>());
+    }
+
+    [TestMethod]
+    public void RemoveConnectionViewModel_TwoBindingsExistForConnection_RemovesBindingsAndThenConnection()
+    {
+        InitializeTwoConnections();
+        MockDeleteBinding(LocalBindingKey1, true);
+        MockDeleteBinding(LocalBindingKey2, true);
+
+        testSubject.RemoveConnectionViewModel([LocalBindingKey1, LocalBindingKey2], testSubject.ConnectionViewModels[0]);
+
+        Received.InOrder(() =>
+        {
+            solutionBindingRepository.DeleteBinding(LocalBindingKey1);
+            solutionBindingRepository.DeleteBinding(LocalBindingKey2);
+            serverConnectionsRepositoryAdapter.TryRemoveConnection(testSubject.ConnectionViewModels[0].Connection.Info);
+        });
+    }
+
+    [TestMethod]
+    public void RemoveConnectionViewModel_TwoBindingsExistForConnection_DeletingOneBindingFails_DoesNotRemoveConnection()
+    {
+        InitializeTwoConnections();
+        MockDeleteBinding(LocalBindingKey1, true);
+        MockDeleteBinding(LocalBindingKey2, false);
+
+        testSubject.RemoveConnectionViewModel([LocalBindingKey1, LocalBindingKey2], testSubject.ConnectionViewModels[0]);
+
+        Received.InOrder(() =>
+        {
+            solutionBindingRepository.DeleteBinding(LocalBindingKey1);
+            solutionBindingRepository.DeleteBinding(LocalBindingKey2);
+        });
+        serverConnectionsRepositoryAdapter.DidNotReceive().TryRemoveConnection(testSubject.ConnectionViewModels[0].Connection.Info);
+    }
+
+    [TestMethod]
+    public void RemoveConnectionViewModel_TwoBindingsExistForConnection_OneBindingIsForCurrentSolution_CallsUnbind()
+    {
+        InitializeTwoConnections();
+        InitializeCurrentSolution(LocalBindingKey2);
+        MockDeleteBinding(LocalBindingKey1, true);
+        MockUnbind(LocalBindingKey2, true);
+
+        testSubject.RemoveConnectionViewModel([LocalBindingKey1, LocalBindingKey2], testSubject.ConnectionViewModels[0]);
+
+        Received.InOrder(() =>
+        {
+            solutionBindingRepository.DeleteBinding(LocalBindingKey1);
+            bindingController.Unbind(LocalBindingKey2);
+            serverConnectionsRepositoryAdapter.TryRemoveConnection(testSubject.ConnectionViewModels[0].Connection.Info);
+        });
+        solutionBindingRepository.DidNotReceive().DeleteBinding(LocalBindingKey2);
+    }
+
+    [TestMethod]
+    public void RemoveConnectionViewModel_TwoBindingsExistForConnection_OneBindingIsForCurrentSolution_UnbindFails_DoesNotRemoveConnection()
+    {
+        InitializeTwoConnections();
+        InitializeCurrentSolution(LocalBindingKey2);
+        MockDeleteBinding(LocalBindingKey1, true);
+        MockUnbind(LocalBindingKey2, false);
+
+        testSubject.RemoveConnectionViewModel([LocalBindingKey1, LocalBindingKey2], testSubject.ConnectionViewModels[0]);
+
+        solutionBindingRepository.Received(1).DeleteBinding(LocalBindingKey1);
+        bindingController.Received(1).Unbind(LocalBindingKey2);
+        serverConnectionsRepositoryAdapter.DidNotReceive().TryRemoveConnection(testSubject.ConnectionViewModels[0].Connection.Info);
     }
 
     [TestMethod]
@@ -610,4 +680,10 @@ public class ManageConnectionsViewModelTest
     {
         return new ServerConnection.SonarQube(new Uri(sonarQube.Info.Id));
     }
+
+    private void MockDeleteBinding(string localBindingKey, bool success) => connectedModeBindingServices.SolutionBindingRepository.DeleteBinding(localBindingKey).Returns(success);
+
+    private void MockUnbind(string localBindingKey, bool success) => connectedModeBindingServices.BindingController.Unbind(localBindingKey).Returns(success);
+
+    private void InitializeCurrentSolution(string solutionName) => connectedModeBindingServices.SolutionInfoProvider.GetSolutionName().Returns(solutionName);
 }
