@@ -70,6 +70,15 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Roslyn Suppressions] Error deleting the settings file for solution {0}.  Error: {1}.
+        /// </summary>
+        internal static string RoslynSettingsFileStorageDeleteError {
+            get {
+                return ResourceManager.GetString("RoslynSettingsFileStorageDeleteError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Settings File was not found.
         /// </summary>
         internal static string RoslynSettingsFileStorageFileNotFound {

@@ -120,6 +120,9 @@
   <data name="FileWatcherException" xml:space="preserve">
     <value>[Roslyn Suppressions] Error handling SonarQube for Visual Studio suppressions change. Issues suppressed on the server may not be suppressed in the IDE. Error: {0}</value>
   </data>
+  <data name="RoslynSettingsFileStorageDeleteError" xml:space="preserve">
+    <value>[Roslyn Suppressions] Error deleting the settings file for solution {0}.  Error: {1}</value>
+  </data>
   <data name="RoslynSettingsFileStorageFileNotFound" xml:space="preserve">
     <value>Settings File was not found</value>
   </data>
