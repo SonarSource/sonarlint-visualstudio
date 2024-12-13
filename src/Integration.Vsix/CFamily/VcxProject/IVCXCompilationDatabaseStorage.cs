@@ -40,13 +40,13 @@ internal interface IVCXCompilationDatabaseStorage : IDisposable
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class VCXCompilationDatabaseStorage : IVCXCompilationDatabaseStorage
 {
-    private bool disposed;
+    private const string IncludeEntryName = "INCLUDE";
     private readonly string compilationDatabaseDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
-
-    private readonly ImmutableList<string> environmentVariablePairs;
+    private readonly ImmutableList<string> staticEnvironmentVariableEntries;
     private readonly IFileSystemService fileSystemService;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
+    private bool disposed;
 
     [ImportingConstructor]
     public VCXCompilationDatabaseStorage(IFileSystemService fileSystemService, IEnvironmentVariableProvider environmentVariableProvider, IThreadHandling threadHandling, ILogger logger)
@@ -54,10 +54,10 @@ internal sealed class VCXCompilationDatabaseStorage : IVCXCompilationDatabaseSto
         this.fileSystemService = fileSystemService;
         this.threadHandling = threadHandling;
         this.logger = logger;
-        environmentVariablePairs = ImmutableList.CreateRange(environmentVariableProvider.GetAll().Select(x => GetEnvVarPair(x.name, x.value)));
+        staticEnvironmentVariableEntries = ImmutableList.CreateRange(environmentVariableProvider.GetAll().Select(x => GetFormattedEnvironmentEntry(x.name, x.value)));
     }
 
-    private static string GetEnvVarPair(string name, string value) => $"{name}={value}";
+    private static string GetFormattedEnvironmentEntry(string name, string value) => $"{name}={value}";
 
     public ICompilationDatabaseHandle CreateDatabase(IFileConfig fileConfig)
     {
@@ -69,7 +69,7 @@ internal sealed class VCXCompilationDatabaseStorage : IVCXCompilationDatabaseSto
             Directory = fileConfig.CDDirectory,
             Command = fileConfig.CDCommand,
             File = fileConfig.CDFile,
-            Environment = environmentVariablePairs.Add(GetEnvVarPair("INCLUDE", fileConfig.EnvInclude))
+            Environment = staticEnvironmentVariableEntries.Insert(0, GetFormattedEnvironmentEntry(IncludeEntryName, fileConfig.EnvInclude))
         };
         var compilationDatabase = new[] { compilationDatabaseEntry };
 

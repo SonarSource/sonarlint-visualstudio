@@ -36,9 +36,6 @@ public class CompilationDatabaseEntry
     [JsonProperty("file")]
     public string File { get; set; }
 
-    [JsonProperty("arguments")]
-    public string Arguments { get; set; }
-
     [JsonProperty("environment")]
     public IList<string> Environment { get; set; }
 }
