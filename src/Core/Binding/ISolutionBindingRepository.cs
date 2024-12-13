@@ -56,8 +56,18 @@ public interface ISolutionBindingRepository
     event EventHandler BindingUpdated;
 
     /// <summary>
+    /// Raises when <see cref="DeleteBinding" /> operation completes successfully
+    /// </summary>
+    event EventHandler<LocalBindingKeyEventArgs> BindingDeleted;
+
+    /// <summary>
     /// Lists all the binding information
     /// </summary>
     /// <returns></returns>
     IEnumerable<BoundServerProject> List();
+}
+
+public class LocalBindingKeyEventArgs(string localBindingKey) : EventArgs
+{
+    public string LocalBindingKey { get; } = localBindingKey;
 }
