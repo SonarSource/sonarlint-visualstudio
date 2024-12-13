@@ -184,7 +184,6 @@ public class VCXCompilationDatabaseStorageTests
         var serializedCompilationDatabase = fileSystemService.File.ReceivedCalls().Single().GetArguments()[1] as string;
         var compilationDatabaseEntries = JsonConvert.DeserializeObject<CompilationDatabaseEntry[]>(serializedCompilationDatabase);
         var compilationDatabaseEntry = compilationDatabaseEntries.Single();
-        compilationDatabaseEntry.Should().BeEquivalentTo(new CompilationDatabaseEntry { Directory = SourceDirectory, File = SourceFilePath, Command = CompileCommand, Environment = default}, options => options.Excluding(x => x.Environment));
-        compilationDatabaseEntry.Environment.Should().Contain([$"{CustomVariableName}={CustomVariableValue}", $"INCLUDE={EnvIncludeValue}"]);
+        compilationDatabaseEntry.Should().BeEquivalentTo(new CompilationDatabaseEntry { Directory = SourceDirectory, File = SourceFilePath, Command = CompileCommand, Environment = [$"INCLUDE={EnvIncludeValue}", $"{CustomVariableName}={CustomVariableValue}"]});
     }
 }
