@@ -18,22 +18,49 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.CFamily;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
 [Export(typeof(IVCXCompilationDatabaseProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class VCXCompilationDatabaseProvider(
-    IVCXCompilationDatabaseStorage storage,
-    IFileConfigProvider fileConfigProvider)
-    : IVCXCompilationDatabaseProvider
+internal class VCXCompilationDatabaseProvider : IVCXCompilationDatabaseProvider
 {
+    private const string IncludeEntryName = "INCLUDE";
+    private readonly ImmutableList<EnvironmentEntry> staticEnvironmentVariableEntries;
+    private readonly IVCXCompilationDatabaseStorage storage;
+    private readonly IFileConfigProvider fileConfigProvider;
+
+    [method: ImportingConstructor]
+    public VCXCompilationDatabaseProvider(
+        IVCXCompilationDatabaseStorage storage,
+        IEnvironmentVariableProvider environmentVariableProvider,
+        IFileConfigProvider fileConfigProvider)
+    {
+        this.storage = storage;
+        this.fileConfigProvider = fileConfigProvider;
+        staticEnvironmentVariableEntries = ImmutableList.CreateRange(environmentVariableProvider.GetAll().Select(x => new EnvironmentEntry(x.name, x.value)));
+    }
+
     public ICompilationDatabaseHandle CreateOrNull(string filePath) =>
-        fileConfigProvider.Get(filePath, null) is {} fileConfig
-            ? storage.CreateDatabase(fileConfig)
+        fileConfigProvider.Get(filePath, null) is { } fileConfig
+            ? storage.CreateDatabase(fileConfig.CDFile, fileConfig.CDDirectory, fileConfig.CDCommand, GetEnvironmentEntries(fileConfig.EnvInclude).Select(x => x.FormattedEntry))
             : null;
+
+    private ImmutableList<EnvironmentEntry> GetEnvironmentEntries(string fileConfigEnvInclude) =>
+        string.IsNullOrEmpty(fileConfigEnvInclude)
+            ? staticEnvironmentVariableEntries
+            : staticEnvironmentVariableEntries
+                .RemoveAll(x => x.Name == IncludeEntryName)
+                .Add(new EnvironmentEntry(IncludeEntryName, fileConfigEnvInclude));
+
+    private readonly struct EnvironmentEntry(string name, string value)
+    {
+        public string Name { get; } = name;
+        public string FormattedEntry { get; } = $"{name}={value}";
+    }
 }

@@ -33,43 +33,46 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
 internal interface IVCXCompilationDatabaseStorage : IDisposable
 {
-    ICompilationDatabaseHandle CreateDatabase(IFileConfig fileConfig);
+    ICompilationDatabaseHandle CreateDatabase(
+        string file,
+        string directory,
+        string command,
+        IEnumerable<string> environment);
 }
 
 [Export(typeof(IVCXCompilationDatabaseStorage))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal sealed class VCXCompilationDatabaseStorage : IVCXCompilationDatabaseStorage
 {
-    private const string IncludeEntryName = "INCLUDE";
     private readonly string compilationDatabaseDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
-    private readonly ImmutableList<string> staticEnvironmentVariableEntries;
     private readonly IFileSystemService fileSystemService;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
     private bool disposed;
 
     [ImportingConstructor]
-    public VCXCompilationDatabaseStorage(IFileSystemService fileSystemService, IEnvironmentVariableProvider environmentVariableProvider, IThreadHandling threadHandling, ILogger logger)
+    public VCXCompilationDatabaseStorage(IFileSystemService fileSystemService, IThreadHandling threadHandling, ILogger logger)
     {
         this.fileSystemService = fileSystemService;
         this.threadHandling = threadHandling;
         this.logger = logger;
-        staticEnvironmentVariableEntries = ImmutableList.CreateRange(environmentVariableProvider.GetAll().Select(x => GetFormattedEnvironmentEntry(x.name, x.value)));
-    }
+        }
 
-    private static string GetFormattedEnvironmentEntry(string name, string value) => $"{name}={value}";
-
-    public ICompilationDatabaseHandle CreateDatabase(IFileConfig fileConfig)
+    public ICompilationDatabaseHandle CreateDatabase(
+        string file,
+        string directory,
+        string command,
+        IEnumerable<string> environment)
     {
         ThrowIfDisposed();
         threadHandling.ThrowIfOnUIThread();
 
         var compilationDatabaseEntry = new CompilationDatabaseEntry
         {
-            Directory = fileConfig.CDDirectory,
-            Command = fileConfig.CDCommand,
-            File = fileConfig.CDFile,
-            Environment = staticEnvironmentVariableEntries.Insert(0, GetFormattedEnvironmentEntry(IncludeEntryName, fileConfig.EnvInclude))
+            Directory = directory,
+            Command = command,
+            File = file,
+            Environment = environment
         };
         var compilationDatabase = new[] { compilationDatabaseEntry };
 
@@ -102,8 +105,6 @@ internal sealed class VCXCompilationDatabaseStorage : IVCXCompilationDatabaseSto
         var compilationDatabaseFullPath = Path.Combine(compilationDatabaseDirectoryPath, compilationDatabaseFileName);
         return compilationDatabaseFullPath;
     }
-
-
 
     public void Dispose()
     {

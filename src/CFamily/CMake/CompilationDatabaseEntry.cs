@@ -37,5 +37,5 @@ public class CompilationDatabaseEntry
     public string File { get; set; }
 
     [JsonProperty("environment")]
-    public IList<string> Environment { get; set; }
+    public IEnumerable<string> Environment { get; set; }
 }
