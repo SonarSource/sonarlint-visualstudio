@@ -61,6 +61,8 @@ public class RuleDescriptionConversionSmokeTest
         failedRuleDescriptions.Should().BeEquivalentTo(
             new List<string>
             {
+                "c:S6620",  // This plugin version contains invisible rules
+                "cpp:S6620", // This plugin version contains invisible rules
                 "cpp:S1232", // unsupported <caption> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5014
                 "csharpsquid:S6932", // unsupported <dl> and <dt> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5414
                 "csharpsquid:S6966", // unsupported <dl> and <dt> tag https://github.com/SonarSource/sonarlint-visualstudio/issues/5414
