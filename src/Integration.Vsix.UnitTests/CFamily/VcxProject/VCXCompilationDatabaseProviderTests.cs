@@ -171,13 +171,31 @@ public class VCXCompilationDatabaseProviderTests
         envVarProvider.Received(1).GetAll();
     }
 
-    private IFileConfig GetFileConfig(string envInclude = EnvInclude)
+    [TestMethod]
+    public void CreateOrNull_EnvVarsContainHeaderPropertyForHeaderFiles()
+    {
+        var fileConfig = GetFileConfig(EnvInclude, true);
+        fileConfigProvider.Get(SourceFilePath, default).Returns(fileConfig);
+        envVarProvider.GetAll().Returns([("Var1", "Value1"), ("Var2", "Value2")]);
+        var testSubject = new VCXCompilationDatabaseProvider(
+            storage,
+            envVarProvider,
+            fileConfigProvider);
+
+        testSubject.CreateOrNull(SourceFilePath);
+
+        var expectedEnv = new[] { "Var1=Value1", "Var2=Value2", $"INCLUDE={EnvInclude}", "SONAR_CFAMILY_CAPTURE_PROPERTY_isHeaderFile=true" };
+        storage.Received(1).CreateDatabase(CDFile, CDDirectory, CDCommand, Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(expectedEnv)));
+    }
+
+    private IFileConfig GetFileConfig(string envInclude = EnvInclude, bool isHeader = false)
     {
         var fileConfig = Substitute.For<IFileConfig>();
         fileConfig.CDFile.Returns(CDFile);
         fileConfig.CDDirectory.Returns(CDDirectory);
         fileConfig.CDCommand.Returns(CDCommand);
         fileConfig.EnvInclude.Returns(envInclude);
+        fileConfig.IsHeaderFile.Returns(isHeader);
         return fileConfig;
     }
 }
