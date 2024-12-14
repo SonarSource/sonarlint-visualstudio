@@ -25,7 +25,6 @@
   <Target Name="Build" Inputs="@(InputFile)" Outputs="@(OutputFile)">
     <Message Importance="high" Text="Processing analyzer jar files..." />
     <CallTarget Targets="PrepareDirectories" />
-    <CallTarget Targets="DownloadIndividualJars" />
     <CallTarget Targets="DownloadRepoxJars" />
     <CallTarget Targets="UnzipEnterpriseSonarCSharp" />
     <CallTarget Targets="UnzipEnterpriseSonarVBNet" />
@@ -43,11 +42,8 @@
     <Message Importance="high" Text="[ProcessJarFiles] Download directory: $(JarDownloadDir)" />
   </Target>
 
-  <Target Name="DownloadIndividualJars">
-    <DownloadFile SourceUrl="%(PluginJars.URL)" DestinationFolder="$(JarDownloadDir)" SkipUnchangedFiles="true" Retries="3" />
-  </Target>
-
   <Target Name="DownloadRepoxJars">
+    <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(CFamilyPluginDownloadPath) --url $(CFamilyPluginRemoteUrl)" />
     <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(JavaScriptPluginDownloadPath) --url $(JavascriptPluginRemoteUrl)" />
     <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(SonarTextPluginDownloadPath) --url $(SonarTextPluginRemoteUrl)" />
     <Exec Command="curl -u$(ARTIFACTORY_USER):$(ARTIFACTORY_PASSWORD) --ssl-no-revoke -C - --create-dirs --output $(EnterpriseSonarCSharpPluginDownloadPath) --url $(EnterpriseSonarCSharpPluginRemoteUrl)" />
