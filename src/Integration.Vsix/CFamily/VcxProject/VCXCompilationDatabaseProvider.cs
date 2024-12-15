@@ -35,15 +35,18 @@ internal class VCXCompilationDatabaseProvider : IVCXCompilationDatabaseProvider
     private readonly ImmutableList<EnvironmentEntry> staticEnvironmentVariableEntries;
     private readonly IVCXCompilationDatabaseStorage storage;
     private readonly IFileConfigProvider fileConfigProvider;
+    private readonly ILogger logger;
 
     [method: ImportingConstructor]
     public VCXCompilationDatabaseProvider(
         IVCXCompilationDatabaseStorage storage,
         IEnvironmentVariableProvider environmentVariableProvider,
-        IFileConfigProvider fileConfigProvider)
+        IFileConfigProvider fileConfigProvider,
+        ILogger logger)
     {
         this.storage = storage;
         this.fileConfigProvider = fileConfigProvider;
+        this.logger = logger;
         staticEnvironmentVariableEntries = ImmutableList.CreateRange(environmentVariableProvider.GetAll().Select(x => new EnvironmentEntry(x.name, x.value)));
     }
 
@@ -66,14 +69,25 @@ internal class VCXCompilationDatabaseProvider : IVCXCompilationDatabaseProvider
         return environmentEntries;
     }
 
-    private static ImmutableList<EnvironmentEntry> UpdateEnvironmentWithEntry(ImmutableList<EnvironmentEntry> environmentEntries, EnvironmentEntry newEntry) =>
-        environmentEntries.RemoveAll(x => x.Name == newEntry.Name).Add(newEntry);
+    private ImmutableList<EnvironmentEntry> UpdateEnvironmentWithEntry(ImmutableList<EnvironmentEntry> environmentEntries, EnvironmentEntry newEntry)
+    {
+        EnvironmentEntry oldEntry = environmentEntries.FirstOrDefault(x => x.Name == newEntry.Name);
 
-
+        if (oldEntry.Name != null)
+        {
+            logger.LogVerbose($"[VCXCompilationDatabaseProvider] Overwriting the value of environment variable \"{newEntry.Name}\". Old value: \"{oldEntry.Value}\", new value: \"{newEntry.Value}\"");
+        }
+        else
+        {
+            logger.LogVerbose($"[VCXCompilationDatabaseProvider] Setting environment variable \"{newEntry.Name}\". Value: \"{newEntry.Value}\"");
+        }
+        return environmentEntries.RemoveAll(x => x.Name == newEntry.Name).Add(newEntry);
+    }
 
     private readonly struct EnvironmentEntry(string name, string value)
     {
         public string Name { get; } = name;
+        public string Value { get; } = value;
         public string FormattedEntry { get; } = $"{name}={value}";
     }
 }

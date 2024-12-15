@@ -37,6 +37,7 @@ public class VCXCompilationDatabaseProviderTests
     private IVCXCompilationDatabaseStorage storage;
     private IFileConfigProvider fileConfigProvider;
     private IEnvironmentVariableProvider envVarProvider;
+    private ILogger logger;
 
     [TestInitialize]
     public void TestInitialize()
@@ -45,6 +46,7 @@ public class VCXCompilationDatabaseProviderTests
         fileConfigProvider = Substitute.For<IFileConfigProvider>();
         envVarProvider = Substitute.For<IEnvironmentVariableProvider>();
         envVarProvider.GetAll().Returns([]);
+        logger = Substitute.For<ILogger>();
     }
 
     [TestMethod]
@@ -54,7 +56,8 @@ public class VCXCompilationDatabaseProviderTests
         MefTestHelpers.CheckTypeCanBeImported<VCXCompilationDatabaseProvider, IVCXCompilationDatabaseProvider>(
             MefTestHelpers.CreateExport<IVCXCompilationDatabaseStorage>(),
             MefTestHelpers.CreateExport<IEnvironmentVariableProvider>(envVarProvider),
-            MefTestHelpers.CreateExport<IFileConfigProvider>());
+            MefTestHelpers.CreateExport<IFileConfigProvider>(),
+            MefTestHelpers.CreateExport<ILogger>());
     }
 
     [TestMethod]
@@ -67,7 +70,8 @@ public class VCXCompilationDatabaseProviderTests
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,
             envVarProvider,
-            fileConfigProvider);
+            fileConfigProvider,
+            logger);
 
         testSubject.CreateOrNull(SourceFilePath).Should().BeNull();
 
@@ -83,7 +87,8 @@ public class VCXCompilationDatabaseProviderTests
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,
             envVarProvider,
-            fileConfigProvider);
+            fileConfigProvider,
+            logger);
 
         testSubject.CreateOrNull(SourceFilePath).Should().BeNull();
 
@@ -100,7 +105,8 @@ public class VCXCompilationDatabaseProviderTests
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,
             envVarProvider,
-            fileConfigProvider);
+            fileConfigProvider,
+            logger);
 
         testSubject.CreateOrNull(SourceFilePath).Should().Be(compilationDatabaseHandle);
     }
@@ -114,7 +120,8 @@ public class VCXCompilationDatabaseProviderTests
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,
             envVarProvider,
-            fileConfigProvider);
+            fileConfigProvider,
+            logger);
 
         testSubject.CreateOrNull(SourceFilePath);
 
@@ -130,11 +137,13 @@ public class VCXCompilationDatabaseProviderTests
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,
             envVarProvider,
-            fileConfigProvider);
+            fileConfigProvider,
+            logger);
 
         testSubject.CreateOrNull(SourceFilePath);
 
         storage.Received(1).CreateDatabase(CDFile, CDDirectory, CDCommand, Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new [] { "Var1=Value1", "Var2=Value2", $"INCLUDE={EnvInclude}"})));
+        logger.Received(1).LogVerbose($"[VCXCompilationDatabaseProvider] Overwriting the value of environment variable \"INCLUDE\". Old value: \"static\", new value: \"{EnvInclude}\"");
     }
 
     [TestMethod]
@@ -146,11 +155,13 @@ public class VCXCompilationDatabaseProviderTests
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,
             envVarProvider,
-            fileConfigProvider);
+            fileConfigProvider,
+            logger);
 
         testSubject.CreateOrNull(SourceFilePath);
 
         storage.Received(1).CreateDatabase(CDFile, CDDirectory, CDCommand, Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new [] { "Var1=Value1", "Var2=Value2", $"INCLUDE={EnvInclude}"})));
+        logger.Received(1).LogVerbose($"[VCXCompilationDatabaseProvider] Setting environment variable \"INCLUDE\". Value: \"{EnvInclude}\"");
     }
 
     [TestMethod]
@@ -162,7 +173,8 @@ public class VCXCompilationDatabaseProviderTests
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,
             envVarProvider,
-            fileConfigProvider);
+            fileConfigProvider,
+            logger);
 
         testSubject.CreateOrNull(SourceFilePath);
         testSubject.CreateOrNull(SourceFilePath);
@@ -180,12 +192,15 @@ public class VCXCompilationDatabaseProviderTests
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,
             envVarProvider,
-            fileConfigProvider);
+            fileConfigProvider,
+            logger);
 
         testSubject.CreateOrNull(SourceFilePath);
 
         var expectedEnv = new[] { "Var1=Value1", "Var2=Value2", $"INCLUDE={EnvInclude}", "SONAR_CFAMILY_CAPTURE_PROPERTY_isHeaderFile=true" };
         storage.Received(1).CreateDatabase(CDFile, CDDirectory, CDCommand, Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(expectedEnv)));
+        logger.Received(1).LogVerbose($"[VCXCompilationDatabaseProvider] Setting environment variable \"INCLUDE\". Value: \"{EnvInclude}\"");
+        logger.Received(1).LogVerbose($"[VCXCompilationDatabaseProvider] Setting environment variable \"SONAR_CFAMILY_CAPTURE_PROPERTY_isHeaderFile\". Value: \"true\"");
     }
 
     private IFileConfig GetFileConfig(string envInclude = EnvInclude, bool isHeader = false)
