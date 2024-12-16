@@ -37,20 +37,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     internal class BindingProcessImpl : IBindingProcess
     {
         private readonly BindCommandArgs bindingArgs;
-        private readonly IExclusionSettingsStorage exclusionSettingsStorage;
         private readonly ISonarQubeService sonarQubeService;
         private readonly IQualityProfileDownloader qualityProfileDownloader;
         private readonly ILogger logger;
 
         public BindingProcessImpl(
             BindCommandArgs bindingArgs,
-            IExclusionSettingsStorage exclusionSettingsStorage,
             ISonarQubeService sonarQubeService,
             IQualityProfileDownloader qualityProfileDownloader,
             ILogger logger)
         {
             this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
-            this.exclusionSettingsStorage = exclusionSettingsStorage ?? throw new ArgumentNullException(nameof(exclusionSettingsStorage));
             this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.qualityProfileDownloader = qualityProfileDownloader ?? throw new ArgumentNullException(nameof(qualityProfileDownloader));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -72,21 +69,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             }
 
             return false;
-        }
-
-        public async Task<bool> SaveServerExclusionsAsync(CancellationToken cancellationToken)
-        {
-            try
-            {
-                var exclusions = await sonarQubeService.GetServerExclusions(bindingArgs.ProjectToBind.ServerProjectKey, cancellationToken);
-                exclusionSettingsStorage.SaveSettings(exclusions);
-            }
-            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(string.Format(BindingStrings.SaveExclusionsFailed, ex.Message));
-                return false;
-            }
-            return true;
         }
 
         #endregion
