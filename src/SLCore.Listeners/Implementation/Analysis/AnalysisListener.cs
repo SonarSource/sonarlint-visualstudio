@@ -31,25 +31,16 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation.Analysis;
 
 [Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class AnalysisListener : IAnalysisListener
+[method: ImportingConstructor]
+internal class AnalysisListener(
+    IActiveConfigScopeTracker activeConfigScopeTracker,
+    IAnalysisRequester analysisRequester,
+    IRaisedFindingProcessor raisedFindingProcessor,
+    IIssuePublisher issuePublisher,
+    IHotspotPublisher hotspotPublisher,
+    ILogger logger)
+    : IAnalysisListener
 {
-    private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
-    private readonly IAnalysisRequester analysisRequester;
-    private readonly IRaisedFindingProcessor raisedFindingProcessor;
-    private readonly ILogger logger;
-
-    [ImportingConstructor]
-    public AnalysisListener( 
-        IActiveConfigScopeTracker activeConfigScopeTracker,
-        IAnalysisRequester analysisRequester, 
-        IRaisedFindingProcessor raisedFindingProcessor,
-        ILogger logger)
-    {
-        this.activeConfigScopeTracker = activeConfigScopeTracker;
-        this.analysisRequester = analysisRequester;
-        this.logger = logger;
-        this.raisedFindingProcessor = raisedFindingProcessor;
-    }
 
     public void DidChangeAnalysisReadiness(DidChangeAnalysisReadinessParams parameters)
     {
@@ -65,13 +56,13 @@ internal class AnalysisListener : IAnalysisListener
         }
         else
         {
-            logger.WriteLine(SLCoreStrings.AnalysisReadinessUpdate, SLCoreStrings.ConfigScopeConflict);   
+            logger.WriteLine(SLCoreStrings.AnalysisReadinessUpdate, SLCoreStrings.ConfigScopeConflict);
         }
     }
 
-    public void RaiseIssues(RaiseFindingParams<RaisedIssueDto> parameters) 
-        => raisedFindingProcessor.RaiseFinding(parameters);
+    public void RaiseIssues(RaiseFindingParams<RaisedIssueDto> parameters)
+        => raisedFindingProcessor.RaiseFinding(parameters, issuePublisher);
 
-    public void RaiseHotspots(RaiseHotspotParams parameters) 
-        => raisedFindingProcessor.RaiseFinding(parameters);
+    public void RaiseHotspots(RaiseHotspotParams parameters)
+        => raisedFindingProcessor.RaiseFinding(parameters, hotspotPublisher);
 }

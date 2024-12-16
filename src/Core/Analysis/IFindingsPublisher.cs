@@ -20,27 +20,14 @@
 
 namespace SonarLint.VisualStudio.Core.Analysis;
 
-/// <summary>
-/// Maintains analysis and issue processing
-/// </summary>
-public interface IAnalysisService
+public interface IFindingsPublisher
 {
     /// <summary>
-    /// Indicates whether at least one language from <paramref name="languages"/> list is analyzable.
+    /// Handles analysis results
     /// </summary>
-    bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
-
-    /// <summary>
-    /// Starts analysis for <paramref name="filePath"/>
-    /// </summary>
-    void ScheduleAnalysis(string filePath,
-        Guid analysisId,
-        IEnumerable<AnalysisLanguage> detectedLanguages,
-        IIssueConsumer issueConsumer,
-        IAnalyzerOptions analyzerOptions);
-
-    /// <summary>
-    /// Stops issue publishing for <paramref name="filePath"/> until the next <see cref="ScheduleAnalysis"/> is called
-    /// </summary>
-    void CancelForFile(string filePath);
+    void Publish(string filePath, Guid analysisId, IEnumerable<IAnalysisIssue> findings);
 }
+
+public interface IIssuePublisher : IFindingsPublisher;
+
+public interface IHotspotPublisher : IFindingsPublisher;

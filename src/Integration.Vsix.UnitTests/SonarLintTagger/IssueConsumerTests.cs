@@ -21,6 +21,7 @@
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
@@ -28,44 +29,66 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
     [TestClass]
     public class IssueConsumerTests
     {
+        private IssueConsumerFactory.IIssueHandler issueHandler;
         private static readonly IAnalysisIssue ValidIssue = CreateIssue(startLine: 1, endLine: 1);
         private static readonly ITextSnapshot ValidTextSnapshot = CreateSnapshot(lineCount: 10);
         private static readonly IAnalysisIssueVisualizationConverter ValidConverter = Mock.Of<IAnalysisIssueVisualizationConverter>();
 
         private const string ValidFilePath = "c:\\myfile.txt";
 
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            issueHandler = Substitute.For<IssueConsumerFactory.IIssueHandler>();
+        }
+
         [TestMethod]
         public void Ctor_InvalidArgs_Throws()
         {
-            IssueConsumer.OnIssuesChanged validCallback = _ => { };
 
-            Action act = () => new IssueConsumer(null, ValidFilePath, validCallback, ValidConverter);
+            Action act = () => new IssueConsumer(null, ValidFilePath, issueHandler, ValidConverter);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisSnapshot");
 
-            act = () => new IssueConsumer(ValidTextSnapshot, null, validCallback, ValidConverter);
+            act = () => new IssueConsumer(ValidTextSnapshot, null, issueHandler, ValidConverter);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisFilePath");
 
             act = () => new IssueConsumer(ValidTextSnapshot, ValidFilePath, null, ValidConverter);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("onIssuesChangedCallback");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueHandler");
 
-            act = () => new IssueConsumer(ValidTextSnapshot, ValidFilePath, validCallback, null);
+            act = () => new IssueConsumer(ValidTextSnapshot, ValidFilePath, issueHandler, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueToIssueVisualizationConverter");
         }
 
         [TestMethod]
-        public void Accept_WrongFile_CallbackIsNotCalled()
+        public void SetIssues_WrongFile_CallbackIsNotCalled()
         {
-            var callbackSpy = new OnIssuesChangedCallbackSpy();
             var issues = new IAnalysisIssue[] { ValidIssue };
 
-            var testSubject = new IssueConsumer(ValidTextSnapshot, "c:\\file1.txt", callbackSpy.Callback, ValidConverter);
+            var testSubject = new IssueConsumer(ValidTextSnapshot, "c:\\file1.txt", issueHandler, ValidConverter);
 
             using (new AssertIgnoreScope())
             {
-                testSubject.Set("wrong file", issues);
+                testSubject.SetIssues("wrong file", issues);
             }
 
-            callbackSpy.CallCount.Should().Be(0);
+            issueHandler.DidNotReceiveWithAnyArgs().HandleNewIssues(default);
+            issueHandler.DidNotReceiveWithAnyArgs().HandleNewHotspots(default);
+        }
+
+        [TestMethod]
+        public void SetHotspots_WrongFile_CallbackIsNotCalled()
+        {
+            var issues = new IAnalysisIssue[] { ValidIssue };
+
+            var testSubject = new IssueConsumer(ValidTextSnapshot, "c:\\file1.txt", issueHandler, ValidConverter);
+
+            using (new AssertIgnoreScope())
+            {
+                testSubject.SetHotspots("wrong file", issues);
+            }
+
+            issueHandler.DidNotReceiveWithAnyArgs().HandleNewIssues(default);
+            issueHandler.DidNotReceiveWithAnyArgs().HandleNewHotspots(default);
         }
 
         [TestMethod]
@@ -77,56 +100,84 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [DataRow(10, 10, true)] // end is in last line of snapshot
         [DataRow(10, 11, false)] // end is outside snapshot
         [DataRow(11, 11, false)] // end is outside snapshot
-        public void Accept_IssuesNotInSnapshotAreIgnored_CallbackIsCalledWithExpectedIssues(int issueStartLine, int issueEndLine, bool isMappableToSnapshot)
+        public void SetIssues_IssuesNotInSnapshotAreIgnored_CallbackIsCalledWithExpectedIssues(int issueStartLine, int issueEndLine, bool isMappableToSnapshot)
         {
             // Issues are 1-based.
             // Snapshots are 0-based so last line = index 9
             const int LinesInSnapshot = 10;
             var snapshot = CreateSnapshot(LinesInSnapshot);
             var issues = new[] { CreateIssue(issueStartLine, issueEndLine) };
-
-            var callbackSpy = new OnIssuesChangedCallbackSpy();
             var converter = CreatePassthroughConverter();
 
-            var testSubject = new IssueConsumer(snapshot, ValidFilePath, callbackSpy.Callback, converter);
+            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter);
 
             using (new AssertIgnoreScope())
             {
-                testSubject.Set(ValidFilePath, issues);
+                testSubject.SetIssues(ValidFilePath, issues);
             }
 
-            callbackSpy.CallCount.Should().Be(1);
-            if (isMappableToSnapshot)
-            {
-                callbackSpy.LastSuppliedIssues.Should().BeEquivalentTo(issues);
-            }
-            else
-            {
-                callbackSpy.LastSuppliedIssueVisualizations.Should().BeEmpty();
-            }
+            ValidateReceivedIssues(isMappableToSnapshot ? issues : []);
         }
 
         [TestMethod]
-        public void Accept_HasFileLevelIssues_NotIgnored()
+        [DataRow(-1, 1, false)] // start line < 1
+        [DataRow(0, 0, false)] // file-level issue, can't be mapped to snapshot
+        [DataRow(0, 1, false)] // illegal i.e. shouldn't happen, but should be ignored if it does
+        [DataRow(1, 1, true)] // starts in first line of snapshot
+        [DataRow(9, 10, true)] // in snapshot
+        [DataRow(10, 10, true)] // end is in last line of snapshot
+        [DataRow(10, 11, false)] // end is outside snapshot
+        [DataRow(11, 11, false)] // end is outside snapshot
+        public void SetHotspots_IssuesNotInSnapshotAreIgnored_CallbackIsCalledWithExpectedIssues(int issueStartLine, int issueEndLine, bool isMappableToSnapshot)
+        {
+            // Issues are 1-based.
+            // Snapshots are 0-based so last line = index 9
+            const int LinesInSnapshot = 10;
+            var snapshot = CreateSnapshot(LinesInSnapshot);
+            var hotspots = new[] { CreateIssue(issueStartLine, issueEndLine) };
+            var converter = CreatePassthroughConverter();
+
+            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter);
+
+            using (new AssertIgnoreScope())
+            {
+                testSubject.SetHotspots(ValidFilePath, hotspots);
+            }
+
+            ValidateReceivedHotspots(isMappableToSnapshot ? hotspots : []);
+        }
+
+        [TestMethod]
+        public void SetIssues_HasFileLevelIssues_NotIgnored()
         {
             var snapshot = CreateSnapshot(10);
             var issues = new[] { CreateFileLevelIssue() };
-
-            var callbackSpy = new OnIssuesChangedCallbackSpy();
             var converter = CreatePassthroughConverter();
 
-            var testSubject = new IssueConsumer(snapshot, ValidFilePath, callbackSpy.Callback, converter);
+            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter);
 
-            testSubject.Set(ValidFilePath, issues);
+            testSubject.SetIssues(ValidFilePath, issues);
 
-            callbackSpy.CallCount.Should().Be(1);
-            callbackSpy.LastSuppliedIssues.Should().BeEquivalentTo(issues);
+            ValidateReceivedIssues(issues);
         }
 
         [TestMethod]
-        public void Accept_MultipleCallsToAccept_IssuesAreReplaced()
+        public void SetHotspots_HasFileLevelIssues_NotIgnored()
         {
-            var callbackSpy = new OnIssuesChangedCallbackSpy();
+            var snapshot = CreateSnapshot(10);
+            var hotspots = new[] { CreateFileLevelIssue() };
+            var converter = CreatePassthroughConverter();
+
+            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter);
+
+            testSubject.SetHotspots(ValidFilePath, hotspots);
+
+            ValidateReceivedHotspots(hotspots);
+        }
+
+        [TestMethod]
+        public void SetIssues_MultipleCallsToAccept_IssuesAreReplaced()
+        {
             var firstSetOfIssues = new[]
             {
                 CreateIssue(1, 1), CreateIssue(2, 2)
@@ -140,38 +191,64 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var snapshot = CreateSnapshot(lineCount: 10);
             var converter = CreatePassthroughConverter();
 
-            var testSubject = new IssueConsumer(snapshot, ValidFilePath, callbackSpy.Callback, converter);
+            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter);
 
             // 1. First call
-            testSubject.Set(ValidFilePath, firstSetOfIssues);
+            testSubject.SetIssues(ValidFilePath, firstSetOfIssues);
 
-            callbackSpy.CallCount.Should().Be(1);
-            callbackSpy.LastSuppliedIssues.Should().BeEquivalentTo(firstSetOfIssues);
+            ValidateReceivedIssues(firstSetOfIssues);
+            issueHandler.ClearReceivedCalls();
 
             // 2. Second call
-            testSubject.Set(ValidFilePath, secondSetOfIssues);
+            testSubject.SetIssues(ValidFilePath, secondSetOfIssues);
 
-            callbackSpy.CallCount.Should().Be(2);
-            callbackSpy.LastSuppliedIssues.Should().BeEquivalentTo(secondSetOfIssues);
+            ValidateReceivedIssues(secondSetOfIssues);
         }
 
-        private class OnIssuesChangedCallbackSpy
+        [TestMethod]
+        public void SetHotspots_MultipleCallsToAccept_IssuesAreReplaced()
         {
-            public int CallCount { get; private set; }
-            public IList<IAnalysisIssueVisualization> LastSuppliedIssueVisualizations { get; private set; }
-            public IList<IAnalysisIssueBase> LastSuppliedIssues
+            var firstSetOfHotspots = new[]
             {
-                get
-                {
-                    return LastSuppliedIssueVisualizations?.Select(x => x.Issue).ToList();
-                }
-            }
+                CreateIssue(1, 1), CreateIssue(2, 2)
+            };
 
-            public void Callback(IEnumerable<IAnalysisIssueVisualization> issues)
+            var secondSetOfHotspots = new[]
             {
-                CallCount++;
-                LastSuppliedIssueVisualizations = issues?.ToList();
-            }
+                CreateIssue(3,3), CreateIssue(4,4)
+            };
+
+            var snapshot = CreateSnapshot(lineCount: 10);
+            var converter = CreatePassthroughConverter();
+
+            var testSubject = new IssueConsumer(snapshot, ValidFilePath, issueHandler, converter);
+
+            // 1. First call
+            testSubject.SetHotspots(ValidFilePath, firstSetOfHotspots);
+
+            ValidateReceivedHotspots(firstSetOfHotspots);
+            issueHandler.ClearReceivedCalls();
+
+            // 2. Second call
+            testSubject.SetHotspots(ValidFilePath, secondSetOfHotspots);
+
+            ValidateReceivedHotspots(secondSetOfHotspots);
+        }
+
+        private void ValidateReceivedIssues(IAnalysisIssue[] issues)
+        {
+            issueHandler.ReceivedWithAnyArgs(1).HandleNewIssues(default);
+            issueHandler.DidNotReceiveWithAnyArgs().HandleNewHotspots(default);
+            var analysisIssues = issueHandler.ReceivedCalls().Single().GetArguments()[0] as IEnumerable<IAnalysisIssueVisualization>;
+            analysisIssues.Select(x => x.Issue).Should().BeEquivalentTo(issues);
+        }
+
+        private void ValidateReceivedHotspots(IAnalysisIssue[] hotspots)
+        {
+            issueHandler.ReceivedWithAnyArgs(1).HandleNewHotspots(default);
+            issueHandler.DidNotReceiveWithAnyArgs().HandleNewIssues(default);
+            var analysisIssues = issueHandler.ReceivedCalls().Single().GetArguments()[0] as IEnumerable<IAnalysisIssueVisualization>;
+            analysisIssues.Select(x => x.Issue).Should().BeEquivalentTo(hotspots);
         }
 
         private static ITextSnapshot CreateSnapshot(int lineCount)

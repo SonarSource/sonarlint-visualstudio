@@ -113,44 +113,6 @@ public class AnalysisServiceTests
         scheduler.Received().Schedule("file/path", Arg.Any<Action<CancellationToken>>(), AnalysisService.DefaultAnalysisTimeoutMs);
     }
 
-    [TestMethod]
-    public void PublishIssues_NoConsumerInStorage_DoesNothing()
-    {
-        var issueConsumerStorage = CreateIssueConsumerStorageWithStoredItem(Guid.NewGuid(), null, false);
-        var testSubject = CreateTestSubject(issueConsumerStorage:issueConsumerStorage);
-
-        var act = () => testSubject.PublishIssues("file/path", Guid.NewGuid(), Substitute.For<IEnumerable<IAnalysisIssue>>());
-
-        act.Should().NotThrow();
-    }
-
-    [TestMethod]
-    public void PublishIssues_DifferentAnalysisId_DoesNothing()
-    {
-        var analysisId = Guid.NewGuid();
-        var issueConsumer = Substitute.For<IIssueConsumer>();
-        var issueConsumerStorage = CreateIssueConsumerStorageWithStoredItem(Guid.NewGuid(), issueConsumer, true);
-        var testSubject = CreateTestSubject(issueConsumerStorage:issueConsumerStorage);
-
-        testSubject.PublishIssues("file/path", analysisId, Substitute.For<IEnumerable<IAnalysisIssue>>());
-
-        issueConsumer.DidNotReceiveWithAnyArgs().Set(default, default);
-    }
-
-    [TestMethod]
-    public void PublishIssues_MatchingConsumer_PublishesIssues()
-    {
-        var analysisId = Guid.NewGuid();
-        var issueConsumer = Substitute.For<IIssueConsumer>();
-        var issueConsumerStorage = CreateIssueConsumerStorageWithStoredItem(analysisId, issueConsumer, true);
-        var testSubject = CreateTestSubject(issueConsumerStorage:issueConsumerStorage);
-        var analysisIssues = Substitute.For<IEnumerable<IAnalysisIssue>>();
-
-        testSubject.PublishIssues("file/path", analysisId, analysisIssues);
-
-        issueConsumer.Received().Set("file/path", analysisIssues);
-    }
-
     [DataRow(true)]
     [DataRow(false)]
     [DataTestMethod]
