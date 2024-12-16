@@ -106,6 +106,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         }
 
         [TestMethod]
+        public void HandleNewHotspots_UpdatedSnapshotAndHotspotStoreHaveExpectedValues()
+        {
+            var hotspotStoreMock = new Mock<ILocalHotspotsStoreUpdater>();
+
+            var hotspot = CreateIssue("S112", startLine: 1, endLine: 1, isHotspot: true);
+            var inputIssues = new[]
+            {
+                hotspot,
+            };
+
+            var notificationHandler = new SnapshotChangeHandler();
+
+            var expectedGuid = Guid.NewGuid();
+            const string expectedProjectName = "my project name";
+            const string expectedFilePath = "c:\\aaa\\file.txt";
+
+            var testSubject = CreateTestSubject(notificationHandler.OnSnapshotChanged,
+                expectedProjectName, expectedGuid, expectedFilePath, localHotspotsStoreUpdater:hotspotStoreMock.Object);
+
+            // Act
+            testSubject.HandleNewHotspots(inputIssues);
+
+            // Assert
+            VerifyHotspotsAdded(hotspotStoreMock, expectedFilePath, [hotspot]);
+        }
+
+        [TestMethod]
         public void HandleNewIssues_IssuesGetMatchesIsCalled()
         {
             var inputIssues = new[]

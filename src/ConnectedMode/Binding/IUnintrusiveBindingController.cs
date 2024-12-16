@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         Task BindAsync(BoundServerProject project, CancellationToken cancellationToken);
         bool Unbind(string localBindingKey);
     }
-    
+
     internal interface IUnintrusiveBindingController
     {
         Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
@@ -67,7 +67,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         {
             var bindingProcess = CreateBindingProcess(project);
             await bindingProcess.DownloadQualityProfileAsync(progress, token);
-            await bindingProcess.SaveServerExclusionsAsync(token);
         }
 
         public bool Unbind(string localBindingKey)
