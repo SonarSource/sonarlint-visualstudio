@@ -122,6 +122,10 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
                 };
                 roslynSettingsFileStorage.Update(settings, solutionNameWithoutExtension);
             }
+            else
+            {
+                roslynSettingsFileStorage.Delete(solutionNameWithoutExtension);
+            }
         }
         finally
         {

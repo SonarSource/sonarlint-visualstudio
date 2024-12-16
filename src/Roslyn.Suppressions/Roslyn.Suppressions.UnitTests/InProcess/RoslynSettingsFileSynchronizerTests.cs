@@ -115,7 +115,7 @@ public class RoslynSettingsFileSynchronizerTests
     }
 
     [TestMethod]
-    public void OnSuppressionsUpdateRequested_StandaloneMode_StorageNotUpdated()
+    public void OnSuppressionsUpdateRequested_StandaloneMode_StorageFileDeleted()
     {
         var fullSolutionFilePath = "c:\\aaa\\MySolution1.sln";
         MockSolutionInfoProvider(fullSolutionFilePath);
@@ -124,7 +124,8 @@ public class RoslynSettingsFileSynchronizerTests
         serverIssuesStore.ServerIssuesChanged += Raise.EventWith<EventArgs>();
 
         configProvider.Received(1).GetConfiguration();
-        roslynSettingsFileStorage.ReceivedCalls().Should().HaveCount(0);
+        roslynSettingsFileStorage.Received(1).Delete(Path.GetFileNameWithoutExtension(fullSolutionFilePath));
+        roslynSettingsFileStorage.ReceivedCalls().Should().HaveCount(1);
     }
 
     [TestMethod]
