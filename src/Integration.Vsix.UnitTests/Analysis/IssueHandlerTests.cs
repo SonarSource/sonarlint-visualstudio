@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
     public class IssueHandlerTests
     {
         [TestMethod]
-        public void HandleNewIssues_UpdatedSnapshotAndHotspotStoreHaveExpectedValues()
+        public void HandleNewIssues_UpdatedSnapshot()
         {
             var hotspotStoreMock = new Mock<ILocalHotspotsStoreUpdater>();
 
@@ -75,10 +75,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             actualFilePath.Should().Be(expectedFilePath);
 
             notificationHandler.UpdatedSnapshot.AnalyzedFilePath.Should().Be(expectedFilePath);
+            hotspotStoreMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void HandleNewHotspots_UpdatedSnapshotAndHotspotStoreHaveExpectedValues()
+        public void HandleNewHotspots_HotspotStoreHaveExpectedValues()
         {
             var hotspotStoreMock = new Mock<ILocalHotspotsStoreUpdater>();
 

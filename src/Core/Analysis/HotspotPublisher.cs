@@ -27,12 +27,12 @@ namespace SonarLint.VisualStudio.Core.Analysis;
 [method:ImportingConstructor]
 internal class HotspotPublisher(IIssueConsumerStorage issueConsumerStorage) : IHotspotPublisher
 {
-    public void Publish(string filePath, Guid analysisId, IEnumerable<IAnalysisIssue> issues)
+    public void Publish(string filePath, Guid analysisId, IEnumerable<IAnalysisIssue> findings)
     {
         if (issueConsumerStorage.TryGet(filePath, out var currentAnalysisId, out var issueConsumer)
             && analysisId == currentAnalysisId)
         {
-            issueConsumer.SetHotspots(filePath, issues);
+            issueConsumer.SetHotspots(filePath, findings);
         }
     }
 }

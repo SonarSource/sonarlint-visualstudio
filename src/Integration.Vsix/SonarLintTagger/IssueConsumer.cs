@@ -110,9 +110,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (path != analysisFilePath)
             {
                 Debug.Fail("Findings returned for an unexpected file path");
-                return true;
+                return false;
             }
-            return false;
+            return true;
         }
 
         /// <summary>
