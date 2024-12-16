@@ -104,6 +104,9 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
         });
     }
 
-    private static void ClearErrorList(string filePath, IIssueConsumer issueConsumer) =>
-        issueConsumer.Set(filePath, []);
+    private static void ClearErrorList(string filePath, IIssueConsumer issueConsumer)
+    {
+        issueConsumer.SetIssues(filePath, []);
+        issueConsumer.SetHotspots(filePath, []);
+    }
 }

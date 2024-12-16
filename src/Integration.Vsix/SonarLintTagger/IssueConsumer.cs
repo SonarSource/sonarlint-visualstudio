@@ -20,6 +20,7 @@
 
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 /*
@@ -62,33 +63,56 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ITextSnapshot analysisSnapshot;
         private readonly IAnalysisIssueVisualizationConverter issueToIssueVisualizationConverter;
         private readonly string analysisFilePath;
-        private readonly OnIssuesChanged onIssuesChanged;
+        private readonly IssueConsumerFactory.IIssueHandler issueHandler;
 
-        public delegate void OnIssuesChanged(IEnumerable<IAnalysisIssueVisualization> issues);
-
-        public IssueConsumer(ITextSnapshot analysisSnapshot, string analysisFilePath, OnIssuesChanged onIssuesChangedCallback, IAnalysisIssueVisualizationConverter issueToIssueVisualizationConverter)
+        public IssueConsumer(ITextSnapshot analysisSnapshot, string analysisFilePath, IssueConsumerFactory.IIssueHandler issueHandler, IAnalysisIssueVisualizationConverter issueToIssueVisualizationConverter)
         {
             this.analysisSnapshot = analysisSnapshot ?? throw new ArgumentNullException(nameof(analysisSnapshot));
             this.analysisFilePath = analysisFilePath ?? throw new ArgumentNullException(nameof(analysisFilePath));
-            this.onIssuesChanged = onIssuesChangedCallback ?? throw new ArgumentNullException(nameof(onIssuesChangedCallback));
+            this.issueHandler = issueHandler ?? throw new ArgumentNullException(nameof(issueHandler));
             this.issueToIssueVisualizationConverter = issueToIssueVisualizationConverter ?? throw new ArgumentNullException(nameof(issueToIssueVisualizationConverter));
         }
 
-        public void Set(string path, IEnumerable<IAnalysisIssue> issues)
+        public void SetIssues(string path, IEnumerable<IAnalysisIssue> issues)
+        {
+            if (!ValidatePath(path))
+            {
+                return;
+            }
+
+            issueHandler.HandleNewIssues(PrepareFindings(issues));
+        }
+
+        public void SetHotspots(string path, IEnumerable<IAnalysisIssue> hotspots)
+        {
+            if (!ValidatePath(path))
+            {
+                return;
+            }
+
+            issueHandler.HandleNewHotspots(PrepareFindings(hotspots));
+        }
+
+        private List<IAnalysisIssueVisualization> PrepareFindings(IEnumerable<IAnalysisIssue> findings)
+        {
+            Debug.Assert(findings.All(IsIssueFileLevelOrInAnalysisSnapshot), "Not all reported findings could be mapped to the analysis snapshot");
+
+            var analysisIssueVisualizations = findings
+                .Where(IsIssueFileLevelOrInAnalysisSnapshot)
+                .Select(x => issueToIssueVisualizationConverter.Convert(x, analysisSnapshot))
+                .ToList();
+            return analysisIssueVisualizations;
+        }
+
+        private bool ValidatePath(string path)
         {
             // Callback from the daemon when new results are available
             if (path != analysisFilePath)
             {
-                Debug.Fail("Issues returned for an unexpected file path");
-                return;
+                Debug.Fail("Findings returned for an unexpected file path");
+                return false;
             }
-
-            Debug.Assert(issues.All(IsIssueFileLevelOrInAnalysisSnapshot), "Not all reported issues could be mapped to the analysis snapshot");
-
-            onIssuesChanged.Invoke(issues
-                .Where(IsIssueFileLevelOrInAnalysisSnapshot)
-                .Select(x => issueToIssueVisualizationConverter.Convert(x, analysisSnapshot))
-                .ToList());
+            return true;
         }
 
         /// <summary>

@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             SnapshotChangedHandler onSnapshotChanged)
         {
             var issueHandler = new IssueHandler(textDocument, projectName, projectGuid, suppressedIssueMatcher, onSnapshotChanged, localHotspotsStore);
-            var issueConsumer = new IssueConsumer(analysisSnapshot, analysisFilePath, issueHandler.HandleNewIssues, converter);
+            var issueConsumer = new IssueConsumer(analysisSnapshot, analysisFilePath, issueHandler, converter);
 
             return issueConsumer;
         }
