@@ -357,7 +357,6 @@
     -->
     <Message Importance="high" Text="Fetching the CFamily files..." />
 
-    <Copy SourceFiles="..\..\src\Integration.Vsix\DownloadedJars\sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar" DestinationFolder="$(LocalAppData)\SLVS_CFamily_Build\sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion)" />
     <Exec Command="&quot;..\..\build\tools\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe&quot; $(PluginUrl) &quot;$(CFamilyTargetDirectory)&quot;" IgnoreExitCode="false" ContinueOnError="false" LogStandardErrorAsError="true" />
     
     <Exec Command="&quot;..\..\build\tools\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe&quot; $(PluginUrl) &quot;$(CFamilyTargetDirectory)&quot;" IgnoreExitCode="false" ContinueOnError="false" LogStandardErrorAsError="true" />

@@ -25,11 +25,21 @@
   <!-- ************************************************************** -->
   <!-- Information about the individual language plugins we need to download -->
   <!-- ************************************************************** -->
-  <PropertyGroup>
-    <CFamilyPluginFileName>sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar</CFamilyPluginFileName>
-    <CFamilyPluginDownloadPath>$(JarDownloadDir)\$(CFamilyPluginFileName)</CFamilyPluginDownloadPath>
-    <CFamilyPluginRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/com/sonarsource/cpp/sonar-cfamily-plugin/$(EmbeddedSonarCFamilyAnalyzerVersion)/$(CFamilyPluginFileName)</CFamilyPluginRemoteUrl>
-  </PropertyGroup>
+  <ItemGroup Label="PluginJars">
+    <PluginJars Include="CPP">
+      <JarName>sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar</JarName>
+      <URL>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/%(JarName)</URL>
+      <LanguageKey>cpp</LanguageKey>
+      <RepoKey>cpp</RepoKey>
+    </PluginJars>
+
+    <PluginJars Include="C">
+      <JarName>sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar</JarName>
+      <URL>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/%(JarName)</URL>
+      <LanguageKey>c</LanguageKey>
+      <RepoKey>c</RepoKey>
+    </PluginJars>
+  </ItemGroup>
 
   <PropertyGroup>
     <JavascriptPluginFileName>sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</JavascriptPluginFileName>
