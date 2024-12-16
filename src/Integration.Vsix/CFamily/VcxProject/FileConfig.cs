@@ -20,6 +20,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Abstractions;
 using EnvDTE;
 using Microsoft.VisualStudio.VCProjectEngine;
 using SonarLint.VisualStudio.Core;
@@ -28,8 +29,101 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {
     internal class FileConfig : IFileConfig
     {
+        private static string GetCompilerPathFromClCompilerPath(ILogger logger, VCConfiguration vcConfig, IFileSystem fileSystem)
+        {
+            var compilerPath = vcConfig.GetEvaluatedPropertyValue("ClCompilerPath");
+            if (string.IsNullOrEmpty(compilerPath))
+            {
+                logger.WriteLine("\"ClCompilerPath\" was not found.");
+                return null;
+            }
+
+            if (!fileSystem.File.Exists(compilerPath))
+            {
+                logger.WriteLine($"Compiler path \"{compilerPath}\" does not exist.");
+                return null;
+            }
+
+            return compilerPath;
+        }
+
+        private static string GetCompilerPathFromExecutablePath(ILogger logger, VCConfiguration vcConfig, IFileSystem fileSystem)
+        {
+            var executablePath = vcConfig.GetEvaluatedPropertyValue("ExecutablePath");
+            if (string.IsNullOrEmpty(executablePath))
+            {
+                logger.WriteLine("\"ExecutablePath\" was not found.");
+                return null;
+            }
+
+            var toolExe = vcConfig.GetEvaluatedPropertyValue("CLToolExe");
+            if (string.IsNullOrEmpty(toolExe))
+            {
+                logger.WriteLine("\"CLToolExe\" was not found.");
+                return null;
+            }
+
+            foreach (var path in executablePath.Split(';'))
+            {
+                var compilerPath = Path.Combine(path, toolExe);
+                if (fileSystem.File.Exists(compilerPath))
+                {
+                    return compilerPath;
+                }
+                else
+                {
+                    logger.WriteLine($"Compiler path \"{compilerPath}\" does not exist.");
+                }
+            }
+
+            return null;
+        }
+
+        private static string GetCompilerPathFromVCExecutablePath(ILogger logger, VCConfiguration vcConfig, IFileSystem fileSystem)
+        {
+            var platform = ((VCPlatform)vcConfig.Platform).Name.Contains("64") ? "x64" : "x86";
+            var exeVar = "VC_ExecutablePath_" + platform;
+            var compilerPath = Path.Combine(vcConfig.GetEvaluatedPropertyValue(exeVar), "cl.exe");
+            if (fileSystem.File.Exists(compilerPath))
+            {
+                return compilerPath;
+            }
+            else
+            {
+                logger.WriteLine($"Compiler path \"{compilerPath}\" does not exist.");
+                return null;
+            }
+        }
+
+        private static string GetCompilerPath(ILogger logger, VCConfiguration vcConfig, IFileSystem fileSystem)
+        {
+            var compilerPath = GetCompilerPathFromClCompilerPath(logger, vcConfig, fileSystem);
+            if (!string.IsNullOrEmpty(compilerPath))
+            {
+                return compilerPath;
+            }
+
+            // Fallback to ExecutablePath and CLToolExe
+            compilerPath = GetCompilerPathFromExecutablePath(logger, vcConfig, fileSystem);
+            if (!string.IsNullOrEmpty(compilerPath))
+            {
+                return compilerPath;
+            }
+
+            // Fallback to VC_ExecutablePath, which is used to be used in VS2017 toolchains
+            // because ClCompilerPath was not available
+            compilerPath = GetCompilerPathFromVCExecutablePath(logger, vcConfig, fileSystem);
+            if (!string.IsNullOrEmpty(compilerPath))
+            {
+                return compilerPath;
+            }
+
+            logger.WriteLine("Compiler is not supported.");
+            return null;
+        }
+
         [ExcludeFromCodeCoverage]
-        public static FileConfig TryGet(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath)
+        public static FileConfig TryGet(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath, IFileSystem fileSystem)
         {
             if (!(dteProjectItem.ContainingProject.Object is VCProject vcProject) ||
                 !(dteProjectItem.Object is VCFile vcFile))
@@ -48,19 +142,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
             CmdBuilder cmdBuilder = new CmdBuilder(vcFile.ItemType == "ClInclude");
 
-            var compilerPath = vcConfig.GetEvaluatedPropertyValue("ClCompilerPath");
+            var compilerPath = GetCompilerPath(logger, vcConfig, fileSystem);
             if (string.IsNullOrEmpty(compilerPath))
             {
-                // in case ClCompilerPath is not available on VS2017 toolchains
-                var platform = ((VCPlatform)vcConfig.Platform).Name.Contains("64") ? "x64" : "x86";
-                var exeVar = "VC_ExecutablePath_" + platform;
-                compilerPath = Path.Combine(vcConfig.GetEvaluatedPropertyValue(exeVar), "cl.exe");
-                if (string.IsNullOrEmpty(compilerPath))
-                {
-                    logger.WriteLine("Compiler is not supported. \"ClCompilerPath\" and \"VC_ExecutablePath\" were not found.");
-                    return null;
-                }
+                return null;
             }
+            logger.WriteLine(compilerPath);
             // command: add compiler
             cmdBuilder.AddCompiler(compilerPath);
 

@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
+using System.IO.Abstractions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
 {
@@ -40,6 +41,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         private DTE2 dte;
         private IVsUIServiceOperation uiServiceOperation;
         private FileConfigProvider testSubject;
+        private const string ClFilePath = "C:\\path\\cl.exe";
+
+        private static Mock<IFileSystem> CreateFileSystemWithExistingFile(string fullPath)
+        {
+            var fileSystem = new Mock<IFileSystem>();
+            fileSystem.Setup(x => x.File.Exists(fullPath)).Returns(true);
+            return fileSystem;
+        }
+        private static Mock<IFileSystem> CreateFileSystemWithClCompiler() => CreateFileSystemWithExistingFile(ClFilePath);
 
         [TestMethod]
         public void MefCtor_CheckIsExported() =>
@@ -60,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             dte = Substitute.For<DTE2>();
             uiServiceOperation = CreateDefaultUiServiceOperation(dte);
 
-            testSubject = new FileConfigProvider(uiServiceOperation, fileInSolutionIndicator, logger, new NoOpThreadHandler());
+            testSubject = new FileConfigProvider(uiServiceOperation, fileInSolutionIndicator, logger, new NoOpThreadHandler(), CreateFileSystemWithClCompiler().Object);
         }
 
         private static IFileInSolutionIndicator CreateDefaultFileInSolutionIndicator()
