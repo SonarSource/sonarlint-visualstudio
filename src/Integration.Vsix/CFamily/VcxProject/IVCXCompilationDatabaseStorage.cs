@@ -21,7 +21,7 @@
 using System.ComponentModel.Composition;
 using System.IO;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.CFamily.CMake;
+using SonarLint.VisualStudio.CFamily.CompilationDatabase;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.Helpers;
@@ -31,28 +31,46 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
 internal interface IVCXCompilationDatabaseStorage : IDisposable
 {
-    ICompilationDatabaseHandle CreateDatabase(IFileConfig fileConfig);
+    ICompilationDatabaseHandle CreateDatabase(
+        string file,
+        string directory,
+        string command,
+        IEnumerable<string> environment);
 }
 
 [Export(typeof(IVCXCompilationDatabaseStorage))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal sealed class VCXCompilationDatabaseStorage(IFileSystemService fileSystemService, IThreadHandling threadHandling, ILogger logger)
-    : IVCXCompilationDatabaseStorage
+internal sealed class VCXCompilationDatabaseStorage : IVCXCompilationDatabaseStorage
 {
-    private bool disposed;
     private readonly string compilationDatabaseDirectoryPath = PathHelper.GetTempDirForTask(true, "VCXCD");
+    private readonly IFileSystemService fileSystemService;
+    private readonly IThreadHandling threadHandling;
+    private readonly ILogger logger;
+    private bool disposed;
 
-    public ICompilationDatabaseHandle CreateDatabase(IFileConfig fileConfig)
+    [ImportingConstructor]
+    public VCXCompilationDatabaseStorage(IFileSystemService fileSystemService, IThreadHandling threadHandling, ILogger logger)
+    {
+        this.fileSystemService = fileSystemService;
+        this.threadHandling = threadHandling;
+        this.logger = logger;
+        }
+
+    public ICompilationDatabaseHandle CreateDatabase(
+        string file,
+        string directory,
+        string command,
+        IEnumerable<string> environment)
     {
         ThrowIfDisposed();
         threadHandling.ThrowIfOnUIThread();
 
         var compilationDatabaseEntry = new CompilationDatabaseEntry
         {
-            Directory = fileConfig.CDDirectory,
-            Command = fileConfig.CDCommand,
-            File = fileConfig.CDFile
+            Directory = directory,
+            Command = command,
+            File = file,
+            Environment = environment
         };
         var compilationDatabase = new[] { compilationDatabaseEntry };
 
