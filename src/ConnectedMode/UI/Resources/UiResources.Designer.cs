@@ -295,6 +295,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [ConnectedMode] Removing the connection failed. The &apos;{0}&apos; project could not be unbound..
+        /// </summary>
+        public static string DeleteConnection_DeleteBindingFails {
+            get {
+                return ResourceManager.GetString("DeleteConnection_DeleteBindingFails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to It is used in the following project bindings:.
         /// </summary>
         public static string DeleteConnectionBindingListLabel {
@@ -783,7 +792,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Removing the connection failed.
+        ///   Looks up a localized string similar to Removing the connection failed. Please check the SonarQube for Visual Studio logs for more details..
         /// </summary>
         public static string RemovingConnectionFailedText {
             get {

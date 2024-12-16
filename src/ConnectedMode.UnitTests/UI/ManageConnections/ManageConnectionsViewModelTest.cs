@@ -189,6 +189,7 @@ public class ManageConnectionsViewModelTest
         {
             solutionBindingRepository.DeleteBinding(LocalBindingKey1);
             solutionBindingRepository.DeleteBinding(LocalBindingKey2);
+            logger.WriteLine(UiResources.DeleteConnection_DeleteBindingFails, LocalBindingKey2);
         });
         serverConnectionsRepositoryAdapter.DidNotReceive().TryRemoveConnection(testSubject.ConnectionViewModels[0].Connection.Info);
     }

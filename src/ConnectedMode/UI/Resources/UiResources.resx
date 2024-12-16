@@ -370,7 +370,7 @@
     <value>Creating connection...</value>
   </data>
   <data name="RemovingConnectionFailedText" xml:space="preserve">
-    <value>Removing the connection failed</value>
+    <value>Removing the connection failed. Please check the SonarQube for Visual Studio logs for more details.</value>
   </data>
   <data name="RemovingConnectionText" xml:space="preserve">
     <value>Removing connection...</value>
@@ -442,5 +442,8 @@ Please manually add the credentials for the connection and then try again.</valu
   </data>
   <data name="CloseButton" xml:space="preserve">
     <value>Close</value>
+  </data>
+  <data name="DeleteConnection_DeleteBindingFails" xml:space="preserve">
+    <value>[ConnectedMode] Removing the connection failed. The '{0}' project could not be unbound.</value>
   </data>
 </root>
