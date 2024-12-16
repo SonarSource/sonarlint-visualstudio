@@ -21,7 +21,7 @@
 using System.IO;
 using Newtonsoft.Json;
 using NSubstitute.ExceptionExtensions;
-using SonarLint.VisualStudio.CFamily.CMake;
+using SonarLint.VisualStudio.CFamily.CompilationDatabase;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.SystemAbstractions;

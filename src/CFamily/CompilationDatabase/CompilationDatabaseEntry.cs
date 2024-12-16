@@ -20,7 +20,7 @@
 
 using Newtonsoft.Json;
 
-namespace SonarLint.VisualStudio.CFamily.CMake;
+namespace SonarLint.VisualStudio.CFamily.CompilationDatabase;
 
 /// <summary>
 /// Schema based on https://clang.llvm.org/docs/JSONCompilationDatabase.html

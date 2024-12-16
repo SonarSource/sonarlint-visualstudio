@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.CFamily.CMake;
+using SonarLint.VisualStudio.CFamily.CompilationDatabase;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.Helpers;
