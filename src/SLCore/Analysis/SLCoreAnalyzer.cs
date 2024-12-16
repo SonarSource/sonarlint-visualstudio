@@ -61,13 +61,10 @@ public class SLCoreAnalyzer : IAnalyzer
         this.logger = logger;
     }
 
-    public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages) => true;
-
     public void ExecuteAnalysis(
         string path,
         Guid analysisId,
         IEnumerable<AnalysisLanguage> detectedLanguages,
-        IIssueConsumer consumer,
         IAnalyzerOptions analyzerOptions,
         CancellationToken cancellationToken)
     {

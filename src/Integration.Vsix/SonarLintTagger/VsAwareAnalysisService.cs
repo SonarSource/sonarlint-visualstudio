@@ -37,8 +37,6 @@ internal interface IVsAwareAnalysisService
         SnapshotChangedHandler errorListHandler,
         IAnalyzerOptions options);
 
-    bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> detectedLanguages);
-
     void CancelForFile(string filePath);
 }
 
@@ -72,9 +70,6 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
         RequestAnalysisAsync(document, analysisSnapshot, detectedLanguages, errorListHandler, options)
             .Forget();
     }
-
-    public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> detectedLanguages) =>
-        analysisService.IsAnalysisSupported(detectedLanguages);
 
     public void CancelForFile(string filePath) =>
         analysisService.CancelForFile(filePath);

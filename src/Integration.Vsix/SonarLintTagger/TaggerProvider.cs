@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal sealed class TaggerProvider : ITaggerProvider, IDocumentEvents
     {
         internal static readonly Type SingletonManagerPropertyCollectionKey = typeof(SingletonDisposableTaggerManager<IErrorTag>);
-        
+
         internal readonly ISonarErrorListDataSource sonarErrorDataSource;
         internal readonly ITextDocumentFactoryService textDocumentFactoryService;
 
@@ -155,16 +155,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             var detectedLanguages = languageRecognizer.Detect(textDocument.FilePath, buffer.ContentType);
 
-            if (analysisService.IsAnalysisSupported(detectedLanguages))
-            {
-                // We only want one TBIT per buffer and we don't want it be disposed until
-                // it is not being used by any tag aggregators, so we're wrapping it in a SingletonDisposableTaggerManager
-                var singletonTaggerManager = buffer.Properties.GetOrCreateSingletonProperty(SingletonManagerPropertyCollectionKey,
-                    () => new SingletonDisposableTaggerManager<IErrorTag>(_ => InternalCreateTextBufferIssueTracker(textDocument, detectedLanguages)));
+            // We only want one TBIT per buffer and we don't want it be disposed until
+            // it is not being used by any tag aggregators, so we're wrapping it in a SingletonDisposableTaggerManager
+            var singletonTaggerManager = buffer.Properties.GetOrCreateSingletonProperty(SingletonManagerPropertyCollectionKey,
+                () => new SingletonDisposableTaggerManager<IErrorTag>(_ => InternalCreateTextBufferIssueTracker(textDocument, detectedLanguages)));
 
-                var tagger = singletonTaggerManager.CreateTagger(buffer);
-                return tagger as ITagger<T>;
-            }
+            var tagger = singletonTaggerManager.CreateTagger(buffer);
+            return tagger as ITagger<T>;
 
             return null;
         }

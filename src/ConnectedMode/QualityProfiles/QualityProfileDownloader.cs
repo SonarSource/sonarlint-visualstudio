@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
         /// <exception cref="InvalidOperationException">If binding failed for one of the languages</exception>
         Task<bool> UpdateAsync(BoundServerProject boundProject, IProgress<FixedStepsProgress> progress, CancellationToken cancellationToken);
     }
-    
+
     [Export(typeof(IQualityProfileDownloader))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class QualityProfileDownloader : IQualityProfileDownloader
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             this(
                 bindingConfigProvider,
                 configurationPersister,
-                outOfDateQualityProfileFinder, 
+                outOfDateQualityProfileFinder,
                 logger,
                 Language.KnownLanguages)
         { }
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             EnsureProfilesExistForAllSupportedLanguages(boundProject);
 
             var outOfDateProfiles = await outOfDateQualityProfileFinder.GetAsync(boundProject, cancellationToken);
-            
+
             int currentLanguage = 0;
             var totalLanguages = outOfDateProfiles.Count;
 
@@ -132,7 +132,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             {
                 LogWithBindingPrefix(string.Format(QualityProfilesStrings.SubTextPaddingFormat, QualityProfilesStrings.DownloadingQualityProfilesNotNeeded));
             }
-            
+
             return isChanged;
         }
 

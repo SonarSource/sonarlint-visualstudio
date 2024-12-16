@@ -196,5 +196,7 @@ namespace SonarLint.VisualStudio.Core
         }
 
         #endregion
+
+        public override string ToString() => Name;
     }
 }
