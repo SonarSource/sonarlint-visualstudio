@@ -42,6 +42,7 @@ public class RoslynSettingsFileSynchronizerTests
     private RoslynSettingsFileSynchronizer testSubject;
     private IThreadHandling threadHandling;
     private readonly BindingConfiguration connectedBindingConfiguration = CreateConnectedConfiguration("some project key");
+    private ISolutionBindingRepository solutionBindingRepository;
 
     [TestInitialize]
     public void TestInitialize()
@@ -50,6 +51,7 @@ public class RoslynSettingsFileSynchronizerTests
         roslynSettingsFileStorage = Substitute.For<IRoslynSettingsFileStorage>();
         configProvider = Substitute.For<IConfigurationProvider>();
         solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
+        solutionBindingRepository = Substitute.For<ISolutionBindingRepository>();
         threadHandling = Substitute.For<IThreadHandling>();
         logger = new TestLogger();
 
@@ -57,6 +59,7 @@ public class RoslynSettingsFileSynchronizerTests
             roslynSettingsFileStorage,
             configProvider,
             solutionInfoProvider,
+            solutionBindingRepository,
             logger,
             threadHandling);
         threadHandling.SwitchToBackgroundThread().Returns(new NoOpThreadHandler.NoOpAwaitable());
@@ -69,6 +72,7 @@ public class RoslynSettingsFileSynchronizerTests
             MefTestHelpers.CreateExport<IRoslynSettingsFileStorage>(),
             MefTestHelpers.CreateExport<IConfigurationProvider>(),
             MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
+            MefTestHelpers.CreateExport<ISolutionBindingRepository>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
@@ -82,6 +86,13 @@ public class RoslynSettingsFileSynchronizerTests
     }
 
     [TestMethod]
+    public void Ctor_RegisterToBindingDeletedEvent()
+    {
+        solutionBindingRepository.Received(1).BindingDeleted += Arg.Any<EventHandler<LocalBindingKeyEventArgs>>();
+        VerifySolutionBindingRepositoryNoOtherCalls();
+    }
+
+    [TestMethod]
     public void Dispose_UnregisterFromSuppressionsUpdateRequestedEvent()
     {
         serverIssuesStore.ClearReceivedCalls();
@@ -90,6 +101,17 @@ public class RoslynSettingsFileSynchronizerTests
 
         serverIssuesStore.Received(1).ServerIssuesChanged -= Arg.Any<EventHandler>();
         VerifyServerIssuesStoreNoOtherCalls();
+    }
+
+    [TestMethod]
+    public void Dispose_UnregisterFromBindingDeletedEvent()
+    {
+        solutionBindingRepository.ClearReceivedCalls();
+
+        testSubject.Dispose();
+
+        solutionBindingRepository.Received(1).BindingDeleted -= Arg.Any<EventHandler<LocalBindingKeyEventArgs>>();
+        VerifySolutionBindingRepositoryNoOtherCalls();
     }
 
     [TestMethod]
@@ -196,6 +218,15 @@ public class RoslynSettingsFileSynchronizerTests
         actualSuppressions[1].RoslynRuleId.Should().Be("S333");
     }
 
+    [TestMethod]
+    public void BindingDeleted_StorageFileDeleted()
+    {
+        var localBindingKey = "my solution name";
+        solutionBindingRepository.BindingDeleted += Raise.EventWith(new LocalBindingKeyEventArgs(localBindingKey));
+
+        roslynSettingsFileStorage.Received(1).Delete(localBindingKey);
+    }
+
     private void MockConfigProvider(BindingConfiguration configuration) => configProvider.GetConfiguration().Returns(configuration);
 
     private void MockServerIssuesStore(IEnumerable<SonarQubeIssue> issues = null) => serverIssuesStore.Get().Returns(issues);
@@ -210,4 +241,5 @@ public class RoslynSettingsFileSynchronizerTests
     private void MockSolutionInfoProvider(string fullSolutionNameToReturn) => solutionInfoProvider.GetFullSolutionFilePathAsync().Returns(fullSolutionNameToReturn);
 
     private void VerifyServerIssuesStoreNoOtherCalls() => serverIssuesStore.ReceivedCalls().Should().HaveCount(1); // no other calls
+    private void VerifySolutionBindingRepositoryNoOtherCalls() => solutionBindingRepository.ReceivedCalls().Should().HaveCount(1); // no other calls
 }
