@@ -142,6 +142,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             Assert.AreEqual("C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;", request.EnvInclude);
             Assert.AreEqual("c:\\dummy\\file.cpp", request.CDFile);
             Assert.AreEqual("c:\\foo", request.CDDirectory);
+            Assert.IsFalse(request.IsHeaderFile);
         }
 
         [TestMethod]
@@ -175,6 +176,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             request.Should().NotBeNull();
             Assert.AreEqual("\"C:\\path\\cl.exe\" /Yu\"pch.h\" /FI\"pch.h\" /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
             Assert.AreEqual("c:\\dummy\\file.h", request.CDFile);
+            Assert.IsTrue(request.IsHeaderFile);
 
             // Arrange
             projectItemConfig.FileConfigProperties["CompileAs"] = "CompileAsC";
@@ -186,6 +188,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             // Assert
             Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu /TC \"c:\\dummy\\file.h\"", request.CDCommand);
             Assert.AreEqual("c:\\dummy\\file.h", request.CDFile);
+            Assert.IsTrue(request.IsHeaderFile);
 
             // Arrange
             projectItemConfig.FileConfigProperties["CompileAs"] = "CompileAsCpp";
@@ -196,6 +199,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             // Assert
             Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu /TP \"c:\\dummy\\file.h\"", request.CDCommand);
             Assert.AreEqual("c:\\dummy\\file.h", request.CDFile);
+            Assert.IsTrue(request.IsHeaderFile);
         }
 
         [TestMethod]
