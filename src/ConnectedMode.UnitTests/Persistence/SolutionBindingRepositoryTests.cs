@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core;
@@ -297,12 +298,35 @@ public class SolutionBindingRepositoryTests
     [DataRow(false)]
     public void DeleteBinding_ReturnsResultOfDeleteBindingDirectory(bool expectedResult)
     {
-        unintrusiveBindingPathProvider.GetBindingPath(LocalBindingKey).Returns(MockFilePath);
-        solutionBindingFileLoader.DeleteBindingDirectory(MockFilePath).Returns(expectedResult);
+        MockDeletingBindingDirectory(LocalBindingKey, expectedResult);
 
         var result = testSubject.DeleteBinding(LocalBindingKey);
 
         result.Should().Be(expectedResult);
+    }
+
+    [TestMethod]
+    public void DeleteBinding_DirectoryNotDeleted_EventNotTriggered()
+    {
+        var eventHandler = Substitute.For<EventHandler<LocalBindingKeyEventArgs>>();
+        testSubject.BindingDeleted += eventHandler;
+        MockDeletingBindingDirectory(LocalBindingKey, deleted:false);
+
+        testSubject.DeleteBinding(LocalBindingKey);
+
+        eventHandler.DidNotReceiveWithAnyArgs().Invoke(default, default);
+    }
+
+    [TestMethod]
+    public void DeleteBinding_DirectoryDeleted_EventTriggered()
+    {
+        var eventHandler = Substitute.For<EventHandler<LocalBindingKeyEventArgs>>();
+        testSubject.BindingDeleted += eventHandler;
+        MockDeletingBindingDirectory(LocalBindingKey, deleted: true);
+
+        testSubject.DeleteBinding(LocalBindingKey);
+
+        eventHandler.Received(1).Invoke(testSubject, Arg.Is<LocalBindingKeyEventArgs>(x => x.LocalBindingKey == LocalBindingKey));
     }
 
     private BoundServerProject SetUpBinding(string solution, ServerConnection connection, string bindingConfig)
@@ -329,4 +353,10 @@ public class SolutionBindingRepositoryTests
             });
 
     private void SetUpUnintrusiveBindingPathProvider(params string[] bindigFolders) => unintrusiveBindingPathProvider.GetBindingPaths().Returns(bindigFolders);
+
+    private void MockDeletingBindingDirectory(string localBindingKey, bool deleted)
+    {
+        unintrusiveBindingPathProvider.GetBindingPath(localBindingKey).Returns(MockFilePath);
+        solutionBindingFileLoader.DeleteBindingDirectory(MockFilePath).Returns(deleted);
+    }
 }

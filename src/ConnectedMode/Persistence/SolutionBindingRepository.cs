@@ -103,10 +103,16 @@ internal class SolutionBindingRepository : ISolutionBindingRepository, ILegacySo
     public bool DeleteBinding(string localBindingKey)
     {
         var bindingPath = unintrusiveBindingPathProvider.GetBindingPath(localBindingKey);
-        return solutionBindingFileLoader.DeleteBindingDirectory(bindingPath);
+        if (!solutionBindingFileLoader.DeleteBindingDirectory(bindingPath))
+        {
+            return false;
+        }
+        BindingDeleted?.Invoke(this, new LocalBindingKeyEventArgs(localBindingKey));
+        return true;
     }
 
     public event EventHandler BindingUpdated;
+    public event EventHandler<LocalBindingKeyEventArgs> BindingDeleted;
 
     public IEnumerable<BoundServerProject> List()
     {

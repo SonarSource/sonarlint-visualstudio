@@ -49,6 +49,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
     private readonly IRoslynSettingsFileStorage roslynSettingsFileStorage;
     private readonly IServerIssuesStore serverIssuesStore;
     private readonly ISolutionInfoProvider solutionInfoProvider;
+    private readonly ISolutionBindingRepository solutionBindingRepository;
     private readonly IThreadHandling threadHandling;
 
     [ImportingConstructor]
@@ -57,11 +58,13 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         IRoslynSettingsFileStorage roslynSettingsFileStorage,
         IConfigurationProvider configurationProvider,
         ISolutionInfoProvider solutionInfoProvider,
+        ISolutionBindingRepository solutionBindingRepository,
         ILogger logger)
         : this(serverIssuesStore,
             roslynSettingsFileStorage,
             configurationProvider,
             solutionInfoProvider,
+            solutionBindingRepository,
             logger,
             ThreadHandling.Instance)
     {
@@ -72,6 +75,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         IRoslynSettingsFileStorage roslynSettingsFileStorage,
         IConfigurationProvider configurationProvider,
         ISolutionInfoProvider solutionInfoProvider,
+        ISolutionBindingRepository solutionBindingRepository,
         ILogger logger,
         IThreadHandling threadHandling)
     {
@@ -79,11 +83,15 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         this.roslynSettingsFileStorage = roslynSettingsFileStorage;
         this.configurationProvider = configurationProvider;
         this.solutionInfoProvider = solutionInfoProvider;
+        this.solutionBindingRepository = solutionBindingRepository;
         this.logger = logger;
         this.threadHandling = threadHandling;
 
         serverIssuesStore.ServerIssuesChanged += OnServerIssuesChanged;
+        solutionBindingRepository.BindingDeleted += OnBindingDeleted;
     }
+
+    private void OnBindingDeleted(object sender, LocalBindingKeyEventArgs e) => roslynSettingsFileStorage.Delete(e.LocalBindingKey);
 
     /// <summary>
     /// Updates the Roslyn suppressed issues file if in connected mode
@@ -125,7 +133,11 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         }
     }
 
-    public void Dispose() => serverIssuesStore.ServerIssuesChanged -= OnServerIssuesChanged;
+    public void Dispose()
+    {
+        serverIssuesStore.ServerIssuesChanged -= OnServerIssuesChanged;
+        solutionBindingRepository.BindingDeleted -= OnBindingDeleted;
+    }
 
     private void OnServerIssuesChanged(object sender, EventArgs e)
     {
