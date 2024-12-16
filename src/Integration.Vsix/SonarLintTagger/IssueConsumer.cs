@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void SetIssues(string path, IEnumerable<IAnalysisIssue> issues)
         {
-            if (ValidatePath(path))
+            if (!ValidatePath(path))
             {
                 return;
             }
