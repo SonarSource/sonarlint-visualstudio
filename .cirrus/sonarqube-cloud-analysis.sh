@@ -18,7 +18,7 @@ if [ "$CIRRUS_BRANCH" == "master" ] && [ -z "$CIRRUS_PR" ]; then
   echo '======= Analyze master branch'
   dotnet sonarscanner begin "${SONAR_PARAMS[@]}"
 
-elif [[ "$CIRRUS_BRANCH" == "branch-"* || "$CIRRUS_BRANCH" == "feature/"* ]] && [ -z "$CIRRUS_PR" ]; then
+elif [[ "$CIRRUS_BRANCH" == "branch-"* || "$CIRRUS_BRANCH" == "ci-images-verifier" || "$CIRRUS_BRANCH" == "feature/"* ]] && [ -z "$CIRRUS_PR" ]; then
   echo '======= Analyze long lived branch'
   dotnet sonarscanner begin "${SONAR_PARAMS[@]}" -d:sonar.branch.name="${CIRRUS_BRANCH}"
 
