@@ -18,22 +18,76 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.CFamily;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
 [Export(typeof(IVCXCompilationDatabaseProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class VCXCompilationDatabaseProvider(
-    IVCXCompilationDatabaseStorage storage,
-    IFileConfigProvider fileConfigProvider)
-    : IVCXCompilationDatabaseProvider
+internal class VCXCompilationDatabaseProvider : IVCXCompilationDatabaseProvider
 {
+    private const string IncludeEntryName = "INCLUDE";
+    private const string IsHeaderEntryName = "SONAR_CFAMILY_CAPTURE_PROPERTY_isHeaderFile";
+    private readonly ImmutableList<EnvironmentEntry> staticEnvironmentVariableEntries;
+    private readonly IVCXCompilationDatabaseStorage storage;
+    private readonly IFileConfigProvider fileConfigProvider;
+    private readonly ILogger logger;
+
+    [method: ImportingConstructor]
+    public VCXCompilationDatabaseProvider(
+        IVCXCompilationDatabaseStorage storage,
+        IEnvironmentVariableProvider environmentVariableProvider,
+        IFileConfigProvider fileConfigProvider,
+        ILogger logger)
+    {
+        this.storage = storage;
+        this.fileConfigProvider = fileConfigProvider;
+        this.logger = logger;
+        staticEnvironmentVariableEntries = ImmutableList.CreateRange(environmentVariableProvider.GetAll().Select(x => new EnvironmentEntry(x.name, x.value)));
+    }
+
     public ICompilationDatabaseHandle CreateOrNull(string filePath) =>
-        fileConfigProvider.Get(filePath, null) is {} fileConfig
-            ? storage.CreateDatabase(fileConfig)
+        fileConfigProvider.Get(filePath, null) is { } fileConfig
+            ? storage.CreateDatabase(fileConfig.CDFile, fileConfig.CDDirectory, fileConfig.CDCommand, GetEnvironmentEntries(fileConfig).Select(x => x.FormattedEntry))
             : null;
+
+    private ImmutableList<EnvironmentEntry> GetEnvironmentEntries(IFileConfig fileConfig)
+    {
+        ImmutableList<EnvironmentEntry> environmentEntries = staticEnvironmentVariableEntries;
+        if (!string.IsNullOrEmpty(fileConfig.EnvInclude))
+        {
+            environmentEntries = UpdateEnvironmentWithEntry(environmentEntries, new EnvironmentEntry(IncludeEntryName, fileConfig.EnvInclude));
+        }
+        if (fileConfig.IsHeaderFile)
+        {
+            environmentEntries = UpdateEnvironmentWithEntry(environmentEntries, new EnvironmentEntry(IsHeaderEntryName, "true"));
+        }
+        return environmentEntries;
+    }
+
+    private ImmutableList<EnvironmentEntry> UpdateEnvironmentWithEntry(ImmutableList<EnvironmentEntry> environmentEntries, EnvironmentEntry newEntry)
+    {
+        EnvironmentEntry oldEntry = environmentEntries.FirstOrDefault(x => x.Name == newEntry.Name);
+
+        if (oldEntry.Name != null)
+        {
+            logger.LogVerbose($"[VCXCompilationDatabaseProvider] Overwriting the value of environment variable \"{newEntry.Name}\". Old value: \"{oldEntry.Value}\", new value: \"{newEntry.Value}\"");
+        }
+        else
+        {
+            logger.LogVerbose($"[VCXCompilationDatabaseProvider] Setting environment variable \"{newEntry.Name}\". Value: \"{newEntry.Value}\"");
+        }
+        return environmentEntries.RemoveAll(x => x.Name == newEntry.Name).Add(newEntry);
+    }
+
+    private readonly struct EnvironmentEntry(string name, string value)
+    {
+        public string Name { get; } = name;
+        public string Value { get; } = value;
+        public string FormattedEntry { get; } = $"{name}={value}";
+    }
 }

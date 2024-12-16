@@ -21,7 +21,7 @@
 using System.IO;
 using Newtonsoft.Json;
 using NSubstitute.ExceptionExtensions;
-using SonarLint.VisualStudio.CFamily.CMake;
+using SonarLint.VisualStudio.CFamily.CompilationDatabase;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
@@ -35,21 +35,12 @@ public class VCXCompilationDatabaseStorageTests
     private const string CompileCommand = "compile";
     private const string SourceDirectory = @"C:\a\b\c";
     private const string SourceFileName = "source.cpp";
+    private static readonly IEnumerable<string> EnvValue = ["envincludevalue"];
     private static readonly string SourceFilePath = Path.Combine(SourceDirectory, SourceFileName);
     private IFileSystemService fileSystemService;
     private IThreadHandling threadHandling;
     private IVCXCompilationDatabaseStorage testSubject;
     private TestLogger testLogger;
-
-    [TestMethod]
-    public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<VCXCompilationDatabaseStorage, IVCXCompilationDatabaseStorage>(
-            MefTestHelpers.CreateExport<IFileSystemService>(),
-            MefTestHelpers.CreateExport<IThreadHandling>(),
-            MefTestHelpers.CreateExport<ILogger>());
-
-    [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<VCXCompilationDatabaseStorage>();
 
     [TestInitialize]
     public void TestInitialize()
@@ -61,11 +52,21 @@ public class VCXCompilationDatabaseStorageTests
     }
 
     [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<VCXCompilationDatabaseStorage, IVCXCompilationDatabaseStorage>(
+            MefTestHelpers.CreateExport<IFileSystemService>(),
+            MefTestHelpers.CreateExport<IThreadHandling>(),
+            MefTestHelpers.CreateExport<ILogger>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<VCXCompilationDatabaseStorage>();
+
+    [TestMethod]
     public void CreateDatabase_NonCriticalException_ReturnsNull()
     {
         fileSystemService.Directory.CreateDirectory(default).ThrowsForAnyArgs<NotImplementedException>();
 
-        var database = testSubject.CreateDatabase(Substitute.For<IFileConfig>());
+        var database = testSubject.CreateDatabase(default, default, default, default);
 
         database.Should().BeNull();
         testLogger.AssertPartialOutputStrings(nameof(NotImplementedException));
@@ -76,7 +77,7 @@ public class VCXCompilationDatabaseStorageTests
     {
         fileSystemService.Directory.CreateDirectory(default).ThrowsForAnyArgs<DivideByZeroException>();
 
-        var act = () => testSubject.CreateDatabase(Substitute.For<IFileConfig>());
+        var act = () => testSubject.CreateDatabase(default, default, default, default);
 
         act.Should().Throw<DivideByZeroException>();
     }
@@ -85,9 +86,8 @@ public class VCXCompilationDatabaseStorageTests
     public void CreateDatabase_FileWritten_ReturnsPathToDatabaseWithCorrectContent()
     {
         var expectedDirectory = Path.Combine(Path.GetTempPath(), "SLVS", "VCXCD", PathHelper.PerVsInstanceFolderName.ToString());
-        var fileConfig = SetUpFileConfig();
 
-        var databaseHandle = testSubject.CreateDatabase(fileConfig);
+        var databaseHandle = testSubject.CreateDatabase(SourceFilePath, SourceDirectory, CompileCommand, EnvValue);
 
         var temporaryCompilationDatabaseHandle = databaseHandle.Should().BeOfType<TemporaryCompilationDatabaseHandle>().Subject;
         Directory.GetParent(temporaryCompilationDatabaseHandle.FilePath).FullName.Should().BeEquivalentTo(expectedDirectory);
@@ -102,10 +102,9 @@ public class VCXCompilationDatabaseStorageTests
     public void CreateDatabase_CreatesDifferentHandlesForSameFile()
     {
         var expectedDirectory = Path.Combine(Path.GetTempPath(), "SLVS", "VCXCD", PathHelper.PerVsInstanceFolderName.ToString());
-        var fileConfig = SetUpFileConfig();
 
-        var databaseHandle1 = testSubject.CreateDatabase(fileConfig);
-        var databaseHandle2 = testSubject.CreateDatabase(fileConfig);
+        var databaseHandle1 = testSubject.CreateDatabase(SourceFilePath, SourceDirectory, CompileCommand, EnvValue);
+        var databaseHandle2 = testSubject.CreateDatabase(SourceFilePath, SourceDirectory, CompileCommand, EnvValue);
 
         Directory.GetParent(databaseHandle1.FilePath).FullName.Should().BeEquivalentTo(expectedDirectory);
         Directory.GetParent(databaseHandle2.FilePath).FullName.Should().BeEquivalentTo(expectedDirectory);
@@ -117,7 +116,7 @@ public class VCXCompilationDatabaseStorageTests
     {
         testSubject.Dispose();
 
-        var act = () => testSubject.CreateDatabase(Substitute.For<IFileConfig>());
+        var act = () => testSubject.CreateDatabase(default, default, default, default);
 
         act.Should().Throw<ObjectDisposedException>();
     }
@@ -157,19 +156,11 @@ public class VCXCompilationDatabaseStorageTests
         testLogger.AssertPartialOutputStringExists(exception.ToString());
     }
 
-    private static IFileConfig SetUpFileConfig()
-    {
-        var fileConfig = Substitute.For<IFileConfig>();
-        fileConfig.CDFile.Returns(SourceFilePath);
-        fileConfig.CDDirectory.Returns(SourceDirectory);
-        fileConfig.CDCommand.Returns(CompileCommand);
-        return fileConfig;
-    }
-
     private void VerifyDatabaseContents()
     {
         var serializedCompilationDatabase = fileSystemService.File.ReceivedCalls().Single().GetArguments()[1] as string;
         var compilationDatabaseEntries = JsonConvert.DeserializeObject<CompilationDatabaseEntry[]>(serializedCompilationDatabase);
-        compilationDatabaseEntries.Should().BeEquivalentTo(new CompilationDatabaseEntry { Directory = SourceDirectory, File = SourceFilePath, Command = CompileCommand, Arguments = null });
+        var compilationDatabaseEntry = compilationDatabaseEntries.Single();
+        compilationDatabaseEntry.Should().BeEquivalentTo(new CompilationDatabaseEntry { Directory = SourceDirectory, File = SourceFilePath, Command = CompileCommand, Environment = EnvValue});
     }
 }

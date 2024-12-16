@@ -22,7 +22,6 @@ using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Service.Analysis;
 using SonarLint.VisualStudio.SLCore.Service.Analysis.Models;
-using IssueSeverity = SonarLint.VisualStudio.Core.UserRuleSettings.IssueSeverity;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Analysis;
 
@@ -30,7 +29,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Analysis;
 public class AnalyzeFilesResponseTests
 {
     [TestMethod]
-    public void Serialize_AsExpected()
+    public void Deserialize_AsExpected()
     {
         var failedFile = new FileUri("C:\\tmp\\junit14012097140227905793\\Foo.cs");
         var textRange = new TextRangeDto(1, 0, 1, 20);
@@ -42,25 +41,24 @@ public class AnalyzeFilesResponseTests
         var failedAnalysisFiles = new HashSet<FileUri> { failedFile };
         var rawIssues = new List<RawIssueDto>
         {
-            new RawIssueDto(IssueSeverity.Major, RuleType.BUG, CleanCodeAttribute.IDENTIFIABLE,
-                new Dictionary<SoftwareQuality, ImpactSeverity>(), "S123", "PRIMARY MESSAGE", failedFile,
+            new(IssueSeverity.MAJOR, RuleType.BUG, CleanCodeAttribute.IDENTIFIABLE,  new(){[SoftwareQuality.MAINTAINABILITY] = ImpactSeverity.HIGH}, "S123", "PRIMARY MESSAGE", failedFile,
                 rawIssueFlow, [], textRange, "RULE DESCRIPTION CONTEXT KEY",
                 VulnerabilityProbability.HIGH)
         };
 
-        var testSubject = new AnalyzeFilesResponse(failedAnalysisFiles, rawIssues);
+        var expectedResponse = new AnalyzeFilesResponse(failedAnalysisFiles, rawIssues);
 
-        const string expectedString = """
+        const string serializedString = """
                                        {
                                          "failedAnalysisFiles": [
                                            "file:///C:/tmp/junit14012097140227905793/Foo.cs"
                                          ],
                                          "rawIssues": [
                                            {
-                                             "severity": 2,
-                                             "type": 1,
-                                             "cleanCodeAttribute": 2,
-                                             "impacts": {},
+                                             "severity": "MAJOR",
+                                             "type": "BUG",
+                                             "cleanCodeAttribute": "IDENTIFIABLE",
+                                             "impacts": { "MAINTAINABILITY" : "HIGH"},
                                              "ruleKey": "S123",
                                              "primaryMessage": "PRIMARY MESSAGE",
                                              "fileUri": "file:///C:/tmp/junit14012097140227905793/Foo.cs",
@@ -93,9 +91,9 @@ public class AnalyzeFilesResponseTests
                                          ]
                                        }
                                        """;
-        
-        var serializedString = JsonConvert.SerializeObject(testSubject, Formatting.Indented);
 
-        serializedString.Should().Be(expectedString);
+        var actualResponse = JsonConvert.DeserializeObject<AnalyzeFilesResponse>(serializedString);
+
+        actualResponse.Should().BeEquivalentTo(expectedResponse, options => options.ComparingByMembers<AnalyzeFilesResponse>().ComparingByMembers<RawIssueDto>().ComparingByMembers<RawIssueFlowDto>());
     }
 }

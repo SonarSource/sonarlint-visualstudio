@@ -140,7 +140,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 return null;
             }
 
-            CmdBuilder cmdBuilder = new CmdBuilder(vcFile.ItemType == "ClInclude");
+            bool isHeaderFile = vcFile.ItemType == "ClInclude";
+            CmdBuilder cmdBuilder = new CmdBuilder(isHeaderFile);
 
             var compilerPath = GetCompilerPath(logger, vcConfig, fileSystem);
             if (string.IsNullOrEmpty(compilerPath))
@@ -164,6 +165,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 CDCommand = cmdBuilder.GetFullCmd(),
                 CDFile = absoluteFilePath,
                 EnvInclude = envINCLUDE,
+                IsHeaderFile = isHeaderFile,
             };
         }
 
@@ -221,6 +223,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         public string CDCommand { get; set; }
         public string CDFile { get; set; }
         public string EnvInclude { get; set; }
+        public bool IsHeaderFile { get; set; }
 
         #endregion
 
