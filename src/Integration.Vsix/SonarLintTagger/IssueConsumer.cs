@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void SetHotspots(string path, IEnumerable<IAnalysisIssue> hotspots)
         {
-            if (ValidatePath(path))
+            if (!ValidatePath(path))
             {
                 return;
             }
