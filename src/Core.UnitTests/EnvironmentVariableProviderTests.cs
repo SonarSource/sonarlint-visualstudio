@@ -29,6 +29,26 @@ namespace SonarLint.VisualStudio.Core.UnitTests
     public class EnvironmentVariableProviderTests
     {
         [TestMethod]
+        public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<EnvironmentVariableProvider, IEnvironmentVariableProvider>();
+
+        [TestMethod]
+        public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<EnvironmentVariableProvider>();
+
+        [TestMethod]
+        public void GetAll_ReturnsExpectedValues()
+        {
+            var testSubject = EnvironmentVariableProvider.Instance;
+            using var environmentVariableScope = new EnvironmentVariableScope();
+            environmentVariableScope.SetVariable("VAR1", "VAL1");
+            environmentVariableScope.SetVariable("VAR2", "VAL2");
+
+            var variables = testSubject.GetAll();
+
+            variables.Should().HaveCountGreaterThan(2);
+            variables.Should().Contain([("VAR1", "VAL1"), ("VAR2", "VAL2")]);
+        }
+
+        [TestMethod]
         [DataRow(null)]
         [DataRow("")]
         public void TryGet_NoVariableName_ArgumentNullException(string variableName)
