@@ -18,29 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
+
 namespace SonarLint.VisualStudio.Core.Analysis;
 
-/// <summary>
-/// Maintains analysis and issue processing
-/// </summary>
-public interface IAnalysisService
+[Export(typeof(IIssuePublisher))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method:ImportingConstructor]
+internal class IssuePublisher(IIssueConsumerStorage issueConsumerStorage) : IIssuePublisher
 {
-    /// <summary>
-    /// Indicates whether at least one language from <paramref name="languages"/> list is analyzable.
-    /// </summary>
-    bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
-
-    /// <summary>
-    /// Starts analysis for <paramref name="filePath"/>
-    /// </summary>
-    void ScheduleAnalysis(string filePath,
-        Guid analysisId,
-        IEnumerable<AnalysisLanguage> detectedLanguages,
-        IIssueConsumer issueConsumer,
-        IAnalyzerOptions analyzerOptions);
-
-    /// <summary>
-    /// Stops issue publishing for <paramref name="filePath"/> until the next <see cref="ScheduleAnalysis"/> is called
-    /// </summary>
-    void CancelForFile(string filePath);
+    public void Publish(string filePath, Guid analysisId, IEnumerable<IAnalysisIssue> findings)
+    {
+        if (issueConsumerStorage.TryGet(filePath, out var currentAnalysisId, out var issueConsumer)
+            && analysisId == currentAnalysisId)
+        {
+            issueConsumer.SetIssues(filePath, findings);
+        }
+    }
 }

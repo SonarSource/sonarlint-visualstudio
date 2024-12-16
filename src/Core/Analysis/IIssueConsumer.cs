@@ -25,5 +25,6 @@ namespace SonarLint.VisualStudio.Core.Analysis;
 /// </summary>
 public interface IIssueConsumer
 {
-    void Set(string path, IEnumerable<IAnalysisIssue> issues);
+    void SetIssues(string path, IEnumerable<IAnalysisIssue> issues);
+    void SetHotspots(string path, IEnumerable<IAnalysisIssue> hotspots);
 }

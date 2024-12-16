@@ -38,6 +38,8 @@ public class AnalysisListenerTests
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<IAnalysisRequester>(),
             MefTestHelpers.CreateExport<IRaisedFindingProcessor>(),
+            MefTestHelpers.CreateExport<IIssuePublisher>(),
+            MefTestHelpers.CreateExport<IHotspotPublisher>(),
             MefTestHelpers.CreateExport<ILogger>());
     }
 
@@ -88,33 +90,39 @@ public class AnalysisListenerTests
     {
         var raiseIssueParams = new RaiseFindingParams<RaisedIssueDto>(default, default, default, default);
         var raisedFindingProcessor = Substitute.For<IRaisedFindingProcessor>();
-        var testSubject = CreateTestSubject(raisedFindingProcessor: raisedFindingProcessor);
+        var issuePublisher = Substitute.For<IIssuePublisher>();
+        var testSubject = CreateTestSubject(raisedFindingProcessor: raisedFindingProcessor, issuePublisher: issuePublisher);
 
         testSubject.RaiseIssues(raiseIssueParams);
-        
-        raisedFindingProcessor.Received().RaiseFinding(raiseIssueParams);
+
+        raisedFindingProcessor.Received().RaiseFinding(raiseIssueParams, issuePublisher);
     }
-    
+
     [TestMethod]
     public void RaiseHotspots_RaisesFinding()
     {
         var raiseIssueParams = new RaiseHotspotParams(default, default, default, default);
         var raisedFindingProcessor = Substitute.For<IRaisedFindingProcessor>();
-        var testSubject = CreateTestSubject(raisedFindingProcessor: raisedFindingProcessor);
+        var hotspotPublisher = Substitute.For<IHotspotPublisher>();
+        var testSubject = CreateTestSubject(raisedFindingProcessor: raisedFindingProcessor, hotspotPublisher: hotspotPublisher);
 
         testSubject.RaiseHotspots(raiseIssueParams);
-        
-        raisedFindingProcessor.Received().RaiseFinding(raiseIssueParams);
+
+        raisedFindingProcessor.Received().RaiseFinding(raiseIssueParams, hotspotPublisher);
     }
 
     private AnalysisListener CreateTestSubject(IActiveConfigScopeTracker activeConfigScopeTracker = null,
         IAnalysisRequester analysisRequester = null,
         IRaisedFindingProcessor raisedFindingProcessor = null,
+        IIssuePublisher issuePublisher = null,
+        IHotspotPublisher hotspotPublisher = null,
         ILogger logger = null)
         => new(activeConfigScopeTracker ?? Substitute.For<IActiveConfigScopeTracker>(),
             analysisRequester ?? Substitute.For<IAnalysisRequester>(),
             raisedFindingProcessor ?? Substitute.For<IRaisedFindingProcessor>(),
+            issuePublisher ?? Substitute.For<IIssuePublisher>(),
+            hotspotPublisher ?? Substitute.For<IHotspotPublisher>(),
             logger ?? new TestLogger());
 
-    
+
 }

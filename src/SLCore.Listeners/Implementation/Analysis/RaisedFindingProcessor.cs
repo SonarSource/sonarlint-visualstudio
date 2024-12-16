@@ -31,42 +31,29 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation.Analysis;
 
 internal interface IRaisedFindingProcessor
 {
-    void RaiseFinding<T>(RaiseFindingParams<T> parameters) where T : RaisedFindingDto;
+    void RaiseFinding<T>(RaiseFindingParams<T> parameters, IFindingsPublisher findingsPublisher) where T : RaisedFindingDto;
 }
 
 [Export(typeof(IRaisedFindingProcessor))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class RaisedFindingProcessor : IRaisedFindingProcessor
+[method: ImportingConstructor]
+internal class RaisedFindingProcessor(
+    ISLCoreConstantsProvider slCoreConstantsProvider,
+    IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter,
+    IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
+    ILogger logger)
+    : IRaisedFindingProcessor
 {
-    private readonly IAnalysisService analysisService;
-    private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
-    private readonly List<string> analyzableLanguagesRuleKeyPrefixes;
-    private readonly ILogger logger;
-    private readonly IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter;
+    private readonly List<string> analyzableLanguagesRuleKeyPrefixes = CalculateAnalyzableRulePrefixes(slCoreConstantsProvider);
 
-    [ImportingConstructor]
-    public RaisedFindingProcessor(ISLCoreConstantsProvider slCoreConstantsProvider,
-        IAnalysisService analysisService,
-        IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter,
-        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
-        ILogger logger)
-    {
-        this.analysisService = analysisService;
-        this.raiseFindingToAnalysisIssueConverter = raiseFindingToAnalysisIssueConverter;
-        this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
-        this.logger = logger;
-
-        analyzableLanguagesRuleKeyPrefixes = CalculateAnalyzableRulePrefixes(slCoreConstantsProvider);
-    }
-
-    public void RaiseFinding<T>(RaiseFindingParams<T> parameters) where T : RaisedFindingDto
+    public void RaiseFinding<T>(RaiseFindingParams<T> parameters, IFindingsPublisher findingsPublisher) where T : RaisedFindingDto
     {
         if (!IsValid(parameters))
         {
             return;
         }
 
-        PublishFindings(parameters);
+        PublishFindings(parameters, findingsPublisher);
     }
 
     private bool IsValid<T>(RaiseFindingParams<T> parameters) where T : RaisedFindingDto
@@ -87,7 +74,7 @@ internal class RaisedFindingProcessor : IRaisedFindingProcessor
         return true;
     }
 
-    private void PublishFindings<T>(RaiseFindingParams<T> parameters) where T : RaisedFindingDto
+    private void PublishFindings<T>(RaiseFindingParams<T> parameters, IFindingsPublisher findingsPublisher) where T : RaisedFindingDto
     {
         foreach (var fileAndIssues in parameters.issuesByFileUri)
         {
@@ -95,24 +82,20 @@ internal class RaisedFindingProcessor : IRaisedFindingProcessor
             var localPath = fileUri.LocalPath;
             var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), localPath, parameters.analysisId);
             var supportedRaisedIssues = GetSupportedLanguageFindings(fileAndIssues.Value ?? []);
-            analysisService.PublishIssues(localPath,
+           findingsPublisher.Publish(localPath,
                 parameters.analysisId!.Value,
                 raiseFindingToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
             analysisStatusNotifier.AnalysisFinished(supportedRaisedIssues.Length, TimeSpan.Zero);
         }
     }
 
-    private T[] GetSupportedLanguageFindings<T>(IEnumerable<T> findings) where T : RaisedFindingDto
-    {
-        return findings.Where(i => analyzableLanguagesRuleKeyPrefixes.Exists(languageRepo => i.ruleKey.StartsWith(languageRepo))).ToArray();
-    }
+    private T[] GetSupportedLanguageFindings<T>(IEnumerable<T> findings) where T : RaisedFindingDto =>
+        findings.Where(i => analyzableLanguagesRuleKeyPrefixes.Exists(languageRepo => i.ruleKey.StartsWith(languageRepo))).ToArray();
 
-    private static List<string> CalculateAnalyzableRulePrefixes(ISLCoreConstantsProvider slCoreConstantsProvider)
-    {
-        return slCoreConstantsProvider.SLCoreAnalyzableLanguages?
+    private static List<string> CalculateAnalyzableRulePrefixes(ISLCoreConstantsProvider slCoreConstantsProvider) =>
+        slCoreConstantsProvider.SLCoreAnalyzableLanguages?
             .Select(x => x.ConvertToCoreLanguage())
             .Select(Language.GetSonarRepoKeyFromLanguage)
             .Where(r => r is not null)
             .ToList() ?? [];
-    }
 }
