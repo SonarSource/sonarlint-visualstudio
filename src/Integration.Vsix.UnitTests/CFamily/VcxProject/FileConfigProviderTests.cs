@@ -57,7 +57,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
                 MefTestHelpers.CreateExport<IFileInSolutionIndicator>(),
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IThreadHandling>(),
-                MefTestHelpers.CreateExport<IVsUIServiceOperation>());
+                MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
+                MefTestHelpers.CreateExport<IFileSystem>());
 
         [TestMethod]
         public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<FileConfigProvider>();
