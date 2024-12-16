@@ -85,7 +85,7 @@ internal class RaisedFindingProcessor(
            findingsPublisher.Publish(localPath,
                 parameters.analysisId!.Value,
                 raiseFindingToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
-            analysisStatusNotifier.AnalysisFinished(supportedRaisedIssues.Length, TimeSpan.Zero);
+            analysisStatusNotifier.AnalysisProgressed(supportedRaisedIssues.Length, findingsPublisher.FindingsType, parameters.isIntermediatePublication);
         }
     }
 

@@ -193,4 +193,10 @@
   <data name="SonarCloudUrl" xml:space="preserve">
     <value>https://sonarcloud.io</value>
   </data>
+  <data name="FindingType_Issue" xml:space="preserve">
+    <value>issue</value>
+  </data>
+  <data name="FindingType_Hotspot" xml:space="preserve">
+    <value>hotspot</value>
+  </data>
 </root>
