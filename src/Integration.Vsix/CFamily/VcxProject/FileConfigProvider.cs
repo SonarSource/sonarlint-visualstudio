@@ -43,10 +43,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         IVsUIServiceOperation uiServiceOperation,
         IFileInSolutionIndicator fileInSolutionIndicator,
         ILogger logger,
-        IThreadHandling threadHandling,
-        IFileSystem fileSystem) : IFileConfigProvider
+        IThreadHandling threadHandling) : IFileConfigProvider
     {
         private static readonly NoOpLogger noOpLogger = new NoOpLogger();
+        public IFileSystem fileSystem { get; set; } = new FileSystem();
 
         public IFileConfig Get(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {

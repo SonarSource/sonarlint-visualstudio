@@ -57,8 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
                 MefTestHelpers.CreateExport<IFileInSolutionIndicator>(),
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IThreadHandling>(),
-                MefTestHelpers.CreateExport<IVsUIServiceOperation>(),
-                MefTestHelpers.CreateExport<IFileSystem>());
+                MefTestHelpers.CreateExport<IVsUIServiceOperation>());
 
         [TestMethod]
         public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<FileConfigProvider>();
@@ -71,7 +70,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             dte = Substitute.For<DTE2>();
             uiServiceOperation = CreateDefaultUiServiceOperation(dte);
 
-            testSubject = new FileConfigProvider(uiServiceOperation, fileInSolutionIndicator, logger, new NoOpThreadHandler(), CreateFileSystemWithClCompiler().Object);
+            testSubject = new FileConfigProvider(uiServiceOperation, fileInSolutionIndicator, logger, new NoOpThreadHandler())
+            {
+                fileSystem = CreateFileSystemWithClCompiler().Object
+            };
         }
 
         private static IFileInSolutionIndicator CreateDefaultFileInSolutionIndicator()
