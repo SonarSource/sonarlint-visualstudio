@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         IThreadHandling threadHandling) : IFileConfigProvider
     {
         private static readonly NoOpLogger noOpLogger = new NoOpLogger();
-        public IFileSystem fileSystem { get; set; } = new FileSystem();
+        public IFileSystem FileSystem { get; set; } = new FileSystem();
 
         public IFileConfig Get(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 // Note: if the C++ tools are not installed then it's likely an exception will be thrown when
                 // the framework tries to JIT-compile the TryGet method (since it won't be able to find the MS.VS.VCProjectEngine
                 // types).
-                return FileConfig.TryGet(analysisLogger, projectItem, analyzedFilePath, fileSystem);
+                return FileConfig.TryGet(analysisLogger, projectItem, analyzedFilePath, FileSystem);
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {

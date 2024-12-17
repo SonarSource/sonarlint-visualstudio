@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
 
             testSubject = new FileConfigProvider(uiServiceOperation, fileInSolutionIndicator, logger, new NoOpThreadHandler())
             {
-                fileSystem = CreateFileSystemWithClCompiler().Object
+                FileSystem = CreateFileSystemWithClCompiler().Object
             };
         }
 
