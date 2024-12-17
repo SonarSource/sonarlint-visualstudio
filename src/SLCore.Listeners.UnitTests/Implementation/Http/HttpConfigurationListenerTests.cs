@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation.Http;
 [TestClass]
 public class HttpConfigurationListenerTests
 {
+    private const string SystemProxyHost = "mycompany.com";
     private ICertificateChainValidator certificateChainValidator;
     private ICertificateDtoConverter certificateDtoConverter;
     private ISystemProxyDetector proxySettingsDetector;
@@ -84,16 +85,42 @@ public class HttpConfigurationListenerTests
     }
 
     [TestMethod]
-    [DataRow("htpp://localhost")]
-    [DataRow("https://sonarcloud.io")]
-    public async Task SelectProxiesAsync_ProxyConfigured_ReturnsListWithConfiguredProxyDto(string uri)
+    [DataRow("http", "localhost:8080")]
+    [DataRow("https", "sonarcloud.io")]
+    public async Task SelectProxiesAsync_HttpProxyConfigured_ReturnsListWithHttpProxyDto(string scheme, string host)
     {
-        var parameter = new SelectProxiesParams(new Uri(uri));
-        MockProxyConfigured("http://mycompany.com", 1328);
+        var parameter = new SelectProxiesParams(new Uri(BuildUri(scheme, host)));
+        MockProxyConfigured(BuildUri(scheme, SystemProxyHost), 1328);
 
         var result = await testSubject.SelectProxiesAsync(parameter);
 
-        result.proxies.Should().BeEquivalentTo([new ProxyDto(ProxyType.HTTP, "mycompany.com", 1328)]);
+        result.proxies.Should().BeEquivalentTo([new ProxyDto(ProxyType.HTTP, SystemProxyHost, 1328)]);
+    }
+
+    [TestMethod]
+    [DataRow("socks4", "localhost:8080")]
+    [DataRow("socks5", "sonarcloud.io")]
+    public async Task SelectProxiesAsync_SocksProxyConfigured_ReturnsListWithSocksProxyDto(string scheme, string host)
+    {
+        var parameter = new SelectProxiesParams(new Uri(BuildUri(scheme, host)));
+        MockProxyConfigured(BuildUri(scheme, SystemProxyHost), 1328);
+
+        var result = await testSubject.SelectProxiesAsync(parameter);
+
+        result.proxies.Should().BeEquivalentTo([new ProxyDto(ProxyType.SOCKS, SystemProxyHost, 1328)]);
+    }
+
+    [TestMethod]
+    public async Task SelectProxiesAsync_UnknownProxyConfigured_ReturnsListWithHttpProxyDtoAndLogs()
+    {
+        var unknownScheme = "unknown";
+        var parameter = new SelectProxiesParams(new Uri(BuildUri(unknownScheme, "sonarcloud.io")));
+        MockProxyConfigured(BuildUri(unknownScheme, SystemProxyHost), 1328);
+
+        var result = await testSubject.SelectProxiesAsync(parameter);
+
+        result.proxies.Should().BeEquivalentTo([new ProxyDto(ProxyType.HTTP, SystemProxyHost, 1328)]);
+        testLogger.AssertOutputStringExists(string.Format(SLCoreStrings.UnknowProxyType, unknownScheme));
     }
 
     [DataTestMethod]
@@ -152,4 +179,6 @@ public class HttpConfigurationListenerTests
     private void MockNoProxyConfigured(Uri uri) => proxySettingsDetector.GetProxyUri(Arg.Any<Uri>()).Returns(uri);
 
     private void MockProxyConfigured(string hostName, int port) => proxySettingsDetector.GetProxyUri(Arg.Any<Uri>()).Returns(new Uri($"{hostName}:{port}"));
+
+    private static string BuildUri(string scheme, string host) => $"{scheme}://{host}";
 }

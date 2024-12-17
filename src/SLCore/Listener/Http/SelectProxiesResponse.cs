@@ -20,7 +20,4 @@
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Http;
 
-public class SelectProxiesResponse
-{
-    public List<ProxyDto> proxies = new();
-}
+public record SelectProxiesResponse(List<ProxyDto> proxies);

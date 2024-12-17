@@ -34,6 +34,7 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
     private readonly ICertificateChainValidator chainValidator;
     private readonly ICertificateDtoConverter certificateDtoConverter;
     private readonly ISystemProxyDetector proxySettingsDetector;
+    private static readonly List<string> socksHosts = ["socks4", "socks5"];
 
     [ImportingConstructor]
     public HttpConfigurationListener(ILogger logger, ICertificateChainValidator chainValidator, ICertificateDtoConverter certificateDtoConverter, ISystemProxyDetector proxySettingsDetector)
@@ -46,7 +47,8 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
 
     public Task<SelectProxiesResponse> SelectProxiesAsync(SelectProxiesParams parameters)
     {
-        return Task.FromResult(new SelectProxiesResponse {proxies = [GetSystemProxy(parameters.uri) ?? ProxyDto.NO_PROXY, ] });
+        List<ProxyDto> proxies = [GetSystemProxy(parameters.uri) ?? ProxyDto.NO_PROXY];
+        return Task.FromResult(new SelectProxiesResponse(proxies));
     }
 
     private ProxyDto GetSystemProxy(Uri uri)
@@ -54,10 +56,28 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
         var proxyUri = proxySettingsDetector.GetProxyUri(uri);
         if (proxyUri == uri) 
         {
-            // no proxy was configured at system level
+            // when same Uri is returned, it means no proxy was configured at system level
             return null;
         }
-        return new ProxyDto(ProxyType.HTTP, proxyUri.Host, proxyUri.Port);
+        return new ProxyDto(DetermineProxyType(proxyUri), proxyUri.Host, proxyUri.Port);
+    }
+
+    /// <summary>
+    /// If the URI scheme is one of the SOCKS schemes, returns SOCKS, otherwise returns HTTP (not NO_PROXY as this value means no proxy).
+    /// </summary>
+    private ProxyType DetermineProxyType(Uri uri)
+    {
+        if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+        {
+            return ProxyType.HTTP;
+        }
+        if (socksHosts.Contains(uri.Scheme))
+        {
+            return ProxyType.SOCKS;
+        }
+
+        logger.WriteLine(SLCoreStrings.UnknowProxyType, uri.Scheme);
+        return ProxyType.HTTP;
     }
 
     public Task<CheckServerTrustedResponse> CheckServerTrustedAsync(CheckServerTrustedParams parameters)
