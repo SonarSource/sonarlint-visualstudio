@@ -102,6 +102,8 @@ public class SLCoreAnalyzer : IAnalyzer
             Dictionary<string, string> properties = [];
             using var temporaryResourcesHandle = EnrichPropertiesForCFamily(properties, path, detectedLanguages);
 
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
             var (failedAnalysisFiles, _) = await analysisService.AnalyzeFilesAndTrackAsync(
                 new AnalyzeFilesAndTrackParams(
                     configScopeId,
@@ -115,6 +117,10 @@ public class SLCoreAnalyzer : IAnalyzer
             if (failedAnalysisFiles.Any())
             {
                 analysisStatusNotifier.AnalysisFailed(SLCoreStrings.AnalysisFailedReason);
+            }
+            else
+            {
+                analysisStatusNotifier.AnalysisFinished(stopwatch.Elapsed);
             }
         }
         catch (OperationCanceledException)

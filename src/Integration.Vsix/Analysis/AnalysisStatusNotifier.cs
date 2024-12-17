@@ -50,10 +50,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             Notify(AnalysisStrings.Notifier_AnalysisStarted, true);
         }
 
-        public void AnalysisFinished(int issueCount, TimeSpan analysisTime)
+        public void AnalysisProgressed(
+            int issueCount,
+            string findingType,
+            bool isIntermediate) =>
+            Log(AnalysisStrings.MSG_FoundIssues, issueCount, findingType, filePath, analysisId, !isIntermediate);
+
+        public void AnalysisFinished(TimeSpan analysisTime)
         {
             Log(AnalysisStrings.MSG_AnalysisComplete, filePath, analysisId, Math.Round(analysisTime.TotalSeconds, 3));
-            Log(AnalysisStrings.MSG_FoundIssues, issueCount, filePath);
 
             Notify(AnalysisStrings.Notifier_AnalysisFinished, false);
         }
@@ -61,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         public void AnalysisCancelled()
         {
             Log(AnalysisStrings.MSG_AnalysisAborted, filePath, analysisId);
-            
+
             Notify("", false);
         }
 
@@ -80,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         public void AnalysisNotReady(string reason)
         {
             Log(AnalysisStrings.MSG_AnalysisNotReady, filePath, analysisId, reason);
-            
+
             Notify("", false);
         }
 

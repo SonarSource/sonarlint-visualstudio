@@ -226,7 +226,7 @@ public class SLCoreAnalyzerTests
     }
 
     [TestMethod]
-    public void ExecuteAnalysis_AnalysisServiceSucceeds_ExitsWithoutFinishingAnalysis()
+    public void ExecuteAnalysis_AnalysisServiceSucceeds_ExitsByFinishingAnalysis()
     {
         SetUpInitializedConfigScope();
         analysisService.AnalyzeFilesAndTrackAsync(default, default).ReturnsForAnyArgs(new AnalyzeFilesResponse(new HashSet<FileUri>(), []));
@@ -236,7 +236,7 @@ public class SLCoreAnalyzerTests
         notifier.DidNotReceiveWithAnyArgs().AnalysisNotReady(default);
         notifier.DidNotReceiveWithAnyArgs().AnalysisFailed(default(Exception));
         notifier.DidNotReceiveWithAnyArgs().AnalysisFailed(default(string));
-        notifier.DidNotReceiveWithAnyArgs().AnalysisFinished(default, default);
+        notifier.Received().AnalysisFinished(Arg.Is<TimeSpan>(x => x > TimeSpan.Zero));
     }
 
     [TestMethod]
