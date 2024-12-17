@@ -22,6 +22,7 @@ namespace SonarLint.VisualStudio.Core.Analysis;
 
 public interface IFindingsPublisher
 {
+    string FindingsType { get; }
     /// <summary>
     /// Handles analysis results
     /// </summary>

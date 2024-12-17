@@ -25,7 +25,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
     public interface IAnalysisStatusNotifier
     {
         void AnalysisStarted();
-        void AnalysisFinished(int issueCount, TimeSpan analysisTime);
+        void AnalysisProgressed(int issueCount, string findingType, bool isIntermediate);
+        void AnalysisFinished(TimeSpan analysisTime);
         void AnalysisCancelled();
         void AnalysisFailed(Exception ex);
         void AnalysisFailed(string failureMessage);
