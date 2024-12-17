@@ -317,7 +317,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         }
 
         [TestMethod]
-        public void TryGet_CompilerName_CL_No_ClCompilerPath()
+        public void TryGet_CompilerName_CL_No_ClCompilerPath_NoCLToolExe()
         {
             // Arrange
             var projectItemConfig = new ProjectItemConfig
