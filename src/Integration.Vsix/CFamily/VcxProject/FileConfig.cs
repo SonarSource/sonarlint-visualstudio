@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
             if (!fileSystem.File.Exists(compilerPath))
             {
-                logger.WriteLine($"Compiler path \"{compilerPath}\" does not exist.");
+                logger.WriteLine($"Compiler path (based on \"ClCompilerPath\") \"{compilerPath}\" does not exist.");
                 return false;
             }
 
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 }
                 else
                 {
-                    logger.WriteLine($"Compiler path \"{compilerPath}\" does not exist.");
+                    logger.WriteLine($"Compiler path (based on \"ExecutablePath\") \"{compilerPath}\" does not exist.");
                 }
             }
 
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             }
             else
             {
-                logger.WriteLine($"Compiler path \"{compilerPath}\" does not exist.");
+                logger.WriteLine($"Compiler path (based on \"{exeVar}\") \"{compilerPath}\" does not exist.");
                 return false;
             }
         }
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             }
 
             // Fallback to VC_ExecutablePath, which is used to be used in VS2017 toolchains
-            // because ClCompilerPath was not available
+            // In case ClCompilerPath isn't available, and ExecutablePath matching fails
             if (TryGetCompilerPathFromVCExecutablePath(logger, vcConfig, fileSystem, out compilerPath))
             {
                 return true;
