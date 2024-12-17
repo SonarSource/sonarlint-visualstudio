@@ -29,46 +29,47 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {
     internal class FileConfig : IFileConfig
     {
-        private static string GetCompilerPathFromClCompilerPath(ILogger logger, VCConfiguration vcConfig, IFileSystem fileSystem)
+        private static bool TryGetCompilerPathFromClCompilerPath(ILogger logger, VCConfiguration vcConfig, IFileSystem fileSystem, out string compilerPath)
         {
-            var compilerPath = vcConfig.GetEvaluatedPropertyValue("ClCompilerPath");
+            compilerPath = vcConfig.GetEvaluatedPropertyValue("ClCompilerPath");
             if (string.IsNullOrEmpty(compilerPath))
             {
                 logger.WriteLine("\"ClCompilerPath\" was not found.");
-                return null;
+                return false;
             }
 
             if (!fileSystem.File.Exists(compilerPath))
             {
                 logger.WriteLine($"Compiler path \"{compilerPath}\" does not exist.");
-                return null;
+                return false;
             }
 
-            return compilerPath;
+            return true;
         }
 
-        private static string GetCompilerPathFromExecutablePath(ILogger logger, VCConfiguration vcConfig, IFileSystem fileSystem)
+        private static bool TryGetCompilerPathFromExecutablePath(ILogger logger, VCConfiguration vcConfig, IFileSystem fileSystem, out string compilerPath)
         {
+            compilerPath = default;
             var executablePath = vcConfig.GetEvaluatedPropertyValue("ExecutablePath");
             if (string.IsNullOrEmpty(executablePath))
             {
                 logger.WriteLine("\"ExecutablePath\" was not found.");
-                return null;
+                return false;
             }
 
             var toolExe = vcConfig.GetEvaluatedPropertyValue("CLToolExe");
             if (string.IsNullOrEmpty(toolExe))
             {
                 logger.WriteLine("\"CLToolExe\" was not found.");
-                return null;
+                return false;
             }
 
             foreach (var path in executablePath.Split(';'))
             {
-                var compilerPath = Path.Combine(path, toolExe);
+                compilerPath = Path.Combine(path, toolExe);
                 if (fileSystem.File.Exists(compilerPath))
                 {
-                    return compilerPath;
+                    return true;
                 }
                 else
                 {
@@ -76,50 +77,47 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 }
             }
 
-            return null;
+            return false;
         }
 
-        private static string GetCompilerPathFromVCExecutablePath(ILogger logger, VCConfiguration vcConfig, IFileSystem fileSystem)
+        private static bool TryGetCompilerPathFromVCExecutablePath(ILogger logger, VCConfiguration vcConfig, IFileSystem fileSystem, out string compilerPath)
         {
             var platform = ((VCPlatform)vcConfig.Platform).Name.Contains("64") ? "x64" : "x86";
             var exeVar = "VC_ExecutablePath_" + platform;
-            var compilerPath = Path.Combine(vcConfig.GetEvaluatedPropertyValue(exeVar), "cl.exe");
+            compilerPath = Path.Combine(vcConfig.GetEvaluatedPropertyValue(exeVar), "cl.exe");
             if (fileSystem.File.Exists(compilerPath))
             {
-                return compilerPath;
+                return true;
             }
             else
             {
                 logger.WriteLine($"Compiler path \"{compilerPath}\" does not exist.");
-                return null;
+                return false;
             }
         }
 
-        private static string GetCompilerPath(ILogger logger, VCConfiguration vcConfig, IFileSystem fileSystem)
+        private static bool GetCompilerPath(ILogger logger, VCConfiguration vcConfig, IFileSystem fileSystem, out string compilerPath)
         {
-            var compilerPath = GetCompilerPathFromClCompilerPath(logger, vcConfig, fileSystem);
-            if (!string.IsNullOrEmpty(compilerPath))
+            if (TryGetCompilerPathFromClCompilerPath(logger, vcConfig, fileSystem, out compilerPath))
             {
-                return compilerPath;
+                return true;
             }
 
             // Fallback to ExecutablePath and CLToolExe
-            compilerPath = GetCompilerPathFromExecutablePath(logger, vcConfig, fileSystem);
-            if (!string.IsNullOrEmpty(compilerPath))
+            if (TryGetCompilerPathFromExecutablePath(logger, vcConfig, fileSystem, out compilerPath))
             {
-                return compilerPath;
+                return true;
             }
 
             // Fallback to VC_ExecutablePath, which is used to be used in VS2017 toolchains
             // because ClCompilerPath was not available
-            compilerPath = GetCompilerPathFromVCExecutablePath(logger, vcConfig, fileSystem);
-            if (!string.IsNullOrEmpty(compilerPath))
+            if (TryGetCompilerPathFromVCExecutablePath(logger, vcConfig, fileSystem, out compilerPath))
             {
-                return compilerPath;
+                return true;
             }
 
             logger.WriteLine("Compiler is not supported.");
-            return null;
+            return false;
         }
 
         [ExcludeFromCodeCoverage]
@@ -143,8 +141,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             bool isHeaderFile = vcFile.ItemType == "ClInclude";
             CmdBuilder cmdBuilder = new CmdBuilder(isHeaderFile);
 
-            var compilerPath = GetCompilerPath(logger, vcConfig, fileSystem);
-            if (string.IsNullOrEmpty(compilerPath))
+            if (!GetCompilerPath(logger, vcConfig, fileSystem, out var compilerPath))
             {
                 return null;
             }

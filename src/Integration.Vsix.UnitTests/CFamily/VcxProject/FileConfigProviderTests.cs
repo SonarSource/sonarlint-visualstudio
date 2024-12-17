@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
 using System.IO.Abstractions;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
 {
@@ -43,18 +44,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         private FileConfigProvider testSubject;
         private const string ClFilePath = "C:\\path\\cl.exe";
 
-        private static Mock<IFileSystem> CreateFileSystemWithExistingFile(string fullPath)
+        private static IFileSystemService CreateFileSystemWithExistingFile(string fullPath)
         {
-            var fileSystem = new Mock<IFileSystem>();
-            fileSystem.Setup(x => x.File.Exists(fullPath)).Returns(true);
+            var fileSystem = Substitute.For<IFileSystemService>();
+            fileSystem.File.Exists(fullPath).Returns(true);
             return fileSystem;
         }
-        private static Mock<IFileSystem> CreateFileSystemWithClCompiler() => CreateFileSystemWithExistingFile(ClFilePath);
+        private static IFileSystemService CreateFileSystemWithClCompiler() => CreateFileSystemWithExistingFile(ClFilePath);
 
         [TestMethod]
         public void MefCtor_CheckIsExported() =>
             MefTestHelpers.CheckTypeCanBeImported<FileConfigProvider, IFileConfigProvider>(
                 MefTestHelpers.CreateExport<IFileInSolutionIndicator>(),
+                MefTestHelpers.CreateExport<IFileSystemService>(),
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IThreadHandling>(),
                 MefTestHelpers.CreateExport<IVsUIServiceOperation>());
@@ -70,10 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             dte = Substitute.For<DTE2>();
             uiServiceOperation = CreateDefaultUiServiceOperation(dte);
 
-            testSubject = new FileConfigProvider(uiServiceOperation, fileInSolutionIndicator, logger, new NoOpThreadHandler())
-            {
-                FileSystem = CreateFileSystemWithClCompiler().Object
-            };
+            testSubject = new FileConfigProvider(uiServiceOperation, fileInSolutionIndicator, CreateFileSystemWithClCompiler(), logger, new NoOpThreadHandler());
         }
 
         private static IFileInSolutionIndicator CreateDefaultFileInSolutionIndicator()
