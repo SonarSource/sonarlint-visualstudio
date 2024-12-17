@@ -18,6 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Listener.Http;
+using System.ComponentModel.Composition;
+using System.Net;
+using SonarLint.VisualStudio.SLCore.Core;
 
-public record SelectProxiesResponse(List<ProxyDto> proxies);
+namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation.Http;
+
+public interface ISystemProxyDetector
+{
+    Uri GetProxyUri(Uri uri);
+}
+
+[Export(typeof(ISystemProxyDetector))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+public class SystemProxyDetector : ISystemProxyDetector
+{
+    public Uri GetProxyUri(Uri uri) => uri == null ? null : WebRequest.GetSystemWebProxy().GetProxy(uri);
+}

@@ -177,4 +177,7 @@
   <data name="CertificateValidator_FailureReasonTemplate" xml:space="preserve">
     <value>[CertificateChainValidator] {0}: {1}</value>
   </data>
+  <data name="UnknowProxyType" xml:space="preserve">
+    <value>Proxy type can not be determined from scheme '{0}'. Returning HTTP proxy type.</value>
+  </data>
 </root>

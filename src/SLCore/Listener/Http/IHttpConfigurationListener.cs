@@ -24,6 +24,6 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Http;
 
 public interface IHttpConfigurationListener : ISLCoreListener
 {
-    Task<SelectProxiesResponse> SelectProxiesAsync(object parameters);
+    Task<SelectProxiesResponse> SelectProxiesAsync(SelectProxiesParams parameters);
     Task<CheckServerTrustedResponse> CheckServerTrustedAsync(CheckServerTrustedParams parameters);
 }

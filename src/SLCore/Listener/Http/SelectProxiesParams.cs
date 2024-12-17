@@ -20,4 +20,4 @@
 
 namespace SonarLint.VisualStudio.SLCore.Listener.Http;
 
-public record SelectProxiesResponse(List<ProxyDto> proxies);
+public record SelectProxiesParams(Uri uri);
