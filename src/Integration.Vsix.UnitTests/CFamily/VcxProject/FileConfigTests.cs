@@ -321,5 +321,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             testLogger.AssertOutputStringExists("Compiler is not supported.");
         }
 
+        [TestMethod]
+        public void TryGet_CompilerName_CL_No_ClCompilerPath()
+        {
+            // Arrange
+            var projectItemConfig = new ProjectItemConfig
+            {
+                ProjectConfigProperties = new Dictionary<string, string>
+                {
+                    ["ClCompilerPath"] = null,
+                    ["IncludePath"] = "C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;",
+                    ["ExecutablePath"] = "C:\\path\\no-compiler\\;C:\\path",
+                    ["CLToolExe"] = null,
+                    ["VC_ExecutablePath_x86"] = "C:\\path\\x86",
+                    ["VC_ExecutablePath_x64"] = "C:\\path\\x64",
+                }
+            };
+
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
+
+            // Act
+            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithClCompiler().Object);
+
+            // Assert
+            request.Should().NotBeNull();
+            Assert.IsTrue(request.CDCommand.StartsWith("\"C:\\path\\cl.exe\""));
+        }
+
     }
 }
