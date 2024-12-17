@@ -171,7 +171,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private bool DeleteBindings(List<string> connectionReferences)
         {
-            var currentSolutionName = connectedModeBindingServices.SolutionInfoProvider.GetSolutionName();
+            var currentSolutionName = ConnectedModeBindingServices.SolutionInfoProvider.GetSolutionName();
             foreach (var connectionReference in connectionReferences)
             {
                 var bindingDeleted = currentSolutionName == connectionReference ? ConnectedModeBindingServices.BindingController.Unbind(connectionReference) : ConnectedModeBindingServices.SolutionBindingRepository.DeleteBinding(connectionReference);
