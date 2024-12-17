@@ -18,15 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 {
@@ -65,6 +59,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             logger.OutputStrings.Count.Should().Be(1);
         }
 
+        [DataRow(true)]
+        [DataRow(false)]
+        [DataTestMethod]
+        public void AnalysisProgressed_LogToOutputWindow(bool isIntermediate)
+        {
+            const string analyzerName = "some analyzer";
+            const string filePath = "c:\\test\\foo-started.cpp";
+            var logger = new TestLogger();
+            var analysisId = Guid.NewGuid();
+
+            var testSubject = CreateTestSubject(filePath, analysisId, analyzerName, logger: logger);
+            testSubject.AnalysisProgressed(123, "finding", isIntermediate);
+
+            var expectedMessage = string.Format(AnalysisStrings.MSG_FoundIssues, 123, "finding", filePath, analysisId, !isIntermediate);
+            logger.AssertPartialOutputStringExists(expectedMessage);
+            logger.AssertPartialOutputStringExists(analyzerName);
+        }
+
         [TestMethod]
         [DataRow("foo-finished.cpp", "foo-finished.cpp")]
         [DataRow("c:\\test\\foo-finished.cpp", "foo-finished.cpp")]
@@ -72,9 +84,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         public void AnalysisFinished_DisplayMessageAndStopSpinner(string filePath, string expectedNotifiedFileName)
         {
             var statusBarMock = new Mock<IStatusBarNotifier>();
-
             var testSubject = CreateTestSubject(filePath, Guid.NewGuid(), statusBarNotifier: statusBarMock.Object);
-            testSubject.AnalysisFinished(1, TimeSpan.Zero);
+
+            testSubject.AnalysisFinished(TimeSpan.FromSeconds(3));
 
             var expectedMessage = string.Format(AnalysisStrings.Notifier_AnalysisFinished, expectedNotifiedFileName);
 
@@ -91,17 +103,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
             var testSubject = CreateTestSubject(filePath, analysisId, analyzerName, logger: logger);
 
-            testSubject.AnalysisFinished(123, TimeSpan.FromSeconds(6.54321));
+            testSubject.AnalysisFinished(TimeSpan.FromSeconds(6.54321));
 
             var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisComplete, filePath, analysisId, 6.543);
             logger.AssertPartialOutputStringExists(expectedMessage);
 
-            expectedMessage = string.Format($"Found {123} issue(s) for {filePath}");
-            logger.AssertPartialOutputStringExists(expectedMessage);
-
             logger.AssertPartialOutputStringExists(analyzerName);
 
-            logger.OutputStrings.Count.Should().Be(2);
+            logger.OutputStrings.Count.Should().Be(1);
         }
 
         [TestMethod]
@@ -136,7 +145,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             logger.AssertPartialOutputStringExists(expectedMessage);
             logger.OutputStrings.Count.Should().Be(1);
         }
-        
+
         [TestMethod]
         [DataRow("foo-timedout.cpp")]
         [DataRow("c:\\test\\foo-timedout.cpp")]
@@ -151,7 +160,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
             VerifyStatusBarMessageAndIcon(statusBarMock, "", false);
         }
-        
+
         [TestMethod]
         public void AnalysisNotReady_LogToOutputWindow()
         {
@@ -170,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             logger.AssertPartialOutputStringExists(expectedMessage);
             logger.OutputStrings.Count.Should().Be(1);
         }
-        
+
 
         [TestMethod]
         [DataRow("foo-failed.cpp", "foo-failed.cpp")]
@@ -188,8 +197,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
             VerifyStatusBarMessageAndIcon(statusBarMock, expectedMessage, false);
         }
-        
-        
+
+
 
         [TestMethod]
         [DataRow("foo-failed.cpp", "foo-failed.cpp")]

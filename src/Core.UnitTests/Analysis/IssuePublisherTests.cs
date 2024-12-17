@@ -47,6 +47,10 @@ public class IssuePublisherTests
     }
 
     [TestMethod]
+    public void FindingsType_ReturnsCorrectValue() =>
+        testSubject.FindingsType.Should().Be(CoreStrings.FindingType_Issue);
+
+    [TestMethod]
     public void PublishIssues_NoConsumerInStorage_DoesNothing()
     {
         issueConsumerStorage.TryGet(default, out _, out _).ReturnsForAnyArgs(false);

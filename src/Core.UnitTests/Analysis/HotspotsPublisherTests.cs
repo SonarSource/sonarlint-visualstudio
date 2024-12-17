@@ -47,6 +47,10 @@ public class HotspotPublisherTests
     }
 
     [TestMethod]
+    public void FindingsType_ReturnsCorrectValue() =>
+        testSubject.FindingsType.Should().Be(CoreStrings.FindingType_Hotspot);
+
+    [TestMethod]
     public void PublishHotspots_NoConsumerInStorage_DoesNothing()
     {
         issueConsumerStorage.TryGet(default, out _, out _).ReturnsForAnyArgs(false);
