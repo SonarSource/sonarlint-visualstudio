@@ -104,7 +104,7 @@ public class SLCoreAnalyzer : IAnalyzer
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            var (failedAnalysisFiles, issues) = await analysisService.AnalyzeFilesAndTrackAsync(
+            var (failedAnalysisFiles, _) = await analysisService.AnalyzeFilesAndTrackAsync(
                 new AnalyzeFilesAndTrackParams(
                     configScopeId,
                     analysisId,
