@@ -72,24 +72,11 @@ namespace SonarLint.VisualStudio.Core.UserRuleSettings
         // comparer, which is case-sensitive.
         [JsonProperty("parameters", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, string> Parameters { get; set; }
-
-        [JsonProperty("severity", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(StringEnumConverter))]
-        public IssueSeverity? Severity { get; set; }
     }
 
     public enum RuleLevel
     {
         On,
         Off
-    }
-
-    public enum IssueSeverity
-    {
-        Blocker = 0,
-        Critical = 1,
-        Major = 2,
-        Minor = 3,
-        Info = 4,
     }
 }

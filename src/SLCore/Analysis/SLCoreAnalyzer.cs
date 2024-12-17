@@ -20,7 +20,9 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.SLCore.Common.Models;
@@ -33,53 +35,63 @@ namespace SonarLint.VisualStudio.SLCore.Analysis;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class SLCoreAnalyzer : IAnalyzer
 {
+    private const string CFamilyCompileCommandsProperty = "sonar.cfamily.compile-commands";
+
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory;
     private readonly ICurrentTimeProvider currentTimeProvider;
+    private readonly IAggregatingCompilationDatabaseProvider compilationDatabaseLocator;
+    private readonly ILogger logger;
 
     [ImportingConstructor]
-    public SLCoreAnalyzer(ISLCoreServiceProvider serviceProvider, 
+    public SLCoreAnalyzer(
+        ISLCoreServiceProvider serviceProvider,
         IActiveConfigScopeTracker activeConfigScopeTracker,
-        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory, 
-        ICurrentTimeProvider currentTimeProvider)
+        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
+        ICurrentTimeProvider currentTimeProvider,
+        IAggregatingCompilationDatabaseProvider compilationDatabaseLocator,
+        ILogger logger)
     {
         this.serviceProvider = serviceProvider;
         this.activeConfigScopeTracker = activeConfigScopeTracker;
         this.analysisStatusNotifierFactory = analysisStatusNotifierFactory;
         this.currentTimeProvider = currentTimeProvider;
+        this.compilationDatabaseLocator = compilationDatabaseLocator;
+        this.logger = logger;
     }
 
-    public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
+    public void ExecuteAnalysis(
+        string path,
+        Guid analysisId,
+        IEnumerable<AnalysisLanguage> detectedLanguages,
+        IAnalyzerOptions analyzerOptions,
+        CancellationToken cancellationToken)
     {
-        return true;
-    }
-
-    public void ExecuteAnalysis(string path, Guid analysisId, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
-        IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
-    {   
-        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), path);
+        var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), path, analysisId);
         analysisStatusNotifier.AnalysisStarted();
-        
+
         var configurationScope = activeConfigScopeTracker.Current;
         if (configurationScope is not { IsReadyForAnalysis: true })
         {
             analysisStatusNotifier.AnalysisNotReady(SLCoreStrings.ConfigScopeNotInitialized);
             return;
         }
-        
+
         if (!serviceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService))
         {
             analysisStatusNotifier.AnalysisFailed(SLCoreStrings.ServiceProviderNotInitialized);
             return;
         }
-        
-        ExecuteAnalysisInternalAsync(path, configurationScope.Id, analysisId, analyzerOptions, analysisService, analysisStatusNotifier, cancellationToken).Forget();
+
+        ExecuteAnalysisInternalAsync(path, configurationScope.Id, analysisId, detectedLanguages, analyzerOptions, analysisService, analysisStatusNotifier, cancellationToken).Forget();
     }
 
-    private async Task ExecuteAnalysisInternalAsync(string path,
+    private async Task ExecuteAnalysisInternalAsync(
+        string path,
         string configScopeId,
-        Guid analysisId, 
+        Guid analysisId,
+        IEnumerable<AnalysisLanguage> detectedLanguages,
         IAnalyzerOptions analyzerOptions,
         IAnalysisSLCoreService analysisService,
         IAnalysisStatusNotifier analysisStatusNotifier,
@@ -87,12 +99,15 @@ public class SLCoreAnalyzer : IAnalyzer
     {
         try
         {
+            Dictionary<string, string> properties = [];
+            using var temporaryResourcesHandle = EnrichPropertiesForCFamily(properties, path, detectedLanguages);
+
             var (failedAnalysisFiles, _) = await analysisService.AnalyzeFilesAndTrackAsync(
                 new AnalyzeFilesAndTrackParams(
                     configScopeId,
                     analysisId,
                     [new FileUri(path)],
-                    [],
+                    properties,
                     analyzerOptions?.IsOnOpen ?? false,
                     currentTimeProvider.Now.ToUnixTimeMilliseconds()),
                 cancellationToken);
@@ -101,7 +116,6 @@ public class SLCoreAnalyzer : IAnalyzer
             {
                 analysisStatusNotifier.AnalysisFailed(SLCoreStrings.AnalysisFailedReason);
             }
-
         }
         catch (OperationCanceledException)
         {
@@ -112,4 +126,27 @@ public class SLCoreAnalyzer : IAnalyzer
             analysisStatusNotifier.AnalysisFailed(e);
         }
     }
+
+    private IDisposable EnrichPropertiesForCFamily(Dictionary<string, string> properties, string path, IEnumerable<AnalysisLanguage> detectedLanguages)
+    {
+        if (!IsCFamily(detectedLanguages))
+        {
+            return null;
+        }
+
+        var compilationDatabaseHandle = compilationDatabaseLocator.GetOrNull(path);
+        if (compilationDatabaseHandle == null)
+        {
+            logger.WriteLine(SLCoreStrings.CompilationDatabaseNotFound, path);
+            // Pass empty compilation database path in order to get a more helpful message and not break the analyzer
+            properties[CFamilyCompileCommandsProperty] = "";
+        }
+        else
+        {
+            properties[CFamilyCompileCommandsProperty] = compilationDatabaseHandle.FilePath;
+        }
+        return compilationDatabaseHandle;
+    }
+
+    private static bool IsCFamily(IEnumerable<AnalysisLanguage> detectedLanguages) => detectedLanguages != null && detectedLanguages.Contains(AnalysisLanguage.CFamily);
 }

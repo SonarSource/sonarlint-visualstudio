@@ -44,94 +44,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         public void Ctor_ArgChecks()
         {
             var bindingArgs = CreateBindCommandArgs();
-            var exclusionSettingsStorage = Mock.Of<IExclusionSettingsStorage>();
             var qpDownloader = Mock.Of<IQualityProfileDownloader>();
             var sonarQubeService = Mock.Of<ISonarQubeService>();
             var logger = Mock.Of<ILogger>();
 
             // 1. Null binding args
-            Action act = () => new BindingProcessImpl(null, exclusionSettingsStorage, sonarQubeService, qpDownloader, logger);
+            Action act = () => new BindingProcessImpl(null, sonarQubeService, qpDownloader, logger);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
 
-            // 2. Null exclusion settings storage
-            act = () => new BindingProcessImpl(bindingArgs, null, sonarQubeService, qpDownloader, logger);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("exclusionSettingsStorage");
-
             // 3. Null SonarQube service
-            act = () => new BindingProcessImpl(bindingArgs, exclusionSettingsStorage, null, qpDownloader, logger);
+            act = () => new BindingProcessImpl(bindingArgs, null, qpDownloader, logger);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
 
             // 4. Null QP downloader
-            act = () => new BindingProcessImpl(bindingArgs, exclusionSettingsStorage, sonarQubeService, null, logger);
+            act = () => new BindingProcessImpl(bindingArgs, sonarQubeService, null, logger);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("qualityProfileDownloader");
 
             // 5. Null logger
-            act = () => new BindingProcessImpl(bindingArgs, exclusionSettingsStorage, sonarQubeService, qpDownloader, null);
+            act = () => new BindingProcessImpl(bindingArgs, sonarQubeService, qpDownloader, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-        }
-
-        [TestMethod]
-        public async Task SaveServerExclusionsAsync_ReturnsTrue()
-        {
-            var bindingArgs = CreateBindCommandArgs(projectKey: "projectKey");
-            var logger = new TestLogger(logToConsole: true);
-
-            ServerExclusions settings = CreateSettings();
-
-            var sonarQubeService = new Mock<ISonarQubeService>();
-            sonarQubeService.Setup(s => s.GetServerExclusions("projectKey", It.IsAny<CancellationToken>())).Returns(Task.FromResult(settings));
-
-            var exclusionSettingsStorage = new Mock<IExclusionSettingsStorage>();
-
-            var testSubject = CreateTestSubject(bindingArgs: bindingArgs,
-                sonarQubeService: sonarQubeService.Object,
-                exclusionSettingsStorage: exclusionSettingsStorage.Object,
-                logger: logger);
-
-            await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
-
-            exclusionSettingsStorage.Verify(fs => fs.SaveSettings(settings), Times.Once);
-            logger.AssertOutputStrings(0);
-        }
-
-        [TestMethod]
-        public async Task SaveServerExclusionsAsync_HasError_ReturnsFalse()
-        {
-            var logger = new TestLogger(logToConsole: true);
-            var bindingArgs = CreateBindCommandArgs(projectKey: "projectKey");
-
-            var sonarQubeService = new Mock<ISonarQubeService>();
-            sonarQubeService.Setup(s => s.GetServerExclusions("projectKey", It.IsAny<CancellationToken>())).Throws(new Exception("Expected Error"));
-
-            var testSubject = CreateTestSubject(
-                bindingArgs: bindingArgs,
-                sonarQubeService: sonarQubeService.Object,
-                logger: logger);
-
-            var result = await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
-
-            result.Should().BeFalse();
-            logger.AssertOutputStrings(1);
-            logger.AssertPartialOutputStrings("Expected Error");
-        }
-
-        [TestMethod]
-        public void SaveServerExclusionsAsync_HasCriticalError_Throws()
-        {
-            var logger = new TestLogger(logToConsole: true);
-            var bindingArgs = CreateBindCommandArgs(projectKey: "projectKey");
-
-            var sonarQubeService = new Mock<ISonarQubeService>();
-            sonarQubeService.Setup(s => s.GetServerExclusions("projectKey", It.IsAny<CancellationToken>())).Throws(new StackOverflowException("Critical Error"));
-
-            var testSubject = CreateTestSubject(bindingArgs: bindingArgs,
-                sonarQubeService: sonarQubeService.Object,
-                logger: logger);
-
-            Func<Task<bool>> act = async () => await testSubject.SaveServerExclusionsAsync(CancellationToken.None);
-
-            act.Should().ThrowExactly<StackOverflowException>().WithMessage("Critical Error");
-            logger.AssertOutputStrings(0);
         }
 
         private static ServerExclusions CreateSettings()
@@ -159,7 +90,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             var result = await testSubject.DownloadQualityProfileAsync(progress, CancellationToken.None);
 
             result.Should().BeTrue();
-            
+
             qpDownloader.Verify(x => x.UpdateAsync(It.IsAny<BoundServerProject>(), progress, It.IsAny<CancellationToken>()),
                 Times.Once);
 
@@ -171,7 +102,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             actualProject.ServerProjectKey.Should().Be("the project key");
         }
 
-        [TestMethod] 
+        [TestMethod]
         public async Task DownloadQualityProfile_HandlesInvalidOperationException()
         {
             var qpDownloader = new Mock<IQualityProfileDownloader>();
@@ -201,19 +132,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         #region Helpers
 
         private BindingProcessImpl CreateTestSubject(BindCommandArgs bindingArgs = null,
-            IExclusionSettingsStorage exclusionSettingsStorage = null,
             ISonarQubeService sonarQubeService = null,
             IQualityProfileDownloader qpDownloader = null,
             ILogger logger = null)
         {
             bindingArgs = bindingArgs ?? CreateBindCommandArgs();
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
-            exclusionSettingsStorage ??= Mock.Of<IExclusionSettingsStorage>();
             qpDownloader ??= Mock.Of<IQualityProfileDownloader>();
             logger ??= new TestLogger(logToConsole: true);
 
             return new BindingProcessImpl(bindingArgs,
-                exclusionSettingsStorage,
                 sonarQubeService,
                 qpDownloader,
                 logger);

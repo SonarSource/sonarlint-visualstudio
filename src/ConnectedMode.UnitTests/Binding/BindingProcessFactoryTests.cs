@@ -38,7 +38,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         {
             MefTestHelpers.CheckTypeCanBeImported<BindingProcessFactory, IBindingProcessFactory>(
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
-                MefTestHelpers.CreateExport<IExclusionSettingsStorage>(),
                 MefTestHelpers.CreateExport<IQualityProfileDownloader>(),
                 MefTestHelpers.CreateExport<ILogger>());
         }
@@ -57,16 +56,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
         private static BindingProcessFactory CreateTestSubject(
             ISonarQubeService service = null,
-            IExclusionSettingsStorage exclusionSettingsStorage = null,
             IQualityProfileDownloader qualityProfileDownloader = null,
             ILogger logger = null)
         {
             service ??= Mock.Of<ISonarQubeService>();
-            exclusionSettingsStorage ??= Mock.Of<IExclusionSettingsStorage>();
             qualityProfileDownloader ??= Mock.Of<IQualityProfileDownloader>();
             logger ??= new TestLogger(logToConsole: true);
 
-            return new BindingProcessFactory(service, exclusionSettingsStorage, qualityProfileDownloader, logger);
+            return new BindingProcessFactory(service, qualityProfileDownloader, logger);
         }
 
     }

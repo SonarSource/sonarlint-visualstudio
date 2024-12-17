@@ -1,6 +1,0 @@
-﻿void a(bool b) {
-    int* f = nullptr;
-    if (b) {
-        *f = 2;
-    }
-}

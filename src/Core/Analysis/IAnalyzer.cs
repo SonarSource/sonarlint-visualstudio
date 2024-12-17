@@ -22,12 +22,9 @@ namespace SonarLint.VisualStudio.Core.Analysis
 {
     public interface IAnalyzer
     {
-        bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
-
         void ExecuteAnalysis(string path,
             Guid analysisId,
             IEnumerable<AnalysisLanguage> detectedLanguages,
-            IIssueConsumer consumer,
             IAnalyzerOptions analyzerOptions,
             CancellationToken cancellationToken);
     }

@@ -70,7 +70,7 @@ public class TaggerProviderTests
         var mockAnalysisRequester = new Mock<IAnalysisRequester>();
 
         var mockFileTracker = new Mock<IFileTracker>();
-            
+
         provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, serviceProvider,
             mockSonarLanguageRecognizer.Object, mockAnalysisService.Object, mockAnalysisRequester.Object,
             mockTaggableBufferIndicator.Object, mockFileTracker.Object, logger);
@@ -110,34 +110,21 @@ public class TaggerProviderTests
     #endregion MEF tests
 
     [TestMethod]
-    public void CreateTagger_should_create_tracker_when_analysis_is_supported()
+    public void CreateTagger_should_create_tracker_when_analysis_is_requested()
     {
-        var doc = CreateMockedDocument("anyname", isDetectable: true);
+        var doc = CreateMockedDocument("anyname");
         var tagger = CreateTaggerForDocument(doc);
 
         tagger.Should().NotBeNull();
 
-        VerifyCheckedAnalysisIsSupported();
         VerifyAnalysisWasRequested();
-        mockAnalysisService.VerifyNoOtherCalls();
-    }
-
-    [TestMethod]
-    public void CreateTagger_should_return_null_when_analysis_is_not_supported()
-    {
-        var doc = CreateMockedDocument("anyname", isDetectable: false);
-        var tagger = CreateTaggerForDocument(doc);
-
-        tagger.Should().BeNull();
-
-        VerifyCheckedAnalysisIsSupported();
         mockAnalysisService.VerifyNoOtherCalls();
     }
 
     [TestMethod]
     public void CreateTagger_should_return_null_when_buffer_is_not_taggable()
     {
-        var doc = CreateMockedDocument("anyname", isDetectable: true);
+        var doc = CreateMockedDocument("anyname");
         mockTaggableBufferIndicator.Setup(x => x.IsTaggable(doc.TextBuffer)).Returns(false);
 
         var tagger = CreateTaggerForDocument(doc);
@@ -349,7 +336,7 @@ public class TaggerProviderTests
         return provider.CreateTagger<IErrorTag>(document.TextBuffer);
     }
 
-    private ITextDocument CreateMockedDocument(string fileName, bool isDetectable = true)
+    private ITextDocument CreateMockedDocument(string fileName)
     {
         var bufferContentType = Mock.Of<IContentType>();
 
@@ -374,11 +361,9 @@ public class TaggerProviderTests
         // Register the buffer-to-doc mapping for the factory service
         dummyDocumentFactoryService.RegisterDocument(mockTextDocument.Object);
 
-        var analysisLanguages = isDetectable ? new[] { AnalysisLanguage.Javascript } : Enumerable.Empty<AnalysisLanguage>();
+        var analysisLanguages = new[] { AnalysisLanguage.Javascript };
 
         SetupDetectedLanguages(fileName, bufferContentType, analysisLanguages);
-
-        mockAnalysisService.Setup(x => x.IsAnalysisSupported(analysisLanguages)).Returns(isDetectable);
 
         return mockTextDocument.Object;
     }
@@ -404,11 +389,6 @@ public class TaggerProviderTests
     {
         buffer.Properties.TryGetProperty<SingletonDisposableTaggerManager<IErrorTag>>(TaggerProvider.SingletonManagerPropertyCollectionKey, out var propertyValue);
         return propertyValue;
-    }
-
-    private void VerifyCheckedAnalysisIsSupported()
-    {
-        mockAnalysisService.Verify(x => x.IsAnalysisSupported(It.IsAny<IEnumerable<AnalysisLanguage>>()), Times.Once);
     }
 
     private void VerifyAnalysisWasRequested()

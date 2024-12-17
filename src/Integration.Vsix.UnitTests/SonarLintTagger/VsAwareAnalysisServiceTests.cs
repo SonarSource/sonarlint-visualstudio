@@ -46,21 +46,6 @@ public class VsAwareAnalysisServiceTests
         MefTestHelpers.CheckIsSingletonMefComponent<VsAwareAnalysisService>();
     }
 
-    [DataTestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void IsAnalysisSupported_UsesAnalyzerService(bool isSupported)
-    {
-        var detectedLanguages = Substitute.For<IEnumerable<AnalysisLanguage>>();
-        var analysisService = Substitute.For<IAnalysisService>();
-        analysisService.IsAnalysisSupported(detectedLanguages).Returns(isSupported);
-        var testSubject = CreateTestSubject(analysisService: analysisService);
-
-        testSubject.IsAnalysisSupported(detectedLanguages).Should().Be(isSupported);
-
-        analysisService.Received().IsAnalysisSupported(detectedLanguages);
-    }
-
     [TestMethod]
     public void CancelForFile_UsesAnalyzerService()
     {
@@ -125,7 +110,8 @@ public class VsAwareAnalysisServiceTests
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
-            issueConsumer.Accept(analysisFilePath, []);
+            issueConsumer.SetIssues(analysisFilePath, []);
+            issueConsumer.SetHotspots(analysisFilePath, []);
             analysisService.ScheduleAnalysis(analysisFilePath,
                 Arg.Any<Guid>(),
                 Arg.Any<IEnumerable<AnalysisLanguage>>(),

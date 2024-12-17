@@ -26,56 +26,26 @@ namespace SonarLint.VisualStudio.Core.Analysis
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class AnalyzerController : IAnalyzerController, IDisposable
     {
-        private readonly ILogger logger;
-        private readonly IEnumerable<IAnalyzer> analyzers;
+        private readonly IAnalyzer analyzer;
 
         // The analyzer controller does not use the config monitor. However, something needs to MEF-import
         // the config monitor so that it is created, and the lifetimes of the analyzer controller and
         // config monitor should be the same so it is convenient to create it here.
         private readonly IAnalysisConfigMonitor analysisConfigMonitor;
-        private readonly IAnalyzableFileIndicator analyzableFileIndicator;
 
         [ImportingConstructor]
-        public AnalyzerController(ILogger logger,
-            [ImportMany] IEnumerable<IAnalyzer> analyzers,
+        public AnalyzerController(
             IAnalysisConfigMonitor analysisConfigMonitor,
-            IAnalyzableFileIndicator analyzableFileIndicator)
+            IAnalyzer analyzer,
+            ILogger logger)
         {
-            this.logger = logger;
-            this.analyzers = analyzers;
             this.analysisConfigMonitor = analysisConfigMonitor;
-            this.analyzableFileIndicator = analyzableFileIndicator;
+            this.analyzer = analyzer;
         }
 
         #region IAnalyzerController implementation
-
-        public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
-        {
-            bool isSupported = analyzers.Any(a => a.IsAnalysisSupported(languages));
-            return isSupported;
-        }
-
-        public void ExecuteAnalysis(string path, Guid analysisId, IEnumerable<AnalysisLanguage> detectedLanguages,
-            IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
-        {
-            var supportedAnalyzers = analyzers.Where(x => x.IsAnalysisSupported(detectedLanguages)).ToList();
-            var handled = false;
-
-            if (supportedAnalyzers.Any() && analyzableFileIndicator.ShouldAnalyze(path))
-            {
-                handled = true;
-
-                foreach (var analyzer in supportedAnalyzers)
-                {
-                    analyzer.ExecuteAnalysis(path, analysisId, detectedLanguages, consumer, analyzerOptions, cancellationToken);
-                }
-            }
-
-            if (!handled)
-            {
-                logger.LogVerbose($"[AnalyzerController] No analyzer supported analysis of {path}");
-            }
-        }
+        public void ExecuteAnalysis(string path, Guid analysisId, IEnumerable<AnalysisLanguage> detectedLanguages, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken) =>
+            analyzer.ExecuteAnalysis(path, analysisId, detectedLanguages, analyzerOptions, cancellationToken);
 
         #endregion IAnalyzerController implementation
 

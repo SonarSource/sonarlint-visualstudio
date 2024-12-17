@@ -39,19 +39,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     internal class BindingProcessFactory : IBindingProcessFactory
     {
         private readonly ISonarQubeService sonarQubeService;
-        private readonly IExclusionSettingsStorage exclusionSettingsStorage;
         private readonly IQualityProfileDownloader qualityProfileDownloader;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public BindingProcessFactory(
             ISonarQubeService sonarQubeService,
-            IExclusionSettingsStorage exclusionSettingsStorage,
             IQualityProfileDownloader qualityProfileDownloader,
             ILogger logger)
         {
             this.sonarQubeService = sonarQubeService;
-            this.exclusionSettingsStorage = exclusionSettingsStorage;
             this.qualityProfileDownloader = qualityProfileDownloader;
             this.logger = logger;
         }
@@ -59,7 +56,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         public IBindingProcess Create(BindCommandArgs bindingArgs)
         {
             return new BindingProcessImpl(bindingArgs,
-                exclusionSettingsStorage,
                 sonarQubeService,
                 qualityProfileDownloader,
                 logger);

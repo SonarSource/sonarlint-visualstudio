@@ -37,8 +37,6 @@ internal interface IVsAwareAnalysisService
         SnapshotChangedHandler errorListHandler,
         IAnalyzerOptions options);
 
-    bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> detectedLanguages);
-    
     void CancelForFile(string filePath);
 }
 
@@ -52,7 +50,7 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
     private readonly IAnalysisService analysisService;
 
     [ImportingConstructor]
-    public VsAwareAnalysisService(IVsProjectInfoProvider vsProjectInfoProvider, 
+    public VsAwareAnalysisService(IVsProjectInfoProvider vsProjectInfoProvider,
         IIssueConsumerFactory issueConsumerFactory,
         IAnalysisService analysisService,
         IThreadHandling threadHandling)
@@ -73,10 +71,7 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
             .Forget();
     }
 
-    public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> detectedLanguages) =>
-        analysisService.IsAnalysisSupported(detectedLanguages);
-
-    public void CancelForFile(string filePath) => 
+    public void CancelForFile(string filePath) =>
         analysisService.CancelForFile(filePath);
 
     private async Task RequestAnalysisAsync(ITextDocument document,
@@ -87,7 +82,7 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
     {
         var (projectName, projectGuid) = await vsProjectInfoProvider.GetDocumentProjectInfoAsync(analysisSnapshot.FilePath);
         var issueConsumer = issueConsumerFactory.Create(document, analysisSnapshot.FilePath, analysisSnapshot.TextSnapshot, projectName, projectGuid, errorListHandler);
-        
+
         await ScheduleAnalysisOnBackgroundThreadAsync(analysisSnapshot.FilePath, detectedLanguages, issueConsumer, options);
     }
 
@@ -99,11 +94,14 @@ internal class VsAwareAnalysisService : IVsAwareAnalysisService
         await threadHandling.RunOnBackgroundThread(() =>
         {
             ClearErrorList(filePath, issueConsumer);
-            
+
             analysisService.ScheduleAnalysis(filePath, Guid.NewGuid(), detectedLanguages, issueConsumer, analyzerOptions);
         });
     }
 
-    private static void ClearErrorList(string filePath, IIssueConsumer issueConsumer) => 
-        issueConsumer.Accept(filePath, []);
+    private static void ClearErrorList(string filePath, IIssueConsumer issueConsumer)
+    {
+        issueConsumer.SetIssues(filePath, []);
+        issueConsumer.SetHotspots(filePath, []);
+    }
 }

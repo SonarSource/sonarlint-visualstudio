@@ -96,6 +96,15 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [SLCoreAnalyzer] No compilation database found for file: {0}. Check that the file is part of a supported project type in the current solution..
+        /// </summary>
+        public static string CompilationDatabaseNotFound {
+            get {
+                return ResourceManager.GetString("CompilationDatabaseNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Configuration scope conflict.
         /// </summary>
         public static string ConfigScopeConflict {

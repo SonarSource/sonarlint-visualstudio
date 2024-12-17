@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             'Parameters': {
               'key1': 'value1'
             },
-            'Severity': 'Critical' 
+            'Severity': 'Critical'
         },
         'xxx:yyy': {
             'level': 'off',
@@ -152,9 +152,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             loadedSettings.Rules["xxx:yyy"].Parameters.Should().NotBeNull();
             loadedSettings.Rules["xxx:yyy"].Parameters["key2"].Should().Be("value2");
             loadedSettings.Rules["xxx:yyy"].Parameters["key3"].Should().Be("value3");
-
-            loadedSettings.Rules["typescript:S2685"].Severity.Should().Be(IssueSeverity.Critical);
-            loadedSettings.Rules["xxx:yyy"].Severity.Should().Be(IssueSeverity.Blocker);
 
             // 2. Save and reload
             testSubject.SafeSave(filePath2, loadedSettings);
@@ -192,8 +189,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             {
                 Rules = new Dictionary<string, RuleConfig>
                 {
-                    { "repo1:key1", new RuleConfig { Level = RuleLevel.Off, Severity = IssueSeverity.Major } },
-                    { "repo1:key2", new RuleConfig { Level = RuleLevel.On, Severity = IssueSeverity.Blocker } },
+                    { "repo1:key1", new RuleConfig { Level = RuleLevel.Off } },
+                    { "repo1:key2", new RuleConfig { Level = RuleLevel.On } },
                     { "repox:keyy",
                         new RuleConfig
                         {
@@ -226,10 +223,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             reloadedSettings.Rules["repo1:key1"].Level.Should().Be(RuleLevel.Off);
             reloadedSettings.Rules["repo1:key2"].Level.Should().Be(RuleLevel.On);
             reloadedSettings.Rules["repox:keyy"].Level.Should().Be(RuleLevel.On);
-
-            reloadedSettings.Rules["repo1:key1"].Severity.Should().Be(IssueSeverity.Major);
-            reloadedSettings.Rules["repo1:key2"].Severity.Should().Be(IssueSeverity.Blocker);
-            reloadedSettings.Rules["repox:keyy"].Severity.Should().BeNull();
 
             reloadedSettings.Rules["repo1:key1"].Parameters.Should().BeNull();
             reloadedSettings.Rules["repo1:key2"].Parameters.Should().BeNull();

@@ -28,35 +28,16 @@ namespace SonarLint.VisualStudio.TestInfrastructure.Extensions
     /// </summary>
     public static class FileSystemExtensions
     {
-        public static Mock<IFileSystem> SetFileDoesNotExist(this Mock<IFileSystem> fileSystem, string fullPath) =>
-            fileSystem.SetFileExists(fullPath, false);
-
-        public static Mock<IFileSystem> SetFileExists(this Mock<IFileSystem> fileSystem, string fullPath) =>
-            fileSystem.SetFileExists(fullPath, true);
-
-        public static Mock<IFileSystem> SetFileExists(this Mock<IFileSystem> fileSystem, string fullPath, bool result)
+        public static T SetFileExists<T>(this T fileSystem, string fullPath, bool result = true)
+         where T : class, IFileSystem
         {
-            fileSystem.Setup(x => x.File.Exists(fullPath)).Returns(result);
+            fileSystem.File.Exists(fullPath).Returns(result);
             return fileSystem;
         }
-
-        public static Mock<IFileSystem> SetFileReadAllText(this Mock<IFileSystem> fileSystem, string fullPath, string result)
+        public static T VerifyFileExistsCalledOnce<T>(this T fileSystem, string fullPath)
+            where T : class, IFileSystem
         {
-            fileSystem
-                .SetFileExists(fullPath) // saying a file has contents implies it exists
-                .Setup(x => x.File.ReadAllText(fullPath)).Returns(result);
-            return fileSystem;
-        }
-
-        public static Mock<IFileSystem> VerifyFileExistsCalledOnce(this Mock<IFileSystem> fileSystem, string fullPath)
-        {
-            fileSystem.Verify(x => x.File.Exists(fullPath), Times.Once);
-            return fileSystem;
-        }
-
-        public static Mock<IFileSystem> VerifyFileReadAllTextCalledOnce(this Mock<IFileSystem> fileSystem, string fullPath)
-        {
-            fileSystem.Verify(x => x.File.ReadAllText(fullPath), Times.Once);
+            fileSystem.File.Received().Exists(fullPath);
             return fileSystem;
         }
     }

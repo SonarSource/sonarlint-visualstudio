@@ -40,20 +40,6 @@ internal class AnalysisService : IAnalysisService
         this.scheduler = scheduler;
     }
 
-    public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
-    {
-        return analyzerController.IsAnalysisSupported(languages);
-    }
-
-    public void PublishIssues(string filePath, Guid analysisId, IEnumerable<IAnalysisIssue> issues)
-    {
-        if (issueConsumerStorage.TryGet(filePath, out var currentAnalysisId, out var issueConsumer)
-            && analysisId == currentAnalysisId)
-        {
-            issueConsumer.Accept(filePath, issues);
-        }
-    }
-
     public void ScheduleAnalysis(string filePath,
         Guid analysisId,
         IEnumerable<AnalysisLanguage> detectedLanguages,
@@ -66,7 +52,7 @@ internal class AnalysisService : IAnalysisService
                 if (!token.IsCancellationRequested)
                 {
                     issueConsumerStorage.Set(filePath, analysisId, issueConsumer);
-                    analyzerController.ExecuteAnalysis(filePath, analysisId, detectedLanguages, issueConsumer, analyzerOptions, token);
+                    analyzerController.ExecuteAnalysis(filePath, analysisId, detectedLanguages, analyzerOptions, token);
                 }
             },
             GetAnalysisTimeoutInMilliseconds());
@@ -84,7 +70,7 @@ internal class AnalysisService : IAnalysisService
             },
             -1);
     }
-    
+
     private static int GetAnalysisTimeoutInMilliseconds()
     {
         var environmentSettings = new EnvironmentSettings();
