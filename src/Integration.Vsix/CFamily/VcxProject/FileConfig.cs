@@ -60,8 +60,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             var toolExe = vcConfig.GetEvaluatedPropertyValue("CLToolExe");
             if (string.IsNullOrEmpty(toolExe))
             {
-                logger.WriteLine("\"CLToolExe\" was not found.");
-                return false;
+                logger.WriteLine("\"CLToolExe\" was not found, falling back to cl.exe.");
+                toolExe = "cl.exe";
             }
 
             foreach (var path in executablePath.Split(';'))
