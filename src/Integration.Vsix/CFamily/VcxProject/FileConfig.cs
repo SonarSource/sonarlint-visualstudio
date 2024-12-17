@@ -29,6 +29,52 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {
     internal class FileConfig : IFileConfig
     {
+        [ExcludeFromCodeCoverage]
+        public static FileConfig TryGet(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath, IFileSystem fileSystem)
+        {
+            if (!(dteProjectItem.ContainingProject.Object is VCProject vcProject) ||
+                !(dteProjectItem.Object is VCFile vcFile))
+            {
+                return null;
+            }
+
+            var vcConfig = vcProject.ActiveConfiguration;
+
+            var vcFileSettings = GetVcFileSettings(logger, absoluteFilePath, vcConfig, vcFile);
+            if (vcFileSettings == null)
+            {
+                // Not supported
+                return null;
+            }
+
+            bool isHeaderFile = vcFile.ItemType == "ClInclude";
+            CmdBuilder cmdBuilder = new CmdBuilder(isHeaderFile);
+
+            if (!GetCompilerPath(logger, vcConfig, fileSystem, out var compilerPath))
+            {
+                return null;
+            }
+            logger.WriteLine(compilerPath);
+            // command: add compiler
+            cmdBuilder.AddCompiler(compilerPath);
+
+            // command: add options from VCRulePropertyStorage
+            cmdBuilder.AddOptFromProperties(vcFileSettings);
+
+            // cmd add File
+            cmdBuilder.AddFile(absoluteFilePath);
+            var envINCLUDE = vcConfig.GetEvaluatedPropertyValue("IncludePath");
+
+            return new FileConfig
+            {
+                CDDirectory = Path.GetDirectoryName(vcProject.ProjectFile),
+                CDCommand = cmdBuilder.GetFullCmd(),
+                CDFile = absoluteFilePath,
+                EnvInclude = envINCLUDE,
+                IsHeaderFile = isHeaderFile,
+            };
+        }
+
         private static bool TryGetCompilerPathFromClCompilerPath(ILogger logger, VCConfiguration vcConfig, IFileSystem fileSystem, out string compilerPath)
         {
             compilerPath = vcConfig.GetEvaluatedPropertyValue("ClCompilerPath");
@@ -118,52 +164,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
             logger.WriteLine("Compiler is not supported.");
             return false;
-        }
-
-        [ExcludeFromCodeCoverage]
-        public static FileConfig TryGet(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath, IFileSystem fileSystem)
-        {
-            if (!(dteProjectItem.ContainingProject.Object is VCProject vcProject) ||
-                !(dteProjectItem.Object is VCFile vcFile))
-            {
-                return null;
-            }
-
-            var vcConfig = vcProject.ActiveConfiguration;
-
-            var vcFileSettings = GetVcFileSettings(logger, absoluteFilePath, vcConfig, vcFile);
-            if (vcFileSettings == null)
-            {
-                // Not supported
-                return null;
-            }
-
-            bool isHeaderFile = vcFile.ItemType == "ClInclude";
-            CmdBuilder cmdBuilder = new CmdBuilder(isHeaderFile);
-
-            if (!GetCompilerPath(logger, vcConfig, fileSystem, out var compilerPath))
-            {
-                return null;
-            }
-            logger.WriteLine(compilerPath);
-            // command: add compiler
-            cmdBuilder.AddCompiler(compilerPath);
-
-            // command: add options from VCRulePropertyStorage
-            cmdBuilder.AddOptFromProperties(vcFileSettings);
-
-            // cmd add File
-            cmdBuilder.AddFile(absoluteFilePath);
-            var envINCLUDE = vcConfig.GetEvaluatedPropertyValue("IncludePath");
-
-            return new FileConfig
-            {
-                CDDirectory = Path.GetDirectoryName(vcProject.ProjectFile),
-                CDCommand = cmdBuilder.GetFullCmd(),
-                CDFile = absoluteFilePath,
-                EnvInclude = envINCLUDE,
-                IsHeaderFile = isHeaderFile,
-            };
         }
 
         private static IVCRulePropertyStorage GetVcFileSettings(ILogger logger, string absoluteFilePath, VCConfiguration vcConfig, VCFile vcFile)
