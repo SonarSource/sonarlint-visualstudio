@@ -28,7 +28,6 @@ using SonarLint.VisualStudio.SLCore.NodeJS;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
-using SonarLint.VisualStudio.SLCore.Service.Rules.Models;
 using SonarLint.VisualStudio.SLCore.State;
 
 namespace SonarLint.VisualStudio.SLCore;
@@ -114,11 +113,11 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             isFocusOnNewCode: false,
             constantsProvider.TelemetryConstants,
             telemetryMigrationProvider.Get(),
-            new LanguageSpecificRequirements(nodeLocator.Get())));
+            new LanguageSpecificRequirements(new JsTsRequirementsDto(nodeLocator.Get(), null))));
 
         configScopeUpdater.UpdateConfigScopeForCurrentSolution(activeSolutionBoundTracker.CurrentConfiguration.Project);
     }
-    
+
     public void Dispose()
     {
         Shutdown();
@@ -144,6 +143,6 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         {
             // ignore
         }
-        
+
     }
 }
