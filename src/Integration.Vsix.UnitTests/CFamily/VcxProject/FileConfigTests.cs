@@ -18,14 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
+using System.IO.Abstractions;
 using EnvDTE;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.VCProjectEngine;
-using Moq;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
-using SonarLint.VisualStudio.TestInfrastructure;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
@@ -34,6 +30,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
     public class FileConfigTests
     {
         private readonly TestLogger testLogger = new TestLogger();
+        private const string ClFilePath = "C:\\path\\cl.exe";
+        private const string ClangClFilePath = "C:\\path\\clang-cl.exe";
+
+        private static IFileSystem CreateFileSystemWithNoFiles()
+        {
+            var fileSystem = Substitute.For<IFileSystem>();
+            fileSystem.File.Exists(Arg.Any<string>()).Returns(false);
+            return fileSystem;
+        }
+
+        private static IFileSystem CreateFileSystemWithExistingFile(string fullPath)
+        {
+            var fileSystem = Substitute.For<IFileSystem>();
+            fileSystem.File.Exists(fullPath).Returns(true);
+            return fileSystem;
+        }
+
+        private static IFileSystem CreateFileSystemWithClCompiler() => CreateFileSystemWithExistingFile(ClFilePath);
+        private static IFileSystem CreateFileSystemWithClangClCompiler() => CreateFileSystemWithExistingFile(ClangClFilePath);
 
         [TestMethod]
         public void TryGet_NoVCProject_ReturnsNull()
@@ -45,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             dteProjectItemMock.Setup(x => x.Object).Returns(Mock.Of<VCFile>());
             dteProjectItemMock.Setup(x => x.ContainingProject).Returns(dteProjectMock.Object);
 
-            FileConfig.TryGet(testLogger, dteProjectItemMock.Object, "c:\\path")
+            FileConfig.TryGet(testLogger, dteProjectItemMock.Object, "c:\\path", CreateFileSystemWithClCompiler())
                 .Should().BeNull();
         }
 
@@ -59,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             dteProjectItemMock.Setup(x => x.Object).Returns(null);
             dteProjectItemMock.Setup(x => x.ContainingProject).Returns(dteProjectMock.Object);
 
-            FileConfig.TryGet(testLogger, dteProjectItemMock.Object, "c:\\path")
+            FileConfig.TryGet(testLogger, dteProjectItemMock.Object, "c:\\path", CreateFileSystemWithClCompiler())
                 .Should().BeNull();
         }
 
@@ -71,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var fileConfig = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
+            var fileConfig = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithClCompiler());
 
             // Assert
             fileConfig.Should().BeNull();
@@ -86,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var fileConfig = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
+            var fileConfig = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithClCompiler());
 
             // Assert
             fileConfig.Should().BeNull();
@@ -101,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var fileConfig = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
+            var fileConfig = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithClCompiler());
 
             // Assert
             fileConfig.Should().BeNull();
@@ -134,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
+            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithClCompiler());
 
             // Assert
             request.Should().NotBeNull();
@@ -170,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
+            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h", CreateFileSystemWithClCompiler());
 
             // Assert
             request.Should().NotBeNull();
@@ -183,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             projectItemConfig.FileConfigProperties["ForcedIncludeFiles"] = "FHeader.h";
 
             // Act
-            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
+            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h", CreateFileSystemWithClCompiler());
 
             // Assert
             Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu /TC \"c:\\dummy\\file.h\"", request.CDCommand);
@@ -194,7 +209,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             projectItemConfig.FileConfigProperties["CompileAs"] = "CompileAsCpp";
 
             // Act
-            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
+            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h", CreateFileSystemWithClCompiler());
 
             // Assert
             Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu /TP \"c:\\dummy\\file.h\"", request.CDCommand);
@@ -220,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
+            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithExistingFile("C:\\path\\x86\\cl.exe"));
 
             // Assert
             request.Should().NotBeNull();
@@ -230,11 +245,102 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             projectItemConfig.PlatformName = "x64";
             projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
             // Act
-            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
+            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithExistingFile("C:\\path\\x64\\cl.exe"));
 
             // Assert
             request.Should().NotBeNull();
             Assert.IsTrue(request.CDCommand.StartsWith("\"C:\\path\\x64\\cl.exe\""));
+        }
+
+        [TestMethod]
+        public void TryGet_CompilerName_ClangCL()
+        {
+            // Arrange
+            var projectItemConfig = new ProjectItemConfig
+            {
+                ProjectConfigProperties = new Dictionary<string, string>
+                {
+                    ["ClCompilerPath"] = null,
+                    ["IncludePath"] = "C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;",
+                    ["ExecutablePath"] = "C:\\path\\no-compiler\\;C:\\path",
+                    ["CLToolExe"] = "clang-cl.exe",
+                    ["VC_ExecutablePath_x86"] = "C:\\path\\x86",
+                    ["VC_ExecutablePath_x64"] = "C:\\path\\x64",
+                }
+            };
+
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
+
+            // Act
+            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithClangClCompiler());
+
+            // Assert
+            request.Should().NotBeNull();
+            Assert.IsTrue(request.CDCommand.StartsWith("\"C:\\path\\clang-cl.exe\""));
+
+            // Arrange
+            projectItemConfig.ProjectConfigProperties["ClCompilerPath"] = "\\clang-cl.exe";
+
+            // Act
+            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithClangClCompiler());
+
+            // Assert
+            request.Should().NotBeNull();
+            Assert.IsTrue(request.CDCommand.StartsWith("\"C:\\path\\clang-cl.exe\""));
+
+            // Act
+            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithNoFiles());
+
+            // Assert
+            request.Should().BeNull();
+            testLogger.AssertOutputStringExists("Compiler is not supported.");
+
+            // Arrange
+            projectItemConfig.ProjectConfigProperties["ClToolExe"] = null;
+
+            // Act
+            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithExistingFile("C:\\path\\x86\\cl.exe"));
+
+            // Assert
+            request.Should().NotBeNull();
+            Assert.IsTrue(request.CDCommand.StartsWith("\"C:\\path\\x86\\cl.exe\""));
+
+            // Arrange
+            projectItemConfig.ProjectConfigProperties["ClToolExe"] = null;
+
+            // Act
+            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithNoFiles());
+
+            // Assert
+            request.Should().BeNull();
+            testLogger.AssertOutputStringExists("Compiler is not supported.");
+        }
+
+        [TestMethod]
+        public void TryGet_CompilerName_CL_No_ClCompilerPath_NoCLToolExe()
+        {
+            // Arrange
+            var projectItemConfig = new ProjectItemConfig
+            {
+                ProjectConfigProperties = new Dictionary<string, string>
+                {
+                    ["ClCompilerPath"] = null,
+                    ["IncludePath"] = "C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;",
+                    ["ExecutablePath"] = "C:\\path\\no-compiler\\;C:\\path",
+                    ["CLToolExe"] = null,
+                    ["VC_ExecutablePath_x86"] = "C:\\path\\x86",
+                    ["VC_ExecutablePath_x64"] = "C:\\path\\x64",
+                }
+            };
+
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
+
+            // Act
+            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithClCompiler());
+
+            // Assert
+            request.Should().NotBeNull();
+            Assert.IsTrue(request.CDCommand.StartsWith("\"C:\\path\\cl.exe\""));
         }
 
     }
