@@ -190,6 +190,7 @@ public class SLCoreAnalyzerTests
         SetUpCompilationDatabaseLocator(filePath, CreateCompilationDatabaseHandle("somepath"));
         SetUpInitializedConfigScope();
         var cFamilyAnalyzerOptions = Substitute.For<ICFamilyAnalyzerOptions>();
+        cFamilyAnalyzerOptions.IsOnOpen.Returns(false);
         cFamilyAnalyzerOptions.CreateReproducer.Returns(true);
 
         testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], cFamilyAnalyzerOptions, default);
