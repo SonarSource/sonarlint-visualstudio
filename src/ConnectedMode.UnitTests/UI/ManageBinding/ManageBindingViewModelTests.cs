@@ -210,16 +210,7 @@ public class ManageBindingViewModelTests
                     x.TaskToPerform == testSubject.UnbindAsync &&
                     x.ProgressStatus == UiResources.UnbindingInProgressText &&
                     x.WarningText == UiResources.UnbindingFailedText &&
-                    x.AfterProgressUpdated == testSubject.OnProgressUpdated &&
-                    x.AfterSuccess == testSubject.AfterUnbind));
-    }
-
-    [TestMethod]
-    public async Task UnbindAsync_UnbindsOnUIThread()
-    {
-        await testSubject.UnbindAsync();
-
-        await threadHandling.Received(1).RunOnUIThreadAsync(Arg.Any<Action>());
+                    x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
 
     [TestMethod]
@@ -239,7 +230,6 @@ public class ManageBindingViewModelTests
     public async Task UnbindAsync_ReturnsResponseOfUnbinding(bool expectedResponse)
     {
         await InitializeBoundProject();
-        connectedModeServices.ThreadHandling.Returns(new NoOpThreadHandler());
         connectedModeBindingServices.BindingController.Unbind(Arg.Any<string>()).Returns(expectedResponse);
 
         var adapterResponse = await testSubject.UnbindAsync();
@@ -250,10 +240,9 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public async Task UnbindAsync_UnbindingThrows_ReturnsFalse()
     {
+        await InitializeBoundProject();
         var exceptionMsg = "Failed to load connections";
-        var mockedThreadHandling = Substitute.For<IThreadHandling>();
-        connectedModeServices.ThreadHandling.Returns(mockedThreadHandling);
-        mockedThreadHandling.When(x => x.RunOnUIThreadAsync(Arg.Any<Action>())).Do(_ => throw new Exception(exceptionMsg));
+        connectedModeBindingServices.BindingController.When(x => x.Unbind(Arg.Any<string>())).Do(_ => throw new Exception(exceptionMsg));
 
         var adapterResponse = await testSubject.UnbindAsync();
 
@@ -262,23 +251,14 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void AfterUnbind_SetsBoundProjectToNull()
+    public async Task UnbindAsync_ClearsBindingProperties()
     {
-        testSubject.BoundProject = serverProject;
+        await InitializeBoundProject();
+        SetupConfigurationProvider(new BindingConfiguration(null, SonarLintMode.Standalone, null));
 
-        testSubject.AfterUnbind(new AdapterResponse(true));
+        await testSubject.UnbindAsync();
 
         testSubject.BoundProject.Should().BeNull();
-    }
-
-    [TestMethod]
-    public void AfterUnbind_SetsConnectionInfoToNull()
-    {
-        testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
-        testSubject.SelectedProject = serverProject;
-
-        testSubject.AfterUnbind(new AdapterResponse(true));
-
         testSubject.SelectedConnectionInfo.Should().BeNull();
         testSubject.SelectedProject.Should().BeNull();
     }
@@ -1079,19 +1059,22 @@ public class ManageBindingViewModelTests
 
     private void SetupUnboundProject()
     {
-        var configurationProvider = Substitute.For<IConfigurationProvider>();
-        configurationProvider.GetConfiguration().Returns(new BindingConfiguration(null, SonarLintMode.Standalone, null));
-        connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
+        SetupConfigurationProvider(new BindingConfiguration(null, SonarLintMode.Standalone, null));
 
         MockGetServerProjectByKey(false, null);
+    }
+
+    private void SetupConfigurationProvider(BindingConfiguration bindingConfiguration)
+    {
+        var configurationProvider = Substitute.For<IConfigurationProvider>();
+        configurationProvider.GetConfiguration().Returns(bindingConfiguration);
+        connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
     }
 
     private void SetupBoundProjectThatDoesNotExistOnServer(ServerConnection serverConnection)
     {
         var boundServerProject = new BoundServerProject(ALocalProjectKey, "a-server-project", serverConnection);
-        var configurationProvider = Substitute.For<IConfigurationProvider>();
-        configurationProvider.GetConfiguration().Returns(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));
-        connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
+        SetupConfigurationProvider(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));
 
         MockGetServerProjectByKey(false, null);
     }

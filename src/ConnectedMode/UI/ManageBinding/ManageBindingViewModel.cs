@@ -164,11 +164,8 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
     public async Task UnbindWithProgressAsync()
     {
-        var bind = new TaskToPerformParams<AdapterResponse>(UnbindAsync, UiResources.UnbindingInProgressText, UiResources.UnbindingFailedText)
-        {
-            AfterSuccess = AfterUnbind, AfterProgressUpdated = OnProgressUpdated
-        };
-        await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
+        var unbind = new TaskToPerformParams<AdapterResponse>(UnbindAsync, UiResources.UnbindingInProgressText, UiResources.UnbindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
+        await ProgressReporter.ExecuteTaskWithProgressAsync(unbind);
     }
 
     public async Task ExportBindingConfigurationAsync()
@@ -255,7 +252,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         if (bindingConfiguration == null || bindingConfiguration.Mode == SonarLintMode.Standalone)
         {
             var successResponse = new AdapterResponse(true);
-            AfterUnbind(successResponse);
+            UpdateBoundProjectProperties(null, null);
             return successResponse;
         }
 
@@ -283,10 +280,11 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
     internal async Task<AdapterResponse> UnbindAsync()
     {
-        var succeeded = false;
+        bool succeeded;
         try
         {
-            await connectedModeServices.ThreadHandling.RunOnUIThreadAsync(() => succeeded = connectedModeBindingServices.BindingController.Unbind(SolutionInfo.Name));
+            succeeded = connectedModeBindingServices.BindingController.Unbind(SolutionInfo.Name);
+            await DisplayBindStatusAsync();
         }
         catch (Exception ex)
         {
@@ -296,8 +294,6 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
         return new AdapterResponse(succeeded);
     }
-
-    internal void AfterUnbind(AdapterResponse obj) => UpdateBoundProjectProperties(null, null);
 
     private async Task<AdapterResponse> BindAsync(ServerConnection serverConnection, string serverProjectKey)
     {
