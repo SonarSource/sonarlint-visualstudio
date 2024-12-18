@@ -101,17 +101,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         }
 
         [TestMethod]
-        public void Get_FailsToRetrieveProjectItem_NonCriticalException_Pch_ExceptionCaughtNotLoggedAndNullReturned()
-        {
-            dte.Solution.ThrowsForAnyArgs<NotImplementedException>();
-
-            var result = testSubject.Get(SourceFilePath, new CFamilyAnalyzerOptions{CreatePreCompiledHeaders = true});
-
-            result.Should().BeNull();
-            logger.AssertNoOutputMessages();
-        }
-
-        [TestMethod]
         public void Get_FailsToRetrieveProjectItem_CriticalException_ExceptionThrown()
         {
             dte.Solution.ThrowsForAnyArgs<DivideByZeroException>();

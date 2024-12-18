@@ -22,10 +22,14 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.CFamily.Analysis
 {
-    public class CFamilyAnalyzerOptions : IAnalyzerOptions
+    public interface ICFamilyAnalyzerOptions : IAnalyzerOptions
+    {
+        bool CreateReproducer { get; set; }
+    }
+
+    public class CFamilyAnalyzerOptions : ICFamilyAnalyzerOptions
     {
         public bool CreateReproducer { get; set; }
-        public bool CreatePreCompiledHeaders { get; set; }
         public bool IsOnOpen { get; set; }
     }
 }

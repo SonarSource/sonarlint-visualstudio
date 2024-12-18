@@ -47,17 +47,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         ILogger logger,
         IThreadHandling threadHandling) : IFileConfigProvider
     {
-        private static readonly NoOpLogger noOpLogger = new NoOpLogger();
 
         public IFileConfig Get(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
-            var analysisLogger = GetAnalysisLogger(analyzerOptions);
-
             return uiServiceOperation.Execute<SDTE, DTE2, IFileConfig>(dte =>
-                GetInternal(analyzedFilePath, dte, analysisLogger));
+                GetInternal(analyzedFilePath, dte));
         }
 
-        private FileConfig GetInternal(string analyzedFilePath, DTE2 dte, ILogger analysisLogger)
+        private FileConfig GetInternal(string analyzedFilePath, DTE2 dte)
         {
             threadHandling.ThrowIfNotOnUIThread();
 
@@ -72,34 +69,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
                 if (!fileInSolutionIndicator.IsFileInSolution(projectItem))
                 {
-                    analysisLogger.LogVerbose($"[VCX:FileConfigProvider] The file is not part of a VCX project. File: {analyzedFilePath}");
+                    logger.LogVerbose($"[VCX:FileConfigProvider] The file is not part of a VCX project. File: {analyzedFilePath}");
                     return null;
                 }
                 // Note: if the C++ tools are not installed then it's likely an exception will be thrown when
                 // the framework tries to JIT-compile the TryGet method (since it won't be able to find the MS.VS.VCProjectEngine
                 // types).
-                return FileConfig.TryGet(analysisLogger, projectItem, analyzedFilePath, fileSystem);
+                return FileConfig.TryGet(logger, projectItem, analyzedFilePath, fileSystem);
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
-                analysisLogger.WriteLine(CFamilyStrings.ERROR_CreatingConfig, analyzedFilePath, ex);
+                logger.WriteLine(CFamilyStrings.ERROR_CreatingConfig, analyzedFilePath, ex);
                 return null;
             }
         }
-
-        private ILogger GetAnalysisLogger(CFamilyAnalyzerOptions analyzerOptions)
-        {
-            if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions &&
-                cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
-            {
-                // In case the requeset is coming from PCH generation, we don't log failures.
-                // This is to avoid redundant messages while navigating unsupported files.
-                return noOpLogger;
-            }
-
-            return logger;
-        }
-
 
         private class NoOpLogger : ILogger
         {
