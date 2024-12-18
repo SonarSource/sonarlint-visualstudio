@@ -19,6 +19,7 @@
  */
 
 using NSubstitute.ExceptionExtensions;
+using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -180,6 +181,23 @@ public class SLCoreAnalyzerTests
                 && a.extraProperties["sonar.cfamily.compile-commands"] == compilationDatabasePath),
             Arg.Any<CancellationToken>());
         compilationDatabaseHandle.Received().Dispose();
+    }
+
+    [TestMethod]
+    public void ExecuteAnalysis_CFamilyReproducerEnabled_SetsExtraProperty()
+    {
+        const string filePath = @"C:\file\path\myclass.cpp";
+        SetUpCompilationDatabaseLocator(filePath, CreateCompilationDatabaseHandle("somepath"));
+        SetUpInitializedConfigScope();
+        var cFamilyAnalyzerOptions = Substitute.For<ICFamilyAnalyzerOptions>();
+        cFamilyAnalyzerOptions.CreateReproducer.Returns(true);
+
+        testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], cFamilyAnalyzerOptions, default);
+
+        analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
+                a.extraProperties != null
+                && a.extraProperties["sonar.cfamily.reproducer"] == filePath),
+            Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
