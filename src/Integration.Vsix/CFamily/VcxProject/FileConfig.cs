@@ -106,6 +106,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             var toolExe = vcConfig.GetEvaluatedPropertyValue("CLToolExe");
             if (string.IsNullOrEmpty(toolExe))
             {
+                // VS2022 sets "CLToolExe" only when clang-cl is chosen as the toolset.
                 logger.WriteLine("\"CLToolExe\" was not found, falling back to cl.exe.");
                 toolExe = "cl.exe";
             }
