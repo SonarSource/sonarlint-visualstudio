@@ -711,7 +711,20 @@ public class ManageBindingViewModelTests
         testSubject.SelectedProject.Should().BeNull();
         testSubject.BoundProject.Should().BeNull();
     }
-    
+
+    [TestMethod]
+    public async Task DisplayBindStatusAsync_WhenProjectWasBoundAndBecomesUnbound_UpdatesCurrentProjectAndBindingInfoToNull()
+    {
+        await InitializeBoundProject();
+        SetupUnboundProject();
+
+        await testSubject.DisplayBindStatusAsync();
+
+        testSubject.BoundProject.Should().BeNull();
+        testSubject.SelectedConnectionInfo.Should().BeNull();
+        testSubject.SelectedProject.Should().BeNull();
+    }
+
     [TestMethod]
     public async Task LoadDataAsync_LoadsConnectionsOnUIThread()
     {

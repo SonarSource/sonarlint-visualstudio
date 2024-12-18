@@ -261,7 +261,9 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         var bindingConfiguration = connectedModeServices.ConfigurationProvider.GetConfiguration();
         if (bindingConfiguration == null || bindingConfiguration.Mode == SonarLintMode.Standalone)
         {
-            return new AdapterResponse(true);
+            var successResponse = new AdapterResponse(true);
+            AfterUnbind(successResponse);
+            return successResponse;
         }
 
         var boundServerProject = connectedModeServices.ConfigurationProvider.GetConfiguration()?.Project;
