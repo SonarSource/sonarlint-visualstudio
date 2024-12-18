@@ -27,6 +27,8 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Helpers;
+using System.IO.Abstractions;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {
@@ -41,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
     internal class FileConfigProvider(
         IVsUIServiceOperation uiServiceOperation,
         IFileInSolutionIndicator fileInSolutionIndicator,
+        IFileSystemService fileSystem,
         ILogger logger,
         IThreadHandling threadHandling) : IFileConfigProvider
     {
@@ -75,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 // Note: if the C++ tools are not installed then it's likely an exception will be thrown when
                 // the framework tries to JIT-compile the TryGet method (since it won't be able to find the MS.VS.VCProjectEngine
                 // types).
-                return FileConfig.TryGet(analysisLogger, projectItem, analyzedFilePath);
+                return FileConfig.TryGet(analysisLogger, projectItem, analyzedFilePath, fileSystem);
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
