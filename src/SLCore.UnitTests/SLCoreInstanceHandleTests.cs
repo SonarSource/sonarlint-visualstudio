@@ -43,7 +43,7 @@ public class SLCoreInstanceHandleTests
     private const string StorageRoot = "storageRootSl";
     private const string WorkDir = "workDirSl";
     private const string UserHome = "userHomeSl";
-    
+
     private static readonly ClientConstantsDto ClientConstants = new(default, default, default);
     private static readonly FeatureFlagsDto FeatureFlags = new(default, default, default, default, default, default, default, default, default);
     private static readonly TelemetryClientConstantAttributesDto TelemetryConstants = new(default, default, default, default, default);
@@ -53,7 +53,7 @@ public class SLCoreInstanceHandleTests
     private static readonly SonarCloudConnectionConfigurationDto SonarCloudConnection = new("sc", true, "https://sonarcloud.io/");
 
     private static readonly BoundServerProject Binding = new("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://localhost")));
-    
+
     private static readonly List<string> JarList = new() { "jar1" };
     private static readonly Dictionary<string, string> ConnectedModeJarList = new() { {"key", "jar1"} };
     private ISLCoreRpcFactory slCoreRpcFactory;
@@ -119,7 +119,7 @@ public class SLCoreInstanceHandleTests
         nodeLocator.Get().Returns(nodeJsPath);
         var telemetryMigrationDto = new TelemetryMigrationDto(default, default, default);
         telemetryMigrationProvider.Get().Returns(telemetryMigrationDto);
-        
+
         testSubject.Initialize();
 
         Received.InOrder(() =>
@@ -139,12 +139,13 @@ public class SLCoreInstanceHandleTests
                 && parameters.standaloneRuleConfigByKey.Count == 0
                 && !parameters.isFocusOnNewCode
                 && parameters.telemetryConstantAttributes == TelemetryConstants
-                && parameters.languageSpecificRequirements.clientNodeJsPath == nodeJsPath
+                && parameters.languageSpecificRequirements.jsTsRequirements.clientNodeJsPath == nodeJsPath
+                && parameters.languageSpecificRequirements.jsTsRequirements.bundlePath == null
                 && parameters.telemetryMigration == telemetryMigrationDto));
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(Binding);
         });
     }
-    
+
     [TestMethod]
     public void Initialize_NoLanguagesAnalysisEnabled_DisablesAllLanguages()
     {
@@ -159,7 +160,7 @@ public class SLCoreInstanceHandleTests
         Language[] expectedDisabledLanguages = [Language.ABAP, Language.APEX, Language.YAML, Language.XML];
         initializeParams.disabledPluginKeysForAnalysis.Should().BeEquivalentTo(expectedDisabledLanguages.Select(l => l.GetPluginKey()));
     }
-    
+
     [TestMethod]
     public void Initialize_AnalysisPartiallyEnabled_DisablesAllNotEnabledLanguages()
     {
@@ -174,7 +175,7 @@ public class SLCoreInstanceHandleTests
         Language[] expectedDisabledLanguages = [Language.ABAP, Language.XML];
         initializeParams.disabledPluginKeysForAnalysis.Should().BeEquivalentTo(expectedDisabledLanguages.Select(l => l.GetPluginKey()));
     }
-    
+
     [TestMethod]
     public void Initialize_AnalysisFullyEnabled_DisablesNoLanguages()
     {
@@ -212,8 +213,8 @@ public class SLCoreInstanceHandleTests
         var serviceProvider = rpc.ServiceProvider;
         serviceProvider.ClearReceivedCalls();
         testSubject.Dispose();
-        
-        
+
+
         serviceProvider.Received().TryGetTransientService(out Arg.Any<ILifecycleManagementSLCoreService>());
         Received.InOrder(() =>
         {
@@ -224,7 +225,7 @@ public class SLCoreInstanceHandleTests
         });
         rpc.Received().Dispose();
     }
-    
+
     [TestMethod]
     public void Dispose_IgnoresServiceProviderException()
     {
@@ -238,12 +239,12 @@ public class SLCoreInstanceHandleTests
         serviceProvider.ClearSubstitute();
         serviceProvider.ClearReceivedCalls();
         serviceProvider.TryGetTransientService(out Arg.Any<AnySLCoreService>()).Throws(new Exception());
-        
+
         var act = () => testSubject.Dispose();
-        
+
         act.Should().NotThrow();
     }
-    
+
     [TestMethod]
     public void Dispose_IgnoresShutdownException()
     {
@@ -257,10 +258,10 @@ public class SLCoreInstanceHandleTests
         var serviceProvider = rpc.ServiceProvider;
         serviceProvider.ClearReceivedCalls();
         var act = () => testSubject.Dispose();
-        
+
         act.Should().NotThrow();
     }
-    
+
     [TestMethod]
     public void Dispose_ConnectionDied_DisposesRpc()
     {
@@ -275,7 +276,7 @@ public class SLCoreInstanceHandleTests
         serviceProvider.ClearReceivedCalls();
         serviceProvider.TryGetTransientService(out Arg.Any<AnySLCoreService>()).Returns(false);
         testSubject.Dispose();
-        
+
         serviceProvider.ReceivedWithAnyArgs().TryGetTransientService(out Arg.Any<ILifecycleManagementSLCoreService>());
         rpc.Received().Dispose();
         Received.InOrder(() =>
@@ -286,7 +287,7 @@ public class SLCoreInstanceHandleTests
         });
         lifecycleManagement.DidNotReceive().Shutdown();
     }
-    
+
     [TestMethod]
     public void Dispose_NotInitialized_DoesNothing()
     {
@@ -303,7 +304,7 @@ public class SLCoreInstanceHandleTests
         constantsProvider.ClientConstants.Returns(ClientConstants);
         constantsProvider.FeatureFlags.Returns(FeatureFlags);
         constantsProvider.TelemetryConstants.Returns(TelemetryConstants);
-        
+
         foldersProvider.GetWorkFolders().Returns(new SLCoreFolders(StorageRoot, WorkDir, UserHome));
         connectionsProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfiguration>
         {
