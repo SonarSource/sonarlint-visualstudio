@@ -313,6 +313,42 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
+    public void IsUseSharedBindingButtonVisible_SharedBindingConfigExistsAndProjectIsBound_ReturnsFalse()
+    {
+        testSubject.SharedBindingConfigModel = new SharedBindingConfigModel();
+        testSubject.BoundProject = serverProject;
+
+        testSubject.IsUseSharedBindingButtonVisible.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void IsUseSharedBindingButtonVisible_SharedBindingConfigExistsAndProjectIsUnbound_ReturnsTrue()
+    {
+        testSubject.SharedBindingConfigModel = new SharedBindingConfigModel();
+        testSubject.BoundProject = null;
+
+        testSubject.IsUseSharedBindingButtonVisible.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void IsUseSharedBindingButtonVisible_SharedBindingConfigDoesNotExistAndProjectIsBound_ReturnsFalse()
+    {
+        testSubject.SharedBindingConfigModel = null;
+        testSubject.BoundProject = serverProject;
+
+        testSubject.IsUseSharedBindingButtonVisible.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void IsUseSharedBindingButtonVisible_SharedBindingConfigDoesNotExistAndProjectIsUnbound_ReturnsFalse()
+    {
+        testSubject.SharedBindingConfigModel = null;
+        testSubject.BoundProject = null;
+
+        testSubject.IsUseSharedBindingButtonVisible.Should().BeFalse();
+    }
+
+    [TestMethod]
     public void SharedBindingConfigModel_Set_RaisesEvents()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
@@ -564,13 +600,13 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public async Task InitializeDataAsync_WhenBound_DoesNotChecksForSharedBindingAndReportsProgress()
+    public async Task InitializeDataAsync_WhenBound_ChecksForSharedBindingAndReportsProgress()
     {
         testSubject.BoundProject = serverProject;
 
         await testSubject.InitializeDataAsync();
 
-        await progressReporterViewModel.DidNotReceive()
+        await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(
                 Arg.Is<TaskToPerformParams<AdapterResponse>>(x =>
                     x.TaskToPerform == testSubject.CheckForSharedBindingAsync &&

@@ -142,12 +142,10 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
             UiResources.FetchingBindingStatusFailedText) { AfterProgressUpdated = OnProgressUpdated };
         await ProgressReporter.ExecuteTaskWithProgressAsync(displayBindStatus);
 
-        if (!IsCurrentProjectBound)
-        {
-            var detectSharedBinding = new TaskToPerformParams<AdapterResponse>(CheckForSharedBindingAsync, UiResources.CheckingForSharedBindingText,
-                UiResources.CheckingForSharedBindingFailedText) { AfterProgressUpdated = OnProgressUpdated };
-            await ProgressReporter.ExecuteTaskWithProgressAsync(detectSharedBinding);
-        }
+        var detectSharedBinding = new TaskToPerformParams<AdapterResponse>(CheckForSharedBindingAsync, UiResources.CheckingForSharedBindingText,
+                UiResources.CheckingForSharedBindingFailedText)
+            { AfterProgressUpdated = OnProgressUpdated };
+        await ProgressReporter.ExecuteTaskWithProgressAsync(detectSharedBinding);
     }
 
     public async Task BindWithProgressAsync()
