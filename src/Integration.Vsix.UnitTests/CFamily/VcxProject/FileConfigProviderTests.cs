@@ -24,11 +24,9 @@ using Microsoft.VisualStudio.Shell.Interop;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
-using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
@@ -94,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         {
             dte.Solution.ThrowsForAnyArgs<NotImplementedException>();
 
-            var result = testSubject.Get(SourceFilePath, new CFamilyAnalyzerOptions());
+            var result = testSubject.Get(SourceFilePath);
 
             result.Should().BeNull();
             logger.AssertPartialOutputStringExists(nameof(NotImplementedException), SourceFilePath);
@@ -105,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         {
             dte.Solution.ThrowsForAnyArgs<DivideByZeroException>();
 
-            Action act = () => testSubject.Get(SourceFilePath, new CFamilyAnalyzerOptions());
+            Action act = () => testSubject.Get(SourceFilePath);
 
             act.Should().Throw<DivideByZeroException>();
         }
@@ -115,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         {
             dte.Solution.FindProjectItem(SourceFilePath).ReturnsNull();
 
-            testSubject.Get(SourceFilePath, null)
+            testSubject.Get(SourceFilePath)
                 .Should().BeNull();
 
             Received.InOrder(() =>
@@ -132,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             dte.Solution.FindProjectItem(SourceFilePath).Returns(mockProjectItem.Object);
             fileInSolutionIndicator.IsFileInSolution(mockProjectItem.Object).Returns(false);
 
-            testSubject.Get(SourceFilePath, null)
+            testSubject.Get(SourceFilePath)
                 .Should().BeNull();
 
             Received.InOrder(() =>
@@ -149,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             var mockProjectItem = CreateMockProjectItem(SourceFilePath);
             dte.Solution.FindProjectItem(SourceFilePath).Returns(mockProjectItem.Object);
 
-            testSubject.Get(SourceFilePath, null)
+            testSubject.Get(SourceFilePath)
                 .Should().NotBeNull();
         }
     }
