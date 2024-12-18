@@ -21,7 +21,6 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
-using SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections;
 using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.Binding;
@@ -31,14 +30,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
 public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 {
-    private SolutionInfoModel solutionInfo;
+    private readonly CancellationTokenSource cancellationTokenSource = new();
+    private readonly IConnectedModeBindingServices connectedModeBindingServices;
+    private readonly IConnectedModeServices connectedModeServices;
     private ServerProject boundProject;
     private ConnectionInfo selectedConnectionInfo;
     private ServerProject selectedProject;
     private SharedBindingConfigModel sharedBindingConfigModel;
-    private readonly IConnectedModeServices connectedModeServices;
-    private readonly IConnectedModeBindingServices connectedModeBindingServices;
-    private readonly CancellationTokenSource cancellationTokenSource = new();
+    private SolutionInfoModel solutionInfo;
 
     public SolutionInfoModel SolutionInfo
     {
@@ -131,6 +130,8 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         ProgressReporter = progressReporterViewModel;
     }
 
+    public void Dispose() => cancellationTokenSource?.Dispose();
+
     public async Task InitializeDataAsync()
     {
         var loadData = new TaskToPerformParams<AdapterResponse>(LoadDataAsync, UiResources.LoadingConnectionsText,
@@ -165,8 +166,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
     {
         var bind = new TaskToPerformParams<AdapterResponse>(UnbindAsync, UiResources.UnbindingInProgressText, UiResources.UnbindingFailedText)
         {
-            AfterSuccess = AfterUnbind,
-            AfterProgressUpdated = OnProgressUpdated
+            AfterSuccess = AfterUnbind, AfterProgressUpdated = OnProgressUpdated
         };
         await ProgressReporter.ExecuteTaskWithProgressAsync(bind);
     }
@@ -183,11 +183,6 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         {
             UpdateProgress(null);
         }
-    }
-
-    public void Dispose()
-    {
-        cancellationTokenSource?.Dispose();
     }
 
     internal Task<AdapterResponse> CheckForSharedBindingAsync()
@@ -254,9 +249,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 
     internal /* for testing */ async Task<AdapterResponse> DisplayBindStatusAsync()
     {
-        var solutionName = await connectedModeBindingServices.SolutionInfoProvider.GetSolutionNameAsync();
-        var isFolderWorkspace = await connectedModeBindingServices.SolutionInfoProvider.IsFolderWorkspaceAsync();
-        SolutionInfo = new SolutionInfoModel(solutionName, isFolderWorkspace ? SolutionType.Folder : SolutionType.Solution);
+        SolutionInfo = await GetSolutionInfoModelAsync();
 
         var bindingConfiguration = connectedModeServices.ConfigurationProvider.GetConfiguration();
         if (bindingConfiguration == null || bindingConfiguration.Mode == SonarLintMode.Standalone)
@@ -266,7 +259,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
             return successResponse;
         }
 
-        var boundServerProject = connectedModeServices.ConfigurationProvider.GetConfiguration()?.Project;
+        var boundServerProject = bindingConfiguration.Project;
         var serverConnection = boundServerProject?.ServerConnection;
         if (serverConnection == null)
         {
@@ -274,10 +267,8 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
 
         var response = await connectedModeServices.SlCoreConnectionAdapter.GetServerProjectByKeyAsync(serverConnection, boundServerProject.ServerProjectKey);
+        UpdateBoundProjectProperties(serverConnection, response.ResponseData);
 
-        SelectedConnectionInfo = ConnectionInfo.From(serverConnection);
-        SelectedProject = response.ResponseData;
-        BoundProject = SelectedProject;
         return new AdapterResponse(BoundProject != null);
     }
 
@@ -306,12 +297,7 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         return new AdapterResponse(succeeded);
     }
 
-    internal void AfterUnbind(AdapterResponse obj)
-    {
-        BoundProject = null;
-        SelectedConnectionInfo = null;
-        SelectedProject = null;
-    }
+    internal void AfterUnbind(AdapterResponse obj) => UpdateBoundProjectProperties(null, null);
 
     private async Task<AdapterResponse> BindAsync(ServerConnection serverConnection, string serverProjectKey)
     {
@@ -354,10 +340,22 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         return false;
     }
 
-    private ConnectionInfo CreateConnectionInfoFromSharedBinding()
-    {
-        return SharedBindingConfigModel.IsSonarCloud()
+    private ConnectionInfo CreateConnectionInfoFromSharedBinding() =>
+        SharedBindingConfigModel.IsSonarCloud()
             ? new ConnectionInfo(SharedBindingConfigModel.Organization, ConnectionServerType.SonarCloud)
             : new ConnectionInfo(SharedBindingConfigModel.Uri.ToString(), ConnectionServerType.SonarQube);
+
+    private void UpdateBoundProjectProperties(ServerConnection serverConnection, ServerProject serverProject)
+    {
+        SelectedConnectionInfo = serverConnection == null ? null : ConnectionInfo.From(serverConnection);
+        SelectedProject = serverProject;
+        BoundProject = SelectedProject;
+    }
+
+    private async Task<SolutionInfoModel> GetSolutionInfoModelAsync()
+    {
+        var solutionName = await connectedModeBindingServices.SolutionInfoProvider.GetSolutionNameAsync();
+        var isFolderWorkspace = await connectedModeBindingServices.SolutionInfoProvider.IsFolderWorkspaceAsync();
+        return new SolutionInfoModel(solutionName, isFolderWorkspace ? SolutionType.Folder : SolutionType.Solution);
     }
 }

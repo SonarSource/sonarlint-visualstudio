@@ -40,11 +40,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ManageBinding;
 public class ManageBindingViewModelTests
 {
     private const string ALocalProjectKey = "local-project-key";
-    
-    private readonly ServerProject serverProject = new ("a-project", "A Project");
-    private readonly ConnectionInfo sonarQubeConnectionInfo = new ("http://localhost:9000", ConnectionServerType.SonarQube);
-    private readonly ConnectionInfo sonarCloudConnectionInfo = new ("organization", ConnectionServerType.SonarCloud);
-    private readonly BasicAuthCredentials validCredentials = new ("TOKEN", new SecureString());
+
+    private readonly ServerProject serverProject = new("a-project", "A Project");
+    private readonly ConnectionInfo sonarQubeConnectionInfo = new("http://localhost:9000", ConnectionServerType.SonarQube);
+    private readonly ConnectionInfo sonarCloudConnectionInfo = new("organization", ConnectionServerType.SonarCloud);
+    private readonly BasicAuthCredentials validCredentials = new("TOKEN", new SecureString());
     private readonly SharedBindingConfigModel sonarQubeSharedBindingConfigModel = new() { Uri = new Uri("http://localhost:9000"), ProjectKey = "myProj" };
     private readonly SharedBindingConfigModel sonarCloudSharedBindingConfigModel = new() { Organization = "myOrg", ProjectKey = "myProj" };
 
@@ -552,7 +552,7 @@ public class ManageBindingViewModelTests
                     x.WarningText == UiResources.LoadingConnectionsFailedText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
-    
+
     [TestMethod]
     public async Task InitializeDataAsync_DisplaysBindStatusAndReportsProgress()
     {
@@ -566,12 +566,12 @@ public class ManageBindingViewModelTests
                     x.WarningText == UiResources.FetchingBindingStatusFailedText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
-    
+
     [TestMethod]
     public async Task InitializeDataAsync_WhenStandalone_ChecksForSharedBindingAndReportsProgress()
     {
         SetupUnboundProject();
-        
+
         await testSubject.InitializeDataAsync();
 
         await progressReporterViewModel.Received(1)
@@ -582,12 +582,12 @@ public class ManageBindingViewModelTests
                     x.WarningText == UiResources.CheckingForSharedBindingFailedText &&
                     x.AfterProgressUpdated == testSubject.OnProgressUpdated));
     }
-    
+
     [TestMethod]
     public async Task InitializeDataAsync_WhenBound_DoesNotChecksForSharedBindingAndReportsProgress()
     {
         testSubject.BoundProject = serverProject;
-        
+
         await testSubject.InitializeDataAsync();
 
         await progressReporterViewModel.DidNotReceive()
@@ -603,20 +603,20 @@ public class ManageBindingViewModelTests
     public async Task DisplayBindStatusAsync_WhenProjectIsNotBound_Succeeds()
     {
         SetupUnboundProject();
-        
+
         var response = await testSubject.DisplayBindStatusAsync();
-        
+
         response.Should().BeEquivalentTo(new AdapterResponse(true));
     }
-    
+
     [TestMethod]
     public async Task DisplayBindStatusAsync_WhenProjectIsBoundAndBindingStatusIsFetched_Succeeds()
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupBoundProject(sonarCloudConnection, serverProject);
-        
+
         var response = await testSubject.DisplayBindStatusAsync();
-        
+
         testSubject.BoundProject.Should().NotBeNull();
         response.Should().BeEquivalentTo(new AdapterResponse(true));
     }
@@ -626,9 +626,9 @@ public class ManageBindingViewModelTests
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupBoundProjectThatDoesNotExistOnServer(sonarCloudConnection);
-        
+
         var response = await testSubject.DisplayBindStatusAsync();
-        
+
         testSubject.BoundProject.Should().BeNull();
         response.Should().BeEquivalentTo(new AdapterResponse(false));
     }
@@ -638,23 +638,23 @@ public class ManageBindingViewModelTests
     {
         solutionInfoProvider.GetSolutionNameAsync().Returns("Local solution name");
         solutionInfoProvider.IsFolderWorkspaceAsync().Returns(false);
-        
+
         await testSubject.DisplayBindStatusAsync();
-        
+
         testSubject.SolutionInfo.Should().BeEquivalentTo(new SolutionInfoModel("Local solution name", SolutionType.Solution));
     }
-    
+
     [TestMethod]
     public async Task DisplayBindStatusAsync_WhenFolderIsOpen_FetchesSolutionInfo()
     {
         solutionInfoProvider.GetSolutionNameAsync().Returns("Local folder name");
         solutionInfoProvider.IsFolderWorkspaceAsync().Returns(true);
-        
+
         await testSubject.DisplayBindStatusAsync();
-        
+
         testSubject.SolutionInfo.Should().BeEquivalentTo(new SolutionInfoModel("Local folder name", SolutionType.Folder));
     }
-    
+
     [TestMethod]
     public async Task DisplayBindStatusAsync_WhenProjectIsBoundToSonarCloud_SelectsBoundSonarCloudConnection()
     {
@@ -662,7 +662,7 @@ public class ManageBindingViewModelTests
         SetupBoundProject(sonarCloudConnection);
 
         await testSubject.DisplayBindStatusAsync();
-        
+
         testSubject.SelectedConnectionInfo.Should().BeEquivalentTo(new ConnectionInfo("organization", ConnectionServerType.SonarCloud));
     }
 
@@ -671,17 +671,17 @@ public class ManageBindingViewModelTests
     {
         var sonarQubeConnection = new ServerConnection.SonarQube(new Uri("http://localhost:9000/"), credentials: validCredentials);
         SetupBoundProject(sonarQubeConnection);
-        
+
         await testSubject.DisplayBindStatusAsync();
-        
+
         testSubject.SelectedConnectionInfo.Should().BeEquivalentTo(new ConnectionInfo("http://localhost:9000/", ConnectionServerType.SonarQube));
     }
-    
+
     [TestMethod]
     public async Task DisplayBindStatusAsync_WhenProjectIsNotBound_SelectedConnectionShouldBeEmpty()
     {
         SetupUnboundProject();
-        
+
         await testSubject.DisplayBindStatusAsync();
 
         testSubject.SelectedConnectionInfo.Should().BeNull();
@@ -693,9 +693,9 @@ public class ManageBindingViewModelTests
         var expectedServerProject = new ServerProject("server-project-key", "server-project-name");
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupBoundProject(sonarCloudConnection, expectedServerProject);
-        
+
         await testSubject.DisplayBindStatusAsync();
-        
+
         testSubject.SelectedProject.Should().BeEquivalentTo(expectedServerProject);
         testSubject.BoundProject.Should().BeEquivalentTo(testSubject.SelectedProject);
     }
@@ -705,9 +705,9 @@ public class ManageBindingViewModelTests
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupBoundProjectThatDoesNotExistOnServer(sonarCloudConnection);
-        
+
         await testSubject.DisplayBindStatusAsync();
-        
+
         testSubject.SelectedProject.Should().BeNull();
         testSubject.BoundProject.Should().BeNull();
     }
@@ -787,21 +787,21 @@ public class ManageBindingViewModelTests
             callInfo[1] = null;
             return false;
         });
-        
+
         var response = await testSubject.BindAsync();
-        
+
         response.Success.Should().BeFalse();
     }
-    
+
     [TestMethod]
     public async Task BindAsync_WhenBindingFailsUnexpectedly_FailsAndLogs()
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupConnectionAndProjectToBind(sonarCloudConnection, serverProject);
         bindingController.BindAsync(Arg.Any<BoundServerProject>(), Arg.Any<CancellationToken>()).ThrowsAsync(new Exception("Failed unexpectedly"));
-        
+
         var response = await testSubject.BindAsync();
-        
+
         response.Success.Should().BeFalse();
         logger.Received(1).WriteLine(Resources.Binding_Fails, "Failed unexpectedly");
     }
@@ -813,7 +813,7 @@ public class ManageBindingViewModelTests
         SetupConnectionAndProjectToBind(sonarCloudConnection, serverProject);
 
         var response = await testSubject.BindAsync();
-        
+
         response.Success.Should().BeTrue();
     }
 
@@ -822,9 +822,9 @@ public class ManageBindingViewModelTests
     {
         var sonarCloudConnection = new ServerConnection.SonarCloud("organization", credentials: validCredentials);
         SetupConnectionAndProjectToBind(sonarCloudConnection, serverProject);
-        
+
         await testSubject.BindAsync();
-        
+
         testSubject.BoundProject.Should().BeEquivalentTo(serverProject);
     }
 
@@ -839,7 +839,7 @@ public class ManageBindingViewModelTests
         sharedBindingConfigProvider.Received(1).GetSharedBinding();
         testSubject.SharedBindingConfigModel.Should().Be(sharedBindingModel);
     }
-    
+
     [TestMethod]
     public async Task CheckForSharedBindingAsync_WhenSharedBindingDoesNotExist_SetsNullSharedBindingConfigModel()
     {
@@ -879,7 +879,7 @@ public class ManageBindingViewModelTests
         response.Success.Should().BeTrue();
         await bindingController.Received(1)
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
-                    proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
+                proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
     }
 
     [TestMethod]
@@ -918,7 +918,7 @@ public class ManageBindingViewModelTests
     {
         testSubject.SelectedProject = serverProject; // this is to make sure the SelectedProject is ignored and the shared config is used instead
         testSubject.SharedBindingConfigModel = sonarCloudSharedBindingConfigModel;
-        var expectedServerConnection  = new ServerConnection.SonarCloud(testSubject.SharedBindingConfigModel.Organization);
+        var expectedServerConnection = new ServerConnection.SonarCloud(testSubject.SharedBindingConfigModel.Organization);
         SetupBoundProject(expectedServerConnection);
 
         var response = await testSubject.UseSharedBindingAsync();
@@ -938,7 +938,8 @@ public class ManageBindingViewModelTests
         var response = await testSubject.UseSharedBindingAsync();
 
         response.Success.Should().BeFalse();
-        messageBox.Received(1).Show(UiResources.NotFoundConnectionForSharedBindingMessageBoxText, UiResources.NotFoundConnectionForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
+        messageBox.Received(1).Show(UiResources.NotFoundConnectionForSharedBindingMessageBoxText, UiResources.NotFoundConnectionForSharedBindingMessageBoxCaption, MessageBoxButton.OK,
+            MessageBoxImage.Warning);
         logger.WriteLine(Resources.UseSharedBinding_ConnectionNotFound, testSubject.SharedBindingConfigModel.Uri);
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
@@ -955,7 +956,8 @@ public class ManageBindingViewModelTests
 
         response.Success.Should().BeFalse();
         logger.WriteLine(Resources.UseSharedBinding_ConnectionNotFound, testSubject.SharedBindingConfigModel.Organization);
-        messageBox.Received(1).Show(UiResources.NotFoundConnectionForSharedBindingMessageBoxText, UiResources.NotFoundConnectionForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
+        messageBox.Received(1).Show(UiResources.NotFoundConnectionForSharedBindingMessageBoxText, UiResources.NotFoundConnectionForSharedBindingMessageBoxCaption, MessageBoxButton.OK,
+            MessageBoxImage.Warning);
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
@@ -973,12 +975,12 @@ public class ManageBindingViewModelTests
 
         response.Success.Should().BeFalse();
         logger.WriteLine(Resources.UseSharedBinding_CredentiasNotFound, testSubject.SharedBindingConfigModel.Organization);
-        messageBox.Received(1).Show(UiResources.NotFoundCredentialsForSharedBindingMessageBoxText, UiResources.NotFoundCredentialsForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
+        messageBox.Received(1).Show(UiResources.NotFoundCredentialsForSharedBindingMessageBoxText, UiResources.NotFoundCredentialsForSharedBindingMessageBoxCaption, MessageBoxButton.OK,
+            MessageBoxImage.Warning);
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
     }
-
 
     [TestMethod]
     public async Task UseSharedBindingAsync_SharedBindingSonarQubeConnectionWithMissingCredentials_ReturnsFalseAndLogsAndInformsUser()
@@ -992,7 +994,8 @@ public class ManageBindingViewModelTests
 
         response.Success.Should().BeFalse();
         logger.WriteLine(Resources.UseSharedBinding_CredentiasNotFound, testSubject.SharedBindingConfigModel.Uri);
-        messageBox.Received(1).Show(UiResources.NotFoundCredentialsForSharedBindingMessageBoxText, UiResources.NotFoundCredentialsForSharedBindingMessageBoxCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
+        messageBox.Received(1).Show(UiResources.NotFoundCredentialsForSharedBindingMessageBoxText, UiResources.NotFoundCredentialsForSharedBindingMessageBoxCaption, MessageBoxButton.OK,
+            MessageBoxImage.Warning);
         await bindingController.DidNotReceive()
             .BindAsync(Arg.Is<BoundServerProject>(proj =>
                 proj.ServerProjectKey == testSubject.SharedBindingConfigModel.ProjectKey), Arg.Any<CancellationToken>());
@@ -1011,7 +1014,6 @@ public class ManageBindingViewModelTests
 
         response.Success.Should().BeFalse();
     }
-
 
     private void MockServices()
     {
@@ -1043,18 +1045,18 @@ public class ManageBindingViewModelTests
             return true;
         });
     }
-    
+
     private void SetupConnectionAndProjectToBind(ServerConnection selectedServerConnection, ServerProject selectedServerProject)
     {
         SetupBoundProject(selectedServerConnection, selectedServerProject);
         testSubject.SelectedConnectionInfo = sonarCloudConnectionInfo;
         testSubject.SelectedProject = selectedServerProject;
     }
-    
+
     private void SetupBoundProject(ServerConnection serverConnection, ServerProject expectedServerProject = null)
     {
         expectedServerProject ??= serverProject;
-        
+
         serverConnection.Credentials = validCredentials;
         var boundServerProject = new BoundServerProject(ALocalProjectKey, expectedServerProject.Key, serverConnection);
         var configurationProvider = Substitute.For<IConfigurationProvider>();
@@ -1062,7 +1064,7 @@ public class ManageBindingViewModelTests
         connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
         MockTryGetServerConnection(serverConnection);
         solutionInfoProvider.GetSolutionNameAsync().Returns(ALocalProjectKey);
-        
+
         MockGetServerProjectByKey(true, expectedServerProject);
     }
 
@@ -1080,24 +1082,24 @@ public class ManageBindingViewModelTests
         var configurationProvider = Substitute.For<IConfigurationProvider>();
         configurationProvider.GetConfiguration().Returns(new BindingConfiguration(null, SonarLintMode.Standalone, null));
         connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
-        
+
         MockGetServerProjectByKey(false, null);
     }
-    
+
     private void SetupBoundProjectThatDoesNotExistOnServer(ServerConnection serverConnection)
     {
         var boundServerProject = new BoundServerProject(ALocalProjectKey, "a-server-project", serverConnection);
         var configurationProvider = Substitute.For<IConfigurationProvider>();
         configurationProvider.GetConfiguration().Returns(new BindingConfiguration(boundServerProject, SonarLintMode.Connected, "binding-dir"));
         connectedModeServices.ConfigurationProvider.Returns(configurationProvider);
-        
+
         MockGetServerProjectByKey(false, null);
     }
 
     private void MockGetServerProjectByKey(bool success, ServerProject responseData)
     {
         var slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
-        slCoreConnectionAdapter.GetServerProjectByKeyAsync(Arg.Any<ServerConnection>(),Arg.Any<string>())
+        slCoreConnectionAdapter.GetServerProjectByKeyAsync(Arg.Any<ServerConnection>(), Arg.Any<string>())
             .Returns(Task.FromResult(new AdapterResponseWithData<ServerProject>(success, responseData)));
         connectedModeServices.SlCoreConnectionAdapter.Returns(slCoreConnectionAdapter);
     }
