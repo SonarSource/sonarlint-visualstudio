@@ -18,56 +18,95 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Globalization;
+using System.Text;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Integration.Helpers;
+
+[Export(typeof(ILogger))]
+[Export(typeof(IContextualLogger))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+public class SonarLintOutputLogger : IContextualLogger
 {
-    [Export(typeof(ILogger))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class SonarLintOutputLogger : ILogger
+    private readonly IServiceProvider serviceProvider;
+    private readonly ISonarLintSettings sonarLintSettings;
+    private readonly ImmutableList<string> contexts;
+    private readonly string contextPropertyValue;
+
+    private bool DebugLogsEnabled => sonarLintSettings.DaemonLogLevel == DaemonLogLevel.Verbose;
+
+    [ImportingConstructor]
+    public SonarLintOutputLogger(
+        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        ISonarLintSettings sonarLintSettings)
+        : this(serviceProvider, sonarLintSettings, ImmutableList<string>.Empty)
     {
-        private readonly IServiceProvider serviceProvider;
-        private readonly ISonarLintSettings sonarLintSettings;
+    }
 
-        [ImportingConstructor]
-        public SonarLintOutputLogger([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            ISonarLintSettings sonarLintSettings)
-        {
-            this.serviceProvider = serviceProvider;
-            this.sonarLintSettings = sonarLintSettings;
-        }
+    private SonarLintOutputLogger(
+        IServiceProvider serviceProvider,
+        ISonarLintSettings sonarLintSettings,
+        ImmutableList<string> contexts)
+    {
+        this.serviceProvider = serviceProvider;
+        this.sonarLintSettings = sonarLintSettings;
+        this.contexts = contexts;
+        contextPropertyValue = contexts.Count > 0 ? string.Join(" > ", contexts) : null;;
+    }
 
-        public void WriteLine(string message)
-        {
-            var prefixedMessage = AddPrefixIfVerboseLogging(message);
-            VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, prefixedMessage);
-        }
+    public IContextualLogger ForContext(params string[] context) =>
+        new SonarLintOutputLogger(serviceProvider, sonarLintSettings, contexts.AddRange(context));
 
-        public void WriteLine(string messageFormat, params object[] args)
-        {
-            var prefixedMessageFormat = AddPrefixIfVerboseLogging(messageFormat);
-            VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, prefixedMessageFormat, args);
-        }
+    public void WriteLine(string message) =>
+        WriteToOutputPane(CreateStandardLogPrefix().Append(message).ToString());
 
-        public void LogVerbose(string messageFormat, params object[] args)
-        {
-            if (sonarLintSettings.DaemonLogLevel == DaemonLogLevel.Verbose)
-            {
-                var text = args.Length == 0 ? messageFormat : string.Format(messageFormat, args);
-                WriteLine("[DEBUG] " + text);
-            }
-        }
+    public void WriteLine(string messageFormat, params object[] args) =>
+        WriteToOutputPane(CreateStandardLogPrefix().AppendFormat(CultureInfo.CurrentCulture, messageFormat, args).ToString());
 
-        private string AddPrefixIfVerboseLogging(string message)
+    private StringBuilder CreateStandardLogPrefix() => AddStandardProperties(new StringBuilder());
+
+    public void LogVerbose(string messageFormat, params object[] args)
+    {
+        if (DebugLogsEnabled)
         {
-            if (sonarLintSettings.DaemonLogLevel == DaemonLogLevel.Verbose)
-            {
-                message = $"[ThreadId {System.Threading.Thread.CurrentThread.ManagedThreadId}] " + message;
-            }
-            return message;
+            var debugLogPrefix = CreateDebugLogPrefix();
+            var logLine = args.Length > 0
+                ? debugLogPrefix.AppendFormat(CultureInfo.CurrentCulture, messageFormat, args)
+                : debugLogPrefix.Append(messageFormat);
+            WriteToOutputPane(logLine.ToString());
         }
     }
+
+    private StringBuilder CreateDebugLogPrefix()
+    {
+        var builder = new StringBuilder();
+        AppendProperty(builder, "DEBUG");
+        AddStandardProperties(builder);
+        return builder;
+    }
+
+    private StringBuilder AddStandardProperties(StringBuilder builder)
+    {
+        if (sonarLintSettings.DaemonLogLevel == DaemonLogLevel.Verbose)
+        {
+            AppendPropertyFormat(builder, "ThreadId {0}", Thread.CurrentThread.ManagedThreadId);
+        }
+
+        if (contextPropertyValue != null)
+        {
+            AppendProperty(builder, contextPropertyValue);
+        }
+
+        return builder;
+    }
+
+    private static void AppendProperty(StringBuilder builder, string property) => builder.Append('[').Append(property).Append(']').Append(' ');
+
+    private static void AppendPropertyFormat(StringBuilder builder, string property, params object[] args) => builder.Append('[').AppendFormat(property, args).Append(']').Append(' ');
+
+    private void WriteToOutputPane(string message) => VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, message);
 }
