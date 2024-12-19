@@ -33,4 +33,9 @@ namespace SonarLint.VisualStudio.Core
         /// </summary>
         void LogVerbose(string messageFormat, params object[] args);
     }
+
+    public interface IContextualLogger : ILogger
+    {
+        IContextualLogger ForContext(params string[] context);
+    }
 }
