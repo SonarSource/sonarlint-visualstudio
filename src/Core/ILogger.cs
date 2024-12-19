@@ -37,5 +37,7 @@ namespace SonarLint.VisualStudio.Core
     public interface IContextualLogger : ILogger
     {
         IContextualLogger ForContext(params string[] context);
+
+        IContextualLogger ForVerboseContext(params string[] context);
     }
 }
