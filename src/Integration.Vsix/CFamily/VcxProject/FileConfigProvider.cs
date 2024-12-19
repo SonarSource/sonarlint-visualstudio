@@ -18,105 +18,64 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration.Helpers;
-using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
+namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
+
+internal interface IFileConfigProvider
 {
-    internal interface IFileConfigProvider
+    IFileConfig Get(string analyzedFilePath);
+}
+
+[Export(typeof(IFileConfigProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal class FileConfigProvider(
+    IVsUIServiceOperation uiServiceOperation,
+    IFileInSolutionIndicator fileInSolutionIndicator,
+    IFileSystemService fileSystem,
+    ILogger logger,
+    IThreadHandling threadHandling) : IFileConfigProvider
+{
+
+    public IFileConfig Get(string analyzedFilePath)
     {
-        IFileConfig Get(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions);
+        return uiServiceOperation.Execute<SDTE, DTE2, IFileConfig>(dte =>
+            GetInternal(analyzedFilePath, dte));
     }
 
-    [Export(typeof(IFileConfigProvider))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    [method: ImportingConstructor]
-    internal class FileConfigProvider(
-        IVsUIServiceOperation uiServiceOperation,
-        IFileInSolutionIndicator fileInSolutionIndicator,
-        IFileSystemService fileSystem,
-        ILogger logger,
-        IThreadHandling threadHandling) : IFileConfigProvider
+    private FileConfig GetInternal(string analyzedFilePath, DTE2 dte)
     {
-        private static readonly NoOpLogger noOpLogger = new NoOpLogger();
+        threadHandling.ThrowIfNotOnUIThread();
 
-        public IFileConfig Get(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
+        try
         {
-            var analysisLogger = GetAnalysisLogger(analyzerOptions);
+            var projectItem = dte.Solution.FindProjectItem(analyzedFilePath);
 
-            return uiServiceOperation.Execute<SDTE, DTE2, IFileConfig>(dte =>
-                GetInternal(analyzedFilePath, dte, analysisLogger));
-        }
-
-        private FileConfig GetInternal(string analyzedFilePath, DTE2 dte, ILogger analysisLogger)
-        {
-            threadHandling.ThrowIfNotOnUIThread();
-
-            try
+            if (projectItem == null)
             {
-                var projectItem = dte.Solution.FindProjectItem(analyzedFilePath);
-
-                if (projectItem == null)
-                {
-                    return null;
-                }
-
-                if (!fileInSolutionIndicator.IsFileInSolution(projectItem))
-                {
-                    analysisLogger.LogVerbose($"[VCX:FileConfigProvider] The file is not part of a VCX project. File: {analyzedFilePath}");
-                    return null;
-                }
-                // Note: if the C++ tools are not installed then it's likely an exception will be thrown when
-                // the framework tries to JIT-compile the TryGet method (since it won't be able to find the MS.VS.VCProjectEngine
-                // types).
-                return FileConfig.TryGet(analysisLogger, projectItem, analyzedFilePath, fileSystem);
-            }
-            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
-            {
-                analysisLogger.WriteLine(CFamilyStrings.ERROR_CreatingConfig, analyzedFilePath, ex);
                 return null;
             }
+
+            if (!fileInSolutionIndicator.IsFileInSolution(projectItem))
+            {
+                logger.LogVerbose($"[VCX:FileConfigProvider] The file is not part of a VCX project. File: {analyzedFilePath}");
+                return null;
+            }
+            // Note: if the C++ tools are not installed then it's likely an exception will be thrown when
+            // the framework tries to JIT-compile the TryGet method (since it won't be able to find the MS.VS.VCProjectEngine
+            // types).
+            return FileConfig.TryGet(logger, projectItem, analyzedFilePath, fileSystem);
         }
-
-        private ILogger GetAnalysisLogger(CFamilyAnalyzerOptions analyzerOptions)
+        catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
         {
-            if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions &&
-                cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
-            {
-                // In case the requeset is coming from PCH generation, we don't log failures.
-                // This is to avoid redundant messages while navigating unsupported files.
-                return noOpLogger;
-            }
-
-            return logger;
-        }
-
-
-        private class NoOpLogger : ILogger
-        {
-            public void WriteLine(string message)
-            {
-                // no-op
-            }
-
-            public void WriteLine(string messageFormat, params object[] args)
-            {
-                // no-op
-            }
-
-            public void LogVerbose(string message, params object[] args)
-            {
-                // no-op
-            }
+            logger.WriteLine(CFamilyStrings.ERROR_CreatingConfig, analyzedFilePath, ex);
+            return null;
         }
     }
 }

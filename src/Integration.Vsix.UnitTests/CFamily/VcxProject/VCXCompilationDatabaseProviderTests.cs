@@ -66,7 +66,7 @@ public class VCXCompilationDatabaseProviderTests
     [TestMethod]
     public void CreateOrNull_NoFileConfig_ReturnsNull()
     {
-        fileConfigProvider.Get(SourceFilePath, default).ReturnsNull();
+        fileConfigProvider.Get(SourceFilePath).ReturnsNull();
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,
             envVarProvider,
@@ -82,7 +82,7 @@ public class VCXCompilationDatabaseProviderTests
     public void CreateOrNull_FileConfig_CantStore_ReturnsNull()
     {
         var fileConfig = GetFileConfig();
-        fileConfigProvider.Get(SourceFilePath, default).Returns(fileConfig);
+        fileConfigProvider.Get(SourceFilePath).Returns(fileConfig);
         storage.CreateDatabase(default, default, default, default).ReturnsNullForAnyArgs();
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,
@@ -99,7 +99,7 @@ public class VCXCompilationDatabaseProviderTests
     public void CreateOrNull_FileConfig_StoresAndReturnsHandle()
     {
         var fileConfig = GetFileConfig();
-        fileConfigProvider.Get(SourceFilePath, default).Returns(fileConfig);
+        fileConfigProvider.Get(SourceFilePath).Returns(fileConfig);
         var compilationDatabaseHandle = Substitute.For<ICompilationDatabaseHandle>();
         storage.CreateDatabase(CDFile, CDDirectory, CDCommand, Arg.Any<IEnumerable<string>>()).Returns(compilationDatabaseHandle);
         var testSubject = new VCXCompilationDatabaseProvider(
@@ -115,7 +115,7 @@ public class VCXCompilationDatabaseProviderTests
     public void CreateOrNull_NoEnvIncludeInFileConfig_UsesStatic()
     {
         var fileConfig = GetFileConfig(null);
-        fileConfigProvider.Get(SourceFilePath, default).Returns(fileConfig);
+        fileConfigProvider.Get(SourceFilePath).Returns(fileConfig);
         envVarProvider.GetAll().Returns([("Var1", "Value1"), ("INCLUDE", "static"), ("Var2", "Value2")]);
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,
@@ -132,7 +132,7 @@ public class VCXCompilationDatabaseProviderTests
     public void CreateOrNull_FileConfigHasEnvInclude_UsesDynamic()
     {
         var fileConfig = GetFileConfig(EnvInclude);
-        fileConfigProvider.Get(SourceFilePath, default).Returns(fileConfig);
+        fileConfigProvider.Get(SourceFilePath).Returns(fileConfig);
         envVarProvider.GetAll().Returns([("Var1", "Value1"), ("INCLUDE", "static"), ("Var2", "Value2")]);
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,
@@ -150,7 +150,7 @@ public class VCXCompilationDatabaseProviderTests
     public void CreateOrNull_NoStaticInclude_UsesDynamic()
     {
         var fileConfig = GetFileConfig(EnvInclude);
-        fileConfigProvider.Get(SourceFilePath, default).Returns(fileConfig);
+        fileConfigProvider.Get(SourceFilePath).Returns(fileConfig);
         envVarProvider.GetAll().Returns([("Var1", "Value1"), ("Var2", "Value2")]);
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,
@@ -168,7 +168,7 @@ public class VCXCompilationDatabaseProviderTests
     public void CreateOrNull_StaticEnvVarsAreCached()
     {
         var fileConfig = GetFileConfig();
-        fileConfigProvider.Get(SourceFilePath, default).Returns(fileConfig);
+        fileConfigProvider.Get(SourceFilePath).Returns(fileConfig);
         envVarProvider.GetAll().Returns([("Var1", "Value1"), ("Var2", "Value2")]);
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,
@@ -187,7 +187,7 @@ public class VCXCompilationDatabaseProviderTests
     public void CreateOrNull_EnvVarsContainHeaderPropertyForHeaderFiles()
     {
         var fileConfig = GetFileConfig(EnvInclude, true);
-        fileConfigProvider.Get(SourceFilePath, default).Returns(fileConfig);
+        fileConfigProvider.Get(SourceFilePath).Returns(fileConfig);
         envVarProvider.GetAll().Returns([("Var1", "Value1"), ("Var2", "Value2")]);
         var testSubject = new VCXCompilationDatabaseProvider(
             storage,

@@ -51,7 +51,7 @@ internal class VCXCompilationDatabaseProvider : IVCXCompilationDatabaseProvider
     }
 
     public ICompilationDatabaseHandle CreateOrNull(string filePath) =>
-        fileConfigProvider.Get(filePath, null) is { } fileConfig
+        fileConfigProvider.Get(filePath) is { } fileConfig
             ? storage.CreateDatabase(fileConfig.CDFile, fileConfig.CDDirectory, fileConfig.CDCommand, GetEnvironmentEntries(fileConfig).Select(x => x.FormattedEntry))
             : null;
 

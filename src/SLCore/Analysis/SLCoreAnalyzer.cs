@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -36,6 +37,7 @@ namespace SonarLint.VisualStudio.SLCore.Analysis;
 public class SLCoreAnalyzer : IAnalyzer
 {
     private const string CFamilyCompileCommandsProperty = "sonar.cfamily.compile-commands";
+    private const string CFamilyReproducerProperty = "sonar.cfamily.reproducer";
 
     private readonly ISLCoreServiceProvider serviceProvider;
     private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
@@ -100,7 +102,7 @@ public class SLCoreAnalyzer : IAnalyzer
         try
         {
             Dictionary<string, string> properties = [];
-            using var temporaryResourcesHandle = EnrichPropertiesForCFamily(properties, path, detectedLanguages);
+            using var temporaryResourcesHandle = EnrichPropertiesForCFamily(properties, path, detectedLanguages, analyzerOptions);
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -133,11 +135,20 @@ public class SLCoreAnalyzer : IAnalyzer
         }
     }
 
-    private IDisposable EnrichPropertiesForCFamily(Dictionary<string, string> properties, string path, IEnumerable<AnalysisLanguage> detectedLanguages)
+    private IDisposable EnrichPropertiesForCFamily(
+        Dictionary<string, string> properties,
+        string path,
+        IEnumerable<AnalysisLanguage> detectedLanguages,
+        IAnalyzerOptions analyzerOptions)
     {
         if (!IsCFamily(detectedLanguages))
         {
             return null;
+        }
+
+        if (analyzerOptions is ICFamilyAnalyzerOptions {CreateReproducer: true})
+        {
+            properties[CFamilyReproducerProperty] = path;
         }
 
         var compilationDatabaseHandle = compilationDatabaseLocator.GetOrNull(path);
