@@ -35,31 +35,40 @@ public class SonarLintOutputLogger : IContextualLogger
     private readonly IServiceProvider serviceProvider;
     private readonly ISonarLintSettings sonarLintSettings;
     private readonly ImmutableList<string> contexts;
-    private readonly string contextPropertyValue;
+    private readonly ImmutableList<string> verboseContexts;
+    private string contextsProperty;
+    private string verboseContextsProperty;
 
-    private bool DebugLogsEnabled => sonarLintSettings.DaemonLogLevel == DaemonLogLevel.Verbose;
+    private bool VerboseLogsEnabled => sonarLintSettings.DaemonLogLevel == DaemonLogLevel.Verbose;
 
     [ImportingConstructor]
     public SonarLintOutputLogger(
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         ISonarLintSettings sonarLintSettings)
-        : this(serviceProvider, sonarLintSettings, ImmutableList<string>.Empty)
+        : this(serviceProvider, sonarLintSettings, ImmutableList<string>.Empty, ImmutableList<string>.Empty)
     {
     }
 
     private SonarLintOutputLogger(
         IServiceProvider serviceProvider,
         ISonarLintSettings sonarLintSettings,
-        ImmutableList<string> contexts)
+        ImmutableList<string> contexts,
+        ImmutableList<string> verboseContexts)
     {
         this.serviceProvider = serviceProvider;
         this.sonarLintSettings = sonarLintSettings;
         this.contexts = contexts;
-        contextPropertyValue = contexts.Count > 0 ? string.Join(" > ", contexts) : null;;
+        this.verboseContexts = verboseContexts;
+        contextsProperty = MergeContextsIntoSingleProperty(contexts);
+        verboseContextsProperty = MergeContextsIntoSingleProperty(verboseContexts);
     }
+    private static string MergeContextsIntoSingleProperty(ImmutableList<string> contexts) => contexts.Count > 0 ? string.Join(" > ", contexts) : null;
 
     public IContextualLogger ForContext(params string[] context) =>
-        new SonarLintOutputLogger(serviceProvider, sonarLintSettings, contexts.AddRange(context));
+        new SonarLintOutputLogger(serviceProvider, sonarLintSettings, contexts.AddRange(context.Where(x => !string.IsNullOrEmpty(x))), verboseContexts);
+
+    public IContextualLogger ForVerboseContext(params string[] context) =>
+        new SonarLintOutputLogger(serviceProvider, sonarLintSettings, contexts, verboseContexts.AddRange(context.Where(x => !string.IsNullOrEmpty(x))));
 
     public void WriteLine(string message) =>
         WriteToOutputPane(CreateStandardLogPrefix().Append(message).ToString());
@@ -71,7 +80,7 @@ public class SonarLintOutputLogger : IContextualLogger
 
     public void LogVerbose(string messageFormat, params object[] args)
     {
-        if (DebugLogsEnabled)
+        if (VerboseLogsEnabled)
         {
             var debugLogPrefix = CreateDebugLogPrefix();
             var logLine = args.Length > 0
@@ -81,32 +90,31 @@ public class SonarLintOutputLogger : IContextualLogger
         }
     }
 
-    private StringBuilder CreateDebugLogPrefix()
-    {
-        var builder = new StringBuilder();
-        AppendProperty(builder, "DEBUG");
-        AddStandardProperties(builder);
-        return builder;
-    }
+    private StringBuilder CreateDebugLogPrefix() => AppendProperty(AddStandardProperties(new StringBuilder()), "DEBUG");
 
     private StringBuilder AddStandardProperties(StringBuilder builder)
     {
-        if (sonarLintSettings.DaemonLogLevel == DaemonLogLevel.Verbose)
+        if (VerboseLogsEnabled)
         {
-            AppendPropertyFormat(builder, "ThreadId {0}", Thread.CurrentThread.ManagedThreadId);
+            AppendPropertyFormat(builder, "ThreadId {0, 3}", Thread.CurrentThread.ManagedThreadId);
         }
 
-        if (contextPropertyValue != null)
+        if (contextsProperty != null)
         {
-            AppendProperty(builder, contextPropertyValue);
+            AppendProperty(builder, contextsProperty);
+        }
+
+        if (VerboseLogsEnabled && verboseContextsProperty != null)
+        {
+            AppendProperty(builder, verboseContextsProperty);
         }
 
         return builder;
     }
 
-    private static void AppendProperty(StringBuilder builder, string property) => builder.Append('[').Append(property).Append(']').Append(' ');
+    private static StringBuilder AppendProperty(StringBuilder builder, string property) => builder.Append('[').Append(property).Append(']').Append(' ');
 
-    private static void AppendPropertyFormat(StringBuilder builder, string property, params object[] args) => builder.Append('[').AppendFormat(property, args).Append(']').Append(' ');
+    private static StringBuilder AppendPropertyFormat(StringBuilder builder, string property, params object[] args) => builder.Append('[').AppendFormat(property, args).Append(']').Append(' ');
 
     private void WriteToOutputPane(string message) => VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, message);
 }
