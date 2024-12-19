@@ -326,59 +326,13 @@
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
 
   <!-- ********************************************************** -->
-  <!-- CFamily plugin handling -->
-  <!-- Download and unpack the jar, select the required files and -->
-  <!-- add them to the VSIX.                                      -->
+  <!-- Plugin dependencies handling -->
   <!-- ********************************************************** -->
   <PropertyGroup>
-    <!-- Download url for the CFamily plugin. Update this url to embed a new version of the plugin. -->
-    <PluginUrl>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-$(EmbeddedSonarCFamilyAnalyzerVersion).jar</PluginUrl>
-
-    <CFamilyFolderName>lib</CFamilyFolderName>
     <JarsFolderName>DownloadedJars</JarsFolderName>
     <DotnetDLLsFolderName>EmbeddedDotnetAnalyzerDLLs</DotnetDLLsFolderName>
     <SloopFolderName>Sloop</SloopFolderName>
-
-    <!-- Folder the embedded files should be copied to. This folder should be excluded from source code control. -->
-    <CFamilyTargetDirectory>$(MSBuildThisFileDirectory)$(CFamilyFolderName)</CFamilyTargetDirectory>
-
-    <!-- Hook the target that fetches the CFamily files into to the build process. 
-         This needs to be set after the SDK targets have been imported.
-    -->
-    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetCFamilyFiles</PrepareForBuildDependsOn>
   </PropertyGroup>
-
-  <Target Name="GetCFamilyFiles" Condition=" $(DesignTimeBuild) != 'true' ">
-    <!-- This target assumes the CFamilyJarPreProcessor tool has already been built.
-         We don't want to add a ProjectReference the tool project from this project
-         as we would have to do extra hacky work to stop it from being included in the VSIX.
-         Instead, we've said the tool project should be built before this project in the
-         solution file.
-    -->
-    <Message Importance="high" Text="Fetching the CFamily files..." />
-
-    <Exec Command="&quot;..\..\build\tools\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe&quot; $(PluginUrl) &quot;$(CFamilyTargetDirectory)&quot;" IgnoreExitCode="false" ContinueOnError="false" LogStandardErrorAsError="true" />
-    
-    <Exec Command="&quot;..\..\build\tools\CFamilyJarPreProcessor\bin\$(Configuration)\net472\CFamilyJarPreProcessor.exe&quot; $(PluginUrl) &quot;$(CFamilyTargetDirectory)&quot;" IgnoreExitCode="false" ContinueOnError="false" LogStandardErrorAsError="true" />
-
-    <!-- Copy the license file to the same directory -->
-    <Copy SourceFiles=".\CFamily\LICENSE.txt" DestinationFolder="$(CFamilyTargetDirectory)" SkipUnchangedFiles="true" />
-
-    <ItemGroup>
-      <Content Include="$(CFamilyTargetDirectory)\**\*">
-        <!-- We need to include the files as content that is copied to the output directory so that
-              1) they get included in the VSIX, and 
-              2) they get copied to the bin folder of any test projects that reference this project.
-        -->
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <IncludeInVSIX>True</IncludeInVSIX>
-
-        <!-- Custom sub folder in the VSIX -->
-        <VSIXSubPath>$(CFamilyFolderName)</VSIXSubPath>
-        <Visible>false</Visible>
-      </Content>
-    </ItemGroup>
-  </Target>
 
   <!-- *************************************************************************** -->
   <!-- Include nuget packages in the VSIX: workaround for bug https://github.com/NuGet/Home/issues/5899 -->
