@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
 using SonarLint.VisualStudio.SLCore.Common.Models;
-using SonarLint.VisualStudio.SLCore.Listener.Analysis.Models;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
@@ -67,6 +67,14 @@ public class SimpleAnalysisTests
         => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.TypeScriptIssues, true);
 
     [TestMethod]
+    public Task DefaultRuleConfig_ContentFromDisk_CFamilyAnalysisProducesExpectedIssues()
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.CFamilyIssues, false, GenerateTestCompilationDatabase());
+
+    [TestMethod]
+    public Task DefaultRuleConfig_ContentFromRpc_CFamilyAnalysisProducesExpectedIssues()
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.CFamilyIssues, true, GenerateTestCompilationDatabase());
+
+    [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_CssAnalysisProducesExpectedIssues()
         => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.CssIssues, false);
 
@@ -82,13 +90,41 @@ public class SimpleAnalysisTests
     public Task DefaultRuleConfig_ContentFromRpc_CssAnalysisInVyeProducesExpectedIssues()
         => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.VueIssues, true);
 
-    private async Task DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(ITestingFile testingFile, bool sendContent)
+    private async Task DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(ITestingFile testingFile, bool sendContent, Dictionary<string, string> extraProperties = null)
     {
-        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(testingFile, TestContext.TestName, sendContent: sendContent);
+        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(testingFile, TestContext.TestName, sendContent: sendContent, extraProperties: extraProperties);
 
         issuesByFileUri.Should().HaveCount(1);
         var receivedIssues = issuesByFileUri[new FileUri(testingFile.GetFullPath())];
         var receivedTestIssues = receivedIssues.Select(x => new TestIssue(x.ruleKey, x.textRange, x.severityMode.Right?.cleanCodeAttribute, x.flows.Count));
         receivedTestIssues.Should().BeEquivalentTo(testingFile.ExpectedIssues);
+    }
+
+    private static Dictionary<string, string> GenerateTestCompilationDatabase()
+    {
+        /* The CFamily analysis apart from the source code file requires also the compilation database file.
+           The compilation database file must contain the absolute path to the source code file the compilation database json file and the compiler path.
+           For the compiler we use the MSVC which is set as an environment variable. Make sure the environment variable is set to point to the compiler path
+           (the absolute path to cl.exe). */
+        var compilerPath = Environment.GetEnvironmentVariable("MSVC")?.Replace(@"\", @"\\");
+        var cFamilyIssuesFileAbsolutePath = FileAnalysisTestsRunner.CFamilyIssues.GetFullPath().Replace(@"\", @"\\");
+        var analysisDirectory = cFamilyIssuesFileAbsolutePath.Substring(0, cFamilyIssuesFileAbsolutePath.LastIndexOf('\\') + 1);
+        var jsonContent = $$"""
+                            [
+                            {
+                              "directory": "{{analysisDirectory}}",
+                              "command": "\"{{compilerPath}}\" /nologo /TP /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI /FoCFamilyIssues.cpp.obj /FS -c {{cFamilyIssuesFileAbsolutePath}}",
+                              "file": "{{cFamilyIssuesFileAbsolutePath}}"
+                            }
+                            ]
+                            """;
+        var tempCompilationDatabase = Path.ChangeExtension(Path.GetTempFileName(), ".json");
+        File.WriteAllText(tempCompilationDatabase, jsonContent);
+
+        var compilationDatabase = new Dictionary<string, string>
+        {
+            { "sonar.cfamily.compile-commands", tempCompilationDatabase }
+        };
+        return compilationDatabase;
     }
 }

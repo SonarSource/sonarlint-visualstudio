@@ -41,6 +41,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     internal static readonly JavaScriptIssuesFile JavaScriptIssues = new();
     internal static readonly OneIssueRuleWithParamFile OneIssueRuleWithParam = new();
     internal static readonly TypeScriptIssuesFile TypeScriptIssues = new();
+    internal static readonly CFamilyIssuesFile CFamilyIssues = new();
     internal static readonly CssIssuesFile CssIssues = new();
     internal static readonly VueIssuesFile VueIssues = new();
     internal static readonly SecretsIssuesFile SecretsIssues = new();
@@ -79,8 +80,11 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         rulesCoreService.UpdateStandaloneRulesConfiguration(new UpdateStandaloneRulesConfigurationParams(ruleConfig));
     }
 
-    public async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(ITestingFile testingFile, string configScope,
-        bool sendContent = false)
+    public async Task<Dictionary<FileUri, List<RaisedIssueDto>>> RunFileAnalysis(
+        ITestingFile testingFile,
+        string configScope,
+        bool sendContent = false,
+        Dictionary<string, string> extraProperties = null)
     {
         try
         {
@@ -97,7 +101,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
             await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
 
-            await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath(), analysisId);
+            await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath(), analysisId, extraProperties);
             await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task);
 
             return analysisRaisedIssues.Task.Result.issuesByFileUri;
@@ -141,13 +145,15 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
             });
     }
 
-    private async Task RunSlCoreFileAnalysis(string configScopeId, string fileToAnalyzeAbsolutePath, Guid analysisId)
+    private async Task RunSlCoreFileAnalysis(string configScopeId, string fileToAnalyzeAbsolutePath, Guid analysisId, Dictionary<string, string> extraProperties = null)
     {
+        extraProperties ??= [];
+
         slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IAnalysisSLCoreService analysisService).Should().BeTrue();
 
         var (failedAnalysisFiles, _) = await analysisService.AnalyzeFilesAndTrackAsync(
             new AnalyzeFilesAndTrackParams(configScopeId, analysisId,
-                [new FileUri(fileToAnalyzeAbsolutePath)], [], false,
+                [new FileUri(fileToAnalyzeAbsolutePath)], extraProperties, false,
                 DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()), CancellationToken.None);
         failedAnalysisFiles.Should().BeEmpty();
     }
@@ -212,6 +218,16 @@ internal class TypeScriptIssuesFile : ITestingFile
         new("typescript:S2737", new TextRangeDto(3, 2, 3, 7), CleanCodeAttribute.CLEAR, 0),
         new("typescript:S1186", new TextRangeDto(7, 16, 7, 19), CleanCodeAttribute.COMPLETE, 0),
         new("typescript:S3776", new TextRangeDto(30, 9, 30, 18), CleanCodeAttribute.FOCUSED, 21)
+    ];
+}
+
+internal class CFamilyIssuesFile : ITestingFile
+{
+    public string RelativePath => @"Resources\CFamilyIssues.cpp";
+
+    public List<TestIssue> ExpectedIssues =>
+    [
+        new("cpp:S1135", new TextRangeDto(7, 4, 7, 17), CleanCodeAttribute.COMPLETE, 0),
     ];
 }
 
