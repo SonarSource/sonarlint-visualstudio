@@ -38,7 +38,7 @@ internal class SonarLintSettingsLogVerbosityIndicator(ISonarLintSettings sonarLi
 
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-internal class SonarLintOutputLogger(
+internal class SonarLintOutputLoggerFactory(
     ILoggerFactory logFactory,
     [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
     ISonarLintSettings sonarLintSettings)
