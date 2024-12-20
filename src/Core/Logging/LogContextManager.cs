@@ -8,9 +8,9 @@ namespace SonarLint.VisualStudio.Core.Logging;
 public class LogContextManager : ILogContextManager
 {
     private readonly ImmutableList<string> contexts;
+    private readonly ImmutableList<string> verboseContexts;
     private readonly Lazy<string> formatedContext;
     private readonly Lazy<string> formatedVerboseContext;
-    private readonly ImmutableList<string> verboseContexts;
 
     [ImportingConstructor]
     public LogContextManager() : this(ImmutableList<string>.Empty, ImmutableList<string>.Empty) { }
