@@ -20,18 +20,24 @@
 
 using System.ComponentModel.Composition;
 
-namespace SonarLint.VisualStudio.Core;
-
-public interface ILoggerFactory
+namespace SonarLint.VisualStudio.Core
 {
-    ILogger Create(ILogWriter logWriter, ILogVerbosityIndicator verbosityIndicator);
-}
+    public interface ILogger
+    {
+        /// <summary>
+        /// Logs a message and appends a new line.
+        /// </summary>
+        void WriteLine(string message);
 
-[Export(typeof(ILoggerFactory))]
-[PartCreationPolicy(CreationPolicy.Shared)]
-public class LoggerFactory : ILoggerFactory
-{
-    public static ILoggerFactory Default { get; } = new LoggerFactory();
-    public ILogger Create(ILogWriter logWriter, ILogVerbosityIndicator verbosityIndicator) =>
-        new LoggerBase(new LogContext(), logWriter, verbosityIndicator);
+        void WriteLine(string messageFormat, params object[] args);
+
+        /// <summary>
+        /// Logs a message and appends a new line if logging is set to verbose. Otherwise does nothing.
+        /// </summary>
+        void LogVerbose(string messageFormat, params object[] args);
+
+        ILogger ForContext(params string[] context);
+
+        ILogger ForVerboseContext(params string[] context);
+    }
 }

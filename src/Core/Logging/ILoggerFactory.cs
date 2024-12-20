@@ -18,12 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core;
+namespace SonarLint.VisualStudio.Core.Logging;
 
-public interface ILogContext
+public interface ILoggerFactory
 {
-    public string FormatedContext { get; }
-    public string FormatedVerboseContext { get; }
-    ILogContext CreateAugmentedContext(IEnumerable<string> contexts);
-    ILogContext CreateAugmentedVerboseContext(IEnumerable<string> verboseContexts);
+    ILogger Create(ILogWriter logWriter, ILogVerbosityIndicator verbosityIndicator);
 }
