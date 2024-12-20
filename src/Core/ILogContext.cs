@@ -18,19 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
+namespace SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Roslyn.Suppressions
+public interface ILogContext
 {
-    internal class SystemDebugLogWriter : ILogWriter
-    {
-        public void WriteLine(string message) => Debug.WriteLine(message);
-    }
-
-    internal class AlwaysOnLogVerbosityIndicator : ILogVerbosityIndicator
-    {
-        public bool IsVerboseEnabled => true;
-        public bool IsThreadIdEnabled => true;
-    }
+    public string FormatedContext { get; }
+    public string FormatedVerboseContext { get; }
+    ILogContext CreateAugmentedContext(IEnumerable<string> contexts);
+    ILogContext CreateAugmentedVerboseContext(IEnumerable<string> verboseContexts);
 }
-
