@@ -18,22 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Concurrent;
-using System.Linq;
-using FluentAssertions;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
-    public class TestLogger : ILogger
+    public class TestLogger : ILogger, ILogWriter, ILogVerbosityIndicator
     {
         public BlockingCollection<string> OutputStrings { get; private set; } = new();
 
         public event EventHandler LogMessageAdded;
 
         private readonly bool logToConsole;
-        private readonly bool logThreadId;
+        private readonly ILogger logger;
 
         public TestLogger(bool logToConsole = false, bool logThreadId = false)
         {
@@ -42,7 +39,8 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             // link to show the output.
             this.logToConsole = logToConsole;
 
-            this.logThreadId = logThreadId;
+            IsThreadIdEnabled = logThreadId;
+            logger = LoggerFactory.Default.Create(this, this);
         }
 
         public void AssertOutputStrings(int expectedOutputMessages)
@@ -96,11 +94,9 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             OutputStrings = new BlockingCollection<string>();
         }
 
-        #region ILogger methods
-
-        public void WriteLine(string message)
+        void ILogWriter.WriteLine(string message)
         {
-            var messageToLog = GetFormattedMessage(message);
+            var messageToLog = message + Environment.NewLine;
             OutputStrings.Add(messageToLog);
             if (logToConsole)
             {
@@ -110,34 +106,21 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             LogMessageAdded?.Invoke(this, EventArgs.Empty);
         }
 
-        public void WriteLine(string messageFormat, params object[] args)
-        {
-            WriteLine(string.Format(System.Globalization.CultureInfo.CurrentCulture, messageFormat, args));
-        }
+        #region ILogger methods
 
-        public void LogVerbose(string message, params object[] args)
-        {
-            var verboseMessage = $"[Verbose] {message}";
-            if (args.Length == 0)
-            {
-                WriteLine(verboseMessage);
-            }
-            else
-            {
-                WriteLine(verboseMessage, args);
-            }
-        }
+        public void WriteLine(string message) => logger.WriteLine(message);
 
-        private string GetFormattedMessage(string message)
-        {
-            var messageToLog = message + Environment.NewLine;
-            if (logThreadId)
-            {
-                messageToLog = $"[Thread {System.Threading.Thread.CurrentThread.ManagedThreadId}] {messageToLog}";
-            }
-            return messageToLog;
-        }
+        public void WriteLine(string messageFormat, params object[] args) => logger.WriteLine(messageFormat, args);
+
+        public void LogVerbose(string message, params object[] args) => logger.LogVerbose(message, args);
+
+        public ILogger ForContext(params string[] context) => logger.ForContext(context);
+
+        public ILogger ForVerboseContext(params string[] context) => logger.ForVerboseContext();
 
         #endregion
+
+        public bool IsVerboseEnabled => true;
+        public bool IsThreadIdEnabled { get; }
     }
 }
