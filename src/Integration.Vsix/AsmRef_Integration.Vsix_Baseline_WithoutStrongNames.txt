@@ -123,6 +123,7 @@ Referenced assemblies:
 - 'PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'SonarQube.Client, Version=8.10.0.0, Culture=neutral, PublicKeyToken=null'
 - 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+- 'System.Collections.Immutable, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.IO.Abstractions, Version=9.0.0.0, Culture=neutral, PublicKeyToken=96bf224d23c43e59'
@@ -131,7 +132,7 @@ Referenced assemblies:
 - 'System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'
 - 'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
-# Number of references: 14
+# Number of references: 15
 
 ---
 Assembly: 'SonarLint.VisualStudio.Education, Version=8.10.0.0, Culture=neutral, PublicKeyToken=null'
@@ -209,7 +210,6 @@ Referenced assemblies:
 - 'SonarLint.VisualStudio.SLCore, Version=8.10.0.0, Culture=neutral, PublicKeyToken=null'
 - 'SonarQube.Client, Version=8.10.0.0, Culture=neutral, PublicKeyToken=null'
 - 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-- 'System.Collections.Immutable, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.IO.Abstractions, Version=9.0.0.0, Culture=neutral, PublicKeyToken=96bf224d23c43e59'
@@ -218,7 +218,7 @@ Referenced assemblies:
 - 'System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Xml.Linq, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
-# Number of references: 28
+# Number of references: 27
 
 ---
 Assembly: 'SonarLint.VisualStudio.Integration.TeamExplorer, Version=8.10.0.0, Culture=neutral, PublicKeyToken=null'

@@ -89,7 +89,7 @@ public class SLCoreInstanceHandlerTests
         slCoreHandler.currentInstanceHandle.Should().BeNull();
         logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_CreatingInstance);
         logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_CreatingInstanceError);
-        logger.AssertPartialOutputStringExists("[Verbose] System.Exception");
+        logger.AssertPartialOutputStringExists("[DEBUG] System.Exception");
     }
 
     [TestMethod]
@@ -152,7 +152,7 @@ public class SLCoreInstanceHandlerTests
         logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_StartingInstance);
         logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_StartingInstanceError);
         logger.AssertOutputStringExists(SLCoreStrings.SLCoreHandler_InstanceDied);
-        logger.AssertPartialOutputStringExists("[Verbose] System.Exception");
+        logger.AssertPartialOutputStringExists("[DEBUG] System.Exception");
         Received.InOrder(() =>
         {
             threadHandling.ThrowIfOnUIThread();

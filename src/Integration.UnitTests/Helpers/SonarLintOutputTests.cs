@@ -155,7 +155,7 @@
 //             ISonarLintSettings sonarLintSettings = null)
 //         {
 //             sonarLintSettings ??= Mock.Of<ISonarLintSettings>();
-//             return new SonarLintOutputLogger(serviceProvider, sonarLintSettings, Substitute.For<ILogContext>());
+//             return new SonarLintOutputLogger(serviceProvider, sonarLintSettings, Substitute.For<ILogContextManager>());
 //         }
 //     }
 // }

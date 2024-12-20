@@ -22,6 +22,7 @@ using System;
 using System.IO;
 using System.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Logging;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 

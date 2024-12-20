@@ -20,6 +20,7 @@
 
 using System.Collections.Concurrent;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Logging;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
