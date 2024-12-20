@@ -119,6 +119,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             {
                 // no-op
             }
+
+            public ILogger ForContext(params string[] context) => this;
+
+            public ILogger ForVerboseContext(params string[] context) => this;
         }
     }
 }

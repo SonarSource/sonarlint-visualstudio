@@ -18,20 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Logging;
+using System.ComponentModel.Composition;
 
-namespace SonarLint.VisualStudio.Roslyn.Suppressions
+namespace SonarLint.VisualStudio.Core
 {
-    internal class SystemDebugLogWriter : ILogWriter
+    public interface ILogger
     {
-        public void WriteLine(string message) => Debug.WriteLine(message);
-    }
+        /// <summary>
+        /// Logs a message and appends a new line.
+        /// </summary>
+        void WriteLine(string message);
 
-    internal class AlwaysOnLogVerbosityIndicator : ILogVerbosityIndicator
-    {
-        public bool IsVerboseEnabled => true;
-        public bool IsThreadIdEnabled => true;
+        void WriteLine(string messageFormat, params object[] args);
+
+        /// <summary>
+        /// Logs a message and appends a new line if logging is set to verbose. Otherwise does nothing.
+        /// </summary>
+        void LogVerbose(string messageFormat, params object[] args);
+
+        ILogger ForContext(params string[] context);
+
+        ILogger ForVerboseContext(params string[] context);
     }
 }
-
