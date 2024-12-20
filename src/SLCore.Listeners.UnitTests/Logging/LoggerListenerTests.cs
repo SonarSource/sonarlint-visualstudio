@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Logging
 
             if (verboseLogs)
             {
-                logger.AssertOutputStringExists("[Verbose] [SLCORE] some Message");
+                logger.AssertOutputStringExists("[DEBUG] [SLCORE] some Message");
             }
             else
             {
