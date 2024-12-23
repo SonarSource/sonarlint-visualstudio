@@ -88,7 +88,7 @@ public class BoundSonarQubeProjectExtensionsTests
         conn.Credentials.Should().BeAssignableTo<INoCredentials>();
         conn.Organization.Should().BeNull();
     }
-        
+
     [TestMethod]
     public void BoundServerProject_CreateConnectionInformation_ArgCheck()
     {
@@ -109,7 +109,6 @@ public class BoundSonarQubeProjectExtensionsTests
         conn.Credentials.Should().BeAssignableTo<INoCredentials>();
         conn.Organization.Key.Should().Be("org_key");
     }
-        
 
     [TestMethod]
     public void BoundServerProject_CreateConnectionInformation_BasicAuthCredentials()

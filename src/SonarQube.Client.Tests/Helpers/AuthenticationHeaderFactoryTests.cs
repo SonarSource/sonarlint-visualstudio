@@ -100,7 +100,9 @@ namespace SonarQube.Client.Tests.Helpers
             AssertAreEqualUserNameAndPassword(Username, Password, authenticationHeaderValue.Parameter);
         }
 
-        private void AssertAreEqualUserNameAndPassword(string expectedUser, string expectedPassword,
+        private void AssertAreEqualUserNameAndPassword(
+            string expectedUser,
+            string expectedPassword,
             string userAndPasswordBase64String)
 
         {

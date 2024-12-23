@@ -73,22 +73,23 @@ namespace SonarQube.Client.Tests.Models
         [DataRow("http://localhost", "user1", "secret", null)]
         [DataRow("http://sonarcloud.io", null, null, "myorg")]
         [DataRow("http://sonarcloud.io", "a token", null, "myorg")]
-        public void Clone_PropertiesAreCopiedCorrectly(string serverUrl, string userName, string password, string orgKey)
+        public void Clone_PropertiesAreCopiedCorrectly(
+            string serverUrl,
+            string userName,
+            string password,
+            string orgKey)
         {
             var securePwd = InitializeSecureString(password);
             var org = InitializeOrganization(orgKey);
             var credentials = MockBasicAuthCredentials(userName, securePwd);
 
-            var testSubject = new ConnectionInformation(new Uri(serverUrl), credentials)
-            {
-                Organization = org
-            };
+            var testSubject = new ConnectionInformation(new Uri(serverUrl), credentials) { Organization = org };
 
             var cloneObj = ((ICloneable)testSubject).Clone();
             cloneObj.Should().BeOfType<ConnectionInformation>();
 
             CheckPropertiesMatch(testSubject, (ConnectionInformation)cloneObj);
-            _= credentials.Received().Clone();
+            _ = credentials.Received().Clone();
         }
 
         [TestMethod]
@@ -108,8 +109,7 @@ namespace SonarQube.Client.Tests.Models
             // The "ToSecureString" doesn't expect nulls, which we want to use in the tests
             password?.ToSecureString();
 
-        private static SonarQubeOrganization InitializeOrganization(string orgKey) =>
-            orgKey == null ? null : new SonarQubeOrganization(orgKey, Guid.NewGuid().ToString());
+        private static SonarQubeOrganization InitializeOrganization(string orgKey) => orgKey == null ? null : new SonarQubeOrganization(orgKey, Guid.NewGuid().ToString());
 
         private static void CheckPropertiesMatch(ConnectionInformation item1, ConnectionInformation item2)
         {

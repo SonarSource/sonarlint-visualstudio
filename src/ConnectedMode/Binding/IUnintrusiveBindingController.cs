@@ -29,9 +29,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     public interface IBindingController
     {
         Task BindAsync(BoundServerProject project, CancellationToken cancellationToken);
+
         bool Unbind(string localBindingKey);
     }
-    
+
     internal interface IUnintrusiveBindingController
     {
         Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token);
@@ -48,7 +49,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private readonly ISolutionBindingRepository solutionBindingRepository;
 
         [ImportingConstructor]
-        public UnintrusiveBindingController(IBindingProcessFactory bindingProcessFactory, ISonarQubeService sonarQubeService, IActiveSolutionChangedHandler activeSolutionChangedHandler, ISolutionBindingRepository solutionBindingRepository)
+        public UnintrusiveBindingController(
+            IBindingProcessFactory bindingProcessFactory,
+            ISonarQubeService sonarQubeService,
+            IActiveSolutionChangedHandler activeSolutionChangedHandler,
+            ISolutionBindingRepository solutionBindingRepository)
         {
             this.bindingProcessFactory = bindingProcessFactory;
             this.sonarQubeService = sonarQubeService;

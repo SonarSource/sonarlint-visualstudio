@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Core.Binding
             connection.Organization = binding.Organization;
             return connection;
         }
-        
+
         public static ConnectionInformation CreateConnectionInformation(this BoundServerProject binding)
         {
             if (binding == null)

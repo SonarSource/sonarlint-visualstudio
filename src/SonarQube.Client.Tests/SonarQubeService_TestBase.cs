@@ -66,7 +66,11 @@ namespace SonarQube.Client.Tests
             ResetService();
         }
 
-        protected void SetupRequest(string relativePath, string response, HttpStatusCode statusCode = HttpStatusCode.OK, string serverUrl = DefaultBasePath) =>
+        protected void SetupRequest(
+            string relativePath,
+            string response,
+            HttpStatusCode statusCode = HttpStatusCode.OK,
+            string serverUrl = DefaultBasePath) =>
             MocksHelper.SetupHttpRequest(messageHandler, relativePath, response, statusCode, serverUrl);
 
         protected void SetupRequest(string relativePath, HttpResponseMessage response, params MediaTypeHeaderValue[] expectedHeaderValues) =>
