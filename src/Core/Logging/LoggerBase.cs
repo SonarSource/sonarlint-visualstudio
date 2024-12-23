@@ -64,13 +64,13 @@ internal class LoggerBase(
         AddStandardProperties(new StringBuilder());
 
     private StringBuilder CreateDebugLogPrefix() =>
-        AppendProperty(AddStandardProperties(new StringBuilder()), "DEBUG");
+        AddStandardProperties(AppendProperty(new StringBuilder(), "DEBUG"));
 
     private StringBuilder AddStandardProperties(StringBuilder builder)
     {
         if (settingsProvider.IsThreadIdEnabled)
         {
-            AppendPropertyFormat(builder, "ThreadId {0, 3}", Thread.CurrentThread.ManagedThreadId);
+            AppendPropertyFormat(builder, "ThreadId {0}", Thread.CurrentThread.ManagedThreadId);
         }
 
         if (!string.IsNullOrEmpty(contextManager.FormatedContext))
