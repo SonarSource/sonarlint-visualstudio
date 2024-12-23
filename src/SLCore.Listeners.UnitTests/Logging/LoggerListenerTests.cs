@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Logging
         [TestMethod]
         [DataRow(LogLevel.ERROR, false)]
         [DataRow(LogLevel.WARN, false)]
-        [DataRow(LogLevel.INFO, true)]
+        [DataRow(LogLevel.INFO, false)]
         [DataRow(LogLevel.TRACE, true)]
         [DataRow(LogLevel.DEBUG, true)]
         public void Log_LogInfoTraceAndDebugAsVerbose(LogLevel logLevel, bool verboseLogs)

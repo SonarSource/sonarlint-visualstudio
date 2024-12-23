@@ -45,10 +45,10 @@ public class LoggerListener : ILoggerListener
         {
             case LogLevel.ERROR:
             case LogLevel.WARN:
+            case LogLevel.INFO:
                 logger.WriteLine(message);
                 break;
 
-            case LogLevel.INFO:
             case LogLevel.DEBUG:
             case LogLevel.TRACE:
                 logger.LogVerbose(message);
