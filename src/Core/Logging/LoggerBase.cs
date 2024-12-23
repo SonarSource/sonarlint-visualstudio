@@ -73,12 +73,12 @@ internal class LoggerBase(
             AppendPropertyFormat(builder, "ThreadId {0, 3}", Thread.CurrentThread.ManagedThreadId);
         }
 
-        if (contextManager.FormatedContext != null)
+        if (!string.IsNullOrEmpty(contextManager.FormatedContext))
         {
             AppendProperty(builder, contextManager.FormatedContext);
         }
 
-        if (settingsProvider.IsVerboseEnabled && contextManager.FormatedVerboseContext != null)
+        if (settingsProvider.IsVerboseEnabled && !string.IsNullOrEmpty(contextManager.FormatedVerboseContext))
         {
             AppendProperty(builder, contextManager.FormatedVerboseContext);
         }
