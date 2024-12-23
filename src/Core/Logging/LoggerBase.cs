@@ -24,31 +24,31 @@ using System.Text;
 namespace SonarLint.VisualStudio.Core.Logging;
 
 internal class LoggerBase(
-    ILogContextManager logContextManager,
-    ILogWriter logWriter,
-    ILogVerbosityIndicator logVerbosityIndicator) : ILogger
+    ILoggerContextManager contextManager,
+    ILoggerWriter writer,
+    ILoggerSettingsProvider settingsProvider) : ILogger
 {
     public ILogger ForContext(params string[] context) =>
         new LoggerBase(
-            logContextManager.CreateAugmentedContext(context.Where(x => !string.IsNullOrEmpty(x))),
-            logWriter,
-            logVerbosityIndicator);
+            contextManager.CreateAugmentedContext(context.Where(x => !string.IsNullOrEmpty(x))),
+            writer,
+            settingsProvider);
 
     public ILogger ForVerboseContext(params string[] context) =>
         new LoggerBase(
-            logContextManager.CreateAugmentedVerboseContext(context.Where(x => !string.IsNullOrEmpty(x))),
-            logWriter,
-            logVerbosityIndicator);
+            contextManager.CreateAugmentedVerboseContext(context.Where(x => !string.IsNullOrEmpty(x))),
+            writer,
+            settingsProvider);
 
     public void WriteLine(string message) =>
-        logWriter.WriteLine(CreateStandardLogPrefix().Append(message).ToString());
+        writer.WriteLine(CreateStandardLogPrefix().Append(message).ToString());
 
     public void WriteLine(string messageFormat, params object[] args) =>
-        logWriter.WriteLine(CreateStandardLogPrefix().AppendFormat(CultureInfo.CurrentCulture, messageFormat, args).ToString());
+        writer.WriteLine(CreateStandardLogPrefix().AppendFormat(CultureInfo.CurrentCulture, messageFormat, args).ToString());
 
     public void LogVerbose(string messageFormat, params object[] args)
     {
-        if (!logVerbosityIndicator.IsVerboseEnabled)
+        if (!settingsProvider.IsVerboseEnabled)
         {
             return;
         }
@@ -57,7 +57,7 @@ internal class LoggerBase(
         var logLine = args.Length > 0
             ? debugLogPrefix.AppendFormat(CultureInfo.CurrentCulture, messageFormat, args)
             : debugLogPrefix.Append(messageFormat);
-        logWriter.WriteLine(logLine.ToString());
+        writer.WriteLine(logLine.ToString());
     }
 
     private StringBuilder CreateStandardLogPrefix() =>
@@ -68,19 +68,19 @@ internal class LoggerBase(
 
     private StringBuilder AddStandardProperties(StringBuilder builder)
     {
-        if (logVerbosityIndicator.IsThreadIdEnabled)
+        if (settingsProvider.IsThreadIdEnabled)
         {
             AppendPropertyFormat(builder, "ThreadId {0, 3}", Thread.CurrentThread.ManagedThreadId);
         }
 
-        if (logContextManager.FormatedContext != null)
+        if (contextManager.FormatedContext != null)
         {
-            AppendProperty(builder, logContextManager.FormatedContext);
+            AppendProperty(builder, contextManager.FormatedContext);
         }
 
-        if (logVerbosityIndicator.IsVerboseEnabled && logContextManager.FormatedVerboseContext != null)
+        if (settingsProvider.IsVerboseEnabled && contextManager.FormatedVerboseContext != null)
         {
-            AppendProperty(builder, logContextManager.FormatedVerboseContext);
+            AppendProperty(builder, contextManager.FormatedVerboseContext);
         }
 
         return builder;

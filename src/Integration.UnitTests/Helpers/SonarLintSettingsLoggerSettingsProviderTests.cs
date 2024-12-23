@@ -23,16 +23,16 @@ using SonarLint.VisualStudio.Integration.Helpers;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers;
 
 [TestClass]
-public class SonarLintSettingsLogVerbosityIndicatorTests
+public class SonarLintSettingsLoggerSettingsProviderTests
 {
     private ISonarLintSettings sonarLintSettings;
-    private SonarLintSettingsLogVerbosityIndicator testSubject;
+    private SonarLintSettingsLoggerSettingsProvider testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
         sonarLintSettings = Substitute.For<ISonarLintSettings>();
-        testSubject = new SonarLintSettingsLogVerbosityIndicator(sonarLintSettings);
+        testSubject = new SonarLintSettingsLoggerSettingsProvider(sonarLintSettings);
     }
 
     [DataRow(DaemonLogLevel.Verbose, true)]

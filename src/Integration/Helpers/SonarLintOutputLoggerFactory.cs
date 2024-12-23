@@ -25,12 +25,12 @@ using SonarLint.VisualStudio.Core.Logging;
 
 namespace SonarLint.VisualStudio.Integration.Helpers;
 
-internal class SonarLintOutputWindowLogWriter(IServiceProvider serviceProvider) : ILogWriter
+internal class SonarLintOutputWindowLoggerWriter(IServiceProvider serviceProvider) : ILoggerWriter
 {
     public void WriteLine(string message) => VsShellUtils.WriteToSonarLintOutputPane(serviceProvider, message);
 }
 
-internal class SonarLintSettingsLogVerbosityIndicator(ISonarLintSettings sonarLintSettings) : ILogVerbosityIndicator
+internal class SonarLintSettingsLoggerSettingsProvider(ISonarLintSettings sonarLintSettings) : ILoggerSettingsProvider
 {
     public bool IsVerboseEnabled => sonarLintSettings.DaemonLogLevel == DaemonLogLevel.Verbose;
     public bool IsThreadIdEnabled => IsVerboseEnabled;
@@ -46,6 +46,6 @@ internal class SonarLintOutputLoggerFactory(
     [Export(typeof(ILogger))]
     public ILogger Instance { get; } =
         logFactory.Create(
-            new SonarLintOutputWindowLogWriter(serviceProvider),
-            new SonarLintSettingsLogVerbosityIndicator(sonarLintSettings));
+            new SonarLintOutputWindowLoggerWriter(serviceProvider),
+            new SonarLintSettingsLoggerSettingsProvider(sonarLintSettings));
 }

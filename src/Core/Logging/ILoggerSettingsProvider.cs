@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Core.Logging;
 
-public interface ILogVerbosityIndicator
+public interface ILoggerSettingsProvider
 {
     bool IsVerboseEnabled { get; }
     bool IsThreadIdEnabled { get; }

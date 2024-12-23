@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         public Container()
         {
             Directory.CreateDirectory(RoslynSettingsFileInfo.Directory);
-            Logger = LoggerFactory.Default.Create(new SystemDebugLogWriter(), new AlwaysOnLogVerbosityIndicator());
+            Logger = LoggerFactory.Default.Create(new SystemDebugLoggerWriter(), new EnableAllLoggerSettingsProvider());
 
             var settingsCache = new SettingsCache(Logger);
             fileWatcher = new SuppressedIssuesFileWatcher(settingsCache, Logger);

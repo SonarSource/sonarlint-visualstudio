@@ -24,20 +24,20 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.Core.UnitTests.Logging;
 
 [TestClass]
-public class LogContextManagerTests
+public class LoggerContextManagerTests
 {
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<LogContextManager, ILogContextManager>();
+        MefTestHelpers.CheckTypeCanBeImported<LoggerContextManager, ILoggerContextManager>();
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsNonSharedMefComponent<LogContextManager>();
+        MefTestHelpers.CheckIsNonSharedMefComponent<LoggerContextManager>();
 
     [TestMethod]
     public void EmptyContext()
     {
-        var testSubject = new LogContextManager();
+        var testSubject = new LoggerContextManager();
 
         testSubject.FormatedContext.Should().BeNull();
         testSubject.FormatedVerboseContext.Should().BeNull();
@@ -46,7 +46,7 @@ public class LogContextManagerTests
     [TestMethod]
     public void Augmented_Immutable()
     {
-        var testSubject = new LogContextManager();
+        var testSubject = new LoggerContextManager();
         var contextualized= testSubject.CreateAugmentedContext(["a"]);
         var verboseContextualized = testSubject.CreateAugmentedVerboseContext(["b"]);
         var doubleContextualized = testSubject.CreateAugmentedContext(["c"]).CreateAugmentedVerboseContext(["d"]);
@@ -63,20 +63,20 @@ public class LogContextManagerTests
 
     [TestMethod]
     public void Augmented_MultipleAtOnce_Combines() =>
-        new LogContextManager()
+        new LoggerContextManager()
             .CreateAugmentedContext(["a", "b"])
             .FormatedContext.Should().Be("a > b");
 
     [TestMethod]
     public void Augmented_MultipleInSequence_Combines() =>
-        new LogContextManager()
+        new LoggerContextManager()
             .CreateAugmentedContext(["a"])
             .CreateAugmentedContext(["b"])
             .FormatedContext.Should().Be("a > b");
 
     [TestMethod]
     public void Augmented_AtOnceAndInSequence_CombinesInCorrectOrder() =>
-        new LogContextManager()
+        new LoggerContextManager()
             .CreateAugmentedContext(["a"])
             .CreateAugmentedContext(["b", "c"])
             .CreateAugmentedContext(["d"])
@@ -84,20 +84,20 @@ public class LogContextManagerTests
 
     [TestMethod]
     public void AugmentedVerbose_MultipleAtOnce_Combines() =>
-        new LogContextManager()
+        new LoggerContextManager()
             .CreateAugmentedVerboseContext(["a", "b"])
             .FormatedVerboseContext.Should().Be("a > b");
 
     [TestMethod]
     public void AugmentedVerbose_MultipleInSequence_Combines() =>
-        new LogContextManager()
+        new LoggerContextManager()
             .CreateAugmentedVerboseContext(["a"])
             .CreateAugmentedVerboseContext(["b"])
             .FormatedVerboseContext.Should().Be("a > b");
 
     [TestMethod]
     public void AugmentedVerbose_AtOnceAndInSequence_CombinesInCorrectOrder() =>
-        new LogContextManager()
+        new LoggerContextManager()
             .CreateAugmentedVerboseContext(["a"])
             .CreateAugmentedVerboseContext(["b", "c"])
             .CreateAugmentedVerboseContext(["d"])

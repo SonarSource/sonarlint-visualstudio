@@ -25,18 +25,18 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers;
 
 [TestClass]
-public class SonarLintOutputWindowLogWriterTests
+public class SonarLintOutputWindowLoggerWriterTests
 {
     private ConfigurableVsOutputWindow windowMock;
     private IServiceProvider serviceProviderMock;
-    private SonarLintOutputWindowLogWriter testSubject;
+    private SonarLintOutputWindowLoggerWriter testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
         windowMock = new ConfigurableVsOutputWindow();
         serviceProviderMock = CreateConfiguredServiceProvider(windowMock);
-        testSubject = new SonarLintOutputWindowLogWriter(serviceProviderMock);
+        testSubject = new SonarLintOutputWindowLoggerWriter(serviceProviderMock);
     }
 
     [TestMethod]

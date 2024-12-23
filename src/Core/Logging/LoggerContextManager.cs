@@ -24,9 +24,9 @@ using System.ComponentModel.Composition;
 
 namespace SonarLint.VisualStudio.Core.Logging;
 
-[Export(typeof(ILogContextManager))]
+[Export(typeof(ILoggerContextManager))]
 [PartCreationPolicy(CreationPolicy.NonShared)]
-public class LogContextManager : ILogContextManager
+public class LoggerContextManager : ILoggerContextManager
 {
     private readonly ImmutableList<string> contexts;
     private readonly ImmutableList<string> verboseContexts;
@@ -34,9 +34,9 @@ public class LogContextManager : ILogContextManager
     private readonly Lazy<string> formatedVerboseContext;
 
     [ImportingConstructor]
-    public LogContextManager() : this(ImmutableList<string>.Empty, ImmutableList<string>.Empty) { }
+    public LoggerContextManager() : this(ImmutableList<string>.Empty, ImmutableList<string>.Empty) { }
 
-    private LogContextManager(ImmutableList<string> contexts, ImmutableList<string> verboseContexts)
+    private LoggerContextManager(ImmutableList<string> contexts, ImmutableList<string> verboseContexts)
     {
         this.contexts = contexts;
         this.verboseContexts = verboseContexts;
@@ -47,9 +47,9 @@ public class LogContextManager : ILogContextManager
     public string FormatedContext => formatedContext.Value;
     public string FormatedVerboseContext => formatedVerboseContext.Value;
 
-    public ILogContextManager CreateAugmentedContext(IEnumerable<string> additionalContexts) => new LogContextManager(contexts.AddRange(additionalContexts), verboseContexts);
+    public ILoggerContextManager CreateAugmentedContext(IEnumerable<string> additionalContexts) => new LoggerContextManager(contexts.AddRange(additionalContexts), verboseContexts);
 
-    public ILogContextManager CreateAugmentedVerboseContext(IEnumerable<string> additionalVerboseContexts) => new LogContextManager(contexts, verboseContexts.AddRange(additionalVerboseContexts));
+    public ILoggerContextManager CreateAugmentedVerboseContext(IEnumerable<string> additionalVerboseContexts) => new LoggerContextManager(contexts, verboseContexts.AddRange(additionalVerboseContexts));
 
     private static string MergeContextsIntoSingleProperty(ImmutableList<string> contexts) => contexts.Count > 0 ? string.Join(" > ", contexts) : null;
 }

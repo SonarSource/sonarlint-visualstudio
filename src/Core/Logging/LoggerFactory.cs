@@ -25,9 +25,9 @@ namespace SonarLint.VisualStudio.Core.Logging;
 [Export(typeof(ILoggerFactory))]
 [PartCreationPolicy(CreationPolicy.NonShared)]
 [method: ImportingConstructor]
-public class LoggerFactory(ILogContextManager logContextManager) : ILoggerFactory
+public class LoggerFactory(ILoggerContextManager loggerContextManager) : ILoggerFactory
 {
-    public static ILoggerFactory Default { get; } = new LoggerFactory(new LogContextManager());
-    public ILogger Create(ILogWriter logWriter, ILogVerbosityIndicator verbosityIndicator) =>
-        new LoggerBase(logContextManager, logWriter, verbosityIndicator);
+    public static ILoggerFactory Default { get; } = new LoggerFactory(new LoggerContextManager());
+    public ILogger Create(ILoggerWriter writer, ILoggerSettingsProvider settingsProvider) =>
+        new LoggerBase(loggerContextManager, writer, settingsProvider);
 }
