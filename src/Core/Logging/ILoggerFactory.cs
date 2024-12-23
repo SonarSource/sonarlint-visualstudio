@@ -22,5 +22,5 @@ namespace SonarLint.VisualStudio.Core.Logging;
 
 public interface ILoggerFactory
 {
-    ILogger Create(ILogWriter logWriter, ILogVerbosityIndicator verbosityIndicator);
+    ILogger Create(ILoggerWriter writer, ILoggerSettingsProvider settingsProvider);
 }

@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.Core.Logging;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
-    public class TestLogger : ILogger, ILogWriter, ILogVerbosityIndicator
+    public class TestLogger : ILogger, ILoggerWriter, ILoggerSettingsProvider
     {
         public BlockingCollection<string> OutputStrings { get; private set; } = new();
 
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         #endregion
 
-        void ILogWriter.WriteLine(string message)
+        void ILoggerWriter.WriteLine(string message)
         {
             var messageToLog = message + Environment.NewLine;
             OutputStrings.Add(messageToLog);
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
             LogMessageAdded?.Invoke(this, EventArgs.Empty);
         }
-        bool ILogVerbosityIndicator.IsVerboseEnabled => true;
-        bool ILogVerbosityIndicator.IsThreadIdEnabled => logThreadId;
+        bool ILoggerSettingsProvider.IsVerboseEnabled => true;
+        bool ILoggerSettingsProvider.IsThreadIdEnabled => logThreadId;
     }
 }

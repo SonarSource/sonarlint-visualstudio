@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             var testSubject = new SonarLintOutputLoggerFactory(loggerFactory, Substitute.For<IServiceProvider>(), Substitute.For<ISonarLintSettings>());
 
             testSubject.Instance.Should().NotBeNull();
-            loggerFactory.Create(Arg.Any<SonarLintOutputWindowLogWriter>(), Arg.Any<SonarLintSettingsLogVerbosityIndicator>());
+            loggerFactory.Create(Arg.Any<SonarLintOutputWindowLoggerWriter>(), Arg.Any<SonarLintSettingsLoggerSettingsProvider>());
         }
 
     }

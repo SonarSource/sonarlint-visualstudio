@@ -20,12 +20,7 @@
 
 namespace SonarLint.VisualStudio.Core.Logging;
 
-public interface ILogContextManager
+public interface ILoggerWriter
 {
-    public string FormatedContext { get; }
-    public string FormatedVerboseContext { get; }
-
-    ILogContextManager CreateAugmentedContext(IEnumerable<string> additionalContexts);
-
-    ILogContextManager CreateAugmentedVerboseContext(IEnumerable<string> additionalVerboseContexts);
+    void WriteLine(string message);
 }
