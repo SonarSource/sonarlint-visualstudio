@@ -164,6 +164,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 var options = new CFamilyAnalyzerOptions
                 {
+                    IsOnOpen = false,
                     CreateReproducer = true
                 };
 
