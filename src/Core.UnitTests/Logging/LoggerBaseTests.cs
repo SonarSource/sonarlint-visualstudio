@@ -123,7 +123,7 @@ public class LoggerBaseTests
 
         testSubject.LogVerbose("msg {0}", "sent");
 
-        writer.Received().WriteLine($"[ThreadId {Thread.CurrentThread.ManagedThreadId, 3}] [DEBUG] msg sent");
+        writer.Received().WriteLine($"[DEBUG] [ThreadId {Thread.CurrentThread.ManagedThreadId}] msg sent");
     }
 
     [TestMethod]
@@ -134,7 +134,7 @@ public class LoggerBaseTests
 
         testSubject.LogVerbose("msg {0}", "sent");
 
-        writer.Received().WriteLine("[context] [DEBUG] msg sent");
+        writer.Received().WriteLine("[DEBUG] [context] msg sent");
     }
 
     [TestMethod]
@@ -145,7 +145,7 @@ public class LoggerBaseTests
 
         testSubject.LogVerbose("msg {0}", "sent");
 
-        writer.Received().WriteLine("[verbose context] [DEBUG] msg sent");
+        writer.Received().WriteLine("[DEBUG] [verbose context] msg sent");
     }
 
     [TestMethod]
@@ -158,7 +158,7 @@ public class LoggerBaseTests
 
         testSubject.LogVerbose("msg {0}", "sent");
 
-        writer.Received().WriteLine($"[ThreadId {Thread.CurrentThread.ManagedThreadId, 3}] [context] [verbose context] [DEBUG] msg sent");
+        writer.Received().WriteLine($"[DEBUG] [ThreadId {Thread.CurrentThread.ManagedThreadId}] [context] [verbose context] msg sent");
     }
 
     [TestMethod]
@@ -208,7 +208,7 @@ public class LoggerBaseTests
 
         testSubject.WriteLine("msg sent");
 
-        writer.Received().WriteLine($"[ThreadId {Thread.CurrentThread.ManagedThreadId, 3}] msg sent");
+        writer.Received().WriteLine($"[ThreadId {Thread.CurrentThread.ManagedThreadId}] msg sent");
     }
 
     [TestMethod]
@@ -218,7 +218,7 @@ public class LoggerBaseTests
 
         testSubject.WriteLine("msg {0}", "sent");
 
-        writer.Received().WriteLine($"[ThreadId {Thread.CurrentThread.ManagedThreadId, 3}] msg sent");
+        writer.Received().WriteLine($"[ThreadId {Thread.CurrentThread.ManagedThreadId}] msg sent");
     }
 
     [DataRow(true)]
@@ -301,7 +301,7 @@ public class LoggerBaseTests
 
         testSubject.WriteLine("msg sent");
 
-        writer.Received().WriteLine($"[ThreadId {Thread.CurrentThread.ManagedThreadId, 3}] [context] [verbose context] msg sent");
+        writer.Received().WriteLine($"[ThreadId {Thread.CurrentThread.ManagedThreadId}] [context] [verbose context] msg sent");
     }
 
     [TestMethod]
@@ -314,6 +314,6 @@ public class LoggerBaseTests
 
         testSubject.WriteLine("msg {0}", "sent");
 
-        writer.Received().WriteLine($"[ThreadId {Thread.CurrentThread.ManagedThreadId, 3}] [context] [verbose context] msg sent");
+        writer.Received().WriteLine($"[ThreadId {Thread.CurrentThread.ManagedThreadId}] [context] [verbose context] msg sent");
     }
 }

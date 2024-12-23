@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Core.Logging;
 
 [Export(typeof(ILoggerContextManager))]
 [PartCreationPolicy(CreationPolicy.NonShared)]
-public class LoggerContextManager : ILoggerContextManager
+internal class LoggerContextManager : ILoggerContextManager
 {
     private readonly ImmutableList<string> contexts;
     private readonly ImmutableList<string> verboseContexts;
