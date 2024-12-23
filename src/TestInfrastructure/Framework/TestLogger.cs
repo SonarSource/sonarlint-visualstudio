@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         public event EventHandler LogMessageAdded;
 
         private readonly bool logToConsole;
+        private readonly bool logThreadId;
         private readonly ILogger logger;
 
         public TestLogger(bool logToConsole = false, bool logThreadId = false)
@@ -40,7 +41,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             // link to show the output.
             this.logToConsole = logToConsole;
 
-            IsThreadIdEnabled = logThreadId;
+            this.logThreadId = logThreadId;
             logger = LoggerFactory.Default.Create(this, this);
         }
 
@@ -95,18 +96,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             OutputStrings = new BlockingCollection<string>();
         }
 
-        void ILogWriter.WriteLine(string message)
-        {
-            var messageToLog = message + Environment.NewLine;
-            OutputStrings.Add(messageToLog);
-            if (logToConsole)
-            {
-                Console.WriteLine(messageToLog);
-            }
-
-            LogMessageAdded?.Invoke(this, EventArgs.Empty);
-        }
-
         #region ILogger methods
 
         public void WriteLine(string message) => logger.WriteLine(message);
@@ -121,7 +110,18 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         #endregion
 
-        public bool IsVerboseEnabled => true;
-        public bool IsThreadIdEnabled { get; }
+        void ILogWriter.WriteLine(string message)
+        {
+            var messageToLog = message + Environment.NewLine;
+            OutputStrings.Add(messageToLog);
+            if (logToConsole)
+            {
+                Console.WriteLine(messageToLog);
+            }
+
+            LogMessageAdded?.Invoke(this, EventArgs.Empty);
+        }
+        bool ILogVerbosityIndicator.IsVerboseEnabled => true;
+        bool ILogVerbosityIndicator.IsThreadIdEnabled => logThreadId;
     }
 }
