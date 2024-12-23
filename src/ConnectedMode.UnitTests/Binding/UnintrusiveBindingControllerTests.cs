@@ -86,8 +86,8 @@ public class UnintrusiveBindingControllerTests
             .Received()
             .ConnectAsync(
                 Arg.Is<ConnectionInformation>(x => x.ServerUri.Equals("https://sonarcloud.io/")
-                                                   && x.UserName.Equals(ValidToken.UserName)
-                                                   && string.IsNullOrEmpty(x.Password.ToUnsecureString())),
+                                                   && ((BasicAuthCredentials)x.Credentials).UserName.Equals(ValidToken.UserName)
+                                                   && string.IsNullOrEmpty(((BasicAuthCredentials)x.Credentials).Password.ToUnsecureString())),
                 ACancellationToken);
     }
 

@@ -18,7 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarQube.Client.Models
+using System.Security;
+
+namespace SonarQube.Client.Models;
+
+public interface IConnectionCredentials : IDisposable, ICloneable
 {
-    public enum AuthenticationType { Basic }
+}
+
+public interface IBasicAuthCredentials : IConnectionCredentials
+{
+    public string UserName { get; }
+    public SecureString Password { get; }
+}
+
+public interface INoCredentials : IConnectionCredentials
+{
 }

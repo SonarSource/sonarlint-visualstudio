@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.LanguageServices.Progression;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -47,8 +48,7 @@ public class BoundSonarQubeProjectExtensionsTests
 
         // Assert
         conn.ServerUri.Should().Be(input.ServerUri);
-        conn.UserName.Should().BeNull();
-        conn.Password.Should().BeNull();
+        conn.Credentials.Should().BeAssignableTo<INoCredentials>();
         conn.Organization.Key.Should().Be("org_key");
         conn.Organization.Name.Should().Be("org_name");
     }
@@ -66,8 +66,10 @@ public class BoundSonarQubeProjectExtensionsTests
 
         // Assert
         conn.ServerUri.Should().Be(input.ServerUri);
-        conn.UserName.Should().Be(creds.UserName);
-        conn.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
+        var basicAuth = conn.Credentials as BasicAuthCredentials;
+        basicAuth.Should().NotBeNull();
+        basicAuth.UserName.Should().Be(creds.UserName);
+        basicAuth.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
         conn.Organization.Key.Should().Be("org_key");
         conn.Organization.Name.Should().Be("org_name");
     }
@@ -83,8 +85,7 @@ public class BoundSonarQubeProjectExtensionsTests
 
         // Assert
         conn.ServerUri.Should().Be(input.ServerUri);
-        conn.UserName.Should().BeNull();
-        conn.Password.Should().BeNull();
+        conn.Credentials.Should().BeAssignableTo<INoCredentials>();
         conn.Organization.Should().BeNull();
     }
         
@@ -105,8 +106,7 @@ public class BoundSonarQubeProjectExtensionsTests
 
         // Assert
         conn.ServerUri.Should().Be(input.ServerConnection.ServerUri);
-        conn.UserName.Should().BeNull();
-        conn.Password.Should().BeNull();
+        conn.Credentials.Should().BeAssignableTo<INoCredentials>();
         conn.Organization.Key.Should().Be("org_key");
     }
         
@@ -123,8 +123,10 @@ public class BoundSonarQubeProjectExtensionsTests
 
         // Assert
         conn.ServerUri.Should().Be(input.ServerConnection.ServerUri);
-        conn.UserName.Should().Be(creds.UserName);
-        conn.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
+        var basicAuth = conn.Credentials as BasicAuthCredentials;
+        basicAuth.Should().NotBeNull();
+        basicAuth.UserName.Should().Be(creds.UserName);
+        basicAuth.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
         conn.Organization.Key.Should().Be("org_key");
     }
 
@@ -139,8 +141,7 @@ public class BoundSonarQubeProjectExtensionsTests
 
         // Assert
         conn.ServerUri.Should().Be(input.ServerConnection.ServerUri);
-        conn.UserName.Should().BeNull();
-        conn.Password.Should().BeNull();
+        conn.Credentials.Should().BeAssignableTo<INoCredentials>();
         conn.Organization.Should().BeNull();
     }
 }

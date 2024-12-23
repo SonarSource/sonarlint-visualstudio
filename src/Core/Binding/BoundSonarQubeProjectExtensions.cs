@@ -32,9 +32,7 @@ namespace SonarLint.VisualStudio.Core.Binding
                 throw new ArgumentNullException(nameof(binding));
             }
 
-            var connection = binding.Credentials == null ?
-               new ConnectionInformation(binding.ServerUri)
-               : binding.Credentials.CreateConnectionInformation(binding.ServerUri);
+            var connection = new ConnectionInformation(binding.ServerUri, binding.Credentials);
 
             connection.Organization = binding.Organization;
             return connection;
@@ -47,9 +45,7 @@ namespace SonarLint.VisualStudio.Core.Binding
                 throw new ArgumentNullException(nameof(binding));
             }
 
-            var connection = binding.ServerConnection.Credentials == null ?
-                new ConnectionInformation(binding.ServerConnection.ServerUri)
-                : binding.ServerConnection.Credentials.CreateConnectionInformation(binding.ServerConnection.ServerUri);
+            var connection = new ConnectionInformation(binding.ServerConnection.ServerUri, binding.ServerConnection.Credentials);
 
             connection.Organization = binding.ServerConnection is ServerConnection.SonarCloud sc ? new SonarQubeOrganization(sc.OrganizationKey, null) : null;
             return connection;

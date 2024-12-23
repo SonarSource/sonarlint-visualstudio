@@ -18,13 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.Binding
 {
-    public interface ICredentials
+    public interface ICredentials : IConnectionCredentials
     {
-        ConnectionInformation CreateConnectionInformation(Uri serverUri);
     }
 }

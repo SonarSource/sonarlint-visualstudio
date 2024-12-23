@@ -18,16 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Protected;
 using SonarQube.Client.Helpers;
@@ -94,7 +89,7 @@ namespace SonarQube.Client.Tests
             SetupRequest("api/authentication/validate", "{ \"valid\": true}", serverUrl: serverUrl);
 
             await service.ConnectAsync(
-                new ConnectionInformation(new Uri(serverUrl), "valeri", new SecureString()),
+                new ConnectionInformation(new Uri(serverUrl), MockBasicAuthCredentials("valeri", new SecureString())),
                 CancellationToken.None);
 
             // Sanity checks
@@ -119,6 +114,15 @@ namespace SonarQube.Client.Tests
         protected internal virtual SonarQubeService CreateTestSubject()
         {
             return new SonarQubeService(messageHandler.Object, UserAgent, logger, requestFactorySelector, secondaryIssueHashUpdater.Object, sseStreamFactory.Object);
+        }
+
+        private static IBasicAuthCredentials MockBasicAuthCredentials(string userName, SecureString password)
+        {
+            var mock = new Mock<IBasicAuthCredentials>();
+            mock.SetupGet(x => x.UserName).Returns(userName);
+            mock.SetupGet(x => x.Password).Returns(password);
+
+            return mock.Object;
         }
     }
 }

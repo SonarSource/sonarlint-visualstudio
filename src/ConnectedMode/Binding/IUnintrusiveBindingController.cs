@@ -21,6 +21,7 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client;
+using SonarQube.Client.Models;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
@@ -57,7 +58,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         public async Task BindAsync(BoundServerProject project, CancellationToken cancellationToken)
         {
-            var connectionInformation = project.ServerConnection.Credentials.CreateConnectionInformation(project.ServerConnection.ServerUri);
+            var connectionInformation = new ConnectionInformation(project.ServerConnection.ServerUri, project.ServerConnection.Credentials);
             await sonarQubeService.ConnectAsync(connectionInformation, cancellationToken);
             await BindAsync(project, null, cancellationToken);
             activeSolutionChangedHandler.HandleBindingChange(false);

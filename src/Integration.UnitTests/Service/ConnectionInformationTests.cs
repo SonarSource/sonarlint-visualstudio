@@ -21,6 +21,7 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -38,14 +39,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var passwordUnsecure = "admin";
             var password = passwordUnsecure.ToSecureString();
             var serverUri = new Uri("http://localhost/");
-            var testSubject = new ConnectionInformation(serverUri, userName, password);
+            var credentials = new BasicAuthCredentials(userName, password);
+            var testSubject = new ConnectionInformation(serverUri, credentials);
 
             // Act
             password.Dispose(); // Connection information should maintain it's own copy of the password
 
             // Assert
-            testSubject.Password.ToUnsecureString().Should().Be(passwordUnsecure, "Password doesn't match");
-            testSubject.UserName.Should().Be(userName, "UserName doesn't match");
+            ((BasicAuthCredentials)testSubject.Credentials).Password.ToUnsecureString().Should().Be(passwordUnsecure, "Password doesn't match");
+            ((BasicAuthCredentials)testSubject.Credentials).UserName.Should().Be(userName, "UserName doesn't match");
             testSubject.ServerUri.Should().Be(serverUri, "ServerUri doesn't match");
 
             // Act clone
@@ -55,11 +57,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.Dispose();
 
             // Assert testSubject
-            Exceptions.Expect<ObjectDisposedException>(() => testSubject.Password.ToUnsecureString());
+            Exceptions.Expect<ObjectDisposedException>(() => ((BasicAuthCredentials)testSubject.Credentials).Password.ToUnsecureString());
 
             // Assert testSubject2
-            testSubject2.Password.ToUnsecureString().Should().Be(passwordUnsecure, "Password doesn't match");
-            testSubject2.UserName.Should().Be(userName, "UserName doesn't match");
+            ((BasicAuthCredentials)testSubject2.Credentials).Password.ToUnsecureString().Should().Be(passwordUnsecure, "Password doesn't match");
+            ((BasicAuthCredentials)testSubject.Credentials).UserName.Should().Be(userName, "UserName doesn't match");
             testSubject2.ServerUri.Should().Be(serverUri, "ServerUri doesn't match");
         }
 
@@ -70,19 +72,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var serverUri = new Uri("http://localhost/");
 
             // Act
-            var testSubject = new ConnectionInformation(serverUri);
+            var testSubject = new ConnectionInformation(serverUri, null);
 
             // Assert
-            testSubject.Password.Should().BeNull("Password wasn't provided");
-            testSubject.UserName.Should().BeNull("UserName wasn't provided");
+            testSubject.Credentials.Should().BeAssignableTo<INoCredentials>();
             testSubject.ServerUri.Should().Be(serverUri, "ServerUri doesn't match");
 
             // Act clone
             var testSubject2 = (ConnectionInformation)((ICloneable)testSubject).Clone();
 
             // Assert testSubject2
-            testSubject2.Password.Should().BeNull("Password wasn't provided");
-            testSubject2.UserName.Should().BeNull("UserName wasn't provided");
+            testSubject2.Credentials.Should().BeAssignableTo<INoCredentials>();
             testSubject2.ServerUri.Should().Be(serverUri, "ServerUri doesn't match");
         }
 
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ConnectionInformation_Ctor_ArgChecks()
         {
             Exceptions.Expect<ArgumentNullException>(() => new ConnectionInformation(null));
-            Exceptions.Expect<ArgumentNullException>(() => new ConnectionInformation(null, "user", "pwd".ToSecureString()));
+            Exceptions.Expect<ArgumentNullException>(() => new ConnectionInformation(null, new BasicAuthCredentials("user", "pwd".ToSecureString())));
         }
     }
 }

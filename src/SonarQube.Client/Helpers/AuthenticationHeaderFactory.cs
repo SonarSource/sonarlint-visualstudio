@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Security;
 using System.Text;
@@ -36,20 +34,20 @@ namespace SonarQube.Client.Helpers
         /// </summary>
         internal static readonly Encoding BasicAuthEncoding = Encoding.UTF8;
 
-        public static AuthenticationHeaderValue Create(string userName, SecureString password, AuthenticationType authentication)
+        public static AuthenticationHeaderValue Create(IConnectionCredentials credentials)
         {
-            if (authentication == AuthenticationType.Basic)
+            if (credentials is IBasicAuthCredentials basicAuthCredentials)
             {
-                return string.IsNullOrWhiteSpace(userName)
-                    ? null
-                    : new AuthenticationHeaderValue("Basic", GetBasicAuthToken(userName, password));
+                ValidateCredentials(basicAuthCredentials);
+                return new AuthenticationHeaderValue("Basic", GetBasicAuthToken(basicAuthCredentials.UserName, basicAuthCredentials.Password));
                 // See more info: https://www.visualstudio.com/en-us/integrate/get-started/auth/overview
             }
-            else
+            if (credentials is INoCredentials)
             {
-                Debug.Fail("Unsupported Authentication: " + authentication);
                 return null;
             }
+            Debug.Fail("Unsupported Authentication: " + credentials?.GetType());
+            return null;
         }
 
         internal static string GetBasicAuthToken(string user, SecureString password)
@@ -63,6 +61,14 @@ namespace SonarQube.Client.Helpers
 
             return Convert.ToBase64String(BasicAuthEncoding.GetBytes(string.Join(BasicAuthCredentialSeparator,
                 user, password.ToUnsecureString())));
+        }
+
+        private static void ValidateCredentials(IBasicAuthCredentials basicAuthCredentials)
+        {
+            if (string.IsNullOrEmpty(basicAuthCredentials.UserName))
+            {
+                throw new ArgumentException(nameof(basicAuthCredentials.UserName));
+            }
         }
     }
 }

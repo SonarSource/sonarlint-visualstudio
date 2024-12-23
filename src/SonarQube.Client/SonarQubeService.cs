@@ -144,8 +144,7 @@ namespace SonarQube.Client
                 BaseAddress = connection.ServerUri,
                 DefaultRequestHeaders =
                 {
-                    Authorization = AuthenticationHeaderFactory.Create(
-                        connection.UserName, connection.Password, connection.Authentication),
+                    Authorization = AuthenticationHeaderFactory.Create(connection.Credentials),
                 },
             };
 
