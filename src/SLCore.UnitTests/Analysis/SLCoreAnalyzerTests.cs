@@ -19,6 +19,7 @@
  */
 
 using NSubstitute.ExceptionExtensions;
+using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -183,6 +184,37 @@ public class SLCoreAnalyzerTests
     }
 
     [TestMethod]
+    public void ExecuteAnalysis_CFamilyReproducerEnabled_SetsExtraProperty()
+    {
+        const string filePath = @"C:\file\path\myclass.cpp";
+        SetUpCompilationDatabaseLocator(filePath, CreateCompilationDatabaseHandle("somepath"));
+        SetUpInitializedConfigScope();
+        var cFamilyAnalyzerOptions = CreateCFamilyAnalyzerOptions(true);
+
+        testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], cFamilyAnalyzerOptions, default);
+
+        analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
+                a.extraProperties != null
+                && a.extraProperties["sonar.cfamily.reproducer"] == filePath),
+            Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public void ExecuteAnalysis_CFamilyReproducerDisabled_DoesNotSetExtraProperty()
+    {
+        const string filePath = @"C:\file\path\myclass.cpp";
+        SetUpCompilationDatabaseLocator(filePath, CreateCompilationDatabaseHandle("somepath"));
+        SetUpInitializedConfigScope();
+        var cFamilyAnalyzerOptions = CreateCFamilyAnalyzerOptions(false);
+
+        testSubject.ExecuteAnalysis(filePath, analysisId, [AnalysisLanguage.CFamily], cFamilyAnalyzerOptions, default);
+
+        analysisService.Received().AnalyzeFilesAndTrackAsync(Arg.Is<AnalyzeFilesAndTrackParams>(a =>
+                a.extraProperties == null || !a.extraProperties.ContainsKey("sonar.cfamily.reproducer")),
+            Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
     public void ExecuteAnalysis_ForCFamily_AnalysisThrows_CompilationDatabaaseDisposed()
     {
         const string filePath = @"C:\file\path\myclass.cpp";
@@ -297,4 +329,13 @@ public class SLCoreAnalyzerTests
 
     private void SetUpCompilationDatabaseLocator(string filePath, ICompilationDatabaseHandle handle) =>
         compilationDatabaseLocator.GetOrNull(filePath).Returns(handle);
+
+
+    private static ICFamilyAnalyzerOptions CreateCFamilyAnalyzerOptions(bool createReproducer)
+    {
+        var cFamilyAnalyzerOptions = Substitute.For<ICFamilyAnalyzerOptions>();
+        cFamilyAnalyzerOptions.IsOnOpen.Returns(false);
+        cFamilyAnalyzerOptions.CreateReproducer.Returns(createReproducer);
+        return cFamilyAnalyzerOptions;
+    }
 }

@@ -167,8 +167,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             // Assert
             logger.AssertOutputStringExists(CFamilyStrings.ReproCmd_ExecutingReproducer);
-            actualOptions.Should().BeOfType<CFamilyAnalyzerOptions>();
-            ((CFamilyAnalyzerOptions)actualOptions).CreateReproducer.Should().BeTrue();
+            var cFamilyAnalyzerOptions = actualOptions.Should().BeAssignableTo<ICFamilyAnalyzerOptions>().Subject;
+            cFamilyAnalyzerOptions.CreateReproducer.Should().BeTrue();
+            cFamilyAnalyzerOptions.IsOnOpen.Should().BeFalse();
             actualFilePaths.Should().BeEquivalentTo(ValidTextDocument.FilePath);
         }
 
@@ -213,12 +214,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             docLocatorMock.Setup(x => x.FindActiveDocument()).Throws(new StackOverflowException("exception xxx"));
             Action act = () => testSubject.Invoke();
 
-            // Act 
+            // Act
             act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("exception xxx");
             logger.AssertPartialOutputStringDoesNotExist("exception xxx");
         }
 
-        private static MenuCommand CreateCFamilyReproducerCommand(IActiveDocumentLocator documentLocator, 
+        private static MenuCommand CreateCFamilyReproducerCommand(IActiveDocumentLocator documentLocator,
             ISonarLanguageRecognizer languageRecognizer, IAnalysisRequester analysisRequester, ILogger logger)
         {
             var dummyMenuService = new DummyMenuCommandService();
