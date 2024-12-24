@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Core.Binding
         }
 
         public BoundSonarQubeProject(Uri serverUri, string projectKey, string projectName,
-            ICredentials credentials = null, SonarQubeOrganization organization = null)
+            IConnectionCredentials credentials = null, SonarQubeOrganization organization = null)
             : this()
         {
             if (serverUri == null)
@@ -60,6 +60,6 @@ namespace SonarLint.VisualStudio.Core.Binding
         public Dictionary<Language, ApplicableQualityProfile> Profiles { get; set; }
 
         [JsonIgnore]
-        public ICredentials Credentials { get; set; }
+        public IConnectionCredentials Credentials { get; set; }
     }
 }

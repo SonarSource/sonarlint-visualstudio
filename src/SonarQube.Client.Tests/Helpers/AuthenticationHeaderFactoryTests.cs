@@ -18,18 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Security;
 using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests.Helpers
 {
     [TestClass]
     public class AuthenticationHeaderFactoryTests
     {
+        private const string Password = "password";
+        private const string Username = "username";
+
         [TestMethod]
-        public void AuthenticationHeaderHelper_GetAuthToken()
+        public void GetAuthToken_ReturnsExpectedString()
         {
             // Invalid input
             string user = "hello:";
@@ -59,8 +61,50 @@ namespace SonarQube.Client.Tests.Helpers
                 AuthenticationHeaderFactory.GetBasicAuthToken(user, password.ToSecureString()));
         }
 
-        private void AssertAreEqualUserNameAndPassword(string expectedUser, string expectedPassword,
+        [TestMethod]
+        public void Create_NoCredentials_ReturnsNull()
+        {
+            var authenticationHeaderValue = AuthenticationHeaderFactory.Create(new NoCredentials());
+
+            authenticationHeaderValue.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void Create_UnsupportedAuthentication_ReturnsNull()
+        {
+            using var scope = new AssertIgnoreScope();
+
+            var authenticationHeaderValue = AuthenticationHeaderFactory.Create(null);
+
+            authenticationHeaderValue.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void Create_BasicAuth_UsernameIsNull_Throws()
+        {
+            var credentials = MockBasicAuthCredentials(null, Password.ToSecureString());
+
+            var act = () => AuthenticationHeaderFactory.Create(credentials);
+
+            act.Should().Throw<ArgumentException>();
+        }
+
+        [TestMethod]
+        public void Create_BasicAuth_CredentialsProvided_ReturnsBasicScheme()
+        {
+            var credentials = MockBasicAuthCredentials(Username, Password.ToSecureString());
+
+            var authenticationHeaderValue = AuthenticationHeaderFactory.Create(credentials);
+
+            authenticationHeaderValue.Scheme.Should().Be("Basic");
+            AssertAreEqualUserNameAndPassword(Username, Password, authenticationHeaderValue.Parameter);
+        }
+
+        private void AssertAreEqualUserNameAndPassword(
+            string expectedUser,
+            string expectedPassword,
             string userAndPasswordBase64String)
+
         {
             string userNameAndPassword =
                 AuthenticationHeaderFactory.BasicAuthEncoding.GetString(Convert.FromBase64String(userAndPasswordBase64String));
@@ -75,6 +119,14 @@ namespace SonarQube.Client.Tests.Helpers
 
             userNameAndPasswordTokens.Should().HaveElementAt(0, expectedUser);
             userNameAndPasswordTokens.Should().HaveElementAt(1, expectedPassword);
+        }
+
+        private static IUsernameAndPasswordCredentials MockBasicAuthCredentials(string userName, SecureString password)
+        {
+            var mock = Substitute.For<IUsernameAndPasswordCredentials>();
+            mock.UserName.Returns(userName);
+            mock.Password.Returns(password);
+            return mock;
         }
     }
 }

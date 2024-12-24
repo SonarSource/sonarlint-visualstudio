@@ -20,8 +20,8 @@
 
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
             store.DeleteCredentials(boundServerUri);
         }
 
-        public ICredentials Load(Uri boundServerUri)
+        public IConnectionCredentials Load(Uri boundServerUri)
         {
             if (boundServerUri == null)
             {
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 
             return credentials == null
                 ? null
-                : new BasicAuthCredentials(credentials.Username, credentials.Password.ToSecureString());
+                : new UsernameAndPasswordCredentials(credentials.Username, credentials.Password.ToSecureString());
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
@@ -61,9 +61,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
             Justification = "Casting as BasicAuthCredentials is because it's the only credential type we support. Once we add more we need to think again on how to refactor the code to avoid this",
             Scope = "member",
             Target = "~M:SonarLint.VisualStudio.Integration.Persistence.FileBindingSerializer.WriteBindingInformation(System.String,SonarLint.VisualStudio.Integration.Persistence.BoundProject)~System.Boolean")]
-        public void Save(ICredentials credentials, Uri boundServerUri)
+        public void Save(IConnectionCredentials credentials, Uri boundServerUri)
         {
-            if (boundServerUri == null || !(credentials is BasicAuthCredentials basicCredentials))
+            if (boundServerUri == null || !(credentials is UsernameAndPasswordCredentials basicCredentials))
             {
                 return;
             }

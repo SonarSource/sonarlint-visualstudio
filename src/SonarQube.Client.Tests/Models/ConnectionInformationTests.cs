@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Security;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
@@ -54,14 +51,14 @@ namespace SonarQube.Client.Tests.Models
         }
 
         [TestMethod]
-        [DataRow("http://sonarcloud.io") ]
-        [DataRow("http://sonarcloud.io/") ]
-        [DataRow("https://sonarcloud.io") ]
-        [DataRow("https://sonarcloud.io/") ]
-        [DataRow("http://SONARCLOUD.IO") ]
-        [DataRow("http://www.sonarcloud.io") ]
-        [DataRow("https://www.sonarcloud.io/") ]
-        [DataRow("http://sonarcloud.io:9999") ]
+        [DataRow("http://sonarcloud.io")]
+        [DataRow("http://sonarcloud.io/")]
+        [DataRow("https://sonarcloud.io")]
+        [DataRow("https://sonarcloud.io/")]
+        [DataRow("http://SONARCLOUD.IO")]
+        [DataRow("http://www.sonarcloud.io")]
+        [DataRow("https://www.sonarcloud.io/")]
+        [DataRow("http://sonarcloud.io:9999")]
         public void Ctor_SonarCloudUrl_IsProcessedCorrectly(string inputUrl)
         {
             var testSubject = new ConnectionInformation(new Uri(inputUrl));
@@ -76,61 +73,73 @@ namespace SonarQube.Client.Tests.Models
         [DataRow("http://localhost", "user1", "secret", null)]
         [DataRow("http://sonarcloud.io", null, null, "myorg")]
         [DataRow("http://sonarcloud.io", "a token", null, "myorg")]
-        public void Clone_PropertiesAreCopiedCorrectly(string serverUrl, string userName, string password, string orgKey)
+        public void Clone_PropertiesAreCopiedCorrectly(
+            string serverUrl,
+            string userName,
+            string password,
+            string orgKey)
         {
             var securePwd = InitializeSecureString(password);
             var org = InitializeOrganization(orgKey);
+            var credentials = MockBasicAuthCredentials(userName, securePwd);
 
-            var testSubject = new ConnectionInformation(new Uri(serverUrl), userName, securePwd)
-            {
-                Organization = org
-            };
+            var testSubject = new ConnectionInformation(new Uri(serverUrl), credentials) { Organization = org };
 
             var cloneObj = ((ICloneable)testSubject).Clone();
             cloneObj.Should().BeOfType<ConnectionInformation>();
 
             CheckPropertiesMatch(testSubject, (ConnectionInformation)cloneObj);
+            _ = credentials.Received().Clone();
         }
 
         [TestMethod]
         public void Dispose_PasswordIsDisposed()
         {
             var pwd = "secret".ToSecureString();
-            var testSubject = new ConnectionInformation(new Uri("http://any"), "any", pwd);
+            var credentials = MockBasicAuthCredentials("any", pwd);
+            var testSubject = new ConnectionInformation(new Uri("http://any"), credentials);
 
             testSubject.Dispose();
 
             testSubject.IsDisposed.Should().BeTrue();
-
-            Action accessPassword = () => _ = testSubject.Password.Length;
-            accessPassword.Should().ThrowExactly<ObjectDisposedException>();
+            credentials.Received(1).Dispose();
         }
 
         private static SecureString InitializeSecureString(string password) =>
             // The "ToSecureString" doesn't expect nulls, which we want to use in the tests
             password?.ToSecureString();
 
-        private static SonarQubeOrganization InitializeOrganization(string orgKey) =>
-            orgKey == null ? null : new SonarQubeOrganization(orgKey, Guid.NewGuid().ToString());
+        private static SonarQubeOrganization InitializeOrganization(string orgKey) => orgKey == null ? null : new SonarQubeOrganization(orgKey, Guid.NewGuid().ToString());
 
         private static void CheckPropertiesMatch(ConnectionInformation item1, ConnectionInformation item2)
         {
             item1.ServerUri.Should().Be(item2.ServerUri);
-            item1.UserName.Should().Be(item2.UserName);
+
+            var credentials1 = (IUsernameAndPasswordCredentials)item1.Credentials;
+            var credentials2 = (IUsernameAndPasswordCredentials)item2.Credentials;
+
+            credentials1.UserName.Should().Be(credentials2.UserName);
             item1.Organization.Should().Be(item2.Organization);
 
-
-            if (item1.Password == null)
+            if (credentials1.Password == null)
             {
-                item2.Password.Should().BeNull();
+                credentials2.Password.Should().BeNull();
             }
             else
             {
-                item1.Password.ToUnsecureString().Should().Be(item2.Password.ToUnsecureString());
+                credentials1.Password.ToUnsecureString().Should().Be(credentials2.Password.ToUnsecureString());
             }
 
-            item1.Authentication.Should().Be(item2.Authentication);
             item1.IsSonarCloud.Should().Be(item2.IsSonarCloud);
+        }
+
+        private static IUsernameAndPasswordCredentials MockBasicAuthCredentials(string userName, SecureString password)
+        {
+            var mock = Substitute.For<IUsernameAndPasswordCredentials>();
+            mock.UserName.Returns(userName);
+            mock.Password.Returns(password);
+            mock.Clone().Returns(mock);
+            return mock;
         }
     }
 }

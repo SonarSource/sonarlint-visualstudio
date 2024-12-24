@@ -18,13 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Security;
+using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Core.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
+
+internal sealed class UsernameAndPasswordCredentials(string userName, SecureString password) : IUsernameAndPasswordCredentials
 {
-    public interface ICredentials
-    {
-        ConnectionInformation CreateConnectionInformation(Uri serverUri);
-    }
+    public string UserName { get; } = userName ?? throw new ArgumentNullException(nameof(userName));
+
+    public SecureString Password { get; } = password ?? throw new ArgumentNullException(nameof(password));
+
+    public void Dispose() => Password?.Dispose();
+
+    public object Clone() => new UsernameAndPasswordCredentials(UserName, Password.CopyAsReadOnly());
 }
