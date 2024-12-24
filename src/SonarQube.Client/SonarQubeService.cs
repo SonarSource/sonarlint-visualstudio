@@ -41,14 +41,14 @@ namespace SonarQube.Client
         private readonly ISSEStreamReaderFactory sseStreamReaderFactory;
 
         private const string MinSqVersionSupportingBearer = "10.4";
-        private HttpClient httpClient;
+        private HttpClient currentHttpClient;
         private ServerInfo currentServerInfo;
 
         public async Task<bool> HasOrganizations(CancellationToken token)
         {
             EnsureIsConnected();
 
-            var hasOrganisations = httpClient.BaseAddress.Host.Equals("sonarcloud.io", StringComparison.OrdinalIgnoreCase);
+            var hasOrganisations = currentHttpClient.BaseAddress.Host.Equals("sonarcloud.io", StringComparison.OrdinalIgnoreCase);
 
             return await Task.FromResult<bool>(hasOrganisations);
         }
@@ -125,7 +125,7 @@ namespace SonarQube.Client
         private async Task<TResponse> InvokeUncheckedRequestAsync<TRequest, TResponse>(Action<TRequest> configure, CancellationToken token)
             where TRequest : IRequest<TResponse>
         {
-            return await InvokeUncheckedRequestAsync<TRequest, TResponse>(configure, httpClient, token);
+            return await InvokeUncheckedRequestAsync<TRequest, TResponse>(configure, currentHttpClient, token);
         }
 
         /// <summary>
@@ -158,7 +158,7 @@ namespace SonarQube.Client
                 var serverInfo = await GetServerInfo(connection, token);
 
                 logger.Info($"Connected to {serverTypeDescription} '{serverInfo.Version}'.");
-                httpClient = CreateHttpClient(connection.ServerUri, connection.Credentials, ShouldUseBearer(serverInfo));
+                currentHttpClient = CreateHttpClient(connection.ServerUri, connection.Credentials, ShouldUseBearer(serverInfo));
 
                 logger.Debug($"Validating the credentials...");
                 var credentialResponse = await InvokeUncheckedRequestAsync<IValidateCredentialsRequest, bool>(request => { }, token);
@@ -247,7 +247,7 @@ namespace SonarQube.Client
 
             var urlFormat = serverInfo.ServerType == ServerType.SonarCloud ? SonarCloud_ProjectDashboardRelativeUrl : SonarQube_ProjectDashboardRelativeUrl;
 
-            return new Uri(httpClient.BaseAddress, string.Format(urlFormat, projectKey));
+            return new Uri(currentHttpClient.BaseAddress, string.Format(urlFormat, projectKey));
         }
 
         public async Task<IList<SonarQubeQualityProfile>> GetAllQualityProfilesAsync(string project, string organizationKey, CancellationToken token)
@@ -473,7 +473,7 @@ namespace SonarQube.Client
             // Versioning: so far the format of the URL is the same across all versions from at least v6.7
             const string ViewIssueRelativeUrl = "project/issues?id={0}&issues={1}&open={1}";
 
-            return new Uri(httpClient.BaseAddress, string.Format(ViewIssueRelativeUrl, projectKey, issueKey));
+            return new Uri(currentHttpClient.BaseAddress, string.Format(ViewIssueRelativeUrl, projectKey, issueKey));
         }
 
         public Uri GetViewHotspotUrl(string projectKey, string hotspotKey)
@@ -490,7 +490,7 @@ namespace SonarQube.Client
 
             var urlFormat = serverInfo.ServerType == ServerType.SonarCloud ? SonarCloud_ViewHotspotRelativeUrl : SonarQube_ViewHotspotRelativeUrl;
 
-            return new Uri(httpClient.BaseAddress, string.Format(urlFormat, projectKey, hotspotKey));
+            return new Uri(currentHttpClient.BaseAddress, string.Format(urlFormat, projectKey, hotspotKey));
         }
 
         public async Task<string> GetSourceCodeAsync(string fileKey, CancellationToken token) =>
