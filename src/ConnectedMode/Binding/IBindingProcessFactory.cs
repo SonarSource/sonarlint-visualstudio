@@ -21,8 +21,6 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
@@ -38,17 +36,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class BindingProcessFactory : IBindingProcessFactory
     {
-        private readonly ISonarQubeService sonarQubeService;
         private readonly IQualityProfileDownloader qualityProfileDownloader;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public BindingProcessFactory(
-            ISonarQubeService sonarQubeService,
             IQualityProfileDownloader qualityProfileDownloader,
             ILogger logger)
         {
-            this.sonarQubeService = sonarQubeService;
             this.qualityProfileDownloader = qualityProfileDownloader;
             this.logger = logger;
         }
@@ -56,7 +51,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         public IBindingProcess Create(BindCommandArgs bindingArgs)
         {
             return new BindingProcessImpl(bindingArgs,
-                sonarQubeService,
                 qualityProfileDownloader,
                 logger);
         }

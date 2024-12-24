@@ -29,7 +29,6 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
-using SonarQube.Client.Models;
 using SonarQube.Client.Helpers;
 using System.Security;
 
@@ -45,34 +44,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         {
             var bindingArgs = CreateBindCommandArgs();
             var qpDownloader = Mock.Of<IQualityProfileDownloader>();
-            var sonarQubeService = Mock.Of<ISonarQubeService>();
+            Mock.Of<ISonarQubeService>();
             var logger = Mock.Of<ILogger>();
 
             // 1. Null binding args
-            Action act = () => new BindingProcessImpl(null, sonarQubeService, qpDownloader, logger);
+            Action act = () => new BindingProcessImpl(null, qpDownloader, logger);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
 
-            // 3. Null SonarQube service
-            act = () => new BindingProcessImpl(bindingArgs, null, qpDownloader, logger);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
-
-            // 4. Null QP downloader
-            act = () => new BindingProcessImpl(bindingArgs, sonarQubeService, null, logger);
+            // 2. Null QP downloader
+            act = () => new BindingProcessImpl(bindingArgs, null, logger);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("qualityProfileDownloader");
 
-            // 5. Null logger
-            act = () => new BindingProcessImpl(bindingArgs, sonarQubeService, qpDownloader, null);
+            // 3. Null logger
+            act = () => new BindingProcessImpl(bindingArgs, qpDownloader, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-        }
-
-        private static ServerExclusions CreateSettings()
-        {
-            return new ServerExclusions
-            {
-                Inclusions = new string[] { "inclusion1", "inclusion2" },
-                Exclusions = new string[] { "exclusion" },
-                GlobalExclusions = new string[] { "globalExclusion" }
-            };
         }
 
         [TestMethod]
@@ -132,17 +117,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         #region Helpers
 
         private BindingProcessImpl CreateTestSubject(BindCommandArgs bindingArgs = null,
-            ISonarQubeService sonarQubeService = null,
             IQualityProfileDownloader qpDownloader = null,
             ILogger logger = null)
         {
             bindingArgs = bindingArgs ?? CreateBindCommandArgs();
-            sonarQubeService ??= Mock.Of<ISonarQubeService>();
             qpDownloader ??= Mock.Of<IQualityProfileDownloader>();
             logger ??= new TestLogger(logToConsole: true);
 
             return new BindingProcessImpl(bindingArgs,
-                sonarQubeService,
                 qpDownloader,
                 logger);
         }
