@@ -103,7 +103,7 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         switch (credentialsModel)
         {
             case TokenCredentialsModel tokenCredentialsModel:
-                return new UsernameAndPasswordCredentials(tokenCredentialsModel.Token.ToUnsecureString(), new SecureString());
+                return new TokenAuthCredentials(tokenCredentialsModel.Token);
             case UsernamePasswordModel usernameCredentialsModel:
                 return new UsernameAndPasswordCredentials(usernameCredentialsModel.Username, usernameCredentialsModel.Password);
             default:
