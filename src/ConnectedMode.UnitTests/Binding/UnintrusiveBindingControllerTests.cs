@@ -112,7 +112,6 @@ public class UnintrusiveBindingControllerTests
         {
             bindingProcessFactory.Create(Arg.Is<BindCommandArgs>(b => b.ProjectToBind == AnyBoundProject));
             bindingProcess.DownloadQualityProfileAsync(null, cancellationToken);
-            bindingProcess.SaveServerExclusionsAsync(cancellationToken);
         });
     }
 
