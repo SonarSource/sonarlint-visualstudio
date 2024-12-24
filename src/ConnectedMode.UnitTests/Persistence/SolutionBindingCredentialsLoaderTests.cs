@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 
             var actual = testSubject.Load(mockUri);
 
-            actual.Should().BeEquivalentTo(new BasicAuthCredentials(String.Empty, "token".ToSecureString()));
+            actual.Should().BeEquivalentTo(new BasicAuthCredentials(string.Empty, "token".ToSecureString()));
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             {
                 testSubject.Save(new Mock<ICredentials>().Object, mockUri);
             }
-            catch (Exception _)
+            catch (Exception)
             {
                 // ignored
             }
