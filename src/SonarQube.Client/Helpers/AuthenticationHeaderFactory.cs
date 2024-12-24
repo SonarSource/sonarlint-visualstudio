@@ -45,7 +45,7 @@ namespace SonarQube.Client.Helpers
                         ValidateSecureString(tokenCredentials.Token, nameof(tokenCredentials.Token));
                         return CreateAuthenticationHeaderValueForTokenAuth(shouldUseBearer, tokenCredentials);
                     }
-                case IBasicAuthCredentials basicAuthCredentials:
+                case IUsernameAndPasswordCredentials basicAuthCredentials:
                     {
                         ValidateCredentials(basicAuthCredentials);
                         return CreateAuthenticationHeaderValueForBasicAuth(basicAuthCredentials.UserName, basicAuthCredentials.Password);
@@ -83,13 +83,13 @@ namespace SonarQube.Client.Helpers
                 user, password.ToUnsecureString())));
         }
 
-        private static void ValidateCredentials(IBasicAuthCredentials credentials)
+        private static void ValidateCredentials(IUsernameAndPasswordCredentials credentials)
         {
             if (string.IsNullOrEmpty(credentials.UserName))
             {
-                throw new ArgumentException(nameof(IBasicAuthCredentials.UserName));
+                throw new ArgumentException(nameof(IUsernameAndPasswordCredentials.UserName));
             }
-            ValidateSecureString(credentials.Password, nameof(IBasicAuthCredentials.Password));
+            ValidateSecureString(credentials.Password, nameof(IUsernameAndPasswordCredentials.Password));
         }
 
         private static void ValidateSecureString(SecureString secureString, string parameterName)

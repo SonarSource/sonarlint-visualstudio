@@ -25,7 +25,7 @@ using SonarQube.Client.Helpers;
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
 
 [TestClass]
-public class BasicAuthCredentialsTests
+public class UsernameAndPasswordCredentialsTests
 {
     private const string Username = "username";
     private const string Password = "pwd";
@@ -33,7 +33,7 @@ public class BasicAuthCredentialsTests
     [TestMethod]
     public void Ctor_WhenUsernameIsNull_ThrowsArgumentNullException()
     {
-        Action act = () => new BasicAuthCredentials(null, Password.ToSecureString());
+        Action act = () => new UsernameAndPasswordCredentials(null, Password.ToSecureString());
 
         act.Should().Throw<ArgumentNullException>();
     }
@@ -41,7 +41,7 @@ public class BasicAuthCredentialsTests
     [TestMethod]
     public void Ctor_WhenPasswordIsNull_ThrowsArgumentNullException()
     {
-        Action act = () => new BasicAuthCredentials(Username, null);
+        Action act = () => new UsernameAndPasswordCredentials(Username, null);
 
         act.Should().Throw<ArgumentNullException>();
     }
@@ -49,7 +49,7 @@ public class BasicAuthCredentialsTests
     [TestMethod]
     public void Dispose_DisposesPassword()
     {
-        var testSubject = new BasicAuthCredentials(Username, Password.ToSecureString());
+        var testSubject = new UsernameAndPasswordCredentials(Username, Password.ToSecureString());
 
         testSubject.Dispose();
 
@@ -60,9 +60,9 @@ public class BasicAuthCredentialsTests
     public void Clone_ClonesPassword()
     {
         var password = "pwd";
-        var testSubject = new BasicAuthCredentials(Username, password.ToSecureString());
+        var testSubject = new UsernameAndPasswordCredentials(Username, password.ToSecureString());
 
-        var clone = (BasicAuthCredentials)testSubject.Clone();
+        var clone = (UsernameAndPasswordCredentials)testSubject.Clone();
 
         clone.Should().NotBeSameAs(testSubject);
         clone.Password.Should().NotBeSameAs(testSubject.Password);

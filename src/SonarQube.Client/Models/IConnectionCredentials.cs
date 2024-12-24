@@ -26,7 +26,7 @@ public interface IConnectionCredentials : IDisposable, ICloneable
 {
 }
 
-public interface IBasicAuthCredentials : IConnectionCredentials
+public interface IUsernameAndPasswordCredentials : IConnectionCredentials
 {
     public string UserName { get; }
     public SecureString Password { get; }

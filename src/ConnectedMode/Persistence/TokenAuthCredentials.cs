@@ -19,13 +19,12 @@
  */
 
 using System.Security;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
-internal sealed class TokenAuthCredentials(SecureString token) : ICredentials, ITokenCredentials
+internal sealed class TokenAuthCredentials(SecureString token) : ITokenCredentials
 {
     public SecureString Token { get; } = token ?? throw new ArgumentNullException(nameof(token));
 

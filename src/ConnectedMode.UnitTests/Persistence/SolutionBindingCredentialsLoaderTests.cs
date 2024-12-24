@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 {
@@ -74,8 +75,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
             MockReadCredentials(mockUri, credentials);
 
             var actual = testSubject.Load(mockUri);
-
-            actual.Should().BeEquivalentTo(new BasicAuthCredentials("user", "password".ToSecureString()));
+            actual.Should().BeEquivalentTo(new UsernameAndPasswordCredentials("user", "password".ToSecureString()));
         }
 
         [TestMethod]
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 
             var actual = testSubject.Load(mockUri);
 
-            actual.Should().BeEquivalentTo(new BasicAuthCredentials(string.Empty, "token".ToSecureString()));
+            actual.Should().BeEquivalentTo(new UsernameAndPasswordCredentials(string.Empty, "token".ToSecureString()));
         }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Save_ServerUriIsNull_CredentialsNotSaved()
         {
-            var credentials = new BasicAuthCredentials("user", "password".ToSecureString());
+            var credentials = new UsernameAndPasswordCredentials("user", "password".ToSecureString());
 
             testSubject.Save(credentials, null);
 
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         {
             try
             {
-                testSubject.Save(new Mock<ICredentials>().Object, mockUri);
+                testSubject.Save(new Mock<IConnectionCredentials>().Object, mockUri);
             }
             catch (Exception)
             {
@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Save_CredentialsAreBasicAuth_CredentialsSavedWithUnsecuredString()
         {
-            var credentials = new BasicAuthCredentials("user", "password".ToSecureString());
+            var credentials = new UsernameAndPasswordCredentials("user", "password".ToSecureString());
             testSubject.Save(credentials, mockUri);
 
             store.Received(1)

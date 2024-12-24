@@ -19,13 +19,12 @@
  */
 
 using System.Security;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
-internal sealed class BasicAuthCredentials(string userName, SecureString password) : ICredentials, IBasicAuthCredentials
+internal sealed class UsernameAndPasswordCredentials(string userName, SecureString password) : IUsernameAndPasswordCredentials
 {
     public string UserName { get; } = userName ?? throw new ArgumentNullException(nameof(userName));
 
@@ -33,5 +32,5 @@ internal sealed class BasicAuthCredentials(string userName, SecureString passwor
 
     public void Dispose() => Password?.Dispose();
 
-    public object Clone() => new BasicAuthCredentials(UserName, Password.CopyAsReadOnly());
+    public object Clone() => new UsernameAndPasswordCredentials(UserName, Password.CopyAsReadOnly());
 }

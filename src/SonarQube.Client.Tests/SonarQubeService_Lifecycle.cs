@@ -38,7 +38,7 @@ namespace SonarQube.Client.Tests
             service.GetServerInfo().Should().BeNull();
 
             await service.ConnectAsync(
-                new ConnectionInformation(new Uri("http://localhost"), Mock.Of<IBasicAuthCredentials>()),
+                new ConnectionInformation(new Uri("http://localhost"), Mock.Of<IUsernameAndPasswordCredentials>()),
                 CancellationToken.None);
 
             service.IsConnected.Should().BeTrue();
@@ -56,7 +56,7 @@ namespace SonarQube.Client.Tests
             service.GetServerInfo().Should().BeNull();
 
             Func<Task> act = () => service.ConnectAsync(
-                new ConnectionInformation(new Uri("http://localhost"), Mock.Of<IBasicAuthCredentials>()),
+                new ConnectionInformation(new Uri("http://localhost"), Mock.Of<IUsernameAndPasswordCredentials>()),
                 CancellationToken.None);
 
             var ex = await act.Should().ThrowAsync<InvalidOperationException>();
@@ -78,7 +78,7 @@ namespace SonarQube.Client.Tests
             service.GetServerInfo().Should().BeNull();
 
             Func<Task> act = () => service.ConnectAsync(
-                new ConnectionInformation(new Uri("http://localhost"), Mock.Of<IBasicAuthCredentials>()),
+                new ConnectionInformation(new Uri("http://localhost"), Mock.Of<IUsernameAndPasswordCredentials>()),
                 CancellationToken.None);
 
             var ex = await act.Should().ThrowAsync<ApplicationException>();
@@ -101,7 +101,7 @@ namespace SonarQube.Client.Tests
             SetupRequest("api/authentication/validate", "{ \"valid\": true }", serverUrl: canonicalUrl);
 
             await service.ConnectAsync(
-                new ConnectionInformation(new Uri(inputUrl), Mock.Of<IBasicAuthCredentials>()),
+                new ConnectionInformation(new Uri(inputUrl), Mock.Of<IUsernameAndPasswordCredentials>()),
                 CancellationToken.None);
 
             service.GetServerInfo().ServerType.Should().Be(ServerType.SonarQube);
@@ -121,7 +121,7 @@ namespace SonarQube.Client.Tests
             SetupRequest("api/authentication/validate", "{ \"valid\": true }", serverUrl: fixedSonarCloudUrl);
 
             await service.ConnectAsync(
-                new ConnectionInformation(new Uri(inputUrl), Mock.Of<IBasicAuthCredentials>()),
+                new ConnectionInformation(new Uri(inputUrl), Mock.Of<IUsernameAndPasswordCredentials>()),
                 CancellationToken.None);
 
             service.GetServerInfo().ServerType.Should().Be(ServerType.SonarCloud);

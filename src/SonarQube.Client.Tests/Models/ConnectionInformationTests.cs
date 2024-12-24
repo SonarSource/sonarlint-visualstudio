@@ -115,8 +115,8 @@ namespace SonarQube.Client.Tests.Models
         {
             item1.ServerUri.Should().Be(item2.ServerUri);
 
-            var credentials1 = (IBasicAuthCredentials)item1.Credentials;
-            var credentials2 = (IBasicAuthCredentials)item2.Credentials;
+            var credentials1 = (IUsernameAndPasswordCredentials)item1.Credentials;
+            var credentials2 = (IUsernameAndPasswordCredentials)item2.Credentials;
 
             credentials1.UserName.Should().Be(credentials2.UserName);
             item1.Organization.Should().Be(item2.Organization);
@@ -133,9 +133,9 @@ namespace SonarQube.Client.Tests.Models
             item1.IsSonarCloud.Should().Be(item2.IsSonarCloud);
         }
 
-        private static IBasicAuthCredentials MockBasicAuthCredentials(string userName, SecureString password)
+        private static IUsernameAndPasswordCredentials MockBasicAuthCredentials(string userName, SecureString password)
         {
-            var mock = Substitute.For<IBasicAuthCredentials>();
+            var mock = Substitute.For<IUsernameAndPasswordCredentials>();
             mock.UserName.Returns(userName);
             mock.Password.Returns(password);
             mock.Clone().Returns(mock);

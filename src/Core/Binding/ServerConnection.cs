@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.Binding;
 
@@ -28,7 +29,7 @@ public abstract class ServerConnection
     
     public string Id { get; }
     public ServerConnectionSettings Settings { get; set; }
-    public ICredentials Credentials { get; set; }
+    public IConnectionCredentials Credentials { get; set; }
     
     public abstract Uri ServerUri { get; }
     public abstract Uri CredentialsUri { get; }
@@ -41,7 +42,7 @@ public abstract class ServerConnection
             _ => null
         };
 
-    private ServerConnection(string id, ServerConnectionSettings settings = null, ICredentials credentials = null)
+    private ServerConnection(string id, ServerConnectionSettings settings = null, IConnectionCredentials credentials = null)
     {
         Id = id ?? throw new ArgumentNullException(nameof(id));
         Settings = settings ?? DefaultSettings;
@@ -52,7 +53,7 @@ public abstract class ServerConnection
     {
         private static readonly string SonarCloudUrl = CoreStrings.SonarCloudUrl;
         
-        public SonarCloud(string organizationKey, ServerConnectionSettings settings = null, ICredentials credentials = null)
+        public SonarCloud(string organizationKey, ServerConnectionSettings settings = null, IConnectionCredentials credentials = null)
             : base(OrganizationKeyToId(organizationKey), settings, credentials)
         {
             OrganizationKey = organizationKey;
@@ -75,7 +76,7 @@ public abstract class ServerConnection
         }
     }
     
-    public sealed class SonarQube(Uri serverUri, ServerConnectionSettings settings = null, ICredentials credentials = null)
+    public sealed class SonarQube(Uri serverUri, ServerConnectionSettings settings = null, IConnectionCredentials credentials = null)
         : ServerConnection(serverUri?.ToString(), settings, credentials)
     {
         public override Uri ServerUri { get; } = serverUri;

@@ -21,21 +21,22 @@
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
 internal static class CredentialsExtensionMethods
 {
-    internal static Credential ToCredential(this ICredentials credentials) =>
+    internal static Credential ToCredential(this IConnectionCredentials credentials) =>
         credentials switch
         {
-            BasicAuthCredentials basicAuthCredentials => new Credential(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString()),
+            UsernameAndPasswordCredentials basicAuthCredentials => new Credential(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString()),
             // the ICredentialStoreService requires a username, but then proceeds to store the username as the password and a hard-coded string as the username
             TokenAuthCredentials tokenAuthCredentials => new Credential(tokenAuthCredentials.Token.ToUnsecureString(), string.Empty),
             _ => throw new NotSupportedException($"Unexpected credentials type: {credentials?.GetType()}")
         };
 
-    internal static ICredentials ToICredentials(this Credential credential)
+    internal static IConnectionCredentials ToICredentials(this Credential credential)
     {
         if (credential is null)
         {
@@ -45,6 +46,6 @@ internal static class CredentialsExtensionMethods
         {
             return new TokenAuthCredentials(credential.Username.ToSecureString());
         }
-        return new BasicAuthCredentials(credential.Username, credential.Password.ToSecureString());
+        return new UsernameAndPasswordCredentials(credential.Username, credential.Password.ToSecureString());
     }
 }

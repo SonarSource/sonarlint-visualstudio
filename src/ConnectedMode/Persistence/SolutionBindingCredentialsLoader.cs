@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
@@ -43,7 +41,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
             store.DeleteCredentials(boundServerUri);
         }
 
-        public ICredentials Load(Uri boundServerUri)
+        public IConnectionCredentials Load(Uri boundServerUri)
         {
             if (boundServerUri == null)
             {
@@ -54,7 +52,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
             return credentials.ToICredentials();
         }
 
-        public void Save(ICredentials credentials, Uri boundServerUri)
+        public void Save(IConnectionCredentials credentials, Uri boundServerUri)
         {
             if (boundServerUri == null || credentials is null)
             {

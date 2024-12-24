@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ProjectSelection;
 
@@ -229,7 +230,7 @@ public class ProjectSelectionViewModelTests
     [TestMethod]
     public async Task AdapterGetAllProjectsAsync_GettingServerConnectionSucceeded_CallsAdapterWithCredentialsForServerConnection()
     {
-        var expectedCredentials = Substitute.For<ICredentials>();
+        var expectedCredentials = Substitute.For<IConnectionCredentials>();
         MockTrySonarQubeConnection(AConnectionInfo, success:true, expectedCredentials);
 
         await testSubject.AdapterGetAllProjectsAsync();
@@ -241,7 +242,7 @@ public class ProjectSelectionViewModelTests
     [TestMethod]
     public async Task AdapterGetAllProjectsAsync_GettingServerConnectionSucceeded_StoresServerConnection()
     {
-        MockTrySonarQubeConnection(AConnectionInfo, success: true, Substitute.For<ICredentials>());
+        MockTrySonarQubeConnection(AConnectionInfo, success: true, Substitute.For<IConnectionCredentials>());
 
         await testSubject.AdapterGetAllProjectsAsync();
 
@@ -304,7 +305,7 @@ public class ProjectSelectionViewModelTests
         testSubject.InitProjects(new AdapterResponseWithData<List<ServerProject>>(true, serverProjects));
     }
 
-    private void MockTrySonarQubeConnection(ConnectionInfo connectionInfo, bool success = true, ICredentials expectedCredentials = null)
+    private void MockTrySonarQubeConnection(ConnectionInfo connectionInfo, bool success = true, IConnectionCredentials expectedCredentials = null)
     {
         serverConnectionsRepositoryAdapter.TryGet(connectionInfo, out _).Returns(callInfo =>
         {

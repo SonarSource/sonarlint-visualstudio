@@ -20,8 +20,8 @@
 
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
 
@@ -29,17 +29,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
 public class CredentialsExtensionMethodsTests
 {
     [TestMethod]
-    public void ToCredential_NullCredentials_Throws() => Assert.ThrowsException<NotSupportedException>(() => ((ICredentials)null).ToCredential());
+    public void ToCredential_NullCredentials_Throws() => Assert.ThrowsException<NotSupportedException>(() => ((IConnectionCredentials)null).ToCredential());
 
     [TestMethod]
-    public void ToCredential_BasicAuthCredentials_ReturnsExpected()
+    public void ToCredential_UsernameAndPasswordCredentials_ReturnsExpected()
     {
-        var basicAuthCredentials = new BasicAuthCredentials("user", "pwd".ToSecureString());
+        var basicCredentials = new UsernameAndPasswordCredentials("user", "pwd".ToSecureString());
 
-        var result = basicAuthCredentials.ToCredential();
+        var result = basicCredentials.ToCredential();
 
-        result.Username.Should().Be(basicAuthCredentials.UserName);
-        result.Password.Should().Be(basicAuthCredentials.Password.ToUnsecureString());
+        result.Username.Should().Be(basicCredentials.UserName);
+        result.Password.Should().Be(basicCredentials.Password.ToUnsecureString());
     }
 
     [TestMethod]
@@ -54,16 +54,16 @@ public class CredentialsExtensionMethodsTests
     }
 
     [TestMethod]
-    public void ToICredentials_UsernameIsEmpty_ReturnsBasicAuthCredentialsWithPasswordAsToken()
+    public void ToICredentials_UsernameIsEmpty_ReturnsUsernameAndPasswordCredentialsWithPasswordAsToken()
     {
         var credential = new Credential(string.Empty, "token");
 
         var result = credential.ToICredentials();
 
-        var basicAuth = result as BasicAuthCredentials;
-        basicAuth.Should().NotBeNull();
-        basicAuth.UserName.Should().Be(credential.Username);
-        basicAuth.Password.ToUnsecureString().Should().Be(credential.Password);
+        var basicCredentials = result as UsernameAndPasswordCredentials;
+        basicCredentials.Should().NotBeNull();
+        basicCredentials.UserName.Should().Be(credential.Username);
+        basicCredentials.Password.ToUnsecureString().Should().Be(credential.Password);
     }
 
     /// <summary>
@@ -82,16 +82,16 @@ public class CredentialsExtensionMethodsTests
     }
 
     [TestMethod]
-    public void ToICredentials_PasswordAndUsernameFilled_ReturnsBasicAuthCredentials()
+    public void ToICredentials_PasswordAndUsernameFilled_ReturnsUsernameAndPasswordCredentials()
     {
         var credential = new Credential("username", "pwd");
 
         var result = credential.ToICredentials();
 
-        var basicAuth = result as BasicAuthCredentials;
-        basicAuth.Should().NotBeNull();
-        basicAuth.UserName.Should().Be(credential.Username);
-        basicAuth.Password.ToUnsecureString().Should().Be(credential.Password);
+        var basicCredentials = result as UsernameAndPasswordCredentials;
+        basicCredentials.Should().NotBeNull();
+        basicCredentials.UserName.Should().Be(credential.Username);
+        basicCredentials.Password.ToUnsecureString().Should().Be(credential.Password);
     }
 
     [TestMethod]

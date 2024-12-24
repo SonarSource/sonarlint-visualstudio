@@ -288,8 +288,8 @@ public class SlCoreConnectionAdapterTests
     {
         const string username = "username";
         const string password = "password";
-        sonarQubeConnection.Credentials = new BasicAuthCredentials(username, password.CreateSecureString());
-
+        sonarQubeConnection.Credentials = new UsernameAndPasswordCredentials(username, password.CreateSecureString());
+        
         await testSubject.GetAllProjectsAsync(sonarQubeConnection);
 
         await connectionConfigurationSlCoreService.Received(1)
@@ -310,7 +310,7 @@ public class SlCoreConnectionAdapterTests
     {
         const string username = "username";
         const string password = "password";
-        sonarCloudConnection.Credentials = new BasicAuthCredentials(username, password.CreateSecureString());
+        sonarCloudConnection.Credentials = new UsernameAndPasswordCredentials(username, password.CreateSecureString());
 
         await testSubject.GetAllProjectsAsync(sonarCloudConnection);
 
