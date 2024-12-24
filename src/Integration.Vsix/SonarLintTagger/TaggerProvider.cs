@@ -162,8 +162,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             var tagger = singletonTaggerManager.CreateTagger(buffer);
             return tagger as ITagger<T>;
-
-            return null;
         }
 
         private TextBufferIssueTracker InternalCreateTextBufferIssueTracker(ITextDocument textDocument, IEnumerable<AnalysisLanguage> analysisLanguages) =>
