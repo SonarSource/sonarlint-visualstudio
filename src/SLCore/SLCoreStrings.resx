@@ -180,4 +180,10 @@
   <data name="UnknowProxyType" xml:space="preserve">
     <value>Proxy type can not be determined from scheme '{0}'. Returning HTTP proxy type.</value>
   </data>
+  <data name="SLCoreName" xml:space="preserve">
+    <value>SLCore</value>
+  </data>
+  <data name="SLCoreInternalLogContext" xml:space="preserve">
+    <value>Logs</value>
+  </data>
 </root>
