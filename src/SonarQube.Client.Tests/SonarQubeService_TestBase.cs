@@ -120,9 +120,9 @@ namespace SonarQube.Client.Tests
             return new SonarQubeService(messageHandler.Object, UserAgent, logger, requestFactorySelector, secondaryIssueHashUpdater.Object, sseStreamFactory.Object);
         }
 
-        private static IBasicAuthCredentials MockBasicAuthCredentials(string userName, SecureString password)
+        private static IUsernameAndPasswordCredentials MockBasicAuthCredentials(string userName, SecureString password)
         {
-            var mock = new Mock<IBasicAuthCredentials>();
+            var mock = new Mock<IUsernameAndPasswordCredentials>();
             mock.SetupGet(x => x.UserName).Returns(userName);
             mock.SetupGet(x => x.Password).Returns(password);
 

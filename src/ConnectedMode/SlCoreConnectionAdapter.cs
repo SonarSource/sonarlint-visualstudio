@@ -276,7 +276,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
             throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument");
         }
         
-        var basicAuthCredentials = (BasicAuthCredentials) credentials;
+        var basicAuthCredentials = (UsernameAndPasswordCredentials) credentials;
         return basicAuthCredentials.Password?.Length > 0
             ? GetEitherForUsernamePassword(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString())
             : GetEitherForToken(basicAuthCredentials.UserName);

@@ -92,9 +92,9 @@ namespace SonarQube.Client.Tests
             }
         }
 
-        private static IBasicAuthCredentials MockBasicAuthCredentials(string userName, SecureString password)
+        private static IUsernameAndPasswordCredentials MockBasicAuthCredentials(string userName, SecureString password)
         {
-            var mock = Substitute.For<IBasicAuthCredentials>();
+            var mock = Substitute.For<IUsernameAndPasswordCredentials>();
             mock.UserName.Returns(userName);
             mock.Password.Returns(password);
             return mock;

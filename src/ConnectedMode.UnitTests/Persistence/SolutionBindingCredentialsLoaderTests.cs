@@ -75,13 +75,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
                 .Returns(credentials);
 
             var actual = testSubject.Load(mockUri);
-            actual.Should().BeEquivalentTo(new BasicAuthCredentials("user", "password".ToSecureString()));
+            actual.Should().BeEquivalentTo(new UsernameAndPasswordCredentials("user", "password".ToSecureString()));
         }
 
         [TestMethod]
         public void Save_ServerUriIsNull_CredentialsNotSaved()
         {
-            var credentials = new BasicAuthCredentials("user", "password".ToSecureString());
+            var credentials = new UsernameAndPasswordCredentials("user", "password".ToSecureString());
 
             testSubject.Save(credentials, null);
 
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Save_CredentialsAreBasicAuth_CredentialsSavedWithUnsecuredString()
         {
-            var credentials = new BasicAuthCredentials("user", "password".ToSecureString());
+            var credentials = new UsernameAndPasswordCredentials("user", "password".ToSecureString());
             testSubject.Save(credentials, mockUri);
 
             store.Received(1)

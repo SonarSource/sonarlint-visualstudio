@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
 [TestClass]
 public class SlCoreConnectionAdapterTests
 {
-    private static readonly BasicAuthCredentials ValidToken = new ("I_AM_JUST_A_TOKEN", new SecureString());
+    private static readonly UsernameAndPasswordCredentials ValidToken = new ("I_AM_JUST_A_TOKEN", new SecureString());
     private readonly ServerConnection.SonarQube sonarQubeConnection = new(new Uri("http://localhost:9000/"), new ServerConnectionSettings(true), ValidToken);
     private readonly ServerConnection.SonarCloud sonarCloudConnection = new("myOrg", new ServerConnectionSettings(true), ValidToken);
     
@@ -288,7 +288,7 @@ public class SlCoreConnectionAdapterTests
     {
         const string username = "username";
         const string password = "password";
-        sonarQubeConnection.Credentials = new BasicAuthCredentials(username, password.CreateSecureString());
+        sonarQubeConnection.Credentials = new UsernameAndPasswordCredentials(username, password.CreateSecureString());
         
         await testSubject.GetAllProjectsAsync(sonarQubeConnection);
 
@@ -310,7 +310,7 @@ public class SlCoreConnectionAdapterTests
     {
         const string username = "username";
         const string password = "password";
-        sonarCloudConnection.Credentials = new BasicAuthCredentials(username, password.CreateSecureString());
+        sonarCloudConnection.Credentials = new UsernameAndPasswordCredentials(username, password.CreateSecureString());
 
         await testSubject.GetAllProjectsAsync(sonarCloudConnection);
 

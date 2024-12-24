@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 
             return credentials == null
                 ? null
-                : new BasicAuthCredentials(credentials.Username, credentials.Password.ToSecureString());
+                : new UsernameAndPasswordCredentials(credentials.Username, credentials.Password.ToSecureString());
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
             Target = "~M:SonarLint.VisualStudio.Integration.Persistence.FileBindingSerializer.WriteBindingInformation(System.String,SonarLint.VisualStudio.Integration.Persistence.BoundProject)~System.Boolean")]
         public void Save(IConnectionCredentials credentials, Uri boundServerUri)
         {
-            if (boundServerUri == null || !(credentials is BasicAuthCredentials basicCredentials))
+            if (boundServerUri == null || !(credentials is UsernameAndPasswordCredentials basicCredentials))
             {
                 return;
             }

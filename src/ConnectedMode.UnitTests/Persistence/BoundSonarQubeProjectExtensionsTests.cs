@@ -57,7 +57,7 @@ public class BoundSonarQubeProjectExtensionsTests
     public void BoundSonarQubeProject_CreateConnectionInformation_BasicAuthCredentials()
     {
         // Arrange
-        var creds = new BasicAuthCredentials("UserName", "password".ToSecureString());
+        var creds = new UsernameAndPasswordCredentials("UserName", "password".ToSecureString());
         var input = new BoundSonarQubeProject(new Uri("http://server"), "ProjectKey", "projectName", creds,
             new SonarQubeOrganization("org_key", "org_name"));
 
@@ -66,7 +66,7 @@ public class BoundSonarQubeProjectExtensionsTests
 
         // Assert
         conn.ServerUri.Should().Be(input.ServerUri);
-        var basicAuth = conn.Credentials as BasicAuthCredentials;
+        var basicAuth = conn.Credentials as UsernameAndPasswordCredentials;
         basicAuth.Should().NotBeNull();
         basicAuth.UserName.Should().Be(creds.UserName);
         basicAuth.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
@@ -114,7 +114,7 @@ public class BoundSonarQubeProjectExtensionsTests
     public void BoundServerProject_CreateConnectionInformation_BasicAuthCredentials()
     {
         // Arrange
-        var creds = new BasicAuthCredentials("UserName", "password".ToSecureString());
+        var creds = new UsernameAndPasswordCredentials("UserName", "password".ToSecureString());
         var input = new BoundServerProject("solution", "ProjectKey", new ServerConnection.SonarCloud("org_key", credentials: creds));
 
         // Act
@@ -122,7 +122,7 @@ public class BoundSonarQubeProjectExtensionsTests
 
         // Assert
         conn.ServerUri.Should().Be(input.ServerConnection.ServerUri);
-        var basicAuth = conn.Credentials as BasicAuthCredentials;
+        var basicAuth = conn.Credentials as UsernameAndPasswordCredentials;
         basicAuth.Should().NotBeNull();
         basicAuth.UserName.Should().Be(creds.UserName);
         basicAuth.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());

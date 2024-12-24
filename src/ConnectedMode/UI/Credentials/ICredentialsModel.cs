@@ -36,7 +36,7 @@ public class TokenCredentialsModel(SecureString token) : ICredentialsModel
 
     public IConnectionCredentials ToICredentials()
     {
-        return new BasicAuthCredentials(Token.ToUnsecureString(), new SecureString());
+        return new UsernameAndPasswordCredentials(Token.ToUnsecureString(), new SecureString());
     }
 }
 
@@ -47,6 +47,6 @@ public class UsernamePasswordModel(string username, SecureString password) : ICr
     
     public IConnectionCredentials ToICredentials()
     {
-        return new BasicAuthCredentials(Username, Password);
+        return new UsernameAndPasswordCredentials(Username, Password);
     }
 }

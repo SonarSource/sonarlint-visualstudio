@@ -368,7 +368,7 @@ public class ServerConnectionsRepositoryAdapterTests
     
     private static bool IsExpectedCredentials(IConnectionCredentials credentials, string expectedUsername, string expectedPassword)
     {
-        return credentials is BasicAuthCredentials basicAuthCredentials && basicAuthCredentials.UserName == expectedUsername && basicAuthCredentials.Password?.ToUnsecureString() == expectedPassword;
+        return credentials is UsernameAndPasswordCredentials basicAuthCredentials && basicAuthCredentials.UserName == expectedUsername && basicAuthCredentials.Password?.ToUnsecureString() == expectedPassword;
     }
 
     private void MockTryGet(string connectionId, bool expectedResponse, ServerConnection expectedServerConnection)

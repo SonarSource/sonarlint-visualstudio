@@ -36,7 +36,7 @@ namespace SonarQube.Client.Helpers
 
         public static AuthenticationHeaderValue Create(IConnectionCredentials credentials)
         {
-            if (credentials is IBasicAuthCredentials basicAuthCredentials)
+            if (credentials is IUsernameAndPasswordCredentials basicAuthCredentials)
             {
                 ValidateCredentials(basicAuthCredentials);
                 return new AuthenticationHeaderValue("Basic", GetBasicAuthToken(basicAuthCredentials.UserName, basicAuthCredentials.Password));
@@ -63,7 +63,7 @@ namespace SonarQube.Client.Helpers
                 user, password.ToUnsecureString())));
         }
 
-        private static void ValidateCredentials(IBasicAuthCredentials basicAuthCredentials)
+        private static void ValidateCredentials(IUsernameAndPasswordCredentials basicAuthCredentials)
         {
             if (string.IsNullOrEmpty(basicAuthCredentials.UserName))
             {
