@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode;
 
@@ -97,14 +98,14 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         return new ServerConnection.SonarQube(new Uri(connection.Info.Id), new ServerConnectionSettings(connection.EnableSmartNotifications));
     }
 
-    private static ICredentials MapCredentials(ICredentialsModel credentialsModel)
+    private static IConnectionCredentials MapCredentials(ICredentialsModel credentialsModel)
     {
         switch (credentialsModel)
         {
             case TokenCredentialsModel tokenCredentialsModel:
-                return new BasicAuthCredentials(tokenCredentialsModel.Token.ToUnsecureString(), new SecureString());
+                return new UsernameAndPasswordCredentials(tokenCredentialsModel.Token.ToUnsecureString(), new SecureString());
             case UsernamePasswordModel usernameCredentialsModel:
-                return new BasicAuthCredentials(usernameCredentialsModel.Username, usernameCredentialsModel.Password);
+                return new UsernameAndPasswordCredentials(usernameCredentialsModel.Username, usernameCredentialsModel.Password);
             default:
                 return null;
         }

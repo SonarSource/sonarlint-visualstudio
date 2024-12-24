@@ -44,7 +44,7 @@ public class ManageBindingViewModelTests
     private readonly ServerProject serverProject = new("a-project", "A Project");
     private readonly ConnectionInfo sonarQubeConnectionInfo = new("http://localhost:9000", ConnectionServerType.SonarQube);
     private readonly ConnectionInfo sonarCloudConnectionInfo = new("organization", ConnectionServerType.SonarCloud);
-    private readonly BasicAuthCredentials validCredentials = new("TOKEN", new SecureString());
+    private readonly UsernameAndPasswordCredentials validCredentials = new("TOKEN", new SecureString());
     private readonly SharedBindingConfigModel sonarQubeSharedBindingConfigModel = new() { Uri = new Uri("http://localhost:9000"), ProjectKey = "myProj" };
     private readonly SharedBindingConfigModel sonarCloudSharedBindingConfigModel = new() { Organization = "myOrg", ProjectKey = "myProj" };
 

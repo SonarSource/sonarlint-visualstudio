@@ -18,13 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Net.Http;
 using System.Security;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Models;
 using SonarQube.Client.Tests.Infra;
 
@@ -53,7 +48,7 @@ namespace SonarQube.Client.Tests
             password.AppendChar('i');
             password.AppendChar('n');
 
-            var connInfo = new ConnectionInformation(url, userName, password);
+            var connInfo = new ConnectionInformation(url, MockBasicAuthCredentials(userName, password));
 
             var service = new SonarQubeService(new HttpClientHandler(), "agent", new TestLogger());
             try
@@ -79,7 +74,7 @@ namespace SonarQube.Client.Tests
 
             var url = ConnectionInformation.FixedSonarCloudUri;
             var password = new SecureString();
-            var connInfo = new ConnectionInformation(url, validSonarCloudToken, password);
+            var connInfo = new ConnectionInformation(url, MockBasicAuthCredentials(validSonarCloudToken, password));
 
             var service = new SonarQubeService(new HttpClientHandler(), "agent", new TestLogger());
             try
@@ -95,6 +90,14 @@ namespace SonarQube.Client.Tests
             {
                 service.Disconnect();
             }
+        }
+
+        private static IUsernameAndPasswordCredentials MockBasicAuthCredentials(string userName, SecureString password)
+        {
+            var mock = Substitute.For<IUsernameAndPasswordCredentials>();
+            mock.UserName.Returns(userName);
+            mock.Password.Returns(password);
+            return mock;
         }
     }
 }
