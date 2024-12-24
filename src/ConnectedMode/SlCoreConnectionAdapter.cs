@@ -268,16 +268,11 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         return Either<TokenDto, UsernamePasswordDto>.CreateRight(new UsernamePasswordDto(username, password));
     }
     
-    private static Either<TokenDto, UsernamePasswordDto> MapCredentials(ICredentials credentials)
-    {
-        if (credentials == null)
+    private static Either<TokenDto, UsernamePasswordDto> MapCredentials(ICredentials credentials) =>
+        credentials switch
         {
-            throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument");
-        }
-        
-        var basicAuthCredentials = (BasicAuthCredentials) credentials;
-        return basicAuthCredentials.Password?.Length > 0
-            ? GetEitherForUsernamePassword(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString())
-            : GetEitherForToken(basicAuthCredentials.UserName);
-    }
+            BasicAuthCredentials basicAuthCredentials => GetEitherForUsernamePassword(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString()),
+            TokenAuthCredentials tokenAuthCredentials => GetEitherForToken(tokenAuthCredentials.Token.ToUnsecureString()),
+            _ => throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument")
+        };
 }

@@ -19,28 +19,17 @@
  */
 
 using System.Security;
-using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
+namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
-public interface ICredentialsModel
+internal sealed class TokenAuthCredentials(SecureString token) : ICredentials, ITokenCredentials
 {
-    ICredentials ToICredentials();
-}
+    public SecureString Token { get; } = token ?? throw new ArgumentNullException(nameof(token));
 
-public class TokenCredentialsModel(SecureString token) : ICredentialsModel
-{
-    public SecureString Token { get; } = token;
+    public void Dispose() => Token?.Dispose();
 
-    public ICredentials ToICredentials() => new TokenAuthCredentials(Token);
-}
-
-public class UsernamePasswordModel(string username, SecureString password) : ICredentialsModel
-{
-    public string Username { get; } = username;
-    public SecureString Password { get; } = password;
-    
-    public ICredentials ToICredentials() => new BasicAuthCredentials(Username, Password);
+    public object Clone() => new TokenAuthCredentials(Token.CopyAsReadOnly());
 }

@@ -32,6 +32,11 @@ public interface IBasicAuthCredentials : IConnectionCredentials
     public SecureString Password { get; }
 }
 
+public interface ITokenCredentials : IConnectionCredentials
+{
+    public SecureString Token { get; }
+}
+
 public interface INoCredentials : IConnectionCredentials
 {
 }

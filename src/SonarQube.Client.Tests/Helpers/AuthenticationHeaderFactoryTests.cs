@@ -28,6 +28,7 @@ namespace SonarQube.Client.Tests.Helpers
     public class AuthenticationHeaderFactoryTests
     {
         private const string Password = "password";
+        private const string Token = "token";
         private const string Username = "username";
 
         [TestMethod]
@@ -90,6 +91,26 @@ namespace SonarQube.Client.Tests.Helpers
         }
 
         [TestMethod]
+        public void Create_BasicAuth_PasswordIsNull_Throws()
+        {
+            var credentials = MockBasicAuthCredentials(Username, null);
+
+            var act = () => AuthenticationHeaderFactory.Create(credentials);
+
+            act.Should().Throw<ArgumentException>();
+        }
+
+        [TestMethod]
+        public void Create_BasicAuth_PasswordIsEmpty_Throws()
+        {
+            var credentials = MockBasicAuthCredentials(Username,  "".ToSecureString());
+
+            var act = () => AuthenticationHeaderFactory.Create(credentials);
+
+            act.Should().Throw<ArgumentException>();
+        }
+
+        [TestMethod]
         public void Create_BasicAuth_CredentialsProvided_ReturnsBasicScheme()
         {
             var credentials = MockBasicAuthCredentials(Username, Password.ToSecureString());
@@ -100,9 +121,59 @@ namespace SonarQube.Client.Tests.Helpers
             AssertAreEqualUserNameAndPassword(Username, Password, authenticationHeaderValue.Parameter);
         }
 
-        private void AssertAreEqualUserNameAndPassword(
-            string expectedUser,
-            string expectedPassword,
+        [TestMethod]
+        public void Create_BearerSupported_TokenIsNull_Throws()
+        {
+            var credentials = MockTokenCredentials(null);
+
+            var act = () => AuthenticationHeaderFactory.Create(credentials);
+
+            act.Should().Throw<ArgumentException>();
+        }
+
+        [TestMethod]
+        public void Create_BearerSupported_TokenIsEmpty_Throws()
+        {
+            var credentials = MockTokenCredentials( "".ToSecureString());
+
+            var act = () => AuthenticationHeaderFactory.Create(credentials);
+
+            act.Should().Throw<ArgumentException>();
+        }
+
+        [TestMethod]
+        public void Create_BearerSupported_TokenIsFilled_ReturnsBearerScheme()
+        {
+            var credentials = MockTokenCredentials(Token.ToSecureString());
+
+            var authenticationHeaderValue = AuthenticationHeaderFactory.Create(credentials);
+
+            authenticationHeaderValue.Scheme.Should().Be("Bearer");
+            authenticationHeaderValue.Parameter.Should().Be(Token);
+        }
+
+        [TestMethod]
+        public void Create_BearerNotSupported_TokenIsFilled_ReturnsBasicScheme()
+        {
+            var credentials = MockTokenCredentials(Token.ToSecureString());
+
+            var authenticationHeaderValue = AuthenticationHeaderFactory.Create(credentials, shouldUseBearer:false);
+
+            authenticationHeaderValue.Scheme.Should().Be("Basic");
+            AssertAreEqualUserNameAndPassword(Token, string.Empty, authenticationHeaderValue.Parameter);
+        }
+
+        [TestMethod]
+        public void Create_BearerNotSupported_TokenIsEmpty_Throws()
+        {
+            var credentials = MockTokenCredentials("".ToSecureString());
+
+            var act = () => AuthenticationHeaderFactory.Create(credentials, shouldUseBearer:false);
+
+            act.Should().Throw<ArgumentException>();
+        }
+
+        private static void AssertAreEqualUserNameAndPassword(string expectedUser, string expectedPassword,
             string userAndPasswordBase64String)
 
         {
@@ -126,6 +197,13 @@ namespace SonarQube.Client.Tests.Helpers
             var mock = Substitute.For<IBasicAuthCredentials>();
             mock.UserName.Returns(userName);
             mock.Password.Returns(password);
+            return mock;
+        }
+
+        private static ITokenCredentials MockTokenCredentials(SecureString token)
+        {
+            var mock = Substitute.For<ITokenCredentials>();
+            mock.Token.Returns(token);
             return mock;
         }
     }
