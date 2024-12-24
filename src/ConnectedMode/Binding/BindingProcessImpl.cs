@@ -18,37 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
-using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client;
-using SonarQube.Client.Models;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     internal class BindingProcessImpl : IBindingProcess
     {
         private readonly BindCommandArgs bindingArgs;
-        private readonly ISonarQubeService sonarQubeService;
         private readonly IQualityProfileDownloader qualityProfileDownloader;
         private readonly ILogger logger;
 
         public BindingProcessImpl(
             BindCommandArgs bindingArgs,
-            ISonarQubeService sonarQubeService,
             IQualityProfileDownloader qualityProfileDownloader,
             ILogger logger)
         {
             this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
-            this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.qualityProfileDownloader = qualityProfileDownloader ?? throw new ArgumentNullException(nameof(qualityProfileDownloader));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
