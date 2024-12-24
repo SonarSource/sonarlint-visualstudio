@@ -55,11 +55,11 @@ public class CredentialsExtensionMethodsTests
     }
 
     [TestMethod]
-    public void ToICredentials_UsernameIsEmpty_ReturnsBasicAuthCredentialsWithPasswordAsToken()
+    public void ToConnectionCredentials_UsernameIsEmpty_ReturnsBasicAuthCredentialsWithPasswordAsToken()
     {
         var credential = new Credential(string.Empty, "token");
 
-        var result = credential.ToICredentials();
+        var result = credential.ToConnectionCredentials();
 
         var basicAuth = result as UsernameAndPasswordCredentials;
         basicAuth.Should().NotBeNull();
@@ -72,11 +72,11 @@ public class CredentialsExtensionMethodsTests
     /// </summary>
 
     [TestMethod]
-    public void ToICredentials_PasswordIsEmpty_ReturnsTokenAuthCredentialsWithUsernameAsToken()
+    public void ToConnectionCredentials_PasswordIsEmpty_ReturnsTokenAuthCredentialsWithUsernameAsToken()
     {
         var credential = new Credential("token", string.Empty);
 
-        var result = credential.ToICredentials();
+        var result = credential.ToConnectionCredentials();
 
         var tokenAuth = result as TokenAuthCredentials;
         tokenAuth.Should().NotBeNull();
@@ -84,11 +84,11 @@ public class CredentialsExtensionMethodsTests
     }
 
     [TestMethod]
-    public void ToICredentials_PasswordAndUsernameFilled_ReturnsBasicAuthCredentials()
+    public void ToConnectionCredentials_PasswordAndUsernameFilled_ReturnsBasicAuthCredentials()
     {
         var credential = new Credential("username", "pwd");
 
-        var result = credential.ToICredentials();
+        var result = credential.ToConnectionCredentials();
 
         var basicAuth = result as UsernameAndPasswordCredentials;
         basicAuth.Should().NotBeNull();
@@ -97,9 +97,9 @@ public class CredentialsExtensionMethodsTests
     }
 
     [TestMethod]
-    public void ToICredentials_Null_ReturnsNull()
+    public void ToConnectionCredentials_Null_ReturnsNull()
     {
-        var result = ((Credential)null).ToICredentials();
+        var result = ((Credential)null).ToConnectionCredentials();
 
         result.Should().BeNull();
     }

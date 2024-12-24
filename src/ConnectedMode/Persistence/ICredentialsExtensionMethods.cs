@@ -19,7 +19,6 @@
  */
 
 using Microsoft.Alm.Authentication;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
@@ -36,7 +35,7 @@ internal static class CredentialsExtensionMethods
             _ => throw new NotSupportedException($"Unexpected credentials type: {credentials?.GetType()}")
         };
 
-    internal static IConnectionCredentials ToICredentials(this Credential credential)
+    internal static IConnectionCredentials ToConnectionCredentials(this Credential credential)
     {
         if (credential is null)
         {
