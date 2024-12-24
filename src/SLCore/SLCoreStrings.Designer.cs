@@ -10,8 +10,8 @@
 
 namespace SonarLint.VisualStudio.SLCore {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -23,15 +23,15 @@ namespace SonarLint.VisualStudio.SLCore {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class SLCoreStrings {
-        
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal SLCoreStrings() {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Internal analysis failure. See logs above..
         /// </summary>
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("AnalysisFailedReason", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Updated analysis readiness: {0}.
         /// </summary>
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("AnalysisReadinessUpdate", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [CertificateChainValidator] Certificate validation failed for the following reason(s):.
         /// </summary>
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("CertificateValidator_Failed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [CertificateChainValidator] {0}: {1}.
         /// </summary>
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("CertificateValidator_FailureReasonTemplate", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [SLCoreAnalyzer] No compilation database found for file: {0}. Check that the file is part of a supported project type in the current solution..
         /// </summary>
@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("CompilationDatabaseNotFound", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Configuration scope conflict.
         /// </summary>
@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("ConfigScopeConflict", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Configuration scope not initialized.
         /// </summary>
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("ConfigScopeNotInitialized", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [SLCore.Http] Received server trust verification request....
         /// </summary>
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("HttpConfiguration_ServerTrustVerificationRequest", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [SLCore.Http] Server verification result: {0}.
         /// </summary>
@@ -140,7 +140,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("HttpConfiguration_ServerTrustVerificationResult", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unexpected enum value.
         /// </summary>
@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("ModelExtensions_UnexpectedValue", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Service Provider is unavailable.
         /// </summary>
@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("ServiceProviderNotInitialized", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [SLCoreHandler] Creating SLCore instance.
         /// </summary>
@@ -167,7 +167,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("SLCoreHandler_CreatingInstance", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [SLCoreHandler] Error creating SLCore instance.
         /// </summary>
@@ -176,7 +176,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("SLCoreHandler_CreatingInstanceError", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Current instance is alive.
         /// </summary>
@@ -185,7 +185,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("SLCoreHandler_InstanceAlreadyRunning", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [SLCoreHandler] SLCore instance exited.
         /// </summary>
@@ -194,7 +194,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("SLCoreHandler_InstanceDied", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [SLCoreHandler] Starting SLCore instance.
         /// </summary>
@@ -203,7 +203,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("SLCoreHandler_StartingInstance", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [SLCoreHandler] Error starting SLCore instance.
         /// </summary>
@@ -212,7 +212,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("SLCoreHandler_StartingInstanceError", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to [SLCoreServiceProvider]Cannot Create Service. Error: {0}.
         /// </summary>
@@ -221,7 +221,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("SLCoreServiceProvider_CreateServiceError", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to SonarQube for Visual Studio background service failed to start.
         /// </summary>
@@ -230,7 +230,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("SloopRestartFailedNotificationService_GoldBarMessage", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Restart SonarQube for Visual Studio.
         /// </summary>
@@ -239,7 +239,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("SloopRestartFailedNotificationService_Restart", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unexpected server connection type.
         /// </summary>
@@ -248,7 +248,7 @@ namespace SonarLint.VisualStudio.SLCore {
                 return ResourceManager.GetString("UnexpectedServerConnectionType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Proxy type can not be determined from scheme &apos;{0}&apos;. Returning HTTP proxy type..
         /// </summary>
