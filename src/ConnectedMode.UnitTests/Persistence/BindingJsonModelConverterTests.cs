@@ -111,7 +111,7 @@ public class BindingJsonModelConverterTests
     [TestMethod]
     public void ConvertFromModelToLegacy_ConvertsCorrectly()
     {
-        var credentials = Substitute.For<ICredentials>();
+        var credentials = Substitute.For<IConnectionCredentials>();
         var bindingModel = new BindingJsonModel
         {
             Organization = new SonarQubeOrganization("org", "my org"),

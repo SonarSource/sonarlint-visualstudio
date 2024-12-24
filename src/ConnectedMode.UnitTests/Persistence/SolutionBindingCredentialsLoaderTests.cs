@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 {
@@ -98,7 +99,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Save_CredentialsAreNotBasicAuth_CredentialsNotSaved()
         {
-            var mockCredentials = new Mock<ICredentials>();
+            var mockCredentials = new Mock<IConnectionCredentials>();
             testSubject.Save(mockCredentials.Object, mockUri);
 
             store.DidNotReceive().WriteCredentials(Arg.Any<TargetUri>(), Arg.Any<Credential>());

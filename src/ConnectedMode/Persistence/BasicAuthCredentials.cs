@@ -19,13 +19,12 @@
  */
 
 using System.Security;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
-internal sealed class BasicAuthCredentials(string userName, SecureString password) : ICredentials, IBasicAuthCredentials
+internal sealed class BasicAuthCredentials(string userName, SecureString password) : IBasicAuthCredentials
 {
     public string UserName { get; } = userName ?? throw new ArgumentNullException(nameof(userName));
 
