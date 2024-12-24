@@ -58,11 +58,11 @@ namespace SonarLint.VisualStudio.Integration.MefServices
             this.threadHandling = threadHandling;
         }
 
-        protected override async Task<TResponse> InvokeUncheckedRequestAsync<TRequest, TResponse>(Action<TRequest> configure, CancellationToken token)
+        protected override async Task<TResponse> InvokeUncheckedRequestAsync<TRequest, TResponse>(Action<TRequest> configure, HttpClient httpClient, CancellationToken token)
         {
             CodeMarkers.Instance.WebClientCallStart(typeof(TRequest).Name);
 
-            Func<Task<TResponse>> asyncMethod = () => base.InvokeUncheckedRequestAsync<TRequest, TResponse>(configure, token);
+            Func<Task<TResponse>> asyncMethod = () => base.InvokeUncheckedRequestAsync<TRequest, TResponse>(configure, httpClient, token);
 
             var result = await threadHandling.RunOnBackgroundThread(asyncMethod);
 

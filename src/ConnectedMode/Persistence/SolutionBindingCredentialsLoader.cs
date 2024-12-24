@@ -51,27 +51,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
             }
             var credentials = store.ReadCredentials(boundServerUri);
 
-            return credentials == null
-                ? null
-                : new UsernameAndPasswordCredentials(credentials.Username, credentials.Password.ToSecureString());
+            return credentials.ToICredentials();
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
-            "S3215:\"interface\" instances should not be cast to concrete types",
-            Justification = "Casting as BasicAuthCredentials is because it's the only credential type we support. Once we add more we need to think again on how to refactor the code to avoid this",
-            Scope = "member",
-            Target = "~M:SonarLint.VisualStudio.Integration.Persistence.FileBindingSerializer.WriteBindingInformation(System.String,SonarLint.VisualStudio.Integration.Persistence.BoundProject)~System.Boolean")]
         public void Save(IConnectionCredentials credentials, Uri boundServerUri)
         {
-            if (boundServerUri == null || !(credentials is UsernameAndPasswordCredentials basicCredentials))
+            if (boundServerUri == null || credentials is null)
             {
                 return;
             }
 
-            Debug.Assert(basicCredentials.UserName != null, "User name is not expected to be null");
-            Debug.Assert(basicCredentials.Password != null, "Password name is not expected to be null");
-
-            var credentialToSave = new Credential(basicCredentials.UserName, basicCredentials.Password.ToUnsecureString());
+            var credentialToSave = credentials.ToCredential();
             store.WriteCredentials(boundServerUri, credentialToSave);
         }
     }
