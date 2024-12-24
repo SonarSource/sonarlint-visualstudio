@@ -210,7 +210,7 @@ public class ServerConnectionsRepositoryAdapterTests
         testSubject.TryAddConnection(sonarQube, new TokenCredentialsModel(token.CreateSecureString()));
 
         serverConnectionsRepository.Received(1)
-            .TryAdd(Arg.Is<ServerConnection.SonarQube>(sq => IsExpectedCredentials(sq.Credentials, token, string.Empty)));
+            .TryAdd(Arg.Is<ServerConnection.SonarQube>(sq => IsExpectedTokenCredentials(sq.Credentials, token)));
     }
 
     [TestMethod]
@@ -258,7 +258,7 @@ public class ServerConnectionsRepositoryAdapterTests
         testSubject.TryUpdateCredentials(sonarQube, new TokenCredentialsModel(token.CreateSecureString()));
 
         serverConnectionsRepository.Received(1)
-            .TryUpdateCredentialsById(Arg.Any<string>(), Arg.Is<IConnectionCredentials>(x => IsExpectedCredentials(x, token, string.Empty)));
+            .TryUpdateCredentialsById(Arg.Any<string>(), Arg.Is<IConnectionCredentials>(x => IsExpectedTokenCredentials(x, token)));
     }
     
     [TestMethod]
@@ -369,6 +369,11 @@ public class ServerConnectionsRepositoryAdapterTests
     private static bool IsExpectedCredentials(IConnectionCredentials credentials, string expectedUsername, string expectedPassword)
     {
         return credentials is UsernameAndPasswordCredentials basicAuthCredentials && basicAuthCredentials.UserName == expectedUsername && basicAuthCredentials.Password?.ToUnsecureString() == expectedPassword;
+    }
+
+    private static bool IsExpectedTokenCredentials(IConnectionCredentials credentials, string expectedToken)
+    {
+        return credentials is TokenAuthCredentials tokenAuthCredentials && tokenAuthCredentials.Token?.ToUnsecureString() == expectedToken;
     }
 
     private void MockTryGet(string connectionId, bool expectedResponse, ServerConnection expectedServerConnection)

@@ -28,28 +28,48 @@ namespace SonarQube.Client.Helpers
     public static class AuthenticationHeaderFactory
     {
         internal const string BasicAuthCredentialSeparator = ":";
+        private const string BearerScheme = "Bearer";
+        private const string BasicScheme = "Basic";
 
         /// <summary>
         /// Encoding used to create the basic authentication token
         /// </summary>
         internal static readonly Encoding BasicAuthEncoding = Encoding.UTF8;
 
-        public static AuthenticationHeaderValue Create(IConnectionCredentials credentials)
+        public static AuthenticationHeaderValue Create(IConnectionCredentials credentials, bool shouldUseBearer = true)
         {
-            if (credentials is IUsernameAndPasswordCredentials basicAuthCredentials)
+            switch (credentials)
             {
-                ValidateCredentials(basicAuthCredentials);
-                return new AuthenticationHeaderValue("Basic", GetBasicAuthToken(basicAuthCredentials.UserName, basicAuthCredentials.Password));
-                // See more info: https://www.visualstudio.com/en-us/integrate/get-started/auth/overview
+                case ITokenCredentials tokenCredentials:
+                {
+                    ValidateSecureString(tokenCredentials.Token, nameof(tokenCredentials.Token));
+                    return CreateAuthenticationHeaderValueForTokenAuth(shouldUseBearer, tokenCredentials);
+                }
+                case IUsernameAndPasswordCredentials basicAuthCredentials:
+                {
+                    ValidateCredentials(basicAuthCredentials);
+                    return CreateAuthenticationHeaderValueForBasicAuth(basicAuthCredentials.UserName, basicAuthCredentials.Password);
+                }
+                case INoCredentials:
+                    return null;
+                default:
+                    Debug.Fail("Unsupported Authentication: " + credentials?.GetType());
+                    return null;
             }
-            if (credentials is INoCredentials)
-            {
-                return null;
-            }
-            Debug.Fail("Unsupported Authentication: " + credentials?.GetType());
-            return null;
         }
 
+        private static AuthenticationHeaderValue CreateAuthenticationHeaderValueForTokenAuth(bool shouldUseBearer, ITokenCredentials tokenCredentials)
+        {
+            if (shouldUseBearer)
+            {
+                return new AuthenticationHeaderValue(BearerScheme, tokenCredentials.Token.ToUnsecureString());
+            }
+            return CreateAuthenticationHeaderValueForBasicAuth(tokenCredentials.Token.ToUnsecureString(), new SecureString());
+        }
+
+        private static AuthenticationHeaderValue CreateAuthenticationHeaderValueForBasicAuth(string username, SecureString password) => new(BasicScheme, GetBasicAuthToken(username, password));
+
+        // See more info: https://www.visualstudio.com/en-us/integrate/get-started/auth/overview
         internal static string GetBasicAuthToken(string user, SecureString password)
         {
             if (!string.IsNullOrEmpty(user) && user.Contains(BasicAuthCredentialSeparator))
@@ -63,11 +83,20 @@ namespace SonarQube.Client.Helpers
                 user, password.ToUnsecureString())));
         }
 
-        private static void ValidateCredentials(IUsernameAndPasswordCredentials basicAuthCredentials)
+        private static void ValidateCredentials(IUsernameAndPasswordCredentials credentials)
         {
-            if (string.IsNullOrEmpty(basicAuthCredentials.UserName))
+            if (string.IsNullOrEmpty(credentials.UserName))
             {
-                throw new ArgumentException(nameof(basicAuthCredentials.UserName));
+                throw new ArgumentException(nameof(IUsernameAndPasswordCredentials.UserName));
+            }
+            ValidateSecureString(credentials.Password, nameof(IUsernameAndPasswordCredentials.Password));
+        }
+
+        private static void ValidateSecureString(SecureString secureString, string parameterName)
+        {
+            if (secureString.IsNullOrEmpty())
+            {
+                throw new ArgumentException(parameterName);
             }
         }
     }

@@ -18,14 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarQube.Client.Api;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Logging;
@@ -46,14 +40,15 @@ namespace SonarQube.Client
         private readonly ISecondaryIssueHashUpdater secondaryIssueHashUpdater;
         private readonly ISSEStreamReaderFactory sseStreamReaderFactory;
 
-        private HttpClient httpClient;
+        private const string MinSqVersionSupportingBearer = "10.4";
+        private HttpClient currentHttpClient;
         private ServerInfo currentServerInfo;
 
         public async Task<bool> HasOrganizations(CancellationToken token)
         {
             EnsureIsConnected();
 
-            var hasOrganisations = httpClient.BaseAddress.Host.Equals("sonarcloud.io", StringComparison.OrdinalIgnoreCase);
+            var hasOrganisations = currentHttpClient.BaseAddress.Host.Equals("sonarcloud.io", StringComparison.OrdinalIgnoreCase);
 
             return await Task.FromResult<bool>(hasOrganisations);
         }
@@ -127,7 +122,17 @@ namespace SonarQube.Client
         /// Executes the call without checking whether the connection to the server has been established. This should only normally be used directly while connecting.
         /// Other uses should call <see cref="InvokeCheckedRequestAsync{TRequest,TResponse}(System.Threading.CancellationToken)"/>.
         /// </summary>
-        protected virtual async Task<TResponse> InvokeUncheckedRequestAsync<TRequest, TResponse>(Action<TRequest> configure, CancellationToken token)
+        private async Task<TResponse> InvokeUncheckedRequestAsync<TRequest, TResponse>(Action<TRequest> configure, CancellationToken token)
+            where TRequest : IRequest<TResponse>
+        {
+            return await InvokeUncheckedRequestAsync<TRequest, TResponse>(configure, currentHttpClient, token);
+        }
+
+        /// <summary>
+        /// Executes the call without checking whether the connection to the server has been established. This should only normally be used directly while connecting.
+        /// Other uses should call <see cref="InvokeCheckedRequestAsync{TRequest,TResponse}(System.Threading.CancellationToken)"/>.
+        /// </summary>
+        protected virtual async Task<TResponse> InvokeUncheckedRequestAsync<TRequest, TResponse>(Action<TRequest> configure, HttpClient httpClient, CancellationToken token)
             where TRequest : IRequest<TResponse>
         {
             var request = requestFactory.Create<TRequest>(currentServerInfo);
@@ -143,13 +148,6 @@ namespace SonarQube.Client
             logger.Info($"Connecting to '{connection.ServerUri}'.");
             logger.Debug($"IsConnected is {IsConnected}.");
 
-            httpClient = new HttpClient(messageHandler)
-            {
-                BaseAddress = connection.ServerUri, DefaultRequestHeaders = { Authorization = AuthenticationHeaderFactory.Create(connection.Credentials), },
-            };
-
-            httpClient.DefaultRequestHeaders.Add("User-Agent", userAgent);
-
             requestFactory = requestFactorySelector.Select(connection.IsSonarCloud, logger);
 
             try
@@ -157,14 +155,12 @@ namespace SonarQube.Client
                 var serverTypeDescription = connection.IsSonarCloud ? "SonarCloud" : "SonarQube";
 
                 logger.Debug($"Getting the version of {serverTypeDescription}...");
-
-                var versionResponse = await InvokeUncheckedRequestAsync<IGetVersionRequest, string>(request => { }, token);
-                var serverInfo = new ServerInfo(Version.Parse(versionResponse), connection.IsSonarCloud ? ServerType.SonarCloud : ServerType.SonarQube);
+                var serverInfo = await GetServerInfo(connection, token);
 
                 logger.Info($"Connected to {serverTypeDescription} '{serverInfo.Version}'.");
+                currentHttpClient = CreateHttpClient(connection.ServerUri, connection.Credentials, ShouldUseBearer(serverInfo));
 
                 logger.Debug($"Validating the credentials...");
-
                 var credentialResponse = await InvokeUncheckedRequestAsync<IValidateCredentialsRequest, bool>(request => { }, token);
                 if (!credentialResponse)
                 {
@@ -172,7 +168,6 @@ namespace SonarQube.Client
                 }
 
                 logger.Debug($"Credentials accepted.");
-
                 currentServerInfo = serverInfo;
             }
             catch
@@ -252,7 +247,7 @@ namespace SonarQube.Client
 
             var urlFormat = serverInfo.ServerType == ServerType.SonarCloud ? SonarCloud_ProjectDashboardRelativeUrl : SonarQube_ProjectDashboardRelativeUrl;
 
-            return new Uri(httpClient.BaseAddress, string.Format(urlFormat, projectKey));
+            return new Uri(currentHttpClient.BaseAddress, string.Format(urlFormat, projectKey));
         }
 
         public async Task<IList<SonarQubeQualityProfile>> GetAllQualityProfilesAsync(string project, string organizationKey, CancellationToken token)
@@ -478,7 +473,7 @@ namespace SonarQube.Client
             // Versioning: so far the format of the URL is the same across all versions from at least v6.7
             const string ViewIssueRelativeUrl = "project/issues?id={0}&issues={1}&open={1}";
 
-            return new Uri(httpClient.BaseAddress, string.Format(ViewIssueRelativeUrl, projectKey, issueKey));
+            return new Uri(currentHttpClient.BaseAddress, string.Format(ViewIssueRelativeUrl, projectKey, issueKey));
         }
 
         public Uri GetViewHotspotUrl(string projectKey, string hotspotKey)
@@ -495,7 +490,7 @@ namespace SonarQube.Client
 
             var urlFormat = serverInfo.ServerType == ServerType.SonarCloud ? SonarCloud_ViewHotspotRelativeUrl : SonarQube_ViewHotspotRelativeUrl;
 
-            return new Uri(httpClient.BaseAddress, string.Format(urlFormat, projectKey, hotspotKey));
+            return new Uri(currentHttpClient.BaseAddress, string.Format(urlFormat, projectKey, hotspotKey));
         }
 
         public async Task<string> GetSourceCodeAsync(string fileKey, CancellationToken token) =>
@@ -575,6 +570,26 @@ namespace SonarQube.Client
                 return null;
             }
             return organizationKey;
+        }
+
+        private static bool ShouldUseBearer(ServerInfo serverInfo)
+        {
+            return serverInfo.ServerType == ServerType.SonarCloud || serverInfo.Version >= Version.Parse(MinSqVersionSupportingBearer);
+        }
+
+        private async Task<ServerInfo> GetServerInfo(ConnectionInformation connection, CancellationToken token)
+        {
+            var http = CreateHttpClient(connection.ServerUri, new NoCredentials(), shouldUseBearer: true);
+            var versionResponse = await InvokeUncheckedRequestAsync<IGetVersionRequest, string>(request => { }, http, token);
+            var serverInfo = new ServerInfo(Version.Parse(versionResponse), connection.IsSonarCloud ? ServerType.SonarCloud : ServerType.SonarQube);
+            return serverInfo;
+        }
+
+        private HttpClient CreateHttpClient(Uri baseAddress, IConnectionCredentials credentials, bool shouldUseBearer)
+        {
+            var client = new HttpClient(messageHandler) { BaseAddress = baseAddress, DefaultRequestHeaders = { Authorization = AuthenticationHeaderFactory.Create(credentials, shouldUseBearer), }, };
+            client.DefaultRequestHeaders.Add("User-Agent", userAgent);
+            return client;
         }
     }
 }
