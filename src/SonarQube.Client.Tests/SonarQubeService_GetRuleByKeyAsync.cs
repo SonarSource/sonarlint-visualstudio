@@ -37,7 +37,7 @@ namespace SonarQube.Client.Tests
             await ConnectToSonarQube("10.2.0.0");
 
             SetupRequest(
-                "api/rules/search?qprofile=qpKey&rule_key=csharpsquid%3AS2342&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2Ctags%2Cname%2ChtmlNote%2CdescriptionSections%2CeducationPrinciples%2CcleanCodeAttribute&p=1&ps=500",
+                "api/rules/search?qprofile=qpKey&rule_key=csharpsquid%3AS2342&f=repo%2CinternalKey%2Cparams%2Cactives%2CcleanCodeAttribute&p=1&ps=500",
                 @"
 {
   ""total"": 1,
@@ -47,10 +47,6 @@ namespace SonarQube.Client.Tests
     {
       ""key"": ""csharpsquid:S2342"",
       ""repo"": ""csharpsquid"",
-      ""htmlDesc"": ""Html Description"",
-      ""htmlNote"": ""HTML Note"",
-      ""name"": ""RuleName"",
-      ""tags"": [""tag1"",""tag2""],
       ""params"": [
         {
           ""key"": ""format"",
@@ -67,32 +63,14 @@ namespace SonarQube.Client.Tests
       ],
       ""type"": ""CODE_SMELL"",
       ""cleanCodeAttributeCategory"": ""INTENTIONAL"",
-    ""cleanCodeAttribute"": ""CLEAR"",
+      ""cleanCodeAttribute"": ""CLEAR"",
       ""impacts"": [
                 {
                     ""softwareQuality"": ""RELIABILITY"",
                     ""severity"": ""MEDIUM""
                 }
-            ],
-      ""descriptionSections"" : [
-        {
-          ""key"": ""key1"",
-          ""content"": ""content1""
-        },
-        {
-          ""key"": ""key2"",
-          ""content"": ""content2"",
-          ""context"":{
-            ""displayName"":""displayName"",
-            ""key"":""key""
-          }
-        }
-        ],
-         ""educationPrinciples"": [
-            ""education principle 1"",
-            ""education principle 2""
-        ]
-    },
+            ]
+    }
   ],
   ""actives"": {
     ""csharpsquid:S2225"": [
@@ -153,26 +131,11 @@ namespace SonarQube.Client.Tests
 
             result.Key.Should().Be("S2342");
             result.RepositoryKey.Should().Be("csharpsquid");
-            result.Description.Should().Be("Html Description");
-            result.HtmlNote.Should().Be("HTML Note");
             result.Severity.Should().Be(SonarQubeIssueSeverity.Minor);
-            result.Name.Should().Be("RuleName");
-            result.Tags.Should().BeEquivalentTo(new[] { "tag1", "tag2" });
             result.CleanCodeAttribute.Should().Be(SonarQubeCleanCodeAttribute.Clear);
             result.SoftwareQualitySeverities.Should().BeEquivalentTo(
                 new Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity>
                     { { SonarQubeSoftwareQuality.Reliability, SonarQubeSoftwareQualitySeverity.Medium } });
-
-            result.DescriptionSections.Count.Should().Be(2);
-            result.DescriptionSections[0].Key.Should().Be("key1");
-            result.DescriptionSections[0].HtmlContent.Should().Be("content1");
-            result.DescriptionSections[0].Context.Should().BeNull();
-
-            result.DescriptionSections[1].Key.Should().Be("key2");
-            result.DescriptionSections[1].HtmlContent.Should().Be("content2");
-            result.DescriptionSections[1].Context.Should().NotBeNull();
-            result.DescriptionSections[1].Context.Key.Should().Be("key");
-            result.DescriptionSections[1].Context.DisplayName.Should().Be("displayName");
         }
 
         [TestMethod]
@@ -180,7 +143,7 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube();
 
-            SetupRequest("api/rules/search?qprofile=qpKey&rule_key=csharpsquid%3AS2342XX&f=repo%2CinternalKey%2Cparams%2Cactives%2ChtmlDesc%2Ctags%2Cname%2ChtmlNote&p=1&ps=500", @"{
+            SetupRequest("api/rules/search?qprofile=qpKey&rule_key=csharpsquid%3AS2342XX&f=repo%2CinternalKey%2Cparams%2Cactives&p=1&ps=500", @"{
     ""total"": 0,
     ""p"": 1,
     ""ps"": 100,

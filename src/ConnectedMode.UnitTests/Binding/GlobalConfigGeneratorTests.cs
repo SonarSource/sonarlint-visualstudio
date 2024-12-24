@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
         }
 
         private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive = true) =>
-            new SonarQubeRule(ruleKey, repoKey, isActive, SonarQubeIssueSeverity.Info, null, null, new Dictionary<string, string>(), SonarQubeIssueType.Unknown, null, null, null, null, null, null);
+            new SonarQubeRule(ruleKey, repoKey, isActive, SonarQubeIssueSeverity.Info, null, null, new Dictionary<string, string>(), SonarQubeIssueType.Unknown);
 
         private string GetRuleString(string expectedKey, string expectedSeverity) =>
             $"dotnet_diagnostic.{expectedKey}.severity = {expectedSeverity}";

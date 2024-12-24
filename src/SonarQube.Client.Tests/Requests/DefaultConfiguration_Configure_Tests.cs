@@ -62,8 +62,6 @@ public class DefaultConfiguration_Configure_Tests
             "Registered SonarQube.Client.Api.V8_6.GetHotspotRequest for 8.6",
             "Registered SonarQube.Client.Api.V7_20.GetExclusionsRequest for 7.2",
             "Registered SonarQube.Client.Api.V9_4.GetSonarLintEventStream for 9.4",
-            "Registered SonarQube.Client.Api.V9_5.GetRulesWithDescriptionSectionsRequest for 9.5",
-            "Registered SonarQube.Client.Api.V9_6.GetRulesWithEducationPrinciplesRequest for 9.6",
             "Registered SonarQube.Client.Api.V9_7.SearchHotspotRequest for 9.7",
             "Registered SonarQube.Client.Api.V10_2.SearchHotspotRequest for 10.2",
             "Registered SonarQube.Client.Api.V10_2.GetRulesWithCCTRequest for 10.2",
