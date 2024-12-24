@@ -51,6 +51,9 @@ public class LoggerListener : ILoggerListener
                 break;
         }
 
-        contextualizedLogger.LogVerbose(parameters.stackTrace);
+        if (parameters.stackTrace != null)
+        {
+            contextualizedLogger.LogVerbose(parameters.stackTrace);
+        }
     }
 }
