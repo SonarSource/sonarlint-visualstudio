@@ -69,7 +69,6 @@ public class CredentialsExtensionMethodsTests
     /// <summary>
     /// For backward compatibility
     /// </summary>
-
     [TestMethod]
     public void ToICredentials_PasswordIsEmpty_ReturnsTokenAuthCredentialsWithUsernameAsToken()
     {

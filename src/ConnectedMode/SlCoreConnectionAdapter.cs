@@ -39,22 +39,28 @@ namespace SonarLint.VisualStudio.ConnectedMode;
 public interface ISlCoreConnectionAdapter
 {
     Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel);
+
     Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel);
+
     Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, string serverProjectKey);
+
     Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(ServerConnection serverConnection);
+
     Task<AdapterResponseWithData<List<ServerProject>>> FuzzySearchProjectsAsync(ServerConnection serverConnection, string searchTerm);
 }
 
 public class AdapterResponseWithData<T>(bool success, T responseData) : IResponseStatus
 {
     public AdapterResponseWithData() : this(false, default) { }
+
     public bool Success { get; init; } = success;
     public T ResponseData { get; } = responseData;
 }
 
 public class AdapterResponse(bool success) : IResponseStatus
 {
-    public AdapterResponse(): this(false){}
+    public AdapterResponse() : this(false) { }
+
     public bool Success { get; } = success;
 }
 
@@ -78,7 +84,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel)
     {
         var credentials = credentialsModel.ToICredentials();
-        
+
         var validateConnectionParams = new ValidateConnectionParams(GetTransientConnectionDto(connectionInfo, credentials));
         return await ValidateConnectionAsync(validateConnectionParams);
     }
@@ -111,7 +117,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     public Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, string serverProjectKey)
     {
         var failedResponse = new AdapterResponseWithData<ServerProject>(false, null);
-        
+
         return threadHandling.RunOnBackgroundThread(async () =>
         {
             if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
@@ -129,7 +135,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
                     logger.LogVerbose(Resources.GetServerProjectByKey_ProjectNotFound, serverProjectKey);
                     return failedResponse;
                 }
-                
+
                 return new AdapterResponseWithData<ServerProject>(true, new ServerProject(serverProjectKey, response.projectNamesByKey[serverProjectKey]));
             }
             catch (Exception ex)
@@ -229,11 +235,11 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         logger.LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
         return false;
     }
-    
+
     private static Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ConnectionInfo connectionInfo, ICredentials credentials)
     {
         var credentialsDto = MapCredentials(credentials);
-        
+
         return connectionInfo.ServerType switch
         {
             ConnectionServerType.SonarQube => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateLeft(
@@ -247,7 +253,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     private static Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ServerConnection serverConnection)
     {
         var credentials = MapCredentials(serverConnection.Credentials);
-        
+
         return serverConnection switch
         {
             ServerConnection.SonarQube sonarQubeConnection => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateLeft(
@@ -267,7 +273,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
     {
         return Either<TokenDto, UsernamePasswordDto>.CreateRight(new UsernamePasswordDto(username, password));
     }
-    
+
     private static Either<TokenDto, UsernamePasswordDto> MapCredentials(ICredentials credentials) =>
         credentials switch
         {

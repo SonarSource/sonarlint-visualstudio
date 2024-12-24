@@ -144,8 +144,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 
             store.Received(1)
                 .WriteCredentials(
-                    Arg.Is<TargetUri>(t => t.ActualUri == mockUri), 
-                    Arg.Is<Credential>(c=> c.Username == "user" && c.Password == "password"));
+                    Arg.Is<TargetUri>(t => t.ActualUri == mockUri),
+                    Arg.Is<Credential>(c => c.Username == "user" && c.Password == "password"));
         }
 
         [TestMethod]

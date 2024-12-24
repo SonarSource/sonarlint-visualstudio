@@ -41,15 +41,15 @@ namespace SonarQube.Client.Helpers
             switch (credentials)
             {
                 case ITokenCredentials tokenCredentials:
-                {
-                    ValidateSecureString(tokenCredentials.Token, nameof(tokenCredentials.Token));
-                    return CreateAuthenticationHeaderValueForTokenAuth(shouldUseBearer, tokenCredentials);
-                }
+                    {
+                        ValidateSecureString(tokenCredentials.Token, nameof(tokenCredentials.Token));
+                        return CreateAuthenticationHeaderValueForTokenAuth(shouldUseBearer, tokenCredentials);
+                    }
                 case IBasicAuthCredentials basicAuthCredentials:
-                {
-                    ValidateCredentials(basicAuthCredentials);
-                    return CreateAuthenticationHeaderValueForBasicAuth(basicAuthCredentials.UserName, basicAuthCredentials.Password);
-                }
+                    {
+                        ValidateCredentials(basicAuthCredentials);
+                        return CreateAuthenticationHeaderValueForBasicAuth(basicAuthCredentials.UserName, basicAuthCredentials.Password);
+                    }
                 case INoCredentials:
                     return null;
                 default:

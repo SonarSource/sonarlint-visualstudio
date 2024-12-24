@@ -103,7 +103,7 @@ namespace SonarQube.Client.Tests.Helpers
         [TestMethod]
         public void Create_BasicAuth_PasswordIsEmpty_Throws()
         {
-            var credentials = MockBasicAuthCredentials(Username,  "".ToSecureString());
+            var credentials = MockBasicAuthCredentials(Username, "".ToSecureString());
 
             var act = () => AuthenticationHeaderFactory.Create(credentials);
 
@@ -134,7 +134,7 @@ namespace SonarQube.Client.Tests.Helpers
         [TestMethod]
         public void Create_BearerSupported_TokenIsEmpty_Throws()
         {
-            var credentials = MockTokenCredentials( "".ToSecureString());
+            var credentials = MockTokenCredentials("".ToSecureString());
 
             var act = () => AuthenticationHeaderFactory.Create(credentials);
 
@@ -157,7 +157,7 @@ namespace SonarQube.Client.Tests.Helpers
         {
             var credentials = MockTokenCredentials(Token.ToSecureString());
 
-            var authenticationHeaderValue = AuthenticationHeaderFactory.Create(credentials, shouldUseBearer:false);
+            var authenticationHeaderValue = AuthenticationHeaderFactory.Create(credentials, shouldUseBearer: false);
 
             authenticationHeaderValue.Scheme.Should().Be("Basic");
             AssertAreEqualUserNameAndPassword(Token, string.Empty, authenticationHeaderValue.Parameter);
@@ -168,12 +168,14 @@ namespace SonarQube.Client.Tests.Helpers
         {
             var credentials = MockTokenCredentials("".ToSecureString());
 
-            var act = () => AuthenticationHeaderFactory.Create(credentials, shouldUseBearer:false);
+            var act = () => AuthenticationHeaderFactory.Create(credentials, shouldUseBearer: false);
 
             act.Should().Throw<ArgumentException>();
         }
 
-        private static void AssertAreEqualUserNameAndPassword(string expectedUser, string expectedPassword,
+        private static void AssertAreEqualUserNameAndPassword(
+            string expectedUser,
+            string expectedPassword,
             string userAndPasswordBase64String)
 
         {

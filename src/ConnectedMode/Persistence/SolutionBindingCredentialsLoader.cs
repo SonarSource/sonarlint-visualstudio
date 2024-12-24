@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 
         public void DeleteCredentials(Uri boundServerUri)
         {
-            if(boundServerUri == null)
+            if (boundServerUri == null)
             {
                 return;
             }

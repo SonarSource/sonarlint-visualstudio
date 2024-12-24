@@ -38,10 +38,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
 [TestClass]
 public class SlCoreConnectionAdapterTests
 {
-    private static readonly TokenAuthCredentials ValidTokenAuth = new ("I_AM_JUST_A_TOKEN".ToSecureString());
+    private static readonly TokenAuthCredentials ValidTokenAuth = new("I_AM_JUST_A_TOKEN".ToSecureString());
     private readonly ServerConnection.SonarQube sonarQubeConnection = new(new Uri("http://localhost:9000/"), new ServerConnectionSettings(true), ValidTokenAuth);
     private readonly ServerConnection.SonarCloud sonarCloudConnection = new("myOrg", new ServerConnectionSettings(true), ValidTokenAuth);
-    
+
     private SlCoreConnectionAdapter testSubject;
     private ISLCoreServiceProvider slCoreServiceProvider;
     private IThreadHandling threadHandling;
@@ -200,7 +200,7 @@ public class SlCoreConnectionAdapterTests
 
         await testSubject.GetOrganizationsAsync(new TokenCredentialsModel(token.CreateSecureString()));
 
-        await connectionConfigurationSlCoreService.Received(1).ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x=> IsExpectedCredentials(x.credentials, token)));
+        await connectionConfigurationSlCoreService.Received(1).ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x => IsExpectedCredentials(x.credentials, token)));
     }
 
     [TestMethod]
@@ -257,7 +257,7 @@ public class SlCoreConnectionAdapterTests
     {
         var threadHandlingMock = Substitute.For<IThreadHandling>();
         var slCoreConnectionAdapter = new SlCoreConnectionAdapter(slCoreServiceProvider, threadHandlingMock, logger);
-            
+
         await slCoreConnectionAdapter.GetAllProjectsAsync(sonarQubeConnection);
 
         await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<ServerProject>>>>>());
@@ -289,7 +289,7 @@ public class SlCoreConnectionAdapterTests
         const string username = "username";
         const string password = "password";
         sonarQubeConnection.Credentials = new BasicAuthCredentials(username, password.CreateSecureString());
-        
+
         await testSubject.GetAllProjectsAsync(sonarQubeConnection);
 
         await connectionConfigurationSlCoreService.Received(1)
@@ -333,7 +333,7 @@ public class SlCoreConnectionAdapterTests
             new ServerProject("projKey2", "projName2")
         ]);
     }
-    
+
     [TestMethod]
     public async Task GetServerProjectByKeyAsync_SwitchesToBackgroundThread()
     {
@@ -344,7 +344,7 @@ public class SlCoreConnectionAdapterTests
 
         await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<ServerProject>>>>());
     }
-    
+
     [TestMethod]
     public async Task GetServerProjectByKeyAsync_GettingConnectionConfigurationSLCoreServiceFails_ReturnsFailedResponseAndShouldLog()
     {
@@ -356,7 +356,7 @@ public class SlCoreConnectionAdapterTests
         response.Success.Should().BeFalse();
         response.ResponseData.Should().BeNull();
     }
-    
+
     [TestMethod]
     public async Task GetServerProjectByKeyAsync_SlCoreThrowsException_ReturnsFailedResponseAndShouldLog()
     {
@@ -370,27 +370,24 @@ public class SlCoreConnectionAdapterTests
         response.Success.Should().BeFalse();
         response.ResponseData.Should().BeNull();
     }
-    
+
     [TestMethod]
     public async Task GetServerProjectByKeyAsync_ProjectNotFound_ReturnsFailedResponse()
     {
-        var slCoreResponse = new Dictionary<string, string> { {"project-key", null} };
+        var slCoreResponse = new Dictionary<string, string> { { "project-key", null } };
         connectionConfigurationSlCoreService.GetProjectNamesByKeyAsync(Arg.Any<GetProjectNamesByKeyParams>())
             .Returns(new GetProjectNamesByKeyResponse(slCoreResponse));
-        
+
         var response = await testSubject.GetServerProjectByKeyAsync(sonarCloudConnection, "project-key");
 
         response.Success.Should().BeFalse();
         response.ResponseData.Should().BeNull();
     }
-    
+
     [TestMethod]
     public async Task GetServerProjectByKeyAsync_ProjectFound_ReturnsSuccessResponseAndMappedOrganizations()
     {
-        var slCoreResponse = new Dictionary<string, string>
-        {
-            {"project-key", "project-name"}
-        };
+        var slCoreResponse = new Dictionary<string, string> { { "project-key", "project-name" } };
         connectionConfigurationSlCoreService.GetProjectNamesByKeyAsync(Arg.Any<GetProjectNamesByKeyParams>())
             .Returns(new GetProjectNamesByKeyResponse(slCoreResponse));
         var response = await testSubject.GetServerProjectByKeyAsync(sonarQubeConnection, "project-key");
@@ -398,7 +395,6 @@ public class SlCoreConnectionAdapterTests
         response.Success.Should().BeTrue();
         response.ResponseData.Should().BeEquivalentTo(new ServerProject("project-key", "project-name"));
     }
-
 
     [TestMethod]
     public async Task GetAllProjectsAsync_SlCoreValidationThrowsException_ReturnsUnsuccessfulResponse()
@@ -439,7 +435,7 @@ public class SlCoreConnectionAdapterTests
     public async Task FuzzySearchProjectsAsync_CallsSlCoreWithCorrectParams()
     {
         var searchTerm = "proj1";
-        
+
         await testSubject.FuzzySearchProjectsAsync(sonarCloudConnection, searchTerm);
 
         await connectionConfigurationSlCoreService.Received(1).FuzzySearchProjectsAsync(
@@ -459,7 +455,7 @@ public class SlCoreConnectionAdapterTests
         response.ResponseData.Count.Should().Be(expectedServerProjects.Count);
         response.ResponseData.Should().BeEquivalentTo([
             new ServerProject("projKey1", "projName1"),
-          new ServerProject("projKey2", "projName2")
+            new ServerProject("projKey2", "projName2")
         ]);
     }
 

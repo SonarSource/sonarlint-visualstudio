@@ -41,6 +41,6 @@ public class UsernamePasswordModel(string username, SecureString password) : ICr
 {
     public string Username { get; } = username;
     public SecureString Password { get; } = password;
-    
+
     public ICredentials ToICredentials() => new BasicAuthCredentials(Username, Password);
 }

@@ -30,10 +30,15 @@ namespace SonarLint.VisualStudio.ConnectedMode;
 public interface IServerConnectionsRepositoryAdapter
 {
     bool TryGetAllConnections(out List<Connection> connections);
+
     bool TryGetAllConnectionsInfo(out List<ConnectionInfo> connectionInfos);
+
     bool TryRemoveConnection(ConnectionInfo connectionInfo);
+
     bool TryAddConnection(Connection connection, ICredentialsModel credentialsModel);
+
     bool TryUpdateCredentials(Connection connection, ICredentialsModel credentialsModel);
+
     bool TryGet(ConnectionInfo connectionInfo, out ServerConnection serverConnection);
 }
 
@@ -61,7 +66,7 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         serverConnection.Credentials = MapCredentials(credentialsModel);
         return serverConnectionsRepository.TryAdd(serverConnection);
     }
-    
+
     public bool TryUpdateCredentials(Connection connection, ICredentialsModel credentialsModel)
     {
         var serverConnection = MapConnection(connection);
