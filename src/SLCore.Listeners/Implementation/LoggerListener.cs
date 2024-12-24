@@ -34,25 +34,23 @@ public class LoggerListener : ILoggerListener
     [ImportingConstructor]
     public LoggerListener(ILogger logger)
     {
-        this.logger = logger;
+        this.logger = logger.ForContext(SLCoreStrings.SLCoreName, SLCoreStrings.SLCoreInternalLogContext);
     }
 
     public void Log(LogParams parameters)
     {
-        var message = "[SLCORE] " + parameters.message;
+        var contextualizedLogger = logger.ForVerboseContext(parameters.loggerName, parameters.configScopeId, parameters.threadName);
 
         switch (parameters.level)
         {
-            case LogLevel.ERROR:
-            case LogLevel.WARN:
-                logger.WriteLine(message);
+            case LogLevel.ERROR or LogLevel.WARN:
+                contextualizedLogger.WriteLine(parameters.message);
                 break;
-
-            case LogLevel.INFO:
-            case LogLevel.DEBUG:
-            case LogLevel.TRACE:
-                logger.LogVerbose(message);
+            case LogLevel.INFO or LogLevel.DEBUG or LogLevel.TRACE:
+                contextualizedLogger.LogVerbose(parameters.message);
                 break;
         }
+
+        contextualizedLogger.LogVerbose(parameters.stackTrace);
     }
 }
