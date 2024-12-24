@@ -18,15 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarLint.VisualStudio.Core.Binding;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence
 {
     interface ISolutionBindingCredentialsLoader
     {
         void DeleteCredentials(Uri boundServerUri);
-        ICredentials Load(Uri boundServerUri);
-        void Save(ICredentials credentials, Uri boundServerUri);
+        IConnectionCredentials Load(Uri boundServerUri);
+        void Save(IConnectionCredentials credentials, Uri boundServerUri);
     }
 }
