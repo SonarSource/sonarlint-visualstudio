@@ -18,28 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Security;
-using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client.Models;
+namespace SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Persistence
+internal sealed class NoCredentials : INoCredentials
 {
-    internal class BasicAuthCredentials : ICredentials
-    {
-        public BasicAuthCredentials(string userName, SecureString password)
-        {
-            this.UserName = userName;
-            this.Password = password;
-        }
+    public void Dispose() { }
 
-        public string UserName { get; }
-
-        public SecureString Password { get; }
-
-        ConnectionInformation ICredentials.CreateConnectionInformation(Uri serverUri)
-        {
-            return new ConnectionInformation(serverUri, this.UserName, this.Password);
-        }
-    }
+    public object Clone() => new NoCredentials();
 }

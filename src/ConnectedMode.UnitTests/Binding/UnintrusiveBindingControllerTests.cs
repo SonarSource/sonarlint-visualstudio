@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
 public class UnintrusiveBindingControllerTests
 {
     private static readonly CancellationToken ACancellationToken = CancellationToken.None;
-    private static readonly BasicAuthCredentials ValidToken = new("TOKEN", new SecureString());
+    private static readonly UsernameAndPasswordCredentials ValidToken = new("TOKEN", new SecureString());
     private static readonly BoundServerProject AnyBoundProject = new("any", "any", new ServerConnection.SonarCloud("any", credentials: ValidToken));
     private IActiveSolutionChangedHandler activeSolutionChangedHandler;
     private IBindingProcess bindingProcess;
@@ -86,8 +86,8 @@ public class UnintrusiveBindingControllerTests
             .Received()
             .ConnectAsync(
                 Arg.Is<ConnectionInformation>(x => x.ServerUri.Equals("https://sonarcloud.io/")
-                                                   && x.UserName.Equals(ValidToken.UserName)
-                                                   && string.IsNullOrEmpty(x.Password.ToUnsecureString())),
+                                                   && ((UsernameAndPasswordCredentials)x.Credentials).UserName.Equals(ValidToken.UserName)
+                                                   && string.IsNullOrEmpty(((UsernameAndPasswordCredentials)x.Credentials).Password.ToUnsecureString())),
                 ACancellationToken);
     }
 

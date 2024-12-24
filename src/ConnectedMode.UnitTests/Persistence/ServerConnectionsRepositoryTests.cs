@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Persistence;
 using SonarLint.VisualStudio.TestInfrastructure;
+using SonarQube.Client.Models;
 using static SonarLint.VisualStudio.Core.Binding.ServerConnection;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence;
@@ -40,8 +41,8 @@ public class ServerConnectionsRepositoryTests
     private IEnvironmentVariableProvider environmentVariableProvider;
     private IServerConnectionModelMapper serverConnectionModelMapper;
     private ISolutionBindingCredentialsLoader credentialsLoader;
-    private readonly SonarCloud sonarCloudServerConnection = new("myOrganization", new ServerConnectionSettings(true), Substitute.For<ICredentials>());
-    private readonly ServerConnection.SonarQube sonarQubeServerConnection = new(new Uri("http://localhost"), new ServerConnectionSettings(true), Substitute.For<ICredentials>());
+    private readonly SonarCloud sonarCloudServerConnection = new("myOrganization", new ServerConnectionSettings(true), Substitute.For<IConnectionCredentials>());
+    private readonly ServerConnection.SonarQube sonarQubeServerConnection = new(new Uri("http://localhost"), new ServerConnectionSettings(true), Substitute.For<IConnectionCredentials>());
     private IFileSystem fileSystem;
 
     [TestInitialize]
@@ -128,7 +129,7 @@ public class ServerConnectionsRepositoryTests
     public void TryGet_FileExistsAndConnectionIsSonarCloud_FillsCredentials()
     {
         var expectedConnection = MockFileWithOneSonarCloudConnection();
-        var credentials = Substitute.For<ICredentials>();
+        var credentials = Substitute.For<IConnectionCredentials>();
         credentialsLoader.Load(expectedConnection.CredentialsUri).Returns(credentials);
 
         var succeeded = testSubject.TryGet(expectedConnection.Id, out ServerConnection serverConnection);
@@ -157,7 +158,7 @@ public class ServerConnectionsRepositoryTests
     public void TryGet_FileExistsAndConnectionIsSonarQube_FillsCredentials()
     {
         var expectedConnection = MockFileWithOneSonarQubeConnection();
-        var credentials = Substitute.For<ICredentials>();
+        var credentials = Substitute.For<IConnectionCredentials>();
         credentialsLoader.Load(expectedConnection.CredentialsUri).Returns(credentials);
 
         var succeeded = testSubject.TryGet(expectedConnection.Id, out ServerConnection serverConnection);
@@ -289,7 +290,7 @@ public class ServerConnectionsRepositoryTests
         var succeeded = testSubject.TryAdd(sonarCloudServerConnection);
 
         succeeded.Should().BeFalse();
-        credentialsLoader.DidNotReceive().Save(Arg.Any<ICredentials>(), Arg.Any<Uri>());
+        credentialsLoader.DidNotReceive().Save(Arg.Any<IConnectionCredentials>(), Arg.Any<Uri>());
     }
 
     [TestMethod]
@@ -300,7 +301,7 @@ public class ServerConnectionsRepositoryTests
         var succeeded = testSubject.TryAdd(sonarCloud);
 
         succeeded.Should().BeFalse();
-        credentialsLoader.DidNotReceive().Save(Arg.Any<ICredentials>(), Arg.Any<Uri>());
+        credentialsLoader.DidNotReceive().Save(Arg.Any<IConnectionCredentials>(), Arg.Any<Uri>());
     }
 
     [TestMethod]
@@ -589,17 +590,17 @@ public class ServerConnectionsRepositoryTests
     {
         MockReadingFile(new ServerConnectionsListJsonModel());
 
-        var succeeded = testSubject.TryUpdateCredentialsById("myConn", Substitute.For<ICredentials>());
+        var succeeded = testSubject.TryUpdateCredentialsById("myConn", Substitute.For<IConnectionCredentials>());
 
         succeeded.Should().BeFalse();
-        credentialsLoader.DidNotReceive().Save(Arg.Any<ICredentials>(), Arg.Any<Uri>());
+        credentialsLoader.DidNotReceive().Save(Arg.Any<IConnectionCredentials>(), Arg.Any<Uri>());
     }
 
     [TestMethod]
     public void TryUpdateCredentialsById_SonarCloudConnectionExists_UpdatesCredentials()
     {
         var sonarCloud = MockFileWithOneSonarCloudConnection();
-        var newCredentials = Substitute.For<ICredentials>();
+        var newCredentials = Substitute.For<IConnectionCredentials>();
 
         var succeeded = testSubject.TryUpdateCredentialsById(sonarCloud.Id, newCredentials);
 
@@ -611,7 +612,7 @@ public class ServerConnectionsRepositoryTests
     public void TryUpdateCredentialsById_SonarQubeConnectionExists_UpdatesCredentials()
     {
         var sonarQube = MockFileWithOneSonarQubeConnection();
-        var newCredentials = Substitute.For<ICredentials>();
+        var newCredentials = Substitute.For<IConnectionCredentials>();
 
         var succeeded = testSubject.TryUpdateCredentialsById(sonarQube.Id, newCredentials);
 
@@ -626,7 +627,7 @@ public class ServerConnectionsRepositoryTests
         var eventHandler = Substitute.For<EventHandler<ServerConnectionUpdatedEventArgs>>();
         testSubject.CredentialsChanged += eventHandler;
 
-        testSubject.TryUpdateCredentialsById("non-existingConn", Substitute.For<ICredentials>());
+        testSubject.TryUpdateCredentialsById("non-existingConn", Substitute.For<IConnectionCredentials>());
 
         eventHandler.DidNotReceive().Invoke(testSubject, Arg.Any<ServerConnectionUpdatedEventArgs>());
     }
@@ -638,7 +639,7 @@ public class ServerConnectionsRepositoryTests
         var eventHandler = Substitute.For<EventHandler<ServerConnectionUpdatedEventArgs>>();
         testSubject.CredentialsChanged += eventHandler;
 
-        testSubject.TryUpdateCredentialsById(sonarQube.Id, Substitute.For<ICredentials>());
+        testSubject.TryUpdateCredentialsById(sonarQube.Id, Substitute.For<IConnectionCredentials>());
 
         eventHandler.Received(1).Invoke(testSubject, Arg.Is<ServerConnectionUpdatedEventArgs>(args => args.ServerConnection == sonarQube));
     }
@@ -660,9 +661,9 @@ public class ServerConnectionsRepositoryTests
     {
         var exceptionMsg = "failed";
         var connection = MockFileWithOneSonarCloudConnection();
-        credentialsLoader.When(x => x.Save(Arg.Any<ICredentials>(), Arg.Any<Uri>())).Do(x => throw new Exception(exceptionMsg));
+        credentialsLoader.When(x => x.Save(Arg.Any<IConnectionCredentials>(), Arg.Any<Uri>())).Do(x => throw new Exception(exceptionMsg));
 
-        var succeeded = testSubject.TryUpdateCredentialsById(connection.Id, Substitute.For<ICredentials>());
+        var succeeded = testSubject.TryUpdateCredentialsById(connection.Id, Substitute.For<IConnectionCredentials>());
 
         succeeded.Should().BeFalse();
         logger.Received(1).WriteLine($"Failed updating credentials: {exceptionMsg}");
@@ -671,7 +672,7 @@ public class ServerConnectionsRepositoryTests
     private SonarCloud MockFileWithOneSonarCloudConnection(bool isSmartNotificationsEnabled = true)
     {
         var sonarCloudModel = GetSonarCloudJsonModel(isSmartNotificationsEnabled);
-        var sonarCloud = new SonarCloud(sonarCloudModel.OrganizationKey, sonarCloudModel.Settings, Substitute.For<ICredentials>());
+        var sonarCloud = new SonarCloud(sonarCloudModel.OrganizationKey, sonarCloudModel.Settings, Substitute.For<IConnectionCredentials>());
         MockReadingFile(new ServerConnectionsListJsonModel { ServerConnections = [sonarCloudModel] });
         serverConnectionModelMapper.GetServerConnection(sonarCloudModel).Returns(sonarCloud);
         
@@ -681,7 +682,7 @@ public class ServerConnectionsRepositoryTests
     private ServerConnection.SonarQube MockFileWithOneSonarQubeConnection(bool isSmartNotificationsEnabled = true)
     {
         var sonarQubeModel = GetSonarQubeJsonModel(new Uri("http://localhost"), isSmartNotificationsEnabled);
-        var sonarQube = new ServerConnection.SonarQube(new Uri(sonarQubeModel.ServerUri), sonarQubeModel.Settings, Substitute.For<ICredentials>());
+        var sonarQube = new ServerConnection.SonarQube(new Uri(sonarQubeModel.ServerUri), sonarQubeModel.Settings, Substitute.For<IConnectionCredentials>());
         MockReadingFile(new ServerConnectionsListJsonModel { ServerConnections = [sonarQubeModel] });
         serverConnectionModelMapper.GetServerConnection(sonarQubeModel).Returns(sonarQube);
 
