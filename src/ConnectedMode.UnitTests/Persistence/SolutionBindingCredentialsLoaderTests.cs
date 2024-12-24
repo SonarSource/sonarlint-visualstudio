@@ -54,15 +54,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         public void Load_ServerUriIsNull_Null()
         {
             var actual = testSubject.Load(null);
+
             actual.Should().Be(null);
         }
 
         [TestMethod]
         public void Load_NoCredentials_Null()
         {
-            store.ReadCredentials(mockUri).Returns(null as Credential);
+            MockReadCredentials(mockUri, null);
 
             var actual = testSubject.Load(mockUri);
+
             actual.Should().Be(null);
         }
 
@@ -70,12 +72,36 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         public void Load_CredentialsExist_CredentialsWithSecuredString()
         {
             var credentials = new Credential("user", "password");
-            store
-                .ReadCredentials(Arg.Is<TargetUri>(t => t.ActualUri == mockUri))
-                .Returns(credentials);
+            MockReadCredentials(mockUri, credentials);
 
             var actual = testSubject.Load(mockUri);
+
             actual.Should().BeEquivalentTo(new UsernameAndPasswordCredentials("user", "password".ToSecureString()));
+        }
+
+        [TestMethod]
+        public void Load_CredentialsExist_UsernameIsEmpty_BasicAuthCredentialsWithSecuredString()
+        {
+            var credentials = new Credential(string.Empty, "token");
+            MockReadCredentials(mockUri, credentials);
+
+            var actual = testSubject.Load(mockUri);
+
+            actual.Should().BeEquivalentTo(new UsernameAndPasswordCredentials(string.Empty, "token".ToSecureString()));
+        }
+
+        /// <summary>
+        /// For backward compatibility
+        /// </summary>
+        [TestMethod]
+        public void Load_CredentialsExist_PasswordIsEmpty_TokenCredentialsWithSecuredString()
+        {
+            var credentials = new Credential("token", string.Empty);
+            MockReadCredentials(mockUri, credentials);
+
+            var actual = testSubject.Load(mockUri);
+
+            actual.Should().BeEquivalentTo(new TokenAuthCredentials("token".ToSecureString()));
         }
 
         [TestMethod]
@@ -99,8 +125,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         [TestMethod]
         public void Save_CredentialsAreNotBasicAuth_CredentialsNotSaved()
         {
-            var mockCredentials = new Mock<IConnectionCredentials>();
-            testSubject.Save(mockCredentials.Object, mockUri);
+            try
+            {
+                testSubject.Save(new Mock<IConnectionCredentials>().Object, mockUri);
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
 
             store.DidNotReceive().WriteCredentials(Arg.Any<TargetUri>(), Arg.Any<Credential>());
         }
@@ -118,6 +150,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
         }
 
         [TestMethod]
+        public void Save_CredentialsAreTokenAuth_CredentialsSavedWithUnsecuredString()
+        {
+            var credentials = new TokenAuthCredentials("token".ToSecureString());
+
+            testSubject.Save(credentials, mockUri);
+
+            store.Received(1)
+                .WriteCredentials(
+                    Arg.Is<TargetUri>(t => t.ActualUri == mockUri),
+                    Arg.Is<Credential>(c => c.Username == "token" && c.Password == string.Empty));
+        }
+
+        [TestMethod]
         public void DeleteCredentials_UriNull_DoesNotCallStoreDeleteCredentials()
         {
             testSubject.DeleteCredentials(null);
@@ -132,5 +177,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Persistence
 
             store.Received(1).DeleteCredentials(Arg.Any<TargetUri>());
         }
+
+        private void MockReadCredentials(Uri uri, Credential credentials) =>
+            store
+                .ReadCredentials(Arg.Is<TargetUri>(t => t.ActualUri == uri))
+                .Returns(credentials);
     }
 }

@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Security;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
@@ -32,15 +31,16 @@ using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
 
 [TestClass]
 public class SlCoreConnectionAdapterTests
 {
-    private static readonly UsernameAndPasswordCredentials ValidToken = new ("I_AM_JUST_A_TOKEN", new SecureString());
-    private readonly ServerConnection.SonarQube sonarQubeConnection = new(new Uri("http://localhost:9000/"), new ServerConnectionSettings(true), ValidToken);
-    private readonly ServerConnection.SonarCloud sonarCloudConnection = new("myOrg", new ServerConnectionSettings(true), ValidToken);
+    private static readonly TokenAuthCredentials ValidTokenAuth = new ("I_AM_JUST_A_TOKEN".ToSecureString());
+    private readonly ServerConnection.SonarQube sonarQubeConnection = new(new Uri("http://localhost:9000/"), new ServerConnectionSettings(true), ValidTokenAuth);
+    private readonly ServerConnection.SonarCloud sonarCloudConnection = new("myOrg", new ServerConnectionSettings(true), ValidTokenAuth);
     
     private SlCoreConnectionAdapter testSubject;
     private ISLCoreServiceProvider slCoreServiceProvider;
@@ -280,7 +280,7 @@ public class SlCoreConnectionAdapterTests
         await testSubject.GetAllProjectsAsync(sonarQubeConnection);
 
         await connectionConfigurationSlCoreService.Received(1)
-            .GetAllProjectsAsync(Arg.Is<GetAllProjectsParams>(x => IsExpectedSonarQubeConnectionParams(x.transientConnection, ValidToken.UserName)));
+            .GetAllProjectsAsync(Arg.Is<GetAllProjectsParams>(x => IsExpectedSonarQubeConnectionParams(x.transientConnection, ValidTokenAuth.Token.ToUnsecureString())));
     }
 
     [TestMethod]
@@ -302,7 +302,7 @@ public class SlCoreConnectionAdapterTests
         await testSubject.GetAllProjectsAsync(sonarCloudConnection);
 
         await connectionConfigurationSlCoreService.Received(1)
-            .GetAllProjectsAsync(Arg.Is<GetAllProjectsParams>(x => IsExpectedSonarCloudConnectionParams(x.transientConnection, ValidToken.UserName)));
+            .GetAllProjectsAsync(Arg.Is<GetAllProjectsParams>(x => IsExpectedSonarCloudConnectionParams(x.transientConnection, ValidTokenAuth.Token.ToUnsecureString())));
     }
 
     [TestMethod]
