@@ -20,7 +20,6 @@
 
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
-using ICredentials = SonarLint.VisualStudio.Core.Binding.ICredentials;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.Binding;
 
@@ -58,7 +57,7 @@ public class ServerConnectionTests
     public void Ctor_SonarCloud_SetsProperties()
     {
         var serverConnectionSettings = new ServerConnectionSettings(false);
-        var credentials = Substitute.For<ICredentials>();
+        var credentials = Substitute.For<IConnectionCredentials>();
         var sonarCloud = new ServerConnection.SonarCloud(Org, serverConnectionSettings, credentials);
 
         sonarCloud.Id.Should().Be($"https://sonarcloud.io/organizations/{Org}");
@@ -97,7 +96,7 @@ public class ServerConnectionTests
     public void Ctor_SonarQube_SetsProperties()
     {
         var serverConnectionSettings = new ServerConnectionSettings(false);
-        var credentials = Substitute.For<ICredentials>();
+        var credentials = Substitute.For<IConnectionCredentials>();
         var sonarQube = new ServerConnection.SonarQube(Localhost, serverConnectionSettings, credentials);
 
         sonarQube.Id.Should().Be(Localhost.ToString());
@@ -110,7 +109,7 @@ public class ServerConnectionTests
     [TestMethod]
     public void FromBoundSonarQubeProject_SonarQubeConnection_ConvertedCorrectly()
     {
-        var credentials = Substitute.For<ICredentials>();
+        var credentials = Substitute.For<IConnectionCredentials>();
         var expectedConnection = new ServerConnection.SonarQube(Localhost, credentials: credentials);
 
         var connection = ServerConnection.FromBoundSonarQubeProject(new BoundSonarQubeProject(Localhost, "any", "any", credentials));
@@ -123,7 +122,7 @@ public class ServerConnectionTests
     {
         var uri = new Uri("https://sonarcloud.io");
         var organization = "org";
-        var credentials = Substitute.For<ICredentials>();
+        var credentials = Substitute.For<IConnectionCredentials>();
         var expectedConnection = new ServerConnection.SonarCloud(organization, credentials: credentials);
 
         var connection = ServerConnection.FromBoundSonarQubeProject(new BoundSonarQubeProject(uri, "any", "any", credentials, new SonarQubeOrganization(organization, null)));

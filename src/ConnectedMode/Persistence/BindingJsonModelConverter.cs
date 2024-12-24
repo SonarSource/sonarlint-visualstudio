@@ -28,7 +28,7 @@ internal interface IBindingJsonModelConverter
 {
     BoundServerProject ConvertFromModel(BindingJsonModel bindingJsonModel, ServerConnection connection, string localBindingKey);
     BindingJsonModel ConvertToModel(BoundServerProject binding);
-    BoundSonarQubeProject ConvertFromModelToLegacy(BindingJsonModel bindingJsonModel, ICredentials credentials);
+    BoundSonarQubeProject ConvertFromModelToLegacy(BindingJsonModel bindingJsonModel, IConnectionCredentials credentials);
 }
 
 [Export(typeof(IBindingJsonModelConverter))]
@@ -54,7 +54,7 @@ internal class BindingJsonModelConverter : IBindingJsonModelConverter
                 : null
         };
 
-    public BoundSonarQubeProject ConvertFromModelToLegacy(BindingJsonModel bindingJsonModel, ICredentials credentials) =>
+    public BoundSonarQubeProject ConvertFromModelToLegacy(BindingJsonModel bindingJsonModel, IConnectionCredentials credentials) =>
             new(bindingJsonModel.ServerUri,
                 bindingJsonModel.ProjectKey,
                 bindingJsonModel.ProjectName,

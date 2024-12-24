@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Security;
 using SonarQube.Client.Helpers;
 
 namespace SonarQube.Client.Models
@@ -35,7 +33,7 @@ namespace SonarQube.Client.Models
 
         private bool isDisposed;
 
-        public ConnectionInformation(Uri serverUri, string userName, SecureString password)
+        public ConnectionInformation(Uri serverUri, IConnectionCredentials credentials)
         {
             if (serverUri == null)
             {
@@ -43,14 +41,12 @@ namespace SonarQube.Client.Models
             }
 
             ServerUri = FixSonarCloudUri(serverUri).EnsureTrailingSlash();
-            UserName = userName;
-            Password = password?.CopyAsReadOnly();
-            Authentication = AuthenticationType.Basic; // Only one supported at this point
+            Credentials = (IConnectionCredentials)credentials?.Clone() ?? new NoCredentials();
             IsSonarCloud = ServerUri == FixedSonarCloudUri;
         }
 
         public ConnectionInformation(Uri serverUri)
-            : this(serverUri, null, null)
+            : this(serverUri, null)
         {
         }
 
@@ -58,11 +54,7 @@ namespace SonarQube.Client.Models
 
         public bool IsSonarCloud { get; }
 
-        public string UserName { get; }
-
-        public SecureString Password { get; }
-
-        public AuthenticationType Authentication { get; }
+        public IConnectionCredentials Credentials { get; }
 
         public bool IsDisposed => isDisposed;
 
@@ -70,7 +62,7 @@ namespace SonarQube.Client.Models
 
         public ConnectionInformation Clone()
         {
-            return new ConnectionInformation(ServerUri, UserName, Password?.CopyAsReadOnly()) { Organization = Organization };
+            return new ConnectionInformation(ServerUri, (IConnectionCredentials)Credentials?.Clone()) { Organization = Organization };
         }
 
         object ICloneable.Clone()
@@ -96,7 +88,7 @@ namespace SonarQube.Client.Models
         {
             if (!isDisposed)
             {
-                Password?.Dispose();
+                Credentials?.Dispose();
                 isDisposed = true;
             }
         }

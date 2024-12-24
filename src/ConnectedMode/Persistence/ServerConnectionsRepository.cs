@@ -25,6 +25,7 @@ using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 
@@ -122,7 +123,7 @@ internal class ServerConnectionsRepository : IServerConnectionsRepository
         return SafeUpdateConnectionsFile(connections => TryUpdateConnectionSettings(connections, connectionId, connectionSettings));
     }
 
-    public bool TryUpdateCredentialsById(string connectionId, ICredentials credentials)
+    public bool TryUpdateCredentialsById(string connectionId, IConnectionCredentials credentials)
     {
         try
         {

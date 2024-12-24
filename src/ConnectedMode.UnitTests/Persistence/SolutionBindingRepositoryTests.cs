@@ -40,7 +40,7 @@ public class SolutionBindingRepositoryTests
     private ISolutionBindingCredentialsLoader credentialsLoader;
     private TestLogger logger;
 
-    private BasicAuthCredentials mockCredentials;
+    private UsernameAndPasswordCredentials mockCredentials;
     private ServerConnection serverConnection;
     private IServerConnectionsRepository serverConnectionsRepository;
     private ISolutionBindingFileLoader solutionBindingFileLoader;
@@ -59,7 +59,7 @@ public class SolutionBindingRepositoryTests
 
         testSubject = new SolutionBindingRepository(unintrusiveBindingPathProvider, bindingJsonModelConverter, serverConnectionsRepository, solutionBindingFileLoader, credentialsLoader, logger);
 
-        mockCredentials = new BasicAuthCredentials("user", "pwd".ToSecureString());
+        mockCredentials = new UsernameAndPasswordCredentials("user", "pwd".ToSecureString());
 
         serverConnection = new ServerConnection.SonarCloud("org");
         boundServerProject = new BoundServerProject("solution.123", "project_123", serverConnection);

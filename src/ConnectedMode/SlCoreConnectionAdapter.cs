@@ -33,6 +33,7 @@ using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection;
 using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode;
 
@@ -230,7 +231,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         return false;
     }
     
-    private static Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ConnectionInfo connectionInfo, ICredentials credentials)
+    private static Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ConnectionInfo connectionInfo, IConnectionCredentials credentials)
     {
         var credentialsDto = MapCredentials(credentials);
         
@@ -268,14 +269,14 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         return Either<TokenDto, UsernamePasswordDto>.CreateRight(new UsernamePasswordDto(username, password));
     }
     
-    private static Either<TokenDto, UsernamePasswordDto> MapCredentials(ICredentials credentials)
+    private static Either<TokenDto, UsernamePasswordDto> MapCredentials(IConnectionCredentials credentials)
     {
         if (credentials == null)
         {
             throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument");
         }
         
-        var basicAuthCredentials = (BasicAuthCredentials) credentials;
+        var basicAuthCredentials = (UsernameAndPasswordCredentials) credentials;
         return basicAuthCredentials.Password?.Length > 0
             ? GetEitherForUsernamePassword(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString())
             : GetEitherForToken(basicAuthCredentials.UserName);

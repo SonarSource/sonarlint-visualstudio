@@ -234,7 +234,7 @@ public class BindingToConnectionMigrationTests
 
     private static BoundSonarQubeProject CreateBoundProject(string url, string projectKey)
     {
-        return new BoundSonarQubeProject(new Uri(url), projectKey, "projectName", credentials: new BasicAuthCredentials("admin", "admin".ToSecureString()));
+        return new BoundSonarQubeProject(new Uri(url), projectKey, "projectName", credentials: new UsernameAndPasswordCredentials("admin", "admin".ToSecureString()));
     }
 
     private static bool IsExpectedServerConnection(ServerConnection serverConnection, BoundSonarQubeProject boundProject)
