@@ -48,7 +48,7 @@ public class BindingJsonModelConverterTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<BindingJsonModelConverter>();
     }
-    
+
     [TestMethod]
     public void ConvertFromModel_ConvertsCorrectly()
     {
@@ -75,10 +75,7 @@ public class BindingJsonModelConverterTests
     [TestMethod]
     public void ConvertToModel_SonarCloudConnection_ConvertsCorrectly()
     {
-        var boundServerProject = new BoundServerProject("localBinding", "serverProject", new ServerConnection.SonarCloud("myorg"))
-        {
-            Profiles = new Dictionary<Language, ApplicableQualityProfile>()
-        };
+        var boundServerProject = new BoundServerProject("localBinding", "serverProject", new ServerConnection.SonarCloud("myorg")) { Profiles = new Dictionary<Language, ApplicableQualityProfile>() };
 
         var bindingModel = testSubject.ConvertToModel(boundServerProject);
 
@@ -89,7 +86,7 @@ public class BindingJsonModelConverterTests
         bindingModel.ServerConnectionId.Should().BeSameAs(boundServerProject.ServerConnection.Id);
         bindingModel.Profiles.Should().BeSameAs(boundServerProject.Profiles);
     }
-    
+
     [TestMethod]
     public void ConvertToModel_SonarQubeConnection_ConvertsCorrectly()
     {

@@ -236,7 +236,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         logger.LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
         return false;
     }
-    
+
     private static Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> GetTransientConnectionDto(ConnectionInfo connectionInfo, IConnectionCredentials credentials)
     {
         var credentialsDto = MapCredentials(credentials);

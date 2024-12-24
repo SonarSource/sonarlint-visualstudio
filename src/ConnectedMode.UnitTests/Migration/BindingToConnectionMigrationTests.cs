@@ -151,7 +151,6 @@ public class BindingToConnectionMigrationTests
         var boundProjects = bindingPathToBoundProjectDictionary.Values.ToList();
         var expectedServerConnectionId = boundProjects[0].ServerUri.ToString();
         serverConnectionsRepository.TryGet(expectedServerConnectionId, out _).Returns(true);
-        
 
         await testSubject.MigrateAllBindingsToServerConnectionsIfNeededAsync();
 
@@ -215,8 +214,7 @@ public class BindingToConnectionMigrationTests
     {
         Dictionary<string, BoundSonarQubeProject> pathToBindings = new()
         {
-            {"bindings/proj1/binding.config", CreateBoundProject("http://server1", "proj1")},
-            {"bindings/proj2/binding.config", CreateBoundProject("http://server2", "proj2")}
+            { "bindings/proj1/binding.config", CreateBoundProject("http://server1", "proj1") }, { "bindings/proj2/binding.config", CreateBoundProject("http://server2", "proj2") }
         };
         unintrusiveBindingPathProvider.GetBindingPaths().Returns(pathToBindings.Select(kvp => kvp.Key));
         foreach (var kvp in pathToBindings)

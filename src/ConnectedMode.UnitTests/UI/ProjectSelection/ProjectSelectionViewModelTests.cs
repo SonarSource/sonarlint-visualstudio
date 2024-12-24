@@ -38,7 +38,7 @@ public class ProjectSelectionViewModelTests
     ];
 
     private static readonly ConnectionInfo AConnectionInfo = new("http://localhost:9000", ConnectionServerType.SonarQube);
-    
+
     private ProjectSelectionViewModel testSubject;
     private ISlCoreConnectionAdapter slCoreConnectionAdapter;
     private IProgressReporterViewModel progressReporterViewModel;
@@ -66,25 +66,22 @@ public class ProjectSelectionViewModelTests
     {
         testSubject.IsProjectSelected.Should().BeFalse();
     }
-    
+
     [TestMethod]
     public void IsProjectSelected_ProjectSelected_ReturnsTrue()
     {
         testSubject.SelectedProject = new ServerProject("a-project", "A Project");
-        
+
         testSubject.IsProjectSelected.Should().BeTrue();
     }
-    
+
     [TestMethod]
     public void InitProjects_ResetsTheProjectResults()
     {
         MockInitializedProjects(AnInitialListOfProjects);
         testSubject.ProjectResults.Should().BeEquivalentTo(AnInitialListOfProjects);
-        
-        var updatedListOfProjects = new List<ServerProject>
-        {
-            new("new-project", "New Project")
-        };
+
+        var updatedListOfProjects = new List<ServerProject> { new("new-project", "New Project") };
         MockInitializedProjects(updatedListOfProjects);
         testSubject.ProjectResults.Should().BeEquivalentTo(updatedListOfProjects);
     }
@@ -92,12 +89,7 @@ public class ProjectSelectionViewModelTests
     [TestMethod]
     public void InitProjects_SortsTheProjectResultsByName()
     {
-        var unsortedListOfProjects = new List<ServerProject>
-        {
-            new("a-project", "Y Project"),
-            new("b-project", "X Project"),
-            new("c-project", "Z Project")
-        };
+        var unsortedListOfProjects = new List<ServerProject> { new("a-project", "Y Project"), new("b-project", "X Project"), new("c-project", "Z Project") };
 
         MockInitializedProjects(unsortedListOfProjects);
 
@@ -180,7 +172,7 @@ public class ProjectSelectionViewModelTests
     [TestMethod]
     public void NoProjectExists_HasProjects_ReturnsFalse()
     {
-        MockInitializedProjects(AnInitialListOfProjects); 
+        MockInitializedProjects(AnInitialListOfProjects);
 
         testSubject.NoProjectExists.Should().BeFalse();
     }
@@ -231,7 +223,7 @@ public class ProjectSelectionViewModelTests
     public async Task AdapterGetAllProjectsAsync_GettingServerConnectionSucceeded_CallsAdapterWithCredentialsForServerConnection()
     {
         var expectedCredentials = Substitute.For<IConnectionCredentials>();
-        MockTrySonarQubeConnection(AConnectionInfo, success:true, expectedCredentials);
+        MockTrySonarQubeConnection(AConnectionInfo, success: true, expectedCredentials);
 
         await testSubject.AdapterGetAllProjectsAsync();
 
@@ -252,7 +244,7 @@ public class ProjectSelectionViewModelTests
     [TestMethod]
     public async Task AdapterGetAllProjectsAsync_GettingServerConnectionFailed_ReturnsFailure()
     {
-        MockTrySonarQubeConnection(AConnectionInfo, success:false);
+        MockTrySonarQubeConnection(AConnectionInfo, success: false);
 
         var response = await testSubject.AdapterGetAllProjectsAsync();
 
@@ -269,7 +261,7 @@ public class ProjectSelectionViewModelTests
     public async Task AdapterGetAllProjectsAsync_ReturnsResponseFromAdapter(bool expectedResponse)
     {
         MockTrySonarQubeConnection(AConnectionInfo, success: true);
-        var expectedServerProjects = new List<ServerProject>{new("proj1", "name1"), new("proj2", "name2") };
+        var expectedServerProjects = new List<ServerProject> { new("proj1", "name1"), new("proj2", "name2") };
         slCoreConnectionAdapter.GetAllProjectsAsync(Arg.Any<ServerConnection>())
             .Returns(new AdapterResponseWithData<List<ServerProject>>(expectedResponse, expectedServerProjects));
 
@@ -322,7 +314,7 @@ public class ProjectSelectionViewModelTests
     }
 
     private ProjectSelectionViewModel CreateTestSubjectWithNotMockedProgress()
-    { 
+    {
         return new ProjectSelectionViewModel(AConnectionInfo, connectedModeServices, new ProgressReporterViewModel(logger));
     }
 }

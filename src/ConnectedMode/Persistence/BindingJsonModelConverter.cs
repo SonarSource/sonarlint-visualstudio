@@ -27,7 +27,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 internal interface IBindingJsonModelConverter
 {
     BoundServerProject ConvertFromModel(BindingJsonModel bindingJsonModel, ServerConnection connection, string localBindingKey);
+
     BindingJsonModel ConvertToModel(BoundServerProject binding);
+
     BoundSonarQubeProject ConvertFromModelToLegacy(BindingJsonModel bindingJsonModel, IConnectionCredentials credentials);
 }
 
@@ -36,10 +38,7 @@ internal interface IBindingJsonModelConverter
 internal class BindingJsonModelConverter : IBindingJsonModelConverter
 {
     public BoundServerProject ConvertFromModel(BindingJsonModel bindingJsonModel, ServerConnection connection, string localBindingKey) =>
-        new(localBindingKey, bindingJsonModel.ProjectKey, connection)
-        {
-            Profiles = bindingJsonModel.Profiles
-        };
+        new(localBindingKey, bindingJsonModel.ProjectKey, connection) { Profiles = bindingJsonModel.Profiles };
 
     public BindingJsonModel ConvertToModel(BoundServerProject binding) =>
         new()
@@ -55,12 +54,9 @@ internal class BindingJsonModelConverter : IBindingJsonModelConverter
         };
 
     public BoundSonarQubeProject ConvertFromModelToLegacy(BindingJsonModel bindingJsonModel, IConnectionCredentials credentials) =>
-            new(bindingJsonModel.ServerUri,
-                bindingJsonModel.ProjectKey,
-                bindingJsonModel.ProjectName,
-                credentials,
-                bindingJsonModel.Organization)
-            {
-                Profiles = bindingJsonModel.Profiles
-            };
+        new(bindingJsonModel.ServerUri,
+            bindingJsonModel.ProjectKey,
+            bindingJsonModel.ProjectName,
+            credentials,
+            bindingJsonModel.Organization) { Profiles = bindingJsonModel.Profiles };
 }

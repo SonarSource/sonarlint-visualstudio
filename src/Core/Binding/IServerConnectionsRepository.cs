@@ -25,12 +25,19 @@ namespace SonarLint.VisualStudio.Core.Binding;
 public interface IServerConnectionsRepository
 {
     bool TryGet(string connectionId, out ServerConnection serverConnection);
+
     bool TryGetAll(out IReadOnlyList<ServerConnection> serverConnections);
+
     bool TryAdd(ServerConnection connectionToAdd);
+
     bool TryDelete(string connectionId);
+
     bool TryUpdateSettingsById(string connectionId, ServerConnectionSettings connectionSettings);
+
     bool TryUpdateCredentialsById(string connectionId, IConnectionCredentials credentials);
+
     bool ConnectionsFileExists();
+
     event EventHandler ConnectionChanged;
     event EventHandler<ServerConnectionUpdatedEventArgs> CredentialsChanged;
 }
@@ -44,4 +51,3 @@ public class ServerConnectionUpdatedEventArgs : EventArgs
 
     public ServerConnection ServerConnection { get; }
 }
-

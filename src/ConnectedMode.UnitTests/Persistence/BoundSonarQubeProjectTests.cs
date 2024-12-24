@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             deserialized.ServerUri.Should().Be(testSubject.ServerUri);
             deserialized.Credentials.Should().BeNull();
         }
-        
+
         [TestMethod]
         public void BoundProject_BindingJsonModel_Serialization()
         {

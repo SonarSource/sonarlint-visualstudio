@@ -31,8 +31,12 @@ namespace SonarLint.VisualStudio.Core.Binding
         {
         }
 
-        public BoundSonarQubeProject(Uri serverUri, string projectKey, string projectName,
-            IConnectionCredentials credentials = null, SonarQubeOrganization organization = null)
+        public BoundSonarQubeProject(
+            Uri serverUri,
+            string projectKey,
+            string projectName,
+            IConnectionCredentials credentials = null,
+            SonarQubeOrganization organization = null)
             : this()
         {
             if (serverUri == null)

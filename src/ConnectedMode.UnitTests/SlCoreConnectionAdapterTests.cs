@@ -289,7 +289,7 @@ public class SlCoreConnectionAdapterTests
         const string username = "username";
         const string password = "password";
         sonarQubeConnection.Credentials = new UsernameAndPasswordCredentials(username, password.CreateSecureString());
-        
+
         await testSubject.GetAllProjectsAsync(sonarQubeConnection);
 
         await connectionConfigurationSlCoreService.Received(1)
