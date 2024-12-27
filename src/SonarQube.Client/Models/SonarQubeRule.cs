@@ -37,28 +37,15 @@ namespace SonarQube.Client.Models
             SonarQubeCleanCodeAttribute? cleanCodeAttribute,
             Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> softwareQualitySeverities,
             IDictionary<string, string> parameters,
-            SonarQubeIssueType issueType,
-            string description,
-            IReadOnlyList<SonarQubeDescriptionSection> descriptionSections,
-            IReadOnlyList<string> educationPrinciples,
-            string name,
-            IReadOnlyList<string> tags,
-            string htmlNote)
-
+            SonarQubeIssueType issueType)
         {
             Key = key;
             RepositoryKey = repositoryKey;
-            Description = description;
             IsActive = isActive;
             Severity = severity;
             CleanCodeAttribute = cleanCodeAttribute;
             SoftwareQualitySeverities = softwareQualitySeverities;
             IssueType = issueType;
-            DescriptionSections = descriptionSections;
-            EducationPrinciples = educationPrinciples;
-            Name = name;
-            Tags = tags;
-            HtmlNote = htmlNote;
 
             if (parameters == null || parameters.Count == 0)
             {
@@ -74,18 +61,12 @@ namespace SonarQube.Client.Models
 
         public string RepositoryKey { get; }
 
-        public string Description { get; set; }
-
         public bool IsActive { get; }
 
-        public string Name { get; }
-
-        public IReadOnlyList<string> Tags { get; }
-
         public SonarQubeIssueSeverity Severity { get; }
-        
+
         public SonarQubeCleanCodeAttribute? CleanCodeAttribute { get; }
-        
+
         public Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> SoftwareQualitySeverities { get; }
 
         /// <summary>
@@ -95,11 +76,5 @@ namespace SonarQube.Client.Models
         public IReadOnlyDictionary<string, string> Parameters { get; }
 
         public SonarQubeIssueType IssueType { get; }
-
-        public IReadOnlyList<SonarQubeDescriptionSection> DescriptionSections { get; }
-
-        public IReadOnlyList<string> EducationPrinciples { get; }
-
-        public string HtmlNote { get; }
     }
 }
