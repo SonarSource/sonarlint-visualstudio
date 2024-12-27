@@ -37,7 +37,6 @@ namespace SonarQube.Client
         private readonly string userAgent;
         private readonly ILogger logger;
         private readonly IRequestFactorySelector requestFactorySelector;
-        private readonly ISecondaryIssueHashUpdater secondaryIssueHashUpdater;
         private readonly ISSEStreamReaderFactory sseStreamReaderFactory;
 
         private const string MinSqVersionSupportingBearer = "10.4";
@@ -58,7 +57,7 @@ namespace SonarQube.Client
         public ServerInfo GetServerInfo() => currentServerInfo;
 
         public SonarQubeService(HttpMessageHandler messageHandler, string userAgent, ILogger logger)
-            : this(messageHandler, userAgent, logger, new RequestFactorySelector(), new SecondaryLocationHashUpdater(), new SSEStreamReaderFactory(logger))
+            : this(messageHandler, userAgent, logger, new RequestFactorySelector(), new SSEStreamReaderFactory(logger))
         {
         }
 
@@ -67,7 +66,6 @@ namespace SonarQube.Client
             string userAgent,
             ILogger logger,
             IRequestFactorySelector requestFactorySelector,
-            ISecondaryIssueHashUpdater secondaryIssueHashUpdater,
             ISSEStreamReaderFactory sseStreamReaderFactory)
         {
             if (messageHandler == null)
@@ -87,7 +85,6 @@ namespace SonarQube.Client
             this.logger = logger;
 
             this.requestFactorySelector = requestFactorySelector;
-            this.secondaryIssueHashUpdater = secondaryIssueHashUpdater;
             this.sseStreamReaderFactory = sseStreamReaderFactory;
         }
 
@@ -492,14 +489,6 @@ namespace SonarQube.Client
 
             return new Uri(currentHttpClient.BaseAddress, string.Format(urlFormat, projectKey, hotspotKey));
         }
-
-        public async Task<string> GetSourceCodeAsync(string fileKey, CancellationToken token) =>
-            await InvokeCheckedRequestAsync<IGetSourceCodeRequest, string>(
-                request =>
-                {
-                    request.FileKey = fileKey;
-                },
-                token);
 
         public async Task<IList<SonarQubeProjectBranch>> GetProjectBranchesAsync(string projectKey, CancellationToken token) =>
             await InvokeCheckedRequestAsync<IGetProjectBranchesRequest, SonarQubeProjectBranch[]>(

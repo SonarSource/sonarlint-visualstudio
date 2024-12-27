@@ -40,7 +40,6 @@ namespace SonarQube.Client.Tests
         protected TestLogger logger;
 
         // Note: can't be protected because the interfaces are internal
-        internal Mock<ISecondaryIssueHashUpdater> secondaryIssueHashUpdater;
         internal IRequestFactorySelector requestFactorySelector;
         internal Mock<ISSEStreamReaderFactory> sseStreamFactory;
 
@@ -60,7 +59,6 @@ namespace SonarQube.Client.Tests
             messageHandler = new Mock<HttpMessageHandler>(MockBehavior.Strict);
 
             requestFactorySelector = new RequestFactorySelector();
-            secondaryIssueHashUpdater = new Mock<ISecondaryIssueHashUpdater>();
             sseStreamFactory = new Mock<ISSEStreamReaderFactory>();
 
             ResetService();
@@ -117,7 +115,7 @@ namespace SonarQube.Client.Tests
 
         protected internal virtual SonarQubeService CreateTestSubject()
         {
-            return new SonarQubeService(messageHandler.Object, UserAgent, logger, requestFactorySelector, secondaryIssueHashUpdater.Object, sseStreamFactory.Object);
+            return new SonarQubeService(messageHandler.Object, UserAgent, logger, requestFactorySelector, sseStreamFactory.Object);
         }
 
         private static IUsernameAndPasswordCredentials MockBasicAuthCredentials(string userName, SecureString password)
