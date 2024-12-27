@@ -48,13 +48,11 @@ namespace SonarQube.Client.Tests
       ""params"": [
         {
           ""key"": ""format"",
-          ""htmlDesc"": ""Regular expression used to check the enumeration type names against."",
           ""defaultValue"": ""^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?$"",
           ""type"": ""STRING""
         },
         {
           ""key"": ""flagsAttributeFormat"",
-          ""htmlDesc"": ""Regular expression used to check the flags enumeration type names against."",
           ""defaultValue"": ""^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?s$"",
           ""type"": ""STRING""
         }
