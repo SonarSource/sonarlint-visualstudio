@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Api.Common;
@@ -49,7 +47,7 @@ namespace SonarQube.Client.Api.V5_50
         // Also Make sure the field is supported in this version of the API.
         // If not add a new request for API version that supports. e.g. "GetRulesWithDescriptionSectionsRequest"
 
-        internal static readonly IList<string> ResponseList = new List<string> { "repo", "internalKey", "params", "actives", "htmlDesc", "tags", "name", "htmlNote" };
+        internal static readonly IList<string> ResponseList = new List<string> { "repo", "internalKey", "params", "actives" };
 
         [JsonIgnore]
         internal IList<string> ResponseListField { get; set; } = ResponseList;
@@ -101,8 +99,6 @@ namespace SonarQube.Client.Api.V5_50
 
             var issueType = SonarQubeIssueTypeConverter.Convert(response.Type);
 
-            var descriptionSections = response.DescriptionSections?.Select(ds => ds.ToSonarQubeDescriptionSection()).ToList();
-
             return new SonarQubeRule(GetRuleKey(response.Key),
                 response.RepositoryKey,
                 isActive,
@@ -110,13 +106,7 @@ namespace SonarQube.Client.Api.V5_50
                 CleanCodeTaxonomyHelpers.ToSonarQubeCleanCodeAttribute(response.CleanCodeAttribute),
                 CleanCodeTaxonomyHelpers.ToDefaultImpacts(response.Impacts),
                 parameters,
-                issueType,
-                response.Description,
-                descriptionSections,
-                response.EducationPrinciples,
-                response.Name,
-                response.Tags,
-                response.HtmlNote);
+                issueType);
         }
 
         private static string GetRuleKey(string compositeKey) =>
@@ -130,27 +120,9 @@ namespace SonarQube.Client.Api.V5_50
             [JsonProperty("repo")]
             public string RepositoryKey { get; set; }
 
-            [JsonProperty("htmlDesc")]
-            public string Description { get; set; }
-
-            [JsonProperty("htmlNote")]
-            public string HtmlNote { get; set; }
-
             [JsonProperty("type")]
             public string Type { get; set; }
 
-            [JsonProperty("name")]
-            public string Name { get; set; }
-
-            [JsonProperty("tags")]
-            public IReadOnlyList<string> Tags { get; set; }
-
-            [JsonProperty("descriptionSections")]
-            public IReadOnlyList<DescriptionSectionResponse> DescriptionSections { get; set; }
-
-            [JsonProperty("educationPrinciples")]
-            public IReadOnlyList<string> EducationPrinciples { get; set; }
-            
             [JsonProperty("cleanCodeAttribute")]
             public string CleanCodeAttribute { get; set; }
 
@@ -177,37 +149,6 @@ namespace SonarQube.Client.Api.V5_50
 
             [JsonProperty("value")]
             public string Value { get; set; }
-        }
-
-        private sealed class DescriptionSectionResponse
-        {
-            [JsonProperty("key")]
-            public string Key { get; set; }
-
-            [JsonProperty("content")]
-            public string HtmlContent { get; set; }
-
-            [JsonProperty("context")]
-            public ContextResponse Context { get; set; }
-
-            internal SonarQubeDescriptionSection ToSonarQubeDescriptionSection()
-            {
-                return new SonarQubeDescriptionSection(Key, HtmlContent, Context?.ToSonarQubeContex());
-            }
-        }
-
-        private sealed class ContextResponse
-        {
-            [JsonProperty("displayName")]
-            public string DisplayName { get; set; }
-
-            [JsonProperty("key")]
-            public string Key { get; set; }
-
-            internal SonarQubeContext ToSonarQubeContex()
-            {
-                return new SonarQubeContext(DisplayName, Key);
-            }
         }
     }
 }

@@ -55,8 +55,6 @@ internal static class DefaultConfiguration
             .RegisterRequest<IGetHotspotRequest, V8_6.GetHotspotRequest>("8.6")
             .RegisterRequest<IGetExclusionsRequest, V7_20.GetExclusionsRequest>("7.2")
             .RegisterRequest<IGetSonarLintEventStream, V9_4.GetSonarLintEventStream>("9.4")
-            .RegisterRequest<IGetRulesRequest, V9_5.GetRulesWithDescriptionSectionsRequest>("9.5")
-            .RegisterRequest<IGetRulesRequest, V9_6.GetRulesWithEducationPrinciplesRequest>("9.6")
             .RegisterRequest<ISearchHotspotRequest, V9_7.SearchHotspotRequest>("9.7")
             .RegisterRequest<ISearchHotspotRequest, V10_2.SearchHotspotRequest>("10.2")
             .RegisterRequest<IGetRulesRequest, V10_2.GetRulesWithCCTRequest>("10.2")
