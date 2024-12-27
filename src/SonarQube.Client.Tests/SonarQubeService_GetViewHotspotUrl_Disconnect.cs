@@ -46,13 +46,13 @@ namespace SonarQube.Client.Tests
 
         protected internal override SonarQubeService CreateTestSubject()
         {
-            return new DisconnectingService(messageHandler.Object, UserAgent, logger, requestFactorySelector, secondaryIssueHashUpdater.Object);
+            return new DisconnectingService(messageHandler.Object, UserAgent, logger, requestFactorySelector);
         }
 
         internal class DisconnectingService : SonarQubeService
         {
-            internal DisconnectingService(HttpMessageHandler messageHandler, string userAgent, ILogger logger, IRequestFactorySelector requestFactorySelector, ISecondaryIssueHashUpdater secondaryIssueHashUpdater)
-                : base(messageHandler, userAgent, logger, requestFactorySelector, secondaryIssueHashUpdater, null)
+            internal DisconnectingService(HttpMessageHandler messageHandler, string userAgent, ILogger logger, IRequestFactorySelector requestFactorySelector)
+                : base(messageHandler, userAgent, logger, requestFactorySelector, null)
             {
             }
 
