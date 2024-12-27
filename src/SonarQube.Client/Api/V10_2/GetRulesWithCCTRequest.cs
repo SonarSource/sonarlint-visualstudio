@@ -32,19 +32,18 @@ namespace SonarQube.Client.Api.V10_2
 {
     public class GetRulesWithCCTRequest : IGetRulesRequest
     {
-        private static readonly IList<string> ResponseFieldsOverride = GetRulesWithEducationPrinciplesRequest
-            .ResponseFieldsOverride.Concat(new[] { "cleanCodeAttribute" }).ToArray();
-        
+        private static readonly IList<string> ResponseFieldsOverride = GetRulesRequest.ResponseList.Concat(new[] { "cleanCodeAttribute" }).ToArray();
+
         private readonly GetRulesRequest innerRequest = new GetRulesRequest();
-        
+
         public ILogger Logger { get; set; }
         public int Page { get; set; }
         public int PageSize { get; set; }
-        public int ItemsLimit { get; set; } 
+        public int ItemsLimit { get; set; }
         public bool? IsActive { get; set; }
         public string QualityProfileKey { get; set; }
         public string RuleKey { get; set; }
-        
+
         public async Task<SonarQubeRule[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {
             innerRequest.IsActive = this.IsActive;
