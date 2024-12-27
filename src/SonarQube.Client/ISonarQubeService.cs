@@ -139,12 +139,6 @@ namespace SonarQube.Client
         Uri GetViewHotspotUrl(string projectKey, string hotspotKey);
 
         /// <summary>
-        /// Returns the source code for the specified file
-        /// </summary>
-        /// <param name="fileKey">e.g. my_project:src/foo/Bar.php</param>
-        Task<string> GetSourceCodeAsync(string fileKey, CancellationToken token);
-
-        /// <summary>
         /// Returns branch information for the specified project key
         /// </summary>
         Task<IList<SonarQubeProjectBranch>> GetProjectBranchesAsync(string projectKey, CancellationToken token);
