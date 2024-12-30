@@ -57,15 +57,15 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         IIDEWindowService ideWindowService,
         IFixSuggestionNotification fixSuggestionNotification,
         IToolWindowService toolWindowService,
-        ITextBufferFactoryService textBufferFactoryService) : 
+        ITextBufferFactoryService textBufferFactoryService) :
         this(
             ThreadHandling.Instance,
             logger,
             documentNavigator,
             issueSpanCalculator,
             openInIdeConfigScopeValidator,
-            ideWindowService, 
-            fixSuggestionNotification, 
+            ideWindowService,
+            fixSuggestionNotification,
             toolWindowService,
             textBufferFactoryService)
     {
@@ -77,7 +77,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         IDocumentNavigator documentNavigator,
         IIssueSpanCalculator issueSpanCalculator,
         IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
-        IIDEWindowService ideWindowService, 
+        IIDEWindowService ideWindowService,
         IFixSuggestionNotification fixSuggestionNotification,
         IToolWindowService toolWindowService,
         ITextBufferFactoryService textBufferFactoryService)

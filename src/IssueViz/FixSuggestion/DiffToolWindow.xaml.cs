@@ -31,7 +31,8 @@ public sealed partial class DiffToolWindow : Window
     private readonly IDifferenceBufferFactoryService differenceBufferFactoryService;
     private readonly IWpfDifferenceViewerFactoryService differenceViewerFactoryService;
 
-    public DiffToolWindow(IDifferenceBufferFactoryService differenceBufferFactoryService,
+    public DiffToolWindow(
+        IDifferenceBufferFactoryService differenceBufferFactoryService,
         IWpfDifferenceViewerFactoryService differenceViewerFactoryService)
     {
         this.differenceBufferFactoryService = differenceBufferFactoryService;
@@ -51,5 +52,4 @@ public sealed partial class DiffToolWindow : Window
     private void OnAccept(object sender, RoutedEventArgs e) => DialogResult = true;
 
     private void OnDecline(object sender, RoutedEventArgs e) => DialogResult = false;
-
 }

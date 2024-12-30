@@ -40,7 +40,8 @@ public class DiffToolWindowPane : ToolWindowPane, IDiffToolWindow
     private const string ToolWindowIdAsString = "BCC137BA-B2E0-44EB-B161-A7E8D73AD883";
     public static readonly Guid ToolWindowId = new(ToolWindowIdAsString);
 
-    public DiffToolWindowPane(IDifferenceBufferFactoryService differenceBufferFactoryService,
+    public DiffToolWindowPane(
+        IDifferenceBufferFactoryService differenceBufferFactoryService,
         IWpfDifferenceViewerFactoryService differenceViewerFactoryService) : base(null)
     {
         this.differenceBufferFactoryService = differenceBufferFactoryService;
