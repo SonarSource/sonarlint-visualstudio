@@ -22,6 +22,8 @@ using System.ComponentModel.Composition;
 using System.IO;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -38,10 +40,13 @@ public class FixSuggestionHandler : IFixSuggestionHandler
     private readonly IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
     private readonly IIDEWindowService ideWindowService;
     private readonly IFixSuggestionNotification fixSuggestionNotification;
+    private readonly IToolWindowService toolWindowService;
+    private readonly ITextBufferFactoryService textBufferFactoryService;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
     private readonly IDocumentNavigator documentNavigator;
     private readonly IIssueSpanCalculator issueSpanCalculator;
+    private readonly IDiffToolWindow diffWnd;
 
     [ImportingConstructor]
     internal FixSuggestionHandler(
@@ -50,7 +55,9 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         IIssueSpanCalculator issueSpanCalculator,
         IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
         IIDEWindowService ideWindowService,
-        IFixSuggestionNotification fixSuggestionNotification) : 
+        IFixSuggestionNotification fixSuggestionNotification,
+        IToolWindowService toolWindowService,
+        ITextBufferFactoryService textBufferFactoryService) : 
         this(
             ThreadHandling.Instance,
             logger,
@@ -58,7 +65,9 @@ public class FixSuggestionHandler : IFixSuggestionHandler
             issueSpanCalculator,
             openInIdeConfigScopeValidator,
             ideWindowService, 
-            fixSuggestionNotification)
+            fixSuggestionNotification, 
+            toolWindowService,
+            textBufferFactoryService)
     {
     }
 
@@ -69,7 +78,9 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         IIssueSpanCalculator issueSpanCalculator,
         IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
         IIDEWindowService ideWindowService, 
-        IFixSuggestionNotification fixSuggestionNotification)
+        IFixSuggestionNotification fixSuggestionNotification,
+        IToolWindowService toolWindowService,
+        ITextBufferFactoryService textBufferFactoryService)
     {
         this.threadHandling = threadHandling;
         this.logger = logger;
@@ -78,6 +89,10 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
         this.ideWindowService = ideWindowService;
         this.fixSuggestionNotification = fixSuggestionNotification;
+        this.toolWindowService = toolWindowService;
+        this.textBufferFactoryService = textBufferFactoryService;
+
+        diffWnd = toolWindowService.GetToolWindow<DiffToolWindowPane, IDiffToolWindow>();
     }
 
     public void ApplyFixSuggestion(ShowFixSuggestionParams parameters)
@@ -140,7 +155,13 @@ public class FixSuggestionHandler : IFixSuggestionHandler
                     textView.Caret.MoveTo(spanToUpdate.Value.Start);
                     textView.ViewScroller.EnsureSpanVisible(spanToUpdate.Value, EnsureSpanVisibleOptions.AlwaysCenter);
                 }
-                textEdit.Replace(spanToUpdate.Value, changeDto.after);
+
+                var applied = diffWnd.ShowDiff(CreateTextBuffer(spanToUpdate.Value.GetText(), textEdit.Snapshot.ContentType),
+                    CreateTextBuffer(changeDto.after, textEdit.Snapshot.ContentType));
+                if (applied)
+                {
+                    textEdit.Replace(spanToUpdate.Value, changeDto.after);
+                }
             }
             textEdit.Apply();
         }
@@ -148,6 +169,12 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         {
             textEdit.Cancel();
         }
+    }
+
+    private ITextBuffer CreateTextBuffer(string text, IContentType contentType)
+    {
+        var beforeTextBuffer = textBufferFactoryService.CreateTextBuffer(text, contentType);
+        return beforeTextBuffer;
     }
 
     private bool ValidateIssueStillExists(SnapshotSpan? spanToUpdate, ChangesDto changeDto, string filePath)

@@ -1,0 +1,19 @@
+﻿<Window
+    x:Class="SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffToolWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" x:Name="DiffGrid"></Grid>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Content="Accept" Click="OnAccept" Margin="5"/>
+            <Button Content="Decline" Click="OnDecline" Margin="5"/>
+        </StackPanel>
+    </Grid>
+
+</Window>

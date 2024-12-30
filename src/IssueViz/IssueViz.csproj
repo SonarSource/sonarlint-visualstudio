@@ -46,6 +46,10 @@
   <ItemGroup>
     <None Remove="Commands\Resources\sonarlint.png" />
     <None Remove="IssueVisualizationControl\IssueVisualizationControl.xaml" />
+    <Page Include="FixSuggestion\DiffToolWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
 
     <Page Include="IssueVisualizationControl\IssueVisualizationControl.xaml">
       <Generator>XamlIntelliSenseFileGenerator</Generator>
