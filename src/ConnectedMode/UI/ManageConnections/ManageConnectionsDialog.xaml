@@ -56,7 +56,8 @@
                         Click="NewConnection_Clicked" />
             </Grid>
             <ListBox Grid.Row="1" ItemsSource="{Binding Path=ConnectionViewModels, Mode=OneWay}" Margin="0,10"
-                     ItemContainerStyle="{StaticResource NoSelectionListBoxItemStyle}">
+                     ItemContainerStyle="{StaticResource NoSelectionListBoxItemStyle}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Grid Margin="0,5,0,0">
@@ -90,7 +91,7 @@
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0" Grid.RowSpan="2" Text="{Binding Path=Name, Mode=OneWay}"
-                                           VerticalAlignment="Center" />
+                                           VerticalAlignment="Center" TextWrapping="Wrap" />
                                 <CheckBox Visibility="Collapsed" Grid.Row="1"
                                           Content="{x:Static res:UiResources.SmartNotificationsCheckboxLabel}"
                                           IsChecked="{Binding Path=EnableSmartNotifications}"
