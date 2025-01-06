@@ -56,7 +56,7 @@ public class LoggerFactoryTests
 
         logger.Should().NotBeNull();
         logger.WriteLine("msg");
-        _ = logContextManager.Received().FormatedContext;
+        logContextManager.Received().GetFormattedContextOrNull(default);
         _ = logVerbosityIndicator.Received().IsVerboseEnabled;
         logWriter.Received().WriteLine(Arg.Is<string>(x => x.Contains("msg")));
     }

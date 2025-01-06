@@ -28,6 +28,7 @@ internal class LoggerBase(
     ILoggerWriter writer,
     ILoggerSettingsProvider settingsProvider) : ILogger
 {
+
     public ILogger ForContext(params string[] context) =>
         new LoggerBase(
             contextManager.CreateAugmentedContext(context.Where(x => !string.IsNullOrEmpty(x))),
@@ -44,43 +45,49 @@ internal class LoggerBase(
         writer.WriteLine(CreateStandardLogPrefix().Append(message).ToString());
 
     public void WriteLine(string messageFormat, params object[] args) =>
-        writer.WriteLine(CreateStandardLogPrefix().AppendFormat(CultureInfo.CurrentCulture, messageFormat, args).ToString());
+        WriteLine(default, messageFormat, args);
 
-    public void LogVerbose(string messageFormat, params object[] args)
+    public void WriteLine(MessageLevelContext context, string messageFormat, params object[] args) =>
+        writer.WriteLine(CreateStandardLogPrefix(context).AppendFormat(CultureInfo.CurrentCulture, messageFormat, args).ToString());
+
+    public void LogVerbose(string messageFormat, params object[] args) =>
+        LogVerbose(default, messageFormat, args);
+
+    public void LogVerbose(MessageLevelContext context, string messageFormat, params object[] args)
     {
         if (!settingsProvider.IsVerboseEnabled)
         {
             return;
         }
 
-        var debugLogPrefix = CreateDebugLogPrefix();
+        var debugLogPrefix = CreateDebugLogPrefix(context);
         var logLine = args.Length > 0
             ? debugLogPrefix.AppendFormat(CultureInfo.CurrentCulture, messageFormat, args)
             : debugLogPrefix.Append(messageFormat);
         writer.WriteLine(logLine.ToString());
     }
 
-    private StringBuilder CreateStandardLogPrefix() =>
-        AddStandardProperties(new StringBuilder());
+    private StringBuilder CreateStandardLogPrefix(MessageLevelContext context = default) =>
+        AddStandardProperties(new StringBuilder(), context);
 
-    private StringBuilder CreateDebugLogPrefix() =>
-        AddStandardProperties(AppendProperty(new StringBuilder(), "DEBUG"));
+    private StringBuilder CreateDebugLogPrefix(MessageLevelContext context = default) =>
+        AddStandardProperties(AppendProperty(new StringBuilder(), "DEBUG"), context);
 
-    private StringBuilder AddStandardProperties(StringBuilder builder)
+    private StringBuilder AddStandardProperties(StringBuilder builder, MessageLevelContext context)
     {
         if (settingsProvider.IsThreadIdEnabled)
         {
             AppendPropertyFormat(builder, "ThreadId {0}", Thread.CurrentThread.ManagedThreadId);
         }
 
-        if (!string.IsNullOrEmpty(contextManager.FormatedContext))
+        if (contextManager.GetFormattedContextOrNull(context) is var formatedContext && !string.IsNullOrEmpty(formatedContext))
         {
-            AppendProperty(builder, contextManager.FormatedContext);
+            AppendProperty(builder, formatedContext);
         }
 
-        if (settingsProvider.IsVerboseEnabled && !string.IsNullOrEmpty(contextManager.FormatedVerboseContext))
+        if (settingsProvider.IsVerboseEnabled && contextManager.GetFormattedVerboseContextOrNull(context) is var formattedVerboseContext && !string.IsNullOrEmpty(formattedVerboseContext))
         {
-            AppendProperty(builder, contextManager.FormatedVerboseContext);
+            AppendProperty(builder, formattedVerboseContext);
         }
 
         return builder;

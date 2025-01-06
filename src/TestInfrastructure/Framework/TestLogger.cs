@@ -102,7 +102,11 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         public void WriteLine(string messageFormat, params object[] args) => logger.WriteLine(messageFormat, args);
 
+        public void WriteLine(MessageLevelContext context, string messageFormat, params object[] args) => logger.WriteLine(context, messageFormat, args);
+
         public void LogVerbose(string message, params object[] args) => logger.LogVerbose(message, args);
+
+        public void LogVerbose(MessageLevelContext context, string messageFormat, params object[] args) => logger.WriteLine(context, messageFormat, args);
 
         public ILogger ForContext(params string[] context) => logger.ForContext(context);
 

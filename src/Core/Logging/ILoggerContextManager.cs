@@ -22,8 +22,8 @@ namespace SonarLint.VisualStudio.Core.Logging;
 
 public interface ILoggerContextManager
 {
-    public string FormatedContext { get; }
-    public string FormatedVerboseContext { get; }
+    public string GetFormattedContextOrNull(MessageLevelContext messageLevelContext);
+    public string GetFormattedVerboseContextOrNull(MessageLevelContext messageLevelContext);
 
     ILoggerContextManager CreateAugmentedContext(IEnumerable<string> additionalContexts);
 

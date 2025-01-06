@@ -50,8 +50,8 @@ public class LoggerBaseTests
         contextManager.Received(1).CreateAugmentedContext(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new[] { "ctx" })));
         newLogger.Should().NotBeSameAs(testSubject);
         newLogger.WriteLine("msg");
-        _ = contextManager.DidNotReceive().FormatedContext;
-        _ = newContextManager.Received().FormatedContext;
+        contextManager.DidNotReceiveWithAnyArgs().GetFormattedContextOrNull(default);
+        newContextManager.ReceivedWithAnyArgs().GetFormattedContextOrNull(default);
         writer.Received().WriteLine(Arg.Any<string>());
         _ = settingsProvider.Received().IsVerboseEnabled;
     }
@@ -78,8 +78,8 @@ public class LoggerBaseTests
         contextManager.Received(1).CreateAugmentedVerboseContext(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new[] { "ctx" })));
         newLogger.Should().NotBeSameAs(testSubject);
         newLogger.WriteLine("msg");
-        _ = contextManager.DidNotReceive().FormatedContext;
-        _ = newContextManager.Received().FormatedContext;
+        contextManager.DidNotReceiveWithAnyArgs().GetFormattedContextOrNull(default);
+        newContextManager.ReceivedWithAnyArgs().GetFormattedContextOrNull(default);
         writer.Received().WriteLine(Arg.Any<string>());
         _ = settingsProvider.Received().IsVerboseEnabled;
     }
@@ -130,7 +130,7 @@ public class LoggerBaseTests
     public void LogVerbose_Context_AddsContextProperty()
     {
         settingsProvider.IsVerboseEnabled.Returns(true);
-        contextManager.FormatedContext.Returns("context");
+        contextManager.GetFormattedContextOrNull(default).Returns("context");
 
         testSubject.LogVerbose("msg {0}", "sent");
 
@@ -141,7 +141,7 @@ public class LoggerBaseTests
     public void LogVerbose_VerboseContext_AddsVerboseContextProperty()
     {
         settingsProvider.IsVerboseEnabled.Returns(true);
-        contextManager.FormatedVerboseContext.Returns("verbose context");
+        contextManager.GetFormattedVerboseContextOrNull(default).Returns("verbose context");
 
         testSubject.LogVerbose("msg {0}", "sent");
 
@@ -153,8 +153,8 @@ public class LoggerBaseTests
     {
         settingsProvider.IsThreadIdEnabled.Returns(true);
         settingsProvider.IsVerboseEnabled.Returns(true);
-        contextManager.FormatedContext.Returns("context");
-        contextManager.FormatedVerboseContext.Returns("verbose context");
+        contextManager.GetFormattedContextOrNull(default).Returns("context");
+        contextManager.GetFormattedVerboseContextOrNull(default).Returns("verbose context");
 
         testSubject.LogVerbose("msg {0}", "sent");
 
@@ -227,7 +227,7 @@ public class LoggerBaseTests
     public void WriteLine_Context_AddsContextProperty(bool isVerboseEnabled)
     {
         settingsProvider.IsVerboseEnabled.Returns(isVerboseEnabled);
-        contextManager.FormatedContext.Returns("context");
+        contextManager.GetFormattedContextOrNull(default).Returns("context");
 
         testSubject.WriteLine("msg sent");
 
@@ -240,7 +240,7 @@ public class LoggerBaseTests
     public void WriteLineFormatted_Context_AddsContextProperty(bool isVerboseEnabled)
     {
         settingsProvider.IsVerboseEnabled.Returns(isVerboseEnabled);
-        contextManager.FormatedContext.Returns("context");
+        contextManager.GetFormattedContextOrNull(default).Returns("context");
 
         testSubject.WriteLine("msg {0}", "sent");
 
@@ -251,7 +251,7 @@ public class LoggerBaseTests
     public void WriteLine_VerboseContext_VerboseLoggingDisabled_DoesNotAddVerboseContextProperty()
     {
         settingsProvider.IsVerboseEnabled.Returns(false);
-        contextManager.FormatedVerboseContext.Returns("verbose context");
+        contextManager.GetFormattedVerboseContextOrNull(default).Returns("verbose context");
 
         testSubject.WriteLine("msg sent");
 
@@ -262,7 +262,7 @@ public class LoggerBaseTests
     public void WriteLineFormatted_VerboseContext_VerboseLoggingDisabled_DoesNotAddVerboseContextProperty()
     {
         settingsProvider.IsVerboseEnabled.Returns(false);
-        contextManager.FormatedVerboseContext.Returns("verbose context");
+        contextManager.GetFormattedVerboseContextOrNull(default).Returns("verbose context");
 
         testSubject.WriteLine("msg {0}", "sent");
 
@@ -273,7 +273,7 @@ public class LoggerBaseTests
     public void WriteLine_VerboseContext_VerboseLoggingEnabled_AddsVerboseContextProperty()
     {
         settingsProvider.IsVerboseEnabled.Returns(true);
-        contextManager.FormatedVerboseContext.Returns("verbose context");
+        contextManager.GetFormattedVerboseContextOrNull(default).Returns("verbose context");
 
         testSubject.WriteLine("msg sent");
 
@@ -284,7 +284,7 @@ public class LoggerBaseTests
     public void WriteLineFormatted_VerboseContext_VerboseLoggingEnabled_AddsVerboseContextProperty()
     {
         settingsProvider.IsVerboseEnabled.Returns(true);
-        contextManager.FormatedVerboseContext.Returns("verbose context");
+        contextManager.GetFormattedVerboseContextOrNull(default).Returns("verbose context");
 
         testSubject.WriteLine("msg {0}", "sent");
 
@@ -296,8 +296,8 @@ public class LoggerBaseTests
     {
         settingsProvider.IsThreadIdEnabled.Returns(true);
         settingsProvider.IsVerboseEnabled.Returns(true);
-        contextManager.FormatedContext.Returns("context");
-        contextManager.FormatedVerboseContext.Returns("verbose context");
+        contextManager.GetFormattedContextOrNull(default).Returns("context");
+        contextManager.GetFormattedVerboseContextOrNull(default).Returns("verbose context");
 
         testSubject.WriteLine("msg sent");
 
@@ -309,8 +309,8 @@ public class LoggerBaseTests
     {
         settingsProvider.IsThreadIdEnabled.Returns(true);
         settingsProvider.IsVerboseEnabled.Returns(true);
-        contextManager.FormatedContext.Returns("context");
-        contextManager.FormatedVerboseContext.Returns("verbose context");
+        contextManager.GetFormattedContextOrNull(default).Returns("context");
+        contextManager.GetFormattedVerboseContextOrNull(default).Returns("verbose context");
 
         testSubject.WriteLine("msg {0}", "sent");
 

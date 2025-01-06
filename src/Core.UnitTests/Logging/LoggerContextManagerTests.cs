@@ -39,8 +39,8 @@ public class LoggerContextManagerTests
     {
         var testSubject = new LoggerContextManager();
 
-        testSubject.FormatedContext.Should().BeNull();
-        testSubject.FormatedVerboseContext.Should().BeNull();
+        testSubject.GetFormattedContextOrNull(default).Should().BeNull();
+        testSubject.GetFormattedVerboseContextOrNull(default).Should().BeNull();
     }
 
     [TestMethod]
@@ -51,28 +51,28 @@ public class LoggerContextManagerTests
         var verboseContextualized = testSubject.CreateAugmentedVerboseContext(["b"]);
         var doubleContextualized = testSubject.CreateAugmentedContext(["c"]).CreateAugmentedVerboseContext(["d"]);
 
-        testSubject.FormatedContext.Should().BeNull();
-        testSubject.FormatedVerboseContext.Should().BeNull();
-        contextualized.FormatedContext.Should().Be("a");
-        contextualized.FormatedVerboseContext.Should().BeNull();
-        verboseContextualized.FormatedContext.Should().BeNull();
-        verboseContextualized.FormatedVerboseContext.Should().Be("b");
-        doubleContextualized.FormatedContext.Should().Be("c");
-        doubleContextualized.FormatedVerboseContext.Should().Be("d");
+        testSubject.GetFormattedContextOrNull(default).Should().BeNull();
+        testSubject.GetFormattedVerboseContextOrNull(default).Should().BeNull();
+        contextualized.GetFormattedContextOrNull(default).Should().Be("a");
+        contextualized.GetFormattedVerboseContextOrNull(default).Should().BeNull();
+        verboseContextualized.GetFormattedContextOrNull(default).Should().BeNull();
+        verboseContextualized.GetFormattedVerboseContextOrNull(default).Should().Be("b");
+        doubleContextualized.GetFormattedContextOrNull(default).Should().Be("c");
+        doubleContextualized.GetFormattedVerboseContextOrNull(default).Should().Be("d");
     }
 
     [TestMethod]
     public void Augmented_MultipleAtOnce_Combines() =>
         new LoggerContextManager()
             .CreateAugmentedContext(["a", "b"])
-            .FormatedContext.Should().Be("a > b");
+            .GetFormattedContextOrNull(default).Should().Be("a > b");
 
     [TestMethod]
     public void Augmented_MultipleInSequence_Combines() =>
         new LoggerContextManager()
             .CreateAugmentedContext(["a"])
             .CreateAugmentedContext(["b"])
-            .FormatedContext.Should().Be("a > b");
+            .GetFormattedContextOrNull(default).Should().Be("a > b");
 
     [TestMethod]
     public void Augmented_AtOnceAndInSequence_CombinesInCorrectOrder() =>
@@ -80,20 +80,20 @@ public class LoggerContextManagerTests
             .CreateAugmentedContext(["a"])
             .CreateAugmentedContext(["b", "c"])
             .CreateAugmentedContext(["d"])
-            .FormatedContext.Should().Be("a > b > c > d");
+            .GetFormattedContextOrNull(default).Should().Be("a > b > c > d");
 
     [TestMethod]
     public void AugmentedVerbose_MultipleAtOnce_Combines() =>
         new LoggerContextManager()
             .CreateAugmentedVerboseContext(["a", "b"])
-            .FormatedVerboseContext.Should().Be("a > b");
+            .GetFormattedVerboseContextOrNull(default).Should().Be("a > b");
 
     [TestMethod]
     public void AugmentedVerbose_MultipleInSequence_Combines() =>
         new LoggerContextManager()
             .CreateAugmentedVerboseContext(["a"])
             .CreateAugmentedVerboseContext(["b"])
-            .FormatedVerboseContext.Should().Be("a > b");
+            .GetFormattedVerboseContextOrNull(default).Should().Be("a > b");
 
     [TestMethod]
     public void AugmentedVerbose_AtOnceAndInSequence_CombinesInCorrectOrder() =>
@@ -101,5 +101,53 @@ public class LoggerContextManagerTests
             .CreateAugmentedVerboseContext(["a"])
             .CreateAugmentedVerboseContext(["b", "c"])
             .CreateAugmentedVerboseContext(["d"])
-            .FormatedVerboseContext.Should().Be("a > b > c > d");
+            .GetFormattedVerboseContextOrNull(default).Should().Be("a > b > c > d");
+
+    [TestMethod]
+    public void Get_NoContext_ReturnsNull() =>
+        new LoggerContextManager().GetFormattedContextOrNull(new MessageLevelContext{Context = null, VerboseContext = ["c", "d"]}).Should().BeNull();
+
+    [TestMethod]
+    public void Get_NoBaseContext_ReturnsMessageLevelContextOnly() =>
+        new LoggerContextManager().GetFormattedContextOrNull(new MessageLevelContext{Context = ["a", "b"], VerboseContext = ["c", "d"]}).Should().Be("a > b");
+
+    [TestMethod]
+    public void Get_MessageLevelContextNotCached()
+    {
+        var testSubject = new LoggerContextManager();
+        testSubject.GetFormattedContextOrNull(new MessageLevelContext{Context = ["a", "b"], VerboseContext = ["c", "d"]}).Should().Be("a > b");
+        testSubject.GetFormattedContextOrNull(new MessageLevelContext{Context = ["a2", "b2"], VerboseContext = ["c", "d"]}).Should().Be("a2 > b2");
+    }
+
+    [TestMethod]
+    public void Get_NoMessageLevelContext_ReturnsBaseContextOnly() =>
+        new LoggerContextManager().CreateAugmentedContext(["x", "y"]).GetFormattedContextOrNull(new MessageLevelContext{Context = null, VerboseContext = ["c", "d"]}).Should().Be("x > y");
+
+    [TestMethod]
+    public void Get_BothContexts_CombinesInOrder() =>
+        new LoggerContextManager().CreateAugmentedContext(["x", "y"]).GetFormattedContextOrNull(new MessageLevelContext{Context = ["a", "b"], VerboseContext = ["c", "d"]}).Should().Be("x > y > a > b");
+
+    [TestMethod]
+    public void GetVerbose_NoContext_ReturnsNull() =>
+        new LoggerContextManager().GetFormattedVerboseContextOrNull(new MessageLevelContext{Context = ["a", "b"], VerboseContext = null}).Should().BeNull();
+
+    [TestMethod]
+    public void GetVerbose_NoBaseContext_ReturnsMessageLevelContextOnly() =>
+        new LoggerContextManager().GetFormattedVerboseContextOrNull(new MessageLevelContext{Context = ["a", "b"], VerboseContext = ["c", "d"]}).Should().Be("c > d");
+
+    [TestMethod]
+    public void GetVerbose_MessageLevelContextNotCached()
+    {
+        var testSubject = new LoggerContextManager();
+        testSubject.GetFormattedVerboseContextOrNull(new MessageLevelContext { Context = ["a", "b"], VerboseContext = ["c", "d"] }).Should().Be("c > d");
+        testSubject.GetFormattedVerboseContextOrNull(new MessageLevelContext { Context = ["a", "b"], VerboseContext = ["c2", "d2"] }).Should().Be("c2 > d2");
+    }
+
+    [TestMethod]
+    public void GetVerbose_NoMessageLevelContext_ReturnsBaseContextOnly() =>
+        new LoggerContextManager().CreateAugmentedVerboseContext(["v", "w"]).GetFormattedVerboseContextOrNull(new MessageLevelContext{Context = ["a", "b"], VerboseContext = null}).Should().Be("v > w");
+
+    [TestMethod]
+    public void GetVerbose_BothContexts_CombinesInOrder() =>
+        new LoggerContextManager().CreateAugmentedVerboseContext(["v", "w"]).GetFormattedVerboseContextOrNull(new MessageLevelContext{Context = ["a", "b"], VerboseContext = ["c", "d"]}).Should().Be("v > w > c > d");
 }

@@ -28,6 +28,7 @@ namespace SonarLint.VisualStudio.Core.Logging;
 [PartCreationPolicy(CreationPolicy.NonShared)]
 internal class LoggerContextManager : ILoggerContextManager
 {
+    private const string Separator = " > ";
     private readonly ImmutableList<string> contexts;
     private readonly ImmutableList<string> verboseContexts;
     private readonly Lazy<string> formatedContext;
@@ -44,12 +45,34 @@ internal class LoggerContextManager : ILoggerContextManager
         formatedVerboseContext = new Lazy<string>(() => MergeContextsIntoSingleProperty(verboseContexts), LazyThreadSafetyMode.PublicationOnly);
     }
 
-    public string FormatedContext => formatedContext.Value;
-    public string FormatedVerboseContext => formatedVerboseContext.Value;
+    public string GetFormattedContextOrNull(MessageLevelContext messageLevelContext) =>
+        GetContextInternal(formatedContext.Value, messageLevelContext.Context);
+    public string GetFormattedVerboseContextOrNull(MessageLevelContext messageLevelContext) =>
+        GetContextInternal(formatedVerboseContext.Value, messageLevelContext.VerboseContext);
 
     public ILoggerContextManager CreateAugmentedContext(IEnumerable<string> additionalContexts) => new LoggerContextManager(contexts.AddRange(additionalContexts), verboseContexts);
 
     public ILoggerContextManager CreateAugmentedVerboseContext(IEnumerable<string> additionalVerboseContexts) => new LoggerContextManager(contexts, verboseContexts.AddRange(additionalVerboseContexts));
 
-    private static string MergeContextsIntoSingleProperty(ImmutableList<string> contexts) => contexts.Count > 0 ? string.Join(" > ", contexts) : null;
+    private static string GetContextInternal(string baseContext, IReadOnlyCollection<string> messageLevelContext)
+    {
+        if (messageLevelContext is not { Count: > 0 })
+        {
+            return baseContext;
+        }
+
+        IEnumerable<string> resultingContext = messageLevelContext;
+        if (baseContext != null)
+        {
+            resultingContext = resultingContext.Prepend(baseContext);
+        }
+
+        return MergeContextsIntoSingleProperty(resultingContext);
+    }
+
+    private static string MergeContextsIntoSingleProperty(IEnumerable<string> contexts)
+    {
+        var joinResult = string.Join(Separator, contexts);
+        return string.IsNullOrEmpty(joinResult) ? null : joinResult;
+    }
 }
