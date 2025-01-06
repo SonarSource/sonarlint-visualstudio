@@ -31,11 +31,11 @@ public class LoggerContextManagerTests
         MefTestHelpers.CheckTypeCanBeImported<LoggerContextManager, ILoggerContextManager>();
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() =>
+    public void MefCtor_CheckIsTransient() =>
         MefTestHelpers.CheckIsNonSharedMefComponent<LoggerContextManager>();
 
     [TestMethod]
-    public void EmptyContext()
+    public void DefaultCtor_EmptyContext()
     {
         var testSubject = new LoggerContextManager();
 

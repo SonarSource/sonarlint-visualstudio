@@ -71,31 +71,25 @@ internal class LoggerBase(
         AddStandardProperties(new StringBuilder(), context);
 
     private StringBuilder CreateDebugLogPrefix(MessageLevelContext context = default) =>
-        AddStandardProperties(AppendProperty(new StringBuilder(), "DEBUG"), context);
+        AddStandardProperties(new StringBuilder().AppendProperty("DEBUG"), context);
 
     private StringBuilder AddStandardProperties(StringBuilder builder, MessageLevelContext context)
     {
         if (settingsProvider.IsThreadIdEnabled)
         {
-            AppendPropertyFormat(builder, "ThreadId {0}", Thread.CurrentThread.ManagedThreadId);
+            builder.AppendPropertyFormat("ThreadId {0}", Thread.CurrentThread.ManagedThreadId);
         }
 
         if (contextManager.GetFormattedContextOrNull(context) is var formatedContext && !string.IsNullOrEmpty(formatedContext))
         {
-            AppendProperty(builder, formatedContext);
+            builder.AppendProperty(formatedContext);
         }
 
         if (settingsProvider.IsVerboseEnabled && contextManager.GetFormattedVerboseContextOrNull(context) is var formattedVerboseContext && !string.IsNullOrEmpty(formattedVerboseContext))
         {
-            AppendProperty(builder, formattedVerboseContext);
+            builder.AppendProperty(formattedVerboseContext);
         }
 
         return builder;
     }
-
-    private static StringBuilder AppendProperty(StringBuilder builder, string property) =>
-        builder.Append('[').Append(property).Append(']').Append(' ');
-
-    private static StringBuilder AppendPropertyFormat(StringBuilder builder, string property, params object[] args) =>
-        builder.Append('[').AppendFormat(property, args).Append(']').Append(' ');
 }
