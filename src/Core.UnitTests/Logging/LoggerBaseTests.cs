@@ -162,6 +162,26 @@ public class LoggerBaseTests
     }
 
     [TestMethod]
+    public void LogVerboseWithContext_AllContextsEnabled_AddsInCorrectOrder()
+    {
+        var messageLevelContext = new MessageLevelContext
+        {
+            Context = Substitute.For<IReadOnlyCollection<string>>(),
+            VerboseContext = Substitute.For<IReadOnlyCollection<string>>()
+        };
+        settingsProvider.IsThreadIdEnabled.Returns(true);
+        settingsProvider.IsVerboseEnabled.Returns(true);
+        contextManager.GetFormattedContextOrNull(default).Returns("context");
+        contextManager.GetFormattedVerboseContextOrNull(default).Returns("verbose context");
+        contextManager.GetFormattedContextOrNull(messageLevelContext).Returns("context with message level");
+        contextManager.GetFormattedVerboseContextOrNull(messageLevelContext).Returns("verbose context with message level");
+
+        testSubject.LogVerbose(messageLevelContext, "msg {0}", "sent");
+
+        writer.Received().WriteLine($"[DEBUG] [ThreadId {Thread.CurrentThread.ManagedThreadId}] [context with message level] [verbose context with message level] msg sent");
+    }
+
+    [TestMethod]
     public void WriteLine_VerboseDisabled_Writes()
     {
         settingsProvider.IsVerboseEnabled.Returns(false);
@@ -315,5 +335,25 @@ public class LoggerBaseTests
         testSubject.WriteLine("msg {0}", "sent");
 
         writer.Received().WriteLine($"[ThreadId {Thread.CurrentThread.ManagedThreadId}] [context] [verbose context] msg sent");
+    }
+
+    [TestMethod]
+    public void WriteLineFormattedWithContext_AllContextsEnabled_AddsInCorrectOrder()
+    {
+        var messageLevelContext = new MessageLevelContext
+        {
+            Context = Substitute.For<IReadOnlyCollection<string>>(),
+            VerboseContext = Substitute.For<IReadOnlyCollection<string>>()
+        };
+        settingsProvider.IsThreadIdEnabled.Returns(true);
+        settingsProvider.IsVerboseEnabled.Returns(true);
+        contextManager.GetFormattedContextOrNull(default).Returns("context");
+        contextManager.GetFormattedVerboseContextOrNull(default).Returns("verbose context");
+        contextManager.GetFormattedContextOrNull(messageLevelContext).Returns("context with message level");
+        contextManager.GetFormattedVerboseContextOrNull(messageLevelContext).Returns("verbose context with message level");
+
+        testSubject.WriteLine(messageLevelContext, "msg {0}", "sent");
+
+        writer.Received().WriteLine($"[ThreadId {Thread.CurrentThread.ManagedThreadId}] [context with message level] [verbose context with message level] msg sent");
     }
 }
