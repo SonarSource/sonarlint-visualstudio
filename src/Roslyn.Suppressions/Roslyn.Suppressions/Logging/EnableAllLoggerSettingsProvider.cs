@@ -19,16 +19,9 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Logging;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions;
-
-[ExcludeFromCodeCoverage]
-internal class SystemDebugLoggerWriter : ILoggerWriter
-{
-    public void WriteLine(string message) => Debug.WriteLine(message);
-}
 
 [ExcludeFromCodeCoverage]
 internal class EnableAllLoggerSettingsProvider : ILoggerSettingsProvider

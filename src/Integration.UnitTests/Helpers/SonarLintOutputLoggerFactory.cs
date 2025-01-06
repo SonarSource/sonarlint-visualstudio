@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.Integration.Helpers;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 {
     [TestClass]
-    public class SonarLintOutputTests
+    public class SonarLintOutputLoggerFactory
     {
         // the normal check for export does not work here because this is a special Property export instead of the normal Class export
         // [TestMethod]
@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             var loggerFactory = Substitute.For<ILoggerFactory>();
 
-            var testSubject = new SonarLintOutputLoggerFactory(loggerFactory, Substitute.For<IServiceProvider>(), Substitute.For<ISonarLintSettings>());
+            var testSubject = new Integration.Helpers.SonarLintOutputLoggerFactory(loggerFactory, Substitute.For<IServiceProvider>(), Substitute.For<ISonarLintSettings>());
 
             testSubject.Instance.Should().NotBeNull();
             loggerFactory.Create(Arg.Any<SonarLintOutputWindowLoggerWriter>(), Arg.Any<SonarLintSettingsLoggerSettingsProvider>());
