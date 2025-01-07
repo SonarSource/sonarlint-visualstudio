@@ -18,172 +18,142 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Integration;
+
+[Export(typeof(ISolutionWorkspaceService))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+public class SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider, ILogger log, IVsUIServiceOperation vsUiServiceOperation)
+    : ISolutionWorkspaceService
 {
-    [Export(typeof(ISolutionWorkspaceService))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class SolutionWorkspaceService : ISolutionWorkspaceService
+    public bool IsSolutionWorkSpace() => !solutionInfoProvider.IsFolderWorkspace();
+
+    [ExcludeFromCodeCoverage]
+    public IReadOnlyCollection<string> ListFiles() =>
+        IsSolutionWorkSpace()
+            ? vsUiServiceOperation.Execute<SVsSolution, IVsSolution, IReadOnlyCollection<string>>(GetAllFilesInSolution)
+            : [];
+
+    [ExcludeFromCodeCoverage]
+    private IReadOnlyCollection<string> GetAllFilesInSolution(IVsSolution solution) =>
+        GetLoadedProjects(solution)
+            .SelectMany(AllItemsInProject)
+            .Where(x => x != null)
+            .Where(x => x.Contains("\\"))
+            .Where(x => !x.EndsWith("\\"))
+            .Where(x => !x.Contains("\\.nuget\\"))
+            .Where(x => !x.Contains("\\node_modules\\"))
+            .ToHashSet(StringComparer.InvariantCultureIgnoreCase); // move filtering closer to path extraction to avoid processing unnecessary items)
+
+    [ExcludeFromCodeCoverage]
+    private IEnumerable<IVsProject> GetLoadedProjects(IVsSolution solution)
     {
-        private readonly ISolutionInfoProvider solutionInfoProvider;
-        private readonly ILogger log;
-        private readonly IServiceProvider serviceProvider;
-        private readonly IThreadHandling threadHandling;
-
-        [ImportingConstructor]
-        public SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider, ILogger log, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
-            : this(solutionInfoProvider, log, serviceProvider, ThreadHandling.Instance) { }
-
-        internal SolutionWorkspaceService(ISolutionInfoProvider solutionInfoProvider, ILogger log, IServiceProvider serviceProvider, IThreadHandling threadHandling)
+        var guid = Guid.Empty;
+        solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref guid, out var enumerator);
+        var hierarchy = new IVsHierarchy[1] { null };
+        for (enumerator.Reset();
+             enumerator.Next(1, hierarchy, out var fetched) == VSConstants.S_OK && fetched == 1; /*nothing*/)
         {
-            this.solutionInfoProvider = solutionInfoProvider;
-            this.log = log;
-            this.serviceProvider = serviceProvider;
-            this.threadHandling = threadHandling;
+            yield return (IVsProject)hierarchy[0];
+        }
+    }
+
+    [ExcludeFromCodeCoverage]
+    private IEnumerable<string> AllItemsInProject(IVsProject project)
+    {
+        if (project is null)
+        {
+            throw new ArgumentNullException(nameof(project));
         }
 
-        public bool IsSolutionWorkSpace() => !solutionInfoProvider.IsFolderWorkspace();
+        var projectDir = Path.GetDirectoryName(GetProjectFilePath(project));
+        var hierarchy = project as IVsHierarchy;
 
-        [ExcludeFromCodeCoverage]
-        public IReadOnlyCollection<string> ListFiles()
-        {
-            if (!IsSolutionWorkSpace()) { return Array.Empty<string>(); }
-
-            IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
-
-            return GetAllFilesInSolution(solution);
-        }
-
-        [ExcludeFromCodeCoverage]
-        private IReadOnlyCollection<string> GetAllFilesInSolution(IVsSolution solution)
-        {
-            IReadOnlyCollection<string> result = null;
-            threadHandling.RunOnUIThread(() => result = GetLoadedProjects(solution)
-                .SelectMany(AllItemsInProject)
-                .Where(x => x != null)
-                .Where(x => x.Contains("\\"))
-                .Where(x => !x.EndsWith("\\"))
-                .Where(x => !x.Contains("\\.nuget\\"))
-                .Where(x => !x.Contains("\\node_modules\\"))
-                .ToHashSet(StringComparer.InvariantCultureIgnoreCase)); // move filtering closer to path extraction to avoid processing unnecessary items)
-
-            return result;
-        }
-
-        [ExcludeFromCodeCoverage]
-        private IEnumerable<IVsProject> GetLoadedProjects(IVsSolution solution)
-        {
-            var guid = Guid.Empty;
-            solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref guid, out var enumerator);
-            var hierarchy = new IVsHierarchy[1] { null };
-            for (enumerator.Reset();
-                 enumerator.Next(1, hierarchy, out var fetched) == VSConstants.S_OK && fetched == 1; /*nothing*/)
-            {
-                yield return (IVsProject)hierarchy[0];
-            }
-        }
-
-        [ExcludeFromCodeCoverage]
-        private IEnumerable<string> AllItemsInProject(IVsProject project)
-        {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            var projectDir = Path.GetDirectoryName(GetProjectFilePath(project));
-            var hierarchy = project as IVsHierarchy;
-
-            return
-                ChildrenOf(hierarchy, VSConstants.VSITEMID.Root)
-                    .Select(
-                        id =>
+        return
+            ChildrenOf(hierarchy, VSConstants.VSITEMID.Root)
+                .Select(
+                    id =>
+                    {
+                        project.GetMkDocument((uint)id, out var name);
+                        if (name != null && projectDir != null && !name.StartsWith(projectDir))
+                        {// sometimes random sdk files are included as parts of project items
+                            return null;
+                        }
+                        if (name != null && name.Length > 0 && !Path.IsPathRooted(name))
                         {
-                            project.GetMkDocument((uint)id, out var name);
-                            if (name != null && projectDir != null && !name.StartsWith(projectDir))
-                            {// sometimes random sdk files are included as parts of project items
-                                return null;
-                            }
-                            if (name != null && name.Length > 0 && !Path.IsPathRooted(name))
-                            {
-                                name = Path.Combine(projectDir, name);
-                            }
-                            return name;
-                        });
-        }
+                            name = Path.Combine(projectDir, name);
+                        }
+                        return name;
+                    });
+    }
 
-        [ExcludeFromCodeCoverage]
-        private string GetProjectFilePath(IVsProject project)
+    [ExcludeFromCodeCoverage]
+    private string GetProjectFilePath(IVsProject project)
+    {
+        var path = string.Empty;
+        var hr = project.GetMkDocument((uint)VSConstants.VSITEMID.Root, out path);
+        Debug.Assert(hr == VSConstants.S_OK || hr == VSConstants.E_NOTIMPL, "GetMkDocument failed for project.");
+
+        return path;
+    }
+
+    [ExcludeFromCodeCoverage]
+    private IEnumerable<VSConstants.VSITEMID> ChildrenOf(IVsHierarchy hierarchy, VSConstants.VSITEMID rootID)
+    {
+        var result = new List<VSConstants.VSITEMID>();
+
+        for (var itemID = FirstChild(hierarchy, rootID);
+             itemID != VSConstants.VSITEMID.Nil;
+             itemID = NextSibling(hierarchy, itemID))
         {
-            var path = string.Empty;
-            var hr = project.GetMkDocument((uint)VSConstants.VSITEMID.Root, out path);
-            Debug.Assert(hr == VSConstants.S_OK || hr == VSConstants.E_NOTIMPL, "GetMkDocument failed for project.");
-
-            return path;
+            result.Add(itemID);
+            result.AddRange(ChildrenOf(hierarchy, itemID));
         }
 
-        [ExcludeFromCodeCoverage]
-        private IEnumerable<VSConstants.VSITEMID> ChildrenOf(IVsHierarchy hierarchy, VSConstants.VSITEMID rootID)
+        return result;
+    }
+
+    [ExcludeFromCodeCoverage]
+    private VSConstants.VSITEMID FirstChild(IVsHierarchy hierarchy, VSConstants.VSITEMID rootID)
+    {
+        try
         {
-            var result = new List<VSConstants.VSITEMID>();
-
-            for (var itemID = FirstChild(hierarchy, rootID);
-                 itemID != VSConstants.VSITEMID.Nil;
-                 itemID = NextSibling(hierarchy, itemID))
+            if (hierarchy.GetProperty((uint)rootID, (int)__VSHPROPID.VSHPROPID_FirstChild, out var childIDObj) == VSConstants.S_OK && childIDObj != null)
             {
-                result.Add(itemID);
-                result.AddRange(ChildrenOf(hierarchy, itemID));
+                return (VSConstants.VSITEMID)(int)childIDObj;
             }
-
-            return result;
         }
-
-        [ExcludeFromCodeCoverage]
-        private VSConstants.VSITEMID FirstChild(IVsHierarchy hierarchy, VSConstants.VSITEMID rootID)
+        catch (Exception e)
         {
-            try
-            {
-                if (hierarchy.GetProperty((uint)rootID, (int)__VSHPROPID.VSHPROPID_FirstChild, out var childIDObj) == VSConstants.S_OK && childIDObj != null)
-                {
-                    return (VSConstants.VSITEMID)(int)childIDObj;
-                }
-            }
-            catch (Exception e)
-            {
-                log.LogVerbose(e.ToString());
-            }
-
-            return VSConstants.VSITEMID.Nil;
+            log.LogVerbose(e.ToString());
         }
 
-        [ExcludeFromCodeCoverage]
-        private VSConstants.VSITEMID NextSibling(IVsHierarchy hierarchy, VSConstants.VSITEMID firstID)
+        return VSConstants.VSITEMID.Nil;
+    }
+
+    [ExcludeFromCodeCoverage]
+    private VSConstants.VSITEMID NextSibling(IVsHierarchy hierarchy, VSConstants.VSITEMID firstID)
+    {
+        try
         {
-            try
+            if (hierarchy.GetProperty((uint)firstID, (int)__VSHPROPID.VSHPROPID_NextSibling, out var siblingIDObj) == VSConstants.S_OK && siblingIDObj != null)
             {
-                if (hierarchy.GetProperty((uint)firstID, (int)__VSHPROPID.VSHPROPID_NextSibling, out var siblingIDObj) == VSConstants.S_OK && siblingIDObj != null)
-                {
-                    return (VSConstants.VSITEMID)(int)siblingIDObj;
-                }
+                return (VSConstants.VSITEMID)(int)siblingIDObj;
             }
-            catch (Exception e)
-            {
-                log.LogVerbose(e.ToString());
-            }
-
-            return VSConstants.VSITEMID.Nil;
         }
+        catch (Exception e)
+        {
+            log.LogVerbose(e.ToString());
+        }
+
+        return VSConstants.VSITEMID.Nil;
     }
 }
