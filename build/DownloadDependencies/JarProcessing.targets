@@ -64,12 +64,12 @@
 
   <Target Name="UnzipEnterpriseSonarCSharp">
     <Unzip SourceFiles="$(EnterpriseSonarCSharpPluginDownloadPath)" DestinationFolder="$(DotnetPluginsExtractDir)\$(EnterpriseSonarCSharpPluginFileNameWithoutExtension)" OverwriteReadOnlyFiles="true" />
-    <Unzip SourceFiles="$(DotnetPluginsExtractDir)\$(EnterpriseSonarCSharpPluginFileNameWithoutExtension)\static\SonarAnalyzer-$(EmbeddedSonarAnalyzerVersion).zip" DestinationFolder="$(EnterpriseDotnetAnalyzersExtractDir)" OverwriteReadOnlyFiles="true" />
+    <Unzip SourceFiles="$(DotnetPluginsExtractDir)\$(EnterpriseSonarCSharpPluginFileNameWithoutExtension)\static\SonarAnalyzer-csharpenterprise-$(EmbeddedSonarAnalyzerVersion).zip" DestinationFolder="$(EnterpriseDotnetAnalyzersExtractDir)" OverwriteReadOnlyFiles="true" />
   </Target>
 
   <Target Name="UnzipEnterpriseSonarVBNet">
     <Unzip SourceFiles="$(EnterpriseSonarVBNetPluginDownloadPath)" DestinationFolder="$(DotnetPluginsExtractDir)\$(EnterpriseSonarVBNetPluginFileNameWithoutExtension)" OverwriteReadOnlyFiles="true" />
-    <Unzip SourceFiles="$(DotnetPluginsExtractDir)\$(EnterpriseSonarVBNetPluginFileNameWithoutExtension)\static\SonarAnalyzer-$(EmbeddedSonarAnalyzerVersion).zip" DestinationFolder="$(EnterpriseDotnetAnalyzersExtractDir)" OverwriteReadOnlyFiles="true" />
+    <Unzip SourceFiles="$(DotnetPluginsExtractDir)\$(EnterpriseSonarVBNetPluginFileNameWithoutExtension)\static\SonarAnalyzer-vbnetenterprise-$(EmbeddedSonarAnalyzerVersion).zip" DestinationFolder="$(EnterpriseDotnetAnalyzersExtractDir)" OverwriteReadOnlyFiles="true" />
   </Target>
 
   <Target Name="WriteOutputFile">
