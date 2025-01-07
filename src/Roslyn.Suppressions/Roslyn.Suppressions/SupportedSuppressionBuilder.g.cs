@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
                 // If the number of diagnostic ids changes significantly or decreases when the analysers are updated,
                 // investigate! There may be a problem with code generator.
                 // *************************************************************************************************
-                // Number of unique diagnostic ids (C# and VB.NET): 500
+                // Number of unique diagnostic ids (C# and VB.NET): 504
                 CreateDescriptor("S100"),
                 CreateDescriptor("S1006"),
                 CreateDescriptor("S101"),
@@ -486,6 +486,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
                 CreateDescriptor("S6146"),
                 CreateDescriptor("S6354"),
                 CreateDescriptor("S6377"),
+                CreateDescriptor("S6418"),
                 CreateDescriptor("S6419"),
                 CreateDescriptor("S6420"),
                 CreateDescriptor("S6421"),
@@ -545,6 +546,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
                 CreateDescriptor("S6967"),
                 CreateDescriptor("S6968"),
                 CreateDescriptor("S7039"),
+                CreateDescriptor("S7130"),
+                CreateDescriptor("S7131"),
+                CreateDescriptor("S7133"),
                 CreateDescriptor("S818"),
                 CreateDescriptor("S881"),
                 CreateDescriptor("S907"),
