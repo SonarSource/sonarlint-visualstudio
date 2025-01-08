@@ -18,19 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core
-{
-    public interface ILogger
-    {
-        /// <summary>
-        /// Logs a message and appends a new line.
-        /// </summary>
-        void WriteLine(string message);
-        void WriteLine(string messageFormat, params object[] args);
+namespace SonarLint.VisualStudio.Core.Logging;
 
-        /// <summary>
-        /// Logs a message and appends a new line if logging is set to verbose. Otherwise does nothing.
-        /// </summary>
-        void LogVerbose(string messageFormat, params object[] args);
-    }
+public interface ILoggerSettingsProvider
+{
+    bool IsVerboseEnabled { get; }
+    bool IsThreadIdEnabled { get; }
 }
