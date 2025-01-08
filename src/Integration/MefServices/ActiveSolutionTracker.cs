@@ -18,22 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(IActiveSolutionTracker))]
-    [Export(typeof(IFolderWorkspaceMonitor))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class ActiveSolutionTracker : IActiveSolutionTracker, IFolderWorkspaceMonitor, IVsSolutionEvents, IDisposable, IVsSolutionEvents7
+    internal sealed class ActiveSolutionTracker : IActiveSolutionTracker, IVsSolutionEvents, IDisposable, IVsSolutionEvents7
     {
         private readonly IFolderWorkspaceService folderWorkspaceService;
         private readonly ISolutionInfoProvider solutionInfoProvider;
@@ -48,8 +44,6 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         public event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
 
-        public event EventHandler FolderWorkspaceInitialized;
-
         [ImportingConstructor]
         public ActiveSolutionTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IFolderWorkspaceService folderWorkspaceService, ISolutionInfoProvider solutionInfoProvider)
         {
@@ -63,10 +57,6 @@ namespace SonarLint.VisualStudio.Integration
         #region IVsSolutionEvents
         int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
         {
-            if (folderWorkspaceService.IsFolderWorkspace())
-            {
-                FolderWorkspaceInitialized?.Invoke(this, EventArgs.Empty);
-            }
             return VSConstants.S_OK;
         }
 
