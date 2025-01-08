@@ -27,32 +27,28 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
 [Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class LoggerListener : ILoggerListener
+[method: ImportingConstructor]
+public class LoggerListener(ILogger logger) : ILoggerListener
 {
-    private readonly ILogger logger;
-
-    [ImportingConstructor]
-    public LoggerListener(ILogger logger)
-    {
-        this.logger = logger;
-    }
+    private readonly ILogger logger = logger.ForContext(SLCoreStrings.SLCoreName);
 
     public void Log(LogParams parameters)
     {
-        var message = "[SLCORE] " + parameters.message;
+        var additionalContext = new MessageLevelContext {VerboseContext = [parameters.loggerName, parameters.configScopeId, parameters.threadName]};
 
         switch (parameters.level)
         {
-            case LogLevel.ERROR:
-            case LogLevel.WARN:
-                logger.WriteLine(message);
+            case LogLevel.ERROR or LogLevel.WARN:
+                logger.WriteLine(additionalContext, parameters.message);
                 break;
+            case LogLevel.INFO or LogLevel.DEBUG or LogLevel.TRACE:
+                logger.LogVerbose(additionalContext, parameters.message);
+                break;
+        }
 
-            case LogLevel.INFO:
-            case LogLevel.DEBUG:
-            case LogLevel.TRACE:
-                logger.LogVerbose(message);
-                break;
+        if (parameters.stackTrace != null)
+        {
+            logger.LogVerbose(additionalContext, parameters.stackTrace);
         }
     }
 }
