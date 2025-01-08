@@ -45,14 +45,16 @@ internal class LoggerContextManager : ILoggerContextManager
         formatedVerboseContext = new Lazy<string>(() => MergeContextsIntoSingleProperty(verboseContexts), LazyThreadSafetyMode.PublicationOnly);
     }
 
+    public ILoggerContextManager CreateAugmentedContext(IEnumerable<string> additionalContexts) => new LoggerContextManager(contexts.AddRange(FilterContexts(additionalContexts)), verboseContexts);
+
+    public ILoggerContextManager CreateAugmentedVerboseContext(IEnumerable<string> additionalVerboseContexts) => new LoggerContextManager(contexts, verboseContexts.AddRange(FilterContexts(additionalVerboseContexts)));
+
     public string GetFormattedContextOrNull(MessageLevelContext messageLevelContext) =>
         GetContextInternal(formatedContext.Value, messageLevelContext.Context);
     public string GetFormattedVerboseContextOrNull(MessageLevelContext messageLevelContext) =>
         GetContextInternal(formatedVerboseContext.Value, messageLevelContext.VerboseContext);
 
-    public ILoggerContextManager CreateAugmentedContext(IEnumerable<string> additionalContexts) => new LoggerContextManager(contexts.AddRange(additionalContexts), verboseContexts);
-
-    public ILoggerContextManager CreateAugmentedVerboseContext(IEnumerable<string> additionalVerboseContexts) => new LoggerContextManager(contexts, verboseContexts.AddRange(additionalVerboseContexts));
+    private static IEnumerable<string> FilterContexts(IEnumerable<string> contexts) => contexts.Where(context => !string.IsNullOrEmpty(context));
 
     private static string GetContextInternal(string baseContext, IReadOnlyCollection<string> messageLevelContext)
     {
@@ -61,7 +63,7 @@ internal class LoggerContextManager : ILoggerContextManager
             return baseContext;
         }
 
-        IEnumerable<string> resultingContext = messageLevelContext;
+        IEnumerable<string> resultingContext = FilterContexts(messageLevelContext);
         if (baseContext != null)
         {
             resultingContext = resultingContext.Prepend(baseContext);

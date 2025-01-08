@@ -57,17 +57,6 @@ public class LoggerBaseTests
     }
 
     [TestMethod]
-    public void ForContext_FiltersOutNullAndEmptyContext()
-    {
-        var newContextManager = Substitute.For<ILoggerContextManager>();
-        contextManager.CreateAugmentedContext(Arg.Any<IEnumerable<string>>()).Returns(newContextManager);
-
-        testSubject.ForContext("ctx", string.Empty, null);
-
-        contextManager.Received(1).CreateAugmentedContext(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new[] { "ctx" })));
-    }
-
-    [TestMethod]
     public void ForVerboseContext_CreatesNewLoggerWithUpdatedContextManager()
     {
         var newContextManager = Substitute.For<ILoggerContextManager>();
@@ -82,17 +71,6 @@ public class LoggerBaseTests
         newContextManager.ReceivedWithAnyArgs().GetFormattedContextOrNull(default);
         writer.Received().WriteLine(Arg.Any<string>());
         _ = settingsProvider.Received().IsVerboseEnabled;
-    }
-
-    [TestMethod]
-    public void ForVerboseContext_FiltersOutNullAndEmptyContext()
-    {
-        var newContextManager = Substitute.For<ILoggerContextManager>();
-        contextManager.CreateAugmentedVerboseContext(Arg.Any<IEnumerable<string>>()).Returns(newContextManager);
-
-        testSubject.ForVerboseContext("ctx", string.Empty, null);
-
-        contextManager.Received(1).CreateAugmentedVerboseContext(Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new[] { "ctx" })));
     }
 
     [TestMethod]

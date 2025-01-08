@@ -117,6 +117,14 @@ public class LoggerContextManagerTests
         testSubject.GetFormattedContextOrNull(new MessageLevelContext{Context = ["a", "b"], VerboseContext = ["c", "d"]}).Should().Be("a > b");
 
     [TestMethod]
+    public void GetFormattedContextOrNull_NullAndEmptyItems_ReturnsNonNullMessageLevelContextOnly() =>
+        testSubject.GetFormattedContextOrNull(new MessageLevelContext{Context = ["a", null, "", "b"], VerboseContext = ["c", "d"]}).Should().Be("a > b");
+
+    [TestMethod]
+    public void GetFormattedContextOrNull_NullAndEmptyItemsOnly_ReturnsNull() =>
+        testSubject.GetFormattedContextOrNull(new MessageLevelContext{Context = [null, ""], VerboseContext = ["c", "d"]}).Should().BeNull();
+
+    [TestMethod]
     public void GetFormattedContextOrNull_MessageLevelContextNotCached()
     {
         testSubject.GetFormattedContextOrNull(new MessageLevelContext{Context = ["a", "b"], VerboseContext = ["c", "d"]}).Should().Be("a > b");
@@ -138,6 +146,14 @@ public class LoggerContextManagerTests
     [TestMethod]
     public void GetFormattedVerboseContextOrNull_NoBaseContext_ReturnsMessageLevelContextOnly() =>
         testSubject.GetFormattedVerboseContextOrNull(new MessageLevelContext{Context = ["a", "b"], VerboseContext = ["c", "d"]}).Should().Be("c > d");
+
+    [TestMethod]
+    public void GetFormattedVerboseContextOrNull_NullAndEmptyItems_ReturnsNonNullMessageLevelContextOnly() =>
+        testSubject.GetFormattedVerboseContextOrNull(new MessageLevelContext{Context = ["a", "b"], VerboseContext = ["c", null, "", "d"]}).Should().Be("c > d");
+
+    [TestMethod]
+    public void GetFormattedVerboseContextOrNull_NullAndEmptyItemsOnly_ReturnsNull() =>
+        testSubject.GetFormattedVerboseContextOrNull(new MessageLevelContext{Context = ["a", "b"], VerboseContext = [null, ""]}).Should().BeNull();
 
     [TestMethod]
     public void GetFormattedVerboseContextOrNull_MessageLevelContextNotCached()

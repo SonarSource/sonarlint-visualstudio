@@ -31,13 +31,13 @@ internal class LoggerBase(
 
     public ILogger ForContext(params string[] context) =>
         new LoggerBase(
-            contextManager.CreateAugmentedContext(context.Where(x => !string.IsNullOrEmpty(x))),
+            contextManager.CreateAugmentedContext(context),
             writer,
             settingsProvider);
 
     public ILogger ForVerboseContext(params string[] context) =>
         new LoggerBase(
-            contextManager.CreateAugmentedVerboseContext(context.Where(x => !string.IsNullOrEmpty(x))),
+            contextManager.CreateAugmentedVerboseContext(context),
             writer,
             settingsProvider);
 
