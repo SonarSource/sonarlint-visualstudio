@@ -41,12 +41,11 @@ public partial class ServerSelectionDialog : Window
         InitializeComponent();
     }
 
-    private void ViewWebsite(object sender, RequestNavigateEventArgs e) => browserService.Navigate(e.Uri.AbsoluteUri);
-
     private void FreeSonaQubeCloudFreeTier_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
     {
-        ViewWebsite(sender, e);
-        telemetryManager.LinkClicked(TelemetryLinks.SonarQubeCloudFreeSignUp);
+        var telemetryLinkId = TelemetryLinks.SonarQubeCloudFreeSignUpId;
+        browserService.Navigate(TelemetryLinks.LinkIdToUrls[telemetryLinkId]);
+        telemetryManager.LinkClicked(telemetryLinkId);
     }
 
     private void OkButton_OnClick(object sender, RoutedEventArgs e)

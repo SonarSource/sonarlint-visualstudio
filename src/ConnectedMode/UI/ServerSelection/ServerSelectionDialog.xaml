@@ -5,6 +5,7 @@
                          xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
                          xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
                          xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+                         xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.Telemetry;assembly=SonarLint.VisualStudio.Core"
                          Title="{x:Static res:UiResources.ServerSelectionDialogTitle}" 
                          WindowStartupLocation="CenterOwner"
                          x:Name="This">
@@ -109,7 +110,8 @@
         </GroupBox>
 
         <TextBlock Grid.Row="1" Text="{x:Static res:UiResources.ConnectionDiscoveringText}" Margin="0,20">
-            <Hyperlink NavigateUri="https://www.sonarsource.com/products/sonarcloud/signup-free/" RequestNavigate="FreeSonaQubeCloudFreeTier_OnRequestNavigate">free tier</Hyperlink>
+            <!-- NavigateUri has to be filled, otherwise the RequestNavigate won't be triggered. The real Uri is calculated in the event handler -->
+            <Hyperlink NavigateUri="https://www.sonarsource.com" RequestNavigate="FreeSonaQubeCloudFreeTier_OnRequestNavigate">free tier</Hyperlink>
         </TextBlock>
 
         <Grid HorizontalAlignment="Right" Grid.Row="2">

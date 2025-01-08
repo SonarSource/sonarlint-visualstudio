@@ -22,5 +22,7 @@ namespace SonarLint.VisualStudio.Core.Telemetry;
 
 public static class TelemetryLinks
 {
-    public const string SonarQubeCloudFreeSignUp = "sonarqubeCloudFreeSignUp";
+    public const string SonarQubeCloudFreeSignUpId = "sonarqubeCloudFreeSignUp";
+
+    public static Dictionary<string, string> LinkIdToUrls { get; } = new() { { SonarQubeCloudFreeSignUpId, "https://www.sonarsource.com/products/sonarcloud/signup-free/" } };
 }
