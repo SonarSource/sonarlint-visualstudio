@@ -23,40 +23,35 @@ using System.Windows;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
-using SonarLint.VisualStudio.Integration.Telemetry;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
+namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
+
+[ExcludeFromCodeCoverage] // UI, not really unit-testable
+public partial class ServerSelectionDialog : Window
 {
-    [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public partial class ServerSelectionDialog : Window
+    private readonly IBrowserService browserService;
+    private readonly ITelemetryManager telemetryManager;
+
+    public ServerSelectionViewModel ViewModel { get; } = new();
+
+    public ServerSelectionDialog(IBrowserService browserService, ITelemetryManager telemetryManager)
     {
-        private readonly IBrowserService browserService;
-        private readonly ITelemetryManager telemetryManager;
+        this.browserService = browserService;
+        this.telemetryManager = telemetryManager;
+        InitializeComponent();
+    }
 
-        public ServerSelectionDialog(IBrowserService browserService, ITelemetryManager telemetryManager)
-        {
-            this.browserService = browserService;
-            this.telemetryManager = telemetryManager;
-            InitializeComponent();
-        }
+    private void ViewWebsite(object sender, RequestNavigateEventArgs e) => browserService.Navigate(e.Uri.AbsoluteUri);
 
-        public ServerSelectionViewModel ViewModel { get; } = new();
+    private void FreeSonaQubeCloudFreeTier_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
+    {
+        ViewWebsite(sender, e);
+        telemetryManager.LinkClicked(TelemetryLinks.SonarQubeCloudFreeSignUp);
+    }
 
-        private void ViewWebsite(object sender, RequestNavigateEventArgs e)
-        {
-            browserService.Navigate(e.Uri.AbsoluteUri);
-        }
-
-        private void FreeSonaQubeCloudFreeTier_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
-        {
-            ViewWebsite(sender, e);
-            telemetryManager.LinkClicked(TelemetryLinks.SonarQubeCloudFreeSignUp);
-        }
-
-        private void OkButton_OnClick(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
-            Close();
-        }
+    private void OkButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        DialogResult = true;
+        Close();
     }
 }

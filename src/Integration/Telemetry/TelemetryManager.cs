@@ -34,8 +34,8 @@ internal sealed class TelemetryManager : ITelemetryManager,
     IQuickFixesTelemetryManager,
     IDisposable
 {
-    private readonly ISlCoreTelemetryHelper telemetryHelper;
     private readonly IKnownUIContexts knownUiContexts;
+    private readonly ISlCoreTelemetryHelper telemetryHelper;
 
     [ImportingConstructor]
     public TelemetryManager(ISlCoreTelemetryHelper telemetryHelper, IKnownUIContexts knownUIContexts)
@@ -46,26 +46,19 @@ internal sealed class TelemetryManager : ITelemetryManager,
         knownUiContexts.VBProjectContextChanged += OnVBProjectContextChanged;
     }
 
-    public void QuickFixApplied(string ruleId)
+    public void Dispose()
     {
-        telemetryHelper.Notify(telemetryService => telemetryService.AddQuickFixAppliedForRule(new AddQuickFixAppliedForRuleParams(ruleId)));
+        knownUiContexts.CSharpProjectContextChanged -= OnCSharpProjectContextChanged;
+        knownUiContexts.VBProjectContextChanged -= OnVBProjectContextChanged;
     }
 
-    public SlCoreTelemetryStatus GetStatus()
-    {
-        return telemetryHelper.GetStatus();
-    }
+    public void QuickFixApplied(string ruleId) => telemetryHelper.Notify(telemetryService => telemetryService.AddQuickFixAppliedForRule(new AddQuickFixAppliedForRuleParams(ruleId)));
 
-    public void OptIn()
-    {
-        telemetryHelper.Notify(telemetryService => telemetryService.EnableTelemetry());
-    }
+    public SlCoreTelemetryStatus GetStatus() => telemetryHelper.GetStatus();
 
+    public void OptIn() => telemetryHelper.Notify(telemetryService => telemetryService.EnableTelemetry());
 
-    public void OptOut()
-    {
-        telemetryHelper.Notify(telemetryService => telemetryService.DisableTelemetry());
-    }
+    public void OptOut() => telemetryHelper.Notify(telemetryService => telemetryService.DisableTelemetry());
 
     public void LanguageAnalyzed(string languageKey, TimeSpan analysisTime)
     {
@@ -74,27 +67,11 @@ internal sealed class TelemetryManager : ITelemetryManager,
             telemetryService.AnalysisDoneOnSingleLanguage(new AnalysisDoneOnSingleLanguageParams(language, (int)Math.Round(analysisTime.TotalMilliseconds))));
     }
 
-    public void TaintIssueInvestigatedLocally()
-    {
-        telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedLocally());
-    }
+    public void TaintIssueInvestigatedLocally() => telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedLocally());
 
-    public void TaintIssueInvestigatedRemotely()
-    {
-        telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedRemotely());
-    }
+    public void TaintIssueInvestigatedRemotely() => telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedRemotely());
 
-
-    public void LinkClicked(string linkId)
-    {
-        telemetryHelper.Notify(telemetryService => telemetryService.HelpAndFeedbackLinkClicked(new HelpAndFeedbackClickedParams(linkId)));
-    }
-
-    public void Dispose()
-    {
-        knownUiContexts.CSharpProjectContextChanged -= OnCSharpProjectContextChanged;
-        knownUiContexts.VBProjectContextChanged -= OnVBProjectContextChanged;
-    }
+    public void LinkClicked(string linkId) => telemetryHelper.Notify(telemetryService => telemetryService.HelpAndFeedbackLinkClicked(new HelpAndFeedbackClickedParams(linkId)));
 
     private void OnCSharpProjectContextChanged(object sender, UIContextChangedEventArgs e)
     {
@@ -112,9 +89,8 @@ internal sealed class TelemetryManager : ITelemetryManager,
         }
     }
 
-    private static Language Convert(string languageKey)
-    {
-        return languageKey switch
+    private static Language Convert(string languageKey) =>
+        languageKey switch
         {
             SonarLanguageKeys.CPlusPlus => Language.CPP,
             SonarLanguageKeys.C => Language.C,
@@ -126,5 +102,4 @@ internal sealed class TelemetryManager : ITelemetryManager,
             SonarLanguageKeys.Secrets => Language.SECRETS,
             _ => throw new ArgumentOutOfRangeException(nameof(languageKey), languageKey, null)
         };
-    }
 }
