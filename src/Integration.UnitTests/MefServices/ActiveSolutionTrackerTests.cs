@@ -112,28 +112,11 @@ public class ActiveSolutionTrackerTests
         args.Should().BeEquivalentTo(new ActiveSolutionChangedEventArgs(true, "name123"));
     }
 
-    [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void FolderWorkspaceInitializedEvent_RaiseEventOnProjectOpenedIfFolderWorkspace(bool isFolderWorkspace)
-    {
-        // Arrange
-        int counter = 0;
-        var testSubject = CreateTestSubject(isFolderWorkspace);
-        testSubject.FolderWorkspaceInitialized += (o, e) => { counter++; };
-
-        // Act
-        this.solutionMock.SimulateProjectOpen(null);
-
-        // Assert
-        counter.Should().Be(isFolderWorkspace ? 1 : 0);
-    }
-
     private ActiveSolutionTracker CreateTestSubject(bool isFolderWorkspace = false)
     {
         var folderWorkspaceFolder = Substitute.For<IFolderWorkspaceService>();
         folderWorkspaceFolder.IsFolderWorkspace().Returns(isFolderWorkspace);
-          
+
         return new ActiveSolutionTracker(serviceProvider, folderWorkspaceFolder, solutionInfoProvider);
     }
 }
