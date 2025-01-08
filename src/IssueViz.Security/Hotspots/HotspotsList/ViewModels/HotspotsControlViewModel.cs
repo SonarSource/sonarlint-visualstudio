@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         IHotspotViewModel SelectedHotspot { get; }
 
         ICommand NavigateCommand { get; }
-        
+
         INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
     }
 
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         }
 
         /// <summary>
-        /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread. 
+        /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread.
         /// </summary>
         private void AllowMultiThreadedAccessToHotspotsList()
             => threadHandling.RunOnUIThread(() => BindingOperations.EnableCollectionSynchronization(Hotspots, Lock));

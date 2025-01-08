@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@ public class ServerConnectionTests
 {
     private static readonly Uri Localhost = new("http://localhost:5000");
     private const string Org = "myOrg";
-    
+
     [TestMethod]
     public void Ctor_SonarCloud_NullOrganization_Throws()
     {
@@ -36,7 +36,7 @@ public class ServerConnectionTests
 
         act.Should().Throw<ArgumentNullException>();
     }
-    
+
     [TestMethod]
     public void Ctor_SonarCloud_NullSettings_SetDefault()
     {
@@ -44,7 +44,7 @@ public class ServerConnectionTests
 
         sonarCloud.Settings.Should().BeSameAs(ServerConnection.DefaultSettings);
     }
-    
+
     [TestMethod]
     public void Ctor_SonarCloud_NullCredentials_SetsNull()
     {
@@ -52,7 +52,7 @@ public class ServerConnectionTests
 
         sonarCloud.Credentials.Should().BeNull();
     }
-    
+
     [TestMethod]
     public void Ctor_SonarCloud_SetsProperties()
     {
@@ -67,7 +67,7 @@ public class ServerConnectionTests
         sonarCloud.Credentials.Should().BeSameAs(credentials);
         sonarCloud.CredentialsUri.Should().Be(new Uri($"https://sonarcloud.io/organizations/{Org}"));
     }
-    
+
     [TestMethod]
     public void Ctor_SonarQube_NullUri_Throws()
     {
@@ -75,7 +75,7 @@ public class ServerConnectionTests
 
         act.Should().Throw<ArgumentNullException>();
     }
-    
+
     [TestMethod]
     public void Ctor_SonarQube_NullSettings_SetDefault()
     {
@@ -83,7 +83,7 @@ public class ServerConnectionTests
 
         sonarQube.Settings.Should().BeSameAs(ServerConnection.DefaultSettings);
     }
-    
+
     [TestMethod]
     public void Ctor_SonarQube_NullCredentials_SetsNull()
     {
@@ -91,7 +91,7 @@ public class ServerConnectionTests
 
         sonarQube.Credentials.Should().BeNull();
     }
-    
+
     [TestMethod]
     public void Ctor_SonarQube_SetsProperties()
     {
@@ -113,10 +113,10 @@ public class ServerConnectionTests
         var expectedConnection = new ServerConnection.SonarQube(Localhost, credentials: credentials);
 
         var connection = ServerConnection.FromBoundSonarQubeProject(new BoundSonarQubeProject(Localhost, "any", "any", credentials));
-        
+
         connection.Should().BeEquivalentTo(expectedConnection, options => options.ComparingByMembers<ServerConnection>());
     }
-    
+
     [TestMethod]
     public void FromBoundSonarQubeProject_SonarCloudConnection_ConvertedCorrectly()
     {
@@ -126,10 +126,10 @@ public class ServerConnectionTests
         var expectedConnection = new ServerConnection.SonarCloud(organization, credentials: credentials);
 
         var connection = ServerConnection.FromBoundSonarQubeProject(new BoundSonarQubeProject(uri, "any", "any", credentials, new SonarQubeOrganization(organization, null)));
-        
+
         connection.Should().BeEquivalentTo(expectedConnection, options => options.ComparingByMembers<ServerConnection>());
     }
-    
+
     [TestMethod]
     public void FromBoundSonarQubeProject_InvalidConnection_ReturnsNull()
     {
@@ -137,7 +137,7 @@ public class ServerConnectionTests
 
         connection.Should().BeNull();
     }
-    
+
     [TestMethod]
     public void FromBoundSonarQubeProject_NullConnection_ReturnsNull()
     {

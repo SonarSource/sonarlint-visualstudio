@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -152,7 +152,7 @@ public class BindingConfigurationTests
         CheckAreNotEqual(standalone, config1);
         CheckAreNotEqual(config1, standalone);
     }
-        
+
     [TestMethod]
     public void Equals_DifferentLocalProjects_AreNotEqual()
     {
@@ -204,7 +204,7 @@ public class BindingConfigurationTests
         CheckAreNotEqual(config1, config2);
         CheckAreNotEqual(config2, config1);
     }
-        
+
     [TestMethod]
     public void Equals_DifferentSonarQubeUris_AreNotEqual()
     {

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -55,7 +55,7 @@ namespace SonarQube.Client.Api.V9_4
             throw new InvalidOperationException();
         }
 
-        [JsonProperty("languages")] 
+        [JsonProperty("languages")]
         public string Languages { get; set; } = AllKnownLanguages;
 
         [JsonProperty("projectKeys")]

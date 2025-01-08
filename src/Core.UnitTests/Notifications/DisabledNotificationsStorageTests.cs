@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -59,13 +59,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var file = CreateFileMock(disabledNotifications);
 
             var testSubject = CreateTestSubject(file.Object);
-                        
+
             var result = testSubject.IsNotificationDisabled(notificationId);
 
             result.Should().Be(expectedResult);
             file.Verify(f => f.ReadAllText(ExpectedDefaultDisabledNotificationsFilePath), Times.Once);
 
-            //To make sure we do not go to disk on consecutive calls 
+            //To make sure we do not go to disk on consecutive calls
             _ = testSubject.IsNotificationDisabled(notificationId);
             file.Verify(f => f.ReadAllText(It.IsAny<string>()), Times.Once);
         }
@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             var testSubject = CreateTestSubject(file.Object);
 
             testSubject.DisableNotification("4");
-            
+
             var result = testSubject.IsNotificationDisabled("4");
 
             result.Should().BeTrue();
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Notifications
             disabledNotificationsResult.DisabledNotifications.Count().Should().Be(4);
             disabledNotificationsResult.DisabledNotifications.Any(n => n.Id == "4").Should().BeTrue();
 
-            //To make sure we do not go to disk on consecutive calls 
+            //To make sure we do not go to disk on consecutive calls
             testSubject.DisableNotification("4");
             file.Verify(f => f.ReadAllText(It.IsAny<string>()), Times.Once);
         }

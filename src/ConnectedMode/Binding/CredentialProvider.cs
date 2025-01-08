@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -38,12 +38,12 @@ public class CredentialProvider : ICredentialProvider
     public ConnectionCredentials GetCredentials(Uri uri)
     {
         var credentials = credentialStoreService.ReadCredentials(uri);
-        
+
         if (credentials is null)
         {
             return null;
         }
-        
+
         return new(credentials.Username, credentials.Password);
     }
 }

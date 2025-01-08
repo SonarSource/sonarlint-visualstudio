@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -45,8 +45,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
 
             var stores = new[]
             {
-                new Mock<IIssuesStore>(), 
-                new Mock<IIssuesStore>(), 
+                new Mock<IIssuesStore>(),
+                new Mock<IIssuesStore>(),
                 new Mock<IIssuesStore>()
             };
 
@@ -339,8 +339,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
             return new AggregatingIssueLocationStoreAdapter(issueStores);
         }
 
-        private static void RaiseIssuesChangedEvent(Mock<IIssuesStore> issuesStore, 
-            IAnalysisIssueVisualization[] oldIssues = null, 
+        private static void RaiseIssuesChangedEvent(Mock<IIssuesStore> issuesStore,
+            IAnalysisIssueVisualization[] oldIssues = null,
             IAnalysisIssueVisualization[] newIssues = null)
         {
             oldIssues ??= Array.Empty<IAnalysisIssueVisualization>();

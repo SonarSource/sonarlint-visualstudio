@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
     /// 3) used by tag aggregators.
     ///
     /// Tag aggregrators will call Dispose on any disposable tagger they create, which is a problem
-    /// if we really want a disposable tagger to be a per-buffer singleton (we can't just use 
+    /// if we really want a disposable tagger to be a per-buffer singleton (we can't just use
     /// buffer.Properties.GetOrCreateSingletonProperty(...) since an aggregator will still dispose
     /// the tagger, so we end up with a disposed tagger stored in the collection).
     ///

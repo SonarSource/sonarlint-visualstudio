@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             issueViz.VerifyAdd(x => x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Once);
         }
-        
+
         [DataRow(SoftwareQualitySeverity.High)]
         [DataRow(SoftwareQualitySeverity.Medium)]
         [DataRow(SoftwareQualitySeverity.Low)]
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             testSubject.DisplaySeverity.Should().Be(severity.ToString());
             testSubject.DisplaySeveritySortOrder.Should().Be((int)severity);
         }
-        
+
         [TestMethod]
         public void Dispose_UnregisterFromIssueVizPropertyChangedEvent()
         {

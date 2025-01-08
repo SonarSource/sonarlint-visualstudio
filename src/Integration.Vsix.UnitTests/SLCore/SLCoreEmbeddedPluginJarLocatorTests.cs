@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -101,9 +101,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
         [TestMethod]
         public void ListConnectedModeEmbeddedPluginPathsByKey_JarsExists_ContainsEntryForSecretsAndJavaScriptPlugin()
         {
-            MockFileSystem(true, 
+            MockFileSystem(true,
                 BuildJarFullPath("sonar-text-plugin-2.15.0.3845.jar"),
-                BuildJarFullPath("sonar-javascript-plugin-10.14.0.26080.jar"), 
+                BuildJarFullPath("sonar-javascript-plugin-10.14.0.26080.jar"),
                 BuildJarFullPath("sonar-cfamily-plugin-6.58.0.74356.jar"));
 
             var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();

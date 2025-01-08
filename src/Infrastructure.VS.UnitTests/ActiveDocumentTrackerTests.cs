@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             var eventHandler = new Mock<Action<ActiveDocumentChangedEventArgs>>();
             var testSubject = CreateTestSubject(eventHandler: eventHandler.Object);
-            
+
             var result = (testSubject as IVsSelectionEvents).OnCmdUIContextChanged(1, 1);
             result.Should().Be(VSConstants.S_OK);
 

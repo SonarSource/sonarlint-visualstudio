@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ namespace SonarQube.Client.Helpers
 
             return (SonarQubeCleanCodeAttribute)Enum.Parse(typeof(SonarQubeCleanCodeAttribute), value, true);
         }
-        
+
         internal static Dictionary<SonarQubeSoftwareQuality, SonarQubeSoftwareQualitySeverity> ToDefaultImpacts(ServerImpact[] impacts)
         {
             return impacts?

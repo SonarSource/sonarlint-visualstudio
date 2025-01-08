@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -47,14 +47,14 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
     public class RpcMethodNameTransformer : IRpcMethodNameTransformer
     {
         const string suffix = "Async";
-        
+
         public Func<string, string> Create<T>()
         {
             if (!(typeof(T).GetCustomAttributes(typeof(JsonRpcClassAttribute), false).FirstOrDefault() is JsonRpcClassAttribute attribute))
             {
                 return FormatName;
             }
-            
+
             var prependTransform = CommonMethodNameTransforms.Prepend($"{attribute.Prefix}/");
 
             return name => prependTransform(FormatName(name));
@@ -62,9 +62,9 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
 
         private static string FormatName(string name) => CommonMethodNameTransforms.CamelCase(RemoveAsyncSuffix(name));
 
-        private static string RemoveAsyncSuffix(string name) => 
-            name.EndsWith(suffix) 
-                ? name.Substring(0, name.Length - suffix.Length) 
+        private static string RemoveAsyncSuffix(string name) =>
+            name.EndsWith(suffix)
+                ? name.Substring(0, name.Length - suffix.Length)
                 : name;
     }
 }

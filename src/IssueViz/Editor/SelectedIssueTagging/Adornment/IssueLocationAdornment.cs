@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -29,14 +29,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
     {
         public IAnalysisIssueLocationVisualization LocationViz { get; }
 
-        public IssueLocationAdornment(IAnalysisIssueLocationVisualization locationViz, IFormattedLineSource formattedLineSource) 
+        public IssueLocationAdornment(IAnalysisIssueLocationVisualization locationViz, IFormattedLineSource formattedLineSource)
         {
             // We can't store the formatted line source since it might change
             // e.g. if the user changes the font size
             LocationViz = locationViz;
 
             Margin = new Thickness(3, 0, 3, 0); // Space between this UI element and the editor text
-            Padding = new Thickness(0);  // Space between the side of the control and its content    
+            Padding = new Thickness(0);  // Space between the side of the control and its content
             BorderThickness = new Thickness(1);
             CornerRadius = new CornerRadius(1);
 

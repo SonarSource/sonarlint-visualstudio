@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -29,14 +29,14 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Credentials
     {
         // credentials property is nullable on the SLCore side
         public static readonly GetCredentialsResponse NoCredentials = new GetCredentialsResponse();
-        
+
         private GetCredentialsResponse(){}
-        
+
         public GetCredentialsResponse(TokenDto token)
         {
             credentials = Either<TokenDto, UsernamePasswordDto>.CreateLeft(token ?? throw new ArgumentNullException(nameof(token)));
-        }      
-        
+        }
+
         public GetCredentialsResponse(UsernamePasswordDto usernamePassword)
         {
             credentials = Either<TokenDto, UsernamePasswordDto>.CreateRight(usernamePassword ?? throw new ArgumentNullException(nameof(usernamePassword)));

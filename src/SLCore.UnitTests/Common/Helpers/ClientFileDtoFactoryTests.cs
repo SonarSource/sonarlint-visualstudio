@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ public class ClientFileDtoFactoryTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<ClientFileDtoFactory>();
     }
-    
+
     [DataTestMethod]
     [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\", @"user\projectA\directoryA\file.cs")]
     [DataRow(@"C:\user\projectA\directoryA\file.cs", @"C:\user\projectA\", @"directoryA\file.cs")]
@@ -49,56 +49,56 @@ public class ClientFileDtoFactoryTests
 
         result.ideRelativePath.Should().BeEquivalentTo(expectedRelativePath);
     }
-    
+
     [TestMethod]
     public void Create_ConstructsValidDto()
     {
         var testSubject = new ClientFileDtoFactory();
 
         var result = testSubject.Create("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\Code\Project\File1.js"));
-        
+
         ValidateDto(result, @"C:\Code\Project\File1.js", @"Code\Project\File1.js");
     }
-    
+
     [TestMethod]
     public void Create_WithContent_ConstructsValidDto()
     {
         const string content = "somecontent";
-        
+
         var testSubject = new ClientFileDtoFactory();
 
         var result = testSubject.Create("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\Code\Project\File1.js", content: content));
-        
+
         ValidateDto(result, @"C:\Code\Project\File1.js", @"Code\Project\File1.js", expectedContent: content);
     }
-    
+
     [TestMethod]
     public void Create_WithLocalizedPath_ConstructsValidDto()
     {
         var testSubject = new ClientFileDtoFactory();
 
         var result = testSubject.Create("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\привет\project\file1.js"));
-        
+
         ValidateDto(result,  @"C:\привет\project\file1.js", @"привет\project\file1.js");
     }
-    
+
     [TestMethod]
     public void Create_WithUNCPath_ConstructsValidDto()
     {
         var testSubject = new ClientFileDtoFactory();
 
         var result = testSubject.Create("CONFIG_SCOPE_ID", @"\\servername\work\", new SourceFile(@"\\servername\work\project\file1.js"));
-        
+
         ValidateDto(result, @"\\servername\work\project\file1.js", @"project\file1.js");
     }
-    
+
     [TestMethod]
     public void Create_WithWhitespacesPath_ConstructsValidDto()
     {
         var testSubject = new ClientFileDtoFactory();
 
         var result = testSubject.Create("CONFIG_SCOPE_ID", @"C:\", new SourceFile(@"C:\Code\My Project\My Favorite File2.js"));
-        
+
         ValidateDto(result, @"C:\Code\My Project\My Favorite File2.js", @"Code\My Project\My Favorite File2.js");
     }
 
@@ -107,9 +107,9 @@ public class ClientFileDtoFactoryTests
         actual.Should().BeEquivalentTo(new ClientFileDto(
             new FileUri(expectedFsPath),
             expectedIdeRelativePath,
-            "CONFIG_SCOPE_ID", 
-            null, 
-            "utf-8", 
+            "CONFIG_SCOPE_ID",
+            null,
+            "utf-8",
             expectedFsPath,
             expectedContent));
         actual.isUserDefined.Should().BeTrue();

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                  // is broken. See https://github.com/SonarSource/sonarlint-visualstudio/issues/3144
         public async Task RunOnBackgroundThread_StartsOnUIThread_WorksInBackground_ReturnsOnUIThread()
         {
-            // TODO 
+            // TODO
         }
 
         private static async Task RunOnUIThread(Action op)

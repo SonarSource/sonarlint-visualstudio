@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         public IList<MenuCommand> AddedMenuCommands { get; } = new List<MenuCommand>();
 
-        #region IMenuCommandService methods 
+        #region IMenuCommandService methods
 
         public DesignerVerbCollection Verbs => throw new NotImplementedException();
 
@@ -41,6 +41,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void RemoveVerb(DesignerVerb verb) => throw new NotImplementedException();
         public void ShowContextMenu(CommandID menuID, int x, int y) => throw new NotImplementedException();
 
-        #endregion IMenuCommandService methods 
+        #endregion IMenuCommandService methods
     }
 }

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
         {
             var suppressionContext = CreateSuppressionContext("sonarKey");
             var suppressionChecker = CreateSuppressionChecker("sonarKey");
-            
+
             var createContainer = new Mock<Func<IContainer>>();
             createContainer.Setup(x => x()).Returns(CreateContainer(suppressionChecker));
 
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             var container = CreateContainer(suppressionChecker);
 
             var reportedDiagnostics = CreateReportedDiagnostics(diag);
-            
+
             var testSubject = CreateTestSubject(container);
 
             var suppressions = testSubject.GetSuppressions(reportedDiagnostics, suppressionContext.Object).ToList();
@@ -239,6 +239,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             return container.Object;
         }
 
-        
+
     }
 }

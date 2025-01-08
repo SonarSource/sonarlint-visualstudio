@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ internal class SLCoreProcessFactory : ISLCoreProcessFactory
     {
         this.slCoreErrorLoggerFactory = slCoreErrorLoggerFactory;
     }
-    
+
     public ISLCoreProcess StartNewProcess(SLCoreLaunchParameters slCoreLaunchParameters)
     {
         return new SLCoreProcess(slCoreLaunchParameters, slCoreErrorLoggerFactory);

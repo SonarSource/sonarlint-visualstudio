@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ public class NonContextualRuleDescriptionTabTests
 
         testSubject.htmlContent.Should().BeEquivalentTo("<col/>");
     }
-    
+
     [TestMethod]
     public void ProduceVisualNode_ReturnsSingleContentSection()
     {
@@ -46,13 +46,13 @@ public class NonContextualRuleDescriptionTabTests
         var translatorMock = new Mock<IRuleHelpXamlTranslator>();
         translatorMock.Setup(x => x.TranslateHtmlToXaml(contentHtml)).Returns(contentXaml);
         var parameters = new VisualizationParameters(translatorMock.Object, "context");
-        
+
         var testSubject = new NonContextualRuleDescriptionTab("title", contentHtml);
 
 
         var visualNode = testSubject.ProduceVisualNode(parameters);
-        
-        
+
+
         visualNode.Should().BeEquivalentTo(new ContentSection(contentXaml));
         translatorMock.Verify(x => x.TranslateHtmlToXaml(contentHtml), Times.Once);
         translatorMock.VerifyNoOtherCalls();
@@ -62,7 +62,7 @@ public class NonContextualRuleDescriptionTabTests
     public void Title_ReturnsCorrectTitle()
     {
         const string title = "title";
-        
+
         var testSubject = new NonContextualRuleDescriptionTab(title, "contenthtml");
 
         testSubject.Title.Should().BeSameAs(title);

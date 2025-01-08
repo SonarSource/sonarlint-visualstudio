@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -85,8 +85,8 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers
 
             testData.SomeDateTimeOffset.Should().BeCloseTo(date, precision:1); // unix timestamp loses some precision
             testData.SomeDateTimeOffset.Offset.Should().Be(TimeSpan.Zero);
-        }        
-        
+        }
+
         [DataTestMethod]
         [DataRow(253402300799999L + 1)]
         [DataRow(-62135596800000L - 1)]
@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers
             act.Should().Throw<ArgumentOutOfRangeException>();
         }
 
-        
+
         [DataTestMethod]
         [DataRow(typeof(DateTimeOffset), true)]
         [DataRow(typeof(long), false)]

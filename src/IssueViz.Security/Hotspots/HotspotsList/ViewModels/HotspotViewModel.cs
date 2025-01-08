@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         string DisplayPath { get; }
 
         string CategoryDisplayName { get; }
-        
+
         HotspotPriority HotspotPriority { get; }
     }
 
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         {
         }
 
-        internal HotspotViewModel(IAnalysisIssueVisualization hotspot, 
+        internal HotspotViewModel(IAnalysisIssueVisualization hotspot,
             HotspotPriority hotspotPriority,
             ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider,
             IIssueVizDisplayPositionCalculator positionCalculator)
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         }
 
         public IAnalysisIssueVisualization Hotspot { get; }
-        
+
         public HotspotPriority HotspotPriority { get; }
 
         public int Line => positionCalculator.GetLine(Hotspot);

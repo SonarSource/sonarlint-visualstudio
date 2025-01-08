@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -28,10 +28,10 @@ namespace SonarLint.VisualStudio.Progress.UnitTests
     /// <summary>
     /// ServiceProvider that correctly handles COM type equivalence for embedded interop types.
     /// See https://learn.microsoft.com/en-us/dotnet/framework/interop/type-equivalence-and-embedded-interop-types
-    /// Mock<IServiceProvider> does not handle this, which *can* lead to requests for services 
+    /// Mock<IServiceProvider> does not handle this, which *can* lead to requests for services
     /// failing unexpectedly e.g. a test that works against VS2022 might fail for VS2019 because
     /// a service can't be found.
-    /// 
+    ///
     /// Type-equivalence issues can also manifest as tests failing because casting to an embedded
     /// interop type fails unexpectedly.
     /// </summary>

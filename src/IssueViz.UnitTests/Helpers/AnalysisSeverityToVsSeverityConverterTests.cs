@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
 
             testSubject.Convert(AnalysisIssueSeverity.Blocker).Should().Be(expectedVsErrorCategory);
         }
-        
+
         [TestMethod]
         [DataRow(SoftwareQualitySeverity.High, __VSERRORCATEGORY.EC_WARNING)]
         [DataRow(SoftwareQualitySeverity.Medium, __VSERRORCATEGORY.EC_WARNING)]
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
         {
             testSubject.ConvertFromCct((SoftwareQualitySeverity)(-999)).Should().Be(__VSERRORCATEGORY.EC_MESSAGE);
         }
-        
+
         [TestMethod]
         public void Convert_InvalidDaemonSeverity_DoesNotThrow()
         {
@@ -92,11 +92,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
             {
                 Severity = AnalysisIssueSeverity.Major, HighestImpact = new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.High)
             });
-            
+
             converter.Verify(x => x.ConvertFromCct(SoftwareQualitySeverity.High), Times.Once);
             converter.Invocations.Should().HaveCount(1);
         }
-        
+
         [TestMethod]
         public void GetVsSeverity_IssueWithoutNewCct_UsesOldSeverityConverter()
         {
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
             {
                 Severity = AnalysisIssueSeverity.Major
             });
-            
+
             converter.Verify(x => x.Convert(AnalysisIssueSeverity.Major), Times.Once);
             converter.Invocations.Should().HaveCount(1);
         }

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -31,8 +31,8 @@ namespace SonarQube.Client.Api.V9_9
     {
         protected override string Path => "api/issues/add_comment";
         protected override HttpMethod HttpMethod => HttpMethod.Post;
-        
-        [JsonProperty("issue")] 
+
+        [JsonProperty("issue")]
         public string IssueKey { get; set; }
 
         [JsonProperty("text")]
@@ -51,7 +51,7 @@ namespace SonarQube.Client.Api.V9_9
                 return false;
             }
         }
-        
+
         protected override bool ParseResponse(string response)
         {
             // response is ignored

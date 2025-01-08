@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ public class ShowFixSuggestionListenerTests
         fixSuggestionHandler = Substitute.For<IFixSuggestionHandler>();
         testSubject = new ShowFixSuggestionListener(fixSuggestionHandler);
     }
-    
+
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
@@ -62,9 +62,9 @@ public class ShowFixSuggestionListenerTests
         var fileEditDto = new FileEditDto(@"C:\Users\test\TestProject\AFile.cs", listOfChanges);
         var fixSuggestionDto = new FixSuggestionDto("SUGGESTION_ID", "AN EXPLANATION", fileEditDto);
         var parameters = new ShowFixSuggestionParams("CONFIG_SCOPE_ID", "S1234", fixSuggestionDto);
-        
+
         testSubject.ShowFixSuggestion(parameters);
-        
+
         fixSuggestionHandler.Received(1).ApplyFixSuggestion(parameters);
     }
 }

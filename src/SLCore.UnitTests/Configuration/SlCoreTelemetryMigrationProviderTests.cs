@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -39,7 +39,7 @@ public class SlCoreTelemetryMigrationProviderTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<SlCoreTelemetryMigrationProvider>();
     }
-    
+
     [TestMethod]
     public void Get_NoData_ReturnsNull()
     {
@@ -65,7 +65,7 @@ public class SlCoreTelemetryMigrationProviderTests
         var slCoreTelemetryMigrationProvider = new SlCoreTelemetryMigrationProvider(telemetryDataRepository);
 
         var telemetryMigrationDto = slCoreTelemetryMigrationProvider.Get();
-        
+
         var expectedDto = new TelemetryMigrationDto(
             isEnabled: true,
             installTime: new DateTimeOffset(new DateTime(2017, 3, 15, 6, 15, 42, 123, DateTimeKind.Unspecified).AddTicks(4567), TimeSpan.FromHours(1)),

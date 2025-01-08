@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -33,12 +33,12 @@ internal interface IJsonRpc
     void AddLocalRpcTarget(object target, JsonRpcTargetOptions options);
 
     void StartListening();
-        
+
     Task Completion { get; }
-        
+
     TraceSource TraceSource { get; }
 }
-    
+
 /// <summary>
 /// Wrapper for <see cref="JsonRpc"/> that implements <see cref="IJsonRpc"/>
 /// </summary>

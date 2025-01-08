@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -34,9 +34,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
     // These tests are slightly hacky in that they use "ThreadHelper.SetCurrentThreadAsUIThread()"
     // to fool the VS thread helper into thinking the current thread is the UI thread.
-    // 
+    //
     // However, these tests are quite limited as we can only test the cases where the
-    // caller is already on the main thread - we're not hacking/mocking/faking enough 
+    // caller is already on the main thread - we're not hacking/mocking/faking enough
     // of the VS setup for a call to "ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync()"
     // to succeed.
     [TestClass]
@@ -76,8 +76,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
     // These tests are quite hacky in that they use "ThreadHelper.SetCurrentThreadAsUIThread()",
     // and also use reflection to set private data fields in the VS ThreadHelper hierarchy.
     // As such, they will break if the underlying VS implementation changes.
-    // 
-    // However, we are now hacking/mocking/faking enough of the VS setup that a call to 
+    //
+    // However, we are now hacking/mocking/faking enough of the VS setup that a call to
     // "ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync()" won't fail.
     // It won't actually cause a thread transition, but we can use the fact that our
     // scheduler mock was called to detect whether a thread transition was requested.
@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         /// <summary>
         /// Hacks VS threading internals so that calls to ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync
         /// won't fail. This part of the hack is cleared when the scope is disposed.
-        /// 
+        ///
         /// Also sets the calling thread as the UI thread.
         /// This is NOT changed when the scope is disposed.
         /// </summary>

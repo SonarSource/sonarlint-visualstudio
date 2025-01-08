@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -28,8 +28,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private CssTargetLanguagePredicate(){}
         public bool IsTargetLanguage(AnalysisLanguage detectedLanguage, string fileExtension)
         {
-            return detectedLanguage == AnalysisLanguage.CascadingStyleSheets 
-                   || ((detectedLanguage == AnalysisLanguage.Javascript || detectedLanguage == AnalysisLanguage.TypeScript) 
+            return detectedLanguage == AnalysisLanguage.CascadingStyleSheets
+                   || ((detectedLanguage == AnalysisLanguage.Javascript || detectedLanguage == AnalysisLanguage.TypeScript)
                        && fileExtension == "vue");
         }
     }

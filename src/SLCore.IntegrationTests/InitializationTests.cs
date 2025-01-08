@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 public class InitializationTests
 {
     public TestContext TestContext { get; set; }
-    
+
     [TestMethod]
     public async Task Sloop_StartedAndStoppedWithoutErrors()
     {
@@ -71,7 +71,7 @@ public class InitializationTests
                 new NoOpThreadHandler());
 
             activeConfigScopeTracker.SetCurrentConfigScope(configScopeId);
-            
+
             await WaitForAnalysisReadiness(analysisReadyCompletionSource);
 
             activeConfigScopeTracker.RemoveCurrentConfigScope();
@@ -89,9 +89,9 @@ public class InitializationTests
                 d.areReadyForAnalysis && d.configurationScopeIds.Contains(configScopeId)));
     }
 
-    private static async Task WaitForAnalysisReadiness(TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource) => 
+    private static async Task WaitForAnalysisReadiness(TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource) =>
         await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
-    
+
     private static async Task WaitForSloopLog(TestLogger slCoreLogger)
     {
         var tcs = new TaskCompletionSource<bool>();

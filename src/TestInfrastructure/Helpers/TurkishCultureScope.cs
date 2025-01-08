@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure.Helpers
 {
     //This is to make sure normalising the keys done correctly with culture invariant
     //Lower case of SETTINGSKEY in Turkish is not settingskey but settıngskey
-    //https://en.wikipedia.org/wiki/Dotted_and_dotless_I 
+    //https://en.wikipedia.org/wiki/Dotted_and_dotless_I
     public class TurkishCultureScope : IDisposable
     {
         private readonly CultureInfo _originalCulture;

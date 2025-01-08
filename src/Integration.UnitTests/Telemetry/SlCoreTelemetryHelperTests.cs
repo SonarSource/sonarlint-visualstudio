@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -45,7 +45,7 @@ public class SlCoreTelemetryHelperTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<SlCoreTelemetryHelper>();
     }
-    
+
     [TestMethod]
     public void GetStatus_RunsOnBackgroundThreadSynchronously()
     {
@@ -76,7 +76,7 @@ public class SlCoreTelemetryHelperTests
         status.Should().Be(SlCoreTelemetryStatus.Unavailable);
         testLogger.OutputStrings.Should().BeEmpty();
     }
-    
+
     [DataTestMethod]
     [DataRow(true)]
     [DataRow(false)]
@@ -105,7 +105,7 @@ public class SlCoreTelemetryHelperTests
         status.Should().Be(SlCoreTelemetryStatus.Unavailable);
         testLogger.OutputStrings.Should().HaveCount(1);
     }
-    
+
     [TestMethod]
     public void GetStatus_CriticalException_Throws()
     {
@@ -130,7 +130,7 @@ public class SlCoreTelemetryHelperTests
         var telemetryProducer = Substitute.For<Action<ITelemetrySLCoreService>>();
 
         testSubject.Notify(telemetryProducer);
-        
+
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
@@ -138,7 +138,7 @@ public class SlCoreTelemetryHelperTests
             telemetryProducer.Invoke(Arg.Any<ITelemetrySLCoreService>());
         });
     }
-    
+
     [TestMethod]
     public void Notify_ServiceUnavailable_Discards()
     {
@@ -146,10 +146,10 @@ public class SlCoreTelemetryHelperTests
         var telemetryProducer = Substitute.For<Action<ITelemetrySLCoreService>>();
 
         testSubject.Notify(telemetryProducer);
-        
+
         telemetryProducer.DidNotReceiveWithAnyArgs().Invoke(default);
     }
-    
+
     [TestMethod]
     public void Notify_ServiceAvailable_CallsTelemetryProducer()
     {
@@ -158,10 +158,10 @@ public class SlCoreTelemetryHelperTests
         var telemetryProducer = Substitute.For<Action<ITelemetrySLCoreService>>();
 
         testSubject.Notify(telemetryProducer);
-        
+
         telemetryProducer.Received().Invoke(telemetryService);
     }
-    
+
     private static ISLCoreServiceProvider CreateTelemetryService(out ITelemetrySLCoreService telemetryService)
     {
         var serviceProvider = Substitute.For<ISLCoreServiceProvider>();
@@ -174,7 +174,7 @@ public class SlCoreTelemetryHelperTests
         });
         return serviceProvider;
     }
-    
+
     private SlCoreTelemetryHelper CreateTestSubject(ISLCoreServiceProvider slCoreServiceProvider = null, IThreadHandling threadHandling = null, ILogger logger = null)
     {
         slCoreServiceProvider ??= Substitute.For<ISLCoreServiceProvider>();

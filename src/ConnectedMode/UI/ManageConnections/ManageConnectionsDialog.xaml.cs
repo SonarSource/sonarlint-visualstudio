@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -50,13 +50,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             {
                 return;
             }
-            
+
             var credentialsDialog = new CredentialsDialog(connectedModeServices, connectionViewModel.Connection.Info, false);
             if (!CredentialsDialogSucceeded(credentialsDialog))
             {
                 return;
             }
-            
+
             await ViewModel.UpdateConnectionCredentialsWithProgressAsync(connectionViewModel.Connection, credentialsDialog.ViewModel.GetCredentialsModel());
         }
 
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private CredentialsDialog GetCredentialsDialog(ConnectionInfo newConnectionInfo)
         {
-            var isAnyDialogFollowing = newConnectionInfo.ServerType == ConnectionServerType.SonarCloud; 
+            var isAnyDialogFollowing = newConnectionInfo.ServerType == ConnectionServerType.SonarCloud;
             return new CredentialsDialog(connectedModeServices, newConnectionInfo, withNextButton: isAnyDialogFollowing);
         }
 
@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
             {
                 return newConnectionInfo;
             }
-            
+
             var organizationSelectionDialog = new OrganizationSelectionDialog(connectedModeServices, credentialsDialog.ViewModel.GetCredentialsModel());
 
             return organizationSelectionDialog.ShowDialog(this) == true ? organizationSelectionDialog.ViewModel.FinalConnectionInfo : null;

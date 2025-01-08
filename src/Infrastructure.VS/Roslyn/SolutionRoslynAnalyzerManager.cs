@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -55,14 +55,14 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         IActiveConfigScopeTracker activeConfigScopeTracker,
         IActiveSolutionTracker activeSolutionTracker,
         IAsyncLockFactory asyncLockFactory,
-        ILogger logger) 
+        ILogger logger)
         : this(basicAnalyzerProvider,
-              enterpriseAnalyzerProvider, 
-              roslynWorkspace, 
+              enterpriseAnalyzerProvider,
+              roslynWorkspace,
               AnalyzerArrayComparer.Instance,
-              activeConfigScopeTracker, 
+              activeConfigScopeTracker,
               activeSolutionTracker,
-              asyncLockFactory, 
+              asyncLockFactory,
               logger)
     {
     }
@@ -95,10 +95,10 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         using (await asyncLock.AcquireAsync())
         {
             ThrowIfDisposed();
-            
+
             if (solutionName is null)
             {
-                RemoveCurrentAnalyzers(); 
+                RemoveCurrentAnalyzers();
                 return;
             }
 
@@ -137,7 +137,7 @@ internal sealed class SolutionRoslynAnalyzerManager : ISolutionRoslynAnalyzerMan
         }
 
         RemoveCurrentAnalyzers();
-        AddAnalyzer(analyzersToUse); 
+        AddAnalyzer(analyzersToUse);
     }
 
     private bool DidAnalyzerChoiceChange(ImmutableArray<AnalyzerFileReference> analyzersToUse)

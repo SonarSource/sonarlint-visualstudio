@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ public class EmbeddedDotnetAnalyzerDLLsSmokeTest
             "SonarAnalyzer.VisualBasic.dll",
             "SonarAnalyzer.Enterprise.CSharp.dll",
             "SonarAnalyzer.CSharp.dll",
-        ], options => options.WithoutStrictOrdering()); 
+        ], options => options.WithoutStrictOrdering());
     }
 
     private static string GetPathToSrc(DirectoryInfo directoryInfo)
@@ -46,7 +46,7 @@ public class EmbeddedDotnetAnalyzerDLLsSmokeTest
         {
             directoryInfo = directoryInfo.Parent;
         }
-        
+
         return directoryInfo.FullName;
     }
 }

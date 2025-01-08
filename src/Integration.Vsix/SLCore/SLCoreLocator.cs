@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
         private readonly IVsixRootLocator vsixRootLocator;
 
         [ImportingConstructor]
-        public SLCoreLocator(IVsixRootLocator vsixRootLocator, ISonarLintSettings sonarLintSettings, ILogger logger) 
+        public SLCoreLocator(IVsixRootLocator vsixRootLocator, ISonarLintSettings sonarLintSettings, ILogger logger)
             : this(vsixRootLocator, DefaultPathInsideVsix, sonarLintSettings, logger, new FileSystem())
         {
         }
@@ -63,8 +63,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SLCore
         public SLCoreLaunchParameters LocateExecutable()
         {
             var vsixRoot = vsixRootLocator.GetVsixRoot();
-            
-            return new (GetCustomJrePathFromSettings() ?? GetEmbeddedJrePath(vsixRoot), 
+
+            return new (GetCustomJrePathFromSettings() ?? GetEmbeddedJrePath(vsixRoot),
                 $"-classpath \"{Path.Combine(vsixRoot, basePathInsideVsix, LibSubPath)}\" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli");
         }
 

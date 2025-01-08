@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -25,26 +25,26 @@
  *
  * We can't open or build the SLVS solution in VS2019 any more (we use new
  * MSBuild features that are not supported).
- * 
+ *
  * 1. Close all VS2022 instances
  * 2. Open a VS *2022* Developer Command Prompt
  * 2. Build SLVS using the following command:
  *
  *      msbuild /p:vstargetversion=2019 /t:restore,rebuild
- * 
+ *
  * 3. Install the resulting SLVS2019 vsix locally.
  * 4. Re-open the SLVS solution in VS2022
  * 5. Open a VS *2019* Developer Command Prompt
  * 6. Set the required environment variable using the following command:
- * 
+ *
  *   set SLVSDEBUG=anything
  *
  * 7. Start VS2019 from the command line (devenv.exe)
- * 
+ *
  * When VS loads this package and hits the Debugger.Launch call Windows
  * will pop up a dialogue asking if you want to attach a debugger.
  * Select the instance of VS2022 you opened in step (4) above.
- * 
+ *
  * The SLVS 2019 pdbs should match the assemblies being used by VS2019, so
  * you should be able to debug normally i.e. setting breaking point,
  * stepping through code etc.
