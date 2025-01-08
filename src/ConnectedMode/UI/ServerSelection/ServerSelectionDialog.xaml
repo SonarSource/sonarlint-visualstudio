@@ -1,11 +1,9 @@
 ﻿<Window x:Class="SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection.ServerSelectionDialog"
                          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                         xmlns:links="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
                          xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
                          xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
                          xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
-                         xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.Telemetry;assembly=SonarLint.VisualStudio.Core"
                          Title="{x:Static res:UiResources.ServerSelectionDialogTitle}" 
                          WindowStartupLocation="CenterOwner"
                          x:Name="This">
