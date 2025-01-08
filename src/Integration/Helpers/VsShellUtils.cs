@@ -44,28 +44,6 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// Writes a message to the SonarLint output pane. Will append a new line after the message.
         /// </summary>
-        public static void WriteToSonarLintOutputPane(IServiceProvider serviceProvider, string messageFormat, params object[] args)
-        {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            if (messageFormat == null)
-            {
-                throw new ArgumentNullException(nameof(messageFormat));
-            }
-
-            IVsOutputWindowPane sonarLintPane = GetOrCreateSonarLintOutputPane(serviceProvider);
-            if (sonarLintPane != null)
-            {
-                WriteLineToPane(sonarLintPane, messageFormat, args);
-            }
-        }
-
-        /// <summary>
-        /// Writes a message to the SonarLint output pane. Will append a new line after the message.
-        /// </summary>
         public static void WriteToSonarLintOutputPane(IServiceProvider serviceProvider, string message)
         {
             if (serviceProvider == null)
@@ -191,12 +169,6 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(ErrorHandler.Succeeded(hrGetPane), "Failed in outputWindow.GetPane: " + hrGetPane.ToString());
 
             return pane;
-        }
-
-        private static void WriteLineToPane(IVsOutputWindowPane pane, string messageFormat, params object[] args)
-        {
-            int hr = pane.OutputStringThreadSafe(string.Format(CultureInfo.CurrentCulture, messageFormat, args: args) + Environment.NewLine);
-            Debug.Assert(ErrorHandler.Succeeded(hr), "Failed in OutputStringThreadSafe: " + hr.ToString());
         }
 
         private static void WriteLineToPane(IVsOutputWindowPane pane, string message)

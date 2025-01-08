@@ -18,15 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Concurrent;
-using System.Linq;
-using FluentAssertions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Logging;
 
 namespace SonarLint.VisualStudio.TestInfrastructure
 {
-    public class TestLogger : ILogger
+    public class TestLogger : ILogger, ILoggerWriter, ILoggerSettingsProvider
     {
         public BlockingCollection<string> OutputStrings { get; private set; } = new();
 
@@ -34,6 +32,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         private readonly bool logToConsole;
         private readonly bool logThreadId;
+        private readonly ILogger logger;
 
         public TestLogger(bool logToConsole = false, bool logThreadId = false)
         {
@@ -43,6 +42,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             this.logToConsole = logToConsole;
 
             this.logThreadId = logThreadId;
+            logger = LoggerFactory.Default.Create(this, this);
         }
 
         public void AssertOutputStrings(int expectedOutputMessages)
@@ -98,9 +98,25 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         #region ILogger methods
 
-        public void WriteLine(string message)
+        public void WriteLine(string message) => logger.WriteLine(message);
+
+        public void WriteLine(string messageFormat, params object[] args) => logger.WriteLine(messageFormat, args);
+
+        public void WriteLine(MessageLevelContext context, string messageFormat, params object[] args) => logger.WriteLine(context, messageFormat, args);
+
+        public void LogVerbose(string message, params object[] args) => logger.LogVerbose(message, args);
+
+        public void LogVerbose(MessageLevelContext context, string messageFormat, params object[] args) => logger.WriteLine(context, messageFormat, args);
+
+        public ILogger ForContext(params string[] context) => logger.ForContext(context);
+
+        public ILogger ForVerboseContext(params string[] context) => logger.ForVerboseContext();
+
+        #endregion
+
+        void ILoggerWriter.WriteLine(string message)
         {
-            var messageToLog = GetFormattedMessage(message);
+            var messageToLog = message + Environment.NewLine;
             OutputStrings.Add(messageToLog);
             if (logToConsole)
             {
@@ -109,35 +125,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
             LogMessageAdded?.Invoke(this, EventArgs.Empty);
         }
-
-        public void WriteLine(string messageFormat, params object[] args)
-        {
-            WriteLine(string.Format(System.Globalization.CultureInfo.CurrentCulture, messageFormat, args));
-        }
-
-        public void LogVerbose(string message, params object[] args)
-        {
-            var verboseMessage = $"[Verbose] {message}";
-            if (args.Length == 0)
-            {
-                WriteLine(verboseMessage);
-            }
-            else
-            {
-                WriteLine(verboseMessage, args);
-            }
-        }
-
-        private string GetFormattedMessage(string message)
-        {
-            var messageToLog = message + Environment.NewLine;
-            if (logThreadId)
-            {
-                messageToLog = $"[Thread {System.Threading.Thread.CurrentThread.ManagedThreadId}] {messageToLog}";
-            }
-            return messageToLog;
-        }
-
-        #endregion
+        bool ILoggerSettingsProvider.IsVerboseEnabled => true;
+        bool ILoggerSettingsProvider.IsThreadIdEnabled => logThreadId;
     }
 }
