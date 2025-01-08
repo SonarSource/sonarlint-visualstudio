@@ -28,5 +28,6 @@ namespace SonarLint.VisualStudio.Core.Telemetry
         void LanguageAnalyzed(string languageKey, TimeSpan analysisTime);
         void TaintIssueInvestigatedLocally();
         void TaintIssueInvestigatedRemotely();
+        void LinkClicked(string linkId);
     }
 }

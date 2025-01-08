@@ -188,6 +188,22 @@ public class TelemetryManagerTests
         telemetryService.Received(activated ? 1 : 0).AnalysisDoneOnSingleLanguage(Arg.Is<AnalysisDoneOnSingleLanguageParams>(a => a.language == Language.VBNET));
     }
 
+    [TestMethod]
+    public void LinkClicked_CallsRpcService()
+    {
+        CreteTelemetryService(out var telemetryHandler, out var telemetryService);
+        var linkId = "anId";
+        var telemetryManager = CreateTestSubject(telemetryHandler);
+
+        telemetryManager.LinkClicked(linkId);
+
+        Received.InOrder(() =>
+        {
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryService.HelpAndFeedbackLinkClicked(Arg.Is<HelpAndFeedbackClickedParams>(a => a.itemId == linkId));
+        });
+    }
+
     private static void CreteTelemetryService(out ISlCoreTelemetryHelper telemetryHandler, out ITelemetrySLCoreService telemetryService)
     {
         telemetryHandler = Substitute.For<ISlCoreTelemetryHelper>();

@@ -84,6 +84,12 @@ internal sealed class TelemetryManager : ITelemetryManager,
         telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedRemotely());
     }
 
+
+    public void LinkClicked(string linkId)
+    {
+        telemetryHelper.Notify(telemetryService => telemetryService.HelpAndFeedbackLinkClicked(new HelpAndFeedbackClickedParams(linkId)));
+    }
+
     public void Dispose()
     {
         knownUiContexts.CSharpProjectContextChanged -= OnCSharpProjectContextChanged;
