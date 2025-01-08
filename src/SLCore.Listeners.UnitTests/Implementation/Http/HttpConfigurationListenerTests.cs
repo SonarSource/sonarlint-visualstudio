@@ -221,14 +221,24 @@ public class HttpConfigurationListenerTests
 
     private static string BuildUri(string scheme, string host) => $"{scheme}://{host}";
 
-    private static bool IsExpectedNotification(INotification x) =>
-        x.Id == HttpConfigurationListener.ServerCertificateInvalidNotificationId
-        && x.Message == SLCoreStrings.ServerCertificateInfobar_CertificateInvalidMessage
-        && HasExpectedActions(x);
+    private bool IsExpectedNotification(INotification x)
+    {
+        VerifyNotificationHasExpectedActions(x);
 
-    private static bool HasExpectedActions(INotification notification) =>
-        notification.Actions.Count() == 2
-        && notification.Actions.Any(x => x.CommandText == SLCoreStrings.ServerCertificateInfobar_LearnMore)
-        && notification.Actions.Any(x => x.CommandText == SLCoreStrings.ServerCertificateInfobar_ShowLogs);
+        return x.Id == HttpConfigurationListener.ServerCertificateInvalidNotificationId && x.Message == SLCoreStrings.ServerCertificateInfobar_CertificateInvalidMessage;
+    }
 
+    private void VerifyNotificationHasExpectedActions(INotification notification)
+    {
+        notification.Actions.Should().HaveCount(2);
+        notification.Actions.Should().Contain(x => IsExpectedAction(x, SLCoreStrings.ServerCertificateInfobar_LearnMore));
+        notification.Actions.Should().Contain(x => IsExpectedAction(x, SLCoreStrings.ServerCertificateInfobar_ShowLogs));
+
+        notification.Actions.First().Action.Invoke(null);
+        notification.Actions.Last().Action.Invoke(null);
+        browserService.Received(1).Navigate(DocumentationLinks.SslCertificate);
+        outputWindowService.Received(1).Show();
+    }
+
+    private static bool IsExpectedAction(INotificationAction notificationAction, string expectedText) => notificationAction.CommandText == expectedText && !notificationAction.ShouldDismissAfterAction;
 }
