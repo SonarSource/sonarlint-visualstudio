@@ -28,16 +28,12 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Logging
     public class LoggerListenerTests
     {
         [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
+        public void MefCtor_CheckIsExported() =>
             MefTestHelpers.CheckTypeCanBeImported<LoggerListener, ISLCoreListener>(MefTestHelpers.CreateExport<ILogger>());
-        }
 
         [TestMethod]
-        public void Mef_CheckIsSingleton()
-        {
+        public void Mef_CheckIsSingleton() =>
             MefTestHelpers.CheckIsSingletonMefComponent<LoggerListener>();
-        }
 
         [TestMethod]
         [DataRow(LogLevel.ERROR, false)]
@@ -55,14 +51,96 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Logging
 
             testSubject.Log(param);
 
-            if (verboseLogs)
+            logger.AssertOutputStringExists(verboseLogs ? "[DEBUG] [SLCore] some Message" : "[SLCore] some Message");
+        }
+
+        [TestMethod]
+        public void Ctor_AddsProperties()
+        {
+            var logger = Substitute.For<ILogger>();
+            _ = new LoggerListener(logger);
+
+            logger.Received(1).ForContext(SLCoreStrings.SLCoreName);
+        }
+
+        [TestMethod]
+        public void Log_AddsArgumentProperties()
+        {
+            var customizedLogger = Substitute.For<ILogger>();
+            var logger = Substitute.For<ILogger>();
+            logger.ForContext(SLCoreStrings.SLCoreName).Returns(customizedLogger);
+            var testSubject  = new LoggerListener(logger);
+
+            testSubject.Log(new LogParams{configScopeId = "configScopeId1", loggerName = "loggerName1", threadName = "threadName1"});
+            testSubject.Log(new LogParams{configScopeId = "configScopeId2", loggerName = "loggerName2", threadName = "threadName2"});
+
+            customizedLogger.Received(1).WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.VerboseContext.SequenceEqual(new []{"loggerName1", "configScopeId1", "threadName1"})), Arg.Any<string>());
+            customizedLogger.Received(1).WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.VerboseContext.SequenceEqual(new []{"loggerName2", "configScopeId2", "threadName2"})), Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public void Log_ProducesCorrectFullFormat()
+        {
+            var testLogger = new TestLogger(logVerbose:false);
+            var testSubject = new LoggerListener(testLogger);
+
+            testSubject.Log(new LogParams
             {
-                logger.AssertOutputStringExists("[DEBUG] [SLCORE] some Message");
-            }
-            else
+                loggerName = "loggerName",
+                configScopeId = "configScopeId",
+                threadName = "threadName",
+                message = "message",
+                stackTrace = """
+                             stack
+                             trace
+                             """
+            });
+
+            testLogger.AssertOutputStrings("[SLCore] message");
+        }
+
+        [TestMethod]
+        public void Log_ProducesCorrectFullVerboseFormat()
+        {
+            var testLogger = new TestLogger();
+            var testSubject = new LoggerListener(testLogger);
+
+            testSubject.Log(new LogParams
             {
-                logger.AssertOutputStringExists("[SLCORE] some Message");
-            }
+                loggerName = "loggerName",
+                configScopeId = "configScopeId",
+                threadName = "threadName",
+                message = "message",
+                stackTrace = """
+                             stack
+                             trace
+                             """
+            });
+
+            testLogger.AssertOutputStrings(
+                "[SLCore] [loggerName > configScopeId > threadName] message",
+                """
+                [DEBUG] [SLCore] [loggerName > configScopeId > threadName] stack
+                trace
+                """);
+        }
+
+        [TestMethod]
+        public void Log_NullablePropertiesMissing_ProducesCorrectMessage()
+        {
+            var testLogger = new TestLogger();
+            var testSubject = new LoggerListener(testLogger);
+
+            testSubject.Log(new LogParams
+            {
+                loggerName = "loggerName",
+                configScopeId = null,
+                threadName = "threadName",
+                message = "message",
+                stackTrace = null
+            });
+
+            testLogger.AssertOutputStrings("[SLCore] [loggerName > threadName] message");
         }
     }
 }
