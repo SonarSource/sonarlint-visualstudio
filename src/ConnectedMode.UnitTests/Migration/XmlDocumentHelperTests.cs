@@ -91,7 +91,7 @@ public class XmlDocumentHelperTests
     [TestMethod]
     public void TryLoadFromString_SaveToString_Modification_SavesCorrectly()
     {
-        var input =
+        var original =
 @"<Project Sdk=""Microsoft.NET.Sdk"">
 
   <PropertyGroup>
@@ -108,26 +108,13 @@ public class XmlDocumentHelperTests
 
 </Project>";
 
+        // using a regular string because git/rider removes whitespace characters it shouldn't (the 4 space characters that go before <CodeAnalysis... in the original string)
         var expected =
-@"<Project Sdk=""Microsoft.NET.Sdk"">
-
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>SDK_VB_DoublyIndirectRefToGenerated</RootNamespace>
-    <TargetFramework>net6.0</TargetFramework>
-
-
-  </PropertyGroup>
-
-  <ItemGroup>
-
-  </ItemGroup>
-
-</Project>";
+            "<Project Sdk=\"Microsoft.NET.Sdk\">\r\n\r\n  <PropertyGroup>\r\n    <OutputType>Exe</OutputType>\r\n    <RootNamespace>SDK_VB_DoublyIndirectRefToGenerated</RootNamespace>\r\n    <TargetFramework>net6.0</TargetFramework>\r\n\r\n    \r\n  </PropertyGroup>\r\n\r\n  <ItemGroup>\r\n\r\n  </ItemGroup>\r\n\r\n</Project>";
 
         var testSubject = new XmlDocumentHelper();
 
-        testSubject.TryLoadFromString(input, out var document).Should().BeTrue();
+        testSubject.TryLoadFromString(original, out var document).Should().BeTrue();
         var xmlNode = document.GetElementsByTagName("CodeAnalysisRuleSet")[0];
         xmlNode.ParentNode.RemoveChild(xmlNode);
 
