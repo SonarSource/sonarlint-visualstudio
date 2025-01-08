@@ -21,6 +21,7 @@
 using System.Security.Cryptography.X509Certificates;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Http;
 using SonarLint.VisualStudio.SLCore.Listener.Http.Model;
@@ -37,6 +38,9 @@ public class HttpConfigurationListenerTests
     private ISystemProxyDetector proxySettingsDetector;
     private TestLogger testLogger;
     private HttpConfigurationListener testSubject;
+    private INotificationService notificationService;
+    private IBrowserService browserService;
+    private IOutputWindowService outputWindowService;
 
     [TestInitialize]
     public void TestInitialize()
@@ -45,7 +49,17 @@ public class HttpConfigurationListenerTests
         certificateChainValidator = Substitute.For<ICertificateChainValidator>();
         certificateDtoConverter = Substitute.For<ICertificateDtoConverter>();
         proxySettingsDetector = Substitute.For<ISystemProxyDetector>();
-        testSubject = new HttpConfigurationListener(testLogger, certificateChainValidator, certificateDtoConverter, proxySettingsDetector);
+        notificationService = Substitute.For<INotificationService>();
+        browserService = Substitute.For<IBrowserService>();
+        outputWindowService = Substitute.For<IOutputWindowService>();
+
+        testSubject = new HttpConfigurationListener(testLogger,
+            certificateChainValidator,
+            certificateDtoConverter,
+            proxySettingsDetector,
+            notificationService,
+            browserService,
+            outputWindowService);
     }
 
     [TestMethod]
@@ -54,7 +68,10 @@ public class HttpConfigurationListenerTests
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<ICertificateDtoConverter>(),
             MefTestHelpers.CreateExport<ICertificateChainValidator>(),
-            MefTestHelpers.CreateExport<ISystemProxyDetector>()
+            MefTestHelpers.CreateExport<ISystemProxyDetector>(),
+            MefTestHelpers.CreateExport<INotificationService>(),
+            MefTestHelpers.CreateExport<IBrowserService>(),
+            MefTestHelpers.CreateExport<IOutputWindowService>()
         );
 
     [TestMethod]
@@ -168,6 +185,28 @@ public class HttpConfigurationListenerTests
         testLogger.AssertPartialOutputStringExists(exceptionReason);
     }
 
+    [TestMethod]
+    public async Task CheckServerTrustedAsync_CertificateIsNotValid_ShowsNotification()
+    {
+        var (primaryCertificateDto, primaryCertificate) = SetUpCertificate("some certificate");
+        certificateChainValidator.ValidateChain(primaryCertificate, Arg.Is<IEnumerable<X509Certificate2>>(x => !x.Any())).Returns(false);
+
+        await testSubject.CheckServerTrustedAsync(new CheckServerTrustedParams([primaryCertificateDto], "ignored"));
+
+        notificationService.Received(1).ShowNotification(Arg.Is<INotification>(x => IsExpectedNotification(x)));
+    }
+
+    [TestMethod]
+    public async Task CheckServerTrustedAsync_CertificateIsValid_DoesNotShowNotification()
+    {
+        var (primaryCertificateDto, primaryCertificate) = SetUpCertificate("some certificate");
+        certificateChainValidator.ValidateChain(primaryCertificate, Arg.Is<IEnumerable<X509Certificate2>>(x => !x.Any())).Returns(true);
+
+        await testSubject.CheckServerTrustedAsync(new CheckServerTrustedParams([primaryCertificateDto], "ignored"));
+
+        notificationService.DidNotReceive().ShowNotification(Arg.Any<INotification>());
+    }
+
     private (X509CertificateDto certificateDto, X509Certificate2 certificate) SetUpCertificate(string certificateName)
     {
         var certificateDto = new X509CertificateDto(certificateName);
@@ -181,4 +220,15 @@ public class HttpConfigurationListenerTests
     private void MockProxyConfigured(string hostName, int port) => proxySettingsDetector.GetProxyUri(Arg.Any<Uri>()).Returns(new Uri($"{hostName}:{port}"));
 
     private static string BuildUri(string scheme, string host) => $"{scheme}://{host}";
+
+    private static bool IsExpectedNotification(INotification x) =>
+        x.Id == HttpConfigurationListener.ServerCertificateInvalidNotificationId
+        && x.Message == SLCoreStrings.ServerCertificateInfobar_CertificateInvalidMessage
+        && HasExpectedActions(x);
+
+    private static bool HasExpectedActions(INotification notification) =>
+        notification.Actions.Count() == 2
+        && notification.Actions.Any(x => x.CommandText == SLCoreStrings.ServerCertificateInfobar_LearnMore)
+        && notification.Actions.Any(x => x.CommandText == SLCoreStrings.ServerCertificateInfobar_ShowLogs);
+
 }

@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Http;
 using SonarLint.VisualStudio.SLCore.Listener.Http.Model;
@@ -34,15 +35,28 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
     private readonly ICertificateChainValidator chainValidator;
     private readonly ICertificateDtoConverter certificateDtoConverter;
     private readonly ISystemProxyDetector proxySettingsDetector;
+    private readonly INotificationService notificationService;
+    private readonly IBrowserService browserService;
+    private readonly IOutputWindowService outputWindowService;
     private static readonly List<string> socksHosts = ["socks4", "socks5"];
+    public const string ServerCertificateInvalidNotificationId = "ServerCertificateInvalidNotificationId";
 
     [ImportingConstructor]
-    public HttpConfigurationListener(ILogger logger, ICertificateChainValidator chainValidator, ICertificateDtoConverter certificateDtoConverter, ISystemProxyDetector proxySettingsDetector)
+    public HttpConfigurationListener(ILogger logger,
+        ICertificateChainValidator chainValidator,
+        ICertificateDtoConverter certificateDtoConverter,
+        ISystemProxyDetector proxySettingsDetector, 
+        INotificationService notificationService,
+        IBrowserService browserService, 
+        IOutputWindowService outputWindowService)
     {
         this.logger = logger;
         this.chainValidator = chainValidator;
         this.certificateDtoConverter = certificateDtoConverter;
         this.proxySettingsDetector = proxySettingsDetector;
+        this.notificationService = notificationService;
+        this.browserService = browserService;
+        this.outputWindowService = outputWindowService;
     }
 
     public Task<SelectProxiesResponse> SelectProxiesAsync(SelectProxiesParams parameters)
@@ -84,10 +98,22 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
     {
         logger.WriteLine(SLCoreStrings.HttpConfiguration_ServerTrustVerificationRequest);
         var verificationResult = VerifyChain(parameters.chain);
+        if (!verificationResult)
+        {
+            notificationService.ShowNotification(GetServerCertificateInvalidNotification());
+        }
         logger.WriteLine(SLCoreStrings.HttpConfiguration_ServerTrustVerificationResult, verificationResult);
 
         return Task.FromResult(new CheckServerTrustedResponse(verificationResult));
     }
+
+    private VisualStudio.Core.Notifications.Notification GetServerCertificateInvalidNotification() =>
+        new(ServerCertificateInvalidNotificationId,
+            SLCoreStrings.ServerCertificateInfobar_CertificateInvalidMessage,
+            [
+                new NotificationAction(SLCoreStrings.ServerCertificateInfobar_LearnMore, _ => browserService.Navigate(DocumentationLinks.SslCertificate), false),
+                new NotificationAction(SLCoreStrings.ServerCertificateInfobar_ShowLogs, _ => outputWindowService.Show(), false)
+            ]);
 
     private bool VerifyChain(List<X509CertificateDto> chain)
     {

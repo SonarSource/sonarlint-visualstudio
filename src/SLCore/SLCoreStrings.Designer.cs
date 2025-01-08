@@ -150,6 +150,33 @@ namespace SonarLint.VisualStudio.SLCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The server certificate can not be verified. Please see the logs for more info..
+        /// </summary>
+        public static string ServerCertificateInfobar_CertificateInvalidMessage {
+            get {
+                return ResourceManager.GetString("ServerCertificateInfobar_CertificateInvalidMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more.
+        /// </summary>
+        public static string ServerCertificateInfobar_LearnMore {
+            get {
+                return ResourceManager.GetString("ServerCertificateInfobar_LearnMore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show logs.
+        /// </summary>
+        public static string ServerCertificateInfobar_ShowLogs {
+            get {
+                return ResourceManager.GetString("ServerCertificateInfobar_ShowLogs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Service Provider is unavailable.
         /// </summary>
         public static string ServiceProviderNotInitialized {

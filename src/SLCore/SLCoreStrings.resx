@@ -186,4 +186,13 @@
   <data name="SLCoreName" xml:space="preserve">
     <value>SLCore</value>
   </data>
+  <data name="ServerCertificateInfobar_CertificateInvalidMessage" xml:space="preserve">
+    <value>The server certificate can not be verified. Please see the logs for more info.</value>
+  </data>
+  <data name="ServerCertificateInfobar_LearnMore" xml:space="preserve">
+    <value>Learn more</value>
+  </data>
+  <data name="ServerCertificateInfobar_ShowLogs" xml:space="preserve">
+    <value>Show logs</value>
+  </data>
 </root>
