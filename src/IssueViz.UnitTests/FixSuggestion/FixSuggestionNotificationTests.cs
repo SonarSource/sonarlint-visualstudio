@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.FixSuggestion;
 public class FixSuggestionNotificationTests
 {
     private const string AFilePath = @"C:\Data\repo\file.cs";
-    
+
     private FixSuggestionNotification testSubject;
     private INotificationService notificationService;
     private IOutputWindowService outputWindowService;
@@ -61,7 +61,7 @@ public class FixSuggestionNotificationTests
 
         AssertReceivedNotificationWithMessage(string.Format(FixSuggestionResources.InfoBarUnableToOpenFile, AFilePath));
     }
-    
+
     [TestMethod]
     public void UnableToOpenFile_ShouldNotShowOnlyOncePerSession()
     {
@@ -69,14 +69,14 @@ public class FixSuggestionNotificationTests
 
         AssertNotificationNotShownOnlyOncePerSession();
     }
-    
+
     [TestMethod]
     public void UnableToOpenFile_DisplaysNotification_WithActionToOpenDocsInBrowser()
     {
         testSubject.UnableToOpenFile(AFilePath);
 
         SimulateNotificationActionInvoked(0);
-        
+
         AssertOpenedDocsPageInBrowser();
     }
 
@@ -84,7 +84,7 @@ public class FixSuggestionNotificationTests
     public void UnableToOpenFile_DisplaysNotification_WithActionToShowLogs()
     {
         testSubject.UnableToOpenFile(AFilePath);
-        
+
         SimulateNotificationActionInvoked(1);
 
         AssertShownLogsWindow();
@@ -105,7 +105,7 @@ public class FixSuggestionNotificationTests
 
         AssertReceivedNotificationWithMessage(string.Format(FixSuggestionResources.InfoBarInvalidRequest, AFilePath));
     }
-    
+
     [TestMethod]
     public void InvalidRequest_ShouldNotShowOnlyOncePerSession()
     {
@@ -113,14 +113,14 @@ public class FixSuggestionNotificationTests
 
         AssertNotificationNotShownOnlyOncePerSession();
     }
-    
+
     [TestMethod]
     public void InvalidRequest_DisplaysNotification_WithActionToOpenDocsInBrowser()
     {
         testSubject.InvalidRequest(AFilePath);
 
         SimulateNotificationActionInvoked(0);
-        
+
         AssertOpenedDocsPageInBrowser();
     }
 
@@ -128,7 +128,7 @@ public class FixSuggestionNotificationTests
     public void InvalidRequest_DisplaysNotification_WithActionToShowLogs()
     {
         testSubject.InvalidRequest(AFilePath);
-        
+
         SimulateNotificationActionInvoked(1);
 
         AssertShownLogsWindow();
@@ -141,7 +141,7 @@ public class FixSuggestionNotificationTests
 
         AssertActionsAreNotDismissingNotification();
     }
-    
+
     [TestMethod]
     public void UnableToLocateIssue_DisplaysNotification_WithMessage()
     {
@@ -149,7 +149,7 @@ public class FixSuggestionNotificationTests
 
         AssertReceivedNotificationWithMessage(string.Format(FixSuggestionResources.InfoBarUnableToLocateFixSuggestion, AFilePath));
     }
-    
+
     [TestMethod]
     public void UnableToLocateIssue_ShouldNotShowOnlyOncePerSession()
     {
@@ -157,14 +157,14 @@ public class FixSuggestionNotificationTests
 
         AssertNotificationNotShownOnlyOncePerSession();
     }
-    
+
     [TestMethod]
     public void UnableToLocateIssue_DisplaysNotification_WithActionToOpenDocsInBrowser()
     {
         testSubject.UnableToLocateIssue(AFilePath);
 
         SimulateNotificationActionInvoked(0);
-        
+
         AssertOpenedDocsPageInBrowser();
     }
 
@@ -172,7 +172,7 @@ public class FixSuggestionNotificationTests
     public void UnableToLocateIssue_DisplaysNotification_WithActionToShowLogs()
     {
         testSubject.UnableToLocateIssue(AFilePath);
-        
+
         SimulateNotificationActionInvoked(1);
 
         AssertShownLogsWindow();
@@ -185,7 +185,7 @@ public class FixSuggestionNotificationTests
 
         AssertActionsAreNotDismissingNotification();
     }
-    
+
     [TestMethod]
     public void Clear_TriggersNotificationServiceClear()
     {
@@ -193,34 +193,34 @@ public class FixSuggestionNotificationTests
 
         notificationService.Received(1).CloseNotification();
     }
-    
+
     private void AssertReceivedNotificationWithMessage(string message)
     {
         notificationService.Received(1).ShowNotification(Arg.Is<INotification>(x => x.Message == message));
     }
-    
+
     private void AssertNotificationNotShownOnlyOncePerSession()
     {
         notificationService.Received(1).ShowNotification(Arg.Is<INotification>(x => !x.ShowOncePerSession));
     }
-    
+
     private void AssertOpenedDocsPageInBrowser()
     {
         browserService.Received(1).Navigate(DocumentationLinks.OpenInIdeIssueLocation);
     }
-    
+
     private void AssertShownLogsWindow()
     {
         outputWindowService.Received(1).Show();
     }
-    
+
     private void AssertActionsAreNotDismissingNotification()
     {
         notificationService.Received(1).ShowNotification(Arg.Is<Notification>(n =>
             n.Actions.All(a => !a.ShouldDismissAfterAction)
         ));
     }
-    
+
     private void SimulateNotificationActionInvoked(int actionIndex)
     {
         var notification = notificationService.ReceivedCalls().Single().GetArguments()[0] as Notification;

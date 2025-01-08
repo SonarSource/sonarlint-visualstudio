@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -303,11 +303,11 @@ public class LocalHotspotStoreTests
     [TestMethod]
     public void UpdateForFile_ServerHotspots_SameFileUpdate_ServerHotspotMatchingIsDeterministic()
     {
-        // Demonstrates what happens when a changing set of local issues are matched against a 
+        // Demonstrates what happens when a changing set of local issues are matched against a
         // fixed set of server issues.
         // - the order of the local issues matters i.e. they will be matched in the order in which
         //   they are reported.
-        
+
         // Our custom comparer will return the server hotspots in a consistent order i.e. AAA, ZZZ
         var serverHotspot1 = CreateEmptyServerHotspot(hotspotKey: "AAA");
         var serverHotspot2 = CreateEmptyServerHotspot(hotspotKey: "ZZZ");
@@ -569,13 +569,13 @@ public class LocalHotspotStoreTests
 
     /// <summary>
     /// Creates and returns a new server hotspot.
-    /// 
+    ///
     /// NB the hotspot key, start line and line offset are used to order server hotspots
     /// (in the order [startline]->[line offset]->[hotspotkey].
-    /// 
+    ///
     /// If a test depends on the order in which server hotspots are processed it should
     /// set the data for the hotspot appropriately.
-    /// 
+    ///
     /// If the rest of the data in the hotspot isn't important then the simplest way to
     /// control the order is to set the hotspotKey (sorted alpha-numerically).
     /// </summary>

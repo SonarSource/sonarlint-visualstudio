@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -50,13 +50,13 @@ public interface IConnectionConfigurationSLCoreService : ISLCoreService
     Task<ValidateConnectionResponse> ValidateConnectionAsync(ValidateConnectionParams parameters);
 
     Task<ListUserOrganizationsResponse> ListUserOrganizationsAsync(ListUserOrganizationsParams parameters);
-    
+
     /// <summary>
     /// Fuzzy search among Sonar projects existing on SonarQube or in a SonarCloud organization.
     /// </summary>
     /// <param name="parameters"></param>
     Task<FuzzySearchProjectsResponse> FuzzySearchProjectsAsync(FuzzySearchProjectsParams parameters);
-    
+
     /// <summary>
     /// Get all Sonar projects existing on SonarQube or in a SonarCloud organization.
     /// As this data might be needed during connection creation, it accepts a transient connection.

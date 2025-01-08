@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -49,7 +49,7 @@ public class SLCoreRpcFactoryTests
     [TestMethod]
     public void StartNewRpcInstance_CorrectlyComposesSLCoreRpc()
     {
-        var testSubject = CreateTestSubject(out var slCoreProcessFactory, 
+        var testSubject = CreateTestSubject(out var slCoreProcessFactory,
             out var slCoreLocator,
             out var slCoreJsonRpcFactory,
             out var rpcDebugger,
@@ -81,7 +81,7 @@ public class SLCoreRpcFactoryTests
     [TestMethod]
     public void SLCoreRpc_DisposesProcess()
     {
-        var testSubject = CreateTestSubject(out var slCoreProcessFactory, 
+        var testSubject = CreateTestSubject(out var slCoreProcessFactory,
             out var slCoreLocator,
             out var slCoreJsonRpcFactory,
             out var rpcDebugger,
@@ -99,7 +99,7 @@ public class SLCoreRpcFactoryTests
 
         var slCoreRpc = testSubject.StartNewRpcInstance();
         slCoreRpc.Dispose();
-        
+
         slCoreProcess.Received(1).Dispose();
     }
 
@@ -122,7 +122,7 @@ public class SLCoreRpcFactoryTests
         slCoreJsonRpcFactory.CreateSLCoreJsonRpc(jsonRpc).Returns(slCoreJsonRpc);
     }
 
-    private static SLCoreRpcFactory CreateTestSubject(out ISLCoreProcessFactory slCoreProcessFactory, 
+    private static SLCoreRpcFactory CreateTestSubject(out ISLCoreProcessFactory slCoreProcessFactory,
         out ISLCoreLocator slCoreLocator,
         out ISLCoreJsonRpcFactory slCoreJsonRpcFactory,
         out IRpcDebugger rpcDebugger,

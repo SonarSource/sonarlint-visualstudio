@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -50,14 +50,14 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         IIssueSpanCalculator issueSpanCalculator,
         IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
         IIDEWindowService ideWindowService,
-        IFixSuggestionNotification fixSuggestionNotification) : 
+        IFixSuggestionNotification fixSuggestionNotification) :
         this(
             ThreadHandling.Instance,
             logger,
             documentNavigator,
             issueSpanCalculator,
             openInIdeConfigScopeValidator,
-            ideWindowService, 
+            ideWindowService,
             fixSuggestionNotification)
     {
     }
@@ -68,7 +68,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         IDocumentNavigator documentNavigator,
         IIssueSpanCalculator issueSpanCalculator,
         IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
-        IIDEWindowService ideWindowService, 
+        IIDEWindowService ideWindowService,
         IFixSuggestionNotification fixSuggestionNotification)
     {
         this.threadHandling = threadHandling;

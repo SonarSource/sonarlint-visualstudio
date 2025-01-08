@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ public class PluginListenerTests
         notificationService = Substitute.For<IUnsupportedNodeVersionNotificationService>();
         testSubject = new PluginListener(notificationService);
     }
-    
+
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
@@ -57,15 +57,15 @@ public class PluginListenerTests
     public void DidSkipLoadingPlugin_NodeJs_CallsNotificationService(Language language, string minVersion, string currentVersion)
     {
         testSubject.DidSkipLoadingPlugin(new DidSkipLoadingPluginParams(default, language, SkipReason.UNSATISFIED_NODE_JS, minVersion, currentVersion));
-        
+
         notificationService.Received().Show(language.ToString(), minVersion, currentVersion);
     }
-    
+
     [TestMethod]
     public void DidSkipLoadingPlugin_Other_Discards()
     {
         testSubject.DidSkipLoadingPlugin(new DidSkipLoadingPluginParams(default, Language.JAVA, SkipReason.UNSATISFIED_JRE, "min", "cur"));
-        
+
         notificationService.DidNotReceiveWithAnyArgs().Show(default, default, default);
     }
 }

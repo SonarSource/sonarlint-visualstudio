@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -32,17 +32,17 @@ public class GetBaseDirResponseTests
         var testSubject = new GetBaseDirResponse(null);
 
         var serialized = JsonConvert.SerializeObject(testSubject);
-        
+
         serialized.Should().Be("""{"baseDir":null}""");
     }
-    
+
     [TestMethod]
     public void RealPath_SerializesCorrectly()
     {
         var testSubject = new GetBaseDirResponse(@"C:\base\folder\");
 
         var serialized = JsonConvert.SerializeObject(testSubject);
-        
+
         serialized.Should().Be("""{"baseDir":"C:\\base\\folder\\"}""");
     }
 }

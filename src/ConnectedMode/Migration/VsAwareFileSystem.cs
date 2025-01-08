@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Migration
 {
-    // NB this is a fragile implementation: it assumes it's only being used 
+    // NB this is a fragile implementation: it assumes it's only being used
     // as part of migration, and that caller is using it correctly
     // i.e. call "BeginChangeBatchAsync" first and "EndChangeBatchAsync" last.
 
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         public async Task DeleteFolderAsync(string folderPath)
         {
-            Debug.Assert(batchStarted, "Expecting the changes to happen in a batch");   
+            Debug.Assert(batchStarted, "Expecting the changes to happen in a batch");
 
             logger.LogMigrationVerbose($"Deleting directory: {folderPath}");
 

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Progress.Controller;
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     /// <summary>
-    /// Adapter class to translate between <see cref="IProgress{T}" /> and the custom progress 
+    /// Adapter class to translate between <see cref="IProgress{T}" /> and the custom progress
     /// IProgressStepExecutionEvents class
     /// </summary>
     /// <remarks>This class converts reporting of a fixed number of steps to a double between zero and one,

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -62,7 +62,7 @@ public class EmbeddedDotnetAnalyzerProviderTests
             MefTestHelpers.CreateExport<IAnalyzerAssemblyLoaderFactory>(),
             MefTestHelpers.CreateExport<IConfigurationScopeDotnetAnalyzerIndicator>(),
             MefTestHelpers.CreateExport<ILogger>(),
-            MefTestHelpers.CreateExport<IThreadHandling>());   
+            MefTestHelpers.CreateExport<IThreadHandling>());
         MefTestHelpers.CheckTypeCanBeImported<EmbeddedDotnetAnalyzerProvider, IEnterpriseRoslynAnalyzerProvider>(
             MefTestHelpers.CreateExport<IEmbeddedDotnetAnalyzersLocator>(),
             MefTestHelpers.CreateExport<IAnalyzerAssemblyLoaderFactory>(),
@@ -81,7 +81,7 @@ public class EmbeddedDotnetAnalyzerProviderTests
     public void Ctor_CreatesLoader()
     {
         var factory = Substitute.For<IAnalyzerAssemblyLoaderFactory>();
-        
+
         new EmbeddedDotnetAnalyzerProvider(default, factory, default, default, default);
 
         factory.Received(1).Create();
@@ -94,7 +94,7 @@ public class EmbeddedDotnetAnalyzerProviderTests
 
         locator.Received(1).GetBasicAnalyzerFullPaths();
     }
-    
+
     [TestMethod]
     public void GetBasicAsync_RunsOnBackgroundThread()
     {
@@ -106,10 +106,10 @@ public class EmbeddedDotnetAnalyzerProviderTests
             threadHandlingMock);
 
         subject.GetBasicAsync();
-        
+
         threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ImmutableArray<AnalyzerFileReference>>>>());
     }
-    
+
     [TestMethod]
     public void GetEnterpriseOrNullAsync_GetsAnalyzersFromExpectedLocation()
     {
@@ -117,7 +117,7 @@ public class EmbeddedDotnetAnalyzerProviderTests
 
         locator.Received(1).GetEnterpriseAnalyzerFullPaths();
     }
-    
+
     [TestMethod]
     public void GetEnterpriseOrNullAsync_RunsOnBackgroundThread()
     {
@@ -129,7 +129,7 @@ public class EmbeddedDotnetAnalyzerProviderTests
             threadHandlingMock);
 
         subject.GetEnterpriseOrNullAsync("scope");
-        
+
         threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<ImmutableArray<AnalyzerFileReference>?>>>());
     }
 
@@ -139,13 +139,13 @@ public class EmbeddedDotnetAnalyzerProviderTests
         locator.GetBasicAnalyzerFullPaths().Returns([GetAnalyzerFullPath("analyzer1.dll"), GetAnalyzerFullPath("analyzer2.dll")]);
 
         var analyzerFileReferences = await testSubject.GetBasicAsync();
-        
+
         analyzerFileReferences.Should().NotBeNull();
         analyzerFileReferences.Length.Should().Be(2);
         ContainsExpectedAnalyzerFileReference(analyzerFileReferences, GetAnalyzerFullPath("analyzer1.dll"));
         ContainsExpectedAnalyzerFileReference(analyzerFileReferences, GetAnalyzerFullPath("analyzer2.dll"));
     }
-    
+
     [TestMethod]
     public async Task GetEnterpriseOrNullAsync_AnalyzerFilesExist_ReturnsAnalyzerFileReference()
     {
@@ -154,13 +154,13 @@ public class EmbeddedDotnetAnalyzerProviderTests
         indicator.ShouldUseEnterpriseCSharpAnalyzerAsync(configurationScopeId).Returns(true);
 
         var analyzerFileReferences = await testSubject.GetEnterpriseOrNullAsync(configurationScopeId);
-        
+
         analyzerFileReferences.Should().NotBeNull();
         analyzerFileReferences!.Value.Length.Should().Be(2);
         ContainsExpectedAnalyzerFileReference(analyzerFileReferences.Value, GetAnalyzerFullPath("analyzer1.dll"));
         ContainsExpectedAnalyzerFileReference(analyzerFileReferences.Value, GetAnalyzerFullPath("analyzer2.dll"));
     }
-    
+
     [TestMethod]
     public async Task GetEnterpriseOrNullAsync_AnalyzerFilesExist_NotEnabledForConfigScope_ReturnsAnalyzerFileReference()
     {
@@ -169,7 +169,7 @@ public class EmbeddedDotnetAnalyzerProviderTests
         indicator.ShouldUseEnterpriseCSharpAnalyzerAsync(configurationScopeId).Returns(false);
 
         var analyzerFileReferences = await testSubject.GetEnterpriseOrNullAsync(configurationScopeId);
-        
+
         analyzerFileReferences.Should().BeNull();
     }
 
@@ -183,7 +183,7 @@ public class EmbeddedDotnetAnalyzerProviderTests
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage(Resources.EmbeddedRoslynAnalyzersNotFound);
         logger.Received(1).LogVerbose(Resources.EmbeddedRoslynAnalyzersNotFound);
     }
-    
+
     [TestMethod]
     public async Task GetEnterpriseOrNullAsync_AnalyzerFilesDoNotExist_ReturnsLogsAndThrows()
     {
@@ -204,7 +204,7 @@ public class EmbeddedDotnetAnalyzerProviderTests
         loaderFactory.Received(1).Create();
         locator.Received(1).GetBasicAnalyzerFullPaths();
     }
-    
+
     [TestMethod]
     public async Task GetEnterpriseOrNullAsync_CachesAnalyzerFileReferences()
     {

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
             var solutionInfoProvider = new Mock<ISolutionInfoProvider>();
             var fileFinder = new Mock<XmlFileProvider.IFileFinder>();
             var projectProvider = CreateRoslynProjectProvider( /* no project */ );
-            
+
             var testSubject = CreateTestSubject(solutionInfoProvider.Object, fileFinder.Object, projectProvider.Object);
 
             var actual = await testSubject.GetFilesAsync(CancellationToken.None);
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
             CheckSearch(fileFinder, "c:\\searchPath", SearchOption.AllDirectories, XmlFileProvider.FileSearchPatterns);
             CheckSearch(fileFinder, "c:\\", SearchOption.TopDirectoryOnly, XmlFileProvider.FileSearchPatterns);
             CheckSearch(fileFinder, "x:\\", SearchOption.TopDirectoryOnly, XmlFileProvider.FileSearchPatterns);
-            fileFinder.Invocations.Should().HaveCount(3);            
+            fileFinder.Invocations.Should().HaveCount(3);
         }
 
         [TestMethod]
@@ -248,7 +248,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.FileProviders
         {
             var projectInfos = projectFilePaths.Select(CreateProjectInfo);
 
-            // We can't directly create or mock a Roslyn Project. However, we can 
+            // We can't directly create or mock a Roslyn Project. However, we can
             // create a real Roslyn AdhocWorkspace and use that to create a Solution
             // with Projects.
             AdhocWorkspace adhocWorkspace = new AdhocWorkspace();

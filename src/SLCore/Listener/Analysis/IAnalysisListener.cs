@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +28,6 @@ internal interface IAnalysisListener : ISLCoreListener
     void DidChangeAnalysisReadiness(DidChangeAnalysisReadinessParams parameters);
 
     void RaiseIssues(RaiseFindingParams<RaisedIssueDto> parameters);
-    
+
     void RaiseHotspots(RaiseHotspotParams parameters);
 }

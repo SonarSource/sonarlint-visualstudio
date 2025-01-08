@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +23,9 @@ using SonarLint.VisualStudio.SLCore.Common.Models;
 namespace SonarLint.VisualStudio.SLCore.Service.Analysis;
 
 public record AnalyzeFilesAndTrackParams(
-    string configurationScopeId, 
-    Guid analysisId, 
+    string configurationScopeId,
+    Guid analysisId,
     List<FileUri> filesToAnalyze,
-    Dictionary<string, string> extraProperties, 
+    Dictionary<string, string> extraProperties,
     bool shouldFetchServerIssues,
     long startTime);

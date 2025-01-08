@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -58,10 +58,10 @@ public class HotspotSolutionClosedHandlerTests
         CreateTestSubject(localHotspotStoreUpdaterMock.Object, activeSolutionBoundTrackerMock.Object);
 
         RaiseSolutionEvent(activeSolutionBoundTrackerMock, mode);
-        
+
         localHotspotStoreUpdaterMock.Verify(x => x.Clear(), shouldBeCleared ? Times.Once : Times.Never);
     }
-    
+
     [DataTestMethod]
     public void SolutionEventRaised_HandledOnBackgroundThread()
     {
@@ -70,7 +70,7 @@ public class HotspotSolutionClosedHandlerTests
         var localHotspotStoreUpdaterMock = new Mock<ILocalHotspotsStoreUpdater>();
         var activeSolutionBoundTrackerMock = new Mock<IActiveSolutionBoundTracker>();
         var threadHandlingMock = new Mock<IThreadHandling>();
-        
+
         localHotspotStoreUpdaterMock.Setup(x => x.Clear())
             .Callback(() => callSequence.Add("Clear"));
 
@@ -80,16 +80,16 @@ public class HotspotSolutionClosedHandlerTests
                 callSequence.Add("RunOnBackgroundThread");
                 return action();
             });
-        
+
         localHotspotStoreUpdaterMock.Invocations.Should().BeEmpty();
 
         CreateTestSubject(localHotspotStoreUpdaterMock.Object, activeSolutionBoundTrackerMock.Object, threadHandlingMock.Object);
 
         RaiseSolutionEvent(activeSolutionBoundTrackerMock, SonarLintMode.Standalone);
-        
+
         callSequence.Should().ContainInOrder("RunOnBackgroundThread", "Clear");
     }
-    
+
     [TestMethod]
     public void Dispose_EventHandlerIsUnregistered()
     {
@@ -103,7 +103,7 @@ public class HotspotSolutionClosedHandlerTests
         activeSolutionBoundTrackerMock
             .VerifyRemove(x => x.SolutionBindingChanged -= It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
     }
-    
+
     private static void RaiseSolutionEvent(Mock<IActiveSolutionBoundTracker> activeSolutionBoundTrackerMock, SonarLintMode mode)
         => activeSolutionBoundTrackerMock
             .Raise(x => x.SolutionBindingChanged += null,

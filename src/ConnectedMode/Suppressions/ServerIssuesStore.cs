@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         public void AddIssues(IEnumerable<SonarQubeIssue> issues, bool clearAllExistingIssues)
         {
             if (issues == null) { return; }
-            
+
             lock (serverIssuesLock)
             {
                 if (clearAllExistingIssues)

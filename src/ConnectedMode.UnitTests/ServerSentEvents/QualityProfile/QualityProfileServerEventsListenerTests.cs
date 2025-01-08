@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -65,7 +65,7 @@ public class QualityProfileServerEventsListenerTests
         var testSubject = new QualityProfileServerEventsListener(eventSourceMock.Object, updaterMock.Object, threadHandlingMock.Object);
 
         await testSubject.ListenAsync();
-        
+
         eventSourceMock.Verify(x => x.GetNextEventOrNullAsync(), Times.Exactly(events.Length - 1 /* the event after null is ignored */));
         updaterMock.Verify(x => x.UpdateAsync(), Times.Exactly(events.Length - 1/* null doesn't trigger an update */ - 1/* the event after null is ignored */));
         threadHandlingMock.Verify(th => th.SwitchToBackgroundThread(), Times.Once);

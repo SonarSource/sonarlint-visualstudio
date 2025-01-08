@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -49,64 +49,64 @@ public class OpenInIdeConfigScopeValidatorTests
         var openInIdeConfigScopeValidator = CreateTestSubject(out var configScopeTracker, out _, out var threadHandling);
 
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(null, out _, out _);
-        
+
         Received.InOrder(() =>
         {
             threadHandling.ThrowIfOnUIThread();
             _ = configScopeTracker.Current;
         });
     }
-    
+
     [TestMethod]
     public void TryGetConfigurationScopeRoot_CurrentConfigurationNull_ReturnsFalse()
     {
         var openInIdeConfigScopeValidator = CreateTestSubject(out var configScopeTracker, out var logger, out _);
         configScopeTracker.Current.Returns((ConfigurationScope)null);
-        
+
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot("some scope", out _, out var failureReason).Should().BeFalse();
 
         failureReason.Should().BeSameAs(OpenInIdeResources.ValidationReason_ConfigurationMismatch);
         logger.AssertPartialOutputStringExists("[Open in IDE] Configuration scope mismatch:");
     }
-    
+
     [TestMethod]
     public void TryGetConfigurationScopeRoot_IdsMismatch_ReturnsFalse()
     {
         var openInIdeConfigScopeValidator = CreateTestSubject(out var configScopeTracker, out var logger, out _);
         configScopeTracker.Current.Returns(new ConfigurationScope("scope", "connection", "project", "root"));
-        
+
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot("some other scope", out _, out var failureReason).Should().BeFalse();
-        
+
         failureReason.Should().BeSameAs(OpenInIdeResources.ValidationReason_ConfigurationMismatch);
         logger.AssertPartialOutputStringExists("[Open in IDE] Configuration scope mismatch:");
     }
-    
+
     [TestMethod]
     public void TryGetConfigurationScopeRoot_ScopeNotBound_ReturnsFalse()
     {
         var openInIdeConfigScopeValidator = CreateTestSubject(out var configScopeTracker, out var logger, out _);
         const string issueConfigurationScope = "scope";
         configScopeTracker.Current.Returns(new ConfigurationScope(issueConfigurationScope));
-        
+
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out _, out var failureReason).Should().BeFalse();
-        
+
         failureReason.Should().BeSameAs(OpenInIdeResources.ValidationReason_StandaloneMode);
         logger.AssertPartialOutputStringExists(OpenInIdeResources.Validation_ConfigurationScopeNotBound);
     }
-    
+
     [TestMethod]
     public void TryGetConfigurationScopeRoot_RootNotSet_ReturnsFalse()
     {
         var openInIdeConfigScopeValidator = CreateTestSubject(out var configScopeTracker, out var logger, out _);
         const string issueConfigurationScope = "scope";
         configScopeTracker.Current.Returns(new ConfigurationScope(issueConfigurationScope, "connection", "project"));
-        
+
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out _, out var failureReason).Should().BeFalse();
-        
+
         failureReason.Should().BeSameAs(OpenInIdeResources.ValidationReason_FilePathRootNotSet);
         logger.AssertPartialOutputStringExists(OpenInIdeResources.Validation_ConfigurationScopeRootNotSet);
     }
-    
+
     [TestMethod]
     public void TryGetConfigurationScopeRoot_ValidScope_ReturnsTrue()
     {
@@ -114,7 +114,7 @@ public class OpenInIdeConfigScopeValidatorTests
         const string issueConfigurationScope = "scope";
         const string rootPath = "root";
         configScopeTracker.Current.Returns(new ConfigurationScope(issueConfigurationScope, "connection", "project", rootPath));
-        
+
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out var actualRoot, out var failureReason).Should().BeTrue();
 
         actualRoot.Should().BeSameAs(rootPath);

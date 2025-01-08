@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -56,10 +56,10 @@ public class ServerConnectionsRepositoryAdapterTests
         });
 
         testSubject.TryGet(new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud), out var serverConnection);
-        
+
         serverConnection.Should().Be(expectedServerConnection);
     }
-    
+
     [TestMethod]
     public void TryGetAllConnections_CallServerConnectionsRepository()
     {
@@ -171,7 +171,7 @@ public class ServerConnectionsRepositoryAdapterTests
 
     [TestMethod]
     [DataRow(true)]
-    [DataRow(false)]    
+    [DataRow(false)]
     public void TryAddConnection_AddsSonarCloudConnection_CallsSlCoreWithMappedConnection(bool enableSmartNotifications)
     {
         var sonarCloud = CreateSonarCloudConnection(enableSmartNotifications);
@@ -235,7 +235,7 @@ public class ServerConnectionsRepositoryAdapterTests
 
         serverConnectionsRepository.Received(1).TryAdd(Arg.Is<ServerConnection.SonarQube>(sq => sq.Credentials == null));
     }
-    
+
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
@@ -260,42 +260,42 @@ public class ServerConnectionsRepositoryAdapterTests
         serverConnectionsRepository.Received(1)
             .TryUpdateCredentialsById(Arg.Any<string>(), Arg.Is<IConnectionCredentials>(x => IsExpectedTokenCredentials(x, token)));
     }
-    
+
     [TestMethod]
     public void TryUpdateCredentials_UserPasswordModel_MapsCredentials()
     {
         var sonarQube = CreateSonarQubeConnection();
         const string username = "username";
         const string password = "password";
-        
+
         testSubject.TryUpdateCredentials(sonarQube, new UsernamePasswordModel(username, password.CreateSecureString()));
-        
+
         serverConnectionsRepository.Received(1)
             .TryUpdateCredentialsById(Arg.Any<string>(), Arg.Is<IConnectionCredentials>(x => IsExpectedCredentials(x, username, password)));
     }
-    
+
     [TestMethod]
     public void TryUpdateCredentials_SonarQube_MapsConnection()
     {
         var sonarQube = CreateSonarQubeConnection();
-        
+
         testSubject.TryUpdateCredentials(sonarQube, Substitute.For<ICredentialsModel>());
-        
+
         serverConnectionsRepository.Received(1)
             .TryUpdateCredentialsById(Arg.Is<string>(x => x.Equals(sonarQube.Info.Id)), Arg.Any<IConnectionCredentials>());
     }
-    
+
     [TestMethod]
     public void TryUpdateCredentials_SonarCloud_MapsConnection()
     {
         var sonarCloud = CreateSonarCloudConnection();
-        
+
         testSubject.TryUpdateCredentials(sonarCloud, Substitute.For<ICredentialsModel>());
-        
+
         serverConnectionsRepository.Received(1)
             .TryUpdateCredentialsById(Arg.Is<string>(x => x.EndsWith(sonarCloud.Info.Id)), Arg.Any<IConnectionCredentials>());
     }
-    
+
     [TestMethod]
     public void TryUpdateCredentials_NullCredentials_TriesUpdatingConnectionWithNoCredentials()
     {
@@ -365,7 +365,7 @@ public class ServerConnectionsRepositoryAdapterTests
     {
         return new Connection(new ConnectionInfo("http://localhost:9000/", ConnectionServerType.SonarQube), enableSmartNotifications);
     }
-    
+
     private static bool IsExpectedCredentials(IConnectionCredentials credentials, string expectedUsername, string expectedPassword)
     {
         return credentials is UsernameAndPasswordCredentials basicAuthCredentials && basicAuthCredentials.UserName == expectedUsername && basicAuthCredentials.Password?.ToUnsecureString() == expectedPassword;

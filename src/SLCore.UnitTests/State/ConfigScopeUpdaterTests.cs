@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ public class ConfigScopeUpdaterTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<ConfigScopeUpdater>();
     }
-    
+
     [TestMethod]
     public void UpdateConfigScopeForCurrentSolution_CallsTrackerOnBackgroundThread()
     {
@@ -58,9 +58,9 @@ public class ConfigScopeUpdaterTests
         activeConfigScopeTrackerMock.Setup(x =>
             x.SetCurrentConfigScope(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()));
         var testSubject = CreateTestSubject(activeConfigScopeTrackerMock.Object, solutionInfoProviderMock.Object, threadHandling: threadHandlingMock.Object);
-        
+
         testSubject.UpdateConfigScopeForCurrentSolution(null);
-        
+
         threadHandlingMock.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<int>>>()));
         threadHandlingMock.VerifyNoOtherCalls();
     }
@@ -73,13 +73,13 @@ public class ConfigScopeUpdaterTests
         var solutionInfoProviderMock = new Mock<ISolutionInfoProvider>();
         solutionInfoProviderMock.Setup(x => x.GetSolutionName()).Returns("sln");
         var testSubject = CreateTestSubject(activeConfigScopeTrackerMock.Object, solutionInfoProviderMock.Object);
-        
+
         testSubject.UpdateConfigScopeForCurrentSolution(null);
-        
+
         activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScope("sln", null, null));
         activeConfigScopeTrackerMock.VerifyNoOtherCalls();
     }
-    
+
     [TestMethod]
     public void UpdateConfigScopeForCurrentSolution_BoundSolutionOpen_SetsCurrentConfigScope()
     {
@@ -89,13 +89,13 @@ public class ConfigScopeUpdaterTests
         var solutionInfoProviderMock = new Mock<ISolutionInfoProvider>();
         solutionInfoProviderMock.Setup(x => x.GetSolutionName()).Returns("sln");
         var testSubject = CreateTestSubject(activeConfigScopeTrackerMock.Object, solutionInfoProviderMock.Object);
-        
+
         testSubject.UpdateConfigScopeForCurrentSolution(binding);
-        
+
         activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScope("sln", serverConnection.Id, binding.ServerProjectKey));
         activeConfigScopeTrackerMock.VerifyNoOtherCalls();
     }
-    
+
     [TestMethod]
     public void UpdateConfigScopeForCurrentSolution_BoundSolutionWithOrganizationOpen_SetsCurrentConfigScope()
     {
@@ -105,21 +105,21 @@ public class ConfigScopeUpdaterTests
         var solutionInfoProviderMock = new Mock<ISolutionInfoProvider>();
         solutionInfoProviderMock.Setup(x => x.GetSolutionName()).Returns("sln");
         var testSubject = CreateTestSubject(activeConfigScopeTrackerMock.Object, solutionInfoProviderMock.Object);
-        
+
         testSubject.UpdateConfigScopeForCurrentSolution(binding);
-        
+
         activeConfigScopeTrackerMock.Verify(x => x.SetCurrentConfigScope("sln", serverConnection.Id, binding.ServerProjectKey));
         activeConfigScopeTrackerMock.VerifyNoOtherCalls();
     }
-    
+
     [TestMethod]
     public void UpdateConfigScopeForCurrentSolution_SolutionClosed_RemovesCurrentConfigScope()
     {
         var activeConfigScopeTrackerMock = new Mock<IActiveConfigScopeTracker>();
         var testSubject = CreateTestSubject(activeConfigScopeTrackerMock.Object);
-        
+
         testSubject.UpdateConfigScopeForCurrentSolution(null);
-        
+
         activeConfigScopeTrackerMock.Verify(x => x.RemoveCurrentConfigScope());
         activeConfigScopeTrackerMock.VerifyNoOtherCalls();
     }

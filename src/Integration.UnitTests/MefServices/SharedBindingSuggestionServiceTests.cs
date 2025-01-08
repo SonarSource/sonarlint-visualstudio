@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -78,7 +78,7 @@ public class SharedBindingSuggestionServiceTests
         MockSolutionMode(SonarLintMode.Standalone);
 
         testSubject.Suggest();
-        
+
         suggestSharedBindingGoldBar.Received(1).Show(ServerType.SonarQube, Arg.Any<Action>());
     }
 
@@ -108,7 +108,7 @@ public class SharedBindingSuggestionServiceTests
     {
         MockSharedBindingConfigExists();
         MockSolutionMode(SonarLintMode.Standalone);
-        
+
         RaiseActiveSolutionChanged(true);
 
         suggestSharedBindingGoldBar.Received(1).Show(ServerType.SonarQube, Arg.Any<Action>());

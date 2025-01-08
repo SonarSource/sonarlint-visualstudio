@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 
             logger.AssertPartialOutputStringExists(string.Format(QualityProfilesStrings.SubTextPaddingFormat, QualityProfilesStrings.DownloadingQualityProfilesNotNeeded));
         }
-        
+
         [TestMethod]
         public async Task UpdateAsync_MultipleQPs_ProgressEventsAreRaised()
         {
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 
             // Configure available languages on the server
             SetupLanguagesToUpdate(out var outOfDateQualityProfileFinderMock,
-                boundProject, 
+                boundProject,
                 Language.CSharp,
                 Language.VBNET);
 
@@ -207,7 +207,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 
             var bindingConfigProvider = new Mock<IBindingConfigProvider>();
             var testSubject = CreateTestSubject(
-                bindingConfigProvider: bindingConfigProvider.Object, 
+                bindingConfigProvider: bindingConfigProvider.Object,
                 languagesToBind: new[] { language },
                 outOfDateQualityProfileFinder: outOfDateQualityProfileFinderMock.Object,
                 logger: logger);
@@ -290,7 +290,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             BoundServerProject boundProject,
             params Language[] languages)
         {
-            SetupLanguagesToUpdate(out outOfDateQualityProfileFinderMock, 
+            SetupLanguagesToUpdate(out outOfDateQualityProfileFinderMock,
                 boundProject,
                 languages.Select(x => (x, CreateQualityProfile())).ToArray());
         }
@@ -314,8 +314,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
 
             bindingConfigProvider.Setup(x => x.GetConfigurationAsync(
                     It.IsAny<SonarQubeQualityProfile>(),
-                    language, 
-                    It.IsAny<BindingConfiguration>(), 
+                    language,
+                    It.IsAny<BindingConfiguration>(),
                     CancellationToken.None))
                 .ReturnsAsync(bindingConfig.Object);
             return bindingConfig;

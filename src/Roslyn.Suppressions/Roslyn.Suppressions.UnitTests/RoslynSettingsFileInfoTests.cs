@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -41,13 +41,13 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             var expectedPath = Path.Combine(RoslynSettingsFileInfo.Directory, expectedFileName + ".json");
 
             //This is to make sure normalising the keys done correctly with invariant culture
-            //https://en.wikipedia.org/wiki/Dotted_and_dotless_I 
+            //https://en.wikipedia.org/wiki/Dotted_and_dotless_I
             using var scope = new TurkishCultureScope();
 
             var actualPath = RoslynSettingsFileInfo.GetSettingsFilePath(projectKey);
 
             actualPath.Should().Be(expectedPath);
-            
+
         }
     }
 }

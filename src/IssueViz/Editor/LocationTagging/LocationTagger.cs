@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         }
 
         /// <summary>
-        /// Calculate spans for locations that don't have a span, or have a span in a different text buffer. 
+        /// Calculate spans for locations that don't have a span, or have a span in a different text buffer.
         /// </summary>
         /// <remarks>
         /// All spans for issues in the this file should have been calculated when the file was analysed (whether primary or secondary).
@@ -152,11 +152,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             {
                 try
                 {
-                    if (!old.Tag.Location.Span.IsNavigable()) 
+                    if (!old.Tag.Location.Span.IsNavigable())
                     {
-                        continue; 
+                        continue;
                     }
-                    
+
                     var newSpan = old.Span.TranslateTo(newSnapshot, SpanTrackingMode.EdgeExclusive);
                     var hasSpanBeenEdited = newSpan.Length != old.Span.Length;
 
@@ -165,7 +165,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
                         // If the user has typed inside the tagged region we'll stop showing a Tag for that span
                         old.Tag.Location.InvalidateSpan();
                     }
-                    else 
+                    else
                     {
                         old.Tag.Location.Span = newSpan;
                         translatedTagSpans.Add(new TagSpan<IIssueLocationTag>(newSpan, old.Tag));
@@ -242,7 +242,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         {
             var startSpans = changeCollection.Select(x => x.NewSpan).ToArray();
             var endSpans = TagSpans.Select(x => x.Span.Span);
-            
+
             return CalculateAffectedSpan(newTextSnapshot, startSpans, endSpans);
         }
 

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -62,7 +62,7 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
         serverConnection.Credentials = MapCredentials(credentialsModel);
         return serverConnectionsRepository.TryAdd(serverConnection);
     }
-    
+
     public bool TryUpdateCredentials(Connection connection, ICredentialsModel credentialsModel)
     {
         var serverConnection = MapConnection(connection);

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -352,12 +352,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var textSnapshotMock = MockTextSnapshotForLines(startLine, endLine);
 
             var snapshotSpan = testSubject.CalculateSpan(textSnapshotMock.Object, startLine.LineNumber, endLine.LineNumber);
-            
+
             snapshotSpan.HasValue.Should().BeTrue();
             snapshotSpan.Value.Start.Position.Should().Be(startLine.Start.Position);
             snapshotSpan.Value.End.Position.Should().Be(endLine.End.Position);
         }
-        
+
         [TestMethod]
         [DataRow(0, 1)]
         [DataRow(1, 0)]

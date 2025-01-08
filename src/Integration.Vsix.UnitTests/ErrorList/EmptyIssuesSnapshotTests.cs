@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             => CreateEmptySnapshot("c:\\a\\b.txt").AnalyzedFilePath.Should().Be("c:\\a\\b.txt");
 
         [TestMethod]
-        public void EmptyIssuesSnapshot_FilesInSnapshot_IsExpected() 
+        public void EmptyIssuesSnapshot_FilesInSnapshot_IsExpected()
             => CreateEmptySnapshot("my file").FilesInSnapshot.Should().BeEquivalentTo(new[] { "my file" });
 
         [TestMethod]
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         [TestMethod]
         public void EmptyIssuesSnapshot_ITableEntriesSnapshot_IndexOf_ReturnsExpected()
             => CreateEmptySnapshot("any").IndexOf(100, Mock.Of<ITableEntriesSnapshot>()).Should().Be(-1);
-        
+
         [TestMethod]
         [DataRow(0, StandardTableKeyNames.DocumentName)]
         [DataRow(1, StandardTableKeyNames.Column)]

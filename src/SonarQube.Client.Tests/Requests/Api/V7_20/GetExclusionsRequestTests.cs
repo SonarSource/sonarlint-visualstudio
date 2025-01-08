@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -147,7 +147,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
             result.GlobalExclusions.Should().BeEquivalentTo("**/some/value/4");
             result.Inclusions.Should().BeEquivalentTo("**/111");
         }
-        
+
 
         private static GetExclusionsRequest CreateTestSubject(string projectKey)
         {

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
         public void GetSettings_SettingInCache_SettingsReadFromCache(string settingsKey, string normalisedKey)
         {
             //This is to make sure normalising the keys done correctly with invariant culture
-            //https://en.wikipedia.org/wiki/Dotted_and_dotless_I 
+            //https://en.wikipedia.org/wiki/Dotted_and_dotless_I
             using var scope = new TurkishCultureScope();
 
             var settings = new RoslynSettings { SonarProjectKey = "my project" };
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
 
             fileStorage.Verify(fs => fs.Get(It.IsAny<string>()), Times.Never);
             actual.Should().BeSameAs(settings);
-            
+
         }
 
         [TestMethod]
@@ -111,9 +111,9 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
         public void Invalidate_SettingInCache_SettingsRemovedFromCache(string settingsKey, string normalisedKey)
         {
             //This is to make sure normalising the keys done correctly with invariant culture
-            //https://en.wikipedia.org/wiki/Dotted_and_dotless_I 
+            //https://en.wikipedia.org/wiki/Dotted_and_dotless_I
             using var scope = new TurkishCultureScope();
-            
+
             var cacheObject = CreatePopulatedCacheObject(normalisedKey, new RoslynSettings());
             cacheObject.ContainsKey(normalisedKey).Should().BeTrue("Test setup error: cache was not pre-populated correctly");
 
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.Settings.Cache
             testSubject.Invalidate(settingsKey);
 
             cacheObject.ContainsKey(normalisedKey).Should().BeFalse();
-            
+
         }
         [TestMethod]
         public void Invalidate_SettingNotInCache_NoErrorThrown()

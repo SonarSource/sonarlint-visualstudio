@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -159,7 +159,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             testSubject.SuggestedActionsChanged += eventHandler.Object;
 
             issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
-            
+
             eventHandler.Verify(x => x(It.IsAny<object>(), It.IsAny<EventArgs>()), Times.Once);
         }
 
@@ -247,7 +247,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             func.Should().ThrowExactly<StackOverflowException>().And
                 .Message.Should().Be("this is a test");
-            
+
             logger.AssertPartialOutputStringDoesNotExist("this is a test");
         }
 
@@ -305,10 +305,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var issueLocationsTagAggregator = CreateTagAggregatorForIssues(issues);
 
             var testSubject = CreateTestSubject(issueLocationsTagAggregator.Object);
-            
+
             var hasSuggestedActionsSet = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
             hasSuggestedActionsSet.Count().Should().Be(1);
-            
+
             var quickFixSuggestedActions = hasSuggestedActionsSet.Single().Actions.OfType<QuickFixSuggestedAction>().ToList();
             quickFixSuggestedActions.Count.Should().Be(3);
             quickFixSuggestedActions.Select(x => x.DisplayText).Should().BeEquivalentTo(QuickFixSuggestedAction.sonarLintPrefix + "fix2", QuickFixSuggestedAction.sonarLintPrefix + "fix3", QuickFixSuggestedAction.sonarLintPrefix + "fix6");
@@ -362,8 +362,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             threadHandling ??= new NoOpThreadHandler();
 
-            return new QuickFixActionsSource(lightBulbBroker, 
-                bufferTagAggregatorFactoryService.Object, 
+            return new QuickFixActionsSource(lightBulbBroker,
+                bufferTagAggregatorFactoryService.Object,
                 textView,
                 Mock.Of<IQuickFixesTelemetryManager>(),
                 logger,

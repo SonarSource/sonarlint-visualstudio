@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ namespace SonarQube.Client.Tests.Infra
         public const string EmptyGetIssuesResponse = @"{""total"":0,""p"":1,""ps"":10,""paging"":{""pageIndex"":1,""pageSize"":10,""total"":0},""effortTotal"":0,""debtTotal"":0,""issues"":[],""components"":[],""organizations"":[],""facets"":[]}";
 
         /// <summary>
-        /// Sets up the HTTP message handler mock to respond to any request string 
+        /// Sets up the HTTP message handler mock to respond to any request string
         /// </summary>
         public static void SetupHttpRequest(Mock<HttpMessageHandler> messageHandlerMock, string response,
             HttpStatusCode statusCode = HttpStatusCode.OK)
@@ -69,8 +69,8 @@ namespace SonarQube.Client.Tests.Infra
         }
 
         public static void SetupHttpRequest(Mock<HttpMessageHandler> messageHandlerMock,
-            string requestRelativePath, 
-            HttpResponseMessage responseMessage, 
+            string requestRelativePath,
+            HttpResponseMessage responseMessage,
             string basePath = ValidBaseAddress,
             params MediaTypeHeaderValue[] headers)
         {

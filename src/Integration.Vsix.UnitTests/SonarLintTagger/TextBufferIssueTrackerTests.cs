@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger;
 public class TextBufferIssueTrackerTests
 {
     private const string TextContent = "file content";
-        
+
     private AnalysisLanguage[] javascriptLanguage = [AnalysisLanguage.Javascript];
     private TestLogger logger;
     private Mock<IVsAwareAnalysisService> mockAnalysisService;
@@ -72,7 +72,7 @@ public class TextBufferIssueTrackerTests
 
         return new TextBufferIssueTracker(taggerProvider,
             mockedJavascriptDocumentFooJs.Object, javascriptLanguage,
-            mockSonarErrorDataSource.Object, vsAnalysisService.Object, 
+            mockSonarErrorDataSource.Object, vsAnalysisService.Object,
             mockFileTracker.Object, logger);
     }
 
@@ -127,7 +127,7 @@ public class TextBufferIssueTrackerTests
 
         // Act
         testSubject.Dispose();
-        
+
         mockAnalysisService.Verify(x => x.CancelForFile(mockedJavascriptDocumentFooJs.Object.FilePath));
 
         VerifySingletonManagerDoesNotExist(mockDocumentTextBuffer.Object);
@@ -176,7 +176,7 @@ public class TextBufferIssueTrackerTests
         var textDocFactoryServiceMock = new Mock<ITextDocumentFactoryService>();
 
         var languageRecognizer = Mock.Of<ISonarLanguageRecognizer>();
-        
+
         var serviceProvider = new ConfigurableServiceProvider();
         serviceProvider.RegisterService(typeof(IVsStatusbar), Mock.Of<IVsStatusbar>());
 
@@ -190,12 +190,12 @@ public class TextBufferIssueTrackerTests
         var textDocumentFactoryService = textDocFactoryServiceMock.Object;
         var vsAwareAnalysisService = mockAnalysisService.Object;
         var analysisRequester = mockAnalysisRequester.Object;
-        var provider = new TaggerProvider(sonarErrorListDataSource, textDocumentFactoryService, 
+        var provider = new TaggerProvider(sonarErrorListDataSource, textDocumentFactoryService,
             serviceProvider, languageRecognizer, vsAwareAnalysisService, analysisRequester, Mock.Of<ITaggableBufferIndicator>(), mockFileTracker.Object, logger);
         return provider;
     }
-    
-    
+
+
     private static Mock<ITextSnapshot>CreateTextSnapshotMock()
     {
         var textSnapshot = new Mock<ITextSnapshot>();
@@ -211,7 +211,7 @@ public class TextBufferIssueTrackerTests
 
         var dummyProperties = new PropertyCollection();
         mockTextBuffer.Setup(p => p.Properties).Returns(dummyProperties);
-        
+
         mockTextBuffer.Setup(p => p.CurrentSnapshot).Returns(textSnapshot.Object);
 
         return mockTextBuffer;
@@ -294,10 +294,10 @@ public class TextBufferIssueTrackerTests
         var analyzerOptions = Mock.Of<IAnalyzerOptions>();
         testSubject.RequestAnalysis(analyzerOptions);
 
-        
+
         VerifyAnalysisRequested(analyzerOptions);
     }
-    
+
     [TestMethod]
     public void RequestAnalysis_DocumentRenamed_CancelsForPreviousFilePath()
     {
@@ -357,7 +357,7 @@ public class TextBufferIssueTrackerTests
         act.Should().Throw<DivideByZeroException>()
             .WithMessage("this is a test");
     }
-    
+
     private void VerifyAnalysisRequested(IAnalyzerOptions analyzerOptions)
     {
         var textDocument = mockedJavascriptDocumentFooJs.Object;
@@ -371,7 +371,7 @@ public class TextBufferIssueTrackerTests
             It.IsAny<SnapshotChangedHandler>(),
             analyzerOptions));
     }
-    
+
     private void VerifyAnalysisRequestedWithDefaultOptions(bool isOnOpen)
     {
         var textDocument = mockedJavascriptDocumentFooJs.Object;

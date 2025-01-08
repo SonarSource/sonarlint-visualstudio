@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -159,7 +159,7 @@ namespace SonarQube.Client.Tests.Models.ServerSentEvents
             new(new MemoryStream(Encoding.UTF8.GetBytes(content)));
 
         private static SqSSEStreamReader CreateTestSubject(
-            StreamReader networkStreamReader, 
+            StreamReader networkStreamReader,
             ISqServerSentEventParser sqServerSentEventParser = null,
             CancellationToken? token = null)
         {

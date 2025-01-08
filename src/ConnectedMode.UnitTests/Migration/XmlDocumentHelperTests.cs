@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ public class XmlDocumentHelperTests
 
         testSubject.TryLoadFromString(input, out _).Should().BeFalse();
     }
-    
+
     [TestMethod]
     public void TryLoadFromString_SaveToString_NoModification_ReturnsEquivalentString()
     {
@@ -50,7 +50,7 @@ public class XmlDocumentHelperTests
   </PropertyGroup>
 
   <ItemGroup>
-    
+
   </ItemGroup>
 
 </Project>";
@@ -60,7 +60,7 @@ public class XmlDocumentHelperTests
         testSubject.TryLoadFromString(input, out var document).Should().BeTrue();
         testSubject.SaveToString(document).Should().BeEquivalentTo(input);
     }
-    
+
     [TestMethod]
     public void TryLoadFromString_SaveToString_NoModification_XmlHeaderPreserved()
     {
@@ -77,7 +77,7 @@ public class XmlDocumentHelperTests
   </PropertyGroup>
 
   <ItemGroup>
-    
+
   </ItemGroup>
 
 </Project>";
@@ -87,7 +87,7 @@ public class XmlDocumentHelperTests
         testSubject.TryLoadFromString(input, out var document).Should().BeTrue();
         testSubject.SaveToString(document).Should().BeEquivalentTo(input);
     }
-    
+
     [TestMethod]
     public void TryLoadFromString_SaveToString_Modification_SavesCorrectly()
     {
@@ -103,11 +103,11 @@ public class XmlDocumentHelperTests
   </PropertyGroup>
 
   <ItemGroup>
-    
+
   </ItemGroup>
 
 </Project>";
-        
+
         var expected =
 @"<Project Sdk=""Microsoft.NET.Sdk"">
 
@@ -116,11 +116,11 @@ public class XmlDocumentHelperTests
     <RootNamespace>SDK_VB_DoublyIndirectRefToGenerated</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
 
-    
+
   </PropertyGroup>
 
   <ItemGroup>
-    
+
   </ItemGroup>
 
 </Project>";

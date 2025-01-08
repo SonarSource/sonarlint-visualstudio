@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@ public class ContextualRuleDescriptionTabTests
     private const string Context2 = "context2";
     private const string ContextTabContent2 = "htmlcontent2";
     private const string ContextTabXamlContent2 = "xamlcontent2";
-    
+
     [TestMethod]
     public void Ctor_ContextContentTab_EnsuresHtmlIsXml()
     {
@@ -52,7 +52,7 @@ public class ContextualRuleDescriptionTabTests
 
         testSubject.HtmlContent.Should().BeEquivalentTo("<col/>");
     }
-    
+
     [TestMethod]
     public void Title_ReturnsCorrectTitle()
     {
@@ -62,18 +62,18 @@ public class ContextualRuleDescriptionTabTests
 
         testSubject.Title.Should().BeSameAs(title);
     }
-    
+
     [TestMethod]
     public void ProduceVisualNode_ReturnsCorrectStructure()
     {
-        var testSubject = new ContextualRuleDescriptionTab("title", 
-            DefaultContext, 
+        var testSubject = new ContextualRuleDescriptionTab("title",
+            DefaultContext,
             GetContextTabs());
         var translatorMock = new Mock<IRuleHelpXamlTranslator>();
         SetupHtmlToXamlConversion(translatorMock);
-        
+
         var visualNode = testSubject.ProduceVisualNode(new VisualizationParameters(translatorMock.Object, Context1));
-        
+
         visualNode.Should().BeEquivalentTo(
             new TabGroup(new List<ITabItem>
             {
@@ -82,15 +82,15 @@ public class ContextualRuleDescriptionTabTests
                 new TabItem(ContextTabTitle2, new ContentSection(ContextTabXamlContent2)),
             }, 0));
     }
-    
+
     [DataRow(Context1, 0)]
     [DataRow(DefaultContext, 1)]
     [DataRow(Context2, 2)]
     [DataTestMethod]
     public void ProduceVisualNode_PrefersSelectedContext(string context, int expectedIndex)
     {
-        var testSubject = new ContextualRuleDescriptionTab("title", 
-            DefaultContext, 
+        var testSubject = new ContextualRuleDescriptionTab("title",
+            DefaultContext,
             GetContextTabs());
         var translatorMock = new Mock<IRuleHelpXamlTranslator>();
         SetupHtmlToXamlConversion(translatorMock);
@@ -103,28 +103,28 @@ public class ContextualRuleDescriptionTabTests
     [TestMethod]
     public void ProduceVisualNode_NoSelectedContext_FallsBackToDefaultContext()
     {
-        var testSubject = new ContextualRuleDescriptionTab("title", 
-            DefaultContext, 
+        var testSubject = new ContextualRuleDescriptionTab("title",
+            DefaultContext,
             GetContextTabs());
         var translatorMock = new Mock<IRuleHelpXamlTranslator>();
         SetupHtmlToXamlConversion(translatorMock);
-        
+
         var visualNode = testSubject.ProduceVisualNode(new VisualizationParameters(translatorMock.Object, null));
 
         visualNode.Should().BeOfType<TabGroup>().Which.selectedTabIndex.Should().Be(1);
     }
-    
+
     [TestMethod]
     public void ProduceVisualNode_NoContextProvided_SelectsFirstTab()
     {
         string NOCONTEXT = null;
-        
-        var testSubject = new ContextualRuleDescriptionTab("title", 
-            NOCONTEXT, 
+
+        var testSubject = new ContextualRuleDescriptionTab("title",
+            NOCONTEXT,
             GetContextTabs());
         var translatorMock = new Mock<IRuleHelpXamlTranslator>();
         SetupHtmlToXamlConversion(translatorMock);
-        
+
         var visualNode = testSubject.ProduceVisualNode(new VisualizationParameters(translatorMock.Object, NOCONTEXT));
 
         visualNode.Should().BeOfType<TabGroup>().Which.selectedTabIndex.Should().Be(0);

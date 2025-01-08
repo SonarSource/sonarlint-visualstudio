@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -147,10 +147,10 @@ namespace SonarLint.VisualStudio.Core
                 value = value.TrimEnd('/');
                 return pattern.IsMatch(value);
             }
-     
+
             /**
              * Creates pattern with "/" as a directory separator.
-             * 
+             *
              * @see #create(string, string)
              */
             public static WildcardPattern create(string pattern)
@@ -164,12 +164,12 @@ namespace SonarLint.VisualStudio.Core
              * This is used to match Java-classes, i.e. <code>org.foo.Bar</code> against <code>org/**</code>.
              * <b>However usage of character other than "/" as a directory separator is misleading and should be avoided,
              * so method {@link #create(string)} is preferred over this one.</b>
-             * 
+             *
              * <p>
              * Also note that no matter whether forward or backward slashes were used in the <code>antPattern</code>
              * the returned pattern will use <code>directorySeparator</code>.
              * Thus to match Windows-style path "dir\file.ext" against pattern "dir/file.ext" normalization should be performed.
-             * 
+             *
              */
             public static WildcardPattern create(string pattern, string directorySeparator)
             {

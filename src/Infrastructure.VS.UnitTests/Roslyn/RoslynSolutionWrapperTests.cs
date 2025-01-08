@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ public class RoslynWrappersTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<RoslynWorkspaceWrapper>();
     }
-    
+
     [TestMethod]
     public void AddAnalyzer_CurrentSolutionContainsAnalyzer()
     {
@@ -51,10 +51,10 @@ public class RoslynWrappersTests
 
         var solutionAfterAddition = roslynWorkspaceWrapper.CurrentSolution.AddAnalyzerReferences(analyzers);
         roslynWorkspaceWrapper.TryApplyChanges(solutionAfterAddition).Should().BeTrue();
-        
+
         roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Should().Contain(analyzerFileReference);
     }
-    
+
     [TestMethod]
     public void AddExtraAnalyzer_CurrentSolutionContainsBothAnalyzers()
     {
@@ -62,7 +62,7 @@ public class RoslynWrappersTests
         var extraAnalyzerFileReference = new AnalyzerFileReference(@"C:\abc", Substitute.For<IAnalyzerAssemblyLoader>());
         var extraAnalyzers = ImmutableArray.Create(extraAnalyzerFileReference);
         roslynWorkspaceWrapper.TryApplyChanges(roslynWorkspaceWrapper.CurrentSolution.AddAnalyzerReferences(ImmutableArray.Create(analyzerFileReference))).Should().BeTrue();
-        
+
         var solutionAfterAddition = roslynWorkspaceWrapper.CurrentSolution.AddAnalyzerReferences(extraAnalyzers);
         roslynWorkspaceWrapper.TryApplyChanges(solutionAfterAddition).Should().BeTrue();
 
@@ -70,34 +70,34 @@ public class RoslynWrappersTests
         solutionAnalyzers.Should().Contain(analyzerFileReference);
         solutionAnalyzers.Should().Contain(extraAnalyzerFileReference);
     }
-    
+
     [TestMethod]
     public void AddAndRemoveAnalyzer_CurrentSolutionNoLongerContainsAnalyzer()
     {
         var analyzerFileReference = new AnalyzerFileReference(@"C:\abc", Substitute.For<IAnalyzerAssemblyLoader>());
         var analyzers = ImmutableArray.Create(analyzerFileReference);
-        
+
         var solutionAfterAddition = roslynWorkspaceWrapper.CurrentSolution.AddAnalyzerReferences(analyzers);
         roslynWorkspaceWrapper.TryApplyChanges(solutionAfterAddition).Should().BeTrue();
-        
+
         var solutionAfterRemoval = roslynWorkspaceWrapper.CurrentSolution.RemoveAnalyzerReferences(analyzers);
         roslynWorkspaceWrapper.TryApplyChanges(solutionAfterRemoval).Should().BeTrue();
-        
+
         roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Should().NotContain(analyzerFileReference);
     }
-    
+
     [TestMethod]
     public void RemoveAnalyzer_IsNotPresentInTheCurrentSolution_AppliesNoChange()
     {
         var analyzerFileReference = new AnalyzerFileReference(@"C:\abc", Substitute.For<IAnalyzerAssemblyLoader>());
         var analyzers = ImmutableArray.Create(analyzerFileReference);
-        
+
         var solutionAfterRemoval = roslynWorkspaceWrapper.CurrentSolution.RemoveAnalyzerReferences(analyzers);
         roslynWorkspaceWrapper.TryApplyChanges(solutionAfterRemoval).Should().BeTrue();
-        
+
         roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Should().NotContain(analyzerFileReference);
     }
-    
+
     [TestMethod]
     public void AddMultipleAndRemoveOneAnalyzer_CurrentSolutionContainsOneAnalyzer()
     {
@@ -105,7 +105,7 @@ public class RoslynWrappersTests
         var analyzerFileReference2 = new AnalyzerFileReference(@"C:\abc", Substitute.For<IAnalyzerAssemblyLoader>());
         var analyzersToAdd = ImmutableArray.Create(analyzerFileReference1, analyzerFileReference2);
         var analyzersToRemove = ImmutableArray.Create(analyzerFileReference1);
-        
+
         roslynWorkspaceWrapper.TryApplyChanges(roslynWorkspaceWrapper.CurrentSolution.AddAnalyzerReferences(analyzersToAdd)).Should().BeTrue();
         roslynWorkspaceWrapper.TryApplyChanges(roslynWorkspaceWrapper.CurrentSolution.RemoveAnalyzerReferences(analyzersToRemove)).Should().BeTrue();
         roslynWorkspaceWrapper.CurrentSolution.GetRoslynSolution().AnalyzerReferences.Should().NotContain(analyzerFileReference1);

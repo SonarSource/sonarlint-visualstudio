@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
 {
     /// <summary>
     /// Monitors changes to issue visualizations in <see cref="IIssueLocationStoreAggregator"/> and
-    /// clears the selection in <see cref="IAnalysisIssueSelectionService"/> when the selected visualization no longer exists  
+    /// clears the selection in <see cref="IAnalysisIssueSelectionService"/> when the selected visualization no longer exists
     /// </summary>
     internal interface ISelectedVisualizationValidityMonitor : IDisposable
     {

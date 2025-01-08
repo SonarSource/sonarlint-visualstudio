@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             var p1 = Mock.Of<Project>();
             var p2 = Mock.Of<Project>();
-            
+
 
             var propertyManager = CreatePropertyManager(p1, p2);
             SetupGetBooleanProperty(propertyManager, p1, excludeValue1);

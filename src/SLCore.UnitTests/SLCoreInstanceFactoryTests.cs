@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -55,7 +55,7 @@ public class SLCoreInstanceFactoryTests
         MefTestHelpers.CheckIsSingletonMefComponent<SLCoreInstanceFactory>();
     }
 
-    
+
     [TestMethod]
     public void CreateInstance_ReturnsNonNull()
     {
@@ -79,7 +79,7 @@ public class SLCoreInstanceFactoryTests
             compatibleNodeLocator,
             activeSolutionBoundTracker,
             configScopeUpdater,
-            slCoreRuleSettingsProvider, 
+            slCoreRuleSettingsProvider,
             telemetryMigrationProvider, threadHandling);
 
         testSubject.CreateInstance().Should().NotBeNull();

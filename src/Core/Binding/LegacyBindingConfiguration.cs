@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -27,60 +27,60 @@ namespace SonarLint.VisualStudio.Core.Binding
     public sealed class LegacyBindingConfiguration : IEquatable<LegacyBindingConfiguration>
     {
         public static readonly LegacyBindingConfiguration Standalone = new LegacyBindingConfiguration(null, SonarLintMode.Standalone, null);
-    
+
         public static LegacyBindingConfiguration CreateBoundConfiguration(BoundSonarQubeProject project, SonarLintMode sonarLintMode, string bindingConfigDirectory)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
-    
+
             if (string.IsNullOrEmpty(bindingConfigDirectory))
             {
                 throw new ArgumentNullException(nameof(bindingConfigDirectory));
             }
-    
+
             return new LegacyBindingConfiguration(project, sonarLintMode, bindingConfigDirectory);
         }
-    
+
         public LegacyBindingConfiguration(BoundSonarQubeProject project, SonarLintMode mode, string bindingConfigDirectory)
         {
             Project = project;
             Mode = mode;
             BindingConfigDirectory = bindingConfigDirectory;
         }
-    
+
         public BoundSonarQubeProject Project { get; }
-    
+
         public SonarLintMode Mode { get; }
-    
+
         public string BindingConfigDirectory { get; }
-    
+
         #region IEquatable<BindingConfiguration> and Equals
-    
+
         public override bool Equals(object obj)
         {
             return Equals(obj as LegacyBindingConfiguration);
         }
-    
+
         public bool Equals(LegacyBindingConfiguration other)
         {
             if (other == null)
             {
                 return false;
             }
-    
+
             if (ReferenceEquals(other, this))
             {
                 return true;
             }
-    
+
             return other.Mode == this.Mode &&
                 other.Project?.Organization?.Key == this.Project?.Organization?.Key &&
                 other.Project?.ProjectKey == this.Project?.ProjectKey &&
                 other.Project?.ServerUri == this.Project?.ServerUri;
         }
-    
+
         public override int GetHashCode()
         {
             // The only immutable field is Mode.
@@ -88,13 +88,13 @@ namespace SonarLint.VisualStudio.Core.Binding
             // to override GetHashCode since we have overridden Equals
             return this.Mode.GetHashCode();
         }
-    
+
         #endregion
-    
+
         public string BuildPathUnderConfigDirectory(string fileSuffix = "")
         {
             var escapedFileName = Helpers.PathHelper.EscapeFileName(fileSuffix).ToLowerInvariant(); // Must be lower case - see https://github.com/SonarSource/sonarlint-visualstudio/issues/1068;
-            
+
             return Path.Combine(BindingConfigDirectory, escapedFileName);
         }
     }

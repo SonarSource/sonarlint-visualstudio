@@ -1,6 +1,6 @@
 /*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
                     $"Types {typeof(TLeft)} and {typeof(TRight)} have equivalent sets of properties and fields");
             }
         }
-        
+
         private static HashSet<string> GetAllPropertyAndFieldNames(Type type)
         {
             const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Public;
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.SLCore.Protocol
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             var either = (Either<TLeft, TRight>)value;
-            
+
             if (either.Left != null)
             {
                 serializer.Serialize(writer, either.Left);

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -43,13 +43,13 @@ public class ConfigurationScopeDotnetAnalyzerIndicator(ISLCoreServiceProvider se
                 log.WriteLine(Resources.DotnetAnalyzerIndicatorTemplate, SLCoreStrings.ConfigScopeNotInitialized);
                 return false;
             }
-            
+
             if (!serviceProvider.TryGetTransientService(out IRoslynAnalyzerService analyzerService))
             {
                 log.WriteLine(Resources.DotnetAnalyzerIndicatorTemplate, SLCoreStrings.ServiceProviderNotInitialized);
                 return false;
             }
-            
+
             var response = await analyzerService.ShouldUseEnterpriseCSharpAnalyzerAsync(
                 new ShouldUseEnterpriseCSharpAnalyzerParams(configurationScopeId));
             return response.shouldUseEnterpriseAnalyzer;

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ public class GetAllProjectsParamsTests
     {
         var token =
             Either<TokenDto, UsernamePasswordDto>.CreateLeft(new TokenDto("super-secret-token"));
-                    
+
         var sonarQubeConnection =
             new TransientSonarQubeConnectionDto("http://localhost:9000", token);
 
@@ -55,17 +55,17 @@ public class GetAllProjectsParamsTests
 
         serializedString.Should().Be(expectedString);
     }
-    
+
     [TestMethod]
     public void Serialize_WithSonarQubeUsernamePassword_AsExpected()
     {
         var credentials =
             Either<TokenDto, UsernamePasswordDto>.CreateRight(new UsernamePasswordDto("jeff@thiscompany.com",
                 "betwEEn-me-and-U"));
-                    
+
         var sonarQubeConnection =
             new TransientSonarQubeConnectionDto("http://localhost:9000", credentials);
-        
+
         var testSubject = new GetAllProjectsParams(sonarQubeConnection);
 
         const string expectedString = """
@@ -93,7 +93,7 @@ public class GetAllProjectsParamsTests
 
         var sonarCloudConnection =
             new TransientSonarCloudConnectionDto("my-org", token);
-        
+
         var testSubject = new GetAllProjectsParams(sonarCloudConnection);
 
         const string expectedString = """
@@ -111,7 +111,7 @@ public class GetAllProjectsParamsTests
 
         serializedString.Should().Be(expectedString);
     }
-    
+
     [TestMethod]
     public void Serialize_WithSonarCloudUsernamePassword_AsExpected()
     {

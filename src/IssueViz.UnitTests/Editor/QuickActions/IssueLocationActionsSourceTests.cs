@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -100,9 +100,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             TestInfrastructure.ThreadHelper.SetCurrentThreadAsUIThread();
 
-            CreateTestSubject(selectedIssueLocationsTagAggregator.Object, 
-                issueLocationsTagAggregator.Object, 
-                lightBulbBroker: lightBulbBroker.Object, 
+            CreateTestSubject(selectedIssueLocationsTagAggregator.Object,
+                issueLocationsTagAggregator.Object,
+                lightBulbBroker: lightBulbBroker.Object,
                 textView: textView);
 
             lightBulbBroker.VerifyNoOtherCalls();
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
 
             CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object);
-            
+
             Action act = () => selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
             act.Should().NotThrow();
 
@@ -304,10 +304,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             return issueViz.Object;
         }
 
-        private static IssueLocationActionsSource CreateTestSubject(ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator, 
+        private static IssueLocationActionsSource CreateTestSubject(ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator,
             ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator,
-            IIssueSelectionService selectionService = null, 
-            ILightBulbBroker lightBulbBroker = null, 
+            IIssueSelectionService selectionService = null,
+            ILightBulbBroker lightBulbBroker = null,
             ITextView textView = null)
         {
             textView = textView ?? CreateWpfTextView();
@@ -351,8 +351,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
 
             var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object, selectionService.Object);
-            
-            //We are testing these two methods together because their logic is coupled. These methods should not act indepedently of each other. 
+
+            //We are testing these two methods together because their logic is coupled. These methods should not act indepedently of each other.
             var actualActionsSet = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
             var hasActions = testSubject.HasSuggestedActionsAsync(null, mockSpan, CancellationToken.None).Result;
 

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -131,7 +131,7 @@ public class BindingSuggestionHandlerTests
 
         browserService.Received().Navigate(DocumentationLinks.OpenInIdeBindingSetup);
     }
-    
+
     [TestMethod]
     [DataRow(SonarLintMode.Connected, true)]
     [DataRow(SonarLintMode.Standalone, false)]
@@ -141,7 +141,7 @@ public class BindingSuggestionHandlerTests
 
         notificationService.Received(expectedToClose ? 1 : 0).CloseNotification();
     }
-    
+
     [TestMethod]
     public void Dispose_UnsubscribesFromAllEvents()
     {
@@ -156,7 +156,7 @@ public class BindingSuggestionHandlerTests
             new BoundServerProject("solution", "server project", new ServerConnection.SonarCloud("org")), sonarLintMode,
             "a-directory"));
     }
-    
+
     private void RaiseSolutionBindingChanged(SonarLintMode mode)
     {
         activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(new ActiveSolutionBindingEventArgs(new BindingConfiguration(null, mode, string.Empty)));

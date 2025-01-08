@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -105,13 +105,13 @@ namespace SonarLint.VisualStudio.Core.Notifications
         {
             try
             {
-                if (!fileSystem.File.Exists(FilePath)) 
-                { 
+                if (!fileSystem.File.Exists(FilePath))
+                {
                     logger.LogVerbose($"[Notifications] Disabled notifications file does not exist. File: {FilePath}");
-                    return new NotificationSettings(); 
+                    return new NotificationSettings();
                 }
 
-                var fileContent = fileSystem.File.ReadAllText(FilePath);                
+                var fileContent = fileSystem.File.ReadAllText(FilePath);
 
                 if (JsonHelper.TryDeserialize<NotificationSettings>(fileContent, out var result))
                 {
@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(string.Format(Strings.DisabledNotificationReadError, ex.Message));                
+                logger.WriteLine(string.Format(Strings.DisabledNotificationReadError, ex.Message));
             }
             return null;
         }
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Core.Notifications
                 logger.WriteLine(string.Format(Strings.DisabledNotificationSaveError, ex.Message));
             }
         }
-        
+
         private string GetFilePath()
         {
             string slvsRootPath = environmentVars.GetSLVSAppDataRootPath();

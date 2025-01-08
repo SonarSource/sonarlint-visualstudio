@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Core.ETW
 
         private const int ReportSuppressionsStartId = 3000;
         private const int ReportSuppressionsStopId = 3001;
-      
+
         private const int FileStorageGetStartId = 3002;
         private const int FileStorageGetStopId = 3003;
 
@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Core.ETW
 
         [Event(ReportSuppressionsStartId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
         public void ReportSuppressionsStart() => Write(ReportSuppressionsStartId);
-        
+
         [Event(ReportSuppressionsStopId, Level = EventLevel.Informational, Keywords = Keywords.RoslynSuppression)]
         public void ReportSuppressionsStop(string mode, int suppressionCount) => Write(ReportSuppressionsStopId, mode, suppressionCount);
 

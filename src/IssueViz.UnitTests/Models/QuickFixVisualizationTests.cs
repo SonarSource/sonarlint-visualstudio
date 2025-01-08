@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -62,15 +62,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             var spanTranslator = new Mock<ISpanTranslator>();
 
             var edit1 = SetupEditVisualization(
-                snapshot, 
-                spanTranslator, 
-                new Span(1, 2), 
+                snapshot,
+                spanTranslator,
+                new Span(1, 2),
                 isSameText: true);
 
             var edit2 = SetupEditVisualization(
-                snapshot, 
-                spanTranslator, 
-                new Span(10, 3), 
+                snapshot,
+                spanTranslator,
+                new Span(10, 3),
                 isSameText: true);
 
             var testSubject = CreateTestSubject(spanTranslator.Object, edit1, edit2);
@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             SetupEditVisualization(snapshot, spanTranslator, new Span(1, 2), originalText, updatedText);
 
         private IQuickFixEditVisualization SetupEditVisualization(Mock<ITextSnapshot> snapshot,
-            Mock<ISpanTranslator> spanTranslator, 
+            Mock<ISpanTranslator> spanTranslator,
             Span originalSpan,
             bool isSameText)
         {
@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             return snapshot;
         }
 
-        private IQuickFixVisualization CreateTestSubject(ISpanTranslator spanTranslator, params IQuickFixEditVisualization[] editVisualizations) => 
+        private IQuickFixVisualization CreateTestSubject(ISpanTranslator spanTranslator, params IQuickFixEditVisualization[] editVisualizations) =>
             new QuickFixVisualization(Mock.Of<IQuickFix>(), editVisualizations, spanTranslator);
     }
 }

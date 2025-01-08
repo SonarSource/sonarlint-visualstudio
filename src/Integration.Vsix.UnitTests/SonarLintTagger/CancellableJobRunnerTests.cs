@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             bool op1Executed = false, op2Executed = false;
             int operationThreadId = -1;
-            
+
             CancellableJobRunner testSubject = null;
 
             Action op1 = () =>
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Act
             testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, progressRecorder, testLogger);
             WaitForRunnerToFinish(testSubject, testLogger);
-            
+
             // Assert
             testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Finished);
 

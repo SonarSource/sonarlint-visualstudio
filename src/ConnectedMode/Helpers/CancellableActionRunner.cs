@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Helpers
 {
     /// <summary>
     /// Action runner that supports cancellation of previous actions.
-    /// <see cref="IDisposable"/> implementation cancels the last action and prevents new actions from being launched. 
+    /// <see cref="IDisposable"/> implementation cancels the last action and prevents new actions from being launched.
     /// </summary>
     public interface ICancellableActionRunner : IDisposable
     {
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Helpers
         /// <returns>Resulting Task of <paramref name="newAction"/></returns>
         Task RunAsync(Func<CancellationToken, Task> newAction);
     }
-    
+
     [Export(typeof(ICancellableActionRunner))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
     public sealed class SynchronizedCancellableActionRunner : ICancellableActionRunner
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Helpers
 
         private readonly ILogger logger;
         private readonly object lockObject = new object();
-        
+
         private CancellationTokenSource currentCancellationTokenSource = new CancellationTokenSource();
 
         [ImportingConstructor]
@@ -60,14 +60,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Helpers
         public Task RunAsync(Func<CancellationToken, Task> newAction)
         {
             CancellationTokenSource newCancellationTokenSource;
-            
+
             lock (lockObject)
             {
                 if (currentCancellationTokenSource == DisposedCancellationTokenSource)
                 {
                     throw new ObjectDisposedException("Runner disposed");
                 }
-                
+
                 logger.LogVerbose(Resources.ActionRunner_CancellingCurrentOperation);
                 currentCancellationTokenSource.Cancel();
                 newCancellationTokenSource = currentCancellationTokenSource = new CancellationTokenSource();
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Helpers
 
             return newAction(newCancellationTokenSource.Token);
         }
-        
+
         public void Dispose()
         {
             if (currentCancellationTokenSource == DisposedCancellationTokenSource)

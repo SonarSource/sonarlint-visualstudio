@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -118,7 +118,7 @@ public class ServerConnectionsProviderTests
         serverConnections["http://localhost/"].Should().BeOfType<SonarQubeConnectionConfigurationDto>();
         serverConnections["https://next.sonarqube.org/sonarqube/"].Should().BeOfType<SonarQubeConnectionConfigurationDto>();
     }
-    
+
     [TestMethod]
     public void GetServerConnections_CorrectlyHandlesNoConnections()
     {
@@ -155,6 +155,6 @@ public class ServerConnectionsProviderTests
         return bindingRepository;
     }
 
-    private static IServerConnectionsProvider CreateTestSubject(IServerConnectionsRepository serverConnectionsRepository) => 
+    private static IServerConnectionsProvider CreateTestSubject(IServerConnectionsRepository serverConnectionsRepository) =>
         new ServerConnectionsProvider(serverConnectionsRepository);
 }
