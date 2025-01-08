@@ -190,7 +190,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             configScopeUpdaterMock.Verify(x => x.UpdateConfigScopeForCurrentSolution(null));
             configScopeUpdaterMock.VerifyNoOtherCalls();
         }
-       
+
         [TestMethod]
         public void ActiveSolutionBoundTracker_Changes()
         {
@@ -220,7 +220,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             activeSolutionTracker.CurrentSolutionName = "solution1";
 
             // Act
-            testSubject.HandleBindingChange(true);
+            testSubject.HandleBindingChange();
 
             // Assert
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Standalone, "Unbound solution should report false activation");
@@ -237,7 +237,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Case 2: Set bound project
             ConfigureSolutionBinding(boundSonarQubeProject);
             // Act
-            testSubject.HandleBindingChange(false);
+            testSubject.HandleBindingChange();
 
             // Assert
             testSubject.CurrentConfiguration.Mode.Should().Be(SonarLintMode.Connected, "Bound solution should report true activation");
@@ -309,7 +309,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act
             testSubject.Dispose();
             ConfigureSolutionBinding(boundSonarQubeProject);
-            testSubject.HandleBindingChange(true);
+            testSubject.HandleBindingChange();
 
             // Assert
             eventCounter.PreSolutionBindingChangedCount.Should().Be(5, "Once disposed should stop raising the event");
@@ -420,14 +420,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void HandleBindingChange_WhenClearBoundProject_NotRaised()
+        public void HandleBindingChange_WhenSameProject_NotRaised()
         {
             // Arrange
             using var testSubject = CreateTestSubject(activeSolutionTracker, configProvider, loggerMock.Object);
             var eventCounter = new EventCounter(testSubject);
 
             // Act
-            testSubject.HandleBindingChange(true);
+            testSubject.HandleBindingChange();
 
             // Assert
             eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0);
@@ -437,24 +437,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void HandleBindingChange_WhenSetBoundProject_EventsRaisedInExpectedOrder()
+        public void HandleBindingChange_WhenProjectChanged_RaisedChangedEvents()
         {
             // Arrange
             using var testSubject = CreateTestSubject(activeSolutionTracker, configProvider, loggerMock.Object);
             var eventCounter = new EventCounter(testSubject);
+            ConfigureSolutionBinding(boundSonarQubeProject);
 
             // Act
-            testSubject.HandleBindingChange(false);
+            testSubject.HandleBindingChange();
 
             // Assert
-            eventCounter.PreSolutionBindingUpdatedCount.Should().Be(1);
-            eventCounter.SolutionBindingUpdatedCount.Should().Be(1);
-            eventCounter.PreSolutionBindingChangedCount.Should().Be(0);
-            eventCounter.SolutionBindingChangedCount.Should().Be(0);
-
-            eventCounter.RaisedEventNames.Should().HaveCount(2);
-            eventCounter.RaisedEventNames[0].Should().Be(nameof(testSubject.PreSolutionBindingUpdated));
-            eventCounter.RaisedEventNames[1].Should().Be(nameof(testSubject.SolutionBindingUpdated));
+            eventCounter.PreSolutionBindingUpdatedCount.Should().Be(0);
+            eventCounter.SolutionBindingUpdatedCount.Should().Be(0);
+            eventCounter.PreSolutionBindingChangedCount.Should().Be(1);
+            eventCounter.SolutionBindingChangedCount.Should().Be(1);
         }
 
         [TestMethod]

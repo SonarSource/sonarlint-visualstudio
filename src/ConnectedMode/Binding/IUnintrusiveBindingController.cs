@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             var connectionInformation = new ConnectionInformation(project.ServerConnection.ServerUri, project.ServerConnection.Credentials);
             await sonarQubeService.ConnectAsync(connectionInformation, cancellationToken);
             await BindAsync(project, null, cancellationToken);
-            activeSolutionChangedHandler.HandleBindingChange(false);
+            activeSolutionChangedHandler.HandleBindingChange();
         }
 
         public async Task BindAsync(BoundServerProject project, IProgress<FixedStepsProgress> progress, CancellationToken token)
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             if (bindingDeleted)
             {
                 sonarQubeService.Disconnect();
-                activeSolutionChangedHandler.HandleBindingChange(true);
+                activeSolutionChangedHandler.HandleBindingChange();
             }
             return bindingDeleted;
         }

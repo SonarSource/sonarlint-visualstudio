@@ -98,7 +98,7 @@ public class UnintrusiveBindingControllerTests
 
         activeSolutionChangedHandler
             .Received(1)
-            .HandleBindingChange(false);
+            .HandleBindingChange();
     }
 
     [TestMethod]
@@ -126,7 +126,7 @@ public class UnintrusiveBindingControllerTests
         {
             solutionBindingRepository.DeleteBinding(AnyBoundProject.LocalBindingKey);
             sonarQubeService.Disconnect();
-            activeSolutionChangedHandler.HandleBindingChange(true);
+            activeSolutionChangedHandler.HandleBindingChange();
         });
     }
 
@@ -138,7 +138,7 @@ public class UnintrusiveBindingControllerTests
         testSubject.Unbind(AnyBoundProject.LocalBindingKey);
 
         solutionBindingRepository.Received(1).DeleteBinding(AnyBoundProject.LocalBindingKey);
-        activeSolutionChangedHandler.DidNotReceive().HandleBindingChange(true);
+        activeSolutionChangedHandler.DidNotReceive().HandleBindingChange();
     }
 
     [TestMethod]
