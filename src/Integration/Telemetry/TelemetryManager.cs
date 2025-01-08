@@ -46,12 +46,6 @@ internal sealed class TelemetryManager : ITelemetryManager,
         knownUiContexts.VBProjectContextChanged += OnVBProjectContextChanged;
     }
 
-    public void Dispose()
-    {
-        knownUiContexts.CSharpProjectContextChanged -= OnCSharpProjectContextChanged;
-        knownUiContexts.VBProjectContextChanged -= OnVBProjectContextChanged;
-    }
-
     public void QuickFixApplied(string ruleId) => telemetryHelper.Notify(telemetryService => telemetryService.AddQuickFixAppliedForRule(new AddQuickFixAppliedForRuleParams(ruleId)));
 
     public SlCoreTelemetryStatus GetStatus() => telemetryHelper.GetStatus();
@@ -72,6 +66,12 @@ internal sealed class TelemetryManager : ITelemetryManager,
     public void TaintIssueInvestigatedRemotely() => telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedRemotely());
 
     public void LinkClicked(string linkId) => telemetryHelper.Notify(telemetryService => telemetryService.HelpAndFeedbackLinkClicked(new HelpAndFeedbackClickedParams(linkId)));
+
+    public void Dispose()
+    {
+        knownUiContexts.CSharpProjectContextChanged -= OnCSharpProjectContextChanged;
+        knownUiContexts.VBProjectContextChanged -= OnVBProjectContextChanged;
+    }
 
     private void OnCSharpProjectContextChanged(object sender, UIContextChangedEventArgs e)
     {
