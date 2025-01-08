@@ -171,8 +171,6 @@ public class LoggerBaseTests
         };
         settingsProvider.IsThreadIdEnabled.Returns(true);
         settingsProvider.IsVerboseEnabled.Returns(true);
-        contextManager.GetFormattedContextOrNull(default).Returns("context");
-        contextManager.GetFormattedVerboseContextOrNull(default).Returns("verbose context");
         contextManager.GetFormattedContextOrNull(messageLevelContext).Returns("context with message level");
         contextManager.GetFormattedVerboseContextOrNull(messageLevelContext).Returns("verbose context with message level");
 
@@ -347,8 +345,6 @@ public class LoggerBaseTests
         };
         settingsProvider.IsThreadIdEnabled.Returns(true);
         settingsProvider.IsVerboseEnabled.Returns(true);
-        contextManager.GetFormattedContextOrNull(default).Returns("context");
-        contextManager.GetFormattedVerboseContextOrNull(default).Returns("verbose context");
         contextManager.GetFormattedContextOrNull(messageLevelContext).Returns("context with message level");
         contextManager.GetFormattedVerboseContextOrNull(messageLevelContext).Returns("verbose context with message level");
 

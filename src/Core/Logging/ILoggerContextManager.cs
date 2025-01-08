@@ -22,10 +22,26 @@ namespace SonarLint.VisualStudio.Core.Logging;
 
 public interface ILoggerContextManager
 {
+    /// <summary>
+    /// Returns a combination of logger-level context and <see cref="messageLevelContext"/>.
+    /// If one of the contexts is null, only returns the other.
+    /// If both contexts are null, returns null.
+    /// </summary>
     public string GetFormattedContextOrNull(MessageLevelContext messageLevelContext);
+    /// <summary>
+    /// Returns a combination of logger-level verbose context and verbose <see cref="messageLevelContext"/>.
+    /// If one of the contexts is null, only returns the other.
+    /// If both contexts are null, returns null.
+    /// </summary>
     public string GetFormattedVerboseContextOrNull(MessageLevelContext messageLevelContext);
 
+    /// <summary>
+    /// Creates a new instance of logger-level context with appended <see cref="additionalContexts"/>
+    /// </summary>
     ILoggerContextManager CreateAugmentedContext(IEnumerable<string> additionalContexts);
 
+    /// <summary>
+    /// Creates a new instance of logger-level context with appended <see cref="additionalVerboseContexts"/>
+    /// </summary>
     ILoggerContextManager CreateAugmentedVerboseContext(IEnumerable<string> additionalVerboseContexts);
 }
