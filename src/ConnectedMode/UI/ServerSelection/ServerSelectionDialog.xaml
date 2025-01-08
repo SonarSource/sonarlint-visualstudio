@@ -35,7 +35,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Margin="10, 0">
+                <Grid Grid.Row="0" Margin="10">
                     <Grid.RowDefinitions>
                         <RowDefinition />
                         <RowDefinition />
@@ -48,13 +48,9 @@
                         </RadioButton>
                     </StackPanel>
                     <TextBlock Grid.Row="1" Text="{x:Static res:UiResources.SonarCloudDescription}" Margin="10, 0"/>
-                    <TextBlock Grid.Row="2" Margin="10,10,10,0">
-                        <Hyperlink NavigateUri="https://www.sonarsource.com/products/sonarcloud/" RequestNavigate="ViewWebsite">SonarQube Cloud</Hyperlink>
-                        <Run Text="{x:Static res:UiResources.FreeSonarCloudOfferDescription}"></Run>
-                    </TextBlock>
                 </Grid>
 
-                <Grid Grid.Row="1" Margin="10, 0">
+                <Grid Grid.Row="1" Margin="10">
                     <Grid.RowDefinitions>
                         <RowDefinition />
                         <RowDefinition />
@@ -68,10 +64,6 @@
                         </RadioButton>
                     </StackPanel>
                     <TextBlock Grid.Row="1" Text="{x:Static res:UiResources.SonarQubeDescription}" Margin="10, 0"/>
-                    <TextBlock Grid.Row="2" Margin="10,10,10,0">
-                        <Run Text="{x:Static res:UiResources.FreeSonarQubeOfferDescription}"></Run>
-                        <Hyperlink NavigateUri="https://www.sonarsource.com/plans-and-pricing/sonarqube/" RequestNavigate="ViewWebsite">Community Build</Hyperlink>
-                    </TextBlock>
 
                     <Grid x:Name="QubeUrlGrid" Grid.Row="3" Margin="10" IsEnabled="{Binding Path=IsSonarQubeSelected}">
                         <Grid.RowDefinitions>
@@ -117,7 +109,7 @@
         </GroupBox>
 
         <TextBlock Grid.Row="1" Text="{x:Static res:UiResources.ConnectionDiscoveringText}" Margin="0,20">
-            <Hyperlink NavigateUri="{x:Static links:DocumentationLinks.ConnectedModeUri}" RequestNavigate="ViewWebsite">here</Hyperlink>
+            <Hyperlink NavigateUri="https://www.sonarsource.com/products/sonarcloud/signup-free/" RequestNavigate="ViewWebsite">free tier</Hyperlink>
         </TextBlock>
 
         <Grid HorizontalAlignment="Right" Grid.Row="2">
