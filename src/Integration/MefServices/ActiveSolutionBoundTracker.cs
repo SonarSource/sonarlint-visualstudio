@@ -90,14 +90,14 @@ namespace SonarLint.VisualStudio.Integration
             this.gitEventsMonitor.HeadChanged += GitEventsMonitor_HeadChanged;
         }
 
-        public void HandleBindingChange(bool isBindingCleared)
+        public void HandleBindingChange()
         {
             if (disposed)
             {
                 return;
             }
 
-            this.RaiseAnalyzersChangedIfBindingChanged(GetBindingConfiguration(), isBindingCleared);
+            this.RaiseAnalyzersChangedIfBindingChanged(GetBindingConfiguration());
         }
 
         private BindingConfiguration GetBindingConfiguration()
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration
             return isConnected;
         }
 
-        private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration, bool? isBindingCleared = null)
+        private void RaiseAnalyzersChangedIfBindingChanged(BindingConfiguration newBindingConfiguration)
         {
             configScopeUpdater.UpdateConfigScopeForCurrentSolution(newBindingConfiguration.Project);
 
@@ -173,11 +173,6 @@ namespace SonarLint.VisualStudio.Integration
                 var args = new ActiveSolutionBindingEventArgs(newBindingConfiguration);
                 PreSolutionBindingChanged?.Invoke(this, args);
                 SolutionBindingChanged?.Invoke(this, args);
-            }
-            else if (isBindingCleared == false)
-            { // todo remove unreachable code & cleanup https://sonarsource.atlassian.net/browse/SLVS-1532
-                PreSolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
-                SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
             }
 
             SetBoundSolutionUIContext();
