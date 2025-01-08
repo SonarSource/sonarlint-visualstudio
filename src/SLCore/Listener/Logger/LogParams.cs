@@ -26,6 +26,14 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Logger;
 public class LogParams
 {
     public string message;
+    // nullable
+    public string configScopeId;
+    public string threadName;
+    public string loggerName;
+    // nullable
+    public string stackTrace;
+
+    // private final Instant loggedAt; is ignored
 
     [JsonConverter(typeof(StringEnumConverter))]
     public LogLevel level;
