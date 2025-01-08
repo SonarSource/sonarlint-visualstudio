@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Core.Binding
 {
     public interface IActiveSolutionChangedHandler
     {
-        void HandleBindingChange(bool isBindingCleared);
+        void HandleBindingChange();
     }
     
     /// <summary>
