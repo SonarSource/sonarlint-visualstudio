@@ -32,15 +32,16 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         private readonly bool logToConsole;
         private readonly bool logThreadId;
+        private readonly bool logVerbose;
         private readonly ILogger logger;
 
-        public TestLogger(bool logToConsole = false, bool logThreadId = false)
+        public TestLogger(bool logToConsole = false, bool logThreadId = false, bool logVerbose = true)
         {
             // When executing tests in VS, the console output will automatically be captured by
             // the test runner. The Properties window for the test result will have an "Output"
             // link to show the output.
             this.logToConsole = logToConsole;
-
+            this.logVerbose = logVerbose;
             this.logThreadId = logThreadId;
             logger = LoggerFactory.Default.Create(this, this);
         }
@@ -125,7 +126,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
             LogMessageAdded?.Invoke(this, EventArgs.Empty);
         }
-        bool ILoggerSettingsProvider.IsVerboseEnabled => true;
+        bool ILoggerSettingsProvider.IsVerboseEnabled => logVerbose;
         bool ILoggerSettingsProvider.IsThreadIdEnabled => logThreadId;
     }
 }
