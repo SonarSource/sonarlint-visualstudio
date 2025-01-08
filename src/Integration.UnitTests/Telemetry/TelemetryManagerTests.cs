@@ -71,7 +71,7 @@ public class TelemetryManagerTests
     public void GetStatus_CallsRpcService(SlCoreTelemetryStatus status)
     {
         telemetryHandler.GetStatus().Returns(status);
-        
+
         telemetryManager.GetStatus().Should().Be(status);
     }
 
