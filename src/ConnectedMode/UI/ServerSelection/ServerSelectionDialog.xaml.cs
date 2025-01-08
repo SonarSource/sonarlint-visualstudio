@@ -22,6 +22,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Integration.Telemetry;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
 {
@@ -29,10 +31,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
     public partial class ServerSelectionDialog : Window
     {
         private readonly IBrowserService browserService;
+        private readonly ITelemetryManager telemetryManager;
 
-        public ServerSelectionDialog(IBrowserService browserService)
+        public ServerSelectionDialog(IBrowserService browserService, ITelemetryManager telemetryManager)
         {
             this.browserService = browserService;
+            this.telemetryManager = telemetryManager;
             InitializeComponent();
         }
 
@@ -41,6 +45,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
         private void ViewWebsite(object sender, RequestNavigateEventArgs e)
         {
             browserService.Navigate(e.Uri.AbsoluteUri);
+        }
+
+        private void FreeSonaQubeCloudFreeTier_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            ViewWebsite(sender, e);
+            telemetryManager.LinkClicked(TelemetryLinks.SonarQubeCloudFreeSignUp);
         }
 
         private void OkButton_OnClick(object sender, RoutedEventArgs e)

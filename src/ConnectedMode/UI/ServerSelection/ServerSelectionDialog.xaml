@@ -109,7 +109,7 @@
         </GroupBox>
 
         <TextBlock Grid.Row="1" Text="{x:Static res:UiResources.ConnectionDiscoveringText}" Margin="0,20">
-            <Hyperlink NavigateUri="https://www.sonarsource.com/products/sonarcloud/signup-free/" RequestNavigate="ViewWebsite">free tier</Hyperlink>
+            <Hyperlink NavigateUri="https://www.sonarsource.com/products/sonarcloud/signup-free/" RequestNavigate="FreeSonaQubeCloudFreeTier_OnRequestNavigate">free tier</Hyperlink>
         </TextBlock>
 
         <Grid HorizontalAlignment="Right" Grid.Row="2">
