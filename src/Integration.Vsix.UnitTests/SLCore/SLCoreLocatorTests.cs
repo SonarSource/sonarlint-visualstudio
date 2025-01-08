@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             result.PathToExecutable.Should().Be($"""{VsixRoot}\jre\bin\java.exe""");
             result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
         }
-        
+
         [TestMethod]
         public void LocateExecutable_CustomVsixFoler_IsIncludedInPath()
         {
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             result.PathToExecutable.Should().Be($"""{VsixRoot}\Custom\VsixSubpath\jre\bin\java.exe""");
             result.LaunchArguments.Should().Be($"""-classpath "{VsixRoot}\Custom\VsixSubpath\lib\*" org.sonarsource.sonarlint.core.backend.cli.SonarLintServerCli""");
         }
-        
+
         [TestMethod]
         public void LocateExecutable_EmptyVsixSubPath_UsesVsixRootDirectly()
         {

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -145,7 +145,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var issue1 = CreateIssue();
             var issue2 = CreateIssue();
             var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { issue1, issue2 });
-            
+
             issue1.InvalidateSpan();
             var snapshot2 = snapshot1.GetUpdatedSnapshot(); // create new snapshot without non-navigable issues
 
@@ -183,7 +183,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 issue1.InvalidateSpan();
             }
 
-            // change of behavior following #2351 -- we will rely on a new snapshot being created when issues are non-navigable, 
+            // change of behavior following #2351 -- we will rely on a new snapshot being created when issues are non-navigable,
             // so indexOf should just focus on finding the issue in the new snapshot
             snapshot.IndexOf(0, snapshot)
                 .Should().Be(0);
@@ -292,7 +292,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.AnalysisRunId.Should().Be(originalRunId);
             testSubject.Issues.Should().BeEquivalentTo(ValidIssueList);
         }
-        
+
         private static Guid GetProjectGuid(ITableEntriesSnapshot snapshot) =>
             GetValue<Guid>(snapshot, StandardTableKeyNames.ProjectGuid);
 
@@ -314,10 +314,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private static IAnalysisIssueVisualization CreateIssue(string ruleKey = "rule key")
         {
             var analysisIssue = new DummyAnalysisIssue
-            { 
+            {
                 PrimaryLocation = new DummyAnalysisIssueLocation { TextRange = new DummyTextRange()},
-                RuleKey = ruleKey 
-            };           
+                RuleKey = ruleKey
+            };
 
             return CreateIssueViz("filePath", CreateNonEmptySpan(), analysisIssue);
         }

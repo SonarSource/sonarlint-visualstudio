@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -57,9 +57,9 @@ internal sealed class AsyncLock : IAsyncLock
     }
 
     private void Release() => semaphoreSlim.Release();
-    
+
     public void Dispose() => semaphoreSlim.Dispose();
-    
+
     private sealed class AsyncLockToken : IReleaseAsyncLock
     {
         private readonly AsyncLock asyncLock;
@@ -68,7 +68,7 @@ internal sealed class AsyncLock : IAsyncLock
         {
             this.asyncLock = asyncLock;
         }
-        
+
         public void Dispose()
         {
             asyncLock.Release();

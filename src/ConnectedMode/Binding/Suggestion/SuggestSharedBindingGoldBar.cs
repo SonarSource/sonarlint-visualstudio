@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.Suggestion
         internal /* for testing */ const string IdTemplate = "shared.binding.suggestion.for.{0}";
 
         [ImportingConstructor]
-        public SuggestSharedBindingGoldBar(INotificationService notificationService, 
+        public SuggestSharedBindingGoldBar(INotificationService notificationService,
             IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction,
             ISolutionInfoProvider solutionInfoProvider,
             IBrowserService browserService)

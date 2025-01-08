@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 MefTestHelpers.CreateExport<IActiveSolutionTracker>(),
                 MefTestHelpers.CreateExport<IMefFactory>(),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(),
-                MefTestHelpers.CreateExport<IObsoleteConfigurationProvider>()); 
+                MefTestHelpers.CreateExport<IObsoleteConfigurationProvider>());
         }
 
         [TestMethod]
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             migrationPrompt.Verify(x => x.ShowAsync(oldConfiguration.Project, false), Times.Once);
         }
-      
+
         [TestMethod]
         public void Ctor_SubscribeToSolutionChangedRaised_SolutionOpenedClose_MigrationPromptShowDisposeInvoked()
         {
@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             }
             return null;
         }
-        
+
         private static BindingConfiguration CreateBindingConfiguration(SonarLintMode? mode)
         {
             if (mode.HasValue)

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ILogger logger;
         private readonly string jobDescription;
         private readonly IProgress<JobRunnerProgress> progress;
-        
+
         private CancellationTokenSource cancellationSource;
         private DateTime startTime;
 
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly int totalOperations;
 
         internal /* for testing */ WaitHandle TestingWaitHandle
-        { 
+        {
             get
             {
                 // NB this will throw if the cancellation source has

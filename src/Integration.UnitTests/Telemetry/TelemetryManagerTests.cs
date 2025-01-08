@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ public class TelemetryManagerTests
         MefTestHelpers.CheckTypeCanBeImported<TelemetryManager, ITelemetryManager>(
             MefTestHelpers.CreateExport<ISlCoreTelemetryHelper>(),
             MefTestHelpers.CreateExport<IKnownUIContexts>());
-        
+
         MefTestHelpers.CheckTypeCanBeImported<TelemetryManager, IQuickFixesTelemetryManager>(
             MefTestHelpers.CreateExport<ISlCoreTelemetryHelper>(),
             MefTestHelpers.CreateExport<IKnownUIContexts>());
@@ -48,7 +48,7 @@ public class TelemetryManagerTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<TelemetryManager>();
     }
-    
+
     [DataTestMethod]
     [DataRow(SlCoreTelemetryStatus.Unavailable)]
     [DataRow(SlCoreTelemetryStatus.Disabled)]
@@ -58,85 +58,85 @@ public class TelemetryManagerTests
         CreteTelemetryService(out var telemetryHandler, out _);
         telemetryHandler.GetStatus().Returns(status);
         var telemetryManager = CreateTestSubject(telemetryHandler);
-        
+
         telemetryManager.GetStatus().Should().Be(status);
     }
-    
+
     [TestMethod]
     public void OptOut_CallsRpcService()
     {
         CreteTelemetryService(out var telemetryHandler, out var telemetryService);
         var telemetryManager = CreateTestSubject(telemetryHandler);
-        
+
         telemetryManager.OptOut();
-        
+
         Received.InOrder(() =>
         {
             telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.DisableTelemetry();
         });
     }
-    
+
     [TestMethod]
     public void OptIn_CallsRpcService()
     {
         CreteTelemetryService(out var telemetryHandler, out var telemetryService);
         var telemetryManager = CreateTestSubject(telemetryHandler);
-        
+
         telemetryManager.OptIn();
-        
+
         Received.InOrder(() =>
         {
             telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.EnableTelemetry();
         });
     }
-    
+
     [TestMethod]
     public void TaintIssueInvestigatedLocally_CallsRpcService()
     {
         CreteTelemetryService(out var telemetryHandler, out var telemetryService);
         var telemetryManager = CreateTestSubject(telemetryHandler);
-        
+
         telemetryManager.TaintIssueInvestigatedLocally();
-        
+
         Received.InOrder(() =>
         {
             telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.TaintVulnerabilitiesInvestigatedLocally();
         });
     }
-    
+
     [TestMethod]
     public void TaintVulnerabilitiesInvestigatedRemotely_CallsRpcService()
     {
         CreteTelemetryService(out var telemetryHandler, out var telemetryService);
         var telemetryManager = CreateTestSubject(telemetryHandler);
-        
+
         telemetryManager.TaintIssueInvestigatedRemotely();
-        
+
         Received.InOrder(() =>
         {
             telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.TaintVulnerabilitiesInvestigatedRemotely();
         });
     }
-    
+
     [TestMethod]
     public void QuickFixApplied_CallsRpcService()
     {
         CreteTelemetryService(out var telemetryHandler, out var telemetryService);
         var telemetryManager = CreateTestSubject(telemetryHandler);
-        
+
         telemetryManager.QuickFixApplied("myrule");
-        
+
         Received.InOrder(() =>
         {
             telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.AddQuickFixAppliedForRule(Arg.Is<AddQuickFixAppliedForRuleParams>(a => a.ruleKey == "myrule"));
         });
     }
-    
+
     [DataTestMethod]
     [DataRow(SonarLanguageKeys.C, Language.C, 1)]
     [DataRow(SonarLanguageKeys.CPlusPlus, Language.CPP, 2)]
@@ -150,9 +150,9 @@ public class TelemetryManagerTests
     {
         CreteTelemetryService(out var telemetryHandler, out var telemetryService);
         var telemetryManager = CreateTestSubject(telemetryHandler);
-        
+
         telemetryManager.LanguageAnalyzed(languageKey, TimeSpan.FromMilliseconds(analysisTimeMs));
-        
+
         Received.InOrder(() =>
         {
             telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
@@ -170,10 +170,10 @@ public class TelemetryManagerTests
         var telemetryManager = CreateTestSubject(telemetryHandler, knownUiContexts);
 
         knownUiContexts.CSharpProjectContextChanged += Raise.EventWith(new UIContextChangedEventArgs(activated));
-        
+
         telemetryService.Received(activated ? 1 : 0).AnalysisDoneOnSingleLanguage(Arg.Is<AnalysisDoneOnSingleLanguageParams>(a => a.language == Language.CS));
     }
-    
+
     [DataTestMethod]
     [DataRow(true)]
     [DataRow(false)]
@@ -184,7 +184,7 @@ public class TelemetryManagerTests
         var telemetryManager = CreateTestSubject(telemetryHandler, knownUiContexts);
 
         knownUiContexts.VBProjectContextChanged += Raise.EventWith(new UIContextChangedEventArgs(activated));
-        
+
         telemetryService.Received(activated ? 1 : 0).AnalysisDoneOnSingleLanguage(Arg.Is<AnalysisDoneOnSingleLanguageParams>(a => a.language == Language.VBNET));
     }
 

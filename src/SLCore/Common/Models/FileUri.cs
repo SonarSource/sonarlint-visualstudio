@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -56,7 +56,7 @@ public sealed class FileUri
     private static string EscapeRfc3986ReservedCharacters(string stringToEscape)
     {
         var stringBuilderToEscape = new StringBuilder(stringToEscape);
-        
+
         return Rfc3986ReservedCharsToEncode.Aggregate(stringBuilderToEscape,
                 (current, charToEscape) => current.Replace(charToEscape.ToString(), Uri.HexEscape(charToEscape)))
                 .ToString();

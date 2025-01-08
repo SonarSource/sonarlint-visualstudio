@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
             actual.Should().HaveCount(3);
             var actualIds = actual.Select(x => x.Id).ToArray();
-            
+
             actualIds.Should().ContainInOrder(project1.Id, project2.Id, project3.Id);
         }
 
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
 
         private static Solution CreateSolution(params ProjectInfo[] projectInfos)
         {
-            // We can't directly create or mock a Roslyn Solution. However, we can 
+            // We can't directly create or mock a Roslyn Solution. However, we can
             // create a real Roslyn AdhocWorkspace and return it's Solution
             AdhocWorkspace adhocWorkspace = new AdhocWorkspace();
 

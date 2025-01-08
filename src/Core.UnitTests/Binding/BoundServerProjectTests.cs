@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -32,10 +32,10 @@ public class BoundServerProjectTests
     public void Ctor_InvalidLocalBinding_ThrowsArgumentNullException(string bindingName)
     {
         var act = () => new BoundServerProject(bindingName, "projectName", new ServerConnection.SonarCloud("org"));
-        
+
         act.Should().Throw<ArgumentNullException>();
     }
-    
+
     [DataTestMethod]
     [DataRow(null)]
     [DataRow("")]
@@ -43,7 +43,7 @@ public class BoundServerProjectTests
     public void Ctor_InvalidServerProject_ThrowsArgumentNullException(string projectName)
     {
         var act = () => new BoundServerProject("binding", projectName, new ServerConnection.SonarCloud("org"));
-        
+
         act.Should().Throw<ArgumentNullException>();
     }
 
@@ -51,7 +51,7 @@ public class BoundServerProjectTests
     public void Ctor_NullConnection_ThrowsArgumentNullException()
     {
         var act = () => new BoundServerProject("bindingName", "projectName", null);
-        
+
         act.Should().Throw<ArgumentNullException>();
     }
 

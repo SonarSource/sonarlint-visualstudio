@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
         {
             Formatting = Formatting.Indented
         };
-        
+
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
         internal /*for testing*/ static readonly Uri SonarCloudUri = new Uri("https://sonarcloud.io");
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
             try
             {
                 var result = JsonConvert.DeserializeObject<SharedBindingConfigModel>(fileSystem.File.ReadAllText(filePath));
-                
+
                 if (result.IsSonarCloud())
                 {
                     result.Uri = SonarCloudUri;

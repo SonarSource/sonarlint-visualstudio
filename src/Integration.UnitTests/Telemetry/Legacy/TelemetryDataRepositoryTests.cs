@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ public class TelemetryDataRepositoryTests
         var environmentVariableProvider = Substitute.For<IEnvironmentVariableProvider>();
         var fileSystem = CreateFileSystem(environmentVariableProvider, false);
         var telemetryDataRepository = new TelemetryDataRepository(fileSystem, environmentVariableProvider);
-        
+
         var actualData = telemetryDataRepository.ReadTelemetryData();
 
         actualData.Should().BeNull();
@@ -57,7 +57,7 @@ public class TelemetryDataRepositoryTests
         var telemetryDataRepository = new TelemetryDataRepository(fileSystem, environmentVariableProvider);
 
         var actualData = telemetryDataRepository.ReadTelemetryData();
-        
+
         var expectedData = new TelemetryData
         {
             IsAnonymousDataShared = false,

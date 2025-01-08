@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Protocol;
 public class RpcMethodNameTransformerTests
 {
     private const string Prefix = "prefix";
-    
+
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
@@ -39,7 +39,7 @@ public class RpcMethodNameTransformerTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<RpcMethodNameTransformer>();
     }
-    
+
     [DataTestMethod]
     [DataRow("Method", "method")]
     [DataRow("MyMethod", "myMethod")]
@@ -57,7 +57,7 @@ public class RpcMethodNameTransformerTests
 
         transformer(methodName).Should().Be(expectedMethodName);
     }
-    
+
     [DataTestMethod]
     [DataRow("Method", $"{Prefix}/method")]
     [DataRow("MyMethod", $"{Prefix}/myMethod")]
@@ -80,9 +80,9 @@ public class RpcMethodNameTransformerTests
     {
         return new RpcMethodNameTransformer();
     }
-    
+
     public interface ITestSLCoreServiceNoAttribute : ISLCoreService {}
-    
+
     [JsonRpcClass(Prefix)]
     public interface ITestSLCoreServiceWithAttribute : ISLCoreService {}
 }

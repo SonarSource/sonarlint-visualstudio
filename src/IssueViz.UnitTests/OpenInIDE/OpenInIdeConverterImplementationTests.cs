@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -49,7 +49,7 @@ public class OpenInIdeConverterImplementationTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<OpenInIdeConverterImplementation>();
     }
-    
+
     [DataTestMethod]
     [DataRow(typeof(NullReferenceException), false)]
     [DataRow(typeof(ArgumentException), false)]
@@ -74,7 +74,7 @@ public class OpenInIdeConverterImplementationTests
             logger.AssertPartialOutputStringExists("[Open in IDE] Unable to convert issue data:");
         }
     }
-    
+
     [DataTestMethod]
     [DataRow(typeof(NullReferenceException), false)]
     [DataRow(typeof(ArgumentException), false)]
@@ -100,7 +100,7 @@ public class OpenInIdeConverterImplementationTests
             logger.AssertPartialOutputStringExists("[Open in IDE] Unable to convert issue data:");
         }
     }
-    
+
     [TestMethod]
     public void TryConvertIssue_VisualisationConverterThrows_ExceptionHandledDependingOnSeverity()
     {
@@ -111,7 +111,7 @@ public class OpenInIdeConverterImplementationTests
         visualizationConverter.Convert(analysisIssueBase).Returns(analysisIssueVisualization);
 
         testSubject.TryConvert(dto, rootPath, dtoToIssueConverter, out var visualization).Should().BeTrue();
-        
+
         visualization.Should().BeSameAs(analysisIssueVisualization);
         logger.AssertNoOutputMessages();
     }

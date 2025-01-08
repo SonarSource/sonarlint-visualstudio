@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         [DataRow("javascript:S222", RoslynLanguage.Unknown, "S222")]
         [DataRow("CSHARPSQUID:S333", RoslynLanguage.Unknown, "S333")]
         [DataRow("VBNET:S444", RoslynLanguage.Unknown, "S444")]
-        
+
         // Invalid keys - should not error
         [DataRow("invalidcompositekey", RoslynLanguage.Unknown, null)]
         [DataRow("invalid::compositekey", RoslynLanguage.Unknown, ":compositekey")]

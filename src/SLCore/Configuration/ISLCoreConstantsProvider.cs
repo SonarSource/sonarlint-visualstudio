@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@ public interface ISLCoreConstantsProvider
     ClientConstantsDto ClientConstants { get; }
     FeatureFlagsDto FeatureFlags { get; }
     TelemetryClientConstantAttributesDto TelemetryConstants { get; }
-    
+
     IReadOnlyList<Language> LanguagesInStandaloneMode { get; }
     IReadOnlyList<Language> SLCoreAnalyzableLanguages { get; }
 }

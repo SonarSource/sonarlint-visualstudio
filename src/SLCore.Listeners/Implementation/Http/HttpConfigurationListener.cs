@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -54,7 +54,7 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
     private ProxyDto GetSystemProxy(Uri uri)
     {
         var proxyUri = proxySettingsDetector.GetProxyUri(uri);
-        if (proxyUri == uri) 
+        if (proxyUri == uri)
         {
             // when same Uri is returned, it means no proxy was configured at system level
             return null;
@@ -88,19 +88,19 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
 
         return Task.FromResult(new CheckServerTrustedResponse(verificationResult));
     }
-    
+
     private bool VerifyChain(List<X509CertificateDto> chain)
     {
         try
         {
             var primaryCertificate = certificateDtoConverter.Convert(chain[0]);
-            
+
             var additionalCertificates = chain.Skip(1).Select(dto =>
             {
                 var certificate = certificateDtoConverter.Convert(dto);
                 return certificate;
             });
-            
+
             return chainValidator.ValidateChain(primaryCertificate, additionalCertificates);
         }
         catch (Exception e) when (!ErrorHandler.IsCriticalException(e))

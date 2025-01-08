@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -51,7 +51,7 @@ public class ServerIssueFinderTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<ServerIssueFinder>();
     }
-    
+
     [TestMethod]
     public void FindServerIssueAsync_UIThread_Throws()
     {
@@ -63,7 +63,7 @@ public class ServerIssueFinderTests
 
         act.Should().Throw<Exception>().Which.Should().BeSameAs(exception);
     }
-    
+
     [TestMethod]
     public async Task FindServerIssueAsync_StandaloneMode_ReturnsNull()
     {
@@ -74,12 +74,12 @@ public class ServerIssueFinderTests
 
         result.Should().BeNull();
     }
-    
+
     [TestMethod]
     public async Task FindServerIssueAsync_RootCantBeCalculated_ReturnsNull()
     {
         const string filePath = @"c:\a\b\c";
-        
+
         var serverIssueFinder = CreateTestSubject(out var projectRootCalculatorMock, out _, out var activeSolutionBoundTrackerMock, out _, out _, out _);
         SetUpBinding(activeSolutionBoundTrackerMock, "project");
         projectRootCalculatorMock.Setup(x => x.CalculateBasedOnLocalPathAsync(filePath, It.IsAny<CancellationToken>()))
@@ -89,7 +89,7 @@ public class ServerIssueFinderTests
 
         result.Should().BeNull();
     }
-    
+
     [DataTestMethod]
     [DataRow(true)]
     [DataRow(false)]
@@ -102,12 +102,12 @@ public class ServerIssueFinderTests
         const string branch = "branch123";
         var localIssue = CreateIssue(ruleId, filePath);
         var serverIssues = new[] { CreateServerIssue(), CreateServerIssue() };
-        
-        var serverIssueFinder = CreateTestSubject(out var projectRootCalculatorMock, 
-            out var issueMatcherMock, 
-            out var activeSolutionBoundTrackerMock, 
-            out var statefulServerBranchProviderMock, 
-            out var sonarQubeServiceMock, 
+
+        var serverIssueFinder = CreateTestSubject(out var projectRootCalculatorMock,
+            out var issueMatcherMock,
+            out var activeSolutionBoundTrackerMock,
+            out var statefulServerBranchProviderMock,
+            out var sonarQubeServiceMock,
             out _);
         SetUpBinding(activeSolutionBoundTrackerMock, projectKey);
         projectRootCalculatorMock
@@ -124,7 +124,7 @@ public class ServerIssueFinderTests
             .Returns(isMatch ? serverIssues[1] : null);
 
         var result = await serverIssueFinder.FindServerIssueAsync(localIssue, CancellationToken.None);
-        
+
         if (isMatch)
         {
             result.Should().BeSameAs(serverIssues[1]);
@@ -140,7 +140,7 @@ public class ServerIssueFinderTests
         return new SonarQubeIssue("test", "test", "test", "test", "test", "test", false, SonarQubeIssueSeverity.Info,
             DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, null);
     }
-    
+
     private IFilterableIssue CreateIssue(string ruleId, string filePath, int? startLine = null, string lineHash = null) =>
         new TestFilterableIssue
         {
@@ -152,7 +152,7 @@ public class ServerIssueFinderTests
 
     private void SetUpStandalone(Mock<IActiveSolutionBoundTracker> activeSolutionBoundTrackerMock) =>
         SetUpBinding(activeSolutionBoundTrackerMock, null);
-    
+
     private void SetUpBinding(Mock<IActiveSolutionBoundTracker> activeSolutionBoundTrackerMock, string projectKey)
     {
         activeSolutionBoundTrackerMock.SetupGet(x => x.CurrentConfiguration)
@@ -160,7 +160,7 @@ public class ServerIssueFinderTests
                 ? BindingConfiguration.Standalone
                 : new BindingConfiguration(new BoundServerProject("solution", projectKey, new ServerConnection.SonarQube(new Uri("http://localhost"))), SonarLintMode.Connected, default));
     }
-    
+
     private ServerIssueFinder CreateTestSubject(out Mock<IProjectRootCalculator> projectRootCalculatorMock,
         out Mock<IIssueMatcher> issueMatcherMock,
         out Mock<IActiveSolutionBoundTracker> activeSolutionBoundTrackerMock,

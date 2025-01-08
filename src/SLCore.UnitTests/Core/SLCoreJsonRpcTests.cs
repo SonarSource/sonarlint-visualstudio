@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -46,10 +46,10 @@ public class SLCoreJsonRpcTests
         {
             testSubject.IsAlive.Should().BeTrue();
         }
-        
+
         clientMock.VerifyGet(x => x.Completion, Times.Exactly(2));
     }
-    
+
     [TestMethod]
     public void IsAlive_TaskCanceled_NoException()
     {
@@ -58,11 +58,11 @@ public class SLCoreJsonRpcTests
         testSubject.IsAlive.Should().BeTrue();
 
         completionSource.TrySetCanceled();
-        
+
         testSubject.IsAlive.Should().BeFalse();
         clientMock.VerifyGet(x => x.Completion, Times.Exactly(2));
     }
-    
+
     [TestMethod]
     public void IsAlive_TaskThrows_NoException()
     {
@@ -71,11 +71,11 @@ public class SLCoreJsonRpcTests
         testSubject.IsAlive.Should().BeTrue();
 
         completionSource.TrySetException(new Exception());
-        
+
         testSubject.IsAlive.Should().BeFalse();
         clientMock.VerifyGet(x => x.Completion, Times.Exactly(2));
     }
-    
+
     [TestMethod]
     public void CreateService_CallsAttachWithCorrectOptions()
     {
@@ -103,23 +103,23 @@ public class SLCoreJsonRpcTests
         clientMock.Setup(x => x.AddLocalRpcTarget(listener, It.IsAny<JsonRpcTargetOptions>()));
 
         testSubject.AttachListener(listener);
-        
+
         clientMock.Verify(x => x.AddLocalRpcTarget(listener, It.Is<JsonRpcTargetOptions>(options =>
                 options.MethodNameTransform == transformer && options.UseSingleObjectParameterDeserialization)),
             Times.Once);
         clientMock.VerifyNoOtherCalls();
     }
-    
+
     [TestMethod]
     public void StartListening_CallsJsonrpcStartListening()
     {
         var testSubject = CreateTestSubject(out var clientMock, out _);
-        
+
         testSubject.StartListening();
-        
+
         clientMock.Verify(x => x.StartListening(), Times.Once);
     }
-    
+
     private static ISLCoreJsonRpc CreateTestSubject(out Mock<IJsonRpc> clientMock,
         out TaskCompletionSource<bool> clientCompletionSource,
         IRpcMethodNameTransformer methodNameTransformer = null)
@@ -135,7 +135,7 @@ public class SLCoreJsonRpcTests
         methodNameTransformerMock.Setup(x => x.Create<T>()).Returns(transformer);
         return methodNameTransformerMock;
     }
-    
+
     private static (Mock<IJsonRpc> clientMock, TaskCompletionSource<bool> clientCompletionSource) CreateJsonRpc()
     {
         var mock = new Mock<IJsonRpc>();
@@ -143,8 +143,8 @@ public class SLCoreJsonRpcTests
         mock.SetupGet(x => x.Completion).Returns(tcs.Task);
         return (mock, tcs);
     }
-    
+
     public interface ITestSLCoreService : ISLCoreService {}
-    
+
     public class TestSLCoreListener : ISLCoreListener {}
 }

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -51,7 +51,7 @@ public class ConfigurationScopeDotnetAnalyzerIndicatorTests
         });
         testSubject = new ConfigurationScopeDotnetAnalyzerIndicator(slCoreServiceProvider, testLogger);
     }
-    
+
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
@@ -70,42 +70,42 @@ public class ConfigurationScopeDotnetAnalyzerIndicatorTests
     public async Task ShouldUseEnterpriseCSharpAnalyzerAsync_NullConfigurationScope_ReturnsFalse()
     {
         var result = await testSubject.ShouldUseEnterpriseCSharpAnalyzerAsync(null);
-        
+
         result.Should().BeFalse();
         testLogger.AssertPartialOutputStringExists(SLCoreStrings.ConfigScopeNotInitialized);
     }
-    
+
     [TestMethod]
     public async Task ShouldUseEnterpriseCSharpAnalyzerAsync_ServiceProviderUnavailable_ReturnsFalse()
     {
         slCoreServiceProvider.TryGetTransientService(out IRoslynAnalyzerService _).ReturnsForAnyArgs(false);
         var result = await testSubject.ShouldUseEnterpriseCSharpAnalyzerAsync("scope");
-        
+
         result.Should().BeFalse();
         testLogger.AssertPartialOutputStringExists(SLCoreStrings.ServiceProviderNotInitialized);
     }
-    
+
     [TestMethod]
     public async Task ShouldUseEnterpriseCSharpAnalyzerAsync_ServiceThrows_ReturnsFalse()
     {
         const string exceptionMessage = "exception message";
         roslynAnalyzerService.ShouldUseEnterpriseCSharpAnalyzerAsync(default).ThrowsAsyncForAnyArgs(new Exception(exceptionMessage));
         var result = await testSubject.ShouldUseEnterpriseCSharpAnalyzerAsync("scope");
-        
+
         result.Should().BeFalse();
         testLogger.AssertPartialOutputStringExists(exceptionMessage);
     }
-    
+
     [DataTestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public async Task ShouldUseEnterpriseCSharpAnalyzerAsync_ServiceReturns_ReturnsSameValue(bool toReturn)
-    { 
+    {
         const string configurationScopeId = "scope";
         roslynAnalyzerService.ShouldUseEnterpriseCSharpAnalyzerAsync(Arg.Is<ShouldUseEnterpriseCSharpAnalyzerParams>(s => s.configurationScopeId == configurationScopeId))
             .Returns(new ShouldUseEnterpriseCSharpAnalyzerResponse(toReturn));
         var result = await testSubject.ShouldUseEnterpriseCSharpAnalyzerAsync(configurationScopeId);
-        
+
         result.Should().Be(toReturn);
         testLogger.AssertNoOutputMessages();
     }

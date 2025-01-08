@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -48,7 +48,7 @@ public class OpenIssueInIdeHandlerTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<OpenHotspotInIdeHandler>();
     }
-    
+
     [TestMethod]
     public void Show_CallsBaseHandler()
     {
@@ -56,9 +56,9 @@ public class OpenIssueInIdeHandlerTests
         var issue = new HotspotDetailsDto(default, default, default, default, default,
             default, default, default, default);
         var testSubject = CreateTestSubject(out var handler, out var converter, out _);
-        
+
         testSubject.Show(issue, configScope);
-        
+
         handler.Received().ShowIssue(issue, configScope, converter, IssueListIds.HotspotsId, testSubject);
     }
 
@@ -76,12 +76,12 @@ public class OpenIssueInIdeHandlerTests
     }
 
     private OpenHotspotInIdeHandler CreateTestSubject(out IOpenInIdeHandlerImplementation openInIdeHandlerImplementation,
-        out IHotspotDetailsDtoToHotspotConverter hotspotOpenInIdeConverter, 
+        out IHotspotDetailsDtoToHotspotConverter hotspotOpenInIdeConverter,
         out IOpenInIDEHotspotsStore openInIdeHotspotsStore)
     {
         openInIdeHandlerImplementation = Substitute.For<IOpenInIdeHandlerImplementation>();
         hotspotOpenInIdeConverter = Substitute.For<IHotspotDetailsDtoToHotspotConverter>();
         openInIdeHotspotsStore = Substitute.For<IOpenInIDEHotspotsStore>();
         return new OpenHotspotInIdeHandler(openInIdeHandlerImplementation, hotspotOpenInIdeConverter, openInIdeHotspotsStore);
-    } 
+    }
 }

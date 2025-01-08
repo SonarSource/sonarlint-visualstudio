@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ public interface IJsonFileHandler
     /// <param name="filePath">The path to the file</param>
     /// <returns>Returns the content of the json file deserialized to the provided type.</returns>
     T ReadFile<T>(string filePath) where T : class;
-    
+
     /// <summary>
     /// Tries to deserialize the model and write it to the json file.
     /// If the file does not exist, it will be created.

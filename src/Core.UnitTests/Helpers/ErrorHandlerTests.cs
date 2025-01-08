@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
         [TestMethod]
         public void IsCriticalException_WrappedCriticalExceptions_ReturnsTrue()
         {
-            // 1. Wrapped 
+            // 1. Wrapped
             var ex = new AggregateException(
                 new InvalidCastException(),         // not critical
                 new StackOverflowException(),       // critical
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
         [TestMethod]
         public void IsCriticalException_WrappedNonCriticalExceptions_ReturnsFalse()
         {
-            // 1. Wrapped 
+            // 1. Wrapped
             var ex = new AggregateException(
                 new InvalidCastException(),         // not critical
                 new ArgumentOutOfRangeException()); // not critical

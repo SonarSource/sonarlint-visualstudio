@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [TestMethod]
         public void Ctor_AllArgumentsAreRequired()
         {
-            Action action = () => new LegacySettings(null, "cs ruleset", "cs sonarlint", "vb ruleset", "vb sonarlint");    
+            Action action = () => new LegacySettings(null, "cs ruleset", "cs sonarlint", "vb ruleset", "vb sonarlint");
             action.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("sonarLintFolderPath");
 
             action = () => new LegacySettings("folder", null, "cs sonarlint", "vb ruleset", "vb sonarlint");

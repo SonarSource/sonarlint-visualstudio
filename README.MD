@@ -41,6 +41,6 @@ Check out the [contributing](CONTRIBUTING.md) page to see the best places to log
 
 ## License
 
-Copyright 2016-2024 SonarSource.
+Copyright 2016-2025 SonarSource.
 
 Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)

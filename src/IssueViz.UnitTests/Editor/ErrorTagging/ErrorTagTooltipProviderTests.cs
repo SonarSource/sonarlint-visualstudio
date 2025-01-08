@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             issue.Setup(x => x.PrimaryLocation.Message).Returns("some message");
 
             var navigateCommand = Mock.Of<INavigateToRuleDescriptionCommand>();
-            
+
             var testSubject = new ErrorTagTooltipProvider(Mock.Of<IVsThemeColorProvider>(), navigateCommand, new TestLogger(logToConsole: true));
             var result = testSubject.Create(issue.Object);
 

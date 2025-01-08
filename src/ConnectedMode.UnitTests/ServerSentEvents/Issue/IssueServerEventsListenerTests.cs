@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
                 new BranchAndIssueKey("issueKey1", "branch1"),
                 new BranchAndIssueKey("issueKey2", "branch2"),
                 new BranchAndIssueKey("issueKey3", "branch1"));
-            
+
             var issueServerEventSource = SetupIssueServerEventSource(event1);
             var storeUpdater = new Mock<ISuppressionIssueStoreUpdater>();
             var branchProvider = CreateBranchProvider("branch1");

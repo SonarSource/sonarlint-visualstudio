@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ internal class RoslynSolutionWrapper(Solution solution) : IRoslynSolutionWrapper
                             ? current.RemoveAnalyzerReference(analyzer)
                             : current));
 
-    public IRoslynSolutionWrapper AddAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers) => 
+    public IRoslynSolutionWrapper AddAnalyzerReferences(ImmutableArray<AnalyzerFileReference> analyzers) =>
         new RoslynSolutionWrapper(solution.AddAnalyzerReferences(analyzers));
 
     public Solution GetRoslynSolution() => solution;

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -195,7 +195,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             var activeRules = new SonarQubeRule[]
                 {
                     CreateRule("activeRuleKey", "repoKey1", true),
-                    ActiveTaintAnalysisRule, 
+                    ActiveTaintAnalysisRule,
                     ActiveRuleWithUnsupportedSeverity
                 };
 
@@ -340,7 +340,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
 
                 BindingConfiguration = new BindingConfiguration(
                     new BoundServerProject("solution", ExpectedProjectKey, new ServerConnection.SonarQube(new Uri(serverUrl))),
-                    SonarLintMode.Connected, 
+                    SonarLintMode.Connected,
                     "c:\\test\\");
 
                 var sonarProperties = PropertiesResponse.ToDictionary(x => x.Key, y => y.Value);

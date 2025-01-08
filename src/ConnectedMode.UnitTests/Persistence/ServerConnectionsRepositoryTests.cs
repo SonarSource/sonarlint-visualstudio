@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -47,7 +47,7 @@ public class ServerConnectionsRepositoryTests
 
     [TestInitialize]
     public void TestInitialize()
-    { 
+    {
         jsonFileHandler = Substitute.For<IJsonFileHandler>();
         serverConnectionModelMapper = Substitute.For<IServerConnectionModelMapper>();
         credentialsLoader = Substitute.For<ISolutionBindingCredentialsLoader>();
@@ -675,7 +675,7 @@ public class ServerConnectionsRepositoryTests
         var sonarCloud = new SonarCloud(sonarCloudModel.OrganizationKey, sonarCloudModel.Settings, Substitute.For<IConnectionCredentials>());
         MockReadingFile(new ServerConnectionsListJsonModel { ServerConnections = [sonarCloudModel] });
         serverConnectionModelMapper.GetServerConnection(sonarCloudModel).Returns(sonarCloud);
-        
+
         return sonarCloud;
     }
 
@@ -713,5 +713,5 @@ public class ServerConnectionsRepositoryTests
             Settings = new ServerConnectionSettings(isSmartNotificationsEnabled)
         };
     }
-   
+
 }

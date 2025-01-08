@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -35,11 +35,11 @@ public class FileUriConverter : TypeConverter
             ? new FileUri(s)
             : base.ConvertFrom(context, culture, value);
 
-    public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) => 
+    public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType) =>
         destinationType == typeof(string) || base.CanConvertTo(context, destinationType);
 
     public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) =>
-        value is FileUri uri && destinationType == typeof(string) 
-            ? uri.ToString() 
+        value is FileUri uri && destinationType == typeof(string)
+            ? uri.ToString()
             : base.ConvertTo(context, culture, value, destinationType);
 }

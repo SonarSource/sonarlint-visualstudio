@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IBrowserService browserService;
 
         [ImportingConstructor]
-        public BindingSuggestionHandler(INotificationService notificationService, 
+        public BindingSuggestionHandler(INotificationService notificationService,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             IIDEWindowService ideWindowService,
             IConnectedModeUIManager connectedModeUiManager,
@@ -80,12 +80,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             ideWindowService.BringToFront();
         }
-        
+
         public void Dispose()
         {
             activeSolutionBoundTracker.SolutionBindingChanged -= OnActiveSolutionBindingChanged;
         }
-        
+
         private void OnActiveSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
         {
             if (e.Configuration.Mode == SonarLintMode.Connected)

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -45,19 +45,19 @@ public class RoslynIssueLineHashCalculatorTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<RoslynIssueLineHashCalculator>();
     }
-    
+
     [TestMethod]
     public void UpdateRoslynIssueWithLineHash_FileLevelIssue_DoesNothing()
     {
         var issue = new Mock<IFilterableRoslynIssue>(MockBehavior.Strict);
         issue.SetupGet(x => x.StartLine).Returns((int?)null);
         var testSubject = CreateTestSubject(out _, out _, out _);
-        
+
         testSubject.UpdateRoslynIssueWithLineHash(issue.Object);
-        
+
         issue.Verify(x => x.SetLineHash(It.IsAny<string>()), Times.Never);
     }
-    
+
     [TestMethod]
     public void UpdateRoslynIssueWithLineHash_UpdatesLineHash()
     {
@@ -80,13 +80,13 @@ public class RoslynIssueLineHashCalculatorTests
         buffer.SetupGet(x => x.CurrentSnapshot).Returns(snapshot.Object);
         lineHashCalculatorMock.Setup(x => x.Calculate(snapshot.Object, lineNumber)).Returns(lineHash);
         issue.Setup(x => x.SetLineHash(lineHash));
-        
+
         testSubject.UpdateRoslynIssueWithLineHash(issue.Object);
-        
+
         issue.Verify(x => x.SetLineHash(lineHash), Times.Once);
     }
-    
-    private RoslynIssueLineHashCalculator CreateTestSubject(out Mock<ITextDocumentFactoryService> textDocumentFactoryServiceMock, 
+
+    private RoslynIssueLineHashCalculator CreateTestSubject(out Mock<ITextDocumentFactoryService> textDocumentFactoryServiceMock,
         out Mock<IContentTypeRegistryService> contentTypeRegistryServiceMock,
         out Mock<ILineHashCalculator> lineHashCalculatorMock)
     {

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@ namespace SonarQube.Client.Helpers
             {
                 throw new ArgumentException("Local path is not under this root");
             }
-            
+
             var serverFilePath = FilePathNormalizer.ServerizeWindowsPath(localFilePath.Substring(projectRootPath.Length));
             return $"{projectKey}:{serverFilePath}";
         }

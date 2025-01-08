@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@ internal sealed class SLCoreProcess : ISLCoreProcess
 {
     private readonly ISLCoreErrorLogger errorLogger;
     private readonly System.Diagnostics.Process process;
-    
+
     public SLCoreProcess(SLCoreLaunchParameters launchParameters, ISLCoreErrorLoggerFactory slCoreErrorLoggerFactory)
     {
         var processStartInfo = new ProcessStartInfo(launchParameters.PathToExecutable, launchParameters.LaunchArguments)
@@ -40,23 +40,23 @@ internal sealed class SLCoreProcess : ISLCoreProcess
 
         process = new System.Diagnostics.Process { StartInfo = processStartInfo };
         process.Start();
-        
+
         errorLogger = slCoreErrorLoggerFactory.Create(process.StandardError);
     }
-    
+
     public void Dispose()
     {
         process.Close();
         process.Dispose();
         errorLogger.Dispose();
     }
-    
+
     public IJsonRpc AttachJsonRpc(IRpcDebugger rpcDebugger)
     {
         var jsonRpcWrapper = new JsonRpcWrapper(process.StandardInput.BaseStream, process.StandardOutput.BaseStream);
 
         rpcDebugger.SetUpDebugger(jsonRpcWrapper);
-        
+
         return jsonRpcWrapper;
     }
 }

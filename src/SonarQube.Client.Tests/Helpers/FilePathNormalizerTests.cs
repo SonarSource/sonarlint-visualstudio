@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -57,7 +57,7 @@ namespace SonarQube.Client.Tests.Helpers
 
             result.Should().Be(expectedResult);
         }
-        
+
         [TestMethod]
         public void ServerizeWindowsPath_NullPath_EmptyStringReturned()
         {
@@ -78,7 +78,7 @@ namespace SonarQube.Client.Tests.Helpers
                 result.Should().Be(normalizedPath);
             }
         }
-        
+
         [TestMethod]
         [DataRow("\\a\\b\\c", "a/b/c")]
         [DataRow("a\\B\\C", "a/B/C")]

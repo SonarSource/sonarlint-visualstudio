@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -50,9 +50,9 @@ public class SLCoreHandlerTests
         var neverCompletedTaskSource = new TaskCompletionSource<bool>();
         var testSubject = CreateTestSubject(out var instanceHandler, out var notificationService, out var threadHandling);
         instanceHandler.StartInstanceAsync().Returns(neverCompletedTaskSource.Task);
-        
+
         testSubject.EnableSloop();
-        
+
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
@@ -60,7 +60,7 @@ public class SLCoreHandlerTests
         });
         notificationService.DidNotReceiveWithAnyArgs().Show(default);
     }
-    
+
     [TestMethod]
     public void EnableSloop_DisposedMidLifecycle_ExitsAndDoesNothing()
     {
@@ -68,20 +68,20 @@ public class SLCoreHandlerTests
         var testSubject = CreateTestSubject(out var instanceHandler, out var notificationService, out _);
         instanceHandler.StartInstanceAsync().Returns(lifeCycleTaskSource.Task);
         instanceHandler.When(x => x.Dispose()).Do(_ => lifeCycleTaskSource.SetResult(true));
-        
+
         testSubject.EnableSloop();
         testSubject.Dispose();
-        
+
         instanceHandler.Received(1).StartInstanceAsync();
         notificationService.DidNotReceiveWithAnyArgs().Show(default);
     }
-    
+
     [TestMethod]
     public void EnableSloop_Disposed_Throws()
     {
         var testSubject = CreateTestSubject(out var instanceHandler, out var notificationService, out var threadHandling);
         testSubject.Dispose();
-        
+
         var act = () => testSubject.EnableSloop();
 
         act.Should().ThrowExactly<ObjectDisposedException>();
@@ -89,7 +89,7 @@ public class SLCoreHandlerTests
         threadHandling.DidNotReceiveWithAnyArgs().RunOnBackgroundThread(default(Func<Task<int>>));
         notificationService.DidNotReceiveWithAnyArgs().Show(default);
     }
-    
+
     [DataTestMethod]
     [DataRow(1)]
     [DataRow(3)]
@@ -100,7 +100,7 @@ public class SLCoreHandlerTests
         SetUpInstanceHandler(instanceHandler);
 
         testSubject.EnableSloop();
-        
+
         Received.InOrder(() =>
         {
             threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
@@ -111,12 +111,12 @@ public class SLCoreHandlerTests
             notificationService.Show(Arg.Is<Action>(a => a != null));
         });
     }
-    
+
     [TestMethod]
     public void Dispose_DisposesInstanceHandler()
     {
         var testSubject = CreateTestSubject(out var instanceHandler, out _, out _);
-        
+
         testSubject.Dispose();
 
         instanceHandler.Received().Dispose();
@@ -128,7 +128,7 @@ public class SLCoreHandlerTests
     [DataRow(10)]
     public void EnableSloop_MultipleUserInitiatedRestarts_KeepsAutoRestartingUpToTheLimit(int maxStartsBeforeManual)
     {
-        const int manualRestartsCount = 5; 
+        const int manualRestartsCount = 5;
         var testSubject = CreateTestSubject(out var instanceHandler, out var notificationService, out var threadHandling, maxStartsBeforeManual);
         SetUpInstanceHandler(instanceHandler);
 
@@ -138,7 +138,7 @@ public class SLCoreHandlerTests
             var resetActon = (Action)notificationService.ReceivedCalls().Last().GetArguments().First();
             resetActon();
         }
-        
+
         Received.InOrder(() =>
         {
             for (int i = 0; i < manualRestartsCount + 1; i++)
@@ -152,7 +152,7 @@ public class SLCoreHandlerTests
             }
         });
     }
-    
+
     private static void SetUpInstanceHandler(ISLCoreInstanceHandler instanceHandler)
     {
         var currentRun = 0;
@@ -163,7 +163,7 @@ public class SLCoreHandlerTests
             return Task.CompletedTask;
         });
     }
-    
+
     private SLCoreHandler CreateTestSubject(
         out ISLCoreInstanceHandler instanceHandler,
         out ISloopRestartFailedNotificationService notificationService,
@@ -174,7 +174,7 @@ public class SLCoreHandlerTests
         notificationService = Substitute.For<ISloopRestartFailedNotificationService>();
         threadHandling = Substitute.For<IThreadHandling>();
         threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(info => info.Arg<Func<Task<int>>>()());
-        
+
         return maxStartsBeforeManual.HasValue
             ? new SLCoreHandler(instanceHandler, notificationService, maxStartsBeforeManual.Value, threadHandling)
             : new SLCoreHandler(instanceHandler, notificationService, threadHandling);

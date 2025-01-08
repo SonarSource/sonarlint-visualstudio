@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -107,13 +107,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             qpDownloader.Verify(x => x.UpdateAsync(boundProject, null, It.IsAny<CancellationToken>()), Times.Once);
             eventListener.EventCount.Should().Be(0);
         }
-        
+
         [TestMethod]
         public async Task UpdateBoundSolutionAsync_IsNewConnectedMode_UpdaterDoesNotCallDownloaderDirectly()
         {
             var configProvider = CreateConfigProvider(SonarLintMode.Connected, CreateDefaultProject());
             var qpDownloader = new Mock<IQualityProfileDownloader>();
-            // Here, we're not using a pass-through runner, so we're not expecting the 
+            // Here, we're not using a pass-through runner, so we're not expecting the
             // downloader to be invoked
             var runner = new Mock<ICancellableActionRunner>();
 
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             runner.Verify(x => x.RunAsync(It.IsAny<Func<CancellationToken, Task>>()), Times.Once);
             eventListener.EventCount.Should().Be(0);
         }
-        
+
         [TestMethod]
         public async Task UpdateBoundSolutionAsync_InvalidOperationException_EventIsNotRaised()
         {

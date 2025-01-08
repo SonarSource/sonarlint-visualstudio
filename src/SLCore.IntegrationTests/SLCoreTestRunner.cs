@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -107,7 +107,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
             var jarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
             jarProvider.ListJarFiles().Returns(DependencyLocator.AnalyzerPlugins);
-            
+
             var compatibleNodeLocator = Substitute.For<INodeLocationProvider>();
             compatibleNodeLocator.Get().Returns((string)null);
 

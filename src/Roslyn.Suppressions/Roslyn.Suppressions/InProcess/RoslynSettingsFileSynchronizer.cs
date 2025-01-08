@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -198,7 +198,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
 
         private static RoslynLanguage GetRoslynLanguage(string repoKey)
         {
-            // Currently the only Sonar repos which contain Roslyn analysis rules are 
+            // Currently the only Sonar repos which contain Roslyn analysis rules are
             // csharpsquid and vbnet. These include "normal" and "hotspot" rules.
             // The taint rules are in a different repo, and the part that is implemented
             // as a Roslyn analyzer won't raise issues anyway.

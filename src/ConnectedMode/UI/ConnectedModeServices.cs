@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -27,11 +27,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
 public interface IConnectedModeServices
 {
-    public IBrowserService BrowserService { get; } 
-    public IThreadHandling ThreadHandling { get; } 
-    public ILogger Logger { get; } 
-    public ISlCoreConnectionAdapter SlCoreConnectionAdapter { get; } 
-    public IConfigurationProvider ConfigurationProvider { get; } 
+    public IBrowserService BrowserService { get; }
+    public IThreadHandling ThreadHandling { get; }
+    public ILogger Logger { get; }
+    public ISlCoreConnectionAdapter SlCoreConnectionAdapter { get; }
+    public IConfigurationProvider ConfigurationProvider { get; }
     public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; }
     public IMessageBox MessageBox { get; }
 }

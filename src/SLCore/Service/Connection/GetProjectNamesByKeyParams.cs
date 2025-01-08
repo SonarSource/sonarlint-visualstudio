@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -28,10 +28,10 @@ public record GetProjectNamesByKeyParams(Either<TransientSonarQubeConnectionDto,
 {
     [JsonConverter(typeof(EitherJsonConverter<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>))]
     public readonly Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection = transientConnection;
-    
-    public GetProjectNamesByKeyParams(TransientSonarQubeConnectionDto transientConnection, List<string> projectKeys) 
+
+    public GetProjectNamesByKeyParams(TransientSonarQubeConnectionDto transientConnection, List<string> projectKeys)
         : this(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateLeft(transientConnection), projectKeys) { }
-    
-    public GetProjectNamesByKeyParams(TransientSonarCloudConnectionDto transientConnection, List<string> projectKeys) 
+
+    public GetProjectNamesByKeyParams(TransientSonarCloudConnectionDto transientConnection, List<string> projectKeys)
         : this(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateRight(transientConnection), projectKeys) { }
 }

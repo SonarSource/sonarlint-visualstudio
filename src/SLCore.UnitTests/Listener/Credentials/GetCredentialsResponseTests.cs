@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -45,7 +45,7 @@ public class GetCredentialsResponseTests
         testSubject.credentials.Left.Should().BeSameAs(tokenDto);
         testSubject.credentials.Right.Should().BeNull();
     }
-    
+
     [TestMethod]
     public void Ctor_NullTokenDto_Throws()
     {
@@ -62,7 +62,7 @@ public class GetCredentialsResponseTests
         var serializeObject = JsonConvert.SerializeObject(testSubject);
         serializeObject.Should().Be("""{"credentials":{"username":"user123","password":"password123"}}""");
     }
-    
+
     [TestMethod]
     public void Ctor_ResponseWithUserAndPassword_CredentialsSetCorrectly()
     {
@@ -72,7 +72,7 @@ public class GetCredentialsResponseTests
         testSubject.credentials.Right.Should().BeSameAs(usernamePasswordDto);
         testSubject.credentials.Left.Should().BeNull();
     }
-    
+
     [TestMethod]
     public void Ctor_NullUserAndPasswordDto_Throws()
     {
@@ -86,7 +86,7 @@ public class GetCredentialsResponseTests
     {
         GetCredentialsResponse.NoCredentials.credentials.Should().BeNull();
     }
-    
+
     [TestMethod]
     public void ResponseWithNoCredentials_SerializedCorrectly()
     {

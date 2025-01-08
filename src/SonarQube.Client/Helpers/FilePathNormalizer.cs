@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@ namespace SonarQube.Client.Helpers
     {
         private const char WindowsFilePathSeparator = '\\';
         private const char SonarServerFilePathSeparator = '/';
-        
+
         /// <summary>
         /// Converts SQ file path format into Windows file path format.
         /// </summary>
@@ -54,7 +54,7 @@ namespace SonarQube.Client.Helpers
         {
             Debug.Assert(path == null || !path.Contains(SonarServerFilePathSeparator.ToString()),
                 $"Expecting windows relative path delimiters to be back-slash but got '{path}'.");
-            
+
             return path?.Trim(WindowsFilePathSeparator).Replace(WindowsFilePathSeparator, SonarServerFilePathSeparator) ?? string.Empty;
         }
     }

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
 
     /* From the VS threading cookbook: https://github.com/microsoft/vs-threading/blob/main/doc/cookbook_vs.md
- 
+
         "Important places to be thread-safe include:
 
         1. Code that runs in the MEF activation code paths (e.g. importing constructors, OnImportsSatisfied callbacks,
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         * Decide which code you want to test
         * Call the code to be tested using one of the helper methods in this class
         * Execute the code in VS
-        
+
         If VS deadlocks the code is not free-threaded.
 
         From our point of view, cases (1) and (2) above are most relevant.
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
 
             // Based on code from the VS threading cookbook
             // https://github.com/microsoft/vs-threading/blob/main/doc/cookbook_vs.md
-            
+
             var jtf = ThreadHelper.JoinableTaskFactory;
 
             jtf.Run(async delegate

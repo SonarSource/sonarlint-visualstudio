@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -47,7 +47,7 @@ namespace Education.UnitTests.Commands
             var toolWindowService = Mock.Of<IToolWindowService>();
             var commandService = Mock.Of<IMenuCommandService>();
             var logger = Mock.Of<ILogger>();
-            
+
             Action act = () => new RuleHelpWindowCommand(null, toolWindowService, logger);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("commandService");
 

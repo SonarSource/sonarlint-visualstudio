@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -37,9 +37,9 @@ public class SonarQubeService_TransitionIssueAsync : SonarQubeService_TestBase
     {
         const string issueKey = "AW9mgJw6eFC3pGl94Wrf";
         var transition = SonarQubeIssueTransition.FalsePositive;
-        
+
         await ConnectToSonarQube("10.4.0.0");
-        
+
         SetupRequest($"api/issues/do_transition?issue={issueKey}&transition={transition.TransitionToLowerCaseString()}",
             "ignored",
             HttpStatusCode.BadGateway);
@@ -51,15 +51,15 @@ public class SonarQubeService_TransitionIssueAsync : SonarQubeService_TestBase
         logger.ErrorMessages.Should().Contain("POST api/issues/do_transition request failed.");
         logger.DebugMessages.Should().HaveCountGreaterThan(0);
     }
-    
+
     [TestMethod]
     public async Task TransitionIssue_InsufficientPermissions()
     {
         const string issueKey = "AW9mgJw6eFC3pGl94Wrf";
         var transition = SonarQubeIssueTransition.FalsePositive;
-        
+
         await ConnectToSonarQube("10.4.0.0");
-        
+
         SetupRequest($"api/issues/do_transition?issue={issueKey}&transition={transition.TransitionToLowerCaseString()}",
             "ignored",
             HttpStatusCode.Forbidden);
@@ -70,18 +70,18 @@ public class SonarQubeService_TransitionIssueAsync : SonarQubeService_TestBase
         messageHandler.VerifyAll();
         logger.WarningMessages.Should().Contain("Insufficient permission to transition the issue.");
     }
-    
+
     [TestMethod]
     public async Task TransitionIssue_CommentAdditionFailed()
     {
         const string issueKey = "AW9mgJw6eFC3pGl94Wrf";
         const string optionalComment = "sometext";
         var transition = SonarQubeIssueTransition.FalsePositive;
-        
+
         await ConnectToSonarQube("10.4.0.0");
-        
+
         SetupRequest($"api/issues/do_transition?issue={issueKey}&transition={transition.TransitionToLowerCaseString()}",
-            "ignored");        
+            "ignored");
         SetupRequest($"api/issues/add_comment?issue={issueKey}&text={optionalComment}",
             "ignored",
             HttpStatusCode.BadGateway);
@@ -93,16 +93,16 @@ public class SonarQubeService_TransitionIssueAsync : SonarQubeService_TestBase
         logger.ErrorMessages.Should().Contain("POST api/issues/add_comment request failed.");
         logger.DebugMessages.Should().HaveCountGreaterThan(0);
     }
-    
+
     [TestMethod]
     public async Task TransitionIssue_NoComment_NoServerRequest()
     {
         const string issueKey = "AW9mgJw6eFC3pGl94Wrf";
         const string optionalComment = null;
         var transition = SonarQubeIssueTransition.FalsePositive;
-        
+
         await ConnectToSonarQube("10.4.0.0");
-        
+
         SetupRequest($"api/issues/do_transition?issue={issueKey}&transition={transition.TransitionToLowerCaseString()}",
             "ignored");
 
@@ -111,7 +111,7 @@ public class SonarQubeService_TransitionIssueAsync : SonarQubeService_TestBase
         result.Should().Be(SonarQubeIssueTransitionResult.Success);
         messageHandler.VerifyAll();
     }
-    
+
     [DataTestMethod]
     [DataRow("9.9.0.0", SonarQubeIssueTransition.FalsePositive, SonarQubeIssueTransitionResult.Success)]
     [DataRow("10.2.0.0", SonarQubeIssueTransition.FalsePositive, SonarQubeIssueTransitionResult.Success)]
@@ -128,11 +128,11 @@ public class SonarQubeService_TransitionIssueAsync : SonarQubeService_TestBase
     {
         const string issueKey = "AW9mgJw6eFC3pGl94Wrf";
         const string optionalComment = "sometext";
-        
+
         await ConnectToSonarQube(version);
-        
+
         SetupRequest($"api/issues/do_transition?issue={issueKey}&transition={transition.TransitionToLowerCaseString()}",
-            "ignored");        
+            "ignored");
         SetupRequest($"api/issues/add_comment?issue={issueKey}&text={optionalComment}",
             "ignored");
 
@@ -140,7 +140,7 @@ public class SonarQubeService_TransitionIssueAsync : SonarQubeService_TestBase
 
         result.Should().Be(expectedResult);
     }
-    
+
     [TestMethod]
     public void TransitionIssue_NotConnected()
     {

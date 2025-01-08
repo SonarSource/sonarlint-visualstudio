@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Core.Notifications;
 public interface INotificationService : IDisposable
 {
     void ShowNotification(INotification notification);
-        
+
     void ShowNotification(INotification notification, Guid toolWindowId);
 
     void CloseNotification();
@@ -69,10 +69,10 @@ internal sealed class NotificationService : INotificationService
         this.activeSolutionTracker = activeSolutionTracker;
         this.threadHandling = threadHandling;
         this.logger = logger;
-        
+
         this.activeSolutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
     }
-    
+
     public void ShowNotification(INotification notification)
     {
         ShowNotification(notification, MainWindowId);
@@ -110,7 +110,7 @@ internal sealed class NotificationService : INotificationService
         {
             return;
         }
-            
+
         threadHandling.RunOnUIThreadAsync(() =>
         {
             try
@@ -193,17 +193,17 @@ internal sealed class NotificationService : INotificationService
                 buttonTexts,
                 SonarLintImageMoniker.OfficialSonarLintMoniker);
         }
-        
+
         return new AttachedNotification(notification, infoBar);
     }
-    
+
     private void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
     {
         if (activeNotification == null)
         {
             return;
         }
-        
+
         if (activeNotification.Notification.CloseOnSolutionClose && !e.IsSolutionOpen)
         {
             CloseNotification();
@@ -213,9 +213,9 @@ internal sealed class NotificationService : INotificationService
     public void Dispose()
     {
         CloseNotification();
-        
+
         activeSolutionTracker.ActiveSolutionChanged -= OnActiveSolutionChanged;
     }
-    
+
     private sealed record AttachedNotification(INotification Notification, IInfoBar InfoBar);
 }

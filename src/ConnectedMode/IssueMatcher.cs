@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         bool IsLikelyMatch(IFilterableIssue issue, SonarQubeIssue serverIssue);
 
         /// <summary>
-        /// Returns the first likely matching issue. 
+        /// Returns the first likely matching issue.
         /// </summary>
         /// <remarks>For this method to work correctly, all <paramref name="serverIssuesFromSameFile"/>; need to be from the same server file.
         /// False Positives are possible, since &lt;see cref="IsLikelyMatch"/&gt; can return true for multiple issues in the same file and only the firs one is returned.
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             // 2. Same component, same file, same error code, same line             // tolerant to code on the line changing e.g. var rename
 
             // File-level issues never match non-file-level issues.
-            
+
             if (!StringComparer.OrdinalIgnoreCase.Equals(issue.RuleId, serverIssue.RuleId))
             {
                 return false;
@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
         }
 
         private static bool CompareHash(IFilterableIssue issue, SonarQubeIssue serverIssue) =>
-            issue.LineHash != null 
+            issue.LineHash != null
             && serverIssue.Hash != null
             && StringComparer.Ordinal.Equals(issue.LineHash, serverIssue.Hash);
     }

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Core.VsInfo
         /// Logs exceptions and returns null if a failure occurred.
         /// </summary>
         IVsVersion Version { get; }
-        
+
         /// <summary>
         /// Cached value of current VS name
         /// </summary>
