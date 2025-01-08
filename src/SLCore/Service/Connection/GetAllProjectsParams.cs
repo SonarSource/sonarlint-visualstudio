@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -29,10 +29,10 @@ public record GetAllProjectsParams(Either<TransientSonarQubeConnectionDto, Trans
 {
     [JsonConverter(typeof(EitherJsonConverter<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>))]
     public readonly Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection = transientConnection;
-    
-    public GetAllProjectsParams(TransientSonarQubeConnectionDto transientConnection) 
+
+    public GetAllProjectsParams(TransientSonarQubeConnectionDto transientConnection)
         : this(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateLeft(transientConnection)) { }
-    
-    public GetAllProjectsParams(TransientSonarCloudConnectionDto transientConnection) 
+
+    public GetAllProjectsParams(TransientSonarCloudConnectionDto transientConnection)
         : this(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateRight(transientConnection)) { }
 }

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -31,12 +31,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
     internal interface ITaintIssueViewModel : INotifyPropertyChanged, IDisposable
     {
         IAnalysisIssueVisualization TaintIssueViz { get; }
-        
+
         /// <summary>
         /// Displays new <see cref="SoftwareQualitySeverity"/> if available, otherwise displays <see cref="AnalysisIssueSeverity"/>
         /// </summary>
         string DisplaySeverity { get; }
-        
+
         /// <summary>
         /// Correct order for <see cref="DisplaySeverity"/>, derived from the original data order
         /// </summary>

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Settings
         /// Creates and returns a new instance of the VS settings store to persist
         /// SonarLint settings between sessions
         /// </summary>
-        /// <remarks>Each call will create a new instance and ensure that the 
+        /// <remarks>Each call will create a new instance and ensure that the
         /// specified collection has been initialized.
         /// The class follows the VS threading rules.</remarks>
         WritableSettingsStore Create(string settingsRoot);
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Settings
     {
         #region Test infrastructure
         // We need to create a real instance of the VS concrete class ShellSettingsManager
-        // at runtime. However, we want to be able to unit test our code, so we define a 
+        // at runtime. However, we want to be able to unit test our code, so we define a
         // delegate for a factory method the tests can inject replace the VS class with a mock.
 
         internal delegate SettingsManager VSSettingsFactoryMethod(IServiceProvider settingsService);

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ public class FuzzySearchProjectsResponseTests
             new("my-project-1", "My Project 1"),
             new("our-project-2", "Our Project 2"),
         };
-        
+
         var testSubject = new FuzzySearchProjectsResponse(topResults);
 
         const string expectedString = """

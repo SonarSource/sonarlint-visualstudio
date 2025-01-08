@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -264,7 +264,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             serviceProvider.Verify(x => x.GetService(typeof(SVsUIShell)), Times.Once);
             serviceProvider.Invocations.Should().HaveCount(1);
-            callback.Verify(x => x.Invoke(uiShellService), Times.Exactly(2)); 
+            callback.Verify(x => x.Invoke(uiShellService), Times.Exactly(2));
         }
 
         #endregion
@@ -306,7 +306,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
         #endregion
 
-        private static Mock<IServiceProvider> CreateConfiguredServiceProvider<S>(object serviceToReturn) 
+        private static Mock<IServiceProvider> CreateConfiguredServiceProvider<S>(object serviceToReturn)
         {
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(x => x.GetService(typeof(S))).Returns(serviceToReturn);
@@ -317,7 +317,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             var serviceProvider = new Mock<IServiceProvider>();
             foreach((var serviceType, var serviceToReturn) in serviceTuple)
-            { 
+            {
                 serviceProvider.Setup(x => x.GetService(serviceType)).Returns(serviceToReturn);
             }
             return serviceProvider;

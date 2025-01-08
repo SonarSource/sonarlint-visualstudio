@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         }
 
         private FilePathAndContent<SonarLintConfiguration> GetAdditionalFile(Language language,
-            BindingConfiguration bindingConfiguration, 
+            BindingConfiguration bindingConfiguration,
             IEnumerable<SonarQubeRule> activeRules,
             IDictionary<string, string> sonarProperties,
             ServerExclusions serverExclusions)
@@ -157,7 +157,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         {
             // We don't want to generate configuration for taint-analysis rules or hotspots.
             // * taint-analysis rules: these are in a separate analyzer that doesn't ship in SLVS so there is no point in generating config
-            // * hotspots: these are noisy so we don't want to run them in the IDE. There is special code in the Sonar hotspot analyzers to 
+            // * hotspots: these are noisy so we don't want to run them in the IDE. There is special code in the Sonar hotspot analyzers to
             //              control when they run; we are responsible for not generating configuration for them.
             return IsSupportedIssueType(rule.IssueType) && !IsTaintAnalysisRule(rule);
         }

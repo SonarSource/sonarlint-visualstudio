@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.Layout.Visual
                 new MultiBlockSection(headerMock.Object, child1Node.Object, child2Node.Object);
 
             testSubject.ProduceXaml(null);
-            
+
             headerMock.Verify(x => x.ProduceXaml(It.IsAny<XmlWriter>()), Times.Once);
             child1Node.Verify(x => x.ProduceXaml(It.IsAny<XmlWriter>()), Times.Once);
             child2Node.Verify(x => x.ProduceXaml(It.IsAny<XmlWriter>()), Times.Once);

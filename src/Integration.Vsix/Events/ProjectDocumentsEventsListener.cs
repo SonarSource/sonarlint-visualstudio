@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -54,7 +54,7 @@ internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsLi
             ErrorHandler.ThrowOnFailure(trackProjectDocuments.AdviseTrackProjectDocumentsEvents(this, out trackDocumentEventsCookie));
         });
     }
-    
+
     public int OnQueryAddFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYADDFILEFLAGS[] rgFlags,
         VSQUERYADDFILERESULTS[] pSummaryResult, VSQUERYADDFILERESULTS[] rgResults)
     {
@@ -148,14 +148,14 @@ internal sealed class ProjectDocumentsEventsListener : IProjectDocumentsEventsLi
         {
             return;
         }
-        
+
         serviceOperation.Execute<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(trackProjectDocuments =>
         {
             threadHandling.ThrowIfNotOnUIThread();
             Debug.Assert(trackProjectDocuments != null, "Cannot find IVsTrackProjectDocuments2");
             ErrorHandler.ThrowOnFailure(trackProjectDocuments.UnadviseTrackProjectDocumentsEvents(trackDocumentEventsCookie));
         });
-        
+
         isDisposed = true;
     }
 }

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Education.Layout.Logical
                 .Select(tab => tab.content.Left is not null ? CreateNonContextualTab(tab) : CreateContextualTab(tab))
                 .ToList();
 
-        private static IRuleDescriptionTab CreateNonContextualTab(RuleDescriptionTabDto tab) => 
+        private static IRuleDescriptionTab CreateNonContextualTab(RuleDescriptionTabDto tab) =>
             new NonContextualRuleDescriptionTab(tab.title, tab.content.Left.htmlContent);
 
         private static IRuleDescriptionTab CreateContextualTab(RuleDescriptionTabDto tab) =>

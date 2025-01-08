@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             testSubject.Hotspots.Count.Should().Be(1);
             testSubject.Hotspots[0].Hotspot.Should().Be(issueViz1);
             testSubject.Hotspots[0].HotspotPriority.Should().Be(HotspotPriority.Medium);
-            
+
             store.Setup(x => x.GetAllLocalHotspots()).Returns(new[] { new LocalHotspot(issueViz1, HotspotPriority.Low), new LocalHotspot(issueViz2, HotspotPriority.Medium), new LocalHotspot(issueViz3, HotspotPriority.High) });
             await testSubject.UpdateHotspotsListAsync();
 
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             var testSubject = CreateTestSubject(hotspotsStore: store, threadHandling: threadHandling.Object);
 
             await testSubject.UpdateHotspotsListAsync();
-            
+
             threadHandling.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()), Times.Once);
             store.Verify(x => x.GetAllLocalHotspots(), Times.Once);
         }
@@ -114,11 +114,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             var store = new Mock<ILocalHotspotsStore>();
             var threadHandling = new Mock<IThreadHandling>();
             SetupGetAllOnBackgroundThreadForUpdate(threadHandling, store);
-            
+
             var testSubject = CreateTestSubject(hotspotsStore: store, threadHandling: threadHandling.Object);
 
             RaiseStoreIssuesChangedEvent(store, Array.Empty<IAnalysisIssueVisualization>());
-            
+
             threadHandling.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()), Times.Once);
             store.Verify(x => x.GetAllLocalHotspots(), Times.Once);
         }
@@ -407,7 +407,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
             selectionService.Raise(x => x.SelectedIssueChanged += null, EventArgs.Empty);
         }
-        
+
         private static void SetupGetAllOnBackgroundThreadForUpdate(Mock<IThreadHandling> threadHandling, Mock<ILocalHotspotsStore> store)
         {
             var callOrder = new MockSequence();

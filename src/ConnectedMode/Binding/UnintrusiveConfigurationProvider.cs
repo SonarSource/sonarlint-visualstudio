@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -42,12 +42,12 @@ internal class UnintrusiveConfigurationProvider : IConfigurationProvider
         this.solutionInfoProvider = solutionInfoProvider;
     }
 
-    public BindingConfiguration GetConfiguration() => 
+    public BindingConfiguration GetConfiguration() =>
         TryGetBindingConfiguration() ?? BindingConfiguration.Standalone;
 
     private BindingConfiguration TryGetBindingConfiguration()
     {
-        if (solutionInfoProvider.GetSolutionName() is not { } localBindingKey 
+        if (solutionInfoProvider.GetSolutionName() is not { } localBindingKey
             || pathProvider.GetBindingPath(localBindingKey) is not { } bindingPath)
         {
             return null;

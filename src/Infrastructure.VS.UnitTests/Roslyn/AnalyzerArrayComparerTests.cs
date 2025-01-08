@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ public class AnalyzerArrayComparerTests
     {
         AnalyzerArrayComparer.Instance.Equals(null, null).Should().BeTrue();
     }
-    
+
     [TestMethod]
     public void Equals_OneNull_False()
     {
@@ -41,7 +41,7 @@ public class AnalyzerArrayComparerTests
         AnalyzerArrayComparer.Instance.Equals(null, analyzerArray).Should().BeFalse();
         AnalyzerArrayComparer.Instance.Equals(analyzerArray, null).Should().BeFalse();
     }
-    
+
     [TestMethod]
     public void Equals_EmptyArrays_True()
     {
@@ -50,7 +50,7 @@ public class AnalyzerArrayComparerTests
         AnalyzerArrayComparer.Instance.Equals(analyzerArray1, analyzerArray2).Should().BeTrue();
         AnalyzerArrayComparer.Instance.Equals(analyzerArray2, analyzerArray1).Should().BeTrue();
     }
-    
+
     [TestMethod]
     public void Equals_DifferentLengths_False()
     {
@@ -62,14 +62,14 @@ public class AnalyzerArrayComparerTests
         AnalyzerArrayComparer.Instance.Equals(single, triple).Should().BeFalse();
         AnalyzerArrayComparer.Instance.Equals(triple, single).Should().BeFalse();
     }
-    
+
     [TestMethod]
     public void Equals_SameArray_True()
     {
         var array = ImmutableArray.Create(GetAnalyzerFileReference());
         AnalyzerArrayComparer.Instance.Equals(array, array).Should().BeTrue();
     }
-    
+
     [TestMethod]
     public void Equals_ArrayWithSameValuesInOrder_True()
     {
@@ -81,7 +81,7 @@ public class AnalyzerArrayComparerTests
         AnalyzerArrayComparer.Instance.Equals(array1, array2).Should().BeTrue();
         AnalyzerArrayComparer.Instance.Equals(array2, array1).Should().BeTrue();
     }
-    
+
     [TestMethod]
     public void Equals_ArrayWithSameValuesInDifferentOrder_False()
     {
@@ -93,7 +93,7 @@ public class AnalyzerArrayComparerTests
         AnalyzerArrayComparer.Instance.Equals(array1, array2).Should().BeFalse();
         AnalyzerArrayComparer.Instance.Equals(array2, array1).Should().BeFalse();
     }
-    
+
     [TestMethod]
     public void Equals_ArrayWithEquivalentValues_True()
     {

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -30,30 +30,30 @@ public class CredentialsListenerTests
 {
     private const string ConnectionId = "http://myfavouriteuri.nonexistingdomain";
     private static readonly Uri Uri = new(ConnectionId);
-    
+
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
         MefTestHelpers.CheckTypeCanBeImported<CredentialsListener, ISLCoreListener>(
             MefTestHelpers.CreateExport<ICredentialProvider>());
     }
-    
+
     [TestMethod]
     public void MefCtor_CheckIsSingleton()
     {
         MefTestHelpers.CheckIsSingletonMefComponent<CredentialsListener>();
     }
-    
+
     [TestMethod]
     public async Task GetCredentialsAsync_NullConnectionId_ReturnsNoCredentials()
     {
         var testSubject = CreateTestSubject(out _);
-        
+
         var response = await testSubject.GetCredentialsAsync(new GetCredentialsParams(null));
 
         response.Should().BeSameAs(GetCredentialsResponse.NoCredentials);
     }
-    
+
     [TestMethod]
     public async Task GetCredentialsAsync_NullParams_ReturnsNoCredentials()
     {
@@ -81,7 +81,7 @@ public class CredentialsListenerTests
     {
         const string username = "user1";
         const string password = "password123";
-        
+
         var testSubject = CreateTestSubject(out var credentialStoreMock);
         credentialStoreMock.GetCredentials(Arg.Is<Uri>(x => UriEquals(x, Uri))).Returns(new ConnectionCredentials(username, password));
 
@@ -94,7 +94,7 @@ public class CredentialsListenerTests
     public async Task GetCredentialsAsync_SonarQubeTokenFound_ReturnsToken()
     {
         const string token = "token123";
-        
+
         var testSubject = CreateTestSubject(out var credentialStoreMock);
         credentialStoreMock.GetCredentials(Arg.Is<Uri>(x => UriEquals(x, Uri))).Returns(new ConnectionCredentials(token));
 
@@ -106,7 +106,7 @@ public class CredentialsListenerTests
     private CredentialsListener CreateTestSubject(out ICredentialProvider credentialStoreMock)
     {
         credentialStoreMock = Substitute.For<ICredentialProvider>();
-        
+
         return new CredentialsListener(credentialStoreMock);
     }
 

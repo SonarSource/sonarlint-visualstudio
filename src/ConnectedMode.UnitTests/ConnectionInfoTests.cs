@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -33,30 +33,30 @@ public class ConnectionInfoTests
         var sonarCloudServerConnection = new ServerConnection.SonarCloud("organization");
 
         var connectionInfo = ConnectionInfo.From(sonarCloudServerConnection);
-        
+
         connectionInfo.Id.Should().Be("organization");
     }
-    
+
     [TestMethod]
     public void FromServerConnection_WithSonarCloud_ShouldReturnConnectionInfo()
     {
         var sonarCloudServerConnection = new ServerConnection.SonarCloud("organization");
 
         var connectionInfo = ConnectionInfo.From(sonarCloudServerConnection);
-        
+
         connectionInfo.ServerType.Should().Be(ConnectionServerType.SonarCloud);
     }
-    
+
     [TestMethod]
     public void FromServerConnection_WithSonarQube_ShouldReturnConnectionInfo()
     {
         var sonarQubeServerConnection = new ServerConnection.SonarQube(new Uri("http://localhost:9000"));
 
         var connectionInfo = ConnectionInfo.From(sonarQubeServerConnection);
-        
+
         connectionInfo.ServerType.Should().Be(ConnectionServerType.SonarQube);
     }
-    
+
     [TestMethod]
     public void GetIdForTransientConnection_SonarCloudWithNullId_ReturnsSonarCloudUrl()
     {

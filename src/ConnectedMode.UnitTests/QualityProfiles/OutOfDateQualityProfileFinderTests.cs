@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ public class OutOfDateQualityProfileFinderTests
     private static readonly Uri AnyUri = new("http://localhost");
     private const string Project = "project";
     private const string Organization = "organization";
-    
+
     [TestMethod]
     public void MefCtor_CheckExports()
     {
@@ -50,7 +50,7 @@ public class OutOfDateQualityProfileFinderTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<OutOfDateQualityProfileFinder>();
     }
-    
+
     [TestMethod]
     public async Task GetAsync_SkipsUnknownLanguage()
     {
@@ -62,26 +62,26 @@ public class OutOfDateQualityProfileFinderTests
         profiles.Should().BeEmpty();
         sonarQubeServiceMock.Verify(x => x.GetAllQualityProfilesAsync(Project, Organization, CancellationToken.None), Times.Once);
     }
-    
+
     [TestMethod]
     public async Task GetAsync_SkipsUpToDateQualityProfile()
     {
         const string qpKey = "key";
         var timestamp = DateTime.UtcNow;
-        
+
         var testSubject = CreateTestSubject(out var sonarQubeServiceMock, Project, Organization,
             new SonarQubeQualityProfile(qpKey, "name", Language.Ts.ServerLanguage.Key, false, timestamp));
 
         var profiles = await testSubject.GetAsync(
             CreateArgument(Project,
-                Organization, 
+                Organization,
                 new Dictionary<Language, ApplicableQualityProfile>{{Language.Ts, new ApplicableQualityProfile{ProfileKey = qpKey, ProfileTimestamp = timestamp}}}),
             CancellationToken.None);
 
         profiles.Should().BeEmpty();
         sonarQubeServiceMock.Verify(x => x.GetAllQualityProfilesAsync(Project, Organization, CancellationToken.None), Times.Once);
     }
-    
+
     [TestMethod]
     public async Task GetAsync_DifferentKey_ReturnsQP()
     {
@@ -96,7 +96,7 @@ public class OutOfDateQualityProfileFinderTests
 
         var profiles = await testSubject.GetAsync(
             CreateArgument(Project,
-                Organization, 
+                Organization,
                 new Dictionary<Language, ApplicableQualityProfile>
                 {
                     {Language.Ts, new ApplicableQualityProfile{ProfileKey = localQpKey, ProfileTimestamp = timestampLocal}}
@@ -106,7 +106,7 @@ public class OutOfDateQualityProfileFinderTests
         profiles.Should().BeEquivalentTo((Language.Ts, sonarQubeQualityProfile));
         sonarQubeServiceMock.Verify(x => x.GetAllQualityProfilesAsync(Project, Organization, CancellationToken.None), Times.Once);
     }
-    
+
     [TestMethod]
     public async Task GetAsync_OutdatedLocalTimestamp_ReturnsQP()
     {
@@ -120,7 +120,7 @@ public class OutOfDateQualityProfileFinderTests
 
         var profiles = await testSubject.GetAsync(
             CreateArgument(Project,
-                Organization, 
+                Organization,
                 new Dictionary<Language, ApplicableQualityProfile>
                 {
                     {Language.Ts, new ApplicableQualityProfile{ProfileKey = qpKey, ProfileTimestamp = localTimestamp}}
@@ -130,7 +130,7 @@ public class OutOfDateQualityProfileFinderTests
         profiles.Should().BeEquivalentTo((Language.Ts, sonarQubeQualityProfile));
         sonarQubeServiceMock.Verify(x => x.GetAllQualityProfilesAsync(Project, Organization, CancellationToken.None), Times.Once);
     }
-    
+
     [TestMethod]
     public async Task GetAsync_NullLocalQP_ReturnsQP()
     {
@@ -143,7 +143,7 @@ public class OutOfDateQualityProfileFinderTests
 
         var profiles = await testSubject.GetAsync(
             CreateArgument(Project,
-                Organization, 
+                Organization,
                 new Dictionary<Language, ApplicableQualityProfile>
                 {
                     {Language.Ts, new ApplicableQualityProfile{ProfileKey = null, ProfileTimestamp = DateTime.MinValue}}
@@ -153,7 +153,7 @@ public class OutOfDateQualityProfileFinderTests
         profiles.Should().BeEquivalentTo((Language.Ts, sonarQubeQualityProfile));
         sonarQubeServiceMock.Verify(x => x.GetAllQualityProfilesAsync(Project, Organization, CancellationToken.None), Times.Once);
     }
-    
+
     [TestMethod]
     public async Task GetAsync_NullOrganization_DoesNotThrow()
     {
@@ -161,7 +161,7 @@ public class OutOfDateQualityProfileFinderTests
 
         var act = () => testSubject.GetAsync(
             CreateArgument(Project,
-                null, 
+                null,
                 new Dictionary<Language, ApplicableQualityProfile>()),
             CancellationToken.None);
 
@@ -171,7 +171,7 @@ public class OutOfDateQualityProfileFinderTests
                 x.GetAllQualityProfilesAsync(Project, null, CancellationToken.None),
             Times.Once);
     }
-    
+
     [TestMethod]
     public async Task GetAsync_MultipleQualityProfiles_ReturnsQP()
     {
@@ -189,7 +189,7 @@ public class OutOfDateQualityProfileFinderTests
 
         var profiles = await testSubject.GetAsync(
             CreateArgument(Project,
-                Organization, 
+                Organization,
                 new Dictionary<Language, ApplicableQualityProfile>
                 {
                     {Language.Js, new ApplicableQualityProfile{ProfileKey = localKey, ProfileTimestamp = timestamp}},
@@ -201,11 +201,11 @@ public class OutOfDateQualityProfileFinderTests
         profiles.Should().BeEquivalentTo((Language.CSharp, csharpQp), (Language.Js, jsQp));
         sonarQubeServiceMock.Verify(x => x.GetAllQualityProfilesAsync(Project, Organization, CancellationToken.None), Times.Once);
     }
-    
+
     private static BoundServerProject CreateArgument(string project,
         string organization,
         Dictionary<Language, ApplicableQualityProfile> profiles) =>
-        new("solution", 
+        new("solution",
             project,
             organization == null ? new ServerConnection.SonarQube(AnyUri) : new ServerConnection.SonarCloud(organization))
         {

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -32,10 +32,10 @@ public class DependencyLocator // this might be reused in the product code in th
     static DependencyLocator()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        
+
         var dependencyProps = new XmlDocument();
         dependencyProps.Load("EmbeddedSonarAnalyzer.props");
-        
+
         EnsureSloopIsAvailable(localAppData, dependencyProps);
         EnsurePluginsAreAvailable(localAppData, dependencyProps);
     }
@@ -51,7 +51,7 @@ public class DependencyLocator // this might be reused in the product code in th
         AnalyzerPlugins = new List<string>
         {
             GetAnalyzerPath("sonar-csharp-enterprise-plugin", roslynAnalyzerVersion, availablePluginJars),
-            GetAnalyzerPath("sonar-vbnet-enterprise-plugin", roslynAnalyzerVersion, availablePluginJars),    
+            GetAnalyzerPath("sonar-vbnet-enterprise-plugin", roslynAnalyzerVersion, availablePluginJars),
             GetAnalyzerPath("sonar-cfamily-plugin", cfamilyAnalyzerVersion, availablePluginJars),
             GetAnalyzerPath("sonar-javascript-plugin", jstsAnalyzerVersion, availablePluginJars),
             GetAnalyzerPath("sonar-text-plugin", secrestsAnalyzerVersion, availablePluginJars),

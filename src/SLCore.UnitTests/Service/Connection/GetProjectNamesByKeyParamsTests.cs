@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -39,7 +39,7 @@ public class GetProjectNamesByKeyParamsTests
             "project-key-1",
             "project-key-2"
         };
-        
+
         var testSubject = new GetProjectNamesByKeyParams(sonarQubeConnection, projectKeys);
 
         const string expectedString = """
@@ -61,7 +61,7 @@ public class GetProjectNamesByKeyParamsTests
 
         serializedString.Should().Be(expectedString);
     }
-    
+
     [TestMethod]
     public void Serialize_WithSonarQubeUsernamePassword_AsExpected()
     {
@@ -72,7 +72,7 @@ public class GetProjectNamesByKeyParamsTests
             "project-key-1",
             "project-key-2"
         };
-        
+
         var testSubject = new GetProjectNamesByKeyParams(sonarQubeConnection, projectKeys);
 
         const string expectedString = """
@@ -106,7 +106,7 @@ public class GetProjectNamesByKeyParamsTests
             "project-key-1",
             "project-key-2"
         };
-        
+
         var testSubject = new GetProjectNamesByKeyParams(sonarCloudConnection, projectKeys);
 
         const string expectedString = """
@@ -128,7 +128,7 @@ public class GetProjectNamesByKeyParamsTests
 
         serializedString.Should().Be(expectedString);
     }
-    
+
     [TestMethod]
     public void Serialize_WithSonarCloudUsernamePassword_AsExpected()
     {
@@ -139,7 +139,7 @@ public class GetProjectNamesByKeyParamsTests
             "project-key-1",
             "project-key-2"
         };
-        
+
         var testSubject = new GetProjectNamesByKeyParams(sonarCloudConnection, projectKeys);
 
         const string expectedString = """

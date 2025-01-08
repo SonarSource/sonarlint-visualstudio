@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
     /// <summary>
     /// This class exists for a couple of reasons:
     /// * to add VS-specific thread handling and ETW tracing
-    /// * to avoid bringing MEF composition to the SonarQube.Client assembly which 
+    /// * to avoid bringing MEF composition to the SonarQube.Client assembly which
     ///   can be used in contexts where it is not required.
     /// </summary>
     [Export(typeof(ISonarQubeService))]

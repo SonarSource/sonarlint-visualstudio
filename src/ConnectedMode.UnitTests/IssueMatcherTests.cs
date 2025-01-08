@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -33,13 +33,13 @@ public class IssueMatcherTests
     {
         MefTestHelpers.CheckTypeCanBeImported<IssueMatcher, IIssueMatcher>();
     }
-    
+
     [TestMethod]
     public void MefCtor_CheckIsSingleton()
     {
         MefTestHelpers.CheckIsSingletonMefComponent<IssueMatcher>();
     }
-    
+
     [DataTestMethod]
     [DataRow("CorrectRuleId", 1, "CorrectHash", true)] // exact matches
     [DataRow("correctRULEID", 1, "CorrectHash", true)] // rule-id is case-insensitive
@@ -168,7 +168,7 @@ public class IssueMatcherTests
     {
         return new IssueMatcher();
     }
-    
+
     private IFilterableIssue CreateIssueToMatch(string ruleId, int? startLine, string lineHash, string filePath = null) =>
         new TestFilterableIssue
         {
@@ -177,7 +177,7 @@ public class IssueMatcherTests
             LineHash = lineHash,
             FilePath = filePath
         };
-    
+
     private SonarQubeIssue CreateServerIssue(string ruleId, int? startLine, string lineHash,
         string filePath = null)
     {

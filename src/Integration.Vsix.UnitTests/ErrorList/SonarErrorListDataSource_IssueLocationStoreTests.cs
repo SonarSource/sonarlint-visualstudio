@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         /// Most of the behaviour of Refresh(file) and RefreshOnBufferChanged(files) is the same.
         /// This delegate is used by tests that check the common functionality
         /// i.e. there is a common internal test method that does the common setup and assertions.
-        /// This delegate is passed into that common method to make a call to either 
+        /// This delegate is passed into that common method to make a call to either
         /// "Refresh(file)" or "RefreshOnBufferChanged(files)"
         /// </summary>
         private delegate void RefreshImplTestOperation(SonarErrorListDataSource testSubject, string filePath);
@@ -519,7 +519,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             actualEventArgs.Should().NotBeNull();
             actualEventArgs.AnalyzedFiles.Should().BeEquivalentTo(expectedFileNames);
         }
-        
+
         private Mock<IIssueSelectionService> CreateSelectionService(IAnalysisIssueVisualization selectedIssueViz)
         {
             var selectionService = new Mock<IIssueSelectionService>();

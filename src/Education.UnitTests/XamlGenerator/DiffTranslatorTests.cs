@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         public void GetDiffXaml_IgnoreNullOrEmptyStrings()
         {
             // This specific input can cause Diffplex to return DiffPieces that are null or empty strings.
-            // Without correction in the DiffTranslator the result would add two extra spans after the first line break 
+            // Without correction in the DiffTranslator the result would add two extra spans after the first line break
             // which would look like this:
             // "// ...\n<Span Style=\"{DynamicResource Compliant_Diff}\"><Span Style=\"{DynamicResource Sub_Compliant_Diff}\">}}</Span><Span Style=\"{DynamicResource Sub_Compliant_Diff}\" /></Span>"
             // This test is to ensure the DiffTranslator takes care of not adding these extra spans.

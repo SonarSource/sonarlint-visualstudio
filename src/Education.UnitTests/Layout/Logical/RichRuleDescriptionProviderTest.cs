@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -69,8 +69,8 @@ public class RichRuleDescriptionProviderTest
                         Either<RuleNonContextualSectionDto, RuleContextualSectionWithDefaultContextKeyDto>.CreateLeft(
                             new RuleNonContextualSectionDto("content"))),
                 }));
-        
-        
+
+
         richRuleDescriptionProvider.GetRichRuleDescriptionModel(ruleInfoMock.Object).Should().BeEquivalentTo(
             new RichRuleDescription("intro", new List<IRuleDescriptionTab>
             {

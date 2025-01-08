@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -36,11 +36,11 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         /// <summary>
         /// The actual Sonar project key to which the settings relate
         /// </summary>
-        /// <remarks>Note: this is not necessarily the same as the "settings key" - the settings key is a modified version of the 
+        /// <remarks>Note: this is not necessarily the same as the "settings key" - the settings key is a modified version of the
         /// project key without any invalid file characters.</remarks>
         [JsonProperty("sonarProjectKey")]
         public string SonarProjectKey { get; set; }
-        
+
         [JsonProperty("suppressions")]
         public IEnumerable<SuppressedIssue> Suppressions { get; set; }
     }

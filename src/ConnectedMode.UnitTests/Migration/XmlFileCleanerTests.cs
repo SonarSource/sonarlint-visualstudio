@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     public class XmlFileCleanerTests
     {
         private static readonly LegacySettings AnyLegacySettings = new LegacySettings("c:\\any\\root\\folder", "csharpruleset", "csharpXML", "vbruleset", "vbXML");
-     
+
         public TestContext TestContext { get; set; }
 
         [TestMethod]
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [TestMethod]
         public void Clean_RulesetIncludessExist_DifferentProjectKey_SettingsAreNotRemoved()
         {
-            
+
             var input = LoadEmbeddedTestCase("Ruleset_XX-project-key_Input.ruleset.xml");
 
             var settings = new LegacySettings("any",
@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var actual = testSubject.Clean(input, settings, CancellationToken.None);
             CheckIsUnchanged(actual);
         }
-        
+
         [TestMethod]
         public void Clean_NonXmlInput_LogsAndReturnsUnchanged()
         {
@@ -261,7 +261,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             // Only dump the files to disk if the test will fail so
             // we don't clutter it up
             if (actual != expected)
-            { 
+            {
                 WriteResultFile("actual.txt", actual);
                 WriteResultFile("expected.txt", expected);
             }

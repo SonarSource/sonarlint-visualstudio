@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -70,7 +70,7 @@ public class EmbeddedDotnetAnalyzersLocatorTests
 
         paths.Should().BeEquivalentTo(expectedPaths);
     }
-    
+
     [TestMethod]
     public void GetBasicAnalyzerFullPaths_EnterpriseAnalyzersExists_Skips()
     {
@@ -95,7 +95,7 @@ public class EmbeddedDotnetAnalyzersLocatorTests
 
         fileSystem.Directory.Received(1).GetFiles(Path.Combine(PathInsideVsix, "EmbeddedDotnetAnalyzerDLLs"), "SonarAnalyzer.*.dll");
     }
-    
+
     [TestMethod]
     public void GetEnterpriseAnalyzerFullPaths_AnalyzersExists_ReturnsFullPathsToAnalyzers()
     {
@@ -110,7 +110,7 @@ public class EmbeddedDotnetAnalyzersLocatorTests
 
         paths.Should().BeEquivalentTo(expectedPaths);
     }
-    
+
     [TestMethod]
     public void GetEnterpriseAnalyzerFullPaths_EnterpriseAnalyzersExists_ReturnsFullPathsToAnalyzers()
     {

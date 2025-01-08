@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -39,7 +39,7 @@ public class RichRuleDescriptionTests
 
         testSubject.introductionHtml.Should().BeEquivalentTo("<col/>");
     }
-    
+
     [TestMethod]
     public void ProduceVisualNode_NullIntro_ProducesTabsGroup()
     {
@@ -51,18 +51,18 @@ public class RichRuleDescriptionTests
         tabMock.SetupGet(x => x.Title).Returns(tabTitle);
         var tabVisualNodeMock = new Mock<IAbstractVisualizationTreeNode>();
         tabMock.Setup(x => x.ProduceVisualNode(parameters)).Returns(tabVisualNodeMock.Object);
-        
+
         var testSubject = new RichRuleDescription(introHtml, new List<IRuleDescriptionTab> { tabMock.Object });
 
 
         var visualNode = testSubject.ProduceVisualNode(parameters);
-        
-        
+
+
         visualNode.Should().BeEquivalentTo(new TabGroup(new List<ITabItem>{new TabItem(tabTitle, tabVisualNodeMock.Object)}, 0));
         translatorMock.Verify(x => x.TranslateHtmlToXaml(introHtml), Times.Never);
         translatorMock.VerifyNoOtherCalls();
     }
-    
+
     [TestMethod]
     public void ProduceVisualNode_ProducesMultiBlockSectionWithIntroAndTabs()
     {
@@ -76,13 +76,13 @@ public class RichRuleDescriptionTests
         tabMock.SetupGet(x => x.Title).Returns(tabTitle);
         var tabVisualNodeMock = new Mock<IAbstractVisualizationTreeNode>();
         tabMock.Setup(x => x.ProduceVisualNode(parameters)).Returns(tabVisualNodeMock.Object);
-        
+
         var testSubject = new RichRuleDescription(introHtml, new List<IRuleDescriptionTab> { tabMock.Object });
 
 
         var visualNode = testSubject.ProduceVisualNode(parameters);
-        
-        
+
+
         visualNode.Should().BeEquivalentTo(
             new MultiBlockSection(
                 new ContentSection(introXaml),

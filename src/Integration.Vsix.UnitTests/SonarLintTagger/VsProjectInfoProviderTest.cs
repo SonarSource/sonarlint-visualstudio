@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -49,7 +49,7 @@ public class VsProjectInfoProviderTest
     {
         MefTestHelpers.CheckIsSingletonMefComponent<VsProjectInfoProvider>();
     }
-    
+
     [TestMethod]
     public async Task GetDocumentProjectInfoAsync_RunsOnUIThread()
     {
@@ -64,7 +64,7 @@ public class VsProjectInfoProviderTest
         var testSubject = CreateTestSubject(vsSolution, dte, threadHandling: threadHandling);
 
         await testSubject.GetDocumentProjectInfoAsync(FilePath);
-        
+
         Received.InOrder(() =>
         {
             threadHandling.RunOnUIThreadAsync(Arg.Any<Action>());
@@ -82,12 +82,12 @@ public class VsProjectInfoProviderTest
         var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
 
         var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
-        
+
         result.Should().BeEquivalentTo(("{none}", Guid.Empty));
         testLogger.AssertNoOutputMessages();
         vsSolution.DidNotReceiveWithAnyArgs().GetGuidOfProjectFile(default);
     }
-    
+
     [TestMethod]
     public async Task GetDocumentProjectInfoAsync_NoProject_ReturnsNone()
     {
@@ -97,12 +97,12 @@ public class VsProjectInfoProviderTest
         var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
 
         var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
-        
+
         result.Should().BeEquivalentTo(("{none}", Guid.Empty));
         testLogger.AssertNoOutputMessages();
         vsSolution.DidNotReceiveWithAnyArgs().GetGuidOfProjectFile(default);
     }
-    
+
     [TestMethod]
     public async Task GetDocumentProjectInfoAsync_NoProjectNameAndGuid_ReturnsNone()
     {
@@ -115,12 +115,12 @@ public class VsProjectInfoProviderTest
         var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
 
         var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
-        
+
         result.Should().BeEquivalentTo(("{none}", Guid.Empty));
         testLogger.AssertNoOutputMessages();
         vsSolution.DidNotReceiveWithAnyArgs().GetGuidOfProjectFile(default);
     }
-    
+
     [TestMethod]
     public async Task GetDocumentProjectInfoAsync_NoProjectNameAndGuid_ReturnsNoneWithGuid()
     {
@@ -133,11 +133,11 @@ public class VsProjectInfoProviderTest
         var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
 
         var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
-        
+
         result.Should().BeEquivalentTo(("{none}", ProjectGuid));
         testLogger.AssertNoOutputMessages();
     }
-    
+
     [TestMethod]
     public async Task GetDocumentProjectInfoAsync_NoProjectFile_ReturnsNameOnly()
     {
@@ -150,12 +150,12 @@ public class VsProjectInfoProviderTest
         var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
 
         var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
-        
+
         result.Should().BeEquivalentTo((ProjectName, Guid.Empty));
         testLogger.AssertNoOutputMessages();
         vsSolution.DidNotReceiveWithAnyArgs().GetGuidOfProjectFile(default);
     }
-    
+
     [TestMethod]
     public async Task GetDocumentProjectInfoAsync_CorrectProject_ReturnsNameAndGuid()
     {
@@ -165,11 +165,11 @@ public class VsProjectInfoProviderTest
         var testSubject = CreateTestSubject(vsSolution, dte, testLogger);
 
         var result = await testSubject.GetDocumentProjectInfoAsync(FilePath);
-        
+
         result.Should().BeEquivalentTo((ProjectName, ProjectGuid));
         testLogger.AssertNoOutputMessages();
     }
-    
+
     [TestMethod]
     public async Task GetDocumentProjectInfoAsync_ProjectGuidThrows_NonCriticalException_Logs()
     {
@@ -186,7 +186,7 @@ public class VsProjectInfoProviderTest
         await act.Should().NotThrowAsync();
         testLogger.AssertPartialOutputStringExists("Failed to calculate project guid of file");
     }
-    
+
     [TestMethod]
     public async Task GetDocumentProjectInfoAsync_ProjectGuidThrows_CriticalException_DoesNotCatch()
     {

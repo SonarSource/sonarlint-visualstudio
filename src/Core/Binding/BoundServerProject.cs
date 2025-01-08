@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -26,19 +26,19 @@ public class BoundServerProject
     public string ServerProjectKey { get; }
     public ServerConnection ServerConnection { get; }
     public Dictionary<Language, ApplicableQualityProfile> Profiles { get; set; }
-        
+
     public BoundServerProject(string localBindingKey, string serverProjectKey, ServerConnection serverConnection)
     {
         if (string.IsNullOrWhiteSpace(localBindingKey))
         {
             throw new ArgumentNullException(nameof(localBindingKey));
         }
-        
+
         if (string.IsNullOrWhiteSpace(serverProjectKey))
         {
             throw new ArgumentNullException(nameof(serverProjectKey));
         }
-        
+
         ServerProjectKey = serverProjectKey;
         ServerConnection = serverConnection ?? throw new ArgumentNullException(nameof(serverConnection));
         LocalBindingKey = localBindingKey;

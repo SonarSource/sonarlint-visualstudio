@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -39,13 +39,13 @@ public class SuggestSharedBindingGoldBarTests
             MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
             MefTestHelpers.CreateExport<IBrowserService>());
     }
-    
+
     [TestMethod]
     public void MefCtor_CheckIsSingleton()
     {
         MefTestHelpers.CheckIsSingletonMefComponent<SuggestSharedBindingGoldBar>();
     }
-    
+
     [TestMethod]
     public void Show_GeneratesCorrectNotificationStructure()
     {
@@ -54,9 +54,9 @@ public class SuggestSharedBindingGoldBarTests
         var solutionInfoProviderMock = new Mock<ISolutionInfoProvider>();
 
         var testSubject = CreateTestSubject(notificationServiceMock.Object, doNotShowAgainMock.Object, solutionInfoProviderMock.Object);
-        
+
         testSubject.Show(ServerType.SonarQube, () => { });
-        
+
         solutionInfoProviderMock.Verify(x => x.GetSolutionName(), Times.Once);
         notificationServiceMock.Verify(x => x.ShowNotification(It.IsAny<INotification>()), Times.Once);
 
@@ -74,7 +74,7 @@ public class SuggestSharedBindingGoldBarTests
         notification.CloseOnSolutionClose.Should().Be(true);
     }
 
-    
+
     [DataTestMethod]
     [DataRow(ServerType.SonarQube)]
     [DataRow(ServerType.SonarCloud)]
@@ -83,13 +83,13 @@ public class SuggestSharedBindingGoldBarTests
         var notificationServiceMock = new Mock<INotificationService>();
 
         var testSubject = CreateTestSubject(notificationServiceMock.Object);
-        
+
         testSubject.Show(serverType, null);
-        
+
         var notification = (INotification)notificationServiceMock.Invocations.Single().Arguments.First();
         notification.Message.Should().Be(string.Format(BindingStrings.SharedBindingSuggestionMainText, serverType));
     }
-    
+
     [DataTestMethod]
     [DataRow("Solution1")]
     [DataRow("MyPetProject")]
@@ -100,9 +100,9 @@ public class SuggestSharedBindingGoldBarTests
         solutionInfoProviderMock.Setup(x => x.GetSolutionName()).Returns(solutionName);
 
         var testSubject = CreateTestSubject(notificationServiceMock.Object, solutionInfoProvider: solutionInfoProviderMock.Object);
-        
+
         testSubject.Show(default, null);
-        
+
         var notification = (INotification)notificationServiceMock.Invocations.Single().Arguments.First();
         notification.Id.Should().Be(string.Format(SuggestSharedBindingGoldBar.IdTemplate, solutionName));
     }
@@ -112,30 +112,30 @@ public class SuggestSharedBindingGoldBarTests
     {
         var notificationServiceMock = new Mock<INotificationService>();
         var browserServiceMock = new Mock<IBrowserService>();
-        
+
         var testSubject = CreateTestSubject(notificationServiceMock.Object, browserService: browserServiceMock.Object);
-        
+
         testSubject.Show(default, null);
-        
+
         var notification = (INotification)notificationServiceMock.Invocations.Single().Arguments.First();
         var infoAction = notification.Actions.ToArray()[1];
 
         infoAction.Action(null);
-        
+
         browserServiceMock.Verify(x => x.Navigate(DocumentationLinks.UseSharedBinding), Times.Once);
     }
-    
+
     [TestMethod]
     public void Show_ConnectOptionCallsConnectAction()
     {
         var connectExecuted = false;
-        
+
         var notificationServiceMock = new Mock<INotificationService>();
-        
+
         var testSubject = CreateTestSubject(notificationServiceMock.Object);
-        
+
         testSubject.Show(default, () => { connectExecuted = true;});
-        
+
         var notification = (INotification)notificationServiceMock.Invocations.Single().Arguments.First();
         var connectAction = notification.Actions.ToArray()[0];
 
@@ -148,11 +148,11 @@ public class SuggestSharedBindingGoldBarTests
     public void Close_RemovesGoldBar()
     {
         var notificationServiceMock = new Mock<INotificationService>();
-        
+
         var testSubject = CreateTestSubject(notificationServiceMock.Object);
-        
+
         testSubject.Close();
-        
+
         notificationServiceMock.Verify(x => x.CloseNotification(), Times.Once);
     }
 
@@ -165,5 +165,5 @@ public class SuggestSharedBindingGoldBarTests
             doNotShowAgainNotificationAction ?? Mock.Of<IDoNotShowAgainNotificationAction>(),
             solutionInfoProvider ?? Mock.Of<ISolutionInfoProvider>(),
             browserService ?? Mock.Of<IBrowserService>());
-    } 
+    }
 }

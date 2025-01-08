@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ public class FileUriTests
 
         fromFile.Should().Be(fromUri);
     }
-    
+
     [TestMethod]
     public void Ctor_FromUncPath_FormsCorrectUri()
     {
@@ -44,7 +44,7 @@ public class FileUriTests
 
         fromFile.Should().Be(fromUri);
     }
-    
+
     [TestMethod]
     public void Ctor_FromFilePathWithSpaces_FormsCorrectUri()
     {
@@ -52,8 +52,8 @@ public class FileUriTests
         var testSubject = new FileUri(@"C:\file\path with spaces");
 
         testSubject.Should().Be(reference);
-    }    
-    
+    }
+
     [TestMethod]
     public void Ctor_FromFilePathBackticks_FormsCorrectUri()
     {
@@ -62,7 +62,7 @@ public class FileUriTests
 
         testSubject.Should().Be(reference);
     }
-    
+
     [DataTestMethod]
     [DataRow(@"C:\file1.cs", @"C:\file1.cs", true)]
     [DataRow(@"C:\file1.cs", @"C:\file2.cs", false)]
@@ -95,19 +95,19 @@ public class FileUriTests
     {
         new FileUri(@"C:\file").ToString().Should().StartWith(Uri.UriSchemeFile);
     }
-    
+
     [TestMethod]
     public void ToString_ReversesSlashes()
     {
         new FileUri(@"C:\file\path\on\disk").ToString().Should().NotContain(Path.DirectorySeparatorChar.ToString());
     }
-    
+
     [TestMethod]
     public void ToString_PercentEncodesSpaces()
     {
         new FileUri(@"C:\file with  4 spaces").ToString().Should().Be("file:///C:/file%20with%20%204%20spaces");
     }
-    
+
     [TestMethod]
     public void ToString_PercentEncodesBackticks()
     {
@@ -185,7 +185,7 @@ public class FileUriTests
 
         deserialized.Should().Be(fileUri);
     }
-    
+
     [TestMethod]
     public void Serialize_UsesToString()
     {
@@ -195,7 +195,7 @@ public class FileUriTests
 
         serializeObject.Should().Be(@"""file:///C:/file%20with%20%204%20spaces%20and%20a%20back%60tick""");
     }
-    
+
     [TestMethod]
     public void Deserialize_ProducesCorrectUri()
     {

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Core.FileMonitor
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
         private DateTime lastWriteTime = DateTime.MinValue;
-        
+
         internal SingleFileMonitor(IFileSystemWatcherFactory factory, IFileSystem fileSystem, string filePathToMonitor, ILogger logger)
         {
             this.MonitoredFilePath = filePathToMonitor;
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Core.FileMonitor
 
         private void EnsureDirectoryExists(string filePath, ILogger logger)
         {
-            // Exception handling: not much point in catch exceptions here - if we can't 
+            // Exception handling: not much point in catch exceptions here - if we can't
             // create a missing directory then the creation of the file watcher will
             // fail too, so the monitor class won't be constructed correctly.
             var dirPath = Path.GetDirectoryName(filePath);

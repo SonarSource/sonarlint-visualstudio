@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -131,7 +131,7 @@ namespace SonarQube.Client.Tests
                 PageSize = 22
             };
 
-            // If the correct page size isn't passed in the query string then the 
+            // If the correct page size isn't passed in the query string then the
             // test will fail because the mock http client won't have a response
             // matches the supplied URL.
             SetupRequest("api/dummy?p=1&ps=22", @"

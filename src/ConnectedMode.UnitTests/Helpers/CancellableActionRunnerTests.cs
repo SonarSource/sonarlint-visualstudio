@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -50,18 +50,18 @@ public class CancellableActionRunnerTests
     {
         var ran = false;
         var testSubject = CreateTestSubject();
-        
+
         await testSubject.RunAsync(_ => { ran = true; return Task.CompletedTask; });
 
         ran.Should().BeTrue();
     }
-    
+
     [TestMethod]
     public async Task RunAsync_CancelsPreviousAction()
     {
         CancellationToken actionToken;
         var testSubject = CreateTestSubject();
-        
+
         await testSubject.RunAsync(token => { actionToken = token; return Task.CompletedTask; });
 
         actionToken.IsCancellationRequested.Should().BeFalse();
@@ -70,8 +70,8 @@ public class CancellableActionRunnerTests
 
         actionToken.IsCancellationRequested.Should().BeTrue();
     }
-    
-        
+
+
     [TestMethod]
     public async Task RunAsync_Run100Actions_CancelsAllTokensButLatest()
     {
@@ -85,7 +85,7 @@ public class CancellableActionRunnerTests
         }
 
         await Task.WhenAll(tasks);
-        
+
         var cacelled = tokens.Count(token => token.IsCancellationRequested);
         cacelled.Should().Be(99);
     }
@@ -95,22 +95,22 @@ public class CancellableActionRunnerTests
     {
         CancellationToken actionToken;
         var testSubject = CreateTestSubject();
-        
+
         await testSubject.RunAsync(token => { actionToken = token; return Task.CompletedTask; });
 
         actionToken.IsCancellationRequested.Should().BeFalse();
-        
+
         testSubject.Dispose();
 
         actionToken.IsCancellationRequested.Should().BeTrue();
     }
-    
+
     [TestMethod]
     public void Dispose_PreventsNewActionLaunch()
     {
         var ran = false;
         var testSubject = CreateTestSubject();
-        
+
         testSubject.Dispose();
         Func<Task> action =() => testSubject.RunAsync(_ => { ran = true; return Task.CompletedTask; });
 

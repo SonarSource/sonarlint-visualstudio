@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var location = CreateLocation("some file1");
             var snapshot = CreateIssuesSnapshot("some file2", location);
             snapshot.SetupGet(x => x.VersionNumber).Returns(1234);
-            
+
             var testSubject = CreateTestSubjectWithSpecificSnapshot(snapshot.Object);
 
             testSubject.CurrentVersionNumber.Should().Be(1234);
@@ -183,7 +183,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         {
             var testSubject = new IssuesSnapshotFactory("my file");
             var originalSnapshot = testSubject.CurrentSnapshot;
-            
+
             var newSnapshot = Mock.Of<IIssuesSnapshot>();
             testSubject.UpdateSnapshot(newSnapshot);
 

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             importer.AssertImportIsInstanceOf<TTypeToCheck>();
             return importer;
         }
-        
+
         /// <summary>
         /// Tests that the <typeparamref name="TTypeToCheck"/> can be imported using MEF.
         /// If required exports are supplied then the test also checks that the type cannot be
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             var catalog = new TypeCatalog(typesToExport);
 
             var batch = new CompositionBatch();
-            
+
             foreach(var importer in importers)
             {
                 batch.AddPart(importer);

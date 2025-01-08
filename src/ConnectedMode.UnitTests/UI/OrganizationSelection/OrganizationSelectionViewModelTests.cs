@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -54,7 +54,7 @@ public class OrganizationSelectionViewModelTests
 
     [TestMethod]
     public void Ctor_OrganizationList_SetsPropertyValue()
-    { 
+    {
         var organization = new OrganizationDisplay("key", "name");
 
         testSubject.AddOrganization(organization);
@@ -110,7 +110,7 @@ public class OrganizationSelectionViewModelTests
 
         testSubject.IsValidSelectedOrganization.Should().BeFalse();
     }
-    
+
     [DataTestMethod]
     [DataRow("mykey")]
     [DataRow("my key")]
@@ -135,7 +135,7 @@ public class OrganizationSelectionViewModelTests
 
     [TestMethod]
     public void NoOrganizationExists_NoOrganizations_ReturnsTrue()
-    { 
+    {
         testSubject.NoOrganizationExists.Should().BeTrue();
     }
 
@@ -192,7 +192,7 @@ public class OrganizationSelectionViewModelTests
         var response = new AdapterResponseWithData<List<OrganizationDisplay>>(true, loadedOrganizations);
 
         testSubject.UpdateOrganizations(response);
-       
+
         testSubject.Organizations.Should().BeEquivalentTo(loadedOrganizations);
     }
 

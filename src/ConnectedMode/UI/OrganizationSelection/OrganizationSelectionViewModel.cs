@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
 public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, ISlCoreConnectionAdapter connectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
-    public ConnectionInfo FinalConnectionInfo { get; private set; } 
+    public ConnectionInfo FinalConnectionInfo { get; private set; }
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
 
     public OrganizationDisplay SelectedOrganization
@@ -57,7 +57,7 @@ public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, 
     {
         var organizationLoadingParams = new TaskToPerformParams<AdapterResponseWithData<List<OrganizationDisplay>>>(
             AdapterLoadOrganizationsAsync,
-            UiResources.LoadingOrganizationsProgressText, 
+            UiResources.LoadingOrganizationsProgressText,
             UiResources.LoadingOrganizationsFailedText)
         {
             AfterSuccess = UpdateOrganizations
@@ -82,7 +82,7 @@ public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, 
         var connectionInfoToValidate = new ConnectionInfo(organizationKey, ConnectionServerType.SonarCloud);
         var validationParams = new TaskToPerformParams<AdapterResponse>(
             async () => await connectionAdapter.ValidateConnectionAsync(connectionInfoToValidate, credentialsModel),
-            UiResources.ValidatingConnectionProgressText, 
+            UiResources.ValidatingConnectionProgressText,
             warningText);
         var adapterResponse = await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(validationParams);
         return adapterResponse.Success;

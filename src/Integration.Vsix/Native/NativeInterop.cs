@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -38,9 +38,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void CloseRootWindow(IWin32Window win32Window)
         {
-            // There doesn't appear to be a VS API to close Tools, Options so 
+            // There doesn't appear to be a VS API to close Tools, Options so
             // we're using PInvoke.
-            // NB this is equivalent to clicking Cancel i.e. any changed settings will 
+            // NB this is equivalent to clicking Cancel i.e. any changed settings will
             // not be saved.
             var dialogHwnd = win32Window?.Handle ?? IntPtr.Zero;
             if (dialogHwnd != IntPtr.Zero)

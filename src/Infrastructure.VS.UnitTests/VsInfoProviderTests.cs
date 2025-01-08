@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             setupConfigurationProvider.VerifyAll();
         }
-        
+
         [TestMethod]
         public void Name_CalculatesName()
         {
@@ -139,27 +139,27 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var serviceOperation = CreateServiceOperation(vsShell.Object);
             var logger = new Mock<ILogger>();
             var testSubject = new VsInfoProvider(serviceOperation, logger.Object);
-            
+
             var vsName = testSubject.Name;
-            
+
             vsName.Should().Be((string) name);
         }
-        
+
         [TestMethod]
         public void Name_NameIsCached()
         {
             var vsShell = CreateVsShell();
             var testSubject = CreateTestSubject(vsShell.Object);
-            
+
             var vsName1 = testSubject.Name;
             vsShell.Invocations.Clear();
 
             var vsName2 = testSubject.Name;
-            
+
             vsName1.Should().BeSameAs(vsName2);
             vsShell.Invocations.Should().BeEmpty();
         }
-        
+
         [TestMethod]
         public void Name_FailureToGetName_ReturnsDefault()
         {
@@ -170,7 +170,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 
             vsName.Should().Be("Microsoft Visual Studio");
         }
-        
+
         [TestMethod]
         public void Name_OnException_ReturnsDefault()
         {

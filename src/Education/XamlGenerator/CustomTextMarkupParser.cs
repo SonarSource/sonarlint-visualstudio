@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -25,12 +25,12 @@ using System.Text.RegularExpressions;
 using SonarLint.VisualStudio.Core;
 
 /* Notes:
- *   
+ *
  *   The SonarQube and SonarCloud suppport a special embedded syntax to indicate
  *   cross-references between links
- *   
+ *
  *   e.g. https://sonarcloud.io/organizations/sonarsource/rules?languages=cs&open=csharpsquid%3AS4002&q=S4002
- * 
+ *
  *   The cross-references are embedded in the rule description text as follows:
  *      {rule:[repoKey]:[ruleKey]}
  */

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -49,18 +49,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         {
             var issueVisMock = new Mock<IAnalysisIssueVisualization>();
             issueVisMock.SetupGet(x => x.Issue).Returns((IAnalysisIssue)null);
-            
+
             var result = (ImageMoniker)new SeverityToMonikerConverter(Mock.Of<IAnalysisSeverityToVsSeverityConverter>()).Convert(issueVisMock.Object, null, null, null);
 
             result.Should().Be(KnownMonikers.StatusInformation);
         }
-        
+
         [TestMethod]
         public void Convert_CurrentNotIAnalysisIssue_InformationMoniker()
         {
             var issueVisMock = new Mock<IAnalysisIssueVisualization>();
             issueVisMock.SetupGet(x => x.Issue).Returns(Mock.Of<IAnalysisIssueBase>());
-            
+
             var result = (ImageMoniker)new SeverityToMonikerConverter(Mock.Of<IAnalysisSeverityToVsSeverityConverter>()).Convert(issueVisMock.Object, null, null, null);
 
             result.Should().Be(KnownMonikers.StatusInformation);
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         [TestMethod]
         public void Convert_VsSeverityIsMessage_InformationMoniker()
         {
-            VerifyConversionWhenIssueIsIAnalysisIssue(__VSERRORCATEGORY.EC_MESSAGE, KnownMonikers.StatusInformation);   
+            VerifyConversionWhenIssueIsIAnalysisIssue(__VSERRORCATEGORY.EC_MESSAGE, KnownMonikers.StatusInformation);
         }
 
         [TestMethod]

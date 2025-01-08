@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -132,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                         {
                             roslynIssueLineHashCalculator.UpdateRoslynIssueWithLineHash(roslynIssue);
                         }
-                        
+
                         return MuteIssueAsync(issue);
                     })
                     .Forget();
@@ -151,7 +151,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private bool TryGetRoslynIssue(out IFilterableIssue issue)
         {
             issue = null;
-            
+
             if (errorListHelper.TryGetRoslynIssueFromSelectedRow(out var roslynIssue))
             {
                 issue = roslynIssue;

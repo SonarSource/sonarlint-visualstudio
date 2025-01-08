@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -103,9 +103,9 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
     ""create"": false
   }
 }");
-        
-        var result = await service.GetAllQualityProfilesAsync("my_project", 
-            "my_organization", 
+
+        var result = await service.GetAllQualityProfilesAsync("my_project",
+            "my_organization",
             CancellationToken.None);
 
         messageHandler.VerifyAll();
@@ -150,8 +150,8 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
   }
 }");
 
-        var result = (await service.GetAllQualityProfilesAsync("my_project", 
-                "my_organization", 
+        var result = (await service.GetAllQualityProfilesAsync("my_project",
+                "my_organization",
                 CancellationToken.None))
             .Single();
 
@@ -252,7 +252,7 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
   }
 }");
 
-        var result = await service.GetAllQualityProfilesAsync("my_project", 
+        var result = await service.GetAllQualityProfilesAsync("my_project",
             "my_organization",
             CancellationToken.None);
 
@@ -301,9 +301,9 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
     ""create"": false
   }
 }");
-        
-        var result = (await service.GetAllQualityProfilesAsync("my_project", 
-                "my_organization", 
+
+        var result = (await service.GetAllQualityProfilesAsync("my_project",
+                "my_organization",
                 CancellationToken.None))
             .Single();
 
@@ -320,7 +320,7 @@ public class SonarQubeService_GetAllQualityProfilesAsync : SonarQubeService_Test
         // No calls to Connect
         // No need to setup request, the operation should fail
 
-        var func = new Func<Task>(async () => await service.GetAllQualityProfilesAsync("my_project", 
+        var func = new Func<Task>(async () => await service.GetAllQualityProfilesAsync("my_project",
             "my_organization",
             CancellationToken.None));
 

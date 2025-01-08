@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
             }
             // if we reached here, we know that oldValue and/or newValue are a tool window,
             // and we are only interested in the use case of [tool window] -> [doc]
-            else if (elementId == (uint) VSConstants.VSSELELEMID.SEID_WindowFrame && 
+            else if (elementId == (uint) VSConstants.VSSELELEMID.SEID_WindowFrame &&
                      newValue is IVsWindowFrame newWindowFrame && IsDocumentFrame(newWindowFrame))
             {
                 var activeTextDoc = textDocumentProvider.GetFromFrame(newWindowFrame);
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
             return VSConstants.S_OK;
         }
 
-        private void NotifyActiveDocumentChanged(ITextDocument activeTextDoc) => 
+        private void NotifyActiveDocumentChanged(ITextDocument activeTextDoc) =>
             ActiveDocumentChanged?.Invoke(this, new ActiveDocumentChangedEventArgs(activeTextDoc));
 
         private static bool IsDocumentFrame(IVsWindowFrame frame) =>

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -31,13 +31,13 @@ public class ThreadHandlingExtensionsTests
         threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(async info => await info.Arg<Func<Task<int>>>()());
 
         var called = false;
-        
+
         await ThreadHandlingExtensions.RunOnBackgroundThread(threadHandling, () => called = true);
 
         called.Should().BeTrue();
         threadHandling.Received().RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
     }
-    
+
     [TestMethod]
     public async Task RunOnBackgroundThread_TaskReturningMethod_UsesMainRunOnBackgroundThread()
     {
@@ -46,7 +46,7 @@ public class ThreadHandlingExtensionsTests
         threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(async info => await info.Arg<Func<Task<int>>>()());
 
         var called = false;
-        
+
         await ThreadHandlingExtensions.RunOnBackgroundThread(threadHandling, () =>
         {
             called = true;
@@ -56,7 +56,7 @@ public class ThreadHandlingExtensionsTests
         called.Should().BeTrue();
         threadHandling.Received().RunOnBackgroundThread(Arg.Any<Func<Task<int>>>());
     }
-    
+
     [TestMethod]
     public async Task RunOnBackgroundThread_AsyncEmptyTaskMethod_UsesMainRunOnBackgroundThread()
     {
@@ -65,7 +65,7 @@ public class ThreadHandlingExtensionsTests
         threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(async info => await info.Arg<Func<Task<int>>>()());
 
         var called = false;
-        
+
         await ThreadHandlingExtensions.RunOnBackgroundThread(threadHandling, async () => called = true);
 
         called.Should().BeTrue();

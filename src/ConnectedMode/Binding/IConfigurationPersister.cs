@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -60,8 +60,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
             // The binding directory is the folder containing the binding config file
             var bindingConfigDirectory = Path.GetDirectoryName(configFilePath);
-            return success 
-                ? BindingConfiguration.CreateBoundConfiguration(project, SonarLintMode.Connected, bindingConfigDirectory) 
+            return success
+                ? BindingConfiguration.CreateBoundConfiguration(project, SonarLintMode.Connected, bindingConfigDirectory)
                 : null;
         }
     }

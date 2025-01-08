@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -57,7 +57,7 @@ public class SLCoreServiceProviderTests
 
         act.Should().Throw<ArgumentException>().WithMessage($"The type argument {typeof(TestSLCoreService).FullName} is not an interface");
     }
-    
+
     [TestMethod]
     public void TryGetTransientService_NotUIThread_Checked()
     {
@@ -65,7 +65,7 @@ public class SLCoreServiceProviderTests
         var testSubject = CreateTestSubject(threadHandling:threadHandling.Object);
 
         testSubject.TryGetTransientService(out ITestSLcoreService1 _);
-        
+
         threadHandling.Verify(x => x.ThrowIfOnUIThread());
     }
 

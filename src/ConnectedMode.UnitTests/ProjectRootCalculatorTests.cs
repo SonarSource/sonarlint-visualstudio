@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -55,13 +55,13 @@ public class ProjectRootCalculatorTests
 
         result.Should().BeNull();
     }
-    
+
     [TestMethod]
     public async Task CalculateBasedOnLocalPathAsync_ConnectedMode_ReturnsCorrectRoot()
     {
         const string projectKey = "projectKey";
         const string branch = "branch";
-        
+
         var testSubject = CreateTestSubject(out var sonarQubeServiceMock, out var configurationProviderMock, out var branchProviderMock);
         configurationProviderMock
             .SetupGet(x => x.CurrentConfiguration)
@@ -81,7 +81,7 @@ public class ProjectRootCalculatorTests
         result.Should().Be(@"c:\root\"); // more extensive testing of the marching algorithm is done in PathHelper tests
     }
 
-    private ProjectRootCalculator CreateTestSubject(out Mock<ISonarQubeService> sonarQubeServiceMock, 
+    private ProjectRootCalculator CreateTestSubject(out Mock<ISonarQubeService> sonarQubeServiceMock,
         out Mock<IActiveSolutionBoundTracker> activeSolutionBoundTracker,
         out Mock<IStatefulServerBranchProvider> statefulServerBranchProviderMock)
     {

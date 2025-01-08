@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         /// <param name="document">XML object representation</param>
         /// <returns>True if successfully loaded, False otherwise</returns>
         bool TryLoadFromString(string content, out XmlDocument document);
-        
+
         /// <summary>
         /// Saves <see cref="XmlDocument"/> to <see cref="string"/>
         /// </summary>
@@ -44,13 +44,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         /// <returns>XML document as string</returns>
         string SaveToString(XmlDocument document);
     }
-    
+
     internal class XmlDocumentHelper : IXmlDocumentHelper
     {
         public bool TryLoadFromString(string content, out XmlDocument document)
         {
             document = null;
-            
+
             try
             {
                 document = LoadFromString(content);
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 return false;
             }
         }
-        
+
         public string SaveToString(XmlDocument document)
         {
             using (var memoryStream = new MemoryStream())

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // p3 is unknown kind
             var expectedProjects = new ProjectMock[] { p1, p2, p3 };
             var projectSystem = CreateProjectSystem(expectedProjects);
-                
+
             ProjectPropertyManager testSubject = this.CreateTestSubject(projectSystem);
 
             // Act

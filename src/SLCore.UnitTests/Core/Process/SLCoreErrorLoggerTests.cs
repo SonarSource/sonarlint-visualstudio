@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ public class SLCoreErrorLoggerTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<SLCoreErrorLoggerFactory>();
     }
-    
+
     [TestMethod]
     public void ReadsStreamInBackground()
     {
@@ -51,7 +51,7 @@ public class SLCoreErrorLoggerTests
         threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<int>>>()).Returns(info => Task.Run(info.Arg<Func<Task<int>>>()));
         var testLogger = new TestLogger();
         var errorLoggerFactory = new SLCoreErrorLoggerFactory(testLogger, threadHandling);
-        
+
         using var _ = errorLoggerFactory.Create(new StreamReader(new MemoryStream()));
 
         threadHandling.ReceivedWithAnyArgs().RunOnBackgroundThread(default(Func<Task<int>>));

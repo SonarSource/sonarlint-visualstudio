@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -54,13 +54,13 @@ internal sealed class OpenInIdeNotification : IOpenInIdeNotification, IDisposabl
         this.browserService = browserService;
     }
 
-    public void UnableToLocateIssue(string filePath, Guid toolWindowId) => 
+    public void UnableToLocateIssue(string filePath, Guid toolWindowId) =>
         Show(toolWindowId, string.Format(OpenInIdeResources.Notification_UnableToLocateIssue, filePath), true);
 
-    public void UnableToOpenFile(string filePath, Guid toolWindowId) => 
+    public void UnableToOpenFile(string filePath, Guid toolWindowId) =>
         Show(toolWindowId, string.Format(OpenInIdeResources.Notification_UnableToOpenFile, filePath), true);
-    
-    public void InvalidRequest(string reason, Guid toolWindowId) => 
+
+    public void InvalidRequest(string reason, Guid toolWindowId) =>
         Show(toolWindowId, string.Format(OpenInIdeResources.Notification_InvalidConfiguration, reason), false);
 
     public void Clear()

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         /// </summary>
         /// <remarks>This is a convenience method - there are no XAML elements that support both Inlines
         /// and Blocks as children, so we just return the negation of SupportsInLines.
-        /// Note that there are some classes that don't support either Inlines or Blocks as children such as 
+        /// Note that there are some classes that don't support either Inlines or Blocks as children such as
         /// List and the Table classes. However, as long as the HTML document we are parsing is valid it
         /// won't cause us a problem since we won't need to check SupportsInlines/SupportsBlocks for those
         /// classes.

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             var snapshot = CreateSnapshot(length: 50);
 
             var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
-            
+
             var validSpan = new Span(1, 5);
             var invalidSpan = new Span(10, 0);
 

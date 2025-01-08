@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -60,21 +60,21 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
         public void CacheOutOfSyncResolvedIssue_ThrowsIfNotResolved()
         {
             var testSubject = CreateTestSubject();
-            
+
             Action act = () => testSubject.CacheOutOfSyncResolvedIssue(DummySonarQubeIssueFactory.CreateServerIssue());
 
             act.Should().ThrowExactly<ArgumentException>();
         }
-        
+
         [TestMethod]
         public void CacheOutOfSyncResolvedIssue_SavesIssueToStore()
         {
             var sonarQubeIssue = DummySonarQubeIssueFactory.CreateServerIssue(true);
             var storeMock = new Mock<IServerIssuesStoreWriter>();
             var threadHandlingMock = new Mock<IThreadHandling>();
-            
+
             var testSubject = CreateTestSubject(serverIssuesStore:storeMock.Object, threadHandling:threadHandlingMock.Object);
-            
+
             testSubject.CacheOutOfSyncResolvedIssue(sonarQubeIssue);
 
             storeMock.Verify(x => x.AddIssues(It.Is<IEnumerable<SonarQubeIssue>>(p => p.SequenceEqual(new[] { sonarQubeIssue })), false));
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
         {
             var sonarQubeIssue = DummySonarQubeIssueFactory.CreateServerIssue();
             sonarQubeIssue.IsResolved.Should().BeFalse();
-            
+
             var threadHandling = CreateThreadHandling();
             var muteIssuesWindowService = CreateMuteIssuesWindowService(true, SonarQubeIssueTransition.FalsePositive, "some comment");
 

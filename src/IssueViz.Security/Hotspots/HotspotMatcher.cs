@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             // Line hashes are missing from the server response at the moment this code is written,
             // which is how I got the idea from other SL flavors to also compare issue message to reduce the amount of false-negative matches.
             // However, there's nothing in principal stopping hashes from being adding to the server response later, so we also check them above.
-            return localHotspotVisualization.StartLine == serverHotspot.TextRange.StartLine 
+            return localHotspotVisualization.StartLine == serverHotspot.TextRange.StartLine
                    || StringComparer.Ordinal.Equals(localHotspotVisualization.Issue.PrimaryLocation.Message, serverHotspot.Message);
         }
     }

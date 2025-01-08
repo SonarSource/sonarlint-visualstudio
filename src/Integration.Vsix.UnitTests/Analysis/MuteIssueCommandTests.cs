@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -70,7 +70,7 @@ public class MuteIssueCommandTests
         testSubject.Visible.Should().BeFalse();
         testSubject.Enabled.Should().BeFalse();
     }
-    
+
     [TestMethod]
     public void QueryStatus_Exception_Invisible()
     {
@@ -110,7 +110,7 @@ public class MuteIssueCommandTests
         testSubject.Visible.Should().BeFalse();
         testSubject.Enabled.Should().BeFalse();
     }
-    
+
     [TestMethod]
     public void QueryStatus_SuppressedIssue_Invisible()
     {
@@ -197,7 +197,7 @@ public class MuteIssueCommandTests
         var testSubject = CreateTestSubject(out var errorListHelperMock,
             out _,
             out var serverIssueFinderMock,
-            out _, 
+            out _,
             out _,
             out var threadHandlingMock,
             out var messageBoxMock,
@@ -215,7 +215,7 @@ public class MuteIssueCommandTests
         serverIssueFinderMock.Verify(x => x.FindServerIssueAsync(issue, It.IsAny<CancellationToken>()), Times.Once);
         messageBoxMock.Verify(x => x.Show(AnalysisStrings.MuteIssue_IssueNotFoundText, AnalysisStrings.MuteIssue_IssueNotFoundCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation));
     }
-    
+
     [TestMethod]
     public void Execute_OutOfSyncMutedIssue_MutesLocallyAndShowsMessageBox()
     {
@@ -223,7 +223,7 @@ public class MuteIssueCommandTests
         var testSubject = CreateTestSubject(out var errorListHelperMock,
             out _,
             out var serverIssueFinderMock,
-            out var muteIssueServiceMock, 
+            out var muteIssueServiceMock,
             out _,
             out var threadHandlingMock,
             out var messageBoxMock,
@@ -243,7 +243,7 @@ public class MuteIssueCommandTests
         muteIssueServiceMock.Verify(x => x.CacheOutOfSyncResolvedIssue(serverIssue), Times.Once);
         messageBoxMock.Verify(x => x.Show(AnalysisStrings.MuteIssue_IssueAlreadyMutedText, AnalysisStrings.MuteIssue_IssueAlreadyMutedCaption, MessageBoxButton.OK, MessageBoxImage.Information));
     }
-    
+
     [TestMethod]
     public void Execute_MutesIssue()
     {
@@ -268,7 +268,7 @@ public class MuteIssueCommandTests
         serverIssueFinderMock.Verify(x => x.FindServerIssueAsync(issue, It.IsAny<CancellationToken>()), Times.Once);
         muteIssueServiceMock.Verify(x => x.ResolveIssueWithDialogAsync(sonarQubeIssue, It.IsAny<CancellationToken>()), Times.Once);
     }
-    
+
     [TestMethod]
     public void Execute_RoslynIssue_MutesIssue()
     {
@@ -341,7 +341,7 @@ public class MuteIssueCommandTests
         act.Should().ThrowExactly<DivideByZeroException>();
         logger.AssertPartialOutputStringDoesNotExist("exception xxx");
     }
-    
+
     private static IFilterableIssue SetUpGetIssueFromErrorList(Mock<IErrorListHelper> errorListHelperMock, MockSequence callSequence)
     {
         var issue = Mock.Of<IFilterableIssue>();
@@ -351,7 +351,7 @@ public class MuteIssueCommandTests
             .Returns(true);
         return issue;
     }
-    
+
     private static void SetUpIssueMuting(Mock<IServerIssueFinder> serverIssueFinderMock,
         Mock<IMuteIssuesService> muteIssueServiceMock,
         MockSequence callSequence,
@@ -366,7 +366,7 @@ public class MuteIssueCommandTests
     }
 
     private static void SetUpIssueFinder(Mock<IServerIssueFinder> serverIssueFinderMock,
-        MockSequence callSequence, 
+        MockSequence callSequence,
         IFilterableIssue issue,
         SonarQubeIssue sonarQubeIssue)
     {

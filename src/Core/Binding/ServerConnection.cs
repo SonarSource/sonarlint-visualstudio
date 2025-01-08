@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -26,11 +26,11 @@ namespace SonarLint.VisualStudio.Core.Binding;
 public abstract class ServerConnection
 {
     internal static readonly ServerConnectionSettings DefaultSettings = new(true);
-    
+
     public string Id { get; }
     public ServerConnectionSettings Settings { get; set; }
     public IConnectionCredentials Credentials { get; set; }
-    
+
     public abstract Uri ServerUri { get; }
     public abstract Uri CredentialsUri { get; }
 
@@ -52,7 +52,7 @@ public abstract class ServerConnection
     public sealed class SonarCloud : ServerConnection
     {
         private static readonly string SonarCloudUrl = CoreStrings.SonarCloudUrl;
-        
+
         public SonarCloud(string organizationKey, ServerConnectionSettings settings = null, IConnectionCredentials credentials = null)
             : base(OrganizationKeyToId(organizationKey), settings, credentials)
         {
@@ -61,7 +61,7 @@ public abstract class ServerConnection
         }
 
         public string OrganizationKey { get; }
-        
+
         public override Uri ServerUri => new (SonarCloudUrl);
         public override Uri CredentialsUri { get; }
 
@@ -75,7 +75,7 @@ public abstract class ServerConnection
             return $"{SonarCloudUrl}/organizations/{organizationKey}";
         }
     }
-    
+
     public sealed class SonarQube(Uri serverUri, ServerConnectionSettings settings = null, IConnectionCredentials credentials = null)
         : ServerConnection(serverUri?.ToString(), settings, credentials)
     {

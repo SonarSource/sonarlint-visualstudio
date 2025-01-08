@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -73,7 +73,7 @@ namespace SonarQube.Client.Api.V7_20
             return settings.SingleOrDefault(x => x.Key == key)?.Values;
         }
 
-        private sealed class Setting   
+        private sealed class Setting
         {
             [JsonProperty("key")]
             public string Key { get; set; }

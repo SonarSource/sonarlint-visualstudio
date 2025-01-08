@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ public class ProjectSelectionViewModelTests
     ];
 
     private static readonly ConnectionInfo AConnectionInfo = new("http://localhost:9000", ConnectionServerType.SonarQube);
-    
+
     private ProjectSelectionViewModel testSubject;
     private ISlCoreConnectionAdapter slCoreConnectionAdapter;
     private IProgressReporterViewModel progressReporterViewModel;
@@ -66,21 +66,21 @@ public class ProjectSelectionViewModelTests
     {
         testSubject.IsProjectSelected.Should().BeFalse();
     }
-    
+
     [TestMethod]
     public void IsProjectSelected_ProjectSelected_ReturnsTrue()
     {
         testSubject.SelectedProject = new ServerProject("a-project", "A Project");
-        
+
         testSubject.IsProjectSelected.Should().BeTrue();
     }
-    
+
     [TestMethod]
     public void InitProjects_ResetsTheProjectResults()
     {
         MockInitializedProjects(AnInitialListOfProjects);
         testSubject.ProjectResults.Should().BeEquivalentTo(AnInitialListOfProjects);
-        
+
         var updatedListOfProjects = new List<ServerProject>
         {
             new("new-project", "New Project")
@@ -180,7 +180,7 @@ public class ProjectSelectionViewModelTests
     [TestMethod]
     public void NoProjectExists_HasProjects_ReturnsFalse()
     {
-        MockInitializedProjects(AnInitialListOfProjects); 
+        MockInitializedProjects(AnInitialListOfProjects);
 
         testSubject.NoProjectExists.Should().BeFalse();
     }
@@ -322,7 +322,7 @@ public class ProjectSelectionViewModelTests
     }
 
     private ProjectSelectionViewModel CreateTestSubjectWithNotMockedProgress()
-    { 
+    {
         return new ProjectSelectionViewModel(AConnectionInfo, connectedModeServices, new ProgressReporterViewModel(logger));
     }
 }

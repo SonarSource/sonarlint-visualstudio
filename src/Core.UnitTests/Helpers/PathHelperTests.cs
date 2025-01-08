@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -229,11 +229,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
             PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs",
                 new[] { @"projectdir\projectdir\projectfile.cs" }).Should().Be(@"C:\dir\dir\projectroot\");
         }
-        
+
         [TestMethod]
         public void CalculateServerRoot_OnlyOneMatch()
         {
-            PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs", 
+            PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs",
                 new[]
                 {
                     @"a\b\c",
@@ -243,11 +243,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
                     @"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
                 }).Should().Be(@"C:\dir\dir\projectroot\");
         }
-        
+
         [TestMethod]
         public void CalculateServerRoot_SelectsLongestMatchOutOfMultiple()
         {
-            PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs", 
+            PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs",
                 new[]
                 {
                     @"projectfile.cs",
@@ -256,11 +256,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
                     @"projectdir\projectdir\projectdir\projectfile.cs"
                 }).Should().Be(@"C:\dir\dir\projectroot\");
         }
-        
+
         [TestMethod]
         public void CalculateServerRoot_NoMatch()
         {
-            PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs", 
+            PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs",
                 new[]
                 {
                     @"notprojectfile.cs",
@@ -269,14 +269,14 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
                     @"projectdir\projectdir\projectdir\notprojectfile.cs"
                 }).Should().Be(null);
         }
-        
+
         [TestMethod]
         public void CalculateServerRoot_EmptyList()
         {
             PathHelper.CalculateServerRoot(@"C:\dir\dir\projectroot\projectdir\projectdir\projectfile.cs", Array.Empty<string>())
                 .Should().Be(null);
         }
-        
+
         [TestMethod]
         public void CalculateServerRoot_NullList()
         {

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -40,7 +40,7 @@ public class ManualOrganizationSelectionViewModelTests
         testSubject.OrganizationKey.Should().BeNull();
         testSubject.IsValidOrganizationKey.Should().BeFalse();
     }
-    
+
     [TestMethod]
     public void OrganizationKey_Set_EventsRaised()
     {
@@ -48,11 +48,11 @@ public class ManualOrganizationSelectionViewModelTests
         testSubject.PropertyChanged += eventHandler;
 
         testSubject.OrganizationKey = "key";
-        
+
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.OrganizationKey)));
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsValidOrganizationKey)));
     }
-    
+
     [DataTestMethod]
     [DataRow(null, false)]
     [DataRow("", false)]

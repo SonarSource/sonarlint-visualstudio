@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2024 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -48,7 +48,7 @@ public class BindingJsonModelConverterTests
     {
         MefTestHelpers.CheckIsSingletonMefComponent<BindingJsonModelConverter>();
     }
-    
+
     [TestMethod]
     public void ConvertFromModel_ConvertsCorrectly()
     {
@@ -89,7 +89,7 @@ public class BindingJsonModelConverterTests
         bindingModel.ServerConnectionId.Should().BeSameAs(boundServerProject.ServerConnection.Id);
         bindingModel.Profiles.Should().BeSameAs(boundServerProject.Profiles);
     }
-    
+
     [TestMethod]
     public void ConvertToModel_SonarQubeConnection_ConvertsCorrectly()
     {
