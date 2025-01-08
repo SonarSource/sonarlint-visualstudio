@@ -22,6 +22,7 @@ using System;
 using System.IO;
 using System.Threading;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Logging;
 using SonarLint.VisualStudio.Roslyn.Suppressions.Settings.Cache;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 
@@ -66,7 +67,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         public Container()
         {
             Directory.CreateDirectory(RoslynSettingsFileInfo.Directory);
-            Logger = new Logger();
+            Logger = LoggerFactory.Default.Create(new SystemDebugLoggerWriter(), new EnableAllLoggerSettingsProvider());
 
             var settingsCache = new SettingsCache(Logger);
             fileWatcher = new SuppressedIssuesFileWatcher(settingsCache, Logger);
