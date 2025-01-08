@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
@@ -37,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             MefTestHelpers.CheckTypeCanBeImported<SolutionWorkspaceService, ISolutionWorkspaceService>(
                 MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
                 MefTestHelpers.CreateExport<ILogger>(),
-                MefTestHelpers.CreateExport<SVsServiceProvider>());
+                MefTestHelpers.CreateExport<IVsUIServiceOperation>());
         }
 
         [TestMethod]
@@ -54,11 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             var solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
             solutionInfoProvider.IsFolderWorkspace().Returns(isFolderSpace);
 
-            var serviceProvider = Substitute.For<IServiceProvider>();
-
-            var threadHandler = new NoOpThreadHandler();
-
-            var testSubject = new SolutionWorkspaceService(solutionInfoProvider, new TestLogger(), serviceProvider, threadHandler);
+            var testSubject = new SolutionWorkspaceService(solutionInfoProvider, new TestLogger(), Substitute.For<IVsUIServiceOperation>());
 
             var result = testSubject.IsSolutionWorkSpace();
 
