@@ -31,6 +31,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry;
 [TestClass]
 public class TelemetryManagerTests
 {
+    private TelemetryManager telemetryManager;
+    private ISlCoreTelemetryHelper telemetryHandler;
+    private ITelemetrySLCoreService telemetryService;
+    private IKnownUIContexts knownUiContexts;
+
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        telemetryHandler = Substitute.For<ISlCoreTelemetryHelper>();
+        MockTelemetryService();
+        knownUiContexts = Substitute.For<IKnownUIContexts>();
+
+        telemetryManager = new TelemetryManager(telemetryHandler, knownUiContexts);
+    }
+
     [TestMethod]
     public void MefCtor_CheckIsExported()
     {
@@ -55,9 +70,7 @@ public class TelemetryManagerTests
     [DataRow(SlCoreTelemetryStatus.Enabled)]
     public void GetStatus_CallsRpcService(SlCoreTelemetryStatus status)
     {
-        CreteTelemetryService(out var telemetryHandler, out _);
         telemetryHandler.GetStatus().Returns(status);
-        var telemetryManager = CreateTestSubject(telemetryHandler);
 
         telemetryManager.GetStatus().Should().Be(status);
     }
@@ -65,9 +78,6 @@ public class TelemetryManagerTests
     [TestMethod]
     public void OptOut_CallsRpcService()
     {
-        CreteTelemetryService(out var telemetryHandler, out var telemetryService);
-        var telemetryManager = CreateTestSubject(telemetryHandler);
-
         telemetryManager.OptOut();
 
         Received.InOrder(() =>
@@ -80,9 +90,6 @@ public class TelemetryManagerTests
     [TestMethod]
     public void OptIn_CallsRpcService()
     {
-        CreteTelemetryService(out var telemetryHandler, out var telemetryService);
-        var telemetryManager = CreateTestSubject(telemetryHandler);
-
         telemetryManager.OptIn();
 
         Received.InOrder(() =>
@@ -95,9 +102,6 @@ public class TelemetryManagerTests
     [TestMethod]
     public void TaintIssueInvestigatedLocally_CallsRpcService()
     {
-        CreteTelemetryService(out var telemetryHandler, out var telemetryService);
-        var telemetryManager = CreateTestSubject(telemetryHandler);
-
         telemetryManager.TaintIssueInvestigatedLocally();
 
         Received.InOrder(() =>
@@ -110,9 +114,6 @@ public class TelemetryManagerTests
     [TestMethod]
     public void TaintVulnerabilitiesInvestigatedRemotely_CallsRpcService()
     {
-        CreteTelemetryService(out var telemetryHandler, out var telemetryService);
-        var telemetryManager = CreateTestSubject(telemetryHandler);
-
         telemetryManager.TaintIssueInvestigatedRemotely();
 
         Received.InOrder(() =>
@@ -125,9 +126,6 @@ public class TelemetryManagerTests
     [TestMethod]
     public void QuickFixApplied_CallsRpcService()
     {
-        CreteTelemetryService(out var telemetryHandler, out var telemetryService);
-        var telemetryManager = CreateTestSubject(telemetryHandler);
-
         telemetryManager.QuickFixApplied("myrule");
 
         Received.InOrder(() =>
@@ -148,9 +146,6 @@ public class TelemetryManagerTests
     [DataRow(SonarLanguageKeys.Secrets, Language.SECRETS, 8)]
     public void LanguageAnalyzed_CallsRpcService(string languageKey, Language language, int analysisTimeMs)
     {
-        CreteTelemetryService(out var telemetryHandler, out var telemetryService);
-        var telemetryManager = CreateTestSubject(telemetryHandler);
-
         telemetryManager.LanguageAnalyzed(languageKey, TimeSpan.FromMilliseconds(analysisTimeMs));
 
         Received.InOrder(() =>
@@ -165,10 +160,6 @@ public class TelemetryManagerTests
     [DataRow(false)]
     public void CSharpUIContext_SendsCSharpAnalysisUpdate(bool activated)
     {
-        CreteTelemetryService(out var telemetryHandler, out var telemetryService);
-        var knownUiContexts = Substitute.For<IKnownUIContexts>();
-        var telemetryManager = CreateTestSubject(telemetryHandler, knownUiContexts);
-
         knownUiContexts.CSharpProjectContextChanged += Raise.EventWith(new UIContextChangedEventArgs(activated));
 
         telemetryService.Received(activated ? 1 : 0).AnalysisDoneOnSingleLanguage(Arg.Is<AnalysisDoneOnSingleLanguageParams>(a => a.language == Language.CS));
@@ -179,28 +170,30 @@ public class TelemetryManagerTests
     [DataRow(false)]
     public void VBNetUIContext_SendsVBNetAnalysisUpdate(bool activated)
     {
-        CreteTelemetryService(out var telemetryHandler, out var telemetryService);
-        var knownUiContexts = Substitute.For<IKnownUIContexts>();
-        var telemetryManager = CreateTestSubject(telemetryHandler, knownUiContexts);
-
         knownUiContexts.VBProjectContextChanged += Raise.EventWith(new UIContextChangedEventArgs(activated));
 
         telemetryService.Received(activated ? 1 : 0).AnalysisDoneOnSingleLanguage(Arg.Is<AnalysisDoneOnSingleLanguageParams>(a => a.language == Language.VBNET));
     }
 
-    private static void CreteTelemetryService(out ISlCoreTelemetryHelper telemetryHandler, out ITelemetrySLCoreService telemetryService)
+    [TestMethod]
+    public void LinkClicked_CallsRpcService()
     {
-        telemetryHandler = Substitute.For<ISlCoreTelemetryHelper>();
-        var telemetryServiceMock = Substitute.For<ITelemetrySLCoreService>();
-        telemetryService = telemetryServiceMock;
-        telemetryHandler
-            .When(x => x.Notify(Arg.Any<Action<ITelemetrySLCoreService>>()))
-            .Do(callInfo => callInfo.Arg<Action<ITelemetrySLCoreService>>()(telemetryServiceMock));
+        var linkId = "anId";
+
+        telemetryManager.LinkClicked(linkId);
+
+        Received.InOrder(() =>
+        {
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryService.HelpAndFeedbackLinkClicked(Arg.Is<HelpAndFeedbackClickedParams>(a => a.itemId == linkId));
+        });
     }
 
-    private static TelemetryManager CreateTestSubject(ISlCoreTelemetryHelper telemetryHandler, IKnownUIContexts uiContexts = null)
+    private void MockTelemetryService()
     {
-        uiContexts ??= Substitute.For<IKnownUIContexts>();
-        return new TelemetryManager(telemetryHandler, uiContexts);
+        telemetryService = Substitute.For<ITelemetrySLCoreService>();
+        telemetryHandler
+            .When(x => x.Notify(Arg.Any<Action<ITelemetrySLCoreService>>()))
+            .Do(callInfo => callInfo.Arg<Action<ITelemetrySLCoreService>>()(telemetryService));
     }
 }

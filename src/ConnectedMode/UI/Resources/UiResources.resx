@@ -130,7 +130,7 @@
     <value>Choose a connection type</value>
   </data>
   <data name="ConnectionDiscoveringText" xml:space="preserve">
-    <value>Discover which connection is best for your team </value>
+    <value>Explore SonarQube Cloud with our </value>
   </data>
   <data name="CredentialsLabel" xml:space="preserve">
     <value>Credentials</value>
@@ -182,12 +182,6 @@
   </data>
   <data name="SonarCloudDescription" xml:space="preserve">
     <value>A Software-as-a-Service (Saas) tool that easily integrates into the cloud DevOps platforms and extends the CI/CD workflow to systematically help developers and organizations deliver CleanCode.</value>
-  </data>
-  <data name="FreeSonarCloudOfferDescription" xml:space="preserve">
-    <value>is entirely free for open source projects</value>
-  </data>
-  <data name="FreeSonarQubeOfferDescription" xml:space="preserve">
-    <value>SonarQube Server offers a free</value>
   </data>
   <data name="SonarQubeAccountSecurityUrl" xml:space="preserve">
     <value>account/security</value>

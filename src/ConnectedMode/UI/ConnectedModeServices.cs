@@ -19,9 +19,9 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Telemetry;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
@@ -34,6 +34,7 @@ public interface IConnectedModeServices
     public IConfigurationProvider ConfigurationProvider { get; }
     public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; }
     public IMessageBox MessageBox { get; }
+    public ITelemetryManager TelemetryManager { get; }
 }
 
 [Export(typeof(IConnectedModeServices))]
@@ -46,11 +47,13 @@ public class ConnectedModeServices(
     IConfigurationProvider configurationProvider,
     IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter,
     IMessageBox messageBox,
-    ILogger logger)
+    ILogger logger,
+    ITelemetryManager telemetryManager)
     : IConnectedModeServices
 {
     public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; } = serverConnectionsRepositoryAdapter;
     public IMessageBox MessageBox { get; } = messageBox;
+    public ITelemetryManager TelemetryManager { get; } = telemetryManager;
     public IBrowserService BrowserService { get; } = browserService;
     public IThreadHandling ThreadHandling { get; } = threadHandling;
     public ILogger Logger { get; } = logger;
