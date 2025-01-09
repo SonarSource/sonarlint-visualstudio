@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Http;
 using SonarLint.VisualStudio.SLCore.Listener.Http.Model;
@@ -34,15 +35,21 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
     private readonly ICertificateChainValidator chainValidator;
     private readonly ICertificateDtoConverter certificateDtoConverter;
     private readonly ISystemProxyDetector proxySettingsDetector;
+    private readonly IServerCertificateInvalidNotification certificateInvalidNotification;
     private static readonly List<string> socksHosts = ["socks4", "socks5"];
 
     [ImportingConstructor]
-    public HttpConfigurationListener(ILogger logger, ICertificateChainValidator chainValidator, ICertificateDtoConverter certificateDtoConverter, ISystemProxyDetector proxySettingsDetector)
+    public HttpConfigurationListener(ILogger logger,
+        ICertificateChainValidator chainValidator,
+        ICertificateDtoConverter certificateDtoConverter,
+        ISystemProxyDetector proxySettingsDetector, 
+        IServerCertificateInvalidNotification certificateInvalidNotification)
     {
-        this.logger = logger;
+        this.logger = logger.ForContext(SLCoreStrings.SLCoreName, "Http");
         this.chainValidator = chainValidator;
         this.certificateDtoConverter = certificateDtoConverter;
         this.proxySettingsDetector = proxySettingsDetector;
+        this.certificateInvalidNotification = certificateInvalidNotification;
     }
 
     public Task<SelectProxiesResponse> SelectProxiesAsync(SelectProxiesParams parameters)
@@ -84,9 +91,22 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
     {
         logger.WriteLine(SLCoreStrings.HttpConfiguration_ServerTrustVerificationRequest);
         var verificationResult = VerifyChain(parameters.chain);
+        ShowInvalidCertificateIfNeeded(verificationResult);
         logger.WriteLine(SLCoreStrings.HttpConfiguration_ServerTrustVerificationResult, verificationResult);
 
         return Task.FromResult(new CheckServerTrustedResponse(verificationResult));
+    }
+
+    private void ShowInvalidCertificateIfNeeded(bool verificationResult)
+    {
+        if (!verificationResult)
+        {
+            certificateInvalidNotification.Show();
+        }
+        else
+        {
+            certificateInvalidNotification.Close();
+        }
     }
 
     private bool VerifyChain(List<X509CertificateDto> chain)

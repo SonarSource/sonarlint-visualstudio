@@ -35,17 +35,25 @@ public class HttpConfigurationListenerTests
     private ICertificateChainValidator certificateChainValidator;
     private ICertificateDtoConverter certificateDtoConverter;
     private ISystemProxyDetector proxySettingsDetector;
-    private TestLogger testLogger;
+    private ILogger logger;
     private HttpConfigurationListener testSubject;
+    private IServerCertificateInvalidNotification certificateInvalidNotification;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testLogger = new TestLogger();
+        logger = Substitute.For<ILogger>();
+        logger.ForContext(Arg.Any<string[]>()).Returns(logger);
         certificateChainValidator = Substitute.For<ICertificateChainValidator>();
         certificateDtoConverter = Substitute.For<ICertificateDtoConverter>();
         proxySettingsDetector = Substitute.For<ISystemProxyDetector>();
-        testSubject = new HttpConfigurationListener(testLogger, certificateChainValidator, certificateDtoConverter, proxySettingsDetector);
+        certificateInvalidNotification = Substitute.For<IServerCertificateInvalidNotification>();
+        
+        testSubject = new HttpConfigurationListener(logger,
+            certificateChainValidator,
+            certificateDtoConverter,
+            proxySettingsDetector,
+            certificateInvalidNotification);
     }
 
     [TestMethod]
@@ -54,11 +62,15 @@ public class HttpConfigurationListenerTests
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<ICertificateDtoConverter>(),
             MefTestHelpers.CreateExport<ICertificateChainValidator>(),
-            MefTestHelpers.CreateExport<ISystemProxyDetector>()
+            MefTestHelpers.CreateExport<ISystemProxyDetector>(),
+            MefTestHelpers.CreateExport<IServerCertificateInvalidNotification>()
         );
 
     [TestMethod]
     public void Mef_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<HttpConfigurationListener>();
+
+    [TestMethod]
+    public void Ctor_LogContextIsSet() => logger.Received(1).ForContext(SLCoreStrings.SLCoreName, "Http");
 
     [TestMethod]
     [DataRow("htpp://localhost")]
@@ -120,7 +132,7 @@ public class HttpConfigurationListenerTests
         var result = await testSubject.SelectProxiesAsync(parameter);
 
         result.proxies.Should().BeEquivalentTo([new ProxyDto(ProxyType.HTTP, SystemProxyHost, 1328)]);
-        testLogger.AssertOutputStringExists(string.Format(SLCoreStrings.UnknowProxyType, unknownScheme));
+        logger.Received(1).WriteLine(SLCoreStrings.UnknowProxyType, unknownScheme);
     }
 
     [DataTestMethod]
@@ -162,10 +174,34 @@ public class HttpConfigurationListenerTests
         var primaryCertificateDto = new X509CertificateDto("some certificate");
         var exceptionReason = "exception reason";
         certificateDtoConverter.Convert(primaryCertificateDto).Throws(new ArgumentException(exceptionReason));
+
         var response = await testSubject.CheckServerTrustedAsync(new CheckServerTrustedParams([primaryCertificateDto], "ignored"));
 
         response.trusted.Should().Be(false);
-        testLogger.AssertPartialOutputStringExists(exceptionReason);
+        logger.Received(1).WriteLine(Arg.Is<string>(x => x.Contains(exceptionReason)));
+    }
+
+    [TestMethod]
+    public async Task CheckServerTrustedAsync_CertificateIsNotValid_ShowsNotification()
+    {
+        var (primaryCertificateDto, primaryCertificate) = SetUpCertificate("some certificate");
+        certificateChainValidator.ValidateChain(primaryCertificate, Arg.Is<IEnumerable<X509Certificate2>>(x => !x.Any())).Returns(false);
+
+        await testSubject.CheckServerTrustedAsync(new CheckServerTrustedParams([primaryCertificateDto], "ignored"));
+
+        certificateInvalidNotification.Received(1).Show();
+    }
+
+    [TestMethod]
+    public async Task CheckServerTrustedAsync_CertificateIsValid_ClosesNotification()
+    {
+        var (primaryCertificateDto, primaryCertificate) = SetUpCertificate("some certificate");
+        certificateChainValidator.ValidateChain(primaryCertificate, Arg.Is<IEnumerable<X509Certificate2>>(x => !x.Any())).Returns(true);
+
+        await testSubject.CheckServerTrustedAsync(new CheckServerTrustedParams([primaryCertificateDto], "ignored"));
+
+        certificateInvalidNotification.DidNotReceive().Show();
+        certificateInvalidNotification.Received(1).Close();
     }
 
     private (X509CertificateDto certificateDto, X509Certificate2 certificate) SetUpCertificate(string certificateName)
@@ -181,4 +217,5 @@ public class HttpConfigurationListenerTests
     private void MockProxyConfigured(string hostName, int port) => proxySettingsDetector.GetProxyUri(Arg.Any<Uri>()).Returns(new Uri($"{hostName}:{port}"));
 
     private static string BuildUri(string scheme, string host) => $"{scheme}://{host}";
+
 }

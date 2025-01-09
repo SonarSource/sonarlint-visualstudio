@@ -163,10 +163,10 @@
     <value>Updated analysis readiness: {0}</value>
   </data>
   <data name="HttpConfiguration_ServerTrustVerificationRequest" xml:space="preserve">
-    <value>[SLCore.Http] Received server trust verification request...</value>
+    <value>Received server trust verification request...</value>
   </data>
   <data name="HttpConfiguration_ServerTrustVerificationResult" xml:space="preserve">
-    <value>[SLCore.Http] Server verification result: {0}</value>
+    <value>Server verification result: {0}</value>
   </data>
   <data name="UnexpectedServerConnectionType" xml:space="preserve">
     <value>Unexpected server connection type</value>
@@ -185,5 +185,14 @@
   </data>
   <data name="SLCoreName" xml:space="preserve">
     <value>SLCore</value>
+  </data>
+  <data name="ServerCertificateInfobar_CertificateInvalidMessage" xml:space="preserve">
+    <value>The server certificate can not be verified. Please see the logs for more info.</value>
+  </data>
+  <data name="ServerCertificateInfobar_LearnMore" xml:space="preserve">
+    <value>Learn more</value>
+  </data>
+  <data name="ServerCertificateInfobar_ShowLogs" xml:space="preserve">
+    <value>Show logs</value>
   </data>
 </root>

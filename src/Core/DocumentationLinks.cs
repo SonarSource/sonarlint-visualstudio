@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.Core
         public const string OpenInIdeIssueLocation = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/troubleshooting/#no-matching-issue-found";
         public const string OpenInIdeBindingSetup = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/troubleshooting/#no-matching-project-found";
         public const string UnbindingProject = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode-setup/#unbinding-a-project";
+        public const string SslCertificate = "https://docs.sonarsource.com/sonarqube-for-ide/intellij/team-features/advanced-configuration/#client-ssl-certificates";
 
         public static readonly Uri UnbindingProjectUri = new(UnbindingProject);
         public static readonly Uri ConnectedModeUri = new(ConnectedMode);
