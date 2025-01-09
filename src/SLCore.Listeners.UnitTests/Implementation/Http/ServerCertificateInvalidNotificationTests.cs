@@ -68,7 +68,9 @@ public class ServerCertificateInvalidNotificationTests
     {
         VerifyNotificationHasExpectedActions(x);
 
-        return x.Id == ServerCertificateInvalidNotification.ServerCertificateInvalidNotificationId && x.Message == SLCoreStrings.ServerCertificateInfobar_CertificateInvalidMessage;
+        return x.Id == ServerCertificateInvalidNotification.ServerCertificateInvalidNotificationId
+               && x.Message == SLCoreStrings.ServerCertificateInfobar_CertificateInvalidMessage
+               && !x.ShowOncePerSession;
     }
 
     private void VerifyNotificationHasExpectedActions(INotification notification)
