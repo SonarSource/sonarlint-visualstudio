@@ -18,100 +18,91 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using System.Text;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarQube.Client.Models;
+using static SonarQube.Client.Models.SonarQubeSoftwareQualitySeverity;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Binding
+namespace SonarLint.VisualStudio.ConnectedMode.Binding;
+
+public interface IGlobalConfigGenerator
 {
-    public interface IGlobalConfigGenerator
+    string Generate(IEnumerable<SonarQubeRule> rules);
+}
+
+public class GlobalConfigGenerator : IGlobalConfigGenerator
+{
+    private readonly IEnvironmentSettings environmentSettings;
+
+    private static readonly string inactiveRuleActionText = GetActionText(RuleAction.None);
+
+    public GlobalConfigGenerator() : this(new EnvironmentSettings()) { }
+
+    public GlobalConfigGenerator(IEnvironmentSettings environmentSettings)
     {
-        string Generate(IEnumerable<SonarQubeRule> rules);
+        this.environmentSettings = environmentSettings;
     }
 
-    public class GlobalConfigGenerator : IGlobalConfigGenerator
+    public string Generate(IEnumerable<SonarQubeRule> rules)
     {
-        private readonly IEnvironmentSettings environmentSettings;
-
-        private static readonly string inactiveRuleActionText = GetActionText(RuleAction.None);
-
-        public GlobalConfigGenerator() : this(new EnvironmentSettings()) { }
-
-        public GlobalConfigGenerator(IEnvironmentSettings environmentSettings)
+        if (rules == null)
         {
-            this.environmentSettings = environmentSettings;
+            throw new ArgumentNullException(nameof(rules));
         }
 
-        public string Generate(IEnumerable<SonarQubeRule> rules)
+        var sb = new StringBuilder();
+
+        sb.AppendLine("is_global=true");
+        sb.AppendLine("global_level=1999999999");
+
+        var sortedRules = rules.OrderBy(r => r.Key);
+
+        foreach (var rule in sortedRules)
         {
-            if (rules == null)
-            {
-                throw new ArgumentNullException(nameof(rules));
-            }
+            var severityText = rule.IsActive ? GetActionText(GetVsSeverity(rule)) : inactiveRuleActionText;
 
-            var sb = new StringBuilder();
-
-            sb.AppendLine("is_global=true");
-            sb.AppendLine("global_level=1999999999");
-
-            var sortedRules = rules.OrderBy(r => r.Key);
-
-            foreach (var rule in sortedRules)
-            {
-                var severityText = (rule.IsActive) ? GetActionText(GetVsSeverity(rule.Severity)) : inactiveRuleActionText;
-
-                sb.AppendLine($"dotnet_diagnostic.{rule.Key}.severity = {severityText}");
-            }
-
-            return sb.ToString();
+            sb.AppendLine($"dotnet_diagnostic.{rule.Key}.severity = {severityText}");
         }
 
-        internal /* for testing */ RuleAction GetVsSeverity(SonarQubeIssueSeverity sqSeverity)
-        {
-            switch (sqSeverity)
-            {
-                case SonarQubeIssueSeverity.Info:
-                case SonarQubeIssueSeverity.Minor:
-                    return RuleAction.Info;
-
-                case SonarQubeIssueSeverity.Major:
-                case SonarQubeIssueSeverity.Critical:
-                    return RuleAction.Warning;
-
-                case SonarQubeIssueSeverity.Blocker:
-                    return environmentSettings.TreatBlockerSeverityAsError() ? RuleAction.Error : RuleAction.Warning;
-
-                default:
-                    throw new NotSupportedException($"Unsupported SonarQube issue severity: {sqSeverity}");
-            }
-        }
-        // See https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/configuration-options#severity-level
-        internal /* for testing */ static string GetActionText(RuleAction ruleAction)
-        {
-            switch (ruleAction)
-            {
-                case RuleAction.None:
-                    return "none";
-
-                case RuleAction.Info:
-                    return "suggestion";
-
-                case RuleAction.Warning:
-                    return "warning";
-
-                case RuleAction.Error:
-                    return "error";
-
-                case RuleAction.Hidden:
-                    return "silent";
-
-                default:
-                    throw new NotSupportedException($"{ruleAction} is not a supported RuleAction.");
-            }
-        }
+        return sb.ToString();
     }
+
+    internal  /* for testing */ RuleAction GetVsSeverity(SonarQubeRule rule) =>
+        GetVsSeverity(rule.SoftwareQualitySeverities?.Values) ?? GetVsSeverity(rule.Severity);
+
+    internal  /* for testing */ RuleAction? GetVsSeverity(ICollection<SonarQubeSoftwareQualitySeverity> severities) =>
+        severities is not { Count: > 0 }
+            ? null
+            : GetVsSeverity(severities.Max());
+
+    private RuleAction GetVsSeverity(SonarQubeSoftwareQualitySeverity severity) =>
+        severity switch
+        {
+            Blocker or High => environmentSettings.TreatBlockerSeverityAsError() ? RuleAction.Error : RuleAction.Warning,
+            Medium => RuleAction.Warning,
+            Low or Info => RuleAction.Info,
+            _ => throw new NotSupportedException($"Unsupported SonarQube issue severity: {severity}")
+        };
+
+    internal /* for testing */ RuleAction GetVsSeverity(SonarQubeIssueSeverity sqSeverity) =>
+        sqSeverity switch
+        {
+            SonarQubeIssueSeverity.Info or SonarQubeIssueSeverity.Minor => RuleAction.Info,
+            SonarQubeIssueSeverity.Major or SonarQubeIssueSeverity.Critical => RuleAction.Warning,
+            SonarQubeIssueSeverity.Blocker => environmentSettings.TreatBlockerSeverityAsError() ? RuleAction.Error : RuleAction.Warning,
+            _ => throw new NotSupportedException($"Unsupported SonarQube issue severity: {sqSeverity}")
+        };
+
+    // See https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/configuration-options#severity-level
+    internal /* for testing */ static string GetActionText(RuleAction ruleAction) =>
+        ruleAction switch
+        {
+            RuleAction.None => "none",
+            RuleAction.Info => "suggestion",
+            RuleAction.Warning => "warning",
+            RuleAction.Error => "error",
+            RuleAction.Hidden => "silent",
+            _ => throw new NotSupportedException($"{ruleAction} is not a supported RuleAction.")
+        };
 }
