@@ -22,31 +22,35 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Navigation;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Telemetry;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
+namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
+
+[ExcludeFromCodeCoverage] // UI, not really unit-testable
+public partial class ServerSelectionDialog : Window
 {
-    [ExcludeFromCodeCoverage] // UI, not really unit-testable
-    public partial class ServerSelectionDialog : Window
+    private readonly IBrowserService browserService;
+    private readonly ITelemetryManager telemetryManager;
+
+    public ServerSelectionViewModel ViewModel { get; } = new();
+
+    public ServerSelectionDialog(IBrowserService browserService, ITelemetryManager telemetryManager)
     {
-        private readonly IBrowserService browserService;
+        this.browserService = browserService;
+        this.telemetryManager = telemetryManager;
+        InitializeComponent();
+    }
 
-        public ServerSelectionDialog(IBrowserService browserService)
-        {
-            this.browserService = browserService;
-            InitializeComponent();
-        }
+    private void FreeSonaQubeCloudFreeTier_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
+    {
+        var telemetryLinkId = TelemetryLinks.SonarQubeCloudFreeSignUpId;
+        browserService.Navigate(TelemetryLinks.LinkIdToUrls[telemetryLinkId]);
+        telemetryManager.LinkClicked(telemetryLinkId);
+    }
 
-        public ServerSelectionViewModel ViewModel { get; } = new();
-
-        private void ViewWebsite(object sender, RequestNavigateEventArgs e)
-        {
-            browserService.Navigate(e.Uri.AbsoluteUri);
-        }
-
-        private void OkButton_OnClick(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
-            Close();
-        }
+    private void OkButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        DialogResult = true;
+        Close();
     }
 }

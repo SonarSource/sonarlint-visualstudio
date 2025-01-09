@@ -20,19 +20,9 @@
 
 namespace SonarLint.VisualStudio.Core.Telemetry;
 
-public interface ITelemetryManager
+public static class TelemetryLinks
 {
-    SlCoreTelemetryStatus GetStatus();
+    public const string SonarQubeCloudFreeSignUpId = "sonarqubeCloudFreeSignUp";
 
-    void OptOut();
-
-    void OptIn();
-
-    void LanguageAnalyzed(string languageKey, TimeSpan analysisTime);
-
-    void TaintIssueInvestigatedLocally();
-
-    void TaintIssueInvestigatedRemotely();
-
-    void LinkClicked(string linkId);
+    public static Dictionary<string, string> LinkIdToUrls { get; } = new() { { SonarQubeCloudFreeSignUpId, "https://www.sonarsource.com/products/sonarcloud/signup-free/" } };
 }
