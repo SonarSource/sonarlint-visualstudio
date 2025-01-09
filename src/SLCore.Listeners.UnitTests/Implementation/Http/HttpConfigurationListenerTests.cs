@@ -38,9 +38,7 @@ public class HttpConfigurationListenerTests
     private ISystemProxyDetector proxySettingsDetector;
     private TestLogger testLogger;
     private HttpConfigurationListener testSubject;
-    private INotificationService notificationService;
-    private IBrowserService browserService;
-    private IOutputWindowService outputWindowService;
+    private IServerCertificateInvalidNotification certificateInvalidNotification;
 
     [TestInitialize]
     public void TestInitialize()
@@ -49,17 +47,13 @@ public class HttpConfigurationListenerTests
         certificateChainValidator = Substitute.For<ICertificateChainValidator>();
         certificateDtoConverter = Substitute.For<ICertificateDtoConverter>();
         proxySettingsDetector = Substitute.For<ISystemProxyDetector>();
-        notificationService = Substitute.For<INotificationService>();
-        browserService = Substitute.For<IBrowserService>();
-        outputWindowService = Substitute.For<IOutputWindowService>();
+        certificateInvalidNotification = Substitute.For<IServerCertificateInvalidNotification>();
 
         testSubject = new HttpConfigurationListener(testLogger,
             certificateChainValidator,
             certificateDtoConverter,
             proxySettingsDetector,
-            notificationService,
-            browserService,
-            outputWindowService);
+            certificateInvalidNotification);
     }
 
     [TestMethod]
@@ -69,9 +63,7 @@ public class HttpConfigurationListenerTests
             MefTestHelpers.CreateExport<ICertificateDtoConverter>(),
             MefTestHelpers.CreateExport<ICertificateChainValidator>(),
             MefTestHelpers.CreateExport<ISystemProxyDetector>(),
-            MefTestHelpers.CreateExport<INotificationService>(),
-            MefTestHelpers.CreateExport<IBrowserService>(),
-            MefTestHelpers.CreateExport<IOutputWindowService>()
+            MefTestHelpers.CreateExport<IServerCertificateInvalidNotification>()
         );
 
     [TestMethod]
@@ -193,7 +185,7 @@ public class HttpConfigurationListenerTests
 
         await testSubject.CheckServerTrustedAsync(new CheckServerTrustedParams([primaryCertificateDto], "ignored"));
 
-        notificationService.Received(1).ShowNotification(Arg.Is<INotification>(x => IsExpectedNotification(x)));
+        certificateInvalidNotification.Received(1).Show();
     }
 
     [TestMethod]
@@ -204,7 +196,7 @@ public class HttpConfigurationListenerTests
 
         await testSubject.CheckServerTrustedAsync(new CheckServerTrustedParams([primaryCertificateDto], "ignored"));
 
-        notificationService.DidNotReceive().ShowNotification(Arg.Any<INotification>());
+        certificateInvalidNotification.DidNotReceive().Show();
     }
 
     private (X509CertificateDto certificateDto, X509Certificate2 certificate) SetUpCertificate(string certificateName)
@@ -221,24 +213,4 @@ public class HttpConfigurationListenerTests
 
     private static string BuildUri(string scheme, string host) => $"{scheme}://{host}";
 
-    private bool IsExpectedNotification(INotification x)
-    {
-        VerifyNotificationHasExpectedActions(x);
-
-        return x.Id == HttpConfigurationListener.ServerCertificateInvalidNotificationId && x.Message == SLCoreStrings.ServerCertificateInfobar_CertificateInvalidMessage;
-    }
-
-    private void VerifyNotificationHasExpectedActions(INotification notification)
-    {
-        notification.Actions.Should().HaveCount(2);
-        notification.Actions.Should().Contain(x => IsExpectedAction(x, SLCoreStrings.ServerCertificateInfobar_LearnMore));
-        notification.Actions.Should().Contain(x => IsExpectedAction(x, SLCoreStrings.ServerCertificateInfobar_ShowLogs));
-
-        notification.Actions.First().Action.Invoke(null);
-        notification.Actions.Last().Action.Invoke(null);
-        browserService.Received(1).Navigate(DocumentationLinks.SslCertificate);
-        outputWindowService.Received(1).Show();
-    }
-
-    private static bool IsExpectedAction(INotificationAction notificationAction, string expectedText) => notificationAction.CommandText == expectedText && !notificationAction.ShouldDismissAfterAction;
 }
