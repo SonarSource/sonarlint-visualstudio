@@ -223,7 +223,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Discover which connection is best for your team .
+        ///   Looks up a localized string similar to Explore SonarQube Cloud with our .
         /// </summary>
         public static string ConnectionDiscoveringText {
             get {
@@ -453,24 +453,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string FetchingBindingStatusText {
             get {
                 return ResourceManager.GetString("FetchingBindingStatusText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to is entirely free for open source projects.
-        /// </summary>
-        public static string FreeSonarCloudOfferDescription {
-            get {
-                return ResourceManager.GetString("FreeSonarCloudOfferDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarQube Server offers a free.
-        /// </summary>
-        public static string FreeSonarQubeOfferDescription {
-            get {
-                return ResourceManager.GetString("FreeSonarQubeOfferDescription", resourceCulture);
             }
         }
         
