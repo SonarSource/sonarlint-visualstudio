@@ -64,6 +64,14 @@ public class ServerCertificateInvalidNotificationTests
         notificationService.Received(1).ShowNotification(Arg.Is<INotification>(x => IsExpectedNotification(x)));
     }
 
+    [TestMethod]
+    public void Close_ClosesNotification()
+    {
+        testSubject.Close();
+
+        notificationService.Received(1).CloseNotification();
+    }
+
     private bool IsExpectedNotification(INotification x)
     {
         VerifyNotificationHasExpectedActions(x);

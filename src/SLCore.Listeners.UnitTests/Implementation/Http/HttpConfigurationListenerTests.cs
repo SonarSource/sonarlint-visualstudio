@@ -48,7 +48,7 @@ public class HttpConfigurationListenerTests
         certificateDtoConverter = Substitute.For<ICertificateDtoConverter>();
         proxySettingsDetector = Substitute.For<ISystemProxyDetector>();
         certificateInvalidNotification = Substitute.For<IServerCertificateInvalidNotification>();
-
+        
         testSubject = new HttpConfigurationListener(logger,
             certificateChainValidator,
             certificateDtoConverter,
@@ -193,7 +193,7 @@ public class HttpConfigurationListenerTests
     }
 
     [TestMethod]
-    public async Task CheckServerTrustedAsync_CertificateIsValid_DoesNotShowNotification()
+    public async Task CheckServerTrustedAsync_CertificateIsValid_ClosesNotification()
     {
         var (primaryCertificateDto, primaryCertificate) = SetUpCertificate("some certificate");
         certificateChainValidator.ValidateChain(primaryCertificate, Arg.Is<IEnumerable<X509Certificate2>>(x => !x.Any())).Returns(true);
@@ -201,6 +201,7 @@ public class HttpConfigurationListenerTests
         await testSubject.CheckServerTrustedAsync(new CheckServerTrustedParams([primaryCertificateDto], "ignored"));
 
         certificateInvalidNotification.DidNotReceive().Show();
+        certificateInvalidNotification.Received(1).Close();
     }
 
     private (X509CertificateDto certificateDto, X509Certificate2 certificate) SetUpCertificate(string certificateName)

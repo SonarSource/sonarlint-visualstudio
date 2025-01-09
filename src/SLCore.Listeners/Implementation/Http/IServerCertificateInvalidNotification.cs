@@ -27,6 +27,8 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation.Http;
 internal interface IServerCertificateInvalidNotification
 {
     void Show();
+
+    void Close();
 }
 
 [method: ImportingConstructor]
@@ -41,6 +43,8 @@ public class ServerCertificateInvalidNotification(
     internal const string ServerCertificateInvalidNotificationId = "ServerCertificateInvalidNotificationId";
 
     public void Show() => notificationService.ShowNotification(GetServerCertificateInvalidNotification());
+
+    public void Close() => notificationService.CloseNotification();
 
     private VisualStudio.Core.Notifications.Notification GetServerCertificateInvalidNotification() =>
         new(ServerCertificateInvalidNotificationId,

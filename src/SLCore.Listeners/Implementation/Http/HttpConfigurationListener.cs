@@ -91,13 +91,22 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
     {
         logger.WriteLine(SLCoreStrings.HttpConfiguration_ServerTrustVerificationRequest);
         var verificationResult = VerifyChain(parameters.chain);
+        ShowInvalidCertificateIfNeeded(verificationResult);
+        logger.WriteLine(SLCoreStrings.HttpConfiguration_ServerTrustVerificationResult, verificationResult);
+
+        return Task.FromResult(new CheckServerTrustedResponse(verificationResult));
+    }
+
+    private void ShowInvalidCertificateIfNeeded(bool verificationResult)
+    {
         if (!verificationResult)
         {
             certificateInvalidNotification.Show();
         }
-        logger.WriteLine(SLCoreStrings.HttpConfiguration_ServerTrustVerificationResult, verificationResult);
-
-        return Task.FromResult(new CheckServerTrustedResponse(verificationResult));
+        else
+        {
+            certificateInvalidNotification.Close();
+        }
     }
 
     private bool VerifyChain(List<X509CertificateDto> chain)
