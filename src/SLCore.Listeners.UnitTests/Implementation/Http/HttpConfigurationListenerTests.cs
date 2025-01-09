@@ -21,7 +21,6 @@
 using System.Security.Cryptography.X509Certificates;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Http;
 using SonarLint.VisualStudio.SLCore.Listener.Http.Model;
@@ -36,20 +35,21 @@ public class HttpConfigurationListenerTests
     private ICertificateChainValidator certificateChainValidator;
     private ICertificateDtoConverter certificateDtoConverter;
     private ISystemProxyDetector proxySettingsDetector;
-    private TestLogger testLogger;
+    private ILogger logger;
     private HttpConfigurationListener testSubject;
     private IServerCertificateInvalidNotification certificateInvalidNotification;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testLogger = new TestLogger();
+        logger = Substitute.For<ILogger>();
+        logger.ForContext(Arg.Any<string[]>()).Returns(logger);
         certificateChainValidator = Substitute.For<ICertificateChainValidator>();
         certificateDtoConverter = Substitute.For<ICertificateDtoConverter>();
         proxySettingsDetector = Substitute.For<ISystemProxyDetector>();
         certificateInvalidNotification = Substitute.For<IServerCertificateInvalidNotification>();
 
-        testSubject = new HttpConfigurationListener(testLogger,
+        testSubject = new HttpConfigurationListener(logger,
             certificateChainValidator,
             certificateDtoConverter,
             proxySettingsDetector,
@@ -68,6 +68,9 @@ public class HttpConfigurationListenerTests
 
     [TestMethod]
     public void Mef_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<HttpConfigurationListener>();
+
+    [TestMethod]
+    public void Ctor_LogContextIsSet() => logger.Received(1).ForContext(SLCoreStrings.SLCoreName, "Http");
 
     [TestMethod]
     [DataRow("htpp://localhost")]
@@ -129,7 +132,7 @@ public class HttpConfigurationListenerTests
         var result = await testSubject.SelectProxiesAsync(parameter);
 
         result.proxies.Should().BeEquivalentTo([new ProxyDto(ProxyType.HTTP, SystemProxyHost, 1328)]);
-        testLogger.AssertOutputStringExists(string.Format(SLCoreStrings.UnknowProxyType, unknownScheme));
+        logger.Received(1).WriteLine(SLCoreStrings.UnknowProxyType, unknownScheme);
     }
 
     [DataTestMethod]
@@ -171,10 +174,11 @@ public class HttpConfigurationListenerTests
         var primaryCertificateDto = new X509CertificateDto("some certificate");
         var exceptionReason = "exception reason";
         certificateDtoConverter.Convert(primaryCertificateDto).Throws(new ArgumentException(exceptionReason));
+
         var response = await testSubject.CheckServerTrustedAsync(new CheckServerTrustedParams([primaryCertificateDto], "ignored"));
 
         response.trusted.Should().Be(false);
-        testLogger.AssertPartialOutputStringExists(exceptionReason);
+        logger.Received(1).WriteLine(Arg.Is<string>(x => x.Contains(exceptionReason)));
     }
 
     [TestMethod]

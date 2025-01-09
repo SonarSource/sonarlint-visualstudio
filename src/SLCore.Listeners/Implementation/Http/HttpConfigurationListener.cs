@@ -45,7 +45,7 @@ internal class HttpConfigurationListener : IHttpConfigurationListener
         ISystemProxyDetector proxySettingsDetector, 
         IServerCertificateInvalidNotification certificateInvalidNotification)
     {
-        this.logger = logger;
+        this.logger = logger.ForContext(SLCoreStrings.SLCoreName, "Http");
         this.chainValidator = chainValidator;
         this.certificateDtoConverter = certificateDtoConverter;
         this.proxySettingsDetector = proxySettingsDetector;
