@@ -121,10 +121,28 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
 
             (string result1, string result2) = testSubject.GetDiffXaml(input1, input2);
 
-            result1.Should().BeEquivalentTo(
-                "<Span Style=\"{DynamicResource NonCompliant_Diff}\">\n  <Span Style=\"{DynamicResource Sub_NonCompliant_Diff}\">} </Span>\n  <Span Style=\"{DynamicResource Sub_NonCompliant_Diff}\">if</Span>\n  <Span Style=\"{DynamicResource Sub_NonCompliant_Diff}\"> (</Span>\n  <Span Style=\"{DynamicResource Sub_NonCompliant_Diff}\">condition2</Span>\n  <Span Style=\"{DynamicResource Sub_NonCompliant_Diff}\">) {</Span>\n</Span>\n");
+            result1.Should().BeEquivalentTo("<Span Style=\"{DynamicResource NonCompliant_Diff}\">\n  <Span Style=\"{DynamicResource Sub_NonCompliant_Diff}\">} if (condition2) {</Span>\n</Span>\n");
             result2.Should().BeEquivalentTo(
                 "<Span Style=\"{DynamicResource Compliant_Diff}\">\n  <Span Style=\"{DynamicResource Sub_Compliant_Diff}\">}</Span>\n</Span>\n<Span Style=\"{DynamicResource Compliant_Diff}\">if (condition2) {</Span>");
+        }
+
+        /// <summary>
+        /// Making sure that all consecutive changed sub-pieces are grouped together is needed to ensure that html escape characters (e.g. &#39;)
+        /// that end up in different sup-pieces will be rendered correctly in the UI
+        /// </summary>
+        [TestMethod]
+        public void GetDiffXaml_LineHasHasConsecutiveChangedSubPieces_GroupsConsecutiveSubPiecesInOneSpan()
+        {
+            var input1 = "var a; // Noncompliant var b=2;";
+            var input2 = "var a; ";
+
+            var testSubject = CreateTestSubject();
+
+            (string result1, string result2) = testSubject.GetDiffXaml(input1, input2);
+
+            result1.Should().BeEquivalentTo(
+                "<Span Style=\"{DynamicResource NonCompliant_Diff}\">var a; <Span Style=\"{DynamicResource Sub_NonCompliant_Diff}\">// Noncompliant var b=2;</Span></Span>");
+            result2.Should().BeEquivalentTo("<Span Style=\"{DynamicResource Compliant_Diff}\">var a; </Span>");
         }
 
         private static DiffTranslator CreateTestSubject(IXamlWriterFactory xamlWriterFactory = null)

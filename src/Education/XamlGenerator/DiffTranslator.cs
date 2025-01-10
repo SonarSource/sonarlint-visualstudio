@@ -68,7 +68,10 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             {
                 var line = lines[i];
 
-                if (string.IsNullOrEmpty(line.Text)) continue;
+                if (string.IsNullOrEmpty(line.Text))
+                {
+                    continue;
+                }
 
                 if (line.Type != ChangeType.Unchanged)
                 {
@@ -99,7 +102,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
             return sb.ToString();
         }
 
-        private void WriteSubPieces(XmlWriter writer, StyleResourceNames style, DiffPiece line)
+        private static void WriteSubPieces(XmlWriter writer, StyleResourceNames style, DiffPiece line)
         {
             if (line.SubPieces.Count == 0)
             {
@@ -107,15 +110,29 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 return;
             }
 
-            foreach (var subPiece in line.SubPieces)
+            for (var i = 0; i < line.SubPieces.Count; i++)
             {
-                if (string.IsNullOrEmpty(subPiece.Text)) continue;
+                var subPiece = line.SubPieces[i];
+                if (IsSubPieceEmpty(subPiece))
+                {
+                    continue;
+                }
 
                 if (subPiece.Type != ChangeType.Unchanged)
                 {
                     writer.WriteStartElement("Span");
                     writer.ApplyStyleToElement(style);
                     writer.WriteString(subPiece.Text);
+                    // group all consecutive changed sub-pieces in the same span
+                    // this is needed to prevent html escape characters (e.g. &#39;) which end up in different sup-pieces to be split into different spans,
+                    // which then won't be rendered correctly in the UI 
+                    while (IsNextSubPieceChanged(line, i))
+                    {
+                        i++;
+                        var nextSupPiece = line.SubPieces[i];
+                        writer.WriteString(nextSupPiece.Text);
+                    }
+
                     writer.WriteEndElement();
                 }
                 else
@@ -123,6 +140,18 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     writer.WriteString(subPiece.Text);
                 }
             }
+        }
+
+        private static bool IsSubPieceEmpty(DiffPiece subPiece) => string.IsNullOrEmpty(subPiece.Text);
+
+        private static bool IsNextSubPieceChanged(DiffPiece line, int currentPosition)
+        {
+            if (currentPosition >= line.SubPieces.Count - 1)
+            {
+                return false;
+            }
+            var nextSupPiece = line.SubPieces[currentPosition + 1];
+            return !IsSubPieceEmpty(nextSupPiece) && nextSupPiece.Type != ChangeType.Unchanged;
         }
     }
 }
