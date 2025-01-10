@@ -31,7 +31,6 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class ActiveSolutionTracker : IActiveSolutionTracker, IVsSolutionEvents, IDisposable, IVsSolutionEvents7
     {
-        private readonly IFolderWorkspaceService folderWorkspaceService;
         private readonly ISolutionInfoProvider solutionInfoProvider;
         private bool isDisposed;
         private readonly IVsSolution solution;
@@ -45,9 +44,8 @@ namespace SonarLint.VisualStudio.Integration
         public event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
 
         [ImportingConstructor]
-        public ActiveSolutionTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IFolderWorkspaceService folderWorkspaceService, ISolutionInfoProvider solutionInfoProvider)
+        public ActiveSolutionTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ISolutionInfoProvider solutionInfoProvider)
         {
-            this.folderWorkspaceService = folderWorkspaceService;
             this.solutionInfoProvider = solutionInfoProvider;
             this.solution = serviceProvider.GetService<SVsSolution, IVsSolution>();
             Debug.Assert(this.solution != null, "Cannot find IVsSolution");
