@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
 
             // Assert
             request.Should().NotBeNull();
-            Assert.AreEqual("\"C:\\path\\cl.exe\" /permissive- /std:c++17 /EHsc /arch:AVX512 /MT /RTCu /Zp8 /TP /DA \"c:\\dummy\\file.cpp\"", request.CDCommand);
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /permissive- /TP /std:c++17 /EHsc /arch:AVX512 /MT /RTCu /Zp8 /DA \"c:\\dummy\\file.cpp\"", request.CDCommand);
             Assert.AreEqual("C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;", request.EnvInclude);
             Assert.AreEqual("c:\\dummy\\file.cpp", request.CDFile);
             Assert.AreEqual("c:\\foo", request.CDDirectory);
@@ -189,7 +189,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
 
             // Assert
             request.Should().NotBeNull();
-            Assert.AreEqual("\"C:\\path\\cl.exe\" /Yu\"pch.h\" /FI\"pch.h\" /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /Yu\"pch.h\" /FI\"pch.h\" /TP /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
             Assert.AreEqual("c:\\dummy\\file.h", request.CDFile);
             Assert.IsTrue(request.IsHeaderFile);
 
@@ -201,7 +201,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h", CreateFileSystemWithClCompiler());
 
             // Assert
-            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu /TC \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /TC /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
             Assert.AreEqual("c:\\dummy\\file.h", request.CDFile);
             Assert.IsTrue(request.IsHeaderFile);
 
@@ -212,7 +212,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h", CreateFileSystemWithClCompiler());
 
             // Assert
-            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu /TP \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /TP /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
             Assert.AreEqual("c:\\dummy\\file.h", request.CDFile);
             Assert.IsTrue(request.IsHeaderFile);
         }
