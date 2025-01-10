@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             }
 
             bool isHeaderFile = vcFile.ItemType == "ClInclude";
-            CmdBuilder cmdBuilder = new CmdBuilder(isHeaderFile);
+            CmdBuilder cmdBuilder = new CmdBuilder(isHeaderFile, new LanguageFlagsProvider(vcFile.ContentType));
 
             if (!GetCompilerPath(logger, vcConfig, fileSystem, out var compilerPath))
             {
@@ -65,10 +65,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             cmdBuilder.AddFile(absoluteFilePath);
             var envINCLUDE = vcConfig.GetEvaluatedPropertyValue("IncludePath");
 
+            var cdCommand = cmdBuilder.GetFullCmd();
+
+            logger.LogVerbose("Compile command: " + cdCommand);
+
             return new FileConfig
             {
                 CDDirectory = Path.GetDirectoryName(vcProject.ProjectFile),
-                CDCommand = cmdBuilder.GetFullCmd(),
+                CDCommand = cdCommand,
                 CDFile = absoluteFilePath,
                 EnvInclude = envINCLUDE,
                 IsHeaderFile = isHeaderFile,

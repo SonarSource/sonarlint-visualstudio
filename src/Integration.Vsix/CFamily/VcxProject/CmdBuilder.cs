@@ -37,12 +37,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             RegexOptions.Compiled,
             Core.RegexConstants.DefaultTimeout);
 
+        private readonly ILanguageFlagsProvider languageFlagsProvider;
         StringBuilder Cmd { get; set; } = new StringBuilder();
         bool IsHeader { get; set; }
 
-        public CmdBuilder(bool isHeader)
+        public CmdBuilder(bool isHeader, ILanguageFlagsProvider languageFlagsProvider)
         {
             IsHeader = isHeader;
+            this.languageFlagsProvider = languageFlagsProvider;
         }
 
         public string GetFullCmd()
@@ -141,11 +143,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             AddTrueFalse(properties, "ConformanceMode", "/permissive-", "/permissive");
 
             // enum options
-            var cppStandard = GetPotentiallyUnsupportedPropertyValue(properties, "LanguageStandard", "");
-            AddCmdOpt(ConvertCppStandard(cppStandard));
 
-            var cStandard = GetPotentiallyUnsupportedPropertyValue(properties, "LanguageStandard_C", "");
-            AddCmdOpt(ConvertCStandard(cStandard));
+            AddLanguageFlags(properties);
 
             var exceptionHandling = properties.GetEvaluatedPropertyValue("ExceptionHandling");
             AddCmdOpt(ConvertExceptionHandling(exceptionHandling));
@@ -165,12 +164,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             var structMemberAlignment = GetPotentiallyUnsupportedPropertyValue(properties, "StructMemberAlignment", "");
             AddCmdOpt(ConvertStructMemberAlignment(structMemberAlignment));
 
-            var compileAs = properties.GetEvaluatedPropertyValue("CompileAs");
-            AddCmdOpt(ConvertCompileAsAndGetLanguage(compileAs));
-
             // Additional options
             var additionalOptions = properties.GetEvaluatedPropertyValue("AdditionalOptions");
             AddCmdOpt(additionalOptions);
+        }
+
+        private void AddLanguageFlags(IVCRulePropertyStorage properties)
+        {
+            var (compileAsFlag, languageStandardFlag) = languageFlagsProvider.GetLanguageConfiguration(
+                GetPotentiallyUnsupportedPropertyValue(properties, "CompileAs", ""),
+                GetPotentiallyUnsupportedPropertyValue(properties, "LanguageStandard_C", ""),
+                GetPotentiallyUnsupportedPropertyValue(properties, "LanguageStandard", ""));
+
+            AddCmdOpt(compileAsFlag);
+            AddCmdOpt(languageStandardFlag);
         }
 
         private void AddListOptions(IVCRulePropertyStorage ivcRulePropertyStorage, string vsOption, string compileOption, string[] separator, bool addQuote = true)
@@ -233,22 +240,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                     return "/Zp2";
                 case "1Bytes":
                     return "/Zp1";
-            }
-        }
-
-        internal /* for testing */ static string ConvertCompileAsAndGetLanguage(string value)
-        {
-            switch (value)
-            {
-                default:
-                    throw new ArgumentException($"Unsupported CompileAs: {value}", nameof(value));
-                case "": // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
-                case "Default":
-                    return "";
-                case "CompileAsC":
-                    return "/TC";
-                case "CompileAsCpp":
-                    return "/TP";
             }
         }
 
@@ -353,47 +344,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             }
         }
 
-        internal /* for testing */ static string ConvertCppStandard(string value)
-        {
-            switch (value)
-            {
-                default:
-                    throw new ArgumentException($"Unsupported LanguageStandard: {value}", nameof(value));
-                case null:
-                case "":
-                case "Default":
-                    return "";
-                case "stdcpplatest":
-                    return "/std:c++latest";
-                case "stdcpp20":
-                    return "/std:c++20";
-                case "stdcpp17":
-                    return "/std:c++17";
-                case "stdcpp14":
-                    return "/std:c++14";
-            }
-        }
 
-        internal /* for testing */ static string ConvertCStandard(string value)
-        {
-            switch (value)
-            {
-                default:
-                    throw new ArgumentException($"Unsupported LanguageStandard_C: {value}", nameof(value));
-                case null:
-                case "":
-                case "Default":
-                    return "";
-                case "stdclatest":
-                    return "/std:clatest";
-                case "stdc23":
-                    return "/std:c23";
-                case "stdc17":
-                    return "/std:c17";
-                case "stdc11":
-                    return "/std:c11";
-            }
-        }
 
         /// <summary>
         /// Returns the value of a property that might not be supported by the current version of the compiler.
