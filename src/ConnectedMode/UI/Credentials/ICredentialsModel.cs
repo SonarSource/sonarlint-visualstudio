@@ -35,11 +35,3 @@ public class TokenCredentialsModel(SecureString token) : ICredentialsModel
 
     public IConnectionCredentials ToICredentials() => new TokenAuthCredentials(Token);
 }
-
-public class UsernamePasswordModel(string username, SecureString password) : ICredentialsModel
-{
-    public string Username { get; } = username;
-    public SecureString Password { get; } = password;
-
-    public IConnectionCredentials ToICredentials() => new UsernameAndPasswordCredentials(Username, Password);
-}
