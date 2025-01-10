@@ -5,6 +5,7 @@ env:
   CIRRUS_SHELL: bash
   USERPROFILE: C:\sonar-ci # Fixes error MSB3073 and path too long issue with restored packages
   TMP_DIR: C:\sonar-ci\temp
+  MSVC: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.40.33807\bin\Hostx64\x64\cl.exe # Required for CFamily integration tests
 
 ec2_instance_definition: &INSTANCE_DEFINITION
   region: eu-central-1
