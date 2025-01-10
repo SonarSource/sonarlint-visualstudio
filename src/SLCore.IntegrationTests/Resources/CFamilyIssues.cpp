@@ -4,7 +4,10 @@ using namespace std;
 
 int main()
 {
-    // TODO: Test
+    // TODO: This is an issue
     cout << "Hello CMake." << endl;
+    
+    int* a = NULL; // Some more issues
+    
     return 0;
 }

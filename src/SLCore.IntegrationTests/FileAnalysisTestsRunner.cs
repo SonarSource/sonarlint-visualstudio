@@ -227,7 +227,10 @@ internal class CFamilyIssuesFile : ITestingFile
 
     public List<TestIssue> ExpectedIssues =>
     [
-        new("cpp:S1135", new TextRangeDto(7, 4, 7, 17), CleanCodeAttribute.COMPLETE, 0),
+        new("cpp:S1135", new TextRangeDto(7, 4, 7, 29), CleanCodeAttribute.COMPLETE, 0),
+        new("cpp:S1481", new TextRangeDto(10, 9, 10, 10), CleanCodeAttribute.CLEAR, 0),
+        new("cpp:S5350", new TextRangeDto(10, 4, 10, 17), CleanCodeAttribute.CLEAR, 0),
+        new("cpp:S4962", new TextRangeDto(10, 13, 10, 17), CleanCodeAttribute.CONVENTIONAL, 0),
     ];
 }
 
