@@ -30,30 +30,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnectionAdapter slCoreConnectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
     private SecureString token = new();
-    private string selectedAuthenticationType = UiResources.AuthenticationTypeOptionToken;
     private string username;
     private SecureString password = new();
 
     public ConnectionInfo ConnectionInfo { get; } = connectionInfo;
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
-    public ObservableCollection<string> AuthenticationType { get; } = [UiResources.AuthenticationTypeOptionToken, UiResources.AuthenticationTypeOptionCredentials];
-
-    public string SelectedAuthenticationType
-    {
-        get => selectedAuthenticationType;
-        set
-        {
-            selectedAuthenticationType = value;
-            ProgressReporterViewModel.Warning = null;
-            RaisePropertyChanged();
-            RaisePropertyChanged(nameof(IsTokenAuthentication));
-            RaisePropertyChanged(nameof(IsCredentialsAuthentication));
-            RaisePropertyChanged(nameof(IsConfirmationEnabled));
-            RaisePropertyChanged(nameof(ShouldTokenBeFilled));
-            RaisePropertyChanged(nameof(ShouldUsernameBeFilled));
-            RaisePropertyChanged(nameof(ShouldPasswordBeFilled));
-        }
-    }
 
     public SecureString Token
     {
@@ -65,48 +46,11 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
             RaisePropertyChanged(nameof(ShouldTokenBeFilled));
         }
     }
-
-    public string Username
-    {
-        get => username;
-        set
-        {
-            username = value;
-            RaisePropertyChanged(nameof(IsConfirmationEnabled));
-            RaisePropertyChanged(nameof(ShouldUsernameBeFilled));
-        }
-    }
-
-    public SecureString Password
-    {
-        get => password;
-        set
-        {
-            password = value;
-            RaisePropertyChanged();
-            RaisePropertyChanged(nameof(IsConfirmationEnabled));
-            RaisePropertyChanged(nameof(ShouldPasswordBeFilled));
-        }
-    }
-
-    public bool IsTokenAuthentication => SelectedAuthenticationType == UiResources.AuthenticationTypeOptionToken;
-    public bool IsCredentialsAuthentication => SelectedAuthenticationType == UiResources.AuthenticationTypeOptionCredentials;
-    public bool ShouldTokenBeFilled => IsTokenAuthentication && !IsTokenProvided;
-    public bool ShouldUsernameBeFilled => IsCredentialsAuthentication && !IsUsernameProvided;
-    public bool ShouldPasswordBeFilled => IsCredentialsAuthentication && !IsPasswordProvided;
-    public bool IsConfirmationEnabled => !ProgressReporterViewModel.IsOperationInProgress &&
-                                         ( (IsTokenAuthentication && IsTokenProvided) || (IsCredentialsAuthentication && AreCredentialsProvided) );
+    public bool ShouldTokenBeFilled => !IsTokenProvided;
+    public bool IsConfirmationEnabled => !ProgressReporterViewModel.IsOperationInProgress && IsTokenProvided;
 
     private bool IsTokenProvided => IsSecureStringFilled(Token);
-    private bool AreCredentialsProvided => IsPasswordProvided && IsUsernameProvided;
-    private bool IsUsernameProvided => IsValueFilled(Username);
-    private bool IsPasswordProvided => IsSecureStringFilled(Password);
     public string AccountSecurityUrl => ConnectionInfo.ServerType == ConnectionServerType.SonarCloud ? UiResources.SonarCloudAccountSecurityUrl : Path.Combine(ConnectionInfo.Id, UiResources.SonarQubeAccountSecurityUrl);
-
-    private static bool IsValueFilled(string value)
-    {
-        return !string.IsNullOrWhiteSpace(value);
-    }
 
     private static bool IsSecureStringFilled(SecureString secureString)
     {
@@ -135,6 +79,6 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
 
     public ICredentialsModel GetCredentialsModel()
     {
-       return IsTokenAuthentication ? new TokenCredentialsModel(Token) : new UsernamePasswordModel(Username, Password);
+       return new TokenCredentialsModel(Token);
     }
 }
