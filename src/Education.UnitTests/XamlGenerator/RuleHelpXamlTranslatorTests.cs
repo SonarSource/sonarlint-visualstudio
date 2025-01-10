@@ -354,15 +354,9 @@ same 1</Paragraph>
         [TestMethod]
         public void TranslateHtmlToXaml_DataDiffWithAngleBracket_XMLParsable()
         {
-            IRuleHelpXamlTranslator testSubject = CreateTestSubject();
-
+            var testSubject = CreateTestSubject();
             var compliantText = "#include &lt;vector&gt;";
             var nonCompliantText = "#include &lt;vector&gt;";
-
-            var compliantXaml = @"#include &lt;vector&gt;";
-
-            var noncompliantXaml = @"#include &lt;vector&gt;";
-
             var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText}</pre>";
 
             var expectedText = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
