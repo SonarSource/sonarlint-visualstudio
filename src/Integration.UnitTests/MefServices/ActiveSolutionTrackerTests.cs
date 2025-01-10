@@ -112,11 +112,5 @@ public class ActiveSolutionTrackerTests
         args.Should().BeEquivalentTo(new ActiveSolutionChangedEventArgs(true, "name123"));
     }
 
-    private ActiveSolutionTracker CreateTestSubject(bool isFolderWorkspace = false)
-    {
-        var folderWorkspaceFolder = Substitute.For<IFolderWorkspaceService>();
-        folderWorkspaceFolder.IsFolderWorkspace().Returns(isFolderWorkspace);
-
-        return new ActiveSolutionTracker(serviceProvider, folderWorkspaceFolder, solutionInfoProvider);
-    }
+    private ActiveSolutionTracker CreateTestSubject() => new(serviceProvider, solutionInfoProvider);
 }

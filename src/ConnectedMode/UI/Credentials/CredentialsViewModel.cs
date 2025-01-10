@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Security;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
@@ -30,8 +29,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnectionAdapter slCoreConnectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
     private SecureString token = new();
-    private string username;
-    private SecureString password = new();
 
     public ConnectionInfo ConnectionInfo { get; } = connectionInfo;
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
