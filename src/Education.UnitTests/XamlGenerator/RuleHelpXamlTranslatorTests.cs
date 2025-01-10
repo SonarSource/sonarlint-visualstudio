@@ -354,9 +354,7 @@ same 1</Paragraph>
         [TestMethod]
         public void TranslateHtmlToXaml_DataDiffWithAngleBracket_XMLParsable()
         {
-            var diffTranslator = new Mock<IDiffTranslator>();
-
-            IRuleHelpXamlTranslator testSubject = CreateTestSubject(diffTranslator: diffTranslator.Object);
+            IRuleHelpXamlTranslator testSubject = CreateTestSubject();
 
             var compliantText = "#include &lt;vector&gt;";
             var nonCompliantText = "#include &lt;vector&gt;";
@@ -364,8 +362,6 @@ same 1</Paragraph>
             var compliantXaml = @"#include &lt;vector&gt;";
 
             var noncompliantXaml = @"#include &lt;vector&gt;";
-
-            diffTranslator.Setup(d => d.GetDiffXaml(compliantText, nonCompliantText)).Returns((noncompliantXaml, compliantXaml));
 
             var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText}</pre>";
 
@@ -386,7 +382,7 @@ same 1</Paragraph>
 
             var htmlText = @"
 <pre data-diff-id=""1"" data-diff-type=""noncompliant"">
-    function f(a, g){} // Noncompliant: 'f' returns 'b' on two different return statements
+function f(a, g){} // Noncompliant: 'f' returns 'b' on two different return statements
 </pre>
 <pre data-diff-id=""1"" data-diff-type=""compliant"">
 function f(a, g){}

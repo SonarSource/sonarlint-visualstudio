@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using System.Text;
+using System.Web;
 using System.Xml;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
@@ -51,7 +52,9 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
         public (string noncompliantXaml, string compliantXaml) GetDiffXaml(string noncompliantHtml, string compliantHtml)
         {
-            var resultDiff = SideBySideDiffBuilder.Diff(oldText: noncompliantHtml, newText: compliantHtml, ignoreWhiteSpace: false);
+            var encodedNonCompliantHtml = HttpUtility.HtmlEncode(noncompliantHtml);
+            var encodedCompliantHtml = HttpUtility.HtmlEncode(compliantHtml);
+            var resultDiff = SideBySideDiffBuilder.Diff(oldText: encodedNonCompliantHtml, newText: encodedCompliantHtml, ignoreWhiteSpace: false);
 
             var highlightedNonCompliant = HighlightLines(resultDiff.OldText.Lines, StyleResourceNames.NonCompliant_Diff, StyleResourceNames.Sub_NonCompliant_Diff);
             var highlightedCompliant = HighlightLines(resultDiff.NewText.Lines, StyleResourceNames.Compliant_Diff, StyleResourceNames.Sub_Compliant_Diff);
