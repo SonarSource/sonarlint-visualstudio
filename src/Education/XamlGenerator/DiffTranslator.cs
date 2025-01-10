@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 }
                 else
                 {
-                    writer.WriteString(line.Text);
+                    writer.WriteRaw(line.Text);
                 }
 
                 // The differ removes the next line element as it returns a list of lines.
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
         {
             if (line.SubPieces.Count == 0)
             {
-                writer.WriteString(line.Text);
+                writer.WriteRaw(line.Text);
                 return;
             }
 
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                 {
                     writer.WriteStartElement("Span");
                     writer.ApplyStyleToElement(style);
-                    writer.WriteString(subPiece.Text);
+                    WriteSubPiece(writer, subPiece);
                     // group all consecutive changed sub-pieces in the same span
                     // this is needed to prevent html escape characters (e.g. &#39;) which end up in different sup-pieces to be split into different spans,
                     // which then won't be rendered correctly in the UI 
@@ -130,17 +130,26 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     {
                         i++;
                         var nextSupPiece = line.SubPieces[i];
-                        writer.WriteString(nextSupPiece.Text);
+                        WriteSubPiece(writer, nextSupPiece);
                     }
 
                     writer.WriteEndElement();
                 }
                 else
                 {
-                    writer.WriteString(subPiece.Text);
+                    WriteSubPiece(writer, subPiece);
                 }
             }
         }
+
+        /// <summary>
+        /// When writing a sub-piece, it's important to use the WriteRaw method to avoid escaping the special characters.
+        /// The string is expected to already be html encoded, which means that when special characters (e.g. &) are escaped in html escape characters (e.g. &#39;),
+        /// we end up with invalid characters that can't be interpreted (e.g. amp;#39;).
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="subPiece"></param>
+        private static void WriteSubPiece(XmlWriter writer, DiffPiece subPiece) => writer.WriteRaw(subPiece.Text);
 
         private static bool IsSubPieceEmpty(DiffPiece subPiece) => string.IsNullOrEmpty(subPiece.Text);
 

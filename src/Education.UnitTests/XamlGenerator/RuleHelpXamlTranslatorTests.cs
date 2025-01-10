@@ -19,8 +19,6 @@
  */
 
 using System.Text;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -34,7 +32,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         public void Factory_MefCtor_CheckExports()
         {
             MefTestHelpers.CheckTypeCanBeImported<RuleHelpXamlTranslatorFactory, IRuleHelpXamlTranslatorFactory>
-                (MefTestHelpers.CreateExport<IXamlWriterFactory>(),
+            (MefTestHelpers.CreateExport<IXamlWriterFactory>(),
                 MefTestHelpers.CreateExport<IDiffTranslator>());
         }
 
@@ -220,7 +218,8 @@ same text 2";
 
             diffTranslator.Setup(d => d.GetDiffXaml(nonCompliantText1, compliantText)).Returns((noncompliantXaml, compliantXaml));
 
-            var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText1}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText2}</pre>";
+            var htmlText
+                = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText1}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText2}</pre>";
 
             var expectedText = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
   <Paragraph>Same text 1
@@ -270,7 +269,8 @@ same 1";
             diffTranslator.Setup(d => d.GetDiffXaml(noncompliantText1, compliantText1)).Returns((noncompliantXaml1, compliantXaml1));
             diffTranslator.Setup(d => d.GetDiffXaml(noncompliantText2, compliantText2)).Returns((noncompliantXaml2, compliantXaml2));
 
-            var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText1}</pre><pre data-diff-type=\"compliant\" data-diff-id=\"2\">{compliantText2}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"1\">{noncompliantText1}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"2\">{noncompliantText2}</pre>";
+            var htmlText
+                = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText1}</pre><pre data-diff-type=\"compliant\" data-diff-id=\"2\">{compliantText2}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"1\">{noncompliantText1}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"2\">{noncompliantText2}</pre>";
 
             var expectedText = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
   <Paragraph>Same text 1
@@ -377,6 +377,33 @@ same 1</Paragraph>
             var result = testSubject.TranslateHtmlToXaml(htmlText);
 
             result.Replace("\r\n", "\n").Should().Be(expectedText.Replace("\r\n", "\n"));
+        }
+
+        [TestMethod]
+        public void TranslateHtmlToXaml_SingleQuotesPresentInDiffCode_AreEscapedCorrectly()
+        {
+            var testSubject = CreateTestSubject();
+
+            var htmlText = @"
+<pre data-diff-id=""1"" data-diff-type=""noncompliant"">
+    function f(a, g){} // Noncompliant: 'f' returns 'b' on two different return statements
+</pre>
+<pre data-diff-id=""1"" data-diff-type=""compliant"">
+function f(a, g){}
+</pre>
+";
+
+            var expectedText
+                = @"
+<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}""><Paragraph><Span Style=""{DynamicResource NonCompliant_Diff}"">function f(a, g<Span Style=""{DynamicResource Sub_NonCompliant_Diff}"">){} // Noncompliant: &#39;f&#39; returns &#39;b&#39; on two different return statements</Span></Span>
+</Paragraph></Section>
+<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}""><Paragraph><Span Style=""{DynamicResource Compliant_Diff}"">function f(a, g<Span Style=""{DynamicResource Sub_Compliant_Diff}"">){}</Span></Span>
+</Paragraph></Section>
+";
+
+            var result = testSubject.TranslateHtmlToXaml(htmlText);
+
+            result.Should().Be(expectedText);
         }
 
         private static IRuleHelpXamlTranslator CreateTestSubject(IXamlWriterFactory xamlWriterFactory = null, IDiffTranslator diffTranslator = null)
