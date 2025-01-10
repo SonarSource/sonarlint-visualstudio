@@ -106,9 +106,9 @@ public class SimpleAnalysisTests
            The compilation database file must contain the absolute path to the source code file the compilation database json file and the compiler path.
            For the compiler we use the MSVC which is set as an environment variable. Make sure the environment variable is set to point to the compiler path
            (the absolute path to cl.exe). */
-        var compilerPath = Environment.GetEnvironmentVariable("MSVC")?.Replace(@"\", @"\\");
-        var cFamilyIssuesFileAbsolutePath = FileAnalysisTestsRunner.CFamilyIssues.GetFullPath().Replace(@"\", @"\\");
-        var analysisDirectory = cFamilyIssuesFileAbsolutePath.Substring(0, cFamilyIssuesFileAbsolutePath.LastIndexOf('\\') + 1);
+        var compilerPath = NormalizePath(Environment.GetEnvironmentVariable("MSVC"));
+        var cFamilyIssuesFileAbsolutePath = NormalizePath(FileAnalysisTestsRunner.CFamilyIssues.GetFullPath());
+        var analysisDirectory = NormalizePath(Path.GetDirectoryName(cFamilyIssuesFileAbsolutePath));
         var jsonContent = $$"""
                             [
                             {
@@ -126,5 +126,12 @@ public class SimpleAnalysisTests
             { "sonar.cfamily.compile-commands", tempCompilationDatabase }
         };
         return compilationDatabase;
+    }
+
+    private static string NormalizePath(string path)
+    {
+        var singleDirectorySeparator = Path.DirectorySeparatorChar.ToString();
+        var doubleDirectorySeparator = singleDirectorySeparator + singleDirectorySeparator;
+        return path?.Replace(singleDirectorySeparator, doubleDirectorySeparator);
     }
 }
