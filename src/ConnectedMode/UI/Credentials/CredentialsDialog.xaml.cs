@@ -61,27 +61,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials
             NavigateToAccountSecurityUrl();
         }
 
-        private void PasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
-        {
-            ViewModel.Password = PasswordBox.SecurePassword;
-        }
-
         private void TokenPasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
         {
             ViewModel.Token = TokenBox.SecurePassword;
-        }
-
-        private void AuthenticationTypeCombobox_OnSourceUpdated(object sender, DataTransferEventArgs dataTransferEventArgs)
-        {
-            if (ViewModel.SelectedAuthenticationType == UiResources.AuthenticationTypeOptionToken)
-            {
-                ViewModel.Username = null;
-                PasswordBox.Password = string.Empty;
-            }
-            else if (ViewModel.SelectedAuthenticationType == UiResources.AuthenticationTypeOptionCredentials)
-            {
-                TokenBox.Password = string.Empty;
-            }
         }
 
         private async void OkButton_OnClick(object sender, RoutedEventArgs e)

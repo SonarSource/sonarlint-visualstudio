@@ -29,7 +29,7 @@
             <TextBlock Text="{Binding Path=ProgressStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic"/>
         </Grid>
 
-        <ui:WarningMessage Grid.Row="1" WarningText="{Binding Path=Warning}" Margin="0,20"
+        <ui:WarningMessage Grid.Row="1" WarningText="{Binding Path=Warning}" Margin="0,15"
                            Visibility="{Binding Path=HasWarning, Converter={StaticResource TrueToVisibleConverter}}">
         </ui:WarningMessage>
     </Grid>

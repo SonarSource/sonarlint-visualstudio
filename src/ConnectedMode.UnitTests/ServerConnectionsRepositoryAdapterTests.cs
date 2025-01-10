@@ -214,19 +214,6 @@ public class ServerConnectionsRepositoryAdapterTests
     }
 
     [TestMethod]
-    public void TryAddConnection_UsernamePasswordModel_MapsCredentials()
-    {
-        var sonarQube = CreateSonarQubeConnection();
-        var username = "username";
-        var password = "password";
-
-        testSubject.TryAddConnection(sonarQube, new UsernamePasswordModel(username, password.CreateSecureString()));
-
-        serverConnectionsRepository.Received(1)
-            .TryAdd(Arg.Is<ServerConnection.SonarQube>(sq => IsExpectedCredentials(sq.Credentials, username, password)));
-    }
-
-    [TestMethod]
     public void TryAddConnection_NullCredentials_TriesAddingAConnectionWithNoCredentials()
     {
         var sonarQube = CreateSonarQubeConnection();
@@ -259,19 +246,6 @@ public class ServerConnectionsRepositoryAdapterTests
 
         serverConnectionsRepository.Received(1)
             .TryUpdateCredentialsById(Arg.Any<string>(), Arg.Is<IConnectionCredentials>(x => IsExpectedTokenCredentials(x, token)));
-    }
-
-    [TestMethod]
-    public void TryUpdateCredentials_UserPasswordModel_MapsCredentials()
-    {
-        var sonarQube = CreateSonarQubeConnection();
-        const string username = "username";
-        const string password = "password";
-
-        testSubject.TryUpdateCredentials(sonarQube, new UsernamePasswordModel(username, password.CreateSecureString()));
-
-        serverConnectionsRepository.Received(1)
-            .TryUpdateCredentialsById(Arg.Any<string>(), Arg.Is<IConnectionCredentials>(x => IsExpectedCredentials(x, username, password)));
     }
 
     [TestMethod]

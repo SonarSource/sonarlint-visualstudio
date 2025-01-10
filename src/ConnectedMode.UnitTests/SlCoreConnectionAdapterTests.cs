@@ -96,18 +96,6 @@ public class SlCoreConnectionAdapterTests
     }
 
     [TestMethod]
-    public async Task ValidateConnectionAsync_ConnectionToSonarQubeWithCredentials_CallsValidateConnectionWithCorrectParams()
-    {
-        var username = "username";
-        var password = "password";
-
-        await testSubject.ValidateConnectionAsync(sonarQubeConnectionInfo, new UsernamePasswordModel(username, password.CreateSecureString()));
-
-        await connectionConfigurationSlCoreService.Received(1)
-            .ValidateConnectionAsync(Arg.Is<ValidateConnectionParams>(x => IsExpectedSonarQubeConnectionParams(x, username, password)));
-    }
-
-    [TestMethod]
     public async Task ValidateConnectionAsync_ConnectionToSonarCloudWithToken_CallsValidateConnectionWithCorrectParams()
     {
         var token = "myToken";
@@ -116,18 +104,6 @@ public class SlCoreConnectionAdapterTests
 
         await connectionConfigurationSlCoreService.Received(1)
             .ValidateConnectionAsync(Arg.Is<ValidateConnectionParams>(x => IsExpectedSonarCloudConnectionParams(x, token)));
-    }
-
-    [TestMethod]
-    public async Task ValidateConnectionAsync_ConnectionToSonarCloudWithCredentials_CallsValidateConnectionWithCorrectParams()
-    {
-        var username = "username";
-        var password = "password";
-
-        await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new UsernamePasswordModel(username, password.CreateSecureString()));
-
-        await connectionConfigurationSlCoreService.Received(1)
-            .ValidateConnectionAsync(Arg.Is<ValidateConnectionParams>(x => IsExpectedSonarCloudConnectionParams(x, username, password)));
     }
 
     [TestMethod]
@@ -201,17 +177,6 @@ public class SlCoreConnectionAdapterTests
         await testSubject.GetOrganizationsAsync(new TokenCredentialsModel(token.CreateSecureString()));
 
         await connectionConfigurationSlCoreService.Received(1).ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x=> IsExpectedCredentials(x.credentials, token)));
-    }
-
-    [TestMethod]
-    public async Task GetOrganizationsAsync_UsernameAndPasswordIsProvided_CallsSlCoreListUserOrganizationsWithUsernameAndPassword()
-    {
-        var username = "username";
-        var password = "password";
-
-        await testSubject.GetOrganizationsAsync(new UsernamePasswordModel(username, password.CreateSecureString()));
-
-        await connectionConfigurationSlCoreService.Received(1).ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x => IsExpectedCredentials(x.credentials, username, password)));
     }
 
     [TestMethod]
