@@ -204,6 +204,7 @@ same text 2";
             var noncompliantXaml = @"Same text 1
 <Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
 same text 2";
+            diffTranslator.GetDiffXaml(nonCompliantText1, compliantText).Returns((noncompliantXaml, compliantXaml));
 
             var htmlText
                 = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText1}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText2}</pre>";
@@ -223,6 +224,7 @@ same text 2</Paragraph></Section>";
             var result = mockedTestSubject.TranslateHtmlToXaml(htmlText);
 
             result.Replace("\r\n", "\n").Should().Be(expectedText.Replace("\r\n", "\n"));
+            diffTranslator.DidNotReceive().GetDiffXaml(Arg.Any<string>(), Arg.Any<string>());
         }
 
         [TestMethod]
