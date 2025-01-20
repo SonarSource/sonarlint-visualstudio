@@ -19,8 +19,6 @@
  */
 
 using System.Text;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -34,7 +32,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         public void Factory_MefCtor_CheckExports()
         {
             MefTestHelpers.CheckTypeCanBeImported<RuleHelpXamlTranslatorFactory, IRuleHelpXamlTranslatorFactory>
-                (MefTestHelpers.CreateExport<IXamlWriterFactory>(),
+            (MefTestHelpers.CreateExport<IXamlWriterFactory>(),
                 MefTestHelpers.CreateExport<IDiffTranslator>());
         }
 
@@ -220,7 +218,8 @@ same text 2";
 
             diffTranslator.Setup(d => d.GetDiffXaml(nonCompliantText1, compliantText)).Returns((noncompliantXaml, compliantXaml));
 
-            var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText1}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText2}</pre>";
+            var htmlText
+                = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText1}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText2}</pre>";
 
             var expectedText = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
   <Paragraph>Same text 1
@@ -270,7 +269,8 @@ same 1";
             diffTranslator.Setup(d => d.GetDiffXaml(noncompliantText1, compliantText1)).Returns((noncompliantXaml1, compliantXaml1));
             diffTranslator.Setup(d => d.GetDiffXaml(noncompliantText2, compliantText2)).Returns((noncompliantXaml2, compliantXaml2));
 
-            var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText1}</pre><pre data-diff-type=\"compliant\" data-diff-id=\"2\">{compliantText2}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"1\">{noncompliantText1}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"2\">{noncompliantText2}</pre>";
+            var htmlText
+                = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText1}</pre><pre data-diff-type=\"compliant\" data-diff-id=\"2\">{compliantText2}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"1\">{noncompliantText1}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"2\">{noncompliantText2}</pre>";
 
             var expectedText = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">
   <Paragraph>Same text 1
@@ -354,19 +354,9 @@ same 1</Paragraph>
         [TestMethod]
         public void TranslateHtmlToXaml_DataDiffWithAngleBracket_XMLParsable()
         {
-            var diffTranslator = new Mock<IDiffTranslator>();
-
-            IRuleHelpXamlTranslator testSubject = CreateTestSubject(diffTranslator: diffTranslator.Object);
-
+            var testSubject = CreateTestSubject();
             var compliantText = "#include &lt;vector&gt;";
             var nonCompliantText = "#include &lt;vector&gt;";
-
-            var compliantXaml = @"#include &lt;vector&gt;";
-
-            var noncompliantXaml = @"#include &lt;vector&gt;";
-
-            diffTranslator.Setup(d => d.GetDiffXaml(compliantText, nonCompliantText)).Returns((noncompliantXaml, compliantXaml));
-
             var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText}</pre>";
 
             var expectedText = @"<Section xml:space=""preserve"" Style=""{DynamicResource Pre_Section}"">

@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Web;
@@ -387,11 +384,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
 
             private static XmlReader CreateXmlReader(string data)
             {
-                var settings = new XmlReaderSettings
-                {
-                    ConformanceLevel = ConformanceLevel.Fragment,
-                    IgnoreWhitespace = false
-                };
+                var settings = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment, IgnoreWhitespace = false };
 
                 var stream = new StringReader(data);
                 return XmlReader.Create(stream, settings);
@@ -420,7 +413,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                     }
 
                     Debug.Assert(textToken is IRuleCrossRef || textToken is ISimpleText,
-                                 $"Unknown text token type. Type: {textToken.GetType().FullName}");
+                        $"Unknown text token type. Type: {textToken.GetType().FullName}");
                 }
             }
 
@@ -608,7 +601,7 @@ namespace SonarLint.VisualStudio.Education.XamlGenerator
                         continue;
                     }
 
-                    var diffXaml = diffTranslator.GetDiffXaml(HttpUtility.HtmlEncode(diffCodes[noncompliantKey]), HttpUtility.HtmlEncode(diffCodes[compliantKey]));
+                    var diffXaml = diffTranslator.GetDiffXaml(diffCodes[noncompliantKey], diffCodes[compliantKey]);
 
                     sb.Replace(noncompliantKey, diffXaml.noncompliantXaml);
                     sb.Replace(compliantKey, diffXaml.compliantXaml);
