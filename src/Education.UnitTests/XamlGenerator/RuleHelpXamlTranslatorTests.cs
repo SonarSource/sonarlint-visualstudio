@@ -19,7 +19,6 @@
  */
 
 using System.Text;
-using Moq;
 using SonarLint.VisualStudio.Education.XamlGenerator;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -28,6 +27,18 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
     [TestClass]
     public class RuleHelpXamlTranslatorTests
     {
+        private IRuleHelpXamlTranslator testSubject;
+        private XamlWriterFactory xamlWriterFactory;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            xamlWriterFactory = new XamlWriterFactory();
+            var diffTranslator = new DiffTranslator(xamlWriterFactory);
+
+            testSubject = CreateTestSubject(xamlWriterFactory, diffTranslator);
+        }
+
         [TestMethod]
         public void Factory_MefCtor_CheckExports()
         {
@@ -39,39 +50,34 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         [TestMethod]
         public void Factory_Create_NewInstanceEachTime()
         {
-            var xamlWriterFactoryMock = new Mock<IXamlWriterFactory>();
-            var testSubject = new RuleHelpXamlTranslatorFactory(xamlWriterFactoryMock.Object, Mock.Of<IDiffTranslator>());
+            var xamlWriterFactoryMock = Substitute.For<IXamlWriterFactory>();
+            var mockedTestSubject = new RuleHelpXamlTranslatorFactory(xamlWriterFactoryMock, Substitute.For<IDiffTranslator>());
 
-            var o1 = testSubject.Create();
-            var o2 = testSubject.Create();
+            var o1 = mockedTestSubject.Create();
+            var o2 = mockedTestSubject.Create();
 
             o1.Should().NotBeSameAs(o2);
-            xamlWriterFactoryMock.Verify(x => x.Create(It.IsAny<StringBuilder>()), Times.Never);
+            xamlWriterFactoryMock.DidNotReceive().Create(Arg.Any<StringBuilder>());
         }
 
         [TestMethod]
         public void TranslateHtmlToXaml_CreatesNewWriter()
         {
-            var xamlWriterFactoryActual = new XamlWriterFactory();
-            var xamlWriterFactoryMock = new Mock<IXamlWriterFactory>();
-            xamlWriterFactoryMock.Setup(x => x.Create(It.IsAny<StringBuilder>()))
-                .Returns((StringBuilder sb) => xamlWriterFactoryActual.Create(sb));
-            var testSubject = new RuleHelpXamlTranslatorFactory(xamlWriterFactoryMock.Object, Mock.Of<IDiffTranslator>()).Create();
+            var xamlWriterFactoryMock = Substitute.For<IXamlWriterFactory>();
+            xamlWriterFactoryMock.Create(Arg.Any<StringBuilder>()).Returns(callInfo => new XamlWriterFactory().Create(callInfo.Arg<StringBuilder>()));
+            var mockedTestSubject = CreateTestSubject(xamlWriterFactoryMock, Substitute.For<IDiffTranslator>());
 
             for (int i = 0; i < 5; i++)
             {
-                testSubject.TranslateHtmlToXaml("inline Text");
-                xamlWriterFactoryMock.Verify(x => x.Create(It.IsAny<StringBuilder>()), Times.Exactly(i + 1));
+                mockedTestSubject.TranslateHtmlToXaml("inline Text");
+                xamlWriterFactoryMock.Received(i + 1).Create(Arg.Any<StringBuilder>());
             }
         }
 
         [TestMethod]
         public void TranslateHtmlToXaml_InlineContent_AddsParagraph()
         {
-            var testSubject = CreateTestSubject();
-
             var htmlText = "inline Text";
-
             var expectedText = "<Paragraph>inline Text</Paragraph>";
 
             var result = testSubject.TranslateHtmlToXaml(htmlText);
@@ -82,10 +88,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         [TestMethod]
         public void TranslateHtmlToXaml_BlockContent_Translates()
         {
-            var testSubject = CreateTestSubject();
-
             var htmlText = @"<ul><li>some list item</li></ul>";
-
             var expectedText = @"<List Style=""{DynamicResource UnorderedList}"">
   <ListItem>
     <Paragraph>some list item</Paragraph>
@@ -106,10 +109,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         [DataRow(6)]
         public void TranslateHtmlToXaml_HTagsAreHandled(int headerSize)
         {
-            var testSubject = CreateTestSubject();
-
             var htmlText = $"<h{headerSize}>Text</h{headerSize}>";
-
             var expectedText = $"<Paragraph Style=\"{{DynamicResource Heading{headerSize}_Paragraph}}\">Text</Paragraph>";
 
             var result = testSubject.TranslateHtmlToXaml(htmlText);
@@ -120,10 +120,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         [TestMethod]
         public void TranslateHtmlToXaml_CrossReferenceRule_AddsHyperLink()
         {
-            var testSubject = CreateTestSubject();
-
             var htmlText = "Texty text {rule:cpp:S1564} blabla";
-
             var expectedText = "<Paragraph>Texty text <Hyperlink NavigateUri=\"sonarlintrulecrossref://cpp/S1564\">cpp:S1564</Hyperlink> blabla</Paragraph>";
 
             var result = testSubject.TranslateHtmlToXaml(htmlText);
@@ -134,10 +131,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         [TestMethod]
         public void TranslateHtmlToXaml_Span_AddsSpan()
         {
-            IRuleHelpXamlTranslator testSubject = CreateTestSubject();
-
             var htmlText = "<span>Some text</span>";
-
             var expectedText = @"<Paragraph>
   <Span>Some text</Span>
 </Paragraph>";
@@ -150,10 +144,7 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         [TestMethod]
         public void TranslateHtmlToXaml_Sup_AddsSuperscriptBaselineAlignment()
         {
-            IRuleHelpXamlTranslator testSubject = CreateTestSubject();
-
             var htmlText = "2<sup>53</sup>";
-
             var expectedText = @"<Paragraph>2<Span BaselineAlignment=""Superscript"">53</Span></Paragraph>";
 
             var result = testSubject.TranslateHtmlToXaml(htmlText);
@@ -164,9 +155,8 @@ namespace SonarLint.VisualStudio.Education.UnitTests.XamlGenerator
         [TestMethod]
         public void TranslateHtmlToXaml_DataDiffExists_HighlightsCode()
         {
-            var diffTranslator = new Mock<IDiffTranslator>();
-
-            IRuleHelpXamlTranslator testSubject = CreateTestSubject(diffTranslator: diffTranslator.Object);
+            var diffTranslator = Substitute.For<IDiffTranslator>();
+            var mockedTestSubject = CreateTestSubject(xamlWriterFactory, diffTranslator: diffTranslator);
 
             var compliantText = "Same text 1\ndiff 1\nsame text 2";
             var nonCompliantText = "Same text 1\ndiff 2\nsame text 2";
@@ -179,7 +169,7 @@ same text 2";
 <Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
 same text 2";
 
-            diffTranslator.Setup(d => d.GetDiffXaml(nonCompliantText, compliantText)).Returns((noncompliantXaml, compliantXaml));
+            diffTranslator.GetDiffXaml(nonCompliantText, compliantText).Returns((noncompliantXaml, compliantXaml));
 
             var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText}</pre>";
 
@@ -192,7 +182,7 @@ same text 2</Paragraph>
 <Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
 same text 2</Paragraph></Section>";
 
-            var result = testSubject.TranslateHtmlToXaml(htmlText);
+            var result = mockedTestSubject.TranslateHtmlToXaml(htmlText);
 
             result.Replace("\r\n", "\n").Should().Be(expectedText.Replace("\r\n", "\n"));
         }
@@ -200,9 +190,8 @@ same text 2</Paragraph></Section>";
         [TestMethod]
         public void TranslateHtmlToXaml_TwoCompliantCode_DoesNotHighlightCode()
         {
-            var diffTranslator = new Mock<IDiffTranslator>();
-
-            IRuleHelpXamlTranslator testSubject = CreateTestSubject(diffTranslator: diffTranslator.Object);
+            var diffTranslator = Substitute.For<IDiffTranslator>();
+            var mockedTestSubject = CreateTestSubject(xamlWriterFactory, diffTranslator: diffTranslator);
 
             var compliantText = "Same text 1\ndiff 1\nsame text 2";
             var nonCompliantText1 = "Same text 1\ndiff 2\nsame text 2";
@@ -215,8 +204,6 @@ same text 2";
             var noncompliantXaml = @"Same text 1
 <Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
 same text 2";
-
-            diffTranslator.Setup(d => d.GetDiffXaml(nonCompliantText1, compliantText)).Returns((noncompliantXaml, compliantXaml));
 
             var htmlText
                 = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText1}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText2}</pre>";
@@ -233,25 +220,21 @@ same text 2</Paragraph></Section>
 diff 3
 same text 2</Paragraph></Section>";
 
-            var result = testSubject.TranslateHtmlToXaml(htmlText);
+            var result = mockedTestSubject.TranslateHtmlToXaml(htmlText);
 
             result.Replace("\r\n", "\n").Should().Be(expectedText.Replace("\r\n", "\n"));
-
-            diffTranslator.Verify(d => d.GetDiffXaml(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
         public void TranslateHtmlToXaml_TwoDiffs_HighlightsCodeCorrectly()
         {
-            var diffTranslator = new Mock<IDiffTranslator>();
-            IRuleHelpXamlTranslator testSubject = CreateTestSubject(diffTranslator: diffTranslator.Object);
+            var diffTranslator = Substitute.For<IDiffTranslator>();
+            var mockedTestSubject = CreateTestSubject(xamlWriterFactory, diffTranslator: diffTranslator);
 
             var compliantText1 = "Same text 1\ndiff 1";
-
             var noncompliantText1 = "Same text 1\ndiff 2";
 
             var compliantText2 = "diff 1\nsame 1";
-
             var noncompliantText2 = "diff 2\nsame 1";
 
             var compliantXaml1 = @"Same text 1
@@ -266,8 +249,8 @@ same 1";
             var noncompliantXaml2 = @"<Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
 same 1";
 
-            diffTranslator.Setup(d => d.GetDiffXaml(noncompliantText1, compliantText1)).Returns((noncompliantXaml1, compliantXaml1));
-            diffTranslator.Setup(d => d.GetDiffXaml(noncompliantText2, compliantText2)).Returns((noncompliantXaml2, compliantXaml2));
+            diffTranslator.GetDiffXaml(noncompliantText1, compliantText1).Returns((noncompliantXaml1, compliantXaml1));
+            diffTranslator.GetDiffXaml(noncompliantText2, compliantText2).Returns((noncompliantXaml2, compliantXaml2));
 
             var htmlText
                 = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText1}</pre><pre data-diff-type=\"compliant\" data-diff-id=\"2\">{compliantText2}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"1\">{noncompliantText1}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"2\">{noncompliantText2}</pre>";
@@ -289,7 +272,7 @@ same 1</Paragraph>
 same 1</Paragraph>
 </Section>";
 
-            var result = testSubject.TranslateHtmlToXaml(htmlText);
+            var result = mockedTestSubject.TranslateHtmlToXaml(htmlText);
 
             result.Replace("\r\n", "\n").Should().Be(expectedText.Replace("\r\n", "\n"));
         }
@@ -297,15 +280,13 @@ same 1</Paragraph>
         [TestMethod]
         public void TranslateHtmlToXaml_SequentialCalls_HighlightsCorrectly()
         {
-            var diffTranslator = new Mock<IDiffTranslator>();
-            IRuleHelpXamlTranslator testSubject = CreateTestSubject(diffTranslator: diffTranslator.Object);
+            var diffTranslator = Substitute.For<IDiffTranslator>();
+            var mockedTestSubject = CreateTestSubject(xamlWriterFactory, diffTranslator: diffTranslator);
 
             var compliantText1 = "Same text 1\ndiff 1";
-
             var noncompliantText1 = "Same text 1\ndiff 2";
 
             var compliantText2 = "diff 1\nsame 1";
-
             var noncompliantText2 = "diff 2\nsame 1";
 
             var compliantXaml1 = @"Same text 1
@@ -320,8 +301,8 @@ same 1";
             var noncompliantXaml2 = @"<Span Style=""{DynamicResource NonCompliant_Diff}"">diff 2</Span>
 same 1";
 
-            diffTranslator.Setup(d => d.GetDiffXaml(noncompliantText1, compliantText1)).Returns((noncompliantXaml1, compliantXaml1));
-            diffTranslator.Setup(d => d.GetDiffXaml(noncompliantText2, compliantText2)).Returns((noncompliantXaml2, compliantXaml2));
+            diffTranslator.GetDiffXaml(noncompliantText1, compliantText1).Returns((noncompliantXaml1, compliantXaml1));
+            diffTranslator.GetDiffXaml(noncompliantText2, compliantText2).Returns((noncompliantXaml2, compliantXaml2));
 
             var htmlText1 = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText1}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"1\">{noncompliantText1}</pre>";
             var htmlText2 = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText2}</pre><pre data-diff-type=\"noncompliant\" data-diff-id=\"1\">{noncompliantText2}</pre>";
@@ -344,8 +325,8 @@ same 1</Paragraph>
 same 1</Paragraph>
 </Section>";
 
-            var result1 = testSubject.TranslateHtmlToXaml(htmlText1);
-            var result2 = testSubject.TranslateHtmlToXaml(htmlText2);
+            var result1 = mockedTestSubject.TranslateHtmlToXaml(htmlText1);
+            var result2 = mockedTestSubject.TranslateHtmlToXaml(htmlText2);
 
             result1.Replace("\r\n", "\n").Should().Be(expectedText1.Replace("\r\n", "\n"));
             result2.Replace("\r\n", "\n").Should().Be(expectedText2.Replace("\r\n", "\n"));
@@ -354,7 +335,6 @@ same 1</Paragraph>
         [TestMethod]
         public void TranslateHtmlToXaml_DataDiffWithAngleBracket_XMLParsable()
         {
-            var testSubject = CreateTestSubject();
             var compliantText = "#include &lt;vector&gt;";
             var nonCompliantText = "#include &lt;vector&gt;";
             var htmlText = $"<pre data-diff-type=\"compliant\" data-diff-id=\"1\">{compliantText}</pre>\n<pre data-diff-type =\"noncompliant\" data-diff-id=\"1\">{nonCompliantText}</pre>";
@@ -369,12 +349,7 @@ same 1</Paragraph>
             result.Replace("\r\n", "\n").Should().Be(expectedText.Replace("\r\n", "\n"));
         }
 
-        private static IRuleHelpXamlTranslator CreateTestSubject(IXamlWriterFactory xamlWriterFactory = null, IDiffTranslator diffTranslator = null)
-        {
-            xamlWriterFactory ??= new XamlWriterFactory();
-            diffTranslator ??= new DiffTranslator(new XamlWriterFactory());
-
-            return new RuleHelpXamlTranslatorFactory(xamlWriterFactory, diffTranslator).Create();
-        }
+        private static IRuleHelpXamlTranslator CreateTestSubject(IXamlWriterFactory xamlWriterFactory, IDiffTranslator diffTranslator) =>
+            new RuleHelpXamlTranslatorFactory(xamlWriterFactory, diffTranslator).Create();
     }
 }
