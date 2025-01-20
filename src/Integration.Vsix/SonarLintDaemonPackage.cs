@@ -122,6 +122,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private async Task MigrateBindingsToServerConnectionsIfNeededAsync()
         {
             var bindingToConnectionMigration = await this.GetMefServiceAsync<IBindingToConnectionMigration>();
+            logger.WriteLine($"bindingToConnectionMigration is null: {bindingToConnectionMigration != null}");
             await bindingToConnectionMigration.MigrateAllBindingsToServerConnectionsIfNeededAsync();
         }
 
