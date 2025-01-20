@@ -31,6 +31,7 @@
       <SourceJars Include="$(JarDownloadDir)\sonar-csharp-enterprise-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-vbnet-enterprise-plugin-$(EmbeddedSonarAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar" />
+      <SourceJars Include="$(JarDownloadDir)\sonar-html-plugin-$(EmbeddedSonarHtmlAnalyzerVersion).jar" />
       <SourceJars Include="$(JarDownloadDir)\sonar-text-plugin-$(EmbeddedSonarSecretsJarVersion).jar" />
     </ItemGroup>
     <Copy SourceFiles ="@(SourceJars)" DestinationFolder="$(EmbeddedJarDir)" />

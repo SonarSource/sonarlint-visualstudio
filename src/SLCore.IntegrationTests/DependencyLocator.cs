@@ -47,6 +47,7 @@ public class DependencyLocator // this might be reused in the product code in th
         var roslynAnalyzerVersion = GetDependencyVersion("EmbeddedSonarAnalyzerVersion", dependencyProps);
         var cfamilyAnalyzerVersion = GetDependencyVersion("EmbeddedSonarCFamilyAnalyzerVersion", dependencyProps);
         var jstsAnalyzerVersion = GetDependencyVersion("EmbeddedSonarJSAnalyzerVersion", dependencyProps);
+        var htmlAnalyzerVersion = GetDependencyVersion("EmbeddedSonarHtmlAnalyzerVersion", dependencyProps);
         var secrestsAnalyzerVersion = GetDependencyVersion("EmbeddedSonarSecretsJarVersion", dependencyProps);
         AnalyzerPlugins = new List<string>
         {
@@ -54,6 +55,7 @@ public class DependencyLocator // this might be reused in the product code in th
             GetAnalyzerPath("sonar-vbnet-enterprise-plugin", roslynAnalyzerVersion, availablePluginJars),
             GetAnalyzerPath("sonar-cfamily-plugin", cfamilyAnalyzerVersion, availablePluginJars),
             GetAnalyzerPath("sonar-javascript-plugin", jstsAnalyzerVersion, availablePluginJars),
+            GetAnalyzerPath("sonar-html-plugin", htmlAnalyzerVersion, availablePluginJars),
             GetAnalyzerPath("sonar-text-plugin", secrestsAnalyzerVersion, availablePluginJars),
         };
     }

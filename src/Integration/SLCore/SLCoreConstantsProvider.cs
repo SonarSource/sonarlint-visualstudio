@@ -53,6 +53,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
         [
             Language.JS,
             Language.TS,
+            Language.HTML,
             Language.CSS,
             Language.C,
             Language.CPP,
@@ -65,6 +66,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
         [
             Language.JS,
             Language.TS,
+            Language.HTML,
             Language.CSS,
             Language.C,
             Language.CPP,
