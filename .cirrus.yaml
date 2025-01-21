@@ -41,7 +41,7 @@ build_task:
     SM_CLIENT_CRT: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.cert]
     SM_HOST: VAULT[development/team/sonarlint/kv/data/codesigning/2023-2025 data.host]
     SM_KP: key_525594307
-    SOLUTION_PATH: SonarQube.VisualStudio.sln
+    SOLUTION_PATH: SonarLint.VisualStudio.Integration.sln
     SONAR_TOKEN: VAULT[development/kv/data/sonarcloud data.token]
     SONAR_URL: VAULT[development/kv/data/sonarcloud data.url]
     SONARSOURCE_SNK_FILE: ${TMP_DIR}\SonarSource.snk
@@ -91,7 +91,7 @@ build_task:
       sbomname="SonarLint.visualstudio.sbom-${PROJECT_VERSION}-2022.json"
       gpg --batch --passphrase "$SIGN_PASSPHRASE" --allow-secret-key-import --import <(echo "$SIGN_KEY")
       gpg --list-secret-keys
-      dotnet CycloneDX "${SOLUTION_PATH}" -t -j -o binaries
+      dotnet CycloneDX SonarLint.VisualStudio.Integration.sln -t -j -o binaries
       cd binaries
       mv bom.json $sbomname
       gpg --pinentry-mode loopback --passphrase "$SIGN_PASSPHRASE" --armor --detach-sig --default-key infra@sonarsource.com "$sbomname"

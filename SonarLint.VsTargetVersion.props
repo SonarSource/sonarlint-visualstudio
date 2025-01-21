@@ -17,7 +17,7 @@
 
        Alternatively, you can explicitly specify the version of VS to target e.g.
 
-         msbuild.exe SonarQube.VisualStudio.sln /p:VsTargetVersion=2022  
+         msbuild.exe SonarLint.VisualStudio.Integration.sln /p:VsTargetVersion=2022  
 
        The allowed value for VsTargetVersion is 2022.
 
