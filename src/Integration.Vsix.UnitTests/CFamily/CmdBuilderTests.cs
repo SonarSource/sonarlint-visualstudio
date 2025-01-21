@@ -13,6 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -235,12 +236,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [DataTestMethod]
         [DataRow(false, "", "", "")]
         [DataRow(true, "", "", "")]
-        [DataRow(false, "1", "", "1 ")]
-        [DataRow(true, "1", "", "1 ")]
-        [DataRow(false, "", "2", "2 ")]
-        [DataRow(true, "", "2", "2 ")]
-        [DataRow(false, "1", "2", "1 2 ")]
-        [DataRow(true, "1", "2", "1 2 ")]
+        [DataRow(false, "compileAsFlagValue", "", "compileAsFlagValue ")]
+        [DataRow(true, "compileAsFlagValue", "", "compileAsFlagValue ")]
+        [DataRow(false, "", "languageStandardFlagValue", "languageStandardFlagValue ")]
+        [DataRow(true, "", "languageStandardFlagValue", "languageStandardFlagValue ")]
+        [DataRow(false, "compileAsFlagValue", "compileAsFlagValue", "compileAsFlagValue compileAsFlagValue ")]
+        [DataRow(true, "compileAsFlagValue", "compileAsFlagValue", "compileAsFlagValue compileAsFlagValue ")]
         public void AddOptFromProperties_DelegatesToLanguageFlagsProvider_AddsAvailableLanguageFlags(bool isHeader, string compileAsFlag, string languageStandardFlag, string expectedCmd)
         {
             var languageFlagsProvider = Substitute.For<ILanguageFlagsProvider>();

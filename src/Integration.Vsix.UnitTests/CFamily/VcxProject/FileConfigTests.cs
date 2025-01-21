@@ -130,21 +130,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             var projectItemConfig = new ProjectItemConfig
             {
                 ItemType = "ClCompile",
-                FileConfigProperties = new Dictionary<string, string>
+                FileConfigProperties = CreateDefaultClCompileFileProperties(new Dictionary<string, string>
                 {
-                    ["PrecompiledHeader"] = "NotUsing",
-                    ["CompileAs"] = "CompileAsCpp",
-                    ["CompileAsManaged"] = "false",
-                    ["EnableEnhancedInstructionSet"] = "AdvancedVectorExtensions512",
-                    ["RuntimeLibrary"] = "MultiThreaded",
-                    ["LanguageStandard"] = "stdcpp17",
-                    ["LanguageStandard_C"] = "stdc17",
-                    ["ExceptionHandling"] = "Sync",
-                    ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
-                    ["ConformanceMode"] = "true",
-                    ["StructMemberAlignment"] = "8Bytes",
-                    ["AdditionalOptions"] = "/DA",
-                }
+                    ["CompileAs"] = "CompileAsCpp"
+                })
             };
 
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
@@ -168,21 +157,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             var projectItemConfig = new ProjectItemConfig
             {
                 ItemType = "ClCompile",
-                FileConfigProperties = new Dictionary<string, string>
+                FileConfigProperties = CreateDefaultClCompileFileProperties(new Dictionary<string, string>
                 {
-                    ["PrecompiledHeader"] = "NotUsing",
-                    ["CompileAs"] = "CompileAsC",
-                    ["CompileAsManaged"] = "false",
-                    ["EnableEnhancedInstructionSet"] = "AdvancedVectorExtensions512",
-                    ["RuntimeLibrary"] = "MultiThreaded",
-                    ["LanguageStandard"] = "stdcpp17",
-                    ["LanguageStandard_C"] = "stdc17",
-                    ["ExceptionHandling"] = "Sync",
-                    ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
-                    ["ConformanceMode"] = "true",
-                    ["StructMemberAlignment"] = "8Bytes",
-                    ["AdditionalOptions"] = "/DA",
-                }
+                    ["CompileAs"] = "CompileAsC"
+                })
             };
 
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
@@ -207,20 +185,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             var projectItemConfig = new ProjectItemConfig
             {
                 ItemType = "ClCompile",
-                FileConfigProperties = new Dictionary<string, string>
+                FileConfigProperties = CreateDefaultClCompileFileProperties(new Dictionary<string, string>
                 {
-                    ["PrecompiledHeader"] = "NotUsing",
-                    ["CompileAsManaged"] = "false",
-                    ["EnableEnhancedInstructionSet"] = "AdvancedVectorExtensions512",
-                    ["RuntimeLibrary"] = "MultiThreaded",
-                    ["LanguageStandard"] = "stdcpp17",
-                    ["LanguageStandard_C"] = "stdc17",
-                    ["ExceptionHandling"] = "Sync",
-                    ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
-                    ["ConformanceMode"] = "true",
-                    ["StructMemberAlignment"] = "8Bytes",
-                    ["AdditionalOptions"] = "/DA",
-                }
+                    ["CompileAs"] = "Default"
+                })
             };
 
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig, "ANY_NON_CCODE");
@@ -244,20 +212,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             var projectItemConfig = new ProjectItemConfig
             {
                 ItemType = "ClCompile",
-                FileConfigProperties = new Dictionary<string, string>
+                FileConfigProperties = CreateDefaultClCompileFileProperties(new Dictionary<string, string>
                 {
-                    ["PrecompiledHeader"] = "NotUsing",
-                    ["CompileAsManaged"] = "false",
-                    ["EnableEnhancedInstructionSet"] = "AdvancedVectorExtensions512",
-                    ["RuntimeLibrary"] = "MultiThreaded",
                     ["LanguageStandard"] = "stdcpp17",
                     ["LanguageStandard_C"] = "stdc17",
-                    ["ExceptionHandling"] = "Sync",
-                    ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
-                    ["ConformanceMode"] = "true",
-                    ["StructMemberAlignment"] = "8Bytes",
-                    ["AdditionalOptions"] = "/DA",
-                }
+                })
             };
 
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig, "CCode");
@@ -455,6 +414,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             // Assert
             request.Should().NotBeNull();
             Assert.IsTrue(request.CDCommand.StartsWith("\"C:\\path\\cl.exe\""));
+        }
+
+        private Dictionary<string, string> CreateDefaultClCompileFileProperties(Dictionary<string, string> overrides)
+        {
+            var defaultProperties = new Dictionary<string, string>
+            {
+                ["PrecompiledHeader"] = "NotUsing",
+                ["CompileAsManaged"] = "false",
+                ["EnableEnhancedInstructionSet"] = "AdvancedVectorExtensions512",
+                ["RuntimeLibrary"] = "MultiThreaded",
+                ["LanguageStandard"] = "stdcpp17",
+                ["LanguageStandard_C"] = "stdc17",
+                ["ExceptionHandling"] = "Sync",
+                ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
+                ["ConformanceMode"] = "true",
+                ["StructMemberAlignment"] = "8Bytes",
+                ["AdditionalOptions"] = "/DA",
+            };
+
+            foreach (var overrideProperties in overrides)
+            {
+                defaultProperties[overrideProperties.Key] = overrideProperties.Value;
+            }
+
+            return defaultProperties;
         }
 
     }

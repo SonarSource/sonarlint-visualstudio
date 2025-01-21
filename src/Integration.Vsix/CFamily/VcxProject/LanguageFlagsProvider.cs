@@ -41,6 +41,7 @@ internal class LanguageFlagsProvider : ILanguageFlagsProvider
     {
         var compileAsFlag = CompileAsValueConverter.GetFlagValue(compileAs);
 
+        // if a C/CPP language file has no file-specific override for the CompileAs option in vsxproj, the property storage returns a non-lanugage-specific "Default" value.
         return compileAsFlag == CompileAsCFlag || (compileAsFlag != CompileAsCppFlag && vcFileContentType == ContentTypeCCode)
             ? (CompileAsCFlag, LanguageStandardConverter.GetCStandardFlagValue(cStandard))
             : (CompileAsCppFlag, LanguageStandardConverter.GetCppStandardFlagValue(cppStandard));

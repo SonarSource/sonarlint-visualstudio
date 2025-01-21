@@ -26,7 +26,7 @@ internal static class CompileAsValueConverter
         value switch
         {
             // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
-            "" or "Default" => "",
+            "" or "Default" => string.Empty,
             "CompileAsC" => "/TC",
             "CompileAsCpp" => "/TP",
             _ => throw new ArgumentException($"Unsupported CompileAs: {value}")

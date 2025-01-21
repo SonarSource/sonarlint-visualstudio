@@ -172,9 +172,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         private void AddLanguageFlags(IVCRulePropertyStorage properties)
         {
             var (compileAsFlag, languageStandardFlag) = languageFlagsProvider.GetLanguageConfiguration(
-                GetPotentiallyUnsupportedPropertyValue(properties, "CompileAs", ""),
-                GetPotentiallyUnsupportedPropertyValue(properties, "LanguageStandard_C", ""),
-                GetPotentiallyUnsupportedPropertyValue(properties, "LanguageStandard", ""));
+                GetPotentiallyUnsupportedPropertyValue(properties, "CompileAs", string.Empty),
+                GetPotentiallyUnsupportedPropertyValue(properties, "LanguageStandard_C", string.Empty),
+                GetPotentiallyUnsupportedPropertyValue(properties, "LanguageStandard", string.Empty));
 
             AddCmdOpt(compileAsFlag);
             AddCmdOpt(languageStandardFlag);

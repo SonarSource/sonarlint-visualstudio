@@ -25,7 +25,7 @@ internal static class LanguageStandardConverter
     public static string GetCppStandardFlagValue(string value) =>
         value switch
         {
-            null or "" or "Default" => "",
+            null or "" or "Default" => string.Empty,
             "stdcpplatest" => "/std:c++latest",
             "stdcpp20" => "/std:c++20",
             "stdcpp17" => "/std:c++17",
@@ -36,7 +36,7 @@ internal static class LanguageStandardConverter
     public static string GetCStandardFlagValue(string value) =>
         value switch
         {
-            null or "" or "Default" => "",
+            null or "" or "Default" => string.Empty,
             "stdclatest" => "/std:clatest",
             "stdc23" => "/std:c23",
             "stdc17" => "/std:c17",
