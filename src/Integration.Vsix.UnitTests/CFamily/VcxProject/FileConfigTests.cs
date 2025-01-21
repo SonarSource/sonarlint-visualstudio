@@ -124,26 +124,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
         }
 
         [TestMethod]
-        public void TryGet_Full_Cmd()
+        public void TryGet_Full_Cmd_ForCompileAsCppFile()
         {
             // Arrange
             var projectItemConfig = new ProjectItemConfig
             {
                 ItemType = "ClCompile",
-                FileConfigProperties = new Dictionary<string, string>
+                FileConfigProperties = CreateDefaultClCompileFileProperties(new Dictionary<string, string>
                 {
-                    ["PrecompiledHeader"] = "NotUsing",
-                    ["CompileAs"] = "CompileAsCpp",
-                    ["CompileAsManaged"] = "false",
-                    ["EnableEnhancedInstructionSet"] = "AdvancedVectorExtensions512",
-                    ["RuntimeLibrary"] = "MultiThreaded",
-                    ["LanguageStandard"] = "stdcpp17",
-                    ["ExceptionHandling"] = "Sync",
-                    ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
-                    ["ConformanceMode"] = "true",
-                    ["StructMemberAlignment"] = "8Bytes",
-                    ["AdditionalOptions"] = "/DA",
-                }
+                    ["CompileAs"] = "CompileAsCpp"
+                })
             };
 
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
@@ -153,7 +143,90 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
 
             // Assert
             request.Should().NotBeNull();
-            Assert.AreEqual("\"C:\\path\\cl.exe\" /permissive- /std:c++17 /EHsc /arch:AVX512 /MT /RTCu /Zp8 /TP /DA \"c:\\dummy\\file.cpp\"", request.CDCommand);
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /permissive- /TP /std:c++17 /EHsc /arch:AVX512 /MT /RTCu /Zp8 /DA \"c:\\dummy\\file.cpp\"", request.CDCommand);
+            Assert.AreEqual("C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;", request.EnvInclude);
+            Assert.AreEqual("c:\\dummy\\file.cpp", request.CDFile);
+            Assert.AreEqual("c:\\foo", request.CDDirectory);
+            Assert.IsFalse(request.IsHeaderFile);
+        }
+
+        [TestMethod]
+        public void TryGet_Full_Cmd_ForCompileAsCFile()
+        {
+            // Arrange
+            var projectItemConfig = new ProjectItemConfig
+            {
+                ItemType = "ClCompile",
+                FileConfigProperties = CreateDefaultClCompileFileProperties(new Dictionary<string, string>
+                {
+                    ["CompileAs"] = "CompileAsC"
+                })
+            };
+
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
+
+            // Act
+            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithClCompiler());
+
+            // Assert
+            request.Should().NotBeNull();
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /permissive- /TC /std:c17 /EHsc /arch:AVX512 /MT /RTCu /Zp8 /DA \"c:\\dummy\\file.cpp\"", request.CDCommand);
+            Assert.AreEqual("C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;", request.EnvInclude);
+            Assert.AreEqual("c:\\dummy\\file.cpp", request.CDFile);
+            Assert.AreEqual("c:\\foo", request.CDDirectory);
+            Assert.IsFalse(request.IsHeaderFile);
+        }
+
+
+        [DataTestMethod]
+        public void TryGet_Full_Cmd_ForNonCFile()
+        {
+            // Arrange
+            var projectItemConfig = new ProjectItemConfig
+            {
+                ItemType = "ClCompile",
+                FileConfigProperties = CreateDefaultClCompileFileProperties(new Dictionary<string, string>
+                {
+                    ["CompileAs"] = "Default"
+                })
+            };
+
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig, "ANY_NON_CCODE");
+
+            // Act
+            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithClCompiler());
+
+            // Assert
+            request.Should().NotBeNull();
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /permissive- /TP /std:c++17 /EHsc /arch:AVX512 /MT /RTCu /Zp8 /DA \"c:\\dummy\\file.cpp\"", request.CDCommand);
+            Assert.AreEqual("C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;", request.EnvInclude);
+            Assert.AreEqual("c:\\dummy\\file.cpp", request.CDFile);
+            Assert.AreEqual("c:\\foo", request.CDDirectory);
+            Assert.IsFalse(request.IsHeaderFile);
+        }
+
+        [TestMethod]
+        public void TryGet_Full_Cmd_ForCCodeFile()
+        {
+            // Arrange
+            var projectItemConfig = new ProjectItemConfig
+            {
+                ItemType = "ClCompile",
+                FileConfigProperties = CreateDefaultClCompileFileProperties(new Dictionary<string, string>
+                {
+                    ["LanguageStandard"] = "stdcpp17",
+                    ["LanguageStandard_C"] = "stdc17",
+                })
+            };
+
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig, "CCode");
+
+            // Act
+            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp", CreateFileSystemWithClCompiler());
+
+            // Assert
+            request.Should().NotBeNull();
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /permissive- /TC /std:c17 /EHsc /arch:AVX512 /MT /RTCu /Zp8 /DA \"c:\\dummy\\file.cpp\"", request.CDCommand);
             Assert.AreEqual("C:\\path\\includeDir1;C:\\path\\includeDir2;C:\\path\\includeDir3;", request.EnvInclude);
             Assert.AreEqual("c:\\dummy\\file.cpp", request.CDFile);
             Assert.AreEqual("c:\\foo", request.CDDirectory);
@@ -189,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
 
             // Assert
             request.Should().NotBeNull();
-            Assert.AreEqual("\"C:\\path\\cl.exe\" /Yu\"pch.h\" /FI\"pch.h\" /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /Yu\"pch.h\" /FI\"pch.h\" /TP /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
             Assert.AreEqual("c:\\dummy\\file.h", request.CDFile);
             Assert.IsTrue(request.IsHeaderFile);
 
@@ -201,7 +274,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h", CreateFileSystemWithClCompiler());
 
             // Assert
-            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu /TC \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /TC /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
             Assert.AreEqual("c:\\dummy\\file.h", request.CDFile);
             Assert.IsTrue(request.IsHeaderFile);
 
@@ -212,7 +285,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h", CreateFileSystemWithClCompiler());
 
             // Assert
-            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /EHsc /RTCu /TP \"c:\\dummy\\file.h\"", request.CDCommand);
+            Assert.AreEqual("\"C:\\path\\cl.exe\" /FI\"FHeader.h\" /Yu\"pch.h\" /TP /EHsc /RTCu \"c:\\dummy\\file.h\"", request.CDCommand);
             Assert.AreEqual("c:\\dummy\\file.h", request.CDFile);
             Assert.IsTrue(request.IsHeaderFile);
         }
@@ -341,6 +414,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
             // Assert
             request.Should().NotBeNull();
             Assert.IsTrue(request.CDCommand.StartsWith("\"C:\\path\\cl.exe\""));
+        }
+
+        private Dictionary<string, string> CreateDefaultClCompileFileProperties(Dictionary<string, string> overrides)
+        {
+            var defaultProperties = new Dictionary<string, string>
+            {
+                ["PrecompiledHeader"] = "NotUsing",
+                ["CompileAsManaged"] = "false",
+                ["EnableEnhancedInstructionSet"] = "AdvancedVectorExtensions512",
+                ["RuntimeLibrary"] = "MultiThreaded",
+                ["LanguageStandard"] = "stdcpp17",
+                ["LanguageStandard_C"] = "stdc17",
+                ["ExceptionHandling"] = "Sync",
+                ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
+                ["ConformanceMode"] = "true",
+                ["StructMemberAlignment"] = "8Bytes",
+                ["AdditionalOptions"] = "/DA",
+            };
+
+            foreach (var overrideProperties in overrides)
+            {
+                defaultProperties[overrideProperties.Key] = overrideProperties.Value;
+            }
+
+            return defaultProperties;
         }
 
     }

@@ -13,16 +13,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.VCProjectEngine;
-using Moq;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
 
@@ -31,27 +28,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
     [TestClass]
     public class CmdBuilderTests
     {
-
-        [TestMethod]
-        [DataRow("", "")]
-        [DataRow("Default", "")]
-        [DataRow("CompileAsC", "/TC")]
-        [DataRow("CompileAsCpp", "/TP")]
-        [DataRow("Invalid", "Unsupported CompileAs: Invalid")]
-        public void ConvertCompileAsAndGetLanguage(string input, string output)
-        {
-            if ("Invalid".Equals(input))
-            {
-                Action action = () => CmdBuilder.ConvertCompileAsAndGetLanguage(input);
-                action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
-                    .StartWith(output);
-            }
-            else
-            {
-                CmdBuilder.ConvertCompileAsAndGetLanguage(input).Should().Be(output);
-            }
-        }
-
         [TestMethod]
         [DataRow("", "")]
         [DataRow("false", "")]
@@ -165,52 +141,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         [DataRow("", "")]
         [DataRow("Default", "")]
-        [DataRow(null, "")]
-        [DataRow("stdcpplatest", "/std:c++latest")]
-        [DataRow("stdcpp20", "/std:c++20")]
-        [DataRow("stdcpp17", "/std:c++17")]
-        [DataRow("stdcpp14", "/std:c++14")]
-        [DataRow("Invalid", "Unsupported LanguageStandard: Invalid")]
-        public void ConvertCppStandard(string input, string output)
-        {
-            if ("Invalid".Equals(input))
-            {
-                Action action = () => CmdBuilder.ConvertCppStandard(input);
-                action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
-                    .StartWith(output);
-            }
-            else
-            {
-                CmdBuilder.ConvertCppStandard(input).Should().Be(output);
-            }
-        }
-
-        [TestMethod]
-        [DataRow("", "")]
-        [DataRow("Default", "")]
-        [DataRow(null, "")]
-        [DataRow("stdclatest", "/std:clatest")]
-        [DataRow("stdc23", "/std:c23")]
-        [DataRow("stdc17", "/std:c17")]
-        [DataRow("stdc11", "/std:c11")]
-        [DataRow("Invalid", "Unsupported LanguageStandard_C: Invalid")]
-        public void ConvertCStandard(string input, string output)
-        {
-            if ("Invalid".Equals(input))
-            {
-                Action action = () => CmdBuilder.ConvertCStandard(input);
-                action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
-                    .StartWith(output);
-            }
-            else
-            {
-                CmdBuilder.ConvertCStandard(input).Should().Be(output);
-            }
-        }
-
-        [TestMethod]
-        [DataRow("", "")]
-        [DataRow("Default", "")]
         [DataRow("16Bytes", "/Zp16")]
         [DataRow("8Bytes", "/Zp8")]
         [DataRow("4Bytes", "/Zp4")]
@@ -255,16 +185,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [DataRow("UseStandardPreprocessor", "false", "/Zc:preprocessor- ")]
         [DataRow("ConformanceMode", "true", "/permissive- ")]
         [DataRow("ConformanceMode", "false", "/permissive ")]
-        [DataRow("LanguageStandard", "stdcpplatest", "/std:c++latest ")]
-        [DataRow("LanguageStandard", "stdcpp20", "/std:c++20 ")]
-        [DataRow("LanguageStandard", "stdcpp17", "/std:c++17 ")]
-        [DataRow("LanguageStandard", "stdcpp14", "/std:c++14 ")]
-        [DataRow("LanguageStandard", "Default", "")]
-        [DataRow("LanguageStandard_C", "stdclatest", "/std:clatest ")]
-        [DataRow("LanguageStandard_C", "stdc23", "/std:c23 ")]
-        [DataRow("LanguageStandard_C", "stdc17", "/std:c17 ")]
-        [DataRow("LanguageStandard_C", "stdc11", "/std:c11 ")]
-        [DataRow("LanguageStandard_C", "Default", "")]
         [DataRow("ExceptionHandling", "Sync", "/EHsc ")]
         [DataRow("ExceptionHandling", "SyncCThrow", "/EHs ")]
         [DataRow("ExceptionHandling", "Async", "/EHa ")]
@@ -294,9 +214,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [DataRow("StructMemberAlignment", "4Bytes", "/Zp4 ")]
         [DataRow("StructMemberAlignment", "2Bytes", "/Zp2 ")]
         [DataRow("StructMemberAlignment", "1Bytes", "/Zp1 ")]
-        [DataRow("CompileAs", "Default", "")]
-        [DataRow("CompileAs", "CompileAsC", "/TC ")]
-        [DataRow("CompileAs", "CompileAsCpp", "/TP ")]
         [DataRow("AdditionalIncludeDirectories", "a;;b;c", "/I\"a\" /I\"b\" /I\"c\" ")]
         [DataRow("AdditionalIncludeDirectories", ";;;", "")]
         [DataRow("PreprocessorDefinitions", "a;;b;;c;", "/D\"a\" /D\"b\" /D\"c\" ")]
@@ -307,7 +224,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [DataRow("AdditionalOptions", "/MD /Zc:wchar_t-", "/MD /Zc:wchar_t- ")]
         public void AddOptFromProperties(string input, string output, string cmd)
         {
-            var cmdBuilder = new CmdBuilder(false);
+            var cmdBuilder = new CmdBuilder(false, Substitute.For<ILanguageFlagsProvider>());
             var settingsMock = new Mock<IVCRulePropertyStorage>();
             settingsMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>())).Returns<string>(s => s == input ? output : "");
 
@@ -316,21 +233,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             cmdBuilder.GetFullCmd().Should().Be(cmd);
         }
 
-        [TestMethod]
-        [DataRow("Default", "")]
-        [DataRow("CompileAsC", "/TC ")]
-        [DataRow("CompileAsCpp", "/TP ")]
-        public void HeaderFileLang(string compileAs, string cmd)
+        [DataTestMethod]
+        [DataRow(false, "", "", "")]
+        [DataRow(true, "", "", "")]
+        [DataRow(false, "compileAsFlagValue", "", "compileAsFlagValue ")]
+        [DataRow(true, "compileAsFlagValue", "", "compileAsFlagValue ")]
+        [DataRow(false, "", "languageStandardFlagValue", "languageStandardFlagValue ")]
+        [DataRow(true, "", "languageStandardFlagValue", "languageStandardFlagValue ")]
+        [DataRow(false, "compileAsFlagValue", "compileAsFlagValue", "compileAsFlagValue compileAsFlagValue ")]
+        [DataRow(true, "compileAsFlagValue", "compileAsFlagValue", "compileAsFlagValue compileAsFlagValue ")]
+        public void AddOptFromProperties_DelegatesToLanguageFlagsProvider_AddsAvailableLanguageFlags(bool isHeader, string compileAsFlag, string languageStandardFlag, string expectedCmd)
         {
-            var cmdBuilder = new CmdBuilder(true);
-            var settingsMock = new Mock<IVCRulePropertyStorage>();
-            settingsMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>())).Returns<string>(s => s == "CompileAs" ? compileAs : "");
+            var languageFlagsProvider = Substitute.For<ILanguageFlagsProvider>();
+            var vcRulePropertyStorage = Substitute.For<IVCRulePropertyStorage>();
+            vcRulePropertyStorage.GetEvaluatedPropertyValue("CompileAs").Returns("CompileAsValue");
+            vcRulePropertyStorage.GetEvaluatedPropertyValue("LanguageStandard_C").Returns("LanguageStandardCValue");
+            vcRulePropertyStorage.GetEvaluatedPropertyValue("LanguageStandard").Returns("LanguageStandardValue");
+            languageFlagsProvider.GetLanguageConfiguration("CompileAsValue", "LanguageStandardCValue", "LanguageStandardValue").Returns((compileAsFlag, languageStandardFlag));
+            var cmdBuilder = new CmdBuilder(isHeader, languageFlagsProvider);
 
-            cmdBuilder.AddOptFromProperties(settingsMock.Object);
+            cmdBuilder.AddOptFromProperties(vcRulePropertyStorage);
 
-            cmdBuilder.GetFullCmd().Should().Be(cmd);
+            cmdBuilder.GetFullCmd().Should().Be(expectedCmd);
         }
-
         [TestMethod]
         [DataRow("Create", false, "", "/Yc\"C:\\pch.h\" ")]
         [DataRow("Create", true, "", "/Yc\"C:\\pch.h\" ")]
@@ -340,7 +265,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [DataRow("Use", true, "C:\\a.h", "/FI\"C:\\a.h\" /Yu\"C:\\pch.h\" ")]
         public void PCHCreate(string mode, bool isHeader, string forceInclude, string command)
         {
-            var cmdBuilder = new CmdBuilder(isHeader);
+            var cmdBuilder = new CmdBuilder(isHeader, Substitute.For<ILanguageFlagsProvider>());
             var settingsMock = new Mock<IVCRulePropertyStorage>();
             settingsMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>())).Returns<string>(s =>
             {
@@ -369,7 +294,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void PCHUse()
         {
-            var cmdBuilder = new CmdBuilder(false);
+            var cmdBuilder = new CmdBuilder(false, Substitute.For<ILanguageFlagsProvider>());
             var settingsMock = new Mock<IVCRulePropertyStorage>();
             settingsMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>())).Returns<string>(s =>
             {

@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
         private static readonly ProjectItemConfig DefaultSetting = new ProjectItemConfig();
 
-        internal static Mock<ProjectItem> CreateMockProjectItem(string projectName, ProjectItemConfig projectItemConfig = null)
+        internal static Mock<ProjectItem> CreateMockProjectItem(string projectName, ProjectItemConfig projectItemConfig = null, string contentType = null)
         {
             projectItemConfig ??= DefaultSetting;
 
@@ -70,6 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             var vcFileMock = new Mock<VCFile>();
             vcFileMock.SetupGet(x => x.ItemType).Returns(projectItemConfig.ItemType);
+            vcFileMock.SetupGet(x => x.ContentType).Returns(contentType);
             vcFileMock.Setup(x => x.GetFileConfigurationForProjectConfiguration(vcConfig)).Returns(vcFileConfigMock.Object);
 
             var projectMock = new ProjectMock(projectName) { Project = vcProjectMock.Object };
