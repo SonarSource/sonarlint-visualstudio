@@ -105,12 +105,12 @@
       },
       "Microsoft.VSSDK.BuildTools": {
         "type": "Direct",
-        "requested": "[17.12.2069, )",
-        "resolved": "17.12.2069",
-        "contentHash": "pXOjfaoC926Z2ApbbXBNWWlTPJPDiJdp+kb+bdx5xxOr68yHwTgDD/i3q7JMtKJkHddufYYItRFr3P0/ylP4Sg==",
+        "requested": "[17.5.4074, )",
+        "resolved": "17.5.4074",
+        "contentHash": "2WxZzibhmV8T5HKLolzQt9SO8psKx2cLIRUbw0X8D295HtcXvzbmlXITuS9EdAQyFt0FKhOy4j96karBrvbtpQ==",
         "dependencies": {
-          "Microsoft.VisualStudio.SDK.Analyzers": "17.7.47",
-          "Microsoft.VsSDK.CompatibilityAnalyzer": "17.12.2069"
+          "Microsoft.VisualStudio.SDK.Analyzers": "16.10.10",
+          "Microsoft.VsSDK.CompatibilityAnalyzer": "17.5.4074"
         }
       },
       "Microsoft.VSSDK.VsixSignTool": {
@@ -265,6 +265,11 @@
         "type": "Transitive",
         "resolved": "3.3.0",
         "contentHash": "gyQ70pJ4T7hu/s0+QnEaXtYfeG/JrttGnxHJlrhpxsQjRIUGuRhVwNBtkHHYOrUAZ/l47L98/NiJX6QmTwAyrg=="
+      },
+      "Microsoft.CodeAnalysis.BannedApiAnalyzers": {
+        "type": "Transitive",
+        "resolved": "3.3.2",
+        "contentHash": "LlcsDRSYfkJFWOdDpysY/4Ph4llHc8DLOc3roFTz9+216vl+vwVGfbys2rcSmhZCTDv/0kxSs2oOdd9SX2NiVg=="
       },
       "Microsoft.CodeAnalysis.Common": {
         "type": "Transitive",
@@ -697,8 +702,12 @@
       },
       "Microsoft.VisualStudio.SDK.Analyzers": {
         "type": "Transitive",
-        "resolved": "17.7.47",
-        "contentHash": "dP4SOup0OMy8s1cTD4oYXlLd6JrDb8Gp4+1fR+vUuvgLDSuGFWS/8B23GQ670NICw5AadUUK9T9sCvYmpW8/Ig=="
+        "resolved": "16.10.10",
+        "contentHash": "LuhBHy7MJJ5SjpS7J2GuHqPyL1VeqXUwYc+mTagaUCzXbNwJmLcSUAioCyQyAzPIn6qtnzuM5Lz6ULOQS3ifUA==",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.BannedApiAnalyzers": "3.3.2",
+          "Microsoft.VisualStudio.Threading.Analyzers": "16.10.56"
+        }
       },
       "Microsoft.VisualStudio.Setup.Configuration.Interop": {
         "type": "Transitive",
@@ -1022,8 +1031,8 @@
       },
       "Microsoft.VsSDK.CompatibilityAnalyzer": {
         "type": "Transitive",
-        "resolved": "17.12.2069",
-        "contentHash": "kQB0zReJK0ezXxi8cGBpMr7r1x2vnftuEn2Qp7pvZnFsP2mTQVauBYioptxStvGcbX9sIfo2YSenYQiShsh+vA=="
+        "resolved": "17.5.4074",
+        "contentHash": "2qc8/469BzeGN8WUGcOXNAfVGNlCzOAT9us5CVPpMvjB6oBFFgW2h+A8G4QzuGsMK5f+CbCImK3hwyzmL0N4EA=="
       },
       "Microsoft.Web.Xdt": {
         "type": "Transitive",
