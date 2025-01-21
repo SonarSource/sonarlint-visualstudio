@@ -9,6 +9,6 @@
     <EmbeddedSonarJSAnalyzerVersion>10.20.0.29356</EmbeddedSonarJSAnalyzerVersion>
     <EmbeddedSonarSecretsJarVersion>2.20.0.5038</EmbeddedSonarSecretsJarVersion>
     <!-- SLOOP: Binaries for SonarLint Out Of Process -->
-    <EmbeddedSloopVersion>10.12.1.79852</EmbeddedSloopVersion>
+    <EmbeddedSloopVersion>10.13.0.79996</EmbeddedSloopVersion>
   </PropertyGroup>
 </Project>
