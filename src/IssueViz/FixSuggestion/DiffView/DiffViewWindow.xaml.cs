@@ -50,7 +50,7 @@ public sealed partial class DiffViewWindow : Window
         DiffGrid.Children.Add(differenceViewer.VisualElement);
     }
 
-    private string BuildTitle(FixSuggestionDetails fixSuggestionDetails) =>
+    private static string BuildTitle(FixSuggestionDetails fixSuggestionDetails) =>
         string.Format(IssueVisualization.Resources.DiffViewWindow_Title, fixSuggestionDetails.ChangeIndex, fixSuggestionDetails.TotalChangesFixes, fixSuggestionDetails.FileName);
 
     private void OnAccept(object sender, RoutedEventArgs e) => DialogResult = true;
