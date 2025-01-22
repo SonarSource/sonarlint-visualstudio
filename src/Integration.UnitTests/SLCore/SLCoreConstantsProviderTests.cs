@@ -128,6 +128,7 @@ public class SLCoreConstantsProviderTests
             Language.JS,
             Language.TS,
             Language.CSS,
+            Language.HTML,
             Language.C,
             Language.CPP,
             Language.CS,
@@ -149,6 +150,7 @@ public class SLCoreConstantsProviderTests
             Language.JS,
             Language.TS,
             Language.CSS,
+            Language.HTML,
             Language.C,
             Language.CPP,
             Language.SECRETS

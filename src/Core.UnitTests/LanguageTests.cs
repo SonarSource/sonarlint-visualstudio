@@ -45,9 +45,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             act = () => new Language(null, key, fileSuffix, serverLanguage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
 
-            act = () => new Language(name, key, null, serverLanguage);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSuffix");
-
             act = () => new Language(name, key, fileSuffix, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverLanguage");
         }
