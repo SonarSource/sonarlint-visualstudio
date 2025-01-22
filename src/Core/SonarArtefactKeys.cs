@@ -36,34 +36,6 @@ namespace SonarLint.VisualStudio.Core
     //
     // * rule definition: part of a single repository. The full rule id is given by "[repo id]:[rule id]"
 
-    /// <summary>
-    /// Language keys for languages supported by SonarQube/Cloud plugins
-    /// </summary>
-    /// <remarks>A full list of languages keys can be obtained by calling https://sonarcloud.io/api/languages/list
-    /// </remarks>
-    public static class SonarLanguageKeys
-    {
-        // TODO: the SonarQube.Client assembly has a class that defines the SonarQube language keys:
-        // see SonarQube.Client.Models.SonarQubeLanguage. We shouldn't need both definitions.
-        public const string CSharp = "cs";
-        public const string VBNet = "vbnet";
-        public const string JavaScript = "js";
-        public const string TypeScript = "ts";
-        public const string Css = "css";
-        public const string C = "c";
-        public const string CPlusPlus = "cpp";
-        public const string Secrets = "secrets";
-    }
-
-    public static class SonarPluginKeys
-    {
-        public const string SonarCSharp = "csharp";
-        public const string SonarVBNet = "vbnet";
-        public const string SonarCFamily = "cpp";
-        public const string SonarJs = "javascript";
-        public const string SonarSecrets = "text";
-    }
-
     public static class SonarRuleRepoKeys
     {
         public const string JavaScript = "javascript";

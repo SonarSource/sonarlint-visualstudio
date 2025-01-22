@@ -136,26 +136,6 @@ public class TelemetryManagerTests
     }
 
     [DataTestMethod]
-    [DataRow(SonarLanguageKeys.C, Language.C, 1)]
-    [DataRow(SonarLanguageKeys.CPlusPlus, Language.CPP, 2)]
-    [DataRow(SonarLanguageKeys.CSharp, Language.CS, 3)]
-    [DataRow(SonarLanguageKeys.VBNet, Language.VBNET, 4)]
-    [DataRow(SonarLanguageKeys.JavaScript, Language.JS, 5)]
-    [DataRow(SonarLanguageKeys.TypeScript, Language.TS, 6)]
-    [DataRow(SonarLanguageKeys.Css, Language.CSS, 7)]
-    [DataRow(SonarLanguageKeys.Secrets, Language.SECRETS, 8)]
-    public void LanguageAnalyzed_CallsRpcService(string languageKey, Language language, int analysisTimeMs)
-    {
-        telemetryManager.LanguageAnalyzed(languageKey, TimeSpan.FromMilliseconds(analysisTimeMs));
-
-        Received.InOrder(() =>
-        {
-            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
-            telemetryService.AnalysisDoneOnSingleLanguage(Arg.Is<AnalysisDoneOnSingleLanguageParams>(a => a.language == language && a.analysisTimeMs == analysisTimeMs));
-        });
-    }
-
-    [DataTestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void CSharpUIContext_SendsCSharpAnalysisUpdate(bool activated)

@@ -34,7 +34,8 @@ internal class NonRoslynDummyBindingConfigProvider : IBindingConfigProvider
         Language.Js,
         Language.Ts,
         Language.Secrets,
-        Language.Css
+        Language.Css,
+        Language.Html,
     ];
 
     public bool IsLanguageSupported(Language language) => SupportedLanguages.Contains(language);
