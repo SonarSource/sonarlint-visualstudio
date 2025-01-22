@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
@@ -31,6 +32,7 @@ public interface IDiffToolWindow
     bool ShowDiff(FixSuggestionDetails fixSuggestionDetails, ITextBuffer before, ITextBuffer after);
 }
 
+[ExcludeFromCodeCoverage]
 [Guid(DiffViewToolWindowPaneId)]
 public class DiffViewToolWindowPane : ToolWindowPane, IDiffToolWindow
 {
