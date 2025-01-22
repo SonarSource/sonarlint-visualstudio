@@ -54,13 +54,6 @@ internal sealed class TelemetryManager : ITelemetryManager,
 
     public void OptOut() => telemetryHelper.Notify(telemetryService => telemetryService.DisableTelemetry());
 
-    public void LanguageAnalyzed(string languageKey, TimeSpan analysisTime)
-    {
-        var language = Convert(languageKey);
-        telemetryHelper.Notify(telemetryService =>
-            telemetryService.AnalysisDoneOnSingleLanguage(new AnalysisDoneOnSingleLanguageParams(language, (int)Math.Round(analysisTime.TotalMilliseconds))));
-    }
-
     public void TaintIssueInvestigatedLocally() => telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedLocally());
 
     public void TaintIssueInvestigatedRemotely() => telemetryHelper.Notify(telemetryService => telemetryService.TaintVulnerabilitiesInvestigatedRemotely());
@@ -77,7 +70,7 @@ internal sealed class TelemetryManager : ITelemetryManager,
     {
         if (e.Activated)
         {
-            LanguageAnalyzed(SonarLanguageKeys.CSharp, TimeSpan.Zero);
+            LanguageAnalyzed(TimeSpan.Zero, Language.CS);
         }
     }
 
@@ -85,21 +78,11 @@ internal sealed class TelemetryManager : ITelemetryManager,
     {
         if (e.Activated)
         {
-            LanguageAnalyzed(SonarLanguageKeys.VBNet, TimeSpan.Zero);
+            LanguageAnalyzed(TimeSpan.Zero, Language.VBNET);
         }
     }
 
-    private static Language Convert(string languageKey) =>
-        languageKey switch
-        {
-            SonarLanguageKeys.CPlusPlus => Language.CPP,
-            SonarLanguageKeys.C => Language.C,
-            SonarLanguageKeys.Css => Language.CSS,
-            SonarLanguageKeys.JavaScript => Language.JS,
-            SonarLanguageKeys.TypeScript => Language.TS,
-            SonarLanguageKeys.VBNet => Language.VBNET,
-            SonarLanguageKeys.CSharp => Language.CS,
-            SonarLanguageKeys.Secrets => Language.SECRETS,
-            _ => throw new ArgumentOutOfRangeException(nameof(languageKey), languageKey, null)
-        };
+    private void LanguageAnalyzed(TimeSpan analysisTime, Language language) =>
+        telemetryHelper.Notify(telemetryService =>
+            telemetryService.AnalysisDoneOnSingleLanguage(new AnalysisDoneOnSingleLanguageParams(language, (int)Math.Round(analysisTime.TotalMilliseconds))));
 }

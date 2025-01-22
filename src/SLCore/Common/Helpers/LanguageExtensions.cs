@@ -31,6 +31,7 @@ internal static class LanguageExtensions
             Language.CPP => VisualStudio.Core.Language.Cpp,
             Language.CS => VisualStudio.Core.Language.CSharp,
             Language.CSS => VisualStudio.Core.Language.Css,
+            Language.HTML => VisualStudio.Core.Language.Html,
             Language.JS => VisualStudio.Core.Language.Js,
             Language.SECRETS => VisualStudio.Core.Language.Secrets,
             Language.TS => VisualStudio.Core.Language.Ts,
@@ -46,6 +47,7 @@ internal static class LanguageExtensions
             Language.CS => "csharpenterprise",
             Language.VBNET => "vbnetenterprise",
             Language.SECRETS => "text",
+            Language.HTML => "web",
             _ => null
         };
 }

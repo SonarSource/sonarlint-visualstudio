@@ -155,6 +155,7 @@ public class MuteIssueCommandTests
     [DataRow("javascript:S333")]
     [DataRow("typescript:S444")]
     [DataRow("css:S555")]
+    [DataRow("Web:S545")]
     [DataRow("csharpsquid:S555")]
     [DataRow("vbnet:S555")]
     public void QueryStatus_ConnectedModeAndSupportedIssue_VisibleAndEnabled(string errorCode)

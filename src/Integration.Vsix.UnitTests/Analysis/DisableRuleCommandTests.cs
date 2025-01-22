@@ -83,6 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [DataRow("javascript:S333")]
         [DataRow("typescript:S444")]
         [DataRow("css:S777")]
+        [DataRow("Web:S787")]
         [DataRow("secrets:S555")]
         public void CheckStatusAndExecute_SingleIssue_SupportedRepo_StandaloneMode_VisibleAndEnabled(string errorCode)
         {
@@ -119,6 +120,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [DataRow("typescript:S111", SonarLintMode.LegacyConnected, false)]
         [DataRow("css:S111", SonarLintMode.Connected, false)]
         [DataRow("css:S111", SonarLintMode.LegacyConnected, false)]
+        [DataRow("Web:S111", SonarLintMode.Connected, false)]
+        [DataRow("Web:S111", SonarLintMode.LegacyConnected, false)]
         public void CheckStatus_SingleIssue_SupportedRepo_ConnectedMode_HasExpectedEnabledStatus(string errorCode, SonarLintMode bindingMode,
             bool expectedEnabled)
         {

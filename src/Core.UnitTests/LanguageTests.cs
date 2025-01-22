@@ -45,9 +45,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             act = () => new Language(null, key, fileSuffix, serverLanguage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
 
-            act = () => new Language(name, key, null, serverLanguage);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSuffix");
-
             act = () => new Language(name, key, fileSuffix, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverLanguage");
         }
@@ -81,21 +78,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         }
 
         [TestMethod]
-        public void Language_ServerLanguageObjectsAndKeys()
-        {
-            // Act + Assert
-            Language.CSharp.ServerLanguage.Key.Should().Be(SonarLanguageKeys.CSharp);
-            Language.VBNET.ServerLanguage.Key.Should().Be(SonarLanguageKeys.VBNet);
-            Language.Cpp.ServerLanguage.Key.Should().Be(SonarLanguageKeys.CPlusPlus);
-            Language.C.ServerLanguage.Key.Should().Be(SonarLanguageKeys.C);
-            Language.Js.ServerLanguage.Key.Should().Be(SonarLanguageKeys.JavaScript);
-            Language.Ts.ServerLanguage.Key.Should().Be(SonarLanguageKeys.TypeScript);
-            Language.Css.ServerLanguage.Key.Should().Be(SonarLanguageKeys.Css);
-            Language.Secrets.ServerLanguage.Key.Should().Be(SonarLanguageKeys.Secrets);
-            Language.Unknown.ServerLanguage.Should().BeNull();
-        }
-
-        [TestMethod]
         public void Language_Equality()
         {
             // Arrange
@@ -118,6 +100,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var js = Language.GetLanguageFromLanguageKey("js");
             var ts = Language.GetLanguageFromLanguageKey("ts");
             var css = Language.GetLanguageFromLanguageKey("css");
+            var html = Language.GetLanguageFromLanguageKey("Web");
             var unknown = Language.GetLanguageFromLanguageKey("unknown");
 
             cs.Should().Be(Language.CSharp);
@@ -127,6 +110,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             js.Should().Be(Language.Js);
             ts.Should().Be(Language.Ts);
             css.Should().Be(Language.Css);
+            html.Should().Be(Language.Html);
             unknown.Should().Be(null);
         }
 
@@ -140,6 +124,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var js = Language.GetLanguageFromRepositoryKey("javascript");
             var ts = Language.GetLanguageFromRepositoryKey("typescript");
             var css = Language.GetLanguageFromRepositoryKey("css");
+            var html = Language.GetLanguageFromRepositoryKey("Web");
             var secrets = Language.GetLanguageFromRepositoryKey("secrets");
             var unknown = Language.GetLanguageFromRepositoryKey("unknown");
 
@@ -154,6 +139,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             js.Should().Be(Language.Js);
             ts.Should().Be(Language.Ts);
             css.Should().Be(Language.Css);
+            html.Should().Be(Language.Html);
             secrets.Should().Be(Language.Secrets);
             unknown.Should().Be(null);
 
@@ -172,6 +158,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             Language.GetSonarRepoKeyFromLanguage(Language.Js).Should().Be("javascript");
             Language.GetSonarRepoKeyFromLanguage(Language.Ts).Should().Be("typescript");
             Language.GetSonarRepoKeyFromLanguage(Language.Css).Should().Be("css");
+            Language.GetSonarRepoKeyFromLanguage(Language.Html).Should().Be("Web");
 
             Language.GetSonarRepoKeyFromLanguage(Language.Unknown).Should().BeNull();
 

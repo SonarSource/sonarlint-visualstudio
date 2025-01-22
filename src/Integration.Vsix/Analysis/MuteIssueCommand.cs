@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Core.Transition;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarQube.Client.Models;
 using MessageBox = SonarLint.VisualStudio.Core.MessageBox;
 using Task = System.Threading.Tasks.Task;
 
@@ -193,6 +194,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             SonarRuleRepoKeys.JavaScript,
             SonarRuleRepoKeys.TypeScript,
             SonarRuleRepoKeys.Css,
+            SonarRuleRepoKeys.HtmlRules,
             SonarRuleRepoKeys.CSharpRules,
             SonarRuleRepoKeys.VBNetRules
         };

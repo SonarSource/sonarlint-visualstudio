@@ -45,12 +45,13 @@ namespace SonarLint.VisualStudio.Core
         public readonly static Language Unknown = new Language();
         public readonly static Language CSharp = new Language("CSharp", CoreStrings.CSharpLanguageName, "sonarlint_csharp.globalconfig", SonarQubeLanguage.CSharp);
         public readonly static Language VBNET = new Language("VB", CoreStrings.VBNetLanguageName, "sonarlint_vb.globalconfig", SonarQubeLanguage.VbNet);
-        public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName, "cpp_settings.json", SonarQubeLanguage.Cpp);
-        public readonly static Language C = new Language("C", "C", "c_settings.json", SonarQubeLanguage.C);
-        public readonly static Language Js = new Language("Js", "JavaScript", "js_settings.json", SonarQubeLanguage.Js);
-        public readonly static Language Ts = new Language("Ts", "TypeScript", "ts_settings.json", SonarQubeLanguage.Ts);
-        public readonly static Language Css = new Language("Css", "CSS", "css_settings.json", SonarQubeLanguage.Css);
-        public readonly static Language Secrets = new Language("Secrets", "Secrets", "secrets_settings.json", SonarQubeLanguage.Secrets);
+        public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName, null, SonarQubeLanguage.Cpp);
+        public readonly static Language C = new Language("C", "C", null, SonarQubeLanguage.C);
+        public readonly static Language Js = new Language("Js", "JavaScript", null, SonarQubeLanguage.Js);
+        public readonly static Language Ts = new Language("Ts", "TypeScript", null, SonarQubeLanguage.Ts);
+        public readonly static Language Css = new Language("Css", "CSS", null, SonarQubeLanguage.Css);
+        public readonly static Language Html = new Language("Html", "HTML", null, SonarQubeLanguage.Html);
+        public readonly static Language Secrets = new Language("Secrets", "Secrets", null, SonarQubeLanguage.Secrets);
 
         /// <summary>
         /// Returns the language for the specified language key, or null if it does not match a known language
@@ -117,7 +118,7 @@ namespace SonarLint.VisualStudio.Core
         {
             get
             {
-                return new[] { CSharp, VBNET, Cpp, C, Js, Ts, Css, Secrets };
+                return new[] { CSharp, VBNET, Cpp, C, Js, Ts, Css, Html, Secrets };
             }
         }
 
@@ -136,6 +137,7 @@ namespace SonarLint.VisualStudio.Core
             { "typescript", Ts },
             { "tssecurity", Ts },
             { "css", Css },
+            { "Web", Html},
             { "secrets", Secrets}
         };
 
@@ -159,11 +161,6 @@ namespace SonarLint.VisualStudio.Core
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentNullException(nameof(name));
-            }
-
-            if (string.IsNullOrWhiteSpace(fileSuffix))
-            {
-                throw new ArgumentNullException(nameof(fileSuffix));
             }
 
             this.Id = id;

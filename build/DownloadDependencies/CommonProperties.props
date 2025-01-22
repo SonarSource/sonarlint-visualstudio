@@ -48,6 +48,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <HtmlPluginFileName>sonar-html-plugin-$(EmbeddedSonarHtmlAnalyzerVersion).jar</HtmlPluginFileName>
+    <HtmlPluginDownloadPath>$(JarDownloadDir)\$(HtmlPluginFileName)</HtmlPluginDownloadPath>
+    <HtmlPluginRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/html/sonar-html-plugin/$(EmbeddedSonarHtmlAnalyzerVersion)/$(HtmlPluginFileName)</HtmlPluginRemoteUrl>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <SonarTextPluginFileName>sonar-text-plugin-$(EmbeddedSonarSecretsJarVersion).jar</SonarTextPluginFileName>
     <SonarTextPluginDownloadPath>$(JarDownloadDir)\$(SonarTextPluginFileName)</SonarTextPluginDownloadPath>
     <SonarTextPluginRemoteUrl>https://repox.jfrog.io/artifactory/sonarsource/org/sonarsource/text/sonar-text-plugin/$(EmbeddedSonarSecretsJarVersion)/$(SonarTextPluginFileName)</SonarTextPluginRemoteUrl>

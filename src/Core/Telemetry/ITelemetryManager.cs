@@ -28,8 +28,6 @@ public interface ITelemetryManager
 
     void OptIn();
 
-    void LanguageAnalyzed(string languageKey, TimeSpan analysisTime);
-
     void TaintIssueInvestigatedLocally();
 
     void TaintIssueInvestigatedRemotely();
