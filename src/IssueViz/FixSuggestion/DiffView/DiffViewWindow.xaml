@@ -1,0 +1,22 @@
+﻿<Window
+    x:Class="SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView.DiffViewWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+    Background="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}"
+    Icon="pack://application:,,,/SonarLint.VisualStudio.IssueVisualization;Component/Commands/Resources/sonarqube_for_ide_logo_16px.png">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" x:Name="DiffGrid" Margin="0,10"></Grid>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Content="Accept" Click="OnAccept" Margin="5" Padding="5"/>
+            <Button Content="Decline" Click="OnDecline" Margin="5" Padding="5"/>
+        </StackPanel>
+    </Grid>
+
+</Window>
