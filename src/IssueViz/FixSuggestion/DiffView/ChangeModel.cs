@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Utilities;
+
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
-public record FixSuggestionDetails(int ChangeIndex, int TotalChangesFixes, string FileName)
+public record ChangeModel(string Text, IContentType ContentType)
 {
 }

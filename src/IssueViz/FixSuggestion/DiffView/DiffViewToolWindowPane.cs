@@ -27,14 +27,14 @@ using Microsoft.VisualStudio.Text.Differencing;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
-public interface IDiffViewWindow
+public interface IDiffViewToolWindowPane
 {
     bool ShowDiff(FixSuggestionDetails fixSuggestionDetails, ITextBuffer before, ITextBuffer after);
 }
 
 [ExcludeFromCodeCoverage]
 [Guid(DiffViewToolWindowPaneId)]
-public class DiffViewToolWindowPane : ToolWindowPane, IDiffViewWindow
+public class DiffViewToolWindowPane : ToolWindowPane, IDiffViewToolWindowPane
 {
     private readonly IDifferenceBufferFactoryService differenceBufferFactoryService;
     private readonly IWpfDifferenceViewerFactoryService differenceViewerFactoryService;
