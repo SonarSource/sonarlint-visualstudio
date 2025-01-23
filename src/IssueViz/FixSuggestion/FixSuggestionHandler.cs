@@ -64,7 +64,6 @@ public class FixSuggestionHandler : IFixSuggestionHandler
             fixSuggestionNotification,
             diffViewService)
     {
-        this.diffViewService = diffViewService;
     }
 
     internal FixSuggestionHandler(
@@ -111,10 +110,8 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         }
     }
 
-    private bool ValidateConfiguration(string configurationScopeId, out string configurationScopeRoot, out string failureReason)
-    {
-        return openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(configurationScopeId, out configurationScopeRoot, out failureReason);
-    }
+    private bool ValidateConfiguration(string configurationScopeId, out string configurationScopeRoot, out string failureReason) =>
+        openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(configurationScopeId, out configurationScopeRoot, out failureReason);
 
     private void ApplyAndShowAppliedFixSuggestions(ShowFixSuggestionParams parameters, string configurationScopeRoot)
     {
