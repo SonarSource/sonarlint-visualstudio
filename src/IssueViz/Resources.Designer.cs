@@ -61,6 +61,24 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Code fix suggestion.
+        /// </summary>
+        internal static string DiffViewWindow_DefaultCaption {
+            get {
+                return ResourceManager.GetString("DiffViewWindow_DefaultCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply fix suggestion {0} out of {1} in file {2}.
+        /// </summary>
+        internal static string DiffViewWindow_Title {
+            get {
+                return ResourceManager.GetString("DiffViewWindow_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to get image moniker for file &apos;{0}&apos;: {1}.
         /// </summary>
         internal static string ERR_FailedToGetFileImageMoniker {
