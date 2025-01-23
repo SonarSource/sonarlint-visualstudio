@@ -45,6 +45,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     internal static readonly CssIssuesFile CssIssues = new();
     internal static readonly VueIssuesFile VueIssues = new();
     internal static readonly SecretsIssuesFile SecretsIssues = new();
+    internal static readonly HtmlIssuesFile HtmlIssues = new();
     private readonly ActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IListFilesListener listFilesListener;
     private readonly IAnalysisListener analysisListener;
@@ -112,7 +113,10 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         }
     }
 
-    private void SetUpListFiles(string fileToAnalyzeRelativePath, bool sendContent, string configScope,
+    private void SetUpListFiles(
+        string fileToAnalyzeRelativePath,
+        bool sendContent,
+        string configScope,
         string fileToAnalyzeAbsolutePath)
     {
         listFilesListener.ClearSubstitute();
@@ -145,7 +149,11 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
             });
     }
 
-    private async Task RunSlCoreFileAnalysis(string configScopeId, string fileToAnalyzeAbsolutePath, Guid analysisId, Dictionary<string, string> extraProperties = null)
+    private async Task RunSlCoreFileAnalysis(
+        string configScopeId,
+        string fileToAnalyzeAbsolutePath,
+        Guid analysisId,
+        Dictionary<string, string> extraProperties = null)
     {
         extraProperties ??= [];
 
@@ -158,11 +166,12 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
         failedAnalysisFiles.Should().BeEmpty();
     }
 
-    private static ClientFileDto CreateFileToAnalyze(string fileToAnalyzeRelativePath,
+    private static ClientFileDto CreateFileToAnalyze(
+        string fileToAnalyzeRelativePath,
         string fileToAnalyzeAbsolutePath,
         string configScopeId,
-        bool sendContent)
-        => new(new FileUri(fileToAnalyzeAbsolutePath),
+        bool sendContent) =>
+        new(new FileUri(fileToAnalyzeAbsolutePath),
             fileToAnalyzeRelativePath,
             configScopeId,
             false,
@@ -179,14 +188,17 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     }
 }
 
-
 internal interface ITestingFile
 {
     string RelativePath { get; }
     List<TestIssue> ExpectedIssues { get; }
 }
 
-internal record TestIssue(string ruleKey, TextRangeDto textRange, CleanCodeAttribute? cleanCodeAttribute, int expectedFlows);
+internal record TestIssue(
+    string ruleKey,
+    TextRangeDto textRange,
+    CleanCodeAttribute? cleanCodeAttribute,
+    int expectedFlows);
 
 internal class JavaScriptIssuesFile : ITestingFile
 {
@@ -269,6 +281,31 @@ internal class SecretsIssuesFile : ITestingFile
         new(AmazonSecretsRuleKey, new TextRangeDto(14, 38, 14, 78), CleanCodeAttribute.TRUSTWORTHY, 0),
         new(AzureSecretsRuleKey, new TextRangeDto(20, 33, 20, 65), CleanCodeAttribute.TRUSTWORTHY, 0),
     ];
+}
+
+internal class HtmlIssuesFile : ITestingFile
+{
+    public const string WebS6844RuleKey = "Web:S6844";
+
+    public string RelativePath => @"Resources\HtmlIssues.html";
+    public (string ruleKey, int issuesCount) RuleWithMultipleIssues => (WebS6844RuleKey, 3);
+
+    public List<TestIssue> ExpectedIssues
+    {
+        get
+        {
+            return
+            [
+                new("Web:S5254", new TextRangeDto(2, 0, 2, 6), CleanCodeAttribute.COMPLETE, 0),
+                new(WebS6844RuleKey, new TextRangeDto(5, 4, 5, 47), CleanCodeAttribute.CONVENTIONAL, 0),
+                new(WebS6844RuleKey, new TextRangeDto(6, 4, 6, 30), CleanCodeAttribute.CONVENTIONAL, 0),
+                new(WebS6844RuleKey, new TextRangeDto(7, 4, 7, 21), CleanCodeAttribute.CONVENTIONAL, 0),
+                new("Web:S6811", new TextRangeDto(9, 0, 9, 38), CleanCodeAttribute.CONVENTIONAL, 0),
+                new("Web:S6819", new TextRangeDto(9, 0, 9, 38), CleanCodeAttribute.CONVENTIONAL, 0),
+                new("Web:PageWithoutTitleCheck", new TextRangeDto(2, 0, 2, 7), CleanCodeAttribute.CONVENTIONAL, 0),
+            ];
+        }
+    }
 }
 
 internal static class TestingFileExtensions
