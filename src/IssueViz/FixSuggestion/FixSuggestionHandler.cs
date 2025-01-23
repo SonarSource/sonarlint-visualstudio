@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
@@ -38,6 +39,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
     private readonly IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
     private readonly IIDEWindowService ideWindowService;
     private readonly IFixSuggestionNotification fixSuggestionNotification;
+    private readonly IDiffViewService diffViewService;
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
     private readonly IDocumentNavigator documentNavigator;
@@ -50,7 +52,8 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         IIssueSpanCalculator issueSpanCalculator,
         IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
         IIDEWindowService ideWindowService,
-        IFixSuggestionNotification fixSuggestionNotification) :
+        IFixSuggestionNotification fixSuggestionNotification,
+        IDiffViewService diffViewService) :
         this(
             ThreadHandling.Instance,
             logger,
@@ -58,8 +61,10 @@ public class FixSuggestionHandler : IFixSuggestionHandler
             issueSpanCalculator,
             openInIdeConfigScopeValidator,
             ideWindowService,
-            fixSuggestionNotification)
+            fixSuggestionNotification,
+            diffViewService)
     {
+        this.diffViewService = diffViewService;
     }
 
     internal FixSuggestionHandler(
@@ -69,7 +74,8 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         IIssueSpanCalculator issueSpanCalculator,
         IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
         IIDEWindowService ideWindowService,
-        IFixSuggestionNotification fixSuggestionNotification)
+        IFixSuggestionNotification fixSuggestionNotification,
+        IDiffViewService diffViewService)
     {
         this.threadHandling = threadHandling;
         this.logger = logger;
@@ -78,6 +84,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
         this.ideWindowService = ideWindowService;
         this.fixSuggestionNotification = fixSuggestionNotification;
+        this.diffViewService = diffViewService;
     }
 
     public void ApplyFixSuggestion(ShowFixSuggestionParams parameters)
@@ -140,7 +147,15 @@ public class FixSuggestionHandler : IFixSuggestionHandler
                     textView.Caret.MoveTo(spanToUpdate.Value.Start);
                     textView.ViewScroller.EnsureSpanVisible(spanToUpdate.Value, EnsureSpanVisibleOptions.AlwaysCenter);
                 }
-                textEdit.Replace(spanToUpdate.Value, changeDto.after);
+
+                var suggestionDetails = new FixSuggestionDetails(changes.Count - i, changes.Count, filePath);
+                var applied = diffViewService.ShowDiffView(suggestionDetails,
+                    new ChangeModel(spanToUpdate.Value.GetText(), textEdit.Snapshot.ContentType),
+                    new ChangeModel(changeDto.after, textEdit.Snapshot.ContentType));
+                if (applied)
+                {
+                    textEdit.Replace(spanToUpdate.Value, changeDto.after);
+                }
             }
             textEdit.Apply();
         }
