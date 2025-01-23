@@ -55,6 +55,9 @@
     </None>
     <None Update="Resources\CFamilyIssues.cpp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None> 
+    <None Update="Resources\HtmlIssues.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

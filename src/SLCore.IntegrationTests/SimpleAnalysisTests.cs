@@ -31,16 +31,12 @@ public class SimpleAnalysisTests
     public TestContext TestContext { get; set; }
 
     [ClassInitialize]
-    public static void ClassInitialize(TestContext context)
-    {
+    public static void ClassInitialize(TestContext context) =>
         sharedFileAnalysisTestsRunner = new FileAnalysisTestsRunner(nameof(SimpleAnalysisTests));
-    }
 
     [ClassCleanup]
-    public static void ClassCleanup()
-    {
+    public static void ClassCleanup() =>
         sharedFileAnalysisTestsRunner.Dispose();
-    }
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_JavaScriptAnalysisProducesExpectedIssues()
@@ -84,11 +80,19 @@ public class SimpleAnalysisTests
 
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromDisk_CssAnalysisInVueProducesExpectedIssues()
-        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.VueIssues, false);
 
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.VueIssues, false);
     [TestMethod]
     public Task DefaultRuleConfig_ContentFromRpc_CssAnalysisInVyeProducesExpectedIssues()
         => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.VueIssues, true);
+
+    [TestMethod]
+    public Task DefaultRuleConfig_ContentFromDisk_HtmlAnalysisProducesExpectedIssues()
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.HtmlIssues, false);
+
+    [TestMethod]
+    public Task DefaultRuleConfig_ContentFromRpc_HtmlAnalysisProducesExpectedIssues()
+        => DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(FileAnalysisTestsRunner.HtmlIssues, true);
 
     private async Task DefaultRuleConfig_AnalysisProducesExpectedIssuesInFile(ITestingFile testingFile, bool sendContent, Dictionary<string, string> extraProperties = null)
     {
