@@ -264,7 +264,7 @@ public class RaisedFindingProcessorTests
     private ISLCoreConstantsProvider CreateConstantsProviderWithLanguages(params SloopLanguage[] languages)
     {
         var slCoreConstantsProvider = Substitute.For<ISLCoreConstantsProvider>();
-        slCoreConstantsProvider.SLCoreAnalyzableLanguages.Returns(languages.ToList());
+        slCoreConstantsProvider.LanguagesWithDisabledAnalysis.Returns(languages.ToList());
         return slCoreConstantsProvider;
     }
 

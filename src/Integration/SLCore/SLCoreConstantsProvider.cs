@@ -61,16 +61,15 @@ namespace SonarLint.VisualStudio.Integration.SLCore
             Language.VBNET,
             Language.SECRETS,
         ];
-
-        public IReadOnlyList<Language> SLCoreAnalyzableLanguages =>
+        public IReadOnlyList<Language> ExtraLanguagesInConnectedMode =>
         [
-            Language.JS,
-            Language.TS,
-            Language.HTML,
-            Language.CSS,
-            Language.C,
-            Language.CPP,
-            Language.SECRETS
+            Language.TSQL
+        ];
+
+        public IReadOnlyList<Language> LanguagesWithDisabledAnalysis =>
+        [
+            Language.CS,
+            Language.VBNET,
         ];
 
         private static IdeVersionInformation GetVsVersion(IVsVersion vsVersion)

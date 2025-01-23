@@ -93,7 +93,7 @@ internal class RaisedFindingProcessor(
         findings.Where(i => analyzableLanguagesRuleKeyPrefixes.Exists(languageRepo => i.ruleKey.StartsWith(languageRepo))).ToArray();
 
     private static List<string> CalculateAnalyzableRulePrefixes(ISLCoreConstantsProvider slCoreConstantsProvider) =>
-        slCoreConstantsProvider.SLCoreAnalyzableLanguages?
+        slCoreConstantsProvider.LanguagesWithDisabledAnalysis?
             .Select(x => x.ConvertToCoreLanguage())
             .Select(Language.GetSonarRepoKeyFromLanguage)
             .Where(r => r is not null)

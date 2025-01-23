@@ -30,5 +30,6 @@ public interface ISLCoreConstantsProvider
     TelemetryClientConstantAttributesDto TelemetryConstants { get; }
 
     IReadOnlyList<Language> LanguagesInStandaloneMode { get; }
-    IReadOnlyList<Language> SLCoreAnalyzableLanguages { get; }
+    IReadOnlyList<Language> ExtraLanguagesInConnectedMode { get; }
+    IReadOnlyList<Language> LanguagesWithDisabledAnalysis { get; }
 }

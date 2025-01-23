@@ -114,7 +114,7 @@ public class SLCoreInstanceHandleTests
     [DataRow(null)]
     public void Initialize_SuccessfullyInitializesInCorrectOrder(string nodeJsPath)
     {
-        SetUpLanguages(constantsProvider, [], []);
+        SetUpLanguages(constantsProvider, [], [], []);
         SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
         nodeLocator.Get().Returns(nodeJsPath);
         var telemetryMigrationDto = new TelemetryMigrationDto(default, default, default);
@@ -147,47 +147,20 @@ public class SLCoreInstanceHandleTests
     }
 
     [TestMethod]
-    public void Initialize_NoLanguagesAnalysisEnabled_DisablesAllLanguages()
+    public void Initialize_UsesProvidedLanguageConfiguration()
     {
-        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX, Language.YAML, Language.XML], []);
+        List<Language> standalone = [Language.CS, Language.HTML];
+        List<Language> connected = [Language.VBNET, Language.TSQL];
+        List<Language> disabledAnalysis = [Language.CPP, Language.JS];
+        SetUpLanguages(constantsProvider, standalone, connected, disabledAnalysis);
         SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
 
         testSubject.Initialize();
 
         var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single()!;
-        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo([Language.ABAP, Language.APEX, Language.YAML, Language.XML]);
-        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo([]);
-        Language[] expectedDisabledLanguages = [Language.ABAP, Language.APEX, Language.YAML, Language.XML];
-        initializeParams.disabledPluginKeysForAnalysis.Should().BeEquivalentTo(expectedDisabledLanguages.Select(l => l.GetPluginKey()));
-    }
-
-    [TestMethod]
-    public void Initialize_AnalysisPartiallyEnabled_DisablesAllNotEnabledLanguages()
-    {
-        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX, Language.YAML, Language.XML], [Language.APEX, Language.YAML]);
-        SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
-
-        testSubject.Initialize();
-
-        var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single()!;
-        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo([Language.ABAP, Language.APEX, Language.YAML, Language.XML]);
-        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo([]);
-        Language[] expectedDisabledLanguages = [Language.ABAP, Language.XML];
-        initializeParams.disabledPluginKeysForAnalysis.Should().BeEquivalentTo(expectedDisabledLanguages.Select(l => l.GetPluginKey()));
-    }
-
-    [TestMethod]
-    public void Initialize_AnalysisFullyEnabled_DisablesNoLanguages()
-    {
-        SetUpLanguages(constantsProvider, [Language.ABAP, Language.APEX, Language.YAML, Language.XML], [Language.XML, Language.APEX, Language.YAML, Language.ABAP, ]);
-        SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
-
-        testSubject.Initialize();
-
-        var initializeParams = (InitializeParams)lifecycleManagement.ReceivedCalls().Single().GetArguments().Single();
-        initializeParams.enabledLanguagesInStandaloneMode.Should().BeEquivalentTo([Language.ABAP, Language.APEX, Language.YAML, Language.XML]);
-        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeEquivalentTo([]);
-        initializeParams.disabledPluginKeysForAnalysis.Should().BeEquivalentTo([]);
+        initializeParams.enabledLanguagesInStandaloneMode.Should().BeSameAs(standalone);
+        initializeParams.extraEnabledLanguagesInConnectedMode.Should().BeSameAs(connected);
+        initializeParams.disabledPluginKeysForAnalysis.Should().BeEquivalentTo(disabledAnalysis.Select(l => l.GetPluginKey()));
     }
 
     [TestMethod]
@@ -205,7 +178,7 @@ public class SLCoreInstanceHandleTests
     public void Dispose_Initialized_ShutsDownAndDisposesRpc()
     {
         SetUpThreadHandling(threadHandling);
-        SetUpLanguages(constantsProvider, [], []);
+        SetUpLanguages(constantsProvider, [], [], []);
 
         SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         testSubject.Initialize();
@@ -230,7 +203,7 @@ public class SLCoreInstanceHandleTests
     public void Dispose_IgnoresServiceProviderException()
     {
         SetUpThreadHandling(threadHandling);
-        SetUpLanguages(constantsProvider, [], []);
+        SetUpLanguages(constantsProvider, [], [], []);
 
         SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         lifecycleManagement.When(x => x.Shutdown()).Do(_ => throw new Exception());
@@ -249,7 +222,7 @@ public class SLCoreInstanceHandleTests
     public void Dispose_IgnoresShutdownException()
     {
         SetUpThreadHandling(threadHandling);
-        SetUpLanguages(constantsProvider, [], []);
+        SetUpLanguages(constantsProvider, [], [], []);
 
         SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         lifecycleManagement.When(x => x.Shutdown()).Do(_ => throw new Exception());
@@ -266,7 +239,7 @@ public class SLCoreInstanceHandleTests
     public void Dispose_ConnectionDied_DisposesRpc()
     {
         SetUpThreadHandling(threadHandling);
-        SetUpLanguages(constantsProvider, [], []);
+        SetUpLanguages(constantsProvider, [], [], []);
 
         SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         testSubject.Initialize();
@@ -320,10 +293,12 @@ public class SLCoreInstanceHandleTests
 
     private void SetUpLanguages(ISLCoreConstantsProvider constantsProvider,
         List<Language> standalone,
-        List<Language> enabledAnalysis)
+        List<Language> connected,
+        List<Language> disabledAnalysis)
     {
         constantsProvider.LanguagesInStandaloneMode.Returns(standalone);
-        constantsProvider.SLCoreAnalyzableLanguages.Returns(enabledAnalysis);
+        constantsProvider.ExtraLanguagesInConnectedMode.Returns(connected);
+        constantsProvider.LanguagesWithDisabledAnalysis.Returns(disabledAnalysis);
     }
 
     #region RpcSetUp
