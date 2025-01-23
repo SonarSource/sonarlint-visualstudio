@@ -161,7 +161,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         }
         finally
         {
-            textEdit.Cancel();
+            textEdit.Dispose();
         }
     }
 

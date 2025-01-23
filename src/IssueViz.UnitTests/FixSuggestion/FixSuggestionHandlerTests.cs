@@ -255,14 +255,14 @@ public class FixSuggestionHandlerTests
     }
 
     [TestMethod]
-    public void ApplyFixSuggestion_WhenApplyingChangeAndExceptionIsThrown_ShouldCancelEdit()
+    public void ApplyFixSuggestion_WhenApplyingChangeAndExceptionIsThrown_ShouldDisposeEdit()
     {
         var edit = FailWhenApplyingEdit();
 
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
         edit.DidNotReceiveWithAnyArgs().Replace(default, default);
-        edit.Received().Cancel();
+        edit.Received().Dispose();
     }
 
     [TestMethod]
@@ -452,7 +452,7 @@ public class FixSuggestionHandlerTests
         Received.InOrder(() =>
         {
             fixSuggestionNotification.UnableToLocateIssue(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
-            edit.Cancel();
+            edit.Dispose();
         });
         edit.DidNotReceive().Apply();
     }
