@@ -118,19 +118,41 @@ public class RuleConfigurationAnalysisTests
         issuesByFileUri[new FileUri(FileAnalysisTestsRunner.OneIssueRuleWithParam.GetFullPath())].Should().HaveCount(1);
     }
 
-    private static Dictionary<string, StandaloneRuleConfigDto> CreateActiveCtorParamRuleConfig(int threshold)
+    [TestMethod]
+    public async Task StandaloneRuleConfig_HtmlAnalysisShouldIgnoreThreeIssuesOfInactiveRule()
     {
-        return new()
+        var multipleIssuesRule = FileAnalysisTestsRunner.HtmlIssues.RuleWithMultipleIssues;
+        var htmlRuleConfig = CreateInactiveRuleConfig(multipleIssuesRule.ruleKey);
+        sharedFileAnalysisTestsRunner.SetRuleConfiguration(htmlRuleConfig);
+
+        var issuesByFileUri = await sharedFileAnalysisTestsRunner.RunFileAnalysis(FileAnalysisTestsRunner.HtmlIssues, TestContext.TestName);
+
+        issuesByFileUri.Should().HaveCount(1);
+        issuesByFileUri[new FileUri(FileAnalysisTestsRunner.HtmlIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.HtmlIssues.ExpectedIssues.Count - multipleIssuesRule.issuesCount);
+    }
+
+    [TestMethod]
+    public async Task StandaloneRuleConfig_HtmlRuleIsDisabledInSettingsFile_HtmlAnalysisShouldIgnoreIssueOnInitialization()
+    {
+        var multipleIssuesRule = FileAnalysisTestsRunner.HtmlIssues.RuleWithMultipleIssues;
+        var htmlRuleConfig = CreateInactiveRuleConfig(multipleIssuesRule.ruleKey);
+        using var customTestRunner = new FileAnalysisTestsRunner(TestContext.TestName, htmlRuleConfig);
+
+        var issuesByFileUri = await customTestRunner.RunFileAnalysis(FileAnalysisTestsRunner.HtmlIssues, TestContext.TestName);
+
+        issuesByFileUri.Should().HaveCount(1);
+        issuesByFileUri[new FileUri(FileAnalysisTestsRunner.HtmlIssues.GetFullPath())].Should().HaveCount(FileAnalysisTestsRunner.HtmlIssues.ExpectedIssues.Count - multipleIssuesRule.issuesCount);
+    }
+
+    private static Dictionary<string, StandaloneRuleConfigDto> CreateActiveCtorParamRuleConfig(int threshold) =>
+        new()
         {
             { OneIssueRuleWithParamFile.CtorParamRuleId, new StandaloneRuleConfigDto(isActive: true, new() { { OneIssueRuleWithParamFile.CtorParamName, threshold.ToString() } }) }
         };
-    }
 
-    private static Dictionary<string, StandaloneRuleConfigDto> CreateInactiveRuleConfig(string ruleId)
-    {
-        return new()
+    private static Dictionary<string, StandaloneRuleConfigDto> CreateInactiveRuleConfig(string ruleId) =>
+        new()
         {
             { ruleId, new StandaloneRuleConfigDto(isActive: false, []) }
         };
-    }
 }
