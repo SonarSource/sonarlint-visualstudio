@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using SonarQube.Client.Api;
 using SonarQube.Client.Helpers;
@@ -553,7 +554,7 @@ namespace SonarQube.Client
             // be done.
             const string FakeInternalTestingOrgKey = "sonar.internal.testing.no.org";
 
-            if (FakeInternalTestingOrgKey.Equals(organizationKey, System.StringComparison.OrdinalIgnoreCase))
+            if (FakeInternalTestingOrgKey.Equals(organizationKey, StringComparison.OrdinalIgnoreCase))
             {
                 logger.Debug($"DEBUG: org key is {FakeInternalTestingOrgKey}. Setting it to null.");
                 return null;
@@ -578,6 +579,23 @@ namespace SonarQube.Client
         {
             var client = new HttpClient(messageHandler) { BaseAddress = baseAddress, DefaultRequestHeaders = { Authorization = AuthenticationHeaderFactory.Create(credentials, shouldUseBearer), }, };
             client.DefaultRequestHeaders.Add("User-Agent", userAgent);
+            var proxyUri = WebRequest.GetSystemWebProxy().GetProxy(baseAddress);
+            var usesProxy = baseAddress != proxyUri;
+            if (usesProxy)
+            {
+                if (messageHandler is not HttpClientHandler handler)
+                {
+                    return client;
+                }
+                handler.UseProxy = true;
+                handler.Proxy = new WebProxy(proxyUri);
+                logger.Debug($"Http request proxy detected and configure: {proxyUri}");
+            }
+            else
+            {
+                logger.Debug("Http request proxy not detected");
+            }
+
             return client;
         }
     }

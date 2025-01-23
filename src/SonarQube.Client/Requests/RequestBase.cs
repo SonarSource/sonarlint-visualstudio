@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Threading;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Logging;
@@ -97,10 +94,26 @@ namespace SonarQube.Client.Requests
                 httpRequest.Headers.Accept.Add(header);
             }
 
+            var requestUri = new Uri(httpClient.BaseAddress, httpRequest.RequestUri);
             Logger.Debug(httpRequest.ToString());
-
-            var httpResponse = await httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, token)
-                .ConfigureAwait(false);
+            Logger.Debug("Http request uri:" + requestUri);
+            HttpResponseMessage httpResponse = null;
+            try
+            {
+                httpResponse = await httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, token)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                Logger.Debug("Http request failed because:" + e.Message);
+                var innerException = e.InnerException;
+                while (innerException != null)
+                {
+                    Logger.Debug("Http request failure reason:" + innerException.Message);
+                    innerException = innerException.InnerException;
+                }
+                throw;
+            }
 
             Logger.Debug($"Response with HTTP status code '{httpResponse.StatusCode}' received.");
 
@@ -115,15 +128,16 @@ namespace SonarQube.Client.Requests
         /// <returns>Result instance that contains the HttpStatusCode and the deserialized request response.</returns>
         protected virtual async Task<Result<TResponse>> ReadResponseAsync(HttpResponseMessage httpResponse)
         {
+            var responseString = await httpResponse.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
+
+            Logger.Debug($"Http request Response: {responseString}");
+            Logger.Debug($"Http request Reason Phrase: {httpResponse.ReasonPhrase}");
+
             if (!httpResponse.IsSuccessStatusCode)
             {
                 return new Result<TResponse>(httpResponse, default(TResponse));
             }
-
-            var responseString = await httpResponse.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
-
-            Logger.Debug(responseString);
 
             return new Result<TResponse>(httpResponse, ParseResponse(responseString));
         }
