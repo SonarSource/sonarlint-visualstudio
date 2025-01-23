@@ -141,4 +141,10 @@
   <data name="ERR_QuickFixes_Exception" xml:space="preserve">
     <value>[Quick fixes] Error processing quick fixes: {0}</value>
   </data>
+  <data name="DiffViewWindow_DefaultCaption" xml:space="preserve">
+    <value>Code fix suggestion</value>
+  </data>
+  <data name="DiffViewWindow_Title" xml:space="preserve">
+    <value>Apply fix suggestion {0} out of {1} in file {2}</value>
+  </data>
 </root>
