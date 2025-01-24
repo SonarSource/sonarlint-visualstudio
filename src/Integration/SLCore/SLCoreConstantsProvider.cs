@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
         public SLCoreConstantsProvider(IVsInfoProvider vsInfoProvider)
         {
             this.vsInfoProvider = vsInfoProvider;
+            AllAnalyzableLanguages = LanguagesInStandaloneMode.Concat(ExtraLanguagesInConnectedMode).Except(LanguagesWithDisabledAnalysis).ToArray();
         }
 
         public ClientConstantsDto ClientConstants => new(vsInfoProvider.Name, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
@@ -71,6 +72,8 @@ namespace SonarLint.VisualStudio.Integration.SLCore
             Language.CS,
             Language.VBNET,
         ];
+
+        public IReadOnlyList<Language> AllAnalyzableLanguages { get; }
 
         private static IdeVersionInformation GetVsVersion(IVsVersion vsVersion)
         {

@@ -84,33 +84,6 @@ public class RaisedFindingProcessorTests
     }
 
     [TestMethod]
-    public void RaiseFindings_NoSupportedLanguages_PublishesEmpty()
-    {
-        var analysisId = Guid.NewGuid();
-        var fileUri = new FileUri("file://C:/somefile");
-        var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>>
-            { { fileUri, [CreateTestFinding("csharpsquid:S100"), CreateTestFinding("csharpsquid:S101")] } };
-
-        var isIntermediatePublication = false;
-        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", findingsByFileUri, isIntermediatePublication, analysisId);
-        var publisher = CreatePublisher();
-        IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter = CreateConverter(findingsByFileUri.Single().Key, [], []);
-
-        var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier, fileUri.LocalPath, analysisId);
-
-        var testSubject = CreateTestSubject(raiseFindingToAnalysisIssueConverter: raiseFindingToAnalysisIssueConverter,
-            analysisStatusNotifierFactory: analysisStatusNotifierFactory,
-            slCoreConstantsProvider: CreateConstantsProviderWithLanguages([]));
-
-        testSubject.RaiseFinding(raiseFindingParams, publisher);
-
-        raiseFindingToAnalysisIssueConverter.Received().GetAnalysisIssues(fileUri, Arg.Is<IEnumerable<TestFinding>>(x => !x.Any()));
-        publisher.Received().Publish(fileUri.LocalPath, analysisId, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
-        analysisStatusNotifier.DidNotReceiveWithAnyArgs().AnalysisFinished(default);
-        analysisStatusNotifier.Received().AnalysisProgressed(0, FindingsType, isIntermediatePublication);
-    }
-
-    [TestMethod]
     public void RaiseFindings_NoKnownLanguages_PublishesEmpty()
     {
         var analysisId = Guid.NewGuid();
@@ -124,11 +97,11 @@ public class RaisedFindingProcessorTests
         IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter = CreateConverter(findingsByFileUri.Single().Key, [], []);
 
         var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier, fileUri.LocalPath, analysisId);
+        var constantsProvider = CreateConstantsProviderWithLanguages([]);
 
-        var testSubject = CreateTestSubject(
-            raiseFindingToAnalysisIssueConverter: raiseFindingToAnalysisIssueConverter,
+        var testSubject = CreateTestSubject(raiseFindingToAnalysisIssueConverter: raiseFindingToAnalysisIssueConverter,
             analysisStatusNotifierFactory: analysisStatusNotifierFactory,
-            slCoreConstantsProvider: CreateConstantsProviderWithLanguages([SloopLanguage.JAVA]));
+            slCoreConstantsProvider: constantsProvider);
 
         testSubject.RaiseFinding(raiseFindingParams, publisher);
 
@@ -136,6 +109,37 @@ public class RaisedFindingProcessorTests
         publisher.Received().Publish(fileUri.LocalPath, analysisId, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
         analysisStatusNotifier.DidNotReceiveWithAnyArgs().AnalysisFinished(default);
         analysisStatusNotifier.Received().AnalysisProgressed(0, FindingsType, isIntermediatePublication);
+        VerifyCorrectConstantsAreUsed(constantsProvider);
+    }
+
+    [TestMethod]
+    public void RaiseFindings_NoSupportedLanguages_PublishesEmpty()
+    {
+        var analysisId = Guid.NewGuid();
+        var fileUri = new FileUri("file://C:/somefile");
+        var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>>
+            { { fileUri, [CreateTestFinding("csharpsquid:S100"), CreateTestFinding("csharpsquid:S101")] } };
+
+        var isIntermediatePublication = false;
+        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", findingsByFileUri, isIntermediatePublication, analysisId);
+        var publisher = CreatePublisher();
+        IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter = CreateConverter(findingsByFileUri.Single().Key, [], []);
+
+        var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier, fileUri.LocalPath, analysisId);
+        var constantsProvider = CreateConstantsProviderWithLanguages([SloopLanguage.JAVA]);
+
+        var testSubject = CreateTestSubject(
+            raiseFindingToAnalysisIssueConverter: raiseFindingToAnalysisIssueConverter,
+            analysisStatusNotifierFactory: analysisStatusNotifierFactory,
+            slCoreConstantsProvider: constantsProvider);
+
+        testSubject.RaiseFinding(raiseFindingParams, publisher);
+
+        raiseFindingToAnalysisIssueConverter.Received().GetAnalysisIssues(fileUri, Arg.Is<IEnumerable<TestFinding>>(x => !x.Any()));
+        publisher.Received().Publish(fileUri.LocalPath, analysisId, Arg.Is<IEnumerable<IAnalysisIssue>>(x => !x.Any()));
+        analysisStatusNotifier.DidNotReceiveWithAnyArgs().AnalysisFinished(default);
+        analysisStatusNotifier.Received().AnalysisProgressed(0, FindingsType, isIntermediatePublication);
+        VerifyCorrectConstantsAreUsed(constantsProvider);
     }
 
     [TestMethod]
@@ -155,8 +159,10 @@ public class RaisedFindingProcessorTests
         analysisStatusNotifier.ReceivedCalls().Should().BeEmpty();
     }
 
-    [TestMethod]
-    public void RaiseFindings_HasIssuesNotIntermediate_PublishFindings()
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void RaiseFindings_PublishFindings(bool isIntermediate)
     {
         var analysisId = Guid.NewGuid();
         var fileUri = new FileUri("file://C:/somefile");
@@ -172,18 +178,18 @@ public class RaisedFindingProcessorTests
 
         var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>> { { fileUri, raisedFindings } };
 
-        var isIntermediatePublication = false;
-        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", findingsByFileUri, isIntermediatePublication, analysisId);
+        var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", findingsByFileUri, isIntermediate, analysisId);
         var publisher = CreatePublisher();
         IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter =
             CreateConverter(findingsByFileUri.Single().Key, filteredRaisedFindings, filteredIssues);
 
         var analysisStatusNotifierFactory = CreateAnalysisStatusNotifierFactory(out var analysisStatusNotifier, fileUri.LocalPath, analysisId);
+        var constantsProvider = CreateConstantsProviderWithLanguages(SloopLanguage.SECRETS, SloopLanguage.CS);
 
         var testSubject = CreateTestSubject(
             raiseFindingToAnalysisIssueConverter: raiseFindingToAnalysisIssueConverter,
             analysisStatusNotifierFactory: analysisStatusNotifierFactory,
-            slCoreConstantsProvider: CreateConstantsProviderWithLanguages(SloopLanguage.SECRETS, SloopLanguage.CS));
+            slCoreConstantsProvider: constantsProvider);
 
         testSubject.RaiseFinding(raiseFindingParams, publisher);
 
@@ -193,7 +199,8 @@ public class RaisedFindingProcessorTests
 
         analysisStatusNotifierFactory.Received(1).Create("SLCoreAnalyzer", fileUri.LocalPath, analysisId);
         analysisStatusNotifier.DidNotReceiveWithAnyArgs().AnalysisFinished(default);
-        analysisStatusNotifier.Received().AnalysisProgressed(2, FindingsType, isIntermediatePublication);
+        analysisStatusNotifier.Received().AnalysisProgressed(2, FindingsType, isIntermediate);
+        VerifyCorrectConstantsAreUsed(constantsProvider);
     }
 
     [DataRow(true)]
@@ -264,7 +271,7 @@ public class RaisedFindingProcessorTests
     private ISLCoreConstantsProvider CreateConstantsProviderWithLanguages(params SloopLanguage[] languages)
     {
         var slCoreConstantsProvider = Substitute.For<ISLCoreConstantsProvider>();
-        slCoreConstantsProvider.LanguagesWithDisabledAnalysis.Returns(languages.ToList());
+        slCoreConstantsProvider.AllAnalyzableLanguages.Returns(languages.ToList());
         return slCoreConstantsProvider;
     }
 
@@ -303,6 +310,14 @@ public class RaisedFindingProcessorTests
         var analysisIssue1 = Substitute.For<IAnalysisIssue>();
         analysisIssue1.RuleKey.Returns(ruleKey);
         return analysisIssue1;
+    }
+
+    private static void VerifyCorrectConstantsAreUsed(ISLCoreConstantsProvider constantsProvider)
+    {
+        _ = constantsProvider.DidNotReceive().LanguagesInStandaloneMode;
+        _ = constantsProvider.DidNotReceive().ExtraLanguagesInConnectedMode;
+        _ = constantsProvider.DidNotReceive().LanguagesWithDisabledAnalysis;
+        _ = constantsProvider.Received().AllAnalyzableLanguages;
     }
 
     private record TestFinding(

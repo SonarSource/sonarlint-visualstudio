@@ -31,5 +31,6 @@ public interface ISLCoreConstantsProvider
 
     IReadOnlyList<Language> LanguagesInStandaloneMode { get; }
     IReadOnlyList<Language> ExtraLanguagesInConnectedMode { get; }
+    IReadOnlyList<Language> AllAnalyzableLanguages { get; }
     IReadOnlyList<Language> LanguagesWithDisabledAnalysis { get; }
 }

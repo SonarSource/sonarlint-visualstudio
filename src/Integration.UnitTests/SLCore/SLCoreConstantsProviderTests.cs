@@ -170,6 +170,28 @@ public class SLCoreConstantsProviderTests
         actual.Should().BeEquivalentTo(expected);
     }
 
+
+    [TestMethod]
+    public void AllAnalyzableLanguages_ShouldBeExpected()
+    {
+        var testSubject = CreateTestSubject();
+        var expected = new[]
+        {
+            Language.JS,
+            Language.TS,
+            Language.HTML,
+            Language.CSS,
+            Language.C,
+            Language.CPP,
+            Language.SECRETS,
+            Language.TSQL
+        };
+
+        var actual = testSubject.AllAnalyzableLanguages;
+
+        actual.Should().BeEquivalentTo(expected);
+    }
+
     [TestMethod]
     public void Verify_AllConfiguredLanguagesAreKnown()
     {
