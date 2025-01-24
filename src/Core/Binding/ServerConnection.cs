@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.Binding;
@@ -32,7 +31,7 @@ public abstract class ServerConnection
     public IConnectionCredentials Credentials { get; set; }
 
     public abstract Uri ServerUri { get; }
-    public abstract Uri CredentialsUri { get; }
+    public Uri CredentialsUri => new(Id);
 
     public static ServerConnection FromBoundSonarQubeProject(BoundSonarQubeProject boundProject) =>
         boundProject switch
@@ -57,13 +56,11 @@ public abstract class ServerConnection
             : base(OrganizationKeyToId(organizationKey), settings, credentials)
         {
             OrganizationKey = organizationKey;
-            CredentialsUri = new Uri(Id);
         }
 
         public string OrganizationKey { get; }
 
         public override Uri ServerUri => new (SonarCloudUrl);
-        public override Uri CredentialsUri { get; }
 
         private static string OrganizationKeyToId(string organizationKey)
         {
@@ -80,6 +77,5 @@ public abstract class ServerConnection
         : ServerConnection(serverUri?.ToString(), settings, credentials)
     {
         public override Uri ServerUri { get; } = serverUri;
-        public override Uri CredentialsUri { get; } = serverUri;
     }
 }
