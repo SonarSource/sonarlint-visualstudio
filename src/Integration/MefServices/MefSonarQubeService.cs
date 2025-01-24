@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarQube.Client;
 
@@ -51,8 +47,7 @@ namespace SonarLint.VisualStudio.Integration.MefServices
         }
 
         internal /* for testing */ MefSonarQubeService(ILogger logger, IThreadHandling threadHandling)
-            : base(new HttpClientHandler(),
-                userAgent: $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}",
+            : base(userAgent: $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}",
                 logger: new LoggerAdapter(logger))
         {
             this.threadHandling = threadHandling;
@@ -84,14 +79,11 @@ namespace SonarLint.VisualStudio.Integration.MefServices
                 // This will only be logged if an env var is set
                 logger.LogVerbose(message);
 
-            public void Error(string message) =>
-                logger.WriteLine($"ERROR: {message}");
+            public void Error(string message) => logger.WriteLine($"ERROR: {message}");
 
-            public void Info(string message) =>
-                logger.WriteLine($"{message}");
+            public void Info(string message) => logger.WriteLine($"{message}");
 
-            public void Warning(string message) =>
-                logger.WriteLine($"WARNING: {message}");
+            public void Warning(string message) => logger.WriteLine($"WARNING: {message}");
         }
     }
 }
