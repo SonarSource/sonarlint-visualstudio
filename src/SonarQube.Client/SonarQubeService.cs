@@ -570,11 +570,18 @@ namespace SonarQube.Client
         private HttpClient CreateHttpClient(Uri baseAddress, IConnectionCredentials credentials, bool shouldUseBearer)
         {
             var httpClientHandler = new HttpClientHandler();
+            ConfigureProxy(baseAddress, httpClientHandler);
             var client = new HttpClient(httpClientHandler)
             {
                 BaseAddress = baseAddress, DefaultRequestHeaders = { Authorization = AuthenticationHeaderFactory.Create(credentials, shouldUseBearer), },
             };
             client.DefaultRequestHeaders.Add("User-Agent", userAgent);
+
+            return client;
+        }
+
+        private void ConfigureProxy(Uri baseAddress, HttpClientHandler httpClientHandler)
+        {
             var proxyUri = WebRequest.GetSystemWebProxy().GetProxy(baseAddress);
             var usesProxy = baseAddress != proxyUri;
             if (usesProxy)
@@ -587,8 +594,6 @@ namespace SonarQube.Client
             {
                 logger.Debug("Http request proxy not detected");
             }
-
-            return client;
         }
     }
 }
