@@ -20,6 +20,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using System.Windows.Input;
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -73,7 +74,7 @@ public sealed partial class DiffViewWindow : Window
         diffViewViewModel.CalculateAllChangesSelected();
         if (sender is FrameworkElement { DataContext: ChangeViewModel changeViewModel })
         {
-            diffViewViewModel.GoToChangeLocation(wpfDifferenceViewer.RightView, changeViewModel);
+            GoToChangeLocation(changeViewModel);
         }
     }
 
@@ -84,6 +85,16 @@ public sealed partial class DiffViewWindow : Window
     private void SelectAllCheckbox_IsClicked(object sender, RoutedEventArgs e)
     {
         ApplyChanges();
-        diffViewViewModel.GoToChangeLocation(wpfDifferenceViewer.RightView, diffViewViewModel.ChangeViewModels[0]);
+        GoToChangeLocation(diffViewViewModel.ChangeViewModels[0]);
     }
+
+    private void ChangeRow_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: ChangeViewModel changeViewModel })
+        {
+            GoToChangeLocation(changeViewModel);
+        }
+    }
+
+    private void GoToChangeLocation(ChangeViewModel changeViewModel) => diffViewViewModel.GoToChangeLocation(wpfDifferenceViewer.RightView, changeViewModel);
 }

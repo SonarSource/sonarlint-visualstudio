@@ -38,7 +38,7 @@
                 <ListBox Grid.Row="2" Margin="5,5,0,0" ItemsSource="{Binding ChangeViewModels}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" PreviewMouseLeftButtonUp="ChangeRow_OnMouseLeftButtonUp" >
                                 <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Click="IsSelectedCheckbox_OnClick"/>
                                 <TextBlock Text="{Binding Line, StringFormat={} Line {0}}" VerticalAlignment="Center"/> 
                             </StackPanel>
