@@ -37,6 +37,7 @@ public class LanguageExtensionsTests
         VerifyConversionToCoreLanguage(Language.SECRETS, VisualStudio.Core.Language.Secrets);
         VerifyConversionToCoreLanguage(Language.TS, VisualStudio.Core.Language.Ts);
         VerifyConversionToCoreLanguage(Language.VBNET, VisualStudio.Core.Language.VBNET);
+        VerifyConversionToCoreLanguage(Language.TSQL, VisualStudio.Core.Language.TSql);
         VerifyConversionToCoreLanguage(Language.ABAP, VisualStudio.Core.Language.Unknown);
         VerifyConversionToCoreLanguage(Language.JAVA, VisualStudio.Core.Language.Unknown);
     }
@@ -50,6 +51,7 @@ public class LanguageExtensionsTests
     [DataRow(Language.CS, "csharpenterprise")]
     [DataRow(Language.VBNET, "vbnetenterprise")]
     [DataRow(Language.SECRETS, "text")]
+    [DataRow(Language.TSQL, "tsql")]
     [DataRow(Language.ABAP, null)]
     [DataRow(Language.JAVA, null)]
     public void VerifyPluginKeys(Language language, string expectedPluginKey)

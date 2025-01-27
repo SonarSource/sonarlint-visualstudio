@@ -196,7 +196,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             SonarRuleRepoKeys.Css,
             SonarRuleRepoKeys.HtmlRules,
             SonarRuleRepoKeys.CSharpRules,
-            SonarRuleRepoKeys.VBNetRules
+            SonarRuleRepoKeys.VBNetRules,
+            SonarRuleRepoKeys.TSql
         };
 
         private static bool IsSupportedSonarRule(SonarCompositeRuleId rule) =>

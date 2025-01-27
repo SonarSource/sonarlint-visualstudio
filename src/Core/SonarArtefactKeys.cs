@@ -43,6 +43,7 @@ namespace SonarLint.VisualStudio.Core
         public const string Css = "css";
         public const string C = "c";
         public const string Cpp = "cpp";
+        public const string TSql = "tsql";
 
         public const string Secrets = "secrets";
 

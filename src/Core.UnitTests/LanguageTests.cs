@@ -68,6 +68,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             Language.Ts.IsSupported.Should().BeTrue();
             Language.Css.IsSupported.Should().BeTrue();
             Language.Secrets.IsSupported.Should().BeTrue();
+            Language.Html.IsSupported.Should().BeTrue();
+            Language.TSql.IsSupported.Should().BeTrue();
         }
 
         [TestMethod]
@@ -101,6 +103,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var ts = Language.GetLanguageFromLanguageKey("ts");
             var css = Language.GetLanguageFromLanguageKey("css");
             var html = Language.GetLanguageFromLanguageKey("Web");
+            var tsql = Language.GetLanguageFromLanguageKey("tsql");
             var unknown = Language.GetLanguageFromLanguageKey("unknown");
 
             cs.Should().Be(Language.CSharp);
@@ -111,6 +114,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             ts.Should().Be(Language.Ts);
             css.Should().Be(Language.Css);
             html.Should().Be(Language.Html);
+            tsql.Should().Be(Language.TSql);
             unknown.Should().Be(null);
         }
 
@@ -126,6 +130,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var css = Language.GetLanguageFromRepositoryKey("css");
             var html = Language.GetLanguageFromRepositoryKey("Web");
             var secrets = Language.GetLanguageFromRepositoryKey("secrets");
+            var tsql = Language.GetLanguageFromRepositoryKey("tsql");
             var unknown = Language.GetLanguageFromRepositoryKey("unknown");
 
             var csSecurity = Language.GetLanguageFromRepositoryKey("roslyn.sonaranalyzer.security.cs");
@@ -141,6 +146,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             css.Should().Be(Language.Css);
             html.Should().Be(Language.Html);
             secrets.Should().Be(Language.Secrets);
+            tsql.Should().Be(Language.TSql);
             unknown.Should().Be(null);
 
             csSecurity.Should().Be(Language.CSharp);
@@ -159,6 +165,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             Language.GetSonarRepoKeyFromLanguage(Language.Ts).Should().Be("typescript");
             Language.GetSonarRepoKeyFromLanguage(Language.Css).Should().Be("css");
             Language.GetSonarRepoKeyFromLanguage(Language.Html).Should().Be("Web");
+            Language.GetSonarRepoKeyFromLanguage(Language.TSql).Should().Be("tsql");
 
             Language.GetSonarRepoKeyFromLanguage(Language.Unknown).Should().BeNull();
 
