@@ -187,7 +187,7 @@
     <value>Token</value>
   </data>
   <data name="SelectProjectButton" xml:space="preserve">
-    <value>Select project</value>
+    <value>Select Project</value>
   </data>
   <data name="SelectButton" xml:space="preserve">
     <value>Select</value>
@@ -238,7 +238,7 @@
     <value>Unbind</value>
   </data>
   <data name="UseSharedConfiguration" xml:space="preserve">
-    <value>Use shared configuration</value>
+    <value>Use Shared Configuration</value>
   </data>
   <data name="IsBoundToText" xml:space="preserve">
     <value>is bound to</value>
