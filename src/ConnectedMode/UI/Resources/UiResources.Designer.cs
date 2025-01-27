@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Choose another organization.
+        ///   Looks up a localized string similar to Choose Another Organization.
         /// </summary>
         public static string ChooseAnotherOrganizationButton {
             get {

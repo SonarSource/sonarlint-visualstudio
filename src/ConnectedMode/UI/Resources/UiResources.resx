@@ -208,7 +208,7 @@
     <value>Select SonarQube Cloud Organization</value>
   </data>
   <data name="ChooseAnotherOrganizationButton" xml:space="preserve">
-    <value>Choose another organization</value>
+    <value>Choose Another Organization</value>
   </data>
   <data name="ManualOrganizationSelectionDialogTitle" xml:space="preserve">
     <value>Use Another Organization</value>
