@@ -47,6 +47,7 @@ public sealed partial class DiffViewWindow : Window
     {
         diffViewViewModel = diffViewModel;
         ChangesGrid.DataContext = diffViewModel;
+        Title = string.Format(IssueVisualization.Resources.DiffViewWindow_Title, diffViewModel.FileName);
         ApplyChanges();
     }
 

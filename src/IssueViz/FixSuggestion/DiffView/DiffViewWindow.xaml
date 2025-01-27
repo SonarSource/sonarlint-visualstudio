@@ -5,7 +5,6 @@
     xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
     xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization"
     Background="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}"
-    Title="{x:Static res:Resources.DiffViewWindow_Title}"
     Icon="pack://application:,,,/SonarLint.VisualStudio.IssueVisualization;Component/Commands/Resources/sonarqube_for_ide_logo_16px.png">
 
     <Grid x:Name="ChangesGrid">
