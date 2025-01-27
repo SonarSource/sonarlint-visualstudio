@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -62,7 +63,11 @@ public class DiffViewViewModelTests
     }
 
     [TestMethod]
-    public void Ctor_AllChangesAreSelected() => testSubject.ChangeViewModels.Should().OnlyContain(vm => vm.IsSelected);
+    public void Ctor_AllChangesAreSelected()
+    {
+        testSubject.AllChangesSelected.Should().BeTrue();
+        testSubject.ChangeViewModels.Should().OnlyContain(vm => vm.IsSelected);
+    }
 
     [TestMethod]
     public void ApplySuggestedChanges_InitializesBeforeAndAfter()
@@ -109,6 +114,91 @@ public class DiffViewViewModelTests
         testSubject.GoToChangeLocation(textView, changeViewModel);
 
         textViewEditor.Received(1).FocusLine(textView, changeViewModel.ChangeDto.beforeLineRange.startLine);
+    }
+
+    [TestMethod]
+    public void AllChangesSelected_ValueChanges_RaisesPropertyChangedEvent()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+
+        testSubject.AllChangesSelected = !testSubject.AllChangesSelected;
+
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.AllChangesSelected)));
+    }
+
+    [TestMethod]
+    public void AllChangesSelected_SettingSameValueMultipleTimes_RaisesPropertyChangedEventOnlyOnce()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        var valueToSet = !testSubject.AllChangesSelected;
+
+        testSubject.AllChangesSelected = valueToSet;
+        testSubject.AllChangesSelected = valueToSet;
+        testSubject.AllChangesSelected = valueToSet;
+
+        eventHandler.Received(1).Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.AllChangesSelected)));
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void AllChangesSelected_ValueChanges_TogglesChangeViewModelsSelection(bool isSelected)
+    {
+        testSubject.AllChangesSelected = isSelected;
+
+        testSubject.ChangeViewModels.Should().OnlyContain(vm => vm.IsSelected == isSelected);
+    }
+
+    [TestMethod]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    public void CalculateAllChangesSelected_TwoChangesWithDifferentSelections_ReturnsFalse(bool isSelected1, bool isSelected2)
+    {
+        testSubject.ChangeViewModels[0].IsSelected = isSelected1;
+        testSubject.ChangeViewModels[1].IsSelected = isSelected2;
+
+        testSubject.CalculateAllChangesSelected();
+
+        testSubject.AllChangesSelected.Should().BeFalse();
+        testSubject.ChangeViewModels[0].IsSelected.Should().Be(isSelected1);
+        testSubject.ChangeViewModels[1].IsSelected.Should().Be(isSelected2);
+    }
+
+    [TestMethod]
+    public void CalculateAllChangesSelected_AllChangesAreSelected_ReturnsTrue()
+    {
+        testSubject.ChangeViewModels.ForEach(vm => vm.IsSelected = true);
+
+        testSubject.CalculateAllChangesSelected();
+
+        testSubject.AllChangesSelected.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void CalculateAllChangesSelected_AllChangesAreNotSelected_ReturnsFalse()
+    {
+        testSubject.ChangeViewModels.ForEach(vm => vm.IsSelected = false);
+
+        testSubject.CalculateAllChangesSelected();
+
+        testSubject.AllChangesSelected.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void CalculateAllChangesSelected_RaisesAllChangesSelectedPropertyChanged()
+    {
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        testSubject.ChangeViewModels[0].IsSelected = !testSubject.ChangeViewModels[0].IsSelected;
+
+        testSubject.CalculateAllChangesSelected();
+
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.AllChangesSelected)));
     }
 
     private void MockTextBufferGetFilePath(string path)

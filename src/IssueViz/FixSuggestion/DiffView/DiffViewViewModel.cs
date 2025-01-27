@@ -30,12 +30,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 public class DiffViewViewModel : ViewModelBase
 {
     private readonly ITextViewEditor textViewEditor;
+    private bool allChangesSelected;
+
     public ITextBuffer TextBuffer { get; }
     public List<ChangeViewModel> ChangeViewModels { get; }
     public string FilePath { get; }
     public string FileName { get; }
     public ITextBuffer Before { get; private set; }
     public ITextBuffer After { get; private set; }
+
+    public bool AllChangesSelected
+    {
+        get => allChangesSelected;
+        set
+        {
+            if (allChangesSelected == value)
+            {
+                return;
+            }
+            allChangesSelected = value;
+            ChangeViewModels.ForEach(vm => vm.IsSelected = value);
+            RaisePropertyChanged();
+        }
+    }
 
     public DiffViewViewModel(
         ITextViewEditor textViewEditor,
@@ -45,6 +62,7 @@ public class DiffViewViewModel : ViewModelBase
         this.textViewEditor = textViewEditor;
         TextBuffer = textBuffer;
         ChangeViewModels = changesDtos.Select(dto => new ChangeViewModel(dto, true)).ToList();
+        allChangesSelected = true;
         FilePath = textBuffer.GetFilePath();
         FileName = Path.GetFileName(FilePath);
     }
@@ -57,9 +75,19 @@ public class DiffViewViewModel : ViewModelBase
         var selectedChangesDtos = ChangeViewModels.Where(vm => vm.IsSelected).Select(vm => vm.ChangeDto).ToList();
         if (selectedChangesDtos.Any())
         {
-            textViewEditor.ApplyChanges(After, selectedChangesDtos, abortOnOriginalTextChanged: false);
+            textViewEditor.ApplyChanges(After, selectedChangesDtos, false);
         }
     }
 
     public void GoToChangeLocation(ITextView textView, ChangeViewModel changeViewModel) => textViewEditor.FocusLine(textView, changeViewModel.ChangeDto.beforeLineRange.startLine);
+
+    /// <summary>
+    /// Calculating <see cref="AllChangesSelected"/> is needed to prevent subscribing to PropertyChanged events for each <see cref="ChangeViewModel"/> and then to take care to unsubscribe and avoid memory leaks
+    /// It also can't be a computed property, because it is bound to the checkbox in the view
+    /// </summary>
+    public void CalculateAllChangesSelected()
+    {
+        allChangesSelected = ChangeViewModels.All(vm => vm.IsSelected);
+        RaisePropertyChanged(nameof(AllChangesSelected));
+    }
 }
