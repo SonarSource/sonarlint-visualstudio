@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Choose another organization.
+        ///   Looks up a localized string similar to Choose Another Organization.
         /// </summary>
         public static string ChooseAnotherOrganizationButton {
             get {
@@ -537,7 +537,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Manage connections.
+        ///   Looks up a localized string similar to Manage Connections.
         /// </summary>
         public static string ManageConnectionsButton {
             get {
@@ -728,7 +728,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove connection.
+        ///   Looks up a localized string similar to Remove Connection.
         /// </summary>
         public static string RemoveConnectionToolTip {
             get {
@@ -809,7 +809,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select project.
+        ///   Looks up a localized string similar to Select Project.
         /// </summary>
         public static string SelectProjectButton {
             get {
@@ -944,7 +944,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use shared configuration.
+        ///   Looks up a localized string similar to Use Shared Configuration.
         /// </summary>
         public static string UseSharedConfiguration {
             get {
