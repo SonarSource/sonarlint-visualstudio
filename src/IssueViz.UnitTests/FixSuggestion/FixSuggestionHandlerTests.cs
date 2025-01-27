@@ -100,8 +100,8 @@ public class FixSuggestionHandlerTests
     public void ApplyFixSuggestion_OneChangeAccepted_AppliesChange()
     {
         var changes = suggestionWithOneChange.fixSuggestion.fileEdit.changes;
-        var textView = MockOpenFile();
-        MockDiffView(changes.ToArray());
+        MockOpenFile();
+        MockDiffView(changes);
 
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
@@ -111,8 +111,8 @@ public class FixSuggestionHandlerTests
             ideWindowService.BringToFront();
             fixSuggestionNotification.Clear();
             documentNavigator.Open(@"C:\myFile.cs");
-            diffViewService.ShowDiffView(textView.TextBuffer, changes);
-            textViewEditor.ApplyChanges(textView.TextBuffer, changes, true);
+            diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), changes);
+            textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), changes, true);
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, suggestionWithOneChange.configurationScopeId, suggestionWithOneChange.fixSuggestion.suggestionId);
         });
     }
@@ -121,7 +121,7 @@ public class FixSuggestionHandlerTests
     public void ApplyFixSuggestion_OneChangeNotAccepted_DoesNotApplyChange()
     {
         var changes = suggestionWithOneChange.fixSuggestion.fileEdit.changes;
-        var textView = MockOpenFile();
+        MockOpenFile();
         MockDiffView([]);
 
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
@@ -132,7 +132,7 @@ public class FixSuggestionHandlerTests
             ideWindowService.BringToFront();
             fixSuggestionNotification.Clear();
             documentNavigator.Open(@"C:\myFile.cs");
-            diffViewService.ShowDiffView(textView.TextBuffer, changes);
+            diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), changes);
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, suggestionWithOneChange.configurationScopeId, suggestionWithOneChange.fixSuggestion.suggestionId);
         });
         textViewEditor.DidNotReceiveWithAnyArgs().ApplyChanges(default, default, default);
@@ -147,12 +147,12 @@ public class FixSuggestionHandlerTests
     }
 
     [TestMethod]
-    public void ApplyFixSuggestion_WhenApplyingChange_BringFocusToFirstChangedLines()
+    public void ApplyFixSuggestion_WhenApplyingChangeSucceeded_BringFocusToFirstChangedLines()
     {
         var changes = suggestionWithTwoChanges.fixSuggestion.fileEdit.changes;
         var textView = MockOpenFile();
-        MockConfigScopeRoot();
-        MockDiffView(suggestionWithTwoChanges.fixSuggestion.fileEdit.changes.ToArray());
+        MockDiffView(suggestionWithTwoChanges.fixSuggestion.fileEdit.changes);
+        textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<List<ChangesDto>>(), Arg.Any<bool>()).Returns(true);
 
         testSubject.ApplyFixSuggestion(suggestionWithTwoChanges);
 
@@ -162,6 +162,7 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_Throws_Logs()
     {
+        MockDiffView(suggestionWithTwoChanges.fixSuggestion.fileEdit.changes);
         var exceptionMsg = "error";
         textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<List<ChangesDto>>(), Arg.Any<bool>()).Throws(new Exception(exceptionMsg));
 
@@ -222,7 +223,7 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_OneChange_ChangesCanNotBeApplied_ShowsNotification()
     {
-        MockDiffView(suggestionWithOneChange.fixSuggestion.fileEdit.changes.ToArray());
+        MockDiffView(suggestionWithOneChange.fixSuggestion.fileEdit.changes);
         textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<List<ChangesDto>>(), Arg.Any<bool>()).Returns(false);
 
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
@@ -237,23 +238,19 @@ public class FixSuggestionHandlerTests
 
         testSubject.ApplyFixSuggestion(suggestionWithTwoChanges);
 
-        Received.InOrder(() =>
-        {
-            diffViewService.ShowDiffView(textView.TextBuffer, suggestionWithTwoChanges.fixSuggestion.fileEdit.changes);
-        });
+        diffViewService.Received(1).ShowDiffView(textView.TextBuffer, suggestionWithTwoChanges.fixSuggestion.fileEdit.changes);
     }
 
     [TestMethod]
-    public void ApplyFixSuggestion_TwoChangesAndJustOneAccepted_ReplacesJustOne()
+    public void ApplyFixSuggestion_TwoChangesAndJustOneAccepted_AppliesJustOne()
     {
         var textView = MockOpenFile();
-        var edit = MockTextEdit(textView);
-        diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), Arg.Any<List<ChangesDto>>()).Returns([suggestionWithTwoChanges.fixSuggestion.fileEdit.changes[0]]);
+        var acceptedChange = suggestionWithTwoChanges.fixSuggestion.fileEdit.changes[0];
+        diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), Arg.Any<List<ChangesDto>>()).Returns([acceptedChange]);
 
         testSubject.ApplyFixSuggestion(suggestionWithTwoChanges);
 
-        edit.Received(1).Replace(Arg.Any<Span>(), "var b=0;");
-        edit.DidNotReceive().Replace(Arg.Any<Span>(), "var a=1;");
+        textViewEditor.Received(1).ApplyChanges(textView.TextBuffer, Arg.Is<List<ChangesDto>>(x => x.SequenceEqual(new List<ChangesDto> { acceptedChange })), abortOnOriginalTextChanged: true);
     }
 
     private void MockConfigScopeRoot() =>
@@ -300,15 +297,7 @@ public class FixSuggestionHandlerTests
 
     private static string GetAbsolutePathOfFile(ShowFixSuggestionParams suggestionParams) => Path.Combine(ConfigurationScopeRoot, suggestionParams.fixSuggestion.fileEdit.idePath);
 
-    private ITextEdit MockTextEdit(ITextView textView = null)
-    {
-        var edit = Substitute.For<ITextEdit>();
-        textView ??= MockOpenFile();
-        textView.TextBuffer.CreateEdit().Returns(edit);
-        return edit;
-    }
-
     private void VerifyFixSuggestionNotApplied() => fixSuggestionNotification.Received(1).UnableToLocateIssue(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
 
-    private void MockDiffView(params ChangesDto[] changes) => diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), Arg.Any<List<ChangesDto>>()).Returns(changes.ToList());
+    private void MockDiffView(List<ChangesDto> changes) => diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), Arg.Any<List<ChangesDto>>()).Returns(changes);
 }
