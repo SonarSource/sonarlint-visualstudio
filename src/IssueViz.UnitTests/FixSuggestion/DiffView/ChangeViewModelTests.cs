@@ -53,4 +53,7 @@ public class ChangeViewModelTests
 
         eventRaised.Should().BeTrue();
     }
+
+    [TestMethod]
+    public void Line_PointToStartLineOfBeforeChange() => testSubject.Line.Should().Be(changeDto.beforeLineRange.startLine.ToString());
 }
