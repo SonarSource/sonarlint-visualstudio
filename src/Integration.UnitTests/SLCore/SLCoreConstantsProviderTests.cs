@@ -142,21 +142,52 @@ public class SLCoreConstantsProviderTests
     }
 
     [TestMethod]
-    public void AnalyzableLanguages_ShouldBeExpected()
+    public void ExtraLanguagesInConnectedMode_ShouldBeExpected()
+    {
+        var testSubject = CreateTestSubject();
+        var expected = new[]
+        {
+            Language.TSQL
+        };
+
+        var actual = testSubject.ExtraLanguagesInConnectedMode;
+
+        actual.Should().BeEquivalentTo(expected);
+    }
+
+    [TestMethod]
+    public void LanguagesWithDisabledAnalysis_ShouldBeExpected()
+    {
+        var testSubject = CreateTestSubject();
+        var expected = new[]
+        {
+            Language.CS,
+            Language.VBNET
+        };
+
+        var actual = testSubject.LanguagesWithDisabledAnalysis;
+
+        actual.Should().BeEquivalentTo(expected);
+    }
+
+
+    [TestMethod]
+    public void AllAnalyzableLanguages_ShouldBeExpected()
     {
         var testSubject = CreateTestSubject();
         var expected = new[]
         {
             Language.JS,
             Language.TS,
-            Language.CSS,
             Language.HTML,
+            Language.CSS,
             Language.C,
             Language.CPP,
-            Language.SECRETS
+            Language.SECRETS,
+            Language.TSQL
         };
 
-        var actual = testSubject.SLCoreAnalyzableLanguages;
+        var actual = testSubject.AllAnalyzableLanguages;
 
         actual.Should().BeEquivalentTo(expected);
     }
@@ -167,7 +198,7 @@ public class SLCoreConstantsProviderTests
         var slCoreConstantsProvider = CreateTestSubject();
 
         var languages = slCoreConstantsProvider.LanguagesInStandaloneMode
-            .Concat(slCoreConstantsProvider.SLCoreAnalyzableLanguages)
+            .Concat(slCoreConstantsProvider.LanguagesWithDisabledAnalysis)
             .Select(x => x.ConvertToCoreLanguage());
 
         languages.Should().NotContain(Core.Language.Unknown);
@@ -179,7 +210,7 @@ public class SLCoreConstantsProviderTests
         var slCoreConstantsProvider = CreateTestSubject();
 
         var languages = slCoreConstantsProvider.LanguagesInStandaloneMode
-            .Concat(slCoreConstantsProvider.SLCoreAnalyzableLanguages)
+            .Concat(slCoreConstantsProvider.LanguagesWithDisabledAnalysis)
             .Select(x => x.GetPluginKey());
 
         languages.Should().NotContainNulls();

@@ -52,6 +52,7 @@ namespace SonarLint.VisualStudio.Core
         public readonly static Language Css = new Language("Css", "CSS", null, SonarQubeLanguage.Css);
         public readonly static Language Html = new Language("Html", "HTML", null, SonarQubeLanguage.Html);
         public readonly static Language Secrets = new Language("Secrets", "Secrets", null, SonarQubeLanguage.Secrets);
+        public readonly static Language TSql = new Language("TSql", "T-SQL", null, SonarQubeLanguage.TSql);
 
         /// <summary>
         /// Returns the language for the specified language key, or null if it does not match a known language
@@ -118,7 +119,7 @@ namespace SonarLint.VisualStudio.Core
         {
             get
             {
-                return new[] { CSharp, VBNET, Cpp, C, Js, Ts, Css, Html, Secrets };
+                return new[] { CSharp, VBNET, Cpp, C, Js, Ts, Css, Html, Secrets, TSql };
             }
         }
 
@@ -138,7 +139,8 @@ namespace SonarLint.VisualStudio.Core
             { "tssecurity", Ts },
             { "css", Css },
             { "Web", Html},
-            { "secrets", Secrets}
+            { "secrets", Secrets},
+            { "tsql", TSql },
         };
 
         /// <summary>

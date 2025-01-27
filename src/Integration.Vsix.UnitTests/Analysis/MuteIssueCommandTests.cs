@@ -158,6 +158,7 @@ public class MuteIssueCommandTests
     [DataRow("Web:S545")]
     [DataRow("csharpsquid:S555")]
     [DataRow("vbnet:S555")]
+    [DataRow("tsql:S5556")]
     public void QueryStatus_ConnectedModeAndSupportedIssue_VisibleAndEnabled(string errorCode)
     {
         var testSubject = CreateTestSubject(out var errorListHelperMock, out _, out _, out _, out var activeSolutionBoundTrackerMock, out _, out _, out _);
