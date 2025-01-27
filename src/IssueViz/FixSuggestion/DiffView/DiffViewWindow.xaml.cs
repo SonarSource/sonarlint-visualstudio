@@ -20,8 +20,8 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
@@ -40,18 +40,34 @@ public sealed partial class DiffViewWindow : Window
         InitializeComponent();
     }
 
-    public void InitializeDifferenceViewer(FixSuggestionDetails fixSuggestionDetails, ITextBuffer before, ITextBuffer after)
+    public void InitializeDifferenceViewer(DiffViewViewModel diffViewViewModel)
     {
-        Title = BuildTitle(fixSuggestionDetails);
-        var differenceBuffer = differenceBufferFactoryService.CreateDifferenceBuffer(before, after);
-        var differenceViewer = wpfDifferenceViewerFactoryService.CreateDifferenceView(differenceBuffer);
-
-        DiffGrid.Children.Clear();
-        DiffGrid.Children.Add(differenceViewer.VisualElement);
+        ChangesGrid.DataContext = diffViewViewModel;
+        ApplyChanges();
     }
 
-    private static string BuildTitle(FixSuggestionDetails fixSuggestionDetails) =>
-        string.Format(IssueVisualization.Resources.DiffViewWindow_Title, fixSuggestionDetails.ChangeIndex, fixSuggestionDetails.TotalChangesFixes, fixSuggestionDetails.FileName);
+    private void ApplyChanges()
+    {
+        if (ChangesGrid.DataContext is not DiffViewViewModel diffViewViewModel)
+        {
+            return;
+        }
+        diffViewViewModel.ApplySuggestedChanges();
+
+        DiffGrid.Children.Clear();
+        DiffGrid.Children.Add(CreateDifferenceViewer(diffViewViewModel).VisualElement);
+    }
+
+    private IWpfDifferenceViewer CreateDifferenceViewer(DiffViewViewModel diffViewViewModel)
+    {
+        var differenceBuffer = differenceBufferFactoryService.CreateDifferenceBuffer(diffViewViewModel.Before, diffViewViewModel.After);
+        var differenceViewer = wpfDifferenceViewerFactoryService.CreateDifferenceView(differenceBuffer);
+        differenceViewer.LeftView.Options.SetOptionValue(DefaultTextViewHostOptions.LineNumberMarginName, true);
+        differenceViewer.RightView.Options.SetOptionValue(DefaultTextViewHostOptions.LineNumberMarginName, true);
+        return differenceViewer;
+    }
+
+    private void ButtonBase_OnClick(object sender, RoutedEventArgs e) => ApplyChanges();
 
     private void OnAccept(object sender, RoutedEventArgs e) => DialogResult = true;
 

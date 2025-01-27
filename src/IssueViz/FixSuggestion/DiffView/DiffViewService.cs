@@ -21,33 +21,31 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
 public interface IDiffViewService
 {
-    bool ShowDiffView(FixSuggestionDetails fixSuggestionDetails, ChangeModel before, ChangeModel after);
+    List<ChangesDto> ShowDiffView(ITextBuffer fileTextBuffer, List<ChangesDto> changesDtos);
 }
 
 [Export(typeof(IDiffViewService))]
 [PartCreationPolicy(CreationPolicy.NonShared)]
 public class DiffViewService : IDiffViewService
 {
-    private readonly ITextBufferFactoryService textBufferFactoryService;
     private readonly IDiffViewToolWindowPane diffViewToolWindowPane;
+    private readonly ITextViewEditor textViewEditor;
 
     [ImportingConstructor]
-    internal DiffViewService(
-        IToolWindowService toolWindowService,
-        ITextBufferFactoryService textBufferFactoryService)
+    internal DiffViewService(IToolWindowService toolWindowService, ITextViewEditor textViewEditor)
     {
-        this.textBufferFactoryService = textBufferFactoryService;
+        this.textViewEditor = textViewEditor;
 
         diffViewToolWindowPane = toolWindowService.GetToolWindow<DiffViewToolWindowPane, IDiffViewToolWindowPane>();
     }
 
-    public bool ShowDiffView(FixSuggestionDetails fixSuggestionDetails, ChangeModel before, ChangeModel after) =>
-        diffViewToolWindowPane.ShowDiff(fixSuggestionDetails, CreateTextBuffer(before), CreateTextBuffer(after));
-
-    private ITextBuffer CreateTextBuffer(ChangeModel change) => textBufferFactoryService.CreateTextBuffer(change.Text, change.ContentType);
+    public List<ChangesDto> ShowDiffView(ITextBuffer fileTextBuffer, List<ChangesDto> changesDtos) =>
+        diffViewToolWindowPane.ShowDiff(new DiffViewViewModel(textViewEditor, fileTextBuffer, changesDtos));
 }

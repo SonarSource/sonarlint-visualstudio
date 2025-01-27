@@ -20,7 +20,6 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -43,13 +42,13 @@ public class FixSuggestionHandler : IFixSuggestionHandler
     private readonly IThreadHandling threadHandling;
     private readonly ILogger logger;
     private readonly IDocumentNavigator documentNavigator;
-    private readonly IIssueSpanCalculator issueSpanCalculator;
+    private readonly ITextViewEditor textViewEditor;
 
     [ImportingConstructor]
     internal FixSuggestionHandler(
         ILogger logger,
         IDocumentNavigator documentNavigator,
-        IIssueSpanCalculator issueSpanCalculator,
+        ITextViewEditor textViewEditor,
         IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
         IIDEWindowService ideWindowService,
         IFixSuggestionNotification fixSuggestionNotification,
@@ -58,7 +57,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
             ThreadHandling.Instance,
             logger,
             documentNavigator,
-            issueSpanCalculator,
+            textViewEditor,
             openInIdeConfigScopeValidator,
             ideWindowService,
             fixSuggestionNotification,
@@ -70,7 +69,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         IThreadHandling threadHandling,
         ILogger logger,
         IDocumentNavigator documentNavigator,
-        IIssueSpanCalculator issueSpanCalculator,
+        ITextViewEditor textViewEditor,
         IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
         IIDEWindowService ideWindowService,
         IFixSuggestionNotification fixSuggestionNotification,
@@ -79,7 +78,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         this.threadHandling = threadHandling;
         this.logger = logger;
         this.documentNavigator = documentNavigator;
-        this.issueSpanCalculator = issueSpanCalculator;
+        this.textViewEditor = textViewEditor;
         this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
         this.ideWindowService = ideWindowService;
         this.fixSuggestionNotification = fixSuggestionNotification;
@@ -126,51 +125,19 @@ public class FixSuggestionHandler : IFixSuggestionHandler
 
     private void ApplySuggestedChanges(ITextView textView, List<ChangesDto> changes, string filePath)
     {
-        var textEdit = textView.TextBuffer.CreateEdit();
-        try
+        var acceptedChanges = diffViewService.ShowDiffView(textView.TextBuffer, changes);
+        if (acceptedChanges.Count == 0)
         {
-            for (var i = changes.Count - 1; i >= 0; i--)
-            {
-                var changeDto = changes[i];
-
-                var spanToUpdate = issueSpanCalculator.CalculateSpan(textView.TextSnapshot, changeDto.beforeLineRange.startLine, changeDto.beforeLineRange.endLine);
-                if (!ValidateIssueStillExists(spanToUpdate, changeDto, filePath))
-                {
-                    return;
-                }
-
-                if (i == 0)
-                {
-                    textView.Caret.MoveTo(spanToUpdate.Value.Start);
-                    textView.ViewScroller.EnsureSpanVisible(spanToUpdate.Value, EnsureSpanVisibleOptions.AlwaysCenter);
-                }
-
-                var suggestionDetails = new FixSuggestionDetails(changes.Count - i, changes.Count, filePath);
-                var applied = diffViewService.ShowDiffView(suggestionDetails,
-                    new ChangeModel(spanToUpdate.Value.GetText(), textEdit.Snapshot.ContentType),
-                    new ChangeModel(changeDto.after, textEdit.Snapshot.ContentType));
-                if (applied)
-                {
-                    textEdit.Replace(spanToUpdate.Value, changeDto.after);
-                }
-            }
-            textEdit.Apply();
-        }
-        finally
-        {
-            textEdit.Dispose();
-        }
-    }
-
-    private bool ValidateIssueStillExists(SnapshotSpan? spanToUpdate, ChangesDto changeDto, string filePath)
-    {
-        if (spanToUpdate.HasValue && issueSpanCalculator.IsSameHash(spanToUpdate.Value, changeDto.before))
-        {
-            return true;
+            return;
         }
 
-        fixSuggestionNotification.UnableToLocateIssue(filePath);
-        return false;
+        var changesApplied = textViewEditor.ApplyChanges(textView.TextBuffer, acceptedChanges, abortOnOriginalTextChanged: true);
+        if (!changesApplied)
+        {
+            fixSuggestionNotification.UnableToLocateIssue(filePath);
+            return;
+        }
+        textViewEditor.FocusLine(textView, changes[0].beforeLineRange.startLine);
     }
 
     private bool ValidateFileExists(ITextView fileContent, string absoluteFilePath)
