@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
     xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization"
+    xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
     Background="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}"
     Icon="pack://application:,,,/SonarLint.VisualStudio.IssueVisualization;Component/Commands/Resources/sonarqube_for_ide_logo_16px.png">
 
@@ -37,10 +38,19 @@
                 <ListBox Grid.Row="2" Margin="5,5,0,0" ItemsSource="{Binding ChangeViewModels}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" PreviewMouseLeftButtonUp="ChangeRow_OnMouseLeftButtonUp" >
-                                <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Click="IsSelectedCheckbox_OnClick"/>
-                                <TextBlock Text="{Binding Line, StringFormat={} Line {0}}" VerticalAlignment="Center"/> 
-                            </StackPanel>
+                            <Grid PreviewMouseLeftButtonUp="ChangeRow_OnMouseLeftButtonUp" Width="{Binding ElementName=DiffGrid, Path=ActualWidth}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Click="IsSelectedCheckbox_OnClick"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Before}" VerticalAlignment="Center" TextDecorations="Strikethrough" TextWrapping="NoWrap"
+                                           Background="{DynamicResource {x:Static vsShell:VsBrushes.VizSurfaceRedLightKey}}" />
+                                <TextBlock Grid.Column="2" Text="{Binding  After}" VerticalAlignment="Center" TextWrapping="NoWrap"
+                                           Background="{DynamicResource {x:Static vsShell:VsBrushes.VizSurfaceGreenLightKey}}" /> 
+                            </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>

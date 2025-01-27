@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Text.RegularExpressions;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 
@@ -27,8 +28,9 @@ public class ChangeViewModel : ViewModelBase
 {
     private bool isSelected;
 
-    public string Line => ChangeDto.beforeLineRange.startLine.ToString();
     public ChangesDto ChangeDto { get; }
+    public string After { get; }
+    public string Before { get; }
 
     public bool IsSelected
     {
@@ -44,5 +46,9 @@ public class ChangeViewModel : ViewModelBase
     {
         ChangeDto = changeDto;
         IsSelected = isSelected;
+        Before = RemoveNewLines(changeDto.before);
+        After = RemoveNewLines(changeDto.after);
     }
+
+    private static string RemoveNewLines(string text) => Regex.Replace(text, @"\t|\n|\r", String.Empty);
 }
