@@ -19,9 +19,10 @@
  */
 
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
+using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.FixSuggestion.DiffView;
@@ -29,30 +30,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.FixSuggestion.Diff
 [TestClass]
 public class DiffViewServiceTests
 {
-    private readonly FixSuggestionDetails fixSuggestionDetails = new(1, 3, "C://somePath/myFile.cs");
+    private readonly List<ChangesDto> twoChangesDtos = [CreateChangeDto(1, 1, "var a=1;"), CreateChangeDto(2, 2, "var b=0;")];
     private IDiffViewToolWindowPane diffViewToolWindowPane;
     private DiffViewService testSubject;
-    private ITextBufferFactoryService textBufferFactoryService;
+    private ITextBuffer textBuffer;
+    private ITextViewEditor textViewEditor;
     private IToolWindowService toolWindowService;
 
     [TestInitialize]
     public void TestInitialize()
     {
         toolWindowService = Substitute.For<IToolWindowService>();
-        textBufferFactoryService = Substitute.For<ITextBufferFactoryService>();
+        textViewEditor = Substitute.For<ITextViewEditor>();
         diffViewToolWindowPane = Substitute.For<IDiffViewToolWindowPane>();
         toolWindowService.GetToolWindow<DiffViewToolWindowPane, IDiffViewToolWindowPane>().Returns(diffViewToolWindowPane);
+        textBuffer = Substitute.For<ITextBuffer>();
 
-        testSubject = new DiffViewService(
-            toolWindowService,
-            textBufferFactoryService);
+        testSubject = new DiffViewService(toolWindowService, textViewEditor);
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<DiffViewService, IDiffViewService>(
             MefTestHelpers.CreateExport<IToolWindowService>(),
-            MefTestHelpers.CreateExport<ITextBufferFactoryService>());
+            MefTestHelpers.CreateExport<ITextViewEditor>());
 
     [TestMethod]
     public void MefCtor_CheckIsNonShared() => MefTestHelpers.CheckIsNonSharedMefComponent<DiffViewService>();
@@ -63,34 +64,21 @@ public class DiffViewServiceTests
     [TestMethod]
     public void ShowDiffView_CallsShowDiffWithCorrectParameters()
     {
-        var before = CreateChangeModel("int a=1;");
-        var after = CreateChangeModel("var a=1;");
-        var expectedBeforeTextBuffer = MockTextBuffer(before);
-        var expectedAfterTextBuffer = MockTextBuffer(after);
+        testSubject.ShowDiffView(textBuffer, twoChangesDtos);
 
-        testSubject.ShowDiffView(fixSuggestionDetails, before, after);
-
-        diffViewToolWindowPane.Received(1).ShowDiff(fixSuggestionDetails, expectedBeforeTextBuffer, expectedAfterTextBuffer);
+        diffViewToolWindowPane.Received(1).ShowDiff(Arg.Is<DiffViewViewModel>(vm => vm.TextBuffer == textBuffer && vm.ChangeViewModels.Select(x => x.ChangeDto).SequenceEqual(twoChangesDtos)));
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void ShowDiffView_ReturnsResultFromToolWindowPane(bool expectedResult)
+    public void ShowDiffView_ReturnsResultFromToolWindowPane()
     {
-        diffViewToolWindowPane.ShowDiff(fixSuggestionDetails, Arg.Any<ITextBuffer>(), Arg.Any<ITextBuffer>()).Returns(expectedResult);
+        List<ChangesDto> expectedChangeDtos = [twoChangesDtos[0]];
+        diffViewToolWindowPane.ShowDiff(Arg.Any<DiffViewViewModel>()).Returns(expectedChangeDtos);
 
-        var applied = testSubject.ShowDiffView(fixSuggestionDetails, CreateChangeModel(string.Empty), CreateChangeModel(";"));
+        var acceptedChangeDtos = testSubject.ShowDiffView(textBuffer, twoChangesDtos);
 
-        applied.Should().Be(expectedResult);
+        acceptedChangeDtos.Should().BeEquivalentTo(expectedChangeDtos);
     }
 
-    private ITextBuffer MockTextBuffer(ChangeModel change)
-    {
-        var textBuffer = Substitute.For<ITextBuffer>();
-        textBufferFactoryService.CreateTextBuffer(change.Text, change.ContentType).Returns(textBuffer);
-        return textBuffer;
-    }
-
-    private static ChangeModel CreateChangeModel(string text) => new(text, Substitute.For<IContentType>());
+    private static ChangesDto CreateChangeDto(int beforeLine, int afterLine, string after) => new(new LineRangeDto(beforeLine, afterLine), string.Empty, after);
 }
