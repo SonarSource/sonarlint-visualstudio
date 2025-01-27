@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
     xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization"
-    xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+    WindowStartupLocation="CenterOwner"
     Background="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}"
     Icon="pack://application:,,,/SonarLint.VisualStudio.IssueVisualization;Component/Commands/Resources/sonarqube_for_ide_logo_16px.png">
 
