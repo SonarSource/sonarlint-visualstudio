@@ -38,6 +38,7 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
     private readonly Dictionary<string, string> connectedModePluginNamePatternByPluginKey = new()
     {
         { "text", "sonar-text-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar" },
+        { "cpp", "sonar-cfamily-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar" },
         { "javascript", "sonar-javascript-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar" },
         { "web", "sonar-html-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar"}
     };
