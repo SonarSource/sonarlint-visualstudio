@@ -19,6 +19,7 @@
  */
 
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -97,6 +98,17 @@ public class DiffViewViewModelTests
 
         textViewEditor.Received(1).ApplyChanges(testSubject.After, Arg.Is<List<ChangesDto>>(dtos => dtos.Count == 1 && dtos[0] == testSubject.ChangeViewModels[1].ChangeDto),
             abortOnOriginalTextChanged: false);
+    }
+
+    [TestMethod]
+    public void GoToChangeLocation_GoesToLine()
+    {
+        var changeViewModel = testSubject.ChangeViewModels[0];
+        var textView = Substitute.For<ITextView>();
+
+        testSubject.GoToChangeLocation(textView, changeViewModel);
+
+        textViewEditor.Received(1).FocusLine(textView, changeViewModel.ChangeDto.beforeLineRange.startLine);
     }
 
     private void MockTextBufferGetFilePath(string path)

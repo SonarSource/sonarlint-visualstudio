@@ -30,6 +30,7 @@ public sealed partial class DiffViewWindow : Window
 {
     private readonly IDifferenceBufferFactoryService differenceBufferFactoryService;
     private readonly IWpfDifferenceViewerFactoryService wpfDifferenceViewerFactoryService;
+    private IWpfDifferenceViewer wpfDifferenceViewer;
 
     public DiffViewWindow(
         IDifferenceBufferFactoryService differenceBufferFactoryService,
@@ -52,10 +53,12 @@ public sealed partial class DiffViewWindow : Window
         {
             return;
         }
+
         diffViewViewModel.ApplySuggestedChanges();
+        wpfDifferenceViewer = CreateDifferenceViewer(diffViewViewModel);
 
         DiffGrid.Children.Clear();
-        DiffGrid.Children.Add(CreateDifferenceViewer(diffViewViewModel).VisualElement);
+        DiffGrid.Children.Add(wpfDifferenceViewer.VisualElement);
     }
 
     private IWpfDifferenceViewer CreateDifferenceViewer(DiffViewViewModel diffViewViewModel)
@@ -67,7 +70,15 @@ public sealed partial class DiffViewWindow : Window
         return differenceViewer;
     }
 
-    private void ButtonBase_OnClick(object sender, RoutedEventArgs e) => ApplyChanges();
+    private void IsSelectedCheckbox_OnClick(object sender, RoutedEventArgs e)
+    {
+        ApplyChanges();
+
+        if (ChangesGrid.DataContext is DiffViewViewModel diffViewViewModel && sender is FrameworkElement { DataContext: ChangeViewModel changeViewModel })
+        {
+            diffViewViewModel.GoToChangeLocation(wpfDifferenceViewer.RightView, changeViewModel);
+        }
+    }
 
     private void OnAccept(object sender, RoutedEventArgs e) => DialogResult = true;
 

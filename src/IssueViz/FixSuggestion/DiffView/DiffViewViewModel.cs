@@ -20,6 +20,7 @@
 
 using System.IO;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
@@ -59,4 +60,6 @@ public class DiffViewViewModel : ViewModelBase
             textViewEditor.ApplyChanges(After, selectedChangesDtos, abortOnOriginalTextChanged: false);
         }
     }
+
+    public void GoToChangeLocation(ITextView textView, ChangeViewModel changeViewModel) => textViewEditor.FocusLine(textView, changeViewModel.ChangeDto.beforeLineRange.startLine);
 }
