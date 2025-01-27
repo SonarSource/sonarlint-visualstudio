@@ -117,7 +117,7 @@ public class DiffViewViewModelTests
     }
 
     [TestMethod]
-    public void AllChangesSelected_ValueChanges_RaisesPropertyChangedEvent()
+    public void AllChangesSelected_ValueChanges_RaisesPropertyChangedEvents()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
@@ -126,6 +126,8 @@ public class DiffViewViewModelTests
 
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.AllChangesSelected)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsApplyEnabled)));
     }
 
     [TestMethod]
@@ -189,7 +191,7 @@ public class DiffViewViewModelTests
     }
 
     [TestMethod]
-    public void CalculateAllChangesSelected_RaisesAllChangesSelectedPropertyChanged()
+    public void CalculateAllChangesSelected_RaisesPropertyChangedEvents()
     {
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
@@ -199,6 +201,27 @@ public class DiffViewViewModelTests
 
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.AllChangesSelected)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsApplyEnabled)));
+    }
+
+    [TestMethod]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    public void IsApplyEnabled_AnyChangeIsSelected_ReturnsTrue(bool isSelected1, bool isSelected2)
+    {
+        testSubject.ChangeViewModels[0].IsSelected = isSelected1;
+        testSubject.ChangeViewModels[1].IsSelected = isSelected2;
+
+        testSubject.IsApplyEnabled.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void IsApplyEnabled_AllChangesAreNotSelected_ReturnsFalse()
+    {
+        testSubject.ChangeViewModels.ForEach(vm => vm.IsSelected = false);
+
+        testSubject.IsApplyEnabled.Should().BeFalse();
     }
 
     private void MockTextBufferGetFilePath(string path)

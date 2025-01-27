@@ -8,7 +8,7 @@
     Title="{x:Static res:Resources.DiffViewWindow_Title}"
     Icon="pack://application:,,,/SonarLint.VisualStudio.IssueVisualization;Component/Commands/Resources/sonarqube_for_ide_logo_16px.png">
 
-    <Grid>
+    <Grid x:Name="ChangesGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
@@ -25,7 +25,7 @@
             
             <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch"/>
 
-            <Grid Grid.Row="2" x:Name="ChangesGrid" Margin="5">
+            <Grid Grid.Row="2" Margin="5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -49,7 +49,7 @@
         </Grid>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button Content="{x:Static res:Resources.DiffViewWindow_Apply}" Click="OnAccept" Margin="5" Padding="5" FontSize="15"/>
+            <Button Content="{x:Static res:Resources.DiffViewWindow_Apply}" Click="OnAccept" Margin="5" Padding="5" FontSize="15" IsEnabled="{Binding Path=IsApplyEnabled}"/>
             <Button Content="{x:Static res:Resources.DiffViewWindow_Discard}" Click="OnDecline" Margin="5" Padding="5" FontSize="15"/>
         </StackPanel>
     </Grid>

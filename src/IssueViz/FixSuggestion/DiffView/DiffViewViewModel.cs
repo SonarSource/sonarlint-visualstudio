@@ -51,8 +51,11 @@ public class DiffViewViewModel : ViewModelBase
             allChangesSelected = value;
             ChangeViewModels.ForEach(vm => vm.IsSelected = value);
             RaisePropertyChanged();
+            RaisePropertyChanged(nameof(IsApplyEnabled));
         }
     }
+
+    public bool IsApplyEnabled => ChangeViewModels.Any(vm => vm.IsSelected);
 
     public DiffViewViewModel(
         ITextViewEditor textViewEditor,
@@ -62,7 +65,7 @@ public class DiffViewViewModel : ViewModelBase
         this.textViewEditor = textViewEditor;
         TextBuffer = textBuffer;
         ChangeViewModels = changesDtos.Select(dto => new ChangeViewModel(dto, true)).ToList();
-        allChangesSelected = true;
+        CalculateAllChangesSelected();
         FilePath = textBuffer.GetFilePath();
         FileName = Path.GetFileName(FilePath);
     }
@@ -89,5 +92,6 @@ public class DiffViewViewModel : ViewModelBase
     {
         allChangesSelected = ChangeViewModels.All(vm => vm.IsSelected);
         RaisePropertyChanged(nameof(AllChangesSelected));
+        RaisePropertyChanged(nameof(IsApplyEnabled));
     }
 }
