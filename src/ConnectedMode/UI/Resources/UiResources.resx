@@ -163,7 +163,7 @@
     <value>Enter the SonarQube Server URL:</value>
   </data>
   <data name="RemoveConnectionToolTip" xml:space="preserve">
-    <value>Remove connection</value>
+    <value>Remove Connection</value>
   </data>
   <data name="ServerSelectionDialogTitle" xml:space="preserve">
     <value>Create New Connection</value>
@@ -226,7 +226,7 @@
     <value>Manage Project Binding</value>
   </data>
   <data name="ManageConnectionsButton" xml:space="preserve">
-    <value>Manage connections</value>
+    <value>Manage Connections</value>
   </data>
   <data name="IsNotBoundText" xml:space="preserve">
     <value>is not bound</value>

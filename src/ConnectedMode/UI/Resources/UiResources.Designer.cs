@@ -537,7 +537,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Manage connections.
+        ///   Looks up a localized string similar to Manage Connections.
         /// </summary>
         public static string ManageConnectionsButton {
             get {
@@ -728,7 +728,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove connection.
+        ///   Looks up a localized string similar to Remove Connection.
         /// </summary>
         public static string RemoveConnectionToolTip {
             get {
