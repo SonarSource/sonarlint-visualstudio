@@ -105,20 +105,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
                 BuildJarFullPath("sonar-text-plugin-2.15.0.3845.jar"),
                 BuildJarFullPath("sonar-javascript-plugin-10.14.0.26080.jar"),
                 BuildJarFullPath("sonar-html-plugin-3.18.0.5605.jar"),
-                BuildJarFullPath("sonar-cfamily-plugin-6.58.0.74356.jar"));
+                BuildJarFullPath("sonar-cfamily-plugin-6.58.0.74356.jar"),
+                BuildJarFullPath("sonar-csharp-plugin-6.58.0.74356.jar")
+                );
 
             var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();
 
-            result.Count.Should().Be(3);
+            result.Count.Should().Be(4);
             VerifyContainsPlugin(result, "text", "sonar-text-plugin-2.15.0.3845.jar");
             VerifyContainsPlugin(result, "web", "sonar-html-plugin-3.18.0.5605.jar");
             VerifyContainsPlugin(result, "javascript", "sonar-javascript-plugin-10.14.0.26080.jar");
+            VerifyContainsPlugin(result, "cpp", "sonar-cfamily-plugin-6.58.0.74356.jar");
         }
 
         [TestMethod]
         [DataRow("text", "sonar-text-plugin-2.15.0.3845.jar", "sonar-text-plugin-2.16.0.4008.jar")]
         [DataRow("javascript", "sonar-javascript-plugin-10.14.0.26080.jar", "sonar-javascript-plugin-10.15.0.0080.jar")]
         [DataRow("web", "sonar-html-plugin-10.14.0.26080.jar", "sonar-html-plugin-10.15.0.0080.jar")]
+        [DataRow("cpp", "sonar-cfamily-plugin-10.14.0.26080.jar", "sonar-cfamily-plugin-10.15.0.0080.jar")]
         public void ListConnectedModeEmbeddedPluginPathsByKey_MultiplePluginVersionsExist_ReturnsTheFirstOneAndLogs(string pluginKey, string version1, string version2)
         {
             MockFileSystem(true, BuildJarFullPath(version1), BuildJarFullPath(version2));
@@ -131,8 +135,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
 
         [TestMethod]
         [DataRow("text", "sonar-text-plugin-2.15.0.3845.jar", "sonar-text-plugin-enterprise-2.15.0.3845.jar")]
+        [DataRow("text", "sonar-text-plugin-2.15.0.3845.jar", "sonar-html-plugin-2.15.0.3845.jar")]
         [DataRow("javascript", "sonar-javascript-plugin-10.14.0.26080.jar", "sonar-javascript-plugin-enterprise-10.14.0.26080.jar")]
+        [DataRow("javascript", "sonar-javascript-plugin-10.14.0.26080.jar", "sonar-cfamily-plugin-10.14.0.26080.jar")]
         [DataRow("web", "sonar-html-plugin-10.14.0.26080.jar", "sonar-html-plugin-enterprise-10.14.0.26080.jar")]
+        [DataRow("web", "sonar-html-plugin-10.14.0.26080.jar", "sonar-text-plugin-10.14.0.26080.jar")]
+        [DataRow("cpp", "sonar-cfamily-plugin-10.14.0.26080.jar", "sonar-cfamily-plugin-enterprise-10.14.0.26080.jar")]
+        [DataRow("cpp", "sonar-cfamily-plugin-10.14.0.26080.jar", "sonar-javascript-plugin-10.14.0.26080.jar")]
         public void ListConnectedModeEmbeddedPluginPathsByKey_PluginsWithDifferentNameExists_ReturnsCorrectOne(string pluginKey, string correct, string wrong)
         {
             MockFileSystem(true, BuildJarFullPath(wrong), BuildJarFullPath(correct));
@@ -150,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.UnitTests.SLCore
             var result = testSubject.ListConnectedModeEmbeddedPluginPathsByKey();
 
             result.Should().BeEmpty();
-            logger.Received(3).LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_JarsNotFound);
+            logger.Received(4).LogVerbose(Strings.ConnectedModeEmbeddedPluginJarLocator_JarsNotFound);
         }
 
         private void MockFileSystem(bool directoryExists, params string[] files)
