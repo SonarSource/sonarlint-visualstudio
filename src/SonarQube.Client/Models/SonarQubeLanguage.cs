@@ -31,10 +31,11 @@ namespace SonarQube.Client.Models
         public static readonly SonarQubeLanguage Css = new SonarQubeLanguage("css", "CSS", "css");
         public static readonly SonarQubeLanguage Html = new SonarQubeLanguage("web", "HTML", "html");
         public static readonly SonarQubeLanguage Secrets = new SonarQubeLanguage("secrets", "Secrets", "SonarSecrets");
+        public static readonly SonarQubeLanguage TSql = new SonarQubeLanguage("tsql", "Secrets", "T-SQL");
 
         public static readonly SonarQubeLanguage[] AllLanguages =
         {
-            CSharp, VbNet, Cpp, C, Js, Ts, Secrets, Css, Html
+            CSharp, VbNet, Cpp, C, Js, Ts, Secrets, Css, Html, TSql
         };
 
         public string Key { get; }

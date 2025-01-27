@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 using SonarLint.VisualStudio.SLCore.State;
+using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.SLCore;
 
@@ -104,8 +105,8 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             embeddedPluginPaths: slCoreEmbeddedPluginJarProvider.ListJarFiles(),
             connectedModeEmbeddedPluginPathsByKey: slCoreEmbeddedPluginJarProvider.ListConnectedModeEmbeddedPluginPathsByKey(),
             enabledLanguagesInStandaloneMode:constantsProvider.LanguagesInStandaloneMode,
-            extraEnabledLanguagesInConnectedMode: [],
-            disabledPluginKeysForAnalysis: constantsProvider.LanguagesInStandaloneMode.Except(constantsProvider.SLCoreAnalyzableLanguages).Select(l => l.GetPluginKey()).ToList(),
+            extraEnabledLanguagesInConnectedMode: constantsProvider.ExtraLanguagesInConnectedMode,
+            disabledPluginKeysForAnalysis: constantsProvider.LanguagesWithDisabledAnalysis.Select(l => l.GetPluginKey()).ToList(),
             serverConnectionConfigurations.Values.OfType<SonarQubeConnectionConfigurationDto>().ToList(),
             serverConnectionConfigurations.Values.OfType<SonarCloudConnectionConfigurationDto>().ToList(),
             sonarlintUserHome,

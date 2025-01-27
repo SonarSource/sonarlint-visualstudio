@@ -36,6 +36,7 @@ internal static class LanguageExtensions
             Language.SECRETS => VisualStudio.Core.Language.Secrets,
             Language.TS => VisualStudio.Core.Language.Ts,
             Language.VBNET => VisualStudio.Core.Language.VBNET,
+            Language.TSQL => VisualStudio.Core.Language.TSql,
             _ => VisualStudio.Core.Language.Unknown
         };
 
@@ -48,6 +49,7 @@ internal static class LanguageExtensions
             Language.VBNET => "vbnetenterprise",
             Language.SECRETS => "text",
             Language.HTML => "web",
+            Language.TSQL => "tsql",
             _ => null
         };
 }

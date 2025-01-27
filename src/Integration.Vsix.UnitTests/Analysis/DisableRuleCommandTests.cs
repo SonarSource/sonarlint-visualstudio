@@ -77,6 +77,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             command.CommandID.Guid.Should().Be(DisableRuleCommand.CommandSet);
         }
 
+
+        [TestMethod]
+        [DataRow("tsql:S222")]
+        [DataRow("java:S111")]
+        public void CheckStatusAndExecute_SingleIssue_UnsupportedRepo_StandaloneMode_VisibleAndEnabled(string errorCode)
+        {
+            var errorListHelper = CreateErrorListHelper(errorCode, ruleExists: true);
+
+            var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
+            var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
+
+            // Act
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper);
+
+            // 1. Trigger the query status check
+            ThreadHelper.SetCurrentThreadAsUIThread();
+            var result = command.OleStatus;
+
+            result.Should().Be(InvisbleAndDisabled);
+            command.Enabled.Should().BeFalse();
+            command.Visible.Should().BeFalse();
+        }
+
         [TestMethod]
         [DataRow("cpp:S111")]
         [DataRow("c:S222")]

@@ -142,7 +142,7 @@ public sealed class SLCoreTestRunner : IDisposable
     {
         var defaultConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsInfoProvider>());
         constantsProvider.LanguagesInStandaloneMode.Returns(defaultConstantsProvider.LanguagesInStandaloneMode);
-        constantsProvider.SLCoreAnalyzableLanguages.Returns(defaultConstantsProvider.SLCoreAnalyzableLanguages);
+        constantsProvider.LanguagesWithDisabledAnalysis.Returns(defaultConstantsProvider.LanguagesWithDisabledAnalysis);
     }
 
     public void Dispose()
