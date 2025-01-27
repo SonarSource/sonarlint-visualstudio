@@ -142,6 +142,15 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Focus to line {0} failed due to {1}..
+        /// </summary>
+        internal static string FocusLineFailed {
+            get {
+                return ResourceManager.GetString("FocusLineFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sonar Issue Visualization.
         /// </summary>
         internal static string IssueVisualizationToolWindowCaption {

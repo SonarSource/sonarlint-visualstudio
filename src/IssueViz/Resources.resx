@@ -147,4 +147,7 @@
   <data name="DiffViewWindow_Title" xml:space="preserve">
     <value>Apply fix suggestion {0} out of {1} in file {2}</value>
   </data>
+  <data name="FocusLineFailed" xml:space="preserve">
+    <value>Focus to line {0} failed due to {1}.</value>
+  </data>
 </root>
