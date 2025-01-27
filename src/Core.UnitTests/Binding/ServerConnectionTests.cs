@@ -103,7 +103,7 @@ public class ServerConnectionTests
         sonarQube.ServerUri.Should().BeSameAs(Localhost);
         sonarQube.Settings.Should().BeSameAs(serverConnectionSettings);
         sonarQube.Credentials.Should().BeSameAs(credentials);
-        sonarQube.CredentialsUri.Should().BeSameAs(sonarQube.ServerUri);
+        sonarQube.CredentialsUri.ToString().Should().BeSameAs(sonarQube.Id);
     }
 
     [TestMethod]
