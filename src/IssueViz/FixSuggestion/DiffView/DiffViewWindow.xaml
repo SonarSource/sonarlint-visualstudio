@@ -38,7 +38,7 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                                <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Click="ButtonBase_OnClick"/>
+                                <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Click="IsSelectedCheckbox_OnClick"/>
                                 <TextBlock Text="{Binding Line, StringFormat={} Line {0}}" VerticalAlignment="Center"/> 
                             </StackPanel>
                         </DataTemplate>

@@ -48,7 +48,7 @@ public class DiffViewViewModel : ViewModelBase
         FileName = Path.GetFileName(FilePath);
     }
 
-    public void ApplySuggestedChanges()
+    public void CalculateBeforeAndAfter()
     {
         Before = textViewEditor.CreateTextBuffer(TextBuffer.CurrentSnapshot.GetText(), TextBuffer.ContentType);
         After = textViewEditor.CreateTextBuffer(TextBuffer.CurrentSnapshot.GetText(), TextBuffer.ContentType);

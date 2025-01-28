@@ -64,13 +64,13 @@ public class DiffViewViewModelTests
     public void Ctor_AllChangesAreSelected() => testSubject.ChangeViewModels.Should().OnlyContain(vm => vm.IsSelected);
 
     [TestMethod]
-    public void ApplySuggestedChanges_InitializesBeforeAndAfter()
+    public void CalculateBeforeAndAfter_InitializesBeforeAndAfter()
     {
         var beforeBuffer = Substitute.For<ITextBuffer>();
         var afterBuffer = Substitute.For<ITextBuffer>();
         textViewEditor.CreateTextBuffer(Arg.Any<string>(), Arg.Any<IContentType>()).Returns(beforeBuffer, afterBuffer);
 
-        testSubject.ApplySuggestedChanges();
+        testSubject.CalculateBeforeAndAfter();
 
         testSubject.Before.Should().Be(beforeBuffer);
         testSubject.After.Should().Be(afterBuffer);
@@ -78,22 +78,22 @@ public class DiffViewViewModelTests
     }
 
     [TestMethod]
-    public void ApplySuggestedChanges_NoChangeSelected_DoesNotApplyChanges()
+    public void CalculateBeforeAndAfter_NoChangeSelected_DoesNotApplyChanges()
     {
         testSubject.ChangeViewModels.ForEach(vm => vm.IsSelected = false);
 
-        testSubject.ApplySuggestedChanges();
+        testSubject.CalculateBeforeAndAfter();
 
         textViewEditor.DidNotReceive().ApplyChanges(testSubject.After, Arg.Any<List<ChangesDto>>(), abortOnOriginalTextChanged: false);
     }
 
     [TestMethod]
-    public void ApplySuggestedChanges_OneChangeSelected_ApplyChange()
+    public void CalculateBeforeAndAfter_OneChangeSelected_ApplyChange()
     {
         testSubject.ChangeViewModels[0].IsSelected = false;
         testSubject.ChangeViewModels[1].IsSelected = true;
 
-        testSubject.ApplySuggestedChanges();
+        testSubject.CalculateBeforeAndAfter();
 
         textViewEditor.Received(1).ApplyChanges(testSubject.After, Arg.Is<List<ChangesDto>>(dtos => dtos.Count == 1 && dtos[0] == testSubject.ChangeViewModels[1].ChangeDto),
             abortOnOriginalTextChanged: false);

@@ -43,16 +43,16 @@ public sealed partial class DiffViewWindow : Window
     public void InitializeDifferenceViewer(DiffViewViewModel diffViewViewModel)
     {
         ChangesGrid.DataContext = diffViewViewModel;
-        ApplyChanges();
+        ShowChangesInDiffView();
     }
 
-    private void ApplyChanges()
+    private void ShowChangesInDiffView()
     {
         if (ChangesGrid.DataContext is not DiffViewViewModel diffViewViewModel)
         {
             return;
         }
-        diffViewViewModel.ApplySuggestedChanges();
+        diffViewViewModel.CalculateBeforeAndAfter();
 
         DiffGrid.Children.Clear();
         DiffGrid.Children.Add(CreateDifferenceViewer(diffViewViewModel).VisualElement);
@@ -67,7 +67,7 @@ public sealed partial class DiffViewWindow : Window
         return differenceViewer;
     }
 
-    private void ButtonBase_OnClick(object sender, RoutedEventArgs e) => ApplyChanges();
+    private void IsSelectedCheckbox_OnClick(object sender, RoutedEventArgs e) => ShowChangesInDiffView();
 
     private void OnAccept(object sender, RoutedEventArgs e) => DialogResult = true;
 
