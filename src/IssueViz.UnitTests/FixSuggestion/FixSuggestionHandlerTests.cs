@@ -147,16 +147,16 @@ public class FixSuggestionHandlerTests
     }
 
     [TestMethod]
-    public void ApplyFixSuggestion_WhenApplyingChangeSucceeded_BringFocusToFirstChangedLines()
+    public void ApplyFixSuggestion_WhenApplyingChangeSucceeded_BringFocusLineOfToFirstAcceptedChange()
     {
         var changes = suggestionWithTwoChanges.fixSuggestion.fileEdit.changes;
         var textView = MockOpenFile();
-        MockDiffView(suggestionWithTwoChanges.fixSuggestion.fileEdit.changes);
+        MockDiffView([suggestionWithTwoChanges.fixSuggestion.fileEdit.changes[1]]);
         textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<List<ChangesDto>>(), Arg.Any<bool>()).Returns(true);
 
         testSubject.ApplyFixSuggestion(suggestionWithTwoChanges);
 
-        textViewEditor.Received(1).FocusLine(textView, changes[0].beforeLineRange.startLine);
+        textViewEditor.Received(1).FocusLine(textView, changes[1].beforeLineRange.startLine);
     }
 
     [TestMethod]

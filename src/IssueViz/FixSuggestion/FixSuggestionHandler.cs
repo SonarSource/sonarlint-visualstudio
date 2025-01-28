@@ -137,7 +137,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
             fixSuggestionNotification.UnableToLocateIssue(filePath);
             return;
         }
-        textViewEditor.FocusLine(textView, changes[0].beforeLineRange.startLine);
+        textViewEditor.FocusLine(textView, acceptedChanges[0].beforeLineRange.startLine);
     }
 
     private bool ValidateFileExists(ITextView fileContent, string absoluteFilePath)
