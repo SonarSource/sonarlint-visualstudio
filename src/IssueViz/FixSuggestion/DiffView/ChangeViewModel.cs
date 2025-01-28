@@ -18,10 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Utilities;
+using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
-public record ChangeModel(string Text, IContentType ContentType)
+public class ChangeViewModel : ViewModelBase
 {
+    private bool isSelected;
+
+    public string Line => ChangeDto.beforeLineRange.startLine.ToString();
+    public ChangesDto ChangeDto { get; }
+
+    public bool IsSelected
+    {
+        get => isSelected;
+        set
+        {
+            isSelected = value;
+            RaisePropertyChanged();
+        }
+    }
+
+    public ChangeViewModel(ChangesDto changeDto, bool isSelected)
+    {
+        ChangeDto = changeDto;
+        IsSelected = isSelected;
+    }
 }

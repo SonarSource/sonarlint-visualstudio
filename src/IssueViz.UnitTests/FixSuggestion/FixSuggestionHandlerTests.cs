@@ -21,7 +21,6 @@
 using System.IO;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -40,11 +39,12 @@ public class FixSuggestionHandlerTests
 {
     private const string ConfigurationScopeRoot = @"C:\";
     private readonly ShowFixSuggestionParams suggestionWithOneChange = CreateFixSuggestionParams(changes: CreateChangesDto(1, 1, "var a=1;"));
+    private readonly ShowFixSuggestionParams suggestionWithTwoChanges = CreateFixSuggestionParams(changes: [CreateChangesDto(1, 1, "var a=1;"), CreateChangesDto(1, 1, "var b=0;")]);
     private IDiffViewService diffViewService;
     private IDocumentNavigator documentNavigator;
     private IFixSuggestionNotification fixSuggestionNotification;
     private IIDEWindowService ideWindowService;
-    private IIssueSpanCalculator issueSpanCalculator;
+    private ITextViewEditor textViewEditor;
     private ILogger logger;
     private IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
     private FixSuggestionHandler testSubject;
@@ -56,7 +56,7 @@ public class FixSuggestionHandlerTests
         threadHandling = new NoOpThreadHandler();
         logger = Substitute.For<ILogger>();
         documentNavigator = Substitute.For<IDocumentNavigator>();
-        issueSpanCalculator = Substitute.For<IIssueSpanCalculator>();
+        textViewEditor = Substitute.For<ITextViewEditor>();
         openInIdeConfigScopeValidator = Substitute.For<IOpenInIdeConfigScopeValidator>();
         ideWindowService = Substitute.For<IIDEWindowService>();
         fixSuggestionNotification = Substitute.For<IFixSuggestionNotification>();
@@ -66,13 +66,12 @@ public class FixSuggestionHandlerTests
             threadHandling,
             logger,
             documentNavigator,
-            issueSpanCalculator,
+            textViewEditor,
             openInIdeConfigScopeValidator,
             ideWindowService,
             fixSuggestionNotification,
             diffViewService);
         MockConfigScopeRoot();
-        issueSpanCalculator.IsSameHash(Arg.Any<SnapshotSpan>(), Arg.Any<string>()).Returns(true);
     }
 
     [TestMethod]
@@ -86,7 +85,7 @@ public class FixSuggestionHandlerTests
             threadHandlingMock,
             logger,
             documentNavigator,
-            issueSpanCalculator,
+            textViewEditor,
             openInIdeConfigScopeValidator,
             ideWindowService,
             fixSuggestionNotification,
@@ -100,11 +99,9 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_OneChangeAccepted_AppliesChange()
     {
-        var suggestedChange = suggestionWithOneChange.fixSuggestion.fileEdit.changes[0];
-        MockCalculateSpan(suggestedChange);
-        var textView = MockOpenFile();
-        var edit = MockTextEdit(textView);
-        MockChangeAccepted();
+        var changes = suggestionWithOneChange.fixSuggestion.fileEdit.changes;
+        MockOpenFile();
+        MockDiffView(changes);
 
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
@@ -114,10 +111,8 @@ public class FixSuggestionHandlerTests
             ideWindowService.BringToFront();
             fixSuggestionNotification.Clear();
             documentNavigator.Open(@"C:\myFile.cs");
-            textView.TextBuffer.CreateEdit();
-            issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), suggestedChange.beforeLineRange.startLine, suggestedChange.beforeLineRange.endLine);
-            edit.Replace(Arg.Any<Span>(), suggestedChange.after);
-            edit.Apply();
+            diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), changes);
+            textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), changes, true);
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, suggestionWithOneChange.configurationScopeId, suggestionWithOneChange.fixSuggestion.suggestionId);
         });
     }
@@ -125,11 +120,9 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_OneChangeNotAccepted_DoesNotApplyChange()
     {
-        var suggestedChange = suggestionWithOneChange.fixSuggestion.fileEdit.changes[0];
-        MockCalculateSpan(suggestedChange);
-        var textView = MockOpenFile();
-        var edit = MockTextEdit(textView);
-        MockChangeNotAccepted();
+        var changes = suggestionWithOneChange.fixSuggestion.fileEdit.changes;
+        MockOpenFile();
+        MockDiffView([]);
 
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
@@ -139,52 +132,10 @@ public class FixSuggestionHandlerTests
             ideWindowService.BringToFront();
             fixSuggestionNotification.Clear();
             documentNavigator.Open(@"C:\myFile.cs");
-            textView.TextBuffer.CreateEdit();
-            issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), suggestedChange.beforeLineRange.startLine, suggestedChange.beforeLineRange.endLine);
-            edit.Apply();
+            diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), changes);
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, suggestionWithOneChange.configurationScopeId, suggestionWithOneChange.fixSuggestion.suggestionId);
         });
-
-        edit.DidNotReceive().Replace(Arg.Any<Span>(), suggestedChange.after);
-    }
-
-    [TestMethod]
-    public void ApplyFixSuggestion_TwoChanges_AppliesChangeOnce()
-    {
-        issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>()).Returns(_ => CreateMockedSnapshotSpan(string.Empty));
-        var suggestionWithTwoChanges = CreateFixSuggestionParams(changes: [CreateChangesDto(1, 1, "var a=1;"), CreateChangesDto(2, 2, "var b=0;")]);
-        var textView = MockOpenFile();
-        var edit = MockTextEdit(textView);
-        MockChangeAccepted();
-
-        testSubject.ApplyFixSuggestion(suggestionWithTwoChanges);
-
-        issueSpanCalculator.Received(2).CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>());
-        edit.Received(2).Replace(Arg.Any<Span>(), Arg.Any<string>());
-        edit.Received(1).Apply();
-    }
-
-    /// <summary>
-    ///     The changes are applied from bottom to top to avoid changing the line numbers
-    ///     of the changes that are below the current change.
-    ///     This is important when the change is more lines than the original line range.
-    /// </summary>
-    [TestMethod]
-    public void ApplyFixSuggestion_WhenMoreThanOneFixes_ApplyThemFromBottomToTop()
-    {
-        issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>()).Returns(_ => CreateMockedSnapshotSpan(string.Empty));
-        MockOpenFile();
-        ChangesDto[] changes = [CreateChangesDto(1, 1, "var a=1;"), CreateChangesDto(3, 3, "var b=0;")];
-        var suggestionParams = CreateFixSuggestionParams(changes: changes);
-        MockChangeAccepted();
-
-        testSubject.ApplyFixSuggestion(suggestionParams);
-
-        Received.InOrder(() =>
-        {
-            issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), 3, 3);
-            issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), 1, 1);
-        });
+        textViewEditor.DidNotReceiveWithAnyArgs().ApplyChanges(default, default, default);
     }
 
     [TestMethod]
@@ -196,28 +147,24 @@ public class FixSuggestionHandlerTests
     }
 
     [TestMethod]
-    public void ApplyFixSuggestion_WhenApplyingChange_BringFocusToFirstChangedLines()
+    public void ApplyFixSuggestion_WhenApplyingChangeSucceeded_BringFocusLineOfToFirstAcceptedChange()
     {
-        issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>()).Returns(_ => CreateMockedSnapshotSpan(string.Empty));
-        ChangesDto[] changes = [CreateChangesDto(1, 1, "var a=1;"), CreateChangesDto(3, 3, "var a=1;")];
-        var suggestionParams = CreateFixSuggestionParams(changes: changes);
-        var firstSuggestedChange = suggestionParams.fixSuggestion.fileEdit.changes[0];
-        var firstAffectedSnapshot = MockCalculateSpan(firstSuggestedChange);
+        var changes = suggestionWithTwoChanges.fixSuggestion.fileEdit.changes;
         var textView = MockOpenFile();
-        MockConfigScopeRoot();
-        MockChangeAccepted();
+        MockDiffView([suggestionWithTwoChanges.fixSuggestion.fileEdit.changes[1]]);
+        textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<List<ChangesDto>>(), Arg.Any<bool>()).Returns(true);
 
-        testSubject.ApplyFixSuggestion(suggestionParams);
+        testSubject.ApplyFixSuggestion(suggestionWithTwoChanges);
 
-        textView.ViewScroller.ReceivedWithAnyArgs(1).EnsureSpanVisible(Arg.Any<SnapshotSpan>(), default);
-        textView.ViewScroller.Received(1).EnsureSpanVisible(firstAffectedSnapshot, EnsureSpanVisibleOptions.AlwaysCenter);
+        textViewEditor.Received(1).FocusLine(textView, changes[1].beforeLineRange.startLine);
     }
 
     [TestMethod]
     public void ApplyFixSuggestion_Throws_Logs()
     {
+        MockDiffView(suggestionWithTwoChanges.fixSuggestion.fileEdit.changes);
         var exceptionMsg = "error";
-        issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>()).Throws(new Exception(exceptionMsg));
+        textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<List<ChangesDto>>(), Arg.Any<bool>()).Throws(new Exception(exceptionMsg));
 
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
@@ -240,29 +187,6 @@ public class FixSuggestionHandlerTests
 
         logger.Received().WriteLine(FixSuggestionResources.GetConfigScopeRootPathFailed, "SpecificConfigScopeId", "Scope not found");
         fixSuggestionNotification.Received(1).InvalidRequest(reason);
-    }
-
-    [TestMethod]
-    public void ApplyFixSuggestion_WhenLineNumbersDoNotMatch_ShouldLogFailure()
-    {
-        FailWhenApplyingEdit("Line numbers do not match");
-
-        testSubject.ApplyFixSuggestion(suggestionWithOneChange);
-
-        logger.Received().WriteLine(FixSuggestionResources.ProcessingRequestFailed,
-            suggestionWithOneChange.configurationScopeId, suggestionWithOneChange.fixSuggestion.suggestionId,
-            "Line numbers do not match");
-    }
-
-    [TestMethod]
-    public void ApplyFixSuggestion_WhenApplyingChangeAndExceptionIsThrown_ShouldDisposeEdit()
-    {
-        var edit = FailWhenApplyingEdit();
-
-        testSubject.ApplyFixSuggestion(suggestionWithOneChange);
-
-        edit.DidNotReceiveWithAnyArgs().Replace(default, default);
-        edit.Received().Dispose();
     }
 
     [TestMethod]
@@ -297,76 +221,37 @@ public class FixSuggestionHandlerTests
     }
 
     [TestMethod]
-    public void ApplyFixSuggestion_OneChange_IssueCanNotBeLocated_ShowsNotificationAndDoesNotApplySuggestion()
+    public void ApplyFixSuggestion_OneChange_ChangesCanNotBeApplied_ShowsNotification()
     {
-        var edit = MockTextEdit();
-        issueSpanCalculator.IsSameHash(Arg.Any<SnapshotSpan>(), Arg.Any<string>()).Returns(false);
+        MockDiffView(suggestionWithOneChange.fixSuggestion.fileEdit.changes);
+        textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<List<ChangesDto>>(), Arg.Any<bool>()).Returns(false);
 
         testSubject.ApplyFixSuggestion(suggestionWithOneChange);
 
-        VerifyFixSuggestionNotApplied(edit);
-    }
-
-    [TestMethod]
-    public void ApplyFixSuggestion_TwoChanges_OneIssueCanNotBeLocated_ShowsNotificationAndDoesNotApplySuggestion()
-    {
-        var suggestionParams = CreateFixSuggestionParams(changes: [CreateChangesDto(1, 1, "var a=1;"), CreateChangesDto(2, 2, "var b=0;")]);
-        var edit = MockTextEdit();
-        issueSpanCalculator.IsSameHash(Arg.Any<SnapshotSpan>(), Arg.Any<string>()).Returns(
-            _ => true,
-            _ => false);
-
-        testSubject.ApplyFixSuggestion(suggestionParams);
-
-        VerifyFixSuggestionNotApplied(edit);
+        VerifyFixSuggestionNotApplied();
     }
 
     [TestMethod]
     public void ApplyFixSuggestion_TwoChanges_ShowsCorrectDiffView()
     {
-        var suggestionWithTwoChanges = CreateFixSuggestionParams(changes: [CreateChangesDto(1, 1, "int a=1;", "var a=1;"), CreateChangesDto(2, 2, "int b=0;", "var b=0;")]);
-        MockCalculateSpan(suggestionWithTwoChanges.fixSuggestion.fileEdit.changes[0]);
-        MockCalculateSpan(suggestionWithTwoChanges.fixSuggestion.fileEdit.changes[1]);
         var textView = MockOpenFile();
-        var edit = MockTextEdit(textView);
-        MockChangeAccepted();
 
         testSubject.ApplyFixSuggestion(suggestionWithTwoChanges);
 
-        Received.InOrder(() =>
-        {
-            diffViewService.ShowDiffView(Arg.Is<FixSuggestionDetails>(x => IsExpectedFixSuggestionDetails(x, 1, 2)),
-                Arg.Any<ChangeModel>(), // difficult to mock the GetText of the SnapshotSpan
-                Arg.Is<ChangeModel>(x => IsExpectedChangeModel(x, "var b=0;", edit.Snapshot.ContentType)));
-            diffViewService.ShowDiffView(Arg.Is<FixSuggestionDetails>(x => IsExpectedFixSuggestionDetails(x, 2, 2)),
-                Arg.Any<ChangeModel>(),
-                Arg.Is<ChangeModel>(x => IsExpectedChangeModel(x, "var a=1;", edit.Snapshot.ContentType)));
-        });
+        diffViewService.Received(1).ShowDiffView(textView.TextBuffer, suggestionWithTwoChanges.fixSuggestion.fileEdit.changes);
     }
 
     [TestMethod]
-    public void ApplyFixSuggestion_TwoChangesAndJustOneAccepted_ReplacesJustOne()
+    public void ApplyFixSuggestion_TwoChangesAndJustOneAccepted_AppliesJustOne()
     {
-        var suggestionWithTwoChanges = CreateFixSuggestionParams(changes: [CreateChangesDto(1, 1, "int a=1;", "var a=1;"), CreateChangesDto(2, 2, "int b=0;", "var b=0;")]);
-        MockCalculateSpan(suggestionWithTwoChanges.fixSuggestion.fileEdit.changes[0]);
-        MockCalculateSpan(suggestionWithTwoChanges.fixSuggestion.fileEdit.changes[1]);
         var textView = MockOpenFile();
-        var edit = MockTextEdit(textView);
-        MockDiffView(1, "var b=0;", true);
-        MockDiffView(2, "var a=1;", false);
+        var acceptedChange = suggestionWithTwoChanges.fixSuggestion.fileEdit.changes[0];
+        diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), Arg.Any<List<ChangesDto>>()).Returns([acceptedChange]);
 
         testSubject.ApplyFixSuggestion(suggestionWithTwoChanges);
 
-        edit.Received(1).Replace(Arg.Any<Span>(), "var b=0;");
-        edit.DidNotReceive().Replace(Arg.Any<Span>(), "var a=1;");
+        textViewEditor.Received(1).ApplyChanges(textView.TextBuffer, Arg.Is<List<ChangesDto>>(x => x.SequenceEqual(new List<ChangesDto> { acceptedChange })), abortOnOriginalTextChanged: true);
     }
-
-    private bool IsExpectedFixSuggestionDetails(FixSuggestionDetails fixSuggestionDetails, int expectedIndex, int expectedTotal) =>
-        fixSuggestionDetails.ChangeIndex == expectedIndex &&
-        fixSuggestionDetails.TotalChangesFixes == expectedTotal &&
-        fixSuggestionDetails.FileName == @"C:\myFile.cs";
-
-    private bool IsExpectedChangeModel(ChangeModel changeModel, string expectedText, IContentType contentType) => changeModel.Text == expectedText && changeModel.ContentType == contentType;
 
     private void MockConfigScopeRoot() =>
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(Arg.Any<string>(), out Arg.Any<string>(), out Arg.Any<string>()).Returns(
@@ -387,36 +272,9 @@ public class FixSuggestionHandlerTests
     private ITextView MockOpenFile()
     {
         var textView = Substitute.For<ITextView>();
+        textView.TextBuffer.Returns(Substitute.For<ITextBuffer>());
         documentNavigator.Open(Arg.Any<string>()).Returns(textView);
         return textView;
-    }
-
-    private SnapshotSpan MockCalculateSpan(ChangesDto suggestedChange) => MockCalculateSpan(suggestedChange.before, suggestedChange.beforeLineRange.startLine, suggestedChange.beforeLineRange.endLine);
-
-    private SnapshotSpan MockCalculateSpan(string text, int startLine, int endLine)
-    {
-        var affectedSnapshot = CreateMockedSnapshotSpan(text);
-        issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), startLine, endLine).Returns(affectedSnapshot);
-        issueSpanCalculator.IsSameHash(affectedSnapshot, text).Returns(true);
-        return affectedSnapshot;
-    }
-
-    private static SnapshotSpan CreateMockedSnapshotSpan(string text)
-    {
-        var mockTextSnapshot = Substitute.For<ITextSnapshot>();
-        mockTextSnapshot.Length.Returns(text.Length + 9999);
-
-        return new SnapshotSpan(mockTextSnapshot, new Span(0, text.Length));
-    }
-
-    private ITextEdit FailWhenApplyingEdit(string reason = "")
-    {
-        var edit = Substitute.For<ITextEdit>();
-        var textView = MockOpenFile();
-        textView.TextBuffer.CreateEdit().Returns(edit);
-        issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>())
-            .Throws(new Exception(reason));
-        return edit;
     }
 
     private static ShowFixSuggestionParams CreateFixSuggestionParams(
@@ -439,30 +297,7 @@ public class FixSuggestionHandlerTests
 
     private static string GetAbsolutePathOfFile(ShowFixSuggestionParams suggestionParams) => Path.Combine(ConfigurationScopeRoot, suggestionParams.fixSuggestion.fileEdit.idePath);
 
-    private ITextEdit MockTextEdit(ITextView textView = null)
-    {
-        var edit = Substitute.For<ITextEdit>();
-        textView ??= MockOpenFile();
-        textView.TextBuffer.CreateEdit().Returns(edit);
-        return edit;
-    }
+    private void VerifyFixSuggestionNotApplied() => fixSuggestionNotification.Received(1).UnableToLocateIssue(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
 
-    private void VerifyFixSuggestionNotApplied(ITextEdit edit)
-    {
-        Received.InOrder(() =>
-        {
-            fixSuggestionNotification.UnableToLocateIssue(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(suggestionWithOneChange)));
-            edit.Dispose();
-        });
-        edit.DidNotReceive().Apply();
-    }
-
-    private void MockChangeAccepted() => MockDiffView(true);
-
-    private void MockChangeNotAccepted() => MockDiffView(false);
-
-    private void MockDiffView(bool accepted) => diffViewService.ShowDiffView(Arg.Any<FixSuggestionDetails>(), Arg.Any<ChangeModel>(), Arg.Any<ChangeModel>()).Returns(accepted);
-
-    private void MockDiffView(int index, string after, bool accepted) =>
-        diffViewService.ShowDiffView(Arg.Is<FixSuggestionDetails>(x => x.ChangeIndex == index), Arg.Any<ChangeModel>(), Arg.Is<ChangeModel>(x => x.Text == after)).Returns(accepted);
+    private void MockDiffView(List<ChangesDto> changes) => diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), Arg.Any<List<ChangesDto>>()).Returns(changes);
 }

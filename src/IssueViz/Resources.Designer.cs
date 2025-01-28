@@ -22,21 +22,21 @@ namespace SonarLint.VisualStudio.IssueVisualization {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Resources() {
+        public Resources() {
         }
         
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.IssueVisualization.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,18 +61,45 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Apply.
+        /// </summary>
+        public static string DiffViewWindow_Apply {
+            get {
+                return ResourceManager.GetString("DiffViewWindow_Apply", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Code fix suggestion.
         /// </summary>
-        internal static string DiffViewWindow_DefaultCaption {
+        public static string DiffViewWindow_DefaultCaption {
             get {
                 return ResourceManager.GetString("DiffViewWindow_DefaultCaption", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Apply fix suggestion {0} out of {1} in file {2}.
+        ///   Looks up a localized string similar to Select the desired code fix suggestions and click &quot;Apply&quot; to apply them to the file..
         /// </summary>
-        internal static string DiffViewWindow_Title {
+        public static string DiffViewWindow_Description {
+            get {
+                return ResourceManager.GetString("DiffViewWindow_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Discard.
+        /// </summary>
+        public static string DiffViewWindow_Discard {
+            get {
+                return ResourceManager.GetString("DiffViewWindow_Discard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply fix suggestions.
+        /// </summary>
+        public static string DiffViewWindow_Title {
             get {
                 return ResourceManager.GetString("DiffViewWindow_Title", resourceCulture);
             }
@@ -81,7 +108,7 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         /// <summary>
         ///   Looks up a localized string similar to Failed to get image moniker for file &apos;{0}&apos;: {1}.
         /// </summary>
-        internal static string ERR_FailedToGetFileImageMoniker {
+        public static string ERR_FailedToGetFileImageMoniker {
             get {
                 return ResourceManager.GetString("ERR_FailedToGetFileImageMoniker", resourceCulture);
             }
@@ -90,7 +117,7 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         /// <summary>
         ///   Looks up a localized string similar to Error handling buffer change: {0} .
         /// </summary>
-        internal static string ERR_HandlingBufferChange {
+        public static string ERR_HandlingBufferChange {
             get {
                 return ResourceManager.GetString("ERR_HandlingBufferChange", resourceCulture);
             }
@@ -99,7 +126,7 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         /// <summary>
         ///   Looks up a localized string similar to Error navigating to analysis issue location: {0}.
         /// </summary>
-        internal static string ERR_NavigationException {
+        public static string ERR_NavigationException {
             get {
                 return ResourceManager.GetString("ERR_NavigationException", resourceCulture);
             }
@@ -108,7 +135,7 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         /// <summary>
         ///   Looks up a localized string similar to Error opening file &apos;{0}&apos;: {1}.
         /// </summary>
-        internal static string ERR_OpenDocumentException {
+        public static string ERR_OpenDocumentException {
             get {
                 return ResourceManager.GetString("ERR_OpenDocumentException", resourceCulture);
             }
@@ -117,7 +144,7 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         /// <summary>
         ///   Looks up a localized string similar to Error querying status of Visualization Tool Window command: {0}.
         /// </summary>
-        internal static string ERR_QueryStatusVisualizationToolWindowCommand {
+        public static string ERR_QueryStatusVisualizationToolWindowCommand {
             get {
                 return ResourceManager.GetString("ERR_QueryStatusVisualizationToolWindowCommand", resourceCulture);
             }
@@ -126,7 +153,7 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         /// <summary>
         ///   Looks up a localized string similar to [Quick fixes] Error processing quick fixes: {0}.
         /// </summary>
-        internal static string ERR_QuickFixes_Exception {
+        public static string ERR_QuickFixes_Exception {
             get {
                 return ResourceManager.GetString("ERR_QuickFixes_Exception", resourceCulture);
             }
@@ -135,16 +162,25 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         /// <summary>
         ///   Looks up a localized string similar to Error displaying Visualization Tool Window: {0}.
         /// </summary>
-        internal static string ERR_VisualizationToolWindow_Exception {
+        public static string ERR_VisualizationToolWindow_Exception {
             get {
                 return ResourceManager.GetString("ERR_VisualizationToolWindow_Exception", resourceCulture);
             }
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Focus to line {0} failed due to {1}..
+        /// </summary>
+        public static string FocusLineFailed {
+            get {
+                return ResourceManager.GetString("FocusLineFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sonar Issue Visualization.
         /// </summary>
-        internal static string IssueVisualizationToolWindowCaption {
+        public static string IssueVisualizationToolWindowCaption {
             get {
                 return ResourceManager.GetString("IssueVisualizationToolWindowCaption", resourceCulture);
             }
