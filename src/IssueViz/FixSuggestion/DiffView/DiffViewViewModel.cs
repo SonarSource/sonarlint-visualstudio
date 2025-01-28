@@ -48,9 +48,14 @@ public class DiffViewViewModel : ViewModelBase
         FileName = Path.GetFileName(FilePath);
     }
 
-    public void CalculateBeforeAndAfter()
+    public void InitializeBeforeAndAfter()
     {
         Before = textViewEditor.CreateTextBuffer(TextBuffer.CurrentSnapshot.GetText(), TextBuffer.ContentType);
+        CalculateAfter();
+    }
+
+    public void CalculateAfter()
+    {
         After = textViewEditor.CreateTextBuffer(TextBuffer.CurrentSnapshot.GetText(), TextBuffer.ContentType);
 
         var selectedChangesDtos = ChangeViewModels.Where(vm => vm.IsSelected).Select(vm => vm.ChangeDto).ToList();

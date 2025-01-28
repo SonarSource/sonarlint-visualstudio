@@ -30,6 +30,7 @@ public sealed partial class DiffViewWindow : Window
 {
     private readonly IDifferenceBufferFactoryService differenceBufferFactoryService;
     private readonly IWpfDifferenceViewerFactoryService wpfDifferenceViewerFactoryService;
+    private DiffViewViewModel diffViewViewModel;
 
     public DiffViewWindow(
         IDifferenceBufferFactoryService differenceBufferFactoryService,
@@ -40,25 +41,21 @@ public sealed partial class DiffViewWindow : Window
         InitializeComponent();
     }
 
-    public void InitializeDifferenceViewer(DiffViewViewModel diffViewViewModel)
+    public void InitializeDifferenceViewer(DiffViewViewModel diffViewModel)
     {
-        ChangesGrid.DataContext = diffViewViewModel;
-        ShowChangesInDiffView();
+        diffViewViewModel = diffViewModel;
+        ChangesGrid.DataContext = diffViewModel;
+        diffViewViewModel.InitializeBeforeAndAfter();
+        ShowChangesInDiffGrid();
     }
 
-    private void ShowChangesInDiffView()
+    private void ShowChangesInDiffGrid()
     {
-        if (ChangesGrid.DataContext is not DiffViewViewModel diffViewViewModel)
-        {
-            return;
-        }
-        diffViewViewModel.CalculateBeforeAndAfter();
-
         DiffGrid.Children.Clear();
-        DiffGrid.Children.Add(CreateDifferenceViewer(diffViewViewModel).VisualElement);
+        DiffGrid.Children.Add(CreateDifferenceViewer().VisualElement);
     }
 
-    private IWpfDifferenceViewer CreateDifferenceViewer(DiffViewViewModel diffViewViewModel)
+    private IWpfDifferenceViewer CreateDifferenceViewer()
     {
         var differenceBuffer = differenceBufferFactoryService.CreateDifferenceBuffer(diffViewViewModel.Before, diffViewViewModel.After);
         var differenceViewer = wpfDifferenceViewerFactoryService.CreateDifferenceView(differenceBuffer);
@@ -67,7 +64,11 @@ public sealed partial class DiffViewWindow : Window
         return differenceViewer;
     }
 
-    private void IsSelectedCheckbox_OnClick(object sender, RoutedEventArgs e) => ShowChangesInDiffView();
+    private void IsSelectedCheckbox_OnClick(object sender, RoutedEventArgs e)
+    {
+        diffViewViewModel.CalculateAfter();
+        ShowChangesInDiffGrid();
+    }
 
     private void OnAccept(object sender, RoutedEventArgs e) => DialogResult = true;
 
