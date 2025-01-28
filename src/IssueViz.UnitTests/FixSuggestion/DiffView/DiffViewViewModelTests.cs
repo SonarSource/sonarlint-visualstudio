@@ -70,13 +70,13 @@ public class DiffViewViewModelTests
     }
 
     [TestMethod]
-    public void ApplySuggestedChanges_InitializesBeforeAndAfter()
+    public void InitializeBeforeAndAfter_InitializesBeforeAndAfter()
     {
         var beforeBuffer = Substitute.For<ITextBuffer>();
         var afterBuffer = Substitute.For<ITextBuffer>();
         textViewEditor.CreateTextBuffer(Arg.Any<string>(), Arg.Any<IContentType>()).Returns(beforeBuffer, afterBuffer);
 
-        testSubject.ApplySuggestedChanges();
+        testSubject.InitializeBeforeAndAfter();
 
         testSubject.Before.Should().Be(beforeBuffer);
         testSubject.After.Should().Be(afterBuffer);
@@ -84,22 +84,47 @@ public class DiffViewViewModelTests
     }
 
     [TestMethod]
-    public void ApplySuggestedChanges_NoChangeSelected_DoesNotApplyChanges()
+    public void InitializeBeforeAndAfter_NoChangeSelected_DoesNotApplyChanges()
     {
         testSubject.ChangeViewModels.ForEach(vm => vm.IsSelected = false);
 
-        testSubject.ApplySuggestedChanges();
+        testSubject.InitializeBeforeAndAfter();
 
         textViewEditor.DidNotReceive().ApplyChanges(testSubject.After, Arg.Any<List<ChangesDto>>(), abortOnOriginalTextChanged: false);
     }
 
     [TestMethod]
-    public void ApplySuggestedChanges_OneChangeSelected_ApplyChange()
+    public void InitializeBeforeAndAfter_OneChangeSelected_ApplyChange()
     {
         testSubject.ChangeViewModels[0].IsSelected = false;
         testSubject.ChangeViewModels[1].IsSelected = true;
 
-        testSubject.ApplySuggestedChanges();
+        testSubject.InitializeBeforeAndAfter();
+
+        textViewEditor.Received(1).ApplyChanges(testSubject.After, Arg.Is<List<ChangesDto>>(dtos => dtos.Count == 1 && dtos[0] == testSubject.ChangeViewModels[1].ChangeDto),
+            abortOnOriginalTextChanged: false);
+    }
+
+    [TestMethod]
+    public void CalculateAfter_NoChangeSelected_RecreatesBufferButDoesNotApplyChanges()
+    {
+        var afterBuffer = Substitute.For<ITextBuffer>();
+        textViewEditor.CreateTextBuffer(Arg.Any<string>(), Arg.Any<IContentType>()).Returns(afterBuffer);
+        testSubject.ChangeViewModels.ForEach(vm => vm.IsSelected = false);
+
+        testSubject.CalculateAfter();
+
+        testSubject.After.Should().Be(afterBuffer);
+        textViewEditor.DidNotReceive().ApplyChanges(testSubject.After, Arg.Any<List<ChangesDto>>(), abortOnOriginalTextChanged: false);
+    }
+
+    [TestMethod]
+    public void CalculateAfter_OneChangeSelected_ApplyChange()
+    {
+        testSubject.ChangeViewModels[0].IsSelected = false;
+        testSubject.ChangeViewModels[1].IsSelected = true;
+
+        testSubject.CalculateAfter();
 
         textViewEditor.Received(1).ApplyChanges(testSubject.After, Arg.Is<List<ChangesDto>>(dtos => dtos.Count == 1 && dtos[0] == testSubject.ChangeViewModels[1].ChangeDto),
             abortOnOriginalTextChanged: false);
