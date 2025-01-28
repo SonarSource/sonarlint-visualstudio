@@ -22,23 +22,23 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
+using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
 public interface IDiffViewToolWindowPane
 {
-    bool ShowDiff(FixSuggestionDetails fixSuggestionDetails, ITextBuffer before, ITextBuffer after);
+    List<ChangesDto> ShowDiff(DiffViewViewModel diffViewViewModel);
 }
 
 [ExcludeFromCodeCoverage]
 [Guid(DiffViewToolWindowPaneId)]
 public class DiffViewToolWindowPane : ToolWindowPane, IDiffViewToolWindowPane
 {
+    private const string DiffViewToolWindowPaneId = "BCC137BA-B2E0-44EB-B161-A7E8D73AD883";
     private readonly IDifferenceBufferFactoryService differenceBufferFactoryService;
     private readonly IWpfDifferenceViewerFactoryService differenceViewerFactoryService;
-    private const string DiffViewToolWindowPaneId = "BCC137BA-B2E0-44EB-B161-A7E8D73AD883";
 
     public DiffViewToolWindowPane(
         IDifferenceBufferFactoryService differenceBufferFactoryService,
@@ -50,13 +50,13 @@ public class DiffViewToolWindowPane : ToolWindowPane, IDiffViewToolWindowPane
         Content = CreateDiffViewWindow(differenceBufferFactoryService, differenceViewerFactoryService);
     }
 
-    public bool ShowDiff(FixSuggestionDetails fixSuggestionDetails, ITextBuffer before, ITextBuffer after)
+    public List<ChangesDto> ShowDiff(DiffViewViewModel diffViewViewModel)
     {
         var diffToolWindow = CreateDiffViewWindow(differenceBufferFactoryService, differenceViewerFactoryService);
-        diffToolWindow.InitializeDifferenceViewer(fixSuggestionDetails, before, after);
+        diffToolWindow.InitializeDifferenceViewer(diffViewViewModel);
         Content = diffToolWindow;
 
-        return diffToolWindow.ShowDialog() == true;
+        return diffToolWindow.ShowDialog() == true ? diffViewViewModel.ChangeViewModels.Where(c => c.IsSelected).Select(c => c.ChangeDto).ToList() : [];
     }
 
     private static DiffViewWindow CreateDiffViewWindow(IDifferenceBufferFactoryService differenceBufferFactoryService, IWpfDifferenceViewerFactoryService differenceViewerFactoryService)
