@@ -71,11 +71,11 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Logging
             logger.ForContext(SLCoreStrings.SLCoreName).Returns(customizedLogger);
             var testSubject  = new LoggerListener(logger);
 
-            testSubject.Log(new LogParams{configScopeId = "configScopeId1", loggerName = "loggerName1", threadName = "threadName1"});
-            testSubject.Log(new LogParams{configScopeId = "configScopeId2", loggerName = "loggerName2", threadName = "threadName2"});
+            testSubject.Log(new LogParams{configScopeId = "configScopeId1", loggerName = "loggerName1", threadName = "threadName1", message = "msg"});
+            testSubject.Log(new LogParams{configScopeId = "configScopeId2", loggerName = "loggerName2", threadName = "threadName2", stackTrace = "stackTrace"});
 
-            customizedLogger.Received(1).WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.VerboseContext.SequenceEqual(new []{"loggerName1", "configScopeId1", "threadName1"})), Arg.Any<string>());
-            customizedLogger.Received(1).WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.VerboseContext.SequenceEqual(new []{"loggerName2", "configScopeId2", "threadName2"})), Arg.Any<string>());
+            customizedLogger.Received(1).WriteLine(Arg.Is<MessageLevelContext>(ctx => ctx.VerboseContext.SequenceEqual(new []{"loggerName1", "configScopeId1", "threadName1"})), Arg.Any<string>(), Arg.Any<object[]>());
+            customizedLogger.Received(1).LogVerbose(Arg.Is<MessageLevelContext>(ctx => ctx.VerboseContext.SequenceEqual(new []{"loggerName2", "configScopeId2", "threadName2"})), Arg.Any<string>(), Arg.Any<object[]>());
         }
 
         [TestMethod]
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Logging
         }
 
         [TestMethod]
-        public void Log_NullablePropertiesMissing_ProducesCorrectMessage()
+        public void Log_NullablePropertiesMissingExceptMessage_ProducesCorrectMessage()
         {
             var testLogger = new TestLogger();
             var testSubject = new LoggerListener(testLogger);
@@ -141,6 +141,30 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Logging
             });
 
             testLogger.AssertOutputStrings("[SLCore] [loggerName > threadName] message");
+        }
+
+        [TestMethod]
+        public void Log_NullablePropertiesMissingExceptStackTrace_ProducesCorrectMessage()
+        {
+            var testLogger = new TestLogger(logVerbose:true);
+            var testSubject = new LoggerListener(testLogger);
+
+            testSubject.Log(new LogParams
+            {
+                loggerName = "loggerName",
+                configScopeId = null,
+                threadName = "threadName",
+                message = null,
+                stackTrace = """
+                             stack
+                             trace
+                             """
+            });
+
+            testLogger.AssertOutputStrings("""
+                                           [DEBUG] [SLCore] [loggerName > threadName] stack
+                                           trace
+                                           """);
         }
     }
 }

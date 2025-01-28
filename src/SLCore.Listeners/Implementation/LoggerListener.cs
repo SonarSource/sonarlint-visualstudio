@@ -34,16 +34,19 @@ public class LoggerListener(ILogger logger) : ILoggerListener
 
     public void Log(LogParams parameters)
     {
-        var additionalContext = new MessageLevelContext {VerboseContext = [parameters.loggerName, parameters.configScopeId, parameters.threadName]};
+        var additionalContext = new MessageLevelContext { VerboseContext = [parameters.loggerName, parameters.configScopeId, parameters.threadName] };
 
-        switch (parameters.level)
+        if (parameters.message != null)
         {
-            case LogLevel.ERROR or LogLevel.WARN:
-                logger.WriteLine(additionalContext, parameters.message);
-                break;
-            case LogLevel.INFO or LogLevel.DEBUG or LogLevel.TRACE:
-                logger.LogVerbose(additionalContext, parameters.message);
-                break;
+            switch (parameters.level)
+            {
+                case LogLevel.ERROR or LogLevel.WARN:
+                    logger.WriteLine(additionalContext, parameters.message);
+                    break;
+                case LogLevel.INFO or LogLevel.DEBUG or LogLevel.TRACE:
+                    logger.LogVerbose(additionalContext, parameters.message);
+                    break;
+            }
         }
 
         if (parameters.stackTrace != null)

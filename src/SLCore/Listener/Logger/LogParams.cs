@@ -25,6 +25,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Logger;
 
 public class LogParams
 {
+    // nullable
     public string message;
     // nullable
     public string configScopeId;
