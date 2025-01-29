@@ -4,11 +4,54 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
     xmlns:res="clr-namespace:SonarLint.VisualStudio.IssueVisualization"
+    xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
     WindowStartupLocation="CenterOwner"
     Background="{DynamicResource {x:Static vsShell:VsBrushes.WindowKey}}"
+    FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment133PercentFontSizeKey}}"
+    FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
+    Foreground="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUITextKey}}"
     Icon="pack://application:,,,/SonarLint.VisualStudio.IssueVisualization;Component/Commands/Resources/sonarqube_for_ide_logo_16px.png">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="MinHeight" Value="25" />
+            <Setter Property="MinWidth" Value="75" />
+            <Setter Property="Margin" Value="10" />
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonTextBrushKey}}" />
+            <Setter Property="Background" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonBrushKey}}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static platformUi:CommonControlsColors.ButtonBorderFocusedBrushKey}}" />
+        </Style>
 
-    <Grid x:Name="ChangesGrid">
+        <Style TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="ChangeTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="TextWrapping" Value="NoWrap" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="FontSize" Value="{DynamicResource {x:Static vsShell:VsFonts.Environment111PercentFontSizeKey}}" />
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style TargetType="ListBox">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}" />
+            <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+    </Window.Resources>
+
+        <Grid x:Name="ChangesGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
@@ -25,17 +68,18 @@
             
             <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch"/>
 
-            <Grid Grid.Row="2" Margin="5">
+            <Grid Grid.Row="2" Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="{x:Static res:Resources.DiffViewWindow_Description}" FontSize="15" />
-                <CheckBox Grid.Row="1" Content="{Binding FileName, Mode=OneWay}" IsChecked="{Binding AllChangesSelected}" Margin="0,10,0,0" FontSize="14"
-                          Click="SelectAllCheckbox_IsClicked"/>
-                <ListBox Grid.Row="2" Margin="5,5,0,0" ItemsSource="{Binding ChangeViewModels}">
+                <TextBlock Grid.Row="0" Text="{x:Static res:Resources.DiffViewWindow_Description}" Margin="10" FontStyle="Italic"/>
+                <CheckBox Grid.Row="1" Content="{Binding FileName, Mode=OneWay}" Margin="10,0" 
+                          IsChecked="{Binding AllChangesSelected}" Click="SelectAllCheckbox_IsClicked"/>
+                <ListBox Grid.Row="2" Margin="10,0" Padding="0, 0,0, 10" ItemsSource="{Binding ChangeViewModels}" 
+                         ScrollViewer.HorizontalScrollBarVisibility="Hidden">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid PreviewMouseLeftButtonUp="ChangeRow_OnMouseLeftButtonUp" Width="{Binding ElementName=DiffGrid, Path=ActualWidth}">
@@ -45,11 +89,11 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Click="IsSelectedCheckbox_OnClick"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Before}" VerticalAlignment="Center" TextDecorations="Strikethrough" TextWrapping="NoWrap"
-                                           Background="{DynamicResource {x:Static vsShell:VsBrushes.VizSurfaceRedLightKey}}" />
-                                <TextBlock Grid.Column="2" Text="{Binding  After}" VerticalAlignment="Center" TextWrapping="NoWrap"
-                                           Background="{DynamicResource {x:Static vsShell:VsBrushes.VizSurfaceGreenLightKey}}" /> 
+                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" Click="IsSelectedCheckbox_OnClick"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Before}" Style="{StaticResource ChangeTextBlockStyle}" TextDecorations="Strikethrough" 
+                                           Background="{DynamicResource {x:Static vsShell:VsBrushes.VizSurfaceRedMediumKey}}" />
+                                <TextBlock Grid.Column="2" Text="{Binding  After}" Style="{StaticResource ChangeTextBlockStyle}"
+                                           Background="{DynamicResource {x:Static vsShell:VsBrushes.VizSurfaceGreenMediumKey}}" /> 
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
@@ -58,8 +102,8 @@
         </Grid>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button Content="{x:Static res:Resources.DiffViewWindow_Apply}" Click="OnAccept" Margin="5" Padding="5" FontSize="15" IsEnabled="{Binding Path=IsApplyEnabled}"/>
-            <Button Content="{x:Static res:Resources.DiffViewWindow_Discard}" Click="OnDecline" Margin="5" Padding="5" FontSize="15"/>
+            <Button Content="{x:Static res:Resources.DiffViewWindow_Apply}" Click="OnAccept" IsEnabled="{Binding Path=IsApplyEnabled}"/>
+            <Button Content="{x:Static res:Resources.DiffViewWindow_Discard}" Click="OnDecline" />
         </StackPanel>
     </Grid>
 
