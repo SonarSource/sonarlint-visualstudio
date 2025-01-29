@@ -19,34 +19,31 @@
  */
 
 using SonarLint.VisualStudio.Core.WPF;
-using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
 public class ChangeViewModel : ViewModelBase
 {
-    private bool isSelected;
-
-    public ChangesDto ChangeDto { get; }
-    public string After { get; }
-    public string Before { get; }
+    public FixSuggestionChange Change { get; }
+    public string AfterPreview { get; }
+    public string BeforePreview { get; }
 
     public bool IsSelected
     {
-        get => isSelected;
+        get => Change.IsAccepted;
         set
         {
-            isSelected = value;
+            Change.IsAccepted = value;
             RaisePropertyChanged();
         }
     }
 
-    public ChangeViewModel(ChangesDto changeDto, bool isSelected)
+    public ChangeViewModel(FixSuggestionChange change)
     {
-        ChangeDto = changeDto;
-        IsSelected = isSelected;
-        Before = ToSingleLine(changeDto.before);
-        After = ToSingleLine(changeDto.after);
+        Change = change;
+        IsSelected = true;
+        BeforePreview = ToSingleLine(change.BeforeText);
+        AfterPreview = ToSingleLine(change.AfterText);
     }
 
     private static string ToSingleLine(string text) => text.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Replace("\t", string.Empty);

@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Utilities;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -32,8 +33,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor;
 [TestClass]
 public class TextViewEditorTests
 {
-    private readonly List<ChangesDto> oneChange = [CreateChangesDto(1, 1, "var a=1;")];
-    private readonly List<ChangesDto> twoChanges = [CreateChangesDto(1, 1, "var a=1;"), CreateChangesDto(2, 2, "var b=0;")];
+    private readonly List<FixSuggestionChange> oneChange = [CreateChangesDto(0, 1, 1, "var a=1;")];
+    private readonly List<FixSuggestionChange> twoChanges = [CreateChangesDto(0, 1, 1, "var a=1;"), CreateChangesDto(1, 2, 2, "var b=0;")];
     private IIssueSpanCalculator issueSpanCalculator;
     private ILogger logger;
     private TextViewEditor testSubject;
@@ -80,7 +81,7 @@ public class TextViewEditorTests
         Received.InOrder(() =>
         {
             textBuffer.CreateEdit();
-            issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), suggestedChange.beforeLineRange.startLine, suggestedChange.beforeLineRange.endLine);
+            issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), suggestedChange.BeforeStartLine, suggestedChange.BeforeEndLine);
             textEdit.Replace(Arg.Any<Span>(), Arg.Any<string>());
             textEdit.Apply();
             textEdit.Dispose();
@@ -210,12 +211,13 @@ public class TextViewEditorTests
 
     private void MockCalculateSpan() => issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>()).Returns(_ => CreateMockedSnapshotSpan("some text"));
 
-    private static ChangesDto CreateChangesDto(
+    private static FixSuggestionChange CreateChangesDto(
+        int index,
         int startLine,
         int endLine,
         string before,
         string after = "") =>
-        new(new LineRangeDto(startLine, endLine), before, after);
+        new(index, startLine, endLine, before, after);
 
     private void MockTextBuffer()
     {

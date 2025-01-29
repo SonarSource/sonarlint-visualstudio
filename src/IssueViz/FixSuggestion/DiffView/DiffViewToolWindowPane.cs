@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
 public interface IDiffViewToolWindowPane
 {
-    List<ChangesDto> ShowDiff(DiffViewViewModel diffViewViewModel);
+    bool ShowDiff(DiffViewViewModel diffViewViewModel);
 }
 
 [ExcludeFromCodeCoverage]
@@ -50,13 +50,13 @@ public class DiffViewToolWindowPane : ToolWindowPane, IDiffViewToolWindowPane
         Content = CreateDiffViewWindow(differenceBufferFactoryService, differenceViewerFactoryService);
     }
 
-    public List<ChangesDto> ShowDiff(DiffViewViewModel diffViewViewModel)
+    public bool ShowDiff(DiffViewViewModel diffViewViewModel)
     {
         var diffToolWindow = CreateDiffViewWindow(differenceBufferFactoryService, differenceViewerFactoryService);
         diffToolWindow.InitializeDifferenceViewer(diffViewViewModel);
         Content = diffToolWindow;
 
-        return diffToolWindow.ShowDialog() == true ? diffViewViewModel.ChangeViewModels.Where(c => c.IsSelected).Select(c => c.ChangeDto).ToList() : [];
+        return diffToolWindow.ShowDialog() is true;
     }
 
     private static DiffViewWindow CreateDiffViewWindow(IDifferenceBufferFactoryService differenceBufferFactoryService, IWpfDifferenceViewerFactoryService differenceViewerFactoryService)

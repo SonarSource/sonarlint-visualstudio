@@ -26,8 +26,6 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
-using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion;
-using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 
@@ -85,51 +83,52 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         this.diffViewService = diffViewService;
     }
 
-    public void ApplyFixSuggestion(ShowFixSuggestionParams parameters)
+    public void ApplyFixSuggestion(string configScopeId, string fixSuggestionId, string idePath, List<FixSuggestionChange> changes)
     {
         try
         {
-            logger.WriteLine(FixSuggestionResources.ProcessingRequest, parameters.configurationScopeId, parameters.fixSuggestion.suggestionId);
+            logger.WriteLine(FixSuggestionResources.ProcessingRequest, configScopeId, fixSuggestionId);
             ideWindowService.BringToFront();
             fixSuggestionNotification.Clear();
 
-            if (!ValidateConfiguration(parameters.configurationScopeId, out var configurationScopeRoot, out var failureReason))
+            if (!ValidateConfiguration(configScopeId, out var configurationScopeRoot, out var failureReason))
             {
-                logger.WriteLine(FixSuggestionResources.GetConfigScopeRootPathFailed, parameters.configurationScopeId, failureReason);
+                logger.WriteLine(FixSuggestionResources.GetConfigScopeRootPathFailed, configScopeId, failureReason);
                 fixSuggestionNotification.InvalidRequest(failureReason);
                 return;
             }
 
-            threadHandling.RunOnUIThread(() => ApplyAndShowAppliedFixSuggestions(parameters, configurationScopeRoot));
-            logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, parameters.configurationScopeId, parameters.fixSuggestion.suggestionId);
+            threadHandling.RunOnUIThread(() => ApplyAndShowAppliedFixSuggestions(idePath, changes, configurationScopeRoot));
+            logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, configScopeId, fixSuggestionId);
         }
         catch (Exception exception) when (!ErrorHandler.IsCriticalException(exception))
         {
-            logger.WriteLine(FixSuggestionResources.ProcessingRequestFailed, parameters.configurationScopeId, parameters.fixSuggestion.suggestionId, exception.Message);
+            logger.WriteLine(FixSuggestionResources.ProcessingRequestFailed, configScopeId, fixSuggestionId, exception.Message);
         }
     }
 
     private bool ValidateConfiguration(string configurationScopeId, out string configurationScopeRoot, out string failureReason) =>
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(configurationScopeId, out configurationScopeRoot, out failureReason);
 
-    private void ApplyAndShowAppliedFixSuggestions(ShowFixSuggestionParams parameters, string configurationScopeRoot)
+    private void ApplyAndShowAppliedFixSuggestions(string idePath, List<FixSuggestionChange> changes, string configurationScopeRoot)
     {
-        var absoluteFilePath = Path.Combine(configurationScopeRoot, parameters.fixSuggestion.fileEdit.idePath);
+        var absoluteFilePath = Path.Combine(configurationScopeRoot, idePath);
         var textView = GetFileContent(absoluteFilePath);
         if (!ValidateFileExists(textView, absoluteFilePath))
         {
             return;
         }
-        ApplySuggestedChanges(textView, parameters.fixSuggestion.fileEdit.changes, absoluteFilePath);
+        ApplySuggestedChanges(textView, changes, absoluteFilePath);
     }
 
-    private void ApplySuggestedChanges(ITextView textView, List<ChangesDto> changes, string filePath)
+    private void ApplySuggestedChanges(ITextView textView, List<FixSuggestionChange> changes, string filePath)
     {
-        var acceptedChanges = diffViewService.ShowDiffView(textView.TextBuffer, changes);
-        if (acceptedChanges.Count == 0)
+        if (!diffViewService.ShowDiffView(textView.TextBuffer, changes))
         {
             return;
         }
+
+        var acceptedChanges = changes.Where(x => x.IsAccepted).ToList();
 
         var changesApplied = textViewEditor.ApplyChanges(textView.TextBuffer, acceptedChanges, abortOnOriginalTextChanged: true);
         if (!changesApplied)
@@ -137,7 +136,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
             fixSuggestionNotification.UnableToLocateIssue(filePath);
             return;
         }
-        textViewEditor.FocusLine(textView, acceptedChanges[0].beforeLineRange.startLine);
+        textViewEditor.FocusLine(textView, acceptedChanges[0].BeforeStartLine);
     }
 
     private bool ValidateFileExists(ITextView fileContent, string absoluteFilePath)

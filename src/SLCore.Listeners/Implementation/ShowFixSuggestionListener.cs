@@ -27,18 +27,13 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 
 [Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class ShowFixSuggestionListener : IShowFixSuggestionListener
+[method: ImportingConstructor]
+public class ShowFixSuggestionListener(IFixSuggestionHandler fixSuggestionHandler) : IShowFixSuggestionListener
 {
-    private readonly IFixSuggestionHandler fixSuggestionHandler;
-
-    [ImportingConstructor]
-    public ShowFixSuggestionListener(IFixSuggestionHandler fixSuggestionHandler)
-    {
-        this.fixSuggestionHandler = fixSuggestionHandler;
-    }
-
-    public void ShowFixSuggestion(ShowFixSuggestionParams parameters)
-    {
-        fixSuggestionHandler.ApplyFixSuggestion(parameters);
-    }
+    public void ShowFixSuggestion(ShowFixSuggestionParams parameters) =>
+        fixSuggestionHandler.ApplyFixSuggestion(parameters.configurationScopeId,
+            parameters.fixSuggestion.suggestionId,
+            parameters.fixSuggestion.fileEdit.idePath,
+            parameters.fixSuggestion.fileEdit.changes.Select((dto, index) =>
+                new FixSuggestionChange(index, dto.beforeLineRange.startLine, dto.beforeLineRange.endLine, dto.before, dto.after)).ToList());
 }

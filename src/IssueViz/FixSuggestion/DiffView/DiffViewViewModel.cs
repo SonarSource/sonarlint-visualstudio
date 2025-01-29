@@ -60,11 +60,11 @@ public class DiffViewViewModel : ViewModelBase
     public DiffViewViewModel(
         ITextViewEditor textViewEditor,
         ITextBuffer textBuffer,
-        List<ChangesDto> changesDtos)
+        IReadOnlyList<FixSuggestionChange> changes)
     {
         this.textViewEditor = textViewEditor;
         TextBuffer = textBuffer;
-        ChangeViewModels = changesDtos.Select(dto => new ChangeViewModel(dto, true)).ToList();
+        ChangeViewModels = changes.Select(change => new ChangeViewModel(change)).ToList();
         CalculateAllChangesSelected();
         FilePath = textBuffer.GetFilePath();
         FileName = Path.GetFileName(FilePath);
@@ -80,14 +80,14 @@ public class DiffViewViewModel : ViewModelBase
     {
         After = textViewEditor.CreateTextBuffer(TextBuffer.CurrentSnapshot.GetText(), TextBuffer.ContentType);
 
-        var selectedChangesDtos = ChangeViewModels.Where(vm => vm.IsSelected).Select(vm => vm.ChangeDto).ToList();
-        if (selectedChangesDtos.Any())
+        var selectedChanges = ChangeViewModels.Where(vm => vm.IsSelected).Select(vm => vm.Change).ToList();
+        if (selectedChanges.Any())
         {
-            textViewEditor.ApplyChanges(After, selectedChangesDtos, abortOnOriginalTextChanged: false);
+            textViewEditor.ApplyChanges(After, selectedChanges, abortOnOriginalTextChanged: false);
         }
     }
 
-    public void GoToChangeLocation(ITextView textView, ChangeViewModel changeViewModel) => textViewEditor.FocusLine(textView, changeViewModel.ChangeDto.beforeLineRange.startLine);
+    public void GoToChangeLocation(ITextView textView, ChangeViewModel changeViewModel) => textViewEditor.FocusLine(textView, changeViewModel.Change.BeforeStartLine);
 
     /// <summary>
     /// Calculating <see cref="AllChangesSelected"/> is needed to prevent subscribing to PropertyChanged events for each <see cref="ChangeViewModel"/> and then to take care to unsubscribe and avoid memory leaks

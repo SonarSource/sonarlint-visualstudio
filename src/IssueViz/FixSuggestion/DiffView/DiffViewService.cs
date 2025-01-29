@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
 public interface IDiffViewService
 {
-    List<ChangesDto> ShowDiffView(ITextBuffer fileTextBuffer, List<ChangesDto> changesDtos);
+    bool ShowDiffView(ITextBuffer fileTextBuffer, IReadOnlyList<FixSuggestionChange> changes);
 }
 
 [Export(typeof(IDiffViewService))]
@@ -46,6 +46,6 @@ public class DiffViewService : IDiffViewService
         diffViewToolWindowPane = toolWindowService.GetToolWindow<DiffViewToolWindowPane, IDiffViewToolWindowPane>();
     }
 
-    public List<ChangesDto> ShowDiffView(ITextBuffer fileTextBuffer, List<ChangesDto> changesDtos) =>
-        diffViewToolWindowPane.ShowDiff(new DiffViewViewModel(textViewEditor, fileTextBuffer, changesDtos));
+    public bool ShowDiffView(ITextBuffer fileTextBuffer, IReadOnlyList<FixSuggestionChange> changes) =>
+        diffViewToolWindowPane.ShowDiff(new DiffViewViewModel(textViewEditor, fileTextBuffer, changes));
 }
