@@ -20,6 +20,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using System.Windows.Input;
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -30,6 +31,7 @@ public sealed partial class DiffViewWindow : Window
 {
     private readonly IDifferenceBufferFactoryService differenceBufferFactoryService;
     private readonly IWpfDifferenceViewerFactoryService wpfDifferenceViewerFactoryService;
+    private IWpfDifferenceViewer wpfDifferenceViewer;
     private DiffViewViewModel diffViewViewModel;
 
     public DiffViewWindow(
@@ -45,14 +47,17 @@ public sealed partial class DiffViewWindow : Window
     {
         diffViewViewModel = diffViewModel;
         ChangesGrid.DataContext = diffViewModel;
+        Title = string.Format(IssueVisualization.Resources.DiffViewWindow_Title, diffViewModel.FileName);
+
         diffViewViewModel.InitializeBeforeAndAfter();
         ShowChangesInDiffGrid();
     }
 
     private void ShowChangesInDiffGrid()
     {
+        wpfDifferenceViewer = CreateDifferenceViewer();
         DiffGrid.Children.Clear();
-        DiffGrid.Children.Add(CreateDifferenceViewer().VisualElement);
+        DiffGrid.Children.Add(wpfDifferenceViewer.VisualElement);
     }
 
     private IWpfDifferenceViewer CreateDifferenceViewer()
@@ -66,6 +71,16 @@ public sealed partial class DiffViewWindow : Window
 
     private void IsSelectedCheckbox_OnClick(object sender, RoutedEventArgs e)
     {
+        RecalculateAfterInDiffGrid();
+        diffViewViewModel.CalculateAllChangesSelected();
+        if (sender is FrameworkElement { DataContext: ChangeViewModel changeViewModel })
+        {
+            GoToChangeLocation(changeViewModel);
+        }
+    }
+
+    private void RecalculateAfterInDiffGrid()
+    {
         diffViewViewModel.CalculateAfter();
         ShowChangesInDiffGrid();
     }
@@ -73,4 +88,20 @@ public sealed partial class DiffViewWindow : Window
     private void OnAccept(object sender, RoutedEventArgs e) => DialogResult = true;
 
     private void OnDecline(object sender, RoutedEventArgs e) => DialogResult = false;
+
+    private void SelectAllCheckbox_IsClicked(object sender, RoutedEventArgs e)
+    {
+        RecalculateAfterInDiffGrid();
+        GoToChangeLocation(diffViewViewModel.ChangeViewModels[0]);
+    }
+
+    private void ChangeRow_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: ChangeViewModel changeViewModel })
+        {
+            GoToChangeLocation(changeViewModel);
+        }
+    }
+
+    private void GoToChangeLocation(ChangeViewModel changeViewModel) => diffViewViewModel.GoToChangeLocation(wpfDifferenceViewer.RightView, changeViewModel);
 }
