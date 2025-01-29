@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.Core
         public const string MigrateToConnectedModeV7_NotesForTfvcUsers
             = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/migrate-connected-mode-to-v7/#notes-for-tfvc-users";
         public const string ConnectedMode = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode/";
+        public const string ConnectedModeBenefits = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode#benefits";
         public const string TaintVulnerabilities = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/using-sonarlint/taint-vulnerabilities/";
         public const string DisablingARule = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/using-sonarlint/rules/#disabling-a-rule";
         public const string UseSharedBinding = "https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/team-features/connected-mode-setup/#bind-using-shared-configuration";
