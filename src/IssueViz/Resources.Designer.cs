@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        public Resources() {
+        internal Resources() {
         }
         
         /// <summary>
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Apply fix suggestions.
+        ///   Looks up a localized string similar to Review code fix suggestions for file {0}.
         /// </summary>
         public static string DiffViewWindow_Title {
             get {

@@ -27,8 +27,9 @@ public class ChangeViewModel : ViewModelBase
 {
     private bool isSelected;
 
-    public string Line => ChangeDto.beforeLineRange.startLine.ToString();
     public ChangesDto ChangeDto { get; }
+    public string After { get; }
+    public string Before { get; }
 
     public bool IsSelected
     {
@@ -44,5 +45,9 @@ public class ChangeViewModel : ViewModelBase
     {
         ChangeDto = changeDto;
         IsSelected = isSelected;
+        Before = ToSingleLine(changeDto.before);
+        After = ToSingleLine(changeDto.after);
     }
+
+    private static string ToSingleLine(string text) => text.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Replace("\t", string.Empty);
 }
