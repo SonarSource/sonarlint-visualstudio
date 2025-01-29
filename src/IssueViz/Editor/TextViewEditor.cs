@@ -45,25 +45,18 @@ public class TextViewEditor(IIssueSpanCalculator issueSpanCalculator, ILogger lo
 
     public bool ApplyChanges(ITextBuffer textBuffer, List<ChangesDto> changesDto, bool abortOnOriginalTextChanged)
     {
-        var textEdit = textBuffer.CreateEdit();
-        try
+        using var textEdit = textBuffer.CreateEdit();
+        for (var i = changesDto.Count - 1; i >= 0; i--)
         {
-            for (var i = changesDto.Count - 1; i >= 0; i--)
+            var changeDto = changesDto[i];
+            var spanToUpdate = issueSpanCalculator.CalculateSpan(textBuffer.CurrentSnapshot, changeDto.beforeLineRange.startLine, changeDto.beforeLineRange.endLine);
+            if (abortOnOriginalTextChanged && !IsSameOriginalText(spanToUpdate, changeDto))
             {
-                var changeDto = changesDto[i];
-                var spanToUpdate = issueSpanCalculator.CalculateSpan(textBuffer.CurrentSnapshot, changeDto.beforeLineRange.startLine, changeDto.beforeLineRange.endLine);
-                if (abortOnOriginalTextChanged && !IsSameOriginalText(spanToUpdate, changeDto))
-                {
-                    return false;
-                }
-                textEdit.Replace(spanToUpdate.Value, changeDto.after);
+                return false;
             }
-            textEdit.Apply();
+            textEdit.Replace(spanToUpdate.Value, changeDto.after);
         }
-        finally
-        {
-            textEdit.Dispose();
-        }
+        textEdit.Apply();
 
         return true;
     }

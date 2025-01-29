@@ -48,14 +48,14 @@ public sealed partial class DiffViewWindow : Window
         diffViewViewModel = diffViewModel;
         ChangesGrid.DataContext = diffViewModel;
         Title = string.Format(IssueVisualization.Resources.DiffViewWindow_Title, diffViewModel.FileName);
-        ApplyChanges();
+
+        diffViewViewModel.InitializeBeforeAndAfter();
+        ShowChangesInDiffGrid();
     }
 
-    private void ApplyChanges()
+    private void ShowChangesInDiffGrid()
     {
-        diffViewViewModel.ApplySuggestedChanges();
         wpfDifferenceViewer = CreateDifferenceViewer();
-
         DiffGrid.Children.Clear();
         DiffGrid.Children.Add(wpfDifferenceViewer.VisualElement);
     }
@@ -71,12 +71,18 @@ public sealed partial class DiffViewWindow : Window
 
     private void IsSelectedCheckbox_OnClick(object sender, RoutedEventArgs e)
     {
-        ApplyChanges();
+        RecalculateAfterInDiffGrid();
         diffViewViewModel.CalculateAllChangesSelected();
         if (sender is FrameworkElement { DataContext: ChangeViewModel changeViewModel })
         {
             GoToChangeLocation(changeViewModel);
         }
+    }
+
+    private void RecalculateAfterInDiffGrid()
+    {
+        diffViewViewModel.CalculateAfter();
+        ShowChangesInDiffGrid();
     }
 
     private void OnAccept(object sender, RoutedEventArgs e) => DialogResult = true;
@@ -85,7 +91,7 @@ public sealed partial class DiffViewWindow : Window
 
     private void SelectAllCheckbox_IsClicked(object sender, RoutedEventArgs e)
     {
-        ApplyChanges();
+        RecalculateAfterInDiffGrid();
         GoToChangeLocation(diffViewViewModel.ChangeViewModels[0]);
     }
 

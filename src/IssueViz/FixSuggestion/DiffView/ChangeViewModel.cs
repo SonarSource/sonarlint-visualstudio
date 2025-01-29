@@ -45,9 +45,9 @@ public class ChangeViewModel : ViewModelBase
     {
         ChangeDto = changeDto;
         IsSelected = isSelected;
-        Before = RemoveNewLines(changeDto.before);
-        After = RemoveNewLines(changeDto.after);
+        Before = ToSingleLine(changeDto.before);
+        After = ToSingleLine(changeDto.after);
     }
 
-    private static string RemoveNewLines(string text) => text.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Replace("\t", string.Empty);
+    private static string ToSingleLine(string text) => text.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Replace("\t", string.Empty);
 }
