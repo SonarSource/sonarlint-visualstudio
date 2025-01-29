@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.FixSuggestion.Diff
 [TestClass]
 public class ChangeViewModelTests
 {
-    private readonly ChangesDto changeDto = new(new LineRangeDto(1, 2), string.Empty, "var a=1;");
+    private readonly ChangesDto changeDto = CreateChangeDto(string.Empty, "var a=1;");
     private ChangeViewModel testSubject;
 
     [TestInitialize]
@@ -44,6 +44,28 @@ public class ChangeViewModelTests
     }
 
     [TestMethod]
+    [DataRow("var a=1;\nvar b=1;\nvar c=1;\n")]
+    [DataRow("var a=1;\r\nvar b=1;\r\nvar c=1;\r\n")]
+    [DataRow("var a=1;\tvar b=1;\tvar c=1;\t")]
+    public void Ctor_After_InitializesAndRemovesNewLinesAndTabs(string textWithNewLines)
+    {
+        var changeViewModel = new ChangeViewModel(CreateChangeDto(string.Empty, textWithNewLines), false);
+
+        changeViewModel.After.Should().Be("var a=1;var b=1;var c=1;");
+    }
+
+    [TestMethod]
+    [DataRow("var a=1;\nvar b=1;\nvar c=1;\n")]
+    [DataRow("var a=1;\r\nvar b=1;\r\nvar c=1;\r\n")]
+    [DataRow("var a=1;\tvar b=1;\tvar c=1;\t")]
+    public void Ctor_Before_InitializesAndRemovesNewLinesAndTabs(string textWithNewLines)
+    {
+        var changeViewModel = new ChangeViewModel(CreateChangeDto(textWithNewLines, string.Empty), false);
+
+        changeViewModel.Before.Should().Be("var a=1;var b=1;var c=1;");
+    }
+
+    [TestMethod]
     public void IsSelected_SetValue_RaisesPropertyChanged()
     {
         var eventRaised = false;
@@ -54,6 +76,5 @@ public class ChangeViewModelTests
         eventRaised.Should().BeTrue();
     }
 
-    [TestMethod]
-    public void Line_PointToStartLineOfBeforeChange() => testSubject.Line.Should().Be(changeDto.beforeLineRange.startLine.ToString());
+    private static ChangesDto CreateChangeDto(string before, string after) => new(new LineRangeDto(1, 2), before, after);
 }
