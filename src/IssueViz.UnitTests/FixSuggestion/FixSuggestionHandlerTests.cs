@@ -103,7 +103,7 @@ public class FixSuggestionHandlerTests
     public void ApplyFixSuggestion_OneChangeAccepted_AppliesChange()
     {
         MockOpenFile();
-        MockDiffView(OneChange, OneChange);
+        MockDiffViewWitAcceptedChanges(OneChange, OneChange);
 
         testSubject.ApplyFixSuggestion(ConfigScopeId, SuggestionId, IdePath, OneChange);
 
@@ -124,7 +124,7 @@ public class FixSuggestionHandlerTests
     public void ApplyFixSuggestion_OneChangeNotAccepted_DoesNotApplyChange()
     {
         MockOpenFile();
-        MockDiffView(OneChange, []);
+        MockDiffViewWitAcceptedChanges(OneChange, []);
 
         testSubject.ApplyFixSuggestion(ConfigScopeId, SuggestionId, IdePath, OneChange);
 
@@ -152,7 +152,7 @@ public class FixSuggestionHandlerTests
     public void ApplyFixSuggestion_WhenApplyingChangeSucceeded_BringFocusLineOfToFirstAcceptedChange()
     {
         var textView = MockOpenFile();
-        MockDiffView(TwoChanges, [TwoChanges[1]]);
+        MockDiffViewWitAcceptedChanges(TwoChanges, [TwoChanges[1]]);
         textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<List<FixSuggestionChange>>(), Arg.Any<bool>()).Returns(true);
 
         testSubject.ApplyFixSuggestion(ConfigScopeId, SuggestionId, IdePath, TwoChanges);
@@ -163,7 +163,7 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_Throws_Logs()
     {
-        MockDiffView(TwoChanges, TwoChanges);
+        MockDiffViewWitAcceptedChanges(TwoChanges, TwoChanges);
         var exceptionMsg = "error";
         textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<List<FixSuggestionChange>>(), Arg.Any<bool>()).Throws(new Exception(exceptionMsg));
 
@@ -223,7 +223,7 @@ public class FixSuggestionHandlerTests
     [TestMethod]
     public void ApplyFixSuggestion_OneChange_ChangesCanNotBeApplied_ShowsNotification()
     {
-        MockDiffView(OneChange, OneChange);
+        MockDiffViewWitAcceptedChanges(OneChange, OneChange);
         textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<List<FixSuggestionChange>>(), Arg.Any<bool>()).Returns(false);
 
         testSubject.ApplyFixSuggestion(ConfigScopeId, SuggestionId, IdePath, OneChange);
@@ -245,7 +245,7 @@ public class FixSuggestionHandlerTests
     public void ApplyFixSuggestion_TwoChangesAndJustOneAccepted_AppliesJustOne()
     {
         var textView = MockOpenFile();
-        MockDiffView(TwoChanges, [TwoChanges[0]]);
+        MockDiffViewWitAcceptedChanges(TwoChanges, [TwoChanges[0]]);
 
         testSubject.ApplyFixSuggestion(ConfigScopeId, SuggestionId, IdePath, TwoChanges);
 
@@ -296,17 +296,8 @@ public class FixSuggestionHandlerTests
 
     private void VerifyFixSuggestionNotApplied() => fixSuggestionNotification.Received(1).UnableToLocateIssue(Arg.Is<string>(msg => msg == GetAbsolutePathOfFile(IdePath)));
 
-    private void MockDiffView(List<FixSuggestionChange> changes, List<FixSuggestionChange> acceptedChanges)
+    private void MockDiffViewWitAcceptedChanges(IEnumerable<FixSuggestionChange> changes, List<FixSuggestionChange> acceptedChanges)
     {
-        foreach (var change in changes)
-        {
-            change.IsAccepted = false;
-        }
-        foreach (var acceptedChange in acceptedChanges)
-        {
-            acceptedChange.IsAccepted = true;
-        }
-
-        diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), Arg.Any<List<FixSuggestionChange>>()).Returns(acceptedChanges.Count > 0);
+        diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), Arg.Any<List<FixSuggestionChange>>()).Returns(changes.Select(x => new FinalizedFixSuggestionChange(x, acceptedChanges.Contains(x))).ToArray());
     }
 }

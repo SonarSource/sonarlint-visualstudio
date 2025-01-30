@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
-public class DiffViewViewModel : ViewModelBase
+internal class DiffViewViewModel : ViewModelBase
 {
     private readonly ITextViewEditor textViewEditor;
     private bool allChangesSelected;
@@ -69,7 +69,8 @@ public class DiffViewViewModel : ViewModelBase
         FileName = Path.GetFileName(FilePath);
     }
 
-    public void DeclineAllChanges() => AllChangesSelected = false;
+    public FinalizedFixSuggestionChange[] GetFinalResult(bool dialogResult) =>
+        ChangeViewModels.Select(x => x.Finalize(dialogResult)).ToArray();
 
     public void InitializeBeforeAndAfter()
     {

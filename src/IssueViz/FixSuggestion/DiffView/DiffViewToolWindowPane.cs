@@ -23,18 +23,17 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Differencing;
-using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
-public interface IDiffViewToolWindowPane
+internal interface IDiffViewToolWindowPane
 {
-    bool ShowDiff(DiffViewViewModel diffViewViewModel);
+    FinalizedFixSuggestionChange[] ShowDiff(DiffViewViewModel diffViewViewModel);
 }
 
 [ExcludeFromCodeCoverage]
 [Guid(DiffViewToolWindowPaneId)]
-public class DiffViewToolWindowPane : ToolWindowPane, IDiffViewToolWindowPane
+internal class DiffViewToolWindowPane : ToolWindowPane, IDiffViewToolWindowPane
 {
     private const string DiffViewToolWindowPaneId = "BCC137BA-B2E0-44EB-B161-A7E8D73AD883";
     private readonly IDifferenceBufferFactoryService differenceBufferFactoryService;
@@ -50,13 +49,15 @@ public class DiffViewToolWindowPane : ToolWindowPane, IDiffViewToolWindowPane
         Content = CreateDiffViewWindow(differenceBufferFactoryService, differenceViewerFactoryService);
     }
 
-    public bool ShowDiff(DiffViewViewModel diffViewViewModel)
+    public FinalizedFixSuggestionChange[] ShowDiff(DiffViewViewModel diffViewViewModel)
     {
         var diffToolWindow = CreateDiffViewWindow(differenceBufferFactoryService, differenceViewerFactoryService);
         diffToolWindow.InitializeDifferenceViewer(diffViewViewModel);
         Content = diffToolWindow;
 
-        return diffToolWindow.ShowDialog() is true;
+        var showDialog = diffToolWindow.ShowDialog() is true;
+
+        return diffViewViewModel.GetFinalResult(showDialog);
     }
 
     private static DiffViewWindow CreateDiffViewWindow(IDifferenceBufferFactoryService differenceBufferFactoryService, IWpfDifferenceViewerFactoryService differenceViewerFactoryService)

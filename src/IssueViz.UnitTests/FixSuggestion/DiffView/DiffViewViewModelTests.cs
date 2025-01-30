@@ -250,15 +250,32 @@ public class DiffViewViewModelTests
     }
 
     [TestMethod]
-    public void DeclineAllChanges_DeselectsAll()
+    public void GetFinalResult_AcceptedDialog_ReturnsFinalizedChanges()
     {
-        testSubject.ChangeViewModels.ForEach(vm => vm.IsSelected = true);
+        testSubject.ChangeViewModels[0].IsSelected = false;
+        testSubject.ChangeViewModels[1].IsSelected = true;
 
-        testSubject.DeclineAllChanges();
+        testSubject.GetFinalResult(true).Should().BeEquivalentTo(new FinalizedFixSuggestionChange(twoChanges[0], false), new FinalizedFixSuggestionChange(twoChanges[1], true));
+    }
 
-        testSubject.ChangeViewModels.All(x => !x.IsSelected).Should().BeTrue();
-        testSubject.AllChangesSelected.Should().BeFalse();
-        testSubject.IsApplyEnabled.Should().BeFalse();
+    [TestMethod]
+    public void GetFinalResult_DeclinedDialog_ReturnsAllDeclinedFinalizedChanges()
+    {
+        testSubject.ChangeViewModels[0].IsSelected = false;
+        testSubject.ChangeViewModels[1].IsSelected = true;
+
+        testSubject.GetFinalResult(false).Should().BeEquivalentTo(new FinalizedFixSuggestionChange(twoChanges[0], false), new FinalizedFixSuggestionChange(twoChanges[1], false));
+    }
+
+    [DataRow(1)]
+    [DataRow(3)]
+    [DataRow(10)]
+    [DataTestMethod]
+    public void GetFinalResult_ReturnCorrectNumberOfChanges(int count)
+    {
+        var testSubjectNew = new DiffViewViewModel(textViewEditor, textBuffer, Enumerable.Repeat(new FixSuggestionChange(default, default, default, default), count).ToList());
+
+        testSubjectNew.GetFinalResult(false).Should().HaveCount(count);
     }
 
     private void MockTextBufferGetFilePath(string path)

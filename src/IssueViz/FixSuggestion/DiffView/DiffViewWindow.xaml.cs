@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
-public sealed partial class DiffViewWindow : Window
+internal sealed partial class DiffViewWindow : Window
 {
     private readonly IDifferenceBufferFactoryService differenceBufferFactoryService;
     private readonly IWpfDifferenceViewerFactoryService wpfDifferenceViewerFactoryService;
@@ -87,11 +87,7 @@ public sealed partial class DiffViewWindow : Window
 
     private void OnAccept(object sender, RoutedEventArgs e) => DialogResult = true;
 
-    private void OnDecline(object sender, RoutedEventArgs e)
-    {
-        diffViewViewModel.DeclineAllChanges();
-        DialogResult = false;
-    }
+    private void OnDecline(object sender, RoutedEventArgs e) => DialogResult = false;
 
     private void SelectAllCheckbox_IsClicked(object sender, RoutedEventArgs e)
     {

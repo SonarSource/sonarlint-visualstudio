@@ -41,7 +41,7 @@ public class ChangeViewModelTests
     public void Ctor_InitializesProperties()
     {
         testSubject.Change.Should().Be(change);
-        testSubject.IsSelected.Should().Be(change.IsAccepted);
+        testSubject.IsSelected.Should().Be(true);
     }
 
     [TestMethod]
@@ -74,7 +74,6 @@ public class ChangeViewModelTests
         testSubject.IsSelected = isSelected;
 
         testSubject.IsSelected.Should().Be(isSelected);
-        testSubject.Change.IsAccepted.Should().Be(isSelected);
     }
 
     [TestMethod]
@@ -86,6 +85,21 @@ public class ChangeViewModelTests
         testSubject.IsSelected = true;
 
         eventRaised.Should().BeTrue();
+    }
+
+    [DataRow(true, true, true)]
+    [DataRow(false, true, false)]
+    [DataRow(true, false, false)]
+    [DataRow(false, false, false)]
+    [DataTestMethod]
+    public void Finalize_ReturnsExpected(bool isSelected, bool dialogResult, bool expectedFinalized)
+    {
+        testSubject.IsSelected = isSelected;
+
+        var finalizedFixSuggestionChange = testSubject.Finalize(dialogResult);
+
+        finalizedFixSuggestionChange.Change.Should().BeSameAs(testSubject.Change);
+        finalizedFixSuggestionChange.IsAccepted.Should().Be(expectedFinalized);
     }
 
     private static FixSuggestionChange CreateChange(string before, string after) => new(1, 2, before, after);

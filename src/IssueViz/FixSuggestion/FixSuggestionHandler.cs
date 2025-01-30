@@ -118,17 +118,20 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         {
             return;
         }
-        ApplySuggestedChanges(textView, changes, absoluteFilePath);
+        ApplySuggestedChangesAndFocus(textView, GetFinalizedChanges(textView, changes), absoluteFilePath);
     }
 
-    private void ApplySuggestedChanges(ITextView textView, IReadOnlyList<FixSuggestionChange> changes, string filePath)
+    private FinalizedFixSuggestionChange[] GetFinalizedChanges(ITextView textView, IReadOnlyList<FixSuggestionChange> changes) =>
+        diffViewService.ShowDiffView(textView.TextBuffer, changes);
+
+    private void  ApplySuggestedChangesAndFocus(ITextView textView, FinalizedFixSuggestionChange[] finalizedFixSuggestionChanges, string filePath)
     {
-        if (!diffViewService.ShowDiffView(textView.TextBuffer, changes))
+        if (!finalizedFixSuggestionChanges.Any(x => x.IsAccepted))
         {
             return;
         }
 
-        var acceptedChanges = changes.Where(x => x.IsAccepted).ToList();
+        var acceptedChanges = finalizedFixSuggestionChanges.Where(x => x.IsAccepted).Select(x => x.Change).ToArray();
 
         var changesApplied = textViewEditor.ApplyChanges(textView.TextBuffer, acceptedChanges, abortOnOriginalTextChanged: true);
         if (!changesApplied)
@@ -136,6 +139,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
             fixSuggestionNotification.UnableToLocateIssue(filePath);
             return;
         }
+
         textViewEditor.FocusLine(textView, acceptedChanges[0].BeforeStartLine);
     }
 

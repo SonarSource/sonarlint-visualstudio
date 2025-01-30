@@ -20,8 +20,4 @@
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 
-public record FixSuggestionChange(
-    int BeforeStartLine,
-    int BeforeEndLine,
-    string BeforeText,
-    string AfterText);
+internal record FinalizedFixSuggestionChange(FixSuggestionChange Change, bool IsAccepted);

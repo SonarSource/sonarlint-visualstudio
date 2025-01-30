@@ -70,16 +70,15 @@ public class DiffViewServiceTests
         diffViewToolWindowPane.Received(1).ShowDiff(Arg.Is<DiffViewViewModel>(vm => vm.TextBuffer == textBuffer && vm.ChangeViewModels.Select(x => x.Change).SequenceEqual(twoChanges)));
     }
 
-    [DataRow(true)]
-    [DataRow(false)]
-    [DataTestMethod]
-    public void ShowDiffView_ReturnsResultFromToolWindowPane(bool isAccepted)
+    [TestMethod]
+    public void ShowDiffView_ReturnsResultFromToolWindowPane()
     {
-        diffViewToolWindowPane.ShowDiff(Arg.Is<DiffViewViewModel>(x => x.ChangeViewModels.Select(y => y.Change).SequenceEqual(twoChanges))).Returns(isAccepted);
+        var finalizedChangesToReturn = new FinalizedFixSuggestionChange[10];
+        diffViewToolWindowPane.ShowDiff(Arg.Is<DiffViewViewModel>(x => x.ChangeViewModels.Select(y => y.Change).SequenceEqual(twoChanges))).Returns(finalizedChangesToReturn);
 
-        var didAccept = testSubject.ShowDiffView(textBuffer, twoChanges);
+        var finalizedChanges = testSubject.ShowDiffView(textBuffer, twoChanges);
 
-        didAccept.Should().Be(isAccepted);
+        finalizedChanges.Should().BeSameAs(finalizedChangesToReturn);
     }
 
     private static FixSuggestionChange CreateChange(int startLine, int endLine, string after) => new(startLine, endLine, string.Empty, after);
