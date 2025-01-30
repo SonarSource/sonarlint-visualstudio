@@ -26,7 +26,6 @@ using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 using SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
-using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.FixSuggestion.DiffView;
 
@@ -247,6 +246,18 @@ public class DiffViewViewModelTests
     {
         testSubject.ChangeViewModels.ForEach(vm => vm.IsSelected = false);
 
+        testSubject.IsApplyEnabled.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void DeclineAllChanges_DeselectsAll()
+    {
+        testSubject.ChangeViewModels.ForEach(vm => vm.IsSelected = true);
+
+        testSubject.DeclineAllChanges();
+
+        testSubject.ChangeViewModels.All(x => !x.IsSelected).Should().BeTrue();
+        testSubject.AllChangesSelected.Should().BeFalse();
         testSubject.IsApplyEnabled.Should().BeFalse();
     }
 

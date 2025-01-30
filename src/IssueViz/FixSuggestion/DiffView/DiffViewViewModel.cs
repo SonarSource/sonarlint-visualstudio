@@ -23,7 +23,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
-using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
@@ -69,6 +68,8 @@ public class DiffViewViewModel : ViewModelBase
         FilePath = textBuffer.GetFilePath();
         FileName = Path.GetFileName(FilePath);
     }
+
+    public void DeclineAllChanges() => AllChangesSelected = false;
 
     public void InitializeBeforeAndAfter()
     {
