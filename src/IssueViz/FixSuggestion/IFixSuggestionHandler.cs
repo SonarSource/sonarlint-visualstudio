@@ -22,5 +22,5 @@ namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 
 public interface IFixSuggestionHandler
 {
-    void ApplyFixSuggestion(string configScopeId, string fixSuggestionId, string idePath, List<FixSuggestionChange> changes);
+    void ApplyFixSuggestion(string configScopeId, string fixSuggestionId, string idePath, IReadOnlyList<FixSuggestionChange> changes);
 }

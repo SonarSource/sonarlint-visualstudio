@@ -83,7 +83,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         this.diffViewService = diffViewService;
     }
 
-    public void ApplyFixSuggestion(string configScopeId, string fixSuggestionId, string idePath, List<FixSuggestionChange> changes)
+    public void ApplyFixSuggestion(string configScopeId, string fixSuggestionId, string idePath, IReadOnlyList<FixSuggestionChange> changes)
     {
         try
         {
@@ -110,7 +110,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
     private bool ValidateConfiguration(string configurationScopeId, out string configurationScopeRoot, out string failureReason) =>
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(configurationScopeId, out configurationScopeRoot, out failureReason);
 
-    private void ApplyAndShowAppliedFixSuggestions(string idePath, List<FixSuggestionChange> changes, string configurationScopeRoot)
+    private void ApplyAndShowAppliedFixSuggestions(string idePath, IReadOnlyList<FixSuggestionChange> changes, string configurationScopeRoot)
     {
         var absoluteFilePath = Path.Combine(configurationScopeRoot, idePath);
         var textView = GetFileContent(absoluteFilePath);
@@ -121,7 +121,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         ApplySuggestedChanges(textView, changes, absoluteFilePath);
     }
 
-    private void ApplySuggestedChanges(ITextView textView, List<FixSuggestionChange> changes, string filePath)
+    private void ApplySuggestedChanges(ITextView textView, IReadOnlyList<FixSuggestionChange> changes, string filePath)
     {
         if (!diffViewService.ShowDiffView(textView.TextBuffer, changes))
         {
