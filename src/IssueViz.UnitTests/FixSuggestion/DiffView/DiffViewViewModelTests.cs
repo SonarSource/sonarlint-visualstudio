@@ -259,5 +259,5 @@ public class DiffViewViewModelTests
         textBuffer.Properties.Returns(propertyCollection);
     }
 
-    private static FixSuggestionChange CreateChange(int start, int end, string after) => new(0, start, end, string.Empty, after);
+    private static FixSuggestionChange CreateChange(int start, int end, string after) => new(start, end, string.Empty, after);
 }

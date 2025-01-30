@@ -33,8 +33,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor;
 [TestClass]
 public class TextViewEditorTests
 {
-    private readonly List<FixSuggestionChange> oneChange = [CreateChangesDto(0, 1, 1, "var a=1;")];
-    private readonly List<FixSuggestionChange> twoChanges = [CreateChangesDto(0, 1, 1, "var a=1;"), CreateChangesDto(1, 2, 2, "var b=0;")];
+    private readonly List<FixSuggestionChange> oneChange = [CreateChangesDto(1, 1, "var a=1;")];
+    private readonly List<FixSuggestionChange> twoChanges = [CreateChangesDto(1, 1, "var a=1;"), CreateChangesDto(2, 2, "var b=0;")];
     private IIssueSpanCalculator issueSpanCalculator;
     private ILogger logger;
     private TextViewEditor testSubject;
@@ -212,12 +212,11 @@ public class TextViewEditorTests
     private void MockCalculateSpan() => issueSpanCalculator.CalculateSpan(Arg.Any<ITextSnapshot>(), Arg.Any<int>(), Arg.Any<int>()).Returns(_ => CreateMockedSnapshotSpan("some text"));
 
     private static FixSuggestionChange CreateChangesDto(
-        int index,
         int startLine,
         int endLine,
         string before,
         string after = "") =>
-        new(index, startLine, endLine, before, after);
+        new(startLine, endLine, before, after);
 
     private void MockTextBuffer()
     {

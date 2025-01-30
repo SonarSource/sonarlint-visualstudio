@@ -68,6 +68,6 @@ public class ShowFixSuggestionListenerTests
 
         fixSuggestionHandler.Received(1).ApplyFixSuggestion(parameters.configurationScopeId, parameters.fixSuggestion.suggestionId, parameters.fixSuggestion.fileEdit.idePath, Arg.Any<List<FixSuggestionChange>>());
         var fixSuggestionChanges = fixSuggestionHandler.ReceivedCalls().Single().GetArguments()[3].Should().BeOfType<List<FixSuggestionChange>>().Subject;
-        fixSuggestionChanges.Should().BeEquivalentTo(new FixSuggestionChange(0, 10, 20, "public void test()", "private void test()"), new FixSuggestionChange(1, 11, 21, "second()", "void test()"));
+        fixSuggestionChanges.Should().BeEquivalentTo(new FixSuggestionChange(10, 20, "public void test()", "private void test()"), new FixSuggestionChange(11, 21, "second()", "void test()"));
     }
 }

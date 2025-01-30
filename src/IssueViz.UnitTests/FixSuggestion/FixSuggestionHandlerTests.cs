@@ -41,8 +41,8 @@ public class FixSuggestionHandlerTests
     private const string ConfigScopeId = "scopeId";
     private const string SuggestionId = "suggestionKey";
     private const string IdePath = @"myFile.cs";
-    private readonly List<FixSuggestionChange> OneChange = [CreateChanges(0, 1, 1, "var a=1;")];
-    private readonly List<FixSuggestionChange> TwoChanges = [CreateChanges(0, 1, 1, "var a=1;"), CreateChanges(1, 1, 1, "var b=0;")];
+    private readonly List<FixSuggestionChange> OneChange = [CreateChanges(1, 1, "var a=1;")];
+    private readonly List<FixSuggestionChange> TwoChanges = [CreateChanges(1, 1, "var a=1;"), CreateChanges(1, 1, "var b=0;")];
     private IDiffViewService diffViewService;
     private IDocumentNavigator documentNavigator;
     private IFixSuggestionNotification fixSuggestionNotification;
@@ -286,12 +286,11 @@ public class FixSuggestionHandlerTests
     }
 
     private static FixSuggestionChange CreateChanges(
-        int index,
         int startLine,
         int endLine,
         string before,
         string after = "") =>
-        new(index, startLine, endLine, before, after);
+        new(startLine, endLine, before, after);
 
     private static string GetAbsolutePathOfFile(string idePath) => Path.Combine(ConfigurationScopeRoot, idePath);
 

@@ -88,5 +88,5 @@ public class ChangeViewModelTests
         eventRaised.Should().BeTrue();
     }
 
-    private static FixSuggestionChange CreateChange(string before, string after) => new(0, 1, 2, before, after);
+    private static FixSuggestionChange CreateChange(string before, string after) => new(1, 2, before, after);
 }

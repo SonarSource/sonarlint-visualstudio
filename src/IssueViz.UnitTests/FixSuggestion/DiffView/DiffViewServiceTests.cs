@@ -82,5 +82,5 @@ public class DiffViewServiceTests
         didAccept.Should().Be(isAccepted);
     }
 
-    private static FixSuggestionChange CreateChange(int startLine, int endLine, string after) => new(0, startLine, endLine, string.Empty, after);
+    private static FixSuggestionChange CreateChange(int startLine, int endLine, string after) => new(startLine, endLine, string.Empty, after);
 }
