@@ -22,6 +22,7 @@ using SonarLint.VisualStudio.ConnectedMode.Promote;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -29,9 +30,10 @@ using SonarLint.VisualStudio.TestInfrastructure;
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Promote;
 
 [TestClass]
-public class PromoteGoldBarTests
+public class PromoteNotificationTests
 {
-    private const string LanguageToPromote = "TSQL";
+    private const string DefaultConfigurationScopeId = "CONFIG_SCOPE_ID";
+    private readonly List<Language> languageToPromote = [Language.TSql];
 
     private INotificationService notificationService;
     private IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction;
@@ -39,7 +41,8 @@ public class PromoteGoldBarTests
     private IBrowserService browserService;
     private ITelemetryManager telemetryManager;
     private IConnectedModeUIManager connectedModeUiManager;
-    private PromoteGoldBar testSubject;
+    private IActiveConfigScopeTracker activeConfigScopeTracker;
+    private PromoteNotification testSubject;
 
     [TestInitialize]
     public void TestInitialize()
@@ -50,44 +53,81 @@ public class PromoteGoldBarTests
         browserService = Substitute.For<IBrowserService>();
         telemetryManager = Substitute.For<ITelemetryManager>();
         connectedModeUiManager = Substitute.For<IConnectedModeUIManager>();
-        testSubject = new PromoteGoldBar(notificationService, doNotShowAgainNotificationAction, activeSolutionBoundTracker, browserService, telemetryManager, connectedModeUiManager);
+        activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+
+        activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope(DefaultConfigurationScopeId));
+        activeSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
+
+        testSubject = new PromoteNotification(
+            notificationService,
+            doNotShowAgainNotificationAction,
+            activeSolutionBoundTracker,
+            browserService,
+            telemetryManager,
+            connectedModeUiManager,
+            activeConfigScopeTracker);
     }
 
     [TestMethod]
     public void MefCtor_CheckExports() =>
-        MefTestHelpers.CheckTypeCanBeImported<PromoteGoldBar, IPromoteGoldBar>(
+        MefTestHelpers.CheckTypeCanBeImported<PromoteNotification, IPromoteNotification>(
             MefTestHelpers.CreateExport<INotificationService>(),
             MefTestHelpers.CreateExport<IDoNotShowAgainNotificationAction>(),
             MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
             MefTestHelpers.CreateExport<IBrowserService>(),
             MefTestHelpers.CreateExport<ITelemetryManager>(),
-            MefTestHelpers.CreateExport<IConnectedModeUIManager>());
+            MefTestHelpers.CreateExport<IConnectedModeUIManager>(),
+            MefTestHelpers.CreateExport<IActiveConfigScopeTracker>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<PromoteGoldBar>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<PromoteNotification>();
+
+    [TestMethod]
+    public void PromoteConnectedMode_WhenConfigScopeMissMatch_DoesNotShowNotification()
+    {
+        using var _ = new AssertIgnoreScope();
+        testSubject.PromoteConnectedMode("ANOTHER_CONFIG_SCOPE_ID", languageToPromote);
+
+        notificationService.DidNotReceive().ShowNotification(Arg.Any<INotification>());
+    }
+
+    [TestMethod]
+    public void PromoteConnectedMode_WhenInConnectedMode_DoesNotShowNotification()
+    {
+        using var _ = new AssertIgnoreScope();
+        var inConnectedMode = new BindingConfiguration(
+            new BoundServerProject("test", "test", new ServerConnection.SonarQube(new Uri("https://localhost:9000"))),
+            SonarLintMode.Connected,
+            "C:\\path");
+        activeSolutionBoundTracker.CurrentConfiguration.Returns(inConnectedMode);
+
+        testSubject.PromoteConnectedMode(DefaultConfigurationScopeId, languageToPromote);
+
+        notificationService.DidNotReceive().ShowNotification(Arg.Any<INotification>());
+    }
 
     [TestMethod]
     public void PromoteConnectedMode_ShowsNotification_WithId()
     {
-        testSubject.PromoteConnectedMode(LanguageToPromote);
+        testSubject.PromoteConnectedMode(DefaultConfigurationScopeId, languageToPromote);
 
-        notificationService.Received(1).ShowNotification(Arg.Is<Notification>(n => n.Id == "PromoteNotification"));
+        notificationService.Received(1).ShowNotification(Arg.Is<Notification>(n => n.Id == $"PromoteNotification.{languageToPromote[0].Id}"));
     }
 
     [TestMethod]
     public void PromoteConnectedMode_ShowsNotification_WithMessageThatContainsTheLanguageToPromote()
     {
-        testSubject.PromoteConnectedMode(LanguageToPromote);
+        testSubject.PromoteConnectedMode(DefaultConfigurationScopeId, languageToPromote);
 
         notificationService.Received(1).ShowNotification(Arg.Is<Notification>(n =>
-            n.Message == string.Format(Resources.PromoteConnectedModeLanguagesMessage, LanguageToPromote)
+            n.Message == string.Format(Resources.PromoteConnectedModeLanguagesMessage, languageToPromote[0].Name)
         ));
     }
 
     [TestMethod]
     public void PromoteConnectedMode_ShowsNotification_WithCorrectActions()
     {
-        testSubject.PromoteConnectedMode(LanguageToPromote);
+        testSubject.PromoteConnectedMode(DefaultConfigurationScopeId, languageToPromote);
 
         notificationService.Received(1).ShowNotification(Arg.Is<Notification>(n =>
             n.Actions.ToList().Count == 4 &&
@@ -101,7 +141,7 @@ public class PromoteGoldBarTests
     [TestMethod]
     public void PromoteConnectedMode_BindAction_ShowsManageBindingDialog()
     {
-        testSubject.PromoteConnectedMode(LanguageToPromote);
+        testSubject.PromoteConnectedMode(DefaultConfigurationScopeId, languageToPromote);
         var notification = (Notification)notificationService.ReceivedCalls().Single().GetArguments()[0];
         var bindAction = notification.Actions.First(a => a.CommandText == Resources.PromoteBind);
 
@@ -113,7 +153,7 @@ public class PromoteGoldBarTests
     [TestMethod]
     public void PromoteConnectedMode_SonarQubeCloudAction_NavigatesToCorrectUrl()
     {
-        testSubject.PromoteConnectedMode(LanguageToPromote);
+        testSubject.PromoteConnectedMode(DefaultConfigurationScopeId, languageToPromote);
         var notification = (Notification) notificationService.ReceivedCalls().Single().GetArguments()[0];
         var sonarQubeCloudAction = notification.Actions.First(a => a.CommandText == Resources.PromoteSonarQubeCloud);
 
@@ -125,7 +165,7 @@ public class PromoteGoldBarTests
     [TestMethod]
     public void PromoteConnectedMode_LearnMoreAction_NavigatesToCorrectUrl()
     {
-        testSubject.PromoteConnectedMode(LanguageToPromote);
+        testSubject.PromoteConnectedMode(DefaultConfigurationScopeId, languageToPromote);
         var notification = (Notification) notificationService.ReceivedCalls().Single().GetArguments()[0];
         var learnMoreAction = notification.Actions.First(a => a.CommandText == Resources.PromoteLearnMore);
 
@@ -139,7 +179,7 @@ public class PromoteGoldBarTests
     {
         var eventArgs = new ActiveSolutionBindingEventArgs(new BindingConfiguration(null, SonarLintMode.Connected, null));
 
-        testSubject.PromoteConnectedMode(LanguageToPromote);
+        testSubject.PromoteConnectedMode(DefaultConfigurationScopeId, languageToPromote);
         activeSolutionBoundTracker.SolutionBindingChanged += Raise.EventWith(this, eventArgs);
 
         notificationService.Received(1).CloseNotification();

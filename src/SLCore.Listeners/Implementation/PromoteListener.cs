@@ -20,6 +20,7 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.Promote;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Listener.Promote;
 
@@ -28,11 +29,13 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation;
 [Export(typeof(ISLCoreListener))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
-public class PromoteListener(IPromoteGoldBar promoteGoldBar) : IPromoteListener
+public class PromoteListener(IPromoteNotification promoteNotification) : IPromoteListener
 {
     public void PromoteExtraEnabledLanguagesInConnectedMode(PromoteExtraEnabledLanguagesInConnectedModeParams parameters)
     {
-        var languagesToPromote = string.Join(", ", parameters.languagesToPromote);
-        promoteGoldBar.PromoteConnectedMode(languagesToPromote);
+        var languagesToPromote = parameters.languagesToPromote
+            .Select(x => x.ConvertToCoreLanguage())
+            .ToList();
+        promoteNotification.PromoteConnectedMode(parameters.configurationScopeId, languagesToPromote);
     }
 }

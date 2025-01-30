@@ -22,19 +22,20 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Notifications;
 using SonarLint.VisualStudio.Core.Telemetry;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Promote;
 
-public interface IPromoteGoldBar
+public interface IPromoteNotification
 {
-    void PromoteConnectedMode(string languagesToPromote);
+    void PromoteConnectedMode(string configurationScopeId, List<Language> languagesToPromote);
 }
 
-[Export(typeof(IPromoteGoldBar))]
+[Export(typeof(IPromoteNotification))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public sealed class PromoteGoldBar : IPromoteGoldBar, IDisposable
+public sealed class PromoteNotification : IPromoteNotification, IDisposable
 {
     private readonly INotificationService notificationService;
     private readonly IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction;
@@ -42,15 +43,17 @@ public sealed class PromoteGoldBar : IPromoteGoldBar, IDisposable
     private readonly IBrowserService browserService;
     private readonly ITelemetryManager telemetryManager;
     private readonly IConnectedModeUIManager connectedModeUiManager;
+    private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
 
     [ImportingConstructor]
-    public PromoteGoldBar(
+    public PromoteNotification(
         INotificationService notificationService,
         IDoNotShowAgainNotificationAction doNotShowAgainNotificationAction,
         IActiveSolutionBoundTracker activeSolutionBoundTracker,
         IBrowserService browserService,
         ITelemetryManager telemetryManager,
-        IConnectedModeUIManager connectedModeUiManager)
+        IConnectedModeUIManager connectedModeUiManager,
+        IActiveConfigScopeTracker activeConfigScopeTracker)
     {
         this.notificationService = notificationService;
         this.doNotShowAgainNotificationAction = doNotShowAgainNotificationAction;
@@ -58,15 +61,30 @@ public sealed class PromoteGoldBar : IPromoteGoldBar, IDisposable
         this.browserService = browserService;
         this.telemetryManager = telemetryManager;
         this.connectedModeUiManager = connectedModeUiManager;
+        this.activeConfigScopeTracker = activeConfigScopeTracker;
 
         this.activeSolutionBoundTracker.SolutionBindingChanged += OnActiveSolutionBindingChanged;
     }
 
-    public void PromoteConnectedMode(string languagesToPromote)
+    public void PromoteConnectedMode(string configurationScopeId, List<Language> languagesToPromote)
     {
+        var currentConfigScope = activeConfigScopeTracker.Current;
+
+        if (currentConfigScope is null || currentConfigScope.Id != configurationScopeId)
+        {
+            Debug.Fail($"[Promote] Config scope miss match: {currentConfigScope} does not match {configurationScopeId}");
+            return;
+        }
+
+        if (activeSolutionBoundTracker.CurrentConfiguration.Mode == SonarLintMode.Connected)
+        {
+            Debug.Fail("Cannot promote extra language when already in connected");
+            return;
+        }
+
         var notification = new Notification(
-            id: "PromoteNotification",
-            message: string.Format(Resources.PromoteConnectedModeLanguagesMessage, languagesToPromote),
+            id: $"PromoteNotification.{string.Join(".", languagesToPromote.Select(x => x.Id))}",
+            message: string.Format(Resources.PromoteConnectedModeLanguagesMessage, string.Join(", ", languagesToPromote.Select(x => x.Name))),
             actions:
             [
                 new NotificationAction(Resources.PromoteBind, _ => OnBind(), false),

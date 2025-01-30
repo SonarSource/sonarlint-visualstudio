@@ -28,31 +28,33 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation;
 [TestClass]
 public class PromoteListenerTests
 {
-    private IPromoteGoldBar promoteGoldBar;
+    private IPromoteNotification promoteNotification;
     private PromoteListener testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        promoteGoldBar = Substitute.For<IPromoteGoldBar>();
-        testSubject = new PromoteListener(promoteGoldBar);
+        promoteNotification = Substitute.For<IPromoteNotification>();
+        testSubject = new PromoteListener(promoteNotification);
     }
 
     [TestMethod]
     public void MefCtor_CheckExports() =>
         MefTestHelpers.CheckTypeCanBeImported<PromoteListener, ISLCoreListener>(
-            MefTestHelpers.CreateExport<IPromoteGoldBar>());
+            MefTestHelpers.CreateExport<IPromoteNotification>());
 
     [TestMethod]
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<PromoteListener>();
 
     [TestMethod]
-    public void PromoteExtraEnabledLanguagesInConnectedMode_DisplaysGoldBarWithCommaSeparatedLanguages()
+    public void PromoteExtraEnabledLanguagesInConnectedMode_DisplaysGoldBar()
     {
-        var parameters = new PromoteExtraEnabledLanguagesInConnectedModeParams("CONFIGURATION_SCOPE_ID", [Language.TSQL, Language.PLSQL]);
+        var parameters = new PromoteExtraEnabledLanguagesInConnectedModeParams("CONFIGURATION_SCOPE_ID", [Language.TSQL]);
 
         testSubject.PromoteExtraEnabledLanguagesInConnectedMode(parameters);
 
-        promoteGoldBar.Received().PromoteConnectedMode("TSQL, PLSQL");
+        promoteNotification.Received().PromoteConnectedMode(
+            Arg.Is("CONFIGURATION_SCOPE_ID"),
+            Arg.Is<List<VisualStudio.Core.Language>>(x => x.Count == 1 && x[0] == VisualStudio.Core.Language.TSql));
     }
 }
