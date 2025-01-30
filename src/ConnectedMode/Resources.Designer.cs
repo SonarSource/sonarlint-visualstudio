@@ -456,6 +456,42 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Bind.
+        /// </summary>
+        internal static string PromoteBind {
+            get {
+                return ResourceManager.GetString("PromoteBind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider connecting to SonarQube to enable analysis on the following languages: {0}.
+        /// </summary>
+        internal static string PromoteConnectedModeLanguagesMessage {
+            get {
+                return ResourceManager.GetString("PromoteConnectedModeLanguagesMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more.
+        /// </summary>
+        internal static string PromoteLearnMore {
+            get {
+                return ResourceManager.GetString("PromoteLearnMore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Try SonarQube Cloud for free.
+        /// </summary>
+        internal static string PromoteSonarQubeCloud {
+            get {
+                return ResourceManager.GetString("PromoteSonarQubeCloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [SharedBindingConfigProvider] There&apos;s no .sonarlint shared folder or solution is not under git.
         /// </summary>
         internal static string SharedBindingConfigProvider_SavePathNotFound {
