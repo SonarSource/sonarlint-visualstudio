@@ -273,7 +273,7 @@ public class DiffViewViewModelTests
     [DataTestMethod]
     public void GetFinalResult_ReturnCorrectNumberOfChanges(int count)
     {
-        var testSubjectNew = new DiffViewViewModel(textViewEditor, textBuffer, Enumerable.Repeat(new FixSuggestionChange(default, default, default, default), count).ToList());
+        var testSubjectNew = new DiffViewViewModel(textViewEditor, textBuffer, Enumerable.Repeat(new FixSuggestionChange(default, default, "", ""), count).ToList());
 
         testSubjectNew.GetFinalResult(false).Should().HaveCount(count);
     }

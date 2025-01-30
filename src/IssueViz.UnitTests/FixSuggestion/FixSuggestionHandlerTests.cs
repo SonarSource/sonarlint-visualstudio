@@ -153,7 +153,7 @@ public class FixSuggestionHandlerTests
     {
         var textView = MockOpenFile();
         MockDiffViewWitAcceptedChanges(TwoChanges, [TwoChanges[1]]);
-        textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<List<FixSuggestionChange>>(), Arg.Any<bool>()).Returns(true);
+        textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<IReadOnlyList<FixSuggestionChange>>(), Arg.Any<bool>()).Returns(true);
 
         testSubject.ApplyFixSuggestion(ConfigScopeId, SuggestionId, IdePath, TwoChanges);
 
@@ -165,7 +165,7 @@ public class FixSuggestionHandlerTests
     {
         MockDiffViewWitAcceptedChanges(TwoChanges, TwoChanges);
         var exceptionMsg = "error";
-        textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<List<FixSuggestionChange>>(), Arg.Any<bool>()).Throws(new Exception(exceptionMsg));
+        textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<IReadOnlyList<FixSuggestionChange>>(), Arg.Any<bool>()).Throws(new Exception(exceptionMsg));
 
         testSubject.ApplyFixSuggestion(ConfigScopeId, SuggestionId, IdePath, TwoChanges);
 
@@ -224,7 +224,7 @@ public class FixSuggestionHandlerTests
     public void ApplyFixSuggestion_OneChange_ChangesCanNotBeApplied_ShowsNotification()
     {
         MockDiffViewWitAcceptedChanges(OneChange, OneChange);
-        textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<List<FixSuggestionChange>>(), Arg.Any<bool>()).Returns(false);
+        textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Any<IReadOnlyList<FixSuggestionChange>>(), Arg.Any<bool>()).Returns(false);
 
         testSubject.ApplyFixSuggestion(ConfigScopeId, SuggestionId, IdePath, OneChange);
 
@@ -249,7 +249,7 @@ public class FixSuggestionHandlerTests
 
         testSubject.ApplyFixSuggestion(ConfigScopeId, SuggestionId, IdePath, TwoChanges);
 
-        textViewEditor.Received(1).ApplyChanges(textView.TextBuffer, Arg.Is<List<FixSuggestionChange>>(x => x.SequenceEqual(new List<FixSuggestionChange> { TwoChanges[0] })), abortOnOriginalTextChanged: true);
+        textViewEditor.Received(1).ApplyChanges(textView.TextBuffer, Arg.Is<IReadOnlyList<FixSuggestionChange>>(x => x.SequenceEqual(new List<FixSuggestionChange> { TwoChanges[0] })), abortOnOriginalTextChanged: true);
     }
 
     private void MockConfigScopeRoot() =>
