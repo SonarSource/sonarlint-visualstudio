@@ -334,4 +334,16 @@
   <data name="DotnetAnalyzerIndicatorTemplate" xml:space="preserve">
     <value>[ConnectedMode/DotnetAnalyzerIndicator] {0}</value>
   </data>
+  <data name="PromoteLearnMore" xml:space="preserve">
+    <value>Learn more</value>
+  </data>
+  <data name="PromoteConnectedModeLanguagesMessage" xml:space="preserve">
+    <value>Consider connecting to SonarQube to enable analysis on the following languages: {0}</value>
+  </data>
+  <data name="PromoteBind" xml:space="preserve">
+    <value>Bind</value>
+  </data>
+  <data name="PromoteSonarQubeCloud" xml:space="preserve">
+    <value>Try SonarQube Cloud for free</value>
+  </data>
 </root>
