@@ -36,5 +36,5 @@ public class ShowFixSuggestionListener(IFixSuggestionHandler fixSuggestionHandle
             parameters.fixSuggestion.fileEdit.idePath,
             parameters.fixSuggestion.fileEdit.changes
                 .Select(dto => new FixSuggestionChange(dto.beforeLineRange.startLine, dto.beforeLineRange.endLine, dto.before, dto.after))
-                .ToList());
+                .ToArray());
 }
