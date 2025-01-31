@@ -25,7 +25,6 @@ using System.Net.Http.Headers;
 using System.Security;
 using Moq;
 using Moq.Protected;
-using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 using SonarQube.Client.Models.ServerSentEvents;
 using SonarQube.Client.Requests;
@@ -115,7 +114,7 @@ namespace SonarQube.Client.Tests
 
         protected internal virtual SonarQubeService CreateTestSubject()
         {
-            return new SonarQubeService(messageHandler.Object, UserAgent, logger, requestFactorySelector, sseStreamFactory.Object);
+            return new SonarQubeService(UserAgent, logger, requestFactorySelector, sseStreamFactory.Object);
         }
 
         private static IUsernameAndPasswordCredentials MockBasicAuthCredentials(string userName, SecureString password)
