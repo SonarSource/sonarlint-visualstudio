@@ -45,7 +45,12 @@
 
   <ItemGroup>
     <None Remove="Commands\Resources\sonarlint.png" />
+    <None Remove="Commands\Resources\sonarqube_for_ide_logo_16px.png" />
     <None Remove="IssueVisualizationControl\IssueVisualizationControl.xaml" />
+    <Page Include="FixSuggestion\DiffView\DiffViewWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
 
     <Page Include="IssueVisualizationControl\IssueVisualizationControl.xaml">
       <Generator>XamlIntelliSenseFileGenerator</Generator>
@@ -70,7 +75,7 @@
     </EmbeddedResource>
 
     <EmbeddedResource Update="Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
 
@@ -78,8 +83,6 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
-
-    <Resource Include="Commands\Resources\sonarqube_for_ide_logo_16px.png" />
 
     <Content Include="Monikers.imagemanifest">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -97,6 +100,12 @@
       <DependentUpon>OpenInIdeResources.resx</DependentUpon>
     </Compile>
 
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Commands\Resources\sonarqube_for_ide_logo_16px.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
