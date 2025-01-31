@@ -18,21 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Telemetry;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Service.Telemetry;
+using SonarLint.VisualStudio.SLCore.Service.Telemetry.Models;
 
-public interface ITelemetryManager
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Telemetry;
+
+[TestClass]
+public class FixSuggestionResolvedParamsTests
 {
-    SlCoreTelemetryStatus GetStatus();
-
-    void OptOut();
-
-    void OptIn();
-
-    void TaintIssueInvestigatedLocally();
-
-    void TaintIssueInvestigatedRemotely();
-
-    void LinkClicked(string linkId);
-
-    void FixSuggestionApplied(string suggestionId, IEnumerable<bool> changeApplicationStatus);
+    [DataRow("sgstid", FixSuggestionStatus.ACCEPTED, null, """{"suggestionId":"sgstid","status":"ACCEPTED","snippetIndex":null}""")]
+    [DataRow("sgstid2", FixSuggestionStatus.DECLINED, 12, """{"suggestionId":"sgstid2","status":"DECLINED","snippetIndex":12}""")]
+    [DataTestMethod]
+    public void SerializedAsExpected(string suggestionId, FixSuggestionStatus status, int? index, string expectedSerialized)
+    {
+        JsonConvert.SerializeObject(new FixSuggestionResolvedParams(suggestionId, status, index)).Should().Be(expectedSerialized);
+    }
 }

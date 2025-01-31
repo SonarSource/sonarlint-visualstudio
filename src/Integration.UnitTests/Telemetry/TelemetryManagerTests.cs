@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry;
+using SonarLint.VisualStudio.SLCore.Service.Telemetry.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
@@ -166,6 +167,32 @@ public class TelemetryManagerTests
         {
             telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
             telemetryService.HelpAndFeedbackLinkClicked(Arg.Is<HelpAndFeedbackClickedParams>(a => a.itemId == linkId));
+        });
+    }
+
+    [TestMethod]
+    public void FixSuggestionResolved_CallsRpcService()
+    {
+        const string anySuggestionId = "any suggestion id";
+        FixSuggestionResolvedParams[] expected =
+        [
+            new(anySuggestionId, FixSuggestionStatus.ACCEPTED, 0),
+            new(anySuggestionId, FixSuggestionStatus.DECLINED, 1),
+            new(anySuggestionId, FixSuggestionStatus.ACCEPTED, 2),
+            new(anySuggestionId, FixSuggestionStatus.ACCEPTED, 3),
+            new(anySuggestionId, FixSuggestionStatus.DECLINED, 4),
+        ];
+
+        telemetryManager.FixSuggestionApplied(anySuggestionId, [true, false, true, true, false]);
+
+        Received.InOrder(() =>
+        {
+            telemetryHandler.Notify(Arg.Any<Action<ITelemetrySLCoreService>>());
+            telemetryService.FixSuggestionResolved(expected[0]);
+            telemetryService.FixSuggestionResolved(expected[1]);
+            telemetryService.FixSuggestionResolved(expected[2]);
+            telemetryService.FixSuggestionResolved(expected[3]);
+            telemetryService.FixSuggestionResolved(expected[4]);
         });
     }
 
