@@ -57,7 +57,8 @@ public class ShowFixSuggestionListenerTests
     {
         var listOfChanges = new List<ChangesDto>
         {
-            new(new LineRangeDto(10, 10), "public void test()", "private void test()")
+            new(new LineRangeDto(10, 20), "public void test()", "private void test()"),
+            new(new LineRangeDto(11, 21), "second()", "void test()")
         };
         var fileEditDto = new FileEditDto(@"C:\Users\test\TestProject\AFile.cs", listOfChanges);
         var fixSuggestionDto = new FixSuggestionDto("SUGGESTION_ID", "AN EXPLANATION", fileEditDto);
@@ -65,6 +66,8 @@ public class ShowFixSuggestionListenerTests
 
         testSubject.ShowFixSuggestion(parameters);
 
-        fixSuggestionHandler.Received(1).ApplyFixSuggestion(parameters);
+        fixSuggestionHandler.Received(1).ApplyFixSuggestion(parameters.configurationScopeId, parameters.fixSuggestion.suggestionId, parameters.fixSuggestion.fileEdit.idePath, Arg.Any<IReadOnlyList<FixSuggestionChange>>());
+        var fixSuggestionChanges = fixSuggestionHandler.ReceivedCalls().Single().GetArguments()[3].Should().BeOfType<FixSuggestionChange[]>().Subject;
+        fixSuggestionChanges.Should().BeEquivalentTo(new FixSuggestionChange(10, 20, "public void test()", "private void test()"), new FixSuggestionChange(11, 21, "second()", "void test()"));
     }
 }
