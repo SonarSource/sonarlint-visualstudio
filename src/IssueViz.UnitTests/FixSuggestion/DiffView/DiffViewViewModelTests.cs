@@ -24,8 +24,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core.WPF;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 using SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
-using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.FixSuggestion.DiffView;
 
@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.FixSuggestion.Diff
 public class DiffViewViewModelTests
 {
     private const string FilePath = "C:\\myFile.text";
-    private readonly List<ChangesDto> twoChangesDtos = [CreateChangeDto(1, 1, "var a=1;"), CreateChangeDto(2, 2, "var b=0;")];
+    private readonly List<FixSuggestionChange> twoChanges = [CreateChange(1, 1, "var a=1;"), CreateChange(2, 2, "var b=0;")];
     private DiffViewViewModel testSubject;
     private ITextBuffer textBuffer;
     private ITextViewEditor textViewEditor;
@@ -45,7 +45,7 @@ public class DiffViewViewModelTests
         textBuffer = Substitute.For<ITextBuffer>();
         MockTextBufferGetFilePath(FilePath);
 
-        testSubject = new DiffViewViewModel(textViewEditor, textBuffer, twoChangesDtos);
+        testSubject = new DiffViewViewModel(textViewEditor, textBuffer, twoChanges);
     }
 
     [TestMethod]
@@ -54,7 +54,7 @@ public class DiffViewViewModelTests
     [TestMethod]
     public void Ctor_InitializesProperties()
     {
-        testSubject.ChangeViewModels.Select(vm => vm.ChangeDto).Should().BeEquivalentTo(twoChangesDtos);
+        testSubject.ChangeViewModels.Select(vm => vm.Change).Should().BeEquivalentTo(twoChanges);
         testSubject.TextBuffer.Should().Be(textBuffer);
         testSubject.FilePath.Should().Be(FilePath);
         testSubject.FileName.Should().Be("myFile.text");
@@ -90,7 +90,7 @@ public class DiffViewViewModelTests
 
         testSubject.InitializeBeforeAndAfter();
 
-        textViewEditor.DidNotReceive().ApplyChanges(testSubject.After, Arg.Any<List<ChangesDto>>(), abortOnOriginalTextChanged: false);
+        textViewEditor.DidNotReceive().ApplyChanges(testSubject.After, Arg.Any<List<FixSuggestionChange>>(), abortOnOriginalTextChanged: false);
     }
 
     [TestMethod]
@@ -101,7 +101,7 @@ public class DiffViewViewModelTests
 
         testSubject.InitializeBeforeAndAfter();
 
-        textViewEditor.Received(1).ApplyChanges(testSubject.After, Arg.Is<List<ChangesDto>>(dtos => dtos.Count == 1 && dtos[0] == testSubject.ChangeViewModels[1].ChangeDto),
+        textViewEditor.Received(1).ApplyChanges(testSubject.After, Arg.Is<List<FixSuggestionChange>>(changes => changes.Count == 1 && changes[0] == testSubject.ChangeViewModels[1].Change),
             abortOnOriginalTextChanged: false);
     }
 
@@ -115,7 +115,7 @@ public class DiffViewViewModelTests
         testSubject.CalculateAfter();
 
         testSubject.After.Should().Be(afterBuffer);
-        textViewEditor.DidNotReceive().ApplyChanges(testSubject.After, Arg.Any<List<ChangesDto>>(), abortOnOriginalTextChanged: false);
+        textViewEditor.DidNotReceive().ApplyChanges(testSubject.After, Arg.Any<List<FixSuggestionChange>>(), abortOnOriginalTextChanged: false);
     }
 
     [TestMethod]
@@ -126,7 +126,7 @@ public class DiffViewViewModelTests
 
         testSubject.CalculateAfter();
 
-        textViewEditor.Received(1).ApplyChanges(testSubject.After, Arg.Is<List<ChangesDto>>(dtos => dtos.Count == 1 && dtos[0] == testSubject.ChangeViewModels[1].ChangeDto),
+        textViewEditor.Received(1).ApplyChanges(testSubject.After, Arg.Is<List<FixSuggestionChange>>(change => change.Count == 1 && change[0] == testSubject.ChangeViewModels[1].Change),
             abortOnOriginalTextChanged: false);
     }
 
@@ -138,7 +138,7 @@ public class DiffViewViewModelTests
 
         testSubject.GoToChangeLocation(textView, changeViewModel);
 
-        textViewEditor.Received(1).FocusLine(textView, changeViewModel.ChangeDto.beforeLineRange.startLine);
+        textViewEditor.Received(1).FocusLine(textView, changeViewModel.Change.BeforeStartLine);
     }
 
     [TestMethod]
@@ -249,6 +249,35 @@ public class DiffViewViewModelTests
         testSubject.IsApplyEnabled.Should().BeFalse();
     }
 
+    [TestMethod]
+    public void GetFinalResult_AcceptedDialog_ReturnsFinalizedChanges()
+    {
+        testSubject.ChangeViewModels[0].IsSelected = false;
+        testSubject.ChangeViewModels[1].IsSelected = true;
+
+        testSubject.GetFinalResult(true).Should().BeEquivalentTo(new FinalizedFixSuggestionChange(twoChanges[0], false), new FinalizedFixSuggestionChange(twoChanges[1], true));
+    }
+
+    [TestMethod]
+    public void GetFinalResult_DeclinedDialog_ReturnsAllDeclinedFinalizedChanges()
+    {
+        testSubject.ChangeViewModels[0].IsSelected = false;
+        testSubject.ChangeViewModels[1].IsSelected = true;
+
+        testSubject.GetFinalResult(false).Should().BeEquivalentTo(new FinalizedFixSuggestionChange(twoChanges[0], false), new FinalizedFixSuggestionChange(twoChanges[1], false));
+    }
+
+    [DataRow(1)]
+    [DataRow(3)]
+    [DataRow(10)]
+    [DataTestMethod]
+    public void GetFinalResult_ReturnCorrectNumberOfChanges(int count)
+    {
+        var testSubjectNew = new DiffViewViewModel(textViewEditor, textBuffer, Enumerable.Repeat(new FixSuggestionChange(default, default, "", ""), count).ToList());
+
+        testSubjectNew.GetFinalResult(false).Should().HaveCount(count);
+    }
+
     private void MockTextBufferGetFilePath(string path)
     {
         var textDocument = Substitute.For<ITextDocument>();
@@ -258,5 +287,5 @@ public class DiffViewViewModelTests
         textBuffer.Properties.Returns(propertyCollection);
     }
 
-    private static ChangesDto CreateChangeDto(int beforeLine, int afterLine, string after) => new(new LineRangeDto(beforeLine, afterLine), string.Empty, after);
+    private static FixSuggestionChange CreateChange(int start, int end, string after) => new(start, end, string.Empty, after);
 }

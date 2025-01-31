@@ -23,13 +23,13 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
+using SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor;
 
 public interface ITextViewEditor
 {
-    bool ApplyChanges(ITextBuffer textBuffer, List<ChangesDto> changesDto, bool abortOnOriginalTextChanged);
+    bool ApplyChanges(ITextBuffer textBuffer, IReadOnlyList<FixSuggestionChange> changes, bool abortOnOriginalTextChanged);
 
     void FocusLine(ITextView textView, int lineNumber);
 
@@ -43,18 +43,18 @@ public class TextViewEditor(IIssueSpanCalculator issueSpanCalculator, ILogger lo
 {
     private readonly ILogger logger = logger.ForContext(nameof(TextViewEditor));
 
-    public bool ApplyChanges(ITextBuffer textBuffer, List<ChangesDto> changesDto, bool abortOnOriginalTextChanged)
+    public bool ApplyChanges(ITextBuffer textBuffer, IReadOnlyList<FixSuggestionChange> changes, bool abortOnOriginalTextChanged)
     {
         using var textEdit = textBuffer.CreateEdit();
-        for (var i = changesDto.Count - 1; i >= 0; i--)
+        for (var i = changes.Count - 1; i >= 0; i--)
         {
-            var changeDto = changesDto[i];
-            var spanToUpdate = issueSpanCalculator.CalculateSpan(textBuffer.CurrentSnapshot, changeDto.beforeLineRange.startLine, changeDto.beforeLineRange.endLine);
-            if (abortOnOriginalTextChanged && !IsSameOriginalText(spanToUpdate, changeDto))
+            var change = changes[i];
+            var spanToUpdate = issueSpanCalculator.CalculateSpan(textBuffer.CurrentSnapshot, change.BeforeStartLine, change.BeforeEndLine);
+            if (abortOnOriginalTextChanged && !IsSameOriginalText(spanToUpdate, change.BeforeText))
             {
                 return false;
             }
-            textEdit.Replace(spanToUpdate.Value, changeDto.after);
+            textEdit.Replace(spanToUpdate.Value, change.AfterText);
         }
         textEdit.Apply();
 
@@ -78,5 +78,5 @@ public class TextViewEditor(IIssueSpanCalculator issueSpanCalculator, ILogger lo
 
     public ITextBuffer CreateTextBuffer(string text, IContentType contentType) => textBufferFactoryService.CreateTextBuffer(text, contentType);
 
-    private bool IsSameOriginalText(SnapshotSpan? spanToUpdate, ChangesDto changeDto) => spanToUpdate.HasValue && issueSpanCalculator.IsSameHash(spanToUpdate.Value, changeDto.before);
+    private bool IsSameOriginalText(SnapshotSpan? spanToUpdate, string beforeText) => spanToUpdate.HasValue && issueSpanCalculator.IsSameHash(spanToUpdate.Value, beforeText);
 }

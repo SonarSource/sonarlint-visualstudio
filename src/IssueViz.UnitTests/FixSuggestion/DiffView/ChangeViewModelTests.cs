@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.Core.WPF;
+using SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 using SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 
@@ -27,11 +28,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.FixSuggestion.Diff
 [TestClass]
 public class ChangeViewModelTests
 {
-    private readonly ChangesDto changeDto = CreateChangeDto(string.Empty, "var a=1;");
+    private readonly FixSuggestionChange change = CreateChange(string.Empty, "var a=1;");
     private ChangeViewModel testSubject;
 
     [TestInitialize]
-    public void TestInitialize() => testSubject = new ChangeViewModel(changeDto, false);
+    public void TestInitialize() => testSubject = new ChangeViewModel(change);
 
     [TestMethod]
     public void ViewModel_InheritsViewModelBase() => testSubject.Should().BeAssignableTo<ViewModelBase>();
@@ -39,8 +40,8 @@ public class ChangeViewModelTests
     [TestMethod]
     public void Ctor_InitializesProperties()
     {
-        testSubject.ChangeDto.Should().Be(changeDto);
-        testSubject.IsSelected.Should().BeFalse();
+        testSubject.Change.Should().Be(change);
+        testSubject.IsSelected.Should().Be(true);
     }
 
     [TestMethod]
@@ -49,9 +50,9 @@ public class ChangeViewModelTests
     [DataRow("var a=1;\tvar b=1;\tvar c=1;\t")]
     public void Ctor_After_InitializesAndRemovesNewLinesAndTabs(string textWithNewLines)
     {
-        var changeViewModel = new ChangeViewModel(CreateChangeDto(string.Empty, textWithNewLines), false);
+        var changeViewModel = new ChangeViewModel(CreateChange(string.Empty, textWithNewLines));
 
-        changeViewModel.After.Should().Be("var a=1;var b=1;var c=1;");
+        changeViewModel.AfterPreview.Should().Be("var a=1;var b=1;var c=1;");
     }
 
     [TestMethod]
@@ -60,9 +61,19 @@ public class ChangeViewModelTests
     [DataRow("var a=1;\tvar b=1;\tvar c=1;\t")]
     public void Ctor_Before_InitializesAndRemovesNewLinesAndTabs(string textWithNewLines)
     {
-        var changeViewModel = new ChangeViewModel(CreateChangeDto(textWithNewLines, string.Empty), false);
+        var changeViewModel = new ChangeViewModel(CreateChange(textWithNewLines, string.Empty));
 
-        changeViewModel.Before.Should().Be("var a=1;var b=1;var c=1;");
+        changeViewModel.BeforePreview.Should().Be("var a=1;var b=1;var c=1;");
+    }
+
+    [DataRow(true)]
+    [DataRow(false)]
+    [DataTestMethod]
+    public void IsSelected_ModifiesValueOfUnderlyingModel(bool isSelected)
+    {
+        testSubject.IsSelected = isSelected;
+
+        testSubject.IsSelected.Should().Be(isSelected);
     }
 
     [TestMethod]
@@ -76,5 +87,20 @@ public class ChangeViewModelTests
         eventRaised.Should().BeTrue();
     }
 
-    private static ChangesDto CreateChangeDto(string before, string after) => new(new LineRangeDto(1, 2), before, after);
+    [DataRow(true, true, true)]
+    [DataRow(false, true, false)]
+    [DataRow(true, false, false)]
+    [DataRow(false, false, false)]
+    [DataTestMethod]
+    public void Finalize_ReturnsExpected(bool isSelected, bool dialogResult, bool expectedFinalized)
+    {
+        testSubject.IsSelected = isSelected;
+
+        var finalizedFixSuggestionChange = testSubject.Finalize(dialogResult);
+
+        finalizedFixSuggestionChange.Change.Should().BeSameAs(testSubject.Change);
+        finalizedFixSuggestionChange.IsAccepted.Should().Be(expectedFinalized);
+    }
+
+    private static FixSuggestionChange CreateChange(string before, string after) => new(1, 2, before, after);
 }

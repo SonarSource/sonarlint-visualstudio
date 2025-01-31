@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
-public sealed partial class DiffViewWindow : Window
+internal sealed partial class DiffViewWindow : Window
 {
     private readonly IDifferenceBufferFactoryService differenceBufferFactoryService;
     private readonly IWpfDifferenceViewerFactoryService wpfDifferenceViewerFactoryService;
