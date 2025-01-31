@@ -22,7 +22,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using Microsoft.VisualStudio.Text.Editor;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
@@ -31,58 +31,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 
 [Export(typeof(IFixSuggestionHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class FixSuggestionHandler : IFixSuggestionHandler
+[method: ImportingConstructor]
+internal class FixSuggestionHandler(
+    IDocumentNavigator documentNavigator,
+    ITextViewEditor textViewEditor,
+    IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
+    IIDEWindowService ideWindowService,
+    IFixSuggestionNotification fixSuggestionNotification,
+    IDiffViewService diffViewService,
+    ITelemetryManager telemetryManager,
+    IThreadHandling threadHandling,
+    ILogger logger)
+    : IFixSuggestionHandler
 {
-    private readonly IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
-    private readonly IIDEWindowService ideWindowService;
-    private readonly IFixSuggestionNotification fixSuggestionNotification;
-    private readonly IDiffViewService diffViewService;
-    private readonly IThreadHandling threadHandling;
-    private readonly ILogger logger;
-    private readonly IDocumentNavigator documentNavigator;
-    private readonly ITextViewEditor textViewEditor;
-
-    [ImportingConstructor]
-    internal FixSuggestionHandler(
-        ILogger logger,
-        IDocumentNavigator documentNavigator,
-        ITextViewEditor textViewEditor,
-        IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
-        IIDEWindowService ideWindowService,
-        IFixSuggestionNotification fixSuggestionNotification,
-        IDiffViewService diffViewService) :
-        this(
-            ThreadHandling.Instance,
-            logger,
-            documentNavigator,
-            textViewEditor,
-            openInIdeConfigScopeValidator,
-            ideWindowService,
-            fixSuggestionNotification,
-            diffViewService)
-    {
-    }
-
-    internal FixSuggestionHandler(
-        IThreadHandling threadHandling,
-        ILogger logger,
-        IDocumentNavigator documentNavigator,
-        ITextViewEditor textViewEditor,
-        IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
-        IIDEWindowService ideWindowService,
-        IFixSuggestionNotification fixSuggestionNotification,
-        IDiffViewService diffViewService)
-    {
-        this.threadHandling = threadHandling;
-        this.logger = logger;
-        this.documentNavigator = documentNavigator;
-        this.textViewEditor = textViewEditor;
-        this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
-        this.ideWindowService = ideWindowService;
-        this.fixSuggestionNotification = fixSuggestionNotification;
-        this.diffViewService = diffViewService;
-    }
-
     public void ApplyFixSuggestion(string configScopeId, string fixSuggestionId, string idePath, IReadOnlyList<FixSuggestionChange> changes)
     {
         try
@@ -98,7 +59,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
                 return;
             }
 
-            threadHandling.RunOnUIThread(() => ApplyAndShowAppliedFixSuggestions(idePath, changes, configurationScopeRoot));
+            threadHandling.RunOnUIThread(() => ApplyAndShowAppliedFixSuggestions(fixSuggestionId, idePath, changes, configurationScopeRoot));
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, configScopeId, fixSuggestionId);
         }
         catch (Exception exception) when (!ErrorHandler.IsCriticalException(exception))
@@ -110,7 +71,7 @@ public class FixSuggestionHandler : IFixSuggestionHandler
     private bool ValidateConfiguration(string configurationScopeId, out string configurationScopeRoot, out string failureReason) =>
         openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(configurationScopeId, out configurationScopeRoot, out failureReason);
 
-    private void ApplyAndShowAppliedFixSuggestions(string idePath, IReadOnlyList<FixSuggestionChange> changes, string configurationScopeRoot)
+    private void ApplyAndShowAppliedFixSuggestions(string fixSuggestionId, string idePath, IReadOnlyList<FixSuggestionChange> changes, string configurationScopeRoot)
     {
         var absoluteFilePath = Path.Combine(configurationScopeRoot, idePath);
         var textView = GetFileContent(absoluteFilePath);
@@ -118,13 +79,22 @@ public class FixSuggestionHandler : IFixSuggestionHandler
         {
             return;
         }
-        ApplySuggestedChangesAndFocus(textView, GetFinalizedChanges(textView, changes), absoluteFilePath);
+        ApplySuggestedChangesAndFocus(textView, GetFinalizedChanges(textView, changes, fixSuggestionId), absoluteFilePath);
     }
 
-    private FinalizedFixSuggestionChange[] GetFinalizedChanges(ITextView textView, IReadOnlyList<FixSuggestionChange> changes) =>
-        diffViewService.ShowDiffView(textView.TextBuffer, changes);
+    private FinalizedFixSuggestionChange[] GetFinalizedChanges(ITextView textView, IReadOnlyList<FixSuggestionChange> changes, string fixSuggestionId)
+    {
+        var finalizedFixSuggestionChanges = diffViewService.ShowDiffView(textView.TextBuffer, changes);
 
-    private void  ApplySuggestedChangesAndFocus(ITextView textView, FinalizedFixSuggestionChange[] finalizedFixSuggestionChanges, string filePath)
+        telemetryManager.FixSuggestionApplied(fixSuggestionId, finalizedFixSuggestionChanges.Select(x => x.IsAccepted));
+
+        return finalizedFixSuggestionChanges;
+    }
+
+    private void ApplySuggestedChangesAndFocus(
+        ITextView textView,
+        FinalizedFixSuggestionChange[] finalizedFixSuggestionChanges,
+        string filePath)
     {
         if (!finalizedFixSuggestionChanges.Any(x => x.IsAccepted))
         {

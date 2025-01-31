@@ -23,14 +23,12 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 using SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 using SonarLint.VisualStudio.IssueVisualization.OpenInIde;
-using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion;
-using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
-using FileEditDto = SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models.FileEditDto;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.FixSuggestion;
 
@@ -48,16 +46,18 @@ public class FixSuggestionHandlerTests
     private IFixSuggestionNotification fixSuggestionNotification;
     private IIDEWindowService ideWindowService;
     private ITextViewEditor textViewEditor;
-    private ILogger logger;
     private IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator;
-    private FixSuggestionHandler testSubject;
+    private ILogger logger;
     private IThreadHandling threadHandling;
+    private ITelemetryManager telemetryManager;
+    private FixSuggestionHandler testSubject;
 
     [TestInitialize]
     public void TestInitialize()
     {
         threadHandling = new NoOpThreadHandler();
         logger = Substitute.For<ILogger>();
+        telemetryManager = Substitute.For<ITelemetryManager>();
         documentNavigator = Substitute.For<IDocumentNavigator>();
         textViewEditor = Substitute.For<ITextViewEditor>();
         openInIdeConfigScopeValidator = Substitute.For<IOpenInIdeConfigScopeValidator>();
@@ -66,14 +66,15 @@ public class FixSuggestionHandlerTests
         diffViewService = Substitute.For<IDiffViewService>();
 
         testSubject = new FixSuggestionHandler(
-            threadHandling,
-            logger,
             documentNavigator,
             textViewEditor,
             openInIdeConfigScopeValidator,
             ideWindowService,
             fixSuggestionNotification,
-            diffViewService);
+            diffViewService,
+            telemetryManager,
+            threadHandling,
+            logger);
         MockConfigScopeRoot();
     }
 
@@ -85,14 +86,16 @@ public class FixSuggestionHandlerTests
     {
         var threadHandlingMock = Substitute.For<IThreadHandling>();
         var testSubjectNew = new FixSuggestionHandler(
-            threadHandlingMock,
-            logger,
+
             documentNavigator,
             textViewEditor,
             openInIdeConfigScopeValidator,
             ideWindowService,
             fixSuggestionNotification,
-            diffViewService);
+            diffViewService,
+            telemetryManager,
+            threadHandlingMock,
+            logger);
 
         testSubjectNew.ApplyFixSuggestion(ConfigScopeId, SuggestionId, IdePath, OneChange);
 
@@ -114,6 +117,7 @@ public class FixSuggestionHandlerTests
             fixSuggestionNotification.Clear();
             documentNavigator.Open(@"C:\myFile.cs");
             diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), OneChange);
+            telemetryManager.FixSuggestionApplied(SuggestionId, Arg.Is<IEnumerable<bool>>(x => x.SequenceEqual(new []{true})));
             textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Is<IReadOnlyList<FixSuggestionChange>>(x => x.SequenceEqual(OneChange)), true);
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, ConfigScopeId, SuggestionId);
         });
@@ -135,6 +139,7 @@ public class FixSuggestionHandlerTests
             fixSuggestionNotification.Clear();
             documentNavigator.Open(@"C:\myFile.cs");
             diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), OneChange);
+            telemetryManager.FixSuggestionApplied(SuggestionId, Arg.Is<IEnumerable<bool>>(x => x.SequenceEqual(new []{false})));
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, ConfigScopeId, SuggestionId);
         });
         textViewEditor.DidNotReceiveWithAnyArgs().ApplyChanges(default, default, default);
@@ -239,6 +244,7 @@ public class FixSuggestionHandlerTests
         testSubject.ApplyFixSuggestion(ConfigScopeId, SuggestionId, IdePath, TwoChanges);
 
         diffViewService.Received(1).ShowDiffView(textView.TextBuffer, TwoChanges);
+        telemetryManager.FixSuggestionApplied(SuggestionId, Arg.Is<IEnumerable<bool>>(x => x.SequenceEqual(new []{true, true})));
     }
 
     [TestMethod]
@@ -250,6 +256,7 @@ public class FixSuggestionHandlerTests
         testSubject.ApplyFixSuggestion(ConfigScopeId, SuggestionId, IdePath, TwoChanges);
 
         textViewEditor.Received(1).ApplyChanges(textView.TextBuffer, Arg.Is<IReadOnlyList<FixSuggestionChange>>(x => x.SequenceEqual(new List<FixSuggestionChange> { TwoChanges[0] })), abortOnOriginalTextChanged: true);
+        telemetryManager.FixSuggestionApplied(SuggestionId, Arg.Is<IEnumerable<bool>>(x => x.SequenceEqual(new []{true, false})));
     }
 
     private void MockConfigScopeRoot() =>
@@ -274,15 +281,6 @@ public class FixSuggestionHandlerTests
         textView.TextBuffer.Returns(Substitute.For<ITextBuffer>());
         documentNavigator.Open(Arg.Any<string>()).Returns(textView);
         return textView;
-    }
-
-    private static ShowFixSuggestionParams CreateFixSuggestionParams(
-
-        params ChangesDto[] changes)
-    {
-        var fixSuggestion = new FixSuggestionDto(SuggestionId, "refactor", new FileEditDto(IdePath, changes.ToList()));
-        var suggestionParams = new ShowFixSuggestionParams(ConfigScopeId, "key", fixSuggestion);
-        return suggestionParams;
     }
 
     private static FixSuggestionChange CreateChanges(

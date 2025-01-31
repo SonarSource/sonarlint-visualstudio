@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.SLCore.Service.Telemetry;
+using SonarLint.VisualStudio.SLCore.Service.Telemetry.Models;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.Integration.Telemetry;
@@ -46,7 +47,26 @@ internal sealed class TelemetryManager : ITelemetryManager,
         knownUiContexts.VBProjectContextChanged += OnVBProjectContextChanged;
     }
 
-    public void QuickFixApplied(string ruleId) => telemetryHelper.Notify(telemetryService => telemetryService.AddQuickFixAppliedForRule(new AddQuickFixAppliedForRuleParams(ruleId)));
+    public void QuickFixApplied(string ruleId) =>
+        telemetryHelper.Notify(telemetryService =>
+            telemetryService.AddQuickFixAppliedForRule(new AddQuickFixAppliedForRuleParams(ruleId)));
+
+    public void FixSuggestionApplied(string suggestionId, IEnumerable<bool> changeApplicationStatus) =>
+        telemetryHelper.Notify(telemetryService =>
+        {
+            foreach (var resolvedParams in ConvertFixSuggestionChangeToResolvedParams(suggestionId, changeApplicationStatus))
+            {
+                telemetryService.FixSuggestionResolved(resolvedParams);
+            }
+        });
+
+    private static IEnumerable<FixSuggestionResolvedParams> ConvertFixSuggestionChangeToResolvedParams(string suggestionId, IEnumerable<bool> changeApplicationStatus) =>
+        changeApplicationStatus
+            .Select((status, index) =>
+                new FixSuggestionResolvedParams(
+                    suggestionId,
+                    status ? FixSuggestionStatus.ACCEPTED : FixSuggestionStatus.DECLINED,
+                    index));
 
     public SlCoreTelemetryStatus GetStatus() => telemetryHelper.GetStatus();
 
