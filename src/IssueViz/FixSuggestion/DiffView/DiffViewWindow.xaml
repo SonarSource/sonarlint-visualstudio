@@ -1,5 +1,6 @@
 ﻿<Window
     x:Class="SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView.DiffViewWindow"
+    x:ClassModifier="internal"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
@@ -90,9 +91,9 @@
                                 </Grid.ColumnDefinitions>
 
                                 <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" Click="IsSelectedCheckbox_OnClick"/>
-                                <TextBlock Grid.Column="1" Text="{Binding Before}" Style="{StaticResource ChangeTextBlockStyle}" TextDecorations="Strikethrough" 
+                                <TextBlock Grid.Column="1" Text="{Binding BeforePreview}" Style="{StaticResource ChangeTextBlockStyle}" TextDecorations="Strikethrough" 
                                            Background="{DynamicResource {x:Static vsShell:VsBrushes.VizSurfaceRedMediumKey}}" />
-                                <TextBlock Grid.Column="2" Text="{Binding  After}" Style="{StaticResource ChangeTextBlockStyle}"
+                                <TextBlock Grid.Column="2" Text="{Binding  AfterPreview}" Style="{StaticResource ChangeTextBlockStyle}"
                                            Background="{DynamicResource {x:Static vsShell:VsBrushes.VizSurfaceGreenMediumKey}}" /> 
                             </Grid>
                         </DataTemplate>

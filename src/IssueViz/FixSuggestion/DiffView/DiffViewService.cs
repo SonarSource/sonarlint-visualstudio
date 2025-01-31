@@ -22,18 +22,17 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
-using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 
-public interface IDiffViewService
+internal interface IDiffViewService
 {
-    List<ChangesDto> ShowDiffView(ITextBuffer fileTextBuffer, List<ChangesDto> changesDtos);
+    FinalizedFixSuggestionChange[] ShowDiffView(ITextBuffer fileTextBuffer, IReadOnlyList<FixSuggestionChange> changes);
 }
 
 [Export(typeof(IDiffViewService))]
 [PartCreationPolicy(CreationPolicy.NonShared)]
-public class DiffViewService : IDiffViewService
+internal class DiffViewService : IDiffViewService
 {
     private readonly IDiffViewToolWindowPane diffViewToolWindowPane;
     private readonly ITextViewEditor textViewEditor;
@@ -46,6 +45,6 @@ public class DiffViewService : IDiffViewService
         diffViewToolWindowPane = toolWindowService.GetToolWindow<DiffViewToolWindowPane, IDiffViewToolWindowPane>();
     }
 
-    public List<ChangesDto> ShowDiffView(ITextBuffer fileTextBuffer, List<ChangesDto> changesDtos) =>
-        diffViewToolWindowPane.ShowDiff(new DiffViewViewModel(textViewEditor, fileTextBuffer, changesDtos));
+    public FinalizedFixSuggestionChange[] ShowDiffView(ITextBuffer fileTextBuffer, IReadOnlyList<FixSuggestionChange> changes) =>
+        diffViewToolWindowPane.ShowDiff(new DiffViewViewModel(textViewEditor, fileTextBuffer, changes));
 }

@@ -21,6 +21,7 @@
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 using SonarLint.VisualStudio.IssueVisualization.FixSuggestion.DiffView;
 using SonarLint.VisualStudio.SLCore.Listener.FixSuggestion.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -30,7 +31,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.FixSuggestion.Diff
 [TestClass]
 public class DiffViewServiceTests
 {
-    private readonly List<ChangesDto> twoChangesDtos = [CreateChangeDto(1, 1, "var a=1;"), CreateChangeDto(2, 2, "var b=0;")];
+    private readonly List<FixSuggestionChange> twoChanges = [CreateChange(1, 1, "var a=1;"), CreateChange(2, 2, "var b=0;")];
     private IDiffViewToolWindowPane diffViewToolWindowPane;
     private DiffViewService testSubject;
     private ITextBuffer textBuffer;
@@ -64,21 +65,21 @@ public class DiffViewServiceTests
     [TestMethod]
     public void ShowDiffView_CallsShowDiffWithCorrectParameters()
     {
-        testSubject.ShowDiffView(textBuffer, twoChangesDtos);
+        testSubject.ShowDiffView(textBuffer, twoChanges);
 
-        diffViewToolWindowPane.Received(1).ShowDiff(Arg.Is<DiffViewViewModel>(vm => vm.TextBuffer == textBuffer && vm.ChangeViewModels.Select(x => x.ChangeDto).SequenceEqual(twoChangesDtos)));
+        diffViewToolWindowPane.Received(1).ShowDiff(Arg.Is<DiffViewViewModel>(vm => vm.TextBuffer == textBuffer && vm.ChangeViewModels.Select(x => x.Change).SequenceEqual(twoChanges)));
     }
 
     [TestMethod]
     public void ShowDiffView_ReturnsResultFromToolWindowPane()
     {
-        List<ChangesDto> expectedChangeDtos = [twoChangesDtos[0]];
-        diffViewToolWindowPane.ShowDiff(Arg.Any<DiffViewViewModel>()).Returns(expectedChangeDtos);
+        var finalizedChangesToReturn = new FinalizedFixSuggestionChange[10];
+        diffViewToolWindowPane.ShowDiff(Arg.Is<DiffViewViewModel>(x => x.ChangeViewModels.Select(y => y.Change).SequenceEqual(twoChanges))).Returns(finalizedChangesToReturn);
 
-        var acceptedChangeDtos = testSubject.ShowDiffView(textBuffer, twoChangesDtos);
+        var finalizedChanges = testSubject.ShowDiffView(textBuffer, twoChanges);
 
-        acceptedChangeDtos.Should().BeEquivalentTo(expectedChangeDtos);
+        finalizedChanges.Should().BeSameAs(finalizedChangesToReturn);
     }
 
-    private static ChangesDto CreateChangeDto(int beforeLine, int afterLine, string after) => new(new LineRangeDto(beforeLine, afterLine), string.Empty, after);
+    private static FixSuggestionChange CreateChange(int startLine, int endLine, string after) => new(startLine, endLine, string.Empty, after);
 }
