@@ -183,7 +183,7 @@ public class TelemetryManagerTests
             new(anySuggestionId, FixSuggestionStatus.DECLINED, 4),
         ];
 
-        telemetryManager.FixSuggestionApplied(anySuggestionId, [true, false, true, true, false]);
+        telemetryManager.FixSuggestionResolved(anySuggestionId, [true, false, true, true, false]);
 
         Received.InOrder(() =>
         {

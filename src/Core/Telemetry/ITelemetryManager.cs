@@ -34,5 +34,5 @@ public interface ITelemetryManager
 
     void LinkClicked(string linkId);
 
-    void FixSuggestionApplied(string suggestionId, IEnumerable<bool> changeApplicationStatus);
+    void FixSuggestionResolved(string suggestionId, IEnumerable<bool> changeApplicationStatus);
 }

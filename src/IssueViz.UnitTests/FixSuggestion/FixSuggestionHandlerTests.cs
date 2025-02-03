@@ -117,7 +117,7 @@ public class FixSuggestionHandlerTests
             fixSuggestionNotification.Clear();
             documentNavigator.Open(@"C:\myFile.cs");
             diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), OneChange);
-            telemetryManager.FixSuggestionApplied(SuggestionId, Arg.Is<IEnumerable<bool>>(x => x.SequenceEqual(new []{true})));
+            telemetryManager.FixSuggestionResolved(SuggestionId, Arg.Is<IEnumerable<bool>>(x => x.SequenceEqual(new []{true})));
             textViewEditor.ApplyChanges(Arg.Any<ITextBuffer>(), Arg.Is<IReadOnlyList<FixSuggestionChange>>(x => x.SequenceEqual(OneChange)), true);
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, ConfigScopeId, SuggestionId);
         });
@@ -139,7 +139,7 @@ public class FixSuggestionHandlerTests
             fixSuggestionNotification.Clear();
             documentNavigator.Open(@"C:\myFile.cs");
             diffViewService.ShowDiffView(Arg.Any<ITextBuffer>(), OneChange);
-            telemetryManager.FixSuggestionApplied(SuggestionId, Arg.Is<IEnumerable<bool>>(x => x.SequenceEqual(new []{false})));
+            telemetryManager.FixSuggestionResolved(SuggestionId, Arg.Is<IEnumerable<bool>>(x => x.SequenceEqual(new []{false})));
             logger.WriteLine(FixSuggestionResources.DoneProcessingRequest, ConfigScopeId, SuggestionId);
         });
         textViewEditor.DidNotReceiveWithAnyArgs().ApplyChanges(default, default, default);
@@ -244,7 +244,7 @@ public class FixSuggestionHandlerTests
         testSubject.ApplyFixSuggestion(ConfigScopeId, SuggestionId, IdePath, TwoChanges);
 
         diffViewService.Received(1).ShowDiffView(textView.TextBuffer, TwoChanges);
-        telemetryManager.FixSuggestionApplied(SuggestionId, Arg.Is<IEnumerable<bool>>(x => x.SequenceEqual(new []{true, true})));
+        telemetryManager.FixSuggestionResolved(SuggestionId, Arg.Is<IEnumerable<bool>>(x => x.SequenceEqual(new []{true, true})));
     }
 
     [TestMethod]
@@ -256,7 +256,7 @@ public class FixSuggestionHandlerTests
         testSubject.ApplyFixSuggestion(ConfigScopeId, SuggestionId, IdePath, TwoChanges);
 
         textViewEditor.Received(1).ApplyChanges(textView.TextBuffer, Arg.Is<IReadOnlyList<FixSuggestionChange>>(x => x.SequenceEqual(new List<FixSuggestionChange> { TwoChanges[0] })), abortOnOriginalTextChanged: true);
-        telemetryManager.FixSuggestionApplied(SuggestionId, Arg.Is<IEnumerable<bool>>(x => x.SequenceEqual(new []{true, false})));
+        telemetryManager.FixSuggestionResolved(SuggestionId, Arg.Is<IEnumerable<bool>>(x => x.SequenceEqual(new []{true, false})));
     }
 
     private void MockConfigScopeRoot() =>

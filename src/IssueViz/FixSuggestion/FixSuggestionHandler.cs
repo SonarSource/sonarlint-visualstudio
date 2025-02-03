@@ -86,7 +86,7 @@ internal class FixSuggestionHandler(
     {
         var finalizedFixSuggestionChanges = diffViewService.ShowDiffView(textView.TextBuffer, changes);
 
-        telemetryManager.FixSuggestionApplied(fixSuggestionId, finalizedFixSuggestionChanges.Select(x => x.IsAccepted));
+        telemetryManager.FixSuggestionResolved(fixSuggestionId, finalizedFixSuggestionChanges.Select(x => x.IsAccepted));
 
         return finalizedFixSuggestionChanges;
     }
