@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.UnitTests
@@ -35,18 +32,29 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var key = "k";
             var name = "MyName";
             var fileSuffix = "suffix";
+            var repoInfos = new RepoInfo("repoKey");
             var serverLanguage = new SonarQubeLanguage("serverKey", "serverName");
+            RepoInfo defaultRepo = default;
 
             // Act + Assert
             // Nulls
-            Action act = () => new Language(name, null, fileSuffix, serverLanguage);
+            Action act = () => new Language(name, null, fileSuffix, serverLanguage, repoInfos);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("name");
 
-            act = () => new Language(null, key, fileSuffix, serverLanguage);
+            act = () => new Language(null, key, fileSuffix, serverLanguage, repoInfos);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
 
-            act = () => new Language(name, key, fileSuffix, null);
+            act = () => new Language(name, key, fileSuffix, null, repoInfos);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverLanguage");
+
+            act = () => new Language(name, key, fileSuffix, serverLanguage, defaultRepo);
+            act.Should().ThrowExactly<ArgumentException>().And.Message.Should().Be("repoInfo");
+
+            act = () => new Language(name, key, fileSuffix, serverLanguage, repoInfos, securityRepoInfo: null);
+            act.Should().NotThrow<ArgumentException>();
+
+            act = () => new Language(name, key, fileSuffix, serverLanguage, repoInfos, defaultRepo);
+            act.Should().ThrowExactly<ArgumentException>().And.Message.Should().Be("securityRepoInfo");
         }
 
         [TestMethod]
@@ -75,7 +83,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [TestMethod]
         public void Language_ISupported_UnsupportedLanguage_IsFalse()
         {
-            var other = new Language("foo", "Foo language", "file_suffix", new SonarQubeLanguage("server key", "server name"));
+            var other = new Language("foo", "Foo language", "file_suffix", new SonarQubeLanguage("server key", "server name"), new RepoInfo("repoKey"));
             other.IsSupported.Should().BeFalse();
         }
 
@@ -83,9 +91,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         public void Language_Equality()
         {
             // Arrange
-            var lang1a = new Language("Language 1", "lang1", "file_suffix", new SonarQubeLanguage("a", "b"));
-            var lang1b = new Language("Language 1", "lang1 XXX", "file_suffix XXX", new SonarQubeLanguage("c", "d"));
-            var lang2 = new Language("Language 2", "lang2", "file_suffix", new SonarQubeLanguage("e", "f"));
+            var lang1a = new Language("Language 1", "lang1", "file_suffix", new SonarQubeLanguage("a", "b"), new RepoInfo("repoKey"));
+            var lang1b = new Language("Language 1", "lang1 XXX", "file_suffix XXX", new SonarQubeLanguage("c", "d"), new RepoInfo("repoKey"));
+            var lang2 = new Language("Language 2", "lang2", "file_suffix", new SonarQubeLanguage("e", "f"), new RepoInfo("repoKey"));
 
             // Act + Assert
             lang1b.Should().Be(lang1a, "Languages with the same ids should be equal");
@@ -169,7 +177,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             Language.GetSonarRepoKeyFromLanguage(Language.Unknown).Should().BeNull();
 
-            var language = new Language("xxx", "dummy language", "x", new SonarQubeLanguage("xxx", "LanguageX"));
+            var language = new Language("xxx", "dummy language", "x", new SonarQubeLanguage("xxx", "LanguageX"), new RepoInfo("repoKey"));
             Language.GetSonarRepoKeyFromLanguage(language).Should().BeNull();
         }
 
@@ -180,7 +188,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             // for all known languages.
             // Regression test to avoid bugs like #3973.
 
-            foreach(var item in Language.KnownLanguages)
+            foreach (var item in Language.KnownLanguages)
             {
                 var actualRepoKey = Language.GetSonarRepoKeyFromLanguage(item);
                 actualRepoKey.Should().NotBeNull();
