@@ -154,7 +154,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             Language.Secrets.RepoInfo.RepoKey,
         };
 
-        private bool IsSonarRule(SonarCompositeRuleId rule) => supportedRepos.Contains(rule.RepoKey);
+        private static bool IsSonarRule(SonarCompositeRuleId rule) => supportedRepos.Contains(rule.RepoKey);
 
         private bool IsDisablingRuleAllowed()
         {

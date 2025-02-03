@@ -48,13 +48,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverLanguage");
 
             act = () => new Language(name, key, fileSuffix, serverLanguage, defaultRepo);
-            act.Should().ThrowExactly<ArgumentException>().And.Message.Should().Be("repoInfo");
+            act.Should().ThrowExactly<ArgumentException>().WithMessage("repoInfo");
 
             act = () => new Language(name, key, fileSuffix, serverLanguage, repoInfos, securityRepoInfo: null);
             act.Should().NotThrow<ArgumentException>();
 
             act = () => new Language(name, key, fileSuffix, serverLanguage, repoInfos, defaultRepo);
-            act.Should().ThrowExactly<ArgumentException>().And.Message.Should().Be("securityRepoInfo");
+            act.Should().ThrowExactly<ArgumentException>().WithMessage("securityRepoInfo");
         }
 
         [TestMethod]
