@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-
 namespace SonarLint.VisualStudio.Core
 {
     public interface IRuleHelpLinkProvider
@@ -29,21 +27,6 @@ namespace SonarLint.VisualStudio.Core
 
     public class RuleHelpLinkProvider : IRuleHelpLinkProvider
     {
-        private static readonly IDictionary<string, string> repoKeyToFolderNameMap = new Dictionary<string, string>
-        {
-            { SonarRuleRepoKeys.CSharpSecurityRules, "csharp" },
-
-            // Support for C# hotspots. No need to special-case the VB.NET hotspots, as their repo name is identical to the one on rules.sonarsource.com
-            { SonarRuleRepoKeys.CSharpRules, "csharp" },
-
-            { SonarRuleRepoKeys.JsSecurityRules, "javascript" },
-            { SonarRuleRepoKeys.TsSecurityRules, "typescript" },
-
-            // TODO: there may be other repo keys that have different language names on rules.sonarsource.com
-            // See https://github.com/SonarSource/sonarlint-visualstudio/issues/4586.
-            { SonarRuleRepoKeys.HtmlRules, "html" }
-        };
-
         public string GetHelpLink(string ruleKey)
         {
             // ruleKey is in format "javascript:S1234" (or javascript:SOMETHING for legacy keys)
@@ -62,18 +45,16 @@ namespace SonarLint.VisualStudio.Core
             return $"https://rules.sonarsource.com/{languageFolderName}/{webSiteRuleId}";
         }
 
-        private string GetWebsiteFolderName(string repoKey)
+        private static string GetWebsiteFolderName(string repoKey)
         {
-            // The rules for each language are in a separate folder in the rules website.
-            // For some languages, the folder name happens to match the repo key.
-            // The dictionary provides the mapping to use in cases where they are not the same.
-            if (repoKeyToFolderNameMap.TryGetValue(repoKey, out var folderName))
+            var language = Language.KnownLanguages.FirstOrDefault(lang => lang.HasRepoKey(repoKey));
+
+            if (language?.SecurityRepoInfo?.RepoKey == repoKey)
             {
-                return folderName;
+                return language?.SecurityRepoInfo?.FolderName;
             }
 
-            // Assume the folder name is the same as the repo key
-            return repoKey;
+            return language?.RepoInfo.FolderName ?? repoKey;
         }
 
         private static string GetWebsiteRuleId(string ruleId)

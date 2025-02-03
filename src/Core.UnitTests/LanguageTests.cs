@@ -197,5 +197,23 @@ namespace SonarLint.VisualStudio.Core.UnitTests
                 actualLanguage.Should().BeSameAs(item);
             }
         }
+
+        [TestMethod]
+        [DataRow("keyToCheck", "securityKey")]
+        [DataRow("repoKey", "keyToCheck")]
+        public void HasRepoKey_RepoOrSecurityRepoHasKey_ReturnsTrue(string repoKey, string securityRepoKey)
+        {
+            var language = new Language("xxx", "dummy language", "x", new SonarQubeLanguage("xxx", "LanguageX"), new RepoInfo(repoKey), new RepoInfo(securityRepoKey));
+
+            language.HasRepoKey("keyToCheck").Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void HasRepoKey_RepoNorSecurityRepoHasKey_ReturnsFalse()
+        {
+            var language = new Language("xxx", "dummy language", "x", new SonarQubeLanguage("xxx", "LanguageX"), new RepoInfo("myRepoKey"), new RepoInfo("mySecurityRepoKey"));
+
+            language.HasRepoKey("keyToCheck").Should().BeFalse();
+        }
     }
 }

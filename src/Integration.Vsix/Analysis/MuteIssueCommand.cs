@@ -29,7 +29,6 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Core.Transition;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarQube.Client.Models;
 using MessageBox = SonarLint.VisualStudio.Core.MessageBox;
 using Task = System.Threading.Tasks.Task;
 
@@ -72,7 +71,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 logger);
         }
 
-        internal MuteIssueCommand(IMenuCommandService menuCommandService,
+        internal MuteIssueCommand(
+            IMenuCommandService menuCommandService,
             IErrorListHelper errorListHelper,
             IRoslynIssueLineHashCalculator roslynIssueLineHashCalculator,
             IServerIssueFinder serverIssueFinder,
@@ -187,20 +187,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         // not "all rules for language X".  However, since we are in control of the
         // rules/repos that are installed in  VSIX, checking the repo key is good
         // enough.
-        private static readonly string[] SupportedRepos =
+        private static readonly string[] SupportedRepos = new[]
         {
-            SonarRuleRepoKeys.C,
-            SonarRuleRepoKeys.Cpp,
-            SonarRuleRepoKeys.JavaScript,
-            SonarRuleRepoKeys.TypeScript,
-            SonarRuleRepoKeys.Css,
-            SonarRuleRepoKeys.HtmlRules,
-            SonarRuleRepoKeys.CSharpRules,
-            SonarRuleRepoKeys.VBNetRules,
-            SonarRuleRepoKeys.TSql
+            Language.C.RepoInfo.RepoKey, Language.Cpp.RepoInfo.RepoKey, Language.Js.RepoInfo.RepoKey, Language.Ts.RepoInfo.RepoKey, Language.Css.RepoInfo.RepoKey, Language.Html.RepoInfo.RepoKey,
+            Language.CSharp.RepoInfo.RepoKey, Language.VBNET.RepoInfo.RepoKey, Language.TSql.RepoInfo.RepoKey,
         };
 
-        private static bool IsSupportedSonarRule(SonarCompositeRuleId rule) =>
-            SupportedRepos.Contains(rule.RepoKey, SonarRuleRepoKeys.RepoKeyComparer);
+        private static bool IsSupportedSonarRule(SonarCompositeRuleId rule) => SupportedRepos.Contains(rule.RepoKey);
     }
 }

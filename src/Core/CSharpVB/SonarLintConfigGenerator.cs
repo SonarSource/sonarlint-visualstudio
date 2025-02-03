@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using SonarQube.Client.Models;
 
 // Logically equivalent to the SonarScanner for MSBuild class "RoslynSonarLint"
@@ -30,11 +27,10 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
 {
     public class SonarLintConfigGenerator : ISonarLintConfigGenerator
     {
-        private const string CSharpRepoKey = "csharpsquid";
-        private const string VBRepoKey = "vbnet";
         private const string SecuredPropertySuffix = ".secured";
 
-        public SonarLintConfiguration Generate(IEnumerable<SonarQubeRule> rules,
+        public SonarLintConfiguration Generate(
+            IEnumerable<SonarQubeRule> rules,
             IDictionary<string, string> sonarProperties,
             ServerExclusions serverExclusions,
             Language language)
@@ -52,11 +48,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             var sonarRepoKey = GetSonarRepoKey(language);
             var slvsRules = GetRulesForRepo(sonarRepoKey, rules);
 
-            return new SonarLintConfiguration
-            {
-                Settings = slvsSettings,
-                Rules = slvsRules
-            };
+            return new SonarLintConfiguration { Settings = slvsSettings, Rules = slvsRules };
         }
 
         private static IEnumerable<SonarLintKeyValuePair> GetInclusionsExclusions(ServerExclusions exclusions) =>
@@ -64,22 +56,13 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
                 .ToDictionary()
                 .Where(x => !string.IsNullOrEmpty(x.Value))
                 .Select(x =>
-                    new SonarLintKeyValuePair
-                    {
-                        Key = x.Key,
-                        Value = x.Value
-                    });
+                    new SonarLintKeyValuePair { Key = x.Key, Value = x.Value });
 
         private static string GetSonarRepoKey(Language language)
         {
-            if (language.ServerLanguage.Key == SonarQubeLanguage.CSharp.Key)
+            if (language.ServerLanguage.Key == SonarQubeLanguage.CSharp.Key || language.ServerLanguage.Key == SonarQubeLanguage.VbNet.Key)
             {
-                return CSharpRepoKey;
-            }
-
-            if (language.ServerLanguage.Key == SonarQubeLanguage.VbNet.Key)
-            {
-                return VBRepoKey;
+                return language.RepoInfo.RepoKey;
             }
 
             throw new ArgumentOutOfRangeException(nameof(language));
@@ -91,16 +74,15 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
                 .OrderBy(s => s.Key)
                 .ToList();
 
-        private static bool IsSettingForLanguage (string language, string propertyKey)
+        private static bool IsSettingForLanguage(string language, string propertyKey)
         {
             var prefix = $"sonar.{language}.";
 
             return propertyKey.StartsWith(prefix) &&
-                propertyKey.Length > prefix.Length;
+                   propertyKey.Length > prefix.Length;
         }
 
-        private static bool IsSecuredServerProperty(string s) =>
-            s.EndsWith(SecuredPropertySuffix, StringComparison.OrdinalIgnoreCase);
+        private static bool IsSecuredServerProperty(string s) => s.EndsWith(SecuredPropertySuffix, StringComparison.OrdinalIgnoreCase);
 
         private static List<SonarLintRule> GetRulesForRepo(string sonarRepoKey, IEnumerable<SonarQubeRule> sqRules) =>
             sqRules.Where(ar => sonarRepoKey.Equals(ar.RepositoryKey) && HasParameters(ar))
@@ -108,13 +90,12 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
                 .OrderBy(slr => slr.Key)
                 .ToList();
 
-        private static bool HasParameters(SonarQubeRule sqRule) =>
-            sqRule.Parameters.Count > 0;
+        private static bool HasParameters(SonarQubeRule sqRule) => sqRule.Parameters.Count > 0;
 
         private static SonarLintRule ToSonarLintRule(SonarQubeRule sqRule)
         {
             List<SonarLintKeyValuePair> slvsParameters = null;
-            if (sqRule.Parameters != null && sqRule.Parameters.Count > 0 )
+            if (sqRule.Parameters != null && sqRule.Parameters.Count > 0)
             {
                 slvsParameters = sqRule.Parameters
                     .Select(ToSonarLintKeyValue)
@@ -122,14 +103,9 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
                     .ToList();
             }
 
-            return new SonarLintRule()
-            {
-                Key = sqRule.Key,
-                Parameters = slvsParameters
-            };
+            return new SonarLintRule() { Key = sqRule.Key, Parameters = slvsParameters };
         }
 
-        private static SonarLintKeyValuePair ToSonarLintKeyValue(KeyValuePair<string, string> setting) =>
-            new SonarLintKeyValuePair() { Key = setting.Key, Value = setting.Value };
+        private static SonarLintKeyValuePair ToSonarLintKeyValue(KeyValuePair<string, string> setting) => new SonarLintKeyValuePair() { Key = setting.Key, Value = setting.Value };
     }
 }

@@ -67,8 +67,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="menuCommandService">Command service to add command to, not null.</param>
-        internal DisableRuleCommand(IMenuCommandService menuCommandService, IUserSettingsProvider userSettingsProvider,
-            IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger, IErrorListHelper errorListHelper)
+        internal DisableRuleCommand(
+            IMenuCommandService menuCommandService,
+            IUserSettingsProvider userSettingsProvider,
+            IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            ILogger logger,
+            IErrorListHelper errorListHelper)
         {
             if (menuCommandService == null)
             {
@@ -105,6 +109,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 logger.WriteLine(AnalysisStrings.DisableRule_ErrorCheckingCommandStatus, ex.Message);
             }
         }
+
         /// <summary>
         /// Gets the instance of the command.
         /// </summary>
@@ -113,6 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             get;
             private set;
         }
+
         /// <summary>
         /// This function is the callback used to execute the command when the menu item is clicked.
         /// See the constructor to see how the menu item is associated with this function using
@@ -137,23 +143,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 logger.WriteLine(AnalysisStrings.DisableRule_ErrorDisablingRule, ruleId?.ErrorListErrorCode ?? AnalysisStrings.DisableRule_UnknownErrorCode, ex.Message);
             }
         }
+
         // Strictly speaking we are allowing rules from known repos to be disabled,
         // not "all rules for language X".  However, since we are in control of the
         // rules/repos that are installed in  VSIX, checking the repo key is good
         // enough.
         private static readonly string[] supportedRepos = new[]
         {
-            SonarRuleRepoKeys.C,
-            SonarRuleRepoKeys.Cpp,
-            SonarRuleRepoKeys.JavaScript,
-            SonarRuleRepoKeys.TypeScript,
-            SonarRuleRepoKeys.Css,
-            SonarRuleRepoKeys.HtmlRules,
-            SonarRuleRepoKeys.Secrets,
+            Language.C.RepoInfo.RepoKey, Language.Cpp.RepoInfo.RepoKey, Language.Js.RepoInfo.RepoKey, Language.Ts.RepoInfo.RepoKey, Language.Css.RepoInfo.RepoKey, Language.Html.RepoInfo.RepoKey,
+            Language.Secrets.RepoInfo.RepoKey,
         };
 
-        private bool IsSonarRule(SonarCompositeRuleId rule)
-            => supportedRepos.Contains(rule.RepoKey, SonarRuleRepoKeys.RepoKeyComparer);
+        private bool IsSonarRule(SonarCompositeRuleId rule) => supportedRepos.Contains(rule.RepoKey);
 
         private bool IsDisablingRuleAllowed()
         {

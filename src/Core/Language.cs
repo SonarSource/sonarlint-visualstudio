@@ -61,25 +61,12 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Returns the language for the specified repository key, or null if it does not match a known language
         /// </summary>
-        public static Language GetLanguageFromRepositoryKey(string repoKey)
-        {
-            repoKeyToLanguage.TryGetValue(repoKey, out Language language);
-
-            return language;
-        }
+        public static Language GetLanguageFromRepositoryKey(string repoKey) => KnownLanguages.SingleOrDefault(lang => lang.HasRepoKey(repoKey));
 
         /// <summary>
         /// Returns the Sonar analyzer repository for the specified language key, or null if one could not be found
         /// </summary>
-        public static string GetSonarRepoKeyFromLanguage(Language language)
-        {
-            if (language?.ServerLanguage?.Key == null)
-            {
-                return null;
-            }
-            var match = repoKeyToLanguage.FirstOrDefault(x => !x.Key.Contains("security") && x.Value.ServerLanguage.Key == language.ServerLanguage.Key);
-            return match.Key ?? null;
-        }
+        public static string GetSonarRepoKeyFromLanguage(Language language) => KnownLanguages.SingleOrDefault(x => x.Id == language.Id)?.RepoInfo.RepoKey;
 
         /// <summary>
         /// A stable identifier for this language.
@@ -129,26 +116,6 @@ namespace SonarLint.VisualStudio.Core
         }
 
         /// <summary>
-        /// Matches the repository name to its language object counterpart.
-        /// </summary>
-        private static readonly Dictionary<string, Language> repoKeyToLanguage = new Dictionary<string, Language>()
-        {
-            { "csharpsquid", CSharp },
-            { "roslyn.sonaranalyzer.security.cs", CSharp },
-            { "vbnet", VBNET },
-            { "cpp", Cpp },
-            { "c", C },
-            { "javascript", Js },
-            { "jssecurity", Js },
-            { "typescript", Ts },
-            { "tssecurity", Ts },
-            { "css", Css },
-            { "Web", Html },
-            { "secrets", Secrets },
-            { "tsql", TSql },
-        };
-
-        /// <summary>
         /// Private constructor reserved for the <seealso cref="Unknown"/>.
         /// </summary>
         private Language()
@@ -181,7 +148,7 @@ namespace SonarLint.VisualStudio.Core
             FileSuffixAndExtension = fileSuffix;
             ServerLanguage = serverLanguage ?? throw new ArgumentNullException(nameof(serverLanguage));
             RepoInfo = repoInfo == default ? throw new ArgumentException(nameof(repoInfo)) : repoInfo;
-            SecurityRepoInfo = securityRepoInfo != null && securityRepoInfo.Value == default ? throw new ArgumentException(nameof(securityRepoInfo)) : repoInfo;
+            SecurityRepoInfo = securityRepoInfo != null && securityRepoInfo.Value == default ? throw new ArgumentException(nameof(securityRepoInfo)) : securityRepoInfo;
         }
 
         #region IEquatable<Language> and Equals
@@ -210,5 +177,7 @@ namespace SonarLint.VisualStudio.Core
         #endregion
 
         public override string ToString() => Name;
+
+        public bool HasRepoKey(string repoKey) => RepoInfo.RepoKey == repoKey || SecurityRepoInfo?.RepoKey == repoKey;
     }
 }
