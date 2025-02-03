@@ -25,6 +25,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests
     [TestClass]
     public class LanguageTests
     {
+        private readonly RepoInfo repoInfo = new("repoKey");
+
         [TestMethod]
         public void Language_Ctor_ArgChecks()
         {
@@ -32,7 +34,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var key = "k";
             var name = "MyName";
             var fileSuffix = "suffix";
-            var repoInfos = new RepoInfo("repoKey");
+            var repoInfos = repoInfo;
             var serverLanguage = new SonarQubeLanguage("serverKey", "serverName");
             RepoInfo defaultRepo = default;
 
@@ -83,7 +85,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [TestMethod]
         public void Language_ISupported_UnsupportedLanguage_IsFalse()
         {
-            var other = new Language("foo", "Foo language", "file_suffix", new SonarQubeLanguage("server key", "server name"), new RepoInfo("repoKey"));
+            var other = new Language("foo", "Foo language", "file_suffix", new SonarQubeLanguage("server key", "server name"), repoInfo);
             other.IsSupported.Should().BeFalse();
         }
 
@@ -91,9 +93,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         public void Language_Equality()
         {
             // Arrange
-            var lang1a = new Language("Language 1", "lang1", "file_suffix", new SonarQubeLanguage("a", "b"), new RepoInfo("repoKey"));
-            var lang1b = new Language("Language 1", "lang1 XXX", "file_suffix XXX", new SonarQubeLanguage("c", "d"), new RepoInfo("repoKey"));
-            var lang2 = new Language("Language 2", "lang2", "file_suffix", new SonarQubeLanguage("e", "f"), new RepoInfo("repoKey"));
+            var lang1a = new Language("Language 1", "lang1", "file_suffix", new SonarQubeLanguage("a", "b"), repoInfo);
+            var lang1b = new Language("Language 1", "lang1 XXX", "file_suffix XXX", new SonarQubeLanguage("c", "d"), repoInfo);
+            var lang2 = new Language("Language 2", "lang2", "file_suffix", new SonarQubeLanguage("e", "f"), repoInfo);
 
             // Act + Assert
             lang1b.Should().Be(lang1a, "Languages with the same ids should be equal");
@@ -177,7 +179,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             Language.GetSonarRepoKeyFromLanguage(Language.Unknown).Should().BeNull();
 
-            var language = new Language("xxx", "dummy language", "x", new SonarQubeLanguage("xxx", "LanguageX"), new RepoInfo("repoKey"));
+            var language = new Language("xxx", "dummy language", "x", new SonarQubeLanguage("xxx", "LanguageX"), repoInfo);
             Language.GetSonarRepoKeyFromLanguage(language).Should().BeNull();
         }
 
