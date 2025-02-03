@@ -9,7 +9,8 @@
                          Title="{x:Static res:UiResources.ManageBindingDialogTitle}" 
                          WindowStartupLocation="CenterOwner"
                          Initialized="ManageBindingDialog_OnInitialized"
-                         x:Name="This">
+                         x:Name="This"
+                         x:ClassModifier="internal">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -35,33 +36,7 @@
 
         <GroupBox Grid.Row="0" Header="{x:Static res:UiResources.BindingStatusLabel}">
             <Grid>
-                <Grid VerticalAlignment="Center" Margin="10,0" Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToCollapsedConverter}}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Grid Grid.Column="0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock Grid.Column="1" FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment155PercentFontSizeKey}}">
-                           <Run Text="{Binding Path=SolutionInfo.SolutionType, StringFormat='{}{0} '}"/>
-                           <Run Text="{Binding Path=SolutionInfo.Name, StringFormat='{}&quot;{0}&quot; '}" FontWeight="DemiBold"/>
-                           <Run Text="{x:Static res:UiResources.IsNotBoundText}"/>
-                        </TextBlock>
-                    </Grid>
-
-                    <Button Grid.Column="1" HorizontalAlignment="Right" Content="{x:Static res:UiResources.UseSharedConfiguration}" 
-                            IsEnabled="{Binding Path=IsUseSharedBindingButtonEnabled}"
-                            Visibility="{Binding Path=IsUseSharedBindingButtonVisible, Converter={StaticResource TrueToVisibleConverter}}"
-                            Click="UseSharedBinding_OnClick">
-                    </Button>
-                </Grid>
-
-                <Grid VerticalAlignment="Center" Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToVisibleConverter}}">
+                <Grid VerticalAlignment="Center" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
@@ -72,30 +47,79 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-
-                        <Image Grid.Column="0" Width="20" Height="20" VerticalAlignment="Center" Margin="10, 0,10,0" 
-                                            Source="{StaticResource CheckDrawingImage}"/>
-                        <TextBlock Grid.Column="1" Margin="5,0" FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment155PercentFontSizeKey}}">
+                        
+                        <!-- Alternatives -->
+                        <!-- Alternative: Bound -->
+                        <Image Grid.Column="0" 
+                               Width="20" 
+                               Height="20" 
+                               VerticalAlignment="Center" 
+                               Margin="10, 0,10,0" 
+                               Source="{StaticResource CheckDrawingImage}" 
+                               Visibility="{Binding  Path=IsOpenSolutionBound, Converter={StaticResource TrueToVisibleConverter}}"/>
+                        <TextBlock Grid.Column="1" 
+                                   Margin="5,0" 
+                                   FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment155PercentFontSizeKey}}" 
+                                   Visibility="{Binding  Path=IsOpenSolutionBound, Converter={StaticResource TrueToVisibleConverter}}">
                            <Run Text="{Binding Path=SolutionInfo.SolutionType, StringFormat='{}{0} '}"/>
                            <Run Text="{Binding Path=SolutionInfo.Name, StringFormat='{}&quot;{0}&quot; '}" FontWeight="DemiBold"/>
-                           <Run Text="{x:Static res:UiResources.IsBoundToText}"/> 
+                           <Run Text="{x:Static res:UiResources.ManageBindingDialog_IsBoundToText}"/> 
                            <Run Text="{Binding Path=BoundProject.Name, StringFormat='{}&quot;{0}&quot; '}" FontWeight="DemiBold"/>
                         </TextBlock>
+                        <!-- Alternative: Standalone -->
+                        <TextBlock Grid.Column="1"
+                                   FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment155PercentFontSizeKey}}" 
+                                   Visibility="{Binding  Path=IsOpenSolutionStandalone, Converter={StaticResource TrueToVisibleConverter}}">
+                            <Run Text="{Binding Path=SolutionInfo.SolutionType, StringFormat='{}{0} '}"/>
+                            <Run Text="{Binding Path=SolutionInfo.Name, StringFormat='{}&quot;{0}&quot; '}" FontWeight="DemiBold"/>
+                            <Run Text="{x:Static res:UiResources.ManageBindingDialog_IsNotBoundText}"/>
+                        </TextBlock>
+                        <!-- Alternative: NoSolution -->
+                        <TextBlock Grid.Column="1"
+                                   FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment155PercentFontSizeKey}}" 
+                                   Visibility="{Binding  Path=IsSolutionOpen, Converter={StaticResource TrueToCollapsedConverter}}">
+                            <Run Text="{x:Static res:UiResources.ManageBindingDialog_NothingToBind}"/>
+                        </TextBlock>
+                        <!-- End alternatives -->
                     </Grid>
 
-                    <Grid Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10,0">
+                    
+                    <!-- Alternatives -->
+                    <!-- Alternative: Bound -->
+                    <Grid Grid.Column="1"
+                          HorizontalAlignment="Right"
+                          VerticalAlignment="Center" 
+                          Margin="10,0" 
+                          Visibility="{Binding  Path=IsOpenSolutionBound, Converter={StaticResource TrueToVisibleConverter}}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <Button Grid.Column="0" Content="{x:Static res:UiResources.UnbindButton}" IsEnabled="{Binding Path=IsUnbindButtonEnabled}" 
-                           VerticalAlignment="Center"
-                           Click="Unbind_OnClick"/>
-                        <Button Grid.Column="1" Visibility="Collapsed" Content="{x:Static res:UiResources.ShareConfigurationButton}" ToolTip="{x:Static res:UiResources.ExportBindingConfigurationTooltip}"
-                           IsEnabled="{Binding Path=IsExportButtonEnabled}" VerticalAlignment="Center"
-                           Click="ExportBindingConfigurationButton_OnClick"/>
+                        <Button Grid.Column="0" 
+                                Content="{x:Static res:UiResources.UnbindButton}" 
+                                IsEnabled="{Binding Path=IsUnbindButtonEnabled}" 
+                                VerticalAlignment="Center"
+                                Click="Unbind_OnClick"/>
+                        <!-- todo remove https://sonarsource.atlassian.net/browse/SLVS-1380 `Visibility="Collapsed"` -->
+                        <Button Grid.Column="1" 
+                                Visibility="Collapsed" 
+                                Content="{x:Static res:UiResources.ShareConfigurationButton}" 
+                                ToolTip="{x:Static res:UiResources.ExportBindingConfigurationTooltip}"
+                                IsEnabled="{Binding Path=IsExportButtonEnabled}" 
+                                VerticalAlignment="Center"
+                                Click="ExportBindingConfigurationButton_OnClick"/>
                     </Grid>
+                    <!-- Alternative: Standalone -->
+                    <Button Grid.Column="1" 
+                            HorizontalAlignment="Right" 
+                            Content="{x:Static res:UiResources.UseSharedConfiguration}" 
+                            IsEnabled="{Binding Path=IsUseSharedBindingButtonEnabled}"
+                            Visibility="{Binding Path=IsUseSharedBindingButtonVisible, Converter={StaticResource TrueToVisibleConverter}}"
+                            Click="UseSharedBinding_OnClick" />
+                    <!-- Alternative: NoSolution -->
+                    <!-- no buttons -->
+                    <!-- End alternatives -->
                 </Grid>
             </Grid>
         </GroupBox>
@@ -177,20 +201,20 @@
             <Hyperlink NavigateUri="{x:Static links:DocumentationLinks.ConnectedModeUri}" RequestNavigate="ViewWebsite">Connected Mode</Hyperlink>
         </TextBlock>
 
-        <Grid Grid.Row="4" HorizontalAlignment="Right" Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToCollapsedConverter}}">
+        <!-- Alternatives -->
+        <!-- Alternative: Standalone -->
+        <Grid Grid.Row="4" HorizontalAlignment="Right" Visibility="{Binding  Path=IsOpenSolutionStandalone, Converter={StaticResource TrueToVisibleConverter}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-
-            <Button Grid.Column="0" Content="{x:Static res:UiResources.BindButton}" IsDefault="True" IsEnabled="{Binding Path=IsBindButtonEnabled}"
-                    Click="Binding_OnClick"/>
+            <Button Grid.Column="0" Content="{x:Static res:UiResources.BindButton}" IsDefault="True" IsEnabled="{Binding Path=IsBindButtonEnabled}" Click="Binding_OnClick"/>
             <Button Grid.Column="1" Content="{x:Static res:UiResources.CloseButton}" IsCancel="True"/> 
         </Grid>
-
-        <Grid Grid.Row="4" HorizontalAlignment="Right" Visibility="{Binding  Path=IsCurrentProjectBound, Converter={StaticResource TrueToVisibleConverter}}">
+        <!-- Alternative: Bound or NoSolution -->
+        <Grid Grid.Row="4" HorizontalAlignment="Right" Visibility="{Binding  Path=IsOpenSolutionStandalone, Converter={StaticResource TrueToCollapsedConverter}}">
             <Button Grid.Column="0" Content="{x:Static res:UiResources.OkButton}" IsDefault="True" IsCancel="True"/>
         </Grid>
-
+        <!-- End alternatives -->
     </Grid>
 </Window>

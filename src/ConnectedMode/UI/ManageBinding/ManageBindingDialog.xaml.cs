@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI.ProjectSelection;
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
-public partial class ManageBindingDialog : Window
+internal partial class ManageBindingDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
     private readonly IConnectedModeBindingServices connectedModeBindingServices;
