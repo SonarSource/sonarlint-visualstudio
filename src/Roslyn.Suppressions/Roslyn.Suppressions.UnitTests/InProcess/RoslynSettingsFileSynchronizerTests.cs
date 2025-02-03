@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess;
 [TestClass]
 public class RoslynSettingsFileSynchronizerTests
 {
+    private const string DefaultSln = "DefaultSolution.sln";
     private IConfigurationProvider configProvider;
     private TestLogger logger;
     private IRoslynSettingsFileStorage roslynSettingsFileStorage;
@@ -63,6 +64,7 @@ public class RoslynSettingsFileSynchronizerTests
             logger,
             threadHandling);
         threadHandling.SwitchToBackgroundThread().Returns(new NoOpThreadHandler.NoOpAwaitable());
+        MockSolutionInfoProvider(DefaultSln);
     }
 
     [TestMethod]
@@ -156,6 +158,20 @@ public class RoslynSettingsFileSynchronizerTests
         roslynSettingsFileStorage.ReceivedCalls().Should().HaveCount(1);
         configProvider.ReceivedCalls().Should().HaveCount(1);
         roslynSettingsFileStorage.Received(1).Update(Arg.Any<RoslynSettings>(), Arg.Any<string>());
+    }
+
+    [TestMethod]
+    public async Task UpdateFileStorage_NoSolution_DoesNothing()
+    {
+        MockSolutionInfoProvider(null);
+
+        await testSubject.UpdateFileStorageAsync();
+
+        threadHandling.Received(1).SwitchToBackgroundThread();
+        solutionInfoProvider.Received(1).GetFullSolutionFilePathAsync();
+        roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Update(default, default);
+        roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Delete(default);
+        configProvider.DidNotReceiveWithAnyArgs().GetConfiguration();
     }
 
     [TestMethod]
