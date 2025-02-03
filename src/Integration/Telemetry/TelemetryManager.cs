@@ -51,10 +51,10 @@ internal sealed class TelemetryManager : ITelemetryManager,
         telemetryHelper.Notify(telemetryService =>
             telemetryService.AddQuickFixAppliedForRule(new AddQuickFixAppliedForRuleParams(ruleId)));
 
-    public void FixSuggestionResolved(string suggestionId, IEnumerable<bool> changeApplicationStatus) =>
+    public void FixSuggestionResolved(string suggestionId, IEnumerable<bool> changeResolutionStatus) =>
         telemetryHelper.Notify(telemetryService =>
         {
-            foreach (var resolvedParams in ConvertFixSuggestionChangeToResolvedParams(suggestionId, changeApplicationStatus))
+            foreach (var resolvedParams in ConvertFixSuggestionChangeToResolvedParams(suggestionId, changeResolutionStatus))
             {
                 telemetryService.FixSuggestionResolved(resolvedParams);
             }
