@@ -52,18 +52,17 @@ namespace SonarLint.VisualStudio.Core
         private static readonly RepoInfo SecretsRepo = new("secrets");
         private static readonly RepoInfo TsqlRepo = new("tsql");
 
-        public readonly static Language Unknown = new Language();
-        public readonly static Language CSharp = new Language("CSharp", CoreStrings.CSharpLanguageName, "sonarlint_csharp.globalconfig", SonarQubeLanguage.CSharp, CSharpRepo, CSharpSecurityRepo);
-        public readonly static Language VBNET = new Language("VB", CoreStrings.VBNetLanguageName, "sonarlint_vb.globalconfig", SonarQubeLanguage.VbNet, VbNetRepo);
-        public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName, null, SonarQubeLanguage.Cpp, CppRepo);
-        public readonly static Language C = new Language("C", "C", null, SonarQubeLanguage.C, CRepo);
-        public readonly static Language Js = new Language("Js", "JavaScript", null, SonarQubeLanguage.Js, JsRepo, JsSecurityRepo);
-        public readonly static Language Ts = new Language("Ts", "TypeScript", null, SonarQubeLanguage.Ts, TsRepo, TsSecurityRepo);
-        public readonly static Language Css = new Language("Css", "CSS", null, SonarQubeLanguage.Css, CssRepo);
-        public readonly static Language
-            Html = new Language("Html", "HTML", null, SonarQubeLanguage.Html, HtmlRepo); //See https://github.com/SonarSource/sonarlint-visualstudio/issues/4586.
-        public readonly static Language Secrets = new Language("Secrets", "Secrets", null, SonarQubeLanguage.Secrets, SecretsRepo);
-        public readonly static Language TSql = new Language("TSql", "T-SQL", null, SonarQubeLanguage.TSql, TsqlRepo);
+        public static readonly Language Unknown = new();
+        public static readonly Language CSharp = new("CSharp", CoreStrings.CSharpLanguageName, "sonarlint_csharp.globalconfig", SonarQubeLanguage.CSharp, CSharpRepo, CSharpSecurityRepo);
+        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, "sonarlint_vb.globalconfig", SonarQubeLanguage.VbNet, VbNetRepo);
+        public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, null, SonarQubeLanguage.Cpp, CppRepo);
+        public static readonly Language C = new("C", "C", null, SonarQubeLanguage.C, CRepo);
+        public static readonly Language Js = new("Js", "JavaScript", null, SonarQubeLanguage.Js, JsRepo, JsSecurityRepo);
+        public static readonly Language Ts = new("Ts", "TypeScript", null, SonarQubeLanguage.Ts, TsRepo, TsSecurityRepo);
+        public static readonly Language Css = new("Css", "CSS", null, SonarQubeLanguage.Css, CssRepo);
+        public static readonly Language Html = new("Html", "HTML", null, SonarQubeLanguage.Html, HtmlRepo);
+        public static readonly Language Secrets = new("Secrets", "Secrets", null, SonarQubeLanguage.Secrets, SecretsRepo);
+        public static readonly Language TSql = new("TSql", "T-SQL", null, SonarQubeLanguage.TSql, TsqlRepo);
 
         /// <summary>
         /// Returns the language for the specified language key, or null if it does not match a known language
