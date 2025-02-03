@@ -35,6 +35,7 @@ public interface ITelemetrySLCoreService : ISLCoreService
     void TaintVulnerabilitiesInvestigatedRemotely();
     void AddReportedRules(AddReportedRulesParams parameters);
     void AddQuickFixAppliedForRule(AddQuickFixAppliedForRuleParams parameters);
+    void FixSuggestionResolved(FixSuggestionResolvedParams parameters);
     void HelpAndFeedbackLinkClicked(HelpAndFeedbackClickedParams parameters);
     void AddedManualBindings();
     void AddedImportedBindings();

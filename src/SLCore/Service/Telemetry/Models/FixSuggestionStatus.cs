@@ -18,21 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Telemetry;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
-public interface ITelemetryManager
-{
-    SlCoreTelemetryStatus GetStatus();
+namespace SonarLint.VisualStudio.SLCore.Service.Telemetry.Models;
 
-    void OptOut();
-
-    void OptIn();
-
-    void TaintIssueInvestigatedLocally();
-
-    void TaintIssueInvestigatedRemotely();
-
-    void LinkClicked(string linkId);
-
-    void FixSuggestionResolved(string suggestionId, IEnumerable<bool> changeResolutionStatus);
+[JsonConverter(typeof(StringEnumConverter))]
+public enum FixSuggestionStatus {
+    ACCEPTED, DECLINED
 }
