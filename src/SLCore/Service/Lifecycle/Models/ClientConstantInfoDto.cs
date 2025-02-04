@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models
-{
-    public record ClientConstantsDto(string name, string userAgent, long pid);
-}
+namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
+
+public record ClientConstantInfoDto(string name, string userAgent);

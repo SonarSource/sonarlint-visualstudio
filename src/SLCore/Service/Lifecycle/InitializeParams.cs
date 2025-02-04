@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.SLCore.Service.Lifecycle
     /// SLCore initialization parameters
     /// </summary>
     public record InitializeParams(
-        ClientConstantsDto clientConstantInfo,
+        ClientConstantInfoDto clientConstantInfo,
         HttpConfigurationDto httpConfiguration,
         FeatureFlagsDto featureFlags,
         string storageRoot,
