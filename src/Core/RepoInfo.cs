@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Core;
 
-public readonly record struct RepoInfo
+public record RepoInfo
 {
     public RepoInfo(string repoKey, string folderName = null)
     {
