@@ -68,6 +68,7 @@
                         </TextBlock>
                         <!-- Alternative: Standalone -->
                         <TextBlock Grid.Column="1"
+                                   Margin="5,0"
                                    FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment155PercentFontSizeKey}}" 
                                    Visibility="{Binding  Path=IsOpenSolutionStandalone, Converter={StaticResource TrueToVisibleConverter}}">
                             <Run Text="{Binding Path=SolutionInfo.SolutionType, StringFormat='{}{0} '}"/>
@@ -76,9 +77,10 @@
                         </TextBlock>
                         <!-- Alternative: NoSolution -->
                         <TextBlock Grid.Column="1"
+                                   Margin="5,0"
                                    FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment155PercentFontSizeKey}}" 
                                    Visibility="{Binding  Path=IsSolutionOpen, Converter={StaticResource TrueToCollapsedConverter}}">
-                            <Run Text="{x:Static res:UiResources.ManageBindingDialog_NothingToBind}"/>
+                            <Run Text="{x:Static res:UiResources.ManageBindingDialog_NothingToBindText}"/>
                         </TextBlock>
                         <!-- End alternatives -->
                     </Grid>

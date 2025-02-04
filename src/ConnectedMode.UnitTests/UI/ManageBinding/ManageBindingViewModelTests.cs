@@ -142,7 +142,7 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void BoundProject_Set_SolutionOpen_HasBinding_SetsValue()
+    public void BoundProject_Set_OpenSolutionBound_SetsValue()
     {
         testSubject.SolutionInfo = DefaultSolution;
 
@@ -154,7 +154,7 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    public void BoundProject_Set_SolutionOpen_NoBinding_SetsValue()
+    public void BoundProject_Set_OpenSolutionStandalone_SetsNull()
     {
         testSubject.SolutionInfo = DefaultSolution;
 

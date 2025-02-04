@@ -425,7 +425,7 @@ Please manually add the credentials for the connection and then try again.</valu
   <data name="DeleteConnection_DeleteBindingFails" xml:space="preserve">
     <value>[ConnectedMode] Removing the connection failed. The '{0}' project could not be unbound.</value>
   </data>
-  <data name="ManageBindingDialog_NothingToBind" xml:space="preserve">
-    <value>Nothing to bind. Please open a soluton/folder</value>
+  <data name="ManageBindingDialog_NothingToBindText" xml:space="preserve">
+    <value>The binding status is not available. Please open a solution or a folder.</value>
   </data>
 </root>

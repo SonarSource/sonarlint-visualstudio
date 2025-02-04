@@ -528,11 +528,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Nothing to bind. Please open a soluton/folder.
+        ///   Looks up a localized string similar to The binding status is not available. Please open a solution or a folder..
         /// </summary>
-        public static string ManageBindingDialog_NothingToBind {
+        public static string ManageBindingDialog_NothingToBindText {
             get {
-                return ResourceManager.GetString("ManageBindingDialog_NothingToBind", resourceCulture);
+                return ResourceManager.GetString("ManageBindingDialog_NothingToBindText", resourceCulture);
             }
         }
         
