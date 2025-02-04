@@ -36,7 +36,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var fileSuffix = "suffix";
             var repoInfos = repoInfo;
             var serverLanguage = new SonarQubeLanguage("serverKey", "serverName");
-            RepoInfo defaultRepo = default;
 
             // Act + Assert
             // Nulls
@@ -49,14 +48,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             act = () => new Language(name, key, null, repoInfos, settingsFileName: fileSuffix);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverLanguage");
 
-            act = () => new Language(name, key, serverLanguage, defaultRepo, settingsFileName: fileSuffix);
-            act.Should().ThrowExactly<ArgumentException>().WithMessage("repoInfo");
+            act = () => new Language(name, key, serverLanguage, null, settingsFileName: fileSuffix);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("repoInfo");
 
             act = () => new Language(name, key, serverLanguage, repoInfos, securityRepoInfo: null, settingsFileName: fileSuffix);
-            act.Should().NotThrow<ArgumentException>();
-
-            act = () => new Language(name, key, serverLanguage, repoInfos, defaultRepo, settingsFileName: fileSuffix);
-            act.Should().ThrowExactly<ArgumentException>().WithMessage("securityRepoInfo");
+            act.Should().NotThrow<ArgumentNullException>();
         }
 
         [TestMethod]

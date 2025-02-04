@@ -107,9 +107,9 @@ namespace SonarLint.VisualStudio.Core
         public RepoInfo RepoInfo { get; }
 
         /// <summary>
-        /// The repository info for the security rules (i.e. hotspots) for this language
+        /// Nullable, the repository info for the security rules (i.e. hotspots) for this language
         /// </summary>
-        public RepoInfo? SecurityRepoInfo { get; }
+        public RepoInfo SecurityRepoInfo { get; }
 
         /// <summary>
         /// Returns whether or not this language is a supported project language.
@@ -142,7 +142,7 @@ namespace SonarLint.VisualStudio.Core
             string name,
             SonarQubeLanguage serverLanguage,
             RepoInfo repoInfo,
-            RepoInfo? securityRepoInfo = null,
+            RepoInfo securityRepoInfo = null,
             string settingsFileName = null)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -159,8 +159,8 @@ namespace SonarLint.VisualStudio.Core
             Name = name;
             SettingsFileNameAndExtension = settingsFileName;
             ServerLanguage = serverLanguage ?? throw new ArgumentNullException(nameof(serverLanguage));
-            RepoInfo = repoInfo == default ? throw new ArgumentException(nameof(repoInfo)) : repoInfo;
-            SecurityRepoInfo = securityRepoInfo != null && securityRepoInfo.Value == default ? throw new ArgumentException(nameof(securityRepoInfo)) : securityRepoInfo;
+            RepoInfo = repoInfo ?? throw new ArgumentNullException(nameof(repoInfo));
+            SecurityRepoInfo = securityRepoInfo;
         }
 
         #region IEquatable<Language> and Equals
