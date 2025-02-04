@@ -35,12 +35,15 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
 {
     private const string JarFolderName = "DownloadedJars";
 
-    private readonly Dictionary<string, string> connectedModePluginNamePatternByPluginKey = new()
+    private readonly List<Language> standaloneLanguages = new()
     {
-        { "text", "sonar-text-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar" },
-        { "cpp", "sonar-cfamily-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar" },
-        { "javascript", "sonar-javascript-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar" },
-        { "web", "sonar-html-plugin-(\\d+\\.\\d+\\.\\d+\\.\\d+)\\.jar"}
+        Language.C,
+        Language.Cpp,
+        Language.Js,
+        Language.Ts,
+        Language.Css,
+        Language.Html,
+        Language.Secrets,
     };
     private readonly IVsixRootLocator vsixRootLocator;
     private readonly IFileSystem fileSystem;
@@ -72,11 +75,12 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
         var connectedModeEmbeddedPluginPathsByKey = new Dictionary<string, string>();
         var embeddedPluginFilePaths = ListJarFiles();
 
-        foreach (var kvp in connectedModePluginNamePatternByPluginKey)
+        foreach (var group in standaloneLanguages.GroupBy(x => x.PluginInfo.PluginKey).Distinct())
         {
-            if (GetPathByPluginKey(embeddedPluginFilePaths, kvp.Key, kvp.Value) is {} pluginFilePath)
+            var language = group.First(); // All languages in the group have the same plugin
+            if (GetPathByPluginKey(embeddedPluginFilePaths, language.PluginInfo.PluginKey, language.PluginInfo.FilePattern) is { } pluginFilePath)
             {
-                connectedModeEmbeddedPluginPathsByKey.Add(kvp.Key, pluginFilePath);
+                connectedModeEmbeddedPluginPathsByKey.Add(language.PluginInfo.PluginKey, pluginFilePath);
             }
         }
 

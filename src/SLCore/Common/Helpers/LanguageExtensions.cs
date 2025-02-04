@@ -40,16 +40,5 @@ internal static class LanguageExtensions
             _ => VisualStudio.Core.Language.Unknown
         };
 
-    public static string GetPluginKey(this Language language) =>
-        language switch
-        {
-            Language.C or Language.CPP => "cpp",
-            Language.JS or Language.TS or Language.CSS => "javascript",
-            Language.CS => "csharpenterprise",
-            Language.VBNET => "vbnetenterprise",
-            Language.SECRETS => "text",
-            Language.HTML => "web",
-            Language.TSQL => "tsql",
-            _ => null
-        };
+    public static string GetPluginKey(this Language language) => language.ConvertToCoreLanguage().PluginInfo.PluginKey;
 }
