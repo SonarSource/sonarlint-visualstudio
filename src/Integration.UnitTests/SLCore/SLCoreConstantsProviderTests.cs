@@ -54,9 +54,7 @@ public class SLCoreConstantsProviderTests
         var infoProvider = Substitute.For<IVsInfoProvider>();
         infoProvider.Name.Returns(ideName);
         var testSubject = CreateTestSubject(infoProvider);
-        var expectedClientConstants = new ClientConstantsDto(ideName,
-            $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}",
-            Process.GetCurrentProcess().Id);
+        var expectedClientConstants = new ClientConstantInfoDto(ideName, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}");
         var actual = testSubject.ClientConstants;
 
         actual.Should().BeEquivalentTo(expectedClientConstants);

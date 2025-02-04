@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.SLCore.Configuration;
 
 public interface ISLCoreConstantsProvider
 {
-    ClientConstantsDto ClientConstants { get; }
+    ClientConstantInfoDto ClientConstants { get; }
     FeatureFlagsDto FeatureFlags { get; }
     TelemetryClientConstantAttributesDto TelemetryConstants { get; }
 

@@ -44,7 +44,7 @@ public class SLCoreInstanceHandleTests
     private const string WorkDir = "workDirSl";
     private const string UserHome = "userHomeSl";
 
-    private static readonly ClientConstantsDto ClientConstants = new(default, default, default);
+    private static readonly ClientConstantInfoDto ClientConstantInfo = new(default, default);
     private static readonly FeatureFlagsDto FeatureFlags = new(default, default, default, default, default, default, default, default, default);
     private static readonly TelemetryClientConstantAttributesDto TelemetryConstants = new(default, default, default, default, default);
 
@@ -127,7 +127,7 @@ public class SLCoreInstanceHandleTests
             threadHandling.ThrowIfOnUIThread();
             slCoreRpcFactory.StartNewRpcInstance();
             lifecycleManagement.Initialize(Arg.Is<InitializeParams>(parameters =>
-                parameters.clientConstantInfo == ClientConstants
+                parameters.clientConstantInfo == ClientConstantInfo
                 && parameters.featureFlags == FeatureFlags
                 && parameters.storageRoot == StorageRoot
                 && parameters.workDir == WorkDir
@@ -274,7 +274,7 @@ public class SLCoreInstanceHandleTests
         SetUpSLCoreRpcFactory(slCoreRpcFactory, out rpc);
         SetUpSLCoreRpc(rpc, out var serviceProvider);
         SetUpSLCoreServiceProvider(serviceProvider, out lifecycleManagement);
-        constantsProvider.ClientConstants.Returns(ClientConstants);
+        constantsProvider.ClientConstants.Returns(ClientConstantInfo);
         constantsProvider.FeatureFlags.Returns(FeatureFlags);
         constantsProvider.TelemetryConstants.Returns(TelemetryConstants);
 

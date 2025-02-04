@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
             AllAnalyzableLanguages = LanguagesInStandaloneMode.Concat(ExtraLanguagesInConnectedMode).Except(LanguagesWithDisabledAnalysis).ToArray();
         }
 
-        public ClientConstantsDto ClientConstants => new(vsInfoProvider.Name, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}", Process.GetCurrentProcess().Id);
+        public ClientConstantInfoDto ClientConstants => new(vsInfoProvider.Name, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}");
 
         public FeatureFlagsDto FeatureFlags => new(true, true, true, true, true, false, true, true, true);
 
