@@ -26,23 +26,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding;
 
 internal class NonRoslynDummyBindingConfigProvider : IBindingConfigProvider
 {
-    // List of languages that use this type of configuration file (all non-Roslyn languages)
-    private static readonly Language[] SupportedLanguages =
-    [
-        Language.C,
-        Language.Cpp,
-        Language.Js,
-        Language.Ts,
-        Language.Secrets,
-        Language.Css,
-        Language.Html,
-        Language.TSql
-    ];
+    public bool IsLanguageSupported(Language language) => LanguageProvider.Instance.SlCoreLanguages.Contains(language);
 
-    public bool IsLanguageSupported(Language language) => SupportedLanguages.Contains(language);
-
-    public Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language,
-        BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
+    public Task<IBindingConfig> GetConfigurationAsync(
+        SonarQubeQualityProfile qualityProfile,
+        Language language,
+        BindingConfiguration bindingConfiguration,
+        CancellationToken cancellationToken)
     {
         if (!IsLanguageSupported(language))
         {

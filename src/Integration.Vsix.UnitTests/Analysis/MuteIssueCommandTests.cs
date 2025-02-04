@@ -354,7 +354,8 @@ public class MuteIssueCommandTests
         return issue;
     }
 
-    private static void SetUpIssueMuting(Mock<IServerIssueFinder> serverIssueFinderMock,
+    private static void SetUpIssueMuting(
+        Mock<IServerIssueFinder> serverIssueFinderMock,
         Mock<IMuteIssuesService> muteIssueServiceMock,
         MockSequence callSequence,
         IFilterableIssue issue,
@@ -367,7 +368,8 @@ public class MuteIssueCommandTests
             .Returns(Task.CompletedTask);
     }
 
-    private static void SetUpIssueFinder(Mock<IServerIssueFinder> serverIssueFinderMock,
+    private static void SetUpIssueFinder(
+        Mock<IServerIssueFinder> serverIssueFinderMock,
         MockSequence callSequence,
         IFilterableIssue issue,
         SonarQubeIssue sonarQubeIssue)
@@ -386,7 +388,8 @@ public class MuteIssueCommandTests
             .Returns((Func<Task<bool>> action) => action());
     }
 
-    private MenuCommand CreateTestSubject(out Mock<IErrorListHelper> errorListHelperMock,
+    private MenuCommand CreateTestSubject(
+        out Mock<IErrorListHelper> errorListHelperMock,
         out Mock<IRoslynIssueLineHashCalculator> roslynIssueLineHashCalculatorMock,
         out Mock<IServerIssueFinder> serverIssueFinderMock,
         out Mock<IMuteIssuesService> muteIssueServiceMock,
@@ -404,7 +407,8 @@ public class MuteIssueCommandTests
             (activeSolutionBoundTrackerMock = new Mock<IActiveSolutionBoundTracker>(MockBehavior.Strict)).Object,
             (threadHandlingMock = new Mock<IThreadHandling>(MockBehavior.Strict)).Object,
             (messeageBox = new Mock<IMessageBox>()).Object,
-            logger = new TestLogger());
+            logger = new TestLogger(),
+            LanguageProvider.Instance);
 
         dummyMenuService.AddedMenuCommands.Count.Should().Be(1);
         return dummyMenuService.AddedMenuCommands[0];
