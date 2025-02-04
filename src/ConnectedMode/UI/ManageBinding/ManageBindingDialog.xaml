@@ -114,6 +114,7 @@
                     </Grid>
                     <!-- Alternative: Standalone -->
                     <Button Grid.Column="1" 
+                            Margin="10,0" 
                             HorizontalAlignment="Right" 
                             Content="{x:Static res:UiResources.UseSharedConfiguration}" 
                             IsEnabled="{Binding Path=IsUseSharedBindingButtonEnabled}"
