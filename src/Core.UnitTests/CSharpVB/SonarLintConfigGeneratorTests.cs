@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         public void Generate_UnrecognisedLanguage_Throws(string languageKey)
         {
             Action act = () => new SonarLintConfigGenerator().Generate(EmptyRules, EmptyProperties, new ServerExclusions(),
-                new Language(languageKey, "languageX", new SonarQubeLanguage(languageKey, "languageX"), new RepoInfo("repoKey"), settingsFileName: ".any"));
+                new Language(languageKey, "languageX", new SonarQubeLanguage(languageKey, "languageX"), new PluginInfo("pluginKey", null), new RepoInfo("repoKey"), settingsFileName: ".any"));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
         }
 

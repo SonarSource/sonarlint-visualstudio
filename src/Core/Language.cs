@@ -38,6 +38,15 @@ namespace SonarLint.VisualStudio.Core
     [TypeConverter(typeof(LanguageConverter))]
     public sealed class Language : IEquatable<Language>
     {
+        private const string VersionNumberPattern = "(\\d+\\.\\d+\\.\\d+\\.\\d+)\\";
+        private static readonly PluginInfo CSharpPlugin = new("csharpenterprise", $"sonar-csharp-enterprise-plugin-{VersionNumberPattern}.jar");
+        private static readonly PluginInfo VbNetPlugin = new("vbnetenterprise", $"sonar-vbnet-enterprise-plugin-{VersionNumberPattern}.jar");
+        private static readonly PluginInfo SecretsPlugin = new("text", $"sonar-text-plugin-{VersionNumberPattern}.jar");
+        private static readonly PluginInfo CFamilyPlugin = new("cpp", $"sonar-cfamily-plugin-{VersionNumberPattern}.jar");
+        private static readonly PluginInfo JavascriptPlugin = new("javascript", $"sonar-javascript-plugin-{VersionNumberPattern}.jar");
+        private static readonly PluginInfo HtmlPlugin = new("web", $"sonar-html-plugin-{VersionNumberPattern}.jar");
+        private static readonly PluginInfo TsqlPlugin = new("tsql", null);
+
         private static readonly RepoInfo CSharpRepo = new("csharpsquid", "csharp");
         private static readonly RepoInfo CSharpSecurityRepo = new("roslyn.sonaranalyzer.security.cs", "csharp");
         private static readonly RepoInfo VbNetRepo = new("vbnet");
@@ -53,17 +62,17 @@ namespace SonarLint.VisualStudio.Core
         private static readonly RepoInfo TsqlRepo = new("tsql");
 
         public static readonly Language Unknown = new();
-        public static readonly Language CSharp = new("CSharp", CoreStrings.CSharpLanguageName, SonarQubeLanguage.CSharp, CSharpRepo, CSharpSecurityRepo,
+        public static readonly Language CSharp = new("CSharp", CoreStrings.CSharpLanguageName, SonarQubeLanguage.CSharp, CSharpPlugin, CSharpRepo, CSharpSecurityRepo,
             settingsFileName: "sonarlint_csharp.globalconfig");
-        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, SonarQubeLanguage.VbNet, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig");
-        public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, SonarQubeLanguage.Cpp, CppRepo);
-        public static readonly Language C = new("C", "C", SonarQubeLanguage.C, CRepo);
-        public static readonly Language Js = new("Js", "JavaScript", SonarQubeLanguage.Js, JsRepo, JsSecurityRepo);
-        public static readonly Language Ts = new("Ts", "TypeScript", SonarQubeLanguage.Ts, TsRepo, TsSecurityRepo);
-        public static readonly Language Css = new("Css", "CSS", SonarQubeLanguage.Css, CssRepo);
-        public static readonly Language Html = new("Html", "HTML", SonarQubeLanguage.Html, HtmlRepo);
-        public static readonly Language Secrets = new("Secrets", "Secrets", SonarQubeLanguage.Secrets, SecretsRepo);
-        public static readonly Language TSql = new("TSql", "T-SQL", SonarQubeLanguage.TSql, TsqlRepo);
+        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, SonarQubeLanguage.VbNet, VbNetPlugin, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig");
+        public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, SonarQubeLanguage.Cpp, CFamilyPlugin, CppRepo);
+        public static readonly Language C = new("C", "C", SonarQubeLanguage.C, CFamilyPlugin, CRepo);
+        public static readonly Language Js = new("Js", "JavaScript", SonarQubeLanguage.Js, JavascriptPlugin, JsRepo, JsSecurityRepo);
+        public static readonly Language Ts = new("Ts", "TypeScript", SonarQubeLanguage.Ts, JavascriptPlugin, TsRepo, TsSecurityRepo);
+        public static readonly Language Css = new("Css", "CSS", SonarQubeLanguage.Css, JavascriptPlugin, CssRepo);
+        public static readonly Language Html = new("Html", "HTML", SonarQubeLanguage.Html, HtmlPlugin, HtmlRepo);
+        public static readonly Language Secrets = new("Secrets", "Secrets", SonarQubeLanguage.Secrets, SecretsPlugin, SecretsRepo);
+        public static readonly Language TSql = new("TSql", "T-SQL", SonarQubeLanguage.TSql, TsqlPlugin, TsqlRepo);
 
         /// <summary>
         /// Returns the language for the specified language key, or null if it does not match a known language
@@ -92,6 +101,8 @@ namespace SonarLint.VisualStudio.Core
         /// Id here originally. However, it wasn't and we can't easily change the Id values now since they are serialized in the
         /// solution-level binding file.</remarks>
         public SonarQubeLanguage ServerLanguage { get; }
+
+        public PluginInfo PluginInfo { get; }
 
         /// <summary>
         /// The language display name.
@@ -141,6 +152,7 @@ namespace SonarLint.VisualStudio.Core
             string id,
             string name,
             SonarQubeLanguage serverLanguage,
+            PluginInfo pluginInfo,
             RepoInfo repoInfo,
             RepoInfo securityRepoInfo = null,
             string settingsFileName = null)
@@ -159,6 +171,7 @@ namespace SonarLint.VisualStudio.Core
             Name = name;
             SettingsFileNameAndExtension = settingsFileName;
             ServerLanguage = serverLanguage ?? throw new ArgumentNullException(nameof(serverLanguage));
+            PluginInfo = pluginInfo ?? throw new ArgumentNullException(nameof(pluginInfo));
             RepoInfo = repoInfo ?? throw new ArgumentNullException(nameof(repoInfo));
             SecurityRepoInfo = securityRepoInfo;
         }
