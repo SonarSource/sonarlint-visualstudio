@@ -44,6 +44,10 @@ public interface ILanguageProvider
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class LanguageProvider : ILanguageProvider
 {
+#pragma warning disable S4277
+    public static readonly ILanguageProvider Instance = new LanguageProvider();
+#pragma warning restore S4277
+
     [ImportingConstructor]
     public LanguageProvider()
     {

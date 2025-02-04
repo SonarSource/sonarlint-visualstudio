@@ -26,10 +26,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
 [TestClass]
 public class NonRoslynDummyBindingConfigProviderTests
 {
-    private static IEnumerable<Language> SupportedLanguages { get; } = Language.KnownLanguages.Where(l => l != Language.CSharp && l != Language.VBNET);
+    private static IEnumerable<Language> SupportedLanguages { get; } = LanguageProvider.Instance.AllKnownLanguages.Where(l => l != Language.CSharp && l != Language.VBNET);
     private static IEnumerable<Language> RoslynLanguages { get; } = [Language.CSharp, Language.VBNET];
 
     public static IEnumerable<object[]> GetSupportedLanguages() => SupportedLanguages.Select(l => new object[] { l });
+
     public static IEnumerable<object[]> GetRoslynLanguages() => RoslynLanguages.Select(l => new object[] { l });
 
     public static IEnumerable<object[]> GetLanguagesWithSupport()

@@ -18,11 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -63,8 +59,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
                 configurationPersister,
                 outOfDateQualityProfileFinder,
                 logger,
-                Language.KnownLanguages)
-        { }
+                LanguageProvider.Instance.AllKnownLanguages)
+        {
+        }
 
         internal /* for testing */ QualityProfileDownloader(
             IBindingConfigProvider bindingConfigProvider,
@@ -80,7 +77,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             this.outOfDateQualityProfileFinder = outOfDateQualityProfileFinder;
         }
 
-        public async Task<bool> UpdateAsync(BoundServerProject boundProject, IProgress<FixedStepsProgress> progress,
+        public async Task<bool> UpdateAsync(
+            BoundServerProject boundProject,
+            IProgress<FixedStepsProgress> progress,
             CancellationToken cancellationToken)
         {
             var isChanged = false;
@@ -152,24 +151,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             {
                 if (!boundProject.Profiles.ContainsKey(language))
                 {
-                    boundProject.Profiles[language] = new ApplicableQualityProfile
-                    {
-                        ProfileKey = null,
-                        ProfileTimestamp = DateTime.MinValue,
-                    };
+                    boundProject.Profiles[language] = new ApplicableQualityProfile { ProfileKey = null, ProfileTimestamp = DateTime.MinValue, };
                 }
             }
         }
 
         private static void UpdateProfile(BoundServerProject boundSonarQubeProject, Language language, SonarQubeQualityProfile serverProfile)
         {
-            boundSonarQubeProject.Profiles[language] = new ApplicableQualityProfile
-            {
-                ProfileKey = serverProfile.Key, ProfileTimestamp = serverProfile.TimeStamp
-            };
+            boundSonarQubeProject.Profiles[language] = new ApplicableQualityProfile { ProfileKey = serverProfile.Key, ProfileTimestamp = serverProfile.TimeStamp };
         }
 
-        private void LogWithBindingPrefix(string text)
-            => logger.WriteLine(QualityProfilesStrings.QPMessagePrefix + text);
+        private void LogWithBindingPrefix(string text) => logger.WriteLine(QualityProfilesStrings.QPMessagePrefix + text);
     }
 }
