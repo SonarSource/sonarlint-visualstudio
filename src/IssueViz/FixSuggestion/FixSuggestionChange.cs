@@ -20,7 +20,8 @@
 
 namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
 
-public interface IFixSuggestionHandler
-{
-    void ApplyFixSuggestion(string configScopeId, string fixSuggestionId, string idePath, IReadOnlyList<FixSuggestionChange> changes);
-}
+public record FixSuggestionChange(
+    int BeforeStartLine,
+    int BeforeEndLine,
+    string BeforeText,
+    string AfterText);

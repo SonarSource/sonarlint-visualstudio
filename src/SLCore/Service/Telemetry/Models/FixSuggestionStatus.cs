@@ -18,9 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
-public interface IFixSuggestionHandler
-{
-    void ApplyFixSuggestion(string configScopeId, string fixSuggestionId, string idePath, IReadOnlyList<FixSuggestionChange> changes);
+namespace SonarLint.VisualStudio.SLCore.Service.Telemetry.Models;
+
+[JsonConverter(typeof(StringEnumConverter))]
+public enum FixSuggestionStatus {
+    ACCEPTED, DECLINED
 }

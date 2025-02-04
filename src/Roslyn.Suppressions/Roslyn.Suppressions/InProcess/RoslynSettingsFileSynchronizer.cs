@@ -105,9 +105,13 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         {
             await threadHandling.SwitchToBackgroundThread();
 
-            var sonarProjectKey = configurationProvider.GetConfiguration().Project?.ServerProjectKey;
-
             var solutionNameWithoutExtension = await GetSolutionNameWithoutExtensionAsync();
+            if (string.IsNullOrEmpty(solutionNameWithoutExtension))
+            {
+                return;
+            }
+
+            var sonarProjectKey = configurationProvider.GetConfiguration().Project?.ServerProjectKey;
             if (!string.IsNullOrEmpty(sonarProjectKey))
             {
                 var allSuppressedIssues = serverIssuesStore.Get();
@@ -158,7 +162,6 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
     private async Task<string> GetSolutionNameWithoutExtensionAsync()
     {
         var fullSolutionFilePath = await solutionInfoProvider.GetFullSolutionFilePathAsync();
-        Debug.Assert(fullSolutionFilePath != null, "Not expecting the solution name to be null in Connected Mode");
         return Path.GetFileNameWithoutExtension(fullSolutionFilePath);
     }
 

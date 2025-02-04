@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Globalization;
 using System.Text;
 
 namespace SonarLint.VisualStudio.Core.Logging;
@@ -27,6 +28,6 @@ internal static class StringBuilderLoggingExtensions
     public static StringBuilder AppendProperty(this StringBuilder builder, string property) =>
         builder.Append('[').Append(property).Append(']').Append(' ');
 
-    public static StringBuilder AppendPropertyFormat(this StringBuilder builder, string property, params object[] args) =>
-        builder.Append('[').AppendFormat(property, args).Append(']').Append(' ');
+    public static StringBuilder AppendMessage(this StringBuilder builder, string message, object[] args) =>
+        args is { Length: > 0 } ? builder.AppendFormat(CultureInfo.CurrentCulture, message, args) : builder.Append(message);
 }

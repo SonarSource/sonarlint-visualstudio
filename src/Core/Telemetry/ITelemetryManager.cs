@@ -33,4 +33,6 @@ public interface ITelemetryManager
     void TaintIssueInvestigatedRemotely();
 
     void LinkClicked(string linkId);
+
+    void FixSuggestionResolved(string suggestionId, IEnumerable<bool> changeResolutionStatus);
 }

@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageBinding;
 
-public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
+internal sealed class ManageBindingViewModel : ViewModelBase, IDisposable
 {
     private readonly CancellationTokenSource cancellationTokenSource = new();
     private readonly IConnectedModeBindingServices connectedModeBindingServices;
@@ -42,10 +42,17 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
     public SolutionInfoModel SolutionInfo
     {
         get => solutionInfo;
-        private set
+        set
         {
             solutionInfo = value;
             RaisePropertyChanged();
+            RaisePropertyChanged(nameof(IsSolutionOpen));
+            RaisePropertyChanged(nameof(IsOpenSolutionBound));
+            RaisePropertyChanged(nameof(IsOpenSolutionStandalone));
+            RaisePropertyChanged(nameof(IsSelectProjectButtonEnabled));
+            RaisePropertyChanged(nameof(IsConnectionSelectionEnabled));
+            RaisePropertyChanged(nameof(IsExportButtonEnabled));
+            RaisePropertyChanged(nameof(IsUseSharedBindingButtonVisible));
         }
     }
 
@@ -56,9 +63,13 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         get => boundProject;
         set
         {
-            boundProject = value;
+            if (IsSolutionOpen)
+            {
+                boundProject = value;
+            }
             RaisePropertyChanged();
-            RaisePropertyChanged(nameof(IsCurrentProjectBound));
+            RaisePropertyChanged(nameof(IsOpenSolutionBound));
+            RaisePropertyChanged(nameof(IsOpenSolutionStandalone));
             RaisePropertyChanged(nameof(IsSelectProjectButtonEnabled));
             RaisePropertyChanged(nameof(IsConnectionSelectionEnabled));
             RaisePropertyChanged(nameof(IsExportButtonEnabled));
@@ -107,17 +118,19 @@ public sealed class ManageBindingViewModel : ViewModelBase, IDisposable
         }
     }
 
-    public bool IsCurrentProjectBound => BoundProject != null;
+    public bool IsSolutionOpen => SolutionInfo is { Name: not null };
+    public bool IsOpenSolutionBound => IsSolutionOpen && BoundProject is not null;
+    public bool IsOpenSolutionStandalone => IsSolutionOpen && BoundProject is null;
     public bool IsProjectSelected => SelectedProject != null;
     public bool IsConnectionSelected => SelectedConnectionInfo != null;
-    public bool IsConnectionSelectionEnabled => !ProgressReporter.IsOperationInProgress && !IsCurrentProjectBound && Connections.Any();
+    public bool IsConnectionSelectionEnabled => !ProgressReporter.IsOperationInProgress && IsOpenSolutionStandalone && Connections.Any();
     public bool IsBindButtonEnabled => IsProjectSelected && !ProgressReporter.IsOperationInProgress;
-    public bool IsSelectProjectButtonEnabled => IsConnectionSelected && !ProgressReporter.IsOperationInProgress && !IsCurrentProjectBound;
+    public bool IsSelectProjectButtonEnabled => IsConnectionSelected && !ProgressReporter.IsOperationInProgress && IsOpenSolutionStandalone;
     public bool IsUnbindButtonEnabled => !ProgressReporter.IsOperationInProgress;
     public bool IsManageConnectionsButtonEnabled => !ProgressReporter.IsOperationInProgress;
     public bool IsUseSharedBindingButtonEnabled => !ProgressReporter.IsOperationInProgress;
-    public bool IsUseSharedBindingButtonVisible => SharedBindingConfigModel != null && !IsCurrentProjectBound;
-    public bool IsExportButtonEnabled => !ProgressReporter.IsOperationInProgress && IsCurrentProjectBound;
+    public bool IsUseSharedBindingButtonVisible => SharedBindingConfigModel != null && IsOpenSolutionStandalone;
+    public bool IsExportButtonEnabled => !ProgressReporter.IsOperationInProgress && IsOpenSolutionBound;
     public string ConnectionSelectionCaptionText => Connections.Any() ? UiResources.SelectConnectionToBindDescription : UiResources.NoConnectionExistsLabel;
 
     public ManageBindingViewModel(

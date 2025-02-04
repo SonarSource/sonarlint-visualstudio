@@ -18,9 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.IssueVisualization.FixSuggestion;
+using SonarLint.VisualStudio.SLCore.Service.Telemetry.Models;
 
-public interface IFixSuggestionHandler
-{
-    void ApplyFixSuggestion(string configScopeId, string fixSuggestionId, string idePath, IReadOnlyList<FixSuggestionChange> changes);
-}
+namespace SonarLint.VisualStudio.SLCore.Service.Telemetry;
+
+public record FixSuggestionResolvedParams(string suggestionId, FixSuggestionStatus status, int? snippetIndex);

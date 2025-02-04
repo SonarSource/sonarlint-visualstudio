@@ -25,7 +25,6 @@ public interface ILogger
     /// <summary>
     /// Logs a message and appends a new line.
     /// </summary>
-    void WriteLine(string message);
     void WriteLine(string messageFormat, params object[] args);
     void WriteLine(MessageLevelContext context, string messageFormat, params object[] args);
 
