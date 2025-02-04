@@ -239,7 +239,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
         private static void LanguageHasExpectedPlugin(Language language, string pluginKey, string filePattern)
         {
-            language.PluginInfo.PluginKey.Should().Be(pluginKey);
+            language.PluginInfo.Key.Should().Be(pluginKey);
             language.PluginInfo.FilePattern.Should().Be(filePattern);
         }
     }

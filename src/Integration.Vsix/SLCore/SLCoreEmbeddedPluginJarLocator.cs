@@ -77,9 +77,9 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
 
         foreach (var plugin in standalonePlugins)
         {
-            if (GetPathByPluginKey(embeddedPluginFilePaths, plugin.PluginKey, plugin.FilePattern) is { } pluginFilePath)
+            if (GetPathByPluginKey(embeddedPluginFilePaths, plugin.Key, plugin.FilePattern) is { } pluginFilePath)
             {
-                connectedModeEmbeddedPluginPathsByKey.Add(plugin.PluginKey, pluginFilePath);
+                connectedModeEmbeddedPluginPathsByKey.Add(plugin.Key, pluginFilePath);
             }
         }
 

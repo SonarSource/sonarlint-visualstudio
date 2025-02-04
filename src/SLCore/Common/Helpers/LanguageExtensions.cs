@@ -40,5 +40,5 @@ internal static class LanguageExtensions
             _ => VisualStudio.Core.Language.Unknown
         };
 
-    public static string GetPluginKey(this Language language) => language.ConvertToCoreLanguage().PluginInfo?.PluginKey;
+    public static string GetPluginKey(this Language language) => language.ConvertToCoreLanguage().PluginInfo?.Key;
 }

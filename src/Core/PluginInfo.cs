@@ -24,11 +24,11 @@ public record PluginInfo
 {
     public PluginInfo(string pluginKey, string filePattern)
     {
-        PluginKey = pluginKey ?? throw new ArgumentNullException(nameof(pluginKey));
+        Key = pluginKey ?? throw new ArgumentNullException(nameof(pluginKey));
         FilePattern = filePattern;
     }
 
-    public string PluginKey { get; }
+    public string Key { get; }
 
     /// <summary>
     /// Nullable, because it can be a connected mode only language so there will be no file on disk (plugin won't be embedded)

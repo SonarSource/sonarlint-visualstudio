@@ -4,7 +4,7 @@
 public class PluginInfoTests
 {
     [TestMethod]
-    public void PluginInfo_NullPluginKey_ThrowsException()
+    public void PluginInfo_NullKey_ThrowsException()
     {
         Action act = () => new PluginInfo(null, "pattern");
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("pluginKey");
