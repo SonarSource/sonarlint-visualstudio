@@ -35,7 +35,7 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
 {
     private const string JarFolderName = "DownloadedJars";
 
-    private readonly List<Language> standaloneLanguages = new()
+    private static readonly HashSet<PluginInfo> standalonePlugins = new List<Language>
     {
         Language.C,
         Language.Cpp,
@@ -44,7 +44,7 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
         Language.Css,
         Language.Html,
         Language.Secrets,
-    };
+    }.Select(x => x.PluginInfo).ToHashSet();
     private readonly IVsixRootLocator vsixRootLocator;
     private readonly IFileSystem fileSystem;
     private readonly ILogger logger;
@@ -75,12 +75,11 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
         var connectedModeEmbeddedPluginPathsByKey = new Dictionary<string, string>();
         var embeddedPluginFilePaths = ListJarFiles();
 
-        foreach (var group in standaloneLanguages.GroupBy(x => x.PluginInfo.PluginKey).Distinct())
+        foreach (var plugin in standalonePlugins)
         {
-            var language = group.First(); // All languages in the group have the same plugin
-            if (GetPathByPluginKey(embeddedPluginFilePaths, language.PluginInfo.PluginKey, language.PluginInfo.FilePattern) is { } pluginFilePath)
+            if (GetPathByPluginKey(embeddedPluginFilePaths, plugin.PluginKey, plugin.FilePattern) is { } pluginFilePath)
             {
-                connectedModeEmbeddedPluginPathsByKey.Add(language.PluginInfo.PluginKey, pluginFilePath);
+                connectedModeEmbeddedPluginPathsByKey.Add(plugin.PluginKey, pluginFilePath);
             }
         }
 
