@@ -18,17 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client;
 using SonarQube.Client.Models;
-
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
@@ -48,7 +42,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             false, SonarQubeIssueSeverity.Blocker, null, null, null, SonarQubeIssueType.SecurityHotspot);
 
         private static readonly SonarQubeRule ActiveTaintAnalysisRule = new SonarQubeRule("activeTaint", "roslyn.sonaranalyzer.security.foo",
-            true, SonarQubeIssueSeverity.Blocker,  null, null,null, SonarQubeIssueType.CodeSmell);
+            true, SonarQubeIssueSeverity.Blocker, null, null, null, SonarQubeIssueType.CodeSmell);
 
         private static readonly SonarQubeRule InactiveTaintAnalysisRule = new SonarQubeRule("inactiveTaint", "roslyn.sonaranalyzer.security.bar",
             false, SonarQubeIssueSeverity.Blocker, null, null, null, SonarQubeIssueType.CodeSmell);
@@ -58,10 +52,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         {
             emptyRules = Array.Empty<SonarQubeRule>();
 
-            validRules = new List<SonarQubeRule>
-            {
-                new SonarQubeRule("key", "repoKey", true, SonarQubeIssueSeverity.Blocker, null, null, null, SonarQubeIssueType.Bug)
-            };
+            validRules = new List<SonarQubeRule> { new SonarQubeRule("key", "repoKey", true, SonarQubeIssueSeverity.Blocker, null, null, null, SonarQubeIssueType.Bug) };
 
             anyProperties = Array.Empty<SonarQubeProperty>();
 
@@ -105,9 +96,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             // Arrange
             var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
             {
-                ActiveRulesResponse = new List<SonarQubeRule> { ActiveRuleWithUnsupportedSeverity },
-                InactiveRulesResponse = validRules,
-                PropertiesResponse = anyProperties
+                ActiveRulesResponse = new List<SonarQubeRule> { ActiveRuleWithUnsupportedSeverity }, InactiveRulesResponse = validRules, PropertiesResponse = anyProperties
             };
             var testSubject = builder.CreateTestSubject();
 
@@ -131,14 +120,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
         {
             var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
             {
-                ActiveRulesResponse = validRules,
-                InactiveRulesResponse = emptyRules,
-                PropertiesResponse = anyProperties,
-                GlobalConfigGeneratorResponse = "globalConfig"
+                ActiveRulesResponse = validRules, InactiveRulesResponse = emptyRules, PropertiesResponse = anyProperties, GlobalConfigGeneratorResponse = "globalConfig"
             };
             var testSubject = builder.CreateTestSubject();
 
-            var expectedGlobalConfigFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory(Language.VBNET.FileSuffixAndExtension);
+            var expectedGlobalConfigFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory(Language.VBNET.SettingsFileNameAndExtension);
 
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
 
@@ -156,11 +142,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             {
                 Rules = new List<SonarLintRule>
                 {
-                    new SonarLintRule
-                    {
-                        Key = "test",
-                        Parameters = new List<SonarLintKeyValuePair> {new SonarLintKeyValuePair {Key = "ruleid", Value = "value"}}
-                    }
+                    new SonarLintRule { Key = "test", Parameters = new List<SonarLintKeyValuePair> { new SonarLintKeyValuePair { Key = "ruleid", Value = "value" } } }
                 }
             };
 
@@ -187,31 +169,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
             // Arrange
             const string expectedServerUrl = "http://myhost:123/";
 
-            var properties = new SonarQubeProperty[]
-            {
-                new SonarQubeProperty("propertyAAA", "111"), new SonarQubeProperty("propertyBBB", "222")
-            };
+            var properties = new SonarQubeProperty[] { new SonarQubeProperty("propertyAAA", "111"), new SonarQubeProperty("propertyBBB", "222") };
 
-            var activeRules = new SonarQubeRule[]
-                {
-                    CreateRule("activeRuleKey", "repoKey1", true),
-                    ActiveTaintAnalysisRule,
-                    ActiveRuleWithUnsupportedSeverity
-                };
+            var activeRules = new SonarQubeRule[] { CreateRule("activeRuleKey", "repoKey1", true), ActiveTaintAnalysisRule, ActiveRuleWithUnsupportedSeverity };
 
-            var inactiveRules = new SonarQubeRule[]
-                {
-                    CreateRule("inactiveRuleKey", "repoKey2", false),
-                    InactiveTaintAnalysisRule,
-                    InactiveRuleWithUnsupportedSeverity
-                };
+            var inactiveRules = new SonarQubeRule[] { CreateRule("inactiveRuleKey", "repoKey2", false), InactiveTaintAnalysisRule, InactiveRuleWithUnsupportedSeverity };
 
             var builder = new TestEnvironmentBuilder(validQualityProfile, Language.CSharp, expectedServerUrl)
             {
-                ActiveRulesResponse = activeRules,
-                InactiveRulesResponse = inactiveRules,
-                PropertiesResponse = properties,
-                GlobalConfigGeneratorResponse = "globalConfig"
+                ActiveRulesResponse = activeRules, InactiveRulesResponse = inactiveRules, PropertiesResponse = properties, GlobalConfigGeneratorResponse = "globalConfig"
             };
 
             var testSubject = builder.CreateTestSubject();

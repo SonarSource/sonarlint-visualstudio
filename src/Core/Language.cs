@@ -53,16 +53,17 @@ namespace SonarLint.VisualStudio.Core
         private static readonly RepoInfo TsqlRepo = new("tsql");
 
         public static readonly Language Unknown = new();
-        public static readonly Language CSharp = new("CSharp", CoreStrings.CSharpLanguageName, "sonarlint_csharp.globalconfig", SonarQubeLanguage.CSharp, CSharpRepo, CSharpSecurityRepo);
-        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, "sonarlint_vb.globalconfig", SonarQubeLanguage.VbNet, VbNetRepo);
-        public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, null, SonarQubeLanguage.Cpp, CppRepo);
-        public static readonly Language C = new("C", "C", null, SonarQubeLanguage.C, CRepo);
-        public static readonly Language Js = new("Js", "JavaScript", null, SonarQubeLanguage.Js, JsRepo, JsSecurityRepo);
-        public static readonly Language Ts = new("Ts", "TypeScript", null, SonarQubeLanguage.Ts, TsRepo, TsSecurityRepo);
-        public static readonly Language Css = new("Css", "CSS", null, SonarQubeLanguage.Css, CssRepo);
-        public static readonly Language Html = new("Html", "HTML", null, SonarQubeLanguage.Html, HtmlRepo);
-        public static readonly Language Secrets = new("Secrets", "Secrets", null, SonarQubeLanguage.Secrets, SecretsRepo);
-        public static readonly Language TSql = new("TSql", "T-SQL", null, SonarQubeLanguage.TSql, TsqlRepo);
+        public static readonly Language CSharp = new("CSharp", CoreStrings.CSharpLanguageName, SonarQubeLanguage.CSharp, CSharpRepo, CSharpSecurityRepo,
+            settingsFileName: "sonarlint_csharp.globalconfig");
+        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, SonarQubeLanguage.VbNet, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig");
+        public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, SonarQubeLanguage.Cpp, CppRepo);
+        public static readonly Language C = new("C", "C", SonarQubeLanguage.C, CRepo);
+        public static readonly Language Js = new("Js", "JavaScript", SonarQubeLanguage.Js, JsRepo, JsSecurityRepo);
+        public static readonly Language Ts = new("Ts", "TypeScript", SonarQubeLanguage.Ts, TsRepo, TsSecurityRepo);
+        public static readonly Language Css = new("Css", "CSS", SonarQubeLanguage.Css, CssRepo);
+        public static readonly Language Html = new("Html", "HTML", SonarQubeLanguage.Html, HtmlRepo);
+        public static readonly Language Secrets = new("Secrets", "Secrets", SonarQubeLanguage.Secrets, SecretsRepo);
+        public static readonly Language TSql = new("TSql", "T-SQL", SonarQubeLanguage.TSql, TsqlRepo);
 
         /// <summary>
         /// Returns the language for the specified language key, or null if it does not match a known language
@@ -100,8 +101,8 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Suffix and extension added to the language-specific rules configuration file for the language
         /// </summary>
-        /// <remarks>e.g. for ruleset-based languages this will be a language identifier + ".ruleset"</remarks>
-        public string FileSuffixAndExtension { get; }
+        /// <remarks>e.g. for ruleset-based languages this will be a language identifier + ".globalconfig"</remarks>
+        public string SettingsFileNameAndExtension { get; }
 
         public RepoInfo RepoInfo { get; }
 
@@ -133,16 +134,16 @@ namespace SonarLint.VisualStudio.Core
         {
             Id = string.Empty;
             Name = CoreStrings.UnknownLanguageName;
-            FileSuffixAndExtension = string.Empty;
+            SettingsFileNameAndExtension = string.Empty;
         }
 
         public Language(
             string id,
             string name,
-            string fileSuffix,
             SonarQubeLanguage serverLanguage,
             RepoInfo repoInfo,
-            RepoInfo? securityRepoInfo = null)
+            RepoInfo? securityRepoInfo = null,
+            string settingsFileName = null)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -156,7 +157,7 @@ namespace SonarLint.VisualStudio.Core
 
             Id = id;
             Name = name;
-            FileSuffixAndExtension = fileSuffix;
+            SettingsFileNameAndExtension = settingsFileName;
             ServerLanguage = serverLanguage ?? throw new ArgumentNullException(nameof(serverLanguage));
             RepoInfo = repoInfo == default ? throw new ArgumentException(nameof(repoInfo)) : repoInfo;
             SecurityRepoInfo = securityRepoInfo != null && securityRepoInfo.Value == default ? throw new ArgumentException(nameof(securityRepoInfo)) : securityRepoInfo;
