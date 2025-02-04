@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
         {
             if (language.ServerLanguage.Key == SonarQubeLanguage.CSharp.Key || language.ServerLanguage.Key == SonarQubeLanguage.VbNet.Key)
             {
-                return language.RepoInfo.RepoKey;
+                return language.RepoInfo.Key;
             }
 
             throw new ArgumentOutOfRangeException(nameof(language));

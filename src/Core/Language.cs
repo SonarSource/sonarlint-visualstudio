@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Returns the Sonar analyzer repository for the specified language key, or null if one could not be found
         /// </summary>
-        public static string GetSonarRepoKeyFromLanguage(Language language) => KnownLanguages.SingleOrDefault(x => x.Id == language.Id)?.RepoInfo.RepoKey;
+        public static string GetSonarRepoKeyFromLanguage(Language language) => KnownLanguages.SingleOrDefault(x => x.Id == language.Id)?.RepoInfo.Key;
 
         /// <summary>
         /// A stable identifier for this language.
@@ -189,6 +189,6 @@ namespace SonarLint.VisualStudio.Core
 
         public override string ToString() => Name;
 
-        public bool HasRepoKey(string repoKey) => RepoInfo.RepoKey == repoKey || SecurityRepoInfo?.RepoKey == repoKey;
+        public bool HasRepoKey(string repoKey) => RepoInfo.Key == repoKey || SecurityRepoInfo?.Key == repoKey;
     }
 }

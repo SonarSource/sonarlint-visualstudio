@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Core
         {
             var language = Language.KnownLanguages.FirstOrDefault(lang => lang.HasRepoKey(repoKey));
 
-            if (language?.SecurityRepoInfo?.RepoKey == repoKey)
+            if (language?.SecurityRepoInfo?.Key == repoKey)
             {
                 return language?.SecurityRepoInfo?.FolderName;
             }

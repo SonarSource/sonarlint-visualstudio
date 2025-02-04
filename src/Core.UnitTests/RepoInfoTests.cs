@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests;
 public class RepoInfoTests
 {
     [TestMethod]
-    public void RepoInfo_NullRepoKey_ThrowsException()
+    public void RepoInfo_NullKey_ThrowsException()
     {
         Action act = () => new RepoInfo(null);
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("repoKey");
@@ -37,7 +37,7 @@ public class RepoInfoTests
 
         var repoInfo = new RepoInfo(repoKey);
 
-        repoInfo.RepoKey.Should().Be(repoKey);
+        repoInfo.Key.Should().Be(repoKey);
         repoInfo.FolderName.Should().Be(repoKey);
     }
 }

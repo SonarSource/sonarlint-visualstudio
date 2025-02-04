@@ -189,8 +189,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         // enough.
         private static readonly string[] SupportedRepos = new[]
         {
-            Language.C.RepoInfo.RepoKey, Language.Cpp.RepoInfo.RepoKey, Language.Js.RepoInfo.RepoKey, Language.Ts.RepoInfo.RepoKey, Language.Css.RepoInfo.RepoKey, Language.Html.RepoInfo.RepoKey,
-            Language.CSharp.RepoInfo.RepoKey, Language.VBNET.RepoInfo.RepoKey, Language.TSql.RepoInfo.RepoKey,
+            Language.C.RepoInfo.Key, Language.Cpp.RepoInfo.Key, Language.Js.RepoInfo.Key, Language.Ts.RepoInfo.Key, Language.Css.RepoInfo.Key, Language.Html.RepoInfo.Key,
+            Language.CSharp.RepoInfo.Key, Language.VBNET.RepoInfo.Key, Language.TSql.RepoInfo.Key,
         };
 
         private static bool IsSupportedSonarRule(SonarCompositeRuleId rule) => SupportedRepos.Contains(rule.RepoKey);

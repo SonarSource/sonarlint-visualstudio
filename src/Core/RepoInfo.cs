@@ -24,14 +24,14 @@ public readonly record struct RepoInfo
 {
     public RepoInfo(string repoKey, string folderName = null)
     {
-        RepoKey = repoKey ?? throw new ArgumentNullException(nameof(repoKey));
+        Key = repoKey ?? throw new ArgumentNullException(nameof(repoKey));
         FolderName = folderName ?? repoKey;
     }
 
     /// <summary>
-    /// The repository keys of the rules for this language.
+    /// The repository key (a.k.a repoKey) of the rules for this language.
     /// </summary>
-    public string RepoKey { get; }
+    public string Key { get; }
 
     /// <summary>
     /// The rules for each language are in a separate folder in the rules website.

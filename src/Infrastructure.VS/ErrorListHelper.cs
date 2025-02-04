@@ -143,10 +143,10 @@ public class ErrorListHelper(IVsUIServiceOperation vSServiceOperation) : IErrorL
             // unlike other languages it has no repository prefix.
             return buildTool switch
             {
-                "SonarAnalyzer.CSharp" => $"{Language.CSharp.RepoInfo.RepoKey}:{errorCode}",
-                "SonarAnalyzer.Enterprise.CSharp" => $"{Language.CSharp.RepoInfo.RepoKey}:{errorCode}",
-                "SonarAnalyzer.VisualBasic" => $"{Language.VBNET.RepoInfo.RepoKey}:{errorCode}",
-                "SonarAnalyzer.Enterprise.VisualBasic" => $"{Language.VBNET.RepoInfo.RepoKey}:{errorCode}",
+                "SonarAnalyzer.CSharp" => $"{Language.CSharp.RepoInfo.Key}:{errorCode}",
+                "SonarAnalyzer.Enterprise.CSharp" => $"{Language.CSharp.RepoInfo.Key}:{errorCode}",
+                "SonarAnalyzer.VisualBasic" => $"{Language.VBNET.RepoInfo.Key}:{errorCode}",
+                "SonarAnalyzer.Enterprise.VisualBasic" => $"{Language.VBNET.RepoInfo.Key}:{errorCode}",
                 "SonarLint" => errorCode,
                 _ => null
             };
@@ -156,12 +156,12 @@ public class ErrorListHelper(IVsUIServiceOperation vSServiceOperation) : IErrorL
         {
             if (helpLink.Contains("rules.sonarsource.com/csharp/"))
             {
-                return $"{Language.CSharp.RepoInfo.RepoKey}:{errorCode}";
+                return $"{Language.CSharp.RepoInfo.Key}:{errorCode}";
             }
 
             if (helpLink.Contains("rules.sonarsource.com/vbnet/"))
             {
-                return $"{Language.VBNET.RepoInfo.RepoKey}:{errorCode}";
+                return $"{Language.VBNET.RepoInfo.Key}:{errorCode}";
             }
         }
 
