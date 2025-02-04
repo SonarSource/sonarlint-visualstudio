@@ -228,7 +228,7 @@
   <data name="ManageConnectionsButton" xml:space="preserve">
     <value>Manage Connections</value>
   </data>
-  <data name="IsNotBoundText" xml:space="preserve">
+  <data name="ManageBindingDialog_IsNotBoundText" xml:space="preserve">
     <value>is not bound</value>
   </data>
   <data name="ProjectToBindLabel" xml:space="preserve">
@@ -240,7 +240,7 @@
   <data name="UseSharedConfiguration" xml:space="preserve">
     <value>Use Shared Configuration</value>
   </data>
-  <data name="IsBoundToText" xml:space="preserve">
+  <data name="ManageBindingDialog_IsBoundToText" xml:space="preserve">
     <value>is bound to</value>
   </data>
   <data name="BindingInProgressText" xml:space="preserve">
@@ -424,5 +424,8 @@ Please manually add the credentials for the connection and then try again.</valu
   </data>
   <data name="DeleteConnection_DeleteBindingFails" xml:space="preserve">
     <value>[ConnectedMode] Removing the connection failed. The '{0}' project could not be unbound.</value>
+  </data>
+  <data name="ManageBindingDialog_NothingToBindText" xml:space="preserve">
+    <value>The binding status is not available. Please open a solution or a folder.</value>
   </data>
 </root>

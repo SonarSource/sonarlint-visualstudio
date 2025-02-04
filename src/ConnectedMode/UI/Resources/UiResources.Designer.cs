@@ -438,24 +438,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to is bound to.
-        /// </summary>
-        public static string IsBoundToText {
-            get {
-                return ResourceManager.GetString("IsBoundToText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to is not bound.
-        /// </summary>
-        public static string IsNotBoundText {
-            get {
-                return ResourceManager.GetString("IsNotBoundText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Learn more about .
         /// </summary>
         public static string LearnMoreAboutText {
@@ -524,6 +506,33 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string LoadingProjectsProgressText {
             get {
                 return ResourceManager.GetString("LoadingProjectsProgressText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to is bound to.
+        /// </summary>
+        public static string ManageBindingDialog_IsBoundToText {
+            get {
+                return ResourceManager.GetString("ManageBindingDialog_IsBoundToText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to is not bound.
+        /// </summary>
+        public static string ManageBindingDialog_IsNotBoundText {
+            get {
+                return ResourceManager.GetString("ManageBindingDialog_IsNotBoundText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The binding status is not available. Please open a solution or a folder..
+        /// </summary>
+        public static string ManageBindingDialog_NothingToBindText {
+            get {
+                return ResourceManager.GetString("ManageBindingDialog_NothingToBindText", resourceCulture);
             }
         }
         

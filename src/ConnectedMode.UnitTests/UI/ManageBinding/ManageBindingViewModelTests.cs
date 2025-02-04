@@ -41,6 +41,8 @@ public class ManageBindingViewModelTests
 {
     private const string ALocalProjectKey = "local-project-key";
 
+    private readonly SolutionInfoModel DefaultSolution = new SolutionInfoModel("Any.sln", default);
+    private readonly SolutionInfoModel NoSolution = new SolutionInfoModel(null, default);
     private readonly ServerProject serverProject = new("a-project", "A Project");
     private readonly ConnectionInfo sonarQubeConnectionInfo = new("http://localhost:9000", ConnectionServerType.SonarQube);
     private readonly ConnectionInfo sonarCloudConnectionInfo = new("organization", ConnectionServerType.SonarCloud);
@@ -69,24 +71,38 @@ public class ManageBindingViewModelTests
 
         testSubject = new ManageBindingViewModel(connectedModeServices, connectedModeBindingServices, progressReporterViewModel);
 
+        testSubject.SolutionInfo = DefaultSolution;
         MockServices();
     }
 
-    [TestMethod]
-    public void IsCurrentProjectBound_ProjectIsBound_ReturnsTrue()
-    {
-        testSubject.BoundProject = serverProject;
-
-        testSubject.IsCurrentProjectBound.Should().BeTrue();
-    }
 
     [TestMethod]
-    public void IsCurrentProjectBound_ProjectIsNotBound_ReturnsFalse()
+    public void SolutionInfo_Set_RaisesEvents()
     {
-        testSubject.BoundProject = null;
+        var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+        testSubject.PropertyChanged += eventHandler;
+        eventHandler.ReceivedCalls().Should().BeEmpty();
 
-        testSubject.IsCurrentProjectBound.Should().BeFalse();
+        testSubject.SolutionInfo = DefaultSolution;
+
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.SolutionInfo)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSolutionOpen)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsOpenSolutionBound)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsOpenSolutionStandalone)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsConnectionSelectionEnabled)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSelectProjectButtonEnabled)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsExportButtonEnabled)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsUseSharedBindingButtonVisible)));
     }
+
 
     [TestMethod]
     public void BoundProject_Set_RaisesEvents()
@@ -100,7 +116,9 @@ public class ManageBindingViewModelTests
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.BoundProject)));
         eventHandler.Received().Invoke(testSubject,
-            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsCurrentProjectBound)));
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsOpenSolutionBound)));
+        eventHandler.Received().Invoke(testSubject,
+            Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsOpenSolutionStandalone)));
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsConnectionSelectionEnabled)));
         eventHandler.Received().Invoke(testSubject,
@@ -109,6 +127,42 @@ public class ManageBindingViewModelTests
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsExportButtonEnabled)));
         eventHandler.Received().Invoke(testSubject,
             Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsUseSharedBindingButtonVisible)));
+    }
+
+    [TestMethod]
+    public void BoundProject_Set_NoSolutionOpen_SetsNull()
+    {
+        testSubject.SolutionInfo = NoSolution;
+
+        testSubject.BoundProject = serverProject;
+
+        testSubject.BoundProject.Should().BeNull();
+        testSubject.IsOpenSolutionBound.Should().BeFalse();
+        testSubject.IsOpenSolutionStandalone.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void BoundProject_Set_OpenSolutionBound_SetsValue()
+    {
+        testSubject.SolutionInfo = DefaultSolution;
+
+        testSubject.BoundProject = serverProject;
+
+        testSubject.BoundProject.Should().BeSameAs(serverProject);
+        testSubject.IsOpenSolutionBound.Should().BeTrue();
+        testSubject.IsOpenSolutionStandalone.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void BoundProject_Set_OpenSolutionStandalone_SetsNull()
+    {
+        testSubject.SolutionInfo = DefaultSolution;
+
+        testSubject.BoundProject = null;
+
+        testSubject.BoundProject.Should().BeNull();
+        testSubject.IsOpenSolutionBound.Should().BeFalse();
+        testSubject.IsOpenSolutionStandalone.Should().BeTrue();
     }
 
     [TestMethod]
@@ -382,6 +436,17 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
+    public void IsSelectProjectButtonEnabled_NoSolution_ReturnsFalse()
+    {
+        testSubject.SolutionInfo = NoSolution;
+        testSubject.BoundProject = null;
+        progressReporterViewModel.IsOperationInProgress.Returns(false);
+        testSubject.SelectedConnectionInfo = sonarQubeConnectionInfo;
+
+        testSubject.IsSelectProjectButtonEnabled.Should().BeFalse();
+    }
+
+    [TestMethod]
     public void IsSelectProjectButtonEnabled_BindingIsInProgress_ReturnsFalse()
     {
         testSubject.BoundProject = null;
@@ -442,6 +507,18 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
+    public void IsConnectionSelectionEnabled_NoSolution_ReturnsFalse()
+    {
+        testSubject.SolutionInfo = NoSolution;
+        testSubject.BoundProject = null;
+        progressReporterViewModel.IsOperationInProgress.Returns(false);
+        MockTryGetAllConnectionsInfo([sonarCloudConnectionInfo]);
+        testSubject.LoadConnections();
+
+        testSubject.IsConnectionSelectionEnabled.Should().BeFalse();
+    }
+
+    [TestMethod]
     public void IsConnectionSelectionEnabled_ProjectIsNotBoundAndBindingIsNotInProgressAndConnectionsExist_ReturnsTrue()
     {
         testSubject.BoundProject = null;
@@ -487,10 +564,13 @@ public class ManageBindingViewModelTests
     }
 
     [TestMethod]
-    [DataRow(false)]
-    [DataRow(true)]
-    public void IsExportButtonEnabled_ProjectIsNotBound_ReturnsFalse(bool isBindingInProgress)
+    [DataRow(true, false)]
+    [DataRow(false, false)]
+    [DataRow(true, true)]
+    [DataRow(false, true)]
+    public void IsExportButtonEnabled_ProjectIsNotBound_ReturnsFalse(bool isSolutionOpen, bool isBindingInProgress)
     {
+        testSubject.SolutionInfo = isSolutionOpen ? DefaultSolution : NoSolution;
         testSubject.BoundProject = null;
         progressReporterViewModel.IsOperationInProgress.Returns(isBindingInProgress);
 
@@ -500,6 +580,7 @@ public class ManageBindingViewModelTests
     [TestMethod]
     public void IsExportButtonEnabled_ProjectIsBoundAndBindingIsNotInProgress_ReturnsTrue()
     {
+        testSubject.SolutionInfo = DefaultSolution;
         testSubject.BoundProject = serverProject;
         progressReporterViewModel.IsOperationInProgress.Returns(false);
 
