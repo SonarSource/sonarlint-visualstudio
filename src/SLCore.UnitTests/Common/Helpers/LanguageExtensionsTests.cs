@@ -54,13 +54,31 @@ public class LanguageExtensionsTests
     [DataRow(Language.TSQL, "tsql")]
     [DataRow(Language.ABAP, null)]
     [DataRow(Language.JAVA, null)]
-    public void VerifyPluginKeys(Language language, string expectedPluginKey)
+    public void VerifyPluginKeys(Language language, string expectedPluginKey) => language.GetPluginKey().Should().BeEquivalentTo(expectedPluginKey);
+
+    [TestMethod]
+    public void VerifyConvertToSlCoreLanguage()
     {
-        language.GetPluginKey().Should().BeEquivalentTo(expectedPluginKey);
+        VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.C, Language.C);
+        VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.Cpp, Language.CPP);
+        VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.CSharp, Language.CS);
+        VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.Css, Language.CSS);
+        VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.Js, Language.JS);
+        VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.Secrets, Language.SECRETS);
+        VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.Ts, Language.TS);
+        VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.VBNET, Language.VBNET);
+        VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.TSql, Language.TSQL);
     }
 
-    private static void VerifyConversionToCoreLanguage(Language language, VisualStudio.Core.Language coreLanguage)
+    [TestMethod]
+    public void ConvertToSlCoreLanguage_UnknownLanguage_Throws()
     {
-        language.ConvertToCoreLanguage().Should().BeSameAs(coreLanguage);
+        var act = () => VisualStudio.Core.Language.Unknown.ConvertToSlCoreLanguage();
+
+        act.Should().Throw<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
     }
+
+    private static void VerifyConversionToCoreLanguage(Language language, VisualStudio.Core.Language coreLanguage) => language.ConvertToCoreLanguage().Should().BeSameAs(coreLanguage);
+
+    private static void VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language coreLanguage, Language language) => coreLanguage.ConvertToSlCoreLanguage().Should().Be(language);
 }

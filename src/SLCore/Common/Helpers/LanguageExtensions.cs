@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.SLCore.Common.Models;
+using static SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
 
@@ -27,18 +28,63 @@ internal static class LanguageExtensions
     public static VisualStudio.Core.Language ConvertToCoreLanguage(this Language language) =>
         language switch
         {
-            Language.C => VisualStudio.Core.Language.C,
-            Language.CPP => VisualStudio.Core.Language.Cpp,
-            Language.CS => VisualStudio.Core.Language.CSharp,
-            Language.CSS => VisualStudio.Core.Language.Css,
-            Language.HTML => VisualStudio.Core.Language.Html,
-            Language.JS => VisualStudio.Core.Language.Js,
-            Language.SECRETS => VisualStudio.Core.Language.Secrets,
-            Language.TS => VisualStudio.Core.Language.Ts,
-            Language.VBNET => VisualStudio.Core.Language.VBNET,
-            Language.TSQL => VisualStudio.Core.Language.TSql,
-            _ => VisualStudio.Core.Language.Unknown
+            Language.C => C,
+            Language.CPP => Cpp,
+            Language.CS => CSharp,
+            Language.CSS => Css,
+            Language.HTML => Html,
+            Language.JS => Js,
+            Language.SECRETS => Secrets,
+            Language.TS => Ts,
+            Language.VBNET => VBNET,
+            Language.TSQL => TSql,
+            _ => Unknown
         };
+
+    public static Language ConvertToSlCoreLanguage(this VisualStudio.Core.Language language)
+    {
+        if (language.Id == C.Id)
+        {
+            return Language.C;
+        }
+        if (language.Id == Cpp.Id)
+        {
+            return Language.CPP;
+        }
+        if (language.Id == CSharp.Id)
+        {
+            return Language.CS;
+        }
+        if (language.Id == Css.Id)
+        {
+            return Language.CSS;
+        }
+        if (language.Id == Html.Id)
+        {
+            return Language.HTML;
+        }
+        if (language.Id == Js.Id)
+        {
+            return Language.JS;
+        }
+        if (language.Id == Secrets.Id)
+        {
+            return Language.SECRETS;
+        }
+        if (language.Id == Ts.Id)
+        {
+            return Language.TS;
+        }
+        if (language.Id == VBNET.Id)
+        {
+            return Language.VBNET;
+        }
+        if (language.Id == TSql.Id)
+        {
+            return Language.TSQL;
+        }
+        throw new ArgumentOutOfRangeException(nameof(language), language, null);
+    }
 
     public static string GetPluginKey(this Language language) => language.ConvertToCoreLanguage().PluginInfo?.Key;
 }

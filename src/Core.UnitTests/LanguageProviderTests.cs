@@ -101,4 +101,31 @@ public class LanguageProviderTests
         tsql.Should().Be(Language.TSql);
         unknown.Should().Be(null);
     }
+
+    [TestMethod]
+    public void Verify_ConnectedAndStandaloneLanguagesAreKnown()
+    {
+        var connectedAndStandaloneLanguages = testSubject.LanguagesInStandaloneMode
+            .Union(testSubject.ExtraLanguagesInConnectedMode).ToList();
+
+        connectedAndStandaloneLanguages.Should().BeEquivalentTo(testSubject.AllKnownLanguages);
+        connectedAndStandaloneLanguages.Should().NotContain(Language.Unknown);
+    }
+
+    [TestMethod]
+    public void Verify_RoslynAndSlCoreLanguagesAreKnown()
+    {
+        var roslynAndSlCore = testSubject.RoslynLanguages
+            .Union(testSubject.SlCoreLanguages).ToList();
+
+        roslynAndSlCore.Should().BeEquivalentTo(testSubject.AllKnownLanguages);
+        roslynAndSlCore.Should().NotContain(Language.Unknown);
+    }
+
+    [TestMethod]
+    public void Verify_AllConfiguredLanguagesHaveKnownPluginKeys()
+    {
+        testSubject.AllKnownLanguages.Should().NotContainNulls();
+        testSubject.AllKnownLanguages.Should().NotContain(Language.Unknown);
+    }
 }
