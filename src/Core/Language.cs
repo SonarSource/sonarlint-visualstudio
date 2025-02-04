@@ -18,11 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core
@@ -42,46 +38,47 @@ namespace SonarLint.VisualStudio.Core
     [TypeConverter(typeof(LanguageConverter))]
     public sealed class Language : IEquatable<Language>
     {
-        public readonly static Language Unknown = new Language();
-        public readonly static Language CSharp = new Language("CSharp", CoreStrings.CSharpLanguageName, "sonarlint_csharp.globalconfig", SonarQubeLanguage.CSharp);
-        public readonly static Language VBNET = new Language("VB", CoreStrings.VBNetLanguageName, "sonarlint_vb.globalconfig", SonarQubeLanguage.VbNet);
-        public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName, null, SonarQubeLanguage.Cpp);
-        public readonly static Language C = new Language("C", "C", null, SonarQubeLanguage.C);
-        public readonly static Language Js = new Language("Js", "JavaScript", null, SonarQubeLanguage.Js);
-        public readonly static Language Ts = new Language("Ts", "TypeScript", null, SonarQubeLanguage.Ts);
-        public readonly static Language Css = new Language("Css", "CSS", null, SonarQubeLanguage.Css);
-        public readonly static Language Html = new Language("Html", "HTML", null, SonarQubeLanguage.Html);
-        public readonly static Language Secrets = new Language("Secrets", "Secrets", null, SonarQubeLanguage.Secrets);
-        public readonly static Language TSql = new Language("TSql", "T-SQL", null, SonarQubeLanguage.TSql);
+        private static readonly RepoInfo CSharpRepo = new("csharpsquid", "csharp");
+        private static readonly RepoInfo CSharpSecurityRepo = new("roslyn.sonaranalyzer.security.cs", "csharp");
+        private static readonly RepoInfo VbNetRepo = new("vbnet");
+        private static readonly RepoInfo CppRepo = new("cpp");
+        private static readonly RepoInfo CRepo = new("c");
+        private static readonly RepoInfo JsRepo = new("javascript");
+        private static readonly RepoInfo JsSecurityRepo = new("jssecurity", "javascript");
+        private static readonly RepoInfo TsRepo = new("typescript");
+        private static readonly RepoInfo TsSecurityRepo = new("tssecurity", "typescript");
+        private static readonly RepoInfo CssRepo = new("css");
+        private static readonly RepoInfo HtmlRepo = new("Web", "html"); //See https://github.com/SonarSource/sonarlint-visualstudio/issues/4586.
+        private static readonly RepoInfo SecretsRepo = new("secrets");
+        private static readonly RepoInfo TsqlRepo = new("tsql");
+
+        public static readonly Language Unknown = new();
+        public static readonly Language CSharp = new("CSharp", CoreStrings.CSharpLanguageName, SonarQubeLanguage.CSharp, CSharpRepo, CSharpSecurityRepo,
+            settingsFileName: "sonarlint_csharp.globalconfig");
+        public static readonly Language VBNET = new("VB", CoreStrings.VBNetLanguageName, SonarQubeLanguage.VbNet, VbNetRepo, settingsFileName: "sonarlint_vb.globalconfig");
+        public static readonly Language Cpp = new("C++", CoreStrings.CppLanguageName, SonarQubeLanguage.Cpp, CppRepo);
+        public static readonly Language C = new("C", "C", SonarQubeLanguage.C, CRepo);
+        public static readonly Language Js = new("Js", "JavaScript", SonarQubeLanguage.Js, JsRepo, JsSecurityRepo);
+        public static readonly Language Ts = new("Ts", "TypeScript", SonarQubeLanguage.Ts, TsRepo, TsSecurityRepo);
+        public static readonly Language Css = new("Css", "CSS", SonarQubeLanguage.Css, CssRepo);
+        public static readonly Language Html = new("Html", "HTML", SonarQubeLanguage.Html, HtmlRepo);
+        public static readonly Language Secrets = new("Secrets", "Secrets", SonarQubeLanguage.Secrets, SecretsRepo);
+        public static readonly Language TSql = new("TSql", "T-SQL", SonarQubeLanguage.TSql, TsqlRepo);
 
         /// <summary>
         /// Returns the language for the specified language key, or null if it does not match a known language
         /// </summary>
-        public static Language GetLanguageFromLanguageKey(string languageKey) =>
-            KnownLanguages.FirstOrDefault(l => languageKey.Equals(l.ServerLanguage.Key, System.StringComparison.OrdinalIgnoreCase));
+        public static Language GetLanguageFromLanguageKey(string languageKey) => KnownLanguages.FirstOrDefault(l => languageKey.Equals(l.ServerLanguage.Key, StringComparison.OrdinalIgnoreCase));
 
         /// <summary>
         /// Returns the language for the specified repository key, or null if it does not match a known language
         /// </summary>
-        public static Language GetLanguageFromRepositoryKey(string repoKey)
-        {
-            repoKeyToLanguage.TryGetValue(repoKey, out Language language);
-
-            return language;
-        }
+        public static Language GetLanguageFromRepositoryKey(string repoKey) => KnownLanguages.SingleOrDefault(lang => lang.HasRepoKey(repoKey));
 
         /// <summary>
         /// Returns the Sonar analyzer repository for the specified language key, or null if one could not be found
         /// </summary>
-        public static string GetSonarRepoKeyFromLanguage(Language language)
-        {
-            if (language?.ServerLanguage?.Key == null)
-            {
-                return null;
-            }
-            var match = repoKeyToLanguage.FirstOrDefault(x => !x.Key.Contains("security") && x.Value.ServerLanguage.Key == language.ServerLanguage.Key);
-            return match.Key ?? null;
-        }
+        public static string GetSonarRepoKeyFromLanguage(Language language) => KnownLanguages.FirstOrDefault(x => x.Id == language.Id)?.RepoInfo.Key;
 
         /// <summary>
         /// A stable identifier for this language.
@@ -104,8 +101,15 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Suffix and extension added to the language-specific rules configuration file for the language
         /// </summary>
-        /// <remarks>e.g. for ruleset-based languages this will be a language identifier + ".ruleset"</remarks>
-        public string FileSuffixAndExtension { get; }
+        /// <remarks>e.g. for ruleset-based languages this will be a language identifier + ".globalconfig"</remarks>
+        public string SettingsFileNameAndExtension { get; }
+
+        public RepoInfo RepoInfo { get; }
+
+        /// <summary>
+        /// Nullable, the repository info for the security rules (i.e. hotspots) for this language
+        /// </summary>
+        public RepoInfo SecurityRepoInfo { get; }
 
         /// <summary>
         /// Returns whether or not this language is a supported project language.
@@ -124,36 +128,22 @@ namespace SonarLint.VisualStudio.Core
         }
 
         /// <summary>
-        /// Matches the repository name to its language object counterpart.
-        /// </summary>
-        private static readonly Dictionary<string, Language> repoKeyToLanguage = new Dictionary<string, Language>()
-        {
-            { "csharpsquid", CSharp },
-            { "roslyn.sonaranalyzer.security.cs", CSharp },
-            { "vbnet", VBNET },
-            { "cpp", Cpp },
-            { "c", C },
-            { "javascript", Js },
-            { "jssecurity", Js },
-            { "typescript", Ts },
-            { "tssecurity", Ts },
-            { "css", Css },
-            { "Web", Html},
-            { "secrets", Secrets},
-            { "tsql", TSql },
-        };
-
-        /// <summary>
         /// Private constructor reserved for the <seealso cref="Unknown"/>.
         /// </summary>
         private Language()
         {
-            this.Id = string.Empty;
-            this.Name = CoreStrings.UnknownLanguageName;
-            this.FileSuffixAndExtension = string.Empty;
+            Id = string.Empty;
+            Name = CoreStrings.UnknownLanguageName;
+            SettingsFileNameAndExtension = string.Empty;
         }
 
-        public Language(string id, string name, string fileSuffix, SonarQubeLanguage serverLanguage)
+        public Language(
+            string id,
+            string name,
+            SonarQubeLanguage serverLanguage,
+            RepoInfo repoInfo,
+            RepoInfo securityRepoInfo = null,
+            string settingsFileName = null)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -165,10 +155,12 @@ namespace SonarLint.VisualStudio.Core
                 throw new ArgumentNullException(nameof(name));
             }
 
-            this.Id = id;
-            this.Name = name;
-            this.FileSuffixAndExtension = fileSuffix;
-            this.ServerLanguage = serverLanguage ?? throw new ArgumentNullException(nameof(serverLanguage));
+            Id = id;
+            Name = name;
+            SettingsFileNameAndExtension = settingsFileName;
+            ServerLanguage = serverLanguage ?? throw new ArgumentNullException(nameof(serverLanguage));
+            RepoInfo = repoInfo ?? throw new ArgumentNullException(nameof(repoInfo));
+            SecurityRepoInfo = securityRepoInfo;
         }
 
         #region IEquatable<Language> and Equals
@@ -181,21 +173,23 @@ namespace SonarLint.VisualStudio.Core
             }
 
             return other != null
-                && other.Id == this.Id;
+                   && other.Id == Id;
         }
 
         public override bool Equals(object obj)
         {
-            return this.Equals(obj as Language);
+            return Equals(obj as Language);
         }
 
         public override int GetHashCode()
         {
-            return this.Id.GetHashCode();
+            return Id.GetHashCode();
         }
 
         #endregion
 
         public override string ToString() => Name;
+
+        public bool HasRepoKey(string repoKey) => RepoInfo.Key == repoKey || SecurityRepoInfo?.Key == repoKey;
     }
 }

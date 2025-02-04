@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarQube.Client.Models;
 
@@ -58,7 +53,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         [DataRow("vb")] // VB language key is "vbnet"
         public void Generate_UnrecognisedLanguage_Throws(string languageKey)
         {
-            Action act = () => new SonarLintConfigGenerator().Generate(EmptyRules, EmptyProperties, new ServerExclusions(), new Language(languageKey, "languageX", ".any", new SonarQubeLanguage(languageKey, "languageX")));
+            Action act = () => new SonarLintConfigGenerator().Generate(EmptyRules, EmptyProperties, new ServerExclusions(),
+                new Language(languageKey, "languageX", new SonarQubeLanguage(languageKey, "languageX"), new RepoInfo("repoKey"), settingsFileName: ".any"));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
         }
 
@@ -81,13 +77,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             // Arrange
             var properties = new Dictionary<string, string>
             {
-                { "sonar.cs.property1", "valid setting 1"},
-                { "sonar.cs.property2", "valid setting 2"},
-                { "sonar.vbnet.property1", "wrong language - not returned"},
-                { "sonar.CS.property2", "wrong case - not returned"},
-                { "sonar.cs.", "incorrect prefix - not returned"},
-                { "xxx.cs.property1", "key does not match - not returned"},
-                { ".does.not.match", "not returned"}
+                { "sonar.cs.property1", "valid setting 1" },
+                { "sonar.cs.property2", "valid setting 2" },
+                { "sonar.vbnet.property1", "wrong language - not returned" },
+                { "sonar.CS.property2", "wrong case - not returned" },
+                { "sonar.cs.", "incorrect prefix - not returned" },
+                { "xxx.cs.property1", "key does not match - not returned" },
+                { ".does.not.match", "not returned" }
             };
 
             var testSubject = new SonarLintConfigGenerator();
@@ -96,11 +92,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             var actual = testSubject.Generate(EmptyRules, properties, new ServerExclusions(), Language.CSharp);
 
             // Assert
-            actual.Settings.Should().BeEquivalentTo(new Dictionary<string, string>
-            {
-                { "sonar.cs.property1", "valid setting 1"},
-                { "sonar.cs.property2", "valid setting 2"}
-            });
+            actual.Settings.Should().BeEquivalentTo(new Dictionary<string, string> { { "sonar.cs.property1", "valid setting 1" }, { "sonar.cs.property2", "valid setting 2" } });
         }
 
         [TestMethod]
@@ -108,12 +100,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         {
             // Arrange
             var testSubject = new SonarLintConfigGenerator();
-            var properties = new Dictionary<string, string>
-            {
-                { "sonar.cs.property3", "aaa"},
-                { "sonar.cs.property1", "bbb"},
-                { "sonar.cs.property2", "ccc"},
-            };
+            var properties = new Dictionary<string, string> { { "sonar.cs.property3", "aaa" }, { "sonar.cs.property1", "bbb" }, { "sonar.cs.property2", "ccc" }, };
 
             // Act
             var actual = testSubject.Generate(EmptyRules, properties, new ServerExclusions(), Language.CSharp);
@@ -136,19 +123,16 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             var testSubject = new SonarLintConfigGenerator();
             var properties = new Dictionary<string, string>
             {
-                { "sonar.cs.property1.secured", "secure - should not be returned"},
-                { "sonar.cs.property2", "valid setting"},
-                { "sonar.cs.property3.SECURED", "secure - should not be returned2"},
+                { "sonar.cs.property1.secured", "secure - should not be returned" },
+                { "sonar.cs.property2", "valid setting" },
+                { "sonar.cs.property3.SECURED", "secure - should not be returned2" },
             };
 
             // Act
             var actual = testSubject.Generate(EmptyRules, properties, new ServerExclusions(), Language.CSharp);
 
             // Assert
-            actual.Settings.Should().BeEquivalentTo(new Dictionary<string, string>
-            {
-                { "sonar.cs.property2", "valid setting"}
-            });
+            actual.Settings.Should().BeEquivalentTo(new Dictionary<string, string> { { "sonar.cs.property2", "valid setting" } });
         }
 
         [TestMethod]
@@ -183,8 +167,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             var testSubject = new SonarLintConfigGenerator();
             var rules = new List<SonarQubeRule>()
             {
-                CreateRuleWithValidParams("valid1", $"roslyn.sonaranalyzer.security.{languageKey}"),
-                CreateRuleWithValidParams("valid2", $"roslyn.sonaranalyzer.security.{languageKey}")
+                CreateRuleWithValidParams("valid1", $"roslyn.sonaranalyzer.security.{languageKey}"), CreateRuleWithValidParams("valid2", $"roslyn.sonaranalyzer.security.{languageKey}")
             };
 
             // Act
@@ -203,12 +186,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             var rule1Params = new Dictionary<string, string> { { "param1", "value1" }, { "param2", "value2" } };
             var rule3Params = new Dictionary<string, string> { { "param3", "value4" } };
 
-            var rules = new List<SonarQubeRule>()
-            {
-                CreateRule("s111", "csharpsquid", rule1Params ),
-                CreateRule("s222", "csharpsquid" /* no params */),
-                CreateRule("s333", "csharpsquid", rule3Params )
-            };
+            var rules = new List<SonarQubeRule>() { CreateRule("s111", "csharpsquid", rule1Params), CreateRule("s222", "csharpsquid" /* no params */), CreateRule("s333", "csharpsquid", rule3Params) };
 
             // Act
             var actual = testSubject.Generate(rules, EmptyProperties, new ServerExclusions(), Language.CSharp);
@@ -262,29 +240,18 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         public void Generate_HasExclusions_ExclusionsIncludedInConfig()
         {
             var exclusions = new ServerExclusions(
-                exclusions: new[] {"**/path1", "**/*/path2"},
-                globalExclusions: new[] {"**/path3"},
-                inclusions: new[] {"**/path4"});
+                exclusions: new[] { "**/path1", "**/*/path2" },
+                globalExclusions: new[] { "**/path3" },
+                inclusions: new[] { "**/path4" });
 
             var testSubject = new SonarLintConfigGenerator();
             var actual = testSubject.Generate(EmptyRules, EmptyProperties, exclusions, Language.CSharp);
 
             actual.Settings.Count.Should().Be(3);
 
-            actual.Settings[0].Should().BeEquivalentTo(new SonarLintKeyValuePair
-            {
-                Key = "sonar.exclusions", Value = "**/path1,**/*/path2"
-            });
-            actual.Settings[1].Should().BeEquivalentTo(new SonarLintKeyValuePair
-            {
-                Key = "sonar.global.exclusions",
-                Value = "**/path3"
-            });
-            actual.Settings[2].Should().BeEquivalentTo(new SonarLintKeyValuePair
-            {
-                Key = "sonar.inclusions",
-                Value = "**/path4"
-            });
+            actual.Settings[0].Should().BeEquivalentTo(new SonarLintKeyValuePair { Key = "sonar.exclusions", Value = "**/path1,**/*/path2" });
+            actual.Settings[1].Should().BeEquivalentTo(new SonarLintKeyValuePair { Key = "sonar.global.exclusions", Value = "**/path3" });
+            actual.Settings[2].Should().BeEquivalentTo(new SonarLintKeyValuePair { Key = "sonar.inclusions", Value = "**/path4" });
         }
 
         [TestMethod]
@@ -293,11 +260,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             // Arrange
             var testSubject = new SonarLintConfigGenerator();
 
-            var properties = new Dictionary<string, string>()
-            {
-                { "sonar.cs.prop1", "value 1"},
-                { "sonar.cs.prop2", "value 2"}
-            };
+            var properties = new Dictionary<string, string>() { { "sonar.cs.prop1", "value 1" }, { "sonar.cs.prop2", "value 2" } };
 
             var rules = new List<SonarQubeRule>()
             {
@@ -371,8 +334,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
 </AnalysisInput>");
         }
 
-        private static SonarQubeRule CreateRuleWithValidParams(string ruleKey, string repoKey) =>
-            CreateRule(ruleKey, repoKey, ValidParams);
+        private static SonarQubeRule CreateRuleWithValidParams(string ruleKey, string repoKey) => CreateRule(ruleKey, repoKey, ValidParams);
 
         private static SonarQubeRule CreateRule(string ruleKey, string repoKey, IDictionary<string, string> parameters = null) =>
             new SonarQubeRule(ruleKey, repoKey, isActive: false, SonarQubeIssueSeverity.Blocker, null, null, parameters, SonarQubeIssueType.Unknown);

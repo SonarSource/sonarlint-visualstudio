@@ -18,13 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
@@ -45,11 +39,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         public CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
             : this(sonarQubeService, logger,
-                  new GlobalConfigGenerator(), new SonarLintConfigGenerator())
+                new GlobalConfigGenerator(), new SonarLintConfigGenerator())
         {
         }
 
-        internal /* for testing */ CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService,
+        internal /* for testing */ CSharpVBBindingConfigProvider(
+            ISonarQubeService sonarQubeService,
             ILogger logger,
             IGlobalConfigGenerator globalConfigGenerator,
             ISonarLintConfigGenerator sonarLintConfigGenerator)
@@ -65,8 +60,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return Language.CSharp.Equals(language) || Language.VBNET.Equals(language);
         }
 
-        public Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language,
-            BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
+        public Task<IBindingConfig> GetConfigurationAsync(
+            SonarQubeQualityProfile qualityProfile,
+            Language language,
+            BindingConfiguration bindingConfiguration,
+            CancellationToken cancellationToken)
         {
             if (!IsLanguageSupported(language))
             {
@@ -76,7 +74,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return DoGetConfigurationAsync(qualityProfile, language, bindingConfiguration, cancellationToken);
         }
 
-        private async Task<IBindingConfig> DoGetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
+        private async Task<IBindingConfig> DoGetConfigurationAsync(
+            SonarQubeQualityProfile qualityProfile,
+            Language language,
+            BindingConfiguration bindingConfiguration,
+            CancellationToken cancellationToken)
         {
             var serverLanguage = language.ServerLanguage;
             Debug.Assert(serverLanguage != null,
@@ -106,7 +108,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return new CSharpVBBindingConfig(globalConfig, additionalFile);
         }
 
-        private async Task<ServerExclusions> FetchInclusionsExclusionsAsync(string projectKey,
+        private async Task<ServerExclusions> FetchInclusionsExclusionsAsync(
+            string projectKey,
             CancellationToken cancellationToken)
         {
             var exclusions = await WebServiceHelper.SafeServiceCallAsync(
@@ -115,7 +118,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return exclusions;
         }
 
-        private FilePathAndContent<string> GetGlobalConfig(Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules)
+        private FilePathAndContent<string> GetGlobalConfig(
+            Language language,
+            BindingConfiguration bindingConfiguration,
+            IEnumerable<SonarQubeRule> activeRules,
+            IEnumerable<SonarQubeRule> inactiveRules)
         {
             var globalConfig = globalConfigGenerator.Generate(activeRules.Union(inactiveRules));
 
@@ -124,7 +131,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return new FilePathAndContent<string>(globalConfigFilePath, globalConfig);
         }
 
-        private FilePathAndContent<SonarLintConfiguration> GetAdditionalFile(Language language,
+        private FilePathAndContent<SonarLintConfiguration> GetAdditionalFile(
+            Language language,
             BindingConfiguration bindingConfiguration,
             IEnumerable<SonarQubeRule> activeRules,
             IDictionary<string, string> sonarProperties,
@@ -153,7 +161,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return serverProperties.ToDictionary(x => x.Key, x => x.Value);
         }
 
-        internal static  /* for testing */ bool IsSupportedRule(SonarQubeRule rule)
+        internal static /* for testing */ bool IsSupportedRule(SonarQubeRule rule)
         {
             // We don't want to generate configuration for taint-analysis rules or hotspots.
             // * taint-analysis rules: these are in a separate analyzer that doesn't ship in SLVS so there is no point in generating config
@@ -162,8 +170,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             return IsSupportedIssueType(rule.IssueType) && !IsTaintAnalysisRule(rule);
         }
 
-        private static bool IsTaintAnalysisRule(SonarQubeRule rule) =>
-            rule.RepositoryKey.StartsWith(TaintAnalyisRepoPrefix, StringComparison.OrdinalIgnoreCase);
+        private static bool IsTaintAnalysisRule(SonarQubeRule rule) => rule.RepositoryKey.StartsWith(TaintAnalyisRepoPrefix, StringComparison.OrdinalIgnoreCase);
 
         private static bool IsSupportedIssueType(SonarQubeIssueType issueType) =>
             issueType == SonarQubeIssueType.CodeSmell ||
@@ -172,7 +179,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         internal static string GetSolutionGlobalConfigFilePath(Language language, BindingConfiguration bindingConfiguration)
         {
-            return bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
+            return bindingConfiguration.BuildPathUnderConfigDirectory(language.SettingsFileNameAndExtension);
         }
 
         internal static string GetSolutionAdditionalFilePath(Language language, BindingConfiguration bindingConfiguration)
