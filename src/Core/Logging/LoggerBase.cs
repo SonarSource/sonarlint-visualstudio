@@ -41,14 +41,11 @@ internal class LoggerBase(
             writer,
             settingsProvider);
 
-    public void WriteLine(string message) =>
-        writer.WriteLine(CreateStandardLogPrefix().Append(message).ToString());
-
     public void WriteLine(string messageFormat, params object[] args) =>
         WriteLine(default, messageFormat, args);
 
     public void WriteLine(MessageLevelContext context, string messageFormat, params object[] args) =>
-        writer.WriteLine(CreateStandardLogPrefix(context).AppendFormat(CultureInfo.CurrentCulture, messageFormat, args).ToString());
+        writer.WriteLine(CreateStandardLogPrefix(context).AppendMessage(messageFormat, args).ToString());
 
     public void LogVerbose(string messageFormat, params object[] args) =>
         LogVerbose(default, messageFormat, args);
@@ -60,11 +57,7 @@ internal class LoggerBase(
             return;
         }
 
-        var debugLogPrefix = CreateDebugLogPrefix(context);
-        var logLine = args.Length > 0
-            ? debugLogPrefix.AppendFormat(CultureInfo.CurrentCulture, messageFormat, args)
-            : debugLogPrefix.Append(messageFormat);
-        writer.WriteLine(logLine.ToString());
+        writer.WriteLine(CreateDebugLogPrefix(context).AppendMessage(messageFormat, args).ToString());
     }
 
     private StringBuilder CreateStandardLogPrefix(MessageLevelContext context = default) =>
@@ -77,7 +70,7 @@ internal class LoggerBase(
     {
         if (settingsProvider.IsThreadIdEnabled)
         {
-            builder.AppendPropertyFormat("ThreadId {0}", Thread.CurrentThread.ManagedThreadId);
+            builder.AppendProperty("ThreadId " + Thread.CurrentThread.ManagedThreadId);
         }
 
         if (contextManager.GetFormattedContextOrNull(context) is var formatedContext && !string.IsNullOrEmpty(formatedContext))

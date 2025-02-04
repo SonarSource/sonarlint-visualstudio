@@ -37,23 +37,21 @@ public class StringBuilderLoggingExtensionsTests
     public void AppendProperty_AddsPlainPropertyValueToTheEnd(string original, string property, string expected) =>
         new StringBuilder(original).AppendProperty(property).ToString().Should().Be(expected);
 
+    [DataRow("msg", "prefix msg")]
+    [DataRow("msg {0}", "prefix msg {0}")]
+    [DataRow("", "prefix ")]
     [DataTestMethod]
-    [DataRow(null, "", "[] ")]
-    [DataRow(null, "a", "[a] ")]
-    [DataRow("", "a", "[a] ")]
-    [DataRow("abc", "def", "abc[def] ")]
-    [DataRow("abc ", "def", "abc [def] ")]
-    public void AppendPropertyFormat_NonFormattedProperty_AddsPlainValueToTheEnd(string original, string property, string expected) =>
-        new StringBuilder(original).AppendPropertyFormat(property).ToString().Should().Be(expected);
+    public void AppendMessage_NoParameters_AppendsAsIs(string message, string expected) =>
+        new StringBuilder("prefix ").AppendMessage(message, []).ToString().Should().Be(expected);
 
     [TestMethod]
-    public void AppendPropertyFormat_FormattedString_CorrectlyAppliesStringFormat() =>
-        new StringBuilder().AppendPropertyFormat("for{0}ted", "mat").ToString().Should().Be("[formatted] ");
+    public void AppendMessage_WithParameters_AppendsWithFormat() =>
+        new StringBuilder("prefix ").AppendMessage("msg {0}", ["param1"]).ToString().Should().Be("prefix msg param1");
 
     [TestMethod]
-    public void AppendPropertyFormat_IncorrectNumberOfParameters_Throws()
+    public void AppendMessage_WithParametersMismatch_ThrowsFormatException()
     {
-        var act =()=> new StringBuilder().AppendPropertyFormat("for{0}t{1}", "mat");
+        var act = () => new StringBuilder("prefix ").AppendMessage("msg {0} {1}", ["param1"]);
 
         act.Should().Throw<FormatException>();
     }

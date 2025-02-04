@@ -99,8 +99,6 @@ namespace SonarLint.VisualStudio.TestInfrastructure
 
         #region ILogger methods
 
-        public void WriteLine(string message) => logger.WriteLine(message);
-
         public void WriteLine(string messageFormat, params object[] args) => logger.WriteLine(messageFormat, args);
 
         public void WriteLine(MessageLevelContext context, string messageFormat, params object[] args) => logger.WriteLine(context, messageFormat, args);
