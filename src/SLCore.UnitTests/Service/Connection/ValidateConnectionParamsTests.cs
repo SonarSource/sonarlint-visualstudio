@@ -84,7 +84,8 @@ public class ValidateConnectionParamsTests
                                           "credentials": {
                                             "username": "myUser",
                                             "password": "password"
-                                          }
+                                          },
+                                          "region": "EU"
                                         }
                                       }
                                       """;
@@ -105,10 +106,44 @@ public class ValidateConnectionParamsTests
                                           "organization": "myOrg",
                                           "credentials": {
                                             "token": "myToken"
-                                          }
+                                          },
+                                          "region": "EU"
                                         }
                                       }
                                       """;
+
+        var serializedString = JsonConvert.SerializeObject(testSubject, Formatting.Indented);
+
+        serializedString.Should().Be(expectedString);
+    }
+
+
+    [DataRow(SonarCloudRegion.EU, """
+                                  {
+                                    "transientConnection": {
+                                      "organization": "myOrg",
+                                      "credentials": {
+                                        "token": "myToken"
+                                      },
+                                      "region": "EU"
+                                    }
+                                  }
+                                  """)]
+    [DataRow(SonarCloudRegion.US, """
+                                  {
+                                    "transientConnection": {
+                                      "organization": "myOrg",
+                                      "credentials": {
+                                        "token": "myToken"
+                                      },
+                                      "region": "US"
+                                    }
+                                  }
+                                  """)]
+    [DataTestMethod]
+    public void Ctor_TransientSonarCloudConnectionWithRegion_SerializeAsExpected(SonarCloudRegion region, string expectedString)
+    {
+        var testSubject = new ValidateConnectionParams(new TransientSonarCloudConnectionDto("myOrg", Either<TokenDto, UsernamePasswordDto>.CreateLeft(new TokenDto("myToken")), region));
 
         var serializedString = JsonConvert.SerializeObject(testSubject, Formatting.Indented);
 

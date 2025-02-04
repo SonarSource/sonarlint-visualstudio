@@ -19,13 +19,11 @@
  */
 
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.SLCore.Common.Models;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using Newtonsoft.Json.Converters;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
-public record TransientSonarCloudConnectionDto(
-    string organization,
-    [property: JsonConverter(typeof(EitherJsonConverter<TokenDto, UsernamePasswordDto>))]
-    Either<TokenDto, UsernamePasswordDto> credentials,
-    SonarCloudRegion region = SonarCloudRegion.EU);
+[JsonConverter(typeof(StringEnumConverter))]
+public enum SonarCloudRegion {
+    EU, US
+}

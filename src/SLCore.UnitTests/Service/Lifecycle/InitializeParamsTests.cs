@@ -45,7 +45,10 @@ public class InitializeParamsTests
             [Language.CPP],
             ["csharp"],
             [new SonarQubeConnectionConfigurationDto("con1", true, "localhost")],
-            [new SonarCloudConnectionConfigurationDto("con2", false, "organization1")],
+            [
+                new SonarCloudConnectionConfigurationDto("con2", false, "organization1"),
+                new SonarCloudConnectionConfigurationDto("con3", true, "organization2", SonarCloudRegion.US)
+            ],
             "userHome",
             new Dictionary<string, StandaloneRuleConfigDto>
             {
@@ -106,8 +109,15 @@ public class InitializeParamsTests
                                   "sonarCloudConnections": [
                                     {
                                       "organization": "organization1",
+                                      "region": "EU",
                                       "connectionId": "con2",
                                       "disableNotification": false
+                                    },
+                                    {
+                                      "organization": "organization2",
+                                      "region": "US",
+                                      "connectionId": "con3",
+                                      "disableNotification": true
                                     }
                                   ],
                                   "sonarlintUserHome": "userHome",

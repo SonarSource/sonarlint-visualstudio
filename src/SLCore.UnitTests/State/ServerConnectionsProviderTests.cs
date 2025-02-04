@@ -83,7 +83,7 @@ public class ServerConnectionsProviderTests
         var serverConnections = testSubject.GetServerConnections();
 
         serverConnections.Should().HaveCount(1);
-        serverConnections[connection.Id].Should().BeOfType<SonarCloudConnectionConfigurationDto>().Which.organization.Should().Be(organizationKey);
+        serverConnections[connection.Id].Should().BeEquivalentTo(new SonarCloudConnectionConfigurationDto("https://sonarcloud.io/organizations/org", false, "org", SonarCloudRegion.EU));
     }
 
     [TestMethod]
@@ -99,7 +99,7 @@ public class ServerConnectionsProviderTests
         var serverConnections = testSubject.GetServerConnections();
 
         serverConnections.Should().HaveCount(1);
-        serverConnections[connection.Id].Should().BeOfType<SonarCloudConnectionConfigurationDto>().Which.disableNotification.Should().Be(!isSmartNotificationsEnabled);
+        serverConnections[connection.Id].Should().BeEquivalentTo(new SonarCloudConnectionConfigurationDto("https://sonarcloud.io/organizations/org", !isSmartNotificationsEnabled, "org", SonarCloudRegion.EU));
     }
 
     [TestMethod]

@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.SLCore.State;
 
 internal interface IServerConnectionsProvider
 {
-    Dictionary<string, ServerConnectionConfiguration> GetServerConnections();
+    Dictionary<string, ServerConnectionConfigurationDtoBase> GetServerConnections();
 }
 
 [Export(typeof(IServerConnectionsProvider))]
@@ -41,15 +41,15 @@ internal class ServerConnectionsProvider : IServerConnectionsProvider
         this.serverConnectionsRepository = serverConnectionsRepository;
     }
 
-    public Dictionary<string, ServerConnectionConfiguration> GetServerConnections()
+    public Dictionary<string, ServerConnectionConfigurationDtoBase> GetServerConnections()
     {
         var succeeded = serverConnectionsRepository.TryGetAll(out var serverConnections);
         return succeeded ? GetServerConnectionConfigurations(serverConnections).ToDictionary(conf => conf.connectionId) : [];
     }
 
-    private static List<ServerConnectionConfiguration> GetServerConnectionConfigurations(IReadOnlyList<ServerConnection> serverConnections)
+    private static List<ServerConnectionConfigurationDtoBase> GetServerConnectionConfigurations(IReadOnlyList<ServerConnection> serverConnections)
     {
-        var serverConnectionConfigurations = new List<ServerConnectionConfiguration>();
+        var serverConnectionConfigurations = new List<ServerConnectionConfigurationDtoBase>();
         foreach (var serverConnection in serverConnections)
         {
             switch (serverConnection)

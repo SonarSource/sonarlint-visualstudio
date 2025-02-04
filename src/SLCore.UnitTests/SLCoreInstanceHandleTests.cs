@@ -279,7 +279,7 @@ public class SLCoreInstanceHandleTests
         constantsProvider.TelemetryConstants.Returns(TelemetryConstants);
 
         foldersProvider.GetWorkFolders().Returns(new SLCoreFolders(StorageRoot, WorkDir, UserHome));
-        connectionsProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfiguration>
+        connectionsProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfigurationDtoBase>
         {
             { SonarQubeConnection1.connectionId, SonarQubeConnection1 },
             { SonarQubeConnection2.connectionId, SonarQubeConnection2 },
