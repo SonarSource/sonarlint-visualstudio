@@ -37,6 +37,7 @@ public class LanguageExtensionsTests
         VerifyConversionToCoreLanguage(Language.SECRETS, VisualStudio.Core.Language.Secrets);
         VerifyConversionToCoreLanguage(Language.TS, VisualStudio.Core.Language.Ts);
         VerifyConversionToCoreLanguage(Language.VBNET, VisualStudio.Core.Language.VBNET);
+        VerifyConversionToCoreLanguage(Language.HTML, VisualStudio.Core.Language.Html);
         VerifyConversionToCoreLanguage(Language.TSQL, VisualStudio.Core.Language.TSql);
         VerifyConversionToCoreLanguage(Language.ABAP, VisualStudio.Core.Language.Unknown);
         VerifyConversionToCoreLanguage(Language.JAVA, VisualStudio.Core.Language.Unknown);
@@ -62,11 +63,12 @@ public class LanguageExtensionsTests
         VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.C, Language.C);
         VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.Cpp, Language.CPP);
         VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.CSharp, Language.CS);
+        VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.VBNET, Language.VBNET);
         VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.Css, Language.CSS);
         VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.Js, Language.JS);
-        VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.Secrets, Language.SECRETS);
         VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.Ts, Language.TS);
-        VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.VBNET, Language.VBNET);
+        VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.Secrets, Language.SECRETS);
+        VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.Html, Language.HTML);
         VerifyConvertToSlCoreLanguage(VisualStudio.Core.Language.TSql, Language.TSQL);
     }
 
