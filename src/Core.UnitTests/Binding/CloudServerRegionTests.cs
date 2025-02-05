@@ -38,4 +38,53 @@ public class CloudServerRegionTests
         CloudServerRegion.Us.Name.Should().Be("US");
         CloudServerRegion.Us.Url.Should().Be(new Uri("https://us.sonarcloud.io"));
     }
+
+    [TestMethod]
+    [DataRow("Eu")]
+    [DataRow("EU")]
+    [DataRow("eU")]
+    [DataRow("eu")]
+    [DataRow("eu  ")]
+    [DataRow("  eu  ")]
+    public void GetRegionByName_EuName_ReturnsEuRegion(string name)
+    {
+        var result = CloudServerRegion.GetRegionByName(name);
+
+        result.Should().Be(CloudServerRegion.Eu);
+    }
+
+    [TestMethod]
+    [DataRow("Us")]
+    [DataRow("US")]
+    [DataRow("uS")]
+    [DataRow("us")]
+    [DataRow("us   ")]
+    [DataRow("    us   ")]
+    public void GetRegionByName_UsName_ReturnsEuRegion(string name)
+    {
+        var result = CloudServerRegion.GetRegionByName(name);
+
+        result.Should().Be(CloudServerRegion.Us);
+    }
+
+    [TestMethod]
+    [DataRow("    ")]
+    [DataRow("")]
+    [DataRow(null)]
+    public void GetRegionByName_EmptyName_DefaultsToEu(string invalidName)
+    {
+        var result = CloudServerRegion.GetRegionByName(invalidName);
+
+        result.Should().Be(CloudServerRegion.Eu);
+    }
+
+    [TestMethod]
+    [DataRow("invalid")]
+    [DataRow("ro")]
+    public void GetRegionByName_InvalidName_Throws(string invalidName)
+    {
+        var act = () => CloudServerRegion.GetRegionByName(invalidName);
+
+        act.Should().Throw<ArgumentException>().And.Message.Should().Contain($"Invalid region name: {invalidName}");
+    }
 }

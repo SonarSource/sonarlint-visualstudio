@@ -49,15 +49,29 @@ public class ServerConnectionModelMapperTest
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void GetServerConnection_SonarCloud_ReturnsSonarCloudConnection(bool isSmartNotificationsEnabled)
+    [DataRow(true, CloudServerRegion.EuRegionName)]
+    [DataRow(false, CloudServerRegion.UsRegionName)]
+    public void GetServerConnection_SonarCloud_ReturnsSonarCloudConnection(bool isSmartNotificationsEnabled, string region)
     {
-        var connectionsModel = GetSonarCloudJsonModel("myOrg", isSmartNotificationsEnabled);
+        var connectionsModel = GetSonarCloudJsonModel("myOrg", isSmartNotificationsEnabled, region);
 
         var serverConnection = testSubject.GetServerConnection(connectionsModel);
 
         IsExpectedSonarCloudConnection(serverConnection, connectionsModel);
+        ((ServerConnection.SonarCloud)serverConnection).Region.Name.Should().Be(connectionsModel.Region);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void GetServerConnection_SonarCloudWithNoRegion_ReturnsSonarCloudConnectionForEu(bool isSmartNotificationsEnabled)
+    {
+        var connectionsModel = GetSonarCloudJsonModel("myOrg", isSmartNotificationsEnabled, region: null);
+
+        var serverConnection = testSubject.GetServerConnection(connectionsModel);
+
+        IsExpectedSonarCloudConnection(serverConnection, connectionsModel);
+        ((ServerConnection.SonarCloud)serverConnection).Region.Should().Be(CloudServerRegion.Eu);
     }
 
     [TestMethod]
@@ -95,6 +109,17 @@ public class ServerConnectionModelMapperTest
     }
 
     [TestMethod]
+    public void GetServerConnection_SonarQubeWithRegionField_ReturnsSonarQubeConnectionAndIgnoresRegion()
+    {
+        var connectionsModel = GetSonarQubeJsonModel("http://localhost:9000");
+        connectionsModel.Region = CloudServerRegion.Eu.Name;
+
+        var serverConnection = testSubject.GetServerConnection(connectionsModel);
+
+        IsExpectedSonarQubeConnection(serverConnection, connectionsModel);
+    }
+
+    [TestMethod]
     [DataRow("org", null, true)]
     [DataRow(null, "http://localhost", false)]
     [DataRow(null, null, false)]
@@ -127,9 +152,9 @@ public class ServerConnectionModelMapperTest
     [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
-    public void GetServerConnectionsListJsonModel_OneSonarCloudConnection_ReturnsServerConnectionModelForSonarCloud(bool isSmartNotifications)
+    public void GetServerConnectionsListJsonModel_OneSonarCloudConnectionForUsRegion_ReturnsServerConnectionModelForSonarCloud(bool isSmartNotifications)
     {
-        var sonarCloud = new ServerConnection.SonarCloud("myOrg", new ServerConnectionSettings(isSmartNotifications));
+        var sonarCloud = new ServerConnection.SonarCloud("myOrg", CloudServerRegion.Us, new ServerConnectionSettings(isSmartNotifications));
 
         var model = testSubject.GetServerConnectionsListJsonModel([sonarCloud]);
 
@@ -140,17 +165,36 @@ public class ServerConnectionModelMapperTest
             Id = sonarCloud.Id,
             OrganizationKey = sonarCloud.OrganizationKey,
             Settings = sonarCloud.Settings,
-            ServerUri = null
+            ServerUri = null,
+            Region = CloudServerRegion.Us.Name
+        });
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void GetServerConnectionsListJsonModel_OneSonarCloudConnectionForEuRegion_ReturnsServerConnectionModelForSonarCloud(bool isSmartNotifications)
+    {
+        var sonarCloud = new ServerConnection.SonarCloud("myOrg", CloudServerRegion.Eu, new ServerConnectionSettings(isSmartNotifications));
+
+        var model = testSubject.GetServerConnectionsListJsonModel([sonarCloud]);
+
+        model.Should().NotBeNull();
+        model.ServerConnections.Count.Should().Be(1);
+        model.ServerConnections[0].Should().BeEquivalentTo(new ServerConnectionJsonModel
+        {
+            Id = sonarCloud.Id,
+            OrganizationKey = sonarCloud.OrganizationKey,
+            Settings = sonarCloud.Settings,
+            ServerUri = null,
+            Region = CloudServerRegion.Eu.Name
         });
     }
 
     [TestMethod]
     public void GetServerConnectionsListJsonModel_OneSonarCloudConnectionWithNullSettings_ThrowsExceptions()
     {
-        var sonarCloud = new ServerConnection.SonarCloud("myOrg")
-        {
-            Settings = null
-        };
+        var sonarCloud = new ServerConnection.SonarCloud("myOrg") { Settings = null };
 
         Action act = () => testSubject.GetServerConnectionsListJsonModel([sonarCloud]);
 
@@ -173,17 +217,15 @@ public class ServerConnectionModelMapperTest
             Id = sonarQube.Id,
             OrganizationKey = null,
             ServerUri = sonarQube.ServerUri.ToString(),
-            Settings = sonarQube.Settings
+            Settings = sonarQube.Settings,
+            Region = null
         });
     }
 
     [TestMethod]
     public void GetServerConnectionsListJsonModel_OneSonarQubeConnectionWithNullSettings_ThrowsExceptions()
     {
-        var sonarQube = new ServerConnection.SonarQube(new Uri("http://localhost"))
-        {
-            Settings = null
-        };
+        var sonarQube = new ServerConnection.SonarQube(new Uri("http://localhost")) { Settings = null };
 
         Action act = () => testSubject.GetServerConnectionsListJsonModel([sonarQube]);
 
@@ -199,24 +241,14 @@ public class ServerConnectionModelMapperTest
         model.ServerConnections.Should().BeEmpty();
     }
 
-    private static ServerConnectionJsonModel GetSonarCloudJsonModel(string id, bool isSmartNotificationsEnabled = false)
+    private static ServerConnectionJsonModel GetSonarCloudJsonModel(string id, bool isSmartNotificationsEnabled = false, string region = null)
     {
-        return new ServerConnectionJsonModel
-        {
-            Id = id,
-            OrganizationKey = id,
-            Settings = new ServerConnectionSettings(isSmartNotificationsEnabled)
-        };
+        return new ServerConnectionJsonModel { Id = id, OrganizationKey = id, Region = region, Settings = new ServerConnectionSettings(isSmartNotificationsEnabled) };
     }
 
     private static ServerConnectionJsonModel GetSonarQubeJsonModel(string id, bool isSmartNotificationsEnabled = false)
     {
-        return new ServerConnectionJsonModel
-        {
-            Id = id,
-            ServerUri = id,
-            Settings = new ServerConnectionSettings(isSmartNotificationsEnabled)
-        };
+        return new ServerConnectionJsonModel { Id = id, ServerUri = id, Settings = new ServerConnectionSettings(isSmartNotificationsEnabled) };
     }
 
     private static void IsExpectedSonarCloudConnection(ServerConnection serverConnection, ServerConnectionJsonModel connectionsModel)

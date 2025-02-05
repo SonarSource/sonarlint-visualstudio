@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json.Converters;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Binding;
 
@@ -40,6 +39,9 @@ public record ServerConnectionJsonModel
 
     [JsonProperty("organizationKey")]
     public string OrganizationKey { get; set; }
+
+    [JsonProperty("region")]
+    public string Region { get; set; }
 
     [JsonProperty("serverUri")]
     public string ServerUri { get; set; }

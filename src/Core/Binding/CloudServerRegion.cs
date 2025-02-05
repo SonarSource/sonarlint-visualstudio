@@ -22,8 +22,11 @@ namespace SonarLint.VisualStudio.Core.Binding;
 
 public sealed class CloudServerRegion
 {
-    public static readonly CloudServerRegion Eu = new("EU", new("https://sonarcloud.io"));
-    public static readonly CloudServerRegion Us = new("US", new("https://us.sonarcloud.io"));
+    public const string EuRegionName = "EU";
+    public const string UsRegionName = "US";
+
+    public static readonly CloudServerRegion Eu = new(EuRegionName, new("https://sonarcloud.io"));
+    public static readonly CloudServerRegion Us = new(UsRegionName, new("https://us.sonarcloud.io"));
 
     private CloudServerRegion(string name, Uri url)
     {
@@ -34,4 +37,21 @@ public sealed class CloudServerRegion
     public string Name { get; set; }
 
     public Uri Url { get; set; }
+
+    /// <summary>
+    /// Returns the region by the given name, ignoring the case and leading/trailing whitespaces.
+    /// If null or empty is provided, defaults to <see cref="Eu"/>
+    /// </summary>
+    /// <param name="name">The name of the region</param>
+    /// <returns>An instance of <see cref="CloudServerRegion"/></returns>
+    /// <exception cref="ArgumentException">If an invalid region is provided</exception>
+    public static CloudServerRegion GetRegionByName(string name) =>
+        name?.ToUpper().Trim() switch
+        {
+            EuRegionName => Eu,
+            UsRegionName => Us,
+            null => Eu,
+            "" => Eu,
+            _ => throw new ArgumentException($"Invalid region name: {name}")
+        };
 }
