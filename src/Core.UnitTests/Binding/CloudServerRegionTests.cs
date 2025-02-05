@@ -18,20 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.Binding;
 
-public sealed class CloudServerRegion
+namespace SonarLint.VisualStudio.Core.UnitTests.Binding;
+
+[TestClass]
+public class CloudServerRegionTests
 {
-    public static readonly CloudServerRegion Eu = new("EU", new("https://sonarcloud.io"));
-    public static readonly CloudServerRegion Us = new("US", new("https://us.sonarcloud.io"));
-
-    private CloudServerRegion(string name, Uri url)
+    [TestMethod]
+    public void EuRegion_ExpectedProperties()
     {
-        Name = name ?? throw new ArgumentNullException(nameof(name));
-        Url = url ?? throw new ArgumentNullException(nameof(url));
+        CloudServerRegion.Eu.Name.Should().Be("EU");
+        CloudServerRegion.Eu.Url.Should().Be(new Uri("https://sonarcloud.io"));
     }
 
-    public string Name { get; set; }
-
-    public Uri Url { get; set; }
+    [TestMethod]
+    public void UsRegion_ExpectedProperties()
+    {
+        CloudServerRegion.Us.Name.Should().Be("US");
+        CloudServerRegion.Us.Url.Should().Be(new Uri("https://us.sonarcloud.io"));
+    }
 }
