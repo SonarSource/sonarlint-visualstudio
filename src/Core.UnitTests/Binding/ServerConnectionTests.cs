@@ -40,7 +40,7 @@ public class ServerConnectionTests
     [TestMethod]
     public void Ctor_SonarCloud_NullSettings_SetDefault()
     {
-        var sonarCloud = new ServerConnection.SonarCloud(Org, null);
+        var sonarCloud = new ServerConnection.SonarCloud(Org, settings: null);
 
         sonarCloud.Settings.Should().BeSameAs(ServerConnection.DefaultSettings);
     }
@@ -58,14 +58,23 @@ public class ServerConnectionTests
     {
         var serverConnectionSettings = new ServerConnectionSettings(false);
         var credentials = Substitute.For<IConnectionCredentials>();
-        var sonarCloud = new ServerConnection.SonarCloud(Org, serverConnectionSettings, credentials);
+        var sonarCloud = new ServerConnection.SonarCloud(Org, CloudServerRegion.Us, serverConnectionSettings, credentials);
 
         sonarCloud.Id.Should().Be($"https://sonarcloud.io/organizations/{Org}");
         sonarCloud.OrganizationKey.Should().BeSameAs(Org);
+        sonarCloud.Region.Should().BeSameAs(CloudServerRegion.Us);
         sonarCloud.ServerUri.Should().Be(new Uri("https://sonarcloud.io"));
         sonarCloud.Settings.Should().BeSameAs(serverConnectionSettings);
         sonarCloud.Credentials.Should().BeSameAs(credentials);
         sonarCloud.CredentialsUri.Should().Be(new Uri($"https://sonarcloud.io/organizations/{Org}"));
+    }
+
+    [TestMethod]
+    public void Ctor_SonarCloud_NoRegion_SetsEu()
+    {
+        var sonarCloud = new ServerConnection.SonarCloud(Org);
+
+        sonarCloud.Region.Should().Be(CloudServerRegion.Eu);
     }
 
     [TestMethod]
@@ -133,7 +142,7 @@ public class ServerConnectionTests
     [TestMethod]
     public void FromBoundSonarQubeProject_InvalidConnection_ReturnsNull()
     {
-        var connection = ServerConnection.FromBoundSonarQubeProject(new BoundSonarQubeProject(){ ProjectKey = "project"});
+        var connection = ServerConnection.FromBoundSonarQubeProject(new BoundSonarQubeProject() { ProjectKey = "project" });
 
         connection.Should().BeNull();
     }

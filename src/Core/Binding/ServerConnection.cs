@@ -52,15 +52,29 @@ public abstract class ServerConnection
     {
         private static readonly string SonarCloudUrl = CoreStrings.SonarCloudUrl;
 
-        public SonarCloud(string organizationKey, ServerConnectionSettings settings = null, IConnectionCredentials credentials = null)
+        public SonarCloud(
+            string organizationKey,
+            ServerConnectionSettings settings = null,
+            IConnectionCredentials credentials = null)
+            : this(organizationKey, CloudServerRegion.Eu, settings, credentials)
+        {
+        }
+
+        public SonarCloud(
+            string organizationKey,
+            CloudServerRegion region,
+            ServerConnectionSettings settings = null,
+            IConnectionCredentials credentials = null)
             : base(OrganizationKeyToId(organizationKey), settings, credentials)
         {
             OrganizationKey = organizationKey;
+            Region = region;
         }
 
         public string OrganizationKey { get; }
+        public CloudServerRegion Region { get; }
 
-        public override Uri ServerUri => new (SonarCloudUrl);
+        public override Uri ServerUri => new(SonarCloudUrl);
 
         private static string OrganizationKeyToId(string organizationKey)
         {
