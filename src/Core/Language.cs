@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Core
     /// This class is safe for use as a key in collection classes. E.g., <seealso cref="IDictionary{TKey, TValue}"/>.
     /// </para>
     /// </remarks>
-    [DebuggerDisplay("{Name} (ID: {Id}, IsSupported: {IsSupported})")]
+    [DebuggerDisplay("{Name} (ID: {Id})")]
     [TypeConverter(typeof(LanguageConverter))]
     public sealed class Language : IEquatable<Language>
     {
