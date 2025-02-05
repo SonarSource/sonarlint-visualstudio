@@ -46,7 +46,8 @@ public class InitializationTests
         VerifyNoErrorsInLogs(testLogger);
         VerifyNoErrorsInLogs(slCoreErrorLogger);
         VerifyLogMessagesReceived(slCoreLogger);
-        slCoreLogger.AssertPartialOutputStringExists("SonarLint backend started");
+        slCoreLogger.AssertPartialOutputStringExists("Telemetry disabled on server startup");
+        slCoreLogger.AssertPartialOutputStringDoesNotExist("Internal error");
     }
 
     [TestMethod]

@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models
-{
-    public record ServerConnectionConfiguration(string connectionId, bool disableNotification);
-}
+namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models;
+
+public record ServerConnectionConfigurationDtoBase(string connectionId, bool disableNotification);

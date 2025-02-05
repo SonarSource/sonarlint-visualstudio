@@ -84,7 +84,8 @@ public class ValidateConnectionParamsTests
                                           "credentials": {
                                             "username": "myUser",
                                             "password": "password"
-                                          }
+                                          },
+                                          "region": "EU"
                                         }
                                       }
                                       """;
@@ -105,7 +106,8 @@ public class ValidateConnectionParamsTests
                                           "organization": "myOrg",
                                           "credentials": {
                                             "token": "myToken"
-                                          }
+                                          },
+                                          "region": "EU"
                                         }
                                       }
                                       """;

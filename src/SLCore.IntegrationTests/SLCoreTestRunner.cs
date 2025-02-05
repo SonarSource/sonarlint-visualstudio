@@ -102,7 +102,7 @@ public sealed class SLCoreTestRunner : IDisposable
             foldersProvider.GetWorkFolders().Returns(new SLCoreFolders(storageRoot, workDir, userHome));
 
             var connectionProvider = Substitute.For<IServerConnectionsProvider>();
-            connectionProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfiguration>());
+            connectionProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfigurationDtoBase>());
 
             var jarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
             jarProvider.ListJarFiles().Returns(DependencyLocator.AnalyzerPlugins);

@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
 [TestClass]
 public class SlCoreConnectionAdapterTests
 {
+    private const string Token = "token123";
     private static readonly TokenAuthCredentials ValidTokenAuth = new ("I_AM_JUST_A_TOKEN".ToSecureString());
     private readonly ServerConnection.SonarQube sonarQubeConnection = new(new Uri("http://localhost:9000/"), new ServerConnectionSettings(true), ValidTokenAuth);
     private readonly ServerConnection.SonarCloud sonarCloudConnection = new("myOrg", new ServerConnectionSettings(true), ValidTokenAuth);
@@ -176,7 +177,7 @@ public class SlCoreConnectionAdapterTests
 
         await testSubject.GetOrganizationsAsync(new TokenCredentialsModel(token.CreateSecureString()));
 
-        await connectionConfigurationSlCoreService.Received(1).ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x=> IsExpectedCredentials(x.credentials, token)));
+        await connectionConfigurationSlCoreService.Received(1).ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x=> IsExpectedCredentials(x.credentials, token) && IsEuRegion(x)));
     }
 
     [TestMethod]
@@ -192,10 +193,10 @@ public class SlCoreConnectionAdapterTests
     [TestMethod]
     public async Task GetOrganizationsAsync_NoOrganizationExists_ReturnsSuccessResponseAndEmptyOrganizations()
     {
-        connectionConfigurationSlCoreService.ListUserOrganizationsAsync(Arg.Any<ListUserOrganizationsParams>())
+        connectionConfigurationSlCoreService.ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x => IsExpectedCredentials(x.credentials, Token) && IsEuRegion(x)))
             .Returns(new ListUserOrganizationsResponse([]));
 
-        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()));
+        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel(Token.CreateSecureString()));
 
         response.Success.Should().BeTrue();
         response.ResponseData.Should().BeEmpty();
@@ -205,10 +206,11 @@ public class SlCoreConnectionAdapterTests
     public async Task GetOrganizationsAsync_OrganizationExists_ReturnsSuccessResponseAndMappedOrganizations()
     {
         List<OrganizationDto> serverOrganizations = [new OrganizationDto("key", "name", "desc"), new OrganizationDto("key2", "name2", "desc2")];
-        connectionConfigurationSlCoreService.ListUserOrganizationsAsync(Arg.Any<ListUserOrganizationsParams>())
+
+        connectionConfigurationSlCoreService.ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x => IsExpectedCredentials(x.credentials, Token) && IsEuRegion(x)))
             .Returns(new ListUserOrganizationsResponse(serverOrganizations));
 
-        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()));
+        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel(Token.CreateSecureString()));
 
         response.Success.Should().BeTrue();
         response.ResponseData.Should().BeEquivalentTo([
@@ -465,6 +467,8 @@ public class SlCoreConnectionAdapterTests
         var transientSonarQubeDto = transientConnection.Left;
         return transientSonarQubeDto.serverUrl == sonarQubeConnectionInfo.Id && IsExpectedCredentials(transientSonarQubeDto.credentials, username, password);
     }
+
+    private static bool IsEuRegion(ListUserOrganizationsParams x) => x.region == SonarCloudRegion.EU;
 
     private static bool IsExpectedCredentials(Either<TokenDto, UsernamePasswordDto> credentials, string token)
     {

@@ -258,7 +258,7 @@ public class AliveConnectionTrackerTests
     }
 
     private static void ConfigureConnectionProvider(out Mock<IServerConnectionsProvider> connectionProvider,
-        params ServerConnectionConfiguration[] connections)
+        params ServerConnectionConfigurationDtoBase[] connections)
     {
         connectionProvider = new Mock<IServerConnectionsProvider>();
         connectionProvider.Setup(x => x.GetServerConnections()).Returns(connections.ToDictionary(x => x.connectionId, x => x));

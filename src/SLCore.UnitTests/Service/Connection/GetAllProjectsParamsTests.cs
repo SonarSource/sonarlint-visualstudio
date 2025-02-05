@@ -102,7 +102,8 @@ public class GetAllProjectsParamsTests
                                           "organization": "my-org",
                                           "credentials": {
                                             "token": "super-secret-token"
-                                          }
+                                          },
+                                          "region": "EU"
                                         }
                                       }
                                       """;
@@ -131,7 +132,8 @@ public class GetAllProjectsParamsTests
                                           "credentials": {
                                             "username": "jeff@thiscompany.com",
                                             "password": "betwEEn-me-and-U"
-                                          }
+                                          },
+                                          "region": "EU"
                                         }
                                       }
                                       """;

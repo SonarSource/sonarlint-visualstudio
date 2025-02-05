@@ -27,4 +27,5 @@ namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 public record TransientSonarCloudConnectionDto(
     string organization,
     [property: JsonConverter(typeof(EitherJsonConverter<TokenDto, UsernamePasswordDto>))]
-    Either<TokenDto, UsernamePasswordDto> credentials);
+    Either<TokenDto, UsernamePasswordDto> credentials,
+    SonarCloudRegion region = SonarCloudRegion.EU);

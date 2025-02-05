@@ -115,7 +115,8 @@ public class GetProjectNamesByKeyParamsTests
                                           "organization": "my-org",
                                           "credentials": {
                                             "token": "super-secret-token"
-                                          }
+                                          },
+                                          "region": "EU"
                                         },
                                         "projectKeys": [
                                           "project-key-1",
@@ -149,7 +150,8 @@ public class GetProjectNamesByKeyParamsTests
                                           "credentials": {
                                             "username": "jeff@thiscompany.com",
                                             "password": "betwEEn-me-and-U"
-                                          }
+                                          },
+                                          "region": "EU"
                                         },
                                         "projectKeys": [
                                           "project-key-1",

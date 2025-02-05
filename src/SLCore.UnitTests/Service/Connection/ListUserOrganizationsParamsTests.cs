@@ -22,43 +22,62 @@ using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Protocol;
 using SonarLint.VisualStudio.SLCore.Service.Connection;
+using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Connection;
 
 [TestClass]
 public class ListUserOrganizationsParamsTests
 {
-    [TestMethod]
-    public void Ctor_UsernamePasswordIsUsed_SerializeAsExpected()
-    {
-        var testSubject = new ListUserOrganizationsParams(Either<TokenDto, UsernamePasswordDto>.CreateRight(new UsernamePasswordDto("myUser", "password")));
 
-        const string expectedString = """
-                                      {
-                                        "credentials": {
-                                          "username": "myUser",
-                                          "password": "password"
-                                        }
-                                      }
-                                      """;
+    [DataRow(SonarCloudRegion.EU, """
+                                  {
+                                    "credentials": {
+                                      "username": "myUser",
+                                      "password": "password"
+                                    },
+                                    "region": "EU"
+                                  }
+                                  """)]
+    [DataRow(SonarCloudRegion.US, """
+                                  {
+                                    "credentials": {
+                                      "username": "myUser",
+                                      "password": "password"
+                                    },
+                                    "region": "US"
+                                  }
+                                  """)]
+    [TestMethod]
+    public void Ctor_UsernamePasswordIsUsed_SerializeAsExpected(SonarCloudRegion region, string expectedString)
+    {
+        var testSubject = new ListUserOrganizationsParams(new UsernamePasswordDto("myUser", "password"), region);
 
         var serializedString = JsonConvert.SerializeObject(testSubject, Formatting.Indented);
 
         serializedString.Should().Be(expectedString);
     }
 
-    [TestMethod]
-    public void Ctor_TokenIsUsed_SerializeAsExpected()
+    [DataRow(SonarCloudRegion.EU, """
+                                  {
+                                    "credentials": {
+                                      "token": "mytoken"
+                                    },
+                                    "region": "EU"
+                                  }
+                                  """)]
+    [DataRow(SonarCloudRegion.US, """
+                                  {
+                                    "credentials": {
+                                      "token": "mytoken"
+                                    },
+                                    "region": "US"
+                                  }
+                                  """)]
+    [DataTestMethod]
+    public void Ctor_TokenIsUsed_SerializeAsExpected(SonarCloudRegion region, string expectedString)
     {
-        var testSubject = new ListUserOrganizationsParams(Either<TokenDto, UsernamePasswordDto>.CreateLeft(new TokenDto("mytoken")));
-
-        const string expectedString = """
-                                      {
-                                        "credentials": {
-                                          "token": "mytoken"
-                                        }
-                                      }
-                                      """;
+        var testSubject = new ListUserOrganizationsParams(new TokenDto("mytoken"), region);
 
         var serializedString = JsonConvert.SerializeObject(testSubject, Formatting.Indented);
 
