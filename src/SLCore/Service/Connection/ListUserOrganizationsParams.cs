@@ -21,9 +21,11 @@
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Protocol;
+using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Connection;
 
 public record ListUserOrganizationsParams(
     [property: JsonConverter(typeof(EitherJsonConverter<TokenDto, UsernamePasswordDto>))]
-    Either<TokenDto, UsernamePasswordDto> credentials);
+    Either<TokenDto, UsernamePasswordDto> credentials,
+    SonarCloudRegion region = SonarCloudRegion.EU);
