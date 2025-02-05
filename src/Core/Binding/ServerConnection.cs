@@ -50,8 +50,6 @@ public abstract class ServerConnection
 
     public sealed class SonarCloud : ServerConnection
     {
-        private static readonly string SonarCloudUrl = CoreStrings.SonarCloudUrl;
-
         public SonarCloud(
             string organizationKey,
             ServerConnectionSettings settings = null,
@@ -65,7 +63,7 @@ public abstract class ServerConnection
             CloudServerRegion region,
             ServerConnectionSettings settings = null,
             IConnectionCredentials credentials = null)
-            : base(OrganizationKeyToId(organizationKey), settings, credentials)
+            : base(OrganizationKeyToId(region, organizationKey), settings, credentials)
         {
             OrganizationKey = organizationKey;
             Region = region;
@@ -74,16 +72,16 @@ public abstract class ServerConnection
         public string OrganizationKey { get; }
         public CloudServerRegion Region { get; }
 
-        public override Uri ServerUri => new(SonarCloudUrl);
+        public override Uri ServerUri => Region.Url;
 
-        private static string OrganizationKeyToId(string organizationKey)
+        private static string OrganizationKeyToId(CloudServerRegion region, string organizationKey)
         {
             if (string.IsNullOrWhiteSpace(organizationKey))
             {
                 throw new ArgumentNullException(nameof(organizationKey));
             }
 
-            return $"{SonarCloudUrl}/organizations/{organizationKey}";
+            return new Uri(region.Url, $"organizations/{organizationKey}").ToString();
         }
     }
 

@@ -58,15 +58,17 @@ public class ServerConnectionTests
     {
         var serverConnectionSettings = new ServerConnectionSettings(false);
         var credentials = Substitute.For<IConnectionCredentials>();
-        var sonarCloud = new ServerConnection.SonarCloud(Org, CloudServerRegion.Us, serverConnectionSettings, credentials);
+        var region = CloudServerRegion.Us;
+        var sonarCloud = new ServerConnection.SonarCloud(Org, region, serverConnectionSettings, credentials);
 
-        sonarCloud.Id.Should().Be($"https://sonarcloud.io/organizations/{Org}");
+        var expectedId = "https://us.sonarcloud.io/organizations/myOrg";
+        sonarCloud.Id.Should().Be(expectedId);
         sonarCloud.OrganizationKey.Should().BeSameAs(Org);
-        sonarCloud.Region.Should().BeSameAs(CloudServerRegion.Us);
-        sonarCloud.ServerUri.Should().Be(new Uri("https://sonarcloud.io"));
+        sonarCloud.Region.Should().BeSameAs(region);
+        sonarCloud.ServerUri.Should().Be(region.Url);
         sonarCloud.Settings.Should().BeSameAs(serverConnectionSettings);
         sonarCloud.Credentials.Should().BeSameAs(credentials);
-        sonarCloud.CredentialsUri.Should().Be(new Uri($"https://sonarcloud.io/organizations/{Org}"));
+        sonarCloud.CredentialsUri.Should().Be(new Uri(expectedId));
     }
 
     [TestMethod]
@@ -75,6 +77,7 @@ public class ServerConnectionTests
         var sonarCloud = new ServerConnection.SonarCloud(Org);
 
         sonarCloud.Region.Should().Be(CloudServerRegion.Eu);
+        sonarCloud.ServerUri.Should().Be(CloudServerRegion.Eu.Url);
     }
 
     [TestMethod]
