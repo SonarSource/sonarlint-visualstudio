@@ -33,7 +33,8 @@ public class ListUserOrganizationsParamsTests
     [DataRow(SonarCloudRegion.EU, """
                                   {
                                     "credentials": {
-                                      "token": "mytoken"
+                                      "username": "myUser",
+                                      "password": "password"
                                     },
                                     "region": "EU"
                                   }
@@ -41,7 +42,8 @@ public class ListUserOrganizationsParamsTests
     [DataRow(SonarCloudRegion.US, """
                                   {
                                     "credentials": {
-                                      "token": "mytoken"
+                                      "username": "myUser",
+                                      "password": "password"
                                     },
                                     "region": "US"
                                   }
