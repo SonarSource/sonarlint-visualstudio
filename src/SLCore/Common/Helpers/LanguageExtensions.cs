@@ -19,26 +19,44 @@
  */
 
 using SonarLint.VisualStudio.SLCore.Common.Models;
+using static SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.SLCore.Common.Helpers;
 
 internal static class LanguageExtensions
 {
-    public static VisualStudio.Core.Language ConvertToCoreLanguage(this Language language) =>
-        language switch
+    private static readonly Dictionary<VisualStudio.Core.Language, Language> CoreToSlCoreLanguageMap = new()
+    {
+        { CSharp, Language.CS },
+        { VBNET, Language.VBNET },
+        { C, Language.C },
+        { Cpp, Language.CPP },
+        { Css, Language.CSS },
+        { Html, Language.HTML },
+        { Js, Language.JS },
+        { Secrets, Language.SECRETS },
+        { Ts, Language.TS },
+        { TSql, Language.TSQL },
+    };
+
+    public static VisualStudio.Core.Language ConvertToCoreLanguage(this Language language)
+    {
+        if (CoreToSlCoreLanguageMap.ContainsValue(language))
         {
-            Language.C => VisualStudio.Core.Language.C,
-            Language.CPP => VisualStudio.Core.Language.Cpp,
-            Language.CS => VisualStudio.Core.Language.CSharp,
-            Language.CSS => VisualStudio.Core.Language.Css,
-            Language.HTML => VisualStudio.Core.Language.Html,
-            Language.JS => VisualStudio.Core.Language.Js,
-            Language.SECRETS => VisualStudio.Core.Language.Secrets,
-            Language.TS => VisualStudio.Core.Language.Ts,
-            Language.VBNET => VisualStudio.Core.Language.VBNET,
-            Language.TSQL => VisualStudio.Core.Language.TSql,
-            _ => VisualStudio.Core.Language.Unknown
-        };
+            return CoreToSlCoreLanguageMap.First(kvp => kvp.Value == language).Key;
+        }
+
+        return Unknown;
+    }
+
+    public static Language ConvertToSlCoreLanguage(this VisualStudio.Core.Language language)
+    {
+        if (CoreToSlCoreLanguageMap.TryGetValue(language, out var coreLanguage))
+        {
+            return coreLanguage;
+        }
+        throw new ArgumentOutOfRangeException(nameof(language), language, null);
+    }
 
     public static string GetPluginKey(this Language language) => language.ConvertToCoreLanguage().PluginInfo?.Key;
 }
