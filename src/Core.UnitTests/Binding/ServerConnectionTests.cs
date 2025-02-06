@@ -40,7 +40,7 @@ public class ServerConnectionTests
     [TestMethod]
     public void Ctor_SonarCloud_NullSettings_SetDefault()
     {
-        var sonarCloud = new ServerConnection.SonarCloud(Org, null);
+        var sonarCloud = new ServerConnection.SonarCloud(Org, settings: null);
 
         sonarCloud.Settings.Should().BeSameAs(ServerConnection.DefaultSettings);
     }
@@ -58,14 +58,26 @@ public class ServerConnectionTests
     {
         var serverConnectionSettings = new ServerConnectionSettings(false);
         var credentials = Substitute.For<IConnectionCredentials>();
-        var sonarCloud = new ServerConnection.SonarCloud(Org, serverConnectionSettings, credentials);
+        var region = CloudServerRegion.Us;
+        var sonarCloud = new ServerConnection.SonarCloud(Org, region, serverConnectionSettings, credentials);
 
-        sonarCloud.Id.Should().Be($"https://sonarcloud.io/organizations/{Org}");
+        var expectedId = "https://us.sonarcloud.io/organizations/myOrg";
+        sonarCloud.Id.Should().Be(expectedId);
         sonarCloud.OrganizationKey.Should().BeSameAs(Org);
-        sonarCloud.ServerUri.Should().Be(new Uri("https://sonarcloud.io"));
+        sonarCloud.Region.Should().BeSameAs(region);
+        sonarCloud.ServerUri.Should().Be(region.Url);
         sonarCloud.Settings.Should().BeSameAs(serverConnectionSettings);
         sonarCloud.Credentials.Should().BeSameAs(credentials);
-        sonarCloud.CredentialsUri.Should().Be(new Uri($"https://sonarcloud.io/organizations/{Org}"));
+        sonarCloud.CredentialsUri.Should().Be(new Uri(expectedId));
+    }
+
+    [TestMethod]
+    public void Ctor_SonarCloud_NoRegion_SetsEu()
+    {
+        var sonarCloud = new ServerConnection.SonarCloud(Org);
+
+        sonarCloud.Region.Should().Be(CloudServerRegion.Eu);
+        sonarCloud.ServerUri.Should().Be(CloudServerRegion.Eu.Url);
     }
 
     [TestMethod]
@@ -133,7 +145,7 @@ public class ServerConnectionTests
     [TestMethod]
     public void FromBoundSonarQubeProject_InvalidConnection_ReturnsNull()
     {
-        var connection = ServerConnection.FromBoundSonarQubeProject(new BoundSonarQubeProject(){ ProjectKey = "project"});
+        var connection = ServerConnection.FromBoundSonarQubeProject(new BoundSonarQubeProject() { ProjectKey = "project" });
 
         connection.Should().BeNull();
     }
