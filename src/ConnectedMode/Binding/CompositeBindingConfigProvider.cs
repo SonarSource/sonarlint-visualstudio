@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         [ImportingConstructor]
         public CompositeBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger, ILanguageProvider languageProvider)
-            : this(new NonRoslynDummyBindingConfigProvider(languageProvider), new CSharpVBBindingConfigProvider(sonarQubeService, logger))
+            : this(new NonRoslynDummyBindingConfigProvider(languageProvider), new CSharpVBBindingConfigProvider(sonarQubeService, logger, languageProvider))
         {
         }
 
