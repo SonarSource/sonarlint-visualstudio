@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Configuration;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Configuration;
@@ -28,70 +28,58 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Configuration;
 public class SlCoreLanguageProviderTests
 {
     private SLCoreLanguageProvider testSubject;
+    private ILanguageProvider languageProvider;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new SLCoreLanguageProvider();
+        MockLanguageProvider();
+        testSubject = new SLCoreLanguageProvider(languageProvider);
     }
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<SLCoreLanguageProvider, ISLCoreLanguageProvider>(MefTestHelpers.CreateExport<ILanguageProvider>(languageProvider));
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SLCoreLanguageProvider>();
 
     [TestMethod]
     public void StandaloneLanguages_ShouldBeExpected()
     {
-        var expected = new[] { Language.JS, Language.TS, Language.CSS, Language.HTML, Language.C, Language.CPP, Language.CS, Language.VBNET, Language.SECRETS };
-
-        var actual = testSubject.LanguagesInStandaloneMode;
-
-        actual.Should().BeEquivalentTo(expected);
+        _ = languageProvider.Received(1).LanguagesInStandaloneMode;
+        testSubject.LanguagesInStandaloneMode.Should().BeEquivalentTo(languageProvider.LanguagesInStandaloneMode.Select(x => x.ConvertToSlCoreLanguage()));
     }
 
     [TestMethod]
     public void ExtraLanguagesInConnectedMode_ShouldBeExpected()
     {
-        var expected = new[] { Language.TSQL };
-
-        var actual = testSubject.ExtraLanguagesInConnectedMode;
-
-        actual.Should().BeEquivalentTo(expected);
+        _ = languageProvider.Received(1).ExtraLanguagesInConnectedMode;
+        testSubject.ExtraLanguagesInConnectedMode.Should().BeEquivalentTo(languageProvider.ExtraLanguagesInConnectedMode.Select(x => x.ConvertToSlCoreLanguage()));
     }
 
     [TestMethod]
     public void LanguagesWithDisabledAnalysis_ShouldBeExpected()
     {
-        var expected = new[] { Language.CS, Language.VBNET };
-
-        var actual = testSubject.LanguagesWithDisabledAnalysis;
-
-        actual.Should().BeEquivalentTo(expected);
+        _ = languageProvider.Received(1).RoslynLanguages;
+        testSubject.LanguagesWithDisabledAnalysis.Should().BeEquivalentTo(languageProvider.RoslynLanguages.Select(x => x.ConvertToSlCoreLanguage()));
     }
 
     [TestMethod]
     public void AllAnalyzableLanguages_ShouldBeExpected()
     {
-        var expected = new[] { Language.JS, Language.TS, Language.HTML, Language.CSS, Language.C, Language.CPP, Language.SECRETS, Language.TSQL };
+        var expected = testSubject.LanguagesInStandaloneMode.Concat(testSubject.ExtraLanguagesInConnectedMode).Except(testSubject.LanguagesWithDisabledAnalysis);
 
-        var actual = testSubject.AllAnalyzableLanguages;
-
-        actual.Should().BeEquivalentTo(expected);
+        testSubject.AllAnalyzableLanguages.Should().BeEquivalentTo(expected);
     }
 
-    [TestMethod]
-    public void Verify_AllConfiguredLanguagesAreKnown()
+    private void MockLanguageProvider()
     {
-        var languages = testSubject.LanguagesInStandaloneMode
-            .Concat(testSubject.LanguagesWithDisabledAnalysis)
-            .Select(x => x.ConvertToCoreLanguage());
-
-        languages.Should().NotContain(VisualStudio.Core.Language.Unknown);
-    }
-
-    [TestMethod]
-    public void Verify_AllConfiguredLanguagesHaveKnownPluginKeys()
-    {
-        var languages = testSubject.LanguagesInStandaloneMode
-            .Concat(testSubject.LanguagesWithDisabledAnalysis)
-            .Select(x => x.GetPluginKey());
-
-        languages.Should().NotContainNulls();
+        languageProvider = Substitute.For<ILanguageProvider>();
+        // it doesn't have to be the real lists, just need to be different so the test can verify that the provider is using them
+        languageProvider.AllKnownLanguages.Returns([Language.C, Language.Js, Language.Ts, Language.TSql]);
+        languageProvider.RoslynLanguages.Returns([Language.C]);
+        languageProvider.NonRoslynLanguages.Returns([Language.Js]);
+        languageProvider.LanguagesInStandaloneMode.Returns([Language.Ts]);
+        languageProvider.ExtraLanguagesInConnectedMode.Returns([Language.TSql]);
     }
 }

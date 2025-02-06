@@ -19,6 +19,8 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.SLCore.Configuration;
@@ -36,33 +38,16 @@ public interface ISLCoreLanguageProvider
 public class SLCoreLanguageProvider : ISLCoreLanguageProvider
 {
     [ImportingConstructor]
-    public SLCoreLanguageProvider()
+    public SLCoreLanguageProvider(ILanguageProvider languageProvider)
     {
-        AllAnalyzableLanguages = LanguagesInStandaloneMode.Concat(ExtraLanguagesInConnectedMode).Except(LanguagesWithDisabledAnalysis).ToArray();
+        LanguagesInStandaloneMode = languageProvider.LanguagesInStandaloneMode.Select(x => x.ConvertToSlCoreLanguage()).ToList();
+        ExtraLanguagesInConnectedMode = languageProvider.ExtraLanguagesInConnectedMode.Select(x => x.ConvertToSlCoreLanguage()).ToList();
+        LanguagesWithDisabledAnalysis = languageProvider.RoslynLanguages.Select(x => x.ConvertToSlCoreLanguage()).ToList();
+        AllAnalyzableLanguages = LanguagesInStandaloneMode.Concat(ExtraLanguagesInConnectedMode).Except(LanguagesWithDisabledAnalysis).ToList();
     }
 
-    public IReadOnlyList<Language> LanguagesInStandaloneMode =>
-    [
-        Language.JS,
-        Language.TS,
-        Language.HTML,
-        Language.CSS,
-        Language.C,
-        Language.CPP,
-        Language.CS,
-        Language.VBNET,
-        Language.SECRETS,
-    ];
-    public IReadOnlyList<Language> ExtraLanguagesInConnectedMode =>
-    [
-        Language.TSQL
-    ];
-
-    public IReadOnlyList<Language> LanguagesWithDisabledAnalysis =>
-    [
-        Language.CS,
-        Language.VBNET,
-    ];
-
+    public IReadOnlyList<Language> LanguagesInStandaloneMode { get; }
+    public IReadOnlyList<Language> ExtraLanguagesInConnectedMode { get; }
+    public IReadOnlyList<Language> LanguagesWithDisabledAnalysis { get; }
     public IReadOnlyList<Language> AllAnalyzableLanguages { get; }
 }

@@ -139,7 +139,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
     private static void SetLanguagesConfigurationToDefaults(ISLCoreLanguageProvider languageProvider)
     {
-        var defaultLanguageProvider = new SLCoreLanguageProvider();
+        var defaultLanguageProvider = new SLCoreLanguageProvider(LanguageProvider.Instance);
         languageProvider.LanguagesInStandaloneMode.Returns(defaultLanguageProvider.LanguagesInStandaloneMode);
         languageProvider.LanguagesWithDisabledAnalysis.Returns(defaultLanguageProvider.LanguagesWithDisabledAnalysis);
     }
