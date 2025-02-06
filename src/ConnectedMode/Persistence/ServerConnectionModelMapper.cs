@@ -26,6 +26,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Persistence;
 public interface IServerConnectionModelMapper
 {
     ServerConnection GetServerConnection(ServerConnectionJsonModel jsonModel);
+
     ServerConnectionsListJsonModel GetServerConnectionsListJsonModel(IEnumerable<ServerConnection> serverConnections);
 }
 
@@ -40,7 +41,7 @@ public class ServerConnectionModelMapper : IServerConnectionModelMapper
     {
         if (IsServerConnectionForSonarCloud(jsonModel))
         {
-            return new ServerConnection.SonarCloud(jsonModel.OrganizationKey, jsonModel.Settings);
+            return new ServerConnection.SonarCloud(jsonModel.OrganizationKey, CloudServerRegion.GetRegionByName(jsonModel.Region), jsonModel.Settings);
         }
         if (IsServerConnectionForSonarQube(jsonModel))
         {
@@ -52,10 +53,7 @@ public class ServerConnectionModelMapper : IServerConnectionModelMapper
 
     public ServerConnectionsListJsonModel GetServerConnectionsListJsonModel(IEnumerable<ServerConnection> serverConnections)
     {
-        var model = new ServerConnectionsListJsonModel
-        {
-            ServerConnections = serverConnections.Select(GetServerConnectionJsonModel).ToList()
-        };
+        var model = new ServerConnectionsListJsonModel { ServerConnections = serverConnections.Select(GetServerConnectionJsonModel).ToList() };
 
         return model;
     }
@@ -75,6 +73,7 @@ public class ServerConnectionModelMapper : IServerConnectionModelMapper
         return new ServerConnectionJsonModel
         {
             Id = serverConnection.Id,
+            Region = (serverConnection as ServerConnection.SonarCloud)?.Region.Name,
             Settings = serverConnection.Settings ?? throw new InvalidOperationException($"{nameof(ServerConnection.Settings)} can not be null"),
             OrganizationKey = GetOrganizationKey(serverConnection),
             ServerUri = GetServerUri(serverConnection)
@@ -88,7 +87,7 @@ public class ServerConnectionModelMapper : IServerConnectionModelMapper
             return null;
         }
 
-        if(string.IsNullOrWhiteSpace(sonarCloud.OrganizationKey))
+        if (string.IsNullOrWhiteSpace(sonarCloud.OrganizationKey))
         {
             throw new InvalidOperationException($"{nameof(ServerConnection.SonarCloud.OrganizationKey)} can not be null");
         }
