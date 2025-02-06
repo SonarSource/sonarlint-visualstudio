@@ -53,11 +53,11 @@ public class LanguageProviderTests
     }
 
     [TestMethod]
-    public void SlCoreLanguages_ShouldBeExpected()
+    public void NonRoslynLanguages_ShouldBeExpected()
     {
         var expected = new[] { Language.C, Language.Cpp, Language.Js, Language.Ts, Language.Css, Language.Secrets, Language.Html, Language.TSql };
 
-        testSubject.SlCoreLanguages.Should().BeEquivalentTo(expected);
+        testSubject.NonRoslynLanguages.Should().BeEquivalentTo(expected);
     }
 
     [TestMethod]

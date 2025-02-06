@@ -26,7 +26,7 @@ public interface ILanguageProvider
 {
     IReadOnlyList<Language> AllKnownLanguages { get; }
 
-    IReadOnlyList<Language> SlCoreLanguages { get; }
+    IReadOnlyList<Language> NonRoslynLanguages { get; }
 
     IReadOnlyList<Language> RoslynLanguages { get; }
 
@@ -51,14 +51,13 @@ public class LanguageProvider : ILanguageProvider
     [ImportingConstructor]
     public LanguageProvider()
     {
-        SlCoreLanguages = AllKnownLanguages.Except(RoslynLanguages).ToList();
+        AllKnownLanguages = NonRoslynLanguages.Union(RoslynLanguages).ToList();
         LanguagesInStandaloneMode = AllKnownLanguages.Except(ExtraLanguagesInConnectedMode).ToList();
     }
 
-    public IReadOnlyList<Language> SlCoreLanguages { get; }
+    public IReadOnlyList<Language> NonRoslynLanguages { get; } = [Language.C, Language.Cpp, Language.Js, Language.Ts, Language.Css, Language.Secrets, Language.Html, Language.TSql];
     public IReadOnlyList<Language> RoslynLanguages { get; } = [Language.CSharp, Language.VBNET];
-    public IReadOnlyList<Language> AllKnownLanguages { get; } =
-        [Language.CSharp, Language.VBNET, Language.C, Language.Cpp, Language.Js, Language.Ts, Language.Css, Language.Secrets, Language.Html, Language.TSql];
+    public IReadOnlyList<Language> AllKnownLanguages { get; }
     public IReadOnlyList<Language> LanguagesInStandaloneMode { get; }
     public IReadOnlyList<Language> ExtraLanguagesInConnectedMode { get; } = [Language.TSql];
 
