@@ -23,8 +23,6 @@ using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.SLCore;
-using SonarLint.VisualStudio.SLCore.Common.Helpers;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -115,103 +113,6 @@ public class SLCoreConstantsProviderTests
 
         var actual = testSubject.TelemetryConstants;
         actual.additionalAttributes["slvs_ide_info"].Should().BeNull();
-    }
-
-    [TestMethod]
-    public void StandaloneLanguages_ShouldBeExpected()
-    {
-        var testSubject = CreateTestSubject();
-        var expected = new[]
-        {
-            Language.JS,
-            Language.TS,
-            Language.CSS,
-            Language.HTML,
-            Language.C,
-            Language.CPP,
-            Language.CS,
-            Language.VBNET,
-            Language.SECRETS
-        };
-
-        var actual = testSubject.LanguagesInStandaloneMode;
-
-        actual.Should().BeEquivalentTo(expected);
-    }
-
-    [TestMethod]
-    public void ExtraLanguagesInConnectedMode_ShouldBeExpected()
-    {
-        var testSubject = CreateTestSubject();
-        var expected = new[]
-        {
-            Language.TSQL
-        };
-
-        var actual = testSubject.ExtraLanguagesInConnectedMode;
-
-        actual.Should().BeEquivalentTo(expected);
-    }
-
-    [TestMethod]
-    public void LanguagesWithDisabledAnalysis_ShouldBeExpected()
-    {
-        var testSubject = CreateTestSubject();
-        var expected = new[]
-        {
-            Language.CS,
-            Language.VBNET
-        };
-
-        var actual = testSubject.LanguagesWithDisabledAnalysis;
-
-        actual.Should().BeEquivalentTo(expected);
-    }
-
-
-    [TestMethod]
-    public void AllAnalyzableLanguages_ShouldBeExpected()
-    {
-        var testSubject = CreateTestSubject();
-        var expected = new[]
-        {
-            Language.JS,
-            Language.TS,
-            Language.HTML,
-            Language.CSS,
-            Language.C,
-            Language.CPP,
-            Language.SECRETS,
-            Language.TSQL
-        };
-
-        var actual = testSubject.AllAnalyzableLanguages;
-
-        actual.Should().BeEquivalentTo(expected);
-    }
-
-    [TestMethod]
-    public void Verify_AllConfiguredLanguagesAreKnown()
-    {
-        var slCoreConstantsProvider = CreateTestSubject();
-
-        var languages = slCoreConstantsProvider.LanguagesInStandaloneMode
-            .Concat(slCoreConstantsProvider.LanguagesWithDisabledAnalysis)
-            .Select(x => x.ConvertToCoreLanguage());
-
-        languages.Should().NotContain(Core.Language.Unknown);
-    }
-
-    [TestMethod]
-    public void Verify_AllConfiguredLanguagesHaveKnownPluginKeys()
-    {
-        var slCoreConstantsProvider = CreateTestSubject();
-
-        var languages = slCoreConstantsProvider.LanguagesInStandaloneMode
-            .Concat(slCoreConstantsProvider.LanguagesWithDisabledAnalysis)
-            .Select(x => x.GetPluginKey());
-
-        languages.Should().NotContainNulls();
     }
 
     private static SLCoreConstantsProvider CreateTestSubject(IVsInfoProvider infoProvider = null)

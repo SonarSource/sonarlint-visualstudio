@@ -38,13 +38,13 @@ internal interface IRaisedFindingProcessor
 [PartCreationPolicy(CreationPolicy.Shared)]
 [method: ImportingConstructor]
 internal class RaisedFindingProcessor(
-    ISLCoreConstantsProvider slCoreConstantsProvider,
+    ISLCoreLanguageProvider slCoreLanguageProvider,
     IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter,
     IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
     ILogger logger)
     : IRaisedFindingProcessor
 {
-    private readonly List<string> analyzableLanguagesRuleKeyPrefixes = CalculateAnalyzableRulePrefixes(slCoreConstantsProvider);
+    private readonly List<string> analyzableLanguagesRuleKeyPrefixes = CalculateAnalyzableRulePrefixes(slCoreLanguageProvider);
 
     public void RaiseFinding<T>(RaiseFindingParams<T> parameters, IFindingsPublisher findingsPublisher) where T : RaisedFindingDto
     {
@@ -92,7 +92,7 @@ internal class RaisedFindingProcessor(
     private T[] GetSupportedLanguageFindings<T>(IEnumerable<T> findings) where T : RaisedFindingDto =>
         findings.Where(i => analyzableLanguagesRuleKeyPrefixes.Exists(languageRepo => i.ruleKey.StartsWith(languageRepo))).ToArray();
 
-    private static List<string> CalculateAnalyzableRulePrefixes(ISLCoreConstantsProvider slCoreConstantsProvider) =>
+    private static List<string> CalculateAnalyzableRulePrefixes(ISLCoreLanguageProvider slCoreConstantsProvider) =>
         slCoreConstantsProvider.AllAnalyzableLanguages?
             .Select(x => x.ConvertToCoreLanguage())
             .Select(x => x.RepoInfo?.Key)

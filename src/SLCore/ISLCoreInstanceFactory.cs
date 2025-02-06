@@ -40,6 +40,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
 {
     private readonly ISLCoreRpcFactory slCoreRpcFactory;
     private readonly ISLCoreConstantsProvider constantsProvider;
+    private readonly ISLCoreLanguageProvider slCoreLanguageProvider;
     private readonly ISLCoreFoldersProvider slCoreFoldersProvider;
     private readonly IServerConnectionsProvider serverConnectionConfigurationProvider;
     private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
@@ -51,8 +52,10 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
     private readonly ISlCoreTelemetryMigrationProvider telemetryMigrationProvider;
 
     [ImportingConstructor]
-    public SLCoreInstanceFactory(ISLCoreRpcFactory slCoreRpcFactory,
+    public SLCoreInstanceFactory(
+        ISLCoreRpcFactory slCoreRpcFactory,
         ISLCoreConstantsProvider constantsProvider,
+        ISLCoreLanguageProvider slCoreLanguageProvider,
         ISLCoreFoldersProvider slCoreFoldersProvider,
         IServerConnectionsProvider serverConnectionConfigurationProvider,
         ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
@@ -65,6 +68,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
         this.constantsProvider = constantsProvider;
+        this.slCoreLanguageProvider = slCoreLanguageProvider;
         this.slCoreFoldersProvider = slCoreFoldersProvider;
         this.serverConnectionConfigurationProvider = serverConnectionConfigurationProvider;
         this.slCoreEmbeddedPluginJarProvider = slCoreEmbeddedPluginJarProvider;
@@ -79,6 +83,7 @@ internal class SLCoreInstanceFactory : ISLCoreInstanceFactory
     public ISLCoreInstanceHandle CreateInstance() =>
         new SLCoreInstanceHandle(slCoreRpcFactory,
             constantsProvider,
+            slCoreLanguageProvider,
             slCoreFoldersProvider,
             serverConnectionConfigurationProvider,
             slCoreEmbeddedPluginJarProvider,

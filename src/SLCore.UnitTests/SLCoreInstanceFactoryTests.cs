@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
@@ -38,6 +37,7 @@ public class SLCoreInstanceFactoryTests
         MefTestHelpers.CheckTypeCanBeImported<SLCoreInstanceFactory, ISLCoreInstanceFactory>(
             MefTestHelpers.CreateExport<ISLCoreRpcFactory>(),
             MefTestHelpers.CreateExport<ISLCoreConstantsProvider>(),
+            MefTestHelpers.CreateExport<ISLCoreLanguageProvider>(),
             MefTestHelpers.CreateExport<ISLCoreFoldersProvider>(),
             MefTestHelpers.CreateExport<IServerConnectionsProvider>(),
             MefTestHelpers.CreateExport<ISLCoreEmbeddedPluginJarLocator>(),
@@ -55,12 +55,12 @@ public class SLCoreInstanceFactoryTests
         MefTestHelpers.CheckIsSingletonMefComponent<SLCoreInstanceFactory>();
     }
 
-
     [TestMethod]
     public void CreateInstance_ReturnsNonNull()
     {
         var islCoreRpcFactory = Substitute.For<ISLCoreRpcFactory>();
         var islCoreConstantsProvider = Substitute.For<ISLCoreConstantsProvider>();
+        var slCoreLanguageProvider = Substitute.For<ISLCoreLanguageProvider>();
         var islCoreFoldersProvider = Substitute.For<ISLCoreFoldersProvider>();
         var serverConnectionsProvider = Substitute.For<IServerConnectionsProvider>();
         var islCoreEmbeddedPluginJarLocator = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
@@ -73,6 +73,7 @@ public class SLCoreInstanceFactoryTests
 
         var testSubject = new SLCoreInstanceFactory(islCoreRpcFactory,
             islCoreConstantsProvider,
+            slCoreLanguageProvider,
             islCoreFoldersProvider,
             serverConnectionsProvider,
             islCoreEmbeddedPluginJarLocator,
