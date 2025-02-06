@@ -50,8 +50,7 @@ public sealed class CloudServerRegion
         {
             EuRegionName => Eu,
             UsRegionName => Us,
-            null => Eu,
-            "" => Eu,
-            _ => throw new ArgumentException($"Invalid region name: {name}")
+            null or "" => Eu,
+            _ => throw new ArgumentOutOfRangeException(name)
         };
 }

@@ -71,9 +71,9 @@ public class CloudServerRegionTests
     [DataRow("    ")]
     [DataRow("")]
     [DataRow(null)]
-    public void GetRegionByName_EmptyName_DefaultsToEu(string invalidName)
+    public void GetRegionByName_EmptyName_DefaultsToEu(string emptyName)
     {
-        var result = CloudServerRegion.GetRegionByName(invalidName);
+        var result = CloudServerRegion.GetRegionByName(emptyName);
 
         result.Should().Be(CloudServerRegion.Eu);
     }
@@ -85,6 +85,6 @@ public class CloudServerRegionTests
     {
         var act = () => CloudServerRegion.GetRegionByName(invalidName);
 
-        act.Should().Throw<ArgumentException>().And.Message.Should().Contain($"Invalid region name: {invalidName}");
+        act.Should().Throw<ArgumentOutOfRangeException>().And.ParamName.Should().Contain(invalidName);
     }
 }
