@@ -56,17 +56,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
         }
 
         [TestMethod]
-        public void Invoke_Success_InvokesCorrectly()
+        public void Invoke_SonarQube_Success_InvokesCorrectly()
         {
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var serverConnection = new ServerConnection.SonarCloud("organisationKey");
-            var sonarCloudUri = serverConnection.ServerUri;
+            var serverConnection = new ServerConnection.SonarQube(new("http://localhost"));
+            var sonarQubeUri = serverConnection.ServerUri;
             var project = new BoundServerProject("solution", "projectKey", serverConnection);
             var bindingConfiguration = new BindingConfiguration(project, SonarLintMode.Connected, null);
 
             var sharedBindingConfigProvider = new Mock<ISharedBindingConfigProvider>();
-            sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == sonarCloudUri && y.ProjectKey == "projectKey" && y.Organization == "organisationKey"))).Returns("some Path");
+            sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == sonarQubeUri && y.ProjectKey == "projectKey"))).Returns("some Path");
 
             var messageBox = new Mock<IMessageBox>();
 
@@ -75,7 +75,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands.ConnectedModeMen
 
             testSubject.Invoke(command, null);
 
-            sharedBindingConfigProvider.Verify(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == sonarCloudUri && y.ProjectKey == "projectKey" && y.Organization == "organisationKey")), Times.Once);
+            sharedBindingConfigProvider.Verify(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == sonarQubeUri && y.ProjectKey == "projectKey" && y.Organization == null && y.Region == null)), Times.Once);
+            messageBox.Verify(mb => mb.Show(string.Format(Strings.SaveSharedConnectionCommand_SaveSuccess_Message, "some Path"), Strings.SaveSharedConnectionCommand_SaveSuccess_Caption, MessageBoxButton.OK, MessageBoxImage.Information), Times.Once);
+        }
+
+        [DataRow("US")]
+        [DataRow("EU")]
+        [DataTestMethod]
+        public void Invoke_SonarCloudWithRegion_Success_InvokesCorrectly(string region)
+        {
+            OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
+
+            var serverConnection = new ServerConnection.SonarCloud("organisationKey", CloudServerRegion.GetRegionByName(region));
+            var sonarCloudUri = serverConnection.ServerUri;
+            var project = new BoundServerProject("solution", "projectKey", serverConnection);
+            var bindingConfiguration = new BindingConfiguration(project, SonarLintMode.Connected, null);
+
+            var sharedBindingConfigProvider = new Mock<ISharedBindingConfigProvider>();
+            sharedBindingConfigProvider.Setup(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == sonarCloudUri && y.ProjectKey == "projectKey" && y.Organization == "organisationKey" && y.Region == region))).Returns("some Path");
+
+            var messageBox = new Mock<IMessageBox>();
+
+            var configurationProvider = CreateConfigurationProvider(bindingConfiguration);
+            SaveSharedConnectionCommand testSubject = CreateTestSubject(configurationProvider, sharedBindingConfigProvider.Object, messageBox.Object);
+
+            testSubject.Invoke(command, null);
+
+            sharedBindingConfigProvider.Verify(x => x.SaveSharedBinding(It.Is<SharedBindingConfigModel>(y => y.Uri == sonarCloudUri && y.ProjectKey == "projectKey" && y.Organization == "organisationKey" && y.Region == region)), Times.Once);
             messageBox.Verify(mb => mb.Show(string.Format(Strings.SaveSharedConnectionCommand_SaveSuccess_Message, "some Path"), Strings.SaveSharedConnectionCommand_SaveSuccess_Caption, MessageBoxButton.OK, MessageBoxImage.Information), Times.Once);
         }
 

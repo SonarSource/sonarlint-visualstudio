@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Shared
 {
@@ -45,7 +45,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
 
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
-        internal /*for testing*/ static readonly Uri SonarCloudUri = new Uri("https://sonarcloud.io");
 
         [ImportingConstructor]
         public SharedBindingConfigFileProvider(ILogger logger) : this(logger, new FileSystem())
@@ -65,7 +64,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
 
                 if (result.IsSonarCloud())
                 {
-                    result.Uri = SonarCloudUri;
+                    result.Region = string.IsNullOrEmpty(result.Region) ? CloudServerRegion.Eu.Name : result.Region;
+                    result.Uri = CloudServerRegion.GetRegionByName(result.Region).Url;
                 }
 
                 if (!string.IsNullOrWhiteSpace(result.ProjectKey)
@@ -91,6 +91,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
                 if (sharedBindingConfigModel.IsSonarCloud())
                 {
                     sharedBindingConfigModel.Uri = null;
+                    sharedBindingConfigModel.Region ??= CloudServerRegion.Eu.Name;
                 }
 
                 var fileContent = JsonConvert.SerializeObject(sharedBindingConfigModel, SerializerSettings);

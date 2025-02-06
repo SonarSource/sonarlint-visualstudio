@@ -58,7 +58,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Commands.ConnectedModeMenu
             {
                 ProjectKey = project.ServerProjectKey,
                 Uri = project.ServerConnection.ServerUri,
-                Organization = (project.ServerConnection as ServerConnection.SonarCloud)?.OrganizationKey
+                Organization = (project.ServerConnection as ServerConnection.SonarCloud)?.OrganizationKey,
+                Region = (project.ServerConnection as ServerConnection.SonarCloud)?.Region.Name,
             };
 
             var savePath = sharedBindingConfigProvider.SaveSharedBinding(sharedBindingConfig);

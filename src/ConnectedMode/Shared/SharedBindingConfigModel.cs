@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using Newtonsoft.Json;
 using SonarQube.Client;
 
@@ -26,13 +25,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
 {
     public class SharedBindingConfigModel
     {
-        [JsonProperty("SonarQubeUri", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("sonarQubeUri", NullValueHandling = NullValueHandling.Ignore)]
         public Uri Uri { get; set; }
 
-        [JsonProperty("SonarCloudOrganization", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("sonarCloudOrganization", NullValueHandling = NullValueHandling.Ignore)]
         public string Organization { get; set; }
 
-        [JsonProperty("ProjectKey")]
+        [JsonProperty("region", NullValueHandling = NullValueHandling.Ignore)]
+        public string Region { get; set; }
+
+        [JsonProperty("projectKey")]
         public string ProjectKey { get; set; }
 
         public bool IsSonarCloud() => !string.IsNullOrWhiteSpace(Organization);
