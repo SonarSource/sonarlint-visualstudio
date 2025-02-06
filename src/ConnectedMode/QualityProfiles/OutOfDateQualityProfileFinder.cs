@@ -41,11 +41,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
     internal class OutOfDateQualityProfileFinder : IOutOfDateQualityProfileFinder
     {
         private readonly ISonarQubeService sonarQubeService;
+        private readonly ILanguageProvider languageProvider;
 
         [ImportingConstructor]
-        public OutOfDateQualityProfileFinder(ISonarQubeService sonarQubeService)
+        public OutOfDateQualityProfileFinder(ISonarQubeService sonarQubeService, ILanguageProvider languageProvider)
         {
             this.sonarQubeService = sonarQubeService;
+            this.languageProvider = languageProvider;
         }
 
         public async Task<IReadOnlyCollection<(Language language, SonarQubeQualityProfile qualityProfile)>> GetAsync(
@@ -59,7 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
 
             return sonarQubeQualityProfiles
                 .Select(serverQualityProfile =>
-                    (language: LanguageProvider.Instance.GetLanguageFromLanguageKey(serverQualityProfile.Language),
+                    (language: languageProvider.GetLanguageFromLanguageKey(serverQualityProfile.Language),
                         qualityProfile: serverQualityProfile))
                 .Where(languageAndQp =>
                     IsLocalQPOutOfDate(sonarQubeProject, languageAndQp.language, languageAndQp.qualityProfile))

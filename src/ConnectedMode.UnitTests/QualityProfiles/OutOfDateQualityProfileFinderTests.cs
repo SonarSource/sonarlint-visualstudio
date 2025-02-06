@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -42,7 +38,8 @@ public class OutOfDateQualityProfileFinderTests
     public void MefCtor_CheckExports()
     {
         MefTestHelpers.CheckTypeCanBeImported<OutOfDateQualityProfileFinder, IOutOfDateQualityProfileFinder>(
-            MefTestHelpers.CreateExport<ISonarQubeService>());
+            MefTestHelpers.CreateExport<ISonarQubeService>(),
+            MefTestHelpers.CreateExport<ILanguageProvider>());
     }
 
     [TestMethod]
@@ -75,7 +72,7 @@ public class OutOfDateQualityProfileFinderTests
         var profiles = await testSubject.GetAsync(
             CreateArgument(Project,
                 Organization,
-                new Dictionary<Language, ApplicableQualityProfile>{{Language.Ts, new ApplicableQualityProfile{ProfileKey = qpKey, ProfileTimestamp = timestamp}}}),
+                new Dictionary<Language, ApplicableQualityProfile> { { Language.Ts, new ApplicableQualityProfile { ProfileKey = qpKey, ProfileTimestamp = timestamp } } }),
             CancellationToken.None);
 
         profiles.Should().BeEmpty();
@@ -97,10 +94,7 @@ public class OutOfDateQualityProfileFinderTests
         var profiles = await testSubject.GetAsync(
             CreateArgument(Project,
                 Organization,
-                new Dictionary<Language, ApplicableQualityProfile>
-                {
-                    {Language.Ts, new ApplicableQualityProfile{ProfileKey = localQpKey, ProfileTimestamp = timestampLocal}}
-                }),
+                new Dictionary<Language, ApplicableQualityProfile> { { Language.Ts, new ApplicableQualityProfile { ProfileKey = localQpKey, ProfileTimestamp = timestampLocal } } }),
             CancellationToken.None);
 
         profiles.Should().BeEquivalentTo((Language.Ts, sonarQubeQualityProfile));
@@ -121,10 +115,7 @@ public class OutOfDateQualityProfileFinderTests
         var profiles = await testSubject.GetAsync(
             CreateArgument(Project,
                 Organization,
-                new Dictionary<Language, ApplicableQualityProfile>
-                {
-                    {Language.Ts, new ApplicableQualityProfile{ProfileKey = qpKey, ProfileTimestamp = localTimestamp}}
-                }),
+                new Dictionary<Language, ApplicableQualityProfile> { { Language.Ts, new ApplicableQualityProfile { ProfileKey = qpKey, ProfileTimestamp = localTimestamp } } }),
             CancellationToken.None);
 
         profiles.Should().BeEquivalentTo((Language.Ts, sonarQubeQualityProfile));
@@ -144,10 +135,7 @@ public class OutOfDateQualityProfileFinderTests
         var profiles = await testSubject.GetAsync(
             CreateArgument(Project,
                 Organization,
-                new Dictionary<Language, ApplicableQualityProfile>
-                {
-                    {Language.Ts, new ApplicableQualityProfile{ProfileKey = null, ProfileTimestamp = DateTime.MinValue}}
-                }),
+                new Dictionary<Language, ApplicableQualityProfile> { { Language.Ts, new ApplicableQualityProfile { ProfileKey = null, ProfileTimestamp = DateTime.MinValue } } }),
             CancellationToken.None);
 
         profiles.Should().BeEquivalentTo((Language.Ts, sonarQubeQualityProfile));
@@ -192,9 +180,9 @@ public class OutOfDateQualityProfileFinderTests
                 Organization,
                 new Dictionary<Language, ApplicableQualityProfile>
                 {
-                    {Language.Js, new ApplicableQualityProfile{ProfileKey = localKey, ProfileTimestamp = timestamp}},
-                    {Language.CSharp, new ApplicableQualityProfile{ProfileKey = localKey, ProfileTimestamp = timestamp}},
-                    {Language.Css, new ApplicableQualityProfile{ProfileKey = serverKey, ProfileTimestamp = timestamp}} // same qp
+                    { Language.Js, new ApplicableQualityProfile { ProfileKey = localKey, ProfileTimestamp = timestamp } },
+                    { Language.CSharp, new ApplicableQualityProfile { ProfileKey = localKey, ProfileTimestamp = timestamp } },
+                    { Language.Css, new ApplicableQualityProfile { ProfileKey = serverKey, ProfileTimestamp = timestamp } } // same qp
                 }),
             CancellationToken.None);
 
@@ -202,17 +190,16 @@ public class OutOfDateQualityProfileFinderTests
         sonarQubeServiceMock.Verify(x => x.GetAllQualityProfilesAsync(Project, Organization, CancellationToken.None), Times.Once);
     }
 
-    private static BoundServerProject CreateArgument(string project,
+    private static BoundServerProject CreateArgument(
+        string project,
         string organization,
         Dictionary<Language, ApplicableQualityProfile> profiles) =>
         new("solution",
             project,
-            organization == null ? new ServerConnection.SonarQube(AnyUri) : new ServerConnection.SonarCloud(organization))
-        {
-            Profiles = profiles
-        };
+            organization == null ? new ServerConnection.SonarQube(AnyUri) : new ServerConnection.SonarCloud(organization)) { Profiles = profiles };
 
-    private IOutOfDateQualityProfileFinder CreateTestSubject(out Mock<ISonarQubeService> sonarQubeServiceMock,
+    private IOutOfDateQualityProfileFinder CreateTestSubject(
+        out Mock<ISonarQubeService> sonarQubeServiceMock,
         string project,
         string organization,
         params SonarQubeQualityProfile[] qualityProfiles)
@@ -222,6 +209,6 @@ public class OutOfDateQualityProfileFinderTests
             .Setup(x => x.GetAllQualityProfilesAsync(project, organization, It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult<IList<SonarQubeQualityProfile>>(qualityProfiles));
 
-        return new OutOfDateQualityProfileFinder(sonarQubeServiceMock.Object);
+        return new OutOfDateQualityProfileFinder(sonarQubeServiceMock.Object, LanguageProvider.Instance);
     }
 }

@@ -53,27 +53,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.QualityProfiles
             IBindingConfigProvider bindingConfigProvider,
             IConfigurationPersister configurationPersister,
             IOutOfDateQualityProfileFinder outOfDateQualityProfileFinder,
-            ILogger logger) :
-            this(
-                bindingConfigProvider,
-                configurationPersister,
-                outOfDateQualityProfileFinder,
-                logger,
-                LanguageProvider.Instance.AllKnownLanguages)
-        {
-        }
-
-        internal /* for testing */ QualityProfileDownloader(
-            IBindingConfigProvider bindingConfigProvider,
-            IConfigurationPersister configurationPersister,
-            IOutOfDateQualityProfileFinder outOfDateQualityProfileFinder,
             ILogger logger,
-            IEnumerable<Language> languagesToBind)
+            ILanguageProvider languageProvider)
         {
             this.bindingConfigProvider = bindingConfigProvider;
             this.configurationPersister = configurationPersister;
             this.logger = logger;
-            this.languagesToBind = languagesToBind;
+            languagesToBind = languageProvider.AllKnownLanguages;
             this.outOfDateQualityProfileFinder = outOfDateQualityProfileFinder;
         }
 

@@ -38,7 +38,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
                 MefTestHelpers.CreateExport<IBindingConfigProvider>(),
                 MefTestHelpers.CreateExport<IConfigurationPersister>(),
                 MefTestHelpers.CreateExport<IOutOfDateQualityProfileFinder>(),
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<ILanguageProvider>());
         }
 
         [TestMethod]
@@ -260,12 +261,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             ILogger logger = null,
             Language[] languagesToBind = null)
         {
+            var languageProvider = new Mock<ILanguageProvider>();
+            languageProvider.Setup(x => x.AllKnownLanguages).Returns(languagesToBind ?? []);
+
             return new QualityProfileDownloader(
                 bindingConfigProvider ?? Mock.Of<IBindingConfigProvider>(),
                 configurationPersister ?? new DummyConfigPersister(),
                 outOfDateQualityProfileFinder ?? Mock.Of<IOutOfDateQualityProfileFinder>(),
                 logger ?? new TestLogger(logToConsole: true),
-                languagesToBind ?? LanguageProvider.Instance.AllKnownLanguages);
+                languageProvider.Object);
         }
 
         private static SonarQubeQualityProfile CreateQualityProfile(string key = "key", DateTime timestamp = default)
