@@ -344,6 +344,19 @@ public class MuteIssueCommandTests
         logger.AssertPartialOutputStringDoesNotExist("exception xxx");
     }
 
+    [TestMethod]
+    public void SupportedRepos_AllKnownLanguagesAreSupportedExceptSecrets()
+    {
+        var languageProvider = new Mock<ILanguageProvider>();
+        var allKnownLanguages = new[] { Language.CSharp, Language.Secrets }; // does not have to be the real list
+        languageProvider.Setup(x => x.AllKnownLanguages).Returns(allKnownLanguages);
+
+        var testSubject = CreateMuteIssueCommand(out _, out _, out _, out _, out _, out _, out _, out _, languageProvider.Object, new DummyMenuCommandService());
+
+        languageProvider.Verify(x => x.AllKnownLanguages, Times.Once);
+        testSubject.SupportedRepos.Should().BeEquivalentTo([Language.CSharp.RepoInfo.Key]);
+    }
+
     private static IFilterableIssue SetUpGetIssueFromErrorList(Mock<IErrorListHelper> errorListHelperMock, MockSequence callSequence)
     {
         var issue = Mock.Of<IFilterableIssue>();
@@ -354,7 +367,8 @@ public class MuteIssueCommandTests
         return issue;
     }
 
-    private static void SetUpIssueMuting(Mock<IServerIssueFinder> serverIssueFinderMock,
+    private static void SetUpIssueMuting(
+        Mock<IServerIssueFinder> serverIssueFinderMock,
         Mock<IMuteIssuesService> muteIssueServiceMock,
         MockSequence callSequence,
         IFilterableIssue issue,
@@ -367,7 +381,8 @@ public class MuteIssueCommandTests
             .Returns(Task.CompletedTask);
     }
 
-    private static void SetUpIssueFinder(Mock<IServerIssueFinder> serverIssueFinderMock,
+    private static void SetUpIssueFinder(
+        Mock<IServerIssueFinder> serverIssueFinderMock,
         MockSequence callSequence,
         IFilterableIssue issue,
         SonarQubeIssue sonarQubeIssue)
@@ -386,7 +401,8 @@ public class MuteIssueCommandTests
             .Returns((Func<Task<bool>> action) => action());
     }
 
-    private MenuCommand CreateTestSubject(out Mock<IErrorListHelper> errorListHelperMock,
+    private MenuCommand CreateTestSubject(
+        out Mock<IErrorListHelper> errorListHelperMock,
         out Mock<IRoslynIssueLineHashCalculator> roslynIssueLineHashCalculatorMock,
         out Mock<IServerIssueFinder> serverIssueFinderMock,
         out Mock<IMuteIssuesService> muteIssueServiceMock,
@@ -395,7 +411,40 @@ public class MuteIssueCommandTests
         out Mock<IMessageBox> messeageBox,
         out TestLogger logger)
     {
+        return CreateTestSubject(out errorListHelperMock, out roslynIssueLineHashCalculatorMock, out serverIssueFinderMock, out muteIssueServiceMock, out activeSolutionBoundTrackerMock,
+            out threadHandlingMock, out messeageBox, out logger, LanguageProvider.Instance);
+    }
+
+    private MenuCommand CreateTestSubject(
+        out Mock<IErrorListHelper> errorListHelperMock,
+        out Mock<IRoslynIssueLineHashCalculator> roslynIssueLineHashCalculatorMock,
+        out Mock<IServerIssueFinder> serverIssueFinderMock,
+        out Mock<IMuteIssuesService> muteIssueServiceMock,
+        out Mock<IActiveSolutionBoundTracker> activeSolutionBoundTrackerMock,
+        out Mock<IThreadHandling> threadHandlingMock,
+        out Mock<IMessageBox> messeageBox,
+        out TestLogger logger,
+        ILanguageProvider languageProvider)
+    {
         var dummyMenuService = new DummyMenuCommandService();
+        CreateMuteIssueCommand(out errorListHelperMock, out roslynIssueLineHashCalculatorMock, out serverIssueFinderMock, out muteIssueServiceMock, out activeSolutionBoundTrackerMock,
+            out threadHandlingMock, out messeageBox, out logger, languageProvider, dummyMenuService);
+
+        dummyMenuService.AddedMenuCommands.Count.Should().Be(1);
+        return dummyMenuService.AddedMenuCommands[0];
+    }
+
+    private static MuteIssueCommand CreateMuteIssueCommand(
+        out Mock<IErrorListHelper> errorListHelperMock,
+        out Mock<IRoslynIssueLineHashCalculator> roslynIssueLineHashCalculatorMock,
+        out Mock<IServerIssueFinder> serverIssueFinderMock,
+        out Mock<IMuteIssuesService> muteIssueServiceMock,
+        out Mock<IActiveSolutionBoundTracker> activeSolutionBoundTrackerMock,
+        out Mock<IThreadHandling> threadHandlingMock,
+        out Mock<IMessageBox> messeageBox,
+        out TestLogger logger,
+        ILanguageProvider languageProvider,
+        DummyMenuCommandService dummyMenuService) =>
         new MuteIssueCommand(dummyMenuService,
             (errorListHelperMock = new Mock<IErrorListHelper>(MockBehavior.Strict)).Object,
             (roslynIssueLineHashCalculatorMock = new Mock<IRoslynIssueLineHashCalculator>(MockBehavior.Strict)).Object,
@@ -404,9 +453,6 @@ public class MuteIssueCommandTests
             (activeSolutionBoundTrackerMock = new Mock<IActiveSolutionBoundTracker>(MockBehavior.Strict)).Object,
             (threadHandlingMock = new Mock<IThreadHandling>(MockBehavior.Strict)).Object,
             (messeageBox = new Mock<IMessageBox>()).Object,
-            logger = new TestLogger());
-
-        dummyMenuService.AddedMenuCommands.Count.Should().Be(1);
-        return dummyMenuService.AddedMenuCommands[0];
-    }
+            logger = new TestLogger(),
+            languageProvider);
 }
