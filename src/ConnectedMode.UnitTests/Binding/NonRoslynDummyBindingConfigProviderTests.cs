@@ -26,7 +26,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding;
 [TestClass]
 public class NonRoslynDummyBindingConfigProviderTests
 {
-    private static IEnumerable<Language> SupportedLanguages { get; } = LanguageProvider.Instance.AllKnownLanguages.Where(l => l != Language.CSharp && l != Language.VBNET);
+    private NonRoslynDummyBindingConfigProvider testSubject;
+    private ILanguageProvider languageProvider;
+
+    private static IEnumerable<Language> SupportedLanguages { get; } = [Language.Cpp, Language.Js,]; // do not have to be the real lists
     private static IEnumerable<Language> RoslynLanguages { get; } = [Language.CSharp, Language.VBNET];
 
     public static IEnumerable<object[]> GetSupportedLanguages() => SupportedLanguages.Select(l => new object[] { l });
@@ -46,16 +49,29 @@ public class NonRoslynDummyBindingConfigProviderTests
         }
     }
 
+    [TestInitialize]
+    public void TestInitialize()
+    {
+        languageProvider = Substitute.For<ILanguageProvider>();
+        MockLanguageProvider();
+        testSubject = new NonRoslynDummyBindingConfigProvider(languageProvider);
+    }
+
     [DynamicData(nameof(GetLanguagesWithSupport), DynamicDataSourceType.Method)]
     [DataTestMethod]
-    public void IsLanguageSupported_ReturnsTrueForNonRoslynLanguages(Language language, bool isSupported) =>
-        new NonRoslynDummyBindingConfigProvider().IsLanguageSupported(language).Should().Be(isSupported);
+    public void IsLanguageSupported_ReturnsTrueForNonRoslynLanguages(Language language, bool isSupported)
+    {
+        testSubject.IsLanguageSupported(language).Should().Be(isSupported);
+
+        _ = languageProvider.Received().NonRoslynLanguages;
+        _ = languageProvider.DidNotReceive().RoslynLanguages;
+    }
 
     [DynamicData(nameof(GetRoslynLanguages), DynamicDataSourceType.Method)]
     [DataTestMethod]
     public async Task GetConfigurationAsync_ThrowsForUnsupported(Language language)
     {
-        var act = () => new NonRoslynDummyBindingConfigProvider().GetConfigurationAsync(default, language, default, default);
+        var act = () => testSubject.GetConfigurationAsync(default, language, default, default);
 
         await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
     }
@@ -64,10 +80,12 @@ public class NonRoslynDummyBindingConfigProviderTests
     [DataTestMethod]
     public async Task GetConfigurationAsync_ReturnsDummyConfigForSupported(Language language)
     {
-        var config = await new NonRoslynDummyBindingConfigProvider().GetConfigurationAsync(default, language, default, default);
+        var config = await testSubject.GetConfigurationAsync(default, language, default, default);
         config.Should().NotBeNull().And.BeOfType<NonRoslynDummyBindingConfigProvider.DummyConfig>();
 
         var configSave = () => config.Save();
         configSave.Should().NotThrow();
     }
+
+    private void MockLanguageProvider() => languageProvider.NonRoslynLanguages.Returns(SupportedLanguages);
 }
