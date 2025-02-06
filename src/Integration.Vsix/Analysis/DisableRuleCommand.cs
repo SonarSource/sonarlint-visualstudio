@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Design;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -53,6 +54,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
+        [ExcludeFromCodeCoverage]
         public static async Task InitializeAsync(AsyncPackage package, ILogger logger)
         {
             // Switch to the main thread - the call to AddCommand in Command1's constructor requires
