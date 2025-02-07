@@ -35,28 +35,25 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
 {
     private const string JarFolderName = "DownloadedJars";
 
-    private static readonly HashSet<PluginInfo> standalonePlugins = new List<Language>
-    {
-        Language.C,
-        Language.Cpp,
-        Language.Js,
-        Language.Ts,
-        Language.Css,
-        Language.Html,
-        Language.Secrets,
-    }.Select(x => x.PluginInfo).ToHashSet();
-    private readonly IVsixRootLocator vsixRootLocator;
     private readonly IFileSystem fileSystem;
     private readonly ILogger logger;
+    private readonly IVsixRootLocator vsixRootLocator;
+
+    internal HashSet<PluginInfo> StandalonePlugins { get; }
 
     [ImportingConstructor]
-    public SLCoreEmbeddedPluginJarLocator(IVsixRootLocator vsixRootLocator, ILogger logger) : this(vsixRootLocator, new FileSystem(), logger) { }
+    public SLCoreEmbeddedPluginJarLocator(IVsixRootLocator vsixRootLocator, ILogger logger, ILanguageProvider languageProvider) : this(vsixRootLocator, new FileSystem(), logger, languageProvider) { }
 
-    internal SLCoreEmbeddedPluginJarLocator(IVsixRootLocator vsixRootLocator, IFileSystem fileSystem, ILogger logger)
+    internal SLCoreEmbeddedPluginJarLocator(
+        IVsixRootLocator vsixRootLocator,
+        IFileSystem fileSystem,
+        ILogger logger,
+        ILanguageProvider languageProvider)
     {
         this.vsixRootLocator = vsixRootLocator;
         this.fileSystem = fileSystem;
         this.logger = logger;
+        StandalonePlugins = languageProvider.LanguagesInStandaloneMode.Except(languageProvider.RoslynLanguages).Select(x => x.PluginInfo).ToHashSet();
     }
 
     public List<string> ListJarFiles()
@@ -75,7 +72,7 @@ public class SLCoreEmbeddedPluginJarLocator : ISLCoreEmbeddedPluginJarLocator
         var connectedModeEmbeddedPluginPathsByKey = new Dictionary<string, string>();
         var embeddedPluginFilePaths = ListJarFiles();
 
-        foreach (var plugin in standalonePlugins)
+        foreach (var plugin in StandalonePlugins)
         {
             if (GetPathByPluginKey(embeddedPluginFilePaths, plugin.Key, plugin.FilePattern) is { } pluginFilePath)
             {
