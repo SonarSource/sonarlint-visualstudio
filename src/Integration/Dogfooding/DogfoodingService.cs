@@ -29,6 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Dogfooding;
 public class DogfoodingService(IEnvironmentVariableProvider environmentVariableProvider) : IDogfoodingService
 {
     private const string SonarSourceDogfoodingEnvironmentVariable = "SONARSOURCE_DOGFOODING";
+    private const string DogfoodingEnabledValue = "1";
 
-    public bool IsDogfoodingEnvironment { get; } = !string.IsNullOrWhiteSpace(environmentVariableProvider.TryGet(SonarSourceDogfoodingEnvironmentVariable));
+    public bool IsDogfoodingEnvironment { get; } = DogfoodingEnabledValue.Equals(environmentVariableProvider.TryGet(SonarSourceDogfoodingEnvironmentVariable));
 }

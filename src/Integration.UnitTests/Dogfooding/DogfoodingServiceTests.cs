@@ -47,8 +47,9 @@ public class DogfoodingServiceTests
     [DataRow("", false)]
     [DataRow(null, false)]
     [DataRow(" ", false)]
+    [DataRow("0", false)]
     [DataRow("1", true)]
-    [DataRow("2", true)]
+    [DataRow("2", false)]
     [DataTestMethod]
     public void IsDogfooding_ReturnsAsExpected(string dogfoodingEnvVarValue, bool expectedStatus)
     {
