@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode;
@@ -32,19 +31,33 @@ public enum ConnectionServerType
 /// <summary>
 /// Model containing connection information, intended to be used by UI components
 /// </summary>
-/// <param name="Id">The organization key for SonarCloud or the server uri for SonarQube</param>
-/// <param name="ServerType">The type of server (SonarCloud, SonarQube)</param>
-public record ConnectionInfo(string Id, ConnectionServerType ServerType)
+public record ConnectionInfo
 {
-    public static ConnectionInfo From(ServerConnection serverConnection)
+    /// <summary>
+    /// Model containing connection information, intended to be used by UI components
+    /// </summary>
+    /// <param name="id">The organization key for SonarCloud or the server uri for SonarQube</param>
+    /// <param name="serverType">The type of server (SonarCloud, SonarQube)</param>
+    /// <param name="cloudServerRegion"> Only applicable to <see cref="ConnectionServerType.SonarCloud"/>. If not provided, defaults to <see cref="Core.Binding.CloudServerRegion.Eu"/>
+    /// It is ignored for <see cref="ConnectionServerType.SonarQube"/> </param>
+    public ConnectionInfo(string id, ConnectionServerType serverType, CloudServerRegion cloudServerRegion = null)
     {
-        return serverConnection switch
+        Id = id;
+        ServerType = serverType;
+        CloudServerRegion = serverType == ConnectionServerType.SonarCloud ? (cloudServerRegion ?? CloudServerRegion.Eu) : null;
+    }
+
+    public static ConnectionInfo From(ServerConnection serverConnection) =>
+        serverConnection switch
         {
             ServerConnection.SonarQube sonarQubeConnection => new ConnectionInfo(sonarQubeConnection.Id, ConnectionServerType.SonarQube),
-            ServerConnection.SonarCloud sonarCloudConnection => new ConnectionInfo(sonarCloudConnection.OrganizationKey, ConnectionServerType.SonarCloud),
+            ServerConnection.SonarCloud sonarCloudConnection => new ConnectionInfo(sonarCloudConnection.OrganizationKey, ConnectionServerType.SonarCloud, sonarCloudConnection.Region),
             _ => throw new ArgumentException(Resources.UnexpectedConnectionType)
         };
-    }
+
+    public string Id { get; }
+    public ConnectionServerType ServerType { get; }
+    public CloudServerRegion CloudServerRegion { get; }
 }
 
 public class Connection(ConnectionInfo info, bool enableSmartNotifications = true)
@@ -59,9 +72,8 @@ public static class ConnectionInfoExtensions
     {
         if (connection.Id == null && connection.ServerType == ConnectionServerType.SonarCloud)
         {
-            return CoreStrings.SonarCloudUrl;
+            return connection.CloudServerRegion.Url.ToString();
         }
         return connection.Id;
     }
-
 }
