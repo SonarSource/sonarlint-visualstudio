@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Core
     /// This class is safe for use as a key in collection classes. E.g., <seealso cref="IDictionary{TKey, TValue}"/>.
     /// </para>
     /// </remarks>
-    [DebuggerDisplay("{Name} (ID: {Id}, IsSupported: {IsSupported})")]
+    [DebuggerDisplay("{Name} (ID: {Id})")]
     [TypeConverter(typeof(LanguageConverter))]
     public sealed class Language : IEquatable<Language>
     {
@@ -75,21 +75,6 @@ namespace SonarLint.VisualStudio.Core
         public static readonly Language TSql = new("TSql", "T-SQL", SonarQubeLanguage.TSql, TsqlPlugin, TsqlRepo);
 
         /// <summary>
-        /// Returns the language for the specified language key, or null if it does not match a known language
-        /// </summary>
-        public static Language GetLanguageFromLanguageKey(string languageKey) => KnownLanguages.FirstOrDefault(l => languageKey.Equals(l.ServerLanguage.Key, StringComparison.OrdinalIgnoreCase));
-
-        /// <summary>
-        /// Returns the language for the specified repository key, or null if it does not match a known language
-        /// </summary>
-        public static Language GetLanguageFromRepositoryKey(string repoKey) => KnownLanguages.SingleOrDefault(lang => lang.HasRepoKey(repoKey));
-
-        /// <summary>
-        /// Returns the Sonar analyzer repository for the specified language key, or null if one could not be found
-        /// </summary>
-        public static string GetSonarRepoKeyFromLanguage(Language language) => KnownLanguages.FirstOrDefault(x => x.Id == language.Id)?.RepoInfo.Key;
-
-        /// <summary>
         /// A stable identifier for this language.
         /// </summary>
         public string Id { get; }
@@ -121,22 +106,6 @@ namespace SonarLint.VisualStudio.Core
         /// Nullable, the repository info for the security rules (i.e. hotspots) for this language
         /// </summary>
         public RepoInfo SecurityRepoInfo { get; }
-
-        /// <summary>
-        /// Returns whether or not this language is a supported project language.
-        /// </summary>
-        public bool IsSupported => KnownLanguages.Contains(this);
-
-        /// <summary>
-        /// All known languages.
-        /// </summary>
-        public static IEnumerable<Language> KnownLanguages
-        {
-            get
-            {
-                return new[] { CSharp, VBNET, Cpp, C, Js, Ts, Css, Html, Secrets, TSql };
-            }
-        }
 
         /// <summary>
         /// Private constructor reserved for the <seealso cref="Unknown"/>.

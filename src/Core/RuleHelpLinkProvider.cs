@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Core
 
         private static string GetWebsiteFolderName(string repoKey)
         {
-            var language = Language.KnownLanguages.FirstOrDefault(lang => lang.HasRepoKey(repoKey));
+            var language = LanguageProvider.Instance.AllKnownLanguages.FirstOrDefault(lang => lang.HasRepoKey(repoKey));
 
             if (language?.SecurityRepoInfo?.Key == repoKey)
             {

@@ -82,7 +82,7 @@ internal class RaisedFindingProcessor(
             var localPath = fileUri.LocalPath;
             var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), localPath, parameters.analysisId);
             var supportedRaisedIssues = GetSupportedLanguageFindings(fileAndIssues.Value ?? []);
-           findingsPublisher.Publish(localPath,
+            findingsPublisher.Publish(localPath,
                 parameters.analysisId!.Value,
                 raiseFindingToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
             analysisStatusNotifier.AnalysisProgressed(supportedRaisedIssues.Length, findingsPublisher.FindingsType, parameters.isIntermediatePublication);
@@ -95,7 +95,7 @@ internal class RaisedFindingProcessor(
     private static List<string> CalculateAnalyzableRulePrefixes(ISLCoreConstantsProvider slCoreConstantsProvider) =>
         slCoreConstantsProvider.AllAnalyzableLanguages?
             .Select(x => x.ConvertToCoreLanguage())
-            .Select(Language.GetSonarRepoKeyFromLanguage)
+            .Select(x => x.RepoInfo?.Key)
             .Where(r => r is not null)
             .ToList() ?? [];
 }

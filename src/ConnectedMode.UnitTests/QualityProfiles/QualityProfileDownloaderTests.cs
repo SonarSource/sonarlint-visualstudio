@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
 using SonarLint.VisualStudio.Core;
@@ -42,7 +38,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
                 MefTestHelpers.CreateExport<IBindingConfigProvider>(),
                 MefTestHelpers.CreateExport<IConfigurationPersister>(),
                 MefTestHelpers.CreateExport<IOutOfDateQualityProfileFinder>(),
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<ILanguageProvider>());
         }
 
         [TestMethod]
@@ -65,7 +62,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             var testSubject = CreateTestSubject(outOfDateQualityProfileFinderMock.Object,
                 bindingConfigProvider.Object,
                 logger: logger,
-                languagesToBind: Language.KnownLanguages.ToArray());
+                languagesToBind: LanguageProvider.Instance.AllKnownLanguages.ToArray());
 
             var result = await testSubject.UpdateAsync(boundSonarQubeProject, null, CancellationToken.None);
 
@@ -82,13 +79,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             var logger = new TestLogger(logToConsole: true);
             var boundProject = CreateBoundProject();
 
-            var languagesToBind = new[]
-            {
-                Language.Cpp,
-                Language.CSharp,
-                Language.Secrets,
-                Language.VBNET
-            };
+            var languagesToBind = new[] { Language.Cpp, Language.CSharp, Language.Secrets, Language.VBNET };
 
             SetupLanguagesToUpdate(out var outOfDateQualityProfileFinderMock,
                 boundProject,
@@ -130,8 +121,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
                 notifications.AssertProgressMessages(expected);
             }
 
-            static string GetDownloadProgressMessages(Language language)
-                => string.Format(QualityProfilesStrings.DownloadingQualityProfileProgressMessage, language.Name);
+            static string GetDownloadProgressMessages(Language language) => string.Format(QualityProfilesStrings.DownloadingQualityProfileProgressMessage, language.Name);
         }
 
         [TestMethod]
@@ -143,8 +133,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             var languagesToBind = new[]
             {
                 Language.Cpp, // unavailable
-                Language.CSharp,
-                Language.Secrets, // unavailable
+                Language.CSharp, Language.Secrets, // unavailable
                 Language.VBNET
             };
 
@@ -272,12 +261,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             ILogger logger = null,
             Language[] languagesToBind = null)
         {
+            var languageProvider = new Mock<ILanguageProvider>();
+            languageProvider.Setup(x => x.AllKnownLanguages).Returns(languagesToBind ?? []);
+
             return new QualityProfileDownloader(
                 bindingConfigProvider ?? Mock.Of<IBindingConfigProvider>(),
                 configurationPersister ?? new DummyConfigPersister(),
                 outOfDateQualityProfileFinder ?? Mock.Of<IOutOfDateQualityProfileFinder>(),
                 logger ?? new TestLogger(logToConsole: true),
-                languagesToBind ?? Language.KnownLanguages);
+                languageProvider.Object);
         }
 
         private static SonarQubeQualityProfile CreateQualityProfile(string key = "key", DateTime timestamp = default)
@@ -307,7 +299,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
                 .ReturnsAsync(qps);
         }
 
-        private static Mock<IBindingConfig> SetupConfigProvider(Mock<IBindingConfigProvider> bindingConfigProvider,
+        private static Mock<IBindingConfig> SetupConfigProvider(
+            Mock<IBindingConfigProvider> bindingConfigProvider,
             Language language)
         {
             var bindingConfig = new Mock<IBindingConfig>();
@@ -321,18 +314,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.QualityProfiles
             return bindingConfig;
         }
 
-        private static BoundServerProject CreateBoundProject(string projectKey = "key",
-            Uri uri = null)
-            => new BoundServerProject(
+        private static BoundServerProject CreateBoundProject(
+            string projectKey = "key",
+            Uri uri = null) =>
+            new BoundServerProject(
                 "solution",
                 projectKey,
                 new ServerConnection.SonarQube(uri ?? new Uri("http://localhost/")));
 
-        private static void CheckRuleConfigSaved(Mock<IBindingConfig> bindingConfig)
-            => bindingConfig.Verify(x => x.Save(), Times.Once);
+        private static void CheckRuleConfigSaved(Mock<IBindingConfig> bindingConfig) => bindingConfig.Verify(x => x.Save(), Times.Once);
 
-        private static void CheckRuleConfigNotSaved(Mock<IBindingConfig> bindingConfig)
-            => bindingConfig.Verify(x => x.Save(), Times.Never);
+        private static void CheckRuleConfigNotSaved(Mock<IBindingConfig> bindingConfig) => bindingConfig.Verify(x => x.Save(), Times.Never);
 
         private class DummyConfigPersister : IConfigurationPersister
         {

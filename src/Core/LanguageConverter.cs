@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 
 namespace SonarLint.VisualStudio.Core
 {
@@ -54,8 +51,8 @@ namespace SonarLint.VisualStudio.Core
 
             if (languageId != null)
             {
-                return Language.KnownLanguages.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Id, languageId))
-                    ?? Language.Unknown;
+                return LanguageProvider.Instance.AllKnownLanguages.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Id, languageId))
+                       ?? Language.Unknown;
             }
 
             Debug.Fail("Expected string input object");
@@ -76,7 +73,11 @@ namespace SonarLint.VisualStudio.Core
             return base.CanConvertFrom(context, destinationType);
         }
 
-        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
+        public override object ConvertTo(
+            ITypeDescriptorContext context,
+            CultureInfo culture,
+            object value,
+            Type destinationType)
         {
             Debug.Assert(value is Language, $"Expected {nameof(Language)} input object");
             Debug.Assert(destinationType == typeof(string), "Expected string destination type");
