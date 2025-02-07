@@ -175,7 +175,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         }
 
         [TestMethod]
-        public void WriteSharedBindingConfigFile_SCConfig_NonDefaultRegion_Writes()
+        public void WriteSharedBindingConfigFile_SCConfig_DefaultRegion_Writes()
         {
             string configFileContent = """
                                        {
@@ -219,7 +219,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
             """,
             "US")]
         [DataTestMethod]
-        public void WriteSharedBindingConfigFile_SCConfig_DefaultRegion_Writes(string configFileContent, string region)
+        public void WriteSharedBindingConfigFile_SCConfig_NonDefaultRegion_Writes(string configFileContent, string region)
         {
             var config = new SharedBindingConfigModel() { Organization = "Some Organisation", ProjectKey = "projectKey", Region = region };
             var filePath = "C:\\Solution\\.sonarlint\\Solution.json";
