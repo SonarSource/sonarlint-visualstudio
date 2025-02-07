@@ -35,6 +35,7 @@ public interface IConnectedModeServices
     public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; }
     public IMessageBox MessageBox { get; }
     public ITelemetryManager TelemetryManager { get; }
+    public IDogfoodingService DogfoodingService { get; }
 }
 
 [Export(typeof(IConnectedModeServices))]
@@ -48,12 +49,14 @@ public class ConnectedModeServices(
     IServerConnectionsRepositoryAdapter serverConnectionsRepositoryAdapter,
     IMessageBox messageBox,
     ILogger logger,
-    ITelemetryManager telemetryManager)
+    ITelemetryManager telemetryManager,
+    IDogfoodingService dogfoodingService)
     : IConnectedModeServices
 {
     public IServerConnectionsRepositoryAdapter ServerConnectionsRepositoryAdapter { get; } = serverConnectionsRepositoryAdapter;
     public IMessageBox MessageBox { get; } = messageBox;
     public ITelemetryManager TelemetryManager { get; } = telemetryManager;
+    public IDogfoodingService DogfoodingService { get; } = dogfoodingService;
     public IBrowserService BrowserService { get; } = browserService;
     public IThreadHandling ThreadHandling { get; } = threadHandling;
     public ILogger Logger { get; } = logger;
