@@ -18,9 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
+
 namespace SonarLint.VisualStudio.Core;
 
 public interface IDogfoodingService
 {
     bool IsDogfoodingEnvironment { get; }
+}
+
+[Export(typeof(IDogfoodingService))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+public class DogfoodingService(IEnvironmentVariableProvider environmentVariableProvider) : IDogfoodingService
+{
+    private const string SonarSourceDogfoodingEnvironmentVariable = "SONARSOURCE_DOGFOODING";
+    private const string DogfoodingEnabledValue = "1";
+
+    public bool IsDogfoodingEnvironment { get; } = DogfoodingEnabledValue.Equals(environmentVariableProvider.TryGet(SonarSourceDogfoodingEnvironmentVariable));
 }

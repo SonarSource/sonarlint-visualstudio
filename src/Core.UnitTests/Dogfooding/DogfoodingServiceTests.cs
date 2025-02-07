@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration.Dogfooding;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Dogfooding;
+namespace SonarLint.VisualStudio.Core.UnitTests.Dogfooding;
 
 [TestClass]
 public class DogfoodingServiceTests
