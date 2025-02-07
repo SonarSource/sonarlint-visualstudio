@@ -18,9 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
-using SonarLint.VisualStudio.SLCore.Common.Models;
-using static SonarLint.VisualStudio.Core.Language;
+using SlCoreLanguage = SonarLint.VisualStudio.SLCore.Common.Models.Language;
+using CoreLanguage = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers;
 
@@ -29,33 +30,41 @@ public class LanguageExtensionsTests
 {
     [TestMethod]
     [DynamicData(nameof(CoreToSlCore))]
-    public void ConvertToCoreLanguage_KnownLanguage_ConvertsAsExpected(VisualStudio.Core.Language coreLanguage, Language slCoreLanguage) =>
+    public void ConvertToCoreLanguage_KnownLanguage_ConvertsAsExpected(CoreLanguage coreLanguage, SlCoreLanguage slCoreLanguage) =>
         slCoreLanguage.ConvertToCoreLanguage().Should().BeSameAs(coreLanguage);
 
     [TestMethod]
     public void ConvertToCoreLanguage_UnknownLanguage_ReturnsUnknown()
     {
-        Language.ABAP.ConvertToCoreLanguage().Should().BeSameAs(Unknown);
-        Language.JAVA.ConvertToCoreLanguage().Should().BeSameAs(Unknown);
+        SlCoreLanguage.ABAP.ConvertToCoreLanguage().Should().BeSameAs(CoreLanguage.Unknown);
+        SlCoreLanguage.JAVA.ConvertToCoreLanguage().Should().BeSameAs(CoreLanguage.Unknown);
     }
 
     [TestMethod]
     [DynamicData(nameof(CoreToSlCore))]
-    public void ConvertToSlCoreLanguage_KnownLanguage_ConvertsAsExpected(VisualStudio.Core.Language coreLanguage, Language slCoreLanguage) =>
+    public void ConvertToSlCoreLanguage_KnownLanguage_ConvertsAsExpected(CoreLanguage coreLanguage, SlCoreLanguage slCoreLanguage) =>
         coreLanguage.ConvertToSlCoreLanguage().Should().Be(slCoreLanguage);
 
     [TestMethod]
     public void ConvertToSlCoreLanguage_UnknownLanguage_Throws()
     {
-        var act = () => Unknown.ConvertToSlCoreLanguage();
+        var act = () => CoreLanguage.Unknown.ConvertToSlCoreLanguage();
 
         act.Should().Throw<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
     }
 
+    [TestMethod]
+    public void AllKnownLanguages_ConvertToSlCoreLanguage()
+    {
+        var act = () => LanguageProvider.Instance.AllKnownLanguages.Select(x => x.ConvertToSlCoreLanguage());
+
+        act.Should().NotThrow<ArgumentOutOfRangeException>();
+    }
+
     public static IEnumerable<object[]> CoreToSlCore =>
     [
-        [CSharp, Language.CS], [VBNET, Language.VBNET], [C, Language.C], [Cpp, Language.CPP],
-        [Css, Language.CSS], [Html, Language.HTML], [Js, Language.JS], [Secrets, Language.SECRETS],
-        [Ts, Language.TS], [TSql, Language.TSQL]
+        [CoreLanguage.CSharp, SlCoreLanguage.CS], [CoreLanguage.VBNET, SlCoreLanguage.VBNET], [CoreLanguage.C, SlCoreLanguage.C], [CoreLanguage.Cpp, SlCoreLanguage.CPP],
+        [CoreLanguage.Css, SlCoreLanguage.CSS], [CoreLanguage.Html, SlCoreLanguage.HTML], [CoreLanguage.Js, SlCoreLanguage.JS], [CoreLanguage.Secrets, SlCoreLanguage.SECRETS],
+        [CoreLanguage.Ts, SlCoreLanguage.TS], [CoreLanguage.TSql, SlCoreLanguage.TSQL]
     ];
 }
