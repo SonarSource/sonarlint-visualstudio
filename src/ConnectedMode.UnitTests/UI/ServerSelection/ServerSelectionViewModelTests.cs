@@ -20,6 +20,7 @@
 
 using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
 {
@@ -31,7 +32,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
         [TestInitialize]
         public void TestInitialize()
         {
-            testSubject = new ServerSelectionViewModel();
+            testSubject = new ServerSelectionViewModel(Substitute.For<IDogfoodingService>());
         }
 
         [TestMethod]

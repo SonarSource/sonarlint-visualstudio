@@ -18,17 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
 {
-    public class ServerSelectionViewModel : ViewModelBase
+    public class ServerSelectionViewModel(IDogfoodingService dogfoodingService) : ViewModelBase
     {
         private bool isSonarCloudSelected = true;
         private bool isSonarQubeSelected;
         private bool isEuRegionSelected = true;
         private bool isUsRegionSelected;
         private string sonarQubeUrl;
+
+        public IDogfoodingService DogfoodingService { get; } = dogfoodingService;
 
         public bool IsSonarCloudSelected
         {
