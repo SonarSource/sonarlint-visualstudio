@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
@@ -27,6 +26,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
     {
         private bool isSonarCloudSelected = true;
         private bool isSonarQubeSelected;
+        private bool isEuRegionSelected = true;
+        private bool isUsRegionSelected;
         private string sonarQubeUrl;
 
         public bool IsSonarCloudSelected
@@ -63,6 +64,26 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
                 RaisePropertyChanged(nameof(IsNextButtonEnabled));
                 RaisePropertyChanged(nameof(ShouldSonarQubeUrlBeFilled));
                 RaisePropertyChanged(nameof(ShowSecurityWarning));
+            }
+        }
+
+        public bool IsEuRegionSelected
+        {
+            get => isEuRegionSelected;
+            set
+            {
+                isEuRegionSelected = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public bool IsUsRegionSelected
+        {
+            get => isUsRegionSelected;
+            set
+            {
+                isUsRegionSelected = value;
+                RaisePropertyChanged();
             }
         }
 

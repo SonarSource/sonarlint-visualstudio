@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
@@ -178,6 +178,39 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
 
             createdConnection.Id.Should().BeNull();
             createdConnection.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+        }
+
+        [TestMethod]
+        public void IsEuRegionSelected_ShouldBeTrueByDefault()
+        {
+            testSubject.IsEuRegionSelected.Should().BeTrue();
+            testSubject.IsUsRegionSelected.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsEuRegionSelected_Set_RaisesEvents()
+        {
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+            eventHandler.ReceivedCalls().Should().BeEmpty();
+
+            testSubject.IsEuRegionSelected = !testSubject.IsEuRegionSelected;
+
+            eventHandler.Received().Invoke(testSubject,
+                Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsEuRegionSelected)));
+        }
+
+        [TestMethod]
+        public void IsUsRegionSelected_Set_RaisesEvents()
+        {
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+            eventHandler.ReceivedCalls().Should().BeEmpty();
+
+            testSubject.IsUsRegionSelected = !testSubject.IsUsRegionSelected;
+
+            eventHandler.Received().Invoke(testSubject,
+                Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsUsRegionSelected)));
         }
     }
 }
