@@ -31,16 +31,9 @@ internal interface IServerConnectionsProvider
 
 [Export(typeof(IServerConnectionsProvider))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class ServerConnectionsProvider : IServerConnectionsProvider
+[method: ImportingConstructor]
+internal class ServerConnectionsProvider(IServerConnectionsRepository serverConnectionsRepository) : IServerConnectionsProvider
 {
-    private readonly IServerConnectionsRepository serverConnectionsRepository;
-
-    [ImportingConstructor]
-    public ServerConnectionsProvider(IServerConnectionsRepository serverConnectionsRepository)
-    {
-        this.serverConnectionsRepository = serverConnectionsRepository;
-    }
-
     public Dictionary<string, ServerConnectionConfigurationDtoBase> GetServerConnections()
     {
         var succeeded = serverConnectionsRepository.TryGetAll(out var serverConnections);
@@ -55,10 +48,12 @@ internal class ServerConnectionsProvider : IServerConnectionsProvider
             switch (serverConnection)
             {
                 case ServerConnection.SonarQube sonarQubeConnection:
-                    serverConnectionConfigurations.Add(new SonarQubeConnectionConfigurationDto(sonarQubeConnection.Id, !sonarQubeConnection.Settings.IsSmartNotificationsEnabled, sonarQubeConnection.ServerUri.ToString()));
+                    serverConnectionConfigurations.Add(new SonarQubeConnectionConfigurationDto(sonarQubeConnection.Id, !sonarQubeConnection.Settings.IsSmartNotificationsEnabled,
+                        sonarQubeConnection.ServerUri.ToString()));
                     break;
                 case ServerConnection.SonarCloud sonarCloudConnection:
-                    serverConnectionConfigurations.Add(new SonarCloudConnectionConfigurationDto(sonarCloudConnection.Id, !sonarCloudConnection.Settings.IsSmartNotificationsEnabled, sonarCloudConnection.OrganizationKey));
+                    serverConnectionConfigurations.Add(new SonarCloudConnectionConfigurationDto(sonarCloudConnection.Id, !sonarCloudConnection.Settings.IsSmartNotificationsEnabled,
+                        sonarCloudConnection.OrganizationKey, sonarCloudConnection.Region.ToSlCoreRegion()));
                     break;
                 default:
                     throw new InvalidOperationException(SLCoreStrings.UnexpectedServerConnectionType);
