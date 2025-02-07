@@ -73,17 +73,20 @@ public class ServerConnectionsProviderTests
     }
 
     [TestMethod]
-    public void GetServerConnections_CorrectlyReturnsSonarCloudConnection()
+    [DataRow("eu", SonarCloudRegion.EU, "https://sonarcloud.io/organizations/org")]
+    [DataRow("us", SonarCloudRegion.US, "https://us.sonarcloud.io/organizations/org")]
+    public void GetServerConnections_CorrectlyReturnsSonarCloudConnection(string regionName, SonarCloudRegion expectedRegion, string expectedId)
     {
         const string organizationKey = "org";
-        var connection = new ServerConnection.SonarCloud(organizationKey);
+        var region = CloudServerRegion.GetRegionByName(regionName);
+        var connection = new ServerConnection.SonarCloud(organizationKey, region);
         var serverConnectionsRepository = SetServerConnectionsRepository(succeeded: true, connection);
         var testSubject = CreateTestSubject(serverConnectionsRepository);
 
         var serverConnections = testSubject.GetServerConnections();
 
         serverConnections.Should().HaveCount(1);
-        serverConnections[connection.Id].Should().BeEquivalentTo(new SonarCloudConnectionConfigurationDto("https://sonarcloud.io/organizations/org", false, "org", SonarCloudRegion.EU));
+        serverConnections[connection.Id].Should().BeEquivalentTo(new SonarCloudConnectionConfigurationDto(expectedId, false, "org", expectedRegion));
     }
 
     [TestMethod]
@@ -99,22 +102,25 @@ public class ServerConnectionsProviderTests
         var serverConnections = testSubject.GetServerConnections();
 
         serverConnections.Should().HaveCount(1);
-        serverConnections[connection.Id].Should().BeEquivalentTo(new SonarCloudConnectionConfigurationDto("https://sonarcloud.io/organizations/org", !isSmartNotificationsEnabled, "org", SonarCloudRegion.EU));
+        serverConnections[connection.Id].Should()
+            .BeEquivalentTo(new SonarCloudConnectionConfigurationDto("https://sonarcloud.io/organizations/org", !isSmartNotificationsEnabled, "org", SonarCloudRegion.EU));
     }
 
     [TestMethod]
     public void GetServerConnections_CorrectlyHandlesMultipleConnections()
     {
         var connectionSQ1 = new ServerConnection.SonarQube(new Uri("http://localhost/"));
-        var connectionSQ2 =new ServerConnection.SonarQube(new Uri("https://next.sonarqube.org/sonarqube/"));
-        var connectionSC = new ServerConnection.SonarCloud("myorg");
-        var serverConnectionsRepository = SetServerConnectionsRepository(succeeded:true, connectionSQ1, connectionSQ2, connectionSC);
+        var connectionSQ2 = new ServerConnection.SonarQube(new Uri("https://next.sonarqube.org/sonarqube/"));
+        var connectionSC1 = new ServerConnection.SonarCloud("myorg");
+        var connectionSC2 = new ServerConnection.SonarCloud("myorg", CloudServerRegion.Us);
+        var serverConnectionsRepository = SetServerConnectionsRepository(succeeded: true, connectionSQ1, connectionSQ2, connectionSC1, connectionSC2);
         var testSubject = CreateTestSubject(serverConnectionsRepository);
 
         var serverConnections = testSubject.GetServerConnections();
 
-        serverConnections.Should().HaveCount(3);
+        serverConnections.Should().HaveCount(4);
         serverConnections["https://sonarcloud.io/organizations/myorg"].Should().BeOfType<SonarCloudConnectionConfigurationDto>();
+        serverConnections["https://us.sonarcloud.io/organizations/myorg"].Should().BeOfType<SonarCloudConnectionConfigurationDto>();
         serverConnections["http://localhost/"].Should().BeOfType<SonarQubeConnectionConfigurationDto>();
         serverConnections["https://next.sonarqube.org/sonarqube/"].Should().BeOfType<SonarQubeConnectionConfigurationDto>();
     }
@@ -133,7 +139,7 @@ public class ServerConnectionsProviderTests
     [TestMethod]
     public void GetServerConnections_ConnectionsCouldNotBeRead_ReturnsNoConnection()
     {
-        var serverConnectionsRepository = SetServerConnectionsRepository(succeeded:false);
+        var serverConnectionsRepository = SetServerConnectionsRepository(succeeded: false);
         var testSubject = CreateTestSubject(serverConnectionsRepository);
 
         var serverConnections = testSubject.GetServerConnections();
@@ -141,7 +147,8 @@ public class ServerConnectionsProviderTests
         serverConnections.Should().HaveCount(0);
     }
 
-    private static IServerConnectionsRepository SetServerConnectionsRepository(bool succeeded,
+    private static IServerConnectionsRepository SetServerConnectionsRepository(
+        bool succeeded,
         params ServerConnection[] serverConnections)
     {
         var bindingRepository = Substitute.For<IServerConnectionsRepository>();
@@ -151,10 +158,8 @@ public class ServerConnectionsProviderTests
             return succeeded;
         });
 
-
         return bindingRepository;
     }
 
-    private static IServerConnectionsProvider CreateTestSubject(IServerConnectionsRepository serverConnectionsRepository) =>
-        new ServerConnectionsProvider(serverConnectionsRepository);
+    private static IServerConnectionsProvider CreateTestSubject(IServerConnectionsRepository serverConnectionsRepository) => new ServerConnectionsProvider(serverConnectionsRepository);
 }

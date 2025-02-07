@@ -18,13 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 
-[JsonConverter(typeof(StringEnumConverter))]
-public enum SonarCloudRegion
+public static class SonarCloudRegionExtensions
 {
-    EU, US
+    private static readonly IReadOnlyDictionary<CloudServerRegion, SonarCloudRegion> CoreToSlCoreLanguageMap = new Dictionary<CloudServerRegion, SonarCloudRegion>()
+    {
+        { CloudServerRegion.Eu, SonarCloudRegion.EU }, { CloudServerRegion.Us, SonarCloudRegion.US },
+    };
+
+    public static SonarCloudRegion ToSlCoreRegion(this CloudServerRegion region)
+    {
+        if (CoreToSlCoreLanguageMap.TryGetValue(region, out var slCoreLanguage))
+        {
+            return slCoreLanguage;
+        }
+        throw new ArgumentOutOfRangeException(region.Name);
+    }
 }
