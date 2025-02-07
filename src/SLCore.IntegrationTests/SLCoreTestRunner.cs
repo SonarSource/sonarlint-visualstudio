@@ -23,10 +23,8 @@ using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
-using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Service;
-using SonarLint.VisualStudio.Integration.SLCore;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.SLCore;
 using SonarLint.VisualStudio.SLCore.Analysis;
@@ -91,12 +89,13 @@ public sealed class SLCoreTestRunner : IDisposable
             rootLocator.GetVsixRoot().Returns(DependencyLocator.SloopBasePath);
             var slCoreLocator = new SLCoreLocator(rootLocator, string.Empty, Substitute.For<ISonarLintSettings>(), logger, Substitute.For<IFileSystem>());
 
+            var sLCoreLanguageProvider = Substitute.For<ISLCoreLanguageProvider>();
             var constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
             constantsProvider.ClientConstants.Returns(new ClientConstantInfoDto("SLVS_Integration_Tests", $"SLVS_Integration_Tests/{VersionHelper.SonarLintVersion}"));
             constantsProvider.FeatureFlags.Returns(new FeatureFlagsDto(true, true, false, true, false, false, true, false, false));
             constantsProvider.TelemetryConstants.Returns(new TelemetryClientConstantAttributesDto("slvs_integration_tests", "SLVS Integration Tests",
                 VersionHelper.SonarLintVersion, "17.0", new()));
-            SetLanguagesConfigurationToDefaults(constantsProvider);
+            SetLanguagesConfigurationToDefaults(sLCoreLanguageProvider);
 
             var foldersProvider = Substitute.For<ISLCoreFoldersProvider>();
             foldersProvider.GetWorkFolders().Returns(new SLCoreFolders(storageRoot, workDir, userHome));
@@ -120,6 +119,7 @@ public sealed class SLCoreTestRunner : IDisposable
                     new SLCoreServiceProvider(new NoOpThreadHandler(), logger),
                     new SLCoreListenerSetUp(listenersToSetUp)),
                 constantsProvider,
+                sLCoreLanguageProvider,
                 foldersProvider,
                 connectionProvider,
                 jarProvider,
@@ -137,11 +137,11 @@ public sealed class SLCoreTestRunner : IDisposable
         }
     }
 
-    private static void SetLanguagesConfigurationToDefaults(ISLCoreConstantsProvider constantsProvider)
+    private static void SetLanguagesConfigurationToDefaults(ISLCoreLanguageProvider languageProvider)
     {
-        var defaultConstantsProvider = new SLCoreConstantsProvider(Substitute.For<IVsInfoProvider>());
-        constantsProvider.LanguagesInStandaloneMode.Returns(defaultConstantsProvider.LanguagesInStandaloneMode);
-        constantsProvider.LanguagesWithDisabledAnalysis.Returns(defaultConstantsProvider.LanguagesWithDisabledAnalysis);
+        var defaultLanguageProvider = new SLCoreLanguageProvider(LanguageProvider.Instance);
+        languageProvider.LanguagesInStandaloneMode.Returns(defaultLanguageProvider.LanguagesInStandaloneMode);
+        languageProvider.LanguagesWithDisabledAnalysis.Returns(defaultLanguageProvider.LanguagesWithDisabledAnalysis);
     }
 
     public void Dispose()

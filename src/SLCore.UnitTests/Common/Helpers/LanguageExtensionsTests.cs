@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
-using SonarLint.VisualStudio.SLCore.Common.Models;
+using SlCoreLanguage = SonarLint.VisualStudio.SLCore.Common.Models.Language;
+using CoreLanguage = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers;
 
@@ -27,40 +29,42 @@ namespace SonarLint.VisualStudio.SLCore.UnitTests.Common.Helpers;
 public class LanguageExtensionsTests
 {
     [TestMethod]
-    public void VerifyConversionToCoreLanguage()
+    [DynamicData(nameof(CoreToSlCore))]
+    public void ConvertToCoreLanguage_KnownLanguage_ConvertsAsExpected(CoreLanguage coreLanguage, SlCoreLanguage slCoreLanguage) =>
+        slCoreLanguage.ConvertToCoreLanguage().Should().BeSameAs(coreLanguage);
+
+    [TestMethod]
+    public void ConvertToCoreLanguage_UnknownLanguage_ReturnsUnknown()
     {
-        VerifyConversionToCoreLanguage(Language.C, VisualStudio.Core.Language.C);
-        VerifyConversionToCoreLanguage(Language.CPP, VisualStudio.Core.Language.Cpp);
-        VerifyConversionToCoreLanguage(Language.CS, VisualStudio.Core.Language.CSharp);
-        VerifyConversionToCoreLanguage(Language.CSS, VisualStudio.Core.Language.Css);
-        VerifyConversionToCoreLanguage(Language.JS, VisualStudio.Core.Language.Js);
-        VerifyConversionToCoreLanguage(Language.SECRETS, VisualStudio.Core.Language.Secrets);
-        VerifyConversionToCoreLanguage(Language.TS, VisualStudio.Core.Language.Ts);
-        VerifyConversionToCoreLanguage(Language.VBNET, VisualStudio.Core.Language.VBNET);
-        VerifyConversionToCoreLanguage(Language.TSQL, VisualStudio.Core.Language.TSql);
-        VerifyConversionToCoreLanguage(Language.ABAP, VisualStudio.Core.Language.Unknown);
-        VerifyConversionToCoreLanguage(Language.JAVA, VisualStudio.Core.Language.Unknown);
+        SlCoreLanguage.ABAP.ConvertToCoreLanguage().Should().BeSameAs(CoreLanguage.Unknown);
+        SlCoreLanguage.JAVA.ConvertToCoreLanguage().Should().BeSameAs(CoreLanguage.Unknown);
     }
 
-    [DataTestMethod]
-    [DataRow(Language.C, "cpp")]
-    [DataRow(Language.CPP, "cpp")]
-    [DataRow(Language.JS, "javascript")]
-    [DataRow(Language.TS, "javascript")]
-    [DataRow(Language.CSS, "javascript")]
-    [DataRow(Language.CS, "csharpenterprise")]
-    [DataRow(Language.VBNET, "vbnetenterprise")]
-    [DataRow(Language.SECRETS, "text")]
-    [DataRow(Language.TSQL, "tsql")]
-    [DataRow(Language.ABAP, null)]
-    [DataRow(Language.JAVA, null)]
-    public void VerifyPluginKeys(Language language, string expectedPluginKey)
+    [TestMethod]
+    [DynamicData(nameof(CoreToSlCore))]
+    public void ConvertToSlCoreLanguage_KnownLanguage_ConvertsAsExpected(CoreLanguage coreLanguage, SlCoreLanguage slCoreLanguage) =>
+        coreLanguage.ConvertToSlCoreLanguage().Should().Be(slCoreLanguage);
+
+    [TestMethod]
+    public void ConvertToSlCoreLanguage_UnknownLanguage_Throws()
     {
-        language.GetPluginKey().Should().BeEquivalentTo(expectedPluginKey);
+        var act = () => CoreLanguage.Unknown.ConvertToSlCoreLanguage();
+
+        act.Should().Throw<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
     }
 
-    private static void VerifyConversionToCoreLanguage(Language language, VisualStudio.Core.Language coreLanguage)
+    [TestMethod]
+    public void AllKnownLanguages_ConvertToSlCoreLanguage()
     {
-        language.ConvertToCoreLanguage().Should().BeSameAs(coreLanguage);
+        var act = () => LanguageProvider.Instance.AllKnownLanguages.Select(x => x.ConvertToSlCoreLanguage());
+
+        act.Should().NotThrow<ArgumentOutOfRangeException>();
     }
+
+    public static IEnumerable<object[]> CoreToSlCore =>
+    [
+        [CoreLanguage.CSharp, SlCoreLanguage.CS], [CoreLanguage.VBNET, SlCoreLanguage.VBNET], [CoreLanguage.C, SlCoreLanguage.C], [CoreLanguage.Cpp, SlCoreLanguage.CPP],
+        [CoreLanguage.Css, SlCoreLanguage.CSS], [CoreLanguage.Html, SlCoreLanguage.HTML], [CoreLanguage.Js, SlCoreLanguage.JS], [CoreLanguage.Secrets, SlCoreLanguage.SECRETS],
+        [CoreLanguage.Ts, SlCoreLanguage.TS], [CoreLanguage.TSql, SlCoreLanguage.TSQL]
+    ];
 }

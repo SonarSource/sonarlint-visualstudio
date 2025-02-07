@@ -22,7 +22,6 @@ using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core.VsInfo;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Telemetry;
-using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
@@ -38,42 +37,15 @@ namespace SonarLint.VisualStudio.Integration.SLCore
         public SLCoreConstantsProvider(IVsInfoProvider vsInfoProvider)
         {
             this.vsInfoProvider = vsInfoProvider;
-            AllAnalyzableLanguages = LanguagesInStandaloneMode.Concat(ExtraLanguagesInConnectedMode).Except(LanguagesWithDisabledAnalysis).ToArray();
         }
 
         public ClientConstantInfoDto ClientConstants => new(vsInfoProvider.Name, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}");
 
         public FeatureFlagsDto FeatureFlags => new(true, true, true, true, true, false, true, true, true);
 
-        public TelemetryClientConstantAttributesDto TelemetryConstants => new("visualstudio", "SonarLint Visual Studio", VersionHelper.SonarLintVersion, VisualStudioHelpers.VisualStudioVersion, new Dictionary<string, object>
-        {
-            { "slvs_ide_info", GetVsVersion(vsInfoProvider.Version) }
-        });
-
-        public IReadOnlyList<Language> LanguagesInStandaloneMode =>
-        [
-            Language.JS,
-            Language.TS,
-            Language.HTML,
-            Language.CSS,
-            Language.C,
-            Language.CPP,
-            Language.CS,
-            Language.VBNET,
-            Language.SECRETS,
-        ];
-        public IReadOnlyList<Language> ExtraLanguagesInConnectedMode =>
-        [
-            Language.TSQL
-        ];
-
-        public IReadOnlyList<Language> LanguagesWithDisabledAnalysis =>
-        [
-            Language.CS,
-            Language.VBNET,
-        ];
-
-        public IReadOnlyList<Language> AllAnalyzableLanguages { get; }
+        public TelemetryClientConstantAttributesDto TelemetryConstants =>
+            new("visualstudio", "SonarLint Visual Studio", VersionHelper.SonarLintVersion, VisualStudioHelpers.VisualStudioVersion,
+                new Dictionary<string, object> { { "slvs_ide_info", GetVsVersion(vsInfoProvider.Version) } });
 
         private static IdeVersionInformation GetVsVersion(IVsVersion vsVersion)
         {
@@ -82,12 +54,7 @@ namespace SonarLint.VisualStudio.Integration.SLCore
                 return null;
             }
 
-            return new IdeVersionInformation
-            {
-                DisplayName = vsVersion.DisplayName,
-                InstallationVersion = vsVersion.InstallationVersion,
-                DisplayVersion = vsVersion.DisplayVersion
-            };
+            return new IdeVersionInformation { DisplayName = vsVersion.DisplayName, InstallationVersion = vsVersion.InstallationVersion, DisplayVersion = vsVersion.DisplayVersion };
         }
     }
 }

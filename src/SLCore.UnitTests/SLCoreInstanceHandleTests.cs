@@ -55,9 +55,10 @@ public class SLCoreInstanceHandleTests
     private static readonly BoundServerProject Binding = new("solution", "projectKey", new ServerConnection.SonarQube(new Uri("http://localhost")));
 
     private static readonly List<string> JarList = new() { "jar1" };
-    private static readonly Dictionary<string, string> ConnectedModeJarList = new() { {"key", "jar1"} };
+    private static readonly Dictionary<string, string> ConnectedModeJarList = new() { { "key", "jar1" } };
     private ISLCoreRpcFactory slCoreRpcFactory;
     private ISLCoreConstantsProvider constantsProvider;
+    private ISLCoreLanguageProvider slCoreLanguageProvider;
     private ISLCoreFoldersProvider foldersProvider;
     private IServerConnectionsProvider connectionsProvider;
     private ISLCoreEmbeddedPluginJarLocator jarLocator;
@@ -74,6 +75,7 @@ public class SLCoreInstanceHandleTests
     {
         slCoreRpcFactory = Substitute.For<ISLCoreRpcFactory>();
         constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
+        slCoreLanguageProvider = Substitute.For<ISLCoreLanguageProvider>();
         foldersProvider = Substitute.For<ISLCoreFoldersProvider>();
         connectionsProvider = Substitute.For<IServerConnectionsProvider>();
         jarLocator = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
@@ -86,6 +88,7 @@ public class SLCoreInstanceHandleTests
 
         testSubject = new SLCoreInstanceHandle(slCoreRpcFactory,
             constantsProvider,
+            slCoreLanguageProvider,
             foldersProvider,
             connectionsProvider,
             jarLocator,
@@ -114,7 +117,7 @@ public class SLCoreInstanceHandleTests
     [DataRow(null)]
     public void Initialize_SuccessfullyInitializesInCorrectOrder(string nodeJsPath)
     {
-        SetUpLanguages(constantsProvider, [], [], []);
+        SetUpLanguages(slCoreLanguageProvider, [], [], []);
         SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
         nodeLocator.Get().Returns(nodeJsPath);
         var telemetryMigrationDto = new TelemetryMigrationDto(default, default, default);
@@ -152,7 +155,7 @@ public class SLCoreInstanceHandleTests
         List<Language> standalone = [Language.CS, Language.HTML];
         List<Language> connected = [Language.VBNET, Language.TSQL];
         List<Language> disabledAnalysis = [Language.CPP, Language.JS];
-        SetUpLanguages(constantsProvider, standalone, connected, disabledAnalysis);
+        SetUpLanguages(slCoreLanguageProvider, standalone, connected, disabledAnalysis);
         SetUpSuccessfulInitialization(out var lifecycleManagement, out _);
 
         testSubject.Initialize();
@@ -178,7 +181,7 @@ public class SLCoreInstanceHandleTests
     public void Dispose_Initialized_ShutsDownAndDisposesRpc()
     {
         SetUpThreadHandling(threadHandling);
-        SetUpLanguages(constantsProvider, [], [], []);
+        SetUpLanguages(slCoreLanguageProvider, [], [], []);
 
         SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         testSubject.Initialize();
@@ -186,7 +189,6 @@ public class SLCoreInstanceHandleTests
         var serviceProvider = rpc.ServiceProvider;
         serviceProvider.ClearReceivedCalls();
         testSubject.Dispose();
-
 
         serviceProvider.Received().TryGetTransientService(out Arg.Any<ILifecycleManagementSLCoreService>());
         Received.InOrder(() =>
@@ -203,7 +205,7 @@ public class SLCoreInstanceHandleTests
     public void Dispose_IgnoresServiceProviderException()
     {
         SetUpThreadHandling(threadHandling);
-        SetUpLanguages(constantsProvider, [], [], []);
+        SetUpLanguages(slCoreLanguageProvider, [], [], []);
 
         SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         lifecycleManagement.When(x => x.Shutdown()).Do(_ => throw new Exception());
@@ -222,7 +224,7 @@ public class SLCoreInstanceHandleTests
     public void Dispose_IgnoresShutdownException()
     {
         SetUpThreadHandling(threadHandling);
-        SetUpLanguages(constantsProvider, [], [], []);
+        SetUpLanguages(slCoreLanguageProvider, [], [], []);
 
         SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         lifecycleManagement.When(x => x.Shutdown()).Do(_ => throw new Exception());
@@ -239,7 +241,7 @@ public class SLCoreInstanceHandleTests
     public void Dispose_ConnectionDied_DisposesRpc()
     {
         SetUpThreadHandling(threadHandling);
-        SetUpLanguages(constantsProvider, [], [], []);
+        SetUpLanguages(slCoreLanguageProvider, [], [], []);
 
         SetUpSuccessfulInitialization(out var lifecycleManagement, out var rpc);
         testSubject.Initialize();
@@ -281,9 +283,7 @@ public class SLCoreInstanceHandleTests
         foldersProvider.GetWorkFolders().Returns(new SLCoreFolders(StorageRoot, WorkDir, UserHome));
         connectionsProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfigurationDtoBase>
         {
-            { SonarQubeConnection1.connectionId, SonarQubeConnection1 },
-            { SonarQubeConnection2.connectionId, SonarQubeConnection2 },
-            { SonarCloudConnection.connectionId, SonarCloudConnection }
+            { SonarQubeConnection1.connectionId, SonarQubeConnection1 }, { SonarQubeConnection2.connectionId, SonarQubeConnection2 }, { SonarCloudConnection.connectionId, SonarCloudConnection }
         });
         jarLocator.ListJarFiles().Returns(JarList);
         jarLocator.ListConnectedModeEmbeddedPluginPathsByKey().Returns(ConnectedModeJarList);
@@ -291,14 +291,15 @@ public class SLCoreInstanceHandleTests
         slCoreRuleSettingsProvider.GetSLCoreRuleSettings().Returns(new Dictionary<string, StandaloneRuleConfigDto>());
     }
 
-    private void SetUpLanguages(ISLCoreConstantsProvider constantsProvider,
+    private void SetUpLanguages(
+        ISLCoreLanguageProvider slCoreLanguageProvider,
         List<Language> standalone,
         List<Language> connected,
         List<Language> disabledAnalysis)
     {
-        constantsProvider.LanguagesInStandaloneMode.Returns(standalone);
-        constantsProvider.ExtraLanguagesInConnectedMode.Returns(connected);
-        constantsProvider.LanguagesWithDisabledAnalysis.Returns(disabledAnalysis);
+        slCoreLanguageProvider.LanguagesInStandaloneMode.Returns(standalone);
+        slCoreLanguageProvider.ExtraLanguagesInConnectedMode.Returns(connected);
+        slCoreLanguageProvider.LanguagesWithDisabledAnalysis.Returns(disabledAnalysis);
     }
 
     #region RpcSetUp
@@ -315,7 +316,8 @@ public class SLCoreInstanceHandleTests
         slCoreRpc.ServiceProvider.Returns(slCoreServiceProvider);
     }
 
-    private void SetUpSLCoreServiceProvider(ISLCoreServiceProvider slCoreServiceProvider,
+    private void SetUpSLCoreServiceProvider(
+        ISLCoreServiceProvider slCoreServiceProvider,
         out ILifecycleManagementSLCoreService lifecycleManagementSlCoreService)
     {
         var managementService = Substitute.For<ILifecycleManagementSLCoreService>();

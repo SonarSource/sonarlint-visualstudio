@@ -40,14 +40,13 @@ public class RaisedFindingProcessorTests
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<RaisedFindingProcessor, IRaisedFindingProcessor>(
-            MefTestHelpers.CreateExport<ISLCoreConstantsProvider>(),
+            MefTestHelpers.CreateExport<ISLCoreLanguageProvider>(),
             MefTestHelpers.CreateExport<IRaiseFindingToAnalysisIssueConverter>(),
             MefTestHelpers.CreateExport<IAnalysisStatusNotifierFactory>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<RaisedFindingProcessor>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RaisedFindingProcessor>();
 
     [TestMethod]
     public void RaiseFindings_AnalysisIdIsNull_Ignores()
@@ -88,8 +87,7 @@ public class RaisedFindingProcessorTests
     {
         var analysisId = Guid.NewGuid();
         var fileUri = new FileUri("file://C:/somefile");
-        var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>>
-            { { fileUri, [CreateTestFinding("csharpsquid:S100"), CreateTestFinding("csharpsquid:S101")] } };
+        var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>> { { fileUri, [CreateTestFinding("csharpsquid:S100"), CreateTestFinding("csharpsquid:S101")] } };
 
         var isIntermediatePublication = false;
         var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", findingsByFileUri, isIntermediatePublication, analysisId);
@@ -117,8 +115,7 @@ public class RaisedFindingProcessorTests
     {
         var analysisId = Guid.NewGuid();
         var fileUri = new FileUri("file://C:/somefile");
-        var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>>
-            { { fileUri, [CreateTestFinding("csharpsquid:S100"), CreateTestFinding("csharpsquid:S101")] } };
+        var findingsByFileUri = new Dictionary<FileUri, List<TestFinding>> { { fileUri, [CreateTestFinding("csharpsquid:S100"), CreateTestFinding("csharpsquid:S101")] } };
 
         var isIntermediatePublication = false;
         var raiseFindingParams = new RaiseFindingParams<TestFinding>("CONFIGURATION_ID", findingsByFileUri, isIntermediatePublication, analysisId);
@@ -252,14 +249,16 @@ public class RaisedFindingProcessorTests
         IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter = null,
         IAnalysisStatusNotifierFactory analysisStatusNotifierFactory = null,
         ILogger logger = null,
-        ISLCoreConstantsProvider slCoreConstantsProvider = null)
-        => new(
+        ISLCoreLanguageProvider slCoreConstantsProvider = null) =>
+        new(
             slCoreConstantsProvider ??
             CreateConstantsProviderWithLanguages(SloopLanguage.SECRETS, SloopLanguage.JS, SloopLanguage.TS, SloopLanguage.CSS),
             raiseFindingToAnalysisIssueConverter ?? Substitute.For<IRaiseFindingToAnalysisIssueConverter>(),
             analysisStatusNotifierFactory ?? Substitute.For<IAnalysisStatusNotifierFactory>(), logger ?? new TestLogger());
 
-    private static IRaiseFindingToAnalysisIssueConverter CreateConverter(FileUri fileUri, IReadOnlyCollection<TestFinding> raisedFindingDtos,
+    private static IRaiseFindingToAnalysisIssueConverter CreateConverter(
+        FileUri fileUri,
+        IReadOnlyCollection<TestFinding> raisedFindingDtos,
         IAnalysisIssue[] findings)
     {
         var raiseFindingParamsToAnalysisIssueConverter = Substitute.For<IRaiseFindingToAnalysisIssueConverter>();
@@ -268,14 +267,16 @@ public class RaisedFindingProcessorTests
         return raiseFindingParamsToAnalysisIssueConverter;
     }
 
-    private ISLCoreConstantsProvider CreateConstantsProviderWithLanguages(params SloopLanguage[] languages)
+    private ISLCoreLanguageProvider CreateConstantsProviderWithLanguages(params SloopLanguage[] languages)
     {
-        var slCoreConstantsProvider = Substitute.For<ISLCoreConstantsProvider>();
-        slCoreConstantsProvider.AllAnalyzableLanguages.Returns(languages.ToList());
-        return slCoreConstantsProvider;
+        var slCoreLanguageProvider = Substitute.For<ISLCoreLanguageProvider>();
+        slCoreLanguageProvider.AllAnalyzableLanguages.Returns(languages.ToList());
+        return slCoreLanguageProvider;
     }
 
-    private IAnalysisStatusNotifierFactory CreateAnalysisStatusNotifierFactory(out IAnalysisStatusNotifier analysisStatusNotifier, string filePath,
+    private IAnalysisStatusNotifierFactory CreateAnalysisStatusNotifierFactory(
+        out IAnalysisStatusNotifier analysisStatusNotifier,
+        string filePath,
         Guid? analysisId)
     {
         var analysisStatusNotifierFactory = Substitute.For<IAnalysisStatusNotifierFactory>();
@@ -312,12 +313,12 @@ public class RaisedFindingProcessorTests
         return analysisIssue1;
     }
 
-    private static void VerifyCorrectConstantsAreUsed(ISLCoreConstantsProvider constantsProvider)
+    private static void VerifyCorrectConstantsAreUsed(ISLCoreLanguageProvider languageProvider)
     {
-        _ = constantsProvider.DidNotReceive().LanguagesInStandaloneMode;
-        _ = constantsProvider.DidNotReceive().ExtraLanguagesInConnectedMode;
-        _ = constantsProvider.DidNotReceive().LanguagesWithDisabledAnalysis;
-        _ = constantsProvider.Received().AllAnalyzableLanguages;
+        _ = languageProvider.DidNotReceive().LanguagesInStandaloneMode;
+        _ = languageProvider.DidNotReceive().ExtraLanguagesInConnectedMode;
+        _ = languageProvider.DidNotReceive().LanguagesWithDisabledAnalysis;
+        _ = languageProvider.Received().AllAnalyzableLanguages;
     }
 
     private record TestFinding(

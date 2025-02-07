@@ -29,7 +29,6 @@ using SonarLint.VisualStudio.SLCore.Service.Connection.Models;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 using SonarLint.VisualStudio.SLCore.State;
-using Language = SonarLint.VisualStudio.SLCore.Common.Models.Language;
 
 namespace SonarLint.VisualStudio.SLCore;
 
@@ -47,6 +46,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     private readonly IServerConnectionsProvider serverConnectionConfigurationProvider;
     private readonly IConfigScopeUpdater configScopeUpdater;
     private readonly ISLCoreConstantsProvider constantsProvider;
+    private readonly ISLCoreLanguageProvider slCoreLanguageProvider;
     private readonly ISLCoreFoldersProvider slCoreFoldersProvider;
     private readonly ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider;
     private readonly ISLCoreRuleSettingsProvider slCoreRuleSettingsProvider;
@@ -56,9 +56,10 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     public Task ShutdownTask => SLCoreRpc.ShutdownTask;
     internal ISLCoreRpc SLCoreRpc { get; private set; }
 
-
-    internal SLCoreInstanceHandle(ISLCoreRpcFactory slCoreRpcFactory,
+    internal SLCoreInstanceHandle(
+        ISLCoreRpcFactory slCoreRpcFactory,
         ISLCoreConstantsProvider constantsProvider,
+        ISLCoreLanguageProvider slCoreLanguageProvider,
         ISLCoreFoldersProvider slCoreFoldersProvider,
         IServerConnectionsProvider serverConnectionConfigurationProvider,
         ISLCoreEmbeddedPluginJarLocator slCoreEmbeddedPluginJarProvider,
@@ -71,6 +72,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
     {
         this.slCoreRpcFactory = slCoreRpcFactory;
         this.constantsProvider = constantsProvider;
+        this.slCoreLanguageProvider = slCoreLanguageProvider;
         this.slCoreFoldersProvider = slCoreFoldersProvider;
         this.serverConnectionConfigurationProvider = serverConnectionConfigurationProvider;
         this.slCoreEmbeddedPluginJarProvider = slCoreEmbeddedPluginJarProvider;
@@ -104,9 +106,9 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
             workDir,
             embeddedPluginPaths: slCoreEmbeddedPluginJarProvider.ListJarFiles(),
             connectedModeEmbeddedPluginPathsByKey: slCoreEmbeddedPluginJarProvider.ListConnectedModeEmbeddedPluginPathsByKey(),
-            enabledLanguagesInStandaloneMode:constantsProvider.LanguagesInStandaloneMode,
-            extraEnabledLanguagesInConnectedMode: constantsProvider.ExtraLanguagesInConnectedMode,
-            disabledPluginKeysForAnalysis: constantsProvider.LanguagesWithDisabledAnalysis.Select(l => l.GetPluginKey()).ToList(),
+            enabledLanguagesInStandaloneMode: slCoreLanguageProvider.LanguagesInStandaloneMode,
+            extraEnabledLanguagesInConnectedMode: slCoreLanguageProvider.ExtraLanguagesInConnectedMode,
+            disabledPluginKeysForAnalysis: slCoreLanguageProvider.LanguagesWithDisabledAnalysis.Select(l => l.GetPluginKey()).ToList(),
             serverConnectionConfigurations.Values.OfType<SonarQubeConnectionConfigurationDto>().ToList(),
             serverConnectionConfigurations.Values.OfType<SonarCloudConnectionConfigurationDto>().ToList(),
             sonarlintUserHome,
@@ -125,6 +127,7 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         SLCoreRpc?.Dispose();
         SLCoreRpc = null;
     }
+
     private void Shutdown()
     {
         try
@@ -144,6 +147,5 @@ internal sealed class SLCoreInstanceHandle : ISLCoreInstanceHandle
         {
             // ignore
         }
-
     }
 }
