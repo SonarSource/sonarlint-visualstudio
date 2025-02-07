@@ -175,7 +175,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         }
 
         [TestMethod]
-        public void WriteSharedBindingConfigFile_SCConfig_DefaultRegion_Writes()
+        public void WriteSharedBindingConfigFile_SCConfig_NonDefaultRegion_Writes()
         {
             string configFileContent = """
                                        {

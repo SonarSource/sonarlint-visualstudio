@@ -64,8 +64,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Shared
 
                 if (result.IsSonarCloud())
                 {
-                    result.Region = string.IsNullOrEmpty(result.Region) ? CloudServerRegion.Eu.Name : result.Region;
-                    result.Uri = CloudServerRegion.GetRegionByName(result.Region).Url;
+                    var region = CloudServerRegion.GetRegionByName(result.Region);
+                    result.Region = region.Name;
+                    result.Uri = region.Url;
                 }
 
                 if (!string.IsNullOrWhiteSpace(result.ProjectKey)
