@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
@@ -37,10 +37,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
                 MefTestHelpers.CreateExport<ILogger>());
         }
 
+        [DataRow("""{"SonarQubeUri":"https://127.0.0.1:9000","ProjectKey":"projectKey"}""")]
+        [DataRow("""{"sonarQubeUri":"https://127.0.0.1:9000","projectKey":"projectKey"}""")]
         [TestMethod]
-        public void ReadSharedBindingConfigFile_SQConfig_Reads()
+        public void ReadSharedBindingConfigFile_SQConfig_Reads(string configFileContent)
         {
-            var configFileContent = @"{""SonarQubeUri"":""https://127.0.0.1:9000"",""ProjectKey"":""projectKey""}";
             var filePath = "Some Path";
             var uri = new Uri("https://127.0.0.1:9000");
 
@@ -57,11 +58,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
             result.Organization.Should().BeNull();
         }
 
-        [TestMethod]
-        public void ReadSharedBindingConfigFile_SCConfig_Reads()
+        [DataRow("""{"SonarCloudOrganization":"Some Organisation","ProjectKey":"projectKey"}""", "EU")]
+        [DataRow("""{"sonarCloudOrganization":"Some Organisation","projectKey":"projectKey"}""", "EU")]
+        [DataRow("""{"SonarCloudOrganization":"Some Organisation","Region": "EU","ProjectKey":"projectKey"}""", "EU")]
+        [DataRow("""{"sonarCloudOrganization":"Some Organisation","region": "EU","projectKey":"projectKey"}""", "EU")]
+        [DataRow("""{"SonarCloudOrganization":"Some Organisation","Region": "US","ProjectKey":"projectKey"}""", "US")]
+        [DataRow("""{"sonarCloudOrganization":"Some Organisation","region": "US","projectKey":"projectKey"}""", "US")]
+        [DataTestMethod]
+        public void ReadSharedBindingConfigFile_SCConfig_Reads(string configFileContent, string region)
         {
-            string configFileContent = @"{""SonarCloudOrganization"":""Some Organisation"",""ProjectKey"":""projectKey""}";
             string filePath = "Some Path";
+            var cloudServerRegion = CloudServerRegion.GetRegionByName(region);
 
             var file = CreateFile(filePath, configFileContent);
             var fileSystem = GetFileSystem(file.Object);
@@ -72,7 +79,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
 
             result.Organization.Should().Be("Some Organisation");
             result.ProjectKey.Should().Be("projectKey");
-            result.Uri.Should().BeEquivalentTo(SharedBindingConfigFileProvider.SonarCloudUri);
+            result.Region.Should().Be(cloudServerRegion.Name);
+            result.Uri.Should().BeEquivalentTo(cloudServerRegion.Url);
         }
 
         [TestMethod]
@@ -107,10 +115,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
             result.Should().BeNull();
         }
 
-        [TestMethod]
-        public void ReadSharedBindingConfigFile_InvalidUri_ReturnsNull()
+        [DataRow("""{"SonarQubeUri":"not URI","ProjectKey":"projectKey"}""")]
+        [DataRow("""{"sonarQubeUri":"not URI","projectKey":"projectKey"}""")]
+        [DataTestMethod]
+        public void ReadSharedBindingConfigFile_InvalidUri_ReturnsNull(string configFileContent)
         {
-            var configFileContent = @"{""SonarQubeUri"":""not URI"",""ProjectKey"":""projectKey""}";
             var filePath = "Some Path";
 
             var file = CreateFile(filePath, configFileContent);
@@ -123,10 +132,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
             result.Should().BeNull();
         }
 
+        [DataRow("""{"SonarQubeUri":"http://localhost","ProjectKey":"  "}""")]
+        [DataRow("""{"sonarQubeUri":"http://localhost","projectKey":"  "}""")]
         [TestMethod]
-        public void ReadSharedBindingConfigFile_InvalidProjectKey_ReturnsNull()
+        public void ReadSharedBindingConfigFile_InvalidProjectKey_ReturnsNull(string configFileContent)
         {
-            var configFileContent = @"{""SonarQubeUri"":""http://localhost"",""ProjectKey"":""  ""}";
             var filePath = "Some Path";
 
             var file = CreateFile(filePath, configFileContent);
@@ -142,10 +152,12 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         [TestMethod]
         public void WriteSharedBindingConfigFile_SQConfig_Writes()
         {
-            var configFileContent = @"{
-  ""SonarQubeUri"": ""https://127.0.0.1:9000"",
-  ""ProjectKey"": ""projectKey""
-}";
+            var configFileContent = """
+                                    {
+                                      "sonarQubeUri": "https://127.0.0.1:9000",
+                                      "projectKey": "projectKey"
+                                    }
+                                    """;
             var config = new SharedBindingConfigModel() { Uri = new Uri("https://127.0.0.1:9000"), ProjectKey = "projectKey" };
             var filePath = "C:\\Solution\\.sonarlint\\Solution.json";
 
@@ -163,13 +175,53 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Shared
         }
 
         [TestMethod]
-        public void WriteSharedBindingConfigFile_SCConfig_Writes()
+        public void WriteSharedBindingConfigFile_SCConfig_DefaultRegion_Writes()
         {
-            string configFileContent = @"{
-  ""SonarCloudOrganization"": ""Some Organisation"",
-  ""ProjectKey"": ""projectKey""
-}";
+            string configFileContent = """
+                                       {
+                                         "sonarCloudOrganization": "Some Organisation",
+                                         "region": "EU",
+                                         "projectKey": "projectKey"
+                                       }
+                                       """;
             var config = new SharedBindingConfigModel() { Organization = "Some Organisation", ProjectKey = "projectKey" };
+            var filePath = "C:\\Solution\\.sonarlint\\Solution.json";
+
+            var file = CreateFile();
+            var fileSystem = GetFileSystem(file.Object);
+
+            var testSubject = CreateTestSubject(fileSystem.Object);
+
+            var result = testSubject.WriteSharedBindingConfigFile(filePath, config);
+
+            result.Should().BeTrue();
+
+            file.Verify(f => f.WriteAllText(filePath, configFileContent), Times.Once);
+            file.VerifyNoOtherCalls();
+        }
+
+        [DataRow(
+            """
+            {
+              "sonarCloudOrganization": "Some Organisation",
+              "region": "EU",
+              "projectKey": "projectKey"
+            }
+            """,
+            "EU")]
+        [DataRow(
+            """
+            {
+              "sonarCloudOrganization": "Some Organisation",
+              "region": "US",
+              "projectKey": "projectKey"
+            }
+            """,
+            "US")]
+        [DataTestMethod]
+        public void WriteSharedBindingConfigFile_SCConfig_NonDefaultRegion_Writes(string configFileContent, string region)
+        {
+            var config = new SharedBindingConfigModel() { Organization = "Some Organisation", ProjectKey = "projectKey", Region = region };
             var filePath = "C:\\Solution\\.sonarlint\\Solution.json";
 
             var file = CreateFile();
