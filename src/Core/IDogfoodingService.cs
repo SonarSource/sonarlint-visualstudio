@@ -32,8 +32,8 @@ public interface IDogfoodingService
 [method: ImportingConstructor]
 public class DogfoodingService(IEnvironmentVariableProvider environmentVariableProvider) : IDogfoodingService
 {
-    private const string SonarSourceDogfoodingEnvironmentVariable = "SONARSOURCE_DOGFOODING";
+    private const string DogfoodingEnvironmentVariable = "SONARSOURCE_DOGFOODING";
     private const string DogfoodingEnabledValue = "1";
 
-    public bool IsDogfoodingEnvironment { get; } = DogfoodingEnabledValue.Equals(environmentVariableProvider.TryGet(SonarSourceDogfoodingEnvironmentVariable));
+    public bool IsDogfoodingEnvironment { get; } = DogfoodingEnabledValue.Equals(environmentVariableProvider.TryGet(DogfoodingEnvironmentVariable));
 }
