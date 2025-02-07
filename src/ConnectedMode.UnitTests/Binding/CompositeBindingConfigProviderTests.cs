@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -36,21 +31,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
     public class CompositeBindingConfigProviderTests
     {
         [TestMethod]
-        public void MefCtor_CheckIsExported()
-            => MefTestHelpers.CheckTypeCanBeImported<CompositeBindingConfigProvider, IBindingConfigProvider>(
+        public void MefCtor_CheckIsExported() =>
+            MefTestHelpers.CheckTypeCanBeImported<CompositeBindingConfigProvider, IBindingConfigProvider>(
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
-                MefTestHelpers.CreateExport<ILogger>());
+                MefTestHelpers.CreateExport<ILogger>(),
+                MefTestHelpers.CreateExport<ILanguageProvider>());
 
         [TestMethod]
-        public void MefCtor_CheckIsSingleton()
-            => MefTestHelpers.CheckIsSingletonMefComponent<CompositeBindingConfigProvider>();
-
+        public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<CompositeBindingConfigProvider>();
 
         [TestMethod]
         public void Ctor_PublicConstructor_ContainsExpectedBindingConfigProviders()
         {
             // Act
-            var testSubject = new CompositeBindingConfigProvider(Mock.Of<ISonarQubeService>(), Mock.Of<ILogger>());
+            var testSubject = new CompositeBindingConfigProvider(Mock.Of<ISonarQubeService>(), Mock.Of<ILogger>(), Mock.Of<ILanguageProvider>());
 
             // Assert
             testSubject.Providers.Count().Should().Be(2);
@@ -118,7 +112,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
             public DummyProvider(IBindingConfig configToReturn = null, params Language[] supportedLanguages)
             {
                 SupportedLanguages = new List<Language>(supportedLanguages);
-                this.ConfigToReturn = configToReturn;
+                ConfigToReturn = configToReturn;
             }
 
             public IList<Language> SupportedLanguages { get; }
@@ -127,8 +121,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Binding
 
             #region IBindingConfigProvider implementation
 
-            public Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language,
-                BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
+            public Task<IBindingConfig> GetConfigurationAsync(
+                SonarQubeQualityProfile qualityProfile,
+                Language language,
+                BindingConfiguration bindingConfiguration,
+                CancellationToken cancellationToken)
             {
                 return Task.FromResult(ConfigToReturn);
             }

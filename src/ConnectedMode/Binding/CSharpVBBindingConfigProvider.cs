@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 {
     internal class CSharpVBBindingConfigProvider : IBindingConfigProvider
     {
+        private readonly ILanguageProvider languageProvider;
         private const string TaintAnalyisRepoPrefix = "roslyn.sonaranalyzer.security.";
 
         private readonly ISonarQubeService sonarQubeService;
@@ -37,9 +38,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private readonly IGlobalConfigGenerator globalConfigGenerator;
         private readonly ISonarLintConfigGenerator sonarLintConfigGenerator;
 
-        public CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
-            : this(sonarQubeService, logger,
-                new GlobalConfigGenerator(), new SonarLintConfigGenerator())
+        public CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger, ILanguageProvider languageProvider)
+            : this(sonarQubeService, logger, new GlobalConfigGenerator(), new SonarLintConfigGenerator(languageProvider), languageProvider)
         {
         }
 
@@ -47,18 +47,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
             ISonarQubeService sonarQubeService,
             ILogger logger,
             IGlobalConfigGenerator globalConfigGenerator,
-            ISonarLintConfigGenerator sonarLintConfigGenerator)
+            ISonarLintConfigGenerator sonarLintConfigGenerator,
+            ILanguageProvider languageProvider)
         {
             this.sonarQubeService = sonarQubeService;
             this.logger = logger;
             this.globalConfigGenerator = globalConfigGenerator;
             this.sonarLintConfigGenerator = sonarLintConfigGenerator;
+            this.languageProvider = languageProvider;
         }
 
-        public bool IsLanguageSupported(Language language)
-        {
-            return Language.CSharp.Equals(language) || Language.VBNET.Equals(language);
-        }
+        public bool IsLanguageSupported(Language language) => languageProvider.RoslynLanguages.Contains(language);
 
         public Task<IBindingConfig> GetConfigurationAsync(
             SonarQubeQualityProfile qualityProfile,

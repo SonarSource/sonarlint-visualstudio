@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Design;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -42,11 +43,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ILogger logger;
         private readonly IErrorListHelper errorListHelper;
+        // Strictly speaking we are allowing rules from known repos to be disabled,
+        // not "all rules for language X".  However, since we are in control of the
+        // rules/repos that are installed in  VSIX, checking the repo key is good
+        // enough.
+
+        internal IReadOnlyList<string> SupportedRepos { get; }
 
         /// <summary>
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
+        [ExcludeFromCodeCoverage]
         public static async Task InitializeAsync(AsyncPackage package, ILogger logger)
         {
             // Switch to the main thread - the call to AddCommand in Command1's constructor requires
@@ -56,9 +64,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             var settingsProvider = await package.GetMefServiceAsync<IUserSettingsProvider>();
             var tracker = await package.GetMefServiceAsync<IActiveSolutionBoundTracker>();
             var errListHelper = await package.GetMefServiceAsync<IErrorListHelper>();
+            var languageProvider = await package.GetMefServiceAsync<ILanguageProvider>();
 
             IMenuCommandService commandService = (IMenuCommandService)await package.GetServiceAsync(typeof(IMenuCommandService));
-            Instance = new DisableRuleCommand(commandService, settingsProvider, tracker, logger, errListHelper);
+            Instance = new DisableRuleCommand(commandService, settingsProvider, tracker, logger, errListHelper, languageProvider);
         }
 
         /// <summary>
@@ -72,11 +81,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             IUserSettingsProvider userSettingsProvider,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger,
-            IErrorListHelper errorListHelper)
+            IErrorListHelper errorListHelper,
+            ILanguageProvider languageProvider)
         {
             if (menuCommandService == null)
             {
                 throw new ArgumentNullException(nameof(menuCommandService));
+            }
+            if (languageProvider == null)
+            {
+                throw new ArgumentNullException(nameof(languageProvider));
             }
 
             this.userSettingsProvider = userSettingsProvider ?? throw new ArgumentNullException(nameof(userSettingsProvider));
@@ -84,6 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.errorListHelper = errorListHelper ?? throw new ArgumentNullException(nameof(errorListHelper));
 
+            SupportedRepos = languageProvider.LanguagesInStandaloneMode.Except(languageProvider.RoslynLanguages).Select(x => x.RepoInfo.Key).ToList();
             var menuCommandID = new CommandID(CommandSet, CommandId);
             menuItem = new OleMenuCommand(Execute, null, QueryStatus, menuCommandID);
             menuCommandService.AddCommand(menuItem);
@@ -144,17 +159,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
         }
 
-        // Strictly speaking we are allowing rules from known repos to be disabled,
-        // not "all rules for language X".  However, since we are in control of the
-        // rules/repos that are installed in  VSIX, checking the repo key is good
-        // enough.
-        private static readonly string[] supportedRepos = new[]
-        {
-            Language.C.RepoInfo.Key, Language.Cpp.RepoInfo.Key, Language.Js.RepoInfo.Key, Language.Ts.RepoInfo.Key, Language.Css.RepoInfo.Key, Language.Html.RepoInfo.Key,
-            Language.Secrets.RepoInfo.Key,
-        };
-
-        private static bool IsSonarRule(SonarCompositeRuleId rule) => supportedRepos.Contains(rule.RepoKey);
+        private bool IsSonarRule(SonarCompositeRuleId rule) => SupportedRepos.Contains(rule.RepoKey);
 
         private bool IsDisablingRuleAllowed()
         {

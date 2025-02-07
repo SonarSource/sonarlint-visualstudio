@@ -26,24 +26,28 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
     [TestClass]
     public class SonarLintConfigGeneratorTests
     {
+        private SonarLintConfigGenerator testSubject;
         private static readonly IEnumerable<SonarQubeRule> EmptyRules = Array.Empty<SonarQubeRule>();
         private static readonly IDictionary<string, string> EmptyProperties = new Dictionary<string, string>();
         private static readonly Language ValidLanguage = Language.CSharp;
         private static readonly IDictionary<string, string> ValidParams = new Dictionary<string, string> { { "any", "any value" } };
 
+        [TestInitialize]
+        public void TestInitialize() => testSubject = new SonarLintConfigGenerator(LanguageProvider.Instance);
+
         [TestMethod]
         public void Generate_NullArguments_Throws()
         {
-            Action act = () => new SonarLintConfigGenerator().Generate(null, EmptyProperties, new ServerExclusions(), ValidLanguage);
+            Action act = () => testSubject.Generate(null, EmptyProperties, new ServerExclusions(), ValidLanguage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rules");
 
-            act = () => new SonarLintConfigGenerator().Generate(EmptyRules, null, new ServerExclusions(), ValidLanguage);
+            act = () => testSubject.Generate(EmptyRules, null, new ServerExclusions(), ValidLanguage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarProperties");
 
-            act = () => new SonarLintConfigGenerator().Generate(EmptyRules, EmptyProperties, null, ValidLanguage);
+            act = () => testSubject.Generate(EmptyRules, EmptyProperties, null, ValidLanguage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverExclusions");
 
-            act = () => new SonarLintConfigGenerator().Generate(EmptyRules, EmptyProperties, new ServerExclusions(), null);
+            act = () => testSubject.Generate(EmptyRules, EmptyProperties, new ServerExclusions(), null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("language");
         }
 
@@ -53,7 +57,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         [DataRow("vb")] // VB language key is "vbnet"
         public void Generate_UnrecognisedLanguage_Throws(string languageKey)
         {
-            Action act = () => new SonarLintConfigGenerator().Generate(EmptyRules, EmptyProperties, new ServerExclusions(),
+            Action act = () => testSubject.Generate(EmptyRules, EmptyProperties, new ServerExclusions(),
                 new Language(languageKey, "languageX", new SonarQubeLanguage(languageKey, "languageX"), new PluginInfo("pluginKey", null), new RepoInfo("repoKey"), settingsFileName: ".any"));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
         }
@@ -63,7 +67,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         [DataRow("vbnet")]
         public void Generate_NoActiveRulesOrSettings_ValidLanguage_ReturnsValidConfig(string languageKey)
         {
-            var testSubject = new SonarLintConfigGenerator();
             var actual = testSubject.Generate(EmptyRules, EmptyProperties, new ServerExclusions(), ToLanguage(languageKey));
 
             actual.Should().NotBeNull();
@@ -86,8 +89,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
                 { ".does.not.match", "not returned" }
             };
 
-            var testSubject = new SonarLintConfigGenerator();
-
             // Act
             var actual = testSubject.Generate(EmptyRules, properties, new ServerExclusions(), Language.CSharp);
 
@@ -99,7 +100,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         public void Generate_ValidSettings_AreSorted()
         {
             // Arrange
-            var testSubject = new SonarLintConfigGenerator();
             var properties = new Dictionary<string, string> { { "sonar.cs.property3", "aaa" }, { "sonar.cs.property1", "bbb" }, { "sonar.cs.property2", "ccc" }, };
 
             // Act
@@ -120,7 +120,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         public void Generate_ValidSettings_SecuredSettingsAreNotReturned()
         {
             // Arrange
-            var testSubject = new SonarLintConfigGenerator();
             var properties = new Dictionary<string, string>
             {
                 { "sonar.cs.property1.secured", "secure - should not be returned" },
@@ -141,7 +140,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         public void Generate_ValidRules_OnlyRulesFromKnownRepositoryReturned(string knownLanguageKey, string knownRepoKey)
         {
             // Arrange
-            var testSubject = new SonarLintConfigGenerator();
             var rules = new List<SonarQubeRule>()
             {
                 CreateRuleWithValidParams("valid1", knownRepoKey),
@@ -164,7 +162,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         public void Generate_SonarSecurityRules_AreNotReturned(string languageKey)
         {
             // Arrange
-            var testSubject = new SonarLintConfigGenerator();
             var rules = new List<SonarQubeRule>()
             {
                 CreateRuleWithValidParams("valid1", $"roslyn.sonaranalyzer.security.{languageKey}"), CreateRuleWithValidParams("valid2", $"roslyn.sonaranalyzer.security.{languageKey}")
@@ -181,8 +178,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         public void Generate_ValidRules_OnlyRulesWithParametersReturned()
         {
             // Arrange
-            var testSubject = new SonarLintConfigGenerator();
-
             var rule1Params = new Dictionary<string, string> { { "param1", "value1" }, { "param2", "value2" } };
             var rule3Params = new Dictionary<string, string> { { "param3", "value4" } };
 
@@ -204,8 +199,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         public void Generate_ValidRules_AreSorted()
         {
             // Arrange
-            var testSubject = new SonarLintConfigGenerator();
-
             var rules = new List<SonarQubeRule>()
             {
                 CreateRule("s222", "csharpsquid",
@@ -244,7 +237,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
                 globalExclusions: new[] { "**/path3" },
                 inclusions: new[] { "**/path4" });
 
-            var testSubject = new SonarLintConfigGenerator();
             var actual = testSubject.Generate(EmptyRules, EmptyProperties, exclusions, Language.CSharp);
 
             actual.Settings.Count.Should().Be(3);
@@ -258,8 +250,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         public void Generate_Serialized_ReturnsExpectedXml()
         {
             // Arrange
-            var testSubject = new SonarLintConfigGenerator();
-
             var properties = new Dictionary<string, string>() { { "sonar.cs.prop1", "value 1" }, { "sonar.cs.prop2", "value 2" } };
 
             var rules = new List<SonarQubeRule>()

@@ -44,21 +44,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var solutionTracker = new Mock<IActiveSolutionBoundTracker>().Object;
             var logger = new TestLogger();
             var errorListHelper = Mock.Of<IErrorListHelper>();
+            var languageProvider = Mock.Of<ILanguageProvider>();
 
-            Action act = () => new DisableRuleCommand(null, userSettingsProvider, solutionTracker, logger, errorListHelper);
+            Action act = () => new DisableRuleCommand(null, userSettingsProvider, solutionTracker, logger, errorListHelper, languageProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("menuCommandService");
 
-            act = () => new DisableRuleCommand(menuCommandService, null, solutionTracker, logger, errorListHelper);
+            act = () => new DisableRuleCommand(menuCommandService, null, solutionTracker, logger, errorListHelper, languageProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userSettingsProvider");
 
-            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, null, logger, errorListHelper);
+            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, null, logger, errorListHelper, languageProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("activeSolutionBoundTracker");
 
-            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, solutionTracker, null, errorListHelper);
+            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, solutionTracker, null, errorListHelper, languageProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
-            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, solutionTracker, logger, null);
+            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, solutionTracker, logger, null, languageProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("errorListHelper");
+
+            act = () => new DisableRuleCommand(menuCommandService, userSettingsProvider, solutionTracker, logger, errorListHelper, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("languageProvider");
         }
 
         [TestMethod]
@@ -70,13 +74,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
 
             // Act
-            var command = CreateDisableRuleMenuCommand(userSettingsProvider, solutionTracker, new TestLogger(), errorListHelper);
+            var command = CreateDisableRuleMenuCommand(userSettingsProvider, solutionTracker, new TestLogger(), errorListHelper, MockLanguageProvider().Object);
 
             // Assert
             command.CommandID.ID.Should().Be(DisableRuleCommand.CommandId);
             command.CommandID.Guid.Should().Be(DisableRuleCommand.CommandSet);
         }
-
 
         [TestMethod]
         [DataRow("tsql:S222")]
@@ -89,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
 
             // Act
-            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper);
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper, MockLanguageProvider().Object);
 
             // 1. Trigger the query status check
             ThreadHelper.SetCurrentThreadAsUIThread();
@@ -116,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
 
             // Act
-            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper);
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper, LanguageProvider.Instance);
 
             // 1. Trigger the query status check
             ThreadHelper.SetCurrentThreadAsUIThread();
@@ -145,14 +148,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [DataRow("css:S111", SonarLintMode.LegacyConnected, false)]
         [DataRow("Web:S111", SonarLintMode.Connected, false)]
         [DataRow("Web:S111", SonarLintMode.LegacyConnected, false)]
-        public void CheckStatus_SingleIssue_SupportedRepo_ConnectedMode_HasExpectedEnabledStatus(string errorCode, SonarLintMode bindingMode,
+        public void CheckStatus_SingleIssue_SupportedRepo_ConnectedMode_HasExpectedEnabledStatus(
+            string errorCode,
+            SonarLintMode bindingMode,
             bool expectedEnabled)
         {
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
             var solutionTracker = CreateSolutionTracker(bindingMode);
             var errorListHelper = CreateErrorListHelper(errorCode, ruleExists: true);
 
-            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper);
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper, LanguageProvider.Instance);
 
             // Act. Trigger the query status check
             ThreadHelper.SetCurrentThreadAsUIThread();
@@ -173,7 +178,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var solutionTracker = CreateSolutionTracker(SonarLintMode.Connected);
             var errorListHelper = CreateErrorListHelper("secrets:S111", ruleExists: true);
 
-            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper);
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper, LanguageProvider.Instance);
 
             // Act. Trigger the query status check
             ThreadHelper.SetCurrentThreadAsUIThread();
@@ -197,7 +202,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var solutionTracker = CreateSolutionTracker(mode);
 
             // Act
-            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper);
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper, MockLanguageProvider().Object);
 
             // 1. Trigger the query status check
             var result = command.OleStatus;
@@ -220,7 +225,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
 
             // Act
-            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, testLogger, errorListHelper.Object);
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, testLogger, errorListHelper.Object, MockLanguageProvider().Object);
 
             // Act - should not throw
             var _ = command.OleStatus;
@@ -240,7 +245,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
             var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
 
-            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, testLogger, errorListHelper.Object);
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, testLogger, errorListHelper.Object, MockLanguageProvider().Object);
             Action act = () => _ = command.OleStatus;
 
             // Act
@@ -261,7 +266,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
             var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
 
-            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, testLogger, errorListHelper.Object);
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, testLogger, errorListHelper.Object, MockLanguageProvider().Object);
 
             // Act - should not throw
             command.Invoke();
@@ -281,7 +286,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
             var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
 
-            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, testLogger, errorListHelper.Object);
+            var command = CreateDisableRuleMenuCommand(mockUserSettingsProvider.Object, solutionTracker, testLogger, errorListHelper.Object, MockLanguageProvider().Object);
             Action act = () => command.Invoke();
 
             // Act
@@ -290,11 +295,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             testLogger.AssertPartialOutputStringDoesNotExist("exception xxx");
         }
 
-        private static MenuCommand CreateDisableRuleMenuCommand(IUserSettingsProvider userSettingsProvider, IActiveSolutionBoundTracker solutionTracker, ILogger logger,
-            IErrorListHelper errorListHelper)
+        [TestMethod]
+        public void SupportedRepos_StandaloneNonRoslynLanguagesAreSupported()
+        {
+            var languageProvider = new Mock<ILanguageProvider>();
+            languageProvider.Setup(m => m.LanguagesInStandaloneMode).Returns([Language.CSharp, Language.Cpp,]); // does not have to be the real list
+            languageProvider.Setup(m => m.RoslynLanguages).Returns([Language.CSharp]);
+
+            var testSubject = CreateDisableRuleMenuCommand(languageProvider.Object);
+
+            languageProvider.Verify(x => x.LanguagesInStandaloneMode, Times.Once);
+            languageProvider.Verify(x => x.RoslynLanguages, Times.Once);
+            testSubject.SupportedRepos.Should().BeEquivalentTo([Language.Cpp.RepoInfo.Key]);
+        }
+
+        private static MenuCommand CreateDisableRuleMenuCommand(
+            IUserSettingsProvider userSettingsProvider,
+            IActiveSolutionBoundTracker solutionTracker,
+            ILogger logger,
+            IErrorListHelper errorListHelper,
+            ILanguageProvider languageProvider)
         {
             var dummyMenuService = new DummyMenuCommandService();
-            new DisableRuleCommand(dummyMenuService, userSettingsProvider, solutionTracker, logger, errorListHelper);
+            new DisableRuleCommand(dummyMenuService, userSettingsProvider, solutionTracker, logger, errorListHelper, languageProvider);
 
             dummyMenuService.AddedMenuCommands.Count.Should().Be(1);
             return dummyMenuService.AddedMenuCommands[0];
@@ -316,6 +339,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             errorListHelper.Setup(x => x.TryGetRuleIdFromSelectedRow(out ruleId)).Returns(ruleExists);
 
             return errorListHelper.Object;
+        }
+
+        private static Mock<ILanguageProvider> MockLanguageProvider()
+        {
+            var languageProviderMock = new Mock<ILanguageProvider>();
+            languageProviderMock.Setup(m => m.LanguagesInStandaloneMode).Returns([]);
+            languageProviderMock.Setup(m => m.RoslynLanguages).Returns([]);
+            return languageProviderMock;
+        }
+
+        private static DisableRuleCommand CreateDisableRuleMenuCommand(ILanguageProvider languageProvider)
+        {
+            var dummyMenuService = new DummyMenuCommandService();
+            var userSettingsProvider = new Mock<IUserSettingsProvider>();
+            var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
+            var errorListHelper = new Mock<IErrorListHelper>();
+            return new DisableRuleCommand(dummyMenuService, userSettingsProvider.Object, solutionTracker, new TestLogger(), errorListHelper.Object, languageProvider);
         }
     }
 }

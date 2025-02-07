@@ -18,13 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client;
@@ -43,9 +37,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
         private readonly HashSet<IBindingConfigProvider> providers;
 
         [ImportingConstructor]
-        public CompositeBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
-            : this(new NonRoslynDummyBindingConfigProvider(), new CSharpVBBindingConfigProvider(sonarQubeService, logger))
-        { }
+        public CompositeBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger, ILanguageProvider languageProvider)
+            : this(new NonRoslynDummyBindingConfigProvider(languageProvider), new CSharpVBBindingConfigProvider(sonarQubeService, logger, languageProvider))
+        {
+        }
 
         internal /* for testing */ CompositeBindingConfigProvider(params IBindingConfigProvider[] providers)
         {
@@ -57,8 +52,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding
 
         #region IBindingConfigProvider methods
 
-        public Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language,
-            BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
+        public Task<IBindingConfig> GetConfigurationAsync(
+            SonarQubeQualityProfile qualityProfile,
+            Language language,
+            BindingConfiguration bindingConfiguration,
+            CancellationToken cancellationToken)
         {
             var provider = Providers.FirstOrDefault(p => p.IsLanguageSupported(language));
 

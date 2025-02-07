@@ -45,6 +45,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private readonly ILogger logger;
         private readonly IMessageBox messageBox;
         private readonly IRoslynIssueLineHashCalculator roslynIssueLineHashCalculator;
+        // Strictly speaking we are allowing rules from known repos to be disabled,
+        // not "all rules for language X".  However, since we are in control of the
+        // rules/repos that are installed in  VSIX, checking the repo key is good
+        // enough.
+
+        internal IReadOnlyList<string> SupportedRepos { get; }
+
         // Command set guid and command id. Must match those in DaemonCommands.vsct
         public static readonly Guid CommandSet = new Guid("1F83EA11-3B07-45B3-BF39-307FD4F42194");
         public const int CommandId = 0x0400;
@@ -68,7 +75,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 await package.GetMefServiceAsync<IActiveSolutionBoundTracker>(),
                 await package.GetMefServiceAsync<IThreadHandling>(),
                 new MessageBox(),
-                logger);
+                logger,
+                await package.GetMefServiceAsync<ILanguageProvider>());
         }
 
         internal MuteIssueCommand(
@@ -80,11 +88,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             IThreadHandling threadHandling,
             IMessageBox messageBox,
-            ILogger logger)
+            ILogger logger,
+            ILanguageProvider languageProvider)
         {
             if (menuCommandService == null)
             {
                 throw new ArgumentNullException(nameof(menuCommandService));
+            }
+            if (languageProvider == null)
+            {
+                throw new ArgumentNullException(nameof(languageProvider));
             }
 
             this.errorListHelper = errorListHelper ?? throw new ArgumentNullException(nameof(errorListHelper));
@@ -95,6 +108,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.threadHandling = threadHandling ?? throw new ArgumentNullException(nameof(threadHandling));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.messageBox = messageBox ?? throw new ArgumentNullException(nameof(messageBox));
+
+            // secrets should be enabled, but there is a bug, so it was on purpose disabled (See https://sonarsource.atlassian.net/browse/SLVS-1210)
+            SupportedRepos = languageProvider.AllKnownLanguages.Except([Language.Secrets]).Select(x => x.RepoInfo.Key).ToList();
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
             menuItem = new OleMenuCommand(Execute, null, QueryStatus, menuCommandID);
@@ -183,16 +199,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             return true;
         }
 
-        // Strictly speaking we are allowing rules from known repos to be disabled,
-        // not "all rules for language X".  However, since we are in control of the
-        // rules/repos that are installed in  VSIX, checking the repo key is good
-        // enough.
-        private static readonly string[] SupportedRepos = new[]
-        {
-            Language.C.RepoInfo.Key, Language.Cpp.RepoInfo.Key, Language.Js.RepoInfo.Key, Language.Ts.RepoInfo.Key, Language.Css.RepoInfo.Key, Language.Html.RepoInfo.Key,
-            Language.CSharp.RepoInfo.Key, Language.VBNET.RepoInfo.Key, Language.TSql.RepoInfo.Key,
-        };
-
-        private static bool IsSupportedSonarRule(SonarCompositeRuleId rule) => SupportedRepos.Contains(rule.RepoKey);
+        private bool IsSupportedSonarRule(SonarCompositeRuleId rule) => SupportedRepos.Contains(rule.RepoKey);
     }
 }

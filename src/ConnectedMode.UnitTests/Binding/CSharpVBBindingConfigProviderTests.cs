@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.TestInfrastructure;
@@ -317,7 +318,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Binding.UnitTests
                 return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, Logger,
                     // inject the generator mocks
                     globalConfigGenMock.Object,
-                    sonarLintConfigGeneratorMock.Object);
+                    sonarLintConfigGeneratorMock.Object,
+                    LanguageProvider.Instance);
             }
 
             public void AssertGlobalConfigGeneratorNotCalled()

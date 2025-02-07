@@ -25,7 +25,7 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.CSharpVB
 {
-    public class SonarLintConfigGenerator : ISonarLintConfigGenerator
+    public class SonarLintConfigGenerator(ILanguageProvider languageProvider) : ISonarLintConfigGenerator
     {
         private const string SecuredPropertySuffix = ".secured";
 
@@ -58,9 +58,9 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
                 .Select(x =>
                     new SonarLintKeyValuePair { Key = x.Key, Value = x.Value });
 
-        private static string GetSonarRepoKey(Language language)
+        private string GetSonarRepoKey(Language language)
         {
-            if (language.ServerLanguage.Key == SonarQubeLanguage.CSharp.Key || language.ServerLanguage.Key == SonarQubeLanguage.VbNet.Key)
+            if (languageProvider.RoslynLanguages.Contains(language))
             {
                 return language.RepoInfo.Key;
             }
