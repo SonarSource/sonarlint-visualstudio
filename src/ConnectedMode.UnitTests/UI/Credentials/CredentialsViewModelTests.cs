@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         {
             var qubeUrl = "http://localhost:9000/";
             var viewModel = new CredentialsViewModel(new ConnectionInfo(qubeUrl, ConnectionServerType.SonarQube), slCoreConnectionAdapter, progressReporterViewModel);
-            var expectedUrl = Path.Combine(qubeUrl, UiResources.SonarQubeAccountSecurityUrl);
+            var expectedUrl = Path.Combine(qubeUrl, CredentialsViewModel.SecurityPageUrl);
 
             viewModel.AccountSecurityUrl.Should().Be(expectedUrl);
         }
