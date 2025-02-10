@@ -29,6 +29,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnectionAdapter slCoreConnectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
     private SecureString token = new();
+    public const string SecurityPageUrl = "account/security";
 
     public ConnectionInfo ConnectionInfo { get; } = connectionInfo;
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
@@ -43,11 +44,15 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
             RaisePropertyChanged(nameof(ShouldTokenBeFilled));
         }
     }
+
     public bool ShouldTokenBeFilled => !IsTokenProvided;
     public bool IsConfirmationEnabled => !ProgressReporterViewModel.IsOperationInProgress && IsTokenProvided;
 
     private bool IsTokenProvided => IsSecureStringFilled(Token);
-    public string AccountSecurityUrl => ConnectionInfo.ServerType == ConnectionServerType.SonarCloud ? UiResources.SonarCloudAccountSecurityUrl : Path.Combine(ConnectionInfo.Id, UiResources.SonarQubeAccountSecurityUrl);
+    public string AccountSecurityUrl =>
+        ConnectionInfo.ServerType == ConnectionServerType.SonarCloud
+            ? Path.Combine(ConnectionInfo.CloudServerRegion.Url.ToString(), SecurityPageUrl)
+            : Path.Combine(ConnectionInfo.Id, SecurityPageUrl);
 
     private static bool IsSecureStringFilled(SecureString secureString)
     {
@@ -76,6 +81,6 @@ public class CredentialsViewModel(ConnectionInfo connectionInfo, ISlCoreConnecti
 
     public ICredentialsModel GetCredentialsModel()
     {
-       return new TokenCredentialsModel(Token);
+        return new TokenCredentialsModel(Token);
     }
 }
