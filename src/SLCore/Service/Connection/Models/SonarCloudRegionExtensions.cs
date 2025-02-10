@@ -31,9 +31,9 @@ public static class SonarCloudRegionExtensions
 
     public static SonarCloudRegion ToSlCoreRegion(this CloudServerRegion region)
     {
-        if (CoreToSlCoreLanguageMap.TryGetValue(region, out var slCoreLanguage))
+        if (CoreToSlCoreLanguageMap.TryGetValue(region, out var slCoreRegion))
         {
-            return slCoreLanguage;
+            return slCoreRegion;
         }
         throw new ArgumentOutOfRangeException(region.Name);
     }
