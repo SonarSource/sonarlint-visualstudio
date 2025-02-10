@@ -18,17 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Service.Issue;
+using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Issue;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Issue;
 
-[JsonRpcClass("issue")]
-public interface IIssueSLCoreService : ISLCoreService
+[TestClass]
+public class CheckStatusChangePermittedParamsTests
 {
-    Task<GetEffectiveIssueDetailsResponse> GetEffectiveIssueDetailsAsync(GetEffectiveIssueDetailsParams parameters);
+    [TestMethod]
+    public void Serialized_AsExpected()
+    {
+        const string expected = """
+                                {
+                                  "connectionId": "CONNECTION_ID",
+                                  "issueKey": "ISSUE_KEY"
+                                }
+                                """;
 
-    Task ChangeStatusAsync(ChangeIssueStatusParams parameters);
+        var checkStatusChangePermittedParams = new CheckStatusChangePermittedParams("CONNECTION_ID", "ISSUE_KEY");
 
-    Task<CheckStatusChangePermittedResponse> CheckStatusChangePermittedAsync(CheckStatusChangePermittedParams parameters);
+        JsonConvert.SerializeObject(checkStatusChangePermittedParams, Formatting.Indented).Should().Be(expected);
+    }
 }
