@@ -18,13 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
+using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
-using SonarLint.VisualStudio.TestInfrastructure;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -99,11 +96,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ConnectionInformation_Ctor_FixesSonarCloudUri()
         {
-            new ConnectionInformation(new Uri("http://my-server.com")).ServerUri.ToString().Should().Be("http://my-server.com/");
             new ConnectionInformation(new Uri("http://sonarcloud.io")).ServerUri.ToString().Should().Be("https://sonarcloud.io/");
             new ConnectionInformation(new Uri("http://www.sonarcloud.io")).ServerUri.ToString().Should().Be("https://sonarcloud.io/");
             new ConnectionInformation(new Uri("https://www.sonarcloud.io")).ServerUri.ToString().Should().Be("https://sonarcloud.io/");
             new ConnectionInformation(new Uri("https://WWW.SONARCLOUD.IO")).ServerUri.ToString().Should().Be("https://sonarcloud.io/");
+            new ConnectionInformation(new Uri("http://us.sonarcloud.io")).ServerUri.ToString().Should().Be("https://us.sonarcloud.io/");
+            new ConnectionInformation(new Uri("http://www.us.sonarcloud.io")).ServerUri.ToString().Should().Be("https://us.sonarcloud.io/");
+            new ConnectionInformation(new Uri("https://www.us.sonarcloud.io")).ServerUri.ToString().Should().Be("https://us.sonarcloud.io/");
+            new ConnectionInformation(new Uri("https://WWW.us.SONARCLOUD.IO")).ServerUri.ToString().Should().Be("https://us.sonarcloud.io/");
         }
 
         [TestMethod]

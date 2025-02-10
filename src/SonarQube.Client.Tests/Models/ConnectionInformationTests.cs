@@ -68,6 +68,23 @@ namespace SonarQube.Client.Tests.Models
         }
 
         [TestMethod]
+        [DataRow("http://us.sonarcloud.io")]
+        [DataRow("http://us.sonarcloud.io/")]
+        [DataRow("https://us.sonarcloud.io")]
+        [DataRow("https://us.sonarcloud.io/")]
+        [DataRow("http://us.sonarcloud.io")]
+        [DataRow("http://www.us.sonarcloud.io")]
+        [DataRow("https://www.us.sonarcloud.io/")]
+        [DataRow("http://us.sonarcloud.io:9999")]
+        public void Ctor_SonarCloudUrlForUsRegion_IsProcessedCorrectly(string inputUrl)
+        {
+            var testSubject = new ConnectionInformation(new Uri(inputUrl));
+
+            testSubject.ServerUri.Should().Be(ConnectionInformation.FixedUsSonarCloudUri);
+            testSubject.IsSonarCloud.Should().BeTrue();
+        }
+
+        [TestMethod]
         [DataRow("http://localhost", null, null, null)]
         [DataRow("https://sonarcloud.io", null, null, null)]
         [DataRow("http://localhost", "user1", "secret", null)]
