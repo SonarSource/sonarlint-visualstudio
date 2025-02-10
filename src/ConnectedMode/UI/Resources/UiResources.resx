@@ -171,14 +171,8 @@
   <data name="SmartNotificationsCheckboxLabel" xml:space="preserve">
     <value>Smart Notifications</value>
   </data>
-  <data name="SonarCloudAccountSecurityUrl" xml:space="preserve">
-    <value>https://sonarcloud.io/account/security</value>
-  </data>
   <data name="SonarCloudDescription" xml:space="preserve">
     <value>A Software-as-a-Service (Saas) tool that easily integrates into the cloud DevOps platforms and extends the CI/CD workflow to systematically help developers and organizations deliver CleanCode.</value>
-  </data>
-  <data name="SonarQubeAccountSecurityUrl" xml:space="preserve">
-    <value>account/security</value>
   </data>
   <data name="SonarQubeDescription" xml:space="preserve">
     <value>An open-source, self-managed tool that easily integrates into the developers' CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code.</value>

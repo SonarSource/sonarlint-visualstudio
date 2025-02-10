@@ -882,15 +882,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://sonarcloud.io/account/security.
-        /// </summary>
-        public static string SonarCloudAccountSecurityUrl {
-            get {
-                return ResourceManager.GetString("SonarCloudAccountSecurityUrl", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A Software-as-a-Service (Saas) tool that easily integrates into the cloud DevOps platforms and extends the CI/CD workflow to systematically help developers and organizations deliver CleanCode..
         /// </summary>
         public static string SonarCloudDescription {
@@ -917,15 +908,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
             }
         }
         
-        /// <summary>
-        ///   Looks up a localized string similar to account/security.
-        /// </summary>
-        public static string SonarQubeAccountSecurityUrl {
-            get {
-                return ResourceManager.GetString("SonarQubeAccountSecurityUrl", resourceCulture);
-            }
-        }
-        
+     
         /// <summary>
         ///   Looks up a localized string similar to An open-source, self-managed tool that easily integrates into the developers&apos; CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code..
         /// </summary>
