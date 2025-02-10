@@ -367,6 +367,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to EU.
+        /// </summary>
+        public static string EuRegionName {
+            get {
+                return ResourceManager.GetString("EuRegionName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Existing Connections.
         /// </summary>
         public static string ExistingConnectionsLabel {
@@ -837,6 +846,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select the SonarQube Cloud instance you would like to connect to:.
+        /// </summary>
+        public static string SelectSonarCloudRegionLabel {
+            get {
+                return ResourceManager.GetString("SelectSonarCloudRegionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Create New Connection.
         /// </summary>
         public static string ServerSelectionDialogTitle {
@@ -872,6 +890,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to sonarcloud.io.
+        /// </summary>
+        public static string SonarCloudForEuRegion {
+            get {
+                return ResourceManager.GetString("SonarCloudForEuRegion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to us.sonarcloud.io.
+        /// </summary>
+        public static string SonarCloudForUsRegion {
+            get {
+                return ResourceManager.GetString("SonarCloudForUsRegion", resourceCulture);
+            }
+        }
+        
+     
         /// <summary>
         ///   Looks up a localized string similar to An open-source, self-managed tool that easily integrates into the developers&apos; CI/CD pipeline and DevOps platform to systematically help developers and organizations deliver Clean Code..
         /// </summary>
@@ -941,6 +978,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         public static string UseSharedConfiguration {
             get {
                 return ResourceManager.GetString("UseSharedConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to US.
+        /// </summary>
+        public static string UsRegionName {
+            get {
+                return ResourceManager.GetString("UsRegionName", resourceCulture);
             }
         }
         

@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private async void EditConnection_Clicked(object sender, RoutedEventArgs e)
         {
-            if(sender is not Button { DataContext: ConnectionViewModel connectionViewModel })
+            if (sender is not Button { DataContext: ConnectionViewModel connectionViewModel })
             {
                 return;
             }
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private async void NewConnection_Clicked(object sender, RoutedEventArgs e)
         {
-            if (GetTransientConnection() is not {} transientConnection)
+            if (GetTransientConnection() is not { } transientConnection)
             {
                 return;
             }
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
 
         private ConnectionInfo GetTransientConnection()
         {
-            var serverSelectionDialog = new ServerSelectionDialog(connectedModeServices.BrowserService, connectedModeServices.TelemetryManager);
+            var serverSelectionDialog = new ServerSelectionDialog(connectedModeServices.BrowserService, connectedModeServices.TelemetryManager, connectedModeServices.DogfoodingService);
             return serverSelectionDialog.ShowDialog(this) != true ? null : serverSelectionDialog.ViewModel.CreateTransientConnectionInfo();
         }
 
