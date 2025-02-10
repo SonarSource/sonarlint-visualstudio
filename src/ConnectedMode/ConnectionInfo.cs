@@ -72,7 +72,7 @@ public static class ConnectionExtensions
     {
         if (connection.Info.ServerType == ConnectionServerType.SonarCloud)
         {
-            return new ServerConnection.SonarCloud(connection.Info.Id, new ServerConnectionSettings(connection.EnableSmartNotifications));
+            return new ServerConnection.SonarCloud(connection.Info.Id, connection.Info.CloudServerRegion, new ServerConnectionSettings(connection.EnableSmartNotifications));
         }
 
         return new ServerConnection.SonarQube(new Uri(connection.Info.Id), new ServerConnectionSettings(connection.EnableSmartNotifications));
@@ -99,7 +99,7 @@ public static class ConnectionInfoExtensions
     public static string GetServerIdFromConnectionInfo(this ConnectionInfo connectionInfo)
     {
         ServerConnection partialServerConnection = connectionInfo.ServerType == ConnectionServerType.SonarCloud
-            ? new ServerConnection.SonarCloud(connectionInfo.Id)
+            ? new ServerConnection.SonarCloud(connectionInfo.Id, connectionInfo.CloudServerRegion)
             : new ServerConnection.SonarQube(new Uri(connectionInfo.Id));
 
         return partialServerConnection.Id;

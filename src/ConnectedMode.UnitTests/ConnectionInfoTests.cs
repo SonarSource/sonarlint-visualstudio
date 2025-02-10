@@ -159,6 +159,20 @@ public class ConnectionInfoTests
     }
 
     [TestMethod]
+    [DynamicData(nameof(GetCloudServerRegions), DynamicDataSourceType.Method)]
+    public void ToServerConnection_SonarCloud_MapsRegionCorrectly(CloudServerRegion region)
+    {
+        var connectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud, region);
+        var connection = new Connection(connectionInfo);
+
+        var serverConnection = connection.ToServerConnection();
+
+        var sonarCloud = serverConnection as ServerConnection.SonarCloud;
+        sonarCloud.Should().NotBeNull();
+        sonarCloud.Region.Should().Be(region);
+    }
+
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void ToConnection_SonarQube_ReturnsAsExpected(bool isSmartNotificationsEnabled)
@@ -187,6 +201,18 @@ public class ConnectionInfoTests
     }
 
     [TestMethod]
+    [DynamicData(nameof(GetCloudServerRegions), DynamicDataSourceType.Method)]
+    public void ToConnection_SonarCloud_MapsRegionCorrectly(CloudServerRegion region)
+    {
+        var serverConnection = new ServerConnection.SonarCloud("myOrg", region: region);
+
+        var connection = serverConnection.ToConnection();
+
+        connection.Info.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+        connection.Info.CloudServerRegion.Should().Be(region);
+    }
+
+    [TestMethod]
     public void GetServerIdFromConnectionInfo_SonarQube_ReturnsAsExpected()
     {
         var connectionInfo = new ConnectionInfo("http://localhost:9000/", ConnectionServerType.SonarQube);
@@ -197,13 +223,14 @@ public class ConnectionInfoTests
     }
 
     [TestMethod]
-    public void GetServerIdFromConnectionInfo_SonarCloud_ReturnsAsExpected()
+    [DynamicData(nameof(GetCloudServerRegions), DynamicDataSourceType.Method)]
+    public void GetServerIdFromConnectionInfo_SonarCloud_ReturnsAsExpected(CloudServerRegion region)
     {
-        var connectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud);
+        var connectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud, region);
 
         var connectionId = connectionInfo.GetServerIdFromConnectionInfo();
 
-        connectionId.Should().Be("https://sonarcloud.io/organizations/myOrg");
+        connectionId.Should().Be(new Uri(region.Url, "organizations/myOrg").ToString());
     }
 
     public static IEnumerable<object[]> GetCloudServerRegions() => [[CloudServerRegion.Eu], [CloudServerRegion.Us],];

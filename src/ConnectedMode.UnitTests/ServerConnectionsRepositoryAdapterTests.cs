@@ -42,11 +42,11 @@ public class ServerConnectionsRepositoryAdapterTests
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsExported()
-        => MefTestHelpers.CheckTypeCanBeImported<ServerConnectionsRepositoryAdapter, IServerConnectionsRepositoryAdapter>(MefTestHelpers.CreateExport<IServerConnectionsRepository>());
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<ServerConnectionsRepositoryAdapter, IServerConnectionsRepositoryAdapter>(MefTestHelpers.CreateExport<IServerConnectionsRepository>());
 
     [TestMethod]
-    public void TryGetServerConnectionById_CallServerConnectionsRepository()
+    public void TryGet_CallServerConnectionsRepository()
     {
         var expectedServerConnection = new SonarCloud("myOrg");
         serverConnectionsRepository.TryGet("https://sonarcloud.io/organizations/myOrg", out _).Returns(callInfo =>
@@ -72,16 +72,15 @@ public class ServerConnectionsRepositoryAdapterTests
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void TryGetAllConnections_HasOneSonarCloudConnection_ReturnsOneMappedConnection(bool isSmartNotificationsEnabled)
+    [DynamicData(nameof(GetBoolWithCloudServerRegion), DynamicDataSourceType.Method)]
+    public void TryGetAllConnections_HasOneSonarCloudConnection_ReturnsOneMappedConnection(bool isSmartNotificationsEnabled, CloudServerRegion cloudServerRegion)
     {
-        var sonarCloud = CreateSonarCloudServerConnection(isSmartNotificationsEnabled);
+        var sonarCloud = CreateSonarCloudServerConnection(isSmartNotificationsEnabled, cloudServerRegion);
         MockServerConnections([sonarCloud]);
 
         testSubject.TryGetAllConnections(out var connections);
 
-        connections.Should().BeEquivalentTo([new Connection(new ConnectionInfo(sonarCloud.OrganizationKey, ConnectionServerType.SonarCloud), isSmartNotificationsEnabled)]);
+        connections.Should().BeEquivalentTo([new Connection(new ConnectionInfo(sonarCloud.OrganizationKey, ConnectionServerType.SonarCloud, cloudServerRegion), isSmartNotificationsEnabled)]);
     }
 
     [TestMethod]
@@ -98,12 +97,11 @@ public class ServerConnectionsRepositoryAdapterTests
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void TryGetAllConnections_ReturnsStatusFromSlCore(bool expectedStatus)
+    [DynamicData(nameof(GetBoolWithCloudServerRegion), DynamicDataSourceType.Method)]
+    public void TryGetAllConnections_ReturnsStatusFromSlCore(bool expectedStatus, CloudServerRegion cloudServerRegion)
     {
-        var sonarCloud = CreateSonarCloudServerConnection();
-        MockServerConnections([sonarCloud], succeeded:expectedStatus);
+        var sonarCloud = CreateSonarCloudServerConnection(region: cloudServerRegion);
+        MockServerConnections([sonarCloud], succeeded: expectedStatus);
 
         var succeeded = testSubject.TryGetAllConnections(out _);
 
@@ -122,14 +120,15 @@ public class ServerConnectionsRepositoryAdapterTests
     }
 
     [TestMethod]
-    public void TryGetAllConnectionsInfo_HasOneSonarCloudConnection_ReturnsOneMappedConnection()
+    [DynamicData(nameof(GetBoolWithCloudServerRegion), DynamicDataSourceType.Method)]
+    public void TryGetAllConnectionsInfo_HasOneSonarCloudConnection_ReturnsOneMappedConnection(bool isSmartNotificationsEnabled, CloudServerRegion cloudServerRegion)
     {
-        var sonarCloud = CreateSonarCloudServerConnection();
+        var sonarCloud = CreateSonarCloudServerConnection(isSmartNotificationsEnabled, cloudServerRegion);
         MockServerConnections([sonarCloud]);
 
         testSubject.TryGetAllConnectionsInfo(out var connections);
 
-        connections.Should().BeEquivalentTo([new ConnectionInfo(sonarCloud.OrganizationKey, ConnectionServerType.SonarCloud)]);
+        connections.Should().BeEquivalentTo([new ConnectionInfo(sonarCloud.OrganizationKey, ConnectionServerType.SonarCloud, cloudServerRegion)]);
     }
 
     [TestMethod]
@@ -170,17 +169,16 @@ public class ServerConnectionsRepositoryAdapterTests
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void TryAddConnection_AddsSonarCloudConnection_CallsSlCoreWithMappedConnection(bool enableSmartNotifications)
+    [DynamicData(nameof(GetBoolWithCloudServerRegion), DynamicDataSourceType.Method)]
+    public void TryAddConnection_AddsSonarCloudConnection_CallsSlCoreWithMappedConnection(bool enableSmartNotifications, CloudServerRegion cloudServerRegion)
     {
-        var sonarCloud = CreateSonarCloudConnection(enableSmartNotifications);
+        var sonarCloud = CreateSonarCloudConnection(enableSmartNotifications, cloudServerRegion);
 
         testSubject.TryAddConnection(sonarCloud, Substitute.For<ICredentialsModel>());
 
         serverConnectionsRepository.Received(1)
             .TryAdd(Arg.Is<SonarCloud>(sc =>
-                sc.Id == $"https://sonarcloud.io/organizations/{sonarCloud.Info.Id}" &&
+                sc.Id == new Uri(cloudServerRegion.Url, $"organizations/{sonarCloud.Info.Id}").ToString() &&
                 sc.OrganizationKey == sonarCloud.Info.Id &&
                 sc.Settings.IsSmartNotificationsEnabled == sonarCloud.EnableSmartNotifications));
     }
@@ -310,10 +308,8 @@ public class ServerConnectionsRepositoryAdapterTests
         receivedServerConnection.Should().Be(expectedServerConnection);
     }
 
-    private static SonarCloud CreateSonarCloudServerConnection(bool isSmartNotificationsEnabled = true)
-    {
-        return new SonarCloud("myOrg", new ServerConnectionSettings(isSmartNotificationsEnabled), Substitute.For<IConnectionCredentials>());
-    }
+    private static SonarCloud CreateSonarCloudServerConnection(bool isSmartNotificationsEnabled = true, CloudServerRegion region = null) =>
+        new("myOrg", region, new ServerConnectionSettings(isSmartNotificationsEnabled), Substitute.For<IConnectionCredentials>());
 
     private static ServerConnection.SonarQube CreateSonarQubeServerConnection(bool isSmartNotificationsEnabled = true)
     {
@@ -321,41 +317,34 @@ public class ServerConnectionsRepositoryAdapterTests
         return sonarQube;
     }
 
-    private void MockServerConnections(List<ServerConnection> connections, bool succeeded = true)
-    {
+    private void MockServerConnections(List<ServerConnection> connections, bool succeeded = true) =>
         serverConnectionsRepository.TryGetAll(out Arg.Any<IReadOnlyList<ServerConnection>>()).Returns(callInfo =>
         {
             callInfo[0] = connections;
             return succeeded;
         });
-    }
 
-    private static Connection CreateSonarCloudConnection(bool enableSmartNotifications = true)
-    {
-        return new Connection(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud), enableSmartNotifications);
-    }
+    private static Connection CreateSonarCloudConnection(bool enableSmartNotifications = true, CloudServerRegion region = null) =>
+        new(new ConnectionInfo("mySecondOrg", ConnectionServerType.SonarCloud, region), enableSmartNotifications);
 
-    private static Connection CreateSonarQubeConnection(bool enableSmartNotifications = true)
-    {
-        return new Connection(new ConnectionInfo("http://localhost:9000/", ConnectionServerType.SonarQube), enableSmartNotifications);
-    }
+    private static Connection CreateSonarQubeConnection(bool enableSmartNotifications = true) =>
+        new(new ConnectionInfo("http://localhost:9000/", ConnectionServerType.SonarQube), enableSmartNotifications);
 
-    private static bool IsExpectedCredentials(IConnectionCredentials credentials, string expectedUsername, string expectedPassword)
-    {
-        return credentials is UsernameAndPasswordCredentials basicAuthCredentials && basicAuthCredentials.UserName == expectedUsername && basicAuthCredentials.Password?.ToUnsecureString() == expectedPassword;
-    }
+    private static bool IsExpectedTokenCredentials(IConnectionCredentials credentials, string expectedToken) =>
+        credentials is TokenAuthCredentials tokenAuthCredentials && tokenAuthCredentials.Token?.ToUnsecureString() == expectedToken;
 
-    private static bool IsExpectedTokenCredentials(IConnectionCredentials credentials, string expectedToken)
-    {
-        return credentials is TokenAuthCredentials tokenAuthCredentials && tokenAuthCredentials.Token?.ToUnsecureString() == expectedToken;
-    }
-
-    private void MockTryGet(string connectionId, bool expectedResponse, ServerConnection expectedServerConnection)
-    {
+    private void MockTryGet(string connectionId, bool expectedResponse, ServerConnection expectedServerConnection) =>
         serverConnectionsRepository.TryGet(connectionId, out _).Returns(callInfo =>
         {
             callInfo[1] = expectedServerConnection;
             return expectedResponse;
         });
-    }
+
+    public static IEnumerable<object[]> GetBoolWithCloudServerRegion() =>
+    [
+        [true, CloudServerRegion.Eu],
+        [false, CloudServerRegion.Eu],
+        [true, CloudServerRegion.Us],
+        [false, CloudServerRegion.Eu]
+    ];
 }
