@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.OrganizationSelection;
 
@@ -34,6 +35,7 @@ public class OrganizationSelectionViewModelTests
     private ISlCoreConnectionAdapter slCoreConnectionAdapter;
     private ICredentialsModel credentialsModel;
     private IProgressReporterViewModel progressReporterViewModel;
+    private readonly CloudServerRegion region = CloudServerRegion.Eu;
 
     [TestInitialize]
     public void TestInitialize()
@@ -43,13 +45,13 @@ public class OrganizationSelectionViewModelTests
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
         progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<ITaskToPerformParams<AdapterResponse>>()).Returns(new AdapterResponse(true));
 
-        testSubject = new(credentialsModel, slCoreConnectionAdapter, progressReporterViewModel);
+        testSubject = new(region, credentialsModel, slCoreConnectionAdapter, progressReporterViewModel);
     }
 
     [TestMethod]
     public void Ctor_Organizations_SetsEmptyAsDefault()
     {
-        new OrganizationSelectionViewModel(credentialsModel, slCoreConnectionAdapter, progressReporterViewModel).Organizations.Should().BeEmpty();
+        new OrganizationSelectionViewModel(region, credentialsModel, slCoreConnectionAdapter, progressReporterViewModel).Organizations.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -186,6 +188,14 @@ public class OrganizationSelectionViewModelTests
     }
 
     [TestMethod]
+    public async Task AdapterLoadOrganizationsAsync_CallsSlCoreGetOrganizationsAsync()
+    {
+        await testSubject.AdapterLoadOrganizationsAsync();
+
+        await slCoreConnectionAdapter.Received(1).GetOrganizationsAsync(credentialsModel, testSubject.CloudServerRegion);
+    }
+
+    [TestMethod]
     public void UpdateOrganizations_AddsOrganization()
     {
         var loadedOrganizations = new List<OrganizationDisplay> { new("key", "name") };
@@ -229,40 +239,49 @@ public class OrganizationSelectionViewModelTests
     {
         progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<ITaskToPerformParams<AdapterResponse>>()).Returns(new AdapterResponse(success));
 
-        var response = await testSubject.ValidateConnectionForOrganizationAsync("key","warning");
+        var response = await testSubject.ValidateConnectionForOrganizationAsync("key", CloudServerRegion.Eu, "warning");
 
         response.Should().Be(success);
     }
 
     [TestMethod]
-    public async Task ValidateConnectionForOrganizationAsync_CallsExecuteTaskWithProgressAsync()
+    [DynamicData(nameof(GetCloudServerRegions), DynamicDataSourceType.Method)]
+    public async Task ValidateConnectionForOrganizationAsync_CallsExecuteTaskWithProgressAsync(CloudServerRegion region)
     {
         var organizationKey = "key";
         var warningText = "warning";
 
-        await testSubject.ValidateConnectionForOrganizationAsync(organizationKey, warningText);
+        await testSubject.ValidateConnectionForOrganizationAsync(organizationKey, region, warningText);
 
         await progressReporterViewModel.Received(1)
             .ExecuteTaskWithProgressAsync(Arg.Is<ITaskToPerformParams<AdapterResponse>>(x =>
-                IsExpectedSlCoreAdapterValidateConnectionAsync(x.TaskToPerform, organizationKey) &&
+                IsExpectedSlCoreAdapterValidateConnectionAsync(x.TaskToPerform, organizationKey, region) &&
                 x.ProgressStatus == UiResources.ValidatingConnectionProgressText &&
                 x.WarningText == warningText));
     }
 
     [TestMethod]
-    public void UpdateFinalConnectionInfo_ValueChanges_UpdatesConnectionInfo()
+    [DynamicData(nameof(GetCloudServerRegions), DynamicDataSourceType.Method)]
+    public void UpdateFinalConnectionInfo_ValueChanges_UpdatesConnectionInfo(CloudServerRegion serverConnection)
     {
-        testSubject.UpdateFinalConnectionInfo("newKey");
+        testSubject.UpdateFinalConnectionInfo("newKey", serverConnection);
 
         testSubject.FinalConnectionInfo.Should().NotBeNull();
         testSubject.FinalConnectionInfo.Id.Should().Be("newKey");
         testSubject.FinalConnectionInfo.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+        testSubject.FinalConnectionInfo.CloudServerRegion.Should().Be(serverConnection);
     }
 
-    private bool IsExpectedSlCoreAdapterValidateConnectionAsync(Func<Task<AdapterResponse>> xTaskToPerform, string organizationKey)
+    private bool IsExpectedSlCoreAdapterValidateConnectionAsync(Func<Task<AdapterResponse>> xTaskToPerform, string organizationKey, CloudServerRegion region)
     {
         xTaskToPerform().Forget();
-        slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(Arg.Is<ConnectionInfo>(x=> x.Id == organizationKey), Arg.Any<ICredentialsModel>());
+        slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(Arg.Is<ConnectionInfo>(x => x.Id == organizationKey && x.CloudServerRegion == region), Arg.Any<ICredentialsModel>());
         return true;
     }
+
+    public static IEnumerable<object[]> GetCloudServerRegions() =>
+    [
+        [CloudServerRegion.Eu],
+        [CloudServerRegion.Us],
+    ];
 }

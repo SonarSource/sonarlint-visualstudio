@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests;
 public class SlCoreConnectionAdapterTests
 {
     private const string Token = "token123";
-    private static readonly TokenAuthCredentials ValidTokenAuth = new ("I_AM_JUST_A_TOKEN".ToSecureString());
+    private static readonly TokenAuthCredentials ValidTokenAuth = new("I_AM_JUST_A_TOKEN".ToSecureString());
     private readonly ServerConnection.SonarQube sonarQubeConnection = new(new Uri("http://localhost:9000/"), new ServerConnectionSettings(true), ValidTokenAuth);
     private readonly ServerConnection.SonarCloud sonarCloudConnection = new("myOrg", new ServerConnectionSettings(true), ValidTokenAuth);
 
@@ -139,7 +139,7 @@ public class SlCoreConnectionAdapterTests
         var threadHandlingMock = Substitute.For<IThreadHandling>();
         var slCoreConnectionAdapter = new SlCoreConnectionAdapter(slCoreServiceProvider, threadHandlingMock, logger);
 
-        await slCoreConnectionAdapter.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()));
+        await slCoreConnectionAdapter.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()), CloudServerRegion.Eu);
 
         await threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<AdapterResponseWithData<List<OrganizationDisplay>>>>>());
     }
@@ -149,7 +149,7 @@ public class SlCoreConnectionAdapterTests
     {
         slCoreServiceProvider.TryGetTransientService(out IConnectionConfigurationSLCoreService _).Returns(false);
 
-        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()));
+        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()), CloudServerRegion.Eu);
 
         logger.Received(1).LogVerbose($"[{nameof(IConnectionConfigurationSLCoreService)}] {SLCoreStrings.ServiceProviderNotInitialized}");
         response.Success.Should().BeFalse();
@@ -163,7 +163,7 @@ public class SlCoreConnectionAdapterTests
         connectionConfigurationSlCoreService.When(x => x.ListUserOrganizationsAsync(Arg.Any<ListUserOrganizationsParams>()))
             .Do(_ => throw new Exception(exceptionMessage));
 
-        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()));
+        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel("token".CreateSecureString()), CloudServerRegion.Eu);
 
         logger.Received(1).LogVerbose($"{Resources.ListUserOrganizations_Fails}: {exceptionMessage}");
         response.Success.Should().BeFalse();
@@ -171,19 +171,22 @@ public class SlCoreConnectionAdapterTests
     }
 
     [TestMethod]
-    public async Task GetOrganizationsAsync_TokenIsProvided_CallsSlCoreListUserOrganizationsWithToken()
+    [DynamicData(nameof(GetSonarCloudConnections), DynamicDataSourceType.Method)]
+    public async Task GetOrganizationsAsync_TokenIsProvided_CallsSlCoreListUserOrganizationsWithToken(ServerConnection.SonarCloud serverConnection)
     {
         var token = "token";
 
-        await testSubject.GetOrganizationsAsync(new TokenCredentialsModel(token.CreateSecureString()));
+        await testSubject.GetOrganizationsAsync(new TokenCredentialsModel(token.CreateSecureString()), serverConnection.Region);
 
-        await connectionConfigurationSlCoreService.Received(1).ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x=> IsExpectedCredentials(x.credentials, token) && IsEuRegion(x)));
+        await connectionConfigurationSlCoreService.Received(1)
+            .ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x => IsExpectedCredentials(x.credentials, token) && IsSonarCloudRegion(x, serverConnection.Region.ToSlCoreRegion())));
     }
 
     [TestMethod]
-    public async Task GetOrganizationsAsync_CredentialsIsNull_ReturnsFailedResponseAndShouldLog()
+    [DynamicData(nameof(GetSonarCloudConnections), DynamicDataSourceType.Method)]
+    public async Task GetOrganizationsAsync_CredentialsIsNull_ReturnsFailedResponseAndShouldLog(ServerConnection.SonarCloud serverConnection)
     {
-        var response = await testSubject.GetOrganizationsAsync(null);
+        var response = await testSubject.GetOrganizationsAsync(null, serverConnection.Region);
 
         logger.Received(1).LogVerbose($"{Resources.ListUserOrganizations_Fails}: Unexpected {nameof(ICredentialsModel)} argument");
         response.Success.Should().BeFalse();
@@ -191,26 +194,29 @@ public class SlCoreConnectionAdapterTests
     }
 
     [TestMethod]
-    public async Task GetOrganizationsAsync_NoOrganizationExists_ReturnsSuccessResponseAndEmptyOrganizations()
+    [DynamicData(nameof(GetSonarCloudConnections), DynamicDataSourceType.Method)]
+    public async Task GetOrganizationsAsync_NoOrganizationExists_ReturnsSuccessResponseAndEmptyOrganizations(ServerConnection.SonarCloud serverConnection)
     {
-        connectionConfigurationSlCoreService.ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x => IsExpectedCredentials(x.credentials, Token) && IsEuRegion(x)))
+        connectionConfigurationSlCoreService
+            .ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x => IsExpectedCredentials(x.credentials, Token) && IsSonarCloudRegion(x, serverConnection.Region.ToSlCoreRegion())))
             .Returns(new ListUserOrganizationsResponse([]));
 
-        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel(Token.CreateSecureString()));
+        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel(Token.CreateSecureString()), serverConnection.Region);
 
         response.Success.Should().BeTrue();
         response.ResponseData.Should().BeEmpty();
     }
 
     [TestMethod]
-    public async Task GetOrganizationsAsync_OrganizationExists_ReturnsSuccessResponseAndMappedOrganizations()
+    [DynamicData(nameof(GetSonarCloudConnections), DynamicDataSourceType.Method)]
+    public async Task GetOrganizationsAsync_OrganizationExists_ReturnsSuccessResponseAndMappedOrganizations(ServerConnection.SonarCloud serverConnection)
     {
-        List<OrganizationDto> serverOrganizations = [new OrganizationDto("key", "name", "desc"), new OrganizationDto("key2", "name2", "desc2")];
-
-        connectionConfigurationSlCoreService.ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x => IsExpectedCredentials(x.credentials, Token) && IsEuRegion(x)))
+        List<OrganizationDto> serverOrganizations = [new("key", "name", "desc"), new("key2", "name2", "desc2")];
+        connectionConfigurationSlCoreService
+            .ListUserOrganizationsAsync(Arg.Is<ListUserOrganizationsParams>(x => IsExpectedCredentials(x.credentials, Token) && IsSonarCloudRegion(x, serverConnection.Region.ToSlCoreRegion())))
             .Returns(new ListUserOrganizationsResponse(serverOrganizations));
 
-        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel(Token.CreateSecureString()));
+        var response = await testSubject.GetOrganizationsAsync(new TokenCredentialsModel(Token.CreateSecureString()), serverConnection.Region);
 
         response.Success.Should().BeTrue();
         response.ResponseData.Should().BeEquivalentTo([
@@ -341,7 +347,7 @@ public class SlCoreConnectionAdapterTests
     [TestMethod]
     public async Task GetServerProjectByKeyAsync_ProjectNotFound_ReturnsFailedResponse()
     {
-        var slCoreResponse = new Dictionary<string, string> { {"project-key", null} };
+        var slCoreResponse = new Dictionary<string, string> { { "project-key", null } };
         connectionConfigurationSlCoreService.GetProjectNamesByKeyAsync(Arg.Any<GetProjectNamesByKeyParams>())
             .Returns(new GetProjectNamesByKeyResponse(slCoreResponse));
 
@@ -354,10 +360,7 @@ public class SlCoreConnectionAdapterTests
     [TestMethod]
     public async Task GetServerProjectByKeyAsync_ProjectFound_ReturnsSuccessResponseAndMappedOrganizations()
     {
-        var slCoreResponse = new Dictionary<string, string>
-        {
-            {"project-key", "project-name"}
-        };
+        var slCoreResponse = new Dictionary<string, string> { { "project-key", "project-name" } };
         connectionConfigurationSlCoreService.GetProjectNamesByKeyAsync(Arg.Any<GetProjectNamesByKeyParams>())
             .Returns(new GetProjectNamesByKeyResponse(slCoreResponse));
         var response = await testSubject.GetServerProjectByKeyAsync(sonarQubeConnection, "project-key");
@@ -365,7 +368,6 @@ public class SlCoreConnectionAdapterTests
         response.Success.Should().BeTrue();
         response.ResponseData.Should().BeEquivalentTo(new ServerProject("project-key", "project-name"));
     }
-
 
     [TestMethod]
     public async Task GetAllProjectsAsync_SlCoreValidationThrowsException_ReturnsUnsuccessfulResponse()
@@ -426,7 +428,7 @@ public class SlCoreConnectionAdapterTests
         response.ResponseData.Count.Should().Be(expectedServerProjects.Count);
         response.ResponseData.Should().BeEquivalentTo([
             new ServerProject("projKey1", "projName1"),
-          new ServerProject("projKey2", "projName2")
+            new ServerProject("projKey2", "projName2")
         ]);
     }
 
@@ -468,7 +470,7 @@ public class SlCoreConnectionAdapterTests
         return transientSonarQubeDto.serverUrl == sonarQubeConnectionInfo.Id && IsExpectedCredentials(transientSonarQubeDto.credentials, username, password);
     }
 
-    private static bool IsEuRegion(ListUserOrganizationsParams x) => x.region == SonarCloudRegion.EU;
+    private static bool IsSonarCloudRegion(ListUserOrganizationsParams x, SonarCloudRegion expectedRegion) => x.region == expectedRegion;
 
     private static bool IsExpectedCredentials(Either<TokenDto, UsernamePasswordDto> credentials, string token)
     {
@@ -512,6 +514,12 @@ public class SlCoreConnectionAdapterTests
             return true;
         });
     }
+
+    public static IEnumerable<object[]> GetSonarCloudConnections() =>
+    [
+        [new ServerConnection.SonarCloud("myOrg", CloudServerRegion.Eu, new ServerConnectionSettings(true), ValidTokenAuth)],
+        [new ServerConnection.SonarCloud("myOrg", CloudServerRegion.Us, new ServerConnectionSettings(true), ValidTokenAuth)],
+    ];
 
     private static SonarProjectDto CreateSonarProjectDto(string key, string name)
     {
