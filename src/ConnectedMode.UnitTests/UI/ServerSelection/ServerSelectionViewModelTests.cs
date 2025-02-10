@@ -52,10 +52,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
         }
 
         [TestMethod]
-        public void IsNextButtonEnabled_SonarCloudIsSelected_ReturnsTrue()
+        public void IsNextButtonEnabled_SonarCloudIsSelectedAndNoRegionIsSelected_ReturnsFalse()
         {
             testSubject.IsSonarCloudSelected = true;
             testSubject.IsSonarQubeSelected = false;
+
+            testSubject.IsEuRegionSelected = false;
+            testSubject.IsUsRegionSelected = false;
+
+            testSubject.IsNextButtonEnabled.Should().BeFalse();
+        }
+
+        [TestMethod]
+        [DataRow(true, false)]
+        [DataRow(false, true)]
+        public void IsNextButtonEnabled_SonarCloudIsSelectedAndRegionIsSelected_ReturnsTrue(bool isEuSelected, bool isUsSelected)
+        {
+            testSubject.IsSonarCloudSelected = true;
+            testSubject.IsSonarQubeSelected = false;
+
+            testSubject.IsEuRegionSelected = isEuSelected;
+            testSubject.IsUsRegionSelected = isUsSelected;
 
             testSubject.IsNextButtonEnabled.Should().BeTrue();
         }
@@ -79,6 +96,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
         {
             testSubject.IsSonarCloudSelected = false;
             testSubject.IsSonarQubeSelected = true;
+
+            testSubject.SonarQubeUrl = "dummy URL";
+
+            testSubject.IsNextButtonEnabled.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void IsNextButtonEnabled_SonarQubeIsSelectedAndUrlIsProvided_ReturnsTrueAndIgnoresRegion()
+        {
+            testSubject.IsSonarCloudSelected = false;
+            testSubject.IsSonarQubeSelected = true;
+            testSubject.IsEuRegionSelected = testSubject.IsUsRegionSelected = false;
 
             testSubject.SonarQubeUrl = "dummy URL";
 
@@ -199,6 +228,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
 
             eventHandler.Received().Invoke(testSubject,
                 Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsEuRegionSelected)));
+            eventHandler.Received().Invoke(testSubject,
+                Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsNextButtonEnabled)));
         }
 
         [TestMethod]
@@ -212,6 +243,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
 
             eventHandler.Received().Invoke(testSubject,
                 Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsUsRegionSelected)));
+            eventHandler.Received().Invoke(testSubject,
+                Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsNextButtonEnabled)));
         }
     }
 }

@@ -77,6 +77,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
             {
                 isEuRegionSelected = value;
                 RaisePropertyChanged();
+                RaisePropertyChanged(nameof(IsNextButtonEnabled));
             }
         }
 
@@ -87,13 +88,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
             {
                 isUsRegionSelected = value;
                 RaisePropertyChanged();
+                RaisePropertyChanged(nameof(IsNextButtonEnabled));
             }
         }
 
-        public bool IsNextButtonEnabled => IsSonarCloudSelected || (IsSonarQubeSelected && IsSonarQubeUrlProvided);
+        public bool IsNextButtonEnabled => (IsSonarCloudSelected && IsSonarCloudRegionSelected) || (IsSonarQubeSelected && IsSonarQubeUrlProvided);
         public bool ShouldSonarQubeUrlBeFilled => IsSonarQubeSelected && !IsSonarQubeUrlProvided;
         private bool IsSonarQubeUrlProvided => !string.IsNullOrWhiteSpace(SonarQubeUrl);
         public bool ShowSecurityWarning => Uri.TryCreate(SonarQubeUrl, UriKind.Absolute, out Uri uriResult) && uriResult.Scheme != Uri.UriSchemeHttps;
+        private bool IsSonarCloudRegionSelected => IsEuRegionSelected || IsUsRegionSelected;
 
         public ConnectionInfo CreateTransientConnectionInfo()
         {
