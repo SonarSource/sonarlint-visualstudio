@@ -70,7 +70,7 @@ public class OrganizationSelectionViewModel(
 
     internal async Task<AdapterResponseWithData<List<OrganizationDisplay>>> AdapterLoadOrganizationsAsync()
     {
-        return await connectionAdapter.GetOrganizationsAsync(credentialsModel);
+        return await connectionAdapter.GetOrganizationsAsync(credentialsModel, CloudServerRegion);
     }
 
     internal void UpdateOrganizations(AdapterResponseWithData<List<OrganizationDisplay>> responseWithData)
