@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.OrganizationSelection;
 
@@ -34,6 +35,7 @@ public class OrganizationSelectionViewModelTests
     private ISlCoreConnectionAdapter slCoreConnectionAdapter;
     private ICredentialsModel credentialsModel;
     private IProgressReporterViewModel progressReporterViewModel;
+    private readonly CloudServerRegion region = CloudServerRegion.Eu;
 
     [TestInitialize]
     public void TestInitialize()
@@ -43,13 +45,13 @@ public class OrganizationSelectionViewModelTests
         progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
         progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<ITaskToPerformParams<AdapterResponse>>()).Returns(new AdapterResponse(true));
 
-        testSubject = new(credentialsModel, slCoreConnectionAdapter, progressReporterViewModel);
+        testSubject = new(region, credentialsModel, slCoreConnectionAdapter, progressReporterViewModel);
     }
 
     [TestMethod]
     public void Ctor_Organizations_SetsEmptyAsDefault()
     {
-        new OrganizationSelectionViewModel(credentialsModel, slCoreConnectionAdapter, progressReporterViewModel).Organizations.Should().BeEmpty();
+        new OrganizationSelectionViewModel(region, credentialsModel, slCoreConnectionAdapter, progressReporterViewModel).Organizations.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -229,7 +231,7 @@ public class OrganizationSelectionViewModelTests
     {
         progressReporterViewModel.ExecuteTaskWithProgressAsync(Arg.Any<ITaskToPerformParams<AdapterResponse>>()).Returns(new AdapterResponse(success));
 
-        var response = await testSubject.ValidateConnectionForOrganizationAsync("key","warning");
+        var response = await testSubject.ValidateConnectionForOrganizationAsync("key", "warning");
 
         response.Should().Be(success);
     }
@@ -262,7 +264,7 @@ public class OrganizationSelectionViewModelTests
     private bool IsExpectedSlCoreAdapterValidateConnectionAsync(Func<Task<AdapterResponse>> xTaskToPerform, string organizationKey)
     {
         xTaskToPerform().Forget();
-        slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(Arg.Is<ConnectionInfo>(x=> x.Id == organizationKey), Arg.Any<ICredentialsModel>());
+        slCoreConnectionAdapter.Received(1).ValidateConnectionAsync(Arg.Is<ConnectionInfo>(x => x.Id == organizationKey), Arg.Any<ICredentialsModel>());
         return true;
     }
 }

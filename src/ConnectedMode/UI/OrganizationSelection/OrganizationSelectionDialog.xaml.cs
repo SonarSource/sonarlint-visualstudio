@@ -23,6 +23,7 @@ using System.Windows;
 using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
@@ -31,10 +32,11 @@ public partial class OrganizationSelectionDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
 
-    public OrganizationSelectionDialog(IConnectedModeServices connectedModeServices, ICredentialsModel credentialsModel)
+    public OrganizationSelectionDialog(IConnectedModeServices connectedModeServices, CloudServerRegion cloudServerRegion, ICredentialsModel credentialsModel)
     {
         this.connectedModeServices = connectedModeServices;
-        ViewModel = new OrganizationSelectionViewModel(credentialsModel,
+        ViewModel = new OrganizationSelectionViewModel(cloudServerRegion,
+            credentialsModel,
             connectedModeServices.SlCoreConnectionAdapter,
             new ProgressReporterViewModel(connectedModeServices.Logger));
         InitializeComponent();
@@ -52,7 +54,7 @@ public partial class OrganizationSelectionDialog : Window
         ViewModel.SelectedOrganization = null;
         var manualOrganizationSelectionDialog = new ManualOrganizationSelectionDialog();
         var manualSelectionDialogSucceeded = manualOrganizationSelectionDialog.ShowDialog(this);
-        if(manualSelectionDialogSucceeded is not true)
+        if (manualSelectionDialogSucceeded is not true)
         {
             return;
         }
@@ -89,4 +91,3 @@ public partial class OrganizationSelectionDialog : Window
         }
     }
 }
-

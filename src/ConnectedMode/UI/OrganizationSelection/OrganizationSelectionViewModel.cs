@@ -21,13 +21,19 @@
 using System.Collections.ObjectModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
-public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, ISlCoreConnectionAdapter connectionAdapter, IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
+public class OrganizationSelectionViewModel(
+    CloudServerRegion cloudServerRegion,
+    ICredentialsModel credentialsModel,
+    ISlCoreConnectionAdapter connectionAdapter,
+    IProgressReporterViewModel progressReporterViewModel) : ViewModelBase
 {
     public ConnectionInfo FinalConnectionInfo { get; private set; }
+    public CloudServerRegion CloudServerRegion { get; } = cloudServerRegion;
     public IProgressReporterViewModel ProgressReporterViewModel { get; } = progressReporterViewModel;
 
     public OrganizationDisplay SelectedOrganization
@@ -58,16 +64,13 @@ public class OrganizationSelectionViewModel(ICredentialsModel credentialsModel, 
         var organizationLoadingParams = new TaskToPerformParams<AdapterResponseWithData<List<OrganizationDisplay>>>(
             AdapterLoadOrganizationsAsync,
             UiResources.LoadingOrganizationsProgressText,
-            UiResources.LoadingOrganizationsFailedText)
-        {
-            AfterSuccess = UpdateOrganizations
-        };
+            UiResources.LoadingOrganizationsFailedText) { AfterSuccess = UpdateOrganizations };
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(organizationLoadingParams);
     }
 
     internal async Task<AdapterResponseWithData<List<OrganizationDisplay>>> AdapterLoadOrganizationsAsync()
     {
-       return await connectionAdapter.GetOrganizationsAsync(credentialsModel);
+        return await connectionAdapter.GetOrganizationsAsync(credentialsModel);
     }
 
     internal void UpdateOrganizations(AdapterResponseWithData<List<OrganizationDisplay>> responseWithData)
