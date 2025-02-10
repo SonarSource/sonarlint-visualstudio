@@ -4,6 +4,7 @@
         xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
         xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
+        xmlns:connectionDisplay="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay"
         Title="{x:Static res:UiResources.ManageConnectionsDialogTitle}"
         WindowStartupLocation="CenterOwner"
         Initialized="ManageConnectionsWindow_OnInitialized"
@@ -67,7 +68,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             
-                            <ui:ConnectionIconComponent 
+                            <connectionDisplay:ConnectionIconComponent 
                                 Grid.Column="0" 
                                 ServerType="{Binding Path=ServerType}"
                                 Width="30" 

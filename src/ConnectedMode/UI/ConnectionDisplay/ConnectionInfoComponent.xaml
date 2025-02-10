@@ -1,9 +1,10 @@
 ﻿<UserControl
-    x:Class="SonarLint.VisualStudio.ConnectedMode.UI.ConnectionInfoComponent"
+    x:Class="SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay.ConnectionInfoComponent"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
     xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
+    xmlns:connectionDisplay="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay"
     FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
     FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
     Name="ConnectionInfoUc">
@@ -13,7 +14,7 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <ui:ConnectionIconComponent Grid.Column="0" ServerType="{Binding Path=ServerType}"
+        <connectionDisplay:ConnectionIconComponent Grid.Column="0" ServerType="{Binding Path=ServerType}"
                            Margin="-5,-5,0,-5"
                            VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path= TextAndIconVerticalAlignment}"
                            HorizontalAlignment="Center"/>

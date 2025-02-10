@@ -22,7 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UI;
+namespace SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 public sealed partial class ConnectionInfoComponent : UserControl
