@@ -40,41 +40,37 @@ namespace SonarLint.VisualStudio.ConnectedMode;
 public interface ISlCoreConnectionAdapter
 {
     Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel);
+
     Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel);
+
     Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, string serverProjectKey);
+
     Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(ServerConnection serverConnection);
+
     Task<AdapterResponseWithData<List<ServerProject>>> FuzzySearchProjectsAsync(ServerConnection serverConnection, string searchTerm);
 }
 
 public class AdapterResponseWithData<T>(bool success, T responseData) : IResponseStatus
 {
     public AdapterResponseWithData() : this(false, default) { }
+
     public bool Success { get; init; } = success;
     public T ResponseData { get; } = responseData;
 }
 
 public class AdapterResponse(bool success) : IResponseStatus
 {
-    public AdapterResponse(): this(false){}
+    public AdapterResponse() : this(false) { }
+
     public bool Success { get; } = success;
 }
 
 [Export(typeof(ISlCoreConnectionAdapter))]
-public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
+[method: ImportingConstructor]
+public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling, ILogger logger) : ISlCoreConnectionAdapter
 {
-    private readonly ISLCoreServiceProvider serviceProvider;
-    private readonly IThreadHandling threadHandling;
-    private readonly ILogger logger;
     private static readonly AdapterResponseWithData<List<OrganizationDisplay>> FailedResponseWithData = new(false, []);
     private static readonly AdapterResponse FailedResponse = new(false);
-
-    [ImportingConstructor]
-    public SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling, ILogger logger)
-    {
-        this.serviceProvider = serviceProvider;
-        this.threadHandling = threadHandling;
-        this.logger = logger;
-    }
 
     public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel)
     {
@@ -84,9 +80,8 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         return await ValidateConnectionAsync(validateConnectionParams);
     }
 
-    public Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel)
-    {
-        return threadHandling.RunOnBackgroundThread(async () =>
+    public Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel) =>
+        threadHandling.RunOnBackgroundThread(async () =>
         {
             if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
             {
@@ -107,7 +102,6 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
                 return FailedResponseWithData;
             }
         });
-    }
 
     public Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, string serverProjectKey)
     {
@@ -172,9 +166,8 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         });
     }
 
-    private async Task<AdapterResponse> ValidateConnectionAsync(ValidateConnectionParams validateConnectionParams)
-    {
-        return await threadHandling.RunOnBackgroundThread(async () =>
+    private async Task<AdapterResponse> ValidateConnectionAsync(ValidateConnectionParams validateConnectionParams) =>
+        await threadHandling.RunOnBackgroundThread(async () =>
         {
             if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
             {
@@ -192,7 +185,6 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
                 return FailedResponse;
             }
         });
-    }
 
     private async Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(GetAllProjectsParams getAllProjectsParams)
     {
@@ -240,7 +232,7 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
             ConnectionServerType.SonarQube => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateLeft(
                 new TransientSonarQubeConnectionDto(connectionInfo.Id, credentialsDto)),
             ConnectionServerType.SonarCloud => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateRight(
-                new TransientSonarCloudConnectionDto(connectionInfo.Id, credentialsDto)),
+                new TransientSonarCloudConnectionDto(connectionInfo.Id, credentialsDto, connectionInfo.CloudServerRegion.ToSlCoreRegion())),
             _ => throw new ArgumentException(Resources.UnexpectedConnectionType)
         };
     }
@@ -254,20 +246,15 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
             ServerConnection.SonarQube sonarQubeConnection => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateLeft(
                 new TransientSonarQubeConnectionDto(sonarQubeConnection.Id, credentials)),
             ServerConnection.SonarCloud sonarCloudConnection => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateRight(
-                new TransientSonarCloudConnectionDto(sonarCloudConnection.OrganizationKey, credentials)),
+                new TransientSonarCloudConnectionDto(sonarCloudConnection.OrganizationKey, credentials, sonarCloudConnection.Region.ToSlCoreRegion())),
             _ => throw new ArgumentException(Resources.UnexpectedConnectionType)
         };
     }
 
-    private static Either<TokenDto, UsernamePasswordDto> GetEitherForToken(string token)
-    {
-        return Either<TokenDto, UsernamePasswordDto>.CreateLeft(new TokenDto(token));
-    }
+    private static Either<TokenDto, UsernamePasswordDto> GetEitherForToken(string token) => Either<TokenDto, UsernamePasswordDto>.CreateLeft(new TokenDto(token));
 
-    private static Either<TokenDto, UsernamePasswordDto> GetEitherForUsernamePassword(string username, string password)
-    {
-        return Either<TokenDto, UsernamePasswordDto>.CreateRight(new UsernamePasswordDto(username, password));
-    }
+    private static Either<TokenDto, UsernamePasswordDto> GetEitherForUsernamePassword(string username, string password) =>
+        Either<TokenDto, UsernamePasswordDto>.CreateRight(new UsernamePasswordDto(username, password));
 
     private static Either<TokenDto, UsernamePasswordDto> MapCredentials(IConnectionCredentials credentials) =>
         credentials switch
