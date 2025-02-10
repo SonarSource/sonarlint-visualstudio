@@ -22,9 +22,8 @@ using System.ComponentModel;
 using System.IO;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
-using SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
-using SonarLint.VisualStudio.SLCore.Service.Connection;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
 {
@@ -33,7 +32,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
     {
         private CredentialsViewModel testSubject;
         private ConnectionInfo sonarQubeConnectionInfo;
-        private ConnectionInfo sonarCloudConnectionInfo;
+        private ConnectionInfo sonarCloudEuConnectionInfo;
+        private ConnectionInfo sonarCloudUsConnectionInfo;
         private ISlCoreConnectionAdapter slCoreConnectionAdapter;
         private IProgressReporterViewModel progressReporterViewModel;
 
@@ -41,7 +41,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         public void TestInitialize()
         {
             sonarQubeConnectionInfo = new ConnectionInfo("http://localhost:9000", ConnectionServerType.SonarQube);
-            sonarCloudConnectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud);
+            sonarCloudEuConnectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud, CloudServerRegion.Eu);
+            sonarCloudUsConnectionInfo = new ConnectionInfo("myOrg", ConnectionServerType.SonarCloud, CloudServerRegion.Us);
             slCoreConnectionAdapter = Substitute.For<ISlCoreConnectionAdapter>();
             progressReporterViewModel = Substitute.For<IProgressReporterViewModel>();
 
@@ -97,11 +98,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         }
 
         [TestMethod]
-        public void AccountSecurityUrl_ConnectionIsSonarCloud_ReturnsSonarCloudUrl()
+        public void AccountSecurityUrl_ConnectionIsSonarCloudForEu_ReturnsExpectedSonarCloudUrl()
         {
-            var viewModel = new CredentialsViewModel(sonarCloudConnectionInfo, slCoreConnectionAdapter, progressReporterViewModel);
+            var viewModel = new CredentialsViewModel(sonarCloudEuConnectionInfo, slCoreConnectionAdapter, progressReporterViewModel);
 
-            viewModel.AccountSecurityUrl.Should().Be(UiResources.SonarCloudAccountSecurityUrl);
+            viewModel.AccountSecurityUrl.Should().Be("https://sonarcloud.io/account/security");
+        }
+
+        [TestMethod]
+        public void AccountSecurityUrl_ConnectionIsSonarCloudForUs_ReturnsExpectedSonarCloudUrl()
+        {
+            var viewModel = new CredentialsViewModel(sonarCloudUsConnectionInfo, slCoreConnectionAdapter, progressReporterViewModel);
+
+            viewModel.AccountSecurityUrl.Should().Be("https://us.sonarcloud.io/account/security");
         }
 
         [TestMethod]
@@ -109,7 +118,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.Credentials
         {
             var qubeUrl = "http://localhost:9000/";
             var viewModel = new CredentialsViewModel(new ConnectionInfo(qubeUrl, ConnectionServerType.SonarQube), slCoreConnectionAdapter, progressReporterViewModel);
-            var expectedUrl = Path.Combine(qubeUrl, UiResources.SonarQubeAccountSecurityUrl);
+            var expectedUrl = Path.Combine(qubeUrl, CredentialsViewModel.SecurityPageUrl);
 
             viewModel.AccountSecurityUrl.Should().Be(expectedUrl);
         }
