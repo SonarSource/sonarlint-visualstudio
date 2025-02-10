@@ -66,6 +66,25 @@ public class Connection(ConnectionInfo info, bool enableSmartNotifications = tru
     public bool EnableSmartNotifications { get; set; } = enableSmartNotifications;
 }
 
+public static class ConnectionExtensions
+{
+    public static ServerConnection ToServerConnection(this Connection connection)
+    {
+        if (connection.Info.ServerType == ConnectionServerType.SonarCloud)
+        {
+            return new ServerConnection.SonarCloud(connection.Info.Id, new ServerConnectionSettings(connection.EnableSmartNotifications));
+        }
+
+        return new ServerConnection.SonarQube(new Uri(connection.Info.Id), new ServerConnectionSettings(connection.EnableSmartNotifications));
+    }
+
+    public static Connection ToConnection(this ServerConnection serverConnection)
+    {
+        var connectionInfo = ConnectionInfo.From(serverConnection);
+        return new Connection(connectionInfo, serverConnection.Settings.IsSmartNotificationsEnabled);
+    }
+}
+
 public static class ConnectionInfoExtensions
 {
     public static string GetIdForTransientConnection(this ConnectionInfo connection)
@@ -75,5 +94,14 @@ public static class ConnectionInfoExtensions
             return connection.CloudServerRegion.Url.ToString();
         }
         return connection.Id;
+    }
+
+    public static string GetServerIdFromConnectionInfo(this ConnectionInfo connectionInfo)
+    {
+        ServerConnection partialServerConnection = connectionInfo.ServerType == ConnectionServerType.SonarCloud
+            ? new ServerConnection.SonarCloud(connectionInfo.Id)
+            : new ServerConnection.SonarQube(new Uri(connectionInfo.Id));
+
+        return partialServerConnection.Id;
     }
 }
