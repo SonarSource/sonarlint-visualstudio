@@ -21,6 +21,7 @@
 using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
 {
@@ -199,6 +200,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
         }
 
         [TestMethod]
+        [DataRow(true, false)]
+        [DataRow(false, true)]
+        public void CreateTransientConnectionInfo_SonarQubeIsSelected_IgnoresRegion(bool isEu, bool isUs)
+        {
+            testSubject.IsSonarCloudSelected = false;
+            testSubject.IsSonarQubeSelected = true;
+            testSubject.SonarQubeUrl = "http://localhost:90";
+
+            var createdConnection = testSubject.CreateTransientConnectionInfo();
+
+            createdConnection.Id.Should().Be(testSubject.SonarQubeUrl);
+            createdConnection.ServerType.Should().Be(ConnectionServerType.SonarQube);
+            createdConnection.CloudServerRegion.Should().BeNull();
+        }
+
+        [TestMethod]
         public void CreateTransientConnectionInfo_SonarCloudIsSelected_ReturnsConnectionWithSmartNotificationsEnabled()
         {
             testSubject.IsSonarCloudSelected = true;
@@ -208,6 +225,34 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
 
             createdConnection.Id.Should().BeNull();
             createdConnection.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+        }
+
+        [TestMethod]
+        public void CreateTransientConnectionInfo_SonarCloudIsSelected_ReturnsConnectionWithEuRegion()
+        {
+            testSubject.IsSonarCloudSelected = true;
+            testSubject.IsSonarQubeSelected = false;
+            testSubject.IsEuRegionSelected = true;
+
+            var createdConnection = testSubject.CreateTransientConnectionInfo();
+
+            createdConnection.Id.Should().BeNull();
+            createdConnection.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+            createdConnection.CloudServerRegion.Should().Be(CloudServerRegion.Eu);
+        }
+
+        [TestMethod]
+        public void CreateTransientConnectionInfo_SonarCloudIsSelected_ReturnsConnectionWithUsRegion()
+        {
+            testSubject.IsSonarCloudSelected = true;
+            testSubject.IsSonarQubeSelected = false;
+            testSubject.IsUsRegionSelected = true;
+
+            var createdConnection = testSubject.CreateTransientConnectionInfo();
+
+            createdConnection.Id.Should().BeNull();
+            createdConnection.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+            createdConnection.CloudServerRegion.Should().Be(CloudServerRegion.Us);
         }
 
         [TestMethod]

@@ -19,6 +19,7 @@
  */
 
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
@@ -102,7 +103,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
         {
             var url = IsSonarQubeSelected ? SonarQubeUrl : null;
             var serverType = IsSonarQubeSelected ? ConnectionServerType.SonarQube : ConnectionServerType.SonarCloud;
-            return new ConnectionInfo(url, serverType);
+            var region = IsSonarCloudSelected ? CloudServerRegion.GetRegion(IsUsRegionSelected) : null;
+            return new ConnectionInfo(url, serverType, region);
         }
     }
 }
