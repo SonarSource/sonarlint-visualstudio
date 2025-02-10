@@ -25,19 +25,28 @@ using System.Windows.Controls;
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
-public sealed partial class ConnectionInfoComponent : UserControl
+public sealed partial class ConnectionNameComponent : UserControl
 {
-    public static readonly DependencyProperty ConnectionNameFontWeightProp = DependencyProperty.Register(nameof(ConnectionNameFontWeight), typeof(FontWeight), typeof(ConnectionInfoComponent), new PropertyMetadata(FontWeights.DemiBold));
-    public static readonly DependencyProperty ConnectionInfoProp = DependencyProperty.Register(nameof(ConnectionInfo), typeof(ConnectionInfo), typeof(ConnectionInfoComponent), new PropertyMetadata());
+    public static readonly DependencyProperty ConnectionNameFontWeightProp = DependencyProperty.Register(nameof(ConnectionNameFontWeight), typeof(FontWeight), typeof(ConnectionNameComponent), new PropertyMetadata(FontWeights.DemiBold));
+    public static readonly DependencyProperty ConnectionInfoProp
+        = DependencyProperty.Register(nameof(ConnectionInfo), typeof(ConnectionInfo), typeof(ConnectionNameComponent), new PropertyMetadata(OnConnectionInfoSet));
 
-    static ConnectionInfoComponent()
+    public ConnectionNameViewModel ViewModel { get; } = new();
+
+    static ConnectionNameComponent()
     {
-        FontWeightProperty.OverrideMetadata(typeof(ConnectionInfoComponent), new FrameworkPropertyMetadata(FontWeights.DemiBold));
+        FontWeightProperty.OverrideMetadata(typeof(ConnectionNameComponent), new FrameworkPropertyMetadata(FontWeights.DemiBold));
     }
 
-    public ConnectionInfoComponent()
+    public ConnectionNameComponent()
     {
         InitializeComponent();
+    }
+
+    public ConnectionInfo ConnectionInfo
+    {
+        get => (ConnectionInfo)GetValue(ConnectionInfoProp);
+        set => SetValue(ConnectionInfoProp, value);
     }
 
     public FontWeight ConnectionNameFontWeight
@@ -46,9 +55,11 @@ public sealed partial class ConnectionInfoComponent : UserControl
         set => SetValue(ConnectionNameFontWeightProp, value);
     }
 
-    public ConnectionInfo ConnectionInfo
+    private static void OnConnectionInfoSet(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        get => (ConnectionInfo)GetValue(ConnectionInfoProp);
-        set => SetValue(ConnectionInfoProp, value);
+        if (d is ConnectionNameComponent component && e.NewValue is ConnectionInfo connectionInfo)
+        {
+            component.ViewModel.ConnectionInfo = connectionInfo;
+        }
     }
 }
