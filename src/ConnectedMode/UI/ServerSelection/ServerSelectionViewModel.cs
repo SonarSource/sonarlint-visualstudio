@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
         public ConnectionInfo CreateTransientConnectionInfo()
         {
             var url = IsSonarQubeSelected ? SonarQubeUrl : null;
-            var serverType = IsSonarQubeSelected ? ConnectionServerType.SonarQube : ConnectionServerType.SonarCloud;
+            var serverType = IsSonarCloudSelected ? ConnectionServerType.SonarCloud : ConnectionServerType.SonarQube;
             var region = IsSonarCloudSelected ? CloudServerRegion.GetRegion(IsUsRegionSelected) : null;
             return new ConnectionInfo(url, serverType, region);
         }

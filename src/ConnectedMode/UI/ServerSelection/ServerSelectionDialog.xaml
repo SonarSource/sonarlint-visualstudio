@@ -4,6 +4,7 @@
                          xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
                          xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
                          xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+                         xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
                          Title="{x:Static res:UiResources.ServerSelectionDialogTitle}" 
                          WindowStartupLocation="CenterOwner"
                          x:Name="This">
@@ -64,7 +65,7 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
-                        <Grid Grid.Row="1" Margin="5,0">
+                        <Grid Grid.Row="1" Margin="5,4,5,0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
@@ -77,6 +78,9 @@
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsSonarCloudSelected}" Value="False">
                                                     <Setter Property="Foreground" Value="{StaticResource DisabledText}"></Setter>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsSonarCloudSelected}" Value="True">
+                                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}"></Setter>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -94,6 +98,9 @@
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsSonarCloudSelected}" Value="False">
                                                     <Setter Property="Foreground" Value="{StaticResource DisabledText}"></Setter>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsSonarCloudSelected}" Value="True">
+                                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}"></Setter>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
