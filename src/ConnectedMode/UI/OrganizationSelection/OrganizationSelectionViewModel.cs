@@ -68,10 +68,7 @@ public class OrganizationSelectionViewModel(
         await ProgressReporterViewModel.ExecuteTaskWithProgressAsync(organizationLoadingParams);
     }
 
-    internal async Task<AdapterResponseWithData<List<OrganizationDisplay>>> AdapterLoadOrganizationsAsync()
-    {
-        return await connectionAdapter.GetOrganizationsAsync(credentialsModel, CloudServerRegion);
-    }
+    internal async Task<AdapterResponseWithData<List<OrganizationDisplay>>> AdapterLoadOrganizationsAsync() => await connectionAdapter.GetOrganizationsAsync(credentialsModel, CloudServerRegion);
 
     internal void UpdateOrganizations(AdapterResponseWithData<List<OrganizationDisplay>> responseWithData)
     {
@@ -80,9 +77,9 @@ public class OrganizationSelectionViewModel(
         RaisePropertyChanged(nameof(NoOrganizationExists));
     }
 
-    internal async Task<bool> ValidateConnectionForOrganizationAsync(string organizationKey, string warningText)
+    internal async Task<bool> ValidateConnectionForOrganizationAsync(string organizationKey, CloudServerRegion cloudServerRegion, string warningText)
     {
-        var connectionInfoToValidate = new ConnectionInfo(organizationKey, ConnectionServerType.SonarCloud);
+        var connectionInfoToValidate = new ConnectionInfo(organizationKey, ConnectionServerType.SonarCloud, cloudServerRegion);
         var validationParams = new TaskToPerformParams<AdapterResponse>(
             async () => await connectionAdapter.ValidateConnectionAsync(connectionInfoToValidate, credentialsModel),
             UiResources.ValidatingConnectionProgressText,
@@ -91,8 +88,6 @@ public class OrganizationSelectionViewModel(
         return adapterResponse.Success;
     }
 
-    public void UpdateFinalConnectionInfo(string organizationKey)
-    {
-        FinalConnectionInfo = new ConnectionInfo(organizationKey, ConnectionServerType.SonarCloud);
-    }
+    public void UpdateFinalConnectionInfo(string organizationKey, CloudServerRegion cloudServerRegion) =>
+        FinalConnectionInfo = new ConnectionInfo(organizationKey, ConnectionServerType.SonarCloud, cloudServerRegion);
 }

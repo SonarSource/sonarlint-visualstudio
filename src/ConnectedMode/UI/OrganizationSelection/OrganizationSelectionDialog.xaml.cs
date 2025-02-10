@@ -44,10 +44,7 @@ public partial class OrganizationSelectionDialog : Window
 
     public OrganizationSelectionViewModel ViewModel { get; }
 
-    private async void OkButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        await UpdateFinalConnectionInfoAsync(ViewModel.SelectedOrganization.Key);
-    }
+    private async void OkButton_OnClick(object sender, RoutedEventArgs e) => await UpdateFinalConnectionInfoAsync(ViewModel.SelectedOrganization.Key, ViewModel.CloudServerRegion);
 
     private async void ChooseAnotherOrganizationButton_OnClick(object sender, RoutedEventArgs e)
     {
@@ -59,7 +56,7 @@ public partial class OrganizationSelectionDialog : Window
             return;
         }
 
-        await UpdateFinalConnectionInfoAsync(manualOrganizationSelectionDialog.ViewModel.OrganizationKey);
+        await UpdateFinalConnectionInfoAsync(manualOrganizationSelectionDialog.ViewModel.OrganizationKey, ViewModel.CloudServerRegion);
     }
 
     private async Task<bool> ValidateConnectionForSelectedOrganizationAsync(string selectedOrganizationKey)
@@ -67,7 +64,7 @@ public partial class OrganizationSelectionDialog : Window
         try
         {
             var organizationSelectionInvalidMsg = string.Format(UiResources.ValidatingOrganziationSelectionFailedText, selectedOrganizationKey);
-            return await ViewModel.ValidateConnectionForOrganizationAsync(selectedOrganizationKey, organizationSelectionInvalidMsg);
+            return await ViewModel.ValidateConnectionForOrganizationAsync(selectedOrganizationKey, ViewModel.CloudServerRegion, organizationSelectionInvalidMsg);
         }
         catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
         {
@@ -76,17 +73,14 @@ public partial class OrganizationSelectionDialog : Window
         }
     }
 
-    private async void OrganizationSelectionDialog_OnLoaded(object sender, RoutedEventArgs e)
-    {
-        await ViewModel.LoadOrganizationsAsync();
-    }
+    private async void OrganizationSelectionDialog_OnLoaded(object sender, RoutedEventArgs e) => await ViewModel.LoadOrganizationsAsync();
 
-    private async Task UpdateFinalConnectionInfoAsync(string organizationKey)
+    private async Task UpdateFinalConnectionInfoAsync(string organizationKey, CloudServerRegion serverRegion)
     {
         var isConnectionValid = await ValidateConnectionForSelectedOrganizationAsync(organizationKey);
         if (isConnectionValid)
         {
-            ViewModel.UpdateFinalConnectionInfo(organizationKey);
+            ViewModel.UpdateFinalConnectionInfo(organizationKey, serverRegion);
             DialogResult = true;
         }
     }
