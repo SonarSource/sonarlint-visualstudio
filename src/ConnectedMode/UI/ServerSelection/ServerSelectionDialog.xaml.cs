@@ -32,12 +32,13 @@ public partial class ServerSelectionDialog : Window
     private readonly IBrowserService browserService;
     private readonly ITelemetryManager telemetryManager;
 
-    public ServerSelectionViewModel ViewModel { get; } = new();
+    public ServerSelectionViewModel ViewModel { get; }
 
-    public ServerSelectionDialog(IBrowserService browserService, ITelemetryManager telemetryManager)
+    public ServerSelectionDialog(IBrowserService browserService, ITelemetryManager telemetryManager, IDogfoodingService dogfoodingService)
     {
         this.browserService = browserService;
         this.telemetryManager = telemetryManager;
+        ViewModel = new ServerSelectionViewModel(dogfoodingService);
         InitializeComponent();
     }
 

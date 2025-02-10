@@ -87,4 +87,10 @@ public class CloudServerRegionTests
 
         act.Should().Throw<ArgumentOutOfRangeException>().And.ParamName.Should().Contain(invalidName);
     }
+
+    [TestMethod]
+    public void GetRegion_IsUs_ReturnsUsRegion() => CloudServerRegion.GetRegion(isUsRegion: true).Should().Be(CloudServerRegion.Us);
+
+    [TestMethod]
+    public void GetRegion_IsNotUs_ReturnsEuRegion() => CloudServerRegion.GetRegion(isUsRegion: false).Should().Be(CloudServerRegion.Eu);
 }

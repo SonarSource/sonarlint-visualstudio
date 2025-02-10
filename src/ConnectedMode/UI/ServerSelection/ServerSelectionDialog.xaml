@@ -4,6 +4,7 @@
                          xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
                          xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
                          xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+                         xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
                          Title="{x:Static res:UiResources.ServerSelectionDialogTitle}" 
                          WindowStartupLocation="CenterOwner"
                          x:Name="This">
@@ -34,7 +35,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Margin="10">
+                <Grid Grid.Row="0" Margin="10,10,10,0">
                     <Grid.RowDefinitions>
                         <RowDefinition />
                         <RowDefinition />
@@ -47,9 +48,73 @@
                         </RadioButton>
                     </StackPanel>
                     <TextBlock Grid.Row="1" Text="{x:Static res:UiResources.SonarCloudDescription}" Margin="10, 0"/>
+                    <Grid Grid.Row="2" Margin="10" Visibility="{Binding DogfoodingService.IsDogfoodingEnvironment, Converter={StaticResource TrueToVisibleConverter}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:UiResources.SelectSonarCloudRegionLabel}" VerticalAlignment="Center" FontWeight="Bold" >
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSonarCloudSelected}" Value="False">
+                                            <Setter Property="Foreground" Value="{StaticResource DisabledText}"></Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <Grid Grid.Row="1" Margin="5,4,5,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <RadioButton Grid.Row="0" GroupName="RegionSelection" VerticalContentAlignment="Center" Margin="0,2" 
+                                         IsChecked="{Binding Path=IsEuRegionSelected}">
+                                <TextBlock>
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSonarCloudSelected}" Value="False">
+                                                    <Setter Property="Foreground" Value="{StaticResource DisabledText}"></Setter>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsSonarCloudSelected}" Value="True">
+                                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}"></Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                    <Run Text="{x:Static res:UiResources.EuRegionName}" FontWeight="DemiBold"/>
+                                    <Run Text="-"></Run>
+                                    <Run Text="{x:Static res:UiResources.SonarCloudForEuRegion}"/> 
+                                </TextBlock>
+                            </RadioButton>
+                            <RadioButton Grid.Row="1" GroupName="RegionSelection" VerticalContentAlignment="Center" Margin="0,2"
+                                         IsChecked="{Binding Path=IsUsRegionSelected}">
+                                <TextBlock>
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSonarCloudSelected}" Value="False">
+                                                    <Setter Property="Foreground" Value="{StaticResource DisabledText}"></Setter>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsSonarCloudSelected}" Value="True">
+                                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}"></Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                    <Run Text="{x:Static res:UiResources.UsRegionName}" FontWeight="DemiBold"/>
+                                    <Run Text="-"></Run>
+                                    <Run Text="{x:Static res:UiResources.SonarCloudForUsRegion}"/>
+                                </TextBlock>
+                            </RadioButton>
+                        </Grid>
+                    </Grid>
                 </Grid>
 
-                <Grid Grid.Row="1" Margin="10">
+                <Grid Grid.Row="1" Margin="10,0,10,10">
                     <Grid.RowDefinitions>
                         <RowDefinition />
                         <RowDefinition />

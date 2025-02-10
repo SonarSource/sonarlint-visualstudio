@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
 {
@@ -31,7 +33,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
         [TestInitialize]
         public void TestInitialize()
         {
-            testSubject = new ServerSelectionViewModel();
+            testSubject = new ServerSelectionViewModel(Substitute.For<IDogfoodingService>());
         }
 
         [TestMethod]
@@ -51,10 +53,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
         }
 
         [TestMethod]
-        public void IsNextButtonEnabled_SonarCloudIsSelected_ReturnsTrue()
+        public void IsNextButtonEnabled_SonarCloudIsSelectedAndNoRegionIsSelected_ReturnsFalse()
         {
             testSubject.IsSonarCloudSelected = true;
             testSubject.IsSonarQubeSelected = false;
+
+            testSubject.IsEuRegionSelected = false;
+            testSubject.IsUsRegionSelected = false;
+
+            testSubject.IsNextButtonEnabled.Should().BeFalse();
+        }
+
+        [TestMethod]
+        [DataRow(true, false)]
+        [DataRow(false, true)]
+        public void IsNextButtonEnabled_SonarCloudIsSelectedAndRegionIsSelected_ReturnsTrue(bool isEuSelected, bool isUsSelected)
+        {
+            testSubject.IsSonarCloudSelected = true;
+            testSubject.IsSonarQubeSelected = false;
+
+            testSubject.IsEuRegionSelected = isEuSelected;
+            testSubject.IsUsRegionSelected = isUsSelected;
 
             testSubject.IsNextButtonEnabled.Should().BeTrue();
         }
@@ -78,6 +97,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
         {
             testSubject.IsSonarCloudSelected = false;
             testSubject.IsSonarQubeSelected = true;
+
+            testSubject.SonarQubeUrl = "dummy URL";
+
+            testSubject.IsNextButtonEnabled.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void IsNextButtonEnabled_SonarQubeIsSelectedAndUrlIsProvided_ReturnsTrueAndIgnoresRegion()
+        {
+            testSubject.IsSonarCloudSelected = false;
+            testSubject.IsSonarQubeSelected = true;
+            testSubject.IsEuRegionSelected = testSubject.IsUsRegionSelected = false;
 
             testSubject.SonarQubeUrl = "dummy URL";
 
@@ -169,6 +200,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
         }
 
         [TestMethod]
+        [DataRow(true, false)]
+        [DataRow(false, true)]
+        public void CreateTransientConnectionInfo_SonarQubeIsSelected_IgnoresRegion(bool isEu, bool isUs)
+        {
+            testSubject.IsSonarCloudSelected = false;
+            testSubject.IsSonarQubeSelected = true;
+            testSubject.SonarQubeUrl = "http://localhost:90";
+
+            var createdConnection = testSubject.CreateTransientConnectionInfo();
+
+            createdConnection.Id.Should().Be(testSubject.SonarQubeUrl);
+            createdConnection.ServerType.Should().Be(ConnectionServerType.SonarQube);
+            createdConnection.CloudServerRegion.Should().BeNull();
+        }
+
+        [TestMethod]
         public void CreateTransientConnectionInfo_SonarCloudIsSelected_ReturnsConnectionWithSmartNotificationsEnabled()
         {
             testSubject.IsSonarCloudSelected = true;
@@ -178,6 +225,71 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ServerSelection
 
             createdConnection.Id.Should().BeNull();
             createdConnection.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+        }
+
+        [TestMethod]
+        public void CreateTransientConnectionInfo_SonarCloudIsSelected_ReturnsConnectionWithEuRegion()
+        {
+            testSubject.IsSonarCloudSelected = true;
+            testSubject.IsSonarQubeSelected = false;
+            testSubject.IsEuRegionSelected = true;
+
+            var createdConnection = testSubject.CreateTransientConnectionInfo();
+
+            createdConnection.Id.Should().BeNull();
+            createdConnection.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+            createdConnection.CloudServerRegion.Should().Be(CloudServerRegion.Eu);
+        }
+
+        [TestMethod]
+        public void CreateTransientConnectionInfo_SonarCloudIsSelected_ReturnsConnectionWithUsRegion()
+        {
+            testSubject.IsSonarCloudSelected = true;
+            testSubject.IsSonarQubeSelected = false;
+            testSubject.IsUsRegionSelected = true;
+
+            var createdConnection = testSubject.CreateTransientConnectionInfo();
+
+            createdConnection.Id.Should().BeNull();
+            createdConnection.ServerType.Should().Be(ConnectionServerType.SonarCloud);
+            createdConnection.CloudServerRegion.Should().Be(CloudServerRegion.Us);
+        }
+
+        [TestMethod]
+        public void IsEuRegionSelected_ShouldBeTrueByDefault()
+        {
+            testSubject.IsEuRegionSelected.Should().BeTrue();
+            testSubject.IsUsRegionSelected.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsEuRegionSelected_Set_RaisesEvents()
+        {
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+            eventHandler.ReceivedCalls().Should().BeEmpty();
+
+            testSubject.IsEuRegionSelected = !testSubject.IsEuRegionSelected;
+
+            eventHandler.Received().Invoke(testSubject,
+                Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsEuRegionSelected)));
+            eventHandler.Received().Invoke(testSubject,
+                Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsNextButtonEnabled)));
+        }
+
+        [TestMethod]
+        public void IsUsRegionSelected_Set_RaisesEvents()
+        {
+            var eventHandler = Substitute.For<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler;
+            eventHandler.ReceivedCalls().Should().BeEmpty();
+
+            testSubject.IsUsRegionSelected = !testSubject.IsUsRegionSelected;
+
+            eventHandler.Received().Invoke(testSubject,
+                Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsUsRegionSelected)));
+            eventHandler.Received().Invoke(testSubject,
+                Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsNextButtonEnabled)));
         }
     }
 }

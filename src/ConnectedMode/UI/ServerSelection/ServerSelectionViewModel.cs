@@ -18,16 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.WPF;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
 {
-    public class ServerSelectionViewModel : ViewModelBase
+    public class ServerSelectionViewModel(IDogfoodingService dogfoodingService) : ViewModelBase
     {
         private bool isSonarCloudSelected = true;
         private bool isSonarQubeSelected;
+        private bool isEuRegionSelected = true;
+        private bool isUsRegionSelected;
         private string sonarQubeUrl;
+
+        public IDogfoodingService DogfoodingService { get; } = dogfoodingService;
 
         public bool IsSonarCloudSelected
         {
@@ -66,16 +71,40 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ServerSelection
             }
         }
 
-        public bool IsNextButtonEnabled => IsSonarCloudSelected || (IsSonarQubeSelected && IsSonarQubeUrlProvided);
+        public bool IsEuRegionSelected
+        {
+            get => isEuRegionSelected;
+            set
+            {
+                isEuRegionSelected = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(IsNextButtonEnabled));
+            }
+        }
+
+        public bool IsUsRegionSelected
+        {
+            get => isUsRegionSelected;
+            set
+            {
+                isUsRegionSelected = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(IsNextButtonEnabled));
+            }
+        }
+
+        public bool IsNextButtonEnabled => (IsSonarCloudSelected && IsSonarCloudRegionSelected) || (IsSonarQubeSelected && IsSonarQubeUrlProvided);
         public bool ShouldSonarQubeUrlBeFilled => IsSonarQubeSelected && !IsSonarQubeUrlProvided;
         private bool IsSonarQubeUrlProvided => !string.IsNullOrWhiteSpace(SonarQubeUrl);
         public bool ShowSecurityWarning => Uri.TryCreate(SonarQubeUrl, UriKind.Absolute, out Uri uriResult) && uriResult.Scheme != Uri.UriSchemeHttps;
+        private bool IsSonarCloudRegionSelected => IsEuRegionSelected || IsUsRegionSelected;
 
         public ConnectionInfo CreateTransientConnectionInfo()
         {
             var url = IsSonarQubeSelected ? SonarQubeUrl : null;
-            var serverType = IsSonarQubeSelected ? ConnectionServerType.SonarQube : ConnectionServerType.SonarCloud;
-            return new ConnectionInfo(url, serverType);
+            var serverType = IsSonarCloudSelected ? ConnectionServerType.SonarCloud : ConnectionServerType.SonarQube;
+            var region = IsSonarCloudSelected ? CloudServerRegion.GetRegion(IsUsRegionSelected) : null;
+            return new ConnectionInfo(url, serverType, region);
         }
     }
 }
