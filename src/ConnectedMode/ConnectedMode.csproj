@@ -58,6 +58,7 @@
     <Page Include="Migration\Wizard\MigrationWizardWindow.xaml" />
     <Page Include="UI\ConnectionDisplay\ConnectionIconComponent.xaml" />
     <Page Include="UI\ConnectionDisplay\ConnectionInfoComponent.xaml" />
+    <Page Include="UI\ConnectionDisplay\ConnectionNameComponent.xaml" />
     <Page Include="UI\ProgressAndErrorReporterComponent.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

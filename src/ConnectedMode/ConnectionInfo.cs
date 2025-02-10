@@ -65,15 +65,3 @@ public class Connection(ConnectionInfo info, bool enableSmartNotifications = tru
     public ConnectionInfo Info { get; } = info;
     public bool EnableSmartNotifications { get; set; } = enableSmartNotifications;
 }
-
-public static class ConnectionInfoExtensions
-{
-    public static string GetIdForTransientConnection(this ConnectionInfo connection)
-    {
-        if (connection.Id == null && connection.ServerType == ConnectionServerType.SonarCloud)
-        {
-            return connection.CloudServerRegion.Url.ToString();
-        }
-        return connection.Id;
-    }
-}
