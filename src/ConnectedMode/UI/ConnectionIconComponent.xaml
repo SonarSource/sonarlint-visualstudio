@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="SonarLint.VisualStudio.ConnectedMode.UI.ConnectionIconComponent"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             Name="ConnectionIconUc"
+             Height="25"
+             Width="25">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/Styles.xaml" />
+                <ResourceDictionary
+                    Source="pack://application:,,,/SonarLint.VisualStudio.ConnectedMode;component/UI/Resources/LogoImages.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Image 
+        Height="{Binding ElementName=ConnectionIconUc, Path=Height}" 
+        Width="{Binding ElementName=ConnectionIconUc, Path=Width}">
+        <Image.Style>
+            <Style TargetType="Image">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding ElementName=ConnectionIconUc, Path=ServerType}" Value="SonarCloud">
+                        <Setter Property="Source" Value="{StaticResource SonarCloudIconDrawingImage}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding ElementName=ConnectionIconUc, Path=ServerType}" Value="SonarQube">
+                        <Setter Property="Source" Value="{StaticResource SonarQubeIconDrawingImage}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Image.Style>
+    </Image>
+</UserControl>
