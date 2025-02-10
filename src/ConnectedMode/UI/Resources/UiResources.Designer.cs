@@ -863,7 +863,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://sonarcloud.io/account/security.
+        ///   Looks up a localized string similar to account/security.
         /// </summary>
         public static string SonarCloudAccountSecurityUrl {
             get {

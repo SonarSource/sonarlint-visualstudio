@@ -172,7 +172,7 @@
     <value>Smart Notifications</value>
   </data>
   <data name="SonarCloudAccountSecurityUrl" xml:space="preserve">
-    <value>https://sonarcloud.io/account/security</value>
+    <value>account/security</value>
   </data>
   <data name="SonarCloudDescription" xml:space="preserve">
     <value>A Software-as-a-Service (Saas) tool that easily integrates into the cloud DevOps platforms and extends the CI/CD workflow to systematically help developers and organizations deliver CleanCode.</value>
