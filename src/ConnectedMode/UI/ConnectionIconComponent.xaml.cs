@@ -18,11 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Windows;
 using System.Windows.Controls;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI;
 
+[ExcludeFromCodeCoverage] // UI, not really unit-testable
 public partial class ConnectionIconComponent : UserControl
 {
     public static readonly DependencyProperty ServerTypeProp = DependencyProperty.Register(nameof(ServerType), typeof(ConnectionServerType), typeof(ConnectionIconComponent), new PropertyMetadata(ConnectionServerType.SonarCloud));
