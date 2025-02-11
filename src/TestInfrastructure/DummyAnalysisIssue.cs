@@ -38,6 +38,8 @@ public class DummyAnalysisIssue : IAnalysisIssue
     public IReadOnlyList<IAnalysisIssueFlow> Flows { get; } = Array.Empty<IAnalysisIssueFlow>();
 
     public IAnalysisIssueLocation PrimaryLocation { get; set; } = new DummyAnalysisIssueLocation();
+    public bool IsResolved { get; set; }
+    public string IssueServerKey { get; }
 
     public IReadOnlyList<IQuickFix> Fixes { get; } = Array.Empty<IQuickFix>();
 }

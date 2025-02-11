@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
@@ -40,7 +38,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
 
-        public Hotspot(Guid? id,
+        public Hotspot(
+            Guid? id,
             string hotspotKey,
             string serverFilePath,
             IAnalysisIssueLocation primaryLocation,
@@ -63,6 +62,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
         public IHotspotRule Rule { get; }
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
         public IAnalysisIssueLocation PrimaryLocation { get; }
+        public bool IsResolved { get; set; }
+        public string IssueServerKey { get; }
         public string ServerFilePath { get; }
         public string RuleDescriptionContextKey { get; }
     }

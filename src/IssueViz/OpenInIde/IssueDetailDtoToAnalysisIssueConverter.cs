@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
@@ -69,7 +67,8 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
                                     locationDto.textRange.endLineOffset,
                                     checksumCalculator.Calculate(locationDto.codeSnippet))))
                         .ToList()))
-                .ToList());
+                .ToList(),
+            issueDetailDto.issueKey);
     }
 
     private sealed record ServerIssue(
@@ -77,8 +76,10 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
         string RuleKey,
         IAnalysisIssueLocation PrimaryLocation,
         string RuleDescriptionContextKey,
-        IReadOnlyList<IAnalysisIssueFlow> Flows)
+        IReadOnlyList<IAnalysisIssueFlow> Flows,
+        string IssueServerKey)
         : IAnalysisIssueBase
     {
+        public bool IsResolved { get; set; }
     }
 }

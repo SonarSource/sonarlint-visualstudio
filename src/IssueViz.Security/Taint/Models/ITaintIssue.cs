@@ -72,6 +72,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
         public DateTimeOffset CreationTimestamp { get; }
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
         public IAnalysisIssueLocation PrimaryLocation { get; }
+        public bool IsResolved { get; set; }
+        public string IssueServerKey { get; }
         public string RuleDescriptionContextKey { get; }
     }
 }

@@ -56,6 +56,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
 
         public IAnalysisIssueLocation PrimaryLocation { get; }
+        public bool IsResolved { get; set; }
+        public string IssueServerKey { get; }
 
         public IReadOnlyList<IQuickFix> Fixes { get; }
         public Impact HighestImpact { get; }
@@ -63,7 +65,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
     public class AnalysisHotspotIssue : AnalysisIssue, IAnalysisHotspotIssue
     {
-        public AnalysisHotspotIssue(Guid? id,
+        public AnalysisHotspotIssue(
+            Guid? id,
             string ruleKey,
             AnalysisIssueSeverity? severity,
             AnalysisIssueType? type,
@@ -108,7 +111,12 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
     public class TextRange : ITextRange
     {
-        public TextRange(int startLine, int endLine, int startLineOffset, int endLineOffset, string lineHash)
+        public TextRange(
+            int startLine,
+            int endLine,
+            int startLineOffset,
+            int endLineOffset,
+            string lineHash)
         {
             StartLine = startLine;
             EndLine = endLine;
