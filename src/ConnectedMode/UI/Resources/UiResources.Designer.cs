@@ -702,7 +702,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select one of the projects from the server .
+        ///   Looks up a localized string similar to Select one of the projects from the server.
         /// </summary>
         public static string ProjectSelectionConnectionLabel {
             get {

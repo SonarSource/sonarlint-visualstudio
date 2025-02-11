@@ -6,6 +6,7 @@
         xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
         xmlns:vsimagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
         xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+        xmlns:connectionDisplay="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay"
         Title="{x:Static res:UiResources.ProjectSelectionDialogTitle}"
         WindowStartupLocation="CenterOwner"
         Loaded="ProjectSelectionDialog_OnLoaded"
@@ -40,7 +41,7 @@
         <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0">
             <Run Text="{x:Static res:UiResources.ProjectSelectionConnectionLabel}" />
             <InlineUIContainer Style="{StaticResource ConnectionInfoInlineWrapper}">
-                <ui:ConnectionInfoComponent ConnectionInfo="{Binding ConnectionInfo}" />
+                <connectionDisplay:ConnectionInfoComponent ConnectionInfo="{Binding ConnectionInfo}" />
             </InlineUIContainer>
         </TextBlock>
 
