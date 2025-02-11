@@ -24,8 +24,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
 {
     internal interface IHotspot : IAnalysisIssueBase
     {
-        string HotspotKey { get; }
-
         IHotspotRule Rule { get; }
 
         /// <summary>
@@ -40,7 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
 
         public Hotspot(
             Guid? id,
-            string hotspotKey,
+            string issueServerKey,
             string serverFilePath,
             IAnalysisIssueLocation primaryLocation,
             IHotspotRule rule,
@@ -48,7 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
             string context = null)
         {
             Id = id;
-            HotspotKey = hotspotKey;
+            IssueServerKey = issueServerKey;
             ServerFilePath = serverFilePath;
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Rule = rule;
@@ -56,7 +54,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
             RuleDescriptionContextKey = context;
         }
 
-        public string HotspotKey { get; }
         public Guid? Id { get; }
         public string RuleKey => Rule.RuleKey;
         public IHotspotRule Rule { get; }
