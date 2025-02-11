@@ -3,15 +3,28 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
     Name="ConnectionNameUc"
     FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
     FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}">
     
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
+        </ResourceDictionary>
+    </UserControl.Resources>
+    
     <Grid DataContext="{Binding ElementName=ConnectionNameUc, Path=ViewModel}">
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="0"
+                   Text="{Binding Path=DisplayRegion}"
+                   Margin="0, 0, 5, 0"
+                   Visibility="{Binding Path=ShouldDisplayRegion, Converter={StaticResource TrueToVisibleConverter}}"
+                   FontWeight="{Binding ElementName=ConnectionNameUc, Path=ConnectionNameFontWeight}" />
+        <TextBlock Grid.Column="1"
                    Text="{Binding Path=DisplayName}"
                    TextWrapping="Wrap"
                    TextTrimming="CharacterEllipsis"

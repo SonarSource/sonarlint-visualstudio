@@ -20,6 +20,7 @@
 
 using System.ComponentModel;
 using SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ConnectionDisplay;
@@ -30,11 +31,15 @@ public class ConnectionNameViewModelTests
     public static object[][] Regions => [[CloudServerRegion.Eu], [CloudServerRegion.Us]];
 
     private ConnectionNameViewModel testSubject;
+    private IDogfoodingService dogfoodingService;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        testSubject = new ConnectionNameViewModel();
+        dogfoodingService = Substitute.For<IDogfoodingService>();
+        testSubject = new ConnectionNameViewModel(dogfoodingService);
+
+        dogfoodingService.IsDogfoodingEnvironment.Returns(true);
     }
 
     [TestMethod]
@@ -48,6 +53,8 @@ public class ConnectionNameViewModelTests
 
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == "ConnectionInfo"));
         eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == "DisplayName"));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == "ShouldDisplayRegion"));
+        eventHandler.Received(1).Invoke(Arg.Any<object>(), Arg.Is<PropertyChangedEventArgs>(p => p.PropertyName == "DisplayRegion"));
         testSubject.ConnectionInfo.Should().BeSameAs(connectionInfo);
     }
 
@@ -85,10 +92,62 @@ public class ConnectionNameViewModelTests
     }
 
     [TestMethod]
-    public void DisplayName_SonarCloud_HasId_ReturnsUrl()
+    public void DisplayName_SonarCloud_HasId_ReturnsId()
     {
         testSubject.ConnectionInfo = new ConnectionInfo("any id", ConnectionServerType.SonarCloud, CloudServerRegion.Eu);
 
         testSubject.DisplayName.Should().Be("any id");
+    }
+
+    [TestMethod]
+    public void DisplayRegion_NoConnectionInfo_DoesNotDisplayRegion()
+    {
+        testSubject.ConnectionInfo = null;
+
+        VerifyDoesNotDisplayRegion();
+    }
+
+    [TestMethod]
+    public void DisplayRegion_SonarQube_DoesNotDisplayRegion()
+    {
+        testSubject.ConnectionInfo = new ConnectionInfo("id", ConnectionServerType.SonarQube);
+
+        VerifyDoesNotDisplayRegion();
+    }
+
+    [DynamicData(nameof(Regions))]
+    [DataTestMethod]
+    public void DisplayRegion_SonarCloud_NoId_DoesNotDisplayRegion(CloudServerRegion region)
+    {
+        testSubject.ConnectionInfo = new ConnectionInfo(null, ConnectionServerType.SonarCloud, region);
+
+        VerifyDoesNotDisplayRegion();
+    }
+
+    [DynamicData(nameof(Regions))]
+    [DataTestMethod]
+    public void DisplayRegion_SonarCloud_HasId_DisplaysRegion(CloudServerRegion region)
+    {
+        testSubject.ConnectionInfo = new ConnectionInfo("id", ConnectionServerType.SonarCloud, region);
+
+        testSubject.ShouldDisplayRegion.Should().BeTrue();
+        testSubject.DisplayRegion.Should().Be(region.Name);
+    }
+
+    [DynamicData(nameof(Regions))]
+    [DataTestMethod]
+    public void DisplayRegion_SonarCloud_HasId_NotInDogfoodingEnvironment_DoesNotDisplayRegion(CloudServerRegion region)
+    {
+        dogfoodingService.IsDogfoodingEnvironment.Returns(false);
+
+        testSubject.ConnectionInfo = new ConnectionInfo("id", ConnectionServerType.SonarCloud, region);
+
+        VerifyDoesNotDisplayRegion();
+    }
+
+    private void VerifyDoesNotDisplayRegion()
+    {
+        testSubject.ShouldDisplayRegion.Should().BeFalse();
+        testSubject.DisplayRegion.Should().BeEmpty();
     }
 }
