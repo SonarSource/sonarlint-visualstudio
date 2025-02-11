@@ -18,17 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Issue;
+namespace SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 
-[JsonRpcClass("issue")]
-public interface IIssueSLCoreService : ISLCoreService
+[JsonConverter(typeof(StringEnumConverter))]
+public enum ResolutionStatus
 {
-    Task<GetEffectiveIssueDetailsResponse> GetEffectiveIssueDetailsAsync(GetEffectiveIssueDetailsParams parameters);
-
-    Task ChangeStatusAsync(ChangeIssueStatusParams parameters);
-
-    Task<CheckStatusChangePermittedResponse> CheckStatusChangePermittedAsync(CheckStatusChangePermittedParams parameters);
+    ACCEPT,
+    WONT_FIX,
+    FALSE_POSITIVE
 }
