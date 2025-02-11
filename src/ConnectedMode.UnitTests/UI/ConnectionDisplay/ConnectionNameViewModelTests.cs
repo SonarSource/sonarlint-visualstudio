@@ -27,6 +27,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.UI.ConnectionDisplay;
 [TestClass]
 public class ConnectionNameViewModelTests
 {
+    public static object[][] Regions => [[CloudServerRegion.Eu], [CloudServerRegion.Us]];
+
     private ConnectionNameViewModel testSubject;
 
     [TestInitialize]
@@ -38,7 +40,7 @@ public class ConnectionNameViewModelTests
     [TestMethod]
     public void ConnectionInfo_Set_RaisesPropertyChanged()
     {
-        var connectionInfo = new ConnectionInfo("id", ConnectionServerType.SonarQube);
+        var connectionInfo = new ConnectionInfo("any id", ConnectionServerType.SonarQube);
         var eventHandler = Substitute.For<PropertyChangedEventHandler>();
         testSubject.PropertyChanged += eventHandler;
 
@@ -68,27 +70,25 @@ public class ConnectionNameViewModelTests
     [TestMethod]
     public void DisplayName_SonarQube_ReturnsId()
     {
-        testSubject.ConnectionInfo = new ConnectionInfo("id", ConnectionServerType.SonarQube);
+        testSubject.ConnectionInfo = new ConnectionInfo("any id", ConnectionServerType.SonarQube);
 
-        testSubject.DisplayName.Should().Be("id");
+        testSubject.DisplayName.Should().Be("any id");
     }
 
-    [DataRow("EU")]
-    [DataRow("US")]
+    [DynamicData(nameof(Regions))]
     [DataTestMethod]
-    public void DisplayName_SonarCloud_NoId_HasRegion_ReturnsUrl(string region)
+    public void DisplayName_SonarCloud_NoId_HasRegion_ReturnsUrl(CloudServerRegion region)
     {
-        var cloudServerRegion = CloudServerRegion.GetRegionByName(region);
-        testSubject.ConnectionInfo = new ConnectionInfo(null, ConnectionServerType.SonarCloud, cloudServerRegion);
+        testSubject.ConnectionInfo = new ConnectionInfo(null, ConnectionServerType.SonarCloud, region);
 
-        testSubject.DisplayName.Should().Be(cloudServerRegion.Url.ToString());
+        testSubject.DisplayName.Should().Be(region.Url.ToString());
     }
 
     [TestMethod]
     public void DisplayName_SonarCloud_HasId_ReturnsUrl()
     {
-        testSubject.ConnectionInfo = new ConnectionInfo("id", ConnectionServerType.SonarCloud, CloudServerRegion.Eu);
+        testSubject.ConnectionInfo = new ConnectionInfo("any id", ConnectionServerType.SonarCloud, CloudServerRegion.Eu);
 
-        testSubject.DisplayName.Should().Be("id");
+        testSubject.DisplayName.Should().Be("any id");
     }
 }
