@@ -10,7 +10,7 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <connectionDisplay:ConnectionIconComponent Grid.Column="0" ServerType="{Binding Path=ServerType}"
+        <connectionDisplay:ConnectionIconComponent Grid.Column="0" ServerType="{Binding Path=ServerType}" Margin="0, 0, 0, -2"
                            VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path= TextAndIconVerticalAlignment}"
                            HorizontalAlignment="Center"/>
         <connectionDisplay:ConnectionNameComponent

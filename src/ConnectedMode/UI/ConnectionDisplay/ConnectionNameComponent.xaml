@@ -9,7 +9,7 @@
     
     <Grid DataContext="{Binding ElementName=ConnectionNameUc, Path=ViewModel}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="0"
                    Text="{Binding Path=DisplayName}"

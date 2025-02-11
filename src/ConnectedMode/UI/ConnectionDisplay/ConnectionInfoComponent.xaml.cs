@@ -27,9 +27,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
 public sealed partial class ConnectionInfoComponent : UserControl
 {
-    public static readonly DependencyProperty ConnectionNameFontWeightProp = DependencyProperty.Register(nameof(ConnectionNameFontWeight), typeof(FontWeight), typeof(ConnectionInfoComponent), new PropertyMetadata(FontWeights.DemiBold));
+    public static readonly DependencyProperty ConnectionNameFontWeightProp
+        = DependencyProperty.Register(nameof(ConnectionNameFontWeight), typeof(FontWeight), typeof(ConnectionInfoComponent), new PropertyMetadata(FontWeights.DemiBold));
     public static readonly DependencyProperty ConnectionInfoProp = DependencyProperty.Register(nameof(ConnectionInfo), typeof(ConnectionInfo), typeof(ConnectionInfoComponent), new PropertyMetadata());
-    public static readonly DependencyProperty TextAndIconVerticalAlignmentProp = DependencyProperty.Register(nameof(TextAndIconVerticalAlignment), typeof(VerticalAlignment), typeof(ConnectionInfoComponent), new PropertyMetadata(VerticalAlignment.Bottom));
+    public static readonly DependencyProperty TextAndIconVerticalAlignmentProp = DependencyProperty.Register(nameof(TextAndIconVerticalAlignment), typeof(VerticalAlignment),
+        typeof(ConnectionInfoComponent), new PropertyMetadata(VerticalAlignment.Center));
 
     public ConnectionInfoComponent()
     {
