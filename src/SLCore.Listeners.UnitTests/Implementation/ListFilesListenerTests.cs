@@ -178,8 +178,10 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             return activeConfigScopeTracker;
         }
 
-        private ListFilesListener CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null,
-            ISolutionWorkspaceService solutionWorkspaceService = null, IActiveConfigScopeTracker activeConfigScopeTracker = null,
+        private ListFilesListener CreateTestSubject(
+            IFolderWorkspaceService folderWorkspaceService = null,
+            ISolutionWorkspaceService solutionWorkspaceService = null,
+            IActiveConfigScopeTracker activeConfigScopeTracker = null,
             IClientFileDtoFactory clientFileDtoFactory = null)
         {
             folderWorkspaceService ??= Substitute.For<IFolderWorkspaceService>();
@@ -187,7 +189,7 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.UnitTests.Implementation
             activeConfigScopeTracker ??= CreateActiveConfigScopeTracker();
             clientFileDtoFactory ??= Substitute.For<IClientFileDtoFactory>();
 
-            var testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, activeConfigScopeTracker, clientFileDtoFactory);
+            var testSubject = new ListFilesListener(folderWorkspaceService, solutionWorkspaceService, activeConfigScopeTracker, clientFileDtoFactory, Substitute.For<ILogger>());
             return testSubject;
         }
     }

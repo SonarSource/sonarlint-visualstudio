@@ -18,10 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
 using SonarLint.VisualStudio.SLCore.Listener.Visualization.Models;
@@ -33,11 +32,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysisIssueConverter
 {
+    private readonly ILogger logger;
     private readonly IChecksumCalculator checksumCalculator;
 
     [ImportingConstructor]
-    public IssueDetailDtoToAnalysisIssueConverter() : this(new ChecksumCalculator())
+    public IssueDetailDtoToAnalysisIssueConverter(ILogger logger) : this(new ChecksumCalculator())
     {
+        this.logger = logger.ForContext("Open In IDE").ForContext(nameof(IssueDetailDtoToAnalysisIssueConverter));
     }
 
     public IssueDetailDtoToAnalysisIssueConverter(IChecksumCalculator checksumCalculator)
@@ -47,6 +48,7 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
 
     public IAnalysisIssueBase Convert(IssueDetailDto issueDetailDto, string rootPath)
     {
+        logger.LogVerbose($"Issue {issueDetailDto.Key} is not hotspot {issueDetailDto.ideFilePath}");
         return new ServerIssue(Id: null,
             issueDetailDto.ruleKey,
             new AnalysisIssueLocation(issueDetailDto.message,

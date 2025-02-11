@@ -37,15 +37,21 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
         private readonly ISolutionWorkspaceService solutionWorkspaceService;
         private readonly IActiveConfigScopeTracker activeConfigScopeTracker;
         private readonly IClientFileDtoFactory clientFileDtoFactory;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public ListFilesListener(IFolderWorkspaceService folderWorkspaceService, ISolutionWorkspaceService solutionWorkspaceService,
-            IActiveConfigScopeTracker activeConfigScopeTracker, IClientFileDtoFactory clientFileDtoFactory)
+        public ListFilesListener(
+            IFolderWorkspaceService folderWorkspaceService,
+            ISolutionWorkspaceService solutionWorkspaceService,
+            IActiveConfigScopeTracker activeConfigScopeTracker,
+            IClientFileDtoFactory clientFileDtoFactory,
+            ILogger logger)
         {
             this.folderWorkspaceService = folderWorkspaceService;
             this.solutionWorkspaceService = solutionWorkspaceService;
             this.activeConfigScopeTracker = activeConfigScopeTracker;
             this.clientFileDtoFactory = clientFileDtoFactory;
+            this.logger = logger.ForContext("Open In IDE").ForContext(nameof(ListFilesListener));
         }
 
         public Task<ListFilesResponse> ListFilesAsync(ListFilesParams parameters)
@@ -53,21 +59,27 @@ namespace SonarLint.VisualStudio.SLCore.Listeners.Implementation
             var clientFileDtos = new List<ClientFileDto>();
             if (activeConfigScopeTracker.Current.Id == parameters.configScopeId)
             {
-                var fullFilePathList = folderWorkspaceService.IsFolderWorkspace() ? folderWorkspaceService.ListFiles() : solutionWorkspaceService.ListFiles();
+                var isFolderWorkspace = folderWorkspaceService.IsFolderWorkspace();
+                logger.LogVerbose($"Is folder workspace: {isFolderWorkspace}");
+                var fullFilePathList = isFolderWorkspace ? folderWorkspaceService.ListFiles() : solutionWorkspaceService.ListFiles();
                 if (fullFilePathList.Any())
                 {
                     var root = GetRoot(fullFilePathList.First());
+                    logger.LogVerbose($"Root {root}");
                     if (activeConfigScopeTracker.TryUpdateRootOnCurrentConfigScope(parameters.configScopeId, root))
                     {
                         clientFileDtos.AddRange(fullFilePathList.Select(fp => clientFileDtoFactory.Create(parameters.configScopeId, root, new SourceFile(fp))));
                     }
                 }
+
+                logger.LogVerbose($"Files: {string.Join(Environment.NewLine, clientFileDtos.Select(x => $"{x.ideRelativePath} -> {x.fsPath}"))}");
             }
             return Task.FromResult(new ListFilesResponse(clientFileDtos));
         }
 
         private string GetRoot(string filePath)
         {
+            logger.LogVerbose($"File to calculate root {filePath}");
             var root = folderWorkspaceService.FindRootDirectory();
 
             root ??= Path.GetPathRoot(filePath);
