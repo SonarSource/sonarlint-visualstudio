@@ -104,6 +104,7 @@ public class TaintIssueToIssueVisualizationConverterTests
                 taintIssue.Severity == AnalysisIssueSeverity.Minor &&
                 taintIssue.HighestSoftwareQualitySeverity == null &&
                 taintIssue.RuleDescriptionContextKey == "rulecontext" &&
+                taintIssue.IsResolved == false &&
                 taintIssue.PrimaryLocation.FilePath == @"C:\root\file\path\1" &&
                 taintIssue.PrimaryLocation.Message == "message1" &&
                 taintIssue.PrimaryLocation.TextRange.LineHash == "hash1" &&

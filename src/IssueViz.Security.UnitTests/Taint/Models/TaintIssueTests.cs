@@ -52,6 +52,7 @@ public class TaintIssueTests
         issue.Severity.Should().Be(AnalysisIssueSeverity.Major);
         issue.CreationTimestamp.Should().Be(created);
         issue.RuleDescriptionContextKey.Should().Be("contextKey");
+        issue.IsResolved.Should().BeFalse();
 
         issue.PrimaryLocation.FilePath.Should().Be("local-path.cpp");
         issue.PrimaryLocation.Message.Should().Be("message");

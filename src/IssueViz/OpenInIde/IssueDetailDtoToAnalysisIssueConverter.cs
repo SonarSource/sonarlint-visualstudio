@@ -54,7 +54,6 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
                     issueDetailDto.textRange.startLineOffset,
                     issueDetailDto.textRange.endLineOffset,
                     checksumCalculator.Calculate(issueDetailDto.codeSnippet))),
-            null,
             issueDetailDto.flows
                 ?.Select(flowDto =>
                     new AnalysisIssueFlow(flowDto.locations
@@ -75,7 +74,6 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
         Guid? Id,
         string RuleKey,
         IAnalysisIssueLocation PrimaryLocation,
-        string RuleDescriptionContextKey,
         IReadOnlyList<IAnalysisIssueFlow> Flows,
         string IssueServerKey)
         : IAnalysisIssueBase
