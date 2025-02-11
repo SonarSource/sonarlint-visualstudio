@@ -23,6 +23,7 @@ using System.Windows;
 using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.ConnectedMode.UI.Resources;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UI.OrganizationSelection;
 
@@ -31,10 +32,11 @@ public partial class OrganizationSelectionDialog : Window
 {
     private readonly IConnectedModeServices connectedModeServices;
 
-    public OrganizationSelectionDialog(IConnectedModeServices connectedModeServices, ICredentialsModel credentialsModel)
+    public OrganizationSelectionDialog(IConnectedModeServices connectedModeServices, CloudServerRegion cloudServerRegion, ICredentialsModel credentialsModel)
     {
         this.connectedModeServices = connectedModeServices;
-        ViewModel = new OrganizationSelectionViewModel(credentialsModel,
+        ViewModel = new OrganizationSelectionViewModel(cloudServerRegion,
+            credentialsModel,
             connectedModeServices.SlCoreConnectionAdapter,
             new ProgressReporterViewModel(connectedModeServices.Logger));
         InitializeComponent();
@@ -42,22 +44,19 @@ public partial class OrganizationSelectionDialog : Window
 
     public OrganizationSelectionViewModel ViewModel { get; }
 
-    private async void OkButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        await UpdateFinalConnectionInfoAsync(ViewModel.SelectedOrganization.Key);
-    }
+    private async void OkButton_OnClick(object sender, RoutedEventArgs e) => await UpdateFinalConnectionInfoAsync(ViewModel.SelectedOrganization.Key, ViewModel.CloudServerRegion);
 
     private async void ChooseAnotherOrganizationButton_OnClick(object sender, RoutedEventArgs e)
     {
         ViewModel.SelectedOrganization = null;
         var manualOrganizationSelectionDialog = new ManualOrganizationSelectionDialog();
         var manualSelectionDialogSucceeded = manualOrganizationSelectionDialog.ShowDialog(this);
-        if(manualSelectionDialogSucceeded is not true)
+        if (manualSelectionDialogSucceeded is not true)
         {
             return;
         }
 
-        await UpdateFinalConnectionInfoAsync(manualOrganizationSelectionDialog.ViewModel.OrganizationKey);
+        await UpdateFinalConnectionInfoAsync(manualOrganizationSelectionDialog.ViewModel.OrganizationKey, ViewModel.CloudServerRegion);
     }
 
     private async Task<bool> ValidateConnectionForSelectedOrganizationAsync(string selectedOrganizationKey)
@@ -65,7 +64,7 @@ public partial class OrganizationSelectionDialog : Window
         try
         {
             var organizationSelectionInvalidMsg = string.Format(UiResources.ValidatingOrganziationSelectionFailedText, selectedOrganizationKey);
-            return await ViewModel.ValidateConnectionForOrganizationAsync(selectedOrganizationKey, organizationSelectionInvalidMsg);
+            return await ViewModel.ValidateConnectionForOrganizationAsync(selectedOrganizationKey, ViewModel.CloudServerRegion, organizationSelectionInvalidMsg);
         }
         catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
         {
@@ -74,19 +73,15 @@ public partial class OrganizationSelectionDialog : Window
         }
     }
 
-    private async void OrganizationSelectionDialog_OnLoaded(object sender, RoutedEventArgs e)
-    {
-        await ViewModel.LoadOrganizationsAsync();
-    }
+    private async void OrganizationSelectionDialog_OnLoaded(object sender, RoutedEventArgs e) => await ViewModel.LoadOrganizationsAsync();
 
-    private async Task UpdateFinalConnectionInfoAsync(string organizationKey)
+    private async Task UpdateFinalConnectionInfoAsync(string organizationKey, CloudServerRegion serverRegion)
     {
         var isConnectionValid = await ValidateConnectionForSelectedOrganizationAsync(organizationKey);
         if (isConnectionValid)
         {
-            ViewModel.UpdateFinalConnectionInfo(organizationKey);
+            ViewModel.UpdateFinalConnectionInfo(organizationKey, serverRegion);
             DialogResult = true;
         }
     }
 }
-
