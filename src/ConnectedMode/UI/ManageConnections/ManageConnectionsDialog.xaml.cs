@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ManageConnections
                 return newConnectionInfo;
             }
 
-            var organizationSelectionDialog = new OrganizationSelectionDialog(connectedModeServices, credentialsDialog.ViewModel.GetCredentialsModel());
+            var organizationSelectionDialog = new OrganizationSelectionDialog(connectedModeServices, newConnectionInfo.CloudServerRegion, credentialsDialog.ViewModel.GetCredentialsModel());
 
             return organizationSelectionDialog.ShowDialog(this) == true ? organizationSelectionDialog.ViewModel.FinalConnectionInfo : null;
         }
