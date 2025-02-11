@@ -87,15 +87,6 @@ public static class ConnectionExtensions
 
 public static class ConnectionInfoExtensions
 {
-    public static string GetIdForTransientConnection(this ConnectionInfo connection)
-    {
-        if (connection.Id == null && connection.ServerType == ConnectionServerType.SonarCloud)
-        {
-            return connection.CloudServerRegion.Url.ToString();
-        }
-        return connection.Id;
-    }
-
     public static string GetServerIdFromConnectionInfo(this ConnectionInfo connectionInfo)
     {
         ServerConnection partialServerConnection = connectionInfo.ServerType == ConnectionServerType.SonarCloud
