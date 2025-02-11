@@ -23,12 +23,12 @@ namespace SonarLint.VisualStudio.Core.Analysis;
 public interface IFindingsPublisher
 {
     string FindingsType { get; }
+
     /// <summary>
     /// Handles analysis results
     /// </summary>
-    void Publish(string filePath, Guid analysisId, IEnumerable<IAnalysisIssue> findings);
+    void Publish(string filePath, Guid? analysisId, IEnumerable<IAnalysisIssue> findings);
 }
 
 public interface IIssuePublisher : IFindingsPublisher;
-
 public interface IHotspotPublisher : IFindingsPublisher;
