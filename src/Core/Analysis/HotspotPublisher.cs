@@ -24,8 +24,8 @@ namespace SonarLint.VisualStudio.Core.Analysis;
 
 [Export(typeof(IHotspotPublisher))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method:ImportingConstructor]
-internal class HotspotPublisher(IIssueConsumerStorage issueConsumerStorage) : IHotspotPublisher
+[method: ImportingConstructor]
+internal class HotspotPublisher(IIssueConsumerStorage issueConsumerStorage, ILogger logger) : IHotspotPublisher
 {
     public string FindingsType => CoreStrings.FindingType_Hotspot;
 
@@ -35,6 +35,10 @@ internal class HotspotPublisher(IIssueConsumerStorage issueConsumerStorage) : IH
             && analysisId == currentAnalysisId)
         {
             issueConsumer.SetHotspots(filePath, findings);
+        }
+        else
+        {
+            logger.LogVerbose($"issues were not published, currentId={currentAnalysisId}, analysisId={analysisId}");
         }
     }
 }

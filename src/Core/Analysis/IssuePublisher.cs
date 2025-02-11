@@ -24,8 +24,8 @@ namespace SonarLint.VisualStudio.Core.Analysis;
 
 [Export(typeof(IIssuePublisher))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method:ImportingConstructor]
-internal class IssuePublisher(IIssueConsumerStorage issueConsumerStorage) : IIssuePublisher
+[method: ImportingConstructor]
+internal class IssuePublisher(IIssueConsumerStorage issueConsumerStorage, ILogger logger) : IIssuePublisher
 {
     public string FindingsType => CoreStrings.FindingType_Issue;
 
@@ -35,6 +35,10 @@ internal class IssuePublisher(IIssueConsumerStorage issueConsumerStorage) : IIss
             && analysisId == currentAnalysisId)
         {
             issueConsumer.SetIssues(filePath, findings);
+        }
+        else
+        {
+            logger.LogVerbose($"issues were not published, currentId={currentAnalysisId}, analysisId={analysisId}");
         }
     }
 }
