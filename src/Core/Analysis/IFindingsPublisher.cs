@@ -32,3 +32,11 @@ public interface IFindingsPublisher
 
 public interface IIssuePublisher : IFindingsPublisher;
 public interface IHotspotPublisher : IFindingsPublisher;
+
+internal class FindingsPublisherBase
+{
+    /// <summary>
+    /// When <see cref="analysisId"/> is null, it means the issue comes directly from the server not from a local analysis (i.e. when a user muted an issue on the serer).
+    /// </summary>
+    protected bool IsValidAnalysisId(Guid? analysisId, Guid currentAnalysisId) => analysisId == null || analysisId == currentAnalysisId;
+}
