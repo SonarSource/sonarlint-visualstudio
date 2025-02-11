@@ -18,23 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.WPF;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models;
+namespace SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 
-public static class SonarCloudRegionExtensions
+public class ConnectionNameViewModel : ViewModelBase
 {
-    private static readonly IReadOnlyDictionary<CloudServerRegion, SonarCloudRegion> CoreToSlCoreLanguageMap = new Dictionary<CloudServerRegion, SonarCloudRegion>()
-    {
-        { CloudServerRegion.Eu, SonarCloudRegion.EU }, { CloudServerRegion.Us, SonarCloudRegion.US },
-    };
+    private ConnectionInfo connectionInfo;
 
-    public static SonarCloudRegion ToSlCoreRegion(this CloudServerRegion region)
+    public ConnectionInfo ConnectionInfo
     {
-        if (CoreToSlCoreLanguageMap.TryGetValue(region, out var slCoreRegion))
+        get => connectionInfo;
+        set
         {
-            return slCoreRegion;
+            connectionInfo = value;
+            RaisePropertyChanged();
+            RaisePropertyChanged(nameof(DisplayName));
         }
-        throw new ArgumentOutOfRangeException(region.Name);
     }
+
+    public string DisplayName =>
+        connectionInfo is { Id: null, ServerType: ConnectionServerType.SonarCloud}
+            ? connectionInfo.CloudServerRegion.Url.ToString()
+            : connectionInfo?.Id ?? string.Empty;
 }

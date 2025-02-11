@@ -97,14 +97,15 @@ public class SlCoreConnectionAdapterTests
     }
 
     [TestMethod]
-    public async Task ValidateConnectionAsync_ConnectionToSonarCloudWithToken_CallsValidateConnectionWithCorrectParams()
+    [DynamicData(nameof(GetSonarCloudConnections), DynamicDataSourceType.Method)]
+    public async Task ValidateConnectionAsync_ConnectionToSonarCloudWithToken_CallsValidateConnectionWithCorrectParams(ServerConnection.SonarCloud serverConnection)
     {
         var token = "myToken";
 
-        await testSubject.ValidateConnectionAsync(sonarCloudConnectionInfo, new TokenCredentialsModel(token.CreateSecureString()));
+        await testSubject.ValidateConnectionAsync(serverConnection.ToConnection().Info, new TokenCredentialsModel(token.CreateSecureString()));
 
         await connectionConfigurationSlCoreService.Received(1)
-            .ValidateConnectionAsync(Arg.Is<ValidateConnectionParams>(x => IsExpectedSonarCloudConnectionParams(x, token)));
+            .ValidateConnectionAsync(Arg.Is<ValidateConnectionParams>(x => IsExpectedSonarCloudConnectionParams(x, serverConnection, token)));
     }
 
     [TestMethod]
@@ -270,12 +271,15 @@ public class SlCoreConnectionAdapterTests
     }
 
     [TestMethod]
-    public async Task GetAllProjectsAsync_ConnectionToSonarCloudWithToken_CallsGetAllProjectsAsyncWithCorrectParams()
+    [DynamicData(nameof(GetSonarCloudConnections), DynamicDataSourceType.Method)]
+    public async Task GetAllProjectsAsync_ConnectionToSonarCloudWithToken_CallsGetAllProjectsAsyncWithCorrectParams(ServerConnection.SonarCloud serverConnection)
     {
-        await testSubject.GetAllProjectsAsync(sonarCloudConnection);
+        connectionConfigurationSlCoreService.GetAllProjectsAsync(Arg.Any<GetAllProjectsParams>()).Returns(new GetAllProjectsResponse([]));
+
+        await testSubject.GetAllProjectsAsync(serverConnection);
 
         await connectionConfigurationSlCoreService.Received(1)
-            .GetAllProjectsAsync(Arg.Is<GetAllProjectsParams>(x => IsExpectedSonarCloudConnectionParams(x.transientConnection, ValidTokenAuth.Token.ToUnsecureString())));
+            .GetAllProjectsAsync(Arg.Is<GetAllProjectsParams>(x => IsExpectedSonarCloudConnectionParams(x.transientConnection, serverConnection, ValidTokenAuth.Token.ToUnsecureString())));
     }
 
     [TestMethod]
@@ -448,10 +452,7 @@ public class SlCoreConnectionAdapterTests
         logger.Received(1).LogVerbose(Resources.FuzzySearchProjects_Fails, sonarCloudConnection.Id, searchTerm, exception);
     }
 
-    private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string token)
-    {
-        return IsExpectedSonarQubeConnectionParams(receivedParams.transientConnection, token);
-    }
+    private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string token) => IsExpectedSonarQubeConnectionParams(receivedParams.transientConnection, token);
 
     private bool IsExpectedSonarQubeConnectionParams(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection, string token)
     {
@@ -459,10 +460,8 @@ public class SlCoreConnectionAdapterTests
         return transientSonarQubeDto.serverUrl == sonarQubeConnectionInfo.Id && IsExpectedCredentials(transientSonarQubeDto.credentials, token);
     }
 
-    private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string username, string password)
-    {
-        return IsExpectedSonarQubeConnectionParams(receivedParams.transientConnection, username, password);
-    }
+    private bool IsExpectedSonarQubeConnectionParams(ValidateConnectionParams receivedParams, string username, string password) =>
+        IsExpectedSonarQubeConnectionParams(receivedParams.transientConnection, username, password);
 
     private bool IsExpectedSonarQubeConnectionParams(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection, string username, string password)
     {
@@ -472,31 +471,27 @@ public class SlCoreConnectionAdapterTests
 
     private static bool IsSonarCloudRegion(ListUserOrganizationsParams x, SonarCloudRegion expectedRegion) => x.region == expectedRegion;
 
-    private static bool IsExpectedCredentials(Either<TokenDto, UsernamePasswordDto> credentials, string token)
-    {
-        return credentials.Left.token == token;
-    }
+    private static bool IsExpectedCredentials(Either<TokenDto, UsernamePasswordDto> credentials, string token) => credentials.Left.token == token;
 
-    private static bool IsExpectedCredentials(Either<TokenDto, UsernamePasswordDto> credentials, string username, string password)
-    {
-        return credentials.Right.username == username && credentials.Right.password == password;
-    }
+    private static bool IsExpectedCredentials(Either<TokenDto, UsernamePasswordDto> credentials, string username, string password) =>
+        credentials.Right.username == username && credentials.Right.password == password;
 
-    private bool IsExpectedSonarCloudConnectionParams(ValidateConnectionParams receivedParams, string token)
-    {
-        return IsExpectedSonarCloudConnectionParams(receivedParams.transientConnection, token);
-    }
+    private bool IsExpectedSonarCloudConnectionParams(ValidateConnectionParams receivedParams, ServerConnection.SonarCloud expectedConnection, string token) =>
+        IsExpectedSonarCloudConnectionParams(receivedParams.transientConnection, expectedConnection, token);
 
-    private bool IsExpectedSonarCloudConnectionParams(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection, string token)
+    private bool IsExpectedSonarCloudConnectionParams(
+        Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection,
+        ServerConnection.SonarCloud expectedConnection,
+        string token)
     {
         var transientSonarCloudDto = transientConnection.Right;
-        return transientSonarCloudDto.organization == sonarCloudConnectionInfo.Id && IsExpectedCredentials(transientSonarCloudDto.credentials, token);
+        return transientSonarCloudDto.organization == expectedConnection.OrganizationKey &&
+               transientSonarCloudDto.region == expectedConnection.Region.ToSlCoreRegion() &&
+               IsExpectedCredentials(transientSonarCloudDto.credentials, token);
     }
 
-    private bool IsExpectedSonarCloudConnectionParams(ValidateConnectionParams receivedParams, string username, string password)
-    {
-        return IsExpectedSonarCloudConnectionParams(receivedParams.transientConnection, username, password);
-    }
+    private bool IsExpectedSonarCloudConnectionParams(ValidateConnectionParams receivedParams, string username, string password) =>
+        IsExpectedSonarCloudConnectionParams(receivedParams.transientConnection, username, password);
 
     private bool IsExpectedSonarCloudConnectionParams(Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto> transientConnection, string username, string password)
     {
@@ -515,14 +510,11 @@ public class SlCoreConnectionAdapterTests
         });
     }
 
+    private static SonarProjectDto CreateSonarProjectDto(string key, string name) => new(key, name);
+
     public static IEnumerable<object[]> GetSonarCloudConnections() =>
     [
         [new ServerConnection.SonarCloud("myOrg", CloudServerRegion.Eu, new ServerConnectionSettings(true), ValidTokenAuth)],
         [new ServerConnection.SonarCloud("myOrg", CloudServerRegion.Us, new ServerConnectionSettings(true), ValidTokenAuth)],
     ];
-
-    private static SonarProjectDto CreateSonarProjectDto(string key, string name)
-    {
-        return new SonarProjectDto(key, name);
-    }
 }

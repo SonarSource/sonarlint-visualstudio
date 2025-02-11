@@ -43,40 +43,35 @@ public interface ISlCoreConnectionAdapter
 
     Task<AdapterResponseWithData<List<OrganizationDisplay>>> GetOrganizationsAsync(ICredentialsModel credentialsModel, CloudServerRegion cloudServerRegion);
 
+
     Task<AdapterResponseWithData<ServerProject>> GetServerProjectByKeyAsync(ServerConnection serverConnection, string serverProjectKey);
+
     Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(ServerConnection serverConnection);
+
     Task<AdapterResponseWithData<List<ServerProject>>> FuzzySearchProjectsAsync(ServerConnection serverConnection, string searchTerm);
 }
 
 public class AdapterResponseWithData<T>(bool success, T responseData) : IResponseStatus
 {
     public AdapterResponseWithData() : this(false, default) { }
+
     public bool Success { get; init; } = success;
     public T ResponseData { get; } = responseData;
 }
 
 public class AdapterResponse(bool success) : IResponseStatus
 {
-    public AdapterResponse(): this(false){}
+    public AdapterResponse() : this(false) { }
+
     public bool Success { get; } = success;
 }
 
 [Export(typeof(ISlCoreConnectionAdapter))]
-public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
+[method: ImportingConstructor]
+public class SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling, ILogger logger) : ISlCoreConnectionAdapter
 {
-    private readonly ISLCoreServiceProvider serviceProvider;
-    private readonly IThreadHandling threadHandling;
-    private readonly ILogger logger;
     private static readonly AdapterResponseWithData<List<OrganizationDisplay>> FailedResponseWithData = new(false, []);
     private static readonly AdapterResponse FailedResponse = new(false);
-
-    [ImportingConstructor]
-    public SlCoreConnectionAdapter(ISLCoreServiceProvider serviceProvider, IThreadHandling threadHandling, ILogger logger)
-    {
-        this.serviceProvider = serviceProvider;
-        this.threadHandling = threadHandling;
-        this.logger = logger;
-    }
 
     public async Task<AdapterResponse> ValidateConnectionAsync(ConnectionInfo connectionInfo, ICredentialsModel credentialsModel)
     {
@@ -172,9 +167,8 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
         });
     }
 
-    private async Task<AdapterResponse> ValidateConnectionAsync(ValidateConnectionParams validateConnectionParams)
-    {
-        return await threadHandling.RunOnBackgroundThread(async () =>
+    private async Task<AdapterResponse> ValidateConnectionAsync(ValidateConnectionParams validateConnectionParams) =>
+        await threadHandling.RunOnBackgroundThread(async () =>
         {
             if (!TryGetConnectionConfigurationSlCoreService(out var connectionConfigurationSlCoreService))
             {
@@ -192,7 +186,6 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
                 return FailedResponse;
             }
         });
-    }
 
     private async Task<AdapterResponseWithData<List<ServerProject>>> GetAllProjectsAsync(GetAllProjectsParams getAllProjectsParams)
     {
@@ -237,10 +230,8 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
 
         return connectionInfo.ServerType switch
         {
-            ConnectionServerType.SonarQube => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateLeft(
-                new TransientSonarQubeConnectionDto(connectionInfo.Id, credentialsDto)),
-            ConnectionServerType.SonarCloud => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateRight(
-                new TransientSonarCloudConnectionDto(connectionInfo.Id, credentialsDto)),
+            ConnectionServerType.SonarQube => new TransientSonarQubeConnectionDto(connectionInfo.Id, credentialsDto),
+            ConnectionServerType.SonarCloud => new TransientSonarCloudConnectionDto(connectionInfo.Id, credentialsDto, connectionInfo.CloudServerRegion.ToSlCoreRegion()),
             _ => throw new ArgumentException(Resources.UnexpectedConnectionType)
         };
     }
@@ -251,29 +242,17 @@ public class SlCoreConnectionAdapter : ISlCoreConnectionAdapter
 
         return serverConnection switch
         {
-            ServerConnection.SonarQube sonarQubeConnection => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateLeft(
-                new TransientSonarQubeConnectionDto(sonarQubeConnection.Id, credentials)),
-            ServerConnection.SonarCloud sonarCloudConnection => Either<TransientSonarQubeConnectionDto, TransientSonarCloudConnectionDto>.CreateRight(
-                new TransientSonarCloudConnectionDto(sonarCloudConnection.OrganizationKey, credentials)),
+            ServerConnection.SonarQube sonarQubeConnection => new TransientSonarQubeConnectionDto(sonarQubeConnection.Id, credentials),
+            ServerConnection.SonarCloud sonarCloudConnection => new TransientSonarCloudConnectionDto(sonarCloudConnection.OrganizationKey, credentials, sonarCloudConnection.Region.ToSlCoreRegion()),
             _ => throw new ArgumentException(Resources.UnexpectedConnectionType)
         };
-    }
-
-    private static Either<TokenDto, UsernamePasswordDto> GetEitherForToken(string token)
-    {
-        return Either<TokenDto, UsernamePasswordDto>.CreateLeft(new TokenDto(token));
-    }
-
-    private static Either<TokenDto, UsernamePasswordDto> GetEitherForUsernamePassword(string username, string password)
-    {
-        return Either<TokenDto, UsernamePasswordDto>.CreateRight(new UsernamePasswordDto(username, password));
     }
 
     private static Either<TokenDto, UsernamePasswordDto> MapCredentials(IConnectionCredentials credentials) =>
         credentials switch
         {
-            UsernameAndPasswordCredentials basicAuthCredentials => GetEitherForUsernamePassword(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString()),
-            TokenAuthCredentials tokenAuthCredentials => GetEitherForToken(tokenAuthCredentials.Token.ToUnsecureString()),
+            UsernameAndPasswordCredentials basicAuthCredentials => new UsernamePasswordDto(basicAuthCredentials.UserName, basicAuthCredentials.Password.ToUnsecureString()),
+            TokenAuthCredentials tokenAuthCredentials => new TokenDto(tokenAuthCredentials.Token.ToUnsecureString()),
             _ => throw new ArgumentException($"Unexpected {nameof(ICredentialsModel)} argument")
         };
 }

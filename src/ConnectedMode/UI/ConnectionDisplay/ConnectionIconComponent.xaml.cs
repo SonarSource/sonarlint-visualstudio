@@ -18,23 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.Core.Binding;
+using System.Diagnostics.CodeAnalysis;
+using System.Windows;
+using System.Windows.Controls;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Connection.Models;
+namespace SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 
-public static class SonarCloudRegionExtensions
+[ExcludeFromCodeCoverage] // UI, not really unit-testable
+public partial class ConnectionIconComponent : UserControl
 {
-    private static readonly IReadOnlyDictionary<CloudServerRegion, SonarCloudRegion> CoreToSlCoreLanguageMap = new Dictionary<CloudServerRegion, SonarCloudRegion>()
-    {
-        { CloudServerRegion.Eu, SonarCloudRegion.EU }, { CloudServerRegion.Us, SonarCloudRegion.US },
-    };
+    public static readonly DependencyProperty ServerTypeProp = DependencyProperty.Register(nameof(ServerType), typeof(ConnectionServerType), typeof(ConnectionIconComponent), new PropertyMetadata(ConnectionServerType.SonarCloud));
 
-    public static SonarCloudRegion ToSlCoreRegion(this CloudServerRegion region)
+    public ConnectionIconComponent()
     {
-        if (CoreToSlCoreLanguageMap.TryGetValue(region, out var slCoreRegion))
-        {
-            return slCoreRegion;
-        }
-        throw new ArgumentOutOfRangeException(region.Name);
+        InitializeComponent();
+    }
+
+    public ConnectionServerType ServerType
+    {
+        get => (ConnectionServerType)GetValue(ServerTypeProp);
+        set => SetValue(ServerTypeProp, value);
     }
 }
+

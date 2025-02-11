@@ -1,0 +1,24 @@
+﻿<UserControl
+    x:Class="SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay.ConnectionInfoComponent"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:connectionDisplay="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay"
+    Name="ConnectionInfoUc">
+
+    <Grid DataContext="{Binding ElementName=ConnectionInfoUc, Path=ConnectionInfo}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <connectionDisplay:ConnectionIconComponent Grid.Column="0" ServerType="{Binding Path=ServerType}" Margin="0, 0, 0, -2"
+                           VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path= TextAndIconVerticalAlignment}"
+                           HorizontalAlignment="Center"/>
+        <connectionDisplay:ConnectionNameComponent
+            Grid.Column="1"
+            Margin="5, 0, 0, 0"
+            ConnectionInfo="{Binding Path=.}"
+            VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path=TextAndIconVerticalAlignment}"
+            ConnectionNameFontWeight="{Binding ElementName=ConnectionInfoUc, Path=ConnectionNameFontWeight}"/>
+    </Grid>
+
+</UserControl>

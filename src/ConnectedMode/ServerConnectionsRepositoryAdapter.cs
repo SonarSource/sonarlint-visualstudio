@@ -19,11 +19,9 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Security;
 using SonarLint.VisualStudio.ConnectedMode.Persistence;
 using SonarLint.VisualStudio.ConnectedMode.UI.Credentials;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode;
@@ -31,10 +29,15 @@ namespace SonarLint.VisualStudio.ConnectedMode;
 public interface IServerConnectionsRepositoryAdapter
 {
     bool TryGetAllConnections(out List<Connection> connections);
+
     bool TryGetAllConnectionsInfo(out List<ConnectionInfo> connectionInfos);
+
     bool TryRemoveConnection(ConnectionInfo connectionInfo);
+
     bool TryAddConnection(Connection connection, ICredentialsModel credentialsModel);
+
     bool TryUpdateCredentials(Connection connection, ICredentialsModel credentialsModel);
+
     bool TryGet(ConnectionInfo connectionInfo, out ServerConnection serverConnection);
 }
 
@@ -45,7 +48,7 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
     public bool TryGetAllConnections(out List<Connection> connections)
     {
         var succeeded = serverConnectionsRepository.TryGetAll(out var serverConnections);
-        connections = serverConnections?.Select(MapServerConnectionModel).ToList();
+        connections = serverConnections?.Select(x => x.ToConnection()).ToList();
         return succeeded;
     }
 
@@ -58,44 +61,28 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
 
     public bool TryAddConnection(Connection connection, ICredentialsModel credentialsModel)
     {
-        var serverConnection = MapConnection(connection);
+        var serverConnection = connection.ToServerConnection();
         serverConnection.Credentials = MapCredentials(credentialsModel);
         return serverConnectionsRepository.TryAdd(serverConnection);
     }
 
     public bool TryUpdateCredentials(Connection connection, ICredentialsModel credentialsModel)
     {
-        var serverConnection = MapConnection(connection);
+        var serverConnection = connection.ToServerConnection();
         serverConnection.Credentials = MapCredentials(credentialsModel);
         return serverConnectionsRepository.TryUpdateCredentialsById(serverConnection.Id, serverConnection.Credentials);
     }
 
     public bool TryGet(ConnectionInfo connectionInfo, out ServerConnection serverConnection)
     {
-        var connectionId = GetServerIdFromConnectionInfo(connectionInfo);
+        var connectionId = connectionInfo.GetServerIdFromConnectionInfo();
         return serverConnectionsRepository.TryGet(connectionId, out serverConnection);
     }
 
     public bool TryRemoveConnection(ConnectionInfo connectionInfo)
     {
-        var connectionId = GetServerIdFromConnectionInfo(connectionInfo);
+        var connectionId = connectionInfo.GetServerIdFromConnectionInfo();
         return serverConnectionsRepository.TryDelete(connectionId);
-    }
-
-    private static Connection MapServerConnectionModel(ServerConnection serverConnection)
-    {
-        var connectionInfo = ConnectionInfo.From(serverConnection);
-        return new Connection(connectionInfo, serverConnection.Settings.IsSmartNotificationsEnabled);
-    }
-
-    private static ServerConnection MapConnection(Connection connection)
-    {
-        if (connection.Info.ServerType == ConnectionServerType.SonarCloud)
-        {
-            return new ServerConnection.SonarCloud(connection.Info.Id, new ServerConnectionSettings(connection.EnableSmartNotifications));
-        }
-
-        return new ServerConnection.SonarQube(new Uri(connection.Info.Id), new ServerConnectionSettings(connection.EnableSmartNotifications));
     }
 
     private static IConnectionCredentials MapCredentials(ICredentialsModel credentialsModel)
@@ -107,14 +94,5 @@ internal class ServerConnectionsRepositoryAdapter(IServerConnectionsRepository s
             default:
                 return null;
         }
-    }
-
-    private static string GetServerIdFromConnectionInfo(ConnectionInfo connectionInfo)
-    {
-        ServerConnection partialServerConnection = connectionInfo.ServerType == ConnectionServerType.SonarCloud
-            ? new ServerConnection.SonarCloud(connectionInfo.Id)
-            : new ServerConnection.SonarQube(new Uri(connectionInfo.Id));
-
-        return partialServerConnection.Id;
     }
 }

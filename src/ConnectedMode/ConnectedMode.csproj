@@ -56,6 +56,9 @@
 
   <ItemGroup>
     <Page Include="Migration\Wizard\MigrationWizardWindow.xaml" />
+    <Page Include="UI\ConnectionDisplay\ConnectionIconComponent.xaml" />
+    <Page Include="UI\ConnectionDisplay\ConnectionInfoComponent.xaml" />
+    <Page Include="UI\ConnectionDisplay\ConnectionNameComponent.xaml" />
     <Page Include="UI\ProgressAndErrorReporterComponent.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -78,7 +81,6 @@
     </Page>
     <Page Include="UI\ServerSelection\ServerSelectionDialog.xaml" />
     <Page Include="UI\ManageConnections\ManageConnectionsDialog.xaml" />
-    <Page Include="UI\ConnectionInfoComponent.xaml" />
     <Page Include="UI\OrganizationSelection\ManualOrganizationSelectionDialog.xaml" />
     <Page Include="UI\OrganizationSelection\OrganizationSelectionDialog.xaml" />
     <Page Include="UI\ProjectSelection\ProjectSelectionDialog.xaml" />

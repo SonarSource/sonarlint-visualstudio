@@ -4,6 +4,7 @@
         xmlns:res="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.Resources"
         xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
         xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
+        xmlns:connectionDisplay="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay"
         Title="{x:Static res:UiResources.ManageConnectionsDialogTitle}"
         WindowStartupLocation="CenterOwner"
         Initialized="ManageConnectionsWindow_OnInitialized"
@@ -66,24 +67,15 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-
-                            <Image Grid.Column="0" Width="30" Height="30" Margin="5,5,10,5" VerticalAlignment="Center"
-                                   HorizontalAlignment="Center">
-                                <Image.Style>
-                                    <Style TargetType="Image">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Path=ServerType}" Value="SonarCloud">
-                                                <Setter Property="Source"
-                                                        Value="{StaticResource SonarCloudIconDrawingImage}" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Path=ServerType}" Value="SonarQube">
-                                                <Setter Property="Source"
-                                                        Value="{StaticResource SonarQubeIconDrawingImage}" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Image.Style>
-                            </Image>
+                            
+                            <connectionDisplay:ConnectionIconComponent 
+                                Grid.Column="0" 
+                                ServerType="{Binding Path=ServerType}"
+                                Width="30" 
+                                Height="30" 
+                                Margin="5,5,10,5" 
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center" />
                             <Grid Grid.Column="1">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="*" />
