@@ -99,7 +99,7 @@ public class TaintIssueToIssueVisualizationConverterTests
         issueVizConverter.Received().Convert(
             Arg.Is((TaintIssue taintIssue) =>
                 taintIssue.Id == id &&
-                taintIssue.IssueKey == "serverkey" &&
+                taintIssue.IssueServerKey == "serverkey" &&
                 taintIssue.RuleKey == "rulekey:S123" &&
                 taintIssue.Severity == AnalysisIssueSeverity.Minor &&
                 taintIssue.HighestSoftwareQualitySeverity == null &&

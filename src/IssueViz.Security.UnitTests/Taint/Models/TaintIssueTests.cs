@@ -30,7 +30,7 @@ public class TaintIssueTests
     [TestMethod]
     public void Ctor_NullLocation_ArgumentNullException()
     {
-        Action act = () => new TaintIssue( Guid.Empty,"issue key", "rule key",
+        Action act = () => new TaintIssue(Guid.Empty, "issue key", "rule key",
             null,
             AnalysisIssueSeverity.Major, SoftwareQualitySeverity.High, DateTimeOffset.MinValue, null, null);
 
@@ -47,7 +47,7 @@ public class TaintIssueTests
             AnalysisIssueSeverity.Major, SoftwareQualitySeverity.High, created, null, "contextKey");
 
         issue.Id.Should().Be(id);
-        issue.IssueKey.Should().Be("issue key");
+        issue.IssueServerKey.Should().Be("issue key");
         issue.RuleKey.Should().Be("rule key");
         issue.Severity.Should().Be(AnalysisIssueSeverity.Major);
         issue.CreationTimestamp.Should().Be(created);

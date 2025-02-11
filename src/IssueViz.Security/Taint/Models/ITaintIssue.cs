@@ -24,8 +24,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
 {
     public interface ITaintIssue : IAnalysisIssueBase
     {
-        string IssueKey { get; }
-
         AnalysisIssueSeverity? Severity { get; }
 
         SoftwareQualitySeverity? HighestSoftwareQualitySeverity { get; }
@@ -39,7 +37,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
 
         public TaintIssue(
             Guid? id,
-            string issueKey,
+            string issueServerKey,
             string ruleKey,
             IAnalysisIssueLocation primaryLocation,
             AnalysisIssueSeverity? severity,
@@ -49,7 +47,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
             string ruleDescriptionContextKey)
         {
             Id = id;
-            IssueKey = issueKey;
+            IssueServerKey = issueServerKey;
             RuleKey = ruleKey;
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Severity = severity;
@@ -60,12 +58,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
 
             if (!severity.HasValue && !highestSoftwareQualitySeverity.HasValue)
             {
-                throw new ArgumentException(string.Format(TaintResources.TaintIssue_SeverityUndefined, IssueKey));
+                throw new ArgumentException(string.Format(TaintResources.TaintIssue_SeverityUndefined, IssueServerKey));
             }
         }
 
         public Guid? Id { get; }
-        public string IssueKey { get; }
+        public string IssueServerKey { get; }
         public string RuleKey { get; }
         public AnalysisIssueSeverity? Severity { get; }
         public SoftwareQualitySeverity? HighestSoftwareQualitySeverity { get; }
@@ -73,7 +71,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
         public IAnalysisIssueLocation PrimaryLocation { get; }
         public bool IsResolved { get; set; }
-        public string IssueServerKey { get; }
         public string RuleDescriptionContextKey { get; }
     }
 }
