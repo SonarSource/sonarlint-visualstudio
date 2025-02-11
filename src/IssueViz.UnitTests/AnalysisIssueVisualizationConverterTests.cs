@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -214,7 +211,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 
             var expectedSecondFlowFirstLocationVisualization = new AnalysisIssueLocationVisualization(1, secondFlowFirstLocation);
             var expectedSecondFlowSecondLocationVisualization = new AnalysisIssueLocationVisualization(2, secondFlowSecondLocation);
-            var expectedSecondFlowVisualization = new AnalysisIssueFlowVisualization(2, new[] { expectedSecondFlowFirstLocationVisualization, expectedSecondFlowSecondLocationVisualization }, secondFlow);
+            var expectedSecondFlowVisualization
+                = new AnalysisIssueFlowVisualization(2, new[] { expectedSecondFlowFirstLocationVisualization, expectedSecondFlowSecondLocationVisualization }, secondFlow);
 
             var expectedIssueVisualization = new AnalysisIssueVisualization(
                 new[] { expectedFirstFlowVisualization, expectedSecondFlowVisualization },
@@ -270,6 +268,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var issue = new AnalysisIssue(
                 Guid.NewGuid(),
                 Guid.NewGuid().ToString(),
+                Guid.NewGuid().ToString(),
                 AnalysisIssueSeverity.Blocker,
                 AnalysisIssueType.Bug,
                 new Impact(SoftwareQuality.Maintainability, SoftwareQualitySeverity.High),
@@ -285,6 +284,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         {
             var issue = new AnalysisIssue(
                 Guid.NewGuid(),
+                Guid.NewGuid().ToString(),
                 Guid.NewGuid().ToString(),
                 AnalysisIssueSeverity.Blocker,
                 AnalysisIssueType.Bug,
