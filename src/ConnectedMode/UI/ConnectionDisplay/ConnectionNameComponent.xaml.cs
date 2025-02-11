@@ -25,21 +25,17 @@ using System.Windows.Controls;
 namespace SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 
 [ExcludeFromCodeCoverage] // UI, not really unit-testable
-public sealed partial class ConnectionInfoComponent : UserControl
+public sealed partial class ConnectionNameComponent : UserControl
 {
-    public static readonly DependencyProperty ConnectionNameFontWeightProp = DependencyProperty.Register(nameof(ConnectionNameFontWeight), typeof(FontWeight), typeof(ConnectionInfoComponent), new PropertyMetadata(FontWeights.DemiBold));
-    public static readonly DependencyProperty ConnectionInfoProp = DependencyProperty.Register(nameof(ConnectionInfo), typeof(ConnectionInfo), typeof(ConnectionInfoComponent), new PropertyMetadata());
-    public static readonly DependencyProperty TextAndIconVerticalAlignmentProp = DependencyProperty.Register(nameof(TextAndIconVerticalAlignment), typeof(VerticalAlignment), typeof(ConnectionInfoComponent), new PropertyMetadata(VerticalAlignment.Bottom));
+    public static readonly DependencyProperty ConnectionNameFontWeightProp = DependencyProperty.Register(nameof(ConnectionNameFontWeight), typeof(FontWeight), typeof(ConnectionNameComponent), new PropertyMetadata(FontWeights.DemiBold));
+    public static readonly DependencyProperty ConnectionInfoProp
+        = DependencyProperty.Register(nameof(ConnectionInfo), typeof(ConnectionInfo), typeof(ConnectionNameComponent), new PropertyMetadata(OnConnectionInfoSet));
 
-    public ConnectionInfoComponent()
+    public ConnectionNameViewModel ViewModel { get; } = new();
+
+    public ConnectionNameComponent()
     {
         InitializeComponent();
-    }
-
-    public FontWeight ConnectionNameFontWeight
-    {
-        get => (FontWeight)GetValue(ConnectionNameFontWeightProp);
-        set => SetValue(ConnectionNameFontWeightProp, value);
     }
 
     public ConnectionInfo ConnectionInfo
@@ -48,9 +44,17 @@ public sealed partial class ConnectionInfoComponent : UserControl
         set => SetValue(ConnectionInfoProp, value);
     }
 
-    public VerticalAlignment TextAndIconVerticalAlignment
+    public FontWeight ConnectionNameFontWeight
     {
-        get => (VerticalAlignment)GetValue(TextAndIconVerticalAlignmentProp);
-        set => SetValue(TextAndIconVerticalAlignmentProp, value);
+        get => (FontWeight)GetValue(ConnectionNameFontWeightProp);
+        set => SetValue(ConnectionNameFontWeightProp, value);
+    }
+
+    private static void OnConnectionInfoSet(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is ConnectionNameComponent component && e.NewValue is ConnectionInfo connectionInfo)
+        {
+            component.ViewModel.ConnectionInfo = connectionInfo;
+        }
     }
 }

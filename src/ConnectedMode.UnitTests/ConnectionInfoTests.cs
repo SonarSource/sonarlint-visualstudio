@@ -94,41 +94,6 @@ public class ConnectionInfoTests
     }
 
     [TestMethod]
-    public void GetIdForTransientConnection_SonarCloudWithNullIdAndNoRegion_ReturnsSonarCloudUrlForEuRegion()
-    {
-        var connectionInfo = new ConnectionInfo(null, ConnectionServerType.SonarCloud);
-
-        connectionInfo.GetIdForTransientConnection().Should().Be(CloudServerRegion.Eu.Url.ToString());
-    }
-
-    [TestMethod]
-    public void GetIdForTransientConnection_SonarCloudWithNullIdAndUsRegion_ReturnsSonarCloudUrlForUsRegion()
-    {
-        var connectionInfo = new ConnectionInfo(null, ConnectionServerType.SonarCloud, CloudServerRegion.Us);
-
-        connectionInfo.GetIdForTransientConnection().Should().Be(CloudServerRegion.Us.Url.ToString());
-    }
-
-    [TestMethod]
-    public void GetIdForTransientConnection_SonarCloudWithNotNullId_ReturnsId()
-    {
-        var id = "my org";
-        var connectionInfo = new ConnectionInfo(id, ConnectionServerType.SonarCloud);
-
-        connectionInfo.GetIdForTransientConnection().Should().Be(id);
-    }
-
-    [TestMethod]
-    [DataRow(null)]
-    [DataRow("http://localhost:9000")]
-    public void GetIdForTransientConnection_SonarQube_ReturnsId(string id)
-    {
-        var connectionInfo = new ConnectionInfo(id, ConnectionServerType.SonarQube);
-
-        connectionInfo.GetIdForTransientConnection().Should().Be(id);
-    }
-
-    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void ToServerConnection_SonarQube_ReturnsAsExpected(bool enableSmartNotifications)
