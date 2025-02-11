@@ -6,6 +6,7 @@
                          xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
                          xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
                          xmlns:links="clr-namespace:SonarLint.VisualStudio.Core;assembly=SonarLint.VisualStudio.Core"
+                         xmlns:connectionDisplay="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay"
                          Title="{x:Static res:UiResources.ManageBindingDialogTitle}" 
                          WindowStartupLocation="CenterOwner"
                          Initialized="ManageBindingDialog_OnInitialized"
@@ -148,7 +149,7 @@
                           SelectedItem="{Binding Path=SelectedConnectionInfo}" IsEnabled="{Binding Path=IsConnectionSelectionEnabled}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <ui:ConnectionInfoComponent ConnectionInfo="{Binding Path=.}" TextFontWeight="Normal" ImageMargin="0" TextAndIconVerticalAlignment="Center"
+                            <connectionDisplay:ConnectionInfoComponent ConnectionInfo="{Binding Path=.}" TextFontWeight="Normal" TextAndIconVerticalAlignment="Center"
                                                         MaxWidth="{Binding ElementName=ConnectionsComboBox, Path=ActualWidth, UpdateSourceTrigger=PropertyChanged}"/>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>

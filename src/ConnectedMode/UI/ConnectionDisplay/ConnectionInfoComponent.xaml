@@ -1,0 +1,28 @@
+﻿<UserControl
+    x:Class="SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay.ConnectionInfoComponent"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns:ui="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI"
+    xmlns:connectionDisplay="clr-namespace:SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay"
+    FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
+    FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"
+    Name="ConnectionInfoUc">
+
+    <Grid DataContext="{Binding ElementName=ConnectionInfoUc, Path=ConnectionInfo}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <connectionDisplay:ConnectionIconComponent Grid.Column="0" ServerType="{Binding Path=ServerType}"
+                           VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path= TextAndIconVerticalAlignment}"
+                           HorizontalAlignment="Center"/>
+        <TextBlock x:Name="IdTextBlock" Grid.Column="1" Text="{Binding Path=Id}"
+                   Margin="5,0,0,0"
+                   TextWrapping="Wrap"
+                   TextTrimming="CharacterEllipsis"
+                   VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path=TextAndIconVerticalAlignment}"
+                   FontWeight="{Binding ElementName=ConnectionInfoUc, Path=TextFontWeight}" />
+    </Grid>
+
+</UserControl>
