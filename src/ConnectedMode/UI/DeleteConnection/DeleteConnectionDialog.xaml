@@ -40,7 +40,7 @@
             <Run Text="{x:Static res:UiResources.DeleteConnectionDescription}" />
             <InlineUIContainer Style="{StaticResource ConnectionInfoInlineWrapper}">
                 <connectionDisplay:ConnectionInfoComponent ConnectionInfo="{Binding ConnectionInfo}"
-                                            TextAndIconVerticalAlignment="Center" Margin="2,0" />
+                                            TextAndIconVerticalAlignment="Bottom"/>
             </InlineUIContainer>
             <Run Text="?" />
         </TextBlock>

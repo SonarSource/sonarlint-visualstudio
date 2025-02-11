@@ -149,7 +149,7 @@
                           SelectedItem="{Binding Path=SelectedConnectionInfo}" IsEnabled="{Binding Path=IsConnectionSelectionEnabled}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <connectionDisplay:ConnectionInfoComponent ConnectionInfo="{Binding Path=.}" TextFontWeight="Normal" TextAndIconVerticalAlignment="Center" Margin="5"
+                            <connectionDisplay:ConnectionInfoComponent ConnectionInfo="{Binding Path=.}" TextFontWeight="Normal" TextAndIconVerticalAlignment="Center"
                                                         MaxWidth="{Binding ElementName=ConnectionsComboBox, Path=ActualWidth, UpdateSourceTrigger=PropertyChanged}"/>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>

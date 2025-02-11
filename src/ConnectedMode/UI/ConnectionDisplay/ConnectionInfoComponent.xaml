@@ -15,7 +15,6 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <connectionDisplay:ConnectionIconComponent Grid.Column="0" ServerType="{Binding Path=ServerType}"
-                           Margin="-5,-5,0,-5"
                            VerticalAlignment="{Binding ElementName=ConnectionInfoUc, Path= TextAndIconVerticalAlignment}"
                            HorizontalAlignment="Center"/>
         <TextBlock x:Name="IdTextBlock" Grid.Column="1" Text="{Binding Path=Id}"

@@ -199,7 +199,7 @@
     <value>Select project to bind</value>
   </data>
   <data name="ProjectSelectionConnectionLabel" xml:space="preserve">
-    <value>Select one of the projects from the server </value>
+    <value>Select one of the projects from the server</value>
   </data>
   <data name="SelectOrganizationLabel" xml:space="preserve">
     <value>Select one of your SonarQube Cloud organizations from the list or manually provide one.</value>
