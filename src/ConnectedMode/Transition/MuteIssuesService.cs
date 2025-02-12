@@ -42,19 +42,17 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
         private readonly ILogger logger;
         private readonly IMuteIssuesWindowService muteIssuesWindowService;
         private readonly IThreadHandling threadHandling;
-        private readonly ISonarQubeService sonarQubeService;
         private readonly IMessageBox messageBox;
         private readonly ResourceManager resourceManager;
 
         [ImportingConstructor]
-        public MuteIssuesService(IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger, IMuteIssuesWindowService muteIssuesWindowService, ISonarQubeService sonarQubeService)
-            : this(activeSolutionBoundTracker, logger, muteIssuesWindowService, sonarQubeService, ThreadHandling.Instance, new Core.MessageBox())
+        public MuteIssuesService(IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger, IMuteIssuesWindowService muteIssuesWindowService)
+            : this(activeSolutionBoundTracker, logger, muteIssuesWindowService, ThreadHandling.Instance, new Core.MessageBox())
         { }
 
         internal MuteIssuesService(IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger,
             IMuteIssuesWindowService muteIssuesWindowService,
-            ISonarQubeService sonarQubeService,
             IThreadHandling threadHandling,
             IMessageBox messageBox)
         {
@@ -62,7 +60,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
             this.logger = logger;
             this.muteIssuesWindowService = muteIssuesWindowService;
             this.threadHandling = threadHandling;
-            this.sonarQubeService = sonarQubeService;
             this.messageBox = messageBox;
 
             resourceManager = new ResourceManager(typeof(Resources));
@@ -84,18 +81,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
 
             if (windowResponse.Result)
             {
-                var serviceResult = await sonarQubeService.TransitionIssueAsync(issue.IssueKey, windowResponse.IssueTransition, windowResponse.Comment, token);
-
-                if (serviceResult == SonarQubeIssueTransitionResult.Success || serviceResult == SonarQubeIssueTransitionResult.CommentAdditionFailed)
-                {
-                    issue.IsResolved = true;
-                }
-
-                if (serviceResult != SonarQubeIssueTransitionResult.Success)
-                {
-                    // ideally, message box invocation should be moved to Mute command
-                    messageBox.Show(resourceManager.GetString($"MuteIssuesService_Error_{serviceResult}"), Resources.MuteIssuesService_Error_Caption, MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                // Success
+                // if ()
+                // {
+                //     issue.IsResolved = true;
+                // }
+                //
+                // Fail
+                // if ()
+                // {
+                //     // ideally, message box invocation should be moved to Mute command
+                //     messageBox.Show(resourceManager.GetString($"MuteIssuesService_Error_{serviceResult}"), Resources.MuteIssuesService_Error_Caption, MessageBoxButton.OK, MessageBoxImage.Error);
+                // }
             }
         }
     }
