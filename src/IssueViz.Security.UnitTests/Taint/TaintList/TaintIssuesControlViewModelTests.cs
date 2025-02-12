@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2025 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,15 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.Design;
-using System.Linq;
 using System.Windows.Input;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core;
@@ -736,8 +731,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var issueViz1 = CreateIssueViz();
             var issueViz2 = CreateIssueViz();
 
-            Mock.Get(issueViz1).VerifyAdd(x=> x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Never);
-            Mock.Get(issueViz2).VerifyAdd(x=> x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Never);
+            Mock.Get(issueViz1).VerifyAdd(x => x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Never);
+            Mock.Get(issueViz2).VerifyAdd(x => x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Never);
 
             RaiseStoreIssuesChangedEvent(store, issueViz1, issueViz2);
 
@@ -762,7 +757,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         [TestMethod]
         public void OnIssueVizPropertyChanged_NotSuppressedProperty_NoChanges()
         {
-            var issueViz = CreateIssueViz(filePath:"current.cpp");
+            var issueViz = CreateIssueViz(filePath: "current.cpp");
             var locator = CreateLocatorAndSetActiveDocument("current.cpp");
 
             var testSubject = CreateTestSubject(issueVizs: new[] { issueViz }, activeDocumentLocator: locator);
@@ -775,7 +770,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             filteredItems[0].Should().Be(issueViz);
 
             issueViz.IsSuppressed = true;
-            Mock.Get(issueViz).Raise(x=> x.PropertyChanged += null, new PropertyChangedEventArgs("some prop"));
+            Mock.Get(issueViz).Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs("some prop"));
 
             filteredItems = GetIssueVizsFromView(testSubject);
             filteredItems.Count.Should().Be(1);
@@ -883,12 +878,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             return activeDocumentLocator.Object;
         }
 
-        private IAnalysisIssueVisualization CreateIssueViz(string filePath = "test.cpp", string issueKey = "issue key",
-            DateTimeOffset created = default, bool isSuppressed = false, params IAnalysisIssueLocationVisualization[] locations)
+        private IAnalysisIssueVisualization CreateIssueViz(
+            string filePath = "test.cpp",
+            string issueKey = "issue key",
+            DateTimeOffset created = default,
+            bool isSuppressed = false,
+            params IAnalysisIssueLocationVisualization[] locations)
         {
             var issue = new Mock<ITaintIssue>();
             issue.Setup(x => x.Severity).Returns(AnalysisIssueSeverity.Major);
-            issue.Setup(x => x.IssueKey).Returns(issueKey);
+            issue.Setup(x => x.IssueServerKey).Returns(issueKey);
             issue.Setup(x => x.CreationTimestamp).Returns(created);
 
             var issueViz = new Mock<IAnalysisIssueVisualization>();
@@ -922,8 +921,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             result.Should().Be(canExecute);
         }
 
-        private static void VerifyFilterIsNotNull(TaintIssuesControlViewModel controlViewModel) =>
-            controlViewModel.IssuesView.Filter.Should().NotBeNull();
+        private static void VerifyFilterIsNotNull(TaintIssuesControlViewModel controlViewModel) => controlViewModel.IssuesView.Filter.Should().NotBeNull();
 
         /// <summary>
         /// Returns the filtered and sorted list of issue viz items
@@ -946,8 +944,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             store.Raise(x => x.IssuesChanged += null, null, null);
         }
 
-        private static void CheckExpectedSourceIssueCount(ITaintIssuesControlViewModel controlViewModel, int expected) =>
-            GetSourceItems(controlViewModel).Count.Should().Be(expected);
+        private static void CheckExpectedSourceIssueCount(ITaintIssuesControlViewModel controlViewModel, int expected) => GetSourceItems(controlViewModel).Count.Should().Be(expected);
 
         private static ObservableCollection<ITaintIssueViewModel> GetSourceItems(ITaintIssuesControlViewModel controlViewModel) =>
             (ObservableCollection<ITaintIssueViewModel>)controlViewModel.IssuesView.SourceCollection;

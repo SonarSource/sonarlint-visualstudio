@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots;
@@ -182,7 +178,7 @@ public class HotspotDetailsDtoToHotspotConverterTests
                 "code snippet"),
             "some\\path").Should().BeOfType<Hotspot>().Subject;
 
-        hotspot.HotspotKey.Should().BeSameAs(hotspotKey);
+        hotspot.IssueServerKey.Should().BeSameAs(hotspotKey);
     }
 
     [TestMethod]
@@ -256,21 +252,21 @@ public class HotspotDetailsDtoToHotspotConverterTests
     {
         var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
 
-        var act  = () => testSubject.Convert(new HotspotDetailsDto("key",
-            "msg",
-            "ide\\path",
-            new TextRangeDto(1, 2, 3, 4),
-            "author",
-            "status",
-            "resolution",
-            new HotspotRuleDto("rule:key",
-                "ruleName",
-                "security category",
-                "SOMEOUTOFRANGEVALUE",
-                "riskDescription",
-                "vulnerability description",
-                "fix recomendations"),
-            "code snippet"),
+        var act = () => testSubject.Convert(new HotspotDetailsDto("key",
+                "msg",
+                "ide\\path",
+                new TextRangeDto(1, 2, 3, 4),
+                "author",
+                "status",
+                "resolution",
+                new HotspotRuleDto("rule:key",
+                    "ruleName",
+                    "security category",
+                    "SOMEOUTOFRANGEVALUE",
+                    "riskDescription",
+                    "vulnerability description",
+                    "fix recomendations"),
+                "code snippet"),
             "some\\path");
 
         act.Should().Throw<ArgumentOutOfRangeException>();
@@ -307,22 +303,47 @@ public class HotspotDetailsDtoToHotspotConverterTests
         var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
 
         var hotspot = testSubject.Convert(new HotspotDetailsDto("key",
-            "msg",
-            "ide\\path",
-            new TextRangeDto(1, 2, 3, 4),
-            "author",
-            "status",
-            "resolution",
-            new HotspotRuleDto("rule:key",
-                "ruleName",
-                "security category",
-                "LOW",
-                "riskDescription",
-                "vulnerability description",
-                "fix recomendations"),
-            "code snippet"),
+                "msg",
+                "ide\\path",
+                new TextRangeDto(1, 2, 3, 4),
+                "author",
+                "status",
+                "resolution",
+                new HotspotRuleDto("rule:key",
+                    "ruleName",
+                    "security category",
+                    "LOW",
+                    "riskDescription",
+                    "vulnerability description",
+                    "fix recomendations"),
+                "code snippet"),
             "some\\path");
 
         hotspot.Flows.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void Convert_IsResolved_DefaultsToFalse()
+    {
+        var testSubject = new HotspotDetailsDtoToHotspotConverter(Substitute.For<IChecksumCalculator>());
+
+        var hotspot = testSubject.Convert(new HotspotDetailsDto("key",
+                "msg",
+                "ide\\path",
+                new TextRangeDto(1, 2, 3, 4),
+                "author",
+                "status",
+                "resolution",
+                new HotspotRuleDto("rule:key",
+                    "ruleName",
+                    "security category",
+                    "LOW",
+                    "riskDescription",
+                    "vulnerability description",
+                    "fix recomendations"),
+                "code snippet"),
+            "some\\path");
+
+        hotspot.IsResolved.Should().BeFalse();
     }
 }

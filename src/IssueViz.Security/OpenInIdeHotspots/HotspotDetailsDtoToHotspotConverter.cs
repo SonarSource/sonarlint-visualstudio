@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -49,6 +48,7 @@ internal class HotspotDetailsDtoToHotspotConverter : IHotspotDetailsDtoToHotspot
     {
         return new Hotspot(id: null,
             hotspotDetailsDto.key,
+            isResolved: false,
             hotspotDetailsDto.ideFilePath,
             new AnalysisIssueLocation(hotspotDetailsDto.message,
                 Path.Combine(rootPath, hotspotDetailsDto.ideFilePath),
