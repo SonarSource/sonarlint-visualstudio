@@ -19,14 +19,19 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <TextBlock Grid.Column="0"
-                   Margin="0, 0, 7, 0"
-                   VerticalAlignment="{Binding ElementName=ConnectionNameUc, Path=VerticalAlignment}"
-                   Visibility="{Binding Path=ShouldDisplayRegion, Converter={StaticResource TrueToVisibleConverter}}"
-                   FontWeight="{Binding ElementName=ConnectionNameUc, Path=ConnectionNameFontWeight}">
-            <Run Text="{Binding Path=DisplayRegion, Mode=OneWay}"/>
-            <Run Text=" -"/>
-        </TextBlock>
+        <Border Grid.Column="0"
+                BorderBrush="{Binding ElementName=RegionText, Path=Foreground}"
+                BorderThickness="1"
+                CornerRadius="5"
+            Margin="0, 1, 5, 0"
+            VerticalAlignment="{Binding ElementName=ConnectionNameUc, Path=VerticalAlignment}"
+            Visibility="{Binding Path=ShouldDisplayRegion, Converter={StaticResource TrueToVisibleConverter}}">
+            <TextBlock 
+                x:Name="RegionText" 
+                Margin="2, -1, 2, 0" 
+                FontWeight="{Binding ElementName=ConnectionNameUc, Path=ConnectionNameFontWeight}"
+                Text="{Binding Path=DisplayRegion}" />
+        </Border>
         <TextBlock Grid.Column="1"
                    Text="{Binding Path=DisplayName}"
                    VerticalAlignment="{Binding ElementName=ConnectionNameUc, Path=VerticalAlignment}"
