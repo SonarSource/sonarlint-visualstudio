@@ -174,7 +174,7 @@
     </Style>
 
     <Style x:Key="ConnectionInfoInlineWrapper" TargetType="InlineUIContainer">
-        <Setter Property="BaselineAlignment" Value="TextBottom" />
+        <Setter Property="BaselineAlignment" Value="Center" />
     </Style>
 
     <DataTemplate x:Key="NameAndKeyListBoxItem">
