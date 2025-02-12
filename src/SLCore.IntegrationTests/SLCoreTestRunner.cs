@@ -85,7 +85,7 @@ public sealed class SLCoreTestRunner : IDisposable
 
     public async Task Start(TestLogger testLogger)
     {
-        using (await GlobalSloopStartLock.AcquireAsync())
+        // using (await GlobalSloopStartLock.AcquireAsync())
         {
             try
             {
