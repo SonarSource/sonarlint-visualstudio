@@ -51,6 +51,16 @@ namespace SonarLint.VisualStudio.Core.Analysis
         /// Should never be null
         /// </summary>
         IAnalysisIssueLocation PrimaryLocation { get; }
+
+        /// <summary>
+        /// If the issue has been resolved/accepted on the server
+        /// </summary>
+        bool IsResolved { get; }
+
+        /// <summary>
+        /// The key of the issue on the server
+        /// </summary>
+        string IssueServerKey { get; }
     }
 
     public interface IAnalysisIssueFlow

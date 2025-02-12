@@ -20,7 +20,6 @@
 
 using System.ComponentModel.Composition;
 using System.IO;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
@@ -53,6 +52,7 @@ internal class TaintIssueToIssueVisualizationConverter(IAnalysisIssueVisualizati
         new TaintIssue(
             slcoreTaintIssue.id,
             slcoreTaintIssue.sonarServerKey,
+            isResolved: slcoreTaintIssue.resolved,
             slcoreTaintIssue.ruleKey,
             CreateLocation(slcoreTaintIssue.message, slcoreTaintIssue.ideFilePath, configScopeRoot, slcoreTaintIssue.textRange),
             slcoreTaintIssue.severityMode.Left?.severity.ToAnalysisIssueSeverity(),
@@ -87,6 +87,5 @@ internal class TaintIssueToIssueVisualizationConverter(IAnalysisIssueVisualizati
                 textRange.endLineOffset,
                 textRange.hash));
 
-    private IAnalysisIssueVisualization CreateAnalysisIssueVisualization(IAnalysisIssueBase analysisIssue) =>
-        issueVisualizationConverter.Convert(analysisIssue);
+    private IAnalysisIssueVisualization CreateAnalysisIssueVisualization(IAnalysisIssueBase analysisIssue) => issueVisualizationConverter.Convert(analysisIssue);
 }

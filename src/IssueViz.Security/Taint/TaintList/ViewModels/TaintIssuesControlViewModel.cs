@@ -18,12 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -132,7 +129,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         public string ServerType => serverType.ToString();
 
-        public TaintIssuesControlViewModel(ITaintStore store,
+        public TaintIssuesControlViewModel(
+            ITaintStore store,
             ILocationNavigator locationNavigator,
             IActiveDocumentTracker activeDocumentTracker,
             IActiveDocumentLocator activeDocumentLocator,
@@ -143,12 +141,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             IMenuCommandService menuCommandService,
             ISonarQubeService sonarQubeService,
             INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand
-            )
+        )
             : this(store, locationNavigator, activeDocumentTracker, activeDocumentLocator, showInBrowserService, telemetryManager, selectionService,
-                  navigateToDocumentationCommand, menuCommandService, sonarQubeService, navigateToRuleDescriptionCommand, ThreadHandling.Instance)
-        { }
+                navigateToDocumentationCommand, menuCommandService, sonarQubeService, navigateToRuleDescriptionCommand, ThreadHandling.Instance)
+        {
+        }
 
-        internal /* for testing */ TaintIssuesControlViewModel(ITaintStore store,
+        internal /* for testing */ TaintIssuesControlViewModel(
+            ITaintStore store,
             ILocationNavigator locationNavigator,
             IActiveDocumentTracker activeDocumentTracker,
             IActiveDocumentLocator activeDocumentLocator,
@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
             this.showInBrowserService = showInBrowserService;
             this.telemetryManager = telemetryManager;
-            this.NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
+            NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
 
             this.selectionService = selectionService;
             this.selectionService.SelectedIssueChanged += SelectionService_SelectionChanged;
@@ -209,8 +209,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             }
         }
 
-        private void ApplyViewFilter(Predicate<object> filter) =>
-            IssuesView.Filter = filter;
+        private void ApplyViewFilter(Predicate<object> filter) => IssuesView.Filter = filter;
 
         private bool NotSuppressedIssuesInCurrentDocumentFilter(object viewModel)
         {
@@ -219,7 +218,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                 return false;
             }
 
-            var issueViz = ((ITaintIssueViewModel) viewModel).TaintIssueViz;
+            var issueViz = ((ITaintIssueViewModel)viewModel).TaintIssueViz;
 
             if (issueViz.IsSuppressed)
             {
@@ -266,7 +265,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
                     var selected = (ITaintIssueViewModel)parameter;
                     var taintIssue = (ITaintIssue)selected.TaintIssueViz.Issue;
-                    showInBrowserService.ShowIssue(taintIssue.IssueKey);
+                    showInBrowserService.ShowIssue(taintIssue.IssueServerKey);
                 },
                 parameter => parameter is ITaintIssueViewModel);
 
@@ -299,7 +298,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
             NotifyPropertyChanged(nameof(HasServerIssues));
         }
-
 
         private void OnTaintIssuePropertyChanged(object sender, PropertyChangedEventArgs e)
         {

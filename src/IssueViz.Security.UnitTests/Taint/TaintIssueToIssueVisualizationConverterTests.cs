@@ -99,11 +99,12 @@ public class TaintIssueToIssueVisualizationConverterTests
         issueVizConverter.Received().Convert(
             Arg.Is((TaintIssue taintIssue) =>
                 taintIssue.Id == id &&
-                taintIssue.IssueKey == "serverkey" &&
+                taintIssue.IssueServerKey == "serverkey" &&
                 taintIssue.RuleKey == "rulekey:S123" &&
                 taintIssue.Severity == AnalysisIssueSeverity.Minor &&
                 taintIssue.HighestSoftwareQualitySeverity == null &&
                 taintIssue.RuleDescriptionContextKey == "rulecontext" &&
+                taintIssue.IsResolved == true &&
                 taintIssue.PrimaryLocation.FilePath == @"C:\root\file\path\1" &&
                 taintIssue.PrimaryLocation.Message == "message1" &&
                 taintIssue.PrimaryLocation.TextRange.LineHash == "hash1" &&
