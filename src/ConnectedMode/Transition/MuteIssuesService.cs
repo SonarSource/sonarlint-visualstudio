@@ -43,20 +43,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
         private readonly IMuteIssuesWindowService muteIssuesWindowService;
         private readonly IThreadHandling threadHandling;
         private readonly ISonarQubeService sonarQubeService;
-        private readonly IServerIssuesStoreWriter serverIssuesStore;
         private readonly IMessageBox messageBox;
         private readonly ResourceManager resourceManager;
 
         [ImportingConstructor]
-        public MuteIssuesService(IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger, IMuteIssuesWindowService muteIssuesWindowService, ISonarQubeService sonarQubeService, IServerIssuesStoreWriter serverIssuesStore)
-            : this(activeSolutionBoundTracker, logger, muteIssuesWindowService, sonarQubeService, serverIssuesStore, ThreadHandling.Instance, new Core.MessageBox())
+        public MuteIssuesService(IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger, IMuteIssuesWindowService muteIssuesWindowService, ISonarQubeService sonarQubeService)
+            : this(activeSolutionBoundTracker, logger, muteIssuesWindowService, sonarQubeService, ThreadHandling.Instance, new Core.MessageBox())
         { }
 
         internal MuteIssuesService(IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger,
             IMuteIssuesWindowService muteIssuesWindowService,
             ISonarQubeService sonarQubeService,
-            IServerIssuesStoreWriter serverIssuesStore,
             IThreadHandling threadHandling,
             IMessageBox messageBox)
         {
@@ -65,22 +63,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
             this.muteIssuesWindowService = muteIssuesWindowService;
             this.threadHandling = threadHandling;
             this.sonarQubeService = sonarQubeService;
-            this.serverIssuesStore = serverIssuesStore;
             this.messageBox = messageBox;
 
             resourceManager = new ResourceManager(typeof(Resources));
-        }
-
-        public void CacheOutOfSyncResolvedIssue(SonarQubeIssue issue)
-        {
-            threadHandling.ThrowIfOnUIThread();
-
-            if (!issue.IsResolved)
-            {
-                throw new ArgumentException("Issue should be resolved.", nameof(issue));
-            }
-
-            serverIssuesStore.AddIssues(new []{ issue }, false);
         }
 
         public async Task ResolveIssueWithDialogAsync(SonarQubeIssue issue, CancellationToken token)
@@ -104,7 +89,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
                 if (serviceResult == SonarQubeIssueTransitionResult.Success || serviceResult == SonarQubeIssueTransitionResult.CommentAdditionFailed)
                 {
                     issue.IsResolved = true;
-                    serverIssuesStore.AddIssues(new[] { issue }, false);
                 }
 
                 if (serviceResult != SonarQubeIssueTransitionResult.Success)

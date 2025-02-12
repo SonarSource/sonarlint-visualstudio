@@ -188,7 +188,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
             if (serverIssue.IsResolved)
             {
-                muteIssuesService.CacheOutOfSyncResolvedIssue(serverIssue);
                 messageBox.Show(AnalysisStrings.MuteIssue_IssueAlreadyMutedText, AnalysisStrings.MuteIssue_IssueAlreadyMutedCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }

@@ -225,7 +225,7 @@ public class MuteIssueCommandTests
         var testSubject = CreateTestSubject(out var errorListHelperMock,
             out _,
             out var serverIssueFinderMock,
-            out var muteIssueServiceMock,
+            out _,
             out _,
             out var threadHandlingMock,
             out var messageBoxMock,
@@ -234,15 +234,11 @@ public class MuteIssueCommandTests
         var issue = SetUpGetIssueFromErrorList(errorListHelperMock, callSequence);
         SetupThreadHandler(threadHandlingMock, callSequence);
         SetUpIssueFinder(serverIssueFinderMock, callSequence, issue, serverIssue);
-        muteIssueServiceMock
-            .InSequence(callSequence)
-            .Setup(x => x.CacheOutOfSyncResolvedIssue(serverIssue));
 
         testSubject.Invoke();
 
         threadHandlingMock.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()), Times.Once);
         serverIssueFinderMock.Verify(x => x.FindServerIssueAsync(issue, It.IsAny<CancellationToken>()), Times.Once);
-        muteIssueServiceMock.Verify(x => x.CacheOutOfSyncResolvedIssue(serverIssue), Times.Once);
         messageBoxMock.Verify(x => x.Show(AnalysisStrings.MuteIssue_IssueAlreadyMutedText, AnalysisStrings.MuteIssue_IssueAlreadyMutedCaption, MessageBoxButton.OK, MessageBoxImage.Information));
     }
 
