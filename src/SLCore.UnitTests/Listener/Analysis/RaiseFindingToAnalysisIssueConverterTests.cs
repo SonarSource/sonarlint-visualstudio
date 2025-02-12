@@ -490,6 +490,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
         {
             issue.Id.Should().Be(Issue1Id);
             issue.RuleKey.Should().Be("ruleKey1");
+            issue.IssueServerKey.Should().Be("serverKey1");
             issue.Severity.Should().Be(AnalysisIssueSeverity.Major);
             issue.Type.Should().Be(AnalysisIssueType.CodeSmell);
             issue.HighestImpact.Should().BeNull();
@@ -509,6 +510,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
         private static void VerifyIssue2ConvertedCorrectly(List<IAnalysisIssue> result)
         {
             result[1].Id.Should().Be(Issue2Id);
+            result[1].IssueServerKey.Should().Be("serverKey2");
             result[1].RuleKey.Should().Be("ruleKey2");
             result[1].Severity.Should().BeNull();
             result[1].Type.Should().BeNull();

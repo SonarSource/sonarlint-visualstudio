@@ -18,16 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
 {
     internal interface IHotspot : IAnalysisIssueBase
     {
-        string HotspotKey { get; }
-
         IHotspotRule Rule { get; }
 
         /// <summary>
@@ -40,8 +36,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
 
-        public Hotspot(Guid? id,
-            string hotspotKey,
+        public Hotspot(
+            Guid? id,
+            string issueServerKey,
+            bool isResolved,
             string serverFilePath,
             IAnalysisIssueLocation primaryLocation,
             IHotspotRule rule,
@@ -49,7 +47,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
             string context = null)
         {
             Id = id;
-            HotspotKey = hotspotKey;
+            IssueServerKey = issueServerKey;
+            IsResolved = isResolved;
             ServerFilePath = serverFilePath;
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Rule = rule;
@@ -57,12 +56,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
             RuleDescriptionContextKey = context;
         }
 
-        public string HotspotKey { get; }
         public Guid? Id { get; }
         public string RuleKey => Rule.RuleKey;
         public IHotspotRule Rule { get; }
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
         public IAnalysisIssueLocation PrimaryLocation { get; }
+        public bool IsResolved { get; }
+        public string IssueServerKey { get; }
         public string ServerFilePath { get; }
         public string RuleDescriptionContextKey { get; }
     }
