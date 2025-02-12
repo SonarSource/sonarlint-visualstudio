@@ -32,6 +32,8 @@ public interface IDogfoodingService
 [method: ImportingConstructor]
 public class DogfoodingService(IEnvironmentVariableProvider environmentVariableProvider) : IDogfoodingService
 {
+    public static IDogfoodingService Instance { get; private set; } = new DogfoodingService(EnvironmentVariableProvider.Instance);
+
     private const string DogfoodingEnvironmentVariable = "SONARSOURCE_DOGFOODING";
     private const string DogfoodingEnabledValue = "1";
 

@@ -3,18 +3,40 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+    xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
     Name="ConnectionNameUc"
     FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
     FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}">
-    
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
+        </ResourceDictionary>
+    </UserControl.Resources>
+
     <Grid DataContext="{Binding ElementName=ConnectionNameUc, Path=ViewModel}">
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <TextBlock Grid.Column="0"
+        <Border Grid.Column="0"
+                BorderBrush="{Binding ElementName=RegionText, Path=Foreground}"
+                BorderThickness="1"
+                CornerRadius="5"
+            Margin="0, 1, 5, 0"
+            VerticalAlignment="{Binding ElementName=ConnectionNameUc, Path=VerticalAlignment}"
+            Visibility="{Binding Path=ShouldDisplayRegion, Converter={StaticResource TrueToVisibleConverter}}">
+            <TextBlock 
+                x:Name="RegionText" 
+                Margin="2, -1, 2, 0" 
+                FontWeight="{Binding ElementName=ConnectionNameUc, Path=ConnectionNameFontWeight}"
+                Text="{Binding Path=DisplayRegion}" />
+        </Border>
+        <TextBlock Grid.Column="1"
                    Text="{Binding Path=DisplayName}"
+                   VerticalAlignment="{Binding ElementName=ConnectionNameUc, Path=VerticalAlignment}"
                    TextWrapping="Wrap"
                    TextTrimming="CharacterEllipsis"
-                   FontWeight="{Binding ElementName=ConnectionNameUc, Path=ConnectionNameFontWeight}"/>
+                   FontWeight="{Binding ElementName=ConnectionNameUc, Path=ConnectionNameFontWeight}" />
     </Grid>
 </UserControl>
