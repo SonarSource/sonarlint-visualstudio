@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Transition
             resourceManager = new ResourceManager(typeof(Resources));
         }
 
-        public async Task ResolveIssueWithDialogAsync(SonarQubeIssue issue, CancellationToken token)
+        public async Task ResolveIssueWithDialogAsync(string issueServerKey)
         {
             threadHandling.ThrowIfOnUIThread();
 

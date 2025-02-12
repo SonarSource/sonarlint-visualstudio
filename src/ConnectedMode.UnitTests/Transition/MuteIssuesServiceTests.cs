@@ -33,19 +33,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
     public class MuteIssuesServiceTests
     {
         [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
+        public void MefCtor_CheckIsExported() =>
             MefTestHelpers.CheckTypeCanBeImported<MuteIssuesService, IMuteIssuesService>(
                 MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IMuteIssuesWindowService>());
-        }
 
         [TestMethod]
-        public void MefCtor_CheckIsSingleton()
-        {
-            MefTestHelpers.CheckIsSingletonMefComponent<MuteIssuesService>();
-        }
+        public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<MuteIssuesService>();
 
         [TestMethod]
         public async Task ResolveIssueWithDialogAsyncNotInConnectedMode_Logs()
@@ -56,7 +51,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
 
             var testSubject = CreateTestSubject(activeSolutionBoundTracker: activeSolutionBoundTracker, logger: logger.Object, threadHandling: threadHandling.Object);
 
-            await testSubject.ResolveIssueWithDialogAsync(DummySonarQubeIssueFactory.CreateServerIssue(), CancellationToken.None);
+            await testSubject.ResolveIssueWithDialogAsync(DummySonarQubeIssueFactory.CreateServerIssue().IssueKey);
 
             logger.Verify(l => l.LogVerbose("[Transition]Issue muting is only supported in connected mode"), Times.Once);
             threadHandling.Verify(t => t.ThrowIfOnUIThread(), Times.Once());
@@ -73,7 +68,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
 
             var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, threadHandling: threadHandling.Object);
 
-            await testSubject.ResolveIssueWithDialogAsync(sonarQubeIssue, CancellationToken.None);
+            await testSubject.ResolveIssueWithDialogAsync(sonarQubeIssue.IssueKey);
 
             muteIssuesWindowService.Verify(s => s.Show(), Times.Once);
             threadHandling.Verify(t => t.ThrowIfOnUIThread(), Times.Once());
@@ -87,7 +82,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
 
             var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object);
 
-            await testSubject.ResolveIssueWithDialogAsync(DummySonarQubeIssueFactory.CreateServerIssue(), CancellationToken.None);
+            await testSubject.ResolveIssueWithDialogAsync(DummySonarQubeIssueFactory.CreateServerIssue().IssueKey);
 
             muteIssuesWindowService.Verify(s => s.Show(), Times.Once);
         }
@@ -103,7 +98,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
 
             var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, messageBox: messageBox.Object);
 
-            await testSubject.ResolveIssueWithDialogAsync(DummySonarQubeIssueFactory.CreateServerIssue(), CancellationToken.None);
+            await testSubject.ResolveIssueWithDialogAsync(DummySonarQubeIssueFactory.CreateServerIssue().IssueKey);
 
             messageBox.Verify(mb => mb.Show(errorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
         }
