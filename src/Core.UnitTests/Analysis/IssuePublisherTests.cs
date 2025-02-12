@@ -31,24 +31,21 @@ public class IssuePublisherTests
     private IssuePublisher testSubject;
 
     [TestMethod]
-    public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<IssuePublisher, IIssuePublisher>(MefTestHelpers.CreateExport<IIssueConsumerStorage>());
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<IssuePublisher, IIssuePublisher>(MefTestHelpers.CreateExport<IIssueConsumerStorage>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<IssuePublisher>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<IssuePublisher>();
 
     [TestInitialize]
     public void TestInitialize()
     {
         issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
         issueConsumer = Substitute.For<IIssueConsumer>();
-        testSubject = new IssuePublisher(issueConsumerStorage);
+        testSubject = new IssuePublisher(issueConsumerStorage, Substitute.For<ILogger>());
     }
 
     [TestMethod]
-    public void FindingsType_ReturnsCorrectValue() =>
-        testSubject.FindingsType.Should().Be(CoreStrings.FindingType_Issue);
+    public void FindingsType_ReturnsCorrectValue() => testSubject.FindingsType.Should().Be(CoreStrings.FindingType_Issue);
 
     [TestMethod]
     public void PublishIssues_NoConsumerInStorage_DoesNothing()

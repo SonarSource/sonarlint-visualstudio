@@ -31,24 +31,21 @@ public class HotspotPublisherTests
     private HotspotPublisher testSubject;
 
     [TestMethod]
-    public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<HotspotPublisher, IHotspotPublisher>(MefTestHelpers.CreateExport<IIssueConsumerStorage>());
+    public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<HotspotPublisher, IHotspotPublisher>(MefTestHelpers.CreateExport<IIssueConsumerStorage>());
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton() =>
-        MefTestHelpers.CheckIsSingletonMefComponent<HotspotPublisher>();
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<HotspotPublisher>();
 
     [TestInitialize]
     public void TestInitialize()
     {
         issueConsumerStorage = Substitute.For<IIssueConsumerStorage>();
         issueConsumer = Substitute.For<IIssueConsumer>();
-        testSubject = new HotspotPublisher(issueConsumerStorage);
+        testSubject = new HotspotPublisher(issueConsumerStorage, Substitute.For<ILogger>());
     }
 
     [TestMethod]
-    public void FindingsType_ReturnsCorrectValue() =>
-        testSubject.FindingsType.Should().Be(CoreStrings.FindingType_Hotspot);
+    public void FindingsType_ReturnsCorrectValue() => testSubject.FindingsType.Should().Be(CoreStrings.FindingType_Hotspot);
 
     [TestMethod]
     public void PublishHotspots_NoConsumerInStorage_DoesNothing()

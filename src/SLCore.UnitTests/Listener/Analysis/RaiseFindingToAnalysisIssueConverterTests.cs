@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
@@ -35,7 +36,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
     private RaiseFindingToAnalysisIssueConverter testSubject;
 
     [TestInitialize]
-    public void TestInitialize() => testSubject = new RaiseFindingToAnalysisIssueConverter();
+    public void TestInitialize() => testSubject = new RaiseFindingToAnalysisIssueConverter(Substitute.For<ILogger>());
 
     [TestMethod]
     public void MefCtor_CheckIsExported() => MefTestHelpers.CheckTypeCanBeImported<RaiseFindingToAnalysisIssueConverter, IRaiseFindingToAnalysisIssueConverter>();
@@ -296,7 +297,7 @@ public class RaiseFindingToAnalysisIssueConverterTests
                     2,
                     3,
                     4),
-               [],
+                [],
                 default,
                 default,
                 new MQRModeDetails(default,
