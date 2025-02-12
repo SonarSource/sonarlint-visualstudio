@@ -23,23 +23,29 @@ using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarQube.Client;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
-    /// <summary>
-    /// Fetches suppressed issues from the server and updates the store
-    /// </summary>
     internal interface IRoslynSuppressionUpdater
     {
         /// <summary>
-        /// Fetches all available suppressions from the server and updates the server issues store
+        /// Fetches all available suppressions from the server and raises the <see cref="SuppressedIssuesUpdated"/> event.
         /// </summary>
         Task UpdateAllServerSuppressionsAsync();
 
         /// <summary>
-        /// Updates the suppression status of the given issue key(s). If the issues are not found locally, they are fetched.
+        /// Raises the <see cref="SuppressedIssuesUpdated"/>
         /// </summary>
         Task UpdateSuppressedIssuesAsync(bool isResolved, string[] issueKeys, CancellationToken cancellationToken);
+
+        event EventHandler<SuppressionsArgs> SuppressedIssuesUpdated;
+    }
+
+    public class SuppressionsArgs : EventArgs
+    {
+        public IReadOnlyList<SonarQubeIssue> SuppressedIssues { get; set; }
+        public bool AreAllServerIssuesForProject { get; set; }
     }
 
     [Export(typeof(IRoslynSuppressionUpdater))]
@@ -82,8 +88,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         #region ISuppressionIssueStoreUpdater
 
-        public async Task UpdateAllServerSuppressionsAsync()
-        {
+        public async Task UpdateAllServerSuppressionsAsync() =>
             await threadHandling.RunOnBackgroundThread(async () =>
             {
                 await actionRunner.RunAsync(async token =>
@@ -123,7 +128,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
                 return true;
             });
-        }
 
         public async Task UpdateSuppressedIssuesAsync(bool isResolved, string[] issueKeys, CancellationToken cancellationToken)
         {
@@ -164,6 +168,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
                 logger.WriteLine(Resources.Suppressions_UpdateError_Short, ex.Message);
             }
         }
+
+        public event EventHandler<SuppressionsArgs> SuppressedIssuesUpdated;
 
         #endregion
 
