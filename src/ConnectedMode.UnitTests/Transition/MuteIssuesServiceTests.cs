@@ -18,20 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Transition;
 using SonarLint.VisualStudio.Integration.TestInfrastructure.Helpers;
 using SonarLint.VisualStudio.TestInfrastructure;
-using SonarQube.Client;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
@@ -45,8 +38,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
             MefTestHelpers.CheckTypeCanBeImported<MuteIssuesService, IMuteIssuesService>(
                 MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
                 MefTestHelpers.CreateExport<ILogger>(),
-                MefTestHelpers.CreateExport<IMuteIssuesWindowService>(),
-                MefTestHelpers.CreateExport<ISonarQubeService>());
+                MefTestHelpers.CreateExport<IMuteIssuesWindowService>());
         }
 
         [TestMethod]
@@ -79,18 +71,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
             var threadHandling = CreateThreadHandling();
             var muteIssuesWindowService = CreateMuteIssuesWindowService(true, SonarQubeIssueTransition.FalsePositive, "some comment");
 
-            var sonarQubeService = new Mock<ISonarQubeService>();
-
-            sonarQubeService.Setup(s => s.TransitionIssueAsync(It.IsAny<string>(), It.IsAny<SonarQubeIssueTransition>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(SonarQubeIssueTransitionResult.FailedToTransition);
-            sonarQubeService.Setup(s => s.TransitionIssueAsync(sonarQubeIssue.IssueKey, SonarQubeIssueTransition.FalsePositive, "some comment", CancellationToken.None)).ReturnsAsync(SonarQubeIssueTransitionResult.Success);
-
-
-            var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, sonarQubeService: sonarQubeService.Object, threadHandling: threadHandling.Object);
+            var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, threadHandling: threadHandling.Object);
 
             await testSubject.ResolveIssueWithDialogAsync(sonarQubeIssue, CancellationToken.None);
 
             muteIssuesWindowService.Verify(s => s.Show(), Times.Once);
-            sonarQubeService.Verify(s => s.TransitionIssueAsync(sonarQubeIssue.IssueKey, SonarQubeIssueTransition.FalsePositive, "some comment", CancellationToken.None), Times.Once);
             threadHandling.Verify(t => t.ThrowIfOnUIThread(), Times.Once());
             sonarQubeIssue.IsResolved.Should().BeTrue();
         }
@@ -100,14 +85,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
         {
             var muteIssuesWindowService = CreateMuteIssuesWindowService(false, SonarQubeIssueTransition.FalsePositive, "some comment");
 
-            var sonarQubeService = new Mock<ISonarQubeService>();
-
-            var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, sonarQubeService: sonarQubeService.Object);
+            var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object);
 
             await testSubject.ResolveIssueWithDialogAsync(DummySonarQubeIssueFactory.CreateServerIssue(), CancellationToken.None);
 
             muteIssuesWindowService.Verify(s => s.Show(), Times.Once);
-            sonarQubeService.VerifyNoOtherCalls();
         }
 
         [DataRow(SonarQubeIssueTransitionResult.InsufficientPermissions, "Credentials you have provided do not have enough permission to resolve issues. It requires the permission 'Administer Issues'.")]
@@ -119,11 +101,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
             var messageBox = new Mock<IMessageBox>();
             var muteIssuesWindowService = CreateMuteIssuesWindowService(true, SonarQubeIssueTransition.FalsePositive, "some comment");
 
-            var sonarQubeService = new Mock<ISonarQubeService>();
-
-            sonarQubeService.Setup(s => s.TransitionIssueAsync(It.IsAny<string>(), It.IsAny<SonarQubeIssueTransition>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(result);
-
-            var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, sonarQubeService: sonarQubeService.Object, messageBox: messageBox.Object);
+            var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, messageBox: messageBox.Object);
 
             await testSubject.ResolveIssueWithDialogAsync(DummySonarQubeIssueFactory.CreateServerIssue(), CancellationToken.None);
 
@@ -177,18 +155,16 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
         private MuteIssuesService CreateTestSubject(IActiveSolutionBoundTracker activeSolutionBoundTracker = null,
             ILogger logger = null,
             IMuteIssuesWindowService muteIssuesWindowService = null,
-            ISonarQubeService sonarQubeService = null,
             IThreadHandling threadHandling = null,
             IMessageBox messageBox = null)
         {
             activeSolutionBoundTracker ??= CreateActiveSolutionBoundTracker();
             logger ??= Mock.Of<ILogger>();
             muteIssuesWindowService ??= Mock.Of<IMuteIssuesWindowService>();
-            sonarQubeService ??= Mock.Of<ISonarQubeService>();
             threadHandling ??= CreateThreadHandling().Object;
             messageBox ??= Mock.Of<IMessageBox>();
 
-            return new MuteIssuesService(activeSolutionBoundTracker, logger, muteIssuesWindowService, sonarQubeService, threadHandling, messageBox);
+            return new MuteIssuesService(activeSolutionBoundTracker, logger, muteIssuesWindowService, threadHandling, messageBox);
         }
     }
 }
