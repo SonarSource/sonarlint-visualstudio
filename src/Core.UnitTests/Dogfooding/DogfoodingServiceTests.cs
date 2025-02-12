@@ -42,7 +42,7 @@ public class DogfoodingServiceTests
 
     [TestMethod]
     public void Instance_NotNull() =>
-        DogfoodingService.Instance.Should().NotBeNull().And.BeOfType<IDogfoodingService>();
+        DogfoodingService.Instance.Should().NotBeNull().And.BeAssignableTo<IDogfoodingService>();
 
     [DataRow("", false)]
     [DataRow(null, false)]
