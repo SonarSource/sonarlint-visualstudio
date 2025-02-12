@@ -37,10 +37,12 @@ public class DogfoodingServiceTests
         MefTestHelpers.CheckIsSingletonMefComponent<DogfoodingService>();
 
     [TestInitialize]
-    public void TestInitialize()
-    {
+    public void TestInitialize() =>
         environmentVariableProvider = Substitute.For<IEnvironmentVariableProvider>();
-    }
+
+    [TestMethod]
+    public void Instance_NotNull() =>
+        DogfoodingService.Instance.Should().NotBeNull().And.BeOfType<IDogfoodingService>();
 
     [DataRow("", false)]
     [DataRow(null, false)]
