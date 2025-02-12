@@ -36,15 +36,25 @@ internal interface IRaisedFindingProcessor
 
 [Export(typeof(IRaisedFindingProcessor))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class RaisedFindingProcessor(
-    ISLCoreLanguageProvider slCoreLanguageProvider,
-    IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter,
-    IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
-    ILogger logger)
-    : IRaisedFindingProcessor
+internal class RaisedFindingProcessor : IRaisedFindingProcessor
 {
-    private readonly List<string> analyzableLanguagesRuleKeyPrefixes = CalculateAnalyzableRulePrefixes(slCoreLanguageProvider);
+    private readonly List<string> analyzableLanguagesRuleKeyPrefixes;
+    private readonly IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter1;
+    private readonly IAnalysisStatusNotifierFactory analysisStatusNotifierFactory1;
+    private readonly ILogger logger;
+
+    [ImportingConstructor]
+    public RaisedFindingProcessor(
+        ISLCoreLanguageProvider slCoreLanguageProvider,
+        IRaiseFindingToAnalysisIssueConverter raiseFindingToAnalysisIssueConverter,
+        IAnalysisStatusNotifierFactory analysisStatusNotifierFactory,
+        ILogger logger)
+    {
+        raiseFindingToAnalysisIssueConverter1 = raiseFindingToAnalysisIssueConverter;
+        analysisStatusNotifierFactory1 = analysisStatusNotifierFactory;
+        this.logger = logger.ForContext("RaiseFindings");
+        analyzableLanguagesRuleKeyPrefixes = CalculateAnalyzableRulePrefixes(slCoreLanguageProvider);
+    }
 
     public void RaiseFinding<T>(RaiseFindingParams<T> parameters, IFindingsPublisher findingsPublisher) where T : RaisedFindingDto
     {
@@ -84,12 +94,12 @@ internal class RaisedFindingProcessor(
             logger.LogVerbose($"analyzableLanguagesRuleKeyPrefixes {string.Join("", analyzableLanguagesRuleKeyPrefixes)}");
             var fileUri = fileAndIssues.Key;
             var localPath = fileUri.LocalPath;
-            var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), localPath, parameters.analysisId);
+            var analysisStatusNotifier = analysisStatusNotifierFactory1.Create(nameof(SLCoreAnalyzer), localPath, parameters.analysisId);
             var supportedRaisedIssues = GetSupportedLanguageFindings(fileAndIssues.Value ?? []);
             logger.LogVerbose($"supportedRaisedIssues: {supportedRaisedIssues.Length} issues");
             findingsPublisher.Publish(localPath,
                 parameters.analysisId!.Value,
-                raiseFindingToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
+                raiseFindingToAnalysisIssueConverter1.GetAnalysisIssues(fileUri, supportedRaisedIssues));
             analysisStatusNotifier.AnalysisProgressed(supportedRaisedIssues.Length, findingsPublisher.FindingsType, parameters.isIntermediatePublication);
         }
     }

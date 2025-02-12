@@ -24,14 +24,23 @@ namespace SonarLint.VisualStudio.Core.Analysis;
 
 [Export(typeof(IHotspotPublisher))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class HotspotPublisher(IIssueConsumerStorage issueConsumerStorage, ILogger logger) : IHotspotPublisher
+internal class HotspotPublisher : IHotspotPublisher
 {
+    private readonly IIssueConsumerStorage issueConsumerStorage1;
+    private readonly ILogger logger;
+
+    [ImportingConstructor]
+    public HotspotPublisher(IIssueConsumerStorage issueConsumerStorage, ILogger logger)
+    {
+        issueConsumerStorage1 = issueConsumerStorage;
+        this.logger = logger.ForContext("RaiseFindings");
+    }
+
     public string FindingsType => CoreStrings.FindingType_Hotspot;
 
     public void Publish(string filePath, Guid analysisId, IEnumerable<IAnalysisIssue> findings)
     {
-        if (issueConsumerStorage.TryGet(filePath, out var currentAnalysisId, out var issueConsumer)
+        if (issueConsumerStorage1.TryGet(filePath, out var currentAnalysisId, out var issueConsumer)
             && analysisId == currentAnalysisId)
         {
             issueConsumer.SetHotspots(filePath, findings);

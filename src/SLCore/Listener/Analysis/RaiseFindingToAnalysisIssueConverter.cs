@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
         [ImportingConstructor]
         public RaiseFindingToAnalysisIssueConverter(ILogger logger)
         {
-            this.logger = logger;
+            this.logger = logger.ForContext("RaiseFindings");
         }
 
         public IEnumerable<IAnalysisIssue> GetAnalysisIssues<T>(FileUri fileUri, IEnumerable<T> raisedFindings) where T : RaisedFindingDto =>

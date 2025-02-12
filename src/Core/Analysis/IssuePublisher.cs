@@ -24,14 +24,23 @@ namespace SonarLint.VisualStudio.Core.Analysis;
 
 [Export(typeof(IIssuePublisher))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-[method: ImportingConstructor]
-internal class IssuePublisher(IIssueConsumerStorage issueConsumerStorage, ILogger logger) : IIssuePublisher
+internal class IssuePublisher : IIssuePublisher
 {
+    private readonly IIssueConsumerStorage issueConsumerStorage1;
+    private readonly ILogger logger;
+
+    [ImportingConstructor]
+    public IssuePublisher(IIssueConsumerStorage issueConsumerStorage, ILogger logger)
+    {
+        issueConsumerStorage1 = issueConsumerStorage;
+        this.logger = logger.ForContext("RaiseFindings");
+    }
+
     public string FindingsType => CoreStrings.FindingType_Issue;
 
     public void Publish(string filePath, Guid analysisId, IEnumerable<IAnalysisIssue> findings)
     {
-        if (issueConsumerStorage.TryGet(filePath, out var currentAnalysisId, out var issueConsumer)
+        if (issueConsumerStorage1.TryGet(filePath, out var currentAnalysisId, out var issueConsumer)
             && analysisId == currentAnalysisId)
         {
             issueConsumer.SetIssues(filePath, findings);
