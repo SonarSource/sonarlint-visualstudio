@@ -31,8 +31,8 @@ public class SimpleAnalysisTests
     public TestContext TestContext { get; set; }
 
     [ClassInitialize]
-    public static void ClassInitialize(TestContext context) =>
-        sharedFileAnalysisTestsRunner = new FileAnalysisTestsRunner(nameof(SimpleAnalysisTests));
+    public static async Task ClassInitialize(TestContext context) =>
+        sharedFileAnalysisTestsRunner = await FileAnalysisTestsRunner.CreateInstance(nameof(SimpleAnalysisTests));
 
     [ClassCleanup]
     public static void ClassCleanup() =>

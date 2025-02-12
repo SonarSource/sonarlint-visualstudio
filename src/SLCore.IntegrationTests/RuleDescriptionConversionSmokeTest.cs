@@ -41,15 +41,16 @@ public class RuleDescriptionConversionSmokeTest
     {
         const string configScope = "configscope1";
         var failedRuleDescriptions = new List<string>();
-        var testLogger = new TestLogger();
-        var slCoreErrorLogger = new TestLogger();
-        using var slCoreTestRunner = new SLCoreTestRunner(testLogger, slCoreErrorLogger, TestContext.TestName);
-        slCoreTestRunner.AddListener(new LoggerListener(testLogger));
-        slCoreTestRunner.Start();
+        var infrastructureLogger = new TestLogger();
+        var slCoreStdErrorLogger = new TestLogger();
+        var rpcLogger = new TestLogger();
+        using var slCoreTestRunner = new SLCoreTestRunner(infrastructureLogger, slCoreStdErrorLogger, TestContext.TestName);
+        slCoreTestRunner.AddListener(new LoggerListener(rpcLogger));
+        await slCoreTestRunner.Start(rpcLogger);
 
         var ruleHelpXamlBuilder = CreateRuleHelpXamlBuilder();
         var activeConfigScopeTracker = CreateActiveConfigScopeTracker(slCoreTestRunner);
-        var slCoreRuleMetaDataProvider = CreateSlCoreRuleMetaDataProvider(slCoreTestRunner, activeConfigScopeTracker, testLogger);
+        var slCoreRuleMetaDataProvider = CreateSlCoreRuleMetaDataProvider(slCoreTestRunner, activeConfigScopeTracker, infrastructureLogger);
         activeConfigScopeTracker.SetCurrentConfigScope(configScope);
         slCoreTestRunner.SLCoreServiceProvider.TryGetTransientService(out IRulesSLCoreService rulesSlCoreService).Should().BeTrue();
 

@@ -46,32 +46,42 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     internal static readonly VueIssuesFile VueIssues = new();
     internal static readonly SecretsIssuesFile SecretsIssues = new();
     internal static readonly HtmlIssuesFile HtmlIssues = new();
-    private readonly ActiveConfigScopeTracker activeConfigScopeTracker;
+    private ActiveConfigScopeTracker activeConfigScopeTracker;
     private readonly IListFilesListener listFilesListener;
     private readonly IAnalysisListener analysisListener;
     private readonly SLCoreTestRunner slCoreTestRunner;
+    private readonly TestLogger infrastructureLogger;
+    private readonly TestLogger slCoreStdErrorLogger;
+    private readonly TestLogger rpcLogger;
 
-    internal FileAnalysisTestsRunner(string testClassName, Dictionary<string, StandaloneRuleConfigDto> initialRuleConfig = null)
+    private FileAnalysisTestsRunner(string testClassName, Dictionary<string, StandaloneRuleConfigDto> initialRuleConfig = null)
     {
-        slCoreTestRunner = new SLCoreTestRunner(new TestLogger(), new TestLogger(), testClassName);
+        infrastructureLogger = new TestLogger();
+        slCoreStdErrorLogger = new TestLogger();
+        slCoreTestRunner = new SLCoreTestRunner(infrastructureLogger, slCoreStdErrorLogger, testClassName);
 
         analysisListener = Substitute.For<IAnalysisListener>();
 
         listFilesListener = Substitute.For<IListFilesListener>();
 
-        slCoreTestRunner.AddListener(new LoggerListener(new TestLogger()));
+        rpcLogger = new TestLogger();
+        slCoreTestRunner.AddListener(new LoggerListener(rpcLogger));
         slCoreTestRunner.AddListener(new ProgressListener());
         slCoreTestRunner.AddListener(analysisListener);
         slCoreTestRunner.AddListener(listFilesListener);
         slCoreTestRunner.AddListener(new AnalysisConfigurationProviderListener());
 
         slCoreTestRunner.MockInitialSlCoreRulesSettings(initialRuleConfig ?? []);
+    }
 
-        slCoreTestRunner.Start();
-
-        activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
+    public static async Task <FileAnalysisTestsRunner> CreateInstance(string testClassName, Dictionary<string, StandaloneRuleConfigDto> initialRuleConfig = null)
+    {
+        var runner = new FileAnalysisTestsRunner(testClassName, initialRuleConfig);
+        await runner.slCoreTestRunner.Start(runner.rpcLogger);
+        runner.activeConfigScopeTracker = new ActiveConfigScopeTracker(runner.slCoreTestRunner.SLCoreServiceProvider,
             new AsyncLockFactory(),
             new NoOpThreadHandler());
+        return runner;
     }
 
     public void SetRuleConfiguration(Dictionary<string, StandaloneRuleConfigDto> ruleConfig)

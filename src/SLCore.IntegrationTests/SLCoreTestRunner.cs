@@ -23,6 +23,8 @@ using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Core.Synchronization;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Service;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
@@ -42,7 +44,9 @@ namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 public sealed class SLCoreTestRunner : IDisposable
 {
-    private readonly ILogger logger;
+    private static readonly IAsyncLock GlobalSloopStartLock = new AsyncLock();
+
+    private readonly ILogger infrastructureLogger;
     private readonly List<ISLCoreListener> listenersToSetUp = new();
     private string privateFolder;
     private string storageRoot;
@@ -54,15 +58,15 @@ public sealed class SLCoreTestRunner : IDisposable
     private readonly string testName;
     private readonly ISLCoreRuleSettingsProvider slCoreRulesSettingsProvider = Substitute.For<ISLCoreRuleSettingsProvider>();
 
-    public SLCoreTestRunner(ILogger logger, ILogger slCoreErrorLogger, string testName)
+    public SLCoreTestRunner(ILogger infrastructureLogger, ILogger slCoreStdErrorLogger, string testName)
     {
-        this.logger = logger;
+        this.infrastructureLogger = infrastructureLogger;
 
         this.testName = testName;
 
         SetUpLocalFolders();
 
-        slCoreTestProcessFactory = new SLCoreProcessFactory(new SLCoreErrorLoggerFactory(slCoreErrorLogger, new NoOpThreadHandler()));
+        slCoreTestProcessFactory = new SLCoreProcessFactory(new SLCoreErrorLoggerFactory(slCoreStdErrorLogger, new NoOpThreadHandler()));
     }
 
     public void AddListener(ISLCoreListener listener)
@@ -79,61 +83,81 @@ public sealed class SLCoreTestRunner : IDisposable
         slCoreRulesSettingsProvider.GetSLCoreRuleSettings().Returns(rulesSettings ?? []);
     }
 
-    public void Start()
+    public async Task Start(TestLogger testLogger)
     {
+        using (await GlobalSloopStartLock.AcquireAsync())
+        {
+            try
+            {
+                Environment.SetEnvironmentVariable("SONARLINT_LOG_RPC", "true", EnvironmentVariableTarget.Process);
+
+                var rootLocator = Substitute.For<IVsixRootLocator>();
+                rootLocator.GetVsixRoot().Returns(DependencyLocator.SloopBasePath);
+                var slCoreLocator = new SLCoreLocator(rootLocator, string.Empty, Substitute.For<ISonarLintSettings>(), infrastructureLogger, Substitute.For<IFileSystem>());
+
+                var sLCoreLanguageProvider = Substitute.For<ISLCoreLanguageProvider>();
+                var constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
+                constantsProvider.ClientConstants.Returns(new ClientConstantInfoDto("SLVS_Integration_Tests", $"SLVS_Integration_Tests/{VersionHelper.SonarLintVersion}"));
+                constantsProvider.FeatureFlags.Returns(new FeatureFlagsDto(true, true, false, true, false, false, true, false, false));
+                constantsProvider.TelemetryConstants.Returns(new TelemetryClientConstantAttributesDto("slvs_integration_tests", "SLVS Integration Tests",
+                    VersionHelper.SonarLintVersion, "17.0", new()));
+                SetLanguagesConfigurationToDefaults(sLCoreLanguageProvider);
+
+                var foldersProvider = Substitute.For<ISLCoreFoldersProvider>();
+                foldersProvider.GetWorkFolders().Returns(new SLCoreFolders(storageRoot, workDir, userHome));
+
+                var connectionProvider = Substitute.For<IServerConnectionsProvider>();
+                connectionProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfigurationDtoBase>());
+
+                var jarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
+                jarProvider.ListJarFiles().Returns(DependencyLocator.AnalyzerPlugins);
+
+                var compatibleNodeLocator = Substitute.For<INodeLocationProvider>();
+                compatibleNodeLocator.Get().Returns((string)null);
+
+                var noOpActiveSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
+                noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
+                var noOpConfigScopeUpdater = Substitute.For<IConfigScopeUpdater>();
+
+                slCoreInstanceHandle = new SLCoreInstanceHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
+                        new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
+                        new RpcDebugger(new FileSystem(), Path.Combine(privateFolder, "logrpc.log")),
+                        new SLCoreServiceProvider(new NoOpThreadHandler(), infrastructureLogger),
+                        new SLCoreListenerSetUp(listenersToSetUp)),
+                    constantsProvider,
+                    sLCoreLanguageProvider,
+                    foldersProvider,
+                    connectionProvider,
+                    jarProvider,
+                    compatibleNodeLocator,
+                    noOpActiveSolutionBoundTracker,
+                    noOpConfigScopeUpdater,
+                    slCoreRulesSettingsProvider,
+                    Substitute.For<ISlCoreTelemetryMigrationProvider>(),
+                    new NoOpThreadHandler());
+                slCoreInstanceHandle.Initialize();
+
+                await WaitForSloopLog(testLogger);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("SONARLINT_LOG_RPC", null, EnvironmentVariableTarget.Process);
+            }
+        }
+    }
+
+    private static async Task WaitForSloopLog(TestLogger slCoreLogger)
+    {
+        var tcs = new TaskCompletionSource<bool>();
+        EventHandler eventHandler = (_, _) => tcs.TrySetResult(true);
+        slCoreLogger.LogMessageAdded += eventHandler;
         try
         {
-            Environment.SetEnvironmentVariable("SONARLINT_LOG_RPC", "true", EnvironmentVariableTarget.Process);
-
-            var rootLocator = Substitute.For<IVsixRootLocator>();
-            rootLocator.GetVsixRoot().Returns(DependencyLocator.SloopBasePath);
-            var slCoreLocator = new SLCoreLocator(rootLocator, string.Empty, Substitute.For<ISonarLintSettings>(), logger, Substitute.For<IFileSystem>());
-
-            var sLCoreLanguageProvider = Substitute.For<ISLCoreLanguageProvider>();
-            var constantsProvider = Substitute.For<ISLCoreConstantsProvider>();
-            constantsProvider.ClientConstants.Returns(new ClientConstantInfoDto("SLVS_Integration_Tests", $"SLVS_Integration_Tests/{VersionHelper.SonarLintVersion}"));
-            constantsProvider.FeatureFlags.Returns(new FeatureFlagsDto(true, true, false, true, false, false, true, false, false));
-            constantsProvider.TelemetryConstants.Returns(new TelemetryClientConstantAttributesDto("slvs_integration_tests", "SLVS Integration Tests",
-                VersionHelper.SonarLintVersion, "17.0", new()));
-            SetLanguagesConfigurationToDefaults(sLCoreLanguageProvider);
-
-            var foldersProvider = Substitute.For<ISLCoreFoldersProvider>();
-            foldersProvider.GetWorkFolders().Returns(new SLCoreFolders(storageRoot, workDir, userHome));
-
-            var connectionProvider = Substitute.For<IServerConnectionsProvider>();
-            connectionProvider.GetServerConnections().Returns(new Dictionary<string, ServerConnectionConfigurationDtoBase>());
-
-            var jarProvider = Substitute.For<ISLCoreEmbeddedPluginJarLocator>();
-            jarProvider.ListJarFiles().Returns(DependencyLocator.AnalyzerPlugins);
-
-            var compatibleNodeLocator = Substitute.For<INodeLocationProvider>();
-            compatibleNodeLocator.Get().Returns((string)null);
-
-            var noOpActiveSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
-            noOpActiveSolutionBoundTracker.CurrentConfiguration.Returns(BindingConfiguration.Standalone);
-            var noOpConfigScopeUpdater = Substitute.For<IConfigScopeUpdater>();
-
-            slCoreInstanceHandle = new SLCoreInstanceHandle(new SLCoreRpcFactory(slCoreTestProcessFactory, slCoreLocator,
-                    new SLCoreJsonRpcFactory(new RpcMethodNameTransformer()),
-                    new RpcDebugger(new FileSystem(), Path.Combine(privateFolder, "logrpc.log")),
-                    new SLCoreServiceProvider(new NoOpThreadHandler(), logger),
-                    new SLCoreListenerSetUp(listenersToSetUp)),
-                constantsProvider,
-                sLCoreLanguageProvider,
-                foldersProvider,
-                connectionProvider,
-                jarProvider,
-                compatibleNodeLocator,
-                noOpActiveSolutionBoundTracker,
-                noOpConfigScopeUpdater,
-                slCoreRulesSettingsProvider,
-                Substitute.For<ISlCoreTelemetryMigrationProvider>(),
-                new NoOpThreadHandler());
-            slCoreInstanceHandle.Initialize();
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(tcs.Task, "sloop log");
         }
         finally
         {
-            Environment.SetEnvironmentVariable("SONARLINT_LOG_RPC", null, EnvironmentVariableTarget.Process);
+            slCoreLogger.LogMessageAdded -= eventHandler;
         }
     }
 

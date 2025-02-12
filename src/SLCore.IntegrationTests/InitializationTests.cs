@@ -33,39 +33,38 @@ public class InitializationTests
     [TestMethod]
     public async Task Sloop_StartedAndStoppedWithoutErrors()
     {
-        var testLogger = new TestLogger();
-        var slCoreErrorLogger = new TestLogger();
-        var slCoreLogger = new TestLogger();
-        using (var slCoreTestRunner = new SLCoreTestRunner(testLogger, slCoreErrorLogger, TestContext.TestName))
+        var infrastructureLogger = new TestLogger();
+        var slCoreStdErrorLogger = new TestLogger();
+        var rpcLogger = new TestLogger();
+        using (var slCoreTestRunner = new SLCoreTestRunner(infrastructureLogger, slCoreStdErrorLogger, TestContext.TestName))
         {
-            slCoreTestRunner.AddListener(new LoggerListener(slCoreLogger));
-            slCoreTestRunner.Start();
-            await WaitForSloopLog(slCoreLogger);
+            slCoreTestRunner.AddListener(new LoggerListener(rpcLogger));
+            await slCoreTestRunner.Start(rpcLogger);
         }
 
-        VerifyNoErrorsInLogs(testLogger);
-        VerifyNoErrorsInLogs(slCoreErrorLogger);
-        VerifyLogMessagesReceived(slCoreLogger);
-        slCoreLogger.AssertPartialOutputStringExists("Telemetry disabled on server startup");
-        slCoreLogger.AssertPartialOutputStringDoesNotExist("Internal error");
+        VerifyNoErrorsInLogs(infrastructureLogger);
+        VerifyNoErrorsInLogs(slCoreStdErrorLogger);
+        VerifyLogMessagesReceived(rpcLogger);
+        rpcLogger.AssertPartialOutputStringExists("Telemetry disabled on server startup");
+        rpcLogger.AssertPartialOutputStringDoesNotExist("Internal error");
     }
 
     [TestMethod]
     public async Task Sloop_ConfigScopeSetAndUnsetWithoutErrors()
     {
         const string configScopeId = "ConfigScope1";
-        var testLogger = new TestLogger();
-        var slCoreLogger = new TestLogger();
-        var slCoreErrorLogger = new TestLogger();
+        var infrastructureLogger = new TestLogger();
+        var rpcLogger = new TestLogger();
+        var slCoreStdErrorLogger = new TestLogger();
         var analysisReadyCompletionSource = new TaskCompletionSource<DidChangeAnalysisReadinessParams>();
         var analysisListener = SetUpAnalysisListenerToUnblockOnAnalysisReady(configScopeId, analysisReadyCompletionSource);
 
-        using (var slCoreTestRunner = new SLCoreTestRunner(testLogger, slCoreErrorLogger, TestContext.TestName))
+        using (var slCoreTestRunner = new SLCoreTestRunner(infrastructureLogger, slCoreStdErrorLogger, TestContext.TestName))
         {
-            slCoreTestRunner.AddListener(new LoggerListener(slCoreLogger));
+            slCoreTestRunner.AddListener(new LoggerListener(rpcLogger));
             slCoreTestRunner.AddListener(new ProgressListener());
             slCoreTestRunner.AddListener(analysisListener);
-            slCoreTestRunner.Start();
+            await slCoreTestRunner.Start(rpcLogger);
 
             var activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
                 new AsyncLockFactory(),
@@ -79,8 +78,8 @@ public class InitializationTests
         }
 
         VerifyAnalysisReadinessReached(analysisListener, configScopeId);
-        VerifyNoErrorsInLogs(testLogger);
-        VerifyLogMessagesReceived(slCoreLogger);
+        VerifyNoErrorsInLogs(infrastructureLogger);
+        VerifyLogMessagesReceived(rpcLogger);
     }
 
     private static void VerifyAnalysisReadinessReached(IAnalysisListener analysisListener, string configScopeId)
@@ -93,20 +92,7 @@ public class InitializationTests
     private static async Task WaitForAnalysisReadiness(TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource) =>
         await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, "analysis readiness");
 
-    private static async Task WaitForSloopLog(TestLogger slCoreLogger)
-    {
-        var tcs = new TaskCompletionSource<bool>();
-        EventHandler eventHandler = (_, _) => tcs.TrySetResult(true);
-        slCoreLogger.LogMessageAdded += eventHandler;
-        try
-        {
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(tcs.Task, "sloop log");
-        }
-        finally
-        {
-            slCoreLogger.LogMessageAdded -= eventHandler;
-        }
-    }
+
 
     private static IAnalysisListener SetUpAnalysisListenerToUnblockOnAnalysisReady(string configScopeId,
         TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource)
