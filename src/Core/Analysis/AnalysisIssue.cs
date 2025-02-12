@@ -29,6 +29,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             Guid? id,
             string ruleKey,
             string issueServerKey,
+            bool isResolved,
             AnalysisIssueSeverity? severity,
             AnalysisIssueType? type,
             Impact highestImpact,
@@ -39,6 +40,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             Id = id;
             RuleKey = ruleKey;
             IssueServerKey = issueServerKey;
+            IsResolved = isResolved;
             Severity = severity;
             HighestImpact = highestImpact;
             Type = type;
@@ -58,7 +60,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
 
         public IAnalysisIssueLocation PrimaryLocation { get; }
-        public bool IsResolved { get; set; }
+        public bool IsResolved { get; }
         public string IssueServerKey { get; }
 
         public IReadOnlyList<IQuickFix> Fixes { get; }
@@ -71,6 +73,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             Guid? id,
             string ruleKey,
             string issueServerKey,
+            bool isResolved,
             AnalysisIssueSeverity? severity,
             AnalysisIssueType? type,
             Impact highestImpact,
@@ -78,7 +81,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             IReadOnlyList<IAnalysisIssueFlow> flows,
             IReadOnlyList<IQuickFix> fixes = null,
             HotspotPriority? hotspotPriority = null) :
-            base(id, ruleKey, issueServerKey, severity, type, highestImpact, primaryLocation, flows, fixes)
+            base(id, ruleKey, issueServerKey, isResolved, severity, type, highestImpact, primaryLocation, flows, fixes)
         {
             HotspotPriority = hotspotPriority;
         }

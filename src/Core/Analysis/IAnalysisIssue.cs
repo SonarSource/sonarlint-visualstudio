@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         /// <summary>
         /// If the issue has been resolved/accepted on the server
         /// </summary>
-        bool IsResolved { get; set; }
+        bool IsResolved { get; }
 
         /// <summary>
         /// The key of the issue on the server

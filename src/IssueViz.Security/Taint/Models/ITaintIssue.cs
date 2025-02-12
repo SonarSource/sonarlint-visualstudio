@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
         public TaintIssue(
             Guid? id,
             string issueServerKey,
+            bool isResolved,
             string ruleKey,
             IAnalysisIssueLocation primaryLocation,
             AnalysisIssueSeverity? severity,
@@ -48,6 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
         {
             Id = id;
             IssueServerKey = issueServerKey;
+            IsResolved = isResolved;
             RuleKey = ruleKey;
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Severity = severity;
@@ -70,7 +72,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
         public DateTimeOffset CreationTimestamp { get; }
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
         public IAnalysisIssueLocation PrimaryLocation { get; }
-        public bool IsResolved { get; set; }
+        public bool IsResolved { get; }
         public string RuleDescriptionContextKey { get; }
     }
 }

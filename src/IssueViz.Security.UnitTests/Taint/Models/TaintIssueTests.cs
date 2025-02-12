@@ -30,7 +30,7 @@ public class TaintIssueTests
     [TestMethod]
     public void Ctor_NullLocation_ArgumentNullException()
     {
-        Action act = () => new TaintIssue(Guid.Empty, "issue key", "rule key",
+        Action act = () => new TaintIssue(Guid.Empty, "issue key", false, "rule key",
             null,
             AnalysisIssueSeverity.Major, SoftwareQualitySeverity.High, DateTimeOffset.MinValue, null, null);
 
@@ -42,7 +42,7 @@ public class TaintIssueTests
     {
         var created = DateTimeOffset.Parse("2001-01-31T01:02:03+0200");
         var id = Guid.NewGuid();
-        var issue = new TaintIssue(id, "issue key", "rule key",
+        var issue = new TaintIssue(id, "issue key", true, "rule key",
             new AnalysisIssueLocation("message", "local-path.cpp", new TextRange(1, 2, 3, 4, "hash")),
             AnalysisIssueSeverity.Major, SoftwareQualitySeverity.High, created, null, "contextKey");
 
@@ -52,7 +52,7 @@ public class TaintIssueTests
         issue.Severity.Should().Be(AnalysisIssueSeverity.Major);
         issue.CreationTimestamp.Should().Be(created);
         issue.RuleDescriptionContextKey.Should().Be("contextKey");
-        issue.IsResolved.Should().BeFalse();
+        issue.IsResolved.Should().BeTrue();
 
         issue.PrimaryLocation.FilePath.Should().Be("local-path.cpp");
         issue.PrimaryLocation.Message.Should().Be("message");
@@ -67,7 +67,7 @@ public class TaintIssueTests
     public void Ctor_NoFlows_EmptyFlows()
     {
         IReadOnlyList<IAnalysisIssueFlow> flows = null;
-        var issue = new TaintIssue(Guid.NewGuid(), "issue key", "rule key",
+        var issue = new TaintIssue(Guid.NewGuid(), "issue key", false, "rule key",
             new AnalysisIssueLocation("message", "local-path.cpp", new TextRange(1, 2, 3, 4, "hash")),
             AnalysisIssueSeverity.Major, SoftwareQualitySeverity.High, DateTimeOffset.MinValue, flows, null);
 
@@ -78,7 +78,7 @@ public class TaintIssueTests
     public void Ctor_HasFlows_CorrectFlows()
     {
         var flows = new[] { Substitute.For<IAnalysisIssueFlow>(), Substitute.For<IAnalysisIssueFlow>() };
-        var issue = new TaintIssue(Guid.NewGuid(), "issue key", "rule key",
+        var issue = new TaintIssue(Guid.NewGuid(), "issue key", false, "rule key",
             new AnalysisIssueLocation("message", "local-path.cpp", new TextRange(1, 2, 3, 4, "hash")),
             AnalysisIssueSeverity.Major, SoftwareQualitySeverity.High, DateTimeOffset.MinValue, flows, null);
 
@@ -92,6 +92,7 @@ public class TaintIssueTests
         SoftwareQualitySeverity? highestSoftwareQualitySeverity = null;
         var act = () => new TaintIssue(Guid.NewGuid(),
             "issue key",
+            false,
             "rule key",
             new AnalysisIssueLocation("msg", "local-path.cpp", new TextRange(1, 2, 3, 4, "hash")),
             analysisIssueSeverity,

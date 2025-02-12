@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
         public Hotspot(
             Guid? id,
             string issueServerKey,
+            bool isResolved,
             string serverFilePath,
             IAnalysisIssueLocation primaryLocation,
             IHotspotRule rule,
@@ -47,6 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
         {
             Id = id;
             IssueServerKey = issueServerKey;
+            IsResolved = isResolved;
             ServerFilePath = serverFilePath;
             PrimaryLocation = primaryLocation ?? throw new ArgumentNullException(nameof(primaryLocation));
             Rule = rule;
@@ -59,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
         public IHotspotRule Rule { get; }
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
         public IAnalysisIssueLocation PrimaryLocation { get; }
-        public bool IsResolved { get; set; }
+        public bool IsResolved { get; }
         public string IssueServerKey { get; }
         public string ServerFilePath { get; }
         public string RuleDescriptionContextKey { get; }

@@ -47,6 +47,7 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
     {
         return new ServerIssue(Id: null,
             issueDetailDto.ruleKey,
+            IsResolved: false,
             new AnalysisIssueLocation(issueDetailDto.message,
                 Path.Combine(rootPath, issueDetailDto.ideFilePath),
                 new TextRange(issueDetailDto.textRange.startLine,
@@ -73,11 +74,11 @@ internal class IssueDetailDtoToAnalysisIssueConverter : IIssueDetailDtoToAnalysi
     private sealed record ServerIssue(
         Guid? Id,
         string RuleKey,
+        bool IsResolved,
         IAnalysisIssueLocation PrimaryLocation,
         IReadOnlyList<IAnalysisIssueFlow> Flows,
         string IssueServerKey)
         : IAnalysisIssueBase
     {
-        public bool IsResolved { get; set; }
     }
 }
