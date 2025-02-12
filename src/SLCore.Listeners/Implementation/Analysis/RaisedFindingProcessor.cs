@@ -59,12 +59,6 @@ internal class RaisedFindingProcessor(
     private bool IsValid<T>(RaiseFindingParams<T> parameters) where T : RaisedFindingDto
     {
         var logContext = $"[{nameof(RaiseFinding)}+{typeof(T).Name}]";
-        if (!parameters.analysisId.HasValue)
-        {
-            logger.LogVerbose($"{logContext} No {nameof(parameters.analysisId)}, ignoring...");
-            return false;
-        }
-
         if (parameters.issuesByFileUri.Count == 0)
         {
             logger.LogVerbose($"{logContext} Empty {nameof(parameters.issuesByFileUri)} dictionary, ignoring...");
@@ -83,7 +77,7 @@ internal class RaisedFindingProcessor(
             var analysisStatusNotifier = analysisStatusNotifierFactory.Create(nameof(SLCoreAnalyzer), localPath, parameters.analysisId);
             var supportedRaisedIssues = GetSupportedLanguageFindings(fileAndIssues.Value ?? []);
             findingsPublisher.Publish(localPath,
-                parameters.analysisId!.Value,
+                parameters.analysisId,
                 raiseFindingToAnalysisIssueConverter.GetAnalysisIssues(fileUri, supportedRaisedIssues));
             analysisStatusNotifier.AnalysisProgressed(supportedRaisedIssues.Length, findingsPublisher.FindingsType, parameters.isIntermediatePublication);
         }
