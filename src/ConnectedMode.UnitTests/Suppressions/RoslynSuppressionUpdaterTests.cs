@@ -38,13 +38,11 @@ public class RoslynIRoslynSuppressionUpdaterTests
     private ISonarQubeService server;
     private RoslynIRoslynSuppressionUpdater testSubject;
     private IThreadHandling threadHandling;
-    private IServerIssuesStoreWriter writer;
     private readonly EventHandler<SuppressionsArgs> suppressedIssuesUpdated = Substitute.For<EventHandler<SuppressionsArgs>>();
 
     [TestInitialize]
     public void TestInitialize()
     {
-        writer = Substitute.For<IServerIssuesStoreWriter>();
         server = Substitute.For<ISonarQubeService>();
         queryInfo = Substitute.For<IServerQueryInfoProvider>();
         logger = new TestLogger(true);
@@ -292,7 +290,7 @@ public class RoslynIRoslynSuppressionUpdaterTests
     }
 
     private RoslynIRoslynSuppressionUpdater CreateTestSubject(ICancellableActionRunner mockedActionRunner, IThreadHandling mockedThreadHandling) =>
-        new(server, queryInfo, writer, mockedActionRunner, logger, mockedThreadHandling);
+        new(server, queryInfo, mockedActionRunner, logger, mockedThreadHandling);
 
     private void MockQueryInfoProvider(string projectKey, string branchName) => queryInfo.GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>()).Returns((projectKey, branchName));
 
@@ -315,11 +313,7 @@ public class RoslynIRoslynSuppressionUpdaterTests
         =>
             Debugger.IsAttached ? TimeSpan.FromMinutes(2) : TimeSpan.FromMilliseconds(200);
 
-    private void MockIssuesStore(params SonarQubeIssue[] issuesInStore) => writer.Get().Returns(issuesInStore);
-
     private static bool VerifyExistingIssues(IEnumerable<string> actualIssues, IEnumerable<string> expectedIssues) => actualIssues.SequenceEqual(expectedIssues);
-
-    private static bool VerifySonarQubeIssues(IEnumerable<SonarQubeIssue> actualIssues, SonarQubeIssue[] expectedIssues) => actualIssues.SequenceEqual(expectedIssues);
 
     private static IThreadHandling CreateMockedThreadHandling()
     {

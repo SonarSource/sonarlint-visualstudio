@@ -54,7 +54,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     {
         private readonly ISonarQubeService server;
         private readonly IServerQueryInfoProvider serverQueryInfoProvider;
-        private readonly IServerIssuesStoreWriter storeWriter;
         private readonly ICancellableActionRunner actionRunner;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
@@ -66,21 +65,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             IServerIssuesStoreWriter storeWriter,
             ICancellableActionRunner actionRunner,
             ILogger logger)
-            : this(server, serverQueryInfoProvider, storeWriter, actionRunner, logger, ThreadHandling.Instance)
+            : this(server, serverQueryInfoProvider, actionRunner, logger, ThreadHandling.Instance)
         {
         }
 
         internal /* for testing */ RoslynIRoslynSuppressionUpdater(
             ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
-            IServerIssuesStoreWriter storeWriter,
             ICancellableActionRunner actionRunner,
             ILogger logger,
             IThreadHandling threadHandling)
         {
             this.server = server;
             this.serverQueryInfoProvider = serverQueryInfoProvider;
-            this.storeWriter = storeWriter;
             this.actionRunner = actionRunner;
             this.logger = logger;
             this.threadHandling = threadHandling;
