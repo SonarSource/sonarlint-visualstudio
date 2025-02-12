@@ -24,11 +24,13 @@ using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode;
+using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Core.Transition;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using MessageBox = SonarLint.VisualStudio.Core.MessageBox;
 using Task = System.Threading.Tasks.Task;
 
@@ -179,23 +181,32 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private async Task<bool> MuteIssueAsync(IFilterableIssue issue)
         {
+            var issueServerKey = await GetIssueServerKeyAsync(issue);
+
+            try
+            {
+                await muteIssuesService.ResolveIssueWithDialogAsync(issueServerKey);
+                logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted, issueServerKey);
+                return true;
+            }
+            catch (MuteIssueException ex) when (ex is not MuteIssueException.CancelledException)
+            {
+                messageBox.Show(ex.Message, AnalysisStrings.MuteIssue_IssueNotFoundCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                return false;
+            }
+        }
+
+        private async Task<string> GetIssueServerKeyAsync(IFilterableIssue issue)
+        {
+            // Non-Roslyn issues already have the issue server key
+            if (issue is IAnalysisIssueVisualization issueViz)
+            {
+                return issueViz.Issue.IssueServerKey;
+            }
+
+            // Roslyn issues need to be converted to SonarQube issues to get the server key as they are handled by SLCore
             var serverIssue = await serverIssueFinder.FindServerIssueAsync(issue, CancellationToken.None);
-            if (serverIssue == null)
-            {
-                messageBox.Show(AnalysisStrings.MuteIssue_IssueNotFoundText, AnalysisStrings.MuteIssue_IssueNotFoundCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                return false;
-            }
-
-            if (serverIssue.IsResolved)
-            {
-                messageBox.Show(AnalysisStrings.MuteIssue_IssueAlreadyMutedText, AnalysisStrings.MuteIssue_IssueAlreadyMutedCaption, MessageBoxButton.OK, MessageBoxImage.Information);
-                return false;
-            }
-
-            await muteIssuesService.ResolveIssueWithDialogAsync(serverIssue.IssueKey);
-            logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted, serverIssue.IssueKey);
-
-            return true;
+            return serverIssue?.IssueKey;
         }
 
         private bool IsSupportedSonarRule(SonarCompositeRuleId rule) => SupportedRepos.Contains(rule.RepoKey);
