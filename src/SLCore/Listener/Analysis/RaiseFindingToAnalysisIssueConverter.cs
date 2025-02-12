@@ -29,9 +29,15 @@ namespace SonarLint.VisualStudio.SLCore.Listener.Analysis
 {
     [Export(typeof(IRaiseFindingToAnalysisIssueConverter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class RaiseFindingToAnalysisIssueConverter(ILogger logger) : IRaiseFindingToAnalysisIssueConverter
+    public class RaiseFindingToAnalysisIssueConverter : IRaiseFindingToAnalysisIssueConverter
     {
-        private readonly ILogger logger = logger;
+        private readonly ILogger logger;
+
+        [ImportingConstructor]
+        public RaiseFindingToAnalysisIssueConverter(ILogger logger)
+        {
+            this.logger = logger;
+        }
 
         public IEnumerable<IAnalysisIssue> GetAnalysisIssues<T>(FileUri fileUri, IEnumerable<T> raisedFindings) where T : RaisedFindingDto =>
             raisedFindings
