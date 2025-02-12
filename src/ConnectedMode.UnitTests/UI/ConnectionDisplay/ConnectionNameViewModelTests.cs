@@ -117,7 +117,7 @@ public class ConnectionNameViewModelTests
 
     [DynamicData(nameof(Regions))]
     [DataTestMethod]
-    public void DisplayRegion_SonarCloud_NoId_DoesNotDisplayRegion(CloudServerRegion region)
+    public void DisplayRegion_SonarCloud_NoId_DisplaysRegion(CloudServerRegion region)
     {
         testSubject.ConnectionInfo = new ConnectionInfo(null, ConnectionServerType.SonarCloud, region);
 
