@@ -46,39 +46,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
                 MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IMuteIssuesWindowService>(),
-                MefTestHelpers.CreateExport<ISonarQubeService>(),
-                MefTestHelpers.CreateExport<IServerIssuesStoreWriter>());
+                MefTestHelpers.CreateExport<ISonarQubeService>());
         }
 
         [TestMethod]
         public void MefCtor_CheckIsSingleton()
         {
             MefTestHelpers.CheckIsSingletonMefComponent<MuteIssuesService>();
-        }
-
-        [TestMethod]
-        public void CacheOutOfSyncResolvedIssue_ThrowsIfNotResolved()
-        {
-            var testSubject = CreateTestSubject();
-
-            Action act = () => testSubject.CacheOutOfSyncResolvedIssue(DummySonarQubeIssueFactory.CreateServerIssue());
-
-            act.Should().ThrowExactly<ArgumentException>();
-        }
-
-        [TestMethod]
-        public void CacheOutOfSyncResolvedIssue_SavesIssueToStore()
-        {
-            var sonarQubeIssue = DummySonarQubeIssueFactory.CreateServerIssue(true);
-            var storeMock = new Mock<IServerIssuesStoreWriter>();
-            var threadHandlingMock = new Mock<IThreadHandling>();
-
-            var testSubject = CreateTestSubject(serverIssuesStore:storeMock.Object, threadHandling:threadHandlingMock.Object);
-
-            testSubject.CacheOutOfSyncResolvedIssue(sonarQubeIssue);
-
-            storeMock.Verify(x => x.AddIssues(It.Is<IEnumerable<SonarQubeIssue>>(p => p.SequenceEqual(new[] { sonarQubeIssue })), false));
-            threadHandlingMock.Verify(x => x.ThrowIfOnUIThread());
         }
 
         [TestMethod]
@@ -110,15 +84,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
             sonarQubeService.Setup(s => s.TransitionIssueAsync(It.IsAny<string>(), It.IsAny<SonarQubeIssueTransition>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(SonarQubeIssueTransitionResult.FailedToTransition);
             sonarQubeService.Setup(s => s.TransitionIssueAsync(sonarQubeIssue.IssueKey, SonarQubeIssueTransition.FalsePositive, "some comment", CancellationToken.None)).ReturnsAsync(SonarQubeIssueTransitionResult.Success);
 
-            var serverIssuesStore = new Mock<IServerIssuesStoreWriter>();
 
-            var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, sonarQubeService: sonarQubeService.Object, serverIssuesStore: serverIssuesStore.Object, threadHandling: threadHandling.Object);
+            var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, sonarQubeService: sonarQubeService.Object, threadHandling: threadHandling.Object);
 
             await testSubject.ResolveIssueWithDialogAsync(sonarQubeIssue, CancellationToken.None);
 
             muteIssuesWindowService.Verify(s => s.Show(), Times.Once);
             sonarQubeService.Verify(s => s.TransitionIssueAsync(sonarQubeIssue.IssueKey, SonarQubeIssueTransition.FalsePositive, "some comment", CancellationToken.None), Times.Once);
-            serverIssuesStore.Verify(s => s.AddIssues(It.Is<IEnumerable<SonarQubeIssue>>(p => p.SequenceEqual(new[] { sonarQubeIssue })), false), Times.Once);
             threadHandling.Verify(t => t.ThrowIfOnUIThread(), Times.Once());
             sonarQubeIssue.IsResolved.Should().BeTrue();
         }
@@ -206,7 +178,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
             ILogger logger = null,
             IMuteIssuesWindowService muteIssuesWindowService = null,
             ISonarQubeService sonarQubeService = null,
-            IServerIssuesStoreWriter serverIssuesStore = null,
             IThreadHandling threadHandling = null,
             IMessageBox messageBox = null)
         {
@@ -214,11 +185,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
             logger ??= Mock.Of<ILogger>();
             muteIssuesWindowService ??= Mock.Of<IMuteIssuesWindowService>();
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
-            serverIssuesStore ??= Mock.Of<IServerIssuesStoreWriter>();
             threadHandling ??= CreateThreadHandling().Object;
             messageBox ??= Mock.Of<IMessageBox>();
 
-            return new MuteIssuesService(activeSolutionBoundTracker, logger, muteIssuesWindowService, sonarQubeService, serverIssuesStore, threadHandling, messageBox);
+            return new MuteIssuesService(activeSolutionBoundTracker, logger, muteIssuesWindowService, sonarQubeService, threadHandling, messageBox);
         }
     }
 }

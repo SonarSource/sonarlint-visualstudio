@@ -26,8 +26,6 @@ namespace SonarLint.VisualStudio.Core.Transition
 {
     public interface IMuteIssuesService
     {
-        void CacheOutOfSyncResolvedIssue(SonarQubeIssue issue);
-
         Task ResolveIssueWithDialogAsync(SonarQubeIssue issue, CancellationToken token);
     }
 }
