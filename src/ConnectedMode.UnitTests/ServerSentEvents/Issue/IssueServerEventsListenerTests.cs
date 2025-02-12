@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
@@ -37,7 +34,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
         {
             MefTestHelpers.CheckTypeCanBeImported<IssueServerEventsListener, IIssueServerEventsListener>(
                 MefTestHelpers.CreateExport<IIssueServerEventSource>(),
-                MefTestHelpers.CreateExport<ISuppressionIssueStoreUpdater>(),
+                MefTestHelpers.CreateExport<IRoslynSuppressionUpdater>(),
                 MefTestHelpers.CreateExport<IStatefulServerBranchProvider>(),
                 MefTestHelpers.CreateExport<IThreadHandling>(),
                 MefTestHelpers.CreateExport<ILogger>());
@@ -52,7 +49,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
                 new BranchAndIssueKey("issueKey3", "branch1"));
 
             var issueServerEventSource = SetupIssueServerEventSource(event1);
-            var storeUpdater = new Mock<ISuppressionIssueStoreUpdater>();
+            var storeUpdater = new Mock<IRoslynSuppressionUpdater>();
             var branchProvider = CreateBranchProvider("branch1");
 
             var testSubject = CreateTestSubject(issueServerEventSource.Object, storeUpdater.Object, branchProvider.Object);
@@ -64,7 +61,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
 
             storeUpdater.Verify(x => x.UpdateSuppressedIssuesAsync(
                     true,
-                    new[] {"issueKey1", "issueKey3"},
+                    new[] { "issueKey1", "issueKey3" },
                     It.IsAny<CancellationToken>()),
                 Times.Once);
             storeUpdater.VerifyNoOtherCalls();
@@ -78,7 +75,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
             var event3 = CreateServerEvent(isResolved: false, new BranchAndIssueKey("issueKey3", "branch1"));
 
             var issueServerEventSource = SetupIssueServerEventSource(event1, event2, event3);
-            var storeUpdater = new Mock<ISuppressionIssueStoreUpdater>();
+            var storeUpdater = new Mock<IRoslynSuppressionUpdater>();
             var branchProvider = CreateBranchProvider("branch1");
 
             var testSubject = CreateTestSubject(issueServerEventSource.Object, storeUpdater.Object, branchProvider.Object);
@@ -96,7 +93,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
 
             storeUpdater.Verify(x => x.UpdateSuppressedIssuesAsync(
                     false,
-                    new[] {"issueKey3" },
+                    new[] { "issueKey3" },
                     It.IsAny<CancellationToken>()),
                 Times.Once);
 
@@ -165,18 +162,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
 
         private static IssueServerEventsListener CreateTestSubject(
             IIssueServerEventSource issueServerEventSource = null,
-            ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater = null,
+            IRoslynSuppressionUpdater iRoslynSuppressionUpdater = null,
             IStatefulServerBranchProvider branchProvider = null,
             IThreadHandling threadHandling = null,
             ILogger logger = null)
         {
             issueServerEventSource ??= Mock.Of<IIssueServerEventSource>();
-            suppressionIssueStoreUpdater ??= Mock.Of<ISuppressionIssueStoreUpdater>();
+            iRoslynSuppressionUpdater ??= Mock.Of<IRoslynSuppressionUpdater>();
             branchProvider ??= Mock.Of<IStatefulServerBranchProvider>();
             threadHandling ??= new NoOpThreadHandler();
             logger ??= Mock.Of<ILogger>();
 
-            return new IssueServerEventsListener(issueServerEventSource, suppressionIssueStoreUpdater, branchProvider, threadHandling, logger);
+            return new IssueServerEventsListener(issueServerEventSource, iRoslynSuppressionUpdater, branchProvider, threadHandling, logger);
         }
 
         private static IIssueChangedServerEvent CreateServerEvent(bool isResolved, params BranchAndIssueKey[] branchAndIssueKeys)

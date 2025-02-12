@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
@@ -33,20 +32,21 @@ namespace SonarLint.VisualStudio.ConnectedMode
     internal sealed class BoundSolutionUpdateHandler : IDisposable
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
+        private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
         private readonly IServerHotspotStoreUpdater serverHotspotStoreUpdater;
         private readonly IQualityProfileUpdater qualityProfileUpdater;
 
         private bool disposed;
 
         [ImportingConstructor]
-        public BoundSolutionUpdateHandler(IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
+        public BoundSolutionUpdateHandler(
+            IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            IRoslynSuppressionUpdater roslynSuppressionUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater)
         {
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-            this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
+            this.roslynSuppressionUpdater = roslynSuppressionUpdater;
             this.serverHotspotStoreUpdater = serverHotspotStoreUpdater;
             this.qualityProfileUpdater = qualityProfileUpdater;
 
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
 
         private void TriggerUpdate()
         {
-            suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
+            roslynSuppressionUpdater.UpdateAllServerSuppressionsAsync().Forget();
             serverHotspotStoreUpdater.UpdateAllServerHotspotsAsync().Forget();
             qualityProfileUpdater.UpdateAsync().Forget();
         }
@@ -69,8 +69,8 @@ namespace SonarLint.VisualStudio.ConnectedMode
         {
             if (!disposed)
             {
-                this.activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
-                this.activeSolutionBoundTracker.SolutionBindingUpdated -= OnSolutionBindingUpdated;
+                activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
+                activeSolutionBoundTracker.SolutionBindingUpdated -= OnSolutionBindingUpdated;
                 disposed = true;
             }
         }

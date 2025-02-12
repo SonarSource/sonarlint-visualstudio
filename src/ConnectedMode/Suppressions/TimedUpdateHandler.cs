@@ -18,13 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
@@ -36,7 +35,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 10; // 10 minutes
 
         private readonly ITimer refreshTimer;
-        private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
+        private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
         private readonly IServerHotspotStoreUpdater serverHotspotStoreUpdater;
         private readonly IQualityProfileUpdater qualityProfileUpdater;
         private readonly ILogger logger;
@@ -45,21 +44,25 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private bool disposed;
 
         [ImportingConstructor]
-        public TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
+        public TimedUpdateHandler(
+            IRoslynSuppressionUpdater roslynSuppressionUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater,
             ILogger logger,
             IActiveSolutionBoundTracker activeSolutionBoundTracker)
-            : this(suppressionIssueStoreUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, activeSolutionBoundTracker, logger, new TimerFactory()) { }
+            : this(roslynSuppressionUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, activeSolutionBoundTracker, logger, new TimerFactory())
+        {
+        }
 
-        internal /* for testing */ TimedUpdateHandler(ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
+        internal /* for testing */ TimedUpdateHandler(
+            IRoslynSuppressionUpdater roslynSuppressionUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger,
             ITimerFactory timerFactory)
         {
-            this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
+            this.roslynSuppressionUpdater = roslynSuppressionUpdater;
             this.serverHotspotStoreUpdater = serverHotspotStoreUpdater;
             this.qualityProfileUpdater = qualityProfileUpdater;
             this.logger = logger;
@@ -95,7 +98,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
         {
             logger.WriteLine(Resources.TimedUpdateTriggered);
-            suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync().Forget();
+            roslynSuppressionUpdater.UpdateAllServerSuppressionsAsync().Forget();
             serverHotspotStoreUpdater.UpdateAllServerHotspotsAsync().Forget();
             qualityProfileUpdater.UpdateAsync().Forget();
         }
