@@ -91,7 +91,7 @@ public class InitializationTests
     }
 
     private static async Task WaitForAnalysisReadiness(TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource) =>
-        await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
+        await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, "analysis readiness");
 
     private static async Task WaitForSloopLog(TestLogger slCoreLogger)
     {
@@ -100,7 +100,7 @@ public class InitializationTests
         slCoreLogger.LogMessageAdded += eventHandler;
         try
         {
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(tcs.Task);
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(tcs.Task, "sloop log");
         }
         finally
         {

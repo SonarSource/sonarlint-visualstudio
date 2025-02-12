@@ -100,10 +100,10 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
                 analysisRaisedIssues);
             activeConfigScopeTracker.SetCurrentConfigScope(configScope);
 
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, "analysis readiness");
 
             await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath(), analysisId, extraProperties);
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task);
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task, "analysis completion");
 
             return analysisRaisedIssues.Task.Result.issuesByFileUri;
         }
