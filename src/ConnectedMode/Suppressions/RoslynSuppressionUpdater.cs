@@ -50,7 +50,7 @@ public class SuppressionsArgs : EventArgs
 
 [Export(typeof(IRoslynSuppressionUpdater))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class RoslynIRoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDisposable
+internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDisposable
 {
     private readonly ICancellableActionRunner actionRunner;
     private readonly ILogger logger;
@@ -59,7 +59,7 @@ internal sealed class RoslynIRoslynSuppressionUpdater : IRoslynSuppressionUpdate
     private readonly IThreadHandling threadHandling;
 
     [ImportingConstructor]
-    public RoslynIRoslynSuppressionUpdater(
+    public RoslynSuppressionUpdater(
         ISonarQubeService server,
         IServerQueryInfoProvider serverQueryInfoProvider,
         IServerIssuesStoreWriter storeWriter,
@@ -69,7 +69,7 @@ internal sealed class RoslynIRoslynSuppressionUpdater : IRoslynSuppressionUpdate
     {
     }
 
-    internal RoslynIRoslynSuppressionUpdater(
+    internal RoslynSuppressionUpdater(
         ISonarQubeService server,
         IServerQueryInfoProvider serverQueryInfoProvider,
         ICancellableActionRunner actionRunner,
