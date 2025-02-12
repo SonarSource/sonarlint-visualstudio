@@ -110,7 +110,7 @@ public class ConnectionNameViewModelTests
     [TestMethod]
     public void DisplayRegion_SonarQube_DoesNotDisplayRegion()
     {
-        testSubject.ConnectionInfo = new ConnectionInfo("id", ConnectionServerType.SonarQube);
+        testSubject.ConnectionInfo = new ConnectionInfo("any id", ConnectionServerType.SonarQube);
 
         VerifyDoesNotDisplayRegion();
     }
@@ -121,26 +121,28 @@ public class ConnectionNameViewModelTests
     {
         testSubject.ConnectionInfo = new ConnectionInfo(null, ConnectionServerType.SonarCloud, region);
 
-        VerifyDoesNotDisplayRegion();
-    }
-
-    [DynamicData(nameof(Regions))]
-    [DataTestMethod]
-    public void DisplayRegion_SonarCloud_HasId_DisplaysRegion(CloudServerRegion region)
-    {
-        testSubject.ConnectionInfo = new ConnectionInfo("id", ConnectionServerType.SonarCloud, region);
-
         testSubject.ShouldDisplayRegion.Should().BeTrue();
         testSubject.DisplayRegion.Should().Be(region.Name);
     }
 
     [DynamicData(nameof(Regions))]
     [DataTestMethod]
-    public void DisplayRegion_SonarCloud_HasId_NotInDogfoodingEnvironment_DoesNotDisplayRegion(CloudServerRegion region)
+    public void DisplayRegion_SonarCloud_HasId_DisplaysRegion(CloudServerRegion region)
+    {
+        testSubject.ConnectionInfo = new ConnectionInfo("any id", ConnectionServerType.SonarCloud, region);
+
+        testSubject.ShouldDisplayRegion.Should().BeTrue();
+        testSubject.DisplayRegion.Should().Be(region.Name);
+    }
+
+    [DataRow(null)]
+    [DataRow("any id")]
+    [DataTestMethod]
+    public void DisplayRegion_SonarCloud_NotInDogfoodingEnvironment_DoesNotDisplayRegion(string id)
     {
         dogfoodingService.IsDogfoodingEnvironment.Returns(false);
 
-        testSubject.ConnectionInfo = new ConnectionInfo("id", ConnectionServerType.SonarCloud, region);
+        testSubject.ConnectionInfo = new ConnectionInfo(id, ConnectionServerType.SonarCloud, CloudServerRegion.Us);
 
         VerifyDoesNotDisplayRegion();
     }

@@ -25,9 +25,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.UI.ConnectionDisplay;
 
 public class ConnectionNameViewModel : ViewModelBase
 {
-    public ConnectionNameViewModel() : this(DogfoodingService.Instance){ }
+    public ConnectionNameViewModel() : this(DogfoodingService.Instance) { }
 
-    internal /* for testing */ ConnectionNameViewModel(IDogfoodingService dogfoodingService)
+    internal ConnectionNameViewModel(IDogfoodingService dogfoodingService)
     {
         this.dogfoodingService = dogfoodingService ?? throw new ArgumentNullException(nameof(dogfoodingService));
     }
@@ -53,6 +53,6 @@ public class ConnectionNameViewModel : ViewModelBase
             ? connectionInfo.CloudServerRegion.Url.ToString()
             : connectionInfo?.Id ?? string.Empty;
 
-    public bool ShouldDisplayRegion => dogfoodingService.IsDogfoodingEnvironment && connectionInfo is { Id: not null, ServerType: ConnectionServerType.SonarCloud };
+    public bool ShouldDisplayRegion => dogfoodingService.IsDogfoodingEnvironment && connectionInfo?.ServerType is ConnectionServerType.SonarCloud;
     public string DisplayRegion => ShouldDisplayRegion ? connectionInfo.CloudServerRegion.Name : string.Empty;
 }

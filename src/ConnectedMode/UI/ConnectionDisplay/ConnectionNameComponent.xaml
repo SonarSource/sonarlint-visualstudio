@@ -7,27 +7,31 @@
     Name="ConnectionNameUc"
     FontSize="{DynamicResource {x:Static vsShell:VsFonts.Environment122PercentFontSizeKey}}"
     FontFamily="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}">
-    
+
     <UserControl.Resources>
         <ResourceDictionary>
             <wpf:BoolToVisibilityConverter x:Key="TrueToVisibleConverter" FalseValue="Collapsed" TrueValue="Visible" />
         </ResourceDictionary>
     </UserControl.Resources>
-    
+
     <Grid DataContext="{Binding ElementName=ConnectionNameUc, Path=ViewModel}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="0"
-                   Text="{Binding Path=DisplayRegion}"
-                   Margin="0, 0, 5, 0"
+                   Margin="0, 0, 7, 0"
+                   VerticalAlignment="{Binding ElementName=ConnectionNameUc, Path=VerticalAlignment}"
                    Visibility="{Binding Path=ShouldDisplayRegion, Converter={StaticResource TrueToVisibleConverter}}"
-                   FontWeight="{Binding ElementName=ConnectionNameUc, Path=ConnectionNameFontWeight}" />
+                   FontWeight="{Binding ElementName=ConnectionNameUc, Path=ConnectionNameFontWeight}">
+            <Run Text="{Binding Path=DisplayRegion, Mode=OneWay}"/>
+            <Run Text=" -"/>
+        </TextBlock>
         <TextBlock Grid.Column="1"
                    Text="{Binding Path=DisplayName}"
+                   VerticalAlignment="{Binding ElementName=ConnectionNameUc, Path=VerticalAlignment}"
                    TextWrapping="Wrap"
                    TextTrimming="CharacterEllipsis"
-                   FontWeight="{Binding ElementName=ConnectionNameUc, Path=ConnectionNameFontWeight}"/>
+                   FontWeight="{Binding ElementName=ConnectionNameUc, Path=ConnectionNameFontWeight}" />
     </Grid>
 </UserControl>
