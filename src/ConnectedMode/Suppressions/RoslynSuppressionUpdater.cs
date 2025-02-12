@@ -102,7 +102,6 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
                         if (queryInfo.projectKey == null || queryInfo.serverBranch == null)
                         {
-                            storeWriter.Reset();
                             return;
                         }
 
@@ -111,7 +110,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
                         var allSuppressedIssues =
                             await server.GetSuppressedIssuesAsync(queryInfo.projectKey, queryInfo.serverBranch, null,
                                 token);
-                        storeWriter.AddIssues(allSuppressedIssues, clearAllExistingIssues: true);
+                        InvokeSuppressedIssuesUpdated(allSuppressedIssues, areAllServerIssues: true);
 
                         logger.WriteLine(Resources.Suppression_Fetch_AllIssues_Finished);
                     }
@@ -128,6 +127,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
                 return true;
             });
+
+        private void InvokeSuppressedIssuesUpdated(IList<SonarQubeIssue> allSuppressedIssues, bool areAllServerIssues) =>
+            SuppressedIssuesUpdated?.Invoke(this, new SuppressionsArgs { SuppressedIssues = allSuppressedIssues.ToList(), AreAllServerIssuesForProject = areAllServerIssues });
 
         public async Task UpdateSuppressedIssuesAsync(bool isResolved, string[] issueKeys, CancellationToken cancellationToken)
         {

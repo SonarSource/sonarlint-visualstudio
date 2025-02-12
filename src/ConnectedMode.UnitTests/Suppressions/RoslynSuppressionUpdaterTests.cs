@@ -39,6 +39,7 @@ public class RoslynIRoslynSuppressionUpdaterTests
     private RoslynIRoslynSuppressionUpdater testSubject;
     private IThreadHandling threadHandling;
     private IServerIssuesStoreWriter writer;
+    private readonly EventHandler<SuppressionsArgs> suppressedIssuesUpdated = Substitute.For<EventHandler<SuppressionsArgs>>();
 
     [TestInitialize]
     public void TestInitialize()
@@ -50,6 +51,7 @@ public class RoslynIRoslynSuppressionUpdaterTests
         threadHandling = new NoOpThreadHandler();
         actionRunner = new SynchronizedCancellableActionRunner(logger);
         testSubject = CreateTestSubject(actionRunner, threadHandling);
+        testSubject.SuppressedIssuesUpdated += suppressedIssuesUpdated;
     }
 
     [TestMethod]
@@ -65,7 +67,7 @@ public class RoslynIRoslynSuppressionUpdaterTests
     [DataRow(null, null)]
     [DataRow(null, "branch")]
     [DataRow("projectKey", null)]
-    public async Task UpdateAll_MissingServerQueryInfo_ResetsStore(string projectKey, string branchName)
+    public async Task UpdateAll_MissingServerQueryInfo_DoesNotInvokeEvent(string projectKey, string branchName)
     {
         // Server query info is not available -> give up
         MockQueryInfoProvider(projectKey, branchName);
@@ -74,12 +76,11 @@ public class RoslynIRoslynSuppressionUpdaterTests
 
         await queryInfo.Received(1).GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>());
         server.ReceivedCalls().Should().HaveCount(0);
-        writer.Received(1).Reset();
-        writer.ReceivedCalls().Should().HaveCount(1);
+        VerifySuppressedIssuesUpdatedNotInvoked();
     }
 
     [TestMethod]
-    public async Task UpdateAll_HasServerQueryInfo_ServerQueriedAndStoreUpdated()
+    public async Task UpdateAll_HasServerQueryInfo_ServerQueriedAndEventInvoked()
     {
         // Happy path - fetch and update
         MockQueryInfoProvider("project", "branch");
@@ -90,9 +91,8 @@ public class RoslynIRoslynSuppressionUpdaterTests
 
         await queryInfo.Received(1).GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>());
         await server.Received(1).GetSuppressedIssuesAsync("project", "branch", null, Arg.Any<CancellationToken>());
-        writer.Received(1).AddIssues(Arg.Is<IEnumerable<SonarQubeIssue>>(x => VerifySonarQubeIssues(x, new[] { issue })), true);
         server.ReceivedCalls().Should().HaveCount(1);
-        writer.ReceivedCalls().Should().HaveCount(1);
+        VerifySuppressedIssuesUpdatedInvoked(expectedAllSuppressedIssues: [issue], areAllServerIssues: true);
     }
 
     [TestMethod]
@@ -213,7 +213,7 @@ public class RoslynIRoslynSuppressionUpdaterTests
         // If cancellation worked then we should only have made one call to each
         // of the SonarQubeService and store writer
         server.ReceivedCalls().Should().HaveCount(1);
-        writer.ReceivedCalls().Should().HaveCount(1);
+        VerifySuppressedIssuesUpdatedInvoked([], true);
 
         static void Log(string message) => Console.WriteLine($"[Thread {Thread.CurrentThread.ManagedThreadId}] {message}");
     }
@@ -377,4 +377,11 @@ public class RoslynIRoslynSuppressionUpdaterTests
             });
         return mockedActionRunner;
     }
+
+    private void VerifySuppressedIssuesUpdatedNotInvoked() => suppressedIssuesUpdated.DidNotReceiveWithAnyArgs().Invoke(testSubject, Arg.Any<SuppressionsArgs>());
+
+    private void VerifySuppressedIssuesUpdatedInvoked(IEnumerable<SonarQubeIssue> expectedAllSuppressedIssues, bool areAllServerIssues) =>
+        suppressedIssuesUpdated.Received(1)
+            .Invoke(testSubject,
+                Arg.Is<SuppressionsArgs>(x => x.SuppressedIssues.SequenceEqual(expectedAllSuppressedIssues) && x.AreAllServerIssuesForProject == areAllServerIssues));
 }
