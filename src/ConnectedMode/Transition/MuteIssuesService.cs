@@ -48,53 +48,107 @@ internal class MuteIssuesService(
         threadHandling.ThrowIfOnUIThread();
 
         var currentConfigScope = activeConfigScopeTracker.Current;
-        if (currentConfigScope?.Id == null || currentConfigScope.SonarProjectId == null)
-        {
-            logger.LogVerbose(Resources.MuteWindowService_NotInConnectedMode);
-            return;
-        }
+        CheckIsInConnectedMode(currentConfigScope);
+        CheckIssueServerKeyNotNull(issueServerKey);
 
-        if (!slCoreServiceProvider.TryGetTransientService(out IIssueSLCoreService issueSlCoreService))
-        {
-            logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
-            return;
-        }
+        await GetAllowedStatusesAsync(currentConfigScope.ConnectionId, issueServerKey);
+        var windowResponse = await PromptMuteIssueResolutionAsync();
+        await MuteIssueWithCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse);
+    }
 
+    private async Task<MuteIssuesWindowResponse> PromptMuteIssueResolutionAsync()
+    {
         MuteIssuesWindowResponse windowResponse = null;
         await threadHandling.RunOnUIThreadAsync(() => windowResponse = muteIssuesWindowService.Show());
-        if (!windowResponse.Result)
+
+        if (windowResponse.Result)
+        {
+            return windowResponse;
+        }
+
+        throw new MuteIssueException.CancelledException();
+    }
+
+    private void CheckIssueServerKeyNotNull(string issueServerKey)
+    {
+        if (issueServerKey != null)
         {
             return;
         }
 
+        logger.WriteLine(Resources.MuteIssue_IssueNotFound);
+        throw new MuteIssueException.ServerIssueNotFoundException();
+    }
+
+    private void CheckIsInConnectedMode(Core.ConfigurationScope.ConfigurationScope currentConfigScope)
+    {
+        if (currentConfigScope is { Id: not null, ConnectionId: not null })
+        {
+            return;
+        }
+
+        logger.WriteLine(Resources.MuteIssue_NotInConnectedMode);
+        throw new MuteIssueException.NotInConnectedModeException();
+    }
+
+    private IIssueSLCoreService GetIssueSlCoreService()
+    {
+        if (slCoreServiceProvider.TryGetTransientService(out IIssueSLCoreService issueSlCoreService))
+        {
+            return issueSlCoreService;
+        }
+
+        logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
+        throw new MuteIssueException.UnavailableServiceProviderException();
+    }
+
+    private async Task<List<ResolutionStatus>> GetAllowedStatusesAsync(string connectionId, string issueServerKey)
+    {
+        var issueSlCoreService = GetIssueSlCoreService();
+
+        CheckStatusChangePermittedResponse response;
         try
         {
-            await MuteIssueWithCommentAsync(issueSlCoreService, currentConfigScope.Id, issueServerKey, windowResponse);
+            var checkStatusChangePermittedParams = new CheckStatusChangePermittedParams(connectionId, issueServerKey);
+            response = await issueSlCoreService.CheckStatusChangePermittedAsync(checkStatusChangePermittedParams);
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
             logger.WriteLine(Resources.MuteIssue_AnErrorOccurred, issueServerKey, ex.Message);
+            throw new MuteIssueException.SlCoreException(ex);
         }
+
+        if (!response.permitted)
+        {
+            throw new MuteIssueException.NotPermittedException(response.notPermittedReason);
+        }
+        return response.allowedStatuses;
     }
 
-    private static async Task MuteIssueWithCommentAsync(
-        IIssueSLCoreService issueSlCoreService,
-        string configurationScopeId,
-        string issueServerKey,
-        MuteIssuesWindowResponse windowResponse)
+    private async Task MuteIssueWithCommentAsync(string configurationScopeId, string issueServerKey, MuteIssuesWindowResponse windowResponse)
     {
-        var newStatus = MapSonarQubeIssueTransitionToSlCoreResolutionStatus(windowResponse.IssueTransition);
-        await issueSlCoreService.ChangeStatusAsync(new ChangeIssueStatusParams
-        (
-            configurationScopeId,
-            issueServerKey,
-            newStatus,
-            false
-        ));
+        var issueSlCoreService = GetIssueSlCoreService();
 
-        if (windowResponse.Comment is { Length: > 0 })
+        try
         {
-            await issueSlCoreService.AddCommentAsync(new AddIssueCommentParams(configurationScopeId, issueServerKey, windowResponse.Comment));
+            var newStatus = MapSonarQubeIssueTransitionToSlCoreResolutionStatus(windowResponse.IssueTransition);
+            await issueSlCoreService.ChangeStatusAsync(new ChangeIssueStatusParams
+            (
+                configurationScopeId,
+                issueServerKey,
+                newStatus,
+                false // Muting taints are not supported yet
+            ));
+
+            if (windowResponse.Comment is { Length: > 0 })
+            {
+                await issueSlCoreService.AddCommentAsync(new AddIssueCommentParams(configurationScopeId, issueServerKey, windowResponse.Comment));
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.WriteLine(Resources.MuteIssue_AnErrorOccurred, issueServerKey, ex.Message);
+            throw new MuteIssueException.SlCoreException(ex);
         }
     }
 

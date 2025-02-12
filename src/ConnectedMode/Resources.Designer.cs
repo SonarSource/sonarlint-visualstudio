@@ -394,6 +394,24 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The issue was not found on the server.
+        /// </summary>
+        internal static string MuteIssue_IssueNotFound {
+            get {
+                return ResourceManager.GetString("MuteIssue_IssueNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Issue muting is only supported in connected mode.
+        /// </summary>
+        internal static string MuteIssue_NotInConnectedMode {
+            get {
+                return ResourceManager.GetString("MuteIssue_NotInConnectedMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error.
         /// </summary>
         internal static string MuteIssuesService_Error_Caption {
@@ -426,15 +444,6 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string MuteIssuesService_Error_InsufficientPermissions {
             get {
                 return ResourceManager.GetString("MuteIssuesService_Error_InsufficientPermissions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [MuteIssue] Issue muting is only supported in connected mode.
-        /// </summary>
-        internal static string MuteWindowService_NotInConnectedMode {
-            get {
-                return ResourceManager.GetString("MuteWindowService_NotInConnectedMode", resourceCulture);
             }
         }
         
