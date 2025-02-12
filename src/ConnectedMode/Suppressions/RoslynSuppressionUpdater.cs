@@ -25,122 +25,117 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
+namespace SonarLint.VisualStudio.ConnectedMode.Suppressions;
+
+internal interface IRoslynSuppressionUpdater
 {
-    internal interface IRoslynSuppressionUpdater
+    /// <summary>
+    /// Fetches all available suppressions from the server and raises the <see cref="SuppressedIssuesUpdated"/> event.
+    /// </summary>
+    Task UpdateAllServerSuppressionsAsync();
+
+    /// <summary>
+    /// Fetches the suppressed issues from the server for the provided <see cref="issueKeys"/> and raises the <see cref="SuppressedIssuesUpdated"/> event.
+    /// </summary>
+    Task UpdateSuppressedIssuesAsync(string[] issueKeys, CancellationToken cancellationToken);
+
+    event EventHandler<SuppressionsArgs> SuppressedIssuesUpdated;
+}
+
+public class SuppressionsArgs : EventArgs
+{
+    public IReadOnlyList<SonarQubeIssue> SuppressedIssues { get; set; }
+    public bool AreAllServerIssuesForProject { get; set; }
+}
+
+[Export(typeof(IRoslynSuppressionUpdater))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+internal sealed class RoslynIRoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDisposable
+{
+    private readonly ICancellableActionRunner actionRunner;
+    private readonly ILogger logger;
+    private readonly ISonarQubeService server;
+    private readonly IServerQueryInfoProvider serverQueryInfoProvider;
+    private readonly IThreadHandling threadHandling;
+
+    [ImportingConstructor]
+    public RoslynIRoslynSuppressionUpdater(
+        ISonarQubeService server,
+        IServerQueryInfoProvider serverQueryInfoProvider,
+        IServerIssuesStoreWriter storeWriter,
+        ICancellableActionRunner actionRunner,
+        ILogger logger)
+        : this(server, serverQueryInfoProvider, actionRunner, logger, ThreadHandling.Instance)
     {
-        /// <summary>
-        /// Fetches all available suppressions from the server and raises the <see cref="SuppressedIssuesUpdated"/> event.
-        /// </summary>
-        Task UpdateAllServerSuppressionsAsync();
-
-        /// <summary>
-        /// Fetches the suppressed issues from the server for the provided <see cref="issueKeys"/> and raises the <see cref="SuppressedIssuesUpdated"/> event.
-        /// </summary>
-        Task UpdateSuppressedIssuesAsync(string[] issueKeys, CancellationToken cancellationToken);
-
-        event EventHandler<SuppressionsArgs> SuppressedIssuesUpdated;
     }
 
-    public class SuppressionsArgs : EventArgs
+    internal RoslynIRoslynSuppressionUpdater(
+        ISonarQubeService server,
+        IServerQueryInfoProvider serverQueryInfoProvider,
+        ICancellableActionRunner actionRunner,
+        ILogger logger,
+        IThreadHandling threadHandling)
     {
-        public IReadOnlyList<SonarQubeIssue> SuppressedIssues { get; set; }
-        public bool AreAllServerIssuesForProject { get; set; }
+        this.server = server;
+        this.serverQueryInfoProvider = serverQueryInfoProvider;
+        this.actionRunner = actionRunner;
+        this.logger = logger;
+        this.threadHandling = threadHandling;
     }
 
-    [Export(typeof(IRoslynSuppressionUpdater))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class RoslynIRoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDisposable
+    public async Task UpdateAllServerSuppressionsAsync() => await GetSuppressedIssuesAsync();
+
+    public async Task UpdateSuppressedIssuesAsync(string[] issueKeys, CancellationToken cancellationToken)
     {
-        private readonly ISonarQubeService server;
-        private readonly IServerQueryInfoProvider serverQueryInfoProvider;
-        private readonly ICancellableActionRunner actionRunner;
-        private readonly ILogger logger;
-        private readonly IThreadHandling threadHandling;
-
-        [ImportingConstructor]
-        public RoslynIRoslynSuppressionUpdater(
-            ISonarQubeService server,
-            IServerQueryInfoProvider serverQueryInfoProvider,
-            IServerIssuesStoreWriter storeWriter,
-            ICancellableActionRunner actionRunner,
-            ILogger logger)
-            : this(server, serverQueryInfoProvider, actionRunner, logger, ThreadHandling.Instance)
+        if (!issueKeys.Any())
         {
+            return;
         }
+        await GetSuppressedIssuesAsync(issueKeys, cancellationToken);
+    }
 
-        internal /* for testing */ RoslynIRoslynSuppressionUpdater(
-            ISonarQubeService server,
-            IServerQueryInfoProvider serverQueryInfoProvider,
-            ICancellableActionRunner actionRunner,
-            ILogger logger,
-            IThreadHandling threadHandling)
+    public event EventHandler<SuppressionsArgs> SuppressedIssuesUpdated;
+
+    public void Dispose() => actionRunner.Dispose();
+
+    private async Task<bool> GetSuppressedIssuesAsync(string[] issueKeys = null, CancellationToken? cancellationToken = null) =>
+        await threadHandling.RunOnBackgroundThread(async () =>
         {
-            this.server = server;
-            this.serverQueryInfoProvider = serverQueryInfoProvider;
-            this.actionRunner = actionRunner;
-            this.logger = logger;
-            this.threadHandling = threadHandling;
-        }
-
-        #region ISuppressionIssueStoreUpdater
-
-        public async Task UpdateAllServerSuppressionsAsync() => await GetSuppressedIssuesAsync();
-
-        private async Task<bool> GetSuppressedIssuesAsync(string[] issueKeys = null, CancellationToken? cancellationToken = null) =>
-            await threadHandling.RunOnBackgroundThread(async () =>
+            await actionRunner.RunAsync(async token =>
             {
-                await actionRunner.RunAsync(async token =>
+                try
                 {
-                    try
+                    var allServerIssuesFetched = issueKeys == null;
+                    logger.WriteLine(Resources.Suppressions_Fetch_Issues, allServerIssuesFetched);
+
+                    (string projectKey, string serverBranch) queryInfo = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(token);
+                    if (queryInfo.projectKey == null || queryInfo.serverBranch == null)
                     {
-                        var allServerIssuesFetched = issueKeys == null;
-                        logger.WriteLine(Resources.Suppressions_Fetch_Issues, allServerIssuesFetched);
-
-                        (string projectKey, string serverBranch) queryInfo = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(token);
-                        if (queryInfo.projectKey == null || queryInfo.serverBranch == null)
-                        {
-                            return;
-                        }
-
-                        token.ThrowIfCancellationRequested();
-                        cancellationToken?.ThrowIfCancellationRequested();
-
-                        var suppressedIssues = await server.GetSuppressedIssuesAsync(queryInfo.projectKey, queryInfo.serverBranch, issueKeys, token);
-                        InvokeSuppressedIssuesUpdated(suppressedIssues, allServerIssuesFetched);
-
-                        logger.WriteLine(Resources.Suppression_Fetch_Issues_Finished, allServerIssuesFetched);
+                        return;
                     }
-                    catch (OperationCanceledException)
-                    {
-                        logger.WriteLine(Resources.Suppressions_FetchOperationCancelled);
-                    }
-                    catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-                    {
-                        logger.LogVerbose(Resources.Suppression_FetchError_Verbose, ex);
-                        logger.WriteLine(Resources.Suppressions_FetchError_Short, ex.Message);
-                    }
-                });
 
-                return true;
+                    token.ThrowIfCancellationRequested();
+                    cancellationToken?.ThrowIfCancellationRequested();
+
+                    var suppressedIssues = await server.GetSuppressedIssuesAsync(queryInfo.projectKey, queryInfo.serverBranch, issueKeys, token);
+                    InvokeSuppressedIssuesUpdated(suppressedIssues, allServerIssuesFetched);
+
+                    logger.WriteLine(Resources.Suppression_Fetch_Issues_Finished, allServerIssuesFetched);
+                }
+                catch (OperationCanceledException)
+                {
+                    logger.WriteLine(Resources.Suppressions_FetchOperationCancelled);
+                }
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                {
+                    logger.LogVerbose(Resources.Suppression_FetchError_Verbose, ex);
+                    logger.WriteLine(Resources.Suppressions_FetchError_Short, ex.Message);
+                }
             });
 
-        private void InvokeSuppressedIssuesUpdated(IList<SonarQubeIssue> allSuppressedIssues, bool areAllServerIssues) =>
-            SuppressedIssuesUpdated?.Invoke(this, new SuppressionsArgs { SuppressedIssues = allSuppressedIssues.ToList(), AreAllServerIssuesForProject = areAllServerIssues });
+            return true;
+        });
 
-        public async Task UpdateSuppressedIssuesAsync(string[] issueKeys, CancellationToken cancellationToken)
-        {
-            if (!issueKeys.Any())
-            {
-                return;
-            }
-            await GetSuppressedIssuesAsync(issueKeys, cancellationToken);
-        }
-
-        public event EventHandler<SuppressionsArgs> SuppressedIssuesUpdated;
-
-        #endregion
-
-        public void Dispose() => actionRunner.Dispose();
-    }
+    private void InvokeSuppressedIssuesUpdated(IList<SonarQubeIssue> allSuppressedIssues, bool areAllServerIssues) =>
+        SuppressedIssuesUpdated?.Invoke(this, new SuppressionsArgs { SuppressedIssues = allSuppressedIssues.ToList(), AreAllServerIssuesForProject = areAllServerIssues });
 }
