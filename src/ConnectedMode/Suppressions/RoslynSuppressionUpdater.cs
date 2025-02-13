@@ -39,10 +39,10 @@ internal interface IRoslynSuppressionUpdater
     /// </summary>
     Task UpdateSuppressedIssuesAsync(string[] issueKeys, CancellationToken cancellationToken);
 
-    event EventHandler<SuppressionsArgs> SuppressedIssuesUpdated;
+    event EventHandler<SuppressionsEventArgs> SuppressedIssuesUpdated;
 }
 
-public class SuppressionsArgs : EventArgs
+public class SuppressionsEventArgs : EventArgs
 {
     public IReadOnlyList<SonarQubeIssue> SuppressedIssues { get; set; }
     public bool AreAllServerIssuesForProject { get; set; }
@@ -94,7 +94,7 @@ internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDis
         await GetSuppressedIssuesAsync(issueKeys, cancellationToken);
     }
 
-    public event EventHandler<SuppressionsArgs> SuppressedIssuesUpdated;
+    public event EventHandler<SuppressionsEventArgs> SuppressedIssuesUpdated;
 
     public void Dispose() => actionRunner.Dispose();
 
@@ -108,8 +108,8 @@ internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDis
                     var allServerIssuesFetched = issueKeys == null;
                     logger.WriteLine(Resources.Suppressions_Fetch_Issues, allServerIssuesFetched);
 
-                    (string projectKey, string serverBranch) queryInfo = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(token);
-                    if (queryInfo.projectKey == null || queryInfo.serverBranch == null)
+                    var (projectKey, serverBranch) = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(token);
+                    if (projectKey == null || serverBranch == null)
                     {
                         return;
                     }
@@ -117,7 +117,7 @@ internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDis
                     token.ThrowIfCancellationRequested();
                     cancellationToken?.ThrowIfCancellationRequested();
 
-                    var suppressedIssues = await server.GetSuppressedIssuesAsync(queryInfo.projectKey, queryInfo.serverBranch, issueKeys, token);
+                    var suppressedIssues = await server.GetSuppressedIssuesAsync(projectKey, serverBranch, issueKeys, token);
                     InvokeSuppressedIssuesUpdated(suppressedIssues, allServerIssuesFetched);
 
                     logger.WriteLine(Resources.Suppression_Fetch_Issues_Finished, allServerIssuesFetched);
@@ -137,5 +137,5 @@ internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDis
         });
 
     private void InvokeSuppressedIssuesUpdated(IList<SonarQubeIssue> allSuppressedIssues, bool areAllServerIssues) =>
-        SuppressedIssuesUpdated?.Invoke(this, new SuppressionsArgs { SuppressedIssues = allSuppressedIssues.ToList(), AreAllServerIssuesForProject = areAllServerIssues });
+        SuppressedIssuesUpdated?.Invoke(this, new SuppressionsEventArgs { SuppressedIssues = allSuppressedIssues.ToList(), AreAllServerIssuesForProject = areAllServerIssues });
 }

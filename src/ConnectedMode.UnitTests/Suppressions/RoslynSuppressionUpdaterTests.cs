@@ -38,7 +38,7 @@ public class RoslynSuppressionUpdaterTests
     private ISonarQubeService server;
     private RoslynSuppressionUpdater testSubject;
     private IThreadHandling threadHandling;
-    private readonly EventHandler<SuppressionsArgs> suppressedIssuesUpdated = Substitute.For<EventHandler<SuppressionsArgs>>();
+    private readonly EventHandler<SuppressionsEventArgs> suppressedIssuesUpdated = Substitute.For<EventHandler<SuppressionsEventArgs>>();
 
     [TestInitialize]
     public void TestInitialize()
@@ -342,12 +342,12 @@ public class RoslynSuppressionUpdaterTests
         return mockedActionRunner;
     }
 
-    private void VerifySuppressedIssuesUpdatedNotInvoked() => suppressedIssuesUpdated.DidNotReceiveWithAnyArgs().Invoke(testSubject, Arg.Any<SuppressionsArgs>());
+    private void VerifySuppressedIssuesUpdatedNotInvoked() => suppressedIssuesUpdated.DidNotReceiveWithAnyArgs().Invoke(testSubject, Arg.Any<SuppressionsEventArgs>());
 
     private void VerifySuppressedIssuesUpdatedInvoked(IEnumerable<SonarQubeIssue> expectedAllSuppressedIssues, bool areAllServerIssues) =>
         suppressedIssuesUpdated.Received(1)
             .Invoke(testSubject,
-                Arg.Is<SuppressionsArgs>(x => x.SuppressedIssues.SequenceEqual(expectedAllSuppressedIssues) && x.AreAllServerIssuesForProject == areAllServerIssues));
+                Arg.Is<SuppressionsEventArgs>(x => x.SuppressedIssues.SequenceEqual(expectedAllSuppressedIssues) && x.AreAllServerIssuesForProject == areAllServerIssues));
 
     private void AssertMessageArgsDoesNotExist(params object[] args) => logger.DidNotReceive().WriteLine(Arg.Any<string>(), Arg.Is<object[]>(x => x.SequenceEqual(args)));
 
