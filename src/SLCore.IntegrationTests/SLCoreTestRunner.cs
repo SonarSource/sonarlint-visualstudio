@@ -153,7 +153,7 @@ public sealed class SLCoreTestRunner : IDisposable
         slCoreLogger.LogMessageAdded += eventHandler;
         try
         {
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(tcs.Task, "sloop log");
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(tcs.Task, "sloop log", TimeSpan.FromSeconds(15));
         }
         finally
         {
