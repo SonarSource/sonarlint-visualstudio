@@ -79,7 +79,7 @@ internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDis
         this.server = server;
         this.serverQueryInfoProvider = serverQueryInfoProvider;
         this.actionRunner = actionRunner;
-        this.logger = logger;
+        this.logger = logger.ForContext(nameof(RoslynSuppressionUpdater));
         this.threadHandling = threadHandling;
     }
 

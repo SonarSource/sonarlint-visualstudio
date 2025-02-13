@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions;
 public class RoslynSuppressionUpdaterTests
 {
     private ICancellableActionRunner actionRunner;
-    private TestLogger logger;
+    private ILogger logger;
     private IServerQueryInfoProvider queryInfo;
     private ISonarQubeService server;
     private RoslynSuppressionUpdater testSubject;
@@ -45,7 +45,8 @@ public class RoslynSuppressionUpdaterTests
     {
         server = Substitute.For<ISonarQubeService>();
         queryInfo = Substitute.For<IServerQueryInfoProvider>();
-        logger = new TestLogger(true);
+        logger = Substitute.For<ILogger>();
+        logger.ForContext(Arg.Any<string[]>()).Returns(logger);
         threadHandling = new NoOpThreadHandler();
         actionRunner = new SynchronizedCancellableActionRunner(logger);
         testSubject = CreateTestSubject(actionRunner, threadHandling);
@@ -60,6 +61,9 @@ public class RoslynSuppressionUpdaterTests
             MefTestHelpers.CreateExport<IServerIssuesStoreWriter>(),
             MefTestHelpers.CreateExport<ICancellableActionRunner>(),
             MefTestHelpers.CreateExport<ILogger>());
+
+    [TestMethod]
+    public void Ctor_SetsLoggerContext() => logger.Received(1).ForContext(nameof(RoslynSuppressionUpdater));
 
     [TestMethod]
     [DataRow(null, null)]
@@ -119,7 +123,7 @@ public class RoslynSuppressionUpdaterTests
         var operation = testSubject.UpdateAllServerSuppressionsAsync;
 
         operation.Should().Throw<StackOverflowException>().And.Message.Should().Be("thrown in a test");
-        logger.AssertPartialOutputStringDoesNotExist("thrown in a test");
+        AssertMessageArgsDoesNotExist("thrown in a test");
     }
 
     [TestMethod]
@@ -130,7 +134,7 @@ public class RoslynSuppressionUpdaterTests
         var operation = testSubject.UpdateAllServerSuppressionsAsync;
 
         operation.Should().NotThrow();
-        logger.AssertPartialOutputStringExists("thrown in a test");
+        AssertMessageArgsExists("thrown in a test");
     }
 
     [TestMethod]
@@ -141,8 +145,8 @@ public class RoslynSuppressionUpdaterTests
         var operation = testSubject.UpdateAllServerSuppressionsAsync;
 
         operation.Should().NotThrow();
-        logger.AssertPartialOutputStringDoesNotExist("thrown in a test");
-        logger.AssertOutputStringExists(Resources.Suppressions_FetchOperationCancelled);
+        AssertMessageArgsDoesNotExist("thrown in a test");
+        AssertMessageExists(Resources.Suppressions_FetchOperationCancelled);
     }
 
     [TestMethod]
@@ -206,7 +210,7 @@ public class RoslynSuppressionUpdaterTests
         call1Token.IsCancellationRequested.Should().BeTrue();
         call2Token.IsCancellationRequested.Should().BeFalse();
 
-        logger.AssertOutputStringExists(Resources.Suppressions_FetchOperationCancelled);
+        AssertMessageExists(Resources.Suppressions_FetchOperationCancelled);
 
         // If cancellation worked then we should only have made one call to each
         // of the SonarQubeService and store writer
@@ -248,8 +252,8 @@ public class RoslynSuppressionUpdaterTests
             Arg.Is<string[]>(x => VerifyExistingIssues(x, new[] { issue.IssueKey })),
             Arg.Any<CancellationToken>());
         VerifySuppressedIssuesUpdatedInvoked(expectedFetchedIssues, areAllServerIssues: false);
-        logger.AssertPartialOutputStringExists(string.Format(Resources.Suppressions_Fetch_Issues, false));
-        logger.AssertPartialOutputStringExists(string.Format(Resources.Suppressions_Fetch_Issues, false));
+        AssertMessageExists(Resources.Suppressions_Fetch_Issues);
+        AssertMessageExists(Resources.Suppression_Fetch_Issues_Finished);
     }
 
     [TestMethod]
@@ -261,7 +265,7 @@ public class RoslynSuppressionUpdaterTests
         var operation = () => testSubject.UpdateSuppressedIssuesAsync(["issue1"], CancellationToken.None);
 
         operation.Should().Throw<StackOverflowException>().And.Message.Should().Be("thrown in a test");
-        logger.AssertPartialOutputStringDoesNotExist("thrown in a test");
+        AssertMessageArgsDoesNotExist("thrown in a test");
     }
 
     [TestMethod]
@@ -273,7 +277,7 @@ public class RoslynSuppressionUpdaterTests
         var operation = () => testSubject.UpdateSuppressedIssuesAsync(["issue1"], CancellationToken.None);
 
         operation.Should().NotThrow();
-        logger.AssertPartialOutputStringExists("thrown in a test");
+        AssertMessageArgsExists("thrown in a test");
     }
 
     [TestMethod]
@@ -285,8 +289,8 @@ public class RoslynSuppressionUpdaterTests
         var operation = () => testSubject.UpdateSuppressedIssuesAsync(["issue1"], CancellationToken.None);
 
         operation.Should().NotThrow();
-        logger.AssertPartialOutputStringDoesNotExist("thrown in a test");
-        logger.AssertOutputStringExists(Resources.Suppressions_FetchOperationCancelled);
+        AssertMessageArgsDoesNotExist("thrown in a test");
+        AssertMessageExists(Resources.Suppressions_FetchOperationCancelled);
     }
 
     private RoslynSuppressionUpdater CreateTestSubject(ICancellableActionRunner mockedActionRunner, IThreadHandling mockedThreadHandling) =>
@@ -344,4 +348,10 @@ public class RoslynSuppressionUpdaterTests
         suppressedIssuesUpdated.Received(1)
             .Invoke(testSubject,
                 Arg.Is<SuppressionsArgs>(x => x.SuppressedIssues.SequenceEqual(expectedAllSuppressedIssues) && x.AreAllServerIssuesForProject == areAllServerIssues));
+
+    private void AssertMessageArgsDoesNotExist(params object[] args) => logger.DidNotReceive().WriteLine(Arg.Any<string>(), Arg.Is<object[]>(x => x.SequenceEqual(args)));
+
+    private void AssertMessageArgsExists(params object[] args) => logger.Received(1).WriteLine(Arg.Any<string>(), Arg.Is<object[]>(x => x.SequenceEqual(args)));
+
+    private void AssertMessageExists(string message) => logger.Received(1).WriteLine(Arg.Is<string>(x => x == message), Arg.Any<object[]>());
 }
