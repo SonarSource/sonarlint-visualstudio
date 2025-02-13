@@ -53,13 +53,15 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
     internal FileAnalysisTestsRunner(string testClassName, Dictionary<string, StandaloneRuleConfigDto> initialRuleConfig = null)
     {
-        slCoreTestRunner = new SLCoreTestRunner(new TestLogger(), new TestLogger(), testClassName);
+        var baseLogger = new TestLogger(true).ForContext("SLCORE", testClassName);
+
+        slCoreTestRunner = new SLCoreTestRunner(baseLogger.ForContext("INFRA"), baseLogger.ForContext("STDERR"), testClassName);
 
         analysisListener = Substitute.For<IAnalysisListener>();
 
         listFilesListener = Substitute.For<IListFilesListener>();
 
-        slCoreTestRunner.AddListener(new LoggerListener(new TestLogger()));
+        slCoreTestRunner.AddListener(new LoggerListener(baseLogger.ForContext("RPC")));
         slCoreTestRunner.AddListener(new ProgressListener());
         slCoreTestRunner.AddListener(analysisListener);
         slCoreTestRunner.AddListener(listFilesListener);
@@ -100,10 +102,10 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
                 analysisRaisedIssues);
             activeConfigScopeTracker.SetCurrentConfigScope(configScope);
 
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, "analysis readiness");
 
             await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath(), analysisId, extraProperties);
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task);
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task, "analysis completion");
 
             return analysisRaisedIssues.Task.Result.issuesByFileUri;
         }
