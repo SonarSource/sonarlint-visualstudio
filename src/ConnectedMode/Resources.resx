@@ -219,8 +219,8 @@
   <data name="Suppressions_UpdateOperationCancelled" xml:space="preserve">
     <value>[Suppressions] Update operation cancelled</value>
   </data>
-  <data name="Suppressions_Fetch_AllIssues" xml:space="preserve">
-    <value>[Suppressions] Fetching all suppressions...</value>
+  <data name="Suppressions_Fetch_Issues" xml:space="preserve">
+    <value>[Suppressions] Fetching suppressions... All issues suppressed: {0}</value>
   </data>
   <data name="Suppression_FetchError_Verbose" xml:space="preserve">
     <value>[Suppressions] Error fetching data: {0}</value>
@@ -230,8 +230,8 @@
     <value>[Suppressions] Error updating data: {0}</value>
     <comment>0 = detailed error message</comment>
   </data>
-  <data name="Suppression_Fetch_AllIssues_Finished" xml:space="preserve">
-    <value>[Suppressions] Finished fetching all suppressions</value>
+  <data name="Suppression_Fetch_Issues_Finished" xml:space="preserve">
+    <value>[Suppressions] Finished fetching suppressions. All issues suppressed: {0}</value>
   </data>
   <data name="Suppression_IssueChangedEventFinished" xml:space="preserve">
     <value>[Suppressions] IssueChangedEvent finished</value>
