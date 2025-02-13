@@ -35,7 +35,7 @@ public class InitializationTests
     {
         var testLogger = new TestLogger();
         var slCoreErrorLogger = new TestLogger();
-        var slCoreLogger = new TestLogger();
+        var slCoreLogger = new TestLogger(logToConsole: true);
         using (var slCoreTestRunner = new SLCoreTestRunner(testLogger, slCoreErrorLogger, TestContext.TestName))
         {
             slCoreTestRunner.AddListener(new LoggerListener(slCoreLogger));
@@ -96,8 +96,15 @@ public class InitializationTests
     private static async Task WaitForSloopLog(TestLogger slCoreLogger)
     {
         var tcs = new TaskCompletionSource<bool>();
+
         EventHandler eventHandler = (_, _) => tcs.TrySetResult(true);
         slCoreLogger.LogMessageAdded += eventHandler;
+
+        if (slCoreLogger.OutputStrings.Count > 0)
+        {
+            return;
+        }
+
         try
         {
             await ConcurrencyTestHelper.WaitForTaskWithTimeout(tcs.Task, "sloop log");
