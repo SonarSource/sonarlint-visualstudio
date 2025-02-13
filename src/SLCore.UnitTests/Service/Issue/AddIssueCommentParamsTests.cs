@@ -18,19 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.SLCore.Service.Issue;
+using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 
-namespace SonarLint.VisualStudio.SLCore.Service.Issue;
+namespace SonarLint.VisualStudio.SLCore.UnitTests.Service.Issue;
 
-[JsonRpcClass("issue")]
-public interface IIssueSLCoreService : ISLCoreService
+[TestClass]
+public class AddIssueCommentParamsTests
 {
-    Task<GetEffectiveIssueDetailsResponse> GetEffectiveIssueDetailsAsync(GetEffectiveIssueDetailsParams parameters);
+    [TestMethod]
+    public void Serialized_AsExpected()
+    {
+        const string expected = """
+                                {
+                                  "configurationScopeId": "CONFIG_SCOPE_ID",
+                                  "issueKey": "ISSUE_KEY",
+                                  "text": "COMMENT_TEXT"
+                                }
+                                """;
 
-    Task ChangeStatusAsync(ChangeIssueStatusParams parameters);
+        var addIssueCommentParams = new AddIssueCommentParams("CONFIG_SCOPE_ID", "ISSUE_KEY", "COMMENT_TEXT");
 
-    Task<CheckStatusChangePermittedResponse> CheckStatusChangePermittedAsync(CheckStatusChangePermittedParams parameters);
-
-    Task AddCommentAsync(AddIssueCommentParams parameters);
+        JsonConvert.SerializeObject(addIssueCommentParams, Formatting.Indented).Should().Be(expected);
+    }
 }
