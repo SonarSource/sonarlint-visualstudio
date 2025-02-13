@@ -59,9 +59,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
             issueServerEventSource.Verify(x => x.GetNextEventOrNullAsync(), Times.Exactly(2));
             issueServerEventSource.VerifyNoOtherCalls();
 
-            storeUpdater.Verify(x => x.UpdateSuppressedIssuesAsync(
-                    new[] { "issueKey1", "issueKey3" },
-                    It.IsAny<CancellationToken>()),
+            storeUpdater.Verify(x => x.UpdateSuppressedIssues(true, new[] { "issueKey1", "issueKey3" }),
                 Times.Once);
             storeUpdater.VerifyNoOtherCalls();
         }
@@ -84,14 +82,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
             issueServerEventSource.Verify(x => x.GetNextEventOrNullAsync(), Times.Exactly(4));
             issueServerEventSource.VerifyNoOtherCalls();
 
-            storeUpdater.Verify(x => x.UpdateSuppressedIssuesAsync(
-                    new[] { "issueKey1" },
-                    It.IsAny<CancellationToken>()),
+            storeUpdater.Verify(x => x.UpdateSuppressedIssues(true, new[] { "issueKey1" }),
                 Times.Once);
 
-            storeUpdater.Verify(x => x.UpdateSuppressedIssuesAsync(
-                    new[] { "issueKey3" },
-                    It.IsAny<CancellationToken>()),
+            storeUpdater.Verify(x => x.UpdateSuppressedIssues(false, new[] { "issueKey3" }),
                 Times.Once);
 
             storeUpdater.VerifyNoOtherCalls();
