@@ -18,82 +18,92 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Resources;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Transition;
-using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarQube.Client;
+using SonarLint.VisualStudio.SLCore;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.Issue;
+using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.Transition
+namespace SonarLint.VisualStudio.ConnectedMode.Transition;
+
+[Export(typeof(IMuteIssuesService))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+internal class MuteIssuesService(
+    IMuteIssuesWindowService muteIssuesWindowService,
+    IActiveConfigScopeTracker activeConfigScopeTracker,
+    ISLCoreServiceProvider slCoreServiceProvider,
+    ILogger logger,
+    IThreadHandling threadHandling)
+    : IMuteIssuesService
 {
-    [Export(typeof(IMuteIssuesService))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class MuteIssuesService : IMuteIssuesService
+
+    public async Task ResolveIssueWithDialogAsync(string issueServerKey)
     {
-        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly ILogger logger;
-        private readonly IMuteIssuesWindowService muteIssuesWindowService;
-        private readonly IThreadHandling threadHandling;
-        private readonly IMessageBox messageBox;
-        private readonly ResourceManager resourceManager;
+        threadHandling.ThrowIfOnUIThread();
 
-        [ImportingConstructor]
-        public MuteIssuesService(IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger, IMuteIssuesWindowService muteIssuesWindowService)
-            : this(activeSolutionBoundTracker, logger, muteIssuesWindowService, ThreadHandling.Instance, new Core.MessageBox())
-        { }
-
-        internal MuteIssuesService(IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            ILogger logger,
-            IMuteIssuesWindowService muteIssuesWindowService,
-            IThreadHandling threadHandling,
-            IMessageBox messageBox)
+        var currentConfigScope = activeConfigScopeTracker.Current;
+        if (currentConfigScope?.Id == null || currentConfigScope.SonarProjectId == null)
         {
-            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-            this.logger = logger;
-            this.muteIssuesWindowService = muteIssuesWindowService;
-            this.threadHandling = threadHandling;
-            this.messageBox = messageBox;
-
-            resourceManager = new ResourceManager(typeof(Resources));
+            logger.LogVerbose(Resources.MuteWindowService_NotInConnectedMode);
+            return;
         }
 
-        public async Task ResolveIssueWithDialogAsync(string issueServerKey)
+        if (!slCoreServiceProvider.TryGetTransientService(out IIssueSLCoreService issueSlCoreService))
         {
-            threadHandling.ThrowIfOnUIThread();
+            logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
+            return;
+        }
 
-            if (!activeSolutionBoundTracker.CurrentConfiguration.Mode.IsInAConnectedMode())
-            {
-                logger.LogVerbose(Resources.MuteWindowService_NotInConnectedMode);
-                return;
-            }
+        MuteIssuesWindowResponse windowResponse = null;
+        await threadHandling.RunOnUIThreadAsync(() => windowResponse = muteIssuesWindowService.Show());
+        if (!windowResponse.Result)
+        {
+            return;
+        }
 
-            MuteIssuesWindowResponse windowResponse = default;
-
-            await threadHandling.RunOnUIThreadAsync(() => windowResponse = muteIssuesWindowService.Show());
-
-            if (windowResponse.Result)
-            {
-                // Success
-                // if ()
-                // {
-                //     issue.IsResolved = true;
-                // }
-                //
-                // Fail
-                // if ()
-                // {
-                //     // ideally, message box invocation should be moved to Mute command
-                //     messageBox.Show(resourceManager.GetString($"MuteIssuesService_Error_{serviceResult}"), Resources.MuteIssuesService_Error_Caption, MessageBoxButton.OK, MessageBoxImage.Error);
-                // }
-            }
+        try
+        {
+            await MuteIssueWithCommentAsync(issueSlCoreService, currentConfigScope.Id, issueServerKey, windowResponse);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.WriteLine(Resources.MuteIssue_AnErrorOccurred, issueServerKey, ex.Message);
         }
     }
+
+    private static async Task MuteIssueWithCommentAsync(
+        IIssueSLCoreService issueSlCoreService,
+        string configurationScopeId,
+        string issueServerKey,
+        MuteIssuesWindowResponse windowResponse)
+    {
+        var newStatus = MapSonarQubeIssueTransitionToSlCoreResolutionStatus(windowResponse.IssueTransition);
+        await issueSlCoreService.ChangeStatusAsync(new ChangeIssueStatusParams
+        (
+            configurationScopeId,
+            issueServerKey,
+            newStatus,
+            false
+        ));
+
+        if (windowResponse.Comment is { Length: > 0 })
+        {
+            await issueSlCoreService.AddCommentAsync(new AddIssueCommentParams(configurationScopeId, issueServerKey, windowResponse.Comment));
+        }
+    }
+
+    private static ResolutionStatus MapSonarQubeIssueTransitionToSlCoreResolutionStatus(SonarQubeIssueTransition sonarQubeIssueTransition) =>
+        sonarQubeIssueTransition switch
+        {
+            SonarQubeIssueTransition.FalsePositive => ResolutionStatus.FALSE_POSITIVE,
+            SonarQubeIssueTransition.WontFix => ResolutionStatus.WONT_FIX,
+            SonarQubeIssueTransition.Accept => ResolutionStatus.ACCEPT,
+            _ => throw new ArgumentOutOfRangeException(nameof(sonarQubeIssueTransition), sonarQubeIssueTransition, null)
+        };
 }

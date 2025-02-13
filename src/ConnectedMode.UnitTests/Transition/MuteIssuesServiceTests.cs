@@ -18,148 +18,135 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Transition;
-using SonarLint.VisualStudio.Integration.TestInfrastructure.Helpers;
+using SonarLint.VisualStudio.SLCore;
+using SonarLint.VisualStudio.SLCore.Core;
+using SonarLint.VisualStudio.SLCore.Service.Issue;
+using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition
+namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Transition;
+
+[TestClass]
+public class MuteIssuesServiceTests
 {
-    [TestClass]
-    public class MuteIssuesServiceTests
+    private const string AnIssueServerKey = "issueServerKey";
+
+    private MuteIssuesService testSubject;
+    private IMuteIssuesWindowService muteIssuesWindowService;
+    private IActiveConfigScopeTracker activeConfigScopeTracker;
+    private ISLCoreServiceProvider slCoreServiceProvider;
+    private TestLogger logger;
+    private IThreadHandling threadHandling;
+    private IIssueSLCoreService issueSlCoreService;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported() =>
-            MefTestHelpers.CheckTypeCanBeImported<MuteIssuesService, IMuteIssuesService>(
-                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
-                MefTestHelpers.CreateExport<ILogger>(),
-                MefTestHelpers.CreateExport<IMuteIssuesWindowService>());
+        muteIssuesWindowService = Substitute.For<IMuteIssuesWindowService>();
+        activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
+        slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
+        logger = new TestLogger();
+        threadHandling = new NoOpThreadHandler();
+        issueSlCoreService = Substitute.For<IIssueSLCoreService>();
+        testSubject = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, logger, threadHandling);
 
-        [TestMethod]
-        public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<MuteIssuesService>();
-
-        [TestMethod]
-        public async Task ResolveIssueWithDialogAsyncNotInConnectedMode_Logs()
+        activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope("CONFIG_SCOPE_ID", RootPath: "C:\\", SonarProjectId: "SONAR_PROJECT_ID"));
+        slCoreServiceProvider.TryGetTransientService(out IIssueSLCoreService _).Returns(call =>
         {
-            var threadHandling = CreateThreadHandling();
-            var activeSolutionBoundTracker = CreateActiveSolutionBoundTracker(false);
-            var logger = new Mock<ILogger>();
-
-            var testSubject = CreateTestSubject(activeSolutionBoundTracker: activeSolutionBoundTracker, logger: logger.Object, threadHandling: threadHandling.Object);
-
-            await testSubject.ResolveIssueWithDialogAsync(DummySonarQubeIssueFactory.CreateServerIssue().IssueKey);
-
-            logger.Verify(l => l.LogVerbose("[Transition]Issue muting is only supported in connected mode"), Times.Once);
-            threadHandling.Verify(t => t.ThrowIfOnUIThread(), Times.Once());
-        }
-
-        [TestMethod]
-        public async Task ResolveIssueWithDialogAsyncWindowOK_CallService()
-        {
-            var sonarQubeIssue = DummySonarQubeIssueFactory.CreateServerIssue();
-            sonarQubeIssue.IsResolved.Should().BeFalse();
-
-            var threadHandling = CreateThreadHandling();
-            var muteIssuesWindowService = CreateMuteIssuesWindowService(true, SonarQubeIssueTransition.FalsePositive, "some comment");
-
-            var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, threadHandling: threadHandling.Object);
-
-            await testSubject.ResolveIssueWithDialogAsync(sonarQubeIssue.IssueKey);
-
-            muteIssuesWindowService.Verify(s => s.Show(), Times.Once);
-            threadHandling.Verify(t => t.ThrowIfOnUIThread(), Times.Once());
-            sonarQubeIssue.IsResolved.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public async Task ResolveIssueWithDialogAsyncWindowCancel_DontCallService()
-        {
-            var muteIssuesWindowService = CreateMuteIssuesWindowService(false, SonarQubeIssueTransition.FalsePositive, "some comment");
-
-            var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object);
-
-            await testSubject.ResolveIssueWithDialogAsync(DummySonarQubeIssueFactory.CreateServerIssue().IssueKey);
-
-            muteIssuesWindowService.Verify(s => s.Show(), Times.Once);
-        }
-
-        [DataRow(SonarQubeIssueTransitionResult.InsufficientPermissions, "Credentials you have provided do not have enough permission to resolve issues. It requires the permission 'Administer Issues'.")]
-        [DataRow(SonarQubeIssueTransitionResult.FailedToTransition, "Unable to resolve the issue, please refer to the logs for more information.")]
-        [DataRow(SonarQubeIssueTransitionResult.CommentAdditionFailed, "Issue is resolved but an error occured while adding the comment, please refer to the logs for more information.")]
-        [TestMethod]
-        public async Task ResolveIssueWithDialogAsyncSQError_ShowsError(SonarQubeIssueTransitionResult result, string errorMessage)
-        {
-            var messageBox = new Mock<IMessageBox>();
-            var muteIssuesWindowService = CreateMuteIssuesWindowService(true, SonarQubeIssueTransition.FalsePositive, "some comment");
-
-            var testSubject = CreateTestSubject(muteIssuesWindowService: muteIssuesWindowService.Object, messageBox: messageBox.Object);
-
-            await testSubject.ResolveIssueWithDialogAsync(DummySonarQubeIssueFactory.CreateServerIssue().IssueKey);
-
-            messageBox.Verify(mb => mb.Show(errorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
-        }
-
-        private Mock<IMuteIssuesWindowService> CreateMuteIssuesWindowService(bool result, SonarQubeIssueTransition transition = default, string comment = default)
-        {
-            var muteIssuesWindowResponse = CreateMuteIssuesWindowResponse(result, transition, comment);
-
-            var service = new Mock<IMuteIssuesWindowService>();
-            service.Setup(s => s.Show()).Returns(muteIssuesWindowResponse);
-
-            return service;
-
-            static MuteIssuesWindowResponse CreateMuteIssuesWindowResponse(bool result, SonarQubeIssueTransition transition, string comment)
-            {
-                return new MuteIssuesWindowResponse
-                {
-                    Result = result,
-                    IssueTransition = transition,
-                    Comment = comment
-                };
-            }
-        }
-
-        private Mock<IThreadHandling> CreateThreadHandling()
-        {
-            var threadHandling = new Mock<IThreadHandling>();
-            threadHandling
-                .Setup(x => x.RunOnUIThreadAsync(It.IsAny<Action>()))
-                .Callback<Action>(callbackAction =>
-                {
-                    callbackAction();
-                });
-
-            return threadHandling;
-        }
-
-        private IActiveSolutionBoundTracker CreateActiveSolutionBoundTracker(bool isConnectedMode = true)
-        {
-            var modeToReturn = isConnectedMode ? SonarLintMode.Connected : SonarLintMode.Standalone;
-            var configuration = new BindingConfiguration(null, modeToReturn, null);
-
-            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
-            activeSolutionBoundTracker.SetupGet(x => x.CurrentConfiguration).Returns(configuration);
-
-            return activeSolutionBoundTracker.Object;
-        }
-
-        private MuteIssuesService CreateTestSubject(IActiveSolutionBoundTracker activeSolutionBoundTracker = null,
-            ILogger logger = null,
-            IMuteIssuesWindowService muteIssuesWindowService = null,
-            IThreadHandling threadHandling = null,
-            IMessageBox messageBox = null)
-        {
-            activeSolutionBoundTracker ??= CreateActiveSolutionBoundTracker();
-            logger ??= Mock.Of<ILogger>();
-            muteIssuesWindowService ??= Mock.Of<IMuteIssuesWindowService>();
-            threadHandling ??= CreateThreadHandling().Object;
-            messageBox ??= Mock.Of<IMessageBox>();
-
-            return new MuteIssuesService(activeSolutionBoundTracker, logger, muteIssuesWindowService, threadHandling, messageBox);
-        }
+            call[0] = issueSlCoreService;
+            return true;
+        });
     }
+
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<MuteIssuesService, IMuteIssuesService>(
+            MefTestHelpers.CreateExport<IMuteIssuesWindowService>(),
+            MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
+            MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<MuteIssuesService>();
+
+    [TestMethod]
+    public void ResolveIssueWithDialogAsync_WhenNotInConnectedMode_ShouldNotShowDialog()
+    {
+        NotInConnectedMode();
+
+        _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
+
+        logger.AssertPartialOutputStringExists(Resources.MuteWindowService_NotInConnectedMode);
+        muteIssuesWindowService.DidNotReceive().Show();
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialogAsync_WhenServiceProviderNotInitialized_ShouldNotShowDialog()
+    {
+        ServiceProviderNotInitialized();
+
+        _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
+
+        logger.AssertPartialOutputStringExists(SLCoreStrings.ServiceProviderNotInitialized);
+        muteIssuesWindowService.DidNotReceive().Show();
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialogAsync_WhenWindowResponseResultIsFalse_ShouldNotMuteIssue()
+    {
+        muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = false });
+
+        _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
+
+        issueSlCoreService.DidNotReceive().ChangeStatusAsync(Arg.Any<ChangeIssueStatusParams>());
+    }
+
+    [TestMethod]
+    [DataRow(ResolutionStatus.ACCEPT, SonarQubeIssueTransition.Accept)]
+    [DataRow(ResolutionStatus.WONT_FIX, SonarQubeIssueTransition.WontFix)]
+    [DataRow(ResolutionStatus.FALSE_POSITIVE, SonarQubeIssueTransition.FalsePositive)]
+    public void ResolveIssueWithDialogAsync_WhenWindowResponseResultIsTrue_ShouldMuteIssue(ResolutionStatus resolutionStatus, SonarQubeIssueTransition transition)
+    {
+        muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = transition });
+
+        _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
+
+        issueSlCoreService.Received().ChangeStatusAsync(Arg.Is<ChangeIssueStatusParams>(x => x.issueKey == AnIssueServerKey && x.newStatus == resolutionStatus));
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialogAsync_WhenWindowResponseHasComment_ShouldAddComment()
+    {
+        const string comment = "No you are not an issue, you are a feature";
+        muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept, Comment = comment});
+
+        _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
+
+        Received.InOrder(() =>
+        {
+            issueSlCoreService.ChangeStatusAsync(Arg.Is<ChangeIssueStatusParams>(x => x.issueKey == AnIssueServerKey));
+            issueSlCoreService.AddCommentAsync(Arg.Is<AddIssueCommentParams>(x => x.issueKey == AnIssueServerKey && x.text == comment));
+        });
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialogAsync_WhenMuteIssueFails_ShouldLogErrorGracefully()
+    {
+        muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept });
+        issueSlCoreService.ChangeStatusAsync(Arg.Any<ChangeIssueStatusParams>()).Returns(call => throw new Exception("Some error"));
+
+        _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
+
+        logger.AssertPartialOutputStringExists(string.Format(Resources.MuteIssue_AnErrorOccurred, AnIssueServerKey, "Some error"));
+    }
+
+    private void NotInConnectedMode() => activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope("CONFIG_SCOPE_ID"));
+
+    private void ServiceProviderNotInitialized() => slCoreServiceProvider.TryGetTransientService(out Arg.Any<ISLCoreService>()).ReturnsForAnyArgs(false);
 }
