@@ -18,4 +18,4 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-[assembly:Parallelize(Workers = 1, Scope = ExecutionScope.ClassLevel)] // method level is not safe as multiple test classes rely on global setup (for example, SLCore integration tests)
+[assembly:Parallelize(Workers = 4, Scope = ExecutionScope.ClassLevel)] // method level is not safe as multiple test classes rely on global setup (for example, SLCore integration tests)
