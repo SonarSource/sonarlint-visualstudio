@@ -67,6 +67,9 @@ public class RoslynSuppressionUpdaterTests
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
+    public void Ctor_SetsLoggerContext() => logger.Received(1).ForContext(nameof(RoslynSuppressionUpdater));
+
+    [TestMethod]
     [DataRow(null, null)]
     [DataRow(null, "branch")]
     [DataRow("projectKey", null)]

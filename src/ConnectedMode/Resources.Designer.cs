@@ -592,7 +592,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Suppressions] Finished fetching suppressions. All issues suppressed: {0}.
+        ///   Looks up a localized string similar to Finished fetching suppressions. All issues suppressed: {0}.
         /// </summary>
         internal static string Suppression_Fetch_Issues_Finished {
             get {
@@ -601,7 +601,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Suppressions] Error fetching data: {0}.
+        ///   Looks up a localized string similar to Error fetching data: {0}.
         /// </summary>
         internal static string Suppression_FetchError_Verbose {
             get {
@@ -637,7 +637,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Suppressions] Fetching suppressions... All issues suppressed: {0}.
+        ///   Looks up a localized string similar to Fetching suppressions... All issues suppressed: {0}.
         /// </summary>
         internal static string Suppressions_Fetch_Issues {
             get {
@@ -646,7 +646,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Suppressions] Fetch operation failed: {0}.
+        ///   Looks up a localized string similar to Fetch operation failed: {0}.
         /// </summary>
         internal static string Suppressions_FetchError_Short {
             get {
@@ -655,7 +655,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Suppressions] Fetch operation cancelled.
+        ///   Looks up a localized string similar to Fetch operation cancelled.
         /// </summary>
         internal static string Suppressions_FetchOperationCancelled {
             get {
