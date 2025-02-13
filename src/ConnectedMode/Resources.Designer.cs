@@ -384,6 +384,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [MuteIssue] An error occurred while muting issue [issueKey: {0}]: {1}.
+        /// </summary>
+        internal static string MuteIssue_AnErrorOccurred {
+            get {
+                return ResourceManager.GetString("MuteIssue_AnErrorOccurred", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error.
         /// </summary>
         internal static string MuteIssuesService_Error_Caption {
@@ -420,7 +429,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Transition]Issue muting is only supported in connected mode.
+        ///   Looks up a localized string similar to [MuteIssue] Issue muting is only supported in connected mode.
         /// </summary>
         internal static string MuteWindowService_NotInConnectedMode {
             get {

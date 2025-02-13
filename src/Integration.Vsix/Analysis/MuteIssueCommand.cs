@@ -188,12 +188,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
             if (serverIssue.IsResolved)
             {
-                muteIssuesService.CacheOutOfSyncResolvedIssue(serverIssue);
                 messageBox.Show(AnalysisStrings.MuteIssue_IssueAlreadyMutedText, AnalysisStrings.MuteIssue_IssueAlreadyMutedCaption, MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
 
-            await muteIssuesService.ResolveIssueWithDialogAsync(serverIssue, CancellationToken.None);
+            await muteIssuesService.ResolveIssueWithDialogAsync(serverIssue.IssueKey);
             logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted, serverIssue.IssueKey);
 
             return true;
