@@ -35,8 +35,7 @@ public static class ConcurrencyTestHelper
         if (whenAny != task)
         {
             cts.Cancel();
-            const string someTask = "some task";
-            Assert.Fail($"timeout reached for {taskName ?? someTask}");
+            Assert.Fail($"timeout reached for {taskName}");
         }
     }
 }
