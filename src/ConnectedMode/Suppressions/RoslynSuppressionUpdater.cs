@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.ConnectedMode.Helpers;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarQube.Client;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 {
@@ -40,6 +41,20 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         /// Updates the suppression status of the given issue key(s). If the issues are not found locally, they are fetched.
         /// </summary>
         Task UpdateSuppressedIssuesAsync(bool isResolved, string[] issueKeys, CancellationToken cancellationToken);
+
+        event EventHandler<SuppressionsEventArgs> SuppressedIssuesReloaded;
+        event EventHandler<SuppressionsEventArgs> NewIssuesSuppressed;
+        event EventHandler<SuppressionsUpdateEventArgs> NewIssuesResolved;
+    }
+
+    public class SuppressionsEventArgs(IReadOnlyList<SonarQubeIssue> suppressedIssues) : EventArgs
+    {
+        public IReadOnlyList<SonarQubeIssue> SuppressedIssues { get; } = suppressedIssues;
+    }
+
+    public class SuppressionsUpdateEventArgs(IReadOnlyList<string> suppressedIssueKeys) : EventArgs
+    {
+        public IReadOnlyList<string> SuppressedIssueKeys { get; } = suppressedIssueKeys;
     }
 
     [Export(typeof(IRoslynSuppressionUpdater))]
@@ -164,6 +179,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
                 logger.WriteLine(Resources.Suppressions_UpdateError_Short, ex.Message);
             }
         }
+
+        public event EventHandler<SuppressionsEventArgs> SuppressedIssuesReloaded;
+        public event EventHandler<SuppressionsEventArgs> NewIssuesSuppressed;
+        public event EventHandler<SuppressionsUpdateEventArgs> NewIssuesResolved;
 
         #endregion
 
