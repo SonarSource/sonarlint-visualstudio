@@ -159,18 +159,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
 
         private static IssueServerEventsListener CreateTestSubject(
             IIssueServerEventSource issueServerEventSource = null,
-            IRoslynSuppressionUpdater iRoslynSuppressionUpdater = null,
+            IRoslynSuppressionUpdater roslynSuppressionUpdater = null,
             IStatefulServerBranchProvider branchProvider = null,
             IThreadHandling threadHandling = null,
             ILogger logger = null)
         {
             issueServerEventSource ??= Mock.Of<IIssueServerEventSource>();
-            iRoslynSuppressionUpdater ??= Mock.Of<IRoslynSuppressionUpdater>();
+            roslynSuppressionUpdater ??= Mock.Of<IRoslynSuppressionUpdater>();
             branchProvider ??= Mock.Of<IStatefulServerBranchProvider>();
             threadHandling ??= new NoOpThreadHandler();
             logger ??= Mock.Of<ILogger>();
 
-            return new IssueServerEventsListener(issueServerEventSource, iRoslynSuppressionUpdater, branchProvider, threadHandling, logger);
+            return new IssueServerEventsListener(issueServerEventSource, roslynSuppressionUpdater, branchProvider, threadHandling, logger);
         }
 
         private static IIssueChangedServerEvent CreateServerEvent(bool isResolved, params BranchAndIssueKey[] branchAndIssueKeys)

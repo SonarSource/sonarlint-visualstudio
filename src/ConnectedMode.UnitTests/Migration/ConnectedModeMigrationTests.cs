@@ -454,7 +454,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         {
             var suppressionsUpdater = new Mock<IRoslynSuppressionUpdater>();
 
-            var testSubject = CreateTestSubject(iRoslynSuppressionUpdater: suppressionsUpdater.Object);
+            var testSubject = CreateTestSubject(roslynSuppressionUpdater: suppressionsUpdater.Object);
             await testSubject.MigrateAsync(AnyBoundProject, null, false, CancellationToken.None);
 
             suppressionsUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Once);
@@ -480,7 +480,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             IMigrationSettingsProvider settingsProvider = null,
             ISonarQubeService sonarQubeService = null,
             IUnintrusiveBindingController unintrusiveBindingController = null,
-            IRoslynSuppressionUpdater iRoslynSuppressionUpdater = null,
+            IRoslynSuppressionUpdater roslynSuppressionUpdater = null,
             ISharedBindingConfigProvider sharedBindingConfigProvider = null,
             ILogger logger = null,
             IThreadHandling threadHandling = null,
@@ -493,7 +493,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             fileSystem ??= Mock.Of<IVsAwareFileSystem>();
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
             unintrusiveBindingController ??= Mock.Of<IUnintrusiveBindingController>();
-            iRoslynSuppressionUpdater ??= Mock.Of<IRoslynSuppressionUpdater>();
+            roslynSuppressionUpdater ??= Mock.Of<IRoslynSuppressionUpdater>();
             settingsProvider ??= CreateSettingsProvider(DefaultTestLegacySettings).Object;
             sharedBindingConfigProvider ??= Mock.Of<ISharedBindingConfigProvider>();
             solutionInfoProvider ??= CreateSolutionInfoProviderMock().Object;
@@ -509,7 +509,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 fileSystem,
                 sonarQubeService,
                 unintrusiveBindingController,
-                iRoslynSuppressionUpdater,
+                roslynSuppressionUpdater,
                 sharedBindingConfigProvider,
                 logger,
                 threadHandling,

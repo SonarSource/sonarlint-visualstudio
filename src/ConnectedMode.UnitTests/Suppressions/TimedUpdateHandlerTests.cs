@@ -154,13 +154,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
 
         private static TimedUpdateHandler CreateTestSubject(
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            IRoslynSuppressionUpdater iRoslynSuppressionUpdater = null,
+            IRoslynSuppressionUpdater roslynSuppressionUpdater = null,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater = null,
             IQualityProfileUpdater qualityProfileUpdater = null,
             ITimerFactory timerFactory = null)
         {
             return new TimedUpdateHandler(
-                iRoslynSuppressionUpdater ?? Mock.Of<IRoslynSuppressionUpdater>(),
+                roslynSuppressionUpdater ?? Mock.Of<IRoslynSuppressionUpdater>(),
                 serverHotspotStoreUpdater ?? Mock.Of<IServerHotspotStoreUpdater>(),
                 qualityProfileUpdater ?? Mock.Of<IQualityProfileUpdater>(),
                 activeSolutionBoundTracker,
