@@ -18,19 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore.Core;
-using SonarLint.VisualStudio.SLCore.Protocol;
-
 namespace SonarLint.VisualStudio.SLCore.Service.Issue;
 
-[JsonRpcClass("issue")]
-public interface IIssueSLCoreService : ISLCoreService
-{
-    Task<GetEffectiveIssueDetailsResponse> GetEffectiveIssueDetailsAsync(GetEffectiveIssueDetailsParams parameters);
-
-    Task ChangeStatusAsync(ChangeIssueStatusParams parameters);
-
-    Task<CheckStatusChangePermittedResponse> CheckStatusChangePermittedAsync(CheckStatusChangePermittedParams parameters);
-
-    Task AddCommentAsync(AddIssueCommentParams parameters);
-}
+public record AddIssueCommentParams(string configurationScopeId, string issueKey, string text);
