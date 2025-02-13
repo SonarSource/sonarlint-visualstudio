@@ -31,7 +31,7 @@ SonarQube for IDE provides Visual Studio developers a comprehensive in-IDE solut
 
 After you download SonarQube for IDE, simply open a project, start coding and SonarQube for IDE will start analyzing your issues.
 
-You can also check out the [SonarQube for IDE documentation here](https://docs.sonarsource.com/sonarlint/visual-studio/). 
+You can also check out the [SonarQube for IDE documentation here](https://docs.sonarsource.com/sonarqube-for-ide/visual-studio/). 
 
 
 ## **Why SonarQube for IDE**
