@@ -32,27 +32,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SLCore;
 [TestClass]
 public class SLCoreConstantsProviderTests
 {
-    [TestMethod]
-    public void MefCtor_CheckIsExported()
+    private IVsInfoProvider infoProvider;
+    private IUserAgentProvider userAgentProvider;
+    private SLCoreConstantsProvider testSubject;
+
+    [TestInitialize]
+    public void TestInitialize()
     {
-        MefTestHelpers.CheckTypeCanBeImported<SLCoreConstantsProvider, ISLCoreConstantsProvider>(
-            MefTestHelpers.CreateExport<IVsInfoProvider>());
+        userAgentProvider = Substitute.For<IUserAgentProvider>();
+        infoProvider = Substitute.For<IVsInfoProvider>();
+
+        testSubject = new SLCoreConstantsProvider(userAgentProvider, infoProvider);
     }
 
     [TestMethod]
-    public void MefCtor_CheckIsSingleton()
-    {
-        MefTestHelpers.CheckIsSingletonMefComponent<SLCoreConstantsProvider>();
-    }
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<SLCoreConstantsProvider, ISLCoreConstantsProvider>(
+            MefTestHelpers.CreateExport<IUserAgentProvider>(),
+            MefTestHelpers.CreateExport<IVsInfoProvider>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<SLCoreConstantsProvider>();
 
     [TestMethod]
     public void ClientConstants_ShouldBeExpected()
     {
-        const string ideName = "MyIde";
-        var infoProvider = Substitute.For<IVsInfoProvider>();
+        const string userAgent = "Any UserAgent";
+        userAgentProvider.UserAgent.Returns(userAgent);
+        const string ideName = "Any Ide";
         infoProvider.Name.Returns(ideName);
-        var testSubject = CreateTestSubject(infoProvider);
-        var expectedClientConstants = new ClientConstantInfoDto(ideName, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}");
+        var expectedClientConstants = new ClientConstantInfoDto(ideName, userAgent);
         var actual = testSubject.ClientConstants;
 
         actual.Should().BeEquivalentTo(expectedClientConstants);
@@ -61,7 +70,6 @@ public class SLCoreConstantsProviderTests
     [TestMethod]
     public void FeatureFlags_ShouldBeExpected()
     {
-        var testSubject = CreateTestSubject();
         var expectedFeatureFlags = new FeatureFlagsDto(true, true, true, true, true, false, true, true, true);
         var actual = testSubject.FeatureFlags;
 
@@ -71,14 +79,11 @@ public class SLCoreConstantsProviderTests
     [TestMethod]
     public void TelemetryConstants_ShouldBeExpected()
     {
-        var infoProvider = Substitute.For<IVsInfoProvider>();
         var version = Substitute.For<IVsVersion>();
         version.DisplayName.Returns("Visual Studio Professional 2022");
         version.InstallationVersion.Returns("17.10.55645.41");
         version.DisplayVersion.Returns("17.10.0 Preview 3.0");
         infoProvider.Version.Returns(version);
-
-        var testSubject = CreateTestSubject(infoProvider: infoProvider);
         VisualStudioHelpers.VisualStudioVersion = "1.2.3.4";
         var expectedString = $$"""
                                {
@@ -105,20 +110,10 @@ public class SLCoreConstantsProviderTests
     [TestMethod]
     public void TelemetryConstants_WhenVsVersionNull_ReturnNullWithoutException()
     {
-        var versionProvider = Substitute.For<IVsInfoProvider>();
-        versionProvider.Version.Returns((IVsVersion)null);
-
-        var testSubject = CreateTestSubject(infoProvider: versionProvider);
+        infoProvider.Version.Returns((IVsVersion)null);
         VisualStudioHelpers.VisualStudioVersion = "1.2.3.4";
 
         var actual = testSubject.TelemetryConstants;
         actual.additionalAttributes["slvs_ide_info"].Should().BeNull();
-    }
-
-    private static SLCoreConstantsProvider CreateTestSubject(IVsInfoProvider infoProvider = null)
-    {
-        infoProvider ??= Substitute.For<IVsInfoProvider>();
-
-        return new SLCoreConstantsProvider(infoProvider);
     }
 }

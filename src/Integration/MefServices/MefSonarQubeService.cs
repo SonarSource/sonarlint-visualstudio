@@ -18,80 +18,50 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ETW;
-using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration.Helpers;
-using SonarLint.VisualStudio.Integration.Service;
 using SonarQube.Client;
 
-namespace SonarLint.VisualStudio.Integration.MefServices
+namespace SonarLint.VisualStudio.Integration.MefServices;
+
+/// <summary>
+/// This class exists for a couple of reasons:
+/// * to add VS-specific thread handling and ETW tracing
+/// * to avoid bringing MEF composition to the SonarQube.Client assembly which
+///   can be used in contexts where it is not required.
+/// </summary>
+[Export(typeof(ISonarQubeService))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+public sealed class MefSonarQubeService(IUserAgentProvider userAgentProvider, ILogger logger, IThreadHandling threadHandling)
+    : SonarQubeService(
+        new HttpClientHandler(),
+        userAgent: userAgentProvider.UserAgent,
+        logger: new LoggerAdapter(logger))
 {
-    /// <summary>
-    /// This class exists for a couple of reasons:
-    /// * to add VS-specific thread handling and ETW tracing
-    /// * to avoid bringing MEF composition to the SonarQube.Client assembly which
-    ///   can be used in contexts where it is not required.
-    /// </summary>
-    [Export(typeof(ISonarQubeService))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public sealed class MefSonarQubeService : SonarQubeService
+    protected override async Task<TResponse> InvokeUncheckedRequestAsync<TRequest, TResponse>(Action<TRequest> configure, HttpClient httpClient, CancellationToken token)
     {
-        private readonly IThreadHandling threadHandling;
+        CodeMarkers.Instance.WebClientCallStart(typeof(TRequest).Name);
 
-        [ImportingConstructor]
-        public MefSonarQubeService(ILogger logger)
-            : this(logger, ThreadHandling.Instance)
-        {
-        }
+        var result = await threadHandling.RunOnBackgroundThread( () => base.InvokeUncheckedRequestAsync<TRequest, TResponse>(configure, httpClient, token));
 
-        internal /* for testing */ MefSonarQubeService(ILogger logger, IThreadHandling threadHandling)
-            : base(new HttpClientHandler(),
-                userAgent: $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}",
-                logger: new LoggerAdapter(logger))
-        {
-            this.threadHandling = threadHandling;
-        }
+        CodeMarkers.Instance.WebClientCallStop(typeof(TRequest).Name);
 
-        protected override async Task<TResponse> InvokeUncheckedRequestAsync<TRequest, TResponse>(Action<TRequest> configure, HttpClient httpClient, CancellationToken token)
-        {
-            CodeMarkers.Instance.WebClientCallStart(typeof(TRequest).Name);
+        return result;
+    }
 
-            Func<Task<TResponse>> asyncMethod = () => base.InvokeUncheckedRequestAsync<TRequest, TResponse>(configure, httpClient, token);
+    private sealed class LoggerAdapter(ILogger logger) : SonarQube.Client.Logging.ILogger
+    {
+        public void Debug(string message) =>
+            // This will only be logged if an env var is set
+            logger.LogVerbose(message);
 
-            var result = await threadHandling.RunOnBackgroundThread(asyncMethod);
+        public void Error(string message) => logger.WriteLine($"ERROR: {message}");
 
-            CodeMarkers.Instance.WebClientCallStop(typeof(TRequest).Name);
+        public void Info(string message) => logger.WriteLine($"{message}");
 
-            return result;
-        }
-
-        private sealed class LoggerAdapter : SonarQube.Client.Logging.ILogger
-        {
-            private readonly ILogger logger;
-
-            public LoggerAdapter(ILogger logger)
-            {
-                this.logger = logger;
-            }
-
-            public void Debug(string message) =>
-                // This will only be logged if an env var is set
-                logger.LogVerbose(message);
-
-            public void Error(string message) =>
-                logger.WriteLine($"ERROR: {message}");
-
-            public void Info(string message) =>
-                logger.WriteLine($"{message}");
-
-            public void Warning(string message) =>
-                logger.WriteLine($"WARNING: {message}");
-        }
+        public void Warning(string message) => logger.WriteLine($"WARNING: {message}");
     }
 }

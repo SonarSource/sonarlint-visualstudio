@@ -18,49 +18,55 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.MefServices;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 using SonarLint.VisualStudio.TestInfrastructure;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.MefServices
+namespace SonarLint.VisualStudio.Integration.UnitTests.MefServices;
+
+[TestClass]
+public class MefSonarQubeServiceTests
 {
-    [TestClass]
-    public class MefSonarQubeServiceTests
+    [TestMethod]
+    public void MefCtor_CheckIsExported() =>
+        MefTestHelpers.CheckTypeCanBeImported<MefSonarQubeService, ISonarQubeService> (
+            MefTestHelpers.CreateExport<IUserAgentProvider>(Substitute.For<IUserAgentProvider>()),
+            MefTestHelpers.CreateExport<ILogger>(),
+            MefTestHelpers.CreateExport<IThreadHandling>());
+
+    [TestMethod]
+    public void Ctor_GetsUserAgent()
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<MefSonarQubeService, ISonarQubeService> (
-                MefTestHelpers.CreateExport<ILogger>());
-        }
+        var userAgentProvider = Substitute.For<IUserAgentProvider>();
 
-        [TestMethod]
-        public async Task ExecutesCallsOnBackgroundThread()
-        {
-            // Limited check - just that the class does use the threadHandling abstraction
-            // to try to execute in the background
-            var connectionInfo = new ConnectionInformation(new Uri("http://localhost:123"));
+        _ = new MefSonarQubeService(userAgentProvider, Substitute.For<ILogger>(), Substitute.For<IThreadHandling>());
 
-            var threadHandling = new Mock<IThreadHandling>();
-            // Assuming the first call is to IGetVersionRequest, which returns a string
-            threadHandling.Setup(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<string>>>()))
-                .Throws(new IndexOutOfRangeException("this is a test"));
+        _ = userAgentProvider.Received().UserAgent;
+    }
 
+    [TestMethod]
+    public async Task ExecutesCallsOnBackgroundThread()
+    {
+        var userAgentProvider = Substitute.For<IUserAgentProvider>();
+        userAgentProvider.UserAgent.Returns("any user agent");
 
-            var testSubject = new MefSonarQubeService(Mock.Of<ILogger>(), threadHandling.Object);
+        // Limited check - just that the class does use the threadHandling abstraction
+        // to try to execute in the background
+        var connectionInfo = new ConnectionInformation(new Uri("http://localhost:123"));
 
-            Func<Task> func = async () => await testSubject.ConnectAsync(connectionInfo, CancellationToken.None);
+        var threadHandling = Substitute.For<IThreadHandling>();
+        // Assuming the first call is to IGetVersionRequest, which returns a string
+        threadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<string>>>())
+            .ThrowsAsync(new IndexOutOfRangeException("this is a test"));
 
-            func.Should().ThrowExactly<IndexOutOfRangeException>().And
-                .Message.Should().Be("this is a test");
-        }
+        var testSubject = new MefSonarQubeService(userAgentProvider,Substitute.For<ILogger>(), threadHandling);
+
+        var func = async () => await testSubject.ConnectAsync(connectionInfo, CancellationToken.None);
+
+        (await func.Should().ThrowExactlyAsync<IndexOutOfRangeException>())
+            .Which.Message.Should().Be("this is a test");
     }
 }

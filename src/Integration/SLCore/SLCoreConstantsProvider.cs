@@ -25,36 +25,37 @@ using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarLint.VisualStudio.SLCore.Configuration;
 using SonarLint.VisualStudio.SLCore.Service.Lifecycle.Models;
 
-namespace SonarLint.VisualStudio.Integration.SLCore
+namespace SonarLint.VisualStudio.Integration.SLCore;
+
+[Export(typeof(ISLCoreConstantsProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+[method: ImportingConstructor]
+public class SLCoreConstantsProvider(IUserAgentProvider userAgentProvider, IVsInfoProvider vsInfoProvider) : ISLCoreConstantsProvider
 {
-    [Export(typeof(ISLCoreConstantsProvider))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class SLCoreConstantsProvider : ISLCoreConstantsProvider
+    public ClientConstantInfoDto ClientConstants => new(vsInfoProvider.Name, userAgentProvider.UserAgent);
+
+    public FeatureFlagsDto FeatureFlags =>
+        new(taintVulnerabilitiesEnabled: true,
+            shouldSynchronizeProjects: true,
+            shouldManageLocalServer: true,
+            enableSecurityHotspots: true,
+            shouldManageServerSentEvents: true,
+            enableDataflowBugDetection: false,
+            shouldManageFullSynchronization: true,
+            enableTelemetry: true,
+            canOpenFixSuggestion: true);
+
+    public TelemetryClientConstantAttributesDto TelemetryConstants =>
+        new("visualstudio", "SonarLint Visual Studio", VersionHelper.SonarLintVersion, VisualStudioHelpers.VisualStudioVersion,
+            new Dictionary<string, object> { { "slvs_ide_info", GetVsVersion(vsInfoProvider.Version) } });
+
+    private static IdeVersionInformation GetVsVersion(IVsVersion vsVersion)
     {
-        private readonly IVsInfoProvider vsInfoProvider;
-
-        [ImportingConstructor]
-        public SLCoreConstantsProvider(IVsInfoProvider vsInfoProvider)
+        if (vsVersion == null)
         {
-            this.vsInfoProvider = vsInfoProvider;
+            return null;
         }
 
-        public ClientConstantInfoDto ClientConstants => new(vsInfoProvider.Name, $"SonarLint Visual Studio/{VersionHelper.SonarLintVersion}");
-
-        public FeatureFlagsDto FeatureFlags => new(true, true, true, true, true, false, true, true, true);
-
-        public TelemetryClientConstantAttributesDto TelemetryConstants =>
-            new("visualstudio", "SonarLint Visual Studio", VersionHelper.SonarLintVersion, VisualStudioHelpers.VisualStudioVersion,
-                new Dictionary<string, object> { { "slvs_ide_info", GetVsVersion(vsInfoProvider.Version) } });
-
-        private static IdeVersionInformation GetVsVersion(IVsVersion vsVersion)
-        {
-            if (vsVersion == null)
-            {
-                return null;
-            }
-
-            return new IdeVersionInformation { DisplayName = vsVersion.DisplayName, InstallationVersion = vsVersion.InstallationVersion, DisplayVersion = vsVersion.DisplayVersion };
-        }
+        return new IdeVersionInformation { DisplayName = vsVersion.DisplayName, InstallationVersion = vsVersion.InstallationVersion, DisplayVersion = vsVersion.DisplayVersion };
     }
 }
