@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
     /// <summary>
     /// Fetches suppressed issues from the server and updates the store
     /// </summary>
-    internal interface ISuppressionIssueStoreUpdater
+    internal interface IRoslynSuppressionUpdater
     {
         /// <summary>
         /// Fetches all available suppressions from the server and updates the server issues store
@@ -42,9 +42,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         Task UpdateSuppressedIssuesAsync(bool isResolved, string[] issueKeys, CancellationToken cancellationToken);
     }
 
-    [Export(typeof(ISuppressionIssueStoreUpdater))]
+    [Export(typeof(IRoslynSuppressionUpdater))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class SuppressionIssueStoreUpdater : ISuppressionIssueStoreUpdater, IDisposable
+    internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDisposable
     {
         private readonly ISonarQubeService server;
         private readonly IServerQueryInfoProvider serverQueryInfoProvider;
@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private readonly IThreadHandling threadHandling;
 
         [ImportingConstructor]
-        public SuppressionIssueStoreUpdater(
+        public RoslynSuppressionUpdater(
             ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
             IServerIssuesStoreWriter storeWriter,
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         {
         }
 
-        internal /* for testing */ SuppressionIssueStoreUpdater(
+        internal /* for testing */ RoslynSuppressionUpdater(
             ISonarQubeService server,
             IServerQueryInfoProvider serverQueryInfoProvider,
             IServerIssuesStoreWriter storeWriter,
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
             this.threadHandling = threadHandling;
         }
 
-        #region ISuppressionIssueStoreUpdater
+        #region IRoslynSuppressionUpdater
 
         public async Task UpdateAllServerSuppressionsAsync()
         {

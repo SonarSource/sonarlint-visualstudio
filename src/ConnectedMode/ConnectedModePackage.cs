@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.ConnectedMode
             sseSessionManager.CreateSessionIfInConnectedMode();
             importBeforeInstallTrigger = componentModel.GetService<ImportBeforeInstallTrigger>();
             importBeforeInstallTrigger.TriggerUpdateAsync().Forget();
-            var updater = componentModel.GetService<ISuppressionIssueStoreUpdater>();
+            var updater = componentModel.GetService<IRoslynSuppressionUpdater>();
             updater.UpdateAllServerSuppressionsAsync().Forget();
             var hotspotsUpdater = componentModel.GetService<IServerHotspotStoreUpdater>();
             hotspotsUpdater.UpdateAllServerHotspotsAsync().Forget();

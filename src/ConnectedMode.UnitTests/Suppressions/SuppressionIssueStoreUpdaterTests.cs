@@ -30,13 +30,13 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions;
 
 [TestClass]
-public class SuppressionIssueStoreUpdaterTests
+public class RoslynSuppressionUpdaterTests
 {
     private ICancellableActionRunner actionRunner;
     private TestLogger logger;
     private IServerQueryInfoProvider queryInfo;
     private ISonarQubeService server;
-    private SuppressionIssueStoreUpdater testSubject;
+    private RoslynSuppressionUpdater testSubject;
     private IThreadHandling threadHandling;
     private IServerIssuesStoreWriter writer;
 
@@ -54,7 +54,7 @@ public class SuppressionIssueStoreUpdaterTests
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<SuppressionIssueStoreUpdater, ISuppressionIssueStoreUpdater>(
+        MefTestHelpers.CheckTypeCanBeImported<RoslynSuppressionUpdater, IRoslynSuppressionUpdater>(
             MefTestHelpers.CreateExport<ISonarQubeService>(),
             MefTestHelpers.CreateExport<IServerQueryInfoProvider>(),
             MefTestHelpers.CreateExport<IServerIssuesStoreWriter>(),
@@ -325,7 +325,7 @@ public class SuppressionIssueStoreUpdaterTests
         logger.AssertOutputStringExists(Resources.Suppressions_UpdateOperationCancelled);
     }
 
-    private SuppressionIssueStoreUpdater CreateTestSubject(ICancellableActionRunner mockedActionRunner, IThreadHandling mockedThreadHandling) =>
+    private RoslynSuppressionUpdater CreateTestSubject(ICancellableActionRunner mockedActionRunner, IThreadHandling mockedThreadHandling) =>
         new(server, queryInfo, writer, mockedActionRunner, logger, mockedThreadHandling);
 
     private void MockQueryInfoProvider(string projectKey, string branchName) => queryInfo.GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>()).Returns((projectKey, branchName));

@@ -18,11 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 
@@ -41,21 +37,22 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
     internal sealed class IssueServerEventsListener : IIssueServerEventsListener
     {
         private readonly IIssueServerEventSource issueServerEventSource;
-        private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
+        private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
         private readonly IThreadHandling threadHandling;
         private readonly IStatefulServerBranchProvider branchProvider;
         private readonly ILogger logger;
         private readonly CancellationTokenSource cancellationTokenSource;
 
         [ImportingConstructor]
-        public IssueServerEventsListener(IIssueServerEventSource issueServerEventSource,
-            ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
+        public IssueServerEventsListener(
+            IIssueServerEventSource issueServerEventSource,
+            IRoslynSuppressionUpdater roslynSuppressionUpdater,
             IStatefulServerBranchProvider branchProvider,
             IThreadHandling threadHandling,
             ILogger logger)
         {
             this.issueServerEventSource = issueServerEventSource;
-            this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
+            this.roslynSuppressionUpdater = roslynSuppressionUpdater;
             this.branchProvider = branchProvider;
             this.threadHandling = threadHandling;
             this.logger = logger;
@@ -90,7 +87,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
 
                     if (issueKeysForCurrentBranch.Any())
                     {
-                        await suppressionIssueStoreUpdater.UpdateSuppressedIssuesAsync(issueServerEvent.IsResolved, issueKeysForCurrentBranch, cancellationTokenSource.Token);
+                        await roslynSuppressionUpdater.UpdateSuppressedIssuesAsync(issueServerEvent.IsResolved, issueKeysForCurrentBranch, cancellationTokenSource.Token);
                     }
 
                     logger.LogVerbose(Resources.Suppression_IssueChangedEventFinished);

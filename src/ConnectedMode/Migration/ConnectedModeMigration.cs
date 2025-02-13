@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using Microsoft.Alm.Authentication;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
@@ -37,7 +34,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
     internal class ConnectedModeMigration : IConnectedModeMigration
     {
         // Private "alias" to simplify method arguments
-        private sealed class ChangedFiles : List<FilePathAndContent<string>> { }
+        private sealed class ChangedFiles : List<FilePathAndContent<string>>
+        {
+        }
 
         private readonly IMigrationSettingsProvider settingsProvider;
         private readonly IFileProvider fileProvider;
@@ -45,7 +44,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly IVsAwareFileSystem fileSystem;
         private readonly ISonarQubeService sonarQubeService;
         private readonly IUnintrusiveBindingController unintrusiveBindingController;
-        private readonly ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater;
+        private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
         private readonly ISharedBindingConfigProvider sharedBindingConfigProvider;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
@@ -57,13 +56,14 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private bool isAlreadyConnectedToServer;
 
         [ImportingConstructor]
-        public ConnectedModeMigration(IMigrationSettingsProvider settingsProvider,
+        public ConnectedModeMigration(
+            IMigrationSettingsProvider settingsProvider,
             IFileProvider fileProvider,
             IFileCleaner fileCleaner,
             IVsAwareFileSystem fileSystem,
             ISonarQubeService sonarQubeService,
             IUnintrusiveBindingController unintrusiveBindingController,
-            ISuppressionIssueStoreUpdater suppressionIssueStoreUpdater,
+            IRoslynSuppressionUpdater roslynSuppressionUpdater,
             ISharedBindingConfigProvider sharedBindingConfigProvider,
             ILogger logger,
             IThreadHandling threadHandling,
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.fileSystem = fileSystem;
             this.sonarQubeService = sonarQubeService;
             this.unintrusiveBindingController = unintrusiveBindingController;
-            this.suppressionIssueStoreUpdater = suppressionIssueStoreUpdater;
+            this.roslynSuppressionUpdater = roslynSuppressionUpdater;
             this.sharedBindingConfigProvider = sharedBindingConfigProvider;
 
             this.logger = logger;
@@ -87,7 +87,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.unintrusiveBindingPathProvider = unintrusiveBindingPathProvider;
         }
 
-        public async Task MigrateAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, bool shareBinding, CancellationToken token)
+        public async Task MigrateAsync(
+            BoundSonarQubeProject oldBinding,
+            IProgress<MigrationProgress> progress,
+            bool shareBinding,
+            CancellationToken token)
         {
             isAlreadyConnectedToServer = sonarQubeService.IsConnected;
 
@@ -114,7 +118,11 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             }
         }
 
-        private async Task MigrateImplAsync(BoundSonarQubeProject oldBinding, IProgress<MigrationProgress> progress, bool shareBinding, CancellationToken token)
+        private async Task MigrateImplAsync(
+            BoundSonarQubeProject oldBinding,
+            IProgress<MigrationProgress> progress,
+            bool shareBinding,
+            CancellationToken token)
         {
             logger.WriteLine(MigrationStrings.Process_Starting);
 
@@ -144,14 +152,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
             var progressAdapter = new FixedStepsProgressToMigrationProgressAdapter(progress);
             var serverConnection = GetServerConnectionWithMigration(oldBinding);
-            await unintrusiveBindingController.BindAsync(BoundServerProject.FromBoundSonarQubeProject(oldBinding, await solutionInfoProvider.GetSolutionNameAsync(), serverConnection), progressAdapter, token);
+            await unintrusiveBindingController.BindAsync(BoundServerProject.FromBoundSonarQubeProject(oldBinding, await solutionInfoProvider.GetSolutionNameAsync(), serverConnection), progressAdapter,
+                token);
 
             // Now make all of the files changes required to remove the legacy settings
             // i.e. update project files and delete .sonarlint folder
             await MakeLegacyFileChangesAsync(legacySettings, changedFiles, progress, token);
 
             // Trigger a re-fetch of suppressions so the Roslyn settings are updated.
-            await suppressionIssueStoreUpdater.UpdateAllServerSuppressionsAsync();
+            await roslynSuppressionUpdater.UpdateAllServerSuppressionsAsync();
 
             if (shareBinding)
             {
@@ -173,10 +182,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             return sharedBindingConfigProvider.SaveSharedBinding(sharedBindingConfigModel) != null;
         }
 
-        private System.Threading.Tasks.Task<string> GetFileContentAsync(string filePath)
-            => fileSystem.LoadAsTextAsync(filePath);
+        private Task<string> GetFileContentAsync(string filePath) => fileSystem.LoadAsTextAsync(filePath);
 
-        private async System.Threading.Tasks.Task<ChangedFiles> CleanFilesAsync(IEnumerable<string> filesToClean,
+        private async Task<ChangedFiles> CleanFilesAsync(
+            IEnumerable<string> filesToClean,
             LegacySettings legacySettings,
             CancellationToken token)
         {
@@ -194,7 +203,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
                 var newContent = fileCleaner.Clean(content, legacySettings, token);
                 Debug.Assert(newContent == null || !newContent.Equals(content),
-                            "New file content should be null or different from original content");
+                    "New file content should be null or different from original content");
 
                 if (newContent == XmlFileCleaner.Unchanged)
                 {
@@ -216,7 +225,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             return changedFiles;
         }
 
-        private async Task MakeLegacyFileChangesAsync(LegacySettings legacySettings, ChangedFiles changedFiles,
+        private async Task MakeLegacyFileChangesAsync(
+            LegacySettings legacySettings,
+            ChangedFiles changedFiles,
             IProgress<MigrationProgress> progress,
             CancellationToken token)
         {
@@ -239,7 +250,8 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             }
         }
 
-        private async Task DeleteSonarLintFolderAsync(LegacySettings legacySettings,
+        private async Task DeleteSonarLintFolderAsync(
+            LegacySettings legacySettings,
             IProgress<MigrationProgress> progress,
             CancellationToken token)
         {
@@ -253,7 +265,9 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             await fileSystem.DeleteFolderAsync(legacySettings.LegacySonarLintFolderPath);
         }
 
-        private async Task SaveChangedFilesAsync(ChangedFiles changedFiles, IProgress<MigrationProgress> progress,
+        private async Task SaveChangedFilesAsync(
+            ChangedFiles changedFiles,
+            IProgress<MigrationProgress> progress,
             CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
@@ -274,7 +288,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
 
         private ServerConnection GetServerConnectionWithMigration(BoundSonarQubeProject project)
         {
-            if (ServerConnection.FromBoundSonarQubeProject(project) is not {} proposedConnection)
+            if (ServerConnection.FromBoundSonarQubeProject(project) is not { } proposedConnection)
             {
                 throw new InvalidOperationException(BindingStrings.UnintrusiveController_InvalidConnection);
             }
@@ -289,7 +303,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
                 return proposedConnection;
             }
 
-            if(!serverConnectionsRepository.TryGet(proposedConnection.Id, out _))
+            if (!serverConnectionsRepository.TryGet(proposedConnection.Id, out _))
             {
                 serverConnectionsRepository.TryAdd(proposedConnection);
             }
