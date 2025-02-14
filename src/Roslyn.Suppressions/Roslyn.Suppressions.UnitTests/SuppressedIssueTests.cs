@@ -85,4 +85,12 @@ public class SuppressedIssueTests
 
         suppressedIssue1.AreSame(suppressedIssue2).Should().BeFalse();
     }
+
+    [TestMethod]
+    public void AreSame_ReturnsFalseIfSuppressedIssueIsNull()
+    {
+        var suppressedIssue1 = TestHelper.CreateIssue();
+
+        suppressedIssue1.AreSame(null).Should().BeFalse();
+    }
 }
