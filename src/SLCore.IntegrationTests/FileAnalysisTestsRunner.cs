@@ -53,7 +53,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
     internal FileAnalysisTestsRunner(string testClassName, Dictionary<string, StandaloneRuleConfigDto> initialRuleConfig = null)
     {
-        var baseLogger = new TestLogger(true).ForContext("SLCORE", testClassName);
+        var baseLogger = new TestLogger(true).ForContext(testClassName, "SLCORE");
 
         slCoreTestRunner = new SLCoreTestRunner(baseLogger.ForContext("INFRA"), baseLogger.ForContext("STDERR"), testClassName);
 
