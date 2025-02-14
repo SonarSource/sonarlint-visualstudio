@@ -111,7 +111,7 @@ public class MuteIssuesServiceTests
 
         var act = () => testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
-        act.Should().Throw<MuteIssueException.UnavailableServiceProviderException>();
+        act.Should().Throw<MuteIssueException.SlCoreException>();
     }
 
     [TestMethod]
@@ -136,10 +136,22 @@ public class MuteIssuesServiceTests
     }
 
     [TestMethod]
+    public void ResolveIssueWithDialogAsync_WhenValidationsArePassed_GetsAllowedStatuses()
+    {
+        MuteIssuePermitted();
+
+        _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
+
+        issueSlCoreService.Received().CheckStatusChangePermittedAsync(Arg.Is<CheckStatusChangePermittedParams>(x =>
+            x.connectionId == "CONNECTION_ID"
+            && x.issueKey == AnIssueServerKey));
+    }
+
+    [TestMethod]
     public void ResolveIssueWithDialogAsync_WhenWindowResponseResultIsFalse_Cancels()
     {
         MuteIssuePermitted();
-        muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = false });
+        CancelResolutionStatusWindow();
 
         var act = () => testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
@@ -157,7 +169,11 @@ public class MuteIssuesServiceTests
 
         _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
-        issueSlCoreService.Received().ChangeStatusAsync(Arg.Is<ChangeIssueStatusParams>(x => x.issueKey == AnIssueServerKey && x.newStatus == resolutionStatus));
+        issueSlCoreService.Received().ChangeStatusAsync(Arg.Is<ChangeIssueStatusParams>(x =>
+            x.issueKey == AnIssueServerKey
+            && x.newStatus == resolutionStatus
+            && x.configurationScopeId == "CONFIG_SCOPE_ID"
+            && !x.isTaintIssue));
     }
 
     [TestMethod]
@@ -174,6 +190,18 @@ public class MuteIssuesServiceTests
             issueSlCoreService.ChangeStatusAsync(Arg.Is<ChangeIssueStatusParams>(x => x.issueKey == AnIssueServerKey));
             issueSlCoreService.AddCommentAsync(Arg.Is<AddIssueCommentParams>(x => x.issueKey == AnIssueServerKey && x.text == comment));
         });
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialogAsync_WhenWindowResponseDoesNotHaveComment_ShouldMuteWithoutComment()
+    {
+        MuteIssuePermitted();
+        muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept});
+
+        _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
+
+        issueSlCoreService.Received().ChangeStatusAsync(Arg.Is<ChangeIssueStatusParams>(x => x.issueKey == AnIssueServerKey));
+        issueSlCoreService.DidNotReceiveWithAnyArgs().AddCommentAsync(Arg.Any<AddIssueCommentParams>());
     }
 
     [TestMethod]
@@ -197,4 +225,6 @@ public class MuteIssuesServiceTests
         var notPermittedResponse = new CheckStatusChangePermittedResponse(permitted: true, notPermittedReason: null, allowedStatuses: [ResolutionStatus.ACCEPT, ResolutionStatus.FALSE_POSITIVE]);
         issueSlCoreService.CheckStatusChangePermittedAsync(Arg.Any<CheckStatusChangePermittedParams>()).Returns(notPermittedResponse);
     }
+
+    private void CancelResolutionStatusWindow() => muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = false });
 }
