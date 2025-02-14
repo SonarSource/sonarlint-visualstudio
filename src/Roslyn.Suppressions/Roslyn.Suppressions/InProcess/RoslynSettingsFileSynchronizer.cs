@@ -42,7 +42,7 @@ public interface IRoslynSettingsFileSynchronizer : IDisposable
 internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchronizer
 {
     private readonly IConfigurationProvider configurationProvider;
-    private readonly ILogger logger;
+    private readonly ISuppressedIssuesCalculatorFactory suppressedIssuesCalculatorFactory;
     private readonly IRoslynSettingsFileStorage roslynSettingsFileStorage;
     private readonly ISolutionInfoProvider solutionInfoProvider;
     private readonly ISolutionBindingRepository solutionBindingRepository;
@@ -52,19 +52,18 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
 
     [ImportingConstructor]
     public RoslynSettingsFileSynchronizer(
-        IServerIssuesStore serverIssuesStore,
         IRoslynSettingsFileStorage roslynSettingsFileStorage,
         IConfigurationProvider configurationProvider,
         ISolutionInfoProvider solutionInfoProvider,
         ISolutionBindingRepository solutionBindingRepository,
         ISuppressionUpdater suppressionUpdater,
-        ILogger logger)
+        ISuppressedIssuesCalculatorFactory suppressedIssuesCalculatorFactory)
         : this(roslynSettingsFileStorage,
             configurationProvider,
             solutionInfoProvider,
             solutionBindingRepository,
             suppressionUpdater,
-            logger,
+            suppressedIssuesCalculatorFactory,
             ThreadHandling.Instance)
     {
     }
@@ -75,7 +74,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         ISolutionInfoProvider solutionInfoProvider,
         ISolutionBindingRepository solutionBindingRepository,
         ISuppressionUpdater suppressionUpdater,
-        ILogger logger,
+        ISuppressedIssuesCalculatorFactory suppressedIssuesCalculatorFactory,
         IThreadHandling threadHandling)
     {
         this.roslynSettingsFileStorage = roslynSettingsFileStorage;
@@ -83,7 +82,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         this.solutionInfoProvider = solutionInfoProvider;
         this.solutionBindingRepository = solutionBindingRepository;
         this.suppressionUpdater = suppressionUpdater;
-        this.logger = logger.ForContext(nameof(RoslynSettingsFileSynchronizer));
+        this.suppressedIssuesCalculatorFactory = suppressedIssuesCalculatorFactory;
         this.threadHandling = threadHandling;
 
         this.suppressionUpdater.SuppressedIssuesReloaded += OnSuppressedIssuesReloaded;
@@ -102,7 +101,8 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         suppressionUpdater.SuppressionsRemoved -= OnSuppressionsRemoved;
     }
 
-    private void OnSuppressedIssuesReloaded(object sender, SuppressionsEventArgs e) => UpdateFileStorageAsync(new AllSuppressedIssuesCalculator(logger, e.SuppressedIssues)).Forget();
+    private void OnSuppressedIssuesReloaded(object sender, SuppressionsEventArgs e) =>
+        UpdateFileStorageAsync(suppressedIssuesCalculatorFactory.CreateAllSuppressedIssuesCalculator(e.SuppressedIssues)).Forget();
 
     private void OnNewIssuesSuppressed(object sender, SuppressionsEventArgs e)
     {
@@ -111,7 +111,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
             return;
         }
 
-        UpdateFileStorageAsync(new NewSuppressedIssuesCalculator(logger, roslynSettingsFileStorage, e.SuppressedIssues)).Forget();
+        UpdateFileStorageAsync(suppressedIssuesCalculatorFactory.CreateNewSuppressedIssuesCalculator(e.SuppressedIssues)).Forget();
     }
 
     private void OnSuppressionsRemoved(object sender, SuppressionsRemovedEventArgs e)
@@ -121,14 +121,14 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
             return;
         }
 
-        UpdateFileStorageAsync(new SuppressedIssuesRemovedCalculator(logger, roslynSettingsFileStorage, e.IssueServerKeys)).Forget();
+        UpdateFileStorageAsync(suppressedIssuesCalculatorFactory.CreateSuppressedIssuesRemovedCalculator(e.IssueServerKeys)).Forget();
     }
 
     /// <summary>
     /// Updates the Roslyn suppressed issues file if in connected mode
     /// </summary>
     /// <remarks>The method will switch to a background if required, and will *not* return to the UI thread on completion.</remarks>
-    private async Task UpdateFileStorageAsync(SuppressedIssuesCalculatorBase suppressedIssuesCalculator)
+    private async Task UpdateFileStorageAsync(ISuppressedIssuesCalculator suppressedIssuesCalculator)
     {
         CodeMarkers.Instance.FileSynchronizerUpdateStart();
         try

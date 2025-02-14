@@ -18,20 +18,35 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 
-internal abstract class SuppressedIssuesCalculatorBase
+[Export(typeof(ISuppressedIssuesCalculatorFactory))]
+[PartCreationPolicy(CreationPolicy.NonShared)]
+[method: ImportingConstructor]
+internal class SuppressedIssuesCalculatorFactory(ILogger logger, IRoslynSettingsFileStorage roslynSettingsFileStorage) : ISuppressedIssuesCalculatorFactory
 {
-    /// <summary>
-    /// Returns the suppressed issues that should be added to the settings file, or null if no changes are needed.
-    /// </summary>
-    internal abstract IEnumerable<SuppressedIssue> GetSuppressedIssuesOrNull(string settingsKey);
+    internal const string SuppressedIssuesCalculatorLogContext = "Suppressed Issues Calculator";
+    private readonly ILogger logger = logger.ForContext(SuppressedIssuesCalculatorLogContext);
 
-    protected SuppressedIssue[] GetRoslynSuppressedIssues(IEnumerable<SonarQubeIssue> sonarQubeIssues)
+    public ISuppressedIssuesCalculator CreateAllSuppressedIssuesCalculator(IEnumerable<SonarQubeIssue> sonarQubeIssues) => new AllSuppressedIssuesCalculator(logger, sonarQubeIssues);
+
+    public ISuppressedIssuesCalculator CreateNewSuppressedIssuesCalculator(IEnumerable<SonarQubeIssue> sonarQubeIssues) =>
+        new NewSuppressedIssuesCalculator(logger, roslynSettingsFileStorage, sonarQubeIssues);
+
+    public ISuppressedIssuesCalculator CreateSuppressedIssuesRemovedCalculator(IEnumerable<string> issueServerKeys) =>
+        new SuppressedIssuesRemovedCalculator(logger, roslynSettingsFileStorage, issueServerKeys);
+}
+
+internal abstract class SuppressedIssuesCalculatorBase : ISuppressedIssuesCalculator
+{
+    public abstract IEnumerable<SuppressedIssue> GetSuppressedIssuesOrNull(string roslynSettingsKey);
+
+    protected static SuppressedIssue[] GetRoslynSuppressedIssues(IEnumerable<SonarQubeIssue> sonarQubeIssues)
     {
         var suppressionsToAdd = sonarQubeIssues
             .Where(x => x.IsResolved)
@@ -44,7 +59,7 @@ internal abstract class SuppressedIssuesCalculatorBase
 
 internal class AllSuppressedIssuesCalculator(ILogger logger, IEnumerable<SonarQubeIssue> sonarQubeIssues) : SuppressedIssuesCalculatorBase
 {
-    internal override IEnumerable<SuppressedIssue> GetSuppressedIssuesOrNull(string settingsKey)
+    public override IEnumerable<SuppressedIssue> GetSuppressedIssuesOrNull(string roslynSettingsKey)
     {
         logger.LogVerbose(Resources.Strings.RoslynSettingsFileSynchronizerReloadSuppressions);
         return GetRoslynSuppressedIssues(sonarQubeIssues);
@@ -53,11 +68,11 @@ internal class AllSuppressedIssuesCalculator(ILogger logger, IEnumerable<SonarQu
 
 internal class NewSuppressedIssuesCalculator(ILogger logger, IRoslynSettingsFileStorage roslynSettingsFileStorage, IEnumerable<SonarQubeIssue> newSonarQubeIssues) : SuppressedIssuesCalculatorBase
 {
-    internal override IEnumerable<SuppressedIssue> GetSuppressedIssuesOrNull(string settingsKey)
+    public override IEnumerable<SuppressedIssue> GetSuppressedIssuesOrNull(string roslynSettingsKey)
     {
         logger.LogVerbose(Resources.Strings.RoslynSettingsFileSynchronizerAddNewSuppressions);
 
-        var suppressedIssuesInFile = roslynSettingsFileStorage.Get(settingsKey)?.Suppressions;
+        var suppressedIssuesInFile = roslynSettingsFileStorage.Get(roslynSettingsKey)?.Suppressions;
         var suppressedIssuesToAdd = GetRoslynSuppressedIssues(newSonarQubeIssues);
         if (suppressedIssuesInFile is null)
         {
@@ -72,9 +87,9 @@ internal class NewSuppressedIssuesCalculator(ILogger logger, IRoslynSettingsFile
 
 internal class SuppressedIssuesRemovedCalculator(ILogger logger, IRoslynSettingsFileStorage roslynSettingsFileStorage, IEnumerable<string> resolvedIssueServerKeys) : SuppressedIssuesCalculatorBase
 {
-    internal override IEnumerable<SuppressedIssue> GetSuppressedIssuesOrNull(string settingsKey)
+    public override IEnumerable<SuppressedIssue> GetSuppressedIssuesOrNull(string roslynSettingsKey)
     {
-        var suppressedIssuesInFile = roslynSettingsFileStorage.Get(settingsKey)?.Suppressions?.ToList();
+        var suppressedIssuesInFile = roslynSettingsFileStorage.Get(roslynSettingsKey)?.Suppressions?.ToList();
         var resolvedIssues = suppressedIssuesInFile?.Where(existingIssue => resolvedIssueServerKeys.Any(x => existingIssue.IssueServerKey == x)).ToList();
         if (resolvedIssues == null || !resolvedIssues.Any())
         {
