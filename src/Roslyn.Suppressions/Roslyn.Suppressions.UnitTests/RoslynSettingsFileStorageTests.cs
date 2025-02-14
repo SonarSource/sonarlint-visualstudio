@@ -19,7 +19,6 @@
  */
 
 using System.IO.Abstractions;
-using Moq;
 using Newtonsoft.Json;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.Core;
@@ -54,6 +53,9 @@ public class RoslynSettingsFileStorageTests
     public void MefCtor_CheckIsExported() =>
         MefTestHelpers.CheckTypeCanBeImported<RoslynSettingsFileStorage, IRoslynSettingsFileStorage>(
             MefTestHelpers.CreateExport<ILogger>());
+
+    [TestMethod]
+    public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<RoslynSettingsFileStorage>();
 
     [TestMethod]
     public void Update_HasIssues_IssuesWrittenToFile()
