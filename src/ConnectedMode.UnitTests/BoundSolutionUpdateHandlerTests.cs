@@ -20,6 +20,7 @@
 
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -59,19 +60,19 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         public void InvokeEvents_ServerStoreUpdatersAreCalled()
         {
             var activeSolutionTracker = new Mock<IActiveSolutionBoundTracker>();
-            var roslynSuppressionUpdater = new Mock<ISuppressionUpdater>();
+            var suppressionUpdater = new Mock<ISuppressionUpdater>();
             var serverHotspotStoreUpdater = new Mock<IServerHotspotStoreUpdater>();
             var qualityProfileUpdater = new Mock<IQualityProfileUpdater>();
 
-            _ = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, roslynSuppressionUpdater.Object, serverHotspotStoreUpdater.Object, qualityProfileUpdater.Object);
+            _ = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, suppressionUpdater.Object, serverHotspotStoreUpdater.Object, qualityProfileUpdater.Object);
 
             activeSolutionTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
-            roslynSuppressionUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Once);
+            suppressionUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Once);
             serverHotspotStoreUpdater.Verify(x => x.UpdateAllServerHotspotsAsync(), Times.Once);
             qualityProfileUpdater.Verify(x => x.UpdateAsync(), Times.Once);
 
             activeSolutionTracker.Raise(x => x.SolutionBindingUpdated += null, EventArgs.Empty);
-            roslynSuppressionUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Exactly(2));
+            suppressionUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Exactly(2));
             serverHotspotStoreUpdater.Verify(x => x.UpdateAllServerHotspotsAsync(), Times.Exactly(2));
             qualityProfileUpdater.Verify(x => x.UpdateAsync(), Times.Exactly(2));
         }

@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 10; // 10 minutes
 
         private readonly ITimer refreshTimer;
-        private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
+        private readonly ISuppressionUpdater suppressionUpdater;
         private readonly IServerHotspotStoreUpdater serverHotspotStoreUpdater;
         private readonly IQualityProfileUpdater qualityProfileUpdater;
         private readonly ILogger logger;
@@ -45,24 +45,24 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
 
         [ImportingConstructor]
         public TimedUpdateHandler(
-            IRoslynSuppressionUpdater roslynSuppressionUpdater,
+            ISuppressionUpdater suppressionUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater,
             ILogger logger,
             IActiveSolutionBoundTracker activeSolutionBoundTracker)
-            : this(roslynSuppressionUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, activeSolutionBoundTracker, logger, new TimerFactory())
+            : this(suppressionUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, activeSolutionBoundTracker, logger, new TimerFactory())
         {
         }
 
         internal /* for testing */ TimedUpdateHandler(
-            IRoslynSuppressionUpdater roslynSuppressionUpdater,
+            ISuppressionUpdater suppressionUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ILogger logger,
             ITimerFactory timerFactory)
         {
-            this.roslynSuppressionUpdater = roslynSuppressionUpdater;
+            this.suppressionUpdater = suppressionUpdater;
             this.serverHotspotStoreUpdater = serverHotspotStoreUpdater;
             this.qualityProfileUpdater = qualityProfileUpdater;
             this.logger = logger;
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private void OnRefreshTimerElapsed(object sender, TimerEventArgs e)
         {
             logger.WriteLine(Resources.TimedUpdateTriggered);
-            roslynSuppressionUpdater.UpdateAllServerSuppressionsAsync().Forget();
+            suppressionUpdater.UpdateAllServerSuppressionsAsync().Forget();
             serverHotspotStoreUpdater.UpdateAllServerHotspotsAsync().Forget();
             qualityProfileUpdater.UpdateAsync().Forget();
         }

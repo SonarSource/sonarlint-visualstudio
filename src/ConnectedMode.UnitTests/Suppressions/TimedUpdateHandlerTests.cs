@@ -88,15 +88,15 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var refreshTimer = new Mock<ITimer>();
             var timerFactory = CreateTimerFactory(refreshTimer.Object);
             var activeSolutionBoundTracker = CreateActiveSolutionBoundTrackerWihtBindingConfig(SonarLintMode.Connected);
-            var roslynSuppressionUpdater = new Mock<ISuppressionUpdater>();
+            var suppressionUpdater = new Mock<ISuppressionUpdater>();
             var serverHotspotStoreUpdater = new Mock<IServerHotspotStoreUpdater>();
             var qualityProfileUpdater = new Mock<IQualityProfileUpdater>();
 
-            _ = CreateTestSubject(activeSolutionBoundTracker.Object, roslynSuppressionUpdater.Object, serverHotspotStoreUpdater.Object, qualityProfileUpdater.Object, timerFactory);
+            _ = CreateTestSubject(activeSolutionBoundTracker.Object, suppressionUpdater.Object, serverHotspotStoreUpdater.Object, qualityProfileUpdater.Object, timerFactory);
 
             refreshTimer.Raise(x => x.Elapsed += null, new TimerEventArgs(DateTime.UtcNow));
 
-            roslynSuppressionUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Once);
+            suppressionUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Once);
             serverHotspotStoreUpdater.Verify(x => x.UpdateAllServerHotspotsAsync(), Times.Once);
             qualityProfileUpdater.Verify(x => x.UpdateAsync(), Times.Once);
         }
@@ -107,18 +107,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
             var refreshTimer = new Mock<ITimer>();
             var timerFactory = CreateTimerFactory(refreshTimer.Object);
             var activeSolutionBoundTracker = CreateActiveSolutionBoundTrackerWihtBindingConfig(SonarLintMode.Connected);
-            var roslynSuppressionUpdater = new Mock<ISuppressionUpdater>();
+            var suppressionUpdater = new Mock<ISuppressionUpdater>();
             var serverHotspotStoreUpdater = new Mock<IServerHotspotStoreUpdater>();
             var qualityProfileUpdater = new Mock<IQualityProfileUpdater>();
 
-            var testSubject = CreateTestSubject(activeSolutionBoundTracker.Object, roslynSuppressionUpdater.Object, serverHotspotStoreUpdater.Object, qualityProfileUpdater.Object, timerFactory);
+            var testSubject = CreateTestSubject(activeSolutionBoundTracker.Object, suppressionUpdater.Object, serverHotspotStoreUpdater.Object, qualityProfileUpdater.Object, timerFactory);
 
             testSubject.Dispose();
 
             refreshTimer.Verify(x => x.Dispose(), Times.Once);
             refreshTimer.Raise(x => x.Elapsed += null, new TimerEventArgs(DateTime.UtcNow));
 
-            roslynSuppressionUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Never);
+            suppressionUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Never);
             serverHotspotStoreUpdater.Verify(x => x.UpdateAllServerHotspotsAsync(), Times.Never);
             qualityProfileUpdater.Verify(x => x.UpdateAsync(), Times.Never);
         }
@@ -153,13 +153,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions
         }
 
         private static TimedUpdateHandler CreateTestSubject(IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            ISuppressionUpdater roslynSuppressionUpdater = null,
+            ISuppressionUpdater suppressionUpdater = null,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater = null ,
             IQualityProfileUpdater qualityProfileUpdater = null,
             ITimerFactory timerFactory = null)
         {
             return new TimedUpdateHandler(
-                roslynSuppressionUpdater ?? Mock.Of<ISuppressionUpdater>(),
+                suppressionUpdater ?? Mock.Of<ISuppressionUpdater>(),
                 serverHotspotStoreUpdater ?? Mock.Of<IServerHotspotStoreUpdater>(),
                 qualityProfileUpdater ?? Mock.Of<IQualityProfileUpdater>(),
                 activeSolutionBoundTracker,

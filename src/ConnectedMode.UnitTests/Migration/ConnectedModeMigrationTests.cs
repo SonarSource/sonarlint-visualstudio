@@ -21,6 +21,7 @@
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.ConnectedModeMigrationTestsExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -38,8 +39,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         private static readonly BoundSonarQubeProject AnyBoundProject = new BoundSonarQubeProject(new Uri("http://localhost:9000"), "any-key", "any-name");
 
         [TestMethod]
-        public void MefCtor_CheckTypeIsNonShared()
-            => MefTestHelpers.CheckIsNonSharedMefComponent<ConnectedModeMigration>();
+        public void MefCtor_CheckTypeIsNonShared() => MefTestHelpers.CheckIsNonSharedMefComponent<ConnectedModeMigration>();
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -397,13 +397,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 serverConnectionsRepository: serverConnectionsRepositoryMock.Object,
                 unintrusiveBindingController: unintrusiveBindingControllerMock.Object,
                 unintrusiveBindingPathProvider: bindingPathProvider.Object,
-                logger:logger.Object);
+                logger: logger.Object);
             serverConnectionsRepositoryMock.Setup(mock => mock.ConnectionsFileExists()).Returns(false);
             bindingPathProvider.Setup(mock => mock.GetBindingPaths()).Returns(["binding1"]);
 
             await testSubject.MigrateAsync(AnyBoundProject, Mock.Of<IProgress<MigrationProgress>>(), false, CancellationToken.None);
 
-            logger.Verify(x=> x.WriteLine(MigrationStrings.ConnectionsJson_DoesNotExist), Times.Once);
+            logger.Verify(x => x.WriteLine(MigrationStrings.ConnectionsJson_DoesNotExist), Times.Once);
             serverConnectionsRepositoryMock.Verify(mock => mock.TryAdd(It.IsAny<ServerConnection>()), Times.Never);
             unintrusiveBindingControllerMock.Verify(
                 x => x.BindAsync(
@@ -424,7 +424,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             var testSubject = CreateTestSubject(
                 serverConnectionsRepository: serverConnectionsRepositoryMock.Object,
                 unintrusiveBindingController: unintrusiveBindingControllerMock.Object,
-                unintrusiveBindingPathProvider:bindingPathProvider.Object,
+                unintrusiveBindingPathProvider: bindingPathProvider.Object,
                 logger: logger.Object);
             serverConnectionsRepositoryMock.Setup(mock => mock.ConnectionsFileExists()).Returns(false);
             bindingPathProvider.Setup(mock => mock.GetBindingPaths()).Returns([]);
@@ -454,7 +454,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         {
             var suppressionsUpdater = new Mock<ISuppressionUpdater>();
 
-            var testSubject = CreateTestSubject(roslynSuppressionUpdater: suppressionsUpdater.Object);
+            var testSubject = CreateTestSubject(suppressionUpdater: suppressionsUpdater.Object);
             await testSubject.MigrateAsync(AnyBoundProject, null, false, CancellationToken.None);
 
             suppressionsUpdater.Verify(x => x.UpdateAllServerSuppressionsAsync(), Times.Once);
@@ -465,7 +465,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         {
             var threadHandling = new Mock<IThreadHandling>();
             threadHandling.Setup(x => x.SwitchToBackgroundThread())
-               .Returns(() => new NoOpThreadHandler.NoOpAwaitable());
+                .Returns(() => new NoOpThreadHandler.NoOpAwaitable());
 
             var testSubject = CreateTestSubject(threadHandling: threadHandling.Object);
             await testSubject.MigrateAsync(AnyBoundProject, It.IsAny<IProgress<MigrationProgress>>(), false, CancellationToken.None);
@@ -480,7 +480,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             IMigrationSettingsProvider settingsProvider = null,
             ISonarQubeService sonarQubeService = null,
             IUnintrusiveBindingController unintrusiveBindingController = null,
-            ISuppressionUpdater roslynSuppressionUpdater = null,
+            ISuppressionUpdater suppressionUpdater = null,
             ISharedBindingConfigProvider sharedBindingConfigProvider = null,
             ILogger logger = null,
             IThreadHandling threadHandling = null,
@@ -493,7 +493,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             fileSystem ??= Mock.Of<IVsAwareFileSystem>();
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
             unintrusiveBindingController ??= Mock.Of<IUnintrusiveBindingController>();
-            roslynSuppressionUpdater ??= Mock.Of<ISuppressionUpdater>();
+            suppressionUpdater ??= Mock.Of<ISuppressionUpdater>();
             settingsProvider ??= CreateSettingsProvider(DefaultTestLegacySettings).Object;
             sharedBindingConfigProvider ??= Mock.Of<ISharedBindingConfigProvider>();
             solutionInfoProvider ??= CreateSolutionInfoProviderMock().Object;
@@ -509,7 +509,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 fileSystem,
                 sonarQubeService,
                 unintrusiveBindingController,
-                roslynSuppressionUpdater,
+                suppressionUpdater,
                 sharedBindingConfigProvider,
                 logger,
                 threadHandling,
@@ -553,7 +553,10 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             return serverConnectionsRepositoryMock;
         }
 
-        private static void MockIServerConnectionsRepositoryTryGet(Mock<IServerConnectionsRepository> serverConnectionsRepositoryMock, string id = null, ServerConnection.SonarQube storedConnection = null)
+        private static void MockIServerConnectionsRepositoryTryGet(
+            Mock<IServerConnectionsRepository> serverConnectionsRepositoryMock,
+            string id = null,
+            ServerConnection.SonarQube storedConnection = null)
         {
             serverConnectionsRepositoryMock.Setup(service => service.TryGet(id ?? It.IsAny<string>(), out It.Ref<ServerConnection>.IsAny))
                 .Returns((string _, out ServerConnection value) =>
@@ -587,32 +590,27 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     {
         internal static class MockExtensions
         {
-            public static void SetupFileToClean(this Mock<IFileCleaner> fileCleaner, string input, string output)
-                => fileCleaner.Setup(x => x.Clean(input, It.IsAny<LegacySettings>(), It.IsAny<CancellationToken>()))
+            public static void SetupFileToClean(this Mock<IFileCleaner> fileCleaner, string input, string output) =>
+                fileCleaner.Setup(x => x.Clean(input, It.IsAny<LegacySettings>(), It.IsAny<CancellationToken>()))
                     .Returns(output);
 
-            public static void VerifyFileCleaned(this Mock<IFileCleaner> fileCleaner, string expectedContent)
-                => fileCleaner.Verify(x => x.Clean(expectedContent,
+            public static void VerifyFileCleaned(this Mock<IFileCleaner> fileCleaner, string expectedContent) =>
+                fileCleaner.Verify(x => x.Clean(expectedContent,
                     It.IsAny<LegacySettings>(),
                     It.IsAny<CancellationToken>()), Times.Once);
 
-            public static void AddFile(this Mock<IVsAwareFileSystem> fileSystem, string filePath, string content)
-                => fileSystem.Setup(x => x.LoadAsTextAsync(filePath)).Returns(Task.FromResult(content));
+            public static void AddFile(this Mock<IVsAwareFileSystem> fileSystem, string filePath, string content) =>
+                fileSystem.Setup(x => x.LoadAsTextAsync(filePath)).Returns(Task.FromResult(content));
 
-            public static void VerifyFileLoaded(this Mock<IVsAwareFileSystem> fileSystem, string filePath)
-                => fileSystem.Verify(x => x.LoadAsTextAsync(filePath), Times.Once);
+            public static void VerifyFileLoaded(this Mock<IVsAwareFileSystem> fileSystem, string filePath) => fileSystem.Verify(x => x.LoadAsTextAsync(filePath), Times.Once);
 
-            public static void VerifyFileSaved(this Mock<IVsAwareFileSystem> fileSystem, string filePath, string content)
-                => fileSystem.Verify(x => x.SaveAsync(filePath, content), Times.Once);
+            public static void VerifyFileSaved(this Mock<IVsAwareFileSystem> fileSystem, string filePath, string content) => fileSystem.Verify(x => x.SaveAsync(filePath, content), Times.Once);
 
-            public static void VerifyFileNotSaved(this Mock<IVsAwareFileSystem> fileSystem, string filePath)
-                => fileSystem.Verify(x => x.SaveAsync(filePath, It.IsAny<string>()), Times.Never);
+            public static void VerifyFileNotSaved(this Mock<IVsAwareFileSystem> fileSystem, string filePath) => fileSystem.Verify(x => x.SaveAsync(filePath, It.IsAny<string>()), Times.Never);
 
-            public static void VerifyNoFilesSaved(this Mock<IVsAwareFileSystem> fileSystem)
-                => fileSystem.Verify(x => x.SaveAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            public static void VerifyNoFilesSaved(this Mock<IVsAwareFileSystem> fileSystem) => fileSystem.Verify(x => x.SaveAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
 
-            public static void VerifyDirectoryDeleted(this Mock<IVsAwareFileSystem> fileSystem, string folderPath)
-                => fileSystem.Verify(x => x.DeleteFolderAsync(folderPath), Times.Once);
+            public static void VerifyDirectoryDeleted(this Mock<IVsAwareFileSystem> fileSystem, string folderPath) => fileSystem.Verify(x => x.DeleteFolderAsync(folderPath), Times.Once);
         }
     }
 }

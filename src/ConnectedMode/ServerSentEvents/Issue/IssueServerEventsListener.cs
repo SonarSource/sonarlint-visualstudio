@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
     internal sealed class IssueServerEventsListener : IIssueServerEventsListener
     {
         private readonly IIssueServerEventSource issueServerEventSource;
-        private readonly ISuppressionUpdater roslynSuppressionUpdater;
+        private readonly ISuppressionUpdater suppressionUpdater;
         private readonly IThreadHandling threadHandling;
         private readonly IStatefulServerBranchProvider branchProvider;
         private readonly ILogger logger;
@@ -46,13 +46,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
         [ImportingConstructor]
         public IssueServerEventsListener(
             IIssueServerEventSource issueServerEventSource,
-            ISuppressionUpdater roslynSuppressionUpdater,
+            ISuppressionUpdater suppressionUpdater,
             IStatefulServerBranchProvider branchProvider,
             IThreadHandling threadHandling,
             ILogger logger)
         {
             this.issueServerEventSource = issueServerEventSource;
-            this.roslynSuppressionUpdater = roslynSuppressionUpdater;
+            this.suppressionUpdater = suppressionUpdater;
             this.branchProvider = branchProvider;
             this.threadHandling = threadHandling;
             this.logger = logger;
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
 
                     if (issueKeysForCurrentBranch.Any())
                     {
-                        await roslynSuppressionUpdater.UpdateSuppressedIssuesAsync(issueServerEvent.IsResolved, issueKeysForCurrentBranch, cancellationTokenSource.Token);
+                        await suppressionUpdater.UpdateSuppressedIssuesAsync(issueServerEvent.IsResolved, issueKeysForCurrentBranch, cancellationTokenSource.Token);
                     }
 
                     logger.LogVerbose(Resources.Suppression_IssueChangedEventFinished);
