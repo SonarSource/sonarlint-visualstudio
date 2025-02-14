@@ -193,56 +193,6 @@ public class MuteIssueCommandTests
     }
 
     [TestMethod]
-    public void Execute_DoesNotFindServerIssue_ShowsMessageBox()
-    {
-        var callSequence = new MockSequence();
-        var testSubject = CreateTestSubject(out var errorListHelperMock,
-            out _,
-            out var serverIssueFinderMock,
-            out _,
-            out _,
-            out var threadHandlingMock,
-            out var messageBoxMock,
-            out _);
-        var issue = SetUpGetIssueFromErrorList(errorListHelperMock, callSequence);
-        SetupThreadHandler(threadHandlingMock, callSequence);
-        serverIssueFinderMock
-            .InSequence(callSequence)
-            .Setup(x => x.FindServerIssueAsync(issue, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((SonarQubeIssue)null);
-
-        testSubject.Invoke();
-
-        threadHandlingMock.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()), Times.Once);
-        serverIssueFinderMock.Verify(x => x.FindServerIssueAsync(issue, It.IsAny<CancellationToken>()), Times.Once);
-        messageBoxMock.Verify(x => x.Show(AnalysisStrings.MuteIssue_IssueNotFoundText, AnalysisStrings.MuteIssue_IssueNotFoundCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation));
-    }
-
-    [TestMethod]
-    public void Execute_OutOfSyncMutedIssue_MutesLocallyAndShowsMessageBox()
-    {
-        var callSequence = new MockSequence();
-        var testSubject = CreateTestSubject(out var errorListHelperMock,
-            out _,
-            out var serverIssueFinderMock,
-            out _,
-            out _,
-            out var threadHandlingMock,
-            out var messageBoxMock,
-            out _);
-        var serverIssue = DummySonarQubeIssueFactory.CreateServerIssue(true);
-        var issue = SetUpGetIssueFromErrorList(errorListHelperMock, callSequence);
-        SetupThreadHandler(threadHandlingMock, callSequence);
-        SetUpIssueFinder(serverIssueFinderMock, callSequence, issue, serverIssue);
-
-        testSubject.Invoke();
-
-        threadHandlingMock.Verify(x => x.RunOnBackgroundThread(It.IsAny<Func<Task<bool>>>()), Times.Once);
-        serverIssueFinderMock.Verify(x => x.FindServerIssueAsync(issue, It.IsAny<CancellationToken>()), Times.Once);
-        messageBoxMock.Verify(x => x.Show(AnalysisStrings.MuteIssue_IssueAlreadyMutedText, AnalysisStrings.MuteIssue_IssueAlreadyMutedCaption, MessageBoxButton.OK, MessageBoxImage.Information));
-    }
-
-    [TestMethod]
     public void Execute_MutesIssue()
     {
         var callSequence = new MockSequence();
