@@ -77,7 +77,7 @@ internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDis
         {
             return;
         }
-        if (isResolved)
+        if (!isResolved)
         {
             InvokeSuppressionsRemoved(issueKeys);
             return;

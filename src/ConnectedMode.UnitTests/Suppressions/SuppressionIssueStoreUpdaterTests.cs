@@ -225,29 +225,31 @@ public class RoslynSuppressionUpdaterTests
     }
 
     [TestMethod]
-    public async Task UpdateSuppressedIssues_EmptyIssues_IssuesResolved_NoEventInvokedAndNoServerCalls()
+    public async Task UpdateSuppressedIssuesAsync_EmptyIssues_IssuesNotResolved_SuppressionsRemovedEventNotInvokedAndNoServerCalls()
     {
-        await testSubject.UpdateSuppressedIssuesAsync(isResolved: true, [], CancellationToken.None);
+        await testSubject.UpdateSuppressedIssuesAsync(isResolved: false, [], CancellationToken.None);
 
+        queryInfo.ReceivedCalls().Count().Should().Be(0);
+        server.ReceivedCalls().Count().Should().Be(0);
         VerifySuppressionsRemovedNotInvoked();
     }
 
     [TestMethod]
-    public async Task UpdateSuppressedIssues_IssuesResolved_IssuesFetched()
+    public async Task UpdateSuppressedIssuesAsync_IssuesNotResolved_IssuesFetched()
     {
         string[] issueKeys = ["issue1", "issue2"];
 
-        await testSubject.UpdateSuppressedIssuesAsync(isResolved: true, issueKeys, CancellationToken.None);
+        await testSubject.UpdateSuppressedIssuesAsync(isResolved: false, issueKeys, CancellationToken.None);
 
         VerifySuppressionsRemovedInvoked(issueKeys);
     }
 
     [TestMethod]
-    public async Task UpdateSuppressedIssues_EmptyIssues_NoEventInvokedAndNoServerCalls()
+    public async Task UpdateSuppressedIssuesAsync_EmptyIssues_NewIssuesSuppressedNotInvokedAndNoServerCalls()
     {
         MockQueryInfoProvider("proj1", "branch1");
 
-        await testSubject.UpdateSuppressedIssuesAsync(isResolved: false, [], CancellationToken.None);
+        await testSubject.UpdateSuppressedIssuesAsync(isResolved: true, [], CancellationToken.None);
 
         queryInfo.ReceivedCalls().Count().Should().Be(0);
         server.ReceivedCalls().Count().Should().Be(0);
@@ -255,7 +257,7 @@ public class RoslynSuppressionUpdaterTests
     }
 
     [TestMethod]
-    public async Task UpdateSuppressedIssues_IssuesSuppressed_IssuesFetched()
+    public async Task UpdateSuppressedIssuesAsync_IssuesSuppressed_IssuesFetched()
     {
         MockQueryInfoProvider("proj1", "branch1");
         var expectedFetchedIssues = new[] { CreateIssue("issue1") };
@@ -265,7 +267,7 @@ public class RoslynSuppressionUpdaterTests
             ["issue1"],
             expectedFetchedIssues);
 
-        await testSubject.UpdateSuppressedIssuesAsync(isResolved: false, ["issue1"], CancellationToken.None);
+        await testSubject.UpdateSuppressedIssuesAsync(isResolved: true, ["issue1"], CancellationToken.None);
 
         await server.Received(1).GetSuppressedIssuesAsync(
             "proj1",
@@ -278,12 +280,12 @@ public class RoslynSuppressionUpdaterTests
     }
 
     [TestMethod]
-    public void UpdateSuppressedIssues_IssuesSuppressed_CriticalExpression_NotHandled()
+    public void UpdateSuppressedIssuesAsync_IssuesSuppressed_CriticalExpression_NotHandled()
     {
         MockQueryInfoProvider("proj1", "branch1");
         queryInfo.When(x => x.GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>())).Throw(new StackOverflowException("thrown in a test"));
 
-        var operation = () => testSubject.UpdateSuppressedIssuesAsync(isResolved: false, ["issue1"], CancellationToken.None);
+        var operation = () => testSubject.UpdateSuppressedIssuesAsync(isResolved: true, ["issue1"], CancellationToken.None);
 
         operation.Should().Throw<StackOverflowException>().And.Message.Should().Be("thrown in a test");
         AssertMessageArgsDoesNotExist("thrown in a test");
@@ -291,12 +293,12 @@ public class RoslynSuppressionUpdaterTests
     }
 
     [TestMethod]
-    public void UpdateSuppressedIssues_IssuesSuppressed_NonCriticalExpression_IsSuppressed()
+    public void UpdateSuppressedIssuesAsync_IssuesSuppressed_NonCriticalExpression_IsSuppressed()
     {
         MockQueryInfoProvider("proj1", "branch1");
         queryInfo.When(x => x.GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>())).Throw(new InvalidOperationException("thrown in a test"));
 
-        var operation = () => testSubject.UpdateSuppressedIssuesAsync(isResolved: false, ["issue1"], CancellationToken.None);
+        var operation = () => testSubject.UpdateSuppressedIssuesAsync(isResolved: true, ["issue1"], CancellationToken.None);
 
         operation.Should().NotThrow();
         AssertMessageArgsExists("thrown in a test");
@@ -304,13 +306,13 @@ public class RoslynSuppressionUpdaterTests
     }
 
     [TestMethod]
-    public void UpdateSuppressedIssues_IssuesSuppressed_OperationCancelledException_CancellationMessageLogged()
+    public void UpdateSuppressedIssuesAsync_IssuesSuppressed_OperationCancelledException_CancellationMessageLogged()
     {
         MockQueryInfoProvider("proj1", "branch1");
         using var cancellationTokenSource = new CancellationTokenSource();
         queryInfo.When(x => x.GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>())).Do(_ => cancellationTokenSource.Cancel());
 
-        var operation = () => testSubject.UpdateSuppressedIssuesAsync(isResolved: false, ["issue1"], cancellationTokenSource.Token);
+        var operation = () => testSubject.UpdateSuppressedIssuesAsync(isResolved: true, ["issue1"], cancellationTokenSource.Token);
 
         operation.Should().NotThrow();
         AssertMessageExists(Resources.Suppressions_FetchOperationCancelled);
