@@ -118,8 +118,8 @@ namespace SonarLint.VisualStudio.TestInfrastructure
         void ILoggerWriter.WriteLine(string message)
         {
             var messageToLog = message + Environment.NewLine;
-            OutputStrings.Add(messageToLog);
             var toLog = DateTime.Now.TimeOfDay.ToString("G") + messageToLog;
+            OutputStrings.Add(messageToLog);
             if (logToConsole)
             {
                 Console.Error.WriteLine(toLog);
