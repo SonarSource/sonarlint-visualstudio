@@ -104,11 +104,10 @@ internal class MuteIssuesService(
 
     private async Task<List<ResolutionStatus>> GetAllowedStatusesAsync(string connectionId, string issueServerKey)
     {
-        var issueSlCoreService = GetIssueSlCoreService();
-
         CheckStatusChangePermittedResponse response;
         try
         {
+            var issueSlCoreService = GetIssueSlCoreService();
             var checkStatusChangePermittedParams = new CheckStatusChangePermittedParams(connectionId, issueServerKey);
             response = await issueSlCoreService.CheckStatusChangePermittedAsync(checkStatusChangePermittedParams);
         }
@@ -127,10 +126,9 @@ internal class MuteIssuesService(
 
     private async Task MuteIssueWithCommentAsync(string configurationScopeId, string issueServerKey, MuteIssuesWindowResponse windowResponse)
     {
-        var issueSlCoreService = GetIssueSlCoreService();
-
         try
         {
+            var issueSlCoreService = GetIssueSlCoreService();
             var newStatus = MapSonarQubeIssueTransitionToSlCoreResolutionStatus(windowResponse.IssueTransition);
             await issueSlCoreService.ChangeStatusAsync(new ChangeIssueStatusParams
             (
