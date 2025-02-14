@@ -465,7 +465,7 @@ public class RoslynSettingsFileSynchronizerTests
 
         var actualSuppressions = actualSettings.Suppressions.ToList();
         actualSuppressions.Should().HaveCount(expectedIssues.Length);
-        actualSuppressions.Should().BeEquivalentTo(expectedIssues.Select(RoslynSettingsFileSynchronizer.IssueConverter.Convert));
+        actualSuppressions.Should().BeEquivalentTo(expectedIssues.Select(IssueConverter.Convert));
         return true;
     }
 
@@ -478,8 +478,5 @@ public class RoslynSettingsFileSynchronizerTests
     private void MockExistingSuppressionsOnSettingsFile(params SonarQubeIssue[] existingIssues) =>
         roslynSettingsFileStorage.Get(Arg.Any<string>()).Returns(existingIssues.Length == 0
             ? RoslynSettings.Empty
-            : new RoslynSettings
-            {
-                SonarProjectKey = connectedBindingConfiguration.Project.ServerProjectKey, Suppressions = existingIssues.Select(RoslynSettingsFileSynchronizer.IssueConverter.Convert)
-            });
+            : new RoslynSettings { SonarProjectKey = connectedBindingConfiguration.Project.ServerProjectKey, Suppressions = existingIssues.Select(IssueConverter.Convert) });
 }
