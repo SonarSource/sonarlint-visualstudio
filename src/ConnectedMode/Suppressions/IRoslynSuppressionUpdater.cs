@@ -39,7 +39,7 @@ internal interface IRoslynSuppressionUpdater
 
     event EventHandler<SuppressionsEventArgs> SuppressedIssuesReloaded;
     event EventHandler<SuppressionsEventArgs> NewIssuesSuppressed;
-    event EventHandler<SuppressionsUpdateEventArgs> NewIssuesResolved;
+    event EventHandler<SuppressionsRemovedEventArgs> SuppressionsRemoved;
 }
 
 public class SuppressionsEventArgs(IReadOnlyList<SonarQubeIssue> suppressedIssues) : EventArgs
@@ -47,7 +47,7 @@ public class SuppressionsEventArgs(IReadOnlyList<SonarQubeIssue> suppressedIssue
     public IReadOnlyList<SonarQubeIssue> SuppressedIssues { get; } = suppressedIssues;
 }
 
-public class SuppressionsUpdateEventArgs(IReadOnlyList<string> suppressedIssueKeys) : EventArgs
+public class SuppressionsRemovedEventArgs(IReadOnlyList<string> issueServerKeys) : EventArgs
 {
-    public IReadOnlyList<string> SuppressedIssueKeys { get; } = suppressedIssueKeys;
+    public IReadOnlyList<string> IssueServerKeys { get; } = issueServerKeys;
 }

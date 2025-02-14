@@ -40,7 +40,7 @@ public class RoslynSuppressionUpdaterTests
     private IThreadHandling threadHandling;
     private readonly EventHandler<SuppressionsEventArgs> suppressedIssuesReloaded = Substitute.For<EventHandler<SuppressionsEventArgs>>();
     private readonly EventHandler<SuppressionsEventArgs> newIssuesSuppressed = Substitute.For<EventHandler<SuppressionsEventArgs>>();
-    private readonly EventHandler<SuppressionsUpdateEventArgs> newIssuesResolved = Substitute.For<EventHandler<SuppressionsUpdateEventArgs>>();
+    private readonly EventHandler<SuppressionsRemovedEventArgs> suppressionsRemoved = Substitute.For<EventHandler<SuppressionsRemovedEventArgs>>();
 
     [TestInitialize]
     public void TestInitialize()
@@ -54,7 +54,7 @@ public class RoslynSuppressionUpdaterTests
         testSubject = CreateTestSubject(actionRunner, threadHandling);
         testSubject.SuppressedIssuesReloaded += suppressedIssuesReloaded;
         testSubject.NewIssuesSuppressed += newIssuesSuppressed;
-        testSubject.NewIssuesResolved += newIssuesResolved;
+        testSubject.SuppressionsRemoved += suppressionsRemoved;
     }
 
     [TestMethod]
@@ -229,7 +229,7 @@ public class RoslynSuppressionUpdaterTests
     {
         await testSubject.UpdateSuppressedIssuesAsync(isResolved: true, [], CancellationToken.None);
 
-        VerifyNewIssuesResolvedNotInvoked();
+        VerifySuppressionsRemovedNotInvoked();
     }
 
     [TestMethod]
@@ -239,7 +239,7 @@ public class RoslynSuppressionUpdaterTests
 
         await testSubject.UpdateSuppressedIssuesAsync(isResolved: true, issueKeys, CancellationToken.None);
 
-        VerifyNewIssuesResolvedInvoked(issueKeys);
+        VerifySuppressionsRemovedInvoked(issueKeys);
     }
 
     [TestMethod]
@@ -370,11 +370,11 @@ public class RoslynSuppressionUpdaterTests
         suppressedIssuesReloaded.Received(1)
             .Invoke(testSubject, Arg.Is<SuppressionsEventArgs>(x => x.SuppressedIssues.SequenceEqual(expectedAllSuppressedIssues)));
 
-    private void VerifyNewIssuesResolvedNotInvoked() => newIssuesResolved.DidNotReceiveWithAnyArgs().Invoke(testSubject, Arg.Any<SuppressionsUpdateEventArgs>());
+    private void VerifySuppressionsRemovedNotInvoked() => suppressionsRemoved.DidNotReceiveWithAnyArgs().Invoke(testSubject, Arg.Any<SuppressionsRemovedEventArgs>());
 
-    private void VerifyNewIssuesResolvedInvoked(IEnumerable<string> expectedSuppressedIssuesKeys) =>
-        newIssuesResolved.Received(1)
-            .Invoke(testSubject, Arg.Is<SuppressionsUpdateEventArgs>(x => x.SuppressedIssueKeys.SequenceEqual(expectedSuppressedIssuesKeys)));
+    private void VerifySuppressionsRemovedInvoked(IEnumerable<string> expectedSuppressedIssuesKeys) =>
+        suppressionsRemoved.Received(1)
+            .Invoke(testSubject, Arg.Is<SuppressionsRemovedEventArgs>(x => x.IssueServerKeys.SequenceEqual(expectedSuppressedIssuesKeys)));
 
     private void VerifyNewIssuesSuppressedInvoked(IEnumerable<SonarQubeIssue> expectedAllSuppressedIssues) =>
         newIssuesSuppressed.Received(1)

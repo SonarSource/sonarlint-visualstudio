@@ -79,7 +79,7 @@ internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDis
         }
         if (isResolved)
         {
-            InvokeNewIssuesResolved(issueKeys);
+            InvokeSuppressionsRemoved(issueKeys);
             return;
         }
 
@@ -92,7 +92,7 @@ internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDis
 
     public event EventHandler<SuppressionsEventArgs> SuppressedIssuesReloaded;
     public event EventHandler<SuppressionsEventArgs> NewIssuesSuppressed;
-    public event EventHandler<SuppressionsUpdateEventArgs> NewIssuesResolved;
+    public event EventHandler<SuppressionsRemovedEventArgs> SuppressionsRemoved;
 
     public void Dispose() => actionRunner.Dispose();
 
@@ -135,7 +135,7 @@ internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDis
 
     private void InvokeSuppressedIssuesReloaded(IList<SonarQubeIssue> allSuppressedIssues) => SuppressedIssuesReloaded?.Invoke(this, new SuppressionsEventArgs(allSuppressedIssues.ToList()));
 
-    private void InvokeNewIssuesResolved(IList<string> suppressedIssueKeys) => NewIssuesResolved?.Invoke(this, new SuppressionsUpdateEventArgs(suppressedIssueKeys.ToList()));
+    private void InvokeSuppressionsRemoved(IList<string> suppressedIssueKeys) => SuppressionsRemoved?.Invoke(this, new SuppressionsRemovedEventArgs(suppressedIssueKeys.ToList()));
 
     private void InvokeNewIssuesSuppressed(IList<SonarQubeIssue> newSuppressedIssues) => NewIssuesSuppressed?.Invoke(this, new SuppressionsEventArgs(newSuppressedIssues.ToList()));
 }
