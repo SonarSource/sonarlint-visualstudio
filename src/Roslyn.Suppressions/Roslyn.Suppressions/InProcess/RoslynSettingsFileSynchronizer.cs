@@ -37,7 +37,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 /// </summary>
 public interface IRoslynSettingsFileSynchronizer : IDisposable
 {
-    Task UpdateFileStorageAsync();
 }
 
 [Export(typeof(IRoslynSettingsFileSynchronizer))]
@@ -47,7 +46,6 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
     private readonly IConfigurationProvider configurationProvider;
     private readonly ILogger logger;
     private readonly IRoslynSettingsFileStorage roslynSettingsFileStorage;
-    private readonly IServerIssuesStore serverIssuesStore;
     private readonly ISolutionInfoProvider solutionInfoProvider;
     private readonly ISolutionBindingRepository solutionBindingRepository;
     private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
@@ -62,8 +60,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         ISolutionBindingRepository solutionBindingRepository,
         IRoslynSuppressionUpdater roslynSuppressionUpdater,
         ILogger logger)
-        : this(serverIssuesStore,
-            roslynSettingsFileStorage,
+        : this(roslynSettingsFileStorage,
             configurationProvider,
             solutionInfoProvider,
             solutionBindingRepository,
@@ -74,7 +71,6 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
     }
 
     internal RoslynSettingsFileSynchronizer(
-        IServerIssuesStore serverIssuesStore,
         IRoslynSettingsFileStorage roslynSettingsFileStorage,
         IConfigurationProvider configurationProvider,
         ISolutionInfoProvider solutionInfoProvider,
@@ -83,7 +79,6 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         ILogger logger,
         IThreadHandling threadHandling)
     {
-        this.serverIssuesStore = serverIssuesStore;
         this.roslynSettingsFileStorage = roslynSettingsFileStorage;
         this.configurationProvider = configurationProvider;
         this.solutionInfoProvider = solutionInfoProvider;
@@ -92,7 +87,6 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         this.logger = logger;
         this.threadHandling = threadHandling;
 
-        serverIssuesStore.ServerIssuesChanged += OnServerIssuesChanged;
         this.roslynSuppressionUpdater.SuppressedIssuesReloaded += OnSuppressedIssuesReloaded;
         this.roslynSuppressionUpdater.NewIssuesSuppressed += OnNewIssuesSuppressed;
         this.roslynSuppressionUpdater.SuppressionsRemoved += OnSuppressionsRemoved;
@@ -101,73 +95,12 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
 
     private void OnBindingDeleted(object sender, LocalBindingKeyEventArgs e) => roslynSettingsFileStorage.Delete(e.LocalBindingKey);
 
-    /// <summary>
-    /// Updates the Roslyn suppressed issues file if in connected mode
-    /// </summary>
-    /// <remarks>The method will switch to a background if required, and will *not*
-    /// return to the UI thread on completion.</remarks>
-    public async Task UpdateFileStorageAsync()
-    {
-        CodeMarkers.Instance.FileSynchronizerUpdateStart();
-        try
-        {
-            await threadHandling.SwitchToBackgroundThread();
-
-            var solutionNameWithoutExtension = await GetSolutionNameWithoutExtensionAsync();
-            if (string.IsNullOrEmpty(solutionNameWithoutExtension))
-            {
-                return;
-            }
-
-            var sonarProjectKey = configurationProvider.GetConfiguration().Project?.ServerProjectKey;
-            if (!string.IsNullOrEmpty(sonarProjectKey))
-            {
-                var allSuppressedIssues = serverIssuesStore.Get();
-                var settings = new RoslynSettings
-                {
-                    SonarProjectKey = sonarProjectKey,
-                    Suppressions = allSuppressedIssues
-                        .Where(x => x.IsResolved)
-                        .Select(x => IssueConverter.Convert(x))
-                        .Where(x => x.RoslynLanguage != RoslynLanguage.Unknown && !string.IsNullOrEmpty(x.RoslynRuleId))
-                        .ToArray()
-                };
-                roslynSettingsFileStorage.Update(settings, solutionNameWithoutExtension);
-            }
-            else
-            {
-                roslynSettingsFileStorage.Delete(solutionNameWithoutExtension);
-            }
-        }
-        finally
-        {
-            CodeMarkers.Instance.FileSynchronizerUpdateStop();
-        }
-    }
-
     public void Dispose()
     {
-        serverIssuesStore.ServerIssuesChanged -= OnServerIssuesChanged;
         solutionBindingRepository.BindingDeleted -= OnBindingDeleted;
         roslynSuppressionUpdater.SuppressedIssuesReloaded -= OnSuppressedIssuesReloaded;
         roslynSuppressionUpdater.NewIssuesSuppressed -= OnNewIssuesSuppressed;
         roslynSuppressionUpdater.SuppressionsRemoved -= OnSuppressionsRemoved;
-    }
-
-    private void OnServerIssuesChanged(object sender, EventArgs e)
-    {
-        // Called on the UI thread, so unhandled exceptions will crash VS.
-        // Note: we don't expect any exceptions to be thrown, since the called method
-        // does all of its work on a background thread.
-        try
-        {
-            UpdateFileStorageAsync().Forget();
-        }
-        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        {
-            // Squash non-critical exceptions
-            logger.LogVerbose(ex.ToString());
-        }
     }
 
     private async Task<string> GetSolutionNameWithoutExtensionAsync()
