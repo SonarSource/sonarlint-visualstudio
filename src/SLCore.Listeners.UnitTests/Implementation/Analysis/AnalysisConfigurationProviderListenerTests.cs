@@ -54,10 +54,10 @@ public class AnalysisConfigurationProviderListenerTests
         result.baseDir.Should().BeNull();
     }
 
-    [DataRow(null, [new string[0]])]
-    [DataRow("", [new string[0]])]
-    [DataRow("configScopeId", [new[]{@"C:\file1"}])]
-    [DataRow("configScopeId123", [new[]{@"C:\file1", @"D:\file"}])]
+    [DataRow(null, new string[0])]
+    [DataRow("", new string[0])]
+    [DataRow("configScopeId", new[]{@"C:\file1"})]
+    [DataRow("configScopeId123", new[]{@"C:\file1", @"D:\file"})]
     [DataTestMethod]
     public void GetInferredAnalysisProperties_AnyValue_ReturnsEmptySet(string configScopeId, string[] files)
     {
