@@ -464,7 +464,7 @@ public class RoslynSettingsFileSynchronizerTests
         actualSettings.Suppressions.Should().NotBeNull();
 
         var actualSuppressions = actualSettings.Suppressions.ToList();
-        actualSuppressions.Count.Should().Be(expectedIssues.Length);
+        actualSuppressions.Should().HaveCount(expectedIssues.Length);
         actualSuppressions.Should().BeEquivalentTo(expectedIssues.Select(RoslynSettingsFileSynchronizer.IssueConverter.Convert));
         return true;
     }
