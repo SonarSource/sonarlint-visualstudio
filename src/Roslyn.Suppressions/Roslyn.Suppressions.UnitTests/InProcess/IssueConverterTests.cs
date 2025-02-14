@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 using static SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.TestHelper;
 
@@ -31,12 +29,13 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
         [TestMethod]
         public void Convert_SimplePropertiesAreHandledCorrectly()
         {
-            var sonarIssue = CreateSonarQubeIssue(hash: "aaaa", filePath: "\\bbb\\ccc\\file.txt");
+            var sonarIssue = CreateSonarQubeIssue(hash: "aaaa", filePath: "\\bbb\\ccc\\file.txt", issueKey: "key");
 
             var actual = RoslynSettingsFileSynchronizer.IssueConverter.Convert(sonarIssue);
 
             actual.Hash.Should().Be("aaaa");
             actual.FilePath.Should().Be("\\bbb\\ccc\\file.txt");
+            actual.IssueServerKey.Should().Be("key");
         }
 
         [TestMethod]
@@ -50,7 +49,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess
 
             var actual = RoslynSettingsFileSynchronizer.IssueConverter.Convert(sonarIssue);
 
-            if(expected.HasValue)
+            if (expected.HasValue)
             {
                 actual.RoslynIssueLine.Value.Should().Be(expected);
             }

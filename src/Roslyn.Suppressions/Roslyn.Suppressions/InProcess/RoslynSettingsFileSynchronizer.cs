@@ -180,7 +180,8 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
                 FilePath = issue.FilePath,
                 Hash = issue.Hash,
                 RoslynLanguage = language,
-                RoslynIssueLine = line
+                RoslynIssueLine = line,
+                IssueServerKey = issue.IssueKey
             };
         }
 

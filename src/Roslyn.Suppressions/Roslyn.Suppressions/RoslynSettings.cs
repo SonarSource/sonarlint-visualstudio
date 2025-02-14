@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -90,5 +88,11 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         /// <remarks>Roslyn issues are 0-based - Sonar issues are 1-based.</remarks>
         [JsonProperty("line")]
         public int? RoslynIssueLine { get; set; }
+
+        /// <summary>
+        /// The key of the issue from the server
+        /// </summary>
+        [JsonProperty("issueServerKey")]
+        public string IssueServerKey { get; set; }
     }
 }
