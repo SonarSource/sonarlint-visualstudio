@@ -21,6 +21,7 @@
 using System.IO;
 using System.Text;
 using NSubstitute.ClearExtensions;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.SLCore.Common.Models;
 using SonarLint.VisualStudio.SLCore.Listener.Analysis;
@@ -50,16 +51,21 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     private readonly IListFilesListener listFilesListener;
     private readonly IAnalysisListener analysisListener;
     private readonly SLCoreTestRunner slCoreTestRunner;
+    private readonly ILogger rpc;
 
-    internal FileAnalysisTestsRunner(string testClassName, Dictionary<string, StandaloneRuleConfigDto> initialRuleConfig = null)
+    internal FileAnalysisTestsRunner(string testClassName, TestContext context, Dictionary<string, StandaloneRuleConfigDto> initialRuleConfig = null)
     {
-        slCoreTestRunner = new SLCoreTestRunner(new TestLogger(), new TestLogger(), testClassName);
+        var baseLogger = new TestLogger(true, testContext: context).ForContext(testClassName, "SLCORE");
+
+        slCoreTestRunner = new SLCoreTestRunner(baseLogger.ForContext("INFRA"), baseLogger.ForContext("STDERR"), testClassName);
 
         analysisListener = Substitute.For<IAnalysisListener>();
 
         listFilesListener = Substitute.For<IListFilesListener>();
 
-        slCoreTestRunner.AddListener(new LoggerListener(new TestLogger()));
+        rpc = baseLogger.ForContext("RPC");
+
+        slCoreTestRunner.AddListener(new LoggerListener(rpc));
         slCoreTestRunner.AddListener(new ProgressListener());
         slCoreTestRunner.AddListener(analysisListener);
         slCoreTestRunner.AddListener(listFilesListener);
@@ -67,6 +73,7 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
         slCoreTestRunner.MockInitialSlCoreRulesSettings(initialRuleConfig ?? []);
 
+        rpc.WriteLine("TEST SLCORE PROCESS START");
         slCoreTestRunner.Start();
 
         activeConfigScopeTracker = new ActiveConfigScopeTracker(slCoreTestRunner.SLCoreServiceProvider,
@@ -98,12 +105,13 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
                 analysisId,
                 analysisReadyCompletionSource,
                 analysisRaisedIssues);
+            rpc.WriteLine("SLCORE CONFIG SCOPE STARTED");
             activeConfigScopeTracker.SetCurrentConfigScope(configScope);
 
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, "analysis readiness", rpc);
 
             await RunSlCoreFileAnalysis(configScope, testingFile.GetFullPath(), analysisId, extraProperties);
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task);
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisRaisedIssues.Task, "analysis completion");
 
             return analysisRaisedIssues.Task.Result.issuesByFileUri;
         }

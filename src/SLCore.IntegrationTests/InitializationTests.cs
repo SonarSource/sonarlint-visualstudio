@@ -33,12 +33,15 @@ public class InitializationTests
     [TestMethod]
     public async Task Sloop_StartedAndStoppedWithoutErrors()
     {
-        var testLogger = new TestLogger();
-        var slCoreErrorLogger = new TestLogger();
-        var slCoreLogger = new TestLogger();
-        using (var slCoreTestRunner = new SLCoreTestRunner(testLogger, slCoreErrorLogger, TestContext.TestName))
+        var testLogger = new TestLogger(logToConsole: true, testContext: TestContext);
+        var slCoreErrorLogger = new TestLogger(logToConsole: true, testContext: TestContext);
+        var slCoreLogger = new TestLogger(logToConsole: true, testContext: TestContext);
+        using (var slCoreTestRunner = new SLCoreTestRunner(
+                   testLogger.ForContext("Sloop_StartedAndStoppedWithoutErrors", "INFRA"),
+                   slCoreErrorLogger.ForContext("Sloop_StartedAndStoppedWithoutErrors", "STDERR"),
+                   TestContext.TestName))
         {
-            slCoreTestRunner.AddListener(new LoggerListener(slCoreLogger));
+            slCoreTestRunner.AddListener(new LoggerListener(slCoreLogger.ForContext("Sloop_StartedAndStoppedWithoutErrors", "RPC")));
             slCoreTestRunner.Start();
             await WaitForSloopLog(slCoreLogger);
         }
@@ -91,16 +94,23 @@ public class InitializationTests
     }
 
     private static async Task WaitForAnalysisReadiness(TaskCompletionSource<DidChangeAnalysisReadinessParams> analysisReadyCompletionSource) =>
-        await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task);
+        await ConcurrencyTestHelper.WaitForTaskWithTimeout(analysisReadyCompletionSource.Task, "analysis readiness");
 
     private static async Task WaitForSloopLog(TestLogger slCoreLogger)
     {
         var tcs = new TaskCompletionSource<bool>();
+
         EventHandler eventHandler = (_, _) => tcs.TrySetResult(true);
         slCoreLogger.LogMessageAdded += eventHandler;
+
+        if (slCoreLogger.OutputStrings.Count > 0)
+        {
+            return;
+        }
+
         try
         {
-            await ConcurrencyTestHelper.WaitForTaskWithTimeout(tcs.Task);
+            await ConcurrencyTestHelper.WaitForTaskWithTimeout(tcs.Task, "sloop log");
         }
         finally
         {
