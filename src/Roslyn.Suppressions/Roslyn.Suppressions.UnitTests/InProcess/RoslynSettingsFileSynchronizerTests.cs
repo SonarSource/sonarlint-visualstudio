@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests.InProcess;
 [TestClass]
 public class RoslynSettingsFileSynchronizerTests
 {
-    private const string DefaultSln = "DefaultSolution.sln";
+    private const string DefaultSln = "DefaultSolution";
     private IConfigurationProvider configProvider;
     private ILogger logger;
     private IRoslynSettingsFileStorage roslynSettingsFileStorage;
@@ -128,14 +128,12 @@ public class RoslynSettingsFileSynchronizerTests
     [TestMethod]
     public void SuppressedIssuesReloaded_StandaloneMode_StorageFileDeleted()
     {
-        var fullSolutionFilePath = "c:\\aaa\\MySolution1.sln";
-        MockSolutionInfoProvider(fullSolutionFilePath);
         MockConfigProvider(BindingConfiguration.Standalone);
 
         RaiseSuppressedIssuesReloaded([]);
 
         configProvider.Received(1).GetConfiguration();
-        roslynSettingsFileStorage.Received(1).Delete(Path.GetFileNameWithoutExtension(fullSolutionFilePath));
+        roslynSettingsFileStorage.Received(1).Delete(DefaultSln);
         roslynSettingsFileStorage.ReceivedCalls().Should().HaveCount(1);
         logger.DidNotReceive().LogVerbose(Resources.Strings.RoslynSettingsFileSynchronizerReloadSuppressions);
     }
@@ -146,12 +144,11 @@ public class RoslynSettingsFileSynchronizerTests
     public void SuppressedIssuesReloaded_ConnectedMode_StorageUpdated(bool hasIssues)
     {
         MockConfigProvider(connectedBindingConfiguration);
-        MockSolutionInfoProvider("c:\\aaa\\MySolution1.sln");
         var issues = hasIssues ? new[] { csharpIssueSuppressed, vbNetIssueSuppressed } : Array.Empty<SonarQubeIssue>();
 
         RaiseSuppressedIssuesReloaded(issues);
 
-        roslynSettingsFileStorage.Received(1).Update(Arg.Any<RoslynSettings>(), "MySolution1");
+        roslynSettingsFileStorage.Received(1).Update(Arg.Any<RoslynSettings>(), DefaultSln);
         logger.Received(1).LogVerbose(Resources.Strings.RoslynSettingsFileSynchronizerReloadSuppressions);
     }
 
@@ -174,7 +171,7 @@ public class RoslynSettingsFileSynchronizerTests
         RaiseSuppressedIssuesReloaded([]);
 
         threadHandling.Received(1).SwitchToBackgroundThread();
-        solutionInfoProvider.Received(1).GetFullSolutionFilePathAsync();
+        solutionInfoProvider.Received(1).GetSolutionNameAsync();
         roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Update(default, default);
         roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Delete(default);
         configProvider.DidNotReceiveWithAnyArgs().GetConfiguration();
@@ -215,15 +212,13 @@ public class RoslynSettingsFileSynchronizerTests
     [TestMethod]
     public void NewIssuesSuppressed_StandaloneMode_StorageFileDeleted()
     {
-        var fullSolutionFilePath = "c:\\aaa\\MySolution1.sln";
-        MockSolutionInfoProvider(fullSolutionFilePath);
         MockConfigProvider(BindingConfiguration.Standalone);
         var newSonarQubeIssues = new[] { csharpIssueSuppressed };
 
         RaiseNewIssuesSuppressed(newSonarQubeIssues);
 
         configProvider.Received(1).GetConfiguration();
-        roslynSettingsFileStorage.Received(1).Delete(Path.GetFileNameWithoutExtension(fullSolutionFilePath));
+        roslynSettingsFileStorage.Received(1).Delete(DefaultSln);
         roslynSettingsFileStorage.ReceivedCalls().Should().HaveCount(1);
         logger.DidNotReceive().LogVerbose(Resources.Strings.RoslynSettingsFileSynchronizerAddNewSuppressions);
     }
@@ -232,11 +227,10 @@ public class RoslynSettingsFileSynchronizerTests
     public void NewIssuesSuppressed_NoIssues_StorageNotUpdated()
     {
         MockConfigProvider(connectedBindingConfiguration);
-        MockSolutionInfoProvider("c:\\aaa\\MySolution1.sln");
 
         RaiseNewIssuesSuppressed([]);
 
-        roslynSettingsFileStorage.DidNotReceive().Update(Arg.Any<RoslynSettings>(), "MySolution1");
+        roslynSettingsFileStorage.DidNotReceive().Update(Arg.Any<RoslynSettings>(), DefaultSln);
         logger.DidNotReceive().LogVerbose(Resources.Strings.RoslynSettingsFileSynchronizerAddNewSuppressions);
     }
 
@@ -260,7 +254,7 @@ public class RoslynSettingsFileSynchronizerTests
         RaiseNewIssuesSuppressed(newSonarQubeIssues);
 
         threadHandling.Received(1).SwitchToBackgroundThread();
-        solutionInfoProvider.Received(1).GetFullSolutionFilePathAsync();
+        solutionInfoProvider.Received(1).GetSolutionNameAsync();
         roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Update(default, default);
         roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Delete(default);
         configProvider.DidNotReceiveWithAnyArgs().GetConfiguration();
@@ -330,15 +324,13 @@ public class RoslynSettingsFileSynchronizerTests
     [TestMethod]
     public void NewIssuesResolved_StandaloneMode_StorageFileDeleted()
     {
-        var fullSolutionFilePath = "c:\\aaa\\MySolution1.sln";
-        MockSolutionInfoProvider(fullSolutionFilePath);
         MockConfigProvider(BindingConfiguration.Standalone);
         var newSonarQubeIssues = new[] { csharpIssueSuppressed.IssueKey };
 
         RaiseSuppressionsRemoved(newSonarQubeIssues);
 
         configProvider.Received(1).GetConfiguration();
-        roslynSettingsFileStorage.Received(1).Delete(Path.GetFileNameWithoutExtension(fullSolutionFilePath));
+        roslynSettingsFileStorage.Received(1).Delete(Path.GetFileNameWithoutExtension(DefaultSln));
         roslynSettingsFileStorage.ReceivedCalls().Should().HaveCount(1);
         logger.DidNotReceive().LogVerbose(Resources.Strings.RoslynSettingsFileSynchronizerRemoveSuppressions);
     }
@@ -347,11 +339,10 @@ public class RoslynSettingsFileSynchronizerTests
     public void NewIssuesResolved_NoIssues_StorageNotUpdated()
     {
         MockConfigProvider(connectedBindingConfiguration);
-        MockSolutionInfoProvider("c:\\aaa\\MySolution1.sln");
 
         RaiseSuppressionsRemoved([]);
 
-        solutionInfoProvider.DidNotReceive().GetFullSolutionFilePathAsync();
+        solutionInfoProvider.DidNotReceive().GetSolutionNameAsync();
         roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Update(default, default);
         roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Delete(default);
         configProvider.DidNotReceiveWithAnyArgs().GetConfiguration();
@@ -377,7 +368,7 @@ public class RoslynSettingsFileSynchronizerTests
         RaiseSuppressionsRemoved(newSonarQubeIssues);
 
         threadHandling.Received(1).SwitchToBackgroundThread();
-        solutionInfoProvider.Received(1).GetFullSolutionFilePathAsync();
+        solutionInfoProvider.Received(1).GetSolutionNameAsync();
         roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Update(default, default);
         roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Delete(default);
         configProvider.DidNotReceiveWithAnyArgs().GetConfiguration();
@@ -452,7 +443,7 @@ public class RoslynSettingsFileSynchronizerTests
         return BindingConfiguration.CreateBoundConfiguration(project, SonarLintMode.Connected, "some directory");
     }
 
-    private void MockSolutionInfoProvider(string fullSolutionNameToReturn) => solutionInfoProvider.GetFullSolutionFilePathAsync().Returns(fullSolutionNameToReturn);
+    private void MockSolutionInfoProvider(string solutionName) => solutionInfoProvider.GetSolutionNameAsync().Returns(solutionName);
 
     private void VerifyExpectedSuppressionsSaved(params SonarQubeIssue[] expectedIssues) =>
         roslynSettingsFileStorage.Received(1).Update(Arg.Is<RoslynSettings>(x => VerifyActualSettingsHasSuppressions(x, expectedIssues)), Arg.Any<string>());

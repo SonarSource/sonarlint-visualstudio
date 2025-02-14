@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using System.IO;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
@@ -101,12 +100,6 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         roslynSuppressionUpdater.SuppressedIssuesReloaded -= OnSuppressedIssuesReloaded;
         roslynSuppressionUpdater.NewIssuesSuppressed -= OnNewIssuesSuppressed;
         roslynSuppressionUpdater.SuppressionsRemoved -= OnSuppressionsRemoved;
-    }
-
-    private async Task<string> GetSolutionNameWithoutExtensionAsync()
-    {
-        var fullSolutionFilePath = await solutionInfoProvider.GetFullSolutionFilePathAsync();
-        return Path.GetFileNameWithoutExtension(fullSolutionFilePath);
     }
 
     private void OnSuppressedIssuesReloaded(object sender, SuppressionsEventArgs e)
@@ -191,7 +184,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         {
             await threadHandling.SwitchToBackgroundThread();
 
-            var solutionNameWithoutExtension = await GetSolutionNameWithoutExtensionAsync();
+            var solutionNameWithoutExtension = await solutionInfoProvider.GetSolutionNameAsync();
             if (string.IsNullOrEmpty(solutionNameWithoutExtension))
             {
                 return;
