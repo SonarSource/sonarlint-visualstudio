@@ -41,6 +41,7 @@ internal class MuteIssuesService(
     IThreadHandling threadHandling)
     : IMuteIssuesService
 {
+    private readonly ILogger logger = logger.ForContext(nameof(MuteIssuesService));
 
     public async Task ResolveIssueWithDialogAsync(string issueServerKey)
     {
