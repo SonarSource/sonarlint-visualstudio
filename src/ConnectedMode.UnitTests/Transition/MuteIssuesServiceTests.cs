@@ -19,11 +19,11 @@
  */
 
 using NSubstitute.ExceptionExtensions;
+using NSubstitute.ReturnsExtensions;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Transition;
-using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Issue;
 using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
@@ -82,6 +82,16 @@ public class MuteIssuesServiceTests
         var act = () => testSubject.ResolveIssueWithDialogAsync(null);
 
         act.Should().Throw<MuteIssueException.ServerIssueNotFoundException>();
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialogAsync_WhenConfigScopeIsNotSet_Throws()
+    {
+        activeConfigScopeTracker.Current.ReturnsNull();
+
+        var act = () => testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
+
+        act.Should().Throw<MuteIssueException.NotInConnectedModeException>();
     }
 
     [TestMethod]
