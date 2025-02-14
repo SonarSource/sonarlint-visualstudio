@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
         {
             MefTestHelpers.CheckTypeCanBeImported<IssueServerEventsListener, IIssueServerEventsListener>(
                 MefTestHelpers.CreateExport<IIssueServerEventSource>(),
-                MefTestHelpers.CreateExport<IRoslynSuppressionUpdater>(),
+                MefTestHelpers.CreateExport<ISuppressionUpdater>(),
                 MefTestHelpers.CreateExport<IStatefulServerBranchProvider>(),
                 MefTestHelpers.CreateExport<IThreadHandling>(),
                 MefTestHelpers.CreateExport<ILogger>());
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
                 new BranchAndIssueKey("issueKey3", "branch1"));
 
             var issueServerEventSource = SetupIssueServerEventSource(event1);
-            var suppressionsUpdater = new Mock<IRoslynSuppressionUpdater>();
+            var suppressionsUpdater = new Mock<ISuppressionUpdater>();
             var branchProvider = CreateBranchProvider("branch1");
 
             var testSubject = CreateTestSubject(issueServerEventSource.Object, suppressionsUpdater.Object, branchProvider.Object);
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
             var event3 = CreateServerEvent(isResolved: false, new BranchAndIssueKey("issueKey3", "branch1"));
 
             var issueServerEventSource = SetupIssueServerEventSource(event1, event2, event3);
-            var suppressionUpdater = new Mock<IRoslynSuppressionUpdater>();
+            var suppressionUpdater = new Mock<ISuppressionUpdater>();
             var branchProvider = CreateBranchProvider("branch1");
 
             var testSubject = CreateTestSubject(issueServerEventSource.Object, suppressionUpdater.Object, branchProvider.Object);
@@ -162,13 +162,13 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.ServerSentEvents.Issue
 
         private static IssueServerEventsListener CreateTestSubject(
             IIssueServerEventSource issueServerEventSource = null,
-            IRoslynSuppressionUpdater suppressionUpdater = null,
+            ISuppressionUpdater suppressionUpdater = null,
             IStatefulServerBranchProvider branchProvider = null,
             IThreadHandling threadHandling = null,
             ILogger logger = null)
         {
             issueServerEventSource ??= Mock.Of<IIssueServerEventSource>();
-            suppressionUpdater ??= Mock.Of<IRoslynSuppressionUpdater>();
+            suppressionUpdater ??= Mock.Of<ISuppressionUpdater>();
             branchProvider ??= Mock.Of<IStatefulServerBranchProvider>();
             threadHandling ??= new NoOpThreadHandler();
             logger ??= Mock.Of<ILogger>();

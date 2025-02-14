@@ -42,7 +42,7 @@ public class RoslynSettingsFileSynchronizerTests
     private IThreadHandling threadHandling;
     private readonly BindingConfiguration connectedBindingConfiguration = CreateConnectedConfiguration("some project key");
     private ISolutionBindingRepository solutionBindingRepository;
-    private IRoslynSuppressionUpdater roslynSuppressionUpdater;
+    private ISuppressionUpdater suppressionUpdater;
 
     private readonly SonarQubeIssue csharpIssueSuppressed = CreateSonarQubeIssue("csharpsquid:S111");
     private readonly SonarQubeIssue vbNetIssueSuppressed = CreateSonarQubeIssue("vbnet:S222");
@@ -60,7 +60,7 @@ public class RoslynSettingsFileSynchronizerTests
         configProvider = Substitute.For<IConfigurationProvider>();
         solutionInfoProvider = Substitute.For<ISolutionInfoProvider>();
         solutionBindingRepository = Substitute.For<ISolutionBindingRepository>();
-        roslynSuppressionUpdater = Substitute.For<IRoslynSuppressionUpdater>();
+        suppressionUpdater = Substitute.For<ISuppressionUpdater>();
         threadHandling = Substitute.For<IThreadHandling>();
         logger = Substitute.For<ILogger>();
         logger.ForContext(Arg.Any<string[]>()).Returns(logger);
@@ -70,7 +70,7 @@ public class RoslynSettingsFileSynchronizerTests
             configProvider,
             solutionInfoProvider,
             solutionBindingRepository,
-            roslynSuppressionUpdater,
+            suppressionUpdater,
             logger,
             threadHandling);
         threadHandling.SwitchToBackgroundThread().Returns(new NoOpThreadHandler.NoOpAwaitable());
@@ -85,7 +85,7 @@ public class RoslynSettingsFileSynchronizerTests
             MefTestHelpers.CreateExport<IConfigurationProvider>(),
             MefTestHelpers.CreateExport<ISolutionInfoProvider>(),
             MefTestHelpers.CreateExport<ISolutionBindingRepository>(),
-            MefTestHelpers.CreateExport<IRoslynSuppressionUpdater>(),
+            MefTestHelpers.CreateExport<ISuppressionUpdater>(),
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
@@ -99,10 +99,10 @@ public class RoslynSettingsFileSynchronizerTests
     {
         solutionBindingRepository.Received(1).BindingDeleted += Arg.Any<EventHandler<LocalBindingKeyEventArgs>>();
 
-        roslynSuppressionUpdater.Received(1).SuppressedIssuesReloaded += Arg.Any<EventHandler<SuppressionsEventArgs>>();
-        roslynSuppressionUpdater.Received(1).NewIssuesSuppressed += Arg.Any<EventHandler<SuppressionsEventArgs>>();
-        roslynSuppressionUpdater.Received(1).SuppressionsRemoved += Arg.Any<EventHandler<SuppressionsRemovedEventArgs>>();
-        roslynSuppressionUpdater.ReceivedCalls().Should().HaveCount(3);
+        suppressionUpdater.Received(1).SuppressedIssuesReloaded += Arg.Any<EventHandler<SuppressionsEventArgs>>();
+        suppressionUpdater.Received(1).NewIssuesSuppressed += Arg.Any<EventHandler<SuppressionsEventArgs>>();
+        suppressionUpdater.Received(1).SuppressionsRemoved += Arg.Any<EventHandler<SuppressionsRemovedEventArgs>>();
+        suppressionUpdater.ReceivedCalls().Should().HaveCount(3);
     }
 
     [TestMethod]
@@ -111,9 +111,9 @@ public class RoslynSettingsFileSynchronizerTests
         testSubject.Dispose();
 
         solutionBindingRepository.Received(1).BindingDeleted -= Arg.Any<EventHandler<LocalBindingKeyEventArgs>>();
-        roslynSuppressionUpdater.Received(1).SuppressedIssuesReloaded -= Arg.Any<EventHandler<SuppressionsEventArgs>>();
-        roslynSuppressionUpdater.Received(1).NewIssuesSuppressed -= Arg.Any<EventHandler<SuppressionsEventArgs>>();
-        roslynSuppressionUpdater.Received(1).SuppressionsRemoved -= Arg.Any<EventHandler<SuppressionsRemovedEventArgs>>();
+        suppressionUpdater.Received(1).SuppressedIssuesReloaded -= Arg.Any<EventHandler<SuppressionsEventArgs>>();
+        suppressionUpdater.Received(1).NewIssuesSuppressed -= Arg.Any<EventHandler<SuppressionsEventArgs>>();
+        suppressionUpdater.Received(1).SuppressionsRemoved -= Arg.Any<EventHandler<SuppressionsRemovedEventArgs>>();
     }
 
     [TestMethod]
@@ -460,11 +460,11 @@ public class RoslynSettingsFileSynchronizerTests
         return true;
     }
 
-    private void RaiseSuppressedIssuesReloaded(SonarQubeIssue[] issues) => roslynSuppressionUpdater.SuppressedIssuesReloaded += Raise.EventWith(null, new SuppressionsEventArgs(issues));
+    private void RaiseSuppressedIssuesReloaded(SonarQubeIssue[] issues) => suppressionUpdater.SuppressedIssuesReloaded += Raise.EventWith(null, new SuppressionsEventArgs(issues));
 
-    private void RaiseNewIssuesSuppressed(SonarQubeIssue[] issues) => roslynSuppressionUpdater.NewIssuesSuppressed += Raise.EventWith(null, new SuppressionsEventArgs(issues));
+    private void RaiseNewIssuesSuppressed(SonarQubeIssue[] issues) => suppressionUpdater.NewIssuesSuppressed += Raise.EventWith(null, new SuppressionsEventArgs(issues));
 
-    private void RaiseSuppressionsRemoved(string[] issueKeys) => roslynSuppressionUpdater.SuppressionsRemoved += Raise.EventWith(null, new SuppressionsRemovedEventArgs(issueKeys));
+    private void RaiseSuppressionsRemoved(string[] issueKeys) => suppressionUpdater.SuppressionsRemoved += Raise.EventWith(null, new SuppressionsRemovedEventArgs(issueKeys));
 
     private void MockExistingSuppressionsOnSettingsFile(params SonarQubeIssue[] existingIssues) =>
         roslynSettingsFileStorage.Get(Arg.Any<string>()).Returns(existingIssues.Length == 0

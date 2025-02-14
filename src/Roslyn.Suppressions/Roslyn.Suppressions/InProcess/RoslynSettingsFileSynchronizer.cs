@@ -47,7 +47,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
     private readonly IRoslynSettingsFileStorage roslynSettingsFileStorage;
     private readonly ISolutionInfoProvider solutionInfoProvider;
     private readonly ISolutionBindingRepository solutionBindingRepository;
-    private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
+    private readonly ISuppressionUpdater suppressionUpdater;
     private readonly IThreadHandling threadHandling;
 
     [ImportingConstructor]
@@ -57,13 +57,13 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         IConfigurationProvider configurationProvider,
         ISolutionInfoProvider solutionInfoProvider,
         ISolutionBindingRepository solutionBindingRepository,
-        IRoslynSuppressionUpdater roslynSuppressionUpdater,
+        ISuppressionUpdater suppressionUpdater,
         ILogger logger)
         : this(roslynSettingsFileStorage,
             configurationProvider,
             solutionInfoProvider,
             solutionBindingRepository,
-            roslynSuppressionUpdater,
+            suppressionUpdater,
             logger,
             ThreadHandling.Instance)
     {
@@ -74,7 +74,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         IConfigurationProvider configurationProvider,
         ISolutionInfoProvider solutionInfoProvider,
         ISolutionBindingRepository solutionBindingRepository,
-        IRoslynSuppressionUpdater roslynSuppressionUpdater,
+        ISuppressionUpdater suppressionUpdater,
         ILogger logger,
         IThreadHandling threadHandling)
     {
@@ -82,13 +82,13 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         this.configurationProvider = configurationProvider;
         this.solutionInfoProvider = solutionInfoProvider;
         this.solutionBindingRepository = solutionBindingRepository;
-        this.roslynSuppressionUpdater = roslynSuppressionUpdater;
+        this.suppressionUpdater = suppressionUpdater;
         this.logger = logger.ForContext(nameof(RoslynSettingsFileSynchronizer));
         this.threadHandling = threadHandling;
 
-        this.roslynSuppressionUpdater.SuppressedIssuesReloaded += OnSuppressedIssuesReloaded;
-        this.roslynSuppressionUpdater.NewIssuesSuppressed += OnNewIssuesSuppressed;
-        this.roslynSuppressionUpdater.SuppressionsRemoved += OnSuppressionsRemoved;
+        this.suppressionUpdater.SuppressedIssuesReloaded += OnSuppressedIssuesReloaded;
+        this.suppressionUpdater.NewIssuesSuppressed += OnNewIssuesSuppressed;
+        this.suppressionUpdater.SuppressionsRemoved += OnSuppressionsRemoved;
         solutionBindingRepository.BindingDeleted += OnBindingDeleted;
     }
 
@@ -97,9 +97,9 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
     public void Dispose()
     {
         solutionBindingRepository.BindingDeleted -= OnBindingDeleted;
-        roslynSuppressionUpdater.SuppressedIssuesReloaded -= OnSuppressedIssuesReloaded;
-        roslynSuppressionUpdater.NewIssuesSuppressed -= OnNewIssuesSuppressed;
-        roslynSuppressionUpdater.SuppressionsRemoved -= OnSuppressionsRemoved;
+        suppressionUpdater.SuppressedIssuesReloaded -= OnSuppressedIssuesReloaded;
+        suppressionUpdater.NewIssuesSuppressed -= OnNewIssuesSuppressed;
+        suppressionUpdater.SuppressionsRemoved -= OnSuppressionsRemoved;
     }
 
     private void OnSuppressedIssuesReloaded(object sender, SuppressionsEventArgs e)

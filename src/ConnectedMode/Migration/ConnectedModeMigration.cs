@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
         private readonly IVsAwareFileSystem fileSystem;
         private readonly ISonarQubeService sonarQubeService;
         private readonly IUnintrusiveBindingController unintrusiveBindingController;
-        private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
+        private readonly ISuppressionUpdater suppressionUpdater;
         private readonly ISharedBindingConfigProvider sharedBindingConfigProvider;
         private readonly ILogger logger;
         private readonly IThreadHandling threadHandling;
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             IVsAwareFileSystem fileSystem,
             ISonarQubeService sonarQubeService,
             IUnintrusiveBindingController unintrusiveBindingController,
-            IRoslynSuppressionUpdater roslynSuppressionUpdater,
+            ISuppressionUpdater suppressionUpdater,
             ISharedBindingConfigProvider sharedBindingConfigProvider,
             ILogger logger,
             IThreadHandling threadHandling,
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             this.fileSystem = fileSystem;
             this.sonarQubeService = sonarQubeService;
             this.unintrusiveBindingController = unintrusiveBindingController;
-            this.roslynSuppressionUpdater = roslynSuppressionUpdater;
+            this.suppressionUpdater = suppressionUpdater;
             this.sharedBindingConfigProvider = sharedBindingConfigProvider;
 
             this.logger = logger;
@@ -160,7 +160,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Migration
             await MakeLegacyFileChangesAsync(legacySettings, changedFiles, progress, token);
 
             // Trigger a re-fetch of suppressions so the Roslyn settings are updated.
-            await roslynSuppressionUpdater.UpdateAllServerSuppressionsAsync();
+            await suppressionUpdater.UpdateAllServerSuppressionsAsync();
 
             if (shareBinding)
             {
