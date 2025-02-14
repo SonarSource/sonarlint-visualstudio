@@ -18,16 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
+
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
 
 public static class ConcurrencyTestHelper
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
 
-    public static Task WaitForTaskWithTimeout(Task task, string taskName, TimeSpan? timeout = null) =>
-        WaitForTaskWithTimeout(_ => task, taskName, timeout);
+    public static Task WaitForTaskWithTimeout(
+        Task task,
+        string taskName,
+        ILogger logger = null,
+        TimeSpan? timeout = null) =>
+        WaitForTaskWithTimeout(_ => task, taskName, logger, timeout);
 
-    public static async Task WaitForTaskWithTimeout(Func<CancellationToken, Task> func, string taskName, TimeSpan? timeout = null)
+    public static async Task WaitForTaskWithTimeout(
+        Func<CancellationToken, Task> func,
+        string taskName,
+        ILogger logger,
+        TimeSpan? timeout = null)
     {
         var cts = new CancellationTokenSource();
         var task = func(cts.Token);
@@ -36,7 +46,9 @@ public static class ConcurrencyTestHelper
         {
             cts.Cancel();
             const string someTask = "some task";
-            Assert.Fail($"timeout reached for {taskName ?? someTask} at {DateTime.Now.TimeOfDay:G}");
+            var name = taskName ?? someTask;
+            logger.WriteLine($"timeout reached for {name}");
+            Assert.Fail($"timeout reached for {name} at {DateTime.Now.TimeOfDay:G}");
         }
     }
 }
