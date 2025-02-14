@@ -47,10 +47,10 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             string filePath = "filePath",
             string hash = "hash",
             bool isSuppressed = true,
-            string issueKey = "key")
+            string issueKey = null)
         {
             var sonarQubeIssue = new SonarQubeIssue(
-                issueKey,
+                issueKey ?? Guid.NewGuid().ToString(),
                 filePath,
                 hash,
                 "message",
