@@ -50,6 +50,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
     private readonly IServerIssuesStore serverIssuesStore;
     private readonly ISolutionInfoProvider solutionInfoProvider;
     private readonly ISolutionBindingRepository solutionBindingRepository;
+    private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
     private readonly IThreadHandling threadHandling;
 
     [ImportingConstructor]
@@ -59,12 +60,14 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         IConfigurationProvider configurationProvider,
         ISolutionInfoProvider solutionInfoProvider,
         ISolutionBindingRepository solutionBindingRepository,
+        IRoslynSuppressionUpdater roslynSuppressionUpdater,
         ILogger logger)
         : this(serverIssuesStore,
             roslynSettingsFileStorage,
             configurationProvider,
             solutionInfoProvider,
             solutionBindingRepository,
+            roslynSuppressionUpdater,
             logger,
             ThreadHandling.Instance)
     {
@@ -76,6 +79,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         IConfigurationProvider configurationProvider,
         ISolutionInfoProvider solutionInfoProvider,
         ISolutionBindingRepository solutionBindingRepository,
+        IRoslynSuppressionUpdater roslynSuppressionUpdater,
         ILogger logger,
         IThreadHandling threadHandling)
     {
@@ -84,10 +88,12 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         this.configurationProvider = configurationProvider;
         this.solutionInfoProvider = solutionInfoProvider;
         this.solutionBindingRepository = solutionBindingRepository;
+        this.roslynSuppressionUpdater = roslynSuppressionUpdater;
         this.logger = logger;
         this.threadHandling = threadHandling;
 
         serverIssuesStore.ServerIssuesChanged += OnServerIssuesChanged;
+        this.roslynSuppressionUpdater.SuppressedIssuesReloaded += OnSuppressedIssuesReloaded;
         solutionBindingRepository.BindingDeleted += OnBindingDeleted;
     }
 
@@ -141,6 +147,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
     {
         serverIssuesStore.ServerIssuesChanged -= OnServerIssuesChanged;
         solutionBindingRepository.BindingDeleted -= OnBindingDeleted;
+        roslynSuppressionUpdater.SuppressedIssuesReloaded -= OnSuppressedIssuesReloaded;
     }
 
     private void OnServerIssuesChanged(object sender, EventArgs e)
@@ -163,6 +170,52 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
     {
         var fullSolutionFilePath = await solutionInfoProvider.GetFullSolutionFilePathAsync();
         return Path.GetFileNameWithoutExtension(fullSolutionFilePath);
+    }
+
+    private void OnSuppressedIssuesReloaded(object sender, SuppressionsEventArgs e) => UpdateFileStorageAsync(e.SuppressedIssues).Forget();
+
+    /// <summary>
+    /// Updates the Roslyn suppressed issues file if in connected mode
+    /// </summary>
+    /// <remarks>The method will switch to a background if required, and will *not* return to the UI thread on completion.</remarks>
+    private async Task UpdateFileStorageAsync(IEnumerable<SonarQubeIssue> suppressedIssues)
+    {
+        CodeMarkers.Instance.FileSynchronizerUpdateStart();
+        try
+        {
+            await threadHandling.SwitchToBackgroundThread();
+
+            var solutionNameWithoutExtension = await GetSolutionNameWithoutExtensionAsync();
+            if (string.IsNullOrEmpty(solutionNameWithoutExtension))
+            {
+                return;
+            }
+
+            var sonarProjectKey = configurationProvider.GetConfiguration().Project?.ServerProjectKey;
+            if (string.IsNullOrEmpty(sonarProjectKey))
+            {
+                roslynSettingsFileStorage.Delete(solutionNameWithoutExtension);
+                return;
+            }
+
+            var newSettings = CreateRoslynSettings(suppressedIssues, sonarProjectKey);
+            roslynSettingsFileStorage.Update(newSettings, solutionNameWithoutExtension);
+        }
+        finally
+        {
+            CodeMarkers.Instance.FileSynchronizerUpdateStop();
+        }
+    }
+
+    private RoslynSettings CreateRoslynSettings(IEnumerable<SonarQubeIssue> suppressedIssues, string sonarProjectKey)
+    {
+        var suppressionsToAdd = suppressedIssues
+            .Where(x => x.IsResolved)
+            .Select(IssueConverter.Convert)
+            .Where(x => x.RoslynLanguage != RoslynLanguage.Unknown && !string.IsNullOrEmpty(x.RoslynRuleId))
+            .ToArray();
+        var newSettings = new RoslynSettings { SonarProjectKey = sonarProjectKey, Suppressions = suppressionsToAdd };
+        return newSettings;
     }
 
     // Converts SonarQube issues to SuppressedIssues that can be compared more easily with Roslyn issues

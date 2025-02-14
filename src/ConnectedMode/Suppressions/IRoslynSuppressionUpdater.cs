@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions;
 /// <summary>
 /// Fetches suppressed issues from the server and updates the store
 /// </summary>
-internal interface IRoslynSuppressionUpdater
+public interface IRoslynSuppressionUpdater
 {
     /// <summary>
     /// Fetches all available suppressions from the server and updates the server issues store
