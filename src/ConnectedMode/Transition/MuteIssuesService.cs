@@ -137,7 +137,7 @@ internal class MuteIssuesService(
                 false // Muting taints are not supported yet
             ));
 
-            if (windowResponse.Comment is { Length: > 0 })
+            if (windowResponse.Comment?.Trim() is { Length: > 0 })
             {
                 await issueSlCoreService.AddCommentAsync(new AddIssueCommentParams(configurationScopeId, issueServerKey, windowResponse.Comment));
             }

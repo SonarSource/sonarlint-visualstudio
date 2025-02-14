@@ -200,8 +200,19 @@ public class MuteIssuesServiceTests
 
         _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
-        issueSlCoreService.Received().ChangeStatusAsync(Arg.Is<ChangeIssueStatusParams>(x => x.issueKey == AnIssueServerKey));
-        issueSlCoreService.DidNotReceiveWithAnyArgs().AddCommentAsync(Arg.Any<AddIssueCommentParams>());
+        AssertMuteIssueWithoutComment();
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialogAsync_WhenWindowResponseHasEmptyComment_ShouldMuteWithoutComment()
+    {
+        MuteIssuePermitted();
+        const string commentWithJustSpacesAndNewLine = " \n ";
+        muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept, Comment = commentWithJustSpacesAndNewLine});
+
+        _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
+
+        AssertMuteIssueWithoutComment();
     }
 
     [TestMethod]
@@ -227,4 +238,10 @@ public class MuteIssuesServiceTests
     }
 
     private void CancelResolutionStatusWindow() => muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = false });
+
+    private void AssertMuteIssueWithoutComment()
+    {
+        issueSlCoreService.Received().ChangeStatusAsync(Arg.Is<ChangeIssueStatusParams>(x => x.issueKey == AnIssueServerKey));
+        issueSlCoreService.DidNotReceiveWithAnyArgs().AddCommentAsync(Arg.Any<AddIssueCommentParams>());
+    }
 }
