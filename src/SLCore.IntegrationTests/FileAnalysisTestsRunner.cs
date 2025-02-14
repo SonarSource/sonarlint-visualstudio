@@ -51,9 +51,9 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
     private readonly IAnalysisListener analysisListener;
     private readonly SLCoreTestRunner slCoreTestRunner;
 
-    internal FileAnalysisTestsRunner(string testClassName, Dictionary<string, StandaloneRuleConfigDto> initialRuleConfig = null)
+    internal FileAnalysisTestsRunner(string testClassName, TestContext context, Dictionary<string, StandaloneRuleConfigDto> initialRuleConfig = null)
     {
-        var baseLogger = new TestLogger(true).ForContext(testClassName, "SLCORE");
+        var baseLogger = new TestLogger(true, testContext: context).ForContext(testClassName, "SLCORE");
 
         slCoreTestRunner = new SLCoreTestRunner(baseLogger.ForContext("INFRA"), baseLogger.ForContext("STDERR"), testClassName);
 
@@ -61,7 +61,10 @@ internal sealed class FileAnalysisTestsRunner : IDisposable
 
         listFilesListener = Substitute.For<IListFilesListener>();
 
-        slCoreTestRunner.AddListener(new LoggerListener(baseLogger.ForContext("RPC")));
+        var rpc = baseLogger.ForContext("RPC");
+        rpc.WriteLine("TEST");
+
+        slCoreTestRunner.AddListener(new LoggerListener(rpc));
         slCoreTestRunner.AddListener(new ProgressListener());
         slCoreTestRunner.AddListener(analysisListener);
         slCoreTestRunner.AddListener(listFilesListener);

@@ -32,7 +32,7 @@ public class SimpleAnalysisTests
 
     [ClassInitialize]
     public static void ClassInitialize(TestContext context) =>
-        sharedFileAnalysisTestsRunner = new FileAnalysisTestsRunner(nameof(SimpleAnalysisTests));
+        sharedFileAnalysisTestsRunner = new FileAnalysisTestsRunner(nameof(SimpleAnalysisTests), context);
 
     [ClassCleanup]
     public static void ClassCleanup() =>

@@ -33,9 +33,9 @@ public class InitializationTests
     [TestMethod]
     public async Task Sloop_StartedAndStoppedWithoutErrors()
     {
-        var testLogger = new TestLogger(logToConsole: true);
-        var slCoreErrorLogger = new TestLogger(logToConsole: true);
-        var slCoreLogger = new TestLogger(logToConsole: true);
+        var testLogger = new TestLogger(logToConsole: true, testContext: TestContext);
+        var slCoreErrorLogger = new TestLogger(logToConsole: true, testContext: TestContext);
+        var slCoreLogger = new TestLogger(logToConsole: true, testContext: TestContext);
         using (var slCoreTestRunner = new SLCoreTestRunner(
                    testLogger.ForContext("Sloop_StartedAndStoppedWithoutErrors", "INFRA"),
                    slCoreErrorLogger.ForContext("Sloop_StartedAndStoppedWithoutErrors", "STDERR"),
