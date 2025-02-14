@@ -385,7 +385,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [MuteIssue] An error occurred while muting issue [issueKey: {0}]: {1}.
+        ///   Looks up a localized string similar to An error occurred while muting issue [issueKey: {0}]: {1}.
         /// </summary>
         internal static string MuteIssue_AnErrorOccurred {
             get {
@@ -408,42 +408,6 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string MuteIssue_NotInConnectedMode {
             get {
                 return ResourceManager.GetString("MuteIssue_NotInConnectedMode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error.
-        /// </summary>
-        internal static string MuteIssuesService_Error_Caption {
-            get {
-                return ResourceManager.GetString("MuteIssuesService_Error_Caption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Issue is resolved but an error occured while adding the comment, please refer to the logs for more information..
-        /// </summary>
-        internal static string MuteIssuesService_Error_CommentAdditionFailed {
-            get {
-                return ResourceManager.GetString("MuteIssuesService_Error_CommentAdditionFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to resolve the issue, please refer to the logs for more information..
-        /// </summary>
-        internal static string MuteIssuesService_Error_FailedToTransition {
-            get {
-                return ResourceManager.GetString("MuteIssuesService_Error_FailedToTransition", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Credentials you have provided do not have enough permission to resolve issues. It requires the permission &apos;Administer Issues&apos;..
-        /// </summary>
-        internal static string MuteIssuesService_Error_InsufficientPermissions {
-            get {
-                return ResourceManager.GetString("MuteIssuesService_Error_InsufficientPermissions", resourceCulture);
             }
         }
         

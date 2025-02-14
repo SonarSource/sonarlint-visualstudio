@@ -206,47 +206,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Mute Issue Failure.
+        /// </summary>
+        internal static string MuteIssue_FailureCaption {
+            get {
+                return ResourceManager.GetString("MuteIssue_FailureCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Issue {0} resolved.
         /// </summary>
         internal static string MuteIssue_HaveMuted {
             get {
                 return ResourceManager.GetString("MuteIssue_HaveMuted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Outdated Analysis Report.
-        /// </summary>
-        internal static string MuteIssue_IssueAlreadyMutedCaption {
-            get {
-                return ResourceManager.GetString("MuteIssue_IssueAlreadyMutedCaption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This issue is already resolved on the server. It will be removed from the Error List after the next SonarQube for Visual Studio analysis..
-        /// </summary>
-        internal static string MuteIssue_IssueAlreadyMutedText {
-            get {
-                return ResourceManager.GetString("MuteIssue_IssueAlreadyMutedText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failure.
-        /// </summary>
-        internal static string MuteIssue_IssueNotFoundCaption {
-            get {
-                return ResourceManager.GetString("MuteIssue_IssueNotFoundCaption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not find a matching issue on the server..
-        /// </summary>
-        internal static string MuteIssue_IssueNotFoundText {
-            get {
-                return ResourceManager.GetString("MuteIssue_IssueNotFoundText", resourceCulture);
             }
         }
         

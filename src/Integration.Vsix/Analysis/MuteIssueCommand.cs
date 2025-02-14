@@ -191,7 +191,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
             catch (MuteIssueException ex) when (ex is not MuteIssueException.CancelledException)
             {
-                messageBox.Show(ex.Message, AnalysisStrings.MuteIssue_IssueNotFoundCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                messageBox.Show(ex.Message, AnalysisStrings.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 return false;
             }
         }
