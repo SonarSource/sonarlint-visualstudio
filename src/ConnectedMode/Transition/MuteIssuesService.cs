@@ -20,7 +20,6 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Transition;
 using SonarLint.VisualStudio.SLCore;
