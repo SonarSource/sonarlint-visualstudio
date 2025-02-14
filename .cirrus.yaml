@@ -115,6 +115,10 @@ build_task:
   sonarcloud_analysis_script: |
     dotnet sonarscanner end -d:sonar.token="${SONAR_TOKEN}"
   on_failure:
+    copy_u2test_results: |
+      cp TestResults\*.trx u2tests/
+    u2tests_artifacts:
+      path "u2tests/*"
     asmref_artifacts:
       path: "src/Integration.Vsix/**/AsmRef_*.txt"
 
