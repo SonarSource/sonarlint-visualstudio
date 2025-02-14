@@ -102,36 +102,50 @@ internal sealed class SuppressionUpdater : ISuppressionUpdater, IDisposable
             IList<SonarQubeIssue> suppressedIssues = null;
             await actionRunner.RunAsync(async token =>
             {
-                try
-                {
-                    var allServerIssuesFetched = issueKeys == null;
-                    logger.WriteLine(Resources.Suppressions_Fetch_Issues, allServerIssuesFetched);
-
-                    var (projectKey, serverBranch) = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(token);
-                    if (projectKey == null || serverBranch == null)
-                    {
-                        return;
-                    }
-                    token.ThrowIfCancellationRequested();
-                    cancellationToken?.ThrowIfCancellationRequested();
-
-                    suppressedIssues = await server.GetSuppressedIssuesAsync(projectKey, serverBranch, issueKeys, token);
-
-                    logger.WriteLine(Resources.Suppression_Fetch_Issues_Finished, allServerIssuesFetched);
-                }
-                catch (OperationCanceledException)
-                {
-                    logger.WriteLine(Resources.Suppressions_FetchOperationCancelled);
-                }
-                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-                {
-                    logger.LogVerbose(Resources.Suppression_FetchError_Verbose, ex);
-                    logger.WriteLine(Resources.Suppressions_FetchError_Short, ex.Message);
-                }
+                suppressedIssues = await FetchSuppressedSonarQubeIssuesAsync(issueKeys, cancellationToken, token);
             });
 
             return suppressedIssues;
         });
+
+    private async Task<IList<SonarQubeIssue>> FetchSuppressedSonarQubeIssuesAsync(
+        string[] issueKeys,
+        CancellationToken? cancellationToken,
+        CancellationToken token)
+    {
+        IList<SonarQubeIssue> suppressedIssues = null;
+        try
+        {
+            var allServerIssuesFetched = issueKeys == null;
+            logger.WriteLine(Resources.Suppressions_Fetch_Issues, allServerIssuesFetched);
+
+            var (projectKey, serverBranch) = await serverQueryInfoProvider.GetProjectKeyAndBranchAsync(token);
+            if (projectKey == null || serverBranch == null)
+            {
+                return null;
+            }
+
+            ThrowIfCancelled(cancellationToken, token);
+            suppressedIssues = await server.GetSuppressedIssuesAsync(projectKey, serverBranch, issueKeys, token);
+            logger.WriteLine(Resources.Suppression_Fetch_Issues_Finished, allServerIssuesFetched);
+        }
+        catch (OperationCanceledException)
+        {
+            logger.WriteLine(Resources.Suppressions_FetchOperationCancelled);
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.LogVerbose(Resources.Suppression_FetchError_Verbose, ex);
+            logger.WriteLine(Resources.Suppressions_FetchError_Short, ex.Message);
+        }
+        return suppressedIssues;
+    }
+
+    private static void ThrowIfCancelled(CancellationToken? cancellationToken, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        cancellationToken?.ThrowIfCancellationRequested();
+    }
 
     private void InvokeSuppressedIssuesReloaded(IList<SonarQubeIssue> allSuppressedIssues) => SuppressedIssuesReloaded?.Invoke(this, new SuppressionsEventArgs(allSuppressedIssues.ToList()));
 
