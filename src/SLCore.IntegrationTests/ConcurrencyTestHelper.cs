@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using EnvDTE;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.SLCore.IntegrationTests;
@@ -44,10 +45,11 @@ public static class ConcurrencyTestHelper
         var whenAny = await Task.WhenAny(task, Task.Delay(timeout ?? DefaultTimeout, cts.Token));
         if (whenAny != task)
         {
-            cts.Cancel();
             const string someTask = "some task";
             var name = taskName ?? someTask;
             logger.WriteLine($"timeout reached for {name}");
+            await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(30), cts.Token));
+            cts.Cancel();
             Assert.Fail($"timeout reached for {name} at {DateTime.Now.TimeOfDay:G}");
         }
     }
