@@ -49,6 +49,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
     private readonly ISolutionBindingRepository solutionBindingRepository;
     private readonly ISuppressionUpdater suppressionUpdater;
     private readonly IThreadHandling threadHandling;
+    private readonly object lockObject = new();
 
     [ImportingConstructor]
     public RoslynSettingsFileSynchronizer(
@@ -193,18 +194,23 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
             var sonarProjectKey = configurationProvider.GetConfiguration().Project?.ServerProjectKey;
             if (string.IsNullOrEmpty(sonarProjectKey))
             {
-                roslynSettingsFileStorage.Delete(solutionNameWithoutExtension);
+                lock (lockObject)
+                {
+                    roslynSettingsFileStorage.Delete(solutionNameWithoutExtension);
+                }
                 return;
             }
 
-            var suppressionsToAdd = getSuppressedIssuesOrNull(solutionNameWithoutExtension);
-            if (suppressionsToAdd == null)
+            lock (lockObject)
             {
-                return;
+                var suppressionsToAdd = getSuppressedIssuesOrNull(solutionNameWithoutExtension);
+                if (suppressionsToAdd == null)
+                {
+                    return;
+                }
+                var roslynSettings = new RoslynSettings { SonarProjectKey = sonarProjectKey, Suppressions = suppressionsToAdd };
+                roslynSettingsFileStorage.Update(roslynSettings, solutionNameWithoutExtension);
             }
-
-            var roslynSettings = new RoslynSettings { SonarProjectKey = sonarProjectKey, Suppressions = suppressionsToAdd };
-            roslynSettingsFileStorage.Update(roslynSettings, solutionNameWithoutExtension);
         }
         finally
         {
