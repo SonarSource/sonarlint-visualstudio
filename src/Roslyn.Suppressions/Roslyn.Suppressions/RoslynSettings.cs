@@ -94,5 +94,19 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions
         /// </summary>
         [JsonProperty("issueServerKey")]
         public string IssueServerKey { get; set; }
+
+        public bool AreSame(SuppressedIssue other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+            return FilePath == other.FilePath &&
+                   Hash == other.Hash &&
+                   RoslynLanguage == other.RoslynLanguage &&
+                   RoslynRuleId == other.RoslynRuleId &&
+                   RoslynIssueLine == other.RoslynIssueLine &&
+                   IssueServerKey == other.IssueServerKey;
+        }
     }
 }

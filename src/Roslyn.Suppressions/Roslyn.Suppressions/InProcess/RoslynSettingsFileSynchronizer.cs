@@ -94,6 +94,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
 
         serverIssuesStore.ServerIssuesChanged += OnServerIssuesChanged;
         this.roslynSuppressionUpdater.SuppressedIssuesReloaded += OnSuppressedIssuesReloaded;
+        this.roslynSuppressionUpdater.NewIssuesSuppressed += OnNewIssuesSuppressed;
         solutionBindingRepository.BindingDeleted += OnBindingDeleted;
     }
 
@@ -148,6 +149,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         serverIssuesStore.ServerIssuesChanged -= OnServerIssuesChanged;
         solutionBindingRepository.BindingDeleted -= OnBindingDeleted;
         roslynSuppressionUpdater.SuppressedIssuesReloaded -= OnSuppressedIssuesReloaded;
+        roslynSuppressionUpdater.NewIssuesSuppressed -= OnNewIssuesSuppressed;
     }
 
     private void OnServerIssuesChanged(object sender, EventArgs e)
@@ -172,13 +174,22 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         return Path.GetFileNameWithoutExtension(fullSolutionFilePath);
     }
 
-    private void OnSuppressedIssuesReloaded(object sender, SuppressionsEventArgs e) => UpdateFileStorageAsync(e.SuppressedIssues).Forget();
+    private void OnSuppressedIssuesReloaded(object sender, SuppressionsEventArgs e) => UpdateFileStorageAsync(e.SuppressedIssues, isNewIssuesSuppressed: false).Forget();
+
+    private void OnNewIssuesSuppressed(object sender, SuppressionsEventArgs e)
+    {
+        if (!e.SuppressedIssues.Any())
+        {
+            return;
+        }
+        UpdateFileStorageAsync(e.SuppressedIssues, isNewIssuesSuppressed: true).Forget();
+    }
 
     /// <summary>
     /// Updates the Roslyn suppressed issues file if in connected mode
     /// </summary>
     /// <remarks>The method will switch to a background if required, and will *not* return to the UI thread on completion.</remarks>
-    private async Task UpdateFileStorageAsync(IEnumerable<SonarQubeIssue> suppressedIssues)
+    private async Task UpdateFileStorageAsync(IEnumerable<SonarQubeIssue> suppressedIssues, bool isNewIssuesSuppressed)
     {
         CodeMarkers.Instance.FileSynchronizerUpdateStart();
         try
@@ -198,7 +209,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
                 return;
             }
 
-            var newSettings = CreateRoslynSettings(suppressedIssues, sonarProjectKey);
+            var newSettings = CreateRoslynSettings(suppressedIssues, isNewIssuesSuppressed, sonarProjectKey, solutionNameWithoutExtension);
             roslynSettingsFileStorage.Update(newSettings, solutionNameWithoutExtension);
         }
         finally
@@ -207,7 +218,11 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         }
     }
 
-    private RoslynSettings CreateRoslynSettings(IEnumerable<SonarQubeIssue> suppressedIssues, string sonarProjectKey)
+    private RoslynSettings CreateRoslynSettings(
+        IEnumerable<SonarQubeIssue> suppressedIssues,
+        bool isNewIssuesSuppressed,
+        string sonarProjectKey,
+        string solutionNameWithoutExtension)
     {
         var suppressionsToAdd = suppressedIssues
             .Where(x => x.IsResolved)
@@ -215,7 +230,23 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
             .Where(x => x.RoslynLanguage != RoslynLanguage.Unknown && !string.IsNullOrEmpty(x.RoslynRuleId))
             .ToArray();
         var newSettings = new RoslynSettings { SonarProjectKey = sonarProjectKey, Suppressions = suppressionsToAdd };
+        MergeExistingSuppressionsWithNew(isNewIssuesSuppressed, newSettings, roslynSettingsFileStorage.Get(solutionNameWithoutExtension), suppressionsToAdd);
         return newSettings;
+    }
+
+    private static void MergeExistingSuppressionsWithNew(
+        bool shouldMerge,
+        RoslynSettings newSettings,
+        RoslynSettings existingSettings,
+        SuppressedIssue[] suppressionsToAdd)
+    {
+        if (!shouldMerge || existingSettings is null)
+        {
+            return;
+        }
+
+        var newSuppressions = suppressionsToAdd.Where(newIssue => existingSettings.Suppressions.All(existing => !newIssue.AreSame(existing)));
+        newSettings.Suppressions = existingSettings.Suppressions.Union(newSuppressions);
     }
 
     // Converts SonarQube issues to SuppressedIssues that can be compared more easily with Roslyn issues

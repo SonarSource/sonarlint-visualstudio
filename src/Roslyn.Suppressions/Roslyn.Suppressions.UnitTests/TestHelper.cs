@@ -29,14 +29,16 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
             string path = "path",
             int? line = 0,
             string hash = "hash",
-            RoslynLanguage language = RoslynLanguage.CSharp) =>
+            RoslynLanguage language = RoslynLanguage.CSharp,
+            string issueServerKey = "key") =>
             new SuppressedIssue
             {
                 FilePath = path,
                 Hash = hash,
                 RoslynLanguage = language,
                 RoslynRuleId = ruleId,
-                RoslynIssueLine = line
+                RoslynIssueLine = line,
+                IssueServerKey = issueServerKey
             };
 
         public static SonarQubeIssue CreateSonarQubeIssue(
