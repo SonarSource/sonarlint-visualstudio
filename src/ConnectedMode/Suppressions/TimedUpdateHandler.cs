@@ -18,13 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
@@ -45,14 +44,18 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions
         private bool disposed;
 
         [ImportingConstructor]
-        public TimedUpdateHandler(IRoslynSuppressionUpdater roslynSuppressionUpdater,
+        public TimedUpdateHandler(
+            IRoslynSuppressionUpdater roslynSuppressionUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater,
             ILogger logger,
             IActiveSolutionBoundTracker activeSolutionBoundTracker)
-            : this(roslynSuppressionUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, activeSolutionBoundTracker, logger, new TimerFactory()) { }
+            : this(roslynSuppressionUpdater, serverHotspotStoreUpdater, qualityProfileUpdater, activeSolutionBoundTracker, logger, new TimerFactory())
+        {
+        }
 
-        internal /* for testing */ TimedUpdateHandler(IRoslynSuppressionUpdater roslynSuppressionUpdater,
+        internal /* for testing */ TimedUpdateHandler(
+            IRoslynSuppressionUpdater roslynSuppressionUpdater,
             IServerHotspotStoreUpdater serverHotspotStoreUpdater,
             IQualityProfileUpdater qualityProfileUpdater,
             IActiveSolutionBoundTracker activeSolutionBoundTracker,

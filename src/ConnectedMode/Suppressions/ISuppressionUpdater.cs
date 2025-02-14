@@ -23,17 +23,18 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions;
 
 /// <summary>
-/// Fetches suppressed issues from the server and updates the store
+/// Fetches suppressed issues from the server and raises events. This is mainly needed for Roslyn languages
 /// </summary>
-internal interface IRoslynSuppressionUpdater
+internal interface ISuppressionUpdater
 {
     /// <summary>
-    /// Fetches all available suppressions from the server and updates the server issues store
+    /// Fetches all available suppressions from the server and raises the <see cref="SuppressedIssuesReloaded"/> event.
     /// </summary>
     Task UpdateAllServerSuppressionsAsync();
 
     /// <summary>
-    /// Updates the suppression status of the given issue key(s). If the issues are not found locally, they are fetched.
+    /// For resolved issues, the <see cref="NewIssuesSuppressed"/> event is invoked.
+    /// For unresolved issues (i.e. issues that are re-opened), the <see cref="SuppressionsRemoved"/> event is invoked.
     /// </summary>
     Task UpdateSuppressedIssuesAsync(bool isResolved, string[] issueKeys, CancellationToken cancellationToken);
 

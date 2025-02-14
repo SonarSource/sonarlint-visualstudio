@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using SonarLint.VisualStudio.ConnectedMode.Hotspots;
 using SonarLint.VisualStudio.ConnectedMode.QualityProfiles;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.TestInfrastructure;
 
@@ -35,7 +33,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<BoundSolutionUpdateHandler, BoundSolutionUpdateHandler>(
                 MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(),
-                MefTestHelpers.CreateExport<IRoslynSuppressionUpdater>(),
+                MefTestHelpers.CreateExport<ISuppressionUpdater>(),
                 MefTestHelpers.CreateExport<IServerHotspotStoreUpdater>(),
                 MefTestHelpers.CreateExport<IQualityProfileUpdater>());
         }
@@ -51,7 +49,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         {
             var activeSolutionTracker = new Mock<IActiveSolutionBoundTracker>();
 
-            _ = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, Mock.Of<IRoslynSuppressionUpdater>(), Mock.Of<IServerHotspotStoreUpdater>(), Mock.Of<IQualityProfileUpdater>());
+            _ = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, Mock.Of<ISuppressionUpdater>(), Mock.Of<IServerHotspotStoreUpdater>(), Mock.Of<IQualityProfileUpdater>());
 
             activeSolutionTracker.VerifyAdd(x => x.SolutionBindingChanged += It.IsAny<EventHandler<ActiveSolutionBindingEventArgs>>(), Times.Once);
             activeSolutionTracker.VerifyAdd(x => x.SolutionBindingUpdated += It.IsAny<EventHandler>(), Times.Once);
@@ -61,7 +59,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         public void InvokeEvents_ServerStoreUpdatersAreCalled()
         {
             var activeSolutionTracker = new Mock<IActiveSolutionBoundTracker>();
-            var roslynSuppressionUpdater = new Mock<IRoslynSuppressionUpdater>();
+            var roslynSuppressionUpdater = new Mock<ISuppressionUpdater>();
             var serverHotspotStoreUpdater = new Mock<IServerHotspotStoreUpdater>();
             var qualityProfileUpdater = new Mock<IQualityProfileUpdater>();
 
@@ -83,7 +81,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests
         {
             var activeSolutionTracker = new Mock<IActiveSolutionBoundTracker>();
 
-            var testSubject = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, Mock.Of<IRoslynSuppressionUpdater>(), Mock.Of<IServerHotspotStoreUpdater>(), Mock.Of<IQualityProfileUpdater>());
+            var testSubject = new BoundSolutionUpdateHandler(activeSolutionTracker.Object, Mock.Of<ISuppressionUpdater>(), Mock.Of<IServerHotspotStoreUpdater>(), Mock.Of<IQualityProfileUpdater>());
 
             testSubject.Dispose();
 

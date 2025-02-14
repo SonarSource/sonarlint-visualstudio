@@ -30,13 +30,13 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions;
 
 [TestClass]
-public class RoslynSuppressionUpdaterTests
+public class SuppressionUpdaterTests
 {
     private ICancellableActionRunner actionRunner;
     private ILogger logger;
     private IServerQueryInfoProvider queryInfo;
     private ISonarQubeService server;
-    private RoslynSuppressionUpdater testSubject;
+    private SuppressionUpdater testSubject;
     private IThreadHandling threadHandling;
     private readonly EventHandler<SuppressionsEventArgs> suppressedIssuesReloaded = Substitute.For<EventHandler<SuppressionsEventArgs>>();
     private readonly EventHandler<SuppressionsEventArgs> newIssuesSuppressed = Substitute.For<EventHandler<SuppressionsEventArgs>>();
@@ -59,7 +59,7 @@ public class RoslynSuppressionUpdaterTests
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<RoslynSuppressionUpdater, IRoslynSuppressionUpdater>(
+        MefTestHelpers.CheckTypeCanBeImported<SuppressionUpdater, ISuppressionUpdater>(
             MefTestHelpers.CreateExport<ISonarQubeService>(),
             MefTestHelpers.CreateExport<IServerQueryInfoProvider>(),
             MefTestHelpers.CreateExport<IServerIssuesStoreWriter>(),
@@ -67,7 +67,7 @@ public class RoslynSuppressionUpdaterTests
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
-    public void Ctor_SetsLoggerContext() => logger.Received(1).ForContext(nameof(RoslynSuppressionUpdater));
+    public void Ctor_SetsLoggerContext() => logger.Received(1).ForContext(nameof(SuppressionUpdater));
 
     [TestMethod]
     [DataRow(null, null)]
@@ -319,7 +319,7 @@ public class RoslynSuppressionUpdaterTests
         VerifyNewIssuesSuppressedNotInvoked();
     }
 
-    private RoslynSuppressionUpdater CreateTestSubject(ICancellableActionRunner mockedActionRunner, IThreadHandling mockedThreadHandling) =>
+    private SuppressionUpdater CreateTestSubject(ICancellableActionRunner mockedActionRunner, IThreadHandling mockedThreadHandling) =>
         new(server, queryInfo, mockedActionRunner, logger, mockedThreadHandling);
 
     private void MockQueryInfoProvider(string projectKey, string branchName) => queryInfo.GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>()).Returns((projectKey, branchName));

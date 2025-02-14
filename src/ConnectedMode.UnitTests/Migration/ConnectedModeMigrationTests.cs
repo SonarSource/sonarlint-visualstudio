@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using SonarLint.VisualStudio.ConnectedMode.Binding;
 using SonarLint.VisualStudio.ConnectedMode.Migration;
 using SonarLint.VisualStudio.ConnectedMode.Shared;
-using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration.ConnectedModeMigrationTestsExtensions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
@@ -37,7 +35,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
     {
         private static readonly LegacySettings DefaultTestLegacySettings = new LegacySettings("folder", "cs ruleset", "cs xml", "vb ruleset", "vb xml");
 
-        private static BoundSonarQubeProject AnyBoundProject = new BoundSonarQubeProject(new Uri("http://localhost:9000"), "any-key", "any-name");
+        private static readonly BoundSonarQubeProject AnyBoundProject = new BoundSonarQubeProject(new Uri("http://localhost:9000"), "any-key", "any-name");
 
         [TestMethod]
         public void MefCtor_CheckTypeIsNonShared()
@@ -53,7 +51,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
                 MefTestHelpers.CreateExport<IVsAwareFileSystem>(),
                 MefTestHelpers.CreateExport<ISonarQubeService>(),
                 MefTestHelpers.CreateExport<IUnintrusiveBindingController>(),
-                MefTestHelpers.CreateExport<IRoslynSuppressionUpdater>(),
+                MefTestHelpers.CreateExport<ISuppressionUpdater>(),
                 MefTestHelpers.CreateExport<ISharedBindingConfigProvider>(),
                 MefTestHelpers.CreateExport<ILogger>(),
                 MefTestHelpers.CreateExport<IThreadHandling>(),
@@ -454,7 +452,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
         [TestMethod]
         public async Task Migrate_RoslynSuppressionUpdateIsTriggered()
         {
-            var suppressionsUpdater = new Mock<IRoslynSuppressionUpdater>();
+            var suppressionsUpdater = new Mock<ISuppressionUpdater>();
 
             var testSubject = CreateTestSubject(roslynSuppressionUpdater: suppressionsUpdater.Object);
             await testSubject.MigrateAsync(AnyBoundProject, null, false, CancellationToken.None);
@@ -482,7 +480,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             IMigrationSettingsProvider settingsProvider = null,
             ISonarQubeService sonarQubeService = null,
             IUnintrusiveBindingController unintrusiveBindingController = null,
-            IRoslynSuppressionUpdater roslynSuppressionUpdater = null,
+            ISuppressionUpdater roslynSuppressionUpdater = null,
             ISharedBindingConfigProvider sharedBindingConfigProvider = null,
             ILogger logger = null,
             IThreadHandling threadHandling = null,
@@ -495,7 +493,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Migration
             fileSystem ??= Mock.Of<IVsAwareFileSystem>();
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
             unintrusiveBindingController ??= Mock.Of<IUnintrusiveBindingController>();
-            roslynSuppressionUpdater ??= Mock.Of<IRoslynSuppressionUpdater>();
+            roslynSuppressionUpdater ??= Mock.Of<ISuppressionUpdater>();
             settingsProvider ??= CreateSettingsProvider(DefaultTestLegacySettings).Object;
             sharedBindingConfigProvider ??= Mock.Of<ISharedBindingConfigProvider>();
             solutionInfoProvider ??= CreateSolutionInfoProviderMock().Object;

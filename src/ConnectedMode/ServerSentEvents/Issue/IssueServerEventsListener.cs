@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
     internal sealed class IssueServerEventsListener : IIssueServerEventsListener
     {
         private readonly IIssueServerEventSource issueServerEventSource;
-        private readonly IRoslynSuppressionUpdater roslynSuppressionUpdater;
+        private readonly ISuppressionUpdater roslynSuppressionUpdater;
         private readonly IThreadHandling threadHandling;
         private readonly IStatefulServerBranchProvider branchProvider;
         private readonly ILogger logger;
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.ServerSentEvents.Issue
         [ImportingConstructor]
         public IssueServerEventsListener(
             IIssueServerEventSource issueServerEventSource,
-            IRoslynSuppressionUpdater roslynSuppressionUpdater,
+            ISuppressionUpdater roslynSuppressionUpdater,
             IStatefulServerBranchProvider branchProvider,
             IThreadHandling threadHandling,
             ILogger logger)

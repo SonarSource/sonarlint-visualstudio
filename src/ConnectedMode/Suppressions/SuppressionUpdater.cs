@@ -27,9 +27,9 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Suppressions;
 
-[Export(typeof(IRoslynSuppressionUpdater))]
+[Export(typeof(ISuppressionUpdater))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDisposable
+internal sealed class SuppressionUpdater : ISuppressionUpdater, IDisposable
 {
     private readonly ICancellableActionRunner actionRunner;
     private readonly ILogger logger;
@@ -38,7 +38,7 @@ internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDis
     private readonly IThreadHandling threadHandling;
 
     [ImportingConstructor]
-    public RoslynSuppressionUpdater(
+    public SuppressionUpdater(
         ISonarQubeService server,
         IServerQueryInfoProvider serverQueryInfoProvider,
         IServerIssuesStoreWriter storeWriter,
@@ -48,7 +48,7 @@ internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDis
     {
     }
 
-    internal RoslynSuppressionUpdater(
+    internal SuppressionUpdater(
         ISonarQubeService server,
         IServerQueryInfoProvider serverQueryInfoProvider,
         ICancellableActionRunner actionRunner,
@@ -58,7 +58,7 @@ internal sealed class RoslynSuppressionUpdater : IRoslynSuppressionUpdater, IDis
         this.server = server;
         this.serverQueryInfoProvider = serverQueryInfoProvider;
         this.actionRunner = actionRunner;
-        this.logger = logger.ForContext(nameof(RoslynSuppressionUpdater));
+        this.logger = logger.ForContext(nameof(SuppressionUpdater));
         this.threadHandling = threadHandling;
     }
 
