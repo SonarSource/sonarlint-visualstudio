@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.ConnectedMode.Suppressions;
 /// <summary>
 /// Fetches suppressed issues from the server and raises events. This is mainly needed for Roslyn languages
 /// </summary>
-internal interface ISuppressionUpdater
+public interface ISuppressionUpdater
 {
     /// <summary>
     /// Fetches all available suppressions from the server and raises the <see cref="SuppressedIssuesReloaded"/> event.

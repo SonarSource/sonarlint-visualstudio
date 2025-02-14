@@ -47,10 +47,12 @@ internal interface IRoslynSettingsFileStorage
 }
 
 [Export(typeof(IRoslynSettingsFileStorage))]
+[PartCreationPolicy(CreationPolicy.Shared)]
 internal class RoslynSettingsFileStorage : IRoslynSettingsFileStorage
 {
     private readonly IFileSystem fileSystem;
     private readonly ILogger logger;
+    private readonly object lockObject = new();
 
     [ImportingConstructor]
     public RoslynSettingsFileStorage(ILogger logger) : this(logger, new FileSystem())
@@ -79,7 +81,11 @@ internal class RoslynSettingsFileStorage : IRoslynSettingsFileStorage
                 return null;
             }
 
-            var fileContent = fileSystem.File.ReadAllText(filePath);
+            string fileContent;
+            lock (lockObject)
+            {
+                fileContent = fileSystem.File.ReadAllText(filePath);
+            }
             return JsonConvert.DeserializeObject<RoslynSettings>(fileContent);
         }
         catch (Exception ex)
@@ -99,7 +105,10 @@ internal class RoslynSettingsFileStorage : IRoslynSettingsFileStorage
         {
             CodeMarkers.Instance.FileStorageUpdateStart();
             var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(solutionNameWithoutExtension);
-            fileSystem.File.Delete(filePath);
+            lock (lockObject)
+            {
+                fileSystem.File.Delete(filePath);
+            }
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
@@ -122,7 +131,11 @@ internal class RoslynSettingsFileStorage : IRoslynSettingsFileStorage
             CodeMarkers.Instance.FileStorageUpdateStart();
             var filePath = RoslynSettingsFileInfo.GetSettingsFilePath(solutionNameWithoutExtension);
             var fileContent = JsonConvert.SerializeObject(settings, Formatting.Indented);
-            fileSystem.File.WriteAllText(filePath, fileContent);
+
+            lock (lockObject)
+            {
+                fileSystem.File.WriteAllText(filePath, fileContent);
+            }
         }
         catch (Exception ex)
         {
