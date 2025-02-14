@@ -84,7 +84,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         this.solutionInfoProvider = solutionInfoProvider;
         this.solutionBindingRepository = solutionBindingRepository;
         this.roslynSuppressionUpdater = roslynSuppressionUpdater;
-        this.logger = logger;
+        this.logger = logger.ForContext(nameof(RoslynSettingsFileSynchronizer));
         this.threadHandling = threadHandling;
 
         this.roslynSuppressionUpdater.SuppressedIssuesReloaded += OnSuppressedIssuesReloaded;
@@ -111,7 +111,11 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
 
     private void OnSuppressedIssuesReloaded(object sender, SuppressionsEventArgs e)
     {
-        IEnumerable<SuppressedIssue> GetSuppressionsToAdd(string settingsKey) => GetRoslynSuppressedIssues(e.SuppressedIssues);
+        IEnumerable<SuppressedIssue> GetSuppressionsToAdd(string settingsKey)
+        {
+            logger.LogVerbose(Resources.Strings.RoslynSettingsFileSynchronizerReloadSuppressions);
+            return GetRoslynSuppressedIssues(e.SuppressedIssues);
+        }
 
         UpdateFileStorageAsync(GetSuppressionsToAdd).Forget();
     }
@@ -135,6 +139,8 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
 
         IEnumerable<SuppressedIssue> GetMergedSuppressedIssues(string settingsKey)
         {
+            logger.LogVerbose(Resources.Strings.RoslynSettingsFileSynchronizerAddNewSuppressions);
+
             var suppressedIssuesToAdd = GetRoslynSuppressedIssues(e.SuppressedIssues);
             var suppressedIssuesInFile = roslynSettingsFileStorage.Get(settingsKey)?.Suppressions;
             if (suppressedIssuesInFile is null)
@@ -166,6 +172,8 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
                 // nothing to be done if no issue from file was resolved
                 return null;
             }
+
+            logger.LogVerbose(Resources.Strings.RoslynSettingsFileSynchronizerRemoveSuppressions);
             return suppressedIssuesInFile.Except(resolvedIssues);
         }
 
