@@ -30,31 +30,36 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.ConnectedMode.UnitTests.Suppressions;
 
 [TestClass]
-public class SuppressionIssueStoreUpdaterTests
+public class SuppressionUpdaterTests
 {
     private ICancellableActionRunner actionRunner;
-    private TestLogger logger;
+    private ILogger logger;
     private IServerQueryInfoProvider queryInfo;
     private ISonarQubeService server;
-    private SuppressionIssueStoreUpdater testSubject;
+    private SuppressionUpdater testSubject;
     private IThreadHandling threadHandling;
-    private IServerIssuesStoreWriter writer;
+    private readonly EventHandler<SuppressionsEventArgs> suppressedIssuesReloaded = Substitute.For<EventHandler<SuppressionsEventArgs>>();
+    private readonly EventHandler<SuppressionsEventArgs> newIssuesSuppressed = Substitute.For<EventHandler<SuppressionsEventArgs>>();
+    private readonly EventHandler<SuppressionsRemovedEventArgs> suppressionsRemoved = Substitute.For<EventHandler<SuppressionsRemovedEventArgs>>();
 
     [TestInitialize]
     public void TestInitialize()
     {
-        writer = Substitute.For<IServerIssuesStoreWriter>();
         server = Substitute.For<ISonarQubeService>();
         queryInfo = Substitute.For<IServerQueryInfoProvider>();
-        logger = new TestLogger(true);
+        logger = Substitute.For<ILogger>();
+        logger.ForContext(Arg.Any<string[]>()).Returns(logger);
         threadHandling = new NoOpThreadHandler();
         actionRunner = new SynchronizedCancellableActionRunner(logger);
         testSubject = CreateTestSubject(actionRunner, threadHandling);
+        testSubject.SuppressedIssuesReloaded += suppressedIssuesReloaded;
+        testSubject.NewIssuesSuppressed += newIssuesSuppressed;
+        testSubject.SuppressionsRemoved += suppressionsRemoved;
     }
 
     [TestMethod]
     public void MefCtor_CheckIsExported() =>
-        MefTestHelpers.CheckTypeCanBeImported<SuppressionIssueStoreUpdater, ISuppressionIssueStoreUpdater>(
+        MefTestHelpers.CheckTypeCanBeImported<SuppressionUpdater, ISuppressionUpdater>(
             MefTestHelpers.CreateExport<ISonarQubeService>(),
             MefTestHelpers.CreateExport<IServerQueryInfoProvider>(),
             MefTestHelpers.CreateExport<IServerIssuesStoreWriter>(),
@@ -62,10 +67,13 @@ public class SuppressionIssueStoreUpdaterTests
             MefTestHelpers.CreateExport<ILogger>());
 
     [TestMethod]
+    public void Ctor_SetsLoggerContext() => logger.Received(1).ForContext(nameof(SuppressionUpdater));
+
+    [TestMethod]
     [DataRow(null, null)]
     [DataRow(null, "branch")]
     [DataRow("projectKey", null)]
-    public async Task UpdateAll_MissingServerQueryInfo_ResetsStore(string projectKey, string branchName)
+    public async Task UpdateAll_MissingServerQueryInfo_DoesNotInvokeEvent(string projectKey, string branchName)
     {
         // Server query info is not available -> give up
         MockQueryInfoProvider(projectKey, branchName);
@@ -74,12 +82,11 @@ public class SuppressionIssueStoreUpdaterTests
 
         await queryInfo.Received(1).GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>());
         server.ReceivedCalls().Should().HaveCount(0);
-        writer.Received(1).Reset();
-        writer.ReceivedCalls().Should().HaveCount(1);
+        VerifySuppressedIssuesReloadedNotInvoked();
     }
 
     [TestMethod]
-    public async Task UpdateAll_HasServerQueryInfo_ServerQueriedAndStoreUpdated()
+    public async Task UpdateAll_HasServerQueryInfo_ServerQueriedAndEventInvoked()
     {
         // Happy path - fetch and update
         MockQueryInfoProvider("project", "branch");
@@ -90,9 +97,8 @@ public class SuppressionIssueStoreUpdaterTests
 
         await queryInfo.Received(1).GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>());
         await server.Received(1).GetSuppressedIssuesAsync("project", "branch", null, Arg.Any<CancellationToken>());
-        writer.Received(1).AddIssues(Arg.Is<IEnumerable<SonarQubeIssue>>(x => VerifySonarQubeIssues(x, new[] { issue })), true);
         server.ReceivedCalls().Should().HaveCount(1);
-        writer.ReceivedCalls().Should().HaveCount(1);
+        VerifySuppressedIssuesReloadedInvoked(expectedAllSuppressedIssues: [issue]);
     }
 
     [TestMethod]
@@ -106,7 +112,7 @@ public class SuppressionIssueStoreUpdaterTests
 
         Received.InOrder(() =>
         {
-            mockedThreadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<bool>>>());
+            mockedThreadHandling.RunOnBackgroundThread(Arg.Any<Func<Task<IList<SonarQubeIssue>>>>());
             mockedActionRunner.RunAsync(Arg.Any<Func<CancellationToken, Task>>());
             queryInfo.GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>());
         });
@@ -121,7 +127,7 @@ public class SuppressionIssueStoreUpdaterTests
         var operation = testSubject.UpdateAllServerSuppressionsAsync;
 
         operation.Should().Throw<StackOverflowException>().And.Message.Should().Be("thrown in a test");
-        logger.AssertPartialOutputStringDoesNotExist("thrown in a test");
+        AssertMessageArgsDoesNotExist("thrown in a test");
     }
 
     [TestMethod]
@@ -132,7 +138,7 @@ public class SuppressionIssueStoreUpdaterTests
         var operation = testSubject.UpdateAllServerSuppressionsAsync;
 
         operation.Should().NotThrow();
-        logger.AssertPartialOutputStringExists("thrown in a test");
+        AssertMessageArgsExists("thrown in a test");
     }
 
     [TestMethod]
@@ -143,8 +149,8 @@ public class SuppressionIssueStoreUpdaterTests
         var operation = testSubject.UpdateAllServerSuppressionsAsync;
 
         operation.Should().NotThrow();
-        logger.AssertPartialOutputStringDoesNotExist("thrown in a test");
-        logger.AssertOutputStringExists(Resources.Suppressions_FetchOperationCancelled);
+        AssertMessageArgsDoesNotExist("thrown in a test");
+        AssertMessageExists(Resources.Suppressions_FetchOperationCancelled);
     }
 
     [TestMethod]
@@ -208,125 +214,113 @@ public class SuppressionIssueStoreUpdaterTests
         call1Token.IsCancellationRequested.Should().BeTrue();
         call2Token.IsCancellationRequested.Should().BeFalse();
 
-        logger.AssertOutputStringExists(Resources.Suppressions_FetchOperationCancelled);
+        AssertMessageExists(Resources.Suppressions_FetchOperationCancelled);
 
         // If cancellation worked then we should only have made one call to each
         // of the SonarQubeService and store writer
         server.ReceivedCalls().Should().HaveCount(1);
-        writer.ReceivedCalls().Should().HaveCount(1);
+        VerifySuppressedIssuesReloadedInvoked([]);
 
         static void Log(string message) => Console.WriteLine($"[Thread {Thread.CurrentThread.ManagedThreadId}] {message}");
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public async Task UpdateSuppressedIssues_EmptyIssues_NoChangesToTheStoreAndNoServerCalls(bool isResolved)
+    public async Task UpdateSuppressedIssuesAsync_EmptyIssues_IssuesNotResolved_SuppressionsRemovedEventNotInvokedAndNoServerCalls()
     {
-        MockQueryInfoProvider("proj1", "branch1");
-
-        await testSubject.UpdateSuppressedIssuesAsync(isResolved, [], CancellationToken.None);
+        await testSubject.UpdateSuppressedIssuesAsync(isResolved: false, [], CancellationToken.None);
 
         queryInfo.ReceivedCalls().Count().Should().Be(0);
-        writer.ReceivedCalls().Count().Should().Be(0);
         server.ReceivedCalls().Count().Should().Be(0);
+        VerifySuppressionsRemovedNotInvoked();
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public async Task UpdateSuppressedIssues_AllIssuesAreFoundInStore_NoServerCalls(bool isResolved)
+    public async Task UpdateSuppressedIssuesAsync_IssuesNotResolved_IssuesFetched()
     {
-        MockQueryInfoProvider("proj1", "branch1");
-        MockIssuesStore(CreateIssue("issue1"), CreateIssue("issue2"));
+        string[] issueKeys = ["issue1", "issue2"];
 
-        await testSubject.UpdateSuppressedIssuesAsync(isResolved, ["issue1", "issue2"], CancellationToken.None);
+        await testSubject.UpdateSuppressedIssuesAsync(isResolved: false, issueKeys, CancellationToken.None);
 
-        writer.Received(1).Get();
-        writer.Received(1).UpdateIssues(isResolved, Arg.Is<IEnumerable<string>>(actual => VerifyExistingIssues(actual, new[] { "issue1", "issue2" })));
-        writer.ReceivedCalls().Should().HaveCount(2); // no other calls
-        server.ReceivedCalls().Count().Should().Be(0);
-        queryInfo.ReceivedCalls().Count().Should().Be(0);
+        VerifySuppressionsRemovedInvoked(issueKeys);
     }
 
     [TestMethod]
-    public async Task UpdateSuppressedIssues_IssuesAreNotFoundInStore_IssuesAreNotSuppressed_NoServerCalls()
+    public async Task UpdateSuppressedIssuesAsync_EmptyIssues_NewIssuesSuppressedNotInvokedAndNoServerCalls()
     {
         MockQueryInfoProvider("proj1", "branch1");
-        MockIssuesStore(CreateIssue("issue1"), CreateIssue("issue3"));
 
-        await testSubject.UpdateSuppressedIssuesAsync(false, ["issue1", "issue2", "issue3"], CancellationToken.None);
+        await testSubject.UpdateSuppressedIssuesAsync(isResolved: true, [], CancellationToken.None);
 
-        writer.Received(1).Get();
-        writer.Received(1).UpdateIssues(false, Arg.Is<IEnumerable<string>>(x => VerifyExistingIssues(x, new[] { "issue1", "issue2", "issue3" })));
-        writer.ReceivedCalls().Should().HaveCount(2);
-        // the missing issue is not suppressed, so we will not fetch it
-        server.ReceivedCalls().Count().Should().Be(0);
         queryInfo.ReceivedCalls().Count().Should().Be(0);
+        server.ReceivedCalls().Count().Should().Be(0);
+        VerifyNewIssuesSuppressedNotInvoked();
     }
 
     [TestMethod]
-    public async Task UpdateSuppressedIssues_IssuesAreNotFoundInStore_IssuesAreSuppressed_IssuesFetched()
+    public async Task UpdateSuppressedIssuesAsync_IssuesSuppressed_IssuesFetched()
     {
         MockQueryInfoProvider("proj1", "branch1");
-        MockIssuesStore(CreateIssue("issue1"));
-        var expectedFetchedIssues = new[] { CreateIssue("issue2"), CreateIssue("issue3") };
+        var expectedFetchedIssues = new[] { CreateIssue("issue1") };
         MockSonarQubeService(
             "proj1",
             "branch1",
-            ["issue2", "issue3"],
+            ["issue1"],
             expectedFetchedIssues);
 
-        await testSubject.UpdateSuppressedIssuesAsync(true, ["issue1", "issue2", "issue3"], CancellationToken.None);
+        await testSubject.UpdateSuppressedIssuesAsync(isResolved: true, ["issue1"], CancellationToken.None);
 
-        // the missing issues are suppressed, so we need to fetch them and add them to the store
         await server.Received(1).GetSuppressedIssuesAsync(
             "proj1",
             "branch1",
-            Arg.Is<string[]>(x => VerifyExistingIssues(x, new[] { "issue2", "issue3" })),
-            CancellationToken.None);
-        writer.Received(1).Get();
-        writer.Received(1).AddIssues(Arg.Is<IEnumerable<SonarQubeIssue>>(x => VerifySonarQubeIssues(x, expectedFetchedIssues)), false);
-        writer.Received(1).UpdateIssues(true, Arg.Is<IEnumerable<string>>(x => VerifyExistingIssues(x, new[] { "issue1", "issue2", "issue3" })));
-        writer.ReceivedCalls().Should().HaveCount(3);
+            Arg.Is<string[]>(x => x.SequenceEqual(new[] { "issue1" })),
+            Arg.Any<CancellationToken>());
+        VerifyNewIssuesSuppressedInvoked(expectedFetchedIssues);
+        AssertMessageExists(Resources.Suppressions_Fetch_Issues);
+        AssertMessageExists(Resources.Suppression_Fetch_Issues_Finished);
     }
 
     [TestMethod]
-    public void UpdateSuppressedIssues_CriticalExpression_NotHandled()
+    public void UpdateSuppressedIssuesAsync_IssuesSuppressed_CriticalExpression_NotHandled()
     {
-        writer.When(x => x.Get()).Throw(new StackOverflowException("thrown in a test"));
+        MockQueryInfoProvider("proj1", "branch1");
+        queryInfo.When(x => x.GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>())).Throw(new StackOverflowException("thrown in a test"));
 
-        var operation = () => testSubject.UpdateSuppressedIssuesAsync(true, ["issue1"], CancellationToken.None);
+        var operation = () => testSubject.UpdateSuppressedIssuesAsync(isResolved: true, ["issue1"], CancellationToken.None);
 
         operation.Should().Throw<StackOverflowException>().And.Message.Should().Be("thrown in a test");
-        logger.AssertPartialOutputStringDoesNotExist("thrown in a test");
+        AssertMessageArgsDoesNotExist("thrown in a test");
+        VerifyNewIssuesSuppressedNotInvoked();
     }
 
     [TestMethod]
-    public void UpdateSuppressedIssues_NonCriticalExpression_IsSuppressed()
+    public void UpdateSuppressedIssuesAsync_IssuesSuppressed_NonCriticalExpression_IsSuppressed()
     {
-        writer.When(x => x.Get()).Throw(new InvalidOperationException("thrown in a test"));
+        MockQueryInfoProvider("proj1", "branch1");
+        queryInfo.When(x => x.GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>())).Throw(new InvalidOperationException("thrown in a test"));
 
-        var operation = () => testSubject.UpdateSuppressedIssuesAsync(true, ["issue1"], CancellationToken.None);
+        var operation = () => testSubject.UpdateSuppressedIssuesAsync(isResolved: true, ["issue1"], CancellationToken.None);
 
         operation.Should().NotThrow();
-        logger.AssertPartialOutputStringExists("thrown in a test");
+        AssertMessageArgsExists("thrown in a test");
+        VerifyNewIssuesSuppressedNotInvoked();
     }
 
     [TestMethod]
-    public void UpdateSuppressedIssues_OperationCancelledException_CancellationMessageLogged()
+    public void UpdateSuppressedIssuesAsync_IssuesSuppressed_OperationCancelledException_CancellationMessageLogged()
     {
-        writer.When(x => x.Get()).Throw(new OperationCanceledException("thrown in a test"));
+        MockQueryInfoProvider("proj1", "branch1");
+        using var cancellationTokenSource = new CancellationTokenSource();
+        queryInfo.When(x => x.GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>())).Do(_ => cancellationTokenSource.Cancel());
 
-        var operation = () => testSubject.UpdateSuppressedIssuesAsync(true, ["issue1"], CancellationToken.None);
+        var operation = () => testSubject.UpdateSuppressedIssuesAsync(isResolved: true, ["issue1"], cancellationTokenSource.Token);
 
         operation.Should().NotThrow();
-        logger.AssertPartialOutputStringDoesNotExist("thrown in a test");
-        logger.AssertOutputStringExists(Resources.Suppressions_UpdateOperationCancelled);
+        AssertMessageExists(Resources.Suppressions_FetchOperationCancelled);
+        VerifyNewIssuesSuppressedNotInvoked();
     }
 
-    private SuppressionIssueStoreUpdater CreateTestSubject(ICancellableActionRunner mockedActionRunner, IThreadHandling mockedThreadHandling) =>
-        new(server, queryInfo, writer, mockedActionRunner, logger, mockedThreadHandling);
+    private SuppressionUpdater CreateTestSubject(ICancellableActionRunner mockedActionRunner, IThreadHandling mockedThreadHandling) =>
+        new(server, queryInfo, mockedActionRunner, logger, mockedThreadHandling);
 
     private void MockQueryInfoProvider(string projectKey, string branchName) => queryInfo.GetProjectKeyAndBranchAsync(Arg.Any<CancellationToken>()).Returns((projectKey, branchName));
 
@@ -349,18 +343,12 @@ public class SuppressionIssueStoreUpdaterTests
         =>
             Debugger.IsAttached ? TimeSpan.FromMinutes(2) : TimeSpan.FromMilliseconds(200);
 
-    private void MockIssuesStore(params SonarQubeIssue[] issuesInStore) => writer.Get().Returns(issuesInStore);
-
-    private static bool VerifyExistingIssues(IEnumerable<string> actualIssues, IEnumerable<string> expectedIssues) => actualIssues.SequenceEqual(expectedIssues);
-
-    private static bool VerifySonarQubeIssues(IEnumerable<SonarQubeIssue> actualIssues, SonarQubeIssue[] expectedIssues) => actualIssues.SequenceEqual(expectedIssues);
-
     private static IThreadHandling CreateMockedThreadHandling()
     {
         var mockedThreadHandling = Substitute.For<IThreadHandling>();
-        mockedThreadHandling.When(x => x.RunOnBackgroundThread(Arg.Any<Func<Task<bool>>>())).Do(x =>
+        mockedThreadHandling.When(x => x.RunOnBackgroundThread(Arg.Any<Func<Task<IList<SonarQubeIssue>>>>())).Do(x =>
         {
-            var func = x.Arg<Func<Task<bool>>>();
+            var func = x.Arg<Func<Task<IList<SonarQubeIssue>>>>();
             func();
         });
         return mockedThreadHandling;
@@ -377,4 +365,28 @@ public class SuppressionIssueStoreUpdaterTests
             });
         return mockedActionRunner;
     }
+
+    private void VerifySuppressedIssuesReloadedNotInvoked() => suppressedIssuesReloaded.DidNotReceiveWithAnyArgs().Invoke(testSubject, Arg.Any<SuppressionsEventArgs>());
+
+    private void VerifySuppressedIssuesReloadedInvoked(IEnumerable<SonarQubeIssue> expectedAllSuppressedIssues) =>
+        suppressedIssuesReloaded.Received(1)
+            .Invoke(testSubject, Arg.Is<SuppressionsEventArgs>(x => x.SuppressedIssues.SequenceEqual(expectedAllSuppressedIssues)));
+
+    private void VerifySuppressionsRemovedNotInvoked() => suppressionsRemoved.DidNotReceiveWithAnyArgs().Invoke(testSubject, Arg.Any<SuppressionsRemovedEventArgs>());
+
+    private void VerifySuppressionsRemovedInvoked(IEnumerable<string> expectedSuppressedIssuesKeys) =>
+        suppressionsRemoved.Received(1)
+            .Invoke(testSubject, Arg.Is<SuppressionsRemovedEventArgs>(x => x.IssueServerKeys.SequenceEqual(expectedSuppressedIssuesKeys)));
+
+    private void VerifyNewIssuesSuppressedInvoked(IEnumerable<SonarQubeIssue> expectedAllSuppressedIssues) =>
+        newIssuesSuppressed.Received(1)
+            .Invoke(testSubject, Arg.Is<SuppressionsEventArgs>(x => x.SuppressedIssues.SequenceEqual(expectedAllSuppressedIssues)));
+
+    private void VerifyNewIssuesSuppressedNotInvoked() => newIssuesSuppressed.DidNotReceiveWithAnyArgs().Invoke(testSubject, Arg.Any<SuppressionsEventArgs>());
+
+    private void AssertMessageArgsDoesNotExist(params object[] args) => logger.DidNotReceive().WriteLine(Arg.Any<string>(), Arg.Is<object[]>(x => x.SequenceEqual(args)));
+
+    private void AssertMessageArgsExists(params object[] args) => logger.Received(1).WriteLine(Arg.Any<string>(), Arg.Is<object[]>(x => x.SequenceEqual(args)));
+
+    private void AssertMessageExists(string message) => logger.Received(1).WriteLine(Arg.Is<string>(x => x == message), Arg.Any<object[]>());
 }
