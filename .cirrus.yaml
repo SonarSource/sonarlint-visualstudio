@@ -106,10 +106,10 @@ build_task:
     jf rt bp ${CIRRUS_REPO_NAME} ${CI_BUILD_NUMBER}
   tests_script: |
     vstest.console.exe --EnableCodeCoverage --Logger:trx --ResultsDirectory:"TestResults" src/**/bin/**/Sonar*.*Tests.dll
-  copy_test_results: |
-    cp TestResults\*.trx tests/
-  tests_artifacts:
-    path "tests/*"
+  copy_utest_results: |
+    cp TestResults\*.trx utests/
+  utests_artifacts:
+    path "utests/*"
   collect_coverage_script: |
     dotnet-coverage merge -o "${COVERAGE_FILE}" -f xml "**\*.coverage"
   sonarcloud_analysis_script: |
