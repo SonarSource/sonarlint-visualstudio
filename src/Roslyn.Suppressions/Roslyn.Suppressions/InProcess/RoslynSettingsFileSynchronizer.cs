@@ -26,7 +26,6 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 
@@ -103,26 +102,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         suppressionUpdater.SuppressionsRemoved -= OnSuppressionsRemoved;
     }
 
-    private void OnSuppressedIssuesReloaded(object sender, SuppressionsEventArgs e)
-    {
-        IEnumerable<SuppressedIssue> GetSuppressionsToAdd(string settingsKey)
-        {
-            logger.LogVerbose(Resources.Strings.RoslynSettingsFileSynchronizerReloadSuppressions);
-            return GetRoslynSuppressedIssues(e.SuppressedIssues);
-        }
-
-        UpdateFileStorageAsync(GetSuppressionsToAdd).Forget();
-    }
-
-    private static SuppressedIssue[] GetRoslynSuppressedIssues(IEnumerable<SonarQubeIssue> sonarQubeIssues)
-    {
-        var suppressionsToAdd = sonarQubeIssues
-            .Where(x => x.IsResolved)
-            .Select(IssueConverter.Convert)
-            .Where(x => x.RoslynLanguage != RoslynLanguage.Unknown && !string.IsNullOrEmpty(x.RoslynRuleId))
-            .ToArray();
-        return suppressionsToAdd;
-    }
+    private void OnSuppressedIssuesReloaded(object sender, SuppressionsEventArgs e) => UpdateFileStorageAsync(new AllSuppressedIssuesCalculator(logger, e.SuppressedIssues)).Forget();
 
     private void OnNewIssuesSuppressed(object sender, SuppressionsEventArgs e)
     {
@@ -131,23 +111,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
             return;
         }
 
-        IEnumerable<SuppressedIssue> GetMergedSuppressedIssues(string settingsKey)
-        {
-            logger.LogVerbose(Resources.Strings.RoslynSettingsFileSynchronizerAddNewSuppressions);
-
-            var suppressedIssuesToAdd = GetRoslynSuppressedIssues(e.SuppressedIssues);
-            var suppressedIssuesInFile = roslynSettingsFileStorage.Get(settingsKey)?.Suppressions;
-            if (suppressedIssuesInFile is null)
-            {
-                // if the settings do not exist on disk, add all the new suppressed issues
-                return suppressedIssuesToAdd;
-            }
-
-            var suppressedIssuesToAddNotExistingInFile = suppressedIssuesToAdd.Where(newIssue => suppressedIssuesInFile.All(existing => !newIssue.AreSame(existing)));
-            return suppressedIssuesInFile.Concat(suppressedIssuesToAddNotExistingInFile);
-        }
-
-        UpdateFileStorageAsync(GetMergedSuppressedIssues).Forget();
+        UpdateFileStorageAsync(new NewSuppressedIssuesCalculator(logger, roslynSettingsFileStorage, e.SuppressedIssues)).Forget();
     }
 
     private void OnSuppressionsRemoved(object sender, SuppressionsRemovedEventArgs e)
@@ -157,28 +121,14 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
             return;
         }
 
-        IEnumerable<SuppressedIssue> GetSuppressedIssuesAfterRemoved(string settingsKey)
-        {
-            var suppressedIssuesInFile = roslynSettingsFileStorage.Get(settingsKey)?.Suppressions?.ToList();
-            var resolvedIssues = suppressedIssuesInFile?.Where(existingIssue => e.IssueServerKeys.Any(x => existingIssue.IssueServerKey == x)).ToList();
-            if (resolvedIssues == null || !resolvedIssues.Any())
-            {
-                // nothing to be done if no issue from file was resolved
-                return null;
-            }
-
-            logger.LogVerbose(Resources.Strings.RoslynSettingsFileSynchronizerRemoveSuppressions);
-            return suppressedIssuesInFile.Except(resolvedIssues);
-        }
-
-        UpdateFileStorageAsync(GetSuppressedIssuesAfterRemoved).Forget();
+        UpdateFileStorageAsync(new SuppressedIssuesRemovedCalculator(logger, roslynSettingsFileStorage, e.IssueServerKeys)).Forget();
     }
 
     /// <summary>
     /// Updates the Roslyn suppressed issues file if in connected mode
     /// </summary>
     /// <remarks>The method will switch to a background if required, and will *not* return to the UI thread on completion.</remarks>
-    private async Task UpdateFileStorageAsync(Func<string, IEnumerable<SuppressedIssue>> getSuppressedIssuesOrNull)
+    private async Task UpdateFileStorageAsync(SuppressedIssuesCalculatorBase suppressedIssuesCalculator)
     {
         CodeMarkers.Instance.FileSynchronizerUpdateStart();
         try
@@ -203,7 +153,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
 
             lock (lockObject)
             {
-                var suppressionsToAdd = getSuppressedIssuesOrNull(solutionNameWithoutExtension);
+                var suppressionsToAdd = suppressedIssuesCalculator.GetSuppressedIssuesOrNull(solutionNameWithoutExtension);
                 if (suppressionsToAdd == null)
                 {
                     return;
