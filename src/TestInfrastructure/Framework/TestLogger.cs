@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.TestInfrastructure
             OutputStrings.Add(messageToLog);
             if (logToConsole)
             {
-                Console.WriteLine(messageToLog);
+                Console.WriteLine(DateTime.Now.TimeOfDay.ToString("G") + messageToLog);
             }
 
             LogMessageAdded?.Invoke(this, EventArgs.Empty);

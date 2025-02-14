@@ -36,7 +36,7 @@ public static class ConcurrencyTestHelper
         {
             cts.Cancel();
             const string someTask = "some task";
-            Assert.Fail($"timeout reached for {taskName ?? someTask}");
+            Assert.Fail($"timeout reached for {taskName ?? someTask} at {DateTime.Now.TimeOfDay:G}");
         }
     }
 }
