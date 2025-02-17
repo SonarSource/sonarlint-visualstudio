@@ -53,7 +53,7 @@ internal class MuteIssuesService(
 
         await GetAllowedStatusesAsync(currentConfigScope.ConnectionId, issueServerKey);
         var windowResponse = await PromptMuteIssueResolutionAsync();
-        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition);
+        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition.Value);
         await AddCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse.Comment);
     }
 

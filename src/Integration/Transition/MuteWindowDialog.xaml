@@ -4,11 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:resx="clr-namespace:SonarLint.VisualStudio.Integration.Resources"
-             xmlns:local="clr-namespace:SonarLint.VisualStudio.Integration.Transition"
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d" 
              SizeToContent="WidthAndHeight"
+             x:Name="MuteWindow"
              Title="{x:Static resx:Strings.MuteWindow_Title}">
     <vsui:DialogWindow.Resources>
         <Style x:Key="RadioButtonStyle" TargetType="RadioButton">
@@ -26,12 +26,12 @@
             <Setter Property="VerticalAlignment" Value="Top" />
             <Setter Property="Width" Value="450" />
             <Setter Property="Background" Value="Transparent"/>
-            <EventSetter Event="MouseLeftButtonDown" Handler="Border_MouseDown" />
+            <!--<EventSetter Event="MouseLeftButtonDown" Handler="Border_MouseDown" />-->
         </Style>
         <Style x:Key="LabelStyle" TargetType="Label">
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="VerticalAlignment" Value="Top" />
-            <Setter Property="Margin" Value="25,200,0,0" />
+            <Setter Property="Margin" Value="20,200,0,0" />
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}"/>
         </Style>
         <Style x:Key="TransitionLabelStyle" BasedOn="{StaticResource LabelStyle}" TargetType="Label">
@@ -73,12 +73,6 @@
             <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
             <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
         </Style>
-        <Style x:Key="TopBorderStyle" BasedOn="{StaticResource BorderStyle}" TargetType="Border">
-            <Setter Property="Margin" Value="25,25,0,0" />
-        </Style>
-        <Style x:Key="BottomBorderStyle" BasedOn="{StaticResource BorderStyle}" TargetType="Border">
-            <Setter Property="Margin" Value="25,115,0,0" />
-        </Style>
         <Style x:Key="FormattingHelpBlock" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.CaptionTextKey}}" />
             <Setter Property="HorizontalAlignment" Value="Center" />
@@ -87,30 +81,37 @@
             <Setter Property="VerticalAlignment" Value="Top" />
             <Setter Property="Width" Value="450" />
         </Style>
+        <Style x:Key="NoSelectionListBoxItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" >
+                            <ContentPresenter />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </vsui:DialogWindow.Resources>
-    <Grid Height="350" Width="500" Background="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUIBackgroundKey}}">
-        <Border Name="BorderWontFix" Style="{StaticResource TopBorderStyle}" Visibility="{Binding WontFixVisibility}">
-            <Grid>
-                <RadioButton Name="rbWontFix" Content="{x:Static resx:Strings.MuteWindow_WontFixTitle}" Style="{StaticResource RadioButtonStyle}" Checked="RadioButton_Checked"/>
-                <Label Content="{x:Static resx:Strings.MuteWindow_WontFixContent}" Style="{StaticResource TransitionLabelStyle}" />
-            </Grid>
-        </Border>
-
-        <Border Name="BorderAccept" Style="{StaticResource TopBorderStyle}" Visibility="{Binding AcceptVisibility}">
-            <Grid>
-                <RadioButton Name="rbAccept" Content="{x:Static resx:Strings.MuteWindow_AcceptTitle}" Style="{StaticResource RadioButtonStyle}" Checked="RadioButton_Checked"/>
-                <Label Content="{x:Static resx:Strings.MuteWindow_AcceptContent}" Style="{StaticResource TransitionLabelStyle}" />
-            </Grid>
-        </Border>
-
-        <Border Name="BorderFalsePositive" Style="{StaticResource BottomBorderStyle}">
-            <Grid>
-                <RadioButton x:Name="rbFalsePositive" Content="{x:Static resx:Strings.MuteWindow_FalsePositiveTitle}" Style="{StaticResource RadioButtonStyle}" Checked="RadioButton_Checked"/>
-                <Label Content="{x:Static resx:Strings.MuteWindow_FalsePositiveContent}" Style="{StaticResource TransitionLabelStyle}" />
-            </Grid>
-        </Border>
+    <Grid Height="350" Width="500" Background="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUIBackgroundKey}}" DataContext="{Binding ElementName=MuteWindow, Path=ViewModel}">
+        <ListBox ItemsSource="{Binding AllowedStatusViewModels}" SelectedItem="{Binding Path=SelectedStatusViewModel}" ItemContainerStyle="{StaticResource NoSelectionListBoxItemStyle}" 
+                 Padding="18,15">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border Style="{StaticResource BorderStyle}" Margin="0,5">
+                        <Grid>
+                            <RadioButton GroupName="StatusGroup" Content="{Binding Path=Title}" Style="{StaticResource RadioButtonStyle}" IsChecked="{Binding IsChecked}"/>
+                            <Label Content="{Binding Path=Description}" Style="{StaticResource TransitionLabelStyle}" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
         <Label Content="{x:Static resx:Strings.MuteWindow_CommentLabel}" Style="{StaticResource LabelStyle}" />
-        <TextBox Name="txtComment" Style="{StaticResource TextStyle}"/>
+        <TextBox Text="{Binding Path=Comment, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextStyle}"/>
         <TextBlock Style="{StaticResource FormattingHelpBlock}">           
             <Hyperlink Name="FormattingHelpHyperlink" NavigateUri="" RequestNavigate="FormattingHelpHyperlink_RequestNavigate">
                 <Run Text="{x:Static resx:Strings.MuteWindow_FormattingHelpLink}" />
@@ -118,6 +119,7 @@
             <Run Text="{x:Static resx:Strings.MuteWindow_FormattingHelpExamples}" />
         </TextBlock>
         <Button Name="Cancel" Content="{x:Static resx:Strings.MuteWindow_CancelButton}" Style="{StaticResource CancelButtonStyle}" Click="Cancel_Click"/>
-        <Button Name="Submit" Content="{x:Static resx:Strings.MuteWindow_SubmitButton}" Style="{StaticResource SubmitButtonStyle}" Click="Submit_Click"/>
+        <Button Name="Submit" Content="{x:Static resx:Strings.MuteWindow_SubmitButton}" Style="{StaticResource SubmitButtonStyle}" IsEnabled="{Binding Path=IsSubmitButtonEnabled, Mode=OneWay}" 
+                Click="Submit_Click"/>
     </Grid>
 </vsui:DialogWindow>

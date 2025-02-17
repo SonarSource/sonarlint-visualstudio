@@ -53,9 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Transition
 
             return new MuteIssuesWindowResponse
             {
-                Result = dialogResult.GetValueOrDefault(),
-                IssueTransition = dialog.SelectedIssueTransition.GetValueOrDefault(),
-                Comment = dialog.Comment
+                Result = dialogResult.GetValueOrDefault(), IssueTransition = dialog.ViewModel.SelectedStatusViewModel?.Transition, Comment = dialog.ViewModel?.Comment
             };
         }
     }

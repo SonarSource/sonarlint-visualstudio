@@ -18,14 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.WPF;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Core.Transition
+namespace SonarLint.VisualStudio.Integration.Transition;
+
+public class StatusViewModel(SonarQubeIssueTransition transition, string title, string description) : ViewModelBase
 {
-    public class MuteIssuesWindowResponse
+    private bool isChecked;
+
+    public SonarQubeIssueTransition Transition { get; } = transition;
+    public string Title { get; } = title;
+    public string Description { get; } = description;
+
+    public bool IsChecked
     {
-        public bool Result { get; set; }
-        public SonarQubeIssueTransition? IssueTransition { get; set; }
-        public string Comment { get; set; }
+        get => isChecked;
+        set
+        {
+            isChecked = value;
+            RaisePropertyChanged();
+        }
     }
 }
