@@ -20,6 +20,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Navigation;
 using Microsoft.VisualStudio.PlatformUI;
@@ -62,5 +63,13 @@ public partial class MuteWindowDialog : DialogWindow
 
         browserService.Navigate(isSonarCloud ? $"{serverUri}markdown/help" : $"{serverUri}formatting/help");
         e.Handled = true;
+    }
+
+    private void Border_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: StatusViewModel statusViewModel })
+        {
+            statusViewModel.IsChecked = !statusViewModel.IsChecked;
+        }
     }
 }
