@@ -18,29 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
-
-[Export(typeof(ISuppressedIssuesCalculatorFactory))]
-[PartCreationPolicy(CreationPolicy.NonShared)]
-[method: ImportingConstructor]
-internal class SuppressedIssuesCalculatorFactory(ILogger logger, IRoslynSettingsFileStorage roslynSettingsFileStorage) : ISuppressedIssuesCalculatorFactory
-{
-    internal const string SuppressedIssuesCalculatorLogContext = "Suppressed Issues Calculator";
-    private readonly ILogger logger = logger.ForContext(SuppressedIssuesCalculatorLogContext);
-
-    public ISuppressedIssuesCalculator CreateAllSuppressedIssuesCalculator(IEnumerable<SonarQubeIssue> sonarQubeIssues) => new AllSuppressedIssuesCalculator(logger, sonarQubeIssues);
-
-    public ISuppressedIssuesCalculator CreateNewSuppressedIssuesCalculator(IEnumerable<SonarQubeIssue> sonarQubeIssues) =>
-        new NewSuppressedIssuesCalculator(logger, roslynSettingsFileStorage, sonarQubeIssues);
-
-    public ISuppressedIssuesCalculator CreateSuppressedIssuesRemovedCalculator(IEnumerable<string> issueServerKeys) =>
-        new SuppressedIssuesRemovedCalculator(logger, roslynSettingsFileStorage, issueServerKeys);
-}
 
 internal abstract class SuppressedIssuesCalculatorBase : ISuppressedIssuesCalculator
 {

@@ -151,20 +151,28 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
                 return;
             }
 
-            lock (lockObject)
-            {
-                var suppressionsToAdd = suppressedIssuesCalculator.GetSuppressedIssuesOrNull(solutionNameWithoutExtension);
-                if (suppressionsToAdd == null)
-                {
-                    return;
-                }
-                var roslynSettings = new RoslynSettings { SonarProjectKey = sonarProjectKey, Suppressions = suppressionsToAdd };
-                roslynSettingsFileStorage.Update(roslynSettings, solutionNameWithoutExtension);
-            }
+            SafeUpdateRoslynSettingsFileStorage(suppressedIssuesCalculator, solutionNameWithoutExtension, sonarProjectKey);
         }
         finally
         {
             CodeMarkers.Instance.FileSynchronizerUpdateStop();
+        }
+    }
+
+    private void SafeUpdateRoslynSettingsFileStorage(
+        ISuppressedIssuesCalculator suppressedIssuesCalculator,
+        string solutionNameWithoutExtension,
+        string sonarProjectKey)
+    {
+        lock (lockObject)
+        {
+            var suppressionsToAdd = suppressedIssuesCalculator.GetSuppressedIssuesOrNull(solutionNameWithoutExtension);
+            if (suppressionsToAdd == null)
+            {
+                return;
+            }
+            var roslynSettings = new RoslynSettings { SonarProjectKey = sonarProjectKey, Suppressions = suppressionsToAdd };
+            roslynSettingsFileStorage.Update(roslynSettings, solutionNameWithoutExtension);
         }
     }
 }
