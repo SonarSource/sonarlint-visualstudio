@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.muteIssuesService = muteIssuesService ?? throw new ArgumentNullException(nameof(muteIssuesService));
             this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
             this.threadHandling = threadHandling ?? throw new ArgumentNullException(nameof(threadHandling));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.logger = logger.ForContext(nameof(MuteIssueCommand)) ?? throw new ArgumentNullException(nameof(logger));
             this.messageBox = messageBox ?? throw new ArgumentNullException(nameof(messageBox));
 
             // secrets should be enabled, but there is a bug, so it was on purpose disabled (See https://sonarsource.atlassian.net/browse/SLVS-1210)
@@ -162,10 +162,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
         }
 
-        private bool TryGetNonRoslynIssue(out IFilterableIssue issue)
-        {
-            return errorListHelper.TryGetIssueFromSelectedRow(out issue);
-        }
+        private bool TryGetNonRoslynIssue(out IFilterableIssue issue) => errorListHelper.TryGetIssueFromSelectedRow(out issue);
 
         private bool TryGetRoslynIssue(out IFilterableIssue issue)
         {
