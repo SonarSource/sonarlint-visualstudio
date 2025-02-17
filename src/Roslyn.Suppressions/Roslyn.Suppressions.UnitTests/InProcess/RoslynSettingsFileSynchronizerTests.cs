@@ -182,6 +182,18 @@ public class RoslynSettingsFileSynchronizerTests
     }
 
     [TestMethod]
+    public void SuppressedIssuesReloaded_SuppressedIssueCalculatorReturnsNull_DoesNothing()
+    {
+        MockConfigProvider(connectedBindingConfiguration);
+        suppressedIssuesCalculator.GetSuppressedIssuesOrNull(DefaultSln).Returns((IEnumerable<SuppressedIssue>)null);
+
+        RaiseSuppressedIssuesReloaded([csharpIssueSuppressed, vbNetIssueSuppressed]);
+
+        roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Update(default, default);
+        roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Delete(default);
+    }
+
+    [TestMethod]
     public void NewIssuesSuppressed_StandaloneMode_StorageFileDeleted()
     {
         MockConfigProvider(BindingConfiguration.Standalone);
@@ -250,6 +262,18 @@ public class RoslynSettingsFileSynchronizerTests
             .Update(Arg.Is<RoslynSettings>(x => VerifyExpectedRoslynSettings(x, expectedSonarQubeIssues)), DefaultSln);
         suppressedIssuesCalculatorFactory.Received(1).CreateNewSuppressedIssuesCalculator(sonarQubeIssues);
         suppressedIssuesCalculator.Received(1).GetSuppressedIssuesOrNull(DefaultSln);
+    }
+
+    [TestMethod]
+    public void NewIssuesSuppressed_SuppressedIssueCalculatorReturnsNull_DoesNothing()
+    {
+        MockConfigProvider(connectedBindingConfiguration);
+        suppressedIssuesCalculator.GetSuppressedIssuesOrNull(DefaultSln).Returns((IEnumerable<SuppressedIssue>)null);
+
+        RaiseNewIssuesSuppressed([csharpIssueSuppressed, vbNetIssueSuppressed]);
+
+        roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Update(default, default);
+        roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Delete(default);
     }
 
     [TestMethod]
@@ -324,6 +348,18 @@ public class RoslynSettingsFileSynchronizerTests
             .Update(Arg.Is<RoslynSettings>(x => VerifyExpectedRoslynSettings(x, expectedSonarQubeIssues)), DefaultSln);
         suppressedIssuesCalculatorFactory.Received(1).CreateSuppressedIssuesRemovedCalculator(sonarQubeIssues);
         suppressedIssuesCalculator.Received(1).GetSuppressedIssuesOrNull(DefaultSln);
+    }
+
+    [TestMethod]
+    public void NewIssuesResolved_SuppressedIssueCalculatorReturnsNull_DoesNothing()
+    {
+        MockConfigProvider(connectedBindingConfiguration);
+        suppressedIssuesCalculator.GetSuppressedIssuesOrNull(DefaultSln).Returns((IEnumerable<SuppressedIssue>)null);
+
+        RaiseSuppressionsRemoved([csharpIssueSuppressed.IssueKey, vbNetIssueSuppressed.IssueKey]);
+
+        roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Update(default, default);
+        roslynSettingsFileStorage.DidNotReceiveWithAnyArgs().Delete(default);
     }
 
     private void MockConfigProvider(BindingConfiguration configuration) => configProvider.GetConfiguration().Returns(configuration);
