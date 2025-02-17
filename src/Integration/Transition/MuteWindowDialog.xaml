@@ -9,6 +9,7 @@
              mc:Ignorable="d" 
              SizeToContent="WidthAndHeight"
              x:Name="MuteWindow"
+             Background="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUIBackgroundKey}}"
              Title="{x:Static resx:Strings.MuteWindow_Title}">
     <vsui:DialogWindow.Resources>
         <Style x:Key="RadioButtonStyle" TargetType="RadioButton">
@@ -19,7 +20,7 @@
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}"/>
         </Style>
         <Style x:Key="BorderStyle" TargetType="Border">
-            <Setter Property="BorderBrush" Value="Black" />
+            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}"/>
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="Height" Value="75" />
@@ -29,42 +30,16 @@
             <EventSetter Event="MouseLeftButtonDown" Handler="Border_MouseDown" />
         </Style>
         <Style x:Key="LabelStyle" TargetType="Label">
-            <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="VerticalAlignment" Value="Top" />
-            <Setter Property="Margin" Value="20,200,0,0" />
+            <Setter Property="Margin" Value="-5,0,0,0" />
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}"/>
-        </Style>
-        <Style x:Key="TransitionLabelStyle" BasedOn="{StaticResource LabelStyle}" TargetType="Label">
-            <Setter Property="Margin" Value="10,36,0,0" />
         </Style>
         <Style x:Key="ButtonStyle" TargetType="Button">
             <Setter Property="Padding" Value="5,1"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
         </Style>
-        <Style x:Key="CancelButtonStyle" BasedOn="{StaticResource ButtonStyle}" TargetType="Button">
-            <Setter Property="Margin" Value="324,320,0,0"/>
-        </Style>
-        <Style x:Key="SubmitButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonStyle}">
-            <Setter Property="Margin" Value="384,320,0,0" />
-            <Setter Property="IsEnabled" Value="False"/>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Path=IsChecked, ElementName=rbWontFix}" Value="True">
-                    <Setter Property="IsEnabled" Value="True"/>
-                </DataTrigger>
-
-                <DataTrigger Binding="{Binding Path=IsChecked, ElementName=rbAccept}" Value="True">
-                    <Setter Property="IsEnabled" Value="True"/>
-                </DataTrigger>
-
-                <DataTrigger Binding="{Binding Path=IsChecked, ElementName=rbFalsePositive}" Value="True">
-                    <Setter Property="IsEnabled" Value="True"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
         <Style x:Key="TextStyle" TargetType="TextBox">
-            <Setter Property="Margin" Value="0,225,0,0" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="Height" Value="60" />
             <Setter Property="VerticalAlignment" Value="Top" />
             <Setter Property="Width" Value="450" />
@@ -75,11 +50,9 @@
         </Style>
         <Style x:Key="FormattingHelpBlock" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.CaptionTextKey}}" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="LineStackingStrategy" Value="MaxHeight" />
-            <Setter Property="Margin" Value="0,290,0,0" />
             <Setter Property="VerticalAlignment" Value="Top" />
-            <Setter Property="Width" Value="450" />
         </Style>
         <Style x:Key="NoSelectionListBoxItemStyle" TargetType="ListBoxItem">
             <Setter Property="Background" Value="Transparent"/>
@@ -96,30 +69,55 @@
             </Setter>
         </Style>
     </vsui:DialogWindow.Resources>
-    <Grid Height="350" Width="500" Background="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUIBackgroundKey}}" DataContext="{Binding ElementName=MuteWindow, Path=ViewModel}">
-        <ListBox ItemsSource="{Binding AllowedStatusViewModels}" SelectedItem="{Binding Path=SelectedStatusViewModel}" ItemContainerStyle="{StaticResource NoSelectionListBoxItemStyle}" 
-                 Padding="18,15">
+    <Grid Height="350" Width="500" Margin="0,10" DataContext="{Binding ElementName=MuteWindow, Path=ViewModel}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ListBox Grid.Row="0" ItemsSource="{Binding AllowedStatusViewModels}" SelectedItem="{Binding Path=SelectedStatusViewModel}" ItemContainerStyle="{StaticResource NoSelectionListBoxItemStyle}"
+                 Background="Transparent" ScrollViewer.VerticalScrollBarVisibility="Hidden" BorderBrush="Transparent" HorizontalAlignment="Center" Margin="0,10,0,0">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Border Style="{StaticResource BorderStyle}" Margin="0,5">
                         <Grid>
-                            <RadioButton GroupName="StatusGroup" Content="{Binding Path=Title}" Style="{StaticResource RadioButtonStyle}" IsChecked="{Binding IsChecked}"/>
-                            <Label Content="{Binding Path=Description}" Style="{StaticResource TransitionLabelStyle}" />
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <RadioButton Grid.Row="0" GroupName="StatusGroup" Content="{Binding Path=Title}" Style="{StaticResource RadioButtonStyle}" IsChecked="{Binding IsChecked}"/>
+                            <Label Grid.Row="1" Content="{Binding Path=Description}" Style="{StaticResource LabelStyle}" Margin="5,10" />
                         </Grid>
                     </Border>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <Label Content="{x:Static resx:Strings.MuteWindow_CommentLabel}" Style="{StaticResource LabelStyle}" />
-        <TextBox Text="{Binding Path=Comment, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextStyle}"/>
-        <TextBlock Style="{StaticResource FormattingHelpBlock}">           
-            <Hyperlink Name="FormattingHelpHyperlink" NavigateUri="" RequestNavigate="FormattingHelpHyperlink_RequestNavigate">
-                <Run Text="{x:Static resx:Strings.MuteWindow_FormattingHelpLink}" />
-            </Hyperlink>
-            <Run Text="{x:Static resx:Strings.MuteWindow_FormattingHelpExamples}" />
-        </TextBlock>
-        <Button Name="Cancel" Content="{x:Static resx:Strings.MuteWindow_CancelButton}" Style="{StaticResource CancelButtonStyle}" Click="Cancel_Click"/>
-        <Button Name="Submit" Content="{x:Static resx:Strings.MuteWindow_SubmitButton}" Style="{StaticResource SubmitButtonStyle}" IsEnabled="{Binding Path=IsSubmitButtonEnabled, Mode=OneWay}" 
-                Click="Submit_Click"/>
+        <Grid Grid.Row="1" Margin="0, 10" HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> 
+                <RowDefinition Height="*"/> 
+                <RowDefinition Height="Auto"/> 
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" Content="{x:Static resx:Strings.MuteWindow_CommentLabel}" Style="{StaticResource LabelStyle}"/>
+            <TextBox Grid.Row="1" Text="{Binding Path=Comment, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextStyle}" />
+            <TextBlock Grid.Row="2" Style="{StaticResource FormattingHelpBlock}" Margin="0,5">           
+                <Hyperlink Name="FormattingHelpHyperlink" NavigateUri="" RequestNavigate="FormattingHelpHyperlink_RequestNavigate">
+                    <Run Text="{x:Static resx:Strings.MuteWindow_FormattingHelpLink}" />
+                </Hyperlink>
+                <Run Text="{x:Static resx:Strings.MuteWindow_FormattingHelpExamples}" />
+            </TextBlock>
+        </Grid>
+        <Grid Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10,0,25,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Margin="10,0" Name="Cancel" Content="{x:Static resx:Strings.MuteWindow_CancelButton}" Style="{StaticResource ButtonStyle}" Click="Cancel_Click"/>
+            <Button Grid.Column="1" Name="Submit" Content="{x:Static resx:Strings.MuteWindow_SubmitButton}" Style="{StaticResource ButtonStyle}" 
+                    IsEnabled="{Binding Path=IsSubmitButtonEnabled, Mode=OneWay}" Click="Submit_Click"/>
+        </Grid>
     </Grid>
 </vsui:DialogWindow>
