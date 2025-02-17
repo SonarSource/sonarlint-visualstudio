@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarLint.VisualStudio.SLCore;
-
 namespace SonarLint.VisualStudio.ConnectedMode.Transition;
 
 public class MuteIssueException : Exception
@@ -28,25 +26,15 @@ public class MuteIssueException : Exception
     {
     }
 
-    private MuteIssueException(string message)
+    public MuteIssueException(string message)
         : base(message)
     {
     }
 
-    private MuteIssueException(string message, Exception innerException)
-        : base(message, innerException)
+    public MuteIssueException(Exception ex)
+        : base(ex.Message, ex.InnerException)
     {
     }
 
-    internal class UnavailableServiceProviderException() : MuteIssueException(SLCoreStrings.ServiceProviderNotInitialized);
-
-    internal class ServerIssueNotFoundException() : MuteIssueException(Resources.MuteIssue_IssueNotFound);
-
-    internal class NotInConnectedModeException() : MuteIssueException(Resources.MuteIssue_NotInConnectedMode);
-
-    internal class NotPermittedException(string reason) : MuteIssueException(reason);
-
-    internal class SlCoreException(Exception ex) : MuteIssueException(ex.Message, ex.InnerException);
-
-    public class CancelledException : MuteIssueException;
+    public class MuteIssueCancelledException : MuteIssueException;
 }

@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Transition;
+using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Issue;
 using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
@@ -77,62 +78,68 @@ public class MuteIssuesServiceTests
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<MuteIssuesService>();
 
     [TestMethod]
-    public void ResolveIssueWithDialogAsync_WhenIssueServerKeyIsNull_Throws()
+    public void ResolveIssueWithDialogAsync_WhenIssueServerKeyIsNull_LogsAndThrows()
     {
         var act = () => testSubject.ResolveIssueWithDialogAsync(null);
 
-        act.Should().Throw<MuteIssueException.ServerIssueNotFoundException>();
+        act.Should().Throw<MuteIssueException>().WithMessage(Resources.MuteIssue_IssueNotFound);
+        logger.AssertPartialOutputStrings(Resources.MuteIssue_IssueNotFound);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialogAsync_WhenConfigScopeIsNotSet_Throws()
+    public void ResolveIssueWithDialogAsync_WhenConfigScopeIsNotSet_LogsAndThrows()
     {
         activeConfigScopeTracker.Current.ReturnsNull();
 
         var act = () => testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
-        act.Should().Throw<MuteIssueException.NotInConnectedModeException>();
+        act.Should().Throw<MuteIssueException>().WithMessage(Resources.MuteIssue_NotInConnectedMode);
+        logger.AssertPartialOutputStrings(Resources.MuteIssue_NotInConnectedMode);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialogAsync_WhenNotInConnectedMode_Throws()
+    public void ResolveIssueWithDialogAsync_WhenNotInConnectedMode_LogsAndThrows()
     {
         NotInConnectedMode();
 
         var act = () => testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
-        act.Should().Throw<MuteIssueException.NotInConnectedModeException>();
+        act.Should().Throw<MuteIssueException>().WithMessage(Resources.MuteIssue_NotInConnectedMode);
+        logger.AssertPartialOutputStrings(Resources.MuteIssue_NotInConnectedMode);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialogAsync_WhenServiceProviderNotInitialized_Throws()
+    public void ResolveIssueWithDialogAsync_WhenServiceProviderNotInitialized_LogsAndThrows()
     {
         ServiceProviderNotInitialized();
 
         var act = () => testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
-        act.Should().Throw<MuteIssueException.SlCoreException>();
+        act.Should().Throw<MuteIssueException>().WithMessage(SLCoreStrings.ServiceProviderNotInitialized);
+        logger.AssertPartialOutputStringExists(SLCoreStrings.ServiceProviderNotInitialized);
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialogAsync_WhenFailedToGetAllowedStatuses_Throws()
+    public void ResolveIssueWithDialogAsync_WhenFailedToGetAllowedStatuses_LogsAndThrows()
     {
         issueSlCoreService.CheckStatusChangePermittedAsync(Arg.Any<CheckStatusChangePermittedParams>()).ThrowsAsync(_ => throw new Exception("Some error"));
 
         var act = () => testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
-        act.Should().Throw<MuteIssueException.SlCoreException>().WithMessage("Some error");
+        act.Should().Throw<MuteIssueException>().WithMessage("Some error");
+        logger.AssertPartialOutputStrings("Some error");
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialogAsync_WhenNotPermitted_ThrowsWithReason()
+    public void ResolveIssueWithDialogAsync_WhenNotPermitted_LogsAndThrowsWithReason()
     {
         var notPermittedResponse = new CheckStatusChangePermittedResponse(permitted: false, notPermittedReason: "Some reason", allowedStatuses: []);
         issueSlCoreService.CheckStatusChangePermittedAsync(Arg.Any<CheckStatusChangePermittedParams>()).Returns(notPermittedResponse);
 
         var act = () => testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
-        act.Should().Throw<MuteIssueException.NotPermittedException>().WithMessage("Some reason");
+        act.Should().Throw<MuteIssueException>().WithMessage("Some reason");
+        logger.AssertPartialOutputStrings(string.Format(Resources.MuteIssue_NotPermitted, AnIssueServerKey, "Some reason"));
     }
 
     [TestMethod]
@@ -155,7 +162,7 @@ public class MuteIssuesServiceTests
 
         var act = () => testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
-        act.Should().Throw<MuteIssueException.CancelledException>();
+        act.Should().Throw<MuteIssueException.MuteIssueCancelledException>();
     }
 
     [TestMethod]
@@ -216,7 +223,7 @@ public class MuteIssuesServiceTests
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialogAsync_WhenMuteIssueFails_Throws()
+    public void ResolveIssueWithDialogAsync_WhenMuteIssueFails_LogsAndThrows()
     {
         MuteIssuePermitted();
         muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept });
@@ -224,7 +231,8 @@ public class MuteIssuesServiceTests
 
         var act = () => testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
-        act.Should().Throw<MuteIssueException.SlCoreException>().WithMessage("Some error");
+        act.Should().Throw<MuteIssueException>().WithMessage("Some error");
+        logger.AssertPartialOutputStrings("Some error");
     }
 
     private void NotInConnectedMode() => activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope("CONFIG_SCOPE_ID"));

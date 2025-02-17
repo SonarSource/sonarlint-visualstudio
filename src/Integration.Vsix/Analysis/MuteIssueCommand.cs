@@ -189,7 +189,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted, issueServerKey);
                 return true;
             }
-            catch (MuteIssueException.CancelledException)
+            catch (MuteIssueException.MuteIssueCancelledException)
             {
                 return false;
             }

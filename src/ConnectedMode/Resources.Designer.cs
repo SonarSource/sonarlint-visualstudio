@@ -412,6 +412,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Issue muting was not permitted [issueKey: {0}]: {1}.
+        /// </summary>
+        internal static string MuteIssue_NotPermitted {
+            get {
+                return ResourceManager.GetString("MuteIssue_NotPermitted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {null}.
         /// </summary>
         internal static string NullBranchName {

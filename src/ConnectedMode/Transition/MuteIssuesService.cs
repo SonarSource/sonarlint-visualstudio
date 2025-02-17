@@ -66,7 +66,7 @@ internal class MuteIssuesService(
             return windowResponse;
         }
 
-        throw new MuteIssueException.CancelledException();
+        throw new MuteIssueException.MuteIssueCancelledException();
     }
 
     private void CheckIssueServerKeyNotNull(string issueServerKey)
@@ -77,7 +77,7 @@ internal class MuteIssuesService(
         }
 
         logger.WriteLine(Resources.MuteIssue_IssueNotFound);
-        throw new MuteIssueException.ServerIssueNotFoundException();
+        throw new MuteIssueException(Resources.MuteIssue_IssueNotFound);
     }
 
     private void CheckIsInConnectedMode(Core.ConfigurationScope.ConfigurationScope currentConfigScope)
@@ -88,7 +88,7 @@ internal class MuteIssuesService(
         }
 
         logger.WriteLine(Resources.MuteIssue_NotInConnectedMode);
-        throw new MuteIssueException.NotInConnectedModeException();
+        throw new MuteIssueException(Resources.MuteIssue_NotInConnectedMode);
     }
 
     private IIssueSLCoreService GetIssueSlCoreService()
@@ -99,7 +99,7 @@ internal class MuteIssuesService(
         }
 
         logger.WriteLine(SLCoreStrings.ServiceProviderNotInitialized);
-        throw new MuteIssueException.UnavailableServiceProviderException();
+        throw new MuteIssueException(SLCoreStrings.ServiceProviderNotInitialized);
     }
 
     private async Task<List<ResolutionStatus>> GetAllowedStatusesAsync(string connectionId, string issueServerKey)
@@ -114,13 +114,15 @@ internal class MuteIssuesService(
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
             logger.WriteLine(Resources.MuteIssue_AnErrorOccurred, issueServerKey, ex.Message);
-            throw new MuteIssueException.SlCoreException(ex);
+            throw new MuteIssueException(ex);
         }
 
         if (!response.permitted)
         {
-            throw new MuteIssueException.NotPermittedException(response.notPermittedReason);
+            logger.WriteLine(Resources.MuteIssue_NotPermitted, issueServerKey, response.notPermittedReason);
+            throw new MuteIssueException(response.notPermittedReason);
         }
+
         return response.allowedStatuses;
     }
 
@@ -146,7 +148,7 @@ internal class MuteIssuesService(
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
             logger.WriteLine(Resources.MuteIssue_AnErrorOccurred, issueServerKey, ex.Message);
-            throw new MuteIssueException.SlCoreException(ex);
+            throw new MuteIssueException(ex);
         }
     }
 
