@@ -197,11 +197,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This issue is already resolved on the server. It will be removed from the Error List after the next SonarQube for Visual Studio analysis..
+        /// </summary>
+        internal static string MuteIssue_ErrorIssueAlreadyResolved {
+            get {
+                return ResourceManager.GetString("MuteIssue_ErrorIssueAlreadyResolved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error when muting the issue. Error {0}.
         /// </summary>
         internal static string MuteIssue_ErrorMutingIssue {
             get {
                 return ResourceManager.GetString("MuteIssue_ErrorMutingIssue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mute Issue Failure.
+        /// </summary>
+        internal static string MuteIssue_FailureCaption {
+            get {
+                return ResourceManager.GetString("MuteIssue_FailureCaption", resourceCulture);
             }
         }
         
@@ -215,38 +233,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Outdated Analysis Report.
+        ///   Looks up a localized string similar to Issue is resolved but an error occured while adding the comment, please refer to the logs for more information..
         /// </summary>
-        internal static string MuteIssue_IssueAlreadyMutedCaption {
+        internal static string MuteIssue_MessageBox_AddCommentFailed {
             get {
-                return ResourceManager.GetString("MuteIssue_IssueAlreadyMutedCaption", resourceCulture);
+                return ResourceManager.GetString("MuteIssue_MessageBox_AddCommentFailed", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This issue is already resolved on the server. It will be removed from the Error List after the next SonarQube for Visual Studio analysis..
+        ///   Looks up a localized string similar to Mute Issue Warning.
         /// </summary>
-        internal static string MuteIssue_IssueAlreadyMutedText {
+        internal static string MuteIssue_WarningCaption {
             get {
-                return ResourceManager.GetString("MuteIssue_IssueAlreadyMutedText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failure.
-        /// </summary>
-        internal static string MuteIssue_IssueNotFoundCaption {
-            get {
-                return ResourceManager.GetString("MuteIssue_IssueNotFoundCaption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not find a matching issue on the server..
-        /// </summary>
-        internal static string MuteIssue_IssueNotFoundText {
-            get {
-                return ResourceManager.GetString("MuteIssue_IssueNotFoundText", resourceCulture);
+                return ResourceManager.GetString("MuteIssue_WarningCaption", resourceCulture);
             }
         }
         
