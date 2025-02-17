@@ -24,27 +24,33 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
 {
     internal static class TestHelper
     {
-        public static SuppressedIssue CreateIssue(string ruleId = "ruleId",
+        public static SuppressedIssue CreateIssue(
+            string ruleId = "ruleId",
             string path = "path",
             int? line = 0,
             string hash = "hash",
-            RoslynLanguage language = RoslynLanguage.CSharp) => new SuppressedIssue
+            RoslynLanguage language = RoslynLanguage.CSharp,
+            string issueServerKey = "key") =>
+            new SuppressedIssue
             {
                 FilePath = path,
                 Hash = hash,
                 RoslynLanguage = language,
                 RoslynRuleId = ruleId,
-                RoslynIssueLine = line
+                RoslynIssueLine = line,
+                IssueServerKey = issueServerKey
             };
 
-        public static SonarQubeIssue CreateSonarQubeIssue(string ruleId = "any",
-                int? line = null,
-                string filePath = "filePath",
-                string hash = "hash",
-                bool isSuppressed = true)
+        public static SonarQubeIssue CreateSonarQubeIssue(
+            string ruleId = "any",
+            int? line = null,
+            string filePath = "filePath",
+            string hash = "hash",
+            bool isSuppressed = true,
+            string issueKey = null)
         {
             var sonarQubeIssue = new SonarQubeIssue(
-                "issuedId",
+                issueKey ?? Guid.NewGuid().ToString(),
                 filePath,
                 hash,
                 "message",
@@ -52,17 +58,15 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.UnitTests
                 ruleId,
                 false, // isResolved
                 SonarQubeIssueSeverity.Info,
-                System.DateTimeOffset.UtcNow,
-                System.DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow,
+                DateTimeOffset.UtcNow,
                 line.HasValue ? new IssueTextRange(line.Value, line.Value, 1, 999) : null,
                 null
-                );
+            );
 
             sonarQubeIssue.IsResolved = isSuppressed;
 
             return sonarQubeIssue;
         }
     }
-
-
 }

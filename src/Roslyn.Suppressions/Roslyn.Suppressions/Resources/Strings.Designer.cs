@@ -104,5 +104,32 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.Resources {
                 return ResourceManager.GetString("RoslynSettingsFileStorageUpdateError", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adding new suppressions....
+        /// </summary>
+        internal static string RoslynSettingsFileSynchronizerAddNewSuppressions {
+            get {
+                return ResourceManager.GetString("RoslynSettingsFileSynchronizerAddNewSuppressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reloading issue suppressions....
+        /// </summary>
+        internal static string RoslynSettingsFileSynchronizerReloadSuppressions {
+            get {
+                return ResourceManager.GetString("RoslynSettingsFileSynchronizerReloadSuppressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removing suppressions....
+        /// </summary>
+        internal static string RoslynSettingsFileSynchronizerRemoveSuppressions {
+            get {
+                return ResourceManager.GetString("RoslynSettingsFileSynchronizerRemoveSuppressions", resourceCulture);
+            }
+        }
     }
 }
