@@ -189,7 +189,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted, issueServerKey);
                 return true;
             }
-            catch (MuteIssueException ex) when (ex is not MuteIssueException.CancelledException)
+            catch (MuteIssueException.CancelledException)
+            {
+                return false;
+            }
+            catch (MuteIssueException ex)
             {
                 messageBox.Show(ex.Message, AnalysisStrings.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 return false;
