@@ -19,9 +19,11 @@
  */
 
 using System.ComponentModel.Design;
+using System.Windows;
 using Microsoft.VisualStudio.OLE.Interop;
 using NSubstitute.ExceptionExtensions;
 using SonarLint.VisualStudio.ConnectedMode;
+using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Binding;
@@ -31,6 +33,7 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.TestInfrastructure.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis;
 
@@ -215,14 +218,7 @@ public class MuteIssueCommandTests
     [TestMethod]
     public void Execute_WithRoslynIssue_MutesIssue()
     {
-        var roslynIssue = Substitute.For<IFilterableRoslynIssue>();
-        var sonarQubeIssue = DummySonarQubeIssueFactory.CreateServerIssue();
-        errorListHelper.TryGetIssueFromSelectedRow(out _).Returns(x =>
-        {
-            x[0] = roslynIssue;
-            return true;
-        });
-        serverIssueFinder.FindServerIssueAsync(roslynIssue, Arg.Any<CancellationToken>()).Returns(sonarQubeIssue);
+        var roslynIssue = SetupRoslynIssue(out var sonarQubeIssue);
 
         testSubjectMenuCommand.Invoke();
 
@@ -234,12 +230,7 @@ public class MuteIssueCommandTests
     [TestMethod]
     public void Execute_WithNonRoslynIssue_MutesIssue()
     {
-        var issue = CreateNonRoslynIssue();
-        errorListHelper.TryGetIssueFromSelectedRow(out _).Returns(x =>
-        {
-            x[0] = issue;
-            return true;
-        });
+        var issue = SetupNonRoslynIssue();
 
         testSubjectMenuCommand.Invoke();
 
@@ -269,6 +260,54 @@ public class MuteIssueCommandTests
     }
 
     [TestMethod]
+    public void Execute_WithNonRoslynIssue_WhenMuteIssueException_CatchesAndShowsMessageBox()
+    {
+        SetupNonRoslynIssue();
+        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<string>()).ThrowsAsync(new MuteIssueException("Error while muting"));
+
+        var act = () => testSubjectMenuCommand.Invoke();
+
+        act.Should().NotThrow();
+        AssertMessageBoxShown();
+    }
+
+    [TestMethod]
+    public void Execute_WithRoslynIssue_WhenMuteIssueException_CatchesAndShowsMessageBox()
+    {
+        SetupRoslynIssue(out _);
+        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<string>()).ThrowsAsync(new MuteIssueException("Error while muting"));
+
+        var act = () => testSubjectMenuCommand.Invoke();
+
+        act.Should().NotThrow();
+        AssertMessageBoxShown();
+    }
+
+    [TestMethod]
+    public void Execute_WithNonRoslynIssue_WhenMuteIssueCancelledException_Catches()
+    {
+        SetupNonRoslynIssue();
+        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<string>()).ThrowsAsync(new MuteIssueException.MuteIssueCancelledException());
+
+        var act = () => testSubjectMenuCommand.Invoke();
+
+        act.Should().NotThrow();
+        messageBox.DidNotReceiveWithAnyArgs().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
+    }
+
+    [TestMethod]
+    public void Execute_WithRoslynIssue_WhenMuteIssueCancelledException_Catches()
+    {
+        SetupRoslynIssue(out _);
+        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<string>()).ThrowsAsync(new MuteIssueException.MuteIssueCancelledException());
+
+        var act = () => testSubjectMenuCommand.Invoke();
+
+        act.Should().NotThrow();
+        messageBox.DidNotReceiveWithAnyArgs().Show(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<MessageBoxButton>(), Arg.Any<MessageBoxImage>());
+    }
+
+    [TestMethod]
     public void SupportedRepos_AllKnownLanguagesAreSupportedExceptSecrets()
     {
         var supportedRepos = testSubject.SupportedRepos;
@@ -278,11 +317,33 @@ public class MuteIssueCommandTests
         supportedRepos.Should().HaveCount(languageProvider.AllKnownLanguages.Count - 1);
     }
 
-    private static IAnalysisIssueVisualization CreateNonRoslynIssue()
+    private IFilterableRoslynIssue SetupRoslynIssue(out SonarQubeIssue sonarQubeIssue)
+    {
+        var roslynIssue = Substitute.For<IFilterableRoslynIssue>();
+        sonarQubeIssue = DummySonarQubeIssueFactory.CreateServerIssue();
+        errorListHelper.TryGetIssueFromSelectedRow(out _).Returns(x =>
+        {
+            x[0] = roslynIssue;
+            return true;
+        });
+        serverIssueFinder.FindServerIssueAsync(roslynIssue, Arg.Any<CancellationToken>()).Returns(sonarQubeIssue);
+        return roslynIssue;
+    }
+
+    private IAnalysisIssueVisualization SetupNonRoslynIssue()
     {
         var issue = Substitute.For<IAnalysisIssueVisualization>();
         issue.Issue.Returns(new AnalysisIssue(Guid.NewGuid(), "ruleKey", "issueServerKey", false, AnalysisIssueSeverity.Major, AnalysisIssueType.Bug, null, Substitute.For<IAnalysisIssueLocation>(),
             []));
+
+        errorListHelper.TryGetIssueFromSelectedRow(out _).Returns(x =>
+        {
+            x[0] = issue;
+            return true;
+        });
+
         return issue;
     }
+
+    private void AssertMessageBoxShown() => messageBox.Received(1).Show("Error while muting", AnalysisStrings.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
 }
