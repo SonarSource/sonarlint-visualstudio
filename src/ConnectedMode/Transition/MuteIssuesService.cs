@@ -26,7 +26,6 @@ using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Issue;
 using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Transition;
 
@@ -132,7 +131,7 @@ internal class MuteIssuesService(
         try
         {
             var issueSlCoreService = GetIssueSlCoreService();
-            var newStatus = MapSonarQubeIssueTransitionToSlCoreResolutionStatus(transition);
+            var newStatus = windowResponse.IssueTransition.Value.ToSlCoreResolutionStatus();
             await issueSlCoreService.ChangeStatusAsync(new ChangeIssueStatusParams
             (
                 configurationScopeId,
@@ -164,13 +163,4 @@ internal class MuteIssuesService(
             throw new MuteIssueException.MuteIssueCommentFailedException();
         }
     }
-
-    private static ResolutionStatus MapSonarQubeIssueTransitionToSlCoreResolutionStatus(SonarQubeIssueTransition sonarQubeIssueTransition) =>
-        sonarQubeIssueTransition switch
-        {
-            SonarQubeIssueTransition.FalsePositive => ResolutionStatus.FALSE_POSITIVE,
-            SonarQubeIssueTransition.WontFix => ResolutionStatus.WONT_FIX,
-            SonarQubeIssueTransition.Accept => ResolutionStatus.ACCEPT,
-            _ => throw new ArgumentOutOfRangeException(nameof(sonarQubeIssueTransition), sonarQubeIssueTransition, null)
-        };
 }
