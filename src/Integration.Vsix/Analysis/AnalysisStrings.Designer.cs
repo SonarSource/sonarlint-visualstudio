@@ -197,6 +197,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This issue is already resolved on the server. It will be removed from the Error List after the next SonarQube for Visual Studio analysis..
+        /// </summary>
+        internal static string MuteIssue_ErrorIssueAlreadyResolved {
+            get {
+                return ResourceManager.GetString("MuteIssue_ErrorIssueAlreadyResolved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error when muting the issue. Error {0}.
         /// </summary>
         internal static string MuteIssue_ErrorMutingIssue {

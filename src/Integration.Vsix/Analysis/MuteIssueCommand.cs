@@ -178,10 +178,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private async Task<bool> MuteIssueAsync(IFilterableIssue issue)
         {
-            var issueServerKey = await GetIssueServerKeyAsync(issue);
-
             try
             {
+                var issueServerKey = await GetIssueServerKeyAsync(issue);
                 await muteIssuesService.ResolveIssueWithDialogAsync(issueServerKey);
                 logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted, issueServerKey);
                 return true;
@@ -212,6 +211,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
             // Roslyn issues need to be converted to SonarQube issues to get the server key as they are handled by SLCore
             var serverIssue = await serverIssueFinder.FindServerIssueAsync(issue, CancellationToken.None);
+            if (serverIssue is { IsResolved: true })
+            {
+                logger.WriteLine(AnalysisStrings.MuteIssue_ErrorIssueAlreadyResolved, issue);
+                throw new MuteIssueException(AnalysisStrings.MuteIssue_ErrorIssueAlreadyResolved);
+            }
             return serverIssue?.IssueKey;
         }
 

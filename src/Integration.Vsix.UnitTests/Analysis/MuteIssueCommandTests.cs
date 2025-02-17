@@ -268,7 +268,19 @@ public class MuteIssueCommandTests
         var act = () => testSubjectMenuCommand.Invoke();
 
         act.Should().NotThrow();
-        AssertMessageBoxShown();
+        AssertMessageBoxShown("Error while muting");
+    }
+
+    [TestMethod]
+    public void Execute_WithRoslynIssue_WhenAlreadyResolvedOnServer_CatchesAndShowsMessageBox()
+    {
+        SetupRoslynIssue(out var sonarQubeIssue);
+        sonarQubeIssue.IsResolved = true;
+
+        var act = () => testSubjectMenuCommand.Invoke();
+
+        act.Should().NotThrow();
+        AssertMessageBoxShown(AnalysisStrings.MuteIssue_ErrorIssueAlreadyResolved);
     }
 
     [TestMethod]
@@ -280,7 +292,7 @@ public class MuteIssueCommandTests
         var act = () => testSubjectMenuCommand.Invoke();
 
         act.Should().NotThrow();
-        AssertMessageBoxShown();
+        AssertMessageBoxShown("Error while muting");
     }
 
     [TestMethod]
@@ -369,7 +381,7 @@ public class MuteIssueCommandTests
         return issue;
     }
 
-    private void AssertMessageBoxShown() => messageBox.Received(1).Show("Error while muting", AnalysisStrings.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+    private void AssertMessageBoxShown(string message) => messageBox.Received(1).Show(message, AnalysisStrings.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
 
     private void AssertCommentFailedMessageBoxShown() => messageBox.Received(1).Show(AnalysisStrings.MuteIssue_MessageBox_AddCommentFailed, AnalysisStrings.MuteIssue_WarningCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
 }
