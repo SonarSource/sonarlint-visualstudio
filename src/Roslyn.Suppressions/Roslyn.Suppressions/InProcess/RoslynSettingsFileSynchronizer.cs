@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using System.IO;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
@@ -27,7 +26,6 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.ETW;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Roslyn.Suppressions.SettingsFile;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 
@@ -37,7 +35,6 @@ namespace SonarLint.VisualStudio.Roslyn.Suppressions.InProcess;
 /// </summary>
 public interface IRoslynSettingsFileSynchronizer : IDisposable
 {
-    Task UpdateFileStorageAsync();
 }
 
 [Export(typeof(IRoslynSettingsFileSynchronizer))]
@@ -45,91 +42,117 @@ public interface IRoslynSettingsFileSynchronizer : IDisposable
 internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchronizer
 {
     private readonly IConfigurationProvider configurationProvider;
-    private readonly ILogger logger;
+    private readonly ISuppressedIssuesCalculatorFactory suppressedIssuesCalculatorFactory;
     private readonly IRoslynSettingsFileStorage roslynSettingsFileStorage;
-    private readonly IServerIssuesStore serverIssuesStore;
     private readonly ISolutionInfoProvider solutionInfoProvider;
     private readonly ISolutionBindingRepository solutionBindingRepository;
+    private readonly ISuppressionUpdater suppressionUpdater;
     private readonly IThreadHandling threadHandling;
+    private readonly object lockObject = new();
 
     [ImportingConstructor]
     public RoslynSettingsFileSynchronizer(
-        IServerIssuesStore serverIssuesStore,
         IRoslynSettingsFileStorage roslynSettingsFileStorage,
         IConfigurationProvider configurationProvider,
         ISolutionInfoProvider solutionInfoProvider,
         ISolutionBindingRepository solutionBindingRepository,
-        ILogger logger)
-        : this(serverIssuesStore,
-            roslynSettingsFileStorage,
+        ISuppressionUpdater suppressionUpdater,
+        ISuppressedIssuesCalculatorFactory suppressedIssuesCalculatorFactory)
+        : this(roslynSettingsFileStorage,
             configurationProvider,
             solutionInfoProvider,
             solutionBindingRepository,
-            logger,
+            suppressionUpdater,
+            suppressedIssuesCalculatorFactory,
             ThreadHandling.Instance)
     {
     }
 
     internal RoslynSettingsFileSynchronizer(
-        IServerIssuesStore serverIssuesStore,
         IRoslynSettingsFileStorage roslynSettingsFileStorage,
         IConfigurationProvider configurationProvider,
         ISolutionInfoProvider solutionInfoProvider,
         ISolutionBindingRepository solutionBindingRepository,
-        ILogger logger,
+        ISuppressionUpdater suppressionUpdater,
+        ISuppressedIssuesCalculatorFactory suppressedIssuesCalculatorFactory,
         IThreadHandling threadHandling)
     {
-        this.serverIssuesStore = serverIssuesStore;
         this.roslynSettingsFileStorage = roslynSettingsFileStorage;
         this.configurationProvider = configurationProvider;
         this.solutionInfoProvider = solutionInfoProvider;
         this.solutionBindingRepository = solutionBindingRepository;
-        this.logger = logger;
+        this.suppressionUpdater = suppressionUpdater;
+        this.suppressedIssuesCalculatorFactory = suppressedIssuesCalculatorFactory;
         this.threadHandling = threadHandling;
 
-        serverIssuesStore.ServerIssuesChanged += OnServerIssuesChanged;
+        this.suppressionUpdater.SuppressedIssuesReloaded += OnSuppressedIssuesReloaded;
+        this.suppressionUpdater.NewIssuesSuppressed += OnNewIssuesSuppressed;
+        this.suppressionUpdater.SuppressionsRemoved += OnSuppressionsRemoved;
         solutionBindingRepository.BindingDeleted += OnBindingDeleted;
     }
 
     private void OnBindingDeleted(object sender, LocalBindingKeyEventArgs e) => roslynSettingsFileStorage.Delete(e.LocalBindingKey);
 
+    public void Dispose()
+    {
+        solutionBindingRepository.BindingDeleted -= OnBindingDeleted;
+        suppressionUpdater.SuppressedIssuesReloaded -= OnSuppressedIssuesReloaded;
+        suppressionUpdater.NewIssuesSuppressed -= OnNewIssuesSuppressed;
+        suppressionUpdater.SuppressionsRemoved -= OnSuppressionsRemoved;
+    }
+
+    private void OnSuppressedIssuesReloaded(object sender, SuppressionsEventArgs e) =>
+        UpdateFileStorageAsync(suppressedIssuesCalculatorFactory.CreateAllSuppressedIssuesCalculator(e.SuppressedIssues)).Forget();
+
+    private void OnNewIssuesSuppressed(object sender, SuppressionsEventArgs e)
+    {
+        if (!e.SuppressedIssues.Any())
+        {
+            return;
+        }
+
+        UpdateFileStorageAsync(suppressedIssuesCalculatorFactory.CreateNewSuppressedIssuesCalculator(e.SuppressedIssues)).Forget();
+    }
+
+    private void OnSuppressionsRemoved(object sender, SuppressionsRemovedEventArgs e)
+    {
+        if (!e.IssueServerKeys.Any())
+        {
+            return;
+        }
+
+        UpdateFileStorageAsync(suppressedIssuesCalculatorFactory.CreateSuppressedIssuesRemovedCalculator(e.IssueServerKeys)).Forget();
+    }
+
     /// <summary>
     /// Updates the Roslyn suppressed issues file if in connected mode
     /// </summary>
-    /// <remarks>The method will switch to a background if required, and will *not*
-    /// return to the UI thread on completion.</remarks>
-    public async Task UpdateFileStorageAsync()
+    private async Task UpdateFileStorageAsync(ISuppressedIssuesCalculator suppressedIssuesCalculator) =>
+        await threadHandling.RunOnBackgroundThread(async () =>
+        {
+            await UpdateFileStorageIfNeededAsync(suppressedIssuesCalculator);
+            return true;
+        });
+
+    private async Task UpdateFileStorageIfNeededAsync(ISuppressedIssuesCalculator suppressedIssuesCalculator)
     {
         CodeMarkers.Instance.FileSynchronizerUpdateStart();
         try
         {
-            await threadHandling.SwitchToBackgroundThread();
-
-            var solutionNameWithoutExtension = await GetSolutionNameWithoutExtensionAsync();
+            var solutionNameWithoutExtension = await solutionInfoProvider.GetSolutionNameAsync();
             if (string.IsNullOrEmpty(solutionNameWithoutExtension))
             {
                 return;
             }
 
             var sonarProjectKey = configurationProvider.GetConfiguration().Project?.ServerProjectKey;
-            if (!string.IsNullOrEmpty(sonarProjectKey))
+            if (string.IsNullOrEmpty(sonarProjectKey))
             {
-                var allSuppressedIssues = serverIssuesStore.Get();
-                var settings = new RoslynSettings
-                {
-                    SonarProjectKey = sonarProjectKey,
-                    Suppressions = allSuppressedIssues
-                        .Where(x => x.IsResolved)
-                        .Select(x => IssueConverter.Convert(x))
-                        .Where(x => x.RoslynLanguage != RoslynLanguage.Unknown && !string.IsNullOrEmpty(x.RoslynRuleId))
-                        .ToArray()
-                };
-                roslynSettingsFileStorage.Update(settings, solutionNameWithoutExtension);
+                SafeDeleteRoslynSettingsFileStorage(solutionNameWithoutExtension);
+                return;
             }
-            else
-            {
-                roslynSettingsFileStorage.Delete(solutionNameWithoutExtension);
-            }
+
+            SafeUpdateRoslynSettingsFileStorage(suppressedIssuesCalculator, solutionNameWithoutExtension, sonarProjectKey);
         }
         finally
         {
@@ -137,83 +160,28 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         }
     }
 
-    public void Dispose()
+    private void SafeDeleteRoslynSettingsFileStorage(string solutionNameWithoutExtension)
     {
-        serverIssuesStore.ServerIssuesChanged -= OnServerIssuesChanged;
-        solutionBindingRepository.BindingDeleted -= OnBindingDeleted;
-    }
-
-    private void OnServerIssuesChanged(object sender, EventArgs e)
-    {
-        // Called on the UI thread, so unhandled exceptions will crash VS.
-        // Note: we don't expect any exceptions to be thrown, since the called method
-        // does all of its work on a background thread.
-        try
+        lock (lockObject)
         {
-            UpdateFileStorageAsync().Forget();
-        }
-        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-        {
-            // Squash non-critical exceptions
-            logger.LogVerbose(ex.ToString());
+            roslynSettingsFileStorage.Delete(solutionNameWithoutExtension);
         }
     }
 
-    private async Task<string> GetSolutionNameWithoutExtensionAsync()
+    private void SafeUpdateRoslynSettingsFileStorage(
+        ISuppressedIssuesCalculator suppressedIssuesCalculator,
+        string solutionNameWithoutExtension,
+        string sonarProjectKey)
     {
-        var fullSolutionFilePath = await solutionInfoProvider.GetFullSolutionFilePathAsync();
-        return Path.GetFileNameWithoutExtension(fullSolutionFilePath);
-    }
-
-    // Converts SonarQube issues to SuppressedIssues that can be compared more easily with Roslyn issues
-    internal static class IssueConverter
-    {
-        public static SuppressedIssue Convert(SonarQubeIssue issue)
+        lock (lockObject)
         {
-            var (repoKey, ruleKey) = GetRepoAndRuleKey(issue.RuleId);
-            var language = GetRoslynLanguage(repoKey);
-
-            var line = issue.TextRange == null ? (int?)null : issue.TextRange.StartLine - 1;
-            return new SuppressedIssue
+            var suppressionsToAdd = suppressedIssuesCalculator.GetSuppressedIssuesOrNull(solutionNameWithoutExtension);
+            if (suppressionsToAdd == null)
             {
-                RoslynRuleId = ruleKey,
-                FilePath = issue.FilePath,
-                Hash = issue.Hash,
-                RoslynLanguage = language,
-                RoslynIssueLine = line
-            };
-        }
-
-        private static (string repoKey, string ruleKey) GetRepoAndRuleKey(string sonarRuleId)
-        {
-            // Sonar rule ids are in the form "[repo key]:[rule key]"
-            var separatorPos = sonarRuleId.IndexOf(":", StringComparison.OrdinalIgnoreCase);
-            if (separatorPos > -1)
-            {
-                var repoKey = sonarRuleId.Substring(0, separatorPos);
-                var ruleKey = sonarRuleId.Substring(separatorPos + 1);
-
-                return (repoKey, ruleKey);
+                return;
             }
-
-            return (null, null); // invalid rule key -> ignore
-        }
-
-        private static RoslynLanguage GetRoslynLanguage(string repoKey)
-        {
-            // Currently the only Sonar repos which contain Roslyn analysis rules are
-            // csharpsquid and vbnet. These include "normal" and "hotspot" rules.
-            // The taint rules are in a different repo, and the part that is implemented
-            // as a Roslyn analyzer won't raise issues anyway.
-            switch (repoKey)
-            {
-                case "csharpsquid": // i.e. the rules in SonarAnalyzer.CSharp
-                    return RoslynLanguage.CSharp;
-                case "vbnet": // i.e. SonarAnalyzer.VisualBasic
-                    return RoslynLanguage.VB;
-                default:
-                    return RoslynLanguage.Unknown;
-            }
+            var roslynSettings = new RoslynSettings { SonarProjectKey = sonarProjectKey, Suppressions = suppressionsToAdd };
+            roslynSettingsFileStorage.Update(roslynSettings, solutionNameWithoutExtension);
         }
     }
 }
