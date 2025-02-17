@@ -20,6 +20,7 @@
 
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReturnsExtensions;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -52,6 +53,7 @@ public class MuteIssuesServiceTests
     private IThreadHandling threadHandling;
     private IIssueSLCoreService issueSlCoreService;
     private IServerIssueFinder serverIssueFinder;
+    private ISuppressionUpdater suppressionUpdater;
 
     [TestInitialize]
     public void TestInitialize()
@@ -60,10 +62,11 @@ public class MuteIssuesServiceTests
         activeConfigScopeTracker = Substitute.For<IActiveConfigScopeTracker>();
         slCoreServiceProvider = Substitute.For<ISLCoreServiceProvider>();
         serverIssueFinder = Substitute.For<IServerIssueFinder>();
+        suppressionUpdater = Substitute.For<ISuppressionUpdater>();
         logger = new TestLogger();
         threadHandling = new NoOpThreadHandler();
         issueSlCoreService = Substitute.For<IIssueSLCoreService>();
-        testSubject = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, logger, threadHandling);
+        testSubject = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, suppressionUpdater, logger, threadHandling);
 
         MockNonRoslynIssue();
         activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope("CONFIG_SCOPE_ID", RootPath: "C:\\", ConnectionId: "CONNECTION_ID"));
@@ -81,6 +84,7 @@ public class MuteIssuesServiceTests
             MefTestHelpers.CreateExport<IActiveConfigScopeTracker>(),
             MefTestHelpers.CreateExport<ISLCoreServiceProvider>(),
             MefTestHelpers.CreateExport<IServerIssueFinder>(),
+            MefTestHelpers.CreateExport<ISuppressionUpdater>(),
             MefTestHelpers.CreateExport<ILogger>(),
             MefTestHelpers.CreateExport<IThreadHandling>());
 
@@ -92,7 +96,7 @@ public class MuteIssuesServiceTests
     {
         var substituteLogger = Substitute.For<ILogger>();
 
-        _ = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, substituteLogger, threadHandling);
+        _ = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, serverIssueFinder, suppressionUpdater, substituteLogger, threadHandling);
 
         substituteLogger.Received(1).ForContext("MuteIssuesService");
     }
@@ -256,8 +260,7 @@ public class MuteIssuesServiceTests
     {
         MuteIssuePermitted();
         const string comment = "No you are not an issue, you are a feature";
-        muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>())
-            .Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept, Comment = comment });
+        MockIssueAcceptedInWindow(comment);
 
         _ = testSubject.ResolveIssueWithDialogAsync(nonRoslynIssue);
 
@@ -273,8 +276,7 @@ public class MuteIssuesServiceTests
     {
         MuteIssuePermitted();
         const string comment = "No you are not an issue, you are a feature";
-        muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>())
-            .Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept, Comment = comment });
+        MockIssueAcceptedInWindow(comment);
         issueSlCoreService.AddCommentAsync(Arg.Any<AddIssueCommentParams>()).ThrowsAsync(new Exception("Some error"));
 
         var act = () => testSubject.ResolveIssueWithDialogAsync(nonRoslynIssue);
@@ -287,7 +289,7 @@ public class MuteIssuesServiceTests
     public void ResolveIssueWithDialogAsync_WhenWindowResponseDoesNotHaveComment_ShouldMuteWithoutComment()
     {
         MuteIssuePermitted();
-        muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>()).Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept });
+        MockIssueAcceptedInWindow();
 
         _ = testSubject.ResolveIssueWithDialogAsync(nonRoslynIssue);
 
@@ -299,8 +301,7 @@ public class MuteIssuesServiceTests
     {
         MuteIssuePermitted();
         const string commentWithJustSpacesAndNewLine = " \n ";
-        muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>())
-            .Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept, Comment = commentWithJustSpacesAndNewLine });
+        MockIssueAcceptedInWindow(commentWithJustSpacesAndNewLine);
 
         _ = testSubject.ResolveIssueWithDialogAsync(nonRoslynIssue);
 
@@ -311,13 +312,36 @@ public class MuteIssuesServiceTests
     public void ResolveIssueWithDialogAsync_WhenMuteIssueFails_LogsAndThrows()
     {
         MuteIssuePermitted();
-        muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>()).Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept });
+        MockIssueAcceptedInWindow();
         issueSlCoreService.ChangeStatusAsync(Arg.Any<ChangeIssueStatusParams>()).Returns(call => throw new Exception("Some error"));
 
         var act = () => testSubject.ResolveIssueWithDialogAsync(nonRoslynIssue);
 
         act.Should().Throw<MuteIssueException>().WithMessage("Some error");
         logger.AssertPartialOutputStrings("Some error");
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialogAsync_RoslynIssueMutedSuccessfully_CallsSuppressionsUpdater()
+    {
+        MuteIssuePermitted();
+        MockRoslynIssueOnServer(RoslynIssueServerKey);
+        MockIssueAcceptedInWindow();
+
+        _ = testSubject.ResolveIssueWithDialogAsync(roslynIssue);
+
+        suppressionUpdater.Received(1).UpdateSuppressedIssuesAsync(isResolved: true, Arg.Is<string[]>(x => x.SequenceEqual(new[] { RoslynIssueServerKey })), Arg.Any<CancellationToken>());
+    }
+
+    [TestMethod]
+    public void ResolveIssueWithDialogAsync_NonRoslynIssueMutedSuccessfully_DoesNotCallSuppressionsUpdater()
+    {
+        MuteIssuePermitted();
+        MockIssueAcceptedInWindow();
+
+        _ = testSubject.ResolveIssueWithDialogAsync(nonRoslynIssue);
+
+        suppressionUpdater.DidNotReceiveWithAnyArgs().UpdateSuppressedIssuesAsync(default, default, default);
     }
 
     private void NotInConnectedMode() => activeConfigScopeTracker.Current.Returns(new Core.ConfigurationScope.ConfigurationScope("CONFIG_SCOPE_ID"));
@@ -356,4 +380,8 @@ public class MuteIssuesServiceTests
     {
         return new SonarQubeIssue(issueKey, default, default, default, default, default, isResolved, default, default, default, default, default);
     }
+
+    private void MockIssueAcceptedInWindow(string comment = null) =>
+        muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>())
+            .Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept, Comment = comment });
 }

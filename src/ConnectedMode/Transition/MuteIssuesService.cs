@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
 using SonarLint.VisualStudio.Core.Suppressions;
@@ -40,16 +41,17 @@ internal class MuteIssuesService(
     IActiveConfigScopeTracker activeConfigScopeTracker,
     ISLCoreServiceProvider slCoreServiceProvider,
     IServerIssueFinder serverIssueFinder,
+    ISuppressionUpdater suppressionUpdater,
     ILogger logger,
     IThreadHandling threadHandling)
     : IMuteIssuesService
 {
     private readonly ILogger logger = logger.ForContext(nameof(MuteIssuesService));
 
-    public async Task ResolveIssueWithDialogAsync(IFilterableIssue filterableIssue)
+    public async Task ResolveIssueWithDialogAsync(IFilterableIssue issue)
     {
         threadHandling.ThrowIfOnUIThread();
-        var issueServerKey = await GetIssueServerKeyAsync(filterableIssue);
+        var issueServerKey = await GetIssueServerKeyAsync(issue);
         var currentConfigScope = activeConfigScopeTracker.Current;
         CheckIsInConnectedMode(currentConfigScope);
         CheckIssueServerKeyNotNullOrEmpty(issueServerKey);
@@ -58,6 +60,7 @@ internal class MuteIssuesService(
         var windowResponse = await PromptMuteIssueResolutionAsync(allowedStatuses);
         await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition.Value);
         await AddCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse.Comment);
+        await UpdateRoslynSuppressionsAsync(issue, issueServerKey);
     }
 
     private async Task<string> GetIssueServerKeyAsync(IFilterableIssue issue)
@@ -183,6 +186,17 @@ internal class MuteIssuesService(
         {
             logger.WriteLine(Resources.MuteIssue_AddCommentFailed, issueServerKey, ex.Message);
             throw new MuteIssueException.MuteIssueCommentFailedException();
+        }
+    }
+
+    /// <summary>
+    /// The suppressed issues for roslyn are not dealt by SlCore, but are stored on disk, so we need to update them manually
+    /// </summary>
+    private async Task UpdateRoslynSuppressionsAsync(IFilterableIssue issue, string serverIssueKey)
+    {
+        if (issue is IFilterableRoslynIssue)
+        {
+            await suppressionUpdater.UpdateSuppressedIssuesAsync(isResolved: true, [serverIssueKey], new CancellationToken());
         }
     }
 }
