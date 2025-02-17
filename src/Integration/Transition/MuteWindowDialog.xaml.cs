@@ -42,11 +42,9 @@ public partial class MuteWindowDialog : DialogWindow
 
     public MuteViewModel ViewModel { get; set; } = new();
 
-    public MuteWindowDialog(IActiveSolutionBoundTracker activeSolutionBoundTracker, IBrowserService browserService, bool showAccept)
+    public MuteWindowDialog(IActiveSolutionBoundTracker activeSolutionBoundTracker, IBrowserService browserService, IEnumerable<SonarQubeIssueTransition> allowedTransitions)
     {
-        ViewModel.InitializeStatuses(showAccept
-            ? [SonarQubeIssueTransition.Accept, SonarQubeIssueTransition.FalsePositive]
-            : [SonarQubeIssueTransition.WontFix, SonarQubeIssueTransition.FalsePositive]);
+        ViewModel.InitializeStatuses(allowedTransitions);
         this.activeSolutionBoundTracker = activeSolutionBoundTracker;
         this.browserService = browserService;
 

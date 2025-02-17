@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Issue;
 using SonarLint.VisualStudio.SLCore.Service.Issue.Models;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.ConnectedMode.Transition;
 
@@ -50,16 +51,17 @@ internal class MuteIssuesService(
         CheckIsInConnectedMode(currentConfigScope);
         CheckIssueServerKeyNotNullOrEmpty(issueServerKey);
 
-        await GetAllowedStatusesAsync(currentConfigScope.ConnectionId, issueServerKey);
-        var windowResponse = await PromptMuteIssueResolutionAsync();
+        var allowedStatuses = await GetAllowedStatusesAsync(currentConfigScope.ConnectionId, issueServerKey);
+        var windowResponse = await PromptMuteIssueResolutionAsync(allowedStatuses);
         await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition.Value);
         await AddCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse.Comment);
     }
 
-    private async Task<MuteIssuesWindowResponse> PromptMuteIssueResolutionAsync()
+    private async Task<MuteIssuesWindowResponse> PromptMuteIssueResolutionAsync(IEnumerable<ResolutionStatus> allowedStatuses)
     {
         MuteIssuesWindowResponse windowResponse = null;
-        await threadHandling.RunOnUIThreadAsync(() => windowResponse = muteIssuesWindowService.Show());
+        var allowedTransitions = allowedStatuses.Select(s => s.ToSonarQubeIssueTransition());
+        await threadHandling.RunOnUIThreadAsync(() => windowResponse = muteIssuesWindowService.Show(allowedTransitions));
 
         if (windowResponse.Result)
         {
@@ -131,12 +133,11 @@ internal class MuteIssuesService(
         try
         {
             var issueSlCoreService = GetIssueSlCoreService();
-            var newStatus = windowResponse.IssueTransition.Value.ToSlCoreResolutionStatus();
             await issueSlCoreService.ChangeStatusAsync(new ChangeIssueStatusParams
             (
                 configurationScopeId,
                 issueServerKey,
-                newStatus,
+                transition.ToSlCoreResolutionStatus(),
                 false // Muting taints are not supported yet
             ));
         }
