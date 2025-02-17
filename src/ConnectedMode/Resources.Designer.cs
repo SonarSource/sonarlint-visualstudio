@@ -385,6 +385,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error occurred while adding the comment on muted issue [issueKey: {0}]: {1}.
+        /// </summary>
+        internal static string MuteIssue_AddCommentFailed {
+            get {
+                return ResourceManager.GetString("MuteIssue_AddCommentFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occurred while muting issue [issueKey: {0}]: {1}.
         /// </summary>
         internal static string MuteIssue_AnErrorOccurred {

@@ -37,4 +37,6 @@ public class MuteIssueException : Exception
     }
 
     public class MuteIssueCancelledException : MuteIssueException;
+
+    public class MuteIssueCommentFailedException : MuteIssueException;
 }

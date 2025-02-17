@@ -284,6 +284,30 @@ public class MuteIssueCommandTests
     }
 
     [TestMethod]
+    public void Execute_WithNonRoslynIssue_WhenMuteIssueCommentFailedException_CatchesAndShowsMessageBox()
+    {
+        SetupNonRoslynIssue();
+        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<string>()).ThrowsAsync(new MuteIssueException.MuteIssueCommentFailedException());
+
+        var act = () => testSubjectMenuCommand.Invoke();
+
+        act.Should().NotThrow();
+        AssertCommentFailedMessageBoxShown();
+    }
+
+    [TestMethod]
+    public void Execute_WithRoslynIssue_WhenMuteIssueCommentFailedException_CatchesAndShowsMessageBox()
+    {
+        SetupRoslynIssue(out _);
+        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<string>()).ThrowsAsync(new MuteIssueException.MuteIssueCommentFailedException());
+
+        var act = () => testSubjectMenuCommand.Invoke();
+
+        act.Should().NotThrow();
+        AssertCommentFailedMessageBoxShown();
+    }
+
+    [TestMethod]
     public void Execute_WithNonRoslynIssue_WhenMuteIssueCancelledException_Catches()
     {
         SetupNonRoslynIssue();
@@ -346,4 +370,6 @@ public class MuteIssueCommandTests
     }
 
     private void AssertMessageBoxShown() => messageBox.Received(1).Show("Error while muting", AnalysisStrings.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
+    private void AssertCommentFailedMessageBoxShown() => messageBox.Received(1).Show(AnalysisStrings.MuteIssue_MessageBox_AddCommentFailed, AnalysisStrings.MuteIssue_WarningCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
 }

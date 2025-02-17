@@ -295,6 +295,9 @@
   <data name="MuteIssue_NotPermitted" xml:space="preserve">
     <value>Issue muting was not permitted [issueKey: {0}]: {1}</value>
   </data>
+  <data name="MuteIssue_AddCommentFailed" xml:space="preserve">
+    <value>An error occurred while adding the comment on muted issue [issueKey: {0}]: {1}</value>
+  </data>
   <data name="MuteIssue_AnErrorOccurred" xml:space="preserve">
     <value>An error occurred while muting issue [issueKey: {0}]: {1}</value>
   </data>

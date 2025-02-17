@@ -212,6 +212,20 @@ public class MuteIssuesServiceTests
     }
 
     [TestMethod]
+    public void ResolveIssueWithDialogAsync_WhenWindowResponseHasCommentButFails_LogsAndThrows()
+    {
+        MuteIssuePermitted();
+        const string comment = "No you are not an issue, you are a feature";
+        muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept, Comment = comment});
+        issueSlCoreService.AddCommentAsync(Arg.Any<AddIssueCommentParams>()).ThrowsAsync(new Exception("Some error"));
+
+        var act = () => testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
+
+        act.Should().Throw<MuteIssueException.MuteIssueCommentFailedException>();
+        logger.AssertPartialOutputStringExists(string.Format(Resources.MuteIssue_AddCommentFailed, AnIssueServerKey, "Some error"));
+    }
+
+    [TestMethod]
     public void ResolveIssueWithDialogAsync_WhenWindowResponseDoesNotHaveComment_ShouldMuteWithoutComment()
     {
         MuteIssuePermitted();

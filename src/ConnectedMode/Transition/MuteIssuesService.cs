@@ -53,7 +53,8 @@ internal class MuteIssuesService(
 
         await GetAllowedStatusesAsync(currentConfigScope.ConnectionId, issueServerKey);
         var windowResponse = await PromptMuteIssueResolutionAsync();
-        await MuteIssueWithCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse);
+        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition);
+        await AddCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse.Comment);
     }
 
     private async Task<MuteIssuesWindowResponse> PromptMuteIssueResolutionAsync()
@@ -126,12 +127,12 @@ internal class MuteIssuesService(
         return response.allowedStatuses;
     }
 
-    private async Task MuteIssueWithCommentAsync(string configurationScopeId, string issueServerKey, MuteIssuesWindowResponse windowResponse)
+    private async Task MuteIssueAsync(string configurationScopeId, string issueServerKey, SonarQubeIssueTransition transition)
     {
         try
         {
             var issueSlCoreService = GetIssueSlCoreService();
-            var newStatus = MapSonarQubeIssueTransitionToSlCoreResolutionStatus(windowResponse.IssueTransition);
+            var newStatus = MapSonarQubeIssueTransitionToSlCoreResolutionStatus(transition);
             await issueSlCoreService.ChangeStatusAsync(new ChangeIssueStatusParams
             (
                 configurationScopeId,
@@ -139,16 +140,28 @@ internal class MuteIssuesService(
                 newStatus,
                 false // Muting taints are not supported yet
             ));
-
-            if (windowResponse.Comment?.Trim() is { Length: > 0 })
-            {
-                await issueSlCoreService.AddCommentAsync(new AddIssueCommentParams(configurationScopeId, issueServerKey, windowResponse.Comment));
-            }
         }
         catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
         {
             logger.WriteLine(Resources.MuteIssue_AnErrorOccurred, issueServerKey, ex.Message);
             throw new MuteIssueException(ex);
+        }
+    }
+
+    private async Task AddCommentAsync(string configurationScopeId, string issueServerKey, string comment)
+    {
+        try
+        {
+            var issueSlCoreService = GetIssueSlCoreService();
+            if (comment?.Trim() is { Length: > 0 })
+            {
+                await issueSlCoreService.AddCommentAsync(new AddIssueCommentParams(configurationScopeId, issueServerKey, comment));
+            }
+        }
+        catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+        {
+            logger.WriteLine(Resources.MuteIssue_AddCommentFailed, issueServerKey, ex.Message);
+            throw new MuteIssueException.MuteIssueCommentFailedException();
         }
     }
 

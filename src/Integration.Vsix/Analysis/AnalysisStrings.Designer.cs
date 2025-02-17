@@ -224,6 +224,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Issue is resolved but an error occured while adding the comment, please refer to the logs for more information..
+        /// </summary>
+        internal static string MuteIssue_MessageBox_AddCommentFailed {
+            get {
+                return ResourceManager.GetString("MuteIssue_MessageBox_AddCommentFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mute Issue Warning.
+        /// </summary>
+        internal static string MuteIssue_WarningCaption {
+            get {
+                return ResourceManager.GetString("MuteIssue_WarningCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube for Visual Studio: Failed to analyze {0}. See the Output Window for more information..
         /// </summary>
         internal static string Notifier_AnalysisFailed {

@@ -186,6 +186,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 logger.WriteLine(AnalysisStrings.MuteIssue_HaveMuted, issueServerKey);
                 return true;
             }
+            catch (MuteIssueException.MuteIssueCommentFailedException)
+            {
+                messageBox.Show(AnalysisStrings.MuteIssue_MessageBox_AddCommentFailed, AnalysisStrings.MuteIssue_WarningCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
+                return true;
+            }
             catch (MuteIssueException.MuteIssueCancelledException)
             {
                 return false;
