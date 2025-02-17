@@ -43,7 +43,6 @@ public class MuteViewModel : ViewModelBase
         {
             comment = value;
             RaisePropertyChanged();
-            RaisePropertyChanged(nameof(IsSubmitButtonEnabled));
         }
     }
 
@@ -54,10 +53,11 @@ public class MuteViewModel : ViewModelBase
         {
             selectedStatusViewModel = value;
             RaisePropertyChanged();
+            RaisePropertyChanged(nameof(IsSubmitButtonEnabled));
         }
     }
 
-    public bool IsSubmitButtonEnabled => !string.IsNullOrWhiteSpace(Comment);
+    public bool IsSubmitButtonEnabled => SelectedStatusViewModel != null;
 
     public ObservableCollection<StatusViewModel> AllowedStatusViewModels { get; set; } = [];
 

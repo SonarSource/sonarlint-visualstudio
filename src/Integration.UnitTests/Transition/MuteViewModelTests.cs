@@ -40,22 +40,31 @@ public class MuteViewModelTests
     }
 
     [TestMethod]
-    [DataRow("")]
-    [DataRow("  ")]
-    [DataRow("\n")]
-    [DataRow("\t")]
-    [DataRow(null)]
-    public void IsSubmitButtonEnabled_CommentIsEmpty_ReturnsFalse(string comment)
+    public void IsSubmitButtonEnabled_SelectedStatusViewModelIsNull_ReturnsFalse()
     {
-        testSubject.Comment = comment;
+        testSubject.SelectedStatusViewModel = null;
 
         testSubject.IsSubmitButtonEnabled.Should().BeFalse();
     }
 
     [TestMethod]
-    public void IsSubmitButtonEnabled_CommentIsNotEmpty_ReturnsTrue()
+    public void IsSubmitButtonEnabled_SelectedStatusViewModelIsSet_ReturnsTrue()
     {
-        testSubject.Comment = "some comment";
+        testSubject.SelectedStatusViewModel = new StatusViewModel(SonarQubeIssueTransition.Accept, "title", "description");
+
+        testSubject.IsSubmitButtonEnabled.Should().BeTrue();
+    }
+
+    [TestMethod]
+    [DataRow("")]
+    [DataRow("  ")]
+    [DataRow("\n")]
+    [DataRow("\t")]
+    [DataRow(null)]
+    public void IsSubmitButtonEnabled_CommentIsEmptyAndStatusIsSelected_ReturnsTrue(string comment)
+    {
+        testSubject.Comment = comment;
+        testSubject.SelectedStatusViewModel = new StatusViewModel(SonarQubeIssueTransition.Accept, "title", "description");
 
         testSubject.IsSubmitButtonEnabled.Should().BeTrue();
     }
@@ -70,7 +79,6 @@ public class MuteViewModelTests
         testSubject.Comment = "some comment";
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.Comment)));
-        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSubmitButtonEnabled)));
     }
 
     [TestMethod]
@@ -83,6 +91,7 @@ public class MuteViewModelTests
         testSubject.SelectedStatusViewModel = new StatusViewModel(SonarQubeIssueTransition.Accept, "title", "description");
 
         eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.SelectedStatusViewModel)));
+        eventHandler.Received().Invoke(testSubject, Arg.Is<PropertyChangedEventArgs>(x => x.PropertyName == nameof(testSubject.IsSubmitButtonEnabled)));
     }
 
     [TestMethod]
