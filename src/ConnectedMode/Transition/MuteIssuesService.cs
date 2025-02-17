@@ -51,16 +51,17 @@ internal class MuteIssuesService(
         CheckIsInConnectedMode(currentConfigScope);
         CheckIssueServerKeyNotNullOrEmpty(issueServerKey);
 
-        await GetAllowedStatusesAsync(currentConfigScope.ConnectionId, issueServerKey);
-        var windowResponse = await PromptMuteIssueResolutionAsync();
-        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition);
+        var allowedStatuses = await GetAllowedStatusesAsync(currentConfigScope.ConnectionId, issueServerKey);
+        var windowResponse = await PromptMuteIssueResolutionAsync(allowedStatuses);
+        await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition.Value);
         await AddCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse.Comment);
     }
 
-    private async Task<MuteIssuesWindowResponse> PromptMuteIssueResolutionAsync()
+    private async Task<MuteIssuesWindowResponse> PromptMuteIssueResolutionAsync(IEnumerable<ResolutionStatus> allowedStatuses)
     {
         MuteIssuesWindowResponse windowResponse = null;
-        await threadHandling.RunOnUIThreadAsync(() => windowResponse = muteIssuesWindowService.Show());
+        var allowedTransitions = allowedStatuses.Select(s => s.ToSonarQubeIssueTransition());
+        await threadHandling.RunOnUIThreadAsync(() => windowResponse = muteIssuesWindowService.Show(allowedTransitions));
 
         if (windowResponse.Result)
         {
@@ -132,12 +133,11 @@ internal class MuteIssuesService(
         try
         {
             var issueSlCoreService = GetIssueSlCoreService();
-            var newStatus = MapSonarQubeIssueTransitionToSlCoreResolutionStatus(transition);
             await issueSlCoreService.ChangeStatusAsync(new ChangeIssueStatusParams
             (
                 configurationScopeId,
                 issueServerKey,
-                newStatus,
+                transition.ToSlCoreResolutionStatus(),
                 false // Muting taints are not supported yet
             ));
         }
@@ -164,13 +164,4 @@ internal class MuteIssuesService(
             throw new MuteIssueException.MuteIssueCommentFailedException();
         }
     }
-
-    private static ResolutionStatus MapSonarQubeIssueTransitionToSlCoreResolutionStatus(SonarQubeIssueTransition sonarQubeIssueTransition) =>
-        sonarQubeIssueTransition switch
-        {
-            SonarQubeIssueTransition.FalsePositive => ResolutionStatus.FALSE_POSITIVE,
-            SonarQubeIssueTransition.WontFix => ResolutionStatus.WONT_FIX,
-            SonarQubeIssueTransition.Accept => ResolutionStatus.ACCEPT,
-            _ => throw new ArgumentOutOfRangeException(nameof(sonarQubeIssueTransition), sonarQubeIssueTransition, null)
-        };
 }

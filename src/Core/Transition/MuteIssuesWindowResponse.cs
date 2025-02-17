@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Core.Transition
     public class MuteIssuesWindowResponse
     {
         public bool Result { get; set; }
-        public SonarQubeIssueTransition IssueTransition { get; set; }
+        public SonarQubeIssueTransition? IssueTransition { get; set; }
         public string Comment { get; set; }
     }
 }
