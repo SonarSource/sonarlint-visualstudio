@@ -20,6 +20,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Navigation;
@@ -67,9 +68,14 @@ public partial class MuteWindowDialog : DialogWindow
 
     private void Border_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: StatusViewModel statusViewModel })
+        if (sender is not Border { Child: Panel panel })
         {
-            statusViewModel.IsChecked = !statusViewModel.IsChecked;
+            return;
+        }
+        var radioButton = panel.Children.OfType<RadioButton>().FirstOrDefault();
+        if (radioButton != null)
+        {
+            radioButton.IsChecked = true;
         }
     }
 }
