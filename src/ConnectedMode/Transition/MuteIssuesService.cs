@@ -49,7 +49,7 @@ internal class MuteIssuesService(
 
         var currentConfigScope = activeConfigScopeTracker.Current;
         CheckIsInConnectedMode(currentConfigScope);
-        CheckIssueServerKeyNotNull(issueServerKey);
+        CheckIssueServerKeyNotNullOrEmpty(issueServerKey);
 
         await GetAllowedStatusesAsync(currentConfigScope.ConnectionId, issueServerKey);
         var windowResponse = await PromptMuteIssueResolutionAsync();
@@ -69,9 +69,9 @@ internal class MuteIssuesService(
         throw new MuteIssueException.MuteIssueCancelledException();
     }
 
-    private void CheckIssueServerKeyNotNull(string issueServerKey)
+    private void CheckIssueServerKeyNotNullOrEmpty(string issueServerKey)
     {
-        if (issueServerKey != null)
+        if (issueServerKey is { Length: > 0 })
         {
             return;
         }

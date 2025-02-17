@@ -88,9 +88,11 @@ public class MuteIssuesServiceTests
     }
 
     [TestMethod]
-    public void ResolveIssueWithDialogAsync_WhenIssueServerKeyIsNull_LogsAndThrows()
+    [DataRow(null)]
+    [DataRow("")]
+    public void ResolveIssueWithDialogAsync_WhenIssueServerKeyIsNull_LogsAndThrows(string issueServerKey)
     {
-        var act = () => testSubject.ResolveIssueWithDialogAsync(null);
+        var act = () => testSubject.ResolveIssueWithDialogAsync(issueServerKey);
 
         act.Should().Throw<MuteIssueException>().WithMessage(Resources.MuteIssue_IssueNotFound);
         logger.AssertPartialOutputStrings(Resources.MuteIssue_IssueNotFound);
