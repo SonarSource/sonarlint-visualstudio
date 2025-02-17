@@ -78,6 +78,16 @@ public class MuteIssuesServiceTests
     public void MefCtor_CheckIsSingleton() => MefTestHelpers.CheckIsSingletonMefComponent<MuteIssuesService>();
 
     [TestMethod]
+    public void Logger_HasCorrectContext()
+    {
+        var substitureLogger = Substitute.For<ILogger>();
+
+        _ = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, substitureLogger, threadHandling);
+
+        substitureLogger.Received(1).ForContext("MuteIssuesService");
+    }
+
+    [TestMethod]
     public void ResolveIssueWithDialogAsync_WhenIssueServerKeyIsNull_LogsAndThrows()
     {
         var act = () => testSubject.ResolveIssueWithDialogAsync(null);
