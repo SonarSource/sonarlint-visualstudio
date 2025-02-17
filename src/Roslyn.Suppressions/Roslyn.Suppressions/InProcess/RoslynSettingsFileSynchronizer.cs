@@ -127,14 +127,17 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
     /// <summary>
     /// Updates the Roslyn suppressed issues file if in connected mode
     /// </summary>
-    /// <remarks>The method will switch to a background if required, and will *not* return to the UI thread on completion.</remarks>
-    private async Task UpdateFileStorageAsync(ISuppressedIssuesCalculator suppressedIssuesCalculator)
+    private async Task UpdateFileStorageAsync(ISuppressedIssuesCalculator suppressedIssuesCalculator) =>
+        await threadHandling.RunOnBackgroundThread(async () =>
+        {
+            await UpdateFileStorageIfNeededAsync(suppressedIssuesCalculator);
+        });
+
+    private async Task UpdateFileStorageIfNeededAsync(ISuppressedIssuesCalculator suppressedIssuesCalculator)
     {
         CodeMarkers.Instance.FileSynchronizerUpdateStart();
         try
         {
-            await threadHandling.SwitchToBackgroundThread();
-
             var solutionNameWithoutExtension = await solutionInfoProvider.GetSolutionNameAsync();
             if (string.IsNullOrEmpty(solutionNameWithoutExtension))
             {
@@ -144,10 +147,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
             var sonarProjectKey = configurationProvider.GetConfiguration().Project?.ServerProjectKey;
             if (string.IsNullOrEmpty(sonarProjectKey))
             {
-                lock (lockObject)
-                {
-                    roslynSettingsFileStorage.Delete(solutionNameWithoutExtension);
-                }
+                SafeDeleteRoslynSettingsFileStorage(solutionNameWithoutExtension);
                 return;
             }
 
@@ -156,6 +156,14 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         finally
         {
             CodeMarkers.Instance.FileSynchronizerUpdateStop();
+        }
+    }
+
+    private void SafeDeleteRoslynSettingsFileStorage(string solutionNameWithoutExtension)
+    {
+        lock (lockObject)
+        {
+            roslynSettingsFileStorage.Delete(solutionNameWithoutExtension);
         }
     }
 
