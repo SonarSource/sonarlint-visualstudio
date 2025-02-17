@@ -132,4 +132,13 @@
   <data name="RoslynSettingsFileStorageUpdateError" xml:space="preserve">
     <value>[Roslyn Suppressions] Error writing settings for project {0}. Issues suppressed on the server may not be suppressed in the IDE. Error: {1}</value>
   </data>
+  <data name="RoslynSettingsFileSynchronizerAddNewSuppressions" xml:space="preserve">
+    <value>Adding new suppressions...</value>
+  </data>
+  <data name="RoslynSettingsFileSynchronizerReloadSuppressions" xml:space="preserve">
+    <value>Reloading issue suppressions...</value>
+  </data>
+  <data name="RoslynSettingsFileSynchronizerRemoveSuppressions" xml:space="preserve">
+    <value>Removing suppressions...</value>
+  </data>
 </root>

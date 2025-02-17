@@ -22,7 +22,6 @@ using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.ConnectedMode.UI;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -85,9 +84,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 IServiceProvider serviceProvider = this;
 
-                this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
+                commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
 
-                this.commandManager.Initialize(
+                commandManager.Initialize(
                     serviceProvider.GetMefService<IProjectPropertyManager>(),
                     serviceProvider.GetMefService<IOutputWindowService>(),
                     serviceProvider.GetMefService<IShowInBrowserService>(),
@@ -96,8 +95,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     serviceProvider.GetMefService<IConnectedModeBindingServices>(),
                     serviceProvider.GetMefService<IConnectedModeUIManager>());
 
-                this.roslynSettingsFileSynchronizer = await this.GetMefServiceAsync<IRoslynSettingsFileSynchronizer>();
-                roslynSettingsFileSynchronizer.UpdateFileStorageAsync().Forget(); // don't wait for it to finish
+                // make sure roslynSettingsFileSynchronizer is initialized
+                roslynSettingsFileSynchronizer = await this.GetMefServiceAsync<IRoslynSettingsFileSynchronizer>();
                 Debug.Assert(threadHandling.CheckAccess(), "Still expecting to be on the UI thread");
 
                 logger.WriteLine(Strings.SL_InitializationComplete);
@@ -114,8 +113,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             base.Dispose(disposing);
             if (disposing)
             {
-                this.roslynSettingsFileSynchronizer?.Dispose();
-                this.roslynSettingsFileSynchronizer = null;
+                roslynSettingsFileSynchronizer?.Dispose();
+                roslynSettingsFileSynchronizer = null;
             }
         }
     }
