@@ -131,6 +131,7 @@ internal sealed class RoslynSettingsFileSynchronizer : IRoslynSettingsFileSynchr
         await threadHandling.RunOnBackgroundThread(async () =>
         {
             await UpdateFileStorageIfNeededAsync(suppressedIssuesCalculator);
+            return true;
         });
 
     private async Task UpdateFileStorageIfNeededAsync(ISuppressedIssuesCalculator suppressedIssuesCalculator)

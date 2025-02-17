@@ -146,7 +146,7 @@ public class RoslynSettingsFileSynchronizerTests
 
         RaiseSuppressedIssuesReloaded([csharpIssueSuppressed]);
 
-        threadHandlingMock.ReceivedWithAnyArgs(1).RunOnBackgroundThread<Func<Task>>(default);
+        threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<bool>>>());
     }
 
     [TestMethod]
@@ -217,7 +217,7 @@ public class RoslynSettingsFileSynchronizerTests
 
         RaiseNewIssuesSuppressed([csharpIssueSuppressed]);
 
-        threadHandlingMock.ReceivedWithAnyArgs(1).RunOnBackgroundThread<Func<Task>>(default);
+        threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<bool>>>());
     }
 
     [TestMethod]
@@ -291,7 +291,7 @@ public class RoslynSettingsFileSynchronizerTests
 
         RaiseSuppressionsRemoved([csharpIssueSuppressed.IssueKey]);
 
-        threadHandlingMock.ReceivedWithAnyArgs(1).RunOnBackgroundThread<Func<Task>>(default);
+        threadHandlingMock.Received(1).RunOnBackgroundThread(Arg.Any<Func<Task<bool>>>());
     }
 
     [TestMethod]
