@@ -403,6 +403,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This issue is already resolved on the server. It will be removed from the Error List after the next SonarQube for Visual Studio analysis..
+        /// </summary>
+        internal static string MuteIssue_ErrorIssueAlreadyResolved {
+            get {
+                return ResourceManager.GetString("MuteIssue_ErrorIssueAlreadyResolved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find a matching issue on the server..
         /// </summary>
         internal static string MuteIssue_IssueNotFound {
@@ -588,6 +597,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         internal static string Store_UpdateIssue_UpdateRequired {
             get {
                 return ResourceManager.GetString("Store_UpdateIssue_UpdateRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string String1 {
+            get {
+                return ResourceManager.GetString("String1", resourceCulture);
             }
         }
         

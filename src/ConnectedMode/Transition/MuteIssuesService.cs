@@ -21,7 +21,9 @@
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Core.Transition;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Issue;
@@ -37,16 +39,17 @@ internal class MuteIssuesService(
     IMuteIssuesWindowService muteIssuesWindowService,
     IActiveConfigScopeTracker activeConfigScopeTracker,
     ISLCoreServiceProvider slCoreServiceProvider,
+    IServerIssueFinder serverIssueFinder,
     ILogger logger,
     IThreadHandling threadHandling)
     : IMuteIssuesService
 {
     private readonly ILogger logger = logger.ForContext(nameof(MuteIssuesService));
 
-    public async Task ResolveIssueWithDialogAsync(string issueServerKey)
+    public async Task ResolveIssueWithDialogAsync(IFilterableIssue filterableIssue)
     {
         threadHandling.ThrowIfOnUIThread();
-
+        var issueServerKey = await GetIssueServerKeyAsync(filterableIssue);
         var currentConfigScope = activeConfigScopeTracker.Current;
         CheckIsInConnectedMode(currentConfigScope);
         CheckIssueServerKeyNotNullOrEmpty(issueServerKey);
@@ -55,6 +58,24 @@ internal class MuteIssuesService(
         var windowResponse = await PromptMuteIssueResolutionAsync(allowedStatuses);
         await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition.Value);
         await AddCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse.Comment);
+    }
+
+    private async Task<string> GetIssueServerKeyAsync(IFilterableIssue issue)
+    {
+        // Non-Roslyn issues already have the issue server key
+        if (issue is IAnalysisIssueVisualization issueViz)
+        {
+            return issueViz.Issue.IssueServerKey;
+        }
+
+        // Roslyn issues need to be converted to SonarQube issues to get the server key as they are handled by SLCore
+        var serverIssue = await serverIssueFinder.FindServerIssueAsync(issue, CancellationToken.None);
+        if (serverIssue is { IsResolved: true })
+        {
+            logger.WriteLine(Resources.MuteIssue_ErrorIssueAlreadyResolved);
+            throw new MuteIssueException(Resources.MuteIssue_ErrorIssueAlreadyResolved);
+        }
+        return serverIssue?.IssueKey;
     }
 
     private async Task<MuteIssuesWindowResponse> PromptMuteIssueResolutionAsync(IEnumerable<ResolutionStatus> allowedStatuses)
