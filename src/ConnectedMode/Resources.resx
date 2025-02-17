@@ -287,7 +287,7 @@
     <value>[SharedBindingConfigProvider] The .sonarlint shared folder was not found</value>
   </data>
   <data name="MuteIssue_IssueNotFound" xml:space="preserve">
-    <value>The issue was not found on the server</value>
+    <value>Could not find a matching issue on the server.</value>
   </data>
   <data name="MuteIssue_NotInConnectedMode" xml:space="preserve">
     <value>Issue muting is only supported in connected mode</value>

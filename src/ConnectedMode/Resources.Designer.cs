@@ -394,7 +394,7 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The issue was not found on the server.
+        ///   Looks up a localized string similar to Could not find a matching issue on the server..
         /// </summary>
         internal static string MuteIssue_IssueNotFound {
             get {
