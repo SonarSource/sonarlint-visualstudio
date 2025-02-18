@@ -22,7 +22,6 @@ using System.ComponentModel.Design;
 using System.Windows;
 using Microsoft.VisualStudio.OLE.Interop;
 using NSubstitute.ExceptionExtensions;
-using SonarLint.VisualStudio.ConnectedMode;
 using SonarLint.VisualStudio.ConnectedMode.Transition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -51,7 +50,6 @@ public class MuteIssueCommandTests
     private DummyMenuCommandService dummyMenuService;
     private IErrorListHelper errorListHelper;
     private IRoslynIssueLineHashCalculator roslynIssueLineHashCalculator;
-    private IServerIssueFinder serverIssueFinder;
     private IMuteIssuesService muteIssuesService;
     private IActiveSolutionBoundTracker activeSolutionBoundTracker;
     private NoOpThreadHandler threadHandling;
@@ -65,7 +63,6 @@ public class MuteIssueCommandTests
         dummyMenuService = new DummyMenuCommandService();
         errorListHelper = Substitute.For<IErrorListHelper>();
         roslynIssueLineHashCalculator = Substitute.For<IRoslynIssueLineHashCalculator>();
-        serverIssueFinder = Substitute.For<IServerIssueFinder>();
         muteIssuesService = Substitute.For<IMuteIssuesService>();
         activeSolutionBoundTracker = Substitute.For<IActiveSolutionBoundTracker>();
         threadHandling = new NoOpThreadHandler();
@@ -73,7 +70,7 @@ public class MuteIssueCommandTests
         logger = new TestLogger();
         languageProvider = LanguageProvider.Instance;
 
-        testSubject = new MuteIssueCommand(dummyMenuService, errorListHelper, roslynIssueLineHashCalculator, serverIssueFinder, muteIssuesService, activeSolutionBoundTracker, threadHandling,
+        testSubject = new MuteIssueCommand(dummyMenuService, errorListHelper, roslynIssueLineHashCalculator, muteIssuesService, activeSolutionBoundTracker, threadHandling,
             messageBox, logger, languageProvider);
 
         testSubjectMenuCommand = dummyMenuService.AddedMenuCommands[0];
@@ -86,7 +83,7 @@ public class MuteIssueCommandTests
     {
         var substituteLogger = Substitute.For<ILogger>();
 
-        _ = new MuteIssueCommand(dummyMenuService, errorListHelper, roslynIssueLineHashCalculator, serverIssueFinder, muteIssuesService, activeSolutionBoundTracker, threadHandling,
+        _ = new MuteIssueCommand(dummyMenuService, errorListHelper, roslynIssueLineHashCalculator, muteIssuesService, activeSolutionBoundTracker, threadHandling,
             messageBox, substituteLogger, languageProvider);
 
         substituteLogger.Received(1).ForContext("MuteIssueCommand");
@@ -212,7 +209,7 @@ public class MuteIssueCommandTests
 
         errorListHelper.Received(1).TryGetIssueFromSelectedRow(out Arg.Any<IFilterableIssue>());
         errorListHelper.Received(1).TryGetRoslynIssueFromSelectedRow(out Arg.Any<IFilterableRoslynIssue>());
-        muteIssuesService.DidNotReceiveWithAnyArgs().ResolveIssueWithDialogAsync(Arg.Any<string>());
+        muteIssuesService.DidNotReceiveWithAnyArgs().ResolveIssueWithDialogAsync(Arg.Any<IFilterableIssue>());
     }
 
     [TestMethod]
@@ -223,8 +220,7 @@ public class MuteIssueCommandTests
         testSubjectMenuCommand.Invoke();
 
         roslynIssueLineHashCalculator.Received(1).UpdateRoslynIssueWithLineHash(roslynIssue);
-        serverIssueFinder.Received(1).FindServerIssueAsync(roslynIssue, Arg.Any<CancellationToken>());
-        muteIssuesService.Received(1).ResolveIssueWithDialogAsync(sonarQubeIssue.IssueKey);
+        muteIssuesService.Received(1).ResolveIssueWithDialogAsync(roslynIssue);
     }
 
     [TestMethod]
@@ -234,7 +230,7 @@ public class MuteIssueCommandTests
 
         testSubjectMenuCommand.Invoke();
 
-        muteIssuesService.Received(1).ResolveIssueWithDialogAsync(issue.Issue.IssueServerKey);
+        muteIssuesService.Received(1).ResolveIssueWithDialogAsync(issue);
     }
 
     [TestMethod]
@@ -263,7 +259,7 @@ public class MuteIssueCommandTests
     public void Execute_WithNonRoslynIssue_WhenMuteIssueException_CatchesAndShowsMessageBox()
     {
         SetupNonRoslynIssue();
-        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<string>()).ThrowsAsync(new MuteIssueException("Error while muting"));
+        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<IFilterableIssue>()).ThrowsAsync(new MuteIssueException("Error while muting"));
 
         var act = () => testSubjectMenuCommand.Invoke();
 
@@ -272,22 +268,10 @@ public class MuteIssueCommandTests
     }
 
     [TestMethod]
-    public void Execute_WithRoslynIssue_WhenAlreadyResolvedOnServer_CatchesAndShowsMessageBox()
-    {
-        SetupRoslynIssue(out var sonarQubeIssue);
-        sonarQubeIssue.IsResolved = true;
-
-        var act = () => testSubjectMenuCommand.Invoke();
-
-        act.Should().NotThrow();
-        AssertMessageBoxShown(AnalysisStrings.MuteIssue_ErrorIssueAlreadyResolved);
-    }
-
-    [TestMethod]
     public void Execute_WithRoslynIssue_WhenMuteIssueException_CatchesAndShowsMessageBox()
     {
         SetupRoslynIssue(out _);
-        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<string>()).ThrowsAsync(new MuteIssueException("Error while muting"));
+        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<IFilterableIssue>()).ThrowsAsync(new MuteIssueException("Error while muting"));
 
         var act = () => testSubjectMenuCommand.Invoke();
 
@@ -299,7 +283,7 @@ public class MuteIssueCommandTests
     public void Execute_WithNonRoslynIssue_WhenMuteIssueCommentFailedException_CatchesAndShowsMessageBox()
     {
         SetupNonRoslynIssue();
-        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<string>()).ThrowsAsync(new MuteIssueException.MuteIssueCommentFailedException());
+        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<IFilterableIssue>()).ThrowsAsync(new MuteIssueException.MuteIssueCommentFailedException());
 
         var act = () => testSubjectMenuCommand.Invoke();
 
@@ -311,7 +295,7 @@ public class MuteIssueCommandTests
     public void Execute_WithRoslynIssue_WhenMuteIssueCommentFailedException_CatchesAndShowsMessageBox()
     {
         SetupRoslynIssue(out _);
-        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<string>()).ThrowsAsync(new MuteIssueException.MuteIssueCommentFailedException());
+        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<IFilterableIssue>()).ThrowsAsync(new MuteIssueException.MuteIssueCommentFailedException());
 
         var act = () => testSubjectMenuCommand.Invoke();
 
@@ -323,7 +307,7 @@ public class MuteIssueCommandTests
     public void Execute_WithNonRoslynIssue_WhenMuteIssueCancelledException_Catches()
     {
         SetupNonRoslynIssue();
-        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<string>()).ThrowsAsync(new MuteIssueException.MuteIssueCancelledException());
+        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<IFilterableIssue>()).ThrowsAsync(new MuteIssueException.MuteIssueCancelledException());
 
         var act = () => testSubjectMenuCommand.Invoke();
 
@@ -335,7 +319,7 @@ public class MuteIssueCommandTests
     public void Execute_WithRoslynIssue_WhenMuteIssueCancelledException_Catches()
     {
         SetupRoslynIssue(out _);
-        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<string>()).ThrowsAsync(new MuteIssueException.MuteIssueCancelledException());
+        muteIssuesService.ResolveIssueWithDialogAsync(Arg.Any<IFilterableIssue>()).ThrowsAsync(new MuteIssueException.MuteIssueCancelledException());
 
         var act = () => testSubjectMenuCommand.Invoke();
 
@@ -362,7 +346,6 @@ public class MuteIssueCommandTests
             x[0] = roslynIssue;
             return true;
         });
-        serverIssueFinder.FindServerIssueAsync(roslynIssue, Arg.Any<CancellationToken>()).Returns(sonarQubeIssue);
         return roslynIssue;
     }
 
@@ -383,5 +366,6 @@ public class MuteIssueCommandTests
 
     private void AssertMessageBoxShown(string message) => messageBox.Received(1).Show(message, AnalysisStrings.MuteIssue_FailureCaption, MessageBoxButton.OK, MessageBoxImage.Exclamation);
 
-    private void AssertCommentFailedMessageBoxShown() => messageBox.Received(1).Show(AnalysisStrings.MuteIssue_MessageBox_AddCommentFailed, AnalysisStrings.MuteIssue_WarningCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
+    private void AssertCommentFailedMessageBoxShown() =>
+        messageBox.Received(1).Show(AnalysisStrings.MuteIssue_MessageBox_AddCommentFailed, AnalysisStrings.MuteIssue_WarningCaption, MessageBoxButton.OK, MessageBoxImage.Warning);
 }
