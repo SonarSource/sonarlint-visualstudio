@@ -601,15 +601,6 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string String1 {
-            get {
-                return ResourceManager.GetString("String1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Finished fetching suppressions. All issues suppressed: {0}.
         /// </summary>
         internal static string Suppression_Fetch_Issues_Finished {

@@ -349,7 +349,4 @@
   <data name="MuteIssue_ErrorIssueAlreadyResolved" xml:space="preserve">
     <value>This issue is already resolved on the server. It will be removed from the Error List after the next SonarQube for Visual Studio analysis.</value>
   </data>
-  <data name="String1" xml:space="preserve">
-    <value />
-  </data>
 </root>
