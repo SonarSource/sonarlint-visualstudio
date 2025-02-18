@@ -475,6 +475,15 @@ namespace SonarLint.VisualStudio.ConnectedMode {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This issue is already resolved on the server. It will be removed from the Error List after the next SonarQube for Visual Studio analysis..
+        /// </summary>
+        internal static string MuteIssue_ErrorIssueAlreadyResolved {
+            get {
+                return ResourceManager.GetString("MuteIssue_ErrorIssueAlreadyResolved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find a matching issue on the server..
         /// </summary>
         internal static string MuteIssue_IssueNotFound {

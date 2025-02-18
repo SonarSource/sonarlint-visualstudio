@@ -375,5 +375,7 @@
   </data>
   <data name="AutomaticBindingType_Suggested" xml:space="preserve">
     <value>Suggested</value>
+  <data name="MuteIssue_ErrorIssueAlreadyResolved" xml:space="preserve">
+    <value>This issue is already resolved on the server. It will be removed from the Error List after the next SonarQube for Visual Studio analysis.</value>
   </data>
 </root>

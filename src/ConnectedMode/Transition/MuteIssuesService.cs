@@ -19,9 +19,13 @@
  */
 
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.ConnectedMode.Suppressions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.ConfigurationScope;
+using SonarLint.VisualStudio.Core.Suppressions;
 using SonarLint.VisualStudio.Core.Transition;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.SLCore;
 using SonarLint.VisualStudio.SLCore.Core;
 using SonarLint.VisualStudio.SLCore.Service.Issue;
@@ -37,16 +41,19 @@ internal class MuteIssuesService(
     IMuteIssuesWindowService muteIssuesWindowService,
     IActiveConfigScopeTracker activeConfigScopeTracker,
     ISLCoreServiceProvider slCoreServiceProvider,
+    IServerIssueFinder serverIssueFinder,
+    ISuppressionUpdater suppressionUpdater,
+    IAnalysisRequester analysisRequester,
     ILogger logger,
     IThreadHandling threadHandling)
     : IMuteIssuesService
 {
     private readonly ILogger logger = logger.ForContext(nameof(MuteIssuesService));
 
-    public async Task ResolveIssueWithDialogAsync(string issueServerKey)
+    public async Task ResolveIssueWithDialogAsync(IFilterableIssue issue)
     {
         threadHandling.ThrowIfOnUIThread();
-
+        var issueServerKey = await GetIssueServerKeyAsync(issue);
         var currentConfigScope = activeConfigScopeTracker.Current;
         CheckIsInConnectedMode(currentConfigScope);
         CheckIssueServerKeyNotNullOrEmpty(issueServerKey);
@@ -55,6 +62,26 @@ internal class MuteIssuesService(
         var windowResponse = await PromptMuteIssueResolutionAsync(allowedStatuses);
         await MuteIssueAsync(currentConfigScope.Id, issueServerKey, windowResponse.IssueTransition.Value);
         await AddCommentAsync(currentConfigScope.Id, issueServerKey, windowResponse.Comment);
+        await UpdateRoslynSuppressionsAsync(issue, issueServerKey);
+        RequestAnalysis(issue);
+    }
+
+    private async Task<string> GetIssueServerKeyAsync(IFilterableIssue issue)
+    {
+        // Non-Roslyn issues already have the issue server key
+        if (issue is IAnalysisIssueVisualization issueViz)
+        {
+            return issueViz.Issue.IssueServerKey;
+        }
+
+        // Roslyn issues need to be converted to SonarQube issues to get the server key as they are handled by SLCore
+        var serverIssue = await serverIssueFinder.FindServerIssueAsync(issue, CancellationToken.None);
+        if (serverIssue is { IsResolved: true })
+        {
+            logger.WriteLine(Resources.MuteIssue_ErrorIssueAlreadyResolved);
+            throw new MuteIssueException(Resources.MuteIssue_ErrorIssueAlreadyResolved);
+        }
+        return serverIssue?.IssueKey;
     }
 
     private async Task<MuteIssuesWindowResponse> PromptMuteIssueResolutionAsync(IEnumerable<ResolutionStatus> allowedStatuses)
@@ -164,4 +191,22 @@ internal class MuteIssuesService(
             throw new MuteIssueException.MuteIssueCommentFailedException();
         }
     }
+
+    /// <summary>
+    /// The suppressed issues for roslyn are not dealt by SlCore, but are stored on disk, so we need to update them manually
+    /// </summary>
+    private async Task UpdateRoslynSuppressionsAsync(IFilterableIssue issue, string serverIssueKey)
+    {
+        if (issue is IFilterableRoslynIssue)
+        {
+            await suppressionUpdater.UpdateSuppressedIssuesAsync(isResolved: true, [serverIssueKey], new CancellationToken());
+        }
+    }
+
+    /// <summary>
+    ///  Scheduling analysis is not needed from a technical perspective, but it’s easier and faster (as we don’t need to refactor the code to make the updating of the file snapshot cache in VS and SlCore separate from analysis scheduling).
+    ///  On scheduling analysis the SlCore and current snapshot of the file are updated.
+    ///  Additionally, there is a user benefit that the issue is suppressed immediately (we don’t have to wait for SlCore to call RaiseFindings, which seems to take a while)
+    /// </summary>
+    private void RequestAnalysis(IFilterableIssue issue) => analysisRequester.RequestAnalysis(new AnalyzerOptions(), issue.FilePath);
 }
