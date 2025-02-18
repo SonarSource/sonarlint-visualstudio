@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarLint.VisualStudio.SLCore.Common.Helpers;
@@ -33,11 +33,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIdeHotspots;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class HotspotDetailsDtoToHotspotConverter : IHotspotDetailsDtoToHotspotConverter
 {
+    private readonly ILogger logger;
     private readonly IChecksumCalculator checksumCalculator;
 
     [ImportingConstructor]
-    public HotspotDetailsDtoToHotspotConverter() : this(new ChecksumCalculator())
+    public HotspotDetailsDtoToHotspotConverter(ILogger logger) : this(new ChecksumCalculator())
     {
+        this.logger = logger;
+        this.logger = logger.ForContext("Open In IDE").ForContext(nameof(HotspotDetailsDtoToHotspotConverter));
     }
 
     public HotspotDetailsDtoToHotspotConverter(IChecksumCalculator checksumCalculator)
@@ -47,6 +50,7 @@ internal class HotspotDetailsDtoToHotspotConverter : IHotspotDetailsDtoToHotspot
 
     public IAnalysisIssueBase Convert(HotspotDetailsDto hotspotDetailsDto, string rootPath)
     {
+        logger.LogVerbose($"Issue {hotspotDetailsDto.Key} is hotspot {hotspotDetailsDto.ideFilePath}");
         return new Hotspot(id: null,
             hotspotDetailsDto.key,
             hotspotDetailsDto.ideFilePath,

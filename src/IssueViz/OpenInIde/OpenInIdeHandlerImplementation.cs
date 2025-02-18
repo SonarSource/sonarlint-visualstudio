@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -33,7 +31,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.OpenInIde;
 
 public interface IOpenInIdeHandlerImplementation
 {
-    void ShowIssue<T>(T issueDetails,
+    void ShowIssue<T>(
+        T issueDetails,
         string configurationScope,
         IOpenInIdeIssueToAnalysisIssueConverter<T> converter,
         Guid toolWindowId,
@@ -55,7 +54,8 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
     private readonly IThreadHandling thereHandling;
 
     [ImportingConstructor]
-    public OpenInIdeHandlerImplementation(IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
+    public OpenInIdeHandlerImplementation(
+        IOpenInIdeConfigScopeValidator openInIdeConfigScopeValidator,
         IOpenInIdeConverterImplementation converterImplementation,
         IToolWindowService toolWindowService,
         IOpenInIdeNotification notification,
@@ -72,11 +72,12 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         this.issueSelectionService = issueSelectionService;
         this.openInIdeConfigScopeValidator = openInIdeConfigScopeValidator;
         this.converterImplementation = converterImplementation;
-        this.logger = logger;
+        this.logger = logger.ForContext("Open In IDE");
         this.thereHandling = thereHandling;
     }
 
-    public void ShowIssue<T>(T issueDetails,
+    public void ShowIssue<T>(
+        T issueDetails,
         string configurationScope,
         IOpenInIdeIssueToAnalysisIssueConverter<T> converter,
         Guid toolWindowId,
@@ -89,7 +90,12 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         }).Forget();
     }
 
-    private void ShowIssueInternal<T>(T issueDetails, string issueConfigurationScope, IOpenInIdeIssueToAnalysisIssueConverter<T> converter, Guid toolWindowId, IOpenInIdeVisualizationProcessor visualizationProcessor) where T : IOpenInIdeIssue
+    private void ShowIssueInternal<T>(
+        T issueDetails,
+        string issueConfigurationScope,
+        IOpenInIdeIssueToAnalysisIssueConverter<T> converter,
+        Guid toolWindowId,
+        IOpenInIdeVisualizationProcessor visualizationProcessor) where T : IOpenInIdeIssue
     {
         logger.WriteLine(OpenInIdeResources.ProcessingRequest, issueConfigurationScope,
             issueDetails?.Key, issueDetails?.Type);
@@ -107,7 +113,7 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
 
         if (visualizationProcessor is not null)
         {
-            visualization = visualizationProcessor.HandleConvertedIssue(visualization) ;
+            visualization = visualizationProcessor.HandleConvertedIssue(visualization);
         }
         issueSelectionService.SelectedIssue = visualization;
 
@@ -134,7 +140,6 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
 
         failureReason = OpenInIdeResources.ValidationReason_MalformedRequest;
         return false;
-
     }
 
     private bool ValidateConfiguration(string issueConfigurationScope, out string configurationScopeRoot, out string failureReason)
@@ -142,7 +147,8 @@ internal class OpenInIdeHandlerImplementation : IOpenInIdeHandlerImplementation
         return openInIdeConfigScopeValidator.TryGetConfigurationScopeRoot(issueConfigurationScope, out configurationScopeRoot, out failureReason);
     }
 
-    private bool ValidateIssueIsConvertible<T>(T issueDetails,
+    private bool ValidateIssueIsConvertible<T>(
+        T issueDetails,
         IOpenInIdeIssueToAnalysisIssueConverter<T> converter,
         string configurationScopeRoot,
         out IAnalysisIssueVisualization visualization,
