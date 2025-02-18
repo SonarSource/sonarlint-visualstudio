@@ -124,7 +124,6 @@ public class MuteIssueCommandTests
 
     [DataTestMethod]
     [DataRow("java:S111")]
-    [DataRow("secrets:S111")] // disabled temporarily
     public void QueryStatus_NotSupportedIssue_Invisible(string errorCode)
     {
         errorListHelper.TryGetRuleIdAndSuppressionStateFromSelectedRow(out _, out _).Returns(x =>
@@ -344,13 +343,11 @@ public class MuteIssueCommandTests
     }
 
     [TestMethod]
-    public void SupportedRepos_AllKnownLanguagesAreSupportedExceptSecrets()
+    public void SupportedRepos_AllKnownLanguagesAreSupported()
     {
         var supportedRepos = testSubject.SupportedRepos;
 
-        languageProvider.AllKnownLanguages.Should().Contain(Language.Secrets);
-        supportedRepos.Should().NotContain(Language.Secrets.Name);
-        supportedRepos.Should().HaveCount(languageProvider.AllKnownLanguages.Count - 1);
+        supportedRepos.Should().HaveCount(languageProvider.AllKnownLanguages.Count);
     }
 
     private IFilterableRoslynIssue SetupRoslynIssue(out SonarQubeIssue sonarQubeIssue)

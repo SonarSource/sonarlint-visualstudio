@@ -111,8 +111,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.logger = logger?.ForContext(nameof(MuteIssueCommand)) ?? throw new ArgumentNullException(nameof(logger));
             this.messageBox = messageBox ?? throw new ArgumentNullException(nameof(messageBox));
 
-            // secrets should be enabled, but there is a bug, so it was on purpose disabled (See https://sonarsource.atlassian.net/browse/SLVS-1210)
-            SupportedRepos = languageProvider.AllKnownLanguages.Except([Language.Secrets]).Select(x => x.RepoInfo.Key).ToList();
+            SupportedRepos = languageProvider.AllKnownLanguages.Select(x => x.RepoInfo.Key).ToList();
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
             menuItem = new OleMenuCommand(Execute, null, QueryStatus, menuCommandID);
