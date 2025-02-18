@@ -184,7 +184,7 @@ public class MuteIssuesServiceTests
     public void ResolveIssueWithDialogAsync_WhenWindowResponseResultIsTrue_ShouldMuteIssue(ResolutionStatus resolutionStatus, SonarQubeIssueTransition transition)
     {
         MuteIssuePermitted();
-        muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = transition });
+        muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>()).Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = transition });
 
         _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
@@ -200,7 +200,8 @@ public class MuteIssuesServiceTests
     {
         MuteIssuePermitted();
         const string comment = "No you are not an issue, you are a feature";
-        muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept, Comment = comment});
+        muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>())
+            .Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept, Comment = comment });
 
         _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
@@ -216,7 +217,8 @@ public class MuteIssuesServiceTests
     {
         MuteIssuePermitted();
         const string comment = "No you are not an issue, you are a feature";
-        muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept, Comment = comment});
+        muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>())
+            .Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept, Comment = comment });
         issueSlCoreService.AddCommentAsync(Arg.Any<AddIssueCommentParams>()).ThrowsAsync(new Exception("Some error"));
 
         var act = () => testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
@@ -229,7 +231,7 @@ public class MuteIssuesServiceTests
     public void ResolveIssueWithDialogAsync_WhenWindowResponseDoesNotHaveComment_ShouldMuteWithoutComment()
     {
         MuteIssuePermitted();
-        muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept});
+        muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>()).Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept });
 
         _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
@@ -241,7 +243,8 @@ public class MuteIssuesServiceTests
     {
         MuteIssuePermitted();
         const string commentWithJustSpacesAndNewLine = " \n ";
-        muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept, Comment = commentWithJustSpacesAndNewLine});
+        muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>())
+            .Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept, Comment = commentWithJustSpacesAndNewLine });
 
         _ = testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
 
@@ -252,7 +255,7 @@ public class MuteIssuesServiceTests
     public void ResolveIssueWithDialogAsync_WhenMuteIssueFails_LogsAndThrows()
     {
         MuteIssuePermitted();
-        muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept });
+        muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>()).Returns(new MuteIssuesWindowResponse { Result = true, IssueTransition = SonarQubeIssueTransition.Accept });
         issueSlCoreService.ChangeStatusAsync(Arg.Any<ChangeIssueStatusParams>()).Returns(call => throw new Exception("Some error"));
 
         var act = () => testSubject.ResolveIssueWithDialogAsync(AnIssueServerKey);
@@ -271,7 +274,7 @@ public class MuteIssuesServiceTests
         issueSlCoreService.CheckStatusChangePermittedAsync(Arg.Any<CheckStatusChangePermittedParams>()).Returns(notPermittedResponse);
     }
 
-    private void CancelResolutionStatusWindow() => muteIssuesWindowService.Show().Returns(new MuteIssuesWindowResponse { Result = false });
+    private void CancelResolutionStatusWindow() => muteIssuesWindowService.Show(Arg.Any<IEnumerable<SonarQubeIssueTransition>>()).Returns(new MuteIssuesWindowResponse { Result = false });
 
     private void AssertMuteIssueWithoutComment()
     {
