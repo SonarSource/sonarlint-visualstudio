@@ -80,11 +80,11 @@ public class MuteIssuesServiceTests
     [TestMethod]
     public void Logger_HasCorrectContext()
     {
-        var substitureLogger = Substitute.For<ILogger>();
+        var substituteLogger = Substitute.For<ILogger>();
 
-        _ = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, substitureLogger, threadHandling);
+        _ = new MuteIssuesService(muteIssuesWindowService, activeConfigScopeTracker, slCoreServiceProvider, substituteLogger, threadHandling);
 
-        substitureLogger.Received(1).ForContext("MuteIssuesService");
+        substituteLogger.Received(1).ForContext("MuteIssuesService");
     }
 
     [TestMethod]
